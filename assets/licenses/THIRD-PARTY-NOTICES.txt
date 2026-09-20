@@ -28,6 +28,17 @@ CC BY-SA 4.0. OPRA-ATTRIBUTION.txt records what was adapted and how.
 AutoEq provides the impulse responses behind the convolution layer, and is the
 origin of much of the data OPRA redistributes.
 
+The Room's heads are derived from the MIT KEMAR measurements: HRTF Measurements
+of a KEMAR Dummy-Head Microphone, Bill Gardner and Keith Martin, MIT Media
+Laboratory, 1994, https://sound.media.mit.edu/resources/KEMAR.html. That data
+is Copyright 1994 by the MIT Media Laboratory and is provided free with no
+restrictions on use, provided the authors are cited when the data is used in
+any research or commercial application. This application is sold, so they are
+cited: here, and in the About panel inside it. Their licence is not in this
+directory but beside the data it covers, as ../room/heads/LICENSES.md, which
+also records what was adapted — the horizontal ring of the compact set,
+diffuse-field equalised and resampled.
+
 
 Karaoke Maker analysis components (Apache-2.0)
 ------------------------------------------------
@@ -50,7 +61,9 @@ The melody detector and the vocal separator use model weights that are not
 supplied by the projects above and carry their own terms. What FluidEQ uses,
 and where each comes from:
 
-  SwiftF0            bundled, assets/models/swift-f0.onnx
+  SwiftF0            MIT, bundled, assets/models/swift-f0.onnx
+                     Copyright (c) 2025-2026 Lars Nieradzik
+                     https://github.com/lars76/swift-f0
                      the melody detector's fallback
 
   RMVPE              downloaded on request
@@ -63,6 +76,14 @@ and where each comes from:
 
 Neither downloaded model is fetched until the user presses the control that
 needs it, and neither is redistributed by FluidEQ.
+
+SwiftF0 is, so its licence travels with it. What ships is the model committed
+in the author's own repository — swift_f0/model.onnx at commit 64700fce, byte
+for byte, 397,987 bytes, SHA-256
+7e2390db8379cd9e1e2b22828e55b45b57c8559e4c8335678c717dc245c18176 — and that
+repository places one MIT licence over everything in it, stating no separate
+terms for the weights. Its copyright line is in the MIT list below, whose
+permission notice covers this entry as well.
 
 
 LAME, through @breezystack/lamejs (LGPL-3.0)
@@ -126,6 +147,7 @@ react-router-dom    Copyright (c) React Training LLC 2015-2019
                     Copyright (c) Remix Software Inc. 2020-2021
                     Copyright (c) Shopify Inc. 2022-2023
 regedit             Copyright (c) 2014 ironSource
+swift-f0 (weights)  Copyright (c) 2025-2026 Lars Nieradzik
 uid                 Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
 FidelityFX-FSR 1.0  Copyright (c) 2021 Advanced Micro Devices, Inc.
 

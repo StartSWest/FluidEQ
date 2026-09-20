@@ -710,6 +710,18 @@ Convolution impulse responses are AutoEq's, credited to
 [Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and used under the MIT
 licence. AutoEq is also the origin of much of the data OPRA redistributes.
 
+The Room's heads derive from the MIT KEMAR measurements —
+[_HRTF Measurements of a KEMAR Dummy-Head Microphone_](https://sound.media.mit.edu/resources/KEMAR.html),
+Bill Gardner and Keith Martin, MIT Media Laboratory, 1994. That data is
+copyright 1994 the MIT Media Laboratory and provided free with no restrictions
+on use, "provided the authors are cited when the data is used in any research
+or commercial application" — which this application is, so FluidEQ cites them
+here, in its About panel and in its third-party notices. What ships is the
+horizontal ring of the compact set, diffuse-field equalised and resampled by
+[`build-room-heads.ts`](.erb/scripts/build-room-heads.ts); the terms and what
+was changed sit beside the data in
+[assets/room/heads/LICENSES.md](assets/room/heads/LICENSES.md).
+
 Squiglink is linked as an external calculator, not bundled as a database. Users
 can export the EQ text there and paste it into FluidEQ; the
 import keeps the source link and a visible curve preview with the applied EQ.

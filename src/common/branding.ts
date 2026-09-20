@@ -115,6 +115,17 @@ export const BRAND_MARK = {
  */
 export const LICENSE_DIR = 'resources/assets/licenses';
 
+/**
+ * Where the Room's head measurements and their terms sit in an installation.
+ *
+ * Their licence is not in `LICENSE_DIR` with the others: it travels beside the
+ * data it covers, because the MIT KEMAR terms are a citation requirement
+ * attached to those specific files rather than a licence for the program. Spelt
+ * out here for the same reason as the line above — a path stated slightly wrong
+ * in a notice is a notice that points at nothing.
+ */
+export const ROOM_HEADS_DIR = 'resources/assets/room/heads';
+
 /** How the program is licensed, for anywhere that has to say so. */
 export const LICENSE = {
   spdx: 'GPL-3.0-or-later',

@@ -70,6 +70,54 @@ distributed under the MIT License; its full license text is included in
 assets/licenses. AutoEq is also the origin of much of the data OPRA
 redistributes.
 
+The Room's heads — the head-related impulse responses both of its renderers use
+to fold a surround mix into headphone sound — are derived from the compact
+set of _HRTF Measurements of a KEMAR Dummy-Head Microphone_, Bill Gardner and
+Keith Martin, MIT Media Laboratory, 1994
+(https://sound.media.mit.edu/resources/KEMAR.html). What that data carries is a
+citation requirement rather than a licence:
+
+> This data is Copyright 1994 by the MIT Media Laboratory. It is provided free
+> with no restrictions on use, provided the authors are cited when the data is
+> used in any research or commercial application.
+
+This application is sold, so that citation is owed rather than offered. It is
+given here, in README.md, in the third-party notices that install beside the
+application, and in the application's own About panel next to the other bundled
+data. What ships is adapted: the 24 directions of the horizontal ring, the left
+half mirrored from the measured right as the set itself states it may be,
+diffuse-field equalised and resampled by `.erb/scripts/build-room-heads.ts`.
+The terms and the list of what was changed travel with the files themselves as
+assets/room/heads/LICENSES.md. HeSuVi's virtualisation files are recordings of
+other companies' products and are used here in no form.
+
+The Karaoke Maker's melody detector falls back to **SwiftF0** by Lars
+Nieradzik, and its weights are the one machine-learning model FluidEQ
+redistributes: 398 KB of ONNX in `assets/models/swift-f0.onnx`, installed with
+the application. What ships is the model committed in the author's own
+repository — `swift_f0/model.onnx` at commit `64700fce`, byte for byte, SHA-256
+`7e2390db8379cd9e1e2b22828e55b45b57c8559e4c8335678c717dc245c18176` — and that
+repository places a single licence over everything in it:
+
+> MIT License
+>
+> Copyright (c) 2025-2026 Lars Nieradzik
+
+There is no separate licence for the weights and no model card carving them
+out, so the licence covering the code they sit beside is the licence they come
+under. That was read at https://github.com/lars76/swift-f0 on 2026-09-20 — the
+author's own repository, not a mirror's tag — and the same file read
+`Copyright (c) 2025 Lars Nieradzik` at the commit those bytes come from; the
+line reproduced is the project's current and wider one. MIT asks that its
+copyright line and permission notice accompany every copy, and this application
+is sold, so both travel in `assets/licenses/THIRD-PARTY-NOTICES.txt`, which
+installs beside it.
+
+Every other model is downloaded on request rather than shipped — RMVPE and
+Mel-Band RoFormer for the Karaoke Maker, Whisper for its lyrics, DPDFNet for
+the Denoise stage's Voice module — and none of them is fetched until the
+control that needs it is pressed.
+
 ## The FluidEQ name and logo
 
 The name **FluidEQ** and the FluidEQ logo — the teal S-curve wave glyph on a

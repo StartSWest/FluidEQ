@@ -25,6 +25,7 @@ import {
   LICENSE_DIR,
   PRODUCT_NAME,
   REPOSITORY_URL,
+  ROOM_HEADS_DIR,
   TRADEMARK,
   UPSTREAM,
 } from 'common/branding';
@@ -230,6 +231,31 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
               <code>{LICENSE_DIR}/AutoEq-LICENSE.txt</code>. Squiglink exports
               are imported only when a user provides them and are never
               redistributed here.
+            </p>
+            {/* Not a licence, a citation requirement: the MIT Media
+                Laboratory places no restriction on use of this data beyond
+                asking that its authors be cited when it is used in a research
+                or commercial application. This one is sold, so the citation is
+                owed rather than offered, and a citation is the authors, the
+                work and the year — which is why all three are named here
+                rather than just a project name. */}
+            <p>
+              The Room renders through heads derived from the MIT KEMAR
+              measurements —{' '}
+              <a
+                href="https://sound.media.mit.edu/resources/KEMAR.html"
+                target="_blank"
+                rel="noreferrer"
+              >
+                HRTF Measurements of a KEMAR Dummy-Head Microphone
+              </a>
+              , Bill Gardner and Keith Martin, MIT Media Laboratory, 1994. That
+              data is copyright © 1994 the MIT Media Laboratory and free to use,
+              provided its authors are cited wherever it is. What ships here is
+              the horizontal ring of their compact set, diffuse-field equalised
+              and resampled for this application; the terms and what was changed
+              travel beside the files as{' '}
+              <code>{ROOM_HEADS_DIR}/LICENSES.md</code>.
             </p>
           </section>
 
