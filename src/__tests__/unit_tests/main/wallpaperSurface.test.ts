@@ -199,6 +199,26 @@ describe('a desktop background appearing', () => {
     expect(mockHost.setVisible).not.toHaveBeenCalledWith(false);
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
   });
+
+  // The one pause that does come off: saving power is chosen with the desktop
+  // in front of the listener, and their own wallpaper coming back is how they
+  // see it took.
+  it('comes off the desktop to save battery, and goes back when it is plugged in', () => {
+    const pause: { reason?: TWallpaperPause } = { reason: 'battery' };
+    const { surface } = create(pause);
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    expect(surface.pauseReason()).toBe('battery');
+    expect(mockHost.setVisible).toHaveBeenLastCalledWith(false);
+    expect(mockWindow.showInactive).not.toHaveBeenCalled();
+
+    pause.reason = undefined;
+    surface.applyPolicy();
+    expect(surface.phase()).toBe('running');
+    expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('a desktop background changing and ending', () => {
