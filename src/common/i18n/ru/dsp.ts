@@ -860,6 +860,8 @@ const dsp = {
     'Требовалось {requested} дБ — на максимальной коррекции этой ступени.',
   'dsp.master.limit.gate':
     'Слишком тихо для измерения — коррекция не применена.',
+  'dsp.master.limit.noTrack':
+    'Нечего измерять: эта поправка считывается с целого трека, поэтому действует во время воспроизведения Библиотеки.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

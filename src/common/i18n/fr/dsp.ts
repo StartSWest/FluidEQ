@@ -866,6 +866,8 @@ const dsp = {
     '{requested} dB nécessaires — au maximum de correction de cet étage.',
   'dsp.master.limit.gate':
     'Trop faible pour être mesuré — aucune correction appliquée.',
+  'dsp.master.limit.noTrack':
+    'Aucun morceau à mesurer : cette correction est lue sur un morceau entier, elle s’applique donc pendant la lecture de la Bibliothèque.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

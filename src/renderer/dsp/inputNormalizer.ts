@@ -243,7 +243,16 @@ export const normalizerGainDb = (
 ): number => normalizerGainBreakdown(settings, analysis).appliedDb;
 
 /** Which term produced the Master makeup, when it was not the target. */
-export type TMasterLoudnessLimit = 'none' | 'limiting' | 'maxGain' | 'gate';
+/**
+ * `noTrack` is its own answer rather than `none`, because the two look
+ * identical on the card and mean opposite things: `none` is "the target was
+ * reached and cost nothing", `noTrack` is "there was nothing to measure".
+ * The makeup is one constant read from a whole track, so it exists only while
+ * the Library is the source; on system audio the dial read -9 LUFS and the
+ * line under it read +0.0 dB for ever, with nothing saying why.
+ */
+export type TMasterLoudnessLimit =
+  'none' | 'limiting' | 'maxGain' | 'gate' | 'noTrack';
 
 export interface IMasterLoudnessBreakdown {
   /** The whole-track level the target is measured against, after Normalizer. */
@@ -300,8 +309,11 @@ export const masterLoudnessBreakdown = (
     appliedDb: 0,
     limitedBy: 'none',
   };
-  if (!master.enabled || !master.loudnessMaximize || !analysis) {
+  if (!master.enabled || !master.loudnessMaximize) {
     return idle;
+  }
+  if (!analysis) {
+    return { ...idle, limitedBy: 'noTrack' };
   }
   const normalizerDb = normalizerGainDb(normalizer, analysis);
   const normalizedLufs = analysis.integratedLufs + normalizerDb;

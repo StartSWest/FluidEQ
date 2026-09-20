@@ -243,7 +243,6 @@ export const registerProfilesIpc = ({
       state.headset = presetSettings.headset;
       state.headsetTarget = presetSettings.headsetTarget;
       state.headsetSource = presetSettings.headsetSource;
-      state.headsetSignature = presetSettings.headsetSignature;
       state.eqImport = presetSettings.eqImport;
       // Which layers this profile has switched off comes with it, like the layers
       // themselves. Keeping the previous profile's list would silence a layer this
@@ -297,7 +296,6 @@ export const registerProfilesIpc = ({
       state.headset = baseline.headset;
       state.headsetTarget = baseline.headsetTarget;
       state.headsetSource = baseline.headsetSource;
-      state.headsetSignature = baseline.headsetSignature;
       state.eqImport = baseline.eqImport;
       state.bypassed = baseline.bypassed;
       hydrateActiveConvolution();

@@ -848,6 +848,8 @@ const dsp = {
   'dsp.master.limit.maxGain':
     '{requested} dB 必要 — このステージの最大補正に達しています。',
   'dsp.master.limit.gate': '静かすぎて測定できません — 補正は適用されません。',
+  'dsp.master.limit.noTrack':
+    '測定する曲がありません。この補正は曲全体から読み取るため、ライブラリの再生中に働きます。',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

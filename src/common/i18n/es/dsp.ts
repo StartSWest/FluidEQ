@@ -863,6 +863,8 @@ const dsp = {
     'Se necesitaban {requested} dB — en la corrección máxima de esta etapa.',
   'dsp.master.limit.gate':
     'Demasiado silencioso para medir — sin corrección aplicada.',
+  'dsp.master.limit.noTrack':
+    'No hay pista que medir: esta corrección se lee de una pista completa, así que se aplica mientras suena la Biblioteca.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

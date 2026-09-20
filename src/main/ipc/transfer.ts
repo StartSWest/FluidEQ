@@ -388,7 +388,6 @@ export const registerTransferIpc = ({
         state.headset = undefined;
         state.headsetTarget = undefined;
         state.headsetSource = undefined;
-        state.headsetSignature = undefined;
         applyingLayer('headphone');
       } else {
         clearCurrentLayoutSettings();
@@ -684,16 +683,15 @@ export const registerTransferIpc = ({
       state.headset = bundle.preset.headset;
       state.headsetTarget = bundle.preset.headsetTarget;
       state.headsetSource = bundle.preset.headsetSource;
-      state.headsetSignature = bundle.preset.headsetSignature;
       state.eqImport = bundle.preset.eqImport;
       /*
        * The headphone layer, which this list forgot when the layer was added.
        *
        * Three other sites copy a preset onto the live state and all three carry
        * it; only this one did not, so importing a chain silently dropped the
-       * correction it was carrying. Worse than dropped: `headsetSignature` two
-       * lines up WAS copied, so the layers strip then described a correction
-       * against bands that had never produced it.
+       * correction it was carrying. Worse than dropped: the signature of the
+       * applied reference WAS copied beside it, so the layers strip then
+       * described a correction against bands that had never produced it.
        *
        * And it did not stop at this run. `handleUpdateHelper` re-saves the
        * profile from `getCurrentPreset()`, which reads the live state — so the

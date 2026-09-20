@@ -467,9 +467,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [headsetTarget, setHeadsetTarget] = useState<string | undefined>(
     DEFAULT_STATE.headsetTarget,
   );
-  const [headsetSignature, setHeadsetSignature] = useState<string | undefined>(
-    DEFAULT_STATE.headsetSignature,
-  );
   const [headsetSource, setHeadsetSource] = useState<string | undefined>(
     DEFAULT_STATE.headsetSource,
   );
@@ -630,7 +627,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setHeadset(state.headset);
         setHeadsetTarget(state.headsetTarget);
         setHeadsetSource(state.headsetSource);
-        setHeadsetSignature(state.headsetSignature);
 
         // The band set lands whole either way — same ids, same frequencies,
         // same types — so the layout is right from the first frame and only
@@ -799,7 +795,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         headset,
         headsetTarget,
         headsetSource,
-        headsetSignature,
         voicing,
         driver,
         smartEq,

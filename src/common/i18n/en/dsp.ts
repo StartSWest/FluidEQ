@@ -870,6 +870,8 @@ const dsp = {
   'dsp.master.limit.maxGain':
     'Needed {requested} dB — at the maximum correction this stage applies.',
   'dsp.master.limit.gate': 'Too quiet to measure — no correction applied.',
+  'dsp.master.limit.noTrack':
+    'No track to measure — this correction is read from a whole track, so it applies while the Library is playing.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

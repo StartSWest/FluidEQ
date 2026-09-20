@@ -816,6 +816,8 @@ const dsp = {
     '需要 {requested} dB — 只有 {room} dB 峰值余量加上允许的限制量。',
   'dsp.master.limit.maxGain': '需要 {requested} dB — 已达本级的最大校正量。',
   'dsp.master.limit.gate': '太安静，无法测量 — 未应用校正。',
+  'dsp.master.limit.noTrack':
+    '没有可测量的曲目——此校正读自整首曲目，因此在音乐库播放时生效。',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

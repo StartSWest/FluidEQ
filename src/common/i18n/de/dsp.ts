@@ -870,6 +870,8 @@ const dsp = {
   'dsp.master.limit.maxGain':
     '{requested} dB nötig — an der maximalen Korrektur dieser Stufe.',
   'dsp.master.limit.gate': 'Zu leise zum Messen — keine Korrektur angewendet.',
+  'dsp.master.limit.noTrack':
+    'Kein Titel zum Messen – diese Korrektur wird aus einem ganzen Titel gelesen und gilt daher während der Wiedergabe der Bibliothek.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

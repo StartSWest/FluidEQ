@@ -855,6 +855,8 @@ const dsp = {
   'dsp.master.limit.maxGain':
     '{requested} dB चाहिए थे — इस चरण के अधिकतम सुधार पर।',
   'dsp.master.limit.gate': 'मापने के लिए बहुत शांत — कोई सुधार लागू नहीं।',
+  'dsp.master.limit.noTrack':
+    'मापने के लिए कोई ट्रैक नहीं — यह सुधार पूरे ट्रैक से पढ़ा जाता है, इसलिए यह लाइब्रेरी चलने पर लागू होता है।',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

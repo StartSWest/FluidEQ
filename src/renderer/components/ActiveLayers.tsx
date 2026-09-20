@@ -136,17 +136,17 @@ const ActiveLayers = () => {
   /*
    * The "(modified)" mark is gone with the attribution it qualified.
    *
-   * It compared `headsetSignature` against the shape of the bands, which was
-   * exactly right while a reference WAS the bands. Since the correction became
-   * a layer, that signature describes the layer's filters — so the comparison
-   * was between two different things and could only ever come out unequal. The
-   * chip said modified the moment a reference was applied and never stopped.
+   * It compared a recorded signature of the applied reference against the
+   * shape of the bands, which was exactly right while a reference WAS the
+   * bands. Since the correction became a layer, that signature described the
+   * layer's filters — so the comparison was between two different things and
+   * could only ever come out unequal. The chip said modified the moment a
+   * reference was applied and never stopped.
    *
    * There is nothing to replace it with here, either: a band the user moved is
-   * a band, and this chip now says how many there are. `headsetSignature` is
-   * kept in state for profiles saved before the split, which carry it; nothing
-   * in the renderer reads it any more, since Smart EQ subtracts the whole band
-   * layer and no longer needs to know which part of it was a headset curve.
+   * a band, and this chip now says how many there are. The signature itself
+   * went on being recorded and saved into every profile for a year after
+   * nothing read it, and was taken out on 2026-09-20.
    */
 
   /**
@@ -398,10 +398,10 @@ const ActiveLayers = () => {
    * both chips carrying the same headphones, which is the whole bug in one row.
    *
    * The "(modified)" it also carried was the same mistake read a second way.
-   * `headsetSignature` now describes the LAYER's filters, so comparing it with
-   * the bands is comparing two different things and can only ever differ. It
-   * said modified the instant a reference was applied, before anybody had
-   * touched anything.
+   * The signature it compared described the LAYER's filters, so comparing it
+   * with the bands was comparing two different things and could only ever
+   * differ. It said modified the instant a reference was applied, before
+   * anybody had touched anything.
    *
    * So: how many bands there are, which is the only honest thing to say about a
    * tuning with no source of its own. The attribution lives on the chip that

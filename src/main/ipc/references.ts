@@ -27,7 +27,6 @@ import {
   IState,
   OPRA_SOURCE_ID,
   TApoLayer,
-  describeBandShape,
 } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
@@ -185,7 +184,6 @@ export const registerReferencesIpc = ({
       state.headset = productId;
       state.headsetTarget = curveId;
       state.headsetSource = OPRA_SOURCE_ID;
-      state.headsetSignature = describeBandShape(state.headphone.filters);
       /*
        * `eqImport` is NOT cleared here.
        *
@@ -278,7 +276,6 @@ export const registerReferencesIpc = ({
     state.headset = undefined;
     state.headsetTarget = undefined;
     state.headsetSource = undefined;
-    state.headsetSignature = undefined;
     // Replies with the new bands, the same as Clear EQ, so a caller that is not
     // about to re-read the whole state can adopt them: getDefaultFilters mints
     // fresh ids, and every id the renderer still holds has just stopped existing.

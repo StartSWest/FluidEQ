@@ -1323,7 +1323,6 @@ const getCurrentPreset = (): IPresetV2 => ({
   headset: state.headset,
   headsetTarget: state.headsetTarget,
   headsetSource: state.headsetSource,
-  headsetSignature: state.headsetSignature,
   // Which layers are switched off is part of what this profile sounds like, so
   // it travels with it — otherwise switching outputs and back would bring every
   // bypassed layer roaring back in.

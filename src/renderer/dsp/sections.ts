@@ -57,7 +57,11 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // then widens the binaural pair like any stereo mix. Listed here because
   // the page reads as "shape the stereo picture, then put it in a room".
   { id: 'room', labelKey: 'dsp.room.title' },
-  // Keep the processor in the DSP chain, but hide its editor until it is ready.
+  // The Compressor belongs here, between the Room and the Maximizer, and is
+  // deliberately absent: it runs in the chain — every preset sets it — while
+  // its editor waits until it is ready. Its page exists and is reachable from
+  // nothing, which is the point; the comment used to sit on the line below
+  // and read as if the Maximizer were the hidden one.
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
 ];

@@ -864,6 +864,8 @@ const dsp = {
     'Servivano {requested} dB — alla correzione massima di questo stadio.',
   'dsp.master.limit.gate':
     'Troppo silenzioso per misurare — nessuna correzione applicata.',
+  'dsp.master.limit.noTrack':
+    'Nessun brano da misurare: questa correzione si legge da un brano intero, quindi vale mentre suona la Libreria.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

@@ -213,7 +213,6 @@ export const registerLayersIpc = ({
       state.headset = undefined;
       state.headsetTarget = undefined;
       state.headsetSource = undefined;
-      state.headsetSignature = undefined;
       await handleUpdate(event, channel, false, true);
       return;
     }

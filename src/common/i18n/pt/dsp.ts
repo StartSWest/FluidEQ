@@ -866,6 +866,8 @@ const dsp = {
     'Eram precisos {requested} dB — na correção máxima deste estágio.',
   'dsp.master.limit.gate':
     'Demasiado baixo para medir — nenhuma correção aplicada.',
+  'dsp.master.limit.noTrack':
+    'Nenhuma faixa para medir: esta correção é lida de uma faixa inteira, por isso aplica-se enquanto a Biblioteca toca.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

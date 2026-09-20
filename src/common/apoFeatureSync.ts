@@ -189,7 +189,6 @@ export const adoptApoFeatureText = (
     state.headset = undefined;
     state.headsetTarget = undefined;
     state.headsetSource = undefined;
-    state.headsetSignature = undefined;
   } else if (feature === 'voicing') {
     state.voicing = hasContent
       ? {
