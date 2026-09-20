@@ -172,7 +172,7 @@ describe('one set of view settings per mode', () => {
    * The pane is a measurement that uses the whole plot, offers no control,
    * and reads full height whatever the big modes are set to.
    */
-  it('shares one wave height between the big modes and keeps the pane at full height', () => {
+  it('shares one wave height between every mode, the pane included', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
@@ -187,9 +187,15 @@ describe('one set of view settings per mode', () => {
     style.setGraphView('expanded');
     expect(style.getGraphWaveHeight()).toBe(0.5);
 
-    // The pane ignores both, and setting from it changes nothing it draws.
+    // The pane gets it too, and that is the point: the menu offers these rows
+    // in the pane while a visualizer is on the plot, and they used to write a
+    // value this getter refused to hand back — so the thumb sprang home on
+    // release and the picture never moved. Whether a bare pane draws with it
+    // is `FrequencyResponseChart`'s call, because that is where it is known
+    // whether a scene is on the plot at all.
     style.setGraphView('normal');
-    expect(style.getGraphWaveHeight()).toBe(1);
+    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBe('0.5');
+    expect(style.getGraphWaveHeight()).toBe(0.5);
   });
 
   it('starts the watching views at three quarters and the pane at full', () => {

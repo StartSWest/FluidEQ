@@ -649,9 +649,18 @@ const FrequencyResponseChart = ({
   const sceneLookId = drawnScene?.lookId;
   const authoredWave = drawnScene?.wave;
   const listenerWave = useListenerWave(authoredWave ? sceneLookId : undefined);
+  // The pane with nothing on it is a measurement and uses the whole plot,
+  // whatever the big modes were left at — which is why the menu offers these
+  // two rows there only while a visualizer is on the graph. The rule is here
+  // rather than in the store because this is where both facts are: which view
+  // this is, and whether a scene is being drawn.
+  const isPlainPane = graphView === 'normal' && !drawnScene;
   const wave = authoredWave
     ? (listenerWave ?? authoredWave)
-    : { height: graphWaveHeight, position: graphWavePosition };
+    : {
+        height: isPlainPane ? 1 : graphWaveHeight,
+        position: isPlainPane ? 0 : graphWavePosition,
+      };
   const waveHeight = wave.height;
   const wavePosition = wave.position;
   const setWaveHeight = (height: number) => {
