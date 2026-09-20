@@ -327,7 +327,6 @@ const parseKaraokeMakerProject = (contents: string): IKaraokeMakerProject => {
         typeof value.analysis?.lastRunAt === 'string'
           ? value.analysis.lastRunAt
           : undefined,
-      vocalFocus: value.analysis?.vocalFocus !== false,
       whisperPasses:
         typeof value.analysis?.whisperPasses === 'number'
           ? Math.max(0, Math.min(100, Math.floor(value.analysis.whisperPasses)))

@@ -88,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Чтение {name}',
   'library.scan.counted': '{parsed} из {seen} файлов',
   'library.scan.cancel': 'Остановить',
-  'library.scan.background': 'Продолжить в фоне',
   'library.scan.done': 'Добавлено {count} песен',
 
   'library.roots': 'Папки',
@@ -133,7 +132,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'Включить звук',
   'library.playbackOptions': 'Параметры воспроизведения',
   'library.position': 'Позиция',
-  'library.queue': 'Очередь',
   'library.queue.remove': 'Удалить из очереди',
   'library.nowPlaying': 'Сейчас играет',
   'library.nothingPlaying': 'Ничего не играет',

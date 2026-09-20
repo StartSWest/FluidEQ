@@ -86,7 +86,6 @@ const library = {
   'library.scan.running': 'Reading {name}',
   'library.scan.counted': '{parsed} of {seen} files',
   'library.scan.cancel': 'Stop',
-  'library.scan.background': 'Continue in the background',
   'library.scan.done': 'Added {count} songs',
 
   'library.roots': 'Folders',
@@ -132,7 +131,6 @@ const library = {
   'library.unmute': 'Unmute',
   'library.playbackOptions': 'Playback options',
   'library.position': 'Position',
-  'library.queue': 'Queue',
   'library.queue.remove': 'Remove from the queue',
   'library.nowPlaying': 'Now playing',
   'library.nothingPlaying': 'Nothing playing',

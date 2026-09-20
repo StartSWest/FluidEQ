@@ -51,7 +51,6 @@ const video: Partial<Dictionary> = {
   'video.downloadCopyPath': 'Pfad kopieren',
   'video.downloadCopied': 'Pfad kopiert',
   'video.downloadShowFolder': 'Im Ordner anzeigen',
-  'video.resize': 'Ziehen, um die Größe des Players zu ändern',
 };
 
 export default video;

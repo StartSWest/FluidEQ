@@ -96,7 +96,6 @@ const look: Partial<Dictionary> = {
   'look.peak.crown': 'クラウン',
   'look.peak.cross': 'クロス',
   'look.peak.wave': 'ウェーブ',
-  'look.noLitPeaks': 'この形には発光する先端がありません',
   'look.name': '名前',
   'look.resetAll': 'すべての設定をリセット',
   'look.resetAllHint': 'この形の初期設定に戻します',

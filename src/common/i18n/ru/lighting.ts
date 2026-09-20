@@ -88,7 +88,6 @@ const lighting = {
     'Цвета берутся из самой сцены, поэтому выбирать ничего не нужно.',
 
   'lighting.devices.title': 'Ваши устройства',
-  'lighting.devices.found': 'Найдено на вашем столе',
   'lighting.devices.searching': 'Поиск устройств…',
   'lighting.devices.none.title': 'Устройства с подсветкой не найдены',
   'lighting.devices.none.body':

@@ -98,7 +98,6 @@ const look: Partial<Dictionary> = {
   'look.peak.crown': 'Corona',
   'look.peak.cross': 'Croce',
   'look.peak.wave': 'Onda',
-  'look.noLitPeaks': 'Questa forma non ha punte luminose',
   'look.name': 'Nome',
   'look.resetAll': 'Ripristina tutte le impostazioni',
   'look.resetAllHint': 'Ripristina le impostazioni originali della forma',

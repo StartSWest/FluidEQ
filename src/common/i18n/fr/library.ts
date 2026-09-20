@@ -90,7 +90,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lecture de {name}',
   'library.scan.counted': '{parsed} sur {seen} fichiers',
   'library.scan.cancel': 'Arrêter',
-  'library.scan.background': 'Continuer en arrière-plan',
   'library.scan.done': '{count} chansons ajoutées',
 
   'library.roots': 'Dossiers',
@@ -136,7 +135,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'Rétablir le son',
   'library.playbackOptions': 'Options de lecture',
   'library.position': 'Position',
-  'library.queue': 'File d’attente',
   'library.queue.remove': 'Retirer de la file d’attente',
   'library.nowPlaying': 'Lecture en cours',
   'library.nothingPlaying': 'Rien en lecture',

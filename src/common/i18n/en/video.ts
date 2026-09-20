@@ -48,7 +48,6 @@ const video = {
   'video.downloadCopyPath': 'Copy path',
   'video.downloadCopied': 'Path copied',
   'video.downloadShowFolder': 'Show in folder',
-  'video.resize': 'Drag to resize the player',
 } as const;
 
 export default video;

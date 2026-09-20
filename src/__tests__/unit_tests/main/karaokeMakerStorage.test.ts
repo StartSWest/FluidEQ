@@ -27,7 +27,7 @@ const project = (): IKaraokeMakerProject => ({
   lyrics: { source: 'manual', lines: [] },
   melody: { source: 'manual', octavePolicy: 'nearest-target', notes: [] },
   meta: { gapMs: 0, rightsConfirmed: false },
-  analysis: { vocalFocus: true },
+  analysis: {},
   provenance: [],
 });
 

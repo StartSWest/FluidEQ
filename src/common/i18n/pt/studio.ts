@@ -264,7 +264,6 @@ const studio = {
     'Um vale entre montanhas na hora dourada. As cristas ao longe são o meu espectro: sobem e descem com a sua parte da música dentro da minha onda e se perdem na névoa com a distância. O sol baixo cresce suave com os graves, as nuvens coram com os médios e o rio lá embaixo cintila com os agudos. A cada grande momento um bando de pássaros cruza na frente do sol, cada vez por um caminho diferente. No silêncio só as nuvens se movem. Controles para a altura do sol, a névoa e as nuvens. Ao redor do app, no modo Ambiente: alguns pássaros planando de vez em quando.',
 
   'studio.prompt.label': 'O prompt para IA',
-  'studio.prompt.ideaHere': '← sua ideia vai aqui',
 
   'studio.hears.level': 'o volume geral',
   'studio.hears.beat': 'um pulso a cada batida',

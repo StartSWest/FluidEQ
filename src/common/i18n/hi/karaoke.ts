@@ -346,7 +346,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardCancel': 'रोकें',
   'karaoke.maker.wizardHide': 'बैकग्राउंड में जारी रखें',
   'karaoke.maker.wizardCancelled': 'रोक दिया गया। जो पूरा हुआ वह रखा गया है।',
-  'karaoke.maker.vocalFocus': 'केंद्रीय आवाज़ पर ध्यान',
   'karaoke.maker.export': 'निर्यात',
   'karaoke.maker.exportProject': 'FluidEQ प्रोजेक्ट',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',

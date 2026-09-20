@@ -269,7 +269,6 @@ const studio = {
     'Una valle di montagna all’ora d’oro. Le creste lontane sono il mio spettro: salgono e scendono con la loro parte della musica dentro la mia onda e sfumano nella foschia con la distanza. Il sole basso si gonfia piano con i bassi, le nuvole arrossiscono con i medi e il fiume in basso luccica con gli acuti. A ogni grande momento uno stormo di uccelli passa davanti al sole, ogni volta per una strada diversa. Nel silenzio si muovono solo le nuvole. Cursori per l’altezza del sole, la foschia e le nuvole. Intorno all’app, in modalità Ambiente: qualche uccello che plana ogni tanto.',
 
   'studio.prompt.label': 'Il prompt per IA',
-  'studio.prompt.ideaHere': '← qui va la tua idea',
 
   'studio.hears.level': 'il volume complessivo',
   'studio.hears.beat': 'un impulso a ogni battito',

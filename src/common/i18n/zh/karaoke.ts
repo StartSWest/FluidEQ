@@ -328,7 +328,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardCancel': '停止',
   'karaoke.maker.wizardHide': '在后台继续',
   'karaoke.maker.wizardCancelled': '已停止，已完成的内容会保留。',
-  'karaoke.maker.vocalFocus': '聚焦中央人声',
   'karaoke.maker.export': '导出',
   'karaoke.maker.exportProject': 'FluidEQ 项目',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',

@@ -362,7 +362,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardHide': 'Continua in background',
   'karaoke.maker.wizardCancelled':
     'Fermato. Ciò che è stato completato è stato mantenuto.',
-  'karaoke.maker.vocalFocus': 'Metti a fuoco la voce centrale',
   'karaoke.maker.export': 'Esporta',
   'karaoke.maker.exportProject': 'Progetto FluidEQ',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',

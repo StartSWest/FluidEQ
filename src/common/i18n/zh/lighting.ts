@@ -81,7 +81,6 @@ const lighting = {
   'lighting.colours.hint': '颜色直接取自场景本身，无需挑选。',
 
   'lighting.devices.title': '你的设备',
-  'lighting.devices.found': '在你的桌面上找到',
   'lighting.devices.searching': '正在查找设备…',
   'lighting.devices.none.title': '未找到灯效设备',
   'lighting.devices.none.body':

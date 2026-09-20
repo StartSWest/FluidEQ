@@ -51,7 +51,6 @@ const video: Partial<Dictionary> = {
   'video.downloadCopyPath': 'पथ कॉपी करें',
   'video.downloadCopied': 'पथ कॉपी हुआ',
   'video.downloadShowFolder': 'फ़ोल्डर में दिखाएँ',
-  'video.resize': 'प्लेयर का आकार बदलने के लिए खींचें',
 };
 
 export default video;

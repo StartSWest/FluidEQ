@@ -87,7 +87,6 @@ const lighting = {
     'रंग ख़ुद दृश्य से आते हैं, इसलिए कुछ चुनने की ज़रूरत नहीं।',
 
   'lighting.devices.title': 'आपके डिवाइस',
-  'lighting.devices.found': 'आपकी डेस्क पर मिले',
   'lighting.devices.searching': 'डिवाइस खोजे जा रहे हैं…',
   'lighting.devices.none.title': 'कोई लाइटिंग डिवाइस नहीं मिला',
   'lighting.devices.none.body':

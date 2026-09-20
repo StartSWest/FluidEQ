@@ -352,7 +352,6 @@ const karaoke = {
   'karaoke.maker.wizardCancel': 'Stop',
   'karaoke.maker.wizardHide': 'Continue in background',
   'karaoke.maker.wizardCancelled': 'Stopped. Anything finished has been kept.',
-  'karaoke.maker.vocalFocus': 'Center vocal focus',
   'karaoke.maker.export': 'Export',
   'karaoke.maker.exportProject': 'FluidEQ project',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',

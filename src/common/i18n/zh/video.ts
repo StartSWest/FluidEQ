@@ -49,7 +49,6 @@ const video: Partial<Dictionary> = {
   'video.downloadCopyPath': '复制路径',
   'video.downloadCopied': '路径已复制',
   'video.downloadShowFolder': '在文件夹中显示',
-  'video.resize': '拖动可调整播放器大小',
 };
 
 export default video;

@@ -87,7 +87,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '正在读取 {name}',
   'library.scan.counted': '{parsed} / {seen} 个文件',
   'library.scan.cancel': '停止',
-  'library.scan.background': '在后台继续',
   'library.scan.done': '已添加 {count} 首歌曲',
 
   'library.roots': '文件夹',
@@ -130,7 +129,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': '取消静音',
   'library.playbackOptions': '播放选项',
   'library.position': '播放位置',
-  'library.queue': '播放队列',
   'library.queue.remove': '从队列中移除',
   'library.nowPlaying': '正在播放',
   'library.nothingPlaying': '没有在播放',

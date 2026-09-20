@@ -88,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lettura di {name}',
   'library.scan.counted': '{parsed} di {seen} file',
   'library.scan.cancel': 'Interrompi',
-  'library.scan.background': 'Continua in background',
   'library.scan.done': '{count} brani aggiunti',
 
   'library.roots': 'Cartelle',
@@ -135,7 +134,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'Riattiva audio',
   'library.playbackOptions': 'Opzioni di riproduzione',
   'library.position': 'Posizione',
-  'library.queue': 'Coda',
   'library.queue.remove': 'Rimuovi dalla coda',
   'library.nowPlaying': 'In riproduzione',
   'library.nothingPlaying': 'Non suona nulla',

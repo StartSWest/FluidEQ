@@ -88,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} を読み込み中',
   'library.scan.counted': '{seen} 件中 {parsed} 件のファイル',
   'library.scan.cancel': '停止',
-  'library.scan.background': 'バックグラウンドで続ける',
   'library.scan.done': '{count} 曲を追加しました',
 
   'library.roots': 'フォルダー',
@@ -136,7 +135,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'ミュート解除',
   'library.playbackOptions': '再生オプション',
   'library.position': '再生位置',
-  'library.queue': '再生キュー',
   'library.queue.remove': 'キューから削除',
   'library.nowPlaying': '再生中',
   'library.nothingPlaying': '再生していません',

@@ -802,10 +802,15 @@ describe('KaraokeWorkspace', () => {
     fireEvent.keyDown(maker, { key: ' ', code: 'Space' });
     expect(play).toHaveBeenCalledTimes(1);
     play.mockClear();
-    const bpm = screen.getByRole('spinbutton', { name: 'BPM' });
-    bpm.focus();
-    fireEvent.keyDown(bpm, { key: ' ', code: 'Space' });
-    expect(play).toHaveBeenCalledTimes(1);
+    // And a space typed into a name is a space in the name. The transport
+    // takes the key everywhere else, which is why this is worth pinning: the
+    // rule used to be shown with the BPM box, a number field it did take the
+    // key from, and that box did nothing at all and came off the page on
+    // 2026-09-20.
+    const artist = screen.getByRole('textbox', { name: 'Artist' });
+    artist.focus();
+    fireEvent.keyDown(artist, { key: ' ', code: 'Space' });
+    expect(play).not.toHaveBeenCalled();
 
     const editorCanvas = maker.querySelector(
       '.karaoke-maker__canvas',

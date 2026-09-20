@@ -50,7 +50,6 @@ const video: Partial<Dictionary> = {
   'video.downloadCopyPath': 'パスをコピー',
   'video.downloadCopied': 'パスをコピーしました',
   'video.downloadShowFolder': 'フォルダーに表示',
-  'video.resize': 'ドラッグしてプレーヤーの大きさを変更',
 };
 
 export default video;

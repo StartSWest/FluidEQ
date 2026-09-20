@@ -88,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} पढ़ा जा रहा है',
   'library.scan.counted': '{seen} में से {parsed} फ़ाइलें',
   'library.scan.cancel': 'रोकें',
-  'library.scan.background': 'बैकग्राउंड में जारी रखें',
   'library.scan.done': '{count} गाने जोड़े गए',
 
   'library.roots': 'फ़ोल्डर',
@@ -133,7 +132,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'अनम्यूट करें',
   'library.playbackOptions': 'प्लेबैक विकल्प',
   'library.position': 'स्थिति',
-  'library.queue': 'कतार',
   'library.queue.remove': 'कतार से हटाएँ',
   'library.nowPlaying': 'अभी चल रहा है',
   'library.nothingPlaying': 'कुछ नहीं चल रहा',

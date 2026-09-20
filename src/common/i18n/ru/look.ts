@@ -99,7 +99,6 @@ const look: Partial<Dictionary> = {
   'look.peak.crown': 'Корона',
   'look.peak.cross': 'Крест',
   'look.peak.wave': 'Волна',
-  'look.noLitPeaks': 'У этой формы нет светящихся концов',
   'look.name': 'Название',
   'look.resetAll': 'Сбросить все настройки',
   'look.resetAllHint': 'Вернуть исходные настройки этой формы',

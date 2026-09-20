@@ -353,7 +353,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardHide': 'バックグラウンドで続行',
   'karaoke.maker.wizardCancelled':
     '停止しました。完了した分は保持されています。',
-  'karaoke.maker.vocalFocus': '中央ボーカルを強調',
   'karaoke.maker.export': '書き出す',
   'karaoke.maker.exportProject': 'FluidEQ プロジェクト',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',

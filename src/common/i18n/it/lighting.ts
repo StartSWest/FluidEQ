@@ -89,7 +89,6 @@ const lighting = {
     'I colori vengono dalla scena stessa, quindi non c’è niente da scegliere.',
 
   'lighting.devices.title': 'I tuoi dispositivi',
-  'lighting.devices.found': 'Trovati sulla tua scrivania',
   'lighting.devices.searching': 'Ricerca dei dispositivi…',
   'lighting.devices.none.title': 'Nessun dispositivo di illuminazione trovato',
   'lighting.devices.none.body':

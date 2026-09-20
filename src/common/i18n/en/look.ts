@@ -97,7 +97,6 @@ const look = {
   'look.peak.crown': 'Crown',
   'look.peak.cross': 'Cross',
   'look.peak.wave': 'Wave',
-  'look.noLitPeaks': 'This form has no lit tips to show',
   'look.name': 'Name',
   'look.resetAll': 'Reset every setting',
   'look.resetAllHint': 'Put every setting back to how this form ships',

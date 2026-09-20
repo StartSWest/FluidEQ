@@ -270,7 +270,6 @@ const studio = {
     'Une vallée de montagne à l’heure dorée. Les crêtes lointaines sont mon spectre : elles montent et redescendent avec leur propre partie de la musique dans mon onde, et se perdent dans la brume avec la distance. Le soleil bas grossit doucement avec les basses, les nuages rosissent avec les médiums et la rivière en contrebas scintille avec les aigus. À chaque grand moment, une volée d’oiseaux passe devant le soleil, par un chemin différent à chaque fois. Dans le silence, seuls les nuages dérivent. Des réglages pour la hauteur du soleil, la brume et les nuages. Autour de l’appli, en mode Ambiance : quelques oiseaux qui planent de temps en temps.',
 
   'studio.prompt.label': 'Le prompt IA',
-  'studio.prompt.ideaHere': '← votre idée ici',
 
   'studio.hears.level': 'le volume général',
   'studio.hears.beat': 'une pulsation à chaque temps',

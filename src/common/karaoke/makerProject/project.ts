@@ -142,7 +142,7 @@ export const createKaraokeMakerProject = (
       gapMs: song.meta.gapMs,
       rightsConfirmed: false,
     },
-    analysis: { vocalFocus: true },
+    analysis: {},
     provenance: [],
   };
 };

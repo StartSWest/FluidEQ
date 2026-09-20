@@ -127,7 +127,7 @@ const project = (): IKaraokeMakerProject => ({
     ],
   },
   meta: { gapMs: 0, rightsConfirmed: true },
-  analysis: { vocalFocus: false },
+  analysis: {},
   provenance: [],
 });
 

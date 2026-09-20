@@ -98,7 +98,6 @@ const look: Partial<Dictionary> = {
   'look.peak.crown': 'मुकुट',
   'look.peak.cross': 'क्रॉस',
   'look.peak.wave': 'तरंग',
-  'look.noLitPeaks': 'इस आकार में चमकने वाले सिरे नहीं हैं',
   'look.name': 'नाम',
   'look.resetAll': 'सभी सेटिंग रीसेट करें',
   'look.resetAllHint': 'इस आकार की मूल सेटिंग वापस लाएँ',

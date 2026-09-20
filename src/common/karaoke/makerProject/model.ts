@@ -420,7 +420,6 @@ export interface IKaraokeMakerProject {
   analysis: {
     waveform?: number[];
     lastRunAt?: string;
-    vocalFocus: boolean;
     whisperPasses?: number;
     whisperAlignmentVersion?: number;
   };

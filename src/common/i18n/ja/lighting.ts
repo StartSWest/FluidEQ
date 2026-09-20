@@ -89,7 +89,6 @@ const lighting = {
     '色はシーンそのものから取られるので、選ぶ必要はありません。',
 
   'lighting.devices.title': 'あなたのデバイス',
-  'lighting.devices.found': 'デスクで見つかったデバイス',
   'lighting.devices.searching': 'デバイスを探しています…',
   'lighting.devices.none.title': 'ライティング対応デバイスが見つかりません',
   'lighting.devices.none.body':

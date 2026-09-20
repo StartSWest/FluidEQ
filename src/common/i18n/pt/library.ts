@@ -88,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lendo {name}',
   'library.scan.counted': '{parsed} de {seen} arquivos',
   'library.scan.cancel': 'Parar',
-  'library.scan.background': 'Continuar em segundo plano',
   'library.scan.done': '{count} músicas adicionadas',
 
   'library.roots': 'Pastas',
@@ -135,7 +134,6 @@ const library: Partial<Dictionary> = {
   'library.unmute': 'Reativar som',
   'library.playbackOptions': 'Opções de reprodução',
   'library.position': 'Posição',
-  'library.queue': 'Fila',
   'library.queue.remove': 'Remover da fila',
   'library.nowPlaying': 'Tocando agora',
   'library.nothingPlaying': 'Nada tocando',

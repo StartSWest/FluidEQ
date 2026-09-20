@@ -95,7 +95,6 @@ const look: Partial<Dictionary> = {
   'look.peak.crown': '王冠',
   'look.peak.cross': '十字',
   'look.peak.wave': '波形',
-  'look.noLitPeaks': '此形状没有可高亮的尖端',
   'look.name': '名称',
   'look.resetAll': '重置所有设置',
   'look.resetAllHint': '恢复此形状的默认设置',

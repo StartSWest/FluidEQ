@@ -273,7 +273,6 @@ const studio = {
     'Ein Bergtal zur goldenen Stunde. Die fernen Grate sind mein Spektrum: Sie heben und senken sich mit ihrem eigenen Teil der Musik in meiner Welle und verschwimmen mit der Entfernung im Dunst. Die tiefe Sonne schwillt sanft mit dem Bass, die Wolken erröten mit den Mitten und der Fluss unten glitzert mit den Höhen. Bei jedem großen Moment zieht ein Vogelschwarm vor der Sonne vorbei, jedes Mal auf einem anderen Weg. In der Stille ziehen nur die Wolken. Regler für Sonnenstand, Dunst und Wolken. Rund um die App im Ambiente-Modus: ab und zu ein paar gleitende Vögel.',
 
   'studio.prompt.label': 'Der KI-Prompt',
-  'studio.prompt.ideaHere': '← hier kommt Ihre Idee hin',
 
   'studio.hears.level': 'die Gesamtlautstärke',
   'studio.hears.beat': 'ein Puls bei jedem Schlag',

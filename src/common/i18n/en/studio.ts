@@ -273,7 +273,6 @@ const studio = {
     'A mountain valley at golden hour. The far ridgelines are my spectrum, rising and settling with their own parts of the music inside my wave, fading into haze with distance. The low sun swells softly with the bass, the clouds blush with the mids, and the river below glitters with the treble. On each big moment a flock of birds sweeps across the sun, a different way each time. In silence only the clouds drift. Sliders for sun height, haze and clouds. Around the app in Ambient mode: a few birds gliding across now and then.',
 
   'studio.prompt.label': 'The AI prompt',
-  'studio.prompt.ideaHere': '← your idea goes here',
 
   'studio.hears.level': 'overall loudness',
   'studio.hears.beat': 'a pulse on every beat',
