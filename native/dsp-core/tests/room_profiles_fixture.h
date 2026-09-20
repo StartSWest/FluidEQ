@@ -23,3 +23,21 @@ inline constexpr RoomProfileFixture kRoomProfiles[] = {
   {"balconyV2", {12, 0.3, 5.5, 0, -1, -18, 18, 0, -100, 100, -140, 140, 0, 0, 0, -3, -3, -4, -4, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 80, 1, 0.5, 2, -12, 0.5, 1.4, 4000, 1}},
   {"conductorV2", {8, 0.35, 2.5, 2, 0, -60, 60, 0, -110, 110, -150, 150, 0, 0, 0, -1, -1, -3, -3, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 80, 1, 0.8, 2, -10, 0.4, 0.9, 5000, 1}},
 };
+// The EQ bands a Room copy of a chain adds (`roomTone.ts`), by the room
+// the copy stands in: FeqFilterType, Hz, dB, Q.
+struct RoomToneBandFixture {
+  int type;
+  double hz;
+  double gain_db;
+  double q;
+};
+struct RoomToneFixture {
+  const char* room;
+  RoomToneBandFixture bands[5];
+};
+inline constexpr RoomToneFixture kRoomTones[] = {
+  {"musicSpaceV2", {{2, 250, -2.5, 0.7}, {2, 50, -2, 0.7}, {0, 1500, 3.5, 1.2}, {0, 3800, -1.5, 2}, {3, 5000, 3, 0.7}}},
+  {"gameWorldV2", {{2, 250, -1.5, 0.7}, {2, 50, -2.5, 0.7}, {0, 1500, 4.5, 1.2}, {0, 3900, -2, 2}, {3, 5000, 3, 0.7}}},
+  {"competitiveV2", {{2, 250, -1.5, 0.7}, {2, 50, -2.5, 0.7}, {0, 1500, 4.5, 1.2}, {0, 3900, -2, 2}, {3, 5000, 3, 0.7}}},
+  {"cinemaV2", {{2, 250, -2.5, 0.7}, {2, 50, -2, 0.7}, {0, 1500, 3.5, 1.2}, {0, 3800, -1.5, 2}, {3, 5000, 3, 0.7}}},
+};

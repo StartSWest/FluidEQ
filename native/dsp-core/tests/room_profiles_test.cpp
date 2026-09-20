@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/room.h"
 
+#include "fluideq/biquad.h"
 #include "fluideq/convolver.h"
 
 #include <algorithm>
@@ -669,6 +670,102 @@ void no_two_rooms_are_one_room() {
   }
 }
 
+/**
+ * A Room copy of a chain keeps the chain's tone. The rack's Room copies add
+ * five EQ bands in front of the Room (`roomTone.ts`, the same table here by
+ * generation), and this runs a record through them and the room they were
+ * made for: it leaves at the level it came, its top where it was against its
+ * bottom, and no third octave far out. The control beside it is the same
+ * record through the room alone, which has to show the fault — 2 dB louder
+ * and its top 2 dB down — or "fixed" would mean nothing.
+ *
+ * The EQ is before the Room here as it is in the rack; both are linear and
+ * the same on both channels, so it is the same sound as after it.
+ */
+void a_room_copy_keeps_its_chains_tone() {
+  std::printf("a record through a Room copy's bands and its room, 48 kHz\n");
+  std::printf("  %-14s %-9s  level dB  top-bottom dB  worst third octave dB\n",
+              "room", "");
+  const double rate = 48000.0;
+  Planar source = silence(kLayouts[0], static_cast<size_t>(1.5 * rate));
+  {
+    Pink mid;
+    Pink left;
+    Pink right;
+    mid.noise.seed = 11u;
+    left.noise.seed = 23u;
+    right.noise.seed = 37u;
+    for (size_t at = 0; at < source[0].size(); ++at) {
+      const double m = mid.next();
+      source[0][at] = static_cast<float>(0.1 * (0.67 * m + 0.33 * left.next()));
+      source[1][at] =
+          static_cast<float>(0.1 * (0.67 * m + 0.33 * right.next()));
+    }
+  }
+  std::vector<double> source_bands;
+  for (int band = 0; band <= 20; ++band) {
+    source_bands.push_back(band_energy(source, 100.0 * std::pow(2.0, band / 3.0),
+                                       rate, source[0].size()));
+  }
+  struct Heard {
+    double level;
+    double tilt;
+    double worst;
+  };
+  const auto hear = [&](const FeqRoomSettings& s, Planar played) {
+    Rendering stereo(s, rate, kLayouts[0], false);
+    run(stereo.room, played);
+    Heard heard{db(energy(played) / energy(source)), 0.0, 0.0};
+    double top = 0.0;
+    double bottom = 0.0;
+    for (int band = 0; band <= 20; ++band) {
+      const double hz = 100.0 * std::pow(2.0, band / 3.0);
+      const double delta =
+          db(band_energy(played, hz, rate, played[0].size()) /
+             source_bands[static_cast<size_t>(band)]);
+      heard.worst = std::max(heard.worst, std::fabs(delta));
+      if (band >= 16) top += delta / 5.0;                 // 4 to 10 kHz
+      if (band >= 1 && band <= 6) bottom += delta / 6.0;  // 125 to 400 Hz
+    }
+    heard.tilt = top - bottom;
+    return heard;
+  };
+  for (const auto& tone : kRoomTones) {
+    const RoomProfileFixture* profile = nullptr;
+    for (const auto& one : kRoomProfiles) {
+      if (is(one, tone.room)) profile = &one;
+    }
+    check(profile != nullptr, "a Room copy stands in a featured room");
+    if (profile == nullptr) continue;
+    const FeqRoomSettings s = settings_of(*profile);
+    Planar shaped = source;
+    for (const auto& band : tone.bands) {
+      const FeqBiquadCoefficients c = feq_biquad_coefficients(
+          static_cast<FeqFilterType>(band.type), band.hz, band.gain_db, band.q,
+          rate);
+      for (auto& channel : shaped) {
+        FeqBiquadState state{};
+        feq_biquad_process(&state, channel.data(),
+                           static_cast<uint32_t>(channel.size()), &c);
+      }
+    }
+    const Heard alone = hear(s, source);
+    const Heard held = hear(s, shaped);
+    std::printf("  %-14s %-9s  %8.2f  %13.2f  %21.2f\n", tone.room, "room alone",
+                alone.level, alone.tilt, alone.worst);
+    std::printf("  %-14s %-9s  %8.2f  %13.2f  %21.2f\n", "", "the copy",
+                held.level, held.tilt, held.worst);
+    check(alone.level > 2.0 && alone.tilt < -2.0,
+          "the room alone is louder and darker than the record: the control");
+    check(std::fabs(held.level) < 1.0, "the copy leaves at the level it came");
+    check(std::fabs(held.tilt) < 1.5, "with its top where it was");
+    // Under 4 and not under 1: the dips at 1.6 and 8 kHz are the head telling
+    // front from back, and the bands fill them half way on purpose.
+    check(held.worst < 4.0 && held.worst < alone.worst - 2.0,
+          "and no third octave far out, by much less than the room alone");
+  }
+}
+
 /** How long a 128-frame 7.1 block takes, written down and not judged: the
  *  machine this runs on is doing other things. */
 void what_a_block_costs() {
@@ -791,6 +888,7 @@ int main() {
   no_room_colours_a_speaker_much();
   stereo_is_what_the_room_says();
   no_two_rooms_are_one_room();
+  a_room_copy_keeps_its_chains_tone();
   what_a_block_costs();
   std::printf("\n%d checks\n", g_checks);
   return feq_test::finish();

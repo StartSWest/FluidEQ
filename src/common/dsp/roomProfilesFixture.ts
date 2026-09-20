@@ -11,7 +11,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and the test that holds the header to the table. Two copies of this layout
  * would agree until a field was added to one of them.
  */
+import { FilterTypeEnum } from '../constants';
+import { DSP_PRESET_RECIPES } from './presetRecipes';
 import { ROOM_FEATURED_LIST, TRoomShape } from './roomPresets';
+import { ROOM_TONE_SETS, roomToneSetOf } from './roomTone';
 
 /** The header's column order; `settings_of` in the engine test reads it. */
 const valuesOf = (shape: TRoomShape): number[] => [
@@ -38,6 +41,28 @@ const valuesOf = (shape: TRoomShape): number[] => [
 
 export const ROOM_PROFILE_FIXTURE_VALUES = 44;
 
+/** `FeqFilterType`, by the app's name for it. */
+const NATIVE_FILTER: Record<string, number | undefined> = {
+  [FilterTypeEnum.PK]: 0,
+  [FilterTypeEnum.LSC]: 2,
+  [FilterTypeEnum.HSC]: 3,
+};
+
+/** The rooms the rack's Room copies stand in, each with its tone bands. */
+const toneRows = (): string[] =>
+  Array.from(
+    new Set(DSP_PRESET_RECIPES.flatMap((recipe) => recipe.room ?? [])),
+  ).map((room) => {
+    const bands = ROOM_TONE_SETS[roomToneSetOf(room)].map((band) => {
+      const type = NATIVE_FILTER[band.type];
+      if (type === undefined) {
+        throw new Error(`room tone fixture: no native filter for ${band.type}`);
+      }
+      return `{${type}, ${band.frequency}, ${band.gainDb}, ${band.quality}}`;
+    });
+    return `  {"${room}", {${bands.join(', ')}}},`;
+  });
+
 export const roomProfilesFixture = (): string => {
   const rows = ROOM_FEATURED_LIST.map((preset) => {
     const values = valuesOf(preset.shape);
@@ -61,6 +86,21 @@ export const roomProfilesFixture = (): string => {
     '};',
     'inline constexpr RoomProfileFixture kRoomProfiles[] = {',
     ...rows,
+    '};',
+    '// The EQ bands a Room copy of a chain adds (`roomTone.ts`), by the room',
+    '// the copy stands in: FeqFilterType, Hz, dB, Q.',
+    'struct RoomToneBandFixture {',
+    '  int type;',
+    '  double hz;',
+    '  double gain_db;',
+    '  double q;',
+    '};',
+    'struct RoomToneFixture {',
+    '  const char* room;',
+    '  RoomToneBandFixture bands[5];',
+    '};',
+    'inline constexpr RoomToneFixture kRoomTones[] = {',
+    ...toneRows(),
     '};',
     '',
   ].join('\n');

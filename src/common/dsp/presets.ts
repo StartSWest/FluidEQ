@@ -30,6 +30,7 @@ import {
   TDspPresetGroup,
 } from './presetRecipes';
 import { roomPresetSettings } from './roomPresets';
+import { withRoomTone } from './roomTone';
 import { VOICING_PROFILES } from '../voicing';
 import orderRelatedStyles from './presetOrder';
 
@@ -127,7 +128,10 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     denoise: recipe.denoise
       ? denoisePresetSettings(recipe.denoise, true)
       : DSP_DEFAULTS.denoise,
-    eq: recipeEq(recipe),
+    // A Room copy keeps its chain's tone: see `roomTone.ts`.
+    eq: recipe.room
+      ? withRoomTone(recipeEq(recipe), recipe.room)
+      : recipeEq(recipe),
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,

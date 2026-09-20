@@ -39,10 +39,25 @@ it('is the table the engine measures', () => {
     'utf8',
   );
   expect(header).toBe(roomProfilesFixture());
-  // And the header says what it holds: six rooms of as many numbers each as
-  // `settings_of` reads.
-  const rows = header.split('\n').filter((line) => line.startsWith('  {"'));
+  // And the header says what it holds: every featured room, of as many
+  // numbers each as `settings_of` reads — then the tone bands of the rooms
+  // the rack's Room copies stand in, five bands of four numbers each.
+  const tables = header.split('inline constexpr RoomToneFixture');
+  expect(tables).toHaveLength(2);
+  const rowsOf = (table: string) =>
+    table.split('\n').filter((line) => line.startsWith('  {"'));
+  const rows = rowsOf(tables[0]);
   expect(rows).toHaveLength(ROOM_FEATURED_LIST.length);
+  const tones = rowsOf(tables[1]);
+  expect(tones.map((row) => row.split('"')[1]).sort()).toEqual([
+    'cinemaV2',
+    'competitiveV2',
+    'gameWorldV2',
+    'musicSpaceV2',
+  ]);
+  tones.forEach((row) => {
+    expect(row.match(/\{-?\d[^{}]*\}/g)).toHaveLength(5);
+  });
   rows.forEach((row) => {
     expect(row.split('{')[2].split('}')[0].split(',')).toHaveLength(
       ROOM_PROFILE_FIXTURE_VALUES,
