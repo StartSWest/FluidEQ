@@ -270,6 +270,11 @@ const plus = {
     'Uma exclusão anterior desta conta parou no meio. Terminar exclusão conclui o processo.',
   'plus.accounts.note.gift':
     'O Plus de presente para este endereço continua, como dizem os termos. Retire em Plus de presente se isso também foi pedido.',
+  'plus.accounts.give': 'Dar Plus',
+  'plus.accounts.giveConfirm': 'Dar Plus a {name}? Dura até o tirares.',
+  'plus.accounts.giving': 'A dar Plus a {name}…',
+  'plus.accounts.giveYes': 'Dar Plus',
+  'plus.accounts.giveNo': 'Agora não',
   'plus.accounts.delete': 'Apagar conta',
   'plus.accounts.finish': 'Terminar exclusão',
   'plus.accounts.confirm':

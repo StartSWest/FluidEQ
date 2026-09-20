@@ -270,6 +270,12 @@ const plus = {
     'Прежнее удаление этого аккаунта остановилось на полпути. «Завершить удаление» доведёт его до конца.',
   'plus.accounts.note.gift':
     'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок в разделе «Plus в подарок», если об этом тоже просили.',
+  'plus.accounts.give': 'Подарить Plus',
+  'plus.accounts.giveConfirm':
+    'Подарить Plus пользователю {name}? Он будет действовать, пока вы его не заберёте.',
+  'plus.accounts.giving': 'Дарим Plus пользователю {name}…',
+  'plus.accounts.giveYes': 'Подарить Plus',
+  'plus.accounts.giveNo': 'Не сейчас',
   'plus.accounts.delete': 'Удалить аккаунт',
   'plus.accounts.finish': 'Завершить удаление',
   'plus.accounts.confirm':
