@@ -16,10 +16,16 @@ interface IFluidEngineLabelProps {
    * every launch until the outputs have been read.
    */
   isEngineOnOutput?: boolean;
+  /**
+   * The engine is running this output and could not start part of what it was
+   * asked for — the DSP rack, usually. The EQ is playing, so this is neither
+   * of the other two answers.
+   */
+  isPartlyOff?: boolean;
 }
 
 /** What the line is saying, which is the whole of its behaviour. */
-type TEngineLabelState = 'checking' | 'working' | 'broken';
+type TEngineLabelState = 'checking' | 'working' | 'partly' | 'broken';
 
 /**
  * The engine's name above the EQ, and whether it is really doing anything.
@@ -54,6 +60,7 @@ type TEngineLabelState = 'checking' | 'working' | 'broken';
  */
 export default function FluidEngineLabel({
   isEngineOnOutput,
+  isPartlyOff,
 }: IFluidEngineLabelProps) {
   const { status } = useAudioEngineStatus();
   const { isEngineUsable } = useFluidEqContext();
@@ -68,7 +75,10 @@ export default function FluidEngineLabel({
   if (isEngineOnOutput === false) {
     state = 'broken';
   } else if (isEngineOnOutput === true) {
-    state = 'working';
+    // Running, and not doing all of it. Celebrating here is what made the
+    // line a liar: the name stood in full rainbow beside a card saying part
+    // of the sound was not reaching the output.
+    state = isPartlyOff === true ? 'partly' : 'working';
   }
   const isWorking = isFluid && state === 'working';
 
@@ -102,6 +112,14 @@ export default function FluidEngineLabel({
           role="img"
           aria-label={t('eq.engineNotHere')}
           title={t('eq.engineNotHere')}
+        />
+      )}
+      {state === 'partly' && isFluid && (
+        <span
+          className="status-dot warning"
+          role="img"
+          aria-label={t('engineHealth.partlyOff')}
+          title={t('engineHealth.partlyOff')}
         />
       )}
       <p
