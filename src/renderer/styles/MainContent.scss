@@ -78,8 +78,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px 12px;
   margin: 1px 0 4px;
 
+  // The strip sits in the middle of the page, not wherever the title's length
+  // leaves it: the title and an empty counterweight after the strip take an
+  // equal share of what is left, so the two sides are the same width and the
+  // strip lands on the centre line — the same one the toolbar under it is
+  // centred on.
+  //
+  // Both shares start from nothing and grow, and the title's own minimum is
+  // what stops it: on a narrow panel the counterweight gives up its share
+  // first, the strip slides right of centre, the title's words wrap, and only
+  // past that does the strip take the next line. A three-column grid centred
+  // just as well on a wide window and clipped the strip's right end in
+  // Russian at the narrowest one, because a grid track does not wrap.
   > h2 {
+    flex: 1 1 0;
     margin: 0;
+  }
+
+  &::after {
+    flex: 1 1 0;
+    content: '';
   }
 }
 
@@ -180,11 +198,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Dark rather than hidden: the line keeps its place so the row does not jump
 // when the engine stops reaching the output, and the dot needs something to
 // sit beside.
-.eq-engine-line--off .eq-engine-label {
+.eq-engine-line--broken .eq-engine-label {
   color: $text-muted;
   background: none;
   animation: none;
   opacity: 0.58;
+}
+
+/*
+ * Still asking. Faded, with the same crest travelling through the name on a
+ * loop — something is happening and nothing has been claimed yet.
+ *
+ * It keeps the rainbow rather than going grey: grey is what a fault looks
+ * like here, and this is not one. The loop is slow enough to read as a
+ * waiting state rather than as a control being dragged.
+ */
+.eq-engine-line--checking .eq-engine-label {
+  // No rainbow. It is the app's mark for an engine that is working, and
+  // wearing it faded said "working, dimly" — the one thing this state must
+  // not claim. Plain muted ink until the answer comes, and the colour
+  // arrives with the answer.
+  color: $text-muted;
+  background: none;
+  opacity: 0.62;
+  // Only the crest: there is no gradient left to drift. `linear`, because
+  // ease-in-out parks it at each end and reads as a wobble, not a scan.
+  animation: eq-engine-crest 1.6s linear infinite;
+  mask-image: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.28) 26%,
+    #000 44%,
+    #000 56%,
+    rgba(0, 0, 0, 0.28) 74%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  mask-size: 300% 100%;
 }
 
 /*
@@ -297,6 +346,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .eq-engine-label__sweep.is-riding {
     animation: eq-engine-underline 1ms linear both;
+  }
+
+  // The waiting state says the same thing by being faded; the crest that
+  // travels through it is the decoration on top of that.
+  .eq-engine-line--checking .eq-engine-label {
+    animation: none;
+    mask-image: none;
   }
 }
 
