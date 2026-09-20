@@ -45,12 +45,19 @@ describe('the Room card', () => {
 
   it('shows the room from above with every speaker, and what the room is doing', () => {
     renderCard();
+    // A group of controls, not a picture: `img` told a screen reader there
+    // was nothing inside to operate, and the speakers are what is operated.
     expect(
-      screen.getByRole('img', { name: en['dsp.room.graphLabel'] }),
+      screen.getByRole('group', { name: en['dsp.room.graphLabel'] }),
     ).toBeInTheDocument();
-    ['FL', 'FR', 'C', 'SL', 'SR', 'RL', 'RR'].forEach((name) => {
-      expect(screen.getByText(name)).toBeInTheDocument();
-    });
+    // In the picture: the pane beside it repeats the selected speaker's code.
+    expect(
+      Array.from(document.querySelectorAll('.dsp-room-speaker-name')).map(
+        (label) => label.textContent,
+      ),
+    ).toEqual(
+      expect.arrayContaining(['FL', 'FR', 'C', 'SL', 'SR', 'RL', 'RR', 'SUB']),
+    );
     expect(screen.getByText(en['dsp.room.live.sevenOne'])).toHaveClass('is-on');
   });
 
@@ -66,9 +73,13 @@ describe('the Room card', () => {
     expect(screen.getAllByRole('menuitemradio')).toHaveLength(
       ROOM_PRESET_LIST.length,
     );
+    // Two rooms are called Cinema, the featured one and the classic one; the
+    // classic one is the room that says its size.
     fireEvent.click(
       screen.getByRole('menuitemradio', {
-        name: new RegExp(en['dsp.room.preset.cinema']),
+        name: new RegExp(
+          `${en['dsp.room.preset.cinema']}.*${ROOM_PRESET_SHAPES.cinema.sizeM.toFixed(1)} m`,
+        ),
       }),
     );
     expect(onPatch).toHaveBeenCalledWith(
@@ -265,35 +276,37 @@ describe('a pressed speaker', () => {
   };
   const panelOf = (name: string) => within(screen.getByRole('group', { name }));
 
-  it('opens its panel with level, distance and angle, and closes it', () => {
+  it('has a pane from the start, and the pane follows the speaker that is pressed', () => {
     renderCard();
+    // The front left's, before anything is pressed: the pane is never empty
+    // and never a press away.
+    const first = panelOf(en['dsp.room.speakerName.FL']);
     expect(
-      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
-    ).not.toBeInTheDocument();
-    const speaker = press('FL');
+      first.getByLabelText(en['dsp.room.speaker.level']),
+    ).toBeInTheDocument();
+    expect(
+      first.getByLabelText(en['dsp.room.speaker.distance']),
+    ).toBeInTheDocument();
+    expect(
+      first.getByLabelText(en['dsp.room.speaker.angle']),
+    ).toBeInTheDocument();
+    // On the press itself, not the release: a drag has no release until it is
+    // over, and the pane is what shows the angle while it moves.
+    const speaker = groupOf('SR');
+    fireEvent.pointerDown(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
     expect(speaker).toHaveClass('is-selected');
-    const panel = panelOf(en['dsp.room.speakerName.FL']);
     expect(
-      panel.getByLabelText(en['dsp.room.speaker.level']),
+      screen.getByRole('group', { name: en['dsp.room.speakerName.SR'] }),
     ).toBeInTheDocument();
-    expect(
-      panel.getByLabelText(en['dsp.room.speaker.distance']),
-    ).toBeInTheDocument();
-    expect(panel.getByLabelText(en['dsp.room.speaker.angle'])).toHaveValue(
-      DSP_DEFAULTS.room.angles[0],
-    );
-    fireEvent.click(
-      panel.getByRole('button', { name: en['dsp.room.speaker.close'] }),
-    );
     expect(
       screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
     ).not.toBeInTheDocument();
-    // Pressing the speaker again toggles it off too.
-    press('FL');
-    press('FL');
+    fireEvent.pointerUp(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
+    // Pressing it again keeps it: the pane has no closed state to go back to.
+    press('SR');
     expect(
-      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('group', { name: en['dsp.room.speakerName.SR'] }),
+    ).toBeInTheDocument();
   });
 
   it('sets its own level, distance and angle, which makes the room custom', () => {
@@ -496,7 +509,12 @@ describe('a pressed speaker', () => {
       enabled: true,
       distances: [1, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8],
     });
-    fireEvent.change(screen.getByLabelText(en['dsp.room.distance']), {
+    // The ring's dial, in "Make it yours"; the pane beside it has the
+    // selected speaker's own, under the same word.
+    const quick = within(
+      screen.getByRole('group', { name: en['dsp.room.quick.title'] }),
+    );
+    fireEvent.change(quick.getByLabelText(en['dsp.room.distance']), {
       target: { value: '0.9' },
     });
     const [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
@@ -605,12 +623,12 @@ describe('a dragged speaker', () => {
     );
   });
 
-  it('does not open the panel after a drag', () => {
+  it('gives the pane to the speaker being dragged', () => {
     renderCard();
     drag('FR', {});
     expect(
-      screen.queryByRole('group', { name: en['dsp.room.speakerName.FR'] }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('group', { name: en['dsp.room.speakerName.FR'] }),
+    ).toBeInTheDocument();
   });
 });
 

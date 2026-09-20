@@ -1,0 +1,129 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+import { useState } from 'react';
+import { IRoomSettings, ROOM_HEADS, TRoomHead } from '../../common/dsp/chain';
+import { TranslationKey } from '../../common/i18n/en';
+import { LockBadge } from '../graph/lookPickerParts';
+import { useTranslation } from '../utils/I18nContext';
+import SegmentedControl from '../widgets/SegmentedControl';
+import DspRoomFitDialog from './DspRoomFitDialog';
+
+interface IDspRoomFitProps {
+  room: IRoomSettings;
+  isPlus: boolean;
+  onPatch: (next: IRoomSettings) => void;
+  onCommit: () => void;
+}
+
+/**
+ * Fit: the listener, not the room. Which of the three heads the room is
+ * heard through and whether the headphones are corrected after it — both
+ * free, both untouched by every profile and saved room — and the listening
+ * test that picks the head by ear, which is Plus.
+ *
+ * It says what the three heads are: one measured head at three sizes, not
+ * three people and not a scan of anybody's ears. A page that let "Small,
+ * Medium, Large" pass for a measurement of the listener would be selling
+ * something the app does not do.
+ */
+const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
+  const { t } = useTranslation();
+  const [isFitOpen, setFitOpen] = useState(false);
+  const isOn = room.enabled;
+
+  return (
+    <div className="dsp-room-fit">
+      <div className="dsp-band">
+        <div className="dsp-band-head">
+          <span className="dsp-band-title">{t('dsp.room.fitView.head')}</span>
+        </div>
+        <div className="dsp-room-row">
+          <span className="dsp-room-row__label">{t('dsp.room.groupHead')}</span>
+          <div className="dsp-room-row__controls">
+            <SegmentedControl
+              name={t('dsp.room.groupHead')}
+              value={room.head}
+              isDisabled={!isOn}
+              options={ROOM_HEADS.map((head) => ({
+                value: head,
+                label: t(`dsp.room.head.${head}` as TranslationKey),
+              }))}
+              onChange={(head) => {
+                const chosen = ROOM_HEADS.find((id) => id === head);
+                if (chosen !== undefined) {
+                  onPatch({ ...room, head: chosen });
+                  onCommit();
+                }
+              }}
+            />
+          </div>
+        </div>
+        <div className="dsp-room-row">
+          <span
+            className="dsp-room-row__label"
+            title={t('dsp.room.headphonesHint')}
+          >
+            {t('dsp.room.groupHeadphones')}
+          </span>
+          <div className="dsp-room-row__controls">
+            <SegmentedControl
+              name={t('dsp.room.groupHeadphones')}
+              value={room.correctHeadphones ? 'correct' : 'leave'}
+              isDisabled={!isOn}
+              options={[
+                { value: 'correct', label: t('dsp.room.headphones.correct') },
+                { value: 'leave', label: t('dsp.room.headphones.leave') },
+              ]}
+              onChange={(choice) => {
+                onPatch({ ...room, correctHeadphones: choice === 'correct' });
+                onCommit();
+              }}
+            />
+          </div>
+        </div>
+        {/* The listening test that picks the head: a row of this band and
+            not a band of its own, because it answers the same question as
+            the segment above it. Quiet, since the segment already answers
+            most people, and Plus like shaping. A band of its own made seven,
+            which no number of columns divides: the page ended in a hole. */}
+        <div className="dsp-room-row">
+          <span className="dsp-room-row__label">
+            {t('dsp.room.fitView.guided')}
+          </span>
+          <div className="dsp-room-row__controls">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={!isPlus || !isOn}
+              title={t(
+                isPlus ? 'dsp.room.fitView.guidedHint' : 'dsp.room.plusHint',
+              )}
+              onClick={() => setFitOpen(true)}
+            >
+              {t('dsp.room.fitView.start')}
+            </button>
+            {!isPlus ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
+          </div>
+        </div>
+        <p className="dsp-band-hint">{t('dsp.room.fitView.headHint')}</p>
+      </div>
+
+      {isFitOpen ? (
+        <DspRoomFitDialog
+          onPick={(head: TRoomHead) => {
+            onPatch({ ...room, head });
+            onCommit();
+            setFitOpen(false);
+          }}
+          onClose={() => setFitOpen(false)}
+        />
+      ) : undefined}
+    </div>
+  );
+};
+
+export default DspRoomFit;

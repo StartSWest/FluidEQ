@@ -671,12 +671,10 @@ const dsp = {
   'dsp.surround.allChannels': 'All channels',
   'dsp.surround.frontPair': 'Front pair',
   'dsp.room.title': 'Room',
-  'dsp.room.description':
-    'A listening room on headphones: every channel of the output is a speaker around your head.',
   'dsp.room.graphLabel': 'The room from above',
   'dsp.room.front': 'Front',
   'dsp.room.dragHint':
-    'Drag a speaker and its pair moves with it; hold Shift or Ctrl to move it alone; press it to set it.',
+    'Drag a speaker and its pair moves with it; hold Shift or Ctrl to move it alone. On the keyboard, up and down choose a speaker, left and right move it.',
   'dsp.room.fedFrontStage':
     'Stereo is playing: only FL and FR carry sound. The others wait for a 5.1 or 7.1 stream.',
   'dsp.room.fedFiveOne': '5.1 is playing: the rear pair carries nothing.',
@@ -695,16 +693,12 @@ const dsp = {
   'dsp.room.preset.openAir': 'Open air',
   'dsp.room.presetHint':
     '{size} m room · speakers at {distance} m · walls {live}% live',
-  'dsp.room.savedRooms': 'Saved rooms',
   'dsp.room.saveRoom': 'Save room…',
   'dsp.room.saveTitle': 'Save this room',
   'dsp.room.saveHint':
-    'The room as it stands — size, walls, distance, centre, sub and where the speakers are — is saved under this name. The head stays yours.',
+    'The whole room as it stands is saved under this name, beside the rooms already saved: its shape, its speakers, their levels and mutes, the bass and stereo choices, Space and Ambience. Your head and headphones stay yours.',
   'dsp.room.savePlaceholder': 'Room name',
-  'dsp.room.applyRoom': 'Use this room',
-  'dsp.room.roomApplied': 'This is the room in use',
   'dsp.room.deleteRoom': 'Delete room',
-  'dsp.room.groupRoom': 'Room',
   'dsp.room.groupHead': 'Head',
   'dsp.room.groupHeadphones': 'Headphones',
   'dsp.room.size': 'Size',
@@ -715,8 +709,6 @@ const dsp = {
   'dsp.room.head.small': 'Small',
   'dsp.room.head.medium': 'Medium',
   'dsp.room.head.large': 'Large',
-  'dsp.room.headHint':
-    'The head the room is rendered through. Pick the one that puts sounds in front of you rather than inside your head.',
   'dsp.room.headphones.correct': 'Correct the headphones',
   'dsp.room.headphones.leave': 'Leave them',
   'dsp.room.headphonesHint':
@@ -734,10 +726,6 @@ const dsp = {
   'dsp.room.musicHint':
     'Stereo music can fill the whole room: the front pair stays as it is, the centre takes what both sides share, and what they do not share reaches the sides a moment later and the rears after that, the way a surround decoder does. Films and games are never touched.',
   'dsp.room.live.music': 'Stereo → whole room',
-  'dsp.room.groupListener': 'Listener',
-  'dsp.room.groupSound': 'Sound',
-  'dsp.room.soundHint':
-    'Bass management and the music upmix are yours, not the room’s: presets and saved rooms leave them alone. Hover a name for what it does.',
   'dsp.room.speaker.level': 'Level',
   'dsp.room.speaker.distance': 'Distance',
   'dsp.room.speaker.angle': 'Angle',
@@ -745,7 +733,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'Solo',
   'dsp.room.speaker.soloUnfed':
     'Nothing that is playing reaches this speaker, so there is nothing to hear alone.',
-  'dsp.room.speaker.close': 'Close',
   'dsp.room.speakerName.FL': 'Front left',
   'dsp.room.speakerName.FR': 'Front right',
   'dsp.room.speakerName.C': 'Centre',
@@ -766,6 +753,101 @@ const dsp = {
   'dsp.room.live.idle': 'Nothing playing through the engine',
   'dsp.room.live.unknown': 'Engine only',
   'dsp.room.fit': 'Fit…',
+  'dsp.room.profile.referenceV2': 'Reference',
+  'dsp.room.profile.musicSpaceV2': 'Music Space',
+  'dsp.room.profile.cinemaV2': 'Cinema',
+  'dsp.room.profile.gameWorldV2': 'Game World',
+  'dsp.room.profile.competitiveV2': 'Competitive',
+  'dsp.room.profile.liveVenueV2': 'Live Venue',
+  'dsp.room.profilePurpose.referenceV2':
+    'A close, treated room. The record in front of you, and nothing added.',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    'A wider stage with the voice held in front, and a little air after it.',
+  'dsp.room.profilePurpose.cinemaV2':
+    'A wide screen, a grounded voice, and the room around you.',
+  'dsp.room.profilePurpose.gameWorldV2':
+    'A world around you, with short sounds left short.',
+  'dsp.room.profilePurpose.competitiveV2':
+    'Direction and nothing else: no walls, no tail.',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'A hall around the stage, with a long, soft tail.',
+  'dsp.room.fedExpanded':
+    'Stereo is playing, spread round the room: the dashed speakers are worked out from the front pair, not separate channels.',
+  'dsp.room.speaker.isMuted': 'muted',
+  'dsp.room.speaker.isUnfed': 'nothing reaches it',
+  'dsp.room.speaker.isDerived': 'worked out from stereo',
+  'dsp.room.speaker.noteDiscrete':
+    'This speaker has a channel of its own in what is playing.',
+  'dsp.room.speaker.noteDerived':
+    'Worked out from the stereo pair. There is no separate channel behind it.',
+  'dsp.room.speaker.noteUnfed':
+    'Nothing that is playing reaches this speaker. It can still be placed for when something does.',
+  'dsp.room.speaker.noteSub': 'The subwoofer channel of what is playing.',
+  'dsp.room.speaker.noteSubUnfed':
+    'Stereo has no subwoofer channel, so there is nothing for this level to turn. With bass sent to the sub, the speakers’ low end still plays through here.',
+  'dsp.room.quick.title': 'Make it yours',
+  'dsp.room.quick.space': 'Space',
+  'dsp.room.quick.ambience': 'Ambience',
+  'dsp.room.quick.hint':
+    'Space is how much of the walls you hear. Ambience is the soft tail after them, and needs some Space to have anything to follow.',
+  'dsp.room.classic.hint':
+    'A classic room, playing exactly as it always has. Space, Ambience and smoother speaker placement belong to the new sound.',
+  'dsp.room.classic.upgrade': 'Move this room to the new sound',
+  'dsp.room.tune.character': 'Room character',
+  'dsp.room.tune.decay': 'Tail length',
+  'dsp.room.tune.damping': 'Tail tone',
+  'dsp.room.tune.characterHint':
+    'Size and Walls shape the first reflections. Tail length and Tail tone shape the Ambience after them.',
+  'dsp.room.tune.preserve': 'Keep the speakers where they are',
+  'dsp.room.tune.preserveHint':
+    'Dimension’s widening rests while the Room is on, because it would move what the Room just placed. Its settings are kept.',
+  'dsp.room.tune.bassCentre': 'Bass and centre',
+  'dsp.room.tune.levels': 'Levels',
+  'dsp.room.tune.centreHint':
+    'Centre turns the centre channel up or down. It does not pick voices out of a mix.',
+  'dsp.room.tune.noSubChannel':
+    'What is playing has no subwoofer channel, so Sub has nothing to turn.',
+  'dsp.room.tune.stereo': 'Stereo source',
+  'dsp.room.tune.stereoHint':
+    'Only for stereo. A 5.1 or 7.1 stream keeps its own channels where they are.',
+  'dsp.room.tune.spatial': 'My source is already spatial',
+  'dsp.room.tune.spatialHint':
+    'For sound already made for headphones: a game’s own 3D audio, a binaural recording. The Room steps aside so it is not placed twice. FluidEQ cannot tell by itself, so this is your call.',
+  'dsp.room.fitView.head': 'Your head and headphones',
+  'dsp.room.fitView.headHint':
+    'Three sizes of one measured head: not three people, and not a scan of your ears. Pick the size that puts sounds in front of you rather than inside your head.',
+  'dsp.room.fitView.guided': 'Find your fit by ear',
+  'dsp.room.fitView.guidedHint':
+    'Five short pairs of sounds. Each time, pick the one that sounds more around you; the head that wins is yours.',
+  'dsp.room.fitView.start': 'Start the listening test',
+  'dsp.room.compare.label': 'Compare',
+  'dsp.room.compare.original': 'Hearing the original',
+  'dsp.room.compare.hint':
+    'Hear what is playing without the Room, at the same moment and, once measured, at the same loudness. Everything else in the rack keeps playing.',
+  'dsp.room.compare.unknown': 'The engine has not said what it is playing.',
+  'dsp.room.compare.waiting': 'Waiting for the engine to switch.',
+  'dsp.room.compare.matched': 'Loudness matched ({gain} dB).',
+  'dsp.room.compare.unmatched':
+    'Loudness not matched yet: it needs a few seconds of sound.',
+  'dsp.room.compare.foldDown':
+    'The original is the surround mix folded to stereo.',
+  'dsp.room.signal.updateRequired':
+    'The new sound needs the updated audio engine. This room has not been sent to it: update the engine to hear it.',
+  'dsp.room.signal.spatialBypass':
+    'The Room is stepping aside: the source is marked as already spatial (Stereo source, below).',
+  'dsp.room.featured': 'Featured',
+  'dsp.room.classicRooms': 'Classic rooms',
+  'dsp.room.savedNew': 'New sound',
+  'dsp.room.savedClassic': 'Classic sound',
+  'dsp.room.saveFailed':
+    'The room could not be saved: storage refused it. Nothing was changed.',
+  'dsp.room.restore': 'Restore profile',
+  'dsp.room.restoreHint':
+    'Back to {name}. Your head, headphones and source choices stay.',
+  'dsp.room.resetHint':
+    'Every option on this page back to how it first opens, the listener’s included. Only the power switch stays.',
+  'dsp.room.saveKeepsBoth':
+    'That name is taken. This room will be saved as “{name}”, and the other one stays.',
   'dsp.roomFit.title': 'Fit the room to your head',
   'dsp.roomFit.hint':
     'A short sound moves around you — front, right, behind, left — through two heads. Press the one that sounds more around you.',

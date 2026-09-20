@@ -23,6 +23,13 @@ interface IDspPresetSaveDialogProps {
   hintKey: TranslationKey;
   placeholderKey: TranslationKey;
   nameMax: number;
+  /**
+   * What to say when the name is taken, for a list that keeps both: the
+   * saved rooms number a taken name rather than replace the room that has
+   * it, and say which name it will be. Without this the name is overwritten,
+   * and the dialog says that.
+   */
+  takenText?: (name: string) => string;
   onSave: (name: string) => void;
   onClose: () => void;
 }
@@ -42,6 +49,7 @@ const DspPresetSaveDialog = ({
   hintKey,
   placeholderKey,
   nameMax,
+  takenText,
   onSave,
   onClose,
 }: IDspPresetSaveDialogProps) => {
@@ -109,7 +117,7 @@ const DspPresetSaveDialog = ({
             perfectly ordinary thing to want; being surprised by it is not. */}
         {overwrites && (
           <p className="dsp-import__error" role="status">
-            {t('dsp.eqSave.overwrite')}
+            {takenText ? takenText(trimmed) : t('dsp.eqSave.overwrite')}
           </p>
         )}
 

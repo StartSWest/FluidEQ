@@ -697,13 +697,17 @@ Out-String` (or any other capture) is what actually waits for it and shows
   replacement) — without it every dial move put one partition of silence
   into the sound, and the surround alignment lines (`denoise_align`,
   `punch_align`) emptied the same way; `chain_transfer_test.cpp` and
-  `chain_surround_test.cpp` hold both. The card's eleven rooms
+  `chain_surround_test.cpp` hold both. The card's eleven classic rooms
   (`roomPresets.ts`) are pinned by value in `dspRoomPresets.test.ts` and
   again in `room_presets_test.cpp`, which runs the engine's room through
   them: retune a room on both sides in one commit. `ROOM_PRESETS` in
-  `chain.ts` is wire order (the engine logs the index), so a new room goes
-  before `custom`, never between. Saved rooms (`savedRooms.ts`) keep the
-  shape and never the head, like the presets. Bass management
+  `chain.ts` is wire order (the engine logs the index), so an index keeps
+  its meaning for good: the eleven and `custom` are the first twelve, the six
+  featured rooms came after `custom` was already the twelfth and stand after
+  it, and anything newer goes after them — never between. Saved rooms
+  (`savedRooms.ts`) keep the shape and never the head, like the presets, and
+  a save never replaces a room of the same name: it is numbered
+  (`uniqueRoomName`). Bass management
   (`bass_management`, `crossover_hz`, the twenty-fourth and twenty-fifth of
   the room's forty-two wire scalars; `FEQ_CHAIN_PARAM_LEAD` was 140 when
   they landed and is 157 now) is a Linkwitz-Riley 4th-order
@@ -732,9 +736,10 @@ Out-String` (or any other capture) is what actually waits for it and shows
   geometry from that origin — with every speaker on the ring nothing
   changes, which is what keeps `room_presets_test.cpp` true. A muted
   speaker gets no kernel and the muted sub a zero gain; a room with every
-  speaker muted is still active (latency, status). On the card the panel
-  under the picture (`DspRoomSpeakerPanel`) opens on a press without
-  travel (`PRESS_TRAVEL_PX`); Solo is spelled as mutes on the other six
+  speaker muted is still active (latency, status). On the card the selected
+  speaker's pane (`DspRoomSpeakerPanel`) is always there and becomes a
+  speaker's on the press itself; travel past `PRESS_TRAVEL_PX` makes the
+  press a drag; Solo is spelled as mutes on the other six
   and never the sub, whose path carries every speaker's managed bass. Held by `room_test.cpp`: nothing after the direct
   sound on a dead-walled front stage, a later ring with the upmix, no side
   signal from a mono record. Which channel is
@@ -764,6 +769,54 @@ Out-String` (or any other capture) is what actually waits for it and shows
   walls leave nothing after the direct path, a wall change mid-stream
   makes no step beyond either steady room's) and `chain_surround_test.cpp`
   (a six-channel chain folds and reports +512 frames).
+- **A head is a filter, and the Room is as loud at 192 kHz as at 48.** It was
+  not: `build-room-heads.ts` resampled the heads as if they were sounds —
+  the taps kept their height, so a block with twice the taps summed to twice
+  as much — and the engine's 192 kHz doubling did the same. A 1 kHz tone
+  left the room at -3.8 dB on a 48 kHz output, +2.2 dB at 96 and +8.3 dB at
+  192, on both renderers, and the large head played about 1 dB louder than
+  the small one inside Fit, where the louder of two sounds is the one that
+  gets picked. Every block is now levelled by the inverse of its resampling
+  ratio (the rate's and the head size's), anchored so the medium head's
+  48 kHz block is the numbers it shipped as; the doubling halves
+  (`head_response`, `RoomInterpolation`). `room_profiles_test.cpp` holds the
+  same tone within 0.3 dB across the four rates on both renderers.
+- **The six featured rooms are measured through the shipped head, from the
+  app's own table.** `room_profiles_test.cpp` reads
+  `room_profiles_fixture.h`, which `generate-room-profiles-fixture.ts` writes
+  out of `roomPresets.ts` and `dspRoomProfiles.test.ts` holds to it byte for
+  byte: retune a featured room, regenerate the header, same commit. "Off" is
+  measured there as a difference — a room whose tail is off renders the same
+  samples whatever the tail's decay is set to, with a room whose tail is on
+  as the control — because the bass crossover rings on every room and a
+  quiet window proves nothing. The tail's loudness is a rule, not a taste:
+  at full Ambience it carries what the walls that feed it carry, whatever
+  its length (`kLateDrive` in `room_ambience.cpp`, injection by energy). It
+  used to sit 40 to 52 dB under those walls — 70 dB under the direct sound,
+  heard by nobody at any setting, and quieter the longer it was asked to be.
+- **The Room's page hides nothing, and its picker is the one every stage
+  has.** A first version put the rooms behind a "Browse" library with a
+  profile emblem in the header, and what a room is made of behind "Tune" and
+  "Fit" tabs; Ivan sent all of it back on 2026-09-19 ("I want same profile
+  select as other filters do on the left top", "is hard to find things tune
+  etc", "all filters ui fills the width make this one does"). Do not bring
+  them back. The header is the standard `dsp-eq-bar` (`DspRoomBar`: one
+  RichPick under three headings — Featured, Classic rooms, Yours — the
+  arrows, Reset, Restore profile only while there is one, Save, Delete on a
+  saved room); under it a status line (what is playing on the left, Compare
+  on the right); then the picture on the left, sticky, and six bands beside
+  it in three, two or one columns and never four (six divides by those; four
+  left a hole the size of two bands at a 2560px window), each row's name
+  over its controls so nothing breaks in two. The selected speaker's pane is
+  the first band and is there from the press of a drag; its angle is a typed
+  field laid out as a dial, because a knob cannot be typed into. Space and
+  Ambience are not drawn on a classic room — they would turn and change
+  nothing — and a classic room moves to the new renderer only on its own
+  button (`roomOnNewRenderer`). Restore is offered only while the room on the
+  card is the card's own last edit of a room it remembers applying
+  (`roomProfileMemory.ts`); a custom room met after a restart gets none
+  rather than a guess. `.claude/harness-room` (launch entry `room-harness`)
+  mounts the real card with a simulated source, account and engine report.
 - **The Library's DSP host reads the room's head from the shipped folder,
   not from the wire.** The host is spawned with `--room-heads <dir>`
   (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's

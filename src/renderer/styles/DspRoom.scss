@@ -1,0 +1,348 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The Room's page. The picture of the room and everything drawn inside it is
+// still in `Dsp.scss`, where it has always been; this is the page around it,
+// kept out of a file that is already four thousand lines.
+//
+// One page, nothing behind a tab, and it fills the card like every other
+// stage's: the room from above on the left, every band of the page beside it
+// in as many columns as fit. Nothing here asks how wide the card is — the
+// picture and the bands wrap on their own terms, down to a phone's width.
+//
+// Measured in the window: the card's body is about 690px wide at a 1280px
+// window and 1750px at a 2146px one.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------------------
+// Under the header: what is playing, and the comparison.
+// ---------------------------------------------------------------------------
+
+.dsp-room-status {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  min-width: 0;
+}
+
+// What is coming in and what the room makes of it: lit while the engine is
+// rendering a stream through the room, quiet while it is only what would
+// happen.
+.dsp-room-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  transition: color $motion-base $ease-out;
+
+  &.is-on {
+    color: $secondary-default;
+  }
+}
+
+// A lamp for the line: lit with it.
+.dsp-room-source__pip {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: currentColor;
+  opacity: 0.55;
+
+  .is-on > & {
+    opacity: 1;
+    box-shadow: 0 0 8px currentColor;
+  }
+}
+
+// Original / Room. Its words sit before the button, so the button keeps its
+// place at the row's end whatever they say.
+.dsp-room-compare {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 10px;
+  margin-left: auto;
+
+  .button {
+    gap: 6px;
+  }
+
+  .button svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+}
+
+.dsp-room-compare__state {
+  order: -1;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.dsp-room-signal {
+  display: grid;
+  flex: 1 1 100%;
+  gap: 4px;
+}
+
+.dsp-room-signal__line {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba($white, 0.07);
+  border-radius: $radius-xs;
+  background: $surface-well;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+
+  &.is-warn {
+    border-color: color-mix(in srgb, $amber 45%, transparent);
+    color: $amber;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The page: the picture, and the bands beside it.
+// ---------------------------------------------------------------------------
+
+.dsp-room-page {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+// The picture takes what it needs to be read and no more — it used to grow
+// to 640px and push the selected speaker's pane to 909px down a 720px window
+// — and stays in view while the bands beside it scroll, so a dial that
+// reshapes the room is seen reshaping it.
+.dsp-room-picture {
+  position: sticky;
+  top: 0;
+  display: grid;
+  flex: 1 1 320px;
+  gap: 6px;
+  max-width: 520px;
+  min-width: 0;
+  padding: 8px 8px 6px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: $radius-s;
+  background: $surface-plot;
+}
+
+.dsp-room-picture .dsp-room-svg {
+  width: 100%;
+}
+
+// How to move a speaker, as a sentence. It was four words in capitals; with
+// the keyboard's half added, capitals turned it into a block nobody reads.
+.dsp-room-picture .dsp-room-graph-hint {
+  max-width: 46ch;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+}
+
+.dsp-room-note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+  text-align: center;
+}
+
+// The six bands of the page in equal columns beside the picture: three, two
+// or one, and never four. Six divides by each of those; four columns put
+// four bands over two and left a hole the size of two bands in the corner
+// of a 2560px window. The floor of a third of the grid's own width is what
+// stops a fourth column ever fitting. The selected speaker's pane leads, so
+// it is beside the picture at every width.
+.dsp-room-bands {
+  $gap: 10px;
+
+  display: grid;
+  // Three parts of the spare width to the picture's one, until the picture
+  // reaches its cap and the bands take all of it: measured, a 1730px body
+  // gives the picture its 520px and the bands three columns of 394px, a
+  // 690px one gives them half each.
+  flex: 3 1 320px;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(300px, calc((100% - #{2 * $gap}) / 3))), 1fr)
+  );
+  align-content: start;
+  gap: $gap;
+  min-width: 0;
+
+  // A row's name over its controls, not beside them. Beside, the name took
+  // 96px of a 270px band and the row broke in two — the switch on one line,
+  // its picture and its dial on the next, and "Correct the headphones / Leave
+  // them" stacked like a list. Over, every row of the page holds its line
+  // down to a 320px band.
+  .dsp-room-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+    padding: 6px 0;
+  }
+
+  // Tune and Fit are groups of bands in the source and nothing on the page:
+  // their bands stand in the grid with the rest.
+  > .dsp-room-tune,
+  > .dsp-room-fit {
+    display: contents;
+  }
+
+  .dsp-band {
+    flex: none;
+  }
+
+  .segmented {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+// The selected speaker's pane.
+.dsp-room-pane {
+  border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+}
+
+.dsp-room-pane__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.dsp-room-pane__code {
+  padding: 2px 7px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  color: $secondary-default;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+}
+
+.dsp-room-pane__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+// The angle by number, then the two dials: three of a kind on one line, each
+// the control with its name under it. An ordinary dial row, so on a band too
+// narrow for three at full size they narrow together — as a wrapping row the
+// third dropped to a line of its own at a 275px band, measured.
+.dsp-room-pane__controls {
+  column-gap: 14px;
+}
+
+// A dial's place, holding a number instead: as wide and as tall as the dial
+// beside it, so its name lands on the same line as theirs.
+.dsp-room-pane__angle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+
+  > .dsp-room-speaker-panel__angle {
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  input {
+    width: min(56px, 100% - 12px);
+    padding-inline: 4px;
+    text-align: center;
+  }
+}
+
+.dsp-room-pane__note {
+  margin: 0;
+}
+
+// A classic room: what it is, and the one press that moves it.
+.dsp-room-upgrade {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+
+  > .dsp-band-hint {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+}
+
+// A switch with its sentence: the switch on the first line's level, the
+// sentence free to wrap beside it.
+.dsp-room-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid rgba($white, 0.05);
+}
+
+.dsp-room-check__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: $text-primary;
+  font-size: $text-body;
+
+  > .dsp-band-hint {
+    margin: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Inside the picture: what the keyboard and the stereo expansion add.
+// ---------------------------------------------------------------------------
+
+.dsp-room-speaker,
+.dsp-room-sub {
+  outline: none;
+}
+
+// The keyboard's place in the picture: a solid edge on the box, so focus and
+// the dashed ring of selection are told apart.
+.dsp-room-speaker:focus-visible .dsp-room-speaker-box,
+.dsp-room-sub:focus-visible .dsp-room-speaker-box {
+  stroke: $white;
+  stroke-width: 2;
+}
+
+// Worked out from the stereo pair, not fed by a channel of its own.
+.dsp-room-speaker.is-derived .dsp-room-speaker-box {
+  stroke-dasharray: 3 2.5;
+}

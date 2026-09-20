@@ -113,6 +113,16 @@ const PATHS: Record<string, string> = {
   // Headphones, band over the top.
   openBack:
     'M4 15v-3a8 8 0 0 1 16 0v3M4 14h3v6H5a1 1 0 0 1-1-1zm16 0h-3v6h2a1 1 0 0 0 1-1z',
+
+  // The Room's featured profiles that no glyph above already says.
+  // A pair of studio monitors: the record, in front of you.
+  monitors:
+    'M3 5h7v14H3zM14 5h7v14h-7zM6.5 8.5h.01M17.5 8.5h.01M6.5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17.5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
+  // Crosshair: where a sound is, and nothing else.
+  crosshair:
+    'M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM12 2v6M12 16v6M2 12h6M16 12h6',
+  // A stage under its lights.
+  stage: 'M3 19h18M5 19v-5h14v5M8 4l-2 6M16 4l2 6M12 4v6M4 10h16',
 };
 
 /**
@@ -151,6 +161,24 @@ const ALIASES: Record<string, string> = {
   streaming: 'air',
   broadcast: 'speech',
   loud: 'rock',
+  // The Room's featured profiles.
+  referenceV2: 'monitors',
+  musicSpaceV2: 'music',
+  cinemaV2: 'movies',
+  gameWorldV2: 'games',
+  competitiveV2: 'crosshair',
+  liveVenueV2: 'stage',
+  // And its classic rooms, by the nearest idea already drawn.
+  studio: 'monitors',
+  nearField: 'laptop',
+  homeTheatre: 'movies',
+  cinema: 'movies',
+  concertHall: 'classical',
+  jazzClub: 'jazz',
+  club: 'electronic',
+  openAir: 'air',
+  frontStage: 'stage',
+  livingRoom: 'smallSpeakers',
   // Repairs, all of them a notch.
   deEss: 'notch',
   sibilance: 'notch',

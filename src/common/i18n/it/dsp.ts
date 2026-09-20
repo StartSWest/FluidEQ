@@ -664,12 +664,10 @@ const dsp = {
   'dsp.surround.allChannels': 'Tutti i canali',
   'dsp.surround.frontPair': 'Coppia frontale',
   'dsp.room.title': 'Stanza',
-  'dsp.room.description':
-    "Una stanza d'ascolto in cuffia: ogni canale dell'uscita è un diffusore intorno alla tua testa.",
   'dsp.room.graphLabel': "La stanza vista dall'alto",
   'dsp.room.front': 'Davanti',
   'dsp.room.dragHint':
-    'Trascina un diffusore e il suo compagno si muove con lui; tieni premuto Maiusc o Ctrl per muoverlo da solo; premilo per regolarlo.',
+    'Trascina un diffusore e il suo gemello lo segue; tieni Maiusc o Ctrl per muoverlo da solo. Con la tastiera, su e giù scelgono un diffusore, sinistra e destra lo spostano.',
   'dsp.room.fedFrontStage':
     'Suona stereo: solo FL e FR portano suono. Gli altri aspettano un flusso 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suona 5.1: la coppia posteriore non porta nulla.',
@@ -688,16 +686,12 @@ const dsp = {
   'dsp.room.preset.openAir': 'Aria aperta',
   'dsp.room.presetHint':
     'Stanza di {size} m · diffusori a {distance} m · pareti {live}% vive',
-  'dsp.room.savedRooms': 'Stanze salvate',
   'dsp.room.saveRoom': 'Salva stanza…',
   'dsp.room.saveTitle': 'Salva questa stanza',
   'dsp.room.saveHint':
-    'La stanza così com’è — dimensione, pareti, distanza, centrale, sub e dove stanno i diffusori — viene salvata con questo nome. La testa resta la tua.',
+    'Tutta la stanza così com’è viene salvata con questo nome, accanto a quelle già salvate: la forma, i diffusori, i loro livelli e i muti, le scelte di bassi e stereo, Spazio e Ambiente. La tua testa e le tue cuffie restano tue.',
   'dsp.room.savePlaceholder': 'Nome della stanza',
-  'dsp.room.applyRoom': 'Usa questa stanza',
-  'dsp.room.roomApplied': 'Questa è la stanza in uso',
   'dsp.room.deleteRoom': 'Elimina stanza',
-  'dsp.room.groupRoom': 'Stanza',
   'dsp.room.groupHead': 'Testa',
   'dsp.room.groupHeadphones': 'Cuffie',
   'dsp.room.size': 'Dimensione',
@@ -708,8 +702,6 @@ const dsp = {
   'dsp.room.head.small': 'Piccola',
   'dsp.room.head.medium': 'Media',
   'dsp.room.head.large': 'Grande',
-  'dsp.room.headHint':
-    'La testa con cui viene resa la stanza. Scegli quella che mette i suoni davanti a te e non dentro la testa.',
   'dsp.room.headphones.correct': 'Correggi le cuffie',
   'dsp.room.headphones.leave': 'Lasciale',
   'dsp.room.headphonesHint':
@@ -727,10 +719,6 @@ const dsp = {
   'dsp.room.musicHint':
     'La musica stereo può riempire tutta la stanza: la coppia frontale resta com’è, il centrale prende ciò che i due lati condividono, e ciò che non condividono raggiunge i laterali un istante dopo e i posteriori dopo ancora, come fa un decoder surround. Film e giochi non vengono toccati.',
   'dsp.room.live.music': 'Stereo → tutta la stanza',
-  'dsp.room.groupListener': 'Ascoltatore',
-  'dsp.room.groupSound': 'Suono',
-  'dsp.room.soundHint':
-    'La gestione dei bassi e l’upmix per la musica sono tuoi, non della stanza: preset e stanze salvate non li toccano. Passa sopra un nome per sapere cosa fa.',
   'dsp.room.speaker.level': 'Livello',
   'dsp.room.speaker.distance': 'Distanza',
   'dsp.room.speaker.angle': 'Angolo',
@@ -738,7 +726,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'Solo',
   'dsp.room.speaker.soloUnfed':
     'Niente di ciò che suona arriva a questo diffusore, quindi non c’è nulla da ascoltare da solo.',
-  'dsp.room.speaker.close': 'Chiudi',
   'dsp.room.speakerName.FL': 'Anteriore sinistro',
   'dsp.room.speakerName.FR': 'Anteriore destro',
   'dsp.room.speakerName.C': 'Centrale',
@@ -759,6 +746,102 @@ const dsp = {
   'dsp.room.live.idle': 'Niente passa dal motore',
   'dsp.room.live.unknown': 'Solo con il motore',
   'dsp.room.fit': 'Adatta…',
+  'dsp.room.profile.referenceV2': 'Riferimento',
+  'dsp.room.profile.musicSpaceV2': 'Spazio musicale',
+  'dsp.room.profile.cinemaV2': 'Cinema',
+  'dsp.room.profile.gameWorldV2': 'Mondo di gioco',
+  'dsp.room.profile.competitiveV2': 'Competitivo',
+  'dsp.room.profile.liveVenueV2': 'Sala dal vivo',
+  'dsp.room.profilePurpose.referenceV2':
+    'Una stanza vicina e trattata. Il disco davanti a te, niente di aggiunto.',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    'Un palco più largo, la voce tenuta davanti e un po’ d’aria dopo.',
+  'dsp.room.profilePurpose.cinemaV2':
+    'Uno schermo largo, una voce solida e la sala intorno a te.',
+  'dsp.room.profilePurpose.gameWorldV2':
+    'Un mondo intorno a te, dove i suoni brevi restano brevi.',
+  'dsp.room.profilePurpose.competitiveV2':
+    'Direzione e nient’altro: niente pareti, niente coda.',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'Una sala intorno al palco, con una coda lunga e morbida.',
+  'dsp.room.fedExpanded':
+    'Sta suonando stereo, distribuito nella stanza: i diffusori tratteggiati sono ricavati dalla coppia frontale, non sono canali a parte.',
+  'dsp.room.speaker.isMuted': 'muto',
+  'dsp.room.speaker.isUnfed': 'non gli arriva nulla',
+  'dsp.room.speaker.isDerived': 'ricavato dallo stereo',
+  'dsp.room.speaker.noteDiscrete':
+    'Questo diffusore ha un canale tutto suo in ciò che sta suonando.',
+  'dsp.room.speaker.noteDerived':
+    'Ricavato dalla coppia stereo. Dietro non c’è un canale separato.',
+  'dsp.room.speaker.noteUnfed':
+    'Niente di ciò che suona arriva a questo diffusore. Puoi comunque posizionarlo per quando arriverà qualcosa.',
+  'dsp.room.speaker.noteSub': 'Il canale subwoofer di ciò che sta suonando.',
+  'dsp.room.speaker.noteSubUnfed':
+    'Lo stereo non ha un canale subwoofer, quindi questo livello non ha nulla da regolare. Con i bassi mandati al sub, il basso dei diffusori passa comunque di qui.',
+  'dsp.room.quick.title': 'Falla tua',
+  'dsp.room.quick.space': 'Spazio',
+  'dsp.room.quick.ambience': 'Ambiente',
+  'dsp.room.quick.hint':
+    'Spazio è quanto senti le pareti. Ambiente è la coda morbida che le segue, e ha bisogno di un po’ di Spazio per avere qualcosa da seguire.',
+  'dsp.room.classic.hint':
+    'Una stanza classica, che suona esattamente come sempre. Spazio, Ambiente e un posizionamento più fine dei diffusori appartengono al nuovo suono.',
+  'dsp.room.classic.upgrade': 'Porta questa stanza al nuovo suono',
+  'dsp.room.tune.character': 'Carattere della stanza',
+  'dsp.room.tune.decay': 'Lunghezza della coda',
+  'dsp.room.tune.damping': 'Tono della coda',
+  'dsp.room.tune.characterHint':
+    'Dimensione e Pareti modellano le prime riflessioni. Lunghezza e Tono modellano l’Ambiente che le segue.',
+  'dsp.room.tune.preserve': 'Tieni i diffusori dove sono',
+  'dsp.room.tune.preserveHint':
+    'L’allargamento di Dimensione riposa mentre la Stanza è accesa, perché sposterebbe ciò che la Stanza ha appena posizionato. Le sue impostazioni restano.',
+  'dsp.room.tune.bassCentre': 'Bassi e centrale',
+  'dsp.room.tune.levels': 'Livelli',
+  'dsp.room.tune.centreHint':
+    'Centrale alza o abbassa il canale centrale. Non isola le voci da un mix.',
+  'dsp.room.tune.noSubChannel':
+    'Ciò che suona non ha un canale subwoofer, quindi Sub non ha nulla da regolare.',
+  'dsp.room.tune.stereo': 'Sorgente stereo',
+  'dsp.room.tune.stereoHint':
+    'Solo per lo stereo. Un flusso 5.1 o 7.1 tiene i suoi canali dove sono.',
+  'dsp.room.tune.spatial': 'La mia sorgente è già spaziale',
+  'dsp.room.tune.spatialHint':
+    'Per un suono già fatto per le cuffie: l’audio 3D di un gioco, una registrazione binaurale. La Stanza si fa da parte per non posizionarlo due volte. FluidEQ non può capirlo da solo, quindi lo decidi tu.',
+  'dsp.room.fitView.head': 'La tua testa e le tue cuffie',
+  'dsp.room.fitView.headHint':
+    'Tre taglie di un’unica testa misurata: non tre persone, e non una scansione delle tue orecchie. Scegli la taglia che mette i suoni davanti a te invece che dentro la testa.',
+  'dsp.room.fitView.guided': 'Trova la tua taglia a orecchio',
+  'dsp.room.fitView.guidedHint':
+    'Cinque brevi coppie di suoni. Ogni volta scegli quello che suona più intorno a te; la testa che vince è la tua.',
+  'dsp.room.fitView.start': 'Avvia la prova d’ascolto',
+  'dsp.room.compare.label': 'Confronta',
+  'dsp.room.compare.original': 'Stai ascoltando l’originale',
+  'dsp.room.compare.hint':
+    'Ascolta ciò che suona senza la Stanza, nello stesso istante e, una volta misurato, allo stesso volume. Tutto il resto del rack continua a suonare.',
+  'dsp.room.compare.unknown':
+    'Il motore non ha detto che cosa sta riproducendo.',
+  'dsp.room.compare.waiting': 'In attesa che il motore cambi.',
+  'dsp.room.compare.matched': 'Volume pareggiato ({gain} dB).',
+  'dsp.room.compare.unmatched':
+    'Volume non ancora pareggiato: servono alcuni secondi di suono.',
+  'dsp.room.compare.foldDown':
+    'L’originale è il mix surround ripiegato in stereo.',
+  'dsp.room.signal.updateRequired':
+    'Il nuovo suono richiede il motore audio aggiornato. Questa stanza non gli è stata inviata: aggiorna il motore per sentirla.',
+  'dsp.room.signal.spatialBypass':
+    'La Stanza si fa da parte: la sorgente è segnata come già spaziale (Sorgente stereo, più sotto).',
+  'dsp.room.featured': 'In evidenza',
+  'dsp.room.classicRooms': 'Stanze classiche',
+  'dsp.room.savedNew': 'Nuovo suono',
+  'dsp.room.savedClassic': 'Suono classico',
+  'dsp.room.saveFailed':
+    'Non è stato possibile salvare la stanza: l’archivio l’ha rifiutata. Non è cambiato nulla.',
+  'dsp.room.restore': 'Ripristina profilo',
+  'dsp.room.restoreHint':
+    'Torna a {name}. La tua testa, le tue cuffie e le scelte sulla sorgente restano.',
+  'dsp.room.resetHint':
+    'Ogni opzione di questa pagina torna a com’era alla prima apertura, comprese quelle dell’ascoltatore. Resta solo l’interruttore.',
+  'dsp.room.saveKeepsBoth':
+    'Quel nome è già usato. Questa stanza sarà salvata come «{name}», e l’altra resta.',
   'dsp.roomFit.title': 'Adatta la stanza alla tua testa',
   'dsp.roomFit.hint':
     'Un suono breve gira intorno a te — davanti, destra, dietro, sinistra — attraverso due teste. Premi quella che suona più intorno a te.',

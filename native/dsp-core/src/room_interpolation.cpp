@@ -41,10 +41,12 @@ RoomInterpolation::RoomInterpolation(const FeqRoom* room)
     for (uint32_t d = 0; d < directions_; ++d) {
       float* to = ring.data() + size_t(d) * taps_;
       const float* from = input.data() + size_t(d) * room->taps;
+      // Halved with the doubling, as `head_response` does and for its reason:
+      // twice the taps at the same height is twice the gain.
       if (!room->doubling) std::copy(from, from + taps_, to);
       else for (uint32_t i = 0; i < room->taps; ++i) {
-        to[2 * i] = from[i];
-        to[2 * i + 1] = 0.5f * (from[i] + (i + 1 < room->taps ? from[i + 1] : 0));
+        to[2 * i] = 0.5f * from[i];
+        to[2 * i + 1] = 0.25f * (from[i] + (i + 1 < room->taps ? from[i + 1] : 0));
       }
       onset_[ear][d] = onset(to, taps_);
     }

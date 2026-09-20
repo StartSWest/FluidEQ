@@ -617,9 +617,13 @@ void feq_chain_reset_room(FeqChain* chain) {
   for (auto& crossover : chain->crossovers) feq_crossover_reset(&crossover);
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
     chain->safety_dc[channel] = {};
+    // Both alignment lines, as `feq_chain_reset` clears them: each holds
+    // audio from before the route changed, on its way to the Room. Only the
+    // stereo host calls this today, where neither carries anything.
     for (auto* line : {&chain->safety_delay[channel], &chain->post_delay[channel],
                        &chain->maximizer_delay[channel],
-                       &chain->punch_align_line[channel]}) {
+                       &chain->punch_align_line[channel],
+                       &chain->denoise_align_line[channel]}) {
       std::fill(line->begin(), line->end(), 0.0f);
     }
   }

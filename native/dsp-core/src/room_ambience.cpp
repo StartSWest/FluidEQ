@@ -7,6 +7,8 @@
 namespace {
 constexpr double pi = 3.14159265358979323846;
 constexpr double seconds[4] = {0.0297, 0.0371, 0.0411, 0.0437};
+/** See `room_ambience_parameters`: calibrated, not derived. */
+constexpr double kLateDrive = 18.0;
 double clean(double x) {
   return std::isfinite(x) && std::fabs(x) > 1e-24 ? x : 0;
 }
@@ -29,15 +31,23 @@ RoomAmbienceParameters room_ambience_parameters(double rate, double mix,
       12000.0 * std::pow(1.0 / 12.0, std::clamp(walls, 0.0, 1.0));
   p.wall_damping =
       1 - std::exp(-2 * pi * std::min(wall_hz, rate * 0.45) / rate);
-  double largest = 0;
+  double kept = 0;
   for (size_t i = 0; i < 4; ++i) {
     const double delay = std::max(1.0, std::round(seconds[i] * rate));
     p.feedback[i] = std::exp(-std::log(1000.0) * delay / (rate * decay));
-    largest = std::max(largest, p.feedback[i]);
+    kept += p.feedback[i] * p.feedback[i] / 4;
   }
-  // Contractive orthogonal feedback and unit-DC damping. This input factor
-  // bounds sustained correlated drive even at the maximum decay. No limiter.
-  p.injection = (1 - largest) * 0.25;
+  // Contractive orthogonal feedback and unit-DC damping: stable whatever is
+  // injected. What is injected sets how loud the tail is, and it is set by
+  // energy: a loop that keeps `kept` of its energy each pass holds
+  // 1 / (1 - kept) of what went in, so the root of (1 - kept) makes a long
+  // tail carry what a short one does. The drive then puts the tail, at full
+  // Ambience, level with the walls that feed it — measured through the
+  // shipped head (`room_profiles_test.cpp`). It used to be (1 - largest) / 4,
+  // a steady-state bound, which left the tail 40 dB under the walls at its
+  // shortest and 52 dB under at its longest: 70 dB under the direct sound,
+  // heard by nobody at any setting, and quieter the longer it was asked to be.
+  p.injection = kLateDrive * std::sqrt(1 - kept);
   return p;
 }
 void RoomAmbience::prepare(double rate) {

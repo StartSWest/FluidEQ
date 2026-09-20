@@ -63,12 +63,15 @@ void head_response(const FeqRoom* room, uint32_t direction, int ear,
   }
   // Linear interpolation between taps: a 192 kHz stream on a 96 kHz head.
   // The octave it loses is above 24 kHz, which no head measurement carries.
+  // And every tap halved: a filter with twice the taps at the same height has
+  // twice the gain, which is what this did — the room played 6 dB louder on
+  // a 192 kHz output than on a 96 kHz one, measured on a 1 kHz sine.
   out.resize(static_cast<size_t>(room->taps) * 2);
   for (uint32_t tap = 0; tap < room->taps; ++tap) {
     const float here = from[tap];
     const float following = tap + 1 < room->taps ? from[tap + 1] : 0.0f;
-    out[static_cast<size_t>(tap) * 2] = here;
-    out[static_cast<size_t>(tap) * 2 + 1] = 0.5f * (here + following);
+    out[static_cast<size_t>(tap) * 2] = 0.5f * here;
+    out[static_cast<size_t>(tap) * 2 + 1] = 0.25f * (here + following);
   }
 }
 

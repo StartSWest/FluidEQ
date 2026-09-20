@@ -4,11 +4,36 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PointerEvent as ReactPointerEvent, ReactNode, useRef } from 'react';
+import {
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+  useRef,
+} from 'react';
 import { IRoomSettings, ROOM_SPEAKERS } from '../../common/dsp/chain';
 import { roomSolo } from '../../common/dsp/roomSpeakers';
-import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  RoomBackdrop,
+  RoomListener,
+  RoomSpeakerBody,
+  RoomSubBody,
+} from './DspRoomGraphParts';
+import {
+  clamp,
+  metres,
+  polar,
+  radiusOf,
+  ROOM_GRAPH_CENTRE as CENTRE,
+  ROOM_GRAPH_SIZE as SIZE,
+  wallHalfOf,
+  wrapAngle,
+} from './roomGraphGeometry';
+import {
+  ROOM_PICKS,
+  ROOM_SPEAKER_CODES,
+  roomSpeakerNameKey,
+  TRoomPick,
+} from './roomSpeakerNames';
 
 interface IDspRoomGraphProps {
   room: IRoomSettings;
@@ -19,79 +44,47 @@ interface IDspRoomGraphProps {
    * heard. All seven while nothing is known.
    */
   fed: readonly boolean[];
+  /**
+   * Which of those are worked out from a stereo pair rather than fed by a
+   * channel of their own: drawn dashed, so a filled ring never reads as a
+   * surround source.
+   */
+  derived: readonly boolean[];
   /** Whether the stream carries a subwoofer feed; drawn asleep without. */
   subFed: boolean;
-  /** Said under the room while some speakers are asleep. */
-  fedHintKey?: TranslationKey;
-  /** The speaker whose panel is open, if any; the sub is 'sub'. */
-  selected: TRoomPick | null;
-  /** A press without a drag: the speaker (or the sub) to set, or nothing. */
-  onSelect: (which: TRoomPick | null) => void;
-  /** The panel for the selected speaker, drawn under the picture. */
-  children?: ReactNode;
-  /** A speaker being dragged; angles arrive one at a time, whole degrees. */
+  /** The speaker whose pane is open beside the picture; the sub is 'sub'. */
+  selected: TRoomPick;
   /**
-   * A drag. `mirrored` is the plain drag: the speaker's pair goes with it,
-   * mirrored across the front. Shift or Ctrl held makes it false and the
+   * The speaker to show in the pane: on the press itself, before any travel,
+   * so the pane is already that speaker's while it is being dragged.
+   */
+  onSelect: (which: TRoomPick) => void;
+  /**
+   * A speaker moving, by the pointer or the arrow keys; whole degrees, one
+   * at a time. `mirrored` is the plain move: the speaker's pair goes with
+   * it, mirrored across the front. Shift or Ctrl held makes it false and the
    * speaker moves alone.
    */
   onAngle: (speaker: number, angleDeg: number, mirrored: boolean) => void;
+  /** Travel began: what to go back to if the drag is called off. */
+  onDragStart: () => void;
+  /** Escape, or the pointer taken away mid-drag: back to where it began. */
+  onDragCancel: () => void;
   onCommit: () => void;
   isDisabled: boolean;
   /** Dragging is a Plus thing; the picture is not. */
   canDrag: boolean;
 }
 
-export type TRoomPick = number | 'sub';
-
-const SPEAKER_NAMES = ['FL', 'FR', 'C', 'SL', 'SR', 'RL', 'RR'];
+const SPEAKER_NAMES = ROOM_SPEAKER_CODES;
 /** A press that travels less than this is a press, not a drag. */
 const PRESS_TRAVEL_PX = 4;
-const SIZE = 400;
-const CENTRE = SIZE / 2;
-/**
- * The walls grow with the room. A 12 m room fills the frame and a 2 m room
- * stands well inside it, and the ring keeps its true proportion between
- * the head and the walls — so Size and Distance no longer look like the
- * same dial: one moves the walls, the other moves the speakers within them.
- * Square-root rather than straight, so the small rooms, which are the ones
- * people sit in, keep enough wall to hold seven speakers and their names;
- * the margin outside the largest holds the size's dimension line.
- */
-const WALL_MAX = CENTRE - 26;
-const WALL_MIN = 104;
-const SIZE_MIN_M = 2;
-const SIZE_MAX_M = 12;
-const RING_MIN = 58;
-
-const clamp = (value: number, low: number, high: number) =>
-  Math.min(high, Math.max(low, value));
-
-const wallHalfOf = (sizeM: number) =>
-  WALL_MIN +
-  (WALL_MAX - WALL_MIN) *
-    Math.sqrt(clamp((sizeM - SIZE_MIN_M) / (SIZE_MAX_M - SIZE_MIN_M), 0, 1));
-
-const metres = (value: number) => `${value.toFixed(1)} m`;
-
-/**
- * Where the distance is measured: the middle of the widest gap between
- * speakers, so the line never runs under one however they are arranged.
- */
-const emptiestAngle = (angles: readonly number[]): number => {
-  const sorted = angles
-    .map((angle) => ((angle % 360) + 360) % 360)
-    .sort((a, b) => a - b);
-  let bestStart = sorted[sorted.length - 1];
-  let bestGap = sorted[0] + 360 - bestStart;
-  for (let at = 1; at < sorted.length; at += 1) {
-    const gap = sorted[at] - sorted[at - 1];
-    if (gap > bestGap) {
-      bestGap = gap;
-      bestStart = sorted[at - 1];
-    }
-  }
-  return bestStart + bestGap / 2;
+/** Degrees a key walks the selected speaker: clockwise is to the right. */
+const KEY_TURNS: Record<string, number | undefined> = {
+  ArrowLeft: -1,
+  ArrowRight: 1,
+  PageDown: -10,
+  PageUp: 10,
 };
 
 /**
@@ -104,49 +97,41 @@ const emptiestAngle = (angles: readonly number[]): number => {
  * behind the listener, in metres, so the dials and the picture agree. Every
  * speaker can be taken by the pointer and walked around the ring; the radius
  * is the Distance dial's, so a drag only changes the angle.
+ *
+ * One stop for the keyboard, like a toolbar: Tab lands on the selected
+ * speaker, up and down choose another, left and right walk it round the ring
+ * a degree at a time (Page Up and Down, ten). It used to be a picture
+ * (`role="img"`), which told a screen reader there was nothing inside to
+ * operate, and no speaker could be reached without a mouse.
  */
 const DspRoomGraph = ({
   room,
   fed,
+  derived,
   subFed,
-  fedHintKey,
   selected,
   onSelect,
-  children,
   onAngle,
+  onDragStart,
+  onDragCancel,
   onCommit,
   isDisabled,
   canDrag,
 }: IDspRoomGraphProps) => {
   const { t } = useTranslation();
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const dragging = useRef<number | null>(null);
-  const pressed = useRef<{ which: TRoomPick; x: number; y: number } | null>(
-    null,
-  );
-  const moved = useRef(false);
-  const wallHalf = wallHalfOf(room.sizeM);
+  const nodes = useRef(new Map<TRoomPick, SVGGElement>());
   /**
-   * A distance in metres to a radius in the picture, in the room's own
-   * scale, kept between the head and the labels' room inside the wall.
+   * The press in hand. `speaker` is set where the press may become a drag —
+   * an awake speaker, with Plus — and `moved` once it has travelled.
    */
-  const radiusOf = (distanceM: number) =>
-    clamp(
-      (distanceM / (room.sizeM / 2)) * wallHalf,
-      RING_MIN,
-      Math.max(RING_MIN, wallHalf - 40),
-    );
-  const ring = radiusOf(room.distanceM);
-  const wallAlpha = 0.16 + (1 - room.walls) * 0.6;
-  const shineAlpha = (1 - room.walls) * 0.3;
-
-  const polar = (angleDeg: number, radius: number) => {
-    const radians = (angleDeg * Math.PI) / 180;
-    return {
-      x: CENTRE + radius * Math.sin(radians),
-      y: CENTRE - radius * Math.cos(radians),
-    };
-  };
+  const press = useRef<{
+    x: number;
+    y: number;
+    speaker: number | null;
+    moved: boolean;
+  } | null>(null);
+  const wallHalf = wallHalfOf(room.sizeM);
 
   const angleAt = (event: ReactPointerEvent<SVGElement>): number => {
     const svg = svgRef.current;
@@ -159,77 +144,159 @@ const DspRoomGraph = ({
     return Math.round((Math.atan2(x, -y) * 180) / Math.PI);
   };
 
+  /** Whether this speaker may be moved: Plus, the room on, sound reaching it. */
+  const movable = (which: TRoomPick): which is number =>
+    typeof which === 'number' && canDrag && !isDisabled && fed[which];
+
   const onPointerDown =
-    (which: TRoomPick) => (event: ReactPointerEvent<SVGElement>) => {
+    (which: TRoomPick) => (event: ReactPointerEvent<SVGGElement>) => {
       if (isDisabled) {
         return;
       }
-      // Every press is a candidate for the panel; only a press on an awake
-      // speaker, with Plus, is a candidate for a drag — an asleep speaker
-      // stays where it is, because a drag nobody can hear looks broken.
-      pressed.current = { which, x: event.clientX, y: event.clientY };
-      moved.current = false;
+      // The pane is this speaker's from the press, not from the release: a
+      // drag has no release until it is over, and the pane is what shows the
+      // angle while it moves. Only an awake speaker, with Plus, may go on to
+      // be dragged — a drag nobody can hear looks broken.
+      onSelect(which);
+      press.current = {
+        x: event.clientX,
+        y: event.clientY,
+        speaker: movable(which) ? which : null,
+        moved: false,
+      };
       event.currentTarget.setPointerCapture(event.pointerId);
-      if (typeof which === 'number' && canDrag && fed[which]) {
-        dragging.current = which;
-      }
     };
-  const onPointerMove = (event: ReactPointerEvent<SVGElement>) => {
-    const start = pressed.current;
-    if (start === null) {
+  const onPointerMove = (event: ReactPointerEvent<SVGGElement>) => {
+    const held = press.current;
+    if (held === null || held.speaker === null) {
       return;
     }
-    if (
-      !moved.current &&
-      Math.hypot(event.clientX - start.x, event.clientY - start.y) <
+    if (!held.moved) {
+      if (
+        Math.hypot(event.clientX - held.x, event.clientY - held.y) <
         PRESS_TRAVEL_PX
-    ) {
+      ) {
+        return;
+      }
+      held.moved = true;
+      onDragStart();
+    }
+    onAngle(
+      held.speaker,
+      angleAt(event),
+      !(event.shiftKey || event.ctrlKey || event.metaKey),
+    );
+  };
+  /**
+   * The end of a press, however it ends. Released, a drag is kept; called
+   * off — Escape, a cancelled pointer, the capture taken away — it goes back
+   * to where it began, so nothing is left half-moved and nothing is left
+   * dragging.
+   */
+  const endPress = (keep: boolean) => {
+    const held = press.current;
+    press.current = null;
+    if (held === null || !held.moved) {
       return;
     }
-    moved.current = true;
-    if (dragging.current !== null) {
-      onAngle(
-        dragging.current,
-        angleAt(event),
-        !(event.shiftKey || event.ctrlKey || event.metaKey),
-      );
+    if (keep) {
+      onCommit();
+    } else {
+      onDragCancel();
     }
   };
-  const onPointerUp = (event: ReactPointerEvent<SVGElement>) => {
-    const start = pressed.current;
-    if (start === null) {
-      return;
-    }
+  const onPointerUp = (event: ReactPointerEvent<SVGGElement>) => {
     // A cancelled pointer has already lost its capture, and releasing a
     // capture that is not held throws for a pointer that is gone.
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    pressed.current = null;
-    const wasDragging = dragging.current !== null;
-    dragging.current = null;
-    if (!moved.current) {
-      onSelect(selected === start.which ? null : start.which);
-      return;
-    }
-    if (wasDragging) {
-      onCommit();
-    }
+    endPress(true);
   };
 
+  const onKeyDown =
+    (which: TRoomPick) => (event: ReactKeyboardEvent<SVGGElement>) => {
+      if (isDisabled) {
+        return;
+      }
+      if (event.key === 'Escape' && press.current?.moved === true) {
+        event.preventDefault();
+        endPress(false);
+        return;
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        // Space would scroll the page under the picture.
+        event.preventDefault();
+        onSelect(which);
+        return;
+      }
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        const at = ROOM_PICKS.indexOf(which);
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        const next =
+          ROOM_PICKS[(at + step + ROOM_PICKS.length) % ROOM_PICKS.length];
+        onSelect(next);
+        nodes.current.get(next)?.focus();
+        return;
+      }
+      const turn = KEY_TURNS[event.key];
+      if (turn !== undefined && movable(which)) {
+        event.preventDefault();
+        onAngle(
+          which,
+          wrapAngle(room.angles[which] + turn),
+          !(event.shiftKey || event.ctrlKey || event.metaKey),
+        );
+        onCommit();
+      }
+    };
+
+  /** What a screen reader says of a speaker: its name, place and state. */
+  const spoken = (which: TRoomPick): string => {
+    const isSub = which === 'sub';
+    const isFed = isSub ? subFed : fed[which];
+    return [
+      t(roomSpeakerNameKey(which)),
+      isSub ? undefined : `${room.angles[which]}°`,
+      isSub ? undefined : metres(room.distances[which]),
+      room.mutes[isSub ? ROOM_SPEAKERS : which]
+        ? t('dsp.room.speaker.isMuted')
+        : undefined,
+      isFed ? undefined : t('dsp.room.speaker.isUnfed'),
+      !isSub && derived[which] ? t('dsp.room.speaker.isDerived') : undefined,
+    ]
+      .filter((part) => part !== undefined)
+      .join(', ');
+  };
+
+  const callOff = () => endPress(false);
+  /**
+   * What makes a drawn speaker a control. One stop for Tab — the selected
+   * speaker — and the arrows reach the rest.
+   */
+  const handleOf = (which: TRoomPick) => ({
+    ref: (node: SVGGElement | null) => {
+      if (node === null) {
+        nodes.current.delete(which);
+      } else {
+        nodes.current.set(which, node);
+      }
+    },
+    tabIndex: !isDisabled && selected === which ? 0 : -1,
+    isPressed: selected === which,
+    label: spoken(which),
+    onPointerDown: onPointerDown(which),
+    onKeyDown: onKeyDown(which),
+  });
+  const subHandle = handleOf('sub');
+
   const wallLeft = CENTRE - wallHalf;
-  const wallRight = CENTRE + wallHalf;
   const wallTop = CENTRE - wallHalf;
-  const wallBottom = CENTRE + wallHalf;
   // The sub keeps to its corner: deeper in a big room, tucked right into it
   // in a small one, where the front-left speaker stands at the wall.
   const subInset = clamp(wallHalf * 0.25, 30, 44);
-  const sizeLineY = wallBottom + 14;
   const subGlow = subFed ? clamp((room.subDb + 12) / 24, 0, 1) : 0;
-  const distanceAngle = emptiestAngle(room.angles);
-  const distanceStart = polar(distanceAngle, 24);
-  const distanceEnd = polar(distanceAngle, ring - 4);
-  const distanceMid = polar(distanceAngle, ring / 2 + 10);
   const { mutes } = room;
   // The speaker heard alone, if the mutes spell one: ringed, so a solo reads
   // as a solo and not as six separate mutes.
@@ -239,14 +306,16 @@ const DspRoomGraph = ({
     return {
       at,
       angle,
-      point: polar(angle, radiusOf(room.distances[at])),
-      label: polar(angle, radiusOf(room.distances[at]) + 28),
+      point: polar(angle, radiusOf(room, room.distances[at])),
+      label: polar(angle, radiusOf(room, room.distances[at]) + 28),
       glow:
         fed[at] && !mutes[at] ? clamp((room.levels[at] + 24) / 24, 0, 1) : 0,
       asleep: !fed[at],
+      worked: derived[at] === true,
       muted: mutes[at] === true,
       soloed: solo === at,
       isSelected: selected === at,
+      handle: handleOf(at),
     };
   });
 
@@ -256,94 +325,10 @@ const DspRoomGraph = ({
         ref={svgRef}
         className="dsp-room-svg"
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        role="img"
+        role="group"
         aria-label={t('dsp.room.graphLabel')}
       >
-        <defs>
-          <radialGradient id="dsp-room-floor" cx="50%" cy="50%" r="62%">
-            <stop offset="0" className="dsp-room-floor-in" />
-            <stop offset="1" className="dsp-room-floor-out" />
-          </radialGradient>
-        </defs>
-        <rect
-          className="dsp-room-floor"
-          x={wallLeft}
-          y={wallTop}
-          width={wallHalf * 2}
-          height={wallHalf * 2}
-          rx={16}
-          fill="url(#dsp-room-floor)"
-        />
-        {/* Hard walls shine back into the room; absorbing ones do not. */}
-        <rect
-          className="dsp-room-shine"
-          x={wallLeft + 5}
-          y={wallTop + 5}
-          width={wallHalf * 2 - 10}
-          height={wallHalf * 2 - 10}
-          rx={12}
-          style={{ strokeOpacity: shineAlpha }}
-        />
-        <rect
-          className="dsp-room-walls"
-          x={wallLeft}
-          y={wallTop}
-          width={wallHalf * 2}
-          height={wallHalf * 2}
-          rx={16}
-          style={{ strokeOpacity: wallAlpha }}
-        />
-        {/* Front: named above the top wall, where the head's nose points. */}
-        <text
-          className="dsp-room-front"
-          x={CENTRE}
-          y={wallTop - 9}
-          textAnchor="middle"
-        >
-          {t('dsp.room.front')}
-        </text>
-        <circle className="dsp-room-ring" cx={CENTRE} cy={CENTRE} r={ring} />
-        {/* The speakers' distance, measured straight behind the listener. */}
-        <g className="dsp-room-measure">
-          <line
-            x1={distanceStart.x}
-            y1={distanceStart.y}
-            x2={distanceEnd.x}
-            y2={distanceEnd.y}
-          />
-          <text
-            className="dsp-room-measure-size"
-            x={distanceMid.x}
-            y={distanceMid.y + 3.5}
-            textAnchor="middle"
-          >
-            {metres(room.distanceM)}
-          </text>
-        </g>
-        {/* The room's side, along the bottom wall. */}
-        <g className="dsp-room-measure">
-          <line x1={wallLeft} y1={sizeLineY} x2={wallRight} y2={sizeLineY} />
-          <line
-            x1={wallLeft}
-            y1={sizeLineY - 4}
-            x2={wallLeft}
-            y2={sizeLineY + 4}
-          />
-          <line
-            x1={wallRight}
-            y1={sizeLineY - 4}
-            x2={wallRight}
-            y2={sizeLineY + 4}
-          />
-          <text
-            className="dsp-room-measure-size"
-            x={CENTRE}
-            y={sizeLineY + 4}
-            textAnchor="middle"
-          >
-            {metres(room.sizeM)}
-          </text>
-        </g>
+        <RoomBackdrop room={room} frontLabel={t('dsp.room.front')} />
         {/* Each speaker's direct path to the head, brighter the louder it is. */}
         {speakers.map(({ at, point, glow, asleep }) => (
           <line
@@ -368,79 +353,44 @@ const DspRoomGraph = ({
               label,
               glow,
               asleep,
+              worked,
               muted,
               soloed,
               isSelected,
+              handle,
             }) => (
               <g
                 key={SPEAKER_NAMES[at]}
                 className={`dsp-room-speaker${
                   canDrag && !isDisabled && !asleep ? ' can-drag' : ''
-                }${asleep ? ' is-asleep' : ''}${muted ? ' is-muted' : ''}${
-                  soloed ? ' is-soloed' : ''
-                }${isSelected ? ' is-selected' : ''}`}
-                onPointerDown={onPointerDown(at)}
+                }${asleep ? ' is-asleep' : ''}${worked ? ' is-derived' : ''}${
+                  muted ? ' is-muted' : ''
+                }${soloed ? ' is-soloed' : ''}${
+                  isSelected ? ' is-selected' : ''
+                }`}
+                ref={handle.ref}
+                role="button"
+                tabIndex={handle.tabIndex}
+                aria-pressed={handle.isPressed}
+                aria-disabled={isDisabled}
+                aria-label={handle.label}
+                onPointerDown={handle.onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
+                onPointerCancel={callOff}
+                onLostPointerCapture={callOff}
+                onKeyDown={handle.onKeyDown}
               >
-                <circle
-                  className="dsp-room-speaker-glow"
-                  cx={point.x}
-                  cy={point.y}
-                  r={14 + glow * 12}
-                  style={{ opacity: 0.18 + glow * 0.42 }}
+                <RoomSpeakerBody
+                  code={SPEAKER_NAMES[at]}
+                  angle={angle}
+                  point={point}
+                  label={label}
+                  glow={glow}
+                  isMuted={muted}
+                  isSoloed={soloed}
+                  isSelected={isSelected}
                 />
-                <g
-                  transform={`translate(${point.x} ${point.y}) rotate(${
-                    angle + 180
-                  })`}
-                >
-                  <rect
-                    className="dsp-room-speaker-box"
-                    x={-11}
-                    y={-16}
-                    width={22}
-                    height={32}
-                    rx={5}
-                  />
-                  <circle className="dsp-room-speaker-driver" cy={5} r={5.5} />
-                  <circle
-                    className="dsp-room-speaker-tweeter"
-                    cy={-7}
-                    r={2.5}
-                  />
-                  {muted ? (
-                    <path
-                      className="dsp-room-speaker-mute"
-                      d="M-13 18 L13 -18"
-                    />
-                  ) : undefined}
-                </g>
-                {soloed ? (
-                  <circle
-                    className="dsp-room-speaker-solo"
-                    cx={point.x}
-                    cy={point.y}
-                    r={21}
-                  />
-                ) : undefined}
-                {isSelected ? (
-                  <circle
-                    className="dsp-room-speaker-select"
-                    cx={point.x}
-                    cy={point.y}
-                    r={24}
-                  />
-                ) : undefined}
-                <text
-                  className="dsp-room-speaker-name"
-                  x={label.x}
-                  y={label.y + 3.5}
-                  textAnchor="middle"
-                >
-                  {SPEAKER_NAMES[at]}
-                </text>
               </g>
             ),
           )}
@@ -453,58 +403,31 @@ const DspRoomGraph = ({
             mutes[ROOM_SPEAKERS] ? ' is-muted' : ''
           }${selected === 'sub' ? ' is-selected' : ''}`}
           transform={`translate(${wallLeft + subInset} ${wallTop + subInset})`}
-          onPointerDown={onPointerDown('sub')}
+          ref={subHandle.ref}
+          role="button"
+          tabIndex={subHandle.tabIndex}
+          aria-pressed={subHandle.isPressed}
+          aria-disabled={isDisabled}
+          aria-label={subHandle.label}
+          onPointerDown={subHandle.onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
+          onPointerCancel={callOff}
+          onLostPointerCapture={callOff}
+          onKeyDown={subHandle.onKeyDown}
         >
-          {selected === 'sub' ? (
-            <circle className="dsp-room-speaker-select" r={26} />
-          ) : undefined}
-          <circle
-            className="dsp-room-speaker-glow"
-            r={14 + subGlow * 12}
-            style={{
-              opacity:
-                subFed && !mutes[ROOM_SPEAKERS] ? 0.18 + subGlow * 0.42 : 0,
-            }}
+          <RoomSubBody
+            glow={subGlow}
+            isLit={subFed && !mutes[ROOM_SPEAKERS]}
+            isMuted={mutes[ROOM_SPEAKERS] === true}
+            isSelected={selected === 'sub'}
           />
-          <rect
-            className="dsp-room-speaker-box"
-            x={-15}
-            y={-15}
-            width={30}
-            height={30}
-            rx={5}
-          />
-          <circle className="dsp-room-speaker-driver" cy={1} r={8.5} />
-          <circle className="dsp-room-speaker-tweeter" cx={9} cy={-9} r={2} />
-          {mutes[ROOM_SPEAKERS] ? (
-            <path className="dsp-room-speaker-mute" d="M-16 16 L16 -16" />
-          ) : undefined}
-          <text className="dsp-room-speaker-name" y={28} textAnchor="middle">
-            SUB
-          </text>
         </g>
-        <g
-          className="dsp-room-head"
-          transform={`translate(${CENTRE} ${CENTRE})`}
-        >
-          <ellipse rx={15} ry={18} />
-          <path d="M-9 -20 L0 -28 L9 -20" />
-          <circle cx={-16} cy={0} r={4} />
-          <circle cx={16} cy={0} r={4} />
-        </g>
+        <RoomListener />
       </svg>
       <p className="dsp-room-graph-hint">
         {t(canDrag ? 'dsp.room.dragHint' : 'dsp.room.plusDragHint')}
       </p>
-      {fedHintKey !== undefined ? (
-        <p className="dsp-room-graph-fed" role="status">
-          {t(fedHintKey)}
-        </p>
-      ) : undefined}
-      {children}
     </div>
   );
 };

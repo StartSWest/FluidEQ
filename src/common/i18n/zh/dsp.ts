@@ -627,12 +627,10 @@ const dsp = {
   'dsp.surround.allChannels': '所有声道',
   'dsp.surround.frontPair': '前置声道对',
   'dsp.room.title': '房间',
-  'dsp.room.description':
-    '耳机里的聆听室：输出的每个声道都是你头部周围的一只音箱。',
   'dsp.room.graphLabel': '俯视的房间',
   'dsp.room.front': '前方',
   'dsp.room.dragHint':
-    '拖动音箱时，与它成对的音箱会一起移动；按住 Shift 或 Ctrl 可单独移动；按下可进行设置。',
+    '拖动一只音箱，它的配对音箱会跟着移动；按住 Shift 或 Ctrl 可单独移动。用键盘时，上下键选择音箱，左右键移动它。',
   'dsp.room.fedFrontStage':
     '正在播放立体声：只有 FL 和 FR 有声音。其余音箱等待 5.1 或 7.1 音频流。',
   'dsp.room.fedFiveOne': '正在播放 5.1：后置一对没有声音。',
@@ -651,16 +649,12 @@ const dsp = {
   'dsp.room.preset.openAir': '露天',
   'dsp.room.presetHint':
     '{size} m 房间 · 音箱距离 {distance} m · 墙面反射 {live}%',
-  'dsp.room.savedRooms': '已保存的房间',
   'dsp.room.saveRoom': '保存房间…',
   'dsp.room.saveTitle': '保存此房间',
   'dsp.room.saveHint':
-    '当前房间——大小、墙壁、距离、中置、低音炮和音箱位置——将以此名称保存。头部设置保持不变。',
+    '当前的整个房间会以这个名字保存，与已保存的房间并列：形状、音箱、它们的电平和静音、低音与立体声的选择、房间感和余韵。你的头型和耳机仍归你所有。',
   'dsp.room.savePlaceholder': '房间名称',
-  'dsp.room.applyRoom': '使用此房间',
-  'dsp.room.roomApplied': '这是正在使用的房间',
   'dsp.room.deleteRoom': '删除房间',
-  'dsp.room.groupRoom': '房间',
   'dsp.room.groupHead': '头部',
   'dsp.room.groupHeadphones': '耳机',
   'dsp.room.size': '大小',
@@ -671,8 +665,6 @@ const dsp = {
   'dsp.room.head.small': '小',
   'dsp.room.head.medium': '中',
   'dsp.room.head.large': '大',
-  'dsp.room.headHint':
-    '渲染房间所用的头部模型。选择让声音出现在前方而不是头内的那一个。',
   'dsp.room.headphones.correct': '校正耳机',
   'dsp.room.headphones.leave': '保持原样',
   'dsp.room.headphonesHint':
@@ -690,10 +682,6 @@ const dsp = {
   'dsp.room.musicHint':
     '立体声音乐可以填满整个房间：前置一对保持不变，中置取左右共有的部分，左右不共有的部分稍后到达侧置、再稍后到达后置，就像环绕声解码器那样。电影和游戏不受影响。',
   'dsp.room.live.music': '立体声 → 整个房间',
-  'dsp.room.groupListener': '聆听者',
-  'dsp.room.groupSound': '声音',
-  'dsp.room.soundHint':
-    '低音管理和音乐上混是你的设置，不属于房间：预设和已保存的房间不会改动它们。将鼠标悬停在名称上可查看说明。',
   'dsp.room.speaker.level': '电平',
   'dsp.room.speaker.distance': '距离',
   'dsp.room.speaker.angle': '角度',
@@ -701,7 +689,6 @@ const dsp = {
   'dsp.room.speaker.solo': '独奏',
   'dsp.room.speaker.soloUnfed':
     '正在播放的声音没有到达这只音箱，没有可以单独听的内容。',
-  'dsp.room.speaker.close': '关闭',
   'dsp.room.speakerName.FL': '前左',
   'dsp.room.speakerName.FR': '前右',
   'dsp.room.speakerName.C': '中置',
@@ -722,6 +709,91 @@ const dsp = {
   'dsp.room.live.idle': '没有声音经过引擎',
   'dsp.room.live.unknown': '仅限引擎',
   'dsp.room.fit': '适配…',
+  'dsp.room.profile.referenceV2': '参考',
+  'dsp.room.profile.musicSpaceV2': '音乐空间',
+  'dsp.room.profile.cinemaV2': '影院',
+  'dsp.room.profile.gameWorldV2': '游戏世界',
+  'dsp.room.profile.competitiveV2': '竞技',
+  'dsp.room.profile.liveVenueV2': '现场场馆',
+  'dsp.room.profilePurpose.referenceV2':
+    '一个贴近、经过处理的房间。唱片就在你面前，不添加任何东西。',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    '更宽的舞台，人声稳稳在前，之后带一点空气感。',
+  'dsp.room.profilePurpose.cinemaV2': '宽阔的银幕，扎实的人声，房间环绕着你。',
+  'dsp.room.profilePurpose.gameWorldV2': '环绕你的世界，短促的声音依然短促。',
+  'dsp.room.profilePurpose.competitiveV2': '只有方向：没有墙面，没有尾音。',
+  'dsp.room.profilePurpose.liveVenueV2': '环绕舞台的大厅，尾音悠长柔和。',
+  'dsp.room.fedExpanded':
+    '正在播放立体声，并铺满房间：虚线音箱是由前置一对推算出来的，并非独立声道。',
+  'dsp.room.speaker.isMuted': '已静音',
+  'dsp.room.speaker.isUnfed': '没有声音到达',
+  'dsp.room.speaker.isDerived': '由立体声推算',
+  'dsp.room.speaker.noteDiscrete': '正在播放的内容里，这只音箱有自己的声道。',
+  'dsp.room.speaker.noteDerived': '由立体声对推算而来，背后没有独立声道。',
+  'dsp.room.speaker.noteUnfed':
+    '正在播放的内容到不了这只音箱。你仍然可以摆放它，以备之后使用。',
+  'dsp.room.speaker.noteSub': '正在播放内容的低音炮声道。',
+  'dsp.room.speaker.noteSubUnfed':
+    '立体声没有低音炮声道，所以这个电平没有可调的东西。低音送往低音炮时，音箱的低频仍然经由这里播放。',
+  'dsp.room.quick.title': '调成你的',
+  'dsp.room.quick.space': '房间感',
+  'dsp.room.quick.ambience': '余韵',
+  'dsp.room.quick.hint':
+    '房间感是你能听到多少墙面反射。余韵是其后的柔和尾音，需要一些房间感才有东西可以延续。',
+  'dsp.room.classic.hint':
+    '经典房间，声音与以往完全一样。房间感、余韵和更平滑的音箱摆位属于新声音。',
+  'dsp.room.classic.upgrade': '把这个房间换到新声音',
+  'dsp.room.tune.character': '房间特性',
+  'dsp.room.tune.decay': '尾音长度',
+  'dsp.room.tune.damping': '尾音音色',
+  'dsp.room.tune.characterHint':
+    '大小和墙面塑造最初的反射；尾音长度和音色塑造其后的余韵。',
+  'dsp.room.tune.preserve': '保持音箱位置不变',
+  'dsp.room.tune.preserveHint':
+    '房间开启时，空间感的展宽会暂停，因为它会移动房间刚摆好的位置。它的设置会保留。',
+  'dsp.room.tune.bassCentre': '低音与中置',
+  'dsp.room.tune.levels': '电平',
+  'dsp.room.tune.centreHint':
+    '中置用来提高或降低中置声道，并不会从混音里分离人声。',
+  'dsp.room.tune.noSubChannel':
+    '正在播放的内容没有低音炮声道，所以低音炮没有可调的东西。',
+  'dsp.room.tune.stereo': '立体声音源',
+  'dsp.room.tune.stereoHint':
+    '只对立体声有效。5.1 或 7.1 音流会保持各声道原位。',
+  'dsp.room.tune.spatial': '我的音源已是空间音频',
+  'dsp.room.tune.spatialHint':
+    '用于本来就为耳机制作的声音：游戏自带的 3D 音频、双耳录音。房间会让开，避免重复定位。FluidEQ 无法自行判断，所以由你决定。',
+  'dsp.room.fitView.head': '你的头型与耳机',
+  'dsp.room.fitView.headHint':
+    '同一个实测头型的三种尺寸：不是三个人，也不是对你耳朵的扫描。选择让声音出现在你面前、而不是头里的那个尺寸。',
+  'dsp.room.fitView.guided': '用耳朵找到适合你的',
+  'dsp.room.fitView.guidedHint':
+    '五组简短的声音。每次选出更像环绕着你的那个；胜出的头型就是你的。',
+  'dsp.room.fitView.start': '开始听音测试',
+  'dsp.room.compare.label': '对比',
+  'dsp.room.compare.original': '正在听原声',
+  'dsp.room.compare.hint':
+    '在同一时刻听不经房间的原声，测量完成后音量也一致。机架里的其他部分照常播放。',
+  'dsp.room.compare.unknown': '引擎尚未报告它在播放什么。',
+  'dsp.room.compare.waiting': '正在等待引擎切换。',
+  'dsp.room.compare.matched': '响度已对齐（{gain} dB）。',
+  'dsp.room.compare.unmatched': '响度尚未对齐：需要几秒钟的声音。',
+  'dsp.room.compare.foldDown': '原声是折叠为立体声的环绕混音。',
+  'dsp.room.signal.updateRequired':
+    '新声音需要更新后的音频引擎。这个房间尚未发送给引擎：更新引擎后才能听到。',
+  'dsp.room.signal.spatialBypass':
+    '房间已让开：音源被标记为已是空间音频（见下方“立体声音源”）。',
+  'dsp.room.featured': '精选',
+  'dsp.room.classicRooms': '经典房间',
+  'dsp.room.savedNew': '新声音',
+  'dsp.room.savedClassic': '经典声音',
+  'dsp.room.saveFailed': '无法保存房间：存储拒绝了写入。没有任何改动。',
+  'dsp.room.restore': '恢复配置',
+  'dsp.room.restoreHint': '回到 {name}。你的头型、耳机和音源选择保持不变。',
+  'dsp.room.resetHint':
+    '本页所有选项回到初次打开时的状态，包括听者的选项。只有电源开关保持不变。',
+  'dsp.room.saveKeepsBoth':
+    '这个名字已被使用。此房间将保存为“{name}”，原来的那个保留。',
   'dsp.roomFit.title': '让房间适配你的头部',
   'dsp.roomFit.hint':
     '一段短促的声音绕着你转——前、右、后、左——经过两个头部模型。按下听起来更环绕你的那一个。',

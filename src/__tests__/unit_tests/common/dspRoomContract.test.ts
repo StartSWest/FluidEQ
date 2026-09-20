@@ -102,7 +102,11 @@ it('normalizes invalid new fields without turning on the new renderer', () => {
 });
 
 it('saves sound shape, excludes runtime/source preferences and matches every new sound field', () => {
-  const [saved] = saveRoom('My space', upgraded);
+  const { saved, stored } = saveRoom('My space', upgraded);
+  expect(stored).toBe(true);
+  if (saved === undefined) {
+    throw new Error('the room was not saved');
+  }
   expect(saved.shape).toEqual(roomShapeOf(upgraded));
   expect(saved.shape).not.toHaveProperty('compareOriginal');
   expect(saved.shape).not.toHaveProperty('sourceAlreadySpatial');

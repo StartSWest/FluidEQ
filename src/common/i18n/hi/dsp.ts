@@ -656,12 +656,10 @@ const dsp = {
   'dsp.surround.allChannels': 'सभी चैनल',
   'dsp.surround.frontPair': 'सामने की जोड़ी',
   'dsp.room.title': 'कमरा',
-  'dsp.room.description':
-    'हेडफ़ोन में एक सुनने का कमरा: आउटपुट का हर चैनल आपके सिर के चारों ओर एक स्पीकर है।',
   'dsp.room.graphLabel': 'ऊपर से कमरा',
   'dsp.room.front': 'सामने',
   'dsp.room.dragHint':
-    'स्पीकर को खींचें तो उसका जोड़ीदार भी साथ चलता है; अकेले हिलाने के लिए Shift या Ctrl दबाए रखें; सेट करने के लिए उसे दबाएँ।',
+    'किसी स्पीकर को खींचें तो उसकी जोड़ी भी साथ चलती है; अकेले हिलाने के लिए Shift या Ctrl दबाए रखें। कीबोर्ड से, ऊपर और नीचे स्पीकर चुनते हैं, बाएँ और दाएँ उसे हिलाते हैं।',
   'dsp.room.fedFrontStage':
     'स्टीरियो चल रहा है: सिर्फ़ FL और FR में आवाज़ है। बाकी 5.1 या 7.1 स्ट्रीम का इंतज़ार कर रहे हैं।',
   'dsp.room.fedFiveOne': '5.1 चल रहा है: पीछे की जोड़ी में कुछ नहीं है।',
@@ -680,16 +678,12 @@ const dsp = {
   'dsp.room.preset.openAir': 'खुली हवा',
   'dsp.room.presetHint':
     '{size} m का कमरा · स्पीकर {distance} m पर · दीवारें {live}% जीवंत',
-  'dsp.room.savedRooms': 'सहेजे गए कमरे',
   'dsp.room.saveRoom': 'कमरा सहेजें…',
   'dsp.room.saveTitle': 'यह कमरा सहेजें',
   'dsp.room.saveHint':
-    'कमरा जैसा है — आकार, दीवारें, दूरी, सेंटर, सब और स्पीकर कहाँ हैं — इस नाम से सहेजा जाता है। सिर आपका ही रहता है।',
+    'पूरा कमरा जैसा है वैसा इस नाम से, पहले से सहेजे गए कमरों के साथ सहेजा जाता है: उसका आकार, स्पीकर, उनके लेवल और म्यूट, बेस और स्टीरियो के चुनाव, स्पेस और एम्बिएंस। आपका सिर और हेडफ़ोन आपके ही रहते हैं।',
   'dsp.room.savePlaceholder': 'कमरे का नाम',
-  'dsp.room.applyRoom': 'यह कमरा इस्तेमाल करें',
-  'dsp.room.roomApplied': 'यही कमरा इस्तेमाल में है',
   'dsp.room.deleteRoom': 'कमरा हटाएँ',
-  'dsp.room.groupRoom': 'कमरा',
   'dsp.room.groupHead': 'सिर',
   'dsp.room.groupHeadphones': 'हेडफ़ोन',
   'dsp.room.size': 'आकार',
@@ -700,8 +694,6 @@ const dsp = {
   'dsp.room.head.small': 'छोटा',
   'dsp.room.head.medium': 'मध्यम',
   'dsp.room.head.large': 'बड़ा',
-  'dsp.room.headHint':
-    'जिस सिर से कमरा बनाया जाता है। वही चुनें जिससे आवाज़ें सिर के अंदर नहीं, आपके सामने सुनाई दें।',
   'dsp.room.headphones.correct': 'हेडफ़ोन सुधारें',
   'dsp.room.headphones.leave': 'जैसे हैं रहने दें',
   'dsp.room.headphonesHint':
@@ -719,10 +711,6 @@ const dsp = {
   'dsp.room.musicHint':
     'स्टीरियो संगीत पूरे कमरे को भर सकता है: सामने की जोड़ी वैसी ही रहती है, सेंटर वह लेता है जो दोनों तरफ़ साझा है, और जो साझा नहीं है वह एक पल बाद साइड में और उसके बाद पीछे पहुँचता है, जैसे सराउंड डिकोडर करता है। फ़िल्मों और गेम को कभी नहीं छुआ जाता।',
   'dsp.room.live.music': 'स्टीरियो → पूरा कमरा',
-  'dsp.room.groupListener': 'श्रोता',
-  'dsp.room.groupSound': 'ध्वनि',
-  'dsp.room.soundHint':
-    'बास प्रबंधन और संगीत अपमिक्स आपके हैं, कमरे के नहीं: प्रीसेट और सहेजे गए कमरे इन्हें नहीं छूते। किसी नाम पर माउस रखकर देखें कि वह क्या करता है।',
   'dsp.room.speaker.level': 'स्तर',
   'dsp.room.speaker.distance': 'दूरी',
   'dsp.room.speaker.angle': 'कोण',
@@ -730,7 +718,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'सोलो',
   'dsp.room.speaker.soloUnfed':
     'जो चल रहा है उसमें से कुछ भी इस स्पीकर तक नहीं पहुँचता, इसलिए अकेले सुनने को कुछ नहीं है।',
-  'dsp.room.speaker.close': 'बंद करें',
   'dsp.room.speakerName.FL': 'सामने बायाँ',
   'dsp.room.speakerName.FR': 'सामने दायाँ',
   'dsp.room.speakerName.C': 'सेंटर',
@@ -751,6 +738,101 @@ const dsp = {
   'dsp.room.live.idle': 'इंजन से कुछ नहीं बज रहा',
   'dsp.room.live.unknown': 'सिर्फ़ इंजन के साथ',
   'dsp.room.fit': 'फ़िट करें…',
+  'dsp.room.profile.referenceV2': 'रेफ़रेंस',
+  'dsp.room.profile.musicSpaceV2': 'म्यूज़िक स्पेस',
+  'dsp.room.profile.cinemaV2': 'सिनेमा',
+  'dsp.room.profile.gameWorldV2': 'गेम वर्ल्ड',
+  'dsp.room.profile.competitiveV2': 'कॉम्पिटिटिव',
+  'dsp.room.profile.liveVenueV2': 'लाइव वेन्यू',
+  'dsp.room.profilePurpose.referenceV2':
+    'पास का, ध्वनि-उपचारित कमरा। रिकॉर्ड आपके सामने, और कुछ भी जोड़ा नहीं।',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    'थोड़ा चौड़ा मंच, आवाज़ सामने टिकी हुई, और उसके बाद हल्की हवा।',
+  'dsp.room.profilePurpose.cinemaV2':
+    'चौड़ी स्क्रीन, ठोस आवाज़ और आपके चारों ओर का कमरा।',
+  'dsp.room.profilePurpose.gameWorldV2':
+    'आपके चारों ओर एक दुनिया, जिसमें छोटी आवाज़ें छोटी ही रहती हैं।',
+  'dsp.room.profilePurpose.competitiveV2':
+    'सिर्फ़ दिशा, और कुछ नहीं: न दीवारें, न गूँज की पूँछ।',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'मंच के चारों ओर एक हॉल, लंबी और नर्म गूँज के साथ।',
+  'dsp.room.fedExpanded':
+    'स्टीरियो बज रहा है, पूरे कमरे में फैलाकर: बिंदीदार स्पीकर सामने की जोड़ी से निकाले गए हैं, ये अलग चैनल नहीं हैं।',
+  'dsp.room.speaker.isMuted': 'म्यूट',
+  'dsp.room.speaker.isUnfed': 'इस तक कुछ नहीं पहुँचता',
+  'dsp.room.speaker.isDerived': 'स्टीरियो से निकाला गया',
+  'dsp.room.speaker.noteDiscrete':
+    'जो बज रहा है उसमें इस स्पीकर का अपना चैनल है।',
+  'dsp.room.speaker.noteDerived':
+    'स्टीरियो जोड़ी से निकाला गया। इसके पीछे कोई अलग चैनल नहीं है।',
+  'dsp.room.speaker.noteUnfed':
+    'जो बज रहा है उसमें से कुछ भी इस स्पीकर तक नहीं पहुँचता। फिर भी इसे आगे के लिए रखा जा सकता है।',
+  'dsp.room.speaker.noteSub': 'जो बज रहा है उसका सबवूफ़र चैनल।',
+  'dsp.room.speaker.noteSubUnfed':
+    'स्टीरियो में सबवूफ़र चैनल नहीं होता, इसलिए इस लेवल के पास बदलने को कुछ नहीं है। बेस सब को भेजा गया हो तो स्पीकरों का निचला हिस्सा फिर भी यहीं से बजता है।',
+  'dsp.room.quick.title': 'इसे अपना बनाएँ',
+  'dsp.room.quick.space': 'स्पेस',
+  'dsp.room.quick.ambience': 'एम्बिएंस',
+  'dsp.room.quick.hint':
+    'स्पेस यह है कि दीवारें कितनी सुनाई देती हैं। एम्बिएंस उनके बाद की नर्म गूँज है, और उसे पीछे चलने के लिए थोड़ा स्पेस चाहिए।',
+  'dsp.room.classic.hint':
+    'क्लासिक कमरा, ठीक वैसे ही बजता है जैसे हमेशा। स्पेस, एम्बिएंस और स्पीकरों की ज़्यादा सहज जगह नई ध्वनि के हिस्से हैं।',
+  'dsp.room.classic.upgrade': 'इस कमरे को नई ध्वनि पर ले जाएँ',
+  'dsp.room.tune.character': 'कमरे का स्वभाव',
+  'dsp.room.tune.decay': 'गूँज की लंबाई',
+  'dsp.room.tune.damping': 'गूँज का स्वर',
+  'dsp.room.tune.characterHint':
+    'आकार और दीवारें पहली परावर्तनों को गढ़ती हैं। गूँज की लंबाई और स्वर उनके बाद के एम्बिएंस को गढ़ते हैं।',
+  'dsp.room.tune.preserve': 'स्पीकरों को अपनी जगह पर रखें',
+  'dsp.room.tune.preserveHint':
+    'कमरा चालू रहने पर डाइमेंशन का चौड़ा करना रुका रहता है, क्योंकि वह कमरे की रखी हुई जगहों को हिला देगा। उसकी सेटिंग बनी रहती हैं।',
+  'dsp.room.tune.bassCentre': 'बेस और सेंटर',
+  'dsp.room.tune.levels': 'लेवल',
+  'dsp.room.tune.centreHint':
+    'सेंटर, सेंटर चैनल को ऊपर या नीचे करता है। यह मिक्स से आवाज़ें अलग नहीं करता।',
+  'dsp.room.tune.noSubChannel':
+    'जो बज रहा है उसमें सबवूफ़र चैनल नहीं है, इसलिए सब के पास बदलने को कुछ नहीं है।',
+  'dsp.room.tune.stereo': 'स्टीरियो स्रोत',
+  'dsp.room.tune.stereoHint':
+    'सिर्फ़ स्टीरियो के लिए। 5.1 या 7.1 स्ट्रीम अपने चैनल जहाँ हैं वहीं रखती है।',
+  'dsp.room.tune.spatial': 'मेरा स्रोत पहले से स्पेशियल है',
+  'dsp.room.tune.spatialHint':
+    'उस ध्वनि के लिए जो पहले से हेडफ़ोन के लिए बनी है: गेम का अपना 3D ऑडियो, बाइनॉरल रिकॉर्डिंग। कमरा हट जाता है ताकि उसे दो बार न रखा जाए। FluidEQ यह ख़ुद नहीं पहचान सकता, इसलिए फ़ैसला आपका है।',
+  'dsp.room.fitView.head': 'आपका सिर और हेडफ़ोन',
+  'dsp.room.fitView.headHint':
+    'एक ही मापे गए सिर के तीन आकार: न तीन लोग, न आपके कानों का स्कैन। वह आकार चुनें जो आवाज़ों को आपके सिर के अंदर नहीं, सामने रखे।',
+  'dsp.room.fitView.guided': 'कान से अपना फ़िट खोजें',
+  'dsp.room.fitView.guidedHint':
+    'आवाज़ों की पाँच छोटी जोड़ियाँ। हर बार वह चुनें जो आपके चारों ओर ज़्यादा लगे; जो सिर जीतेगा वही आपका है।',
+  'dsp.room.fitView.start': 'सुनने का परीक्षण शुरू करें',
+  'dsp.room.compare.label': 'तुलना',
+  'dsp.room.compare.original': 'मूल ध्वनि सुन रहे हैं',
+  'dsp.room.compare.hint':
+    'जो बज रहा है उसे कमरे के बिना सुनें: उसी पल में और, मापने के बाद, उसी ज़ोर पर। रैक का बाक़ी सब कुछ बजता रहता है।',
+  'dsp.room.compare.unknown': 'इंजन ने नहीं बताया कि वह क्या बजा रहा है।',
+  'dsp.room.compare.waiting': 'इंजन के बदलने का इंतज़ार है।',
+  'dsp.room.compare.matched': 'ज़ोर मिलाया गया ({gain} dB)।',
+  'dsp.room.compare.unmatched':
+    'ज़ोर अभी नहीं मिला: इसके लिए कुछ सेकंड की ध्वनि चाहिए।',
+  'dsp.room.compare.foldDown':
+    'मूल ध्वनि, सराउंड मिक्स को स्टीरियो में समेटकर बनी है।',
+  'dsp.room.signal.updateRequired':
+    'नई ध्वनि के लिए अपडेट किया हुआ ऑडियो इंजन चाहिए। यह कमरा इंजन को नहीं भेजा गया: इसे सुनने के लिए इंजन अपडेट करें।',
+  'dsp.room.signal.spatialBypass':
+    'कमरा हट गया है: स्रोत पहले से स्पेशियल के रूप में चिह्नित है (नीचे, स्टीरियो स्रोत)।',
+  'dsp.room.featured': 'चुनिंदा',
+  'dsp.room.classicRooms': 'क्लासिक कमरे',
+  'dsp.room.savedNew': 'नई ध्वनि',
+  'dsp.room.savedClassic': 'क्लासिक ध्वनि',
+  'dsp.room.saveFailed':
+    'कमरा सहेजा नहीं जा सका: स्टोरेज ने मना कर दिया। कुछ नहीं बदला।',
+  'dsp.room.restore': 'प्रोफ़ाइल वापस लाएँ',
+  'dsp.room.restoreHint':
+    '{name} पर वापस। आपका सिर, हेडफ़ोन और स्रोत के चुनाव बने रहते हैं।',
+  'dsp.room.resetHint':
+    'इस पेज का हर विकल्प वैसा हो जाता है जैसा पहली बार खुलने पर था, सुनने वाले के विकल्प भी। सिर्फ़ पावर स्विच जैसा है वैसा रहता है।',
+  'dsp.room.saveKeepsBoth':
+    'यह नाम पहले से है। यह कमरा “{name}” नाम से सहेजा जाएगा, और दूसरा बना रहेगा।',
   'dsp.roomFit.title': 'कमरे को अपने सिर के हिसाब से फ़िट करें',
   'dsp.roomFit.hint':
     'एक छोटी आवाज़ आपके चारों ओर घूमती है — सामने, दाएँ, पीछे, बाएँ — दो सिरों से होकर। जो आपके चारों ओर ज़्यादा लगे, उसे दबाएँ।',

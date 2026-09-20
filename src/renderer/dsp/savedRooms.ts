@@ -113,12 +113,17 @@ export const readSavedRooms = (): ISavedRoom[] => {
   }
 };
 
-const write = (rooms: readonly ISavedRoom[]): void => {
+/**
+ * Whether the list reached storage. A full quota or a locked profile throws,
+ * and a save that did not happen must not be announced as one: the caller
+ * says so instead (`ISaveRoomResult.stored`).
+ */
+const write = (rooms: readonly ISavedRoom[]): boolean => {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
+    return true;
   } catch {
-    // Quota or a locked profile. The room stays live on the card either way,
-    // which is the part the user is looking at.
+    return false;
   }
 };
 
@@ -134,36 +139,77 @@ const freshId = (taken: readonly ISavedRoom[]): string => {
   return id;
 };
 
+const NUMBERED = / \((\d+)\)$/;
+
 /**
- * Save under a name, replacing any room that already has it: two chips with
- * one name is a row nobody can use, and the dialog said it would overwrite.
+ * The name a room will be saved under: the one asked for, or, where a room
+ * already has it (whatever the capitals), the same name numbered — "Den",
+ * then "Den (2)", then "Den (3)". A name that already ends in a number counts
+ * on from its stem, and a long one gives up letters, never the number, to
+ * stay inside the limit. Empty when there is nothing to name a room with.
+ */
+export const uniqueRoomName = (
+  name: string,
+  taken: readonly string[],
+): string => {
+  const trimmed = name.trim().slice(0, SAVED_ROOM_NAME_MAX).trim();
+  const used = new Set(taken.map((one) => one.trim().toLowerCase()));
+  if (trimmed === '' || !used.has(trimmed.toLowerCase())) {
+    return trimmed;
+  }
+  const stem = trimmed.replace(NUMBERED, '').trim();
+  for (let n = 2; ; n += 1) {
+    const suffix = ` (${n})`;
+    const candidate = `${stem
+      .slice(0, SAVED_ROOM_NAME_MAX - suffix.length)
+      .trim()}${suffix}`;
+    if (!used.has(candidate.toLowerCase())) {
+      return candidate;
+    }
+  }
+};
+
+export interface ISaveRoomResult {
+  rooms: ISavedRoom[];
+  /** The room as saved, under the name it actually got; none for no name. */
+  saved: ISavedRoom | undefined;
+  /** False when storage refused: `rooms` is then what was there before. */
+  stored: boolean;
+}
+
+/**
+ * Save under a name, beside every room already there. It used to replace a
+ * room of the same name, silently and with its id: a shape somebody had
+ * tuned and named was gone for typing the name again. A taken name is
+ * numbered instead (`uniqueRoomName`), and the dialog says which name it will
+ * be before the press.
  */
 export const saveRoom = (
   name: string,
   room: Pick<IRoomSettings, keyof TRoomShape>,
-): ISavedRoom[] => {
-  const trimmed = name.trim().slice(0, SAVED_ROOM_NAME_MAX);
-  if (!trimmed) {
-    return readSavedRooms();
-  }
+): ISaveRoomResult => {
   const existing = readSavedRooms();
-  const match = existing.find(
-    (one) => one.name.toLowerCase() === trimmed.toLowerCase(),
+  const label = uniqueRoomName(
+    name,
+    existing.map((one) => one.name),
   );
+  if (label === '') {
+    return { rooms: existing, saved: undefined, stored: false };
+  }
   const saved: ISavedRoom = {
-    id: match?.id ?? freshId(existing),
-    name: trimmed,
+    id: freshId(existing),
+    name: label,
     shape: storedShape(room),
   };
-  const next = match
-    ? existing.map((one) => (one.id === match.id ? saved : one))
-    : [...existing, saved];
-  write(next);
-  return next;
+  const next = [...existing, saved];
+  return write(next)
+    ? { rooms: next, saved, stored: true }
+    : { rooms: existing, saved: undefined, stored: false };
 };
 
+/** The list without that room; unchanged when storage refuses the write. */
 export const deleteSavedRoom = (id: string): ISavedRoom[] => {
-  const next = readSavedRooms().filter((room) => room.id !== id);
-  write(next);
-  return next;
+  const existing = readSavedRooms();
+  const next = existing.filter((room) => room.id !== id);
+  return write(next) ? next : existing;
 };

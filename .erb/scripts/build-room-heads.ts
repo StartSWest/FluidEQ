@@ -29,7 +29,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * provided the authors are cited (`assets/room/heads/LICENSES.md`).
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from 'fs';
 import path from 'path';
 
 const DIRECTIONS = 24;
@@ -42,6 +48,22 @@ const SIZES: { name: string; timeScale: number }[] = [
 ];
 const OUT_DIR = path.join(__dirname, '..', '..', 'assets', 'room', 'heads');
 const PEAK = 0.5;
+/**
+ * A head is a filter, and a filter resampled as if it were a sound changes
+ * its gain: `resample` keeps the height of the waveform, so a block with
+ * twice the taps sums to twice as much. Every block is therefore levelled by
+ * the inverse of its resampling ratio — the rate's AND the head size's, since
+ * a head played 6% longer is 6% more taps too. The heads shipped without
+ * this: the room measured 6 dB louder on a 96 kHz output than on a 48 kHz
+ * one (12 dB at 192 kHz with the engine's doubling, which now halves), and
+ * the large head played 1 dB louder than the small one inside Fit, where the
+ * louder of two sounds is the one that gets picked.
+ *
+ * Anchored on the medium head at 48 kHz, whose block comes out as the same
+ * numbers as before: that is where everyone had been listening, so the fix
+ * changes nothing there.
+ */
+const ANCHOR_RATIO = 48_000 / SOURCE_RATE;
 
 const fail = (message: string): never => {
   console.error(`build-room-heads: ${message}`);
@@ -336,11 +358,9 @@ const main = () => {
     SOURCE_RATE,
   );
   mkdirSync(OUT_DIR, { recursive: true });
-  SIZES.forEach(({ name, timeScale }) => {
-    // One gain for the whole head, across sizes and rates alike, so the
-    // three heads sit at the same level and switching between them is a
-    // change of head and not of volume.
-    const blocks = RATES.map((rate) => {
+  const heads = SIZES.map(({ name, timeScale }) => ({
+    name,
+    blocks: RATES.map((rate) => {
       const ratio = (rate / SOURCE_RATE) * timeScale;
       const taps = tapsFor(rate);
       // Half the block for the correction: the response itself never
@@ -353,21 +373,28 @@ const main = () => {
       return {
         rate,
         taps,
+        level: ANCHOR_RATIO / ratio,
         directions: measured.map(({ left, right }) => ({
           left: convolve(resample(left, ratio), filter, taps),
           right: convolve(resample(right, ratio), filter, taps),
         })),
       };
-    });
-    let peak = 0;
-    blocks.forEach((block) =>
-      block.directions.forEach(({ left, right }) =>
-        [...left, ...right].forEach((sample) => {
-          peak = Math.max(peak, Math.abs(sample));
-        }),
-      ),
-    );
-    const gain = peak > 0 ? PEAK / peak : 1;
+    }),
+  }));
+  // One gain for all three heads, taken where it always was: the medium
+  // head's loudest sample before any block is levelled. With the anchor that
+  // keeps the medium head's 48 kHz block the numbers it shipped as.
+  const medium = heads.find((head) => head.name === 'medium');
+  let peak = 0;
+  medium?.blocks.forEach((block) =>
+    block.directions.forEach(({ left, right }) =>
+      [...left, ...right].forEach((sample) => {
+        peak = Math.max(peak, Math.abs(sample));
+      }),
+    ),
+  );
+  const gain = peak > 0 ? PEAK / peak : 1;
+  heads.forEach(({ name, blocks }) => {
     const lines = [`# FluidEQ room head v1 ${name}`];
     blocks.forEach((block) => {
       lines.push(
@@ -376,13 +403,17 @@ const main = () => {
       block.directions.forEach(({ left, right }) => {
         lines.push(
           [...left, ...right]
-            .map((sample) => (sample * gain).toPrecision(6))
+            .map((sample) => (sample * gain * block.level).toPrecision(6))
             .join(' '),
         );
       });
     });
+    // Beside the file and renamed over it: main reads these while it runs,
+    // and a head read half-written is a head of zeros.
     const out = path.join(OUT_DIR, `${name}.txt`);
-    writeFileSync(out, `${lines.join('\n')}\n`);
+    const partial = `${out}.partial`;
+    writeFileSync(partial, `${lines.join('\n')}\n`);
+    renameSync(partial, out);
     console.log(
       `${out}: ${DIRECTIONS} directions, peak ${peak.toFixed(3)} → ${PEAK}`,
     );

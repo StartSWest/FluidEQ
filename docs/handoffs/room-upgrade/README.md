@@ -1,5 +1,15 @@
 # FluidEQ Room upgrade — resume from main
 
+## State after the 2026-09-19 evening session (read this first)
+
+Tasks 5 and 6 are built and the integration review is done. What follows below this section is the handoff that session started from; where the two disagree, this section is current.
+
+- **Integration review (Task 4):** two independent read-only reviews, native and TypeScript, no finding. One symmetry fix folded in (`feq_chain_reset_room` clears `denoise_align_line` too).
+- **Two engine faults found by measuring, both fixed:** the Room played 6 dB louder on a 96 kHz output and 12 dB louder at 192 kHz (heads resampled as sounds, not filters; the 192 kHz doubling likewise), and the new Ambience tail sat 40-52 dB under the walls that feed it at every setting. See the two Room bullets in CLAUDE.md. The heads were regenerated; the medium head's 48 kHz block is byte-identical to what shipped.
+- **Task 5:** six featured rooms after `custom` on the wire, measured by `room_profiles_test.cpp` (CTest `room-profiles`) through the shipped head at four rates, three streams, both bufferings. Walls / tail relative to a speaker's direct sound on 7.1: Reference -36 / none, Music Space -28 / -38, Cinema -25 / -33, Game World -32 / -42, Competitive none / none, Live Venue -21 / -26.5 dB. A loud 7.1 programme at -20 dBFS a channel peaks at -13 dBFS; a full-scale stereo record peaks at +2.0 to +3.0 dBFS, so it needs that much headroom upstream. Saved rooms never overwrite.
+- **Task 6:** the approved mockup's emblem header, Browse library and Room/Tune/Fit tabs were built, shown to the user, and **rejected** in favour of the app's own idiom: the standard preset bar, one page, everything visible, filling the width. CLAUDE.md records what stands and what must not come back. The first-screen speaker requirement holds: the selected speaker's pane is the first band and is that speaker's from the press of a drag. Library DSP updates coalesce (one in flight, the newest waiting, engage/disengage as barriers).
+- **Still open:** real listening to the six rooms and Ambience; the Library playback host relinked (it was held open by the running app during the last full native build — the engine DLL and every test built); the help guide's Room chapter, which still pictures the old page (`helpGuide.ts`, `32-dsp-room.png`, the `help.room.*` strings); hardware CPU/underrun measurement from `task-7-qa.md`.
+
 Updated 2026-09-19 after the user explicitly requested saving and pushing main, merging the Room worktree into main, and handing off to Claude there. **The Git consolidation is done; the Room feature is still unfinished.**
 
 ## Start here

@@ -666,12 +666,10 @@ const dsp = {
   'dsp.surround.allChannels': 'Todos os canais',
   'dsp.surround.frontPair': 'Par frontal',
   'dsp.room.title': 'Sala',
-  'dsp.room.description':
-    'Uma sala de escuta nos auscultadores: cada canal da saída é uma coluna à volta da tua cabeça.',
   'dsp.room.graphLabel': 'A sala vista de cima',
   'dsp.room.front': 'Frente',
   'dsp.room.dragHint':
-    'Arrasta uma coluna e o seu par move-se com ela; mantém Shift ou Ctrl para a mover sozinha; carrega nela para a ajustar.',
+    'Arrasta uma coluna e o par vai com ela; mantém Shift ou Ctrl para a mover sozinha. No teclado, cima e baixo escolhem uma coluna, esquerda e direita movem-na.',
   'dsp.room.fedFrontStage':
     'Está a tocar estéreo: só FL e FR levam som. Os outros esperam por um fluxo 5.1 ou 7.1.',
   'dsp.room.fedFiveOne': 'Está a tocar 5.1: o par traseiro não leva nada.',
@@ -690,16 +688,12 @@ const dsp = {
   'dsp.room.preset.openAir': 'Ar livre',
   'dsp.room.presetHint':
     'Sala de {size} m · colunas a {distance} m · paredes {live}% vivas',
-  'dsp.room.savedRooms': 'Salas guardadas',
   'dsp.room.saveRoom': 'Guardar sala…',
   'dsp.room.saveTitle': 'Guardar esta sala',
   'dsp.room.saveHint':
-    'A sala tal como está — tamanho, paredes, distância, central, sub e onde estão as colunas — fica guardada com este nome. A cabeça continua a ser a tua.',
+    'A sala inteira tal como está é guardada com este nome, ao lado das já guardadas: a forma, as colunas, os seus níveis e silêncios, as escolhas de graves e estéreo, Espaço e Ambiente. A tua cabeça e os teus auscultadores continuam teus.',
   'dsp.room.savePlaceholder': 'Nome da sala',
-  'dsp.room.applyRoom': 'Usar esta sala',
-  'dsp.room.roomApplied': 'Esta é a sala em uso',
   'dsp.room.deleteRoom': 'Eliminar sala',
-  'dsp.room.groupRoom': 'Sala',
   'dsp.room.groupHead': 'Cabeça',
   'dsp.room.groupHeadphones': 'Auscultadores',
   'dsp.room.size': 'Tamanho',
@@ -710,8 +704,6 @@ const dsp = {
   'dsp.room.head.small': 'Pequena',
   'dsp.room.head.medium': 'Média',
   'dsp.room.head.large': 'Grande',
-  'dsp.room.headHint':
-    'A cabeça com que a sala é renderizada. Escolhe a que põe os sons à tua frente e não dentro da cabeça.',
   'dsp.room.headphones.correct': 'Corrigir os auscultadores',
   'dsp.room.headphones.leave': 'Deixá-los',
   'dsp.room.headphonesHint':
@@ -729,10 +721,6 @@ const dsp = {
   'dsp.room.musicHint':
     'A música estéreo pode encher toda a sala: o par frontal fica como está, o central recebe o que os dois lados partilham, e o que não partilham chega aos laterais um instante depois e aos traseiros a seguir, como faz um descodificador surround. Filmes e jogos nunca são tocados.',
   'dsp.room.live.music': 'Estéreo → sala inteira',
-  'dsp.room.groupListener': 'Ouvinte',
-  'dsp.room.groupSound': 'Som',
-  'dsp.room.soundHint':
-    'A gestão de graves e a mistura para música são tuas, não da sala: os ajustes e as salas guardadas não lhes tocam. Passa o rato por um nome para ver o que faz.',
   'dsp.room.speaker.level': 'Nível',
   'dsp.room.speaker.distance': 'Distância',
   'dsp.room.speaker.angle': 'Ângulo',
@@ -740,7 +728,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'Solo',
   'dsp.room.speaker.soloUnfed':
     'Nada do que está a tocar chega a esta coluna, por isso não há nada para ouvir a solo.',
-  'dsp.room.speaker.close': 'Fechar',
   'dsp.room.speakerName.FL': 'Frontal esquerda',
   'dsp.room.speakerName.FR': 'Frontal direita',
   'dsp.room.speakerName.C': 'Central',
@@ -761,6 +748,101 @@ const dsp = {
   'dsp.room.live.idle': 'Nada a passar pelo motor',
   'dsp.room.live.unknown': 'Só com o motor',
   'dsp.room.fit': 'Ajustar…',
+  'dsp.room.profile.referenceV2': 'Referência',
+  'dsp.room.profile.musicSpaceV2': 'Espaço musical',
+  'dsp.room.profile.cinemaV2': 'Cinema',
+  'dsp.room.profile.gameWorldV2': 'Mundo de jogo',
+  'dsp.room.profile.competitiveV2': 'Competitivo',
+  'dsp.room.profile.liveVenueV2': 'Sala ao vivo',
+  'dsp.room.profilePurpose.referenceV2':
+    'Uma sala próxima e tratada. O disco à tua frente, sem nada acrescentado.',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    'Um palco mais largo, a voz segura à frente e um pouco de ar depois.',
+  'dsp.room.profilePurpose.cinemaV2':
+    'Um ecrã largo, uma voz com peso e a sala à tua volta.',
+  'dsp.room.profilePurpose.gameWorldV2':
+    'Um mundo à tua volta, em que os sons curtos continuam curtos.',
+  'dsp.room.profilePurpose.competitiveV2':
+    'Direção e mais nada: sem paredes, sem cauda.',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'Uma sala à volta do palco, com uma cauda longa e suave.',
+  'dsp.room.fedExpanded':
+    'Está a tocar estéreo, espalhado pela sala: as colunas a tracejado são calculadas a partir do par frontal, não são canais à parte.',
+  'dsp.room.speaker.isMuted': 'sem som',
+  'dsp.room.speaker.isUnfed': 'nada lhe chega',
+  'dsp.room.speaker.isDerived': 'calculada do estéreo',
+  'dsp.room.speaker.noteDiscrete':
+    'Esta coluna tem um canal próprio no que está a tocar.',
+  'dsp.room.speaker.noteDerived':
+    'Calculada a partir do par estéreo. Não há um canal separado por trás.',
+  'dsp.room.speaker.noteUnfed':
+    'Nada do que está a tocar chega a esta coluna. Podes colocá-la na mesma, para quando chegar.',
+  'dsp.room.speaker.noteSub': 'O canal de subwoofer do que está a tocar.',
+  'dsp.room.speaker.noteSubUnfed':
+    'O estéreo não tem canal de subwoofer, por isso este nível não tem nada para mexer. Com os graves enviados para o sub, os graves das colunas continuam a passar por aqui.',
+  'dsp.room.quick.title': 'Torna-a tua',
+  'dsp.room.quick.space': 'Espaço',
+  'dsp.room.quick.ambience': 'Ambiente',
+  'dsp.room.quick.hint':
+    'Espaço é quanto ouves das paredes. Ambiente é a cauda suave que vem depois, e precisa de algum Espaço para ter o que seguir.',
+  'dsp.room.classic.hint':
+    'Uma sala clássica, a soar exatamente como sempre. Espaço, Ambiente e uma colocação mais suave das colunas pertencem ao som novo.',
+  'dsp.room.classic.upgrade': 'Passar esta sala para o som novo',
+  'dsp.room.tune.character': 'Carácter da sala',
+  'dsp.room.tune.decay': 'Duração da cauda',
+  'dsp.room.tune.damping': 'Tom da cauda',
+  'dsp.room.tune.characterHint':
+    'Tamanho e Paredes moldam as primeiras reflexões. Duração e Tom moldam o Ambiente que vem depois.',
+  'dsp.room.tune.preserve': 'Manter as colunas onde estão',
+  'dsp.room.tune.preserveHint':
+    'O alargamento da Dimensão descansa enquanto a Sala está ligada, porque moveria o que a Sala acabou de colocar. As definições dele mantêm-se.',
+  'dsp.room.tune.bassCentre': 'Graves e central',
+  'dsp.room.tune.levels': 'Níveis',
+  'dsp.room.tune.centreHint':
+    'Central sobe ou desce o canal central. Não separa vozes de uma mistura.',
+  'dsp.room.tune.noSubChannel':
+    'O que está a tocar não tem canal de subwoofer, por isso Sub não tem nada para mexer.',
+  'dsp.room.tune.stereo': 'Fonte estéreo',
+  'dsp.room.tune.stereoHint':
+    'Só para estéreo. Um sinal 5.1 ou 7.1 mantém os seus canais onde estão.',
+  'dsp.room.tune.spatial': 'A minha fonte já é espacial',
+  'dsp.room.tune.spatialHint':
+    'Para som já feito para auscultadores: o áudio 3D do próprio jogo, uma gravação binaural. A Sala afasta-se para não o colocar duas vezes. O FluidEQ não consegue saber sozinho, por isso decides tu.',
+  'dsp.room.fitView.head': 'A tua cabeça e os teus auscultadores',
+  'dsp.room.fitView.headHint':
+    'Três tamanhos de uma única cabeça medida: não são três pessoas nem uma digitalização das tuas orelhas. Escolhe o tamanho que põe os sons à tua frente e não dentro da cabeça.',
+  'dsp.room.fitView.guided': 'Encontra a tua medida de ouvido',
+  'dsp.room.fitView.guidedHint':
+    'Cinco pares curtos de sons. De cada vez, escolhe o que soa mais à tua volta; a cabeça que ganhar é a tua.',
+  'dsp.room.fitView.start': 'Começar o teste de escuta',
+  'dsp.room.compare.label': 'Comparar',
+  'dsp.room.compare.original': 'A ouvir o original',
+  'dsp.room.compare.hint':
+    'Ouve o que está a tocar sem a Sala, no mesmo instante e, depois de medido, com o mesmo volume. Tudo o resto do rack continua a tocar.',
+  'dsp.room.compare.unknown': 'O motor não disse o que está a reproduzir.',
+  'dsp.room.compare.waiting': 'À espera que o motor mude.',
+  'dsp.room.compare.matched': 'Volume igualado ({gain} dB).',
+  'dsp.room.compare.unmatched':
+    'Volume ainda não igualado: precisa de alguns segundos de som.',
+  'dsp.room.compare.foldDown':
+    'O original é a mistura surround dobrada para estéreo.',
+  'dsp.room.signal.updateRequired':
+    'O som novo precisa do motor de áudio atualizado. Esta sala não lhe foi enviada: atualiza o motor para a ouvires.',
+  'dsp.room.signal.spatialBypass':
+    'A Sala está a afastar-se: a fonte está marcada como já espacial (Fonte estéreo, abaixo).',
+  'dsp.room.featured': 'Em destaque',
+  'dsp.room.classicRooms': 'Salas clássicas',
+  'dsp.room.savedNew': 'Som novo',
+  'dsp.room.savedClassic': 'Som clássico',
+  'dsp.room.saveFailed':
+    'Não foi possível guardar a sala: o armazenamento recusou-a. Nada mudou.',
+  'dsp.room.restore': 'Restaurar perfil',
+  'dsp.room.restoreHint':
+    'Voltar a {name}. A tua cabeça, os auscultadores e as escolhas de fonte ficam.',
+  'dsp.room.resetHint':
+    'Todas as opções desta página voltam a como abre pela primeira vez, incluindo as do ouvinte. Só o interruptor fica.',
+  'dsp.room.saveKeepsBoth':
+    'Esse nome já existe. Esta sala será guardada como «{name}» e a outra fica.',
   'dsp.roomFit.title': 'Ajusta a sala à tua cabeça',
   'dsp.roomFit.hint':
     'Um som breve gira à tua volta — à frente, direita, atrás, esquerda — por duas cabeças. Carrega na que soa mais à tua volta.',

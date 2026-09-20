@@ -671,12 +671,10 @@ const dsp = {
   'dsp.surround.allChannels': 'Alle Kanäle',
   'dsp.surround.frontPair': 'Vorderes Paar',
   'dsp.room.title': 'Raum',
-  'dsp.room.description':
-    'Ein Hörraum auf dem Kopfhörer: jeder Kanal des Ausgangs ist ein Lautsprecher rund um deinen Kopf.',
   'dsp.room.graphLabel': 'Der Raum von oben',
   'dsp.room.front': 'Vorn',
   'dsp.room.dragHint':
-    'Zieh einen Lautsprecher, und sein Partner geht mit; mit Umschalt oder Strg bewegt er sich allein; tipp ihn an, um ihn einzustellen.',
+    'Ziehe einen Lautsprecher, und sein Partner geht mit; halte Umschalt oder Strg, um ihn allein zu bewegen. Mit der Tastatur: Auf und Ab wählen einen Lautsprecher, Links und Rechts bewegen ihn.',
   'dsp.room.fedFrontStage':
     'Es läuft Stereo: nur FL und FR führen Ton. Die anderen warten auf einen 5.1- oder 7.1-Stream.',
   'dsp.room.fedFiveOne': 'Es läuft 5.1: das hintere Paar führt nichts.',
@@ -695,16 +693,12 @@ const dsp = {
   'dsp.room.preset.openAir': 'Freiluft',
   'dsp.room.presetHint':
     'Raum {size} m · Lautsprecher bei {distance} m · Wände {live}% lebendig',
-  'dsp.room.savedRooms': 'Gespeicherte Räume',
   'dsp.room.saveRoom': 'Raum speichern…',
   'dsp.room.saveTitle': 'Diesen Raum speichern',
   'dsp.room.saveHint':
-    'Der Raum, wie er ist — Größe, Wände, Abstand, Center, Sub und wo die Lautsprecher stehen — wird unter diesem Namen gespeichert. Der Kopf bleibt deiner.',
+    'Der ganze Raum, wie er steht, wird unter diesem Namen gespeichert, neben den schon gespeicherten: Form, Lautsprecher, ihre Pegel und Stummschaltungen, die Bass- und Stereo-Wahl, Raumanteil und Nachklang. Dein Kopf und deine Kopfhörer bleiben deine.',
   'dsp.room.savePlaceholder': 'Raumname',
-  'dsp.room.applyRoom': 'Diesen Raum verwenden',
-  'dsp.room.roomApplied': 'Das ist der verwendete Raum',
   'dsp.room.deleteRoom': 'Raum löschen',
-  'dsp.room.groupRoom': 'Raum',
   'dsp.room.groupHead': 'Kopf',
   'dsp.room.groupHeadphones': 'Kopfhörer',
   'dsp.room.size': 'Größe',
@@ -715,8 +709,6 @@ const dsp = {
   'dsp.room.head.small': 'Klein',
   'dsp.room.head.medium': 'Mittel',
   'dsp.room.head.large': 'Groß',
-  'dsp.room.headHint':
-    'Der Kopf, durch den der Raum berechnet wird. Nimm den, bei dem Klänge vor dir sitzen und nicht im Kopf.',
   'dsp.room.headphones.correct': 'Kopfhörer korrigieren',
   'dsp.room.headphones.leave': 'So lassen',
   'dsp.room.headphonesHint':
@@ -734,10 +726,6 @@ const dsp = {
   'dsp.room.musicHint':
     'Stereomusik kann den ganzen Raum füllen: das vordere Paar bleibt, wie es ist, der Center nimmt, was beide Seiten teilen, und was sie nicht teilen erreicht die Seiten einen Moment später und die hinteren danach, wie ein Surround-Decoder es macht. Filme und Spiele bleiben unberührt.',
   'dsp.room.live.music': 'Stereo → ganzer Raum',
-  'dsp.room.groupListener': 'Hörer',
-  'dsp.room.groupSound': 'Klang',
-  'dsp.room.soundHint':
-    'Bassmanagement und der Musik-Upmix gehören dir, nicht dem Raum: Voreinstellungen und gespeicherte Räume lassen sie in Ruhe. Fahr über einen Namen, um zu sehen, was er tut.',
   'dsp.room.speaker.level': 'Pegel',
   'dsp.room.speaker.distance': 'Abstand',
   'dsp.room.speaker.angle': 'Winkel',
@@ -745,7 +733,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'Solo',
   'dsp.room.speaker.soloUnfed':
     'Nichts von dem, was gerade läuft, erreicht diesen Lautsprecher – es gäbe nichts allein zu hören.',
-  'dsp.room.speaker.close': 'Schließen',
   'dsp.room.speakerName.FL': 'Vorn links',
   'dsp.room.speakerName.FR': 'Vorn rechts',
   'dsp.room.speakerName.C': 'Center',
@@ -766,6 +753,101 @@ const dsp = {
   'dsp.room.live.idle': 'Nichts läuft über die Engine',
   'dsp.room.live.unknown': 'Nur mit der Engine',
   'dsp.room.fit': 'Anpassen…',
+  'dsp.room.profile.referenceV2': 'Referenz',
+  'dsp.room.profile.musicSpaceV2': 'Musikraum',
+  'dsp.room.profile.cinemaV2': 'Kino',
+  'dsp.room.profile.gameWorldV2': 'Spielwelt',
+  'dsp.room.profile.competitiveV2': 'Wettkampf',
+  'dsp.room.profile.liveVenueV2': 'Live-Saal',
+  'dsp.room.profilePurpose.referenceV2':
+    'Ein naher, bedämpfter Raum. Die Aufnahme vor dir, nichts dazu.',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    'Eine breitere Bühne, die Stimme vorn gehalten, danach etwas Luft.',
+  'dsp.room.profilePurpose.cinemaV2':
+    'Eine breite Leinwand, eine geerdete Stimme und der Raum um dich herum.',
+  'dsp.room.profilePurpose.gameWorldV2':
+    'Eine Welt um dich herum, in der kurze Klänge kurz bleiben.',
+  'dsp.room.profilePurpose.competitiveV2':
+    'Richtung und sonst nichts: keine Wände, kein Nachhall.',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'Ein Saal um die Bühne, mit langem, weichem Nachhall.',
+  'dsp.room.fedExpanded':
+    'Stereo läuft, im Raum verteilt: Die gestrichelten Lautsprecher sind aus dem vorderen Paar errechnet, keine eigenen Kanäle.',
+  'dsp.room.speaker.isMuted': 'stumm',
+  'dsp.room.speaker.isUnfed': 'nichts erreicht ihn',
+  'dsp.room.speaker.isDerived': 'aus Stereo errechnet',
+  'dsp.room.speaker.noteDiscrete':
+    'Dieser Lautsprecher hat in dem, was läuft, einen eigenen Kanal.',
+  'dsp.room.speaker.noteDerived':
+    'Aus dem Stereopaar errechnet. Dahinter steht kein eigener Kanal.',
+  'dsp.room.speaker.noteUnfed':
+    'Nichts von dem, was läuft, erreicht diesen Lautsprecher. Platzieren kannst du ihn trotzdem, für später.',
+  'dsp.room.speaker.noteSub': 'Der Subwoofer-Kanal dessen, was läuft.',
+  'dsp.room.speaker.noteSubUnfed':
+    'Stereo hat keinen Subwoofer-Kanal, also gibt es für diesen Pegel nichts zu regeln. Wenn der Bass zum Sub geht, spielt der Tiefton der Lautsprecher trotzdem hierüber.',
+  'dsp.room.quick.title': 'Mach ihn zu deinem',
+  'dsp.room.quick.space': 'Raumanteil',
+  'dsp.room.quick.ambience': 'Nachklang',
+  'dsp.room.quick.hint':
+    'Raumanteil ist, wie viel du von den Wänden hörst. Nachklang ist der weiche Ausklang danach und braucht etwas Raumanteil, dem er folgen kann.',
+  'dsp.room.classic.hint':
+    'Ein klassischer Raum, der genau so klingt wie immer. Raumanteil, Nachklang und weichere Lautsprecher-Platzierung gehören zum neuen Klang.',
+  'dsp.room.classic.upgrade': 'Diesen Raum auf den neuen Klang umstellen',
+  'dsp.room.tune.character': 'Raumcharakter',
+  'dsp.room.tune.decay': 'Nachklang-Länge',
+  'dsp.room.tune.damping': 'Nachklang-Ton',
+  'dsp.room.tune.characterHint':
+    'Größe und Wände formen die ersten Reflexionen. Länge und Ton formen den Nachklang danach.',
+  'dsp.room.tune.preserve': 'Lautsprecher an ihrem Platz halten',
+  'dsp.room.tune.preserveHint':
+    'Die Verbreiterung von Dimension ruht, solange der Raum an ist, weil sie verschieben würde, was der Raum gerade platziert hat. Ihre Einstellungen bleiben.',
+  'dsp.room.tune.bassCentre': 'Bass und Center',
+  'dsp.room.tune.levels': 'Pegel',
+  'dsp.room.tune.centreHint':
+    'Center hebt oder senkt den Center-Kanal. Er löst keine Stimmen aus einer Mischung.',
+  'dsp.room.tune.noSubChannel':
+    'Was läuft, hat keinen Subwoofer-Kanal, also hat Sub nichts zu regeln.',
+  'dsp.room.tune.stereo': 'Stereoquelle',
+  'dsp.room.tune.stereoHint':
+    'Nur für Stereo. Ein 5.1- oder 7.1-Signal behält seine Kanäle, wo sie sind.',
+  'dsp.room.tune.spatial': 'Meine Quelle ist schon räumlich',
+  'dsp.room.tune.spatialHint':
+    'Für Klang, der schon für Kopfhörer gemacht ist: das eigene 3D-Audio eines Spiels, eine binaurale Aufnahme. Der Raum tritt zur Seite, damit nichts doppelt platziert wird. FluidEQ kann das nicht selbst erkennen, also entscheidest du.',
+  'dsp.room.fitView.head': 'Dein Kopf und deine Kopfhörer',
+  'dsp.room.fitView.headHint':
+    'Drei Größen eines einzigen gemessenen Kopfes: nicht drei Personen und kein Scan deiner Ohren. Wähle die Größe, die Klänge vor dich setzt statt in deinen Kopf.',
+  'dsp.room.fitView.guided': 'Deine Passform nach Gehör finden',
+  'dsp.room.fitView.guidedHint':
+    'Fünf kurze Klangpaare. Wähle jedes Mal den, der mehr um dich herum klingt; der Kopf, der gewinnt, ist deiner.',
+  'dsp.room.fitView.start': 'Hörtest starten',
+  'dsp.room.compare.label': 'Vergleichen',
+  'dsp.room.compare.original': 'Du hörst das Original',
+  'dsp.room.compare.hint':
+    'Höre, was läuft, ohne den Raum: im selben Moment und, sobald gemessen, gleich laut. Alles andere im Rack spielt weiter.',
+  'dsp.room.compare.unknown': 'Die Engine hat nicht gemeldet, was sie spielt.',
+  'dsp.room.compare.waiting': 'Warte auf das Umschalten der Engine.',
+  'dsp.room.compare.matched': 'Lautheit angeglichen ({gain} dB).',
+  'dsp.room.compare.unmatched':
+    'Lautheit noch nicht angeglichen: Dafür braucht es ein paar Sekunden Klang.',
+  'dsp.room.compare.foldDown':
+    'Das Original ist die auf Stereo gefaltete Surround-Mischung.',
+  'dsp.room.signal.updateRequired':
+    'Der neue Klang braucht die aktualisierte Audio-Engine. Dieser Raum wurde ihr nicht geschickt: Aktualisiere die Engine, um ihn zu hören.',
+  'dsp.room.signal.spatialBypass':
+    'Der Raum tritt zur Seite: Die Quelle ist als schon räumlich markiert (Stereoquelle, unten).',
+  'dsp.room.featured': 'Empfohlen',
+  'dsp.room.classicRooms': 'Klassische Räume',
+  'dsp.room.savedNew': 'Neuer Klang',
+  'dsp.room.savedClassic': 'Klassischer Klang',
+  'dsp.room.saveFailed':
+    'Der Raum konnte nicht gespeichert werden: Der Speicher hat ihn abgelehnt. Nichts wurde geändert.',
+  'dsp.room.restore': 'Profil wiederherstellen',
+  'dsp.room.restoreHint':
+    'Zurück zu {name}. Dein Kopf, deine Kopfhörer und deine Quellen-Wahl bleiben.',
+  'dsp.room.resetHint':
+    'Jede Option dieser Seite zurück auf den ersten Stand, auch die des Hörers. Nur der Ein-Schalter bleibt.',
+  'dsp.room.saveKeepsBoth':
+    'Der Name ist vergeben. Dieser Raum wird als „{name}“ gespeichert, der andere bleibt.',
   'dsp.roomFit.title': 'Den Raum an deinen Kopf anpassen',
   'dsp.roomFit.hint':
     'Ein kurzer Klang wandert um dich herum — vorn, rechts, hinten, links — durch zwei Köpfe. Drück den, der mehr um dich herum klingt.',

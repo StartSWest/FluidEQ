@@ -212,6 +212,165 @@ describe('the native backend controller', () => {
     });
   });
 
+  /**
+   * A speaker dragged round the Room asks for a push a frame, and preparing a
+   * room costs the host up to a quarter of a second. Queued one behind
+   * another, the sound went on walking the path of a pointer that had been
+   * let go. One push is with the host, one waits holding the newest settings,
+   * and nothing here is decided by a clock: every gate below is a promise the
+   * test opens by hand.
+   */
+  describe('many updates while one is with the host', () => {
+    /** A host whose answers wait to be given, in the order it was asked. */
+    const gatedBridge = () => {
+      const sizes: number[] = [];
+      const gates: Array<(applied: boolean | Error) => void> = [];
+      const { bridge, calls } = recordingBridge({
+        applyDspHostChain: (values) => {
+          // The room's size rides the chain, so it names which settings a
+          // push carried: the third of the room's scalars.
+          sizes.push(values[CHAIN_PARAM_LEAD - 44 + 2]);
+          return new Promise<boolean>((resolve, reject) => {
+            gates.push((applied) =>
+              applied instanceof Error ? reject(applied) : resolve(applied),
+            );
+          });
+        },
+      });
+      return { bridge, calls, sizes, gates };
+    };
+    const sized = (sizeM: number) => ({
+      ...DSP_DEFAULTS,
+      room: { ...DSP_DEFAULTS.room, sizeM },
+    });
+    /** Until the host has been asked `count` times, however many turns that is. */
+    const asked = async (sizes: number[], count: number) => {
+      while (sizes.length < count) {
+        // eslint-disable-next-line no-await-in-loop -- each turn of the queue
+        // is the thing being waited on; there is nothing to run in parallel.
+        await Promise.resolve();
+      }
+    };
+    const engaged = async () => {
+      const gated = gatedBridge();
+      const controller = createNativeBackendController(gated.bridge);
+      const engaging = controller.engage(sized(3), true);
+      await asked(gated.sizes, 1);
+      gated.gates[0](true);
+      expect(await engaging).toBe(true);
+      return { ...gated, controller };
+    };
+
+    it('sends the first, then only the newest of everything asked meanwhile', async () => {
+      const { controller, sizes, gates } = await engaged();
+      const first = controller.update(sized(4), true);
+      await asked(sizes, 2);
+      // Blocked: the host has the first. Six more positions of the dial.
+      const replaced = [5, 6, 7, 8, 9, 10].map((sizeM) =>
+        controller.update(sized(sizeM), true),
+      );
+      gates[1](true);
+      expect(await first).toBe(true);
+      await asked(sizes, 3);
+      gates[2](true);
+      // Every caller is answered by the push that carried its settings or
+      // newer ones: true means the host holds a chain at least that new.
+      expect(await Promise.all(replaced)).toEqual(Array(6).fill(true));
+      // Engage's 3, the first 4, and the last 10. Nothing between.
+      expect(sizes).toEqual([3, 4, 10]);
+    });
+
+    it('queues afresh once the waiting push has started, so the last value always goes', async () => {
+      const { controller, sizes, gates } = await engaged();
+      const first = controller.update(sized(4), true);
+      await asked(sizes, 2);
+      const second = controller.update(sized(5), true);
+      gates[1](true);
+      await first;
+      await asked(sizes, 3);
+      // The 5 is with the host now; a 6 asked here must not be lost in it.
+      const third = controller.update(sized(6), true);
+      gates[2](true);
+      await second;
+      await asked(sizes, 4);
+      gates[3](true);
+      expect(await third).toBe(true);
+      expect(sizes).toEqual([3, 4, 5, 6]);
+    });
+
+    it('tells everyone who was waiting on a push that failed, and carries on', async () => {
+      const { controller, sizes, gates } = await engaged();
+      const first = controller.update(sized(4), true);
+      await asked(sizes, 2);
+      const waiting = [
+        controller.update(sized(5), true),
+        controller.update(sized(6), true),
+      ];
+      gates[1](true);
+      await first;
+      await asked(sizes, 3);
+      gates[2](new Error('the host went away'));
+      await expect(waiting[0]).rejects.toThrow('the host went away');
+      await expect(waiting[1]).rejects.toThrow('the host went away');
+      // Not wedged: the next update is sent like any other.
+      const next = controller.update(sized(7), true);
+      await asked(sizes, 4);
+      gates[3](true);
+      expect(await next).toBe(true);
+      expect(sizes).toEqual([3, 4, 6, 7]);
+    });
+
+    /**
+     * Disengage is a barrier. An update asked for after it must not slip into
+     * a push that was queued before it — it belongs to the far side, where
+     * the backend is no longer engaged and there is nothing to update.
+     */
+    it('lets nothing asked after a disengage be sent before it', async () => {
+      const { controller, sizes, gates, calls } = await engaged();
+      const first = controller.update(sized(4), true);
+      await asked(sizes, 2);
+      const waiting = controller.update(sized(5), true);
+      const leaving = controller.disengage();
+      const late = controller.update(sized(9), true);
+      gates[1](true);
+      await first;
+      await asked(sizes, 3);
+      gates[2](true);
+      expect(await waiting).toBe(true);
+      await leaving;
+      expect(await late).toBe(false);
+      expect(sizes).toEqual([3, 4, 5]);
+      expect(calls.slice(-1)).toEqual(['stop']);
+    });
+
+    /**
+     * Two controllers command one host, in the order they asked. The first
+     * one's waiting push keeps its place ahead of the second's engage, and
+     * nothing of the first's is sent once the second has taken over.
+     */
+    it('keeps its place against a second controller, and sends nothing stale after it', async () => {
+      const { controller, bridge, sizes, gates } = await engaged();
+      const first = controller.update(sized(4), true);
+      await asked(sizes, 2);
+      const waiting = controller.update(sized(5), true);
+      const leaving = controller.disengage();
+      const successor = createNativeBackendController(bridge);
+      const taking = successor.engage(sized(11), true);
+      const stale = controller.update(sized(8), true);
+      gates[1](true);
+      await first;
+      await asked(sizes, 3);
+      gates[2](true);
+      await waiting;
+      await leaving;
+      await asked(sizes, 4);
+      gates[3](true);
+      expect(await taking).toBe(true);
+      expect(await stale).toBe(false);
+      expect(sizes).toEqual([3, 4, 5, 11]);
+    });
+  });
+
   it('passes the transport straight through', async () => {
     const { bridge, calls } = recordingBridge();
     const controller = createNativeBackendController(bridge);

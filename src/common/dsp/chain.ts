@@ -996,10 +996,18 @@ export type TRoomPreset =
   | 'jazzClub'
   | 'club'
   | 'openAir'
-  | 'custom';
+  | 'custom'
+  | 'referenceV2'
+  | 'musicSpaceV2'
+  | 'cinemaV2'
+  | 'gameWorldV2'
+  | 'competitiveV2'
+  | 'liveVenueV2';
 /**
- * In wire order: the engine logs the index, and the first four stood before
- * the rest were added, so new rooms go before `custom` and never between.
+ * In wire order: the engine logs the index, so an index keeps its meaning for
+ * good. The eleven classic rooms and `custom` are the first twelve; the
+ * featured rooms came after `custom` was already the twelfth, so they go
+ * after it, and anything newer goes after them — never between.
  */
 export const ROOM_PRESETS: readonly TRoomPreset[] = [
   'studio',
@@ -1014,6 +1022,12 @@ export const ROOM_PRESETS: readonly TRoomPreset[] = [
   'club',
   'openAir',
   'custom',
+  'referenceV2',
+  'musicSpaceV2',
+  'cinemaV2',
+  'gameWorldV2',
+  'competitiveV2',
+  'liveVenueV2',
 ];
 /** The three shipped heads, by the head width each was measured on. */
 export type TRoomHead = 'small' | 'medium' | 'large';

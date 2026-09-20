@@ -651,12 +651,10 @@ const dsp = {
   'dsp.surround.allChannels': '全チャンネル',
   'dsp.surround.frontPair': 'フロント 2ch',
   'dsp.room.title': 'ルーム',
-  'dsp.room.description':
-    'ヘッドホンの中のリスニングルーム：出力の各チャンネルが、頭の周りのスピーカーになります。',
   'dsp.room.graphLabel': '上から見たルーム',
   'dsp.room.front': '前',
   'dsp.room.dragHint':
-    'スピーカーをドラッグすると対になるスピーカーも一緒に動きます。Shift または Ctrl を押しながらだと単独で動き、押すと設定できます。',
+    'スピーカーをドラッグすると対のスピーカーも動きます。Shift か Ctrl を押しながらで単独で動かせます。キーボードでは上下でスピーカーを選び、左右で動かします。',
   'dsp.room.fedFrontStage':
     'ステレオ再生中：音を出すのは FL と FR だけです。ほかは 5.1 か 7.1 のストリームを待っています。',
   'dsp.room.fedFiveOne': '5.1 再生中：リアの 2 本は音を出しません。',
@@ -675,16 +673,12 @@ const dsp = {
   'dsp.room.preset.openAir': '野外',
   'dsp.room.presetHint':
     '{size} m の部屋 · スピーカーまで {distance} m · 壁の反射 {live}%',
-  'dsp.room.savedRooms': '保存したルーム',
   'dsp.room.saveRoom': 'ルームを保存…',
   'dsp.room.saveTitle': 'このルームを保存',
   'dsp.room.saveHint':
-    '現在のルーム（広さ、壁、距離、センター、サブ、スピーカーの位置）をこの名前で保存します。頭はあなたのままです。',
+    '今のルーム全体がこの名前で、保存済みのルームと並んで保存されます：形、スピーカー、そのレベルとミュート、低音とステレオの設定、スペースとアンビエンス。頭とヘッドホンはあなたのものです。',
   'dsp.room.savePlaceholder': 'ルーム名',
-  'dsp.room.applyRoom': 'このルームを使う',
-  'dsp.room.roomApplied': '使用中のルームです',
   'dsp.room.deleteRoom': 'ルームを削除',
-  'dsp.room.groupRoom': 'ルーム',
   'dsp.room.groupHead': '頭',
   'dsp.room.groupHeadphones': 'ヘッドホン',
   'dsp.room.size': 'サイズ',
@@ -695,8 +689,6 @@ const dsp = {
   'dsp.room.head.small': '小',
   'dsp.room.head.medium': '中',
   'dsp.room.head.large': '大',
-  'dsp.room.headHint':
-    'ルームの計算に使う頭。音が頭の中ではなく前方に定位するものを選んでください。',
   'dsp.room.headphones.correct': 'ヘッドホンを補正する',
   'dsp.room.headphones.leave': 'そのまま',
   'dsp.room.headphonesHint':
@@ -714,10 +706,6 @@ const dsp = {
   'dsp.room.musicHint':
     'ステレオ音楽をルーム全体に広げられます。フロントの 2 本はそのまま、センターは左右に共通する成分を受け取り、共通しない成分は少し遅れてサイドへ、さらに遅れてリアへ届きます。サラウンドデコーダーと同じ仕組みです。映画やゲームには影響しません。',
   'dsp.room.live.music': 'ステレオ → ルーム全体',
-  'dsp.room.groupListener': 'リスナー',
-  'dsp.room.groupSound': 'サウンド',
-  'dsp.room.soundHint':
-    '低音管理と音楽アップミックスはルームではなくあなたの設定です。プリセットや保存したルームは変更しません。名前にカーソルを合わせると説明が表示されます。',
   'dsp.room.speaker.level': 'レベル',
   'dsp.room.speaker.distance': '距離',
   'dsp.room.speaker.angle': '角度',
@@ -725,7 +713,6 @@ const dsp = {
   'dsp.room.speaker.solo': 'ソロ',
   'dsp.room.speaker.soloUnfed':
     '再生中の音はこのスピーカーに届いていないため、単独で聴けるものがありません。',
-  'dsp.room.speaker.close': '閉じる',
   'dsp.room.speakerName.FL': 'フロント左',
   'dsp.room.speakerName.FR': 'フロント右',
   'dsp.room.speakerName.C': 'センター',
@@ -746,6 +733,99 @@ const dsp = {
   'dsp.room.live.idle': 'エンジンを通る音がありません',
   'dsp.room.live.unknown': 'エンジンでのみ',
   'dsp.room.fit': 'フィット…',
+  'dsp.room.profile.referenceV2': 'リファレンス',
+  'dsp.room.profile.musicSpaceV2': 'ミュージックスペース',
+  'dsp.room.profile.cinemaV2': 'シネマ',
+  'dsp.room.profile.gameWorldV2': 'ゲームワールド',
+  'dsp.room.profile.competitiveV2': 'コンペティティブ',
+  'dsp.room.profile.liveVenueV2': 'ライブ会場',
+  'dsp.room.profilePurpose.referenceV2':
+    '近くて吸音された部屋。音源が目の前に、何も足さずに。',
+  'dsp.room.profilePurpose.musicSpaceV2':
+    '少し広いステージ。声は前に保ち、そのあとにわずかな空気。',
+  'dsp.room.profilePurpose.cinemaV2':
+    '広いスクリーン、芯のある声、そして周りを包む空間。',
+  'dsp.room.profilePurpose.gameWorldV2': '周りに広がる世界。短い音は短いまま。',
+  'dsp.room.profilePurpose.competitiveV2': '方向だけ。壁も残響もなし。',
+  'dsp.room.profilePurpose.liveVenueV2':
+    'ステージを囲むホール。長くやわらかな残響。',
+  'dsp.room.fedExpanded':
+    'ステレオを部屋全体に広げて再生中：点線のスピーカーは前方ペアから作られたもので、独立したチャンネルではありません。',
+  'dsp.room.speaker.isMuted': 'ミュート中',
+  'dsp.room.speaker.isUnfed': '音が届いていません',
+  'dsp.room.speaker.isDerived': 'ステレオから生成',
+  'dsp.room.speaker.noteDiscrete':
+    'このスピーカーには、再生中の音に専用のチャンネルがあります。',
+  'dsp.room.speaker.noteDerived':
+    'ステレオペアから作られています。独立したチャンネルはありません。',
+  'dsp.room.speaker.noteUnfed':
+    '再生中の音はこのスピーカーに届いていません。届いたときのために配置はできます。',
+  'dsp.room.speaker.noteSub': '再生中の音のサブウーファーチャンネルです。',
+  'dsp.room.speaker.noteSubUnfed':
+    'ステレオにはサブウーファーチャンネルがないため、このレベルで変わるものはありません。低音をサブに送っている場合、スピーカーの低域は引き続きここを通ります。',
+  'dsp.room.quick.title': '自分好みに',
+  'dsp.room.quick.space': 'スペース',
+  'dsp.room.quick.ambience': 'アンビエンス',
+  'dsp.room.quick.hint':
+    'スペースは壁の音がどれだけ聞こえるか。アンビエンスはそのあとに続くやわらかな残響で、続くものが要るのでスペースが少し必要です。',
+  'dsp.room.classic.hint':
+    'クラシックルームは、これまでとまったく同じ音で鳴ります。スペース、アンビエンス、よりなめらかなスピーカー配置は新しいサウンドのものです。',
+  'dsp.room.classic.upgrade': 'このルームを新しいサウンドに移す',
+  'dsp.room.tune.character': 'ルームの性格',
+  'dsp.room.tune.decay': '残響の長さ',
+  'dsp.room.tune.damping': '残響の音色',
+  'dsp.room.tune.characterHint':
+    'サイズと壁が初期反射を形づくり、残響の長さと音色がそのあとのアンビエンスを形づくります。',
+  'dsp.room.tune.preserve': 'スピーカーの位置を保つ',
+  'dsp.room.tune.preserveHint':
+    'ルームがオンの間、ディメンションの広がり処理は休みます。ルームが置いた位置を動かしてしまうためです。設定は保持されます。',
+  'dsp.room.tune.bassCentre': '低音とセンター',
+  'dsp.room.tune.levels': 'レベル',
+  'dsp.room.tune.centreHint':
+    'センターはセンターチャンネルを上げ下げします。ミックスから声を取り出すものではありません。',
+  'dsp.room.tune.noSubChannel':
+    '再生中の音にサブウーファーチャンネルがないため、サブで変わるものはありません。',
+  'dsp.room.tune.stereo': 'ステレオ音源',
+  'dsp.room.tune.stereoHint':
+    'ステレオ専用です。5.1 や 7.1 のストリームは、チャンネルをそのままの位置に保ちます。',
+  'dsp.room.tune.spatial': '音源はすでに立体音響',
+  'dsp.room.tune.spatialHint':
+    'すでにヘッドホン向けに作られた音のための設定です：ゲーム独自の 3D オーディオやバイノーラル録音など。二重に配置しないよう、ルームは脇に退きます。FluidEQ には自動で判別できないので、ご自身で選んでください。',
+  'dsp.room.fitView.head': 'あなたの頭とヘッドホン',
+  'dsp.room.fitView.headHint':
+    '1 つの測定済みの頭を 3 つのサイズにしたものです。3 人分でも、耳のスキャンでもありません。音が頭の中ではなく前に来るサイズを選んでください。',
+  'dsp.room.fitView.guided': '耳でフィットを見つける',
+  'dsp.room.fitView.guidedHint':
+    '短い音のペアが 5 組。毎回、より周りから聞こえる方を選んでください。勝ち残った頭があなたのものです。',
+  'dsp.room.fitView.start': 'リスニングテストを始める',
+  'dsp.room.compare.label': '比較',
+  'dsp.room.compare.original': 'オリジナルを再生中',
+  'dsp.room.compare.hint':
+    '再生中の音をルームなしで聴きます。同じタイミングで、測定後は同じ音量で。ラックのほかの部分はそのまま鳴り続けます。',
+  'dsp.room.compare.unknown': 'エンジンから再生内容の報告がありません。',
+  'dsp.room.compare.waiting': 'エンジンの切り替えを待っています。',
+  'dsp.room.compare.matched': '音量をそろえました（{gain} dB）。',
+  'dsp.room.compare.unmatched':
+    '音量はまだそろっていません：数秒の音が必要です。',
+  'dsp.room.compare.foldDown':
+    'オリジナルはサラウンドミックスをステレオに畳んだものです。',
+  'dsp.room.signal.updateRequired':
+    '新しいサウンドには更新されたオーディオエンジンが必要です。このルームはエンジンに送られていません：聴くにはエンジンを更新してください。',
+  'dsp.room.signal.spatialBypass':
+    'ルームは脇に退いています：音源が「すでに立体音響」に設定されています（下の「ステレオ音源」）。',
+  'dsp.room.featured': 'おすすめ',
+  'dsp.room.classicRooms': 'クラシックルーム',
+  'dsp.room.savedNew': '新しいサウンド',
+  'dsp.room.savedClassic': 'クラシックサウンド',
+  'dsp.room.saveFailed':
+    'ルームを保存できませんでした：ストレージに拒否されました。何も変更されていません。',
+  'dsp.room.restore': 'プロファイルに戻す',
+  'dsp.room.restoreHint':
+    '{name} に戻します。頭、ヘッドホン、音源の設定はそのままです。',
+  'dsp.room.resetHint':
+    'リスナーの設定も含め、このページのすべてを最初の状態に戻します。電源スイッチだけはそのままです。',
+  'dsp.room.saveKeepsBoth':
+    'その名前は使われています。このルームは「{name}」として保存され、もう一方は残ります。',
   'dsp.roomFit.title': 'ルームを自分の頭に合わせる',
   'dsp.roomFit.hint':
     '短い音が前・右・後ろ・左と周りを回ります。2 つの頭で聴き比べ、より周りから聞こえる方を押してください。',

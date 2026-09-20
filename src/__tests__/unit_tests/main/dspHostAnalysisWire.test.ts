@@ -1,4 +1,4 @@
-import ROOM_REPORT_NATIVE_FRAME from './roomReportNativeFixture';
+import ROOM_REPORT_NATIVE_FRAME from '../../utils/roomReportNativeFixture';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>

@@ -147,8 +147,10 @@ void real_heads() {
           const float value=source[size_t(d)*head->taps+tap];
           if(!head->needs_doubling) exact=exact&&a[tap]==value;
           else {
+            // Doubled AND halved: twice the taps at the same height was twice
+            // the gain, 6 dB louder at 192 kHz (`head_response`).
             const float next=tap+1<head->taps?source[size_t(d)*head->taps+tap+1]:0;
-            exact=exact&&a[2*tap]==value&&a[2*tap+1]==0.5f*(value+next);
+            exact=exact&&a[2*tap]==0.5f*value&&a[2*tap+1]==0.25f*(value+next);
           }
         }
         check(exact,"real exact directions retain every original measurement sample");

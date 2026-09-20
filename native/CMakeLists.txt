@@ -242,6 +242,15 @@ add_executable(fluideq-room-presets-test dsp-core/tests/room_presets_test.cpp)
 target_link_libraries(fluideq-room-presets-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room-presets COMMAND fluideq-room-presets-test)
 
+# The six featured rooms, the app's own table, through the head that ships:
+# four rates, three streams, both bufferings.
+add_executable(fluideq-room-profiles-test
+  dsp-core/tests/room_profiles_test.cpp system-apo/src/room_head.cpp)
+target_link_libraries(fluideq-room-profiles-test PRIVATE fluideq-dsp-core feq_strict)
+target_compile_definitions(fluideq-room-profiles-test PRIVATE
+  FEQ_ROOM_HEAD_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/room/heads")
+add_test(NAME room-profiles COMMAND fluideq-room-profiles-test)
+
 add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
 target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)
 # Every cross-family pair is owned by its first family in catalogue order;

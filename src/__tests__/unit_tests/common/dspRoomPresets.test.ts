@@ -11,9 +11,12 @@ import {
 } from '../../../common/dsp/chain';
 import {
   isRoomPresetId,
+  ROOM_CLASSIC_LIST,
+  ROOM_FEATURED_LIST,
   ROOM_PRESET_GROUPS,
   ROOM_PRESET_LIST,
   ROOM_PRESET_SHAPES,
+  roomOnNewRenderer,
   roomPresetSettings,
 } from '../../../common/dsp/roomPresets';
 
@@ -38,9 +41,41 @@ describe('room presets', () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.length).toBe(ROOM_PRESETS.length - 1);
     ids.forEach((id) => expect(ROOM_PRESETS).toContain(id));
-    ROOM_PRESET_LIST.forEach((preset) =>
+    ROOM_CLASSIC_LIST.forEach((preset) =>
       expect(ROOM_PRESET_GROUPS).toContain(preset.group),
     );
+    expect(ROOM_PRESET_LIST).toEqual([
+      ...ROOM_FEATURED_LIST,
+      ...ROOM_CLASSIC_LIST,
+    ]);
+  });
+
+  /**
+   * The engine logs the index and an old engine reads it: the twelve that
+   * stood before the featured rooms keep their places for good, and the six
+   * featured rooms come after `custom`, never between.
+   */
+  it('keeps every old wire index, and puts the featured rooms after custom', () => {
+    expect(ROOM_PRESETS).toEqual([
+      'studio',
+      'livingRoom',
+      'cinema',
+      'frontStage',
+      'nearField',
+      'homeTheatre',
+      'gaming',
+      'concertHall',
+      'jazzClub',
+      'club',
+      'openAir',
+      'custom',
+      'referenceV2',
+      'musicSpaceV2',
+      'cinemaV2',
+      'gameWorldV2',
+      'competitiveV2',
+      'liveVenueV2',
+    ]);
   });
 
   /**
@@ -106,7 +141,7 @@ describe('room presets', () => {
    * there in the same commit or the two tests describe different rooms.
    */
   it('is the table the engine test runs', () => {
-    const table = ROOM_PRESET_LIST.map((preset) => [
+    const table = ROOM_CLASSIC_LIST.map((preset) => [
       preset.id,
       preset.shape.sizeM,
       preset.shape.walls,
@@ -127,5 +162,113 @@ describe('room presets', () => {
       ['nearField', 2.4, 0.9, 0.9, 0, 0],
       ['openAir', 12, 1, 3, 0, -1],
     ]);
+  });
+
+  /**
+   * The classic rooms are the first renderer's and none of its new fields:
+   * what they sounded like is what they sound like.
+   */
+  it('leaves every classic room on the first renderer, untouched by the new fields', () => {
+    ROOM_CLASSIC_LIST.forEach(({ id, shape }) => {
+      expect({
+        id,
+        rendererVersion: shape.rendererVersion,
+        earlyReflectionDb: shape.earlyReflectionDb,
+        ambienceMix: shape.ambienceMix,
+        preservePosition: shape.preservePosition,
+      }).toEqual({
+        id,
+        rendererVersion: 1,
+        earlyReflectionDb: 0,
+        ambienceMix: 0,
+        preservePosition: false,
+      });
+    });
+  });
+
+  it('puts the six featured rooms on the new renderer, each keeping the speakers in place', () => {
+    expect(ROOM_FEATURED_LIST.map((preset) => preset.id)).toEqual([
+      'referenceV2',
+      'musicSpaceV2',
+      'cinemaV2',
+      'gameWorldV2',
+      'competitiveV2',
+      'liveVenueV2',
+    ]);
+    ROOM_FEATURED_LIST.forEach(({ id, shape, purposeKey, collection }) => {
+      expect({ id, version: shape.rendererVersion }).toEqual({
+        id,
+        version: 2,
+      });
+      expect({ id, keeps: shape.preservePosition }).toEqual({
+        id,
+        keeps: true,
+      });
+      expect(collection).toBe('featured');
+      expect(purposeKey).toBeDefined();
+      // Restrained: no featured room turns the sub up by more than 1 dB.
+      expect(shape.subDb).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it('gives Reference and Competitive no tail at all, and Competitive no walls', () => {
+    const { referenceV2, competitiveV2, gameWorldV2 } = ROOM_PRESET_SHAPES;
+    expect(referenceV2.ambienceMix).toBe(0);
+    expect(competitiveV2.ambienceMix).toBe(0);
+    expect(competitiveV2.earlyReflectionDb).toBe(-60);
+    // A stereo game stays on the front stage: spreading it would invent
+    // positions the game never sent.
+    expect(gameWorldV2.musicUpmix).toBe(false);
+    expect(competitiveV2.musicUpmix).toBe(false);
+    expect(referenceV2.musicUpmix).toBe(false);
+  });
+
+  it('applies a featured room whole, and leaves the listener and the source choices', () => {
+    const listener = {
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      head: 'large' as const,
+      correctHeadphones: false,
+      compareOriginal: true,
+      sourceAlreadySpatial: true,
+      mutes: [true, false, false, false, false, false, false, false],
+    };
+    const venue = roomPresetSettings(listener, 'liveVenueV2');
+    expect(venue).toMatchObject({
+      presetId: 'liveVenueV2',
+      head: 'large',
+      correctHeadphones: false,
+      compareOriginal: true,
+      sourceAlreadySpatial: true,
+      rendererVersion: 2,
+      musicUpmix: true,
+    });
+    // The room's own: a mute left over from the last room does not follow.
+    expect(venue.mutes).toEqual(DSP_DEFAULTS.room.mutes);
+  });
+
+  /**
+   * Asked for, never assumed: the same room and speakers on the new renderer,
+   * the walls as loud as the first renderer plays them, no tail — and no
+   * longer the preset it came from, because it no longer sounds like it.
+   */
+  it('moves a classic room to the new renderer only when asked, and calls it custom', () => {
+    const club = roomPresetSettings(
+      { ...DSP_DEFAULTS.room, enabled: true },
+      'club',
+    );
+    const moved = roomOnNewRenderer(club);
+    expect(moved).toMatchObject({
+      presetId: 'custom',
+      rendererVersion: 2,
+      earlyReflectionDb: 0,
+      ambienceMix: 0,
+      preservePosition: true,
+      sizeM: club.sizeM,
+      walls: club.walls,
+      subDb: club.subDb,
+    });
+    expect(moved.angles).toEqual(club.angles);
+    expect(club.rendererVersion).toBe(1);
   });
 });

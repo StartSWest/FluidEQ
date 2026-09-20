@@ -72,7 +72,15 @@ export interface INativeBackendController {
   ) => Promise<boolean>;
   /** Release the endpoint, decoder decks, and native process. */
   disengage: () => Promise<void>;
-  /** Push the chain again, for a knob that moved. */
+  /**
+   * Push the chain again, for a knob that moved.
+   *
+   * One push is with the host at a time and at most one more waits behind
+   * it, holding the newest settings asked for: a push that has not started
+   * yet is replaced, not queued behind. The answer is that of the push which
+   * carried these settings or newer ones — true means the host now holds a
+   * chain at least as new as the one asked for.
+   */
   update: (
     settings: IDspSettings,
     outputSafetyEnabled: boolean,
@@ -158,10 +166,29 @@ const serialize = <T>(work: () => Promise<T>): Promise<T> => {
   return next;
 };
 
+/** The newest settings asked for, and everyone waiting to hear about them. */
+interface IPendingPush {
+  settings: IDspSettings;
+  outputSafetyEnabled: boolean;
+  resolve: Array<(applied: boolean) => void>;
+  reject: Array<(reason: unknown) => void>;
+}
+
 export const createNativeBackendController = (
   bridge: INativeBackendBridge,
 ): INativeBackendController => {
   let engaged = false;
+  /**
+   * The push that is queued and has not started. A speaker dragged round the
+   * room asks for a push per frame, and preparing a room costs the host 24 ms
+   * on a 7.1 stream at 48 kHz and up to 240 ms at 192 kHz: queued one behind
+   * another, the sound went on walking the path of a pointer that had been
+   * let go seconds earlier. While a push waits, a newer one takes its place;
+   * when it starts it is no longer this, and the next update queues afresh —
+   * so the last position asked for is always the last one sent, and nothing
+   * is decided by a clock.
+   */
+  let waiting: IPendingPush | undefined;
 
   const settle = async (action: () => Promise<unknown>): Promise<void> => {
     try {
@@ -181,9 +208,20 @@ export const createNativeBackendController = (
       encodeChainSettings(settings, { outputSafetyEnabled }),
     );
 
+  /**
+   * Engage and disengage are barriers: an update asked for after one must
+   * not slip into a push queued before it. Letting go of the waiting push
+   * here leaves that push where it stands in the queue, with the settings it
+   * had, and sends whatever is asked for next to the far side of the barrier.
+   */
+  const barrier = (): void => {
+    waiting = undefined;
+  };
+
   return {
-    engage: (settings, outputSafetyEnabled) =>
-      serialize(async () => {
+    engage: (settings, outputSafetyEnabled) => {
+      barrier();
+      return serialize(async () => {
         const status = await bridge.startDspHost();
         if (status.state !== 'ready') {
           /**
@@ -205,10 +243,12 @@ export const createNativeBackendController = (
         }
         engaged = true;
         return true;
-      }),
+      });
+    },
 
-    disengage: () =>
-      serialize(async () => {
+    disengage: () => {
+      barrier();
+      return serialize(async () => {
         if (!engaged) {
           return;
         }
@@ -229,16 +269,40 @@ export const createNativeBackendController = (
         // that expires there is no UI or playback left to justify a resident
         // native process, its model, or its decoder allocations.
         await settle(bridge.stopDspHost);
-      }),
+      });
+    },
 
     update: (settings, outputSafetyEnabled) =>
-      serialize(async () => {
-        if (!engaged) {
-          // Nothing to update, and pushing anyway would start the process the
-          // Library has not successfully engaged.
-          return false;
+      new Promise<boolean>((resolve, reject) => {
+        if (waiting !== undefined) {
+          waiting.settings = settings;
+          waiting.outputSafetyEnabled = outputSafetyEnabled;
+          waiting.resolve.push(resolve);
+          waiting.reject.push(reject);
+          return;
         }
-        return pushChain(settings, outputSafetyEnabled);
+        const push: IPendingPush = {
+          settings,
+          outputSafetyEnabled,
+          resolve: [resolve],
+          reject: [reject],
+        };
+        waiting = push;
+        serialize(async () => {
+          // Started: from here a newer update is a new push behind this one.
+          if (waiting === push) {
+            waiting = undefined;
+          }
+          if (!engaged) {
+            // Nothing to update, and pushing anyway would start the process
+            // the Library has not successfully engaged.
+            return false;
+          }
+          return pushChain(push.settings, push.outputSafetyEnabled);
+        }).then(
+          (applied) => push.resolve.forEach((settle_) => settle_(applied)),
+          (reason) => push.reject.forEach((settle_) => settle_(reason)),
+        );
       }),
 
     transport: {
