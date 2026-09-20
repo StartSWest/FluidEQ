@@ -2,9 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!--
+      This page has no bridge to anything: no node, no preload, no network.
+      Its one script is admitted by the hash of its own text and nothing else
+      is — not another inline block, not a file, not a `javascript:` URL. The
+      hash is pinned by `gameToastPage.test.ts`, which recomputes it from this
+      file: the first version of this card shipped with `default-src 'none'`
+      and no `script-src` at all, so the browser refused the only script on
+      the page and the card drew its icon, its rule and no words at all. That
+      failure is silent by construction — the markup is all still there — so
+      it is a test's job to see it, not a reader's.
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'sha256-czBn3vfO3QSlBRIGeaf8jEGlKnrM6NC61kC4YBElRok='"
     />
     <title>FluidEQ</title>
     <style>
@@ -13,9 +24,10 @@
        * the game rather than inside FluidEQ — which is behind it, or
        * minimised, at the one moment this has anything to say.
        *
-       * It closes itself when its own line has finished draining. That is a
-       * CSS animation and not a clock: this project has no timers, and a line
-       * somebody can watch is a better promise than a number nobody can see.
+       * It closes itself when it has finished leaving. That is a CSS
+       * animation and not a clock: this project has no timers, and there is
+       * no number to guess when the thing that ends it is the fade the user
+       * is watching.
        */
       html,
       body {
@@ -48,14 +60,22 @@
         box-sizing: border-box;
         width: 100%;
         height: 100%;
-        padding: 18px 24px 20px;
+        padding: 16px 20px 18px;
         border: 1px solid rgba(125, 233, 255, 0.34);
         border-radius: 16px;
-        background: linear-gradient(
-          135deg,
-          rgba(17, 25, 38, 0.97),
-          rgba(11, 17, 28, 0.97)
-        );
+        /* The sheen sits under the badge, so the left of the card has some
+           depth instead of a flat panel with a tile stuck on it. */
+        background:
+          radial-gradient(
+            120px 96px at 46px 50%,
+            rgba(125, 233, 255, 0.16),
+            transparent 70%
+          ),
+          linear-gradient(
+            135deg,
+            rgba(17, 25, 38, 0.97),
+            rgba(11, 17, 28, 0.97)
+          );
         box-shadow:
           0 20px 44px rgba(0, 0, 0, 0.55),
           inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -69,46 +89,73 @@
         display: grid;
         flex: 0 0 auto;
         place-items: center;
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
+        width: 56px;
+        height: 56px;
+        border: 1px solid rgba(125, 233, 255, 0.28);
+        border-radius: 13px;
         background: rgba(125, 233, 255, 0.14);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
       }
 
       .badge img,
       .badge svg {
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
       }
 
+      /* The words take what is left and end in an ellipsis. The mark beside
+         them is a flex item and not a corner label, so no name in any
+         language can run underneath it. */
       .words {
+        flex: 1 1 auto;
         min-width: 0;
       }
 
       .what {
-        font-size: 17px;
+        overflow: hidden;
+        font-size: 18px;
         font-weight: 600;
         line-height: 1.25;
-      }
-
-      .game {
-        overflow: hidden;
-        margin-top: 3px;
-        color: #a9c3da;
-        font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
+      .game {
+        overflow: hidden;
+        margin-top: 4px;
+        color: #b3cadf;
+        font-size: 13.5px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* On the card's own centre line rather than pinned to a corner: the
+         badge balances it on the left, and a mark stranded at the top left a
+         quarter of the card visibly empty. */
       .mark {
-        position: absolute;
-        top: 14px;
-        right: 18px;
+        display: flex;
+        flex: 0 0 auto;
+        gap: 7px;
+        align-items: center;
+        align-self: center;
         color: #7de9ff;
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 0.14em;
-        opacity: 0.75;
+        opacity: 0.85;
+      }
+
+      .mark svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      .mark path {
+        fill: none;
+        stroke: #7de9ff;
+        stroke-width: 3.5;
+        stroke-linecap: round;
       }
 
       .line {
@@ -117,8 +164,7 @@
         bottom: 0;
         left: 0;
         height: 3px;
-        background: #7de9ff;
-        opacity: 0.85;
+        background: linear-gradient(90deg, #7de9ff, rgba(125, 233, 255, 0.45));
         transform-origin: left center;
         animation: drain 5.4s linear both;
       }
@@ -168,13 +214,23 @@
         <div class="what" id="what"></div>
         <div class="game" id="game"></div>
       </div>
-      <div class="mark">FLUIDEQ</div>
+      <!-- The wave is BRAND_MARK's own path (common/branding.ts): one period,
+           down through the middle and out flat. Copied rather than imported
+           because this page is a file on disk with no bundler behind it. -->
+      <div class="mark">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M5 24c6-13 12-13 18 0s12 13 20 0" />
+        </svg>
+        <span>FLUIDEQ</span>
+      </div>
       <div class="line" id="line"></div>
     </div>
     <script>
       // Everything shown comes in the address, because this page has no
       // bridge to the app at all: no node, no preload, nothing it could be
-      // asked to do. The policy above lets it draw an icon and nothing else.
+      // asked to do. Both values are written as text and never as markup,
+      // and the icon has to be a picture in the address itself, so a game's
+      // own name cannot become anything but a game's own name.
       const said = new URLSearchParams(window.location.search);
       document.getElementById('what').textContent = said.get('what') || '';
       document.getElementById('game').textContent = said.get('game') || '';
@@ -185,9 +241,12 @@
         picture.alt = '';
         document.getElementById('badge').replaceChildren(picture);
       }
-      // The card leaves when the line it drew has run out.
-      document.getElementById('line').addEventListener('animationend', () => {
-        window.close();
+      // The card leaves when it has finished leaving, which is the second of
+      // its two animations — `in` on arrival, `out` on the way out.
+      document.getElementById('card').addEventListener('animationend', (e) => {
+        if (e.animationName === 'out') {
+          window.close();
+        }
       });
     </script>
   </body>

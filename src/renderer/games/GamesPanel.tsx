@@ -46,7 +46,7 @@ const GamesPanel = () => {
   // Watching while the page is open as well, so the line at the top can say
   // what is in front while a profile is being made for it.
   const { profiles, playing } = useGameSound({ always: true });
-  const { catalog } = useDspPresetCatalog(t);
+  const { catalog, favorites } = useDspPresetCatalog(t);
   const [known, setKnown] = useState<IGameProgram[]>([]);
   const [asked, setAsked] = useState(false);
 
@@ -216,6 +216,7 @@ const GamesPanel = () => {
               key={profile.id}
               profile={profile}
               catalog={catalog}
+              favourites={favorites}
               isPlaying={playing?.id === profile.id}
               onRemove={() => removeGameProfile(profile.id)}
             />

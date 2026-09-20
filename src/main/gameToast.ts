@@ -35,8 +35,13 @@ export interface IGameToast {
   rect?: string;
 }
 
-const WIDTH = 420;
-const HEIGHT = 108;
+// Wide enough that the longest chain name any of the ten languages produces
+// still fits beside the game's icon and the brand mark without an ellipsis:
+// measured on the page itself, Russian's "Загружено: Игры · Соревнование" is
+// the longest at 284px and the line it goes on is 315px here. Height is the
+// content's, not a round number — 120 left a quarter of the card empty.
+const WIDTH = 520;
+const HEIGHT = 104;
 const MARGIN = 26;
 
 const pagePath = (): string => {

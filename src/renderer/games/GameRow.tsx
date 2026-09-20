@@ -21,6 +21,8 @@ import { setGameProfilePreset } from './gameProfiles';
 interface IGameRowProps {
   profile: IGameProfile;
   catalog: readonly IDspCatalogEntry[];
+  /** The starred chains, in the order they were starred. */
+  favourites: readonly IDspCatalogEntry[];
   /** Its game is in front now: the row says which one the sound belongs to. */
   isPlaying: boolean;
   onRemove: () => void;
@@ -29,22 +31,36 @@ interface IGameRowProps {
 /** The row's own "do nothing", which is not a chain and cannot be one. */
 export const GAME_PRESET_NONE = 'none';
 
+/** Where the starred chains file, exactly as the equaliser's quick pick files
+ * them: first, under their own heading, and once — a chain listed twice is two
+ * rows lit at the same time. */
+const FAVOURITE_GROUP = 'favorites';
+
 /**
  * One game and the sound it plays.
  *
- * The sound is chosen from the same list as everywhere else, led by the same
- * usual chains, so the name a player picks here is the name they picked on
- * the equaliser's page. "Leave it as it is" heads it, because a game somebody
- * has added to watch what it does is a game with no sound of its own yet.
+ * The sound is chosen from the same list as everywhere else — the starred
+ * chains first, then the usual ones, in the same order under the same
+ * headings — so the name a player picks here is the name they picked on the
+ * equaliser's page. "Leave it as it is" heads it, because a game somebody has
+ * added to watch what it does is a game with no sound of its own yet.
  */
-const GameRow = ({ profile, catalog, isPlaying, onRemove }: IGameRowProps) => {
+const GameRow = ({
+  profile,
+  catalog,
+  favourites,
+  isPlaying,
+  onRemove,
+}: IGameRowProps) => {
   const { t } = useTranslation();
+  const starred = new Set(favourites.map((preset) => preset.id));
   const usual = QUICK_DSP_PRESETS.flatMap((id) => {
     const preset = catalog.find((one) => one.id === id);
-    return preset ? [{ ...preset, group: 'usual' }] : [];
+    return preset && !starred.has(id) ? [{ ...preset, group: 'usual' }] : [];
   });
   const rest = catalog.filter(
-    (preset) => !QUICK_DSP_PRESETS.includes(preset.id),
+    (preset) =>
+      !starred.has(preset.id) && !QUICK_DSP_PRESETS.includes(preset.id),
   );
   const entries = [
     {
@@ -54,7 +70,11 @@ const GameRow = ({ profile, catalog, isPlaying, onRemove }: IGameRowProps) => {
       hint: t('games.preset.noneHint'),
       icon: <VoicingIcon className="rich-pick__glyph" />,
     },
-    ...[...usual, ...rest].map((preset) => ({
+    ...[
+      ...favourites.map((preset) => ({ ...preset, group: FAVOURITE_GROUP })),
+      ...usual,
+      ...rest,
+    ].map((preset) => ({
       id: preset.id,
       name: preset.name,
       group: preset.group,
@@ -84,6 +104,9 @@ const GameRow = ({ profile, catalog, isPlaying, onRemove }: IGameRowProps) => {
         groupLabel={(group) => {
           if (group === '') {
             return '';
+          }
+          if (group === FAVOURITE_GROUP) {
+            return t('dsp.favorites.title');
           }
           return group === 'usual'
             ? t('dsp.quick.classics')

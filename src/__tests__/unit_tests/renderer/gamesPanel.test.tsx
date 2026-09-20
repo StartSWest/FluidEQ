@@ -20,6 +20,7 @@ import GamesPanel from 'renderer/games/GamesPanel';
 import { readGameProfiles } from 'renderer/games/gameProfiles';
 import { resetGameWatchRequests } from 'renderer/games/gameWatchRequest';
 import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
+import { toggleFavouriteDspPreset } from 'renderer/dsp/favouriteDspPresets';
 
 jest.mock('renderer/dsp/systemChain', () => ({
   sendSystemDspChain: jest.fn(),
@@ -200,5 +201,28 @@ describe('the Games page', () => {
     );
     expect(readGameProfiles()).toEqual([]);
     expect(screen.getByText(en['games.empty.title'])).toBeInTheDocument();
+  });
+
+  // The starred chains lead every other picker in the app; a game's was the
+  // one place they were missing, so somebody who had starred their own chain
+  // had to hunt for it under a group heading.
+  it('leads a game’s sound with the chains this listener has starred', async () => {
+    toggleFavouriteDspPreset('speech', ['speech']);
+    await show();
+    addFromMenu('Overwatch');
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
+      }),
+    );
+    expect(screen.getByText(en['dsp.favorites.title'])).toBeInTheDocument();
+    const offered = screen
+      .getAllByRole('menuitemradio')
+      .map((item) => item.getAttribute('data-id') ?? item.textContent ?? '');
+    // Straight after "leave it alone", and listed once rather than twice.
+    expect(offered[1]).toContain(en['dsp.preset.speech']);
+    expect(
+      offered.filter((name) => name.includes(en['dsp.preset.speech'])).length,
+    ).toBe(1);
   });
 });
