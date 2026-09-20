@@ -120,11 +120,23 @@ describe("the room's Reset and presets", () => {
     mutes: [false, false, true, false, false, false, false, true],
   };
 
-  it('puts back every option on the card and keeps only the power switch', () => {
-    expect(resetRoom(shaped)).toEqual({ ...DSP_DEFAULTS.room, enabled: true });
+  it('puts the Reference room in with every option on the card, and keeps only the power switch', () => {
+    const reference = roomPresetSettings(DSP_DEFAULTS.room, 'referenceV2');
+    expect(resetRoom(shaped)).toEqual({ ...reference, enabled: true });
+    // Said out loud: the listener's own go back too, and nothing per speaker
+    // outlives it.
+    expect(resetRoom(shaped)).toMatchObject({
+      presetId: 'referenceV2',
+      rendererVersion: 2,
+      head: DSP_DEFAULTS.room.head,
+      correctHeadphones: DSP_DEFAULTS.room.correctHeadphones,
+      musicUpmix: false,
+    });
+    expect(resetRoom(shaped).mutes.every((mute) => !mute)).toBe(true);
     expect(resetRoom({ ...shaped, enabled: false }).enabled).toBe(false);
     // Copies, never the defaults' own arrays: a later edit must not reach them.
     expect(resetRoom(shaped).mutes).not.toBe(DSP_DEFAULTS.room.mutes);
+    expect(resetRoom(shaped).mutes).not.toBe(resetRoom(shaped).mutes);
   });
 
   /**

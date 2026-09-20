@@ -840,7 +840,7 @@ const dsp = {
   'dsp.room.restoreHint':
     'Retour à {name}. Votre tête, votre casque et vos choix de source restent.',
   'dsp.room.resetHint':
-    'Chaque option de cette page revient à son état d’ouverture, celles de l’auditeur comprises. Seul l’interrupteur reste.',
+    'Retour à la salle Référence telle qu’elle est livrée, chaque option de cette page réinitialisée, celles de l’auditeur comprises. Seul l’interrupteur reste.',
   'dsp.room.saveKeepsBoth':
     'Ce nom est pris. Cette salle sera enregistrée sous « {name} », et l’autre reste.',
   'dsp.roomFit.title': 'Ajuster la salle à votre tête',

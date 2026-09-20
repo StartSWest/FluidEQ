@@ -5,7 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { DSP_DEFAULTS, IRoomSettings } from '../../../common/dsp/chain';
-import { roomPresetSettings } from '../../../common/dsp/roomPresets';
+import {
+  ROOM_PRESET_SHAPES,
+  roomPresetSettings,
+} from '../../../common/dsp/roomPresets';
 import {
   deleteSavedRoom,
   readSavedRooms,
@@ -73,8 +76,9 @@ describe('saving a room', () => {
       ]),
     ).toEqual([
       ['Old', 1, 0],
-      ['New', 2, 0.6],
+      ['New', 2, ROOM_PRESET_SHAPES.liveVenueV2.ambienceMix],
     ]);
+    expect(ROOM_PRESET_SHAPES.liveVenueV2.ambienceMix).toBeGreaterThan(0);
   });
 
   it('saves nothing for no name, and says so', () => {

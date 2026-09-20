@@ -845,7 +845,7 @@ const dsp = {
   'dsp.room.restoreHint':
     'Back to {name}. Your head, headphones and source choices stay.',
   'dsp.room.resetHint':
-    'Every option on this page back to how it first opens, the listener’s included. Only the power switch stays.',
+    'Back to the Reference room as it ships, with every option on this page reset, the listener’s included. Only the power switch stays.',
   'dsp.room.saveKeepsBoth':
     'That name is taken. This room will be saved as “{name}”, and the other one stays.',
   'dsp.roomFit.title': 'Fit the room to your head',

@@ -282,9 +282,8 @@ const ROOM_CLASSIC_BY_ID = {
 /**
  * The featured rooms, by what each is for. Tuned by measurement through the
  * shipped head (`room_profiles_test.cpp`, which runs this exact table at four
- * rates on stereo, 5.1 and 7.1, buffered and in game mode) and waiting on
- * ears: the walls and the tail below are relative to a speaker's own direct
- * sound, on a 7.1 stream.
+ * rates on stereo, 5.1 and 7.1, buffered and in game mode): the walls and the
+ * tail below are relative to a speaker's own direct sound, on a 7.1 stream.
  *
  * - Reference: a close, treated room. Walls 36 dB under the speaker, no tail,
  *   stereo on the front stage: the record, in front of you, and nothing else.
@@ -302,6 +301,38 @@ const ROOM_CLASSIC_BY_ID = {
  *   everything arrives once.
  * - Live Venue: a hall. The walls at -21 dB, a 1.2 s tail at -26 dB darkened
  *   above 4.5 kHz, the surrounds held back as the room's and not the band's.
+ *
+ * DO NOT RAISE THE AIR OF THESE ROOMS BY ARITHMETIC. It was tried on
+ * 2026-09-19, from a measurement that was right and a conclusion that was
+ * not: walls at -28 dB and a tail at -38 dB are, on paper, under anything a
+ * listener can pick out of running music, so the four wet rooms were lifted
+ * together to walls near -21 dB and tails near -22 dB — still 16 dB under the
+ * direct sound, colouring no third octave by more than 1.4 dB, every check
+ * green. Ivan heard it within minutes: "too much echo on all those and same
+ * sounding... it was so nice before". Two reasons the numbers could not see.
+ * The tail is four delay lines between 30 and 44 ms: raised to where it can
+ * be picked out, what is picked out is its repeats — an echo, not a room —
+ * and it is the same four lines in every room, so the louder it is the more
+ * alike the rooms are. And what makes these rooms different from each other
+ * is where the speakers stand, how far, and what a stereo record is spread
+ * over; the air is what they have in common. At these levels it is felt as
+ * distance from the head rather than heard as a room, which is what it is
+ * for. A wetter room needs a denser tail in the engine first, and ears after.
+ *
+ * Measured the same evening and left alone because measuring said so: Music
+ * Space's pair at 32 degrees, between two measured directions, is within
+ * 0.3 dB of the measured 30 in every third octave; more fill bought a quarter
+ * of a decibel of smoothness for a third of a decibel of peak. And left for
+ * the engine: a stereo record leaves every room about 3 dB louder than it
+ * came, peaking near +3 dBFS on a full-scale master, and darker than it came
+ * — two speakers reach each ear in phase in the bass and not in the treble
+ * (the phantom centre, 100 Hz to 12.5 kHz against its own mean: +4 dB at
+ * 200 Hz, -6 dB at 1.6 kHz, -5 dB at 8 kHz). The speakers' levels are no
+ * trim for the first: the managed bass goes round them to the sub's path, so
+ * 3 dB off every speaker took 0.6 dB off the record and left it bass-heavy.
+ * So the Music and Movie chains' Room copies carry a ceiling after the Room,
+ * and the Gaming ones, which give up the look-ahead a ceiling costs, leave it
+ * to the output safety.
  */
 const ROOM_FEATURED_BY_ID = {
   referenceV2: {
@@ -444,19 +475,22 @@ export const roomShapeOf = (room: IRoomSettings): TRoomShape => ({
 });
 
 /**
- * The Room card's Reset: every option back to how the card first opens — the
- * living room, every speaker on its ring at its level and playing, and the
- * listener's own choices too: the head, the headphone switch, bass
- * management and its crossover, the front stage and its amount. Only the
- * power switch stays as it is: Reset is asked of a room that is on, and
- * switching it off would be the one thing on the card nobody asked for.
+ * The Room card's Reset: the Reference room exactly as it ships — every
+ * speaker where that room puts it, at its level and playing — and the
+ * listener's own choices back to theirs as well: the head, the headphone
+ * switch, the comparison and "already spatial". Only the power switch stays
+ * as it is: Reset is asked of a room that is on, and switching it off would
+ * be the one thing on the card nobody asked for.
+ *
+ * Reference and not the rack's own default room, which is the classic living
+ * room on the first renderer (Ivan's call, 2026-09-19): Reset is where
+ * somebody goes to start again, and starting again in a room the page files
+ * under "Classic" started them on the renderer without Space or Ambience.
+ * The rack's default stays what it is — it is what a rack that has never
+ * opened this card is sent with, on both sides of the wire.
  */
 export const resetRoom = (current: IRoomSettings): IRoomSettings => ({
-  ...DSP_DEFAULTS.room,
-  angles: [...DSP_DEFAULTS.room.angles],
-  levels: [...DSP_DEFAULTS.room.levels],
-  distances: [...DSP_DEFAULTS.room.distances],
-  mutes: [...DSP_DEFAULTS.room.mutes],
+  ...roomPresetSettings(DSP_DEFAULTS.room, 'referenceV2'),
   enabled: current.enabled,
 });
 

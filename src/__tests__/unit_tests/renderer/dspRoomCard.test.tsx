@@ -94,7 +94,7 @@ describe('the Room card', () => {
     expect(onCommit).toHaveBeenCalledTimes(1);
   });
 
-  it('reads Custom in the picker once the room is shaped, and Reset puts the living room back', () => {
+  it('reads Custom in the picker once the room is shaped, and Reset puts the Reference room in', () => {
     const { onPatch } = renderCard({
       ...DSP_DEFAULTS.room,
       enabled: true,
@@ -109,8 +109,9 @@ describe('the Room card', () => {
     );
     expect(onPatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        presetId: 'livingRoom',
-        sizeM: ROOM_PRESET_SHAPES.livingRoom.sizeM,
+        presetId: 'referenceV2',
+        sizeM: ROOM_PRESET_SHAPES.referenceV2.sizeM,
+        enabled: true,
       }),
     );
   });

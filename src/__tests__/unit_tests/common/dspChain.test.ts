@@ -100,15 +100,18 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(103);
+    expect(DSP_PRESETS).toHaveLength(105);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
     // Uniquely named on the page as well: a copy with the Room shares its
-    // chain's label and is told apart by the Room's title after it.
+    // chain's label and is told apart by what follows it — the Room's title,
+    // or the room itself where a chain has a second copy.
     expect(
       new Set(
-        DSP_PRESETS.map((preset) => `${preset.labelKey}|${preset.withRoom}`),
+        DSP_PRESETS.map(
+          (preset) => `${preset.labelKey}|${preset.copyLabelKey}`,
+        ),
       ).size,
     ).toBe(DSP_PRESETS.length);
     DSP_PRESETS.forEach((preset) => {
@@ -272,7 +275,7 @@ describe('dsp chain settings', () => {
     });
     expect(
       DSP_PRESETS.filter((preset) => preset.settings.maximizer.enabled),
-    ).toHaveLength(23);
+    ).toHaveLength(24);
   });
 
   it('does not replace a named final profile with a generic Maximizer', () => {
@@ -391,7 +394,9 @@ describe('dsp chain settings', () => {
     DSP_PRESETS.forEach((preset) => {
       expect({ id: preset.id, gameMode: preset.settings.gameMode }).toEqual({
         id: preset.id,
-        gameMode: preset.id === 'gaming' || preset.id === 'gaming-room',
+        gameMode: ['gaming', 'gaming-room', 'gaming-competitive'].includes(
+          preset.id,
+        ),
       });
     });
     const gaming = DSP_PRESETS.find((preset) => preset.id === 'gaming');
@@ -430,22 +435,39 @@ describe('dsp chain settings', () => {
     expect(without?.room).toEqual({ ...current.room, enabled: false });
     const withRoom = dspPresetSettings('movie-room', current);
     expect(withRoom?.room).toEqual({
-      ...roomPresetSettings(DSP_DEFAULTS.room, 'homeTheatre'),
+      ...roomPresetSettings(DSP_DEFAULTS.room, 'cinemaV2'),
       enabled: true,
       head: 'large',
       correctHeadphones: false,
     });
-    // Said out loud, since it is what was reported: fill the room goes.
-    expect(withRoom?.room.musicUpmix).toBe(false);
+    // Said out loud, since it is what was reported: the fill left on from
+    // before goes, and the room's own takes its place.
+    expect(withRoom?.room.upmixAmount).toBe(
+      roomPresetSettings(DSP_DEFAULTS.room, 'cinemaV2').upmixAmount,
+    );
+    expect(withRoom?.room.upmixAmount).not.toBe(current.room.upmixAmount);
     expect(withRoom?.room.mutes.every((mute) => !mute)).toBe(true);
+    // The copies stand in the featured rooms, each named after its chain:
+    // by the Room's title, and by the room where a chain has a second copy.
     expect(
       DSP_PRESETS.filter((preset) => preset.settings.room.enabled).map(
-        (preset) => [preset.id, preset.withRoom],
+        (preset) => [
+          preset.id,
+          preset.settings.room.presetId,
+          preset.copyLabelKey,
+        ],
       ),
     ).toEqual([
-      ['gaming-room', true],
-      ['movie-room', true],
+      ['music-room', 'musicSpaceV2', 'dsp.room.title'],
+      ['gaming-room', 'gameWorldV2', 'dsp.room.title'],
+      ['gaming-competitive', 'competitiveV2', 'dsp.room.profile.competitiveV2'],
+      ['movie-room', 'cinemaV2', 'dsp.room.title'],
     ]);
+    expect(
+      DSP_PRESETS.filter((preset) => !preset.settings.room.enabled).every(
+        (preset) => preset.copyLabelKey === undefined,
+      ),
+    ).toBe(true);
     // Each copy stands beside the chain it copies, with no widening after
     // the Room has placed every speaker.
     expect(

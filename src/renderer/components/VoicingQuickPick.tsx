@@ -1,5 +1,9 @@
 /* FluidEQ — GPL-3.0-or-later */
-import { dspPresetHint, useDspPresetCatalog } from '../dsp/dspPresetCatalog';
+import {
+  QUICK_DSP_PRESETS,
+  dspPresetHint,
+  useDspPresetCatalog,
+} from '../dsp/dspPresetCatalog';
 import {
   applyDspSettings,
   persistDspSettings,
@@ -32,15 +36,18 @@ const VoicingQuickPick = () => {
     true,
   );
   const active = catalog.find((preset) => preset.id === activeId);
-  const classicIds = ['music', 'movie', 'gaming', 'speech', 'late-night'];
   const favoritesIds = new Set(favorites.map((preset) => preset.id));
   const entries = [
     ...favorites.map((preset) => ({ ...preset, group: 'favorites' })),
-    ...classicIds.flatMap((id) => {
+    ...QUICK_DSP_PRESETS.flatMap((id) => {
       const preset = catalog.find((one) => one.id === id);
-      return preset && !favoritesIds.has(id)
-        ? [{ ...preset, group: 'classic' }]
-        : [];
+      // Equalizer APO takes a chain's EQ curve and nothing else, so there a
+      // Room copy is the chain it copies under a name that promises a room.
+      const isOffered =
+        preset !== undefined &&
+        !favoritesIds.has(id) &&
+        !(isApo && preset.settings.room.enabled);
+      return isOffered ? [{ ...preset, group: 'classic' }] : [];
     }),
     ...catalog.filter(
       (preset) => preset.group === 'genre' && !favoritesIds.has(preset.id),

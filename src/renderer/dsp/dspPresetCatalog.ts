@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import {
   DSP_PRESETS,
+  IDspPreset,
   chainRoom,
   dspPresetSettings,
 } from '../../common/dsp/presets';
@@ -14,6 +15,37 @@ import {
   readFavouriteDspPresets,
 } from './favouriteDspPresets';
 import { findUserDspPreset, readUserDspPresets } from './userDspPresets';
+
+/**
+ * The chains most people come for, in the order both pickers lead with them:
+ * the quick pick on the equaliser's page and the rack's own picker, under the
+ * same heading. One list, because two lists of "the usual ones" drift — the
+ * quick pick had five, the rack's picker had them scattered over Basic and
+ * Situation, and the two Room copies were in the one and not the other. Each
+ * Room copy stands straight after the chain it copies.
+ */
+export const QUICK_DSP_PRESETS: readonly string[] = [
+  'music',
+  'music-room',
+  'movie',
+  'movie-room',
+  'gaming',
+  'gaming-room',
+  'gaming-competitive',
+  'speech',
+  'late-night',
+];
+
+/**
+ * A factory chain's name. A Room copy is named as the chain it copies plus
+ * what tells it apart — "Gaming · Room", "Gaming · Competitive" — so the
+ * copies read as that chain's in every language without a second set of names
+ * to translate.
+ */
+export const dspPresetName = (preset: IDspPreset, t: Translate): string =>
+  preset.copyLabelKey === undefined
+    ? t(preset.labelKey as TranslationKey)
+    : `${t(preset.labelKey as TranslationKey)} · ${t(preset.copyLabelKey as TranslationKey)}`;
 
 export interface IDspCatalogEntry {
   id: string;
@@ -26,7 +58,7 @@ export const dspPresetCatalog = (t: Translate): IDspCatalogEntry[] => [
   ...readUserDspPresets().map((preset) => ({ ...preset, group: 'saved' })),
   ...DSP_PRESETS.map((preset) => ({
     ...preset,
-    name: `${t(preset.labelKey as TranslationKey)}${preset.withRoom ? ` · ${t('dsp.room.title')}` : ''}`,
+    name: dspPresetName(preset, t),
   })),
 ];
 

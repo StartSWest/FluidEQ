@@ -845,7 +845,7 @@ const dsp = {
   'dsp.room.restoreHint':
     'Zurück zu {name}. Dein Kopf, deine Kopfhörer und deine Quellen-Wahl bleiben.',
   'dsp.room.resetHint':
-    'Jede Option dieser Seite zurück auf den ersten Stand, auch die des Hörers. Nur der Ein-Schalter bleibt.',
+    'Zurück zum Raum „Referenz“, wie er ausgeliefert wird; jede Option dieser Seite wird zurückgesetzt, auch die des Hörers. Nur der Ein-Schalter bleibt.',
   'dsp.room.saveKeepsBoth':
     'Der Name ist vergeben. Dieser Raum wird als „{name}“ gespeichert, der andere bleibt.',
   'dsp.roomFit.title': 'Den Raum an deinen Kopf anpassen',

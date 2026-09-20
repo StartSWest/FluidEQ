@@ -54,9 +54,15 @@ export interface IDspPresetRecipe {
    * The Room a chain switches on, by the room it stands in. Headphones only:
    * the Room folds every channel around a head, which is wrong on speakers —
    * so it is never added to a chain that exists without it, only offered as
-   * that chain's copy beside it (`withRoom`).
+   * that chain's copy beside it, named as the chain plus `copyLabelKey`.
    */
   room?: TRoomPresetId;
+  /**
+   * What a Room copy is called after the chain's own name, where the Room's
+   * title does not say it: a chain with a second copy names that one by the
+   * room it stands in ("Gaming · Competitive" beside "Gaming · Room").
+   */
+  copyLabelKey?: string;
 }
 
 /**
@@ -91,6 +97,23 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'basic',
     voicing: 'music',
     compressor: 'gentle',
+  },
+  {
+    // Music on headphones, in the Room's Music Space: the record on a wider
+    // stage in front, the voice held in the middle, a little air after it.
+    // Without Dimension, as in every Room copy — it widens the pair AFTER the
+    // Room has placed the speakers, and smears the places the Room just made.
+    // And WITH the ceiling: a full-scale stereo record leaves this room up to
+    // 3 dB over full scale (measured, `room_profiles_test.cpp`), and the
+    // Maximizer stands after the Room, so `safety` — which adds no level of
+    // its own — is what brings that back under.
+    id: 'music-room',
+    labelKey: 'dsp.preset.music',
+    group: 'basic',
+    voicing: 'music',
+    compressor: 'gentle',
+    maximizer: 'safety',
+    room: 'musicSpaceV2',
   },
   {
     id: 'speech',
@@ -324,10 +347,13 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     gameMode: true,
   },
   {
-    // Gaming on headphones: the same chain with the Room's gaming room, so a
+    // Gaming on headphones: the same chain in the Room's Game World, so a
     // 5.1 or 7.1 game is folded around the head and a direction is a place
     // rather than a channel. In game mode the Room runs on time, so the pair
-    // costs no more delay than Gaming alone.
+    // costs no more delay than Gaming alone. Game World and not the classic
+    // gaming room it stood in first (Ivan's call, 2026-09-19): its speakers
+    // stand between the head's measured directions instead of on the nearest
+    // one, which is the whole of what a direction is worth in a game.
     id: 'gaming-room',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
@@ -335,7 +361,22 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     eq: 'gaming',
     compressor: 'gaming',
     gameMode: true,
-    room: 'gaming',
+    room: 'gameWorldV2',
+  },
+  {
+    // Gaming on headphones for a match rather than a world: the same chain in
+    // the Room's Competitive, which has no walls and no tail — nothing
+    // arrives after a step but the step. Two copies of one chain cannot both
+    // be "Gaming · Room", so this one is named by its room.
+    id: 'gaming-competitive',
+    labelKey: 'dsp.eqPreset.gaming',
+    copyLabelKey: 'dsp.room.profile.competitiveV2',
+    group: 'scene',
+    normalizer: 'off',
+    eq: 'gaming',
+    compressor: 'gaming',
+    gameMode: true,
+    room: 'competitiveV2',
   },
   {
     id: 'movie',
@@ -347,16 +388,18 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     maximizer: 'movie',
   },
   {
-    // Movie on headphones, in the home theatre. Without Dimension: it widens
-    // the pair AFTER the Room has placed every speaker around the head, and
-    // widening a binaural image smears the very places the Room just made.
+    // Movie on headphones, in the Room's Cinema — the featured room, not the
+    // classic home theatre it stood in first (Ivan's call, 2026-09-19).
+    // Without Dimension: it widens the pair AFTER the Room has placed every
+    // speaker around the head, and widening a binaural image smears the very
+    // places the Room just made.
     id: 'movie-room',
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
     eq: 'movie',
     compressor: 'movie',
     maximizer: 'movie',
-    room: 'homeTheatre',
+    room: 'cinemaV2',
   },
   {
     id: 'lossy-repair',

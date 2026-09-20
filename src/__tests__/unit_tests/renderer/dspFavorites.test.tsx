@@ -97,7 +97,8 @@ it('removes the legacy voicing before enabling the replacement DSP sound', async
   );
   show(true);
   fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-  fireEvent.click(screen.getByRole('menuitemradio', { name: /Gaming/ }));
+  // Gaming itself, not one of its copies with the Room ("Gaming · Room").
+  fireEvent.click(screen.getByRole('menuitemradio', { name: /^Gaming (?!·)/ }));
   expect(setVoicing).toHaveBeenCalledWith('', 1);
   expect(readDspSettings().enabled).toBe(false);
   await act(async () => {

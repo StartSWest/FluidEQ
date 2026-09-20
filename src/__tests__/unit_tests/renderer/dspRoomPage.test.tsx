@@ -160,7 +160,7 @@ describe('Restore and Reset', () => {
       screen.getByRole('group', { name: en['dsp.room.quick.title'] }),
     );
     fireEvent.change(quick.getByLabelText(en['dsp.room.quick.ambience']), {
-      target: { value: '0.9' },
+      target: { value: '0.2' },
     });
     expect(last().presetId).toBe('custom');
     fireEvent.click(
@@ -180,7 +180,7 @@ describe('Restore and Reset', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('resets every option but the power switch, the listener included', () => {
+  it('resets to the Reference room as it ships, the listener included, and leaves the power switch', () => {
     const { last } = renderPage(
       roomPresetSettings(
         on({ head: 'large', sourceAlreadySpatial: true }),
@@ -190,7 +190,18 @@ describe('Restore and Reset', () => {
     fireEvent.click(
       screen.getByRole('button', { name: en['dsp.eqPreset.reset'] }),
     );
-    expect(last()).toEqual({ ...DSP_DEFAULTS.room, enabled: true });
+    // The Reference room and not the rack's default, which is the classic
+    // living room on the renderer without Space or Ambience.
+    expect(last()).toEqual({
+      ...roomPresetSettings(DSP_DEFAULTS.room, 'referenceV2'),
+      enabled: true,
+    });
+    expect(last()).toMatchObject({
+      presetId: 'referenceV2',
+      rendererVersion: 2,
+      head: DSP_DEFAULTS.room.head,
+      sourceAlreadySpatial: false,
+    });
   });
 });
 

@@ -837,7 +837,7 @@ const dsp = {
   'dsp.room.restoreHint':
     'Volver a {name}. Tu cabeza, tus auriculares y tus opciones de fuente se quedan.',
   'dsp.room.resetHint':
-    'Todas las opciones de esta página vuelven a como se abre por primera vez, incluidas las del oyente. Solo se queda el interruptor de encendido.',
+    'Vuelve a la sala Referencia tal como viene, con todas las opciones de esta página restablecidas, incluidas las del oyente. Solo se queda el interruptor de encendido.',
   'dsp.room.saveKeepsBoth':
     'Ese nombre ya existe. Esta sala se guardará como «{name}» y la otra se queda.',
   'dsp.roomFit.title': 'Ajusta la sala a tu cabeza',

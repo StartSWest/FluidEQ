@@ -42,11 +42,13 @@ export interface IDspPreset {
   group: TDspPresetGroup;
   settings: IDspSettings;
   /**
-   * A copy of another chain with the Room switched on: named as that chain
-   * plus the Room's own title ("Gaming · Room") rather than by a label of its
-   * own, so the pair reads as a pair in every language.
+   * Set on a copy of another chain with the Room switched on: what follows
+   * that chain's name in the copy's. The Room's own title ("Gaming · Room")
+   * or, for a chain's second copy, the room it stands in ("Gaming ·
+   * Competitive") — never a label of its own, so the copies read as that
+   * chain's in every language.
    */
-  withRoom: boolean;
+  copyLabelKey: string | undefined;
 }
 
 /** Fail at startup rather than silently ship a recipe with a misspelled EQ. */
@@ -228,7 +230,10 @@ export const DSP_PRESETS: readonly IDspPreset[] = orderRelatedStyles(
         labelKey: recipe.labelKey,
         group: recipe.group,
         settings: materialize(recipe),
-        withRoom: recipe.room !== undefined,
+        copyLabelKey:
+          recipe.room === undefined
+            ? undefined
+            : (recipe.copyLabelKey ?? 'dsp.room.title'),
       })),
   ),
 );

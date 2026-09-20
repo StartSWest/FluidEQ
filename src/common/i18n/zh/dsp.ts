@@ -791,7 +791,7 @@ const dsp = {
   'dsp.room.restore': '恢复配置',
   'dsp.room.restoreHint': '回到 {name}。你的头型、耳机和音源选择保持不变。',
   'dsp.room.resetHint':
-    '本页所有选项回到初次打开时的状态，包括听者的选项。只有电源开关保持不变。',
+    '回到出厂的“参考”房间，本页所有选项一并重置，包括听者的选项。只有电源开关保持不变。',
   'dsp.room.saveKeepsBoth':
     '这个名字已被使用。此房间将保存为“{name}”，原来的那个保留。',
   'dsp.roomFit.title': '让房间适配你的头部',

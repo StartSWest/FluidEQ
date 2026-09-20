@@ -153,7 +153,11 @@ it('profiles preserve listener and comparison choices while Reset clears all exc
       preservePosition: false,
     });
   });
-  expect(resetRoom(listener)).toEqual({ ...DSP_DEFAULTS.room, enabled: true });
+  // Reset is the Reference room as it ships, the listener's own included.
+  expect(resetRoom(listener)).toEqual({
+    ...roomPresetSettings(DSP_DEFAULTS.room, 'referenceV2'),
+    enabled: true,
+  });
 });
 
 it('portable chain profiles strip temporary comparison and source preference', () => {

@@ -17,11 +17,8 @@ import {
 import {
   DSP_PRESETS,
   DSP_PRESET_GROUPS,
-  IDspPreset,
   chainRoom,
 } from '../../common/dsp/presets';
-import { Translate } from '../../common/i18n';
-import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { exportDspChainPreset } from '../utils/equalizerApi';
@@ -36,7 +33,11 @@ import {
 } from './favouriteDspPresets';
 import { SAVED_GROUP, eqPresetGroupLabel } from './presetPickEntries';
 import { useDspPresetSelection } from './useDspPresetSelection';
-import { dspPresetHint as chainHint } from './dspPresetCatalog';
+import {
+  QUICK_DSP_PRESETS,
+  dspPresetHint as chainHint,
+  dspPresetName,
+} from './dspPresetCatalog';
 import {
   IUserDspPreset,
   USER_DSP_PRESET_NAME_MAX,
@@ -58,14 +59,11 @@ interface IDspChainPresetBarProps {
 const FAVOURITE_GROUP = 'favourites';
 
 /**
- * A factory chain's name. A copy with the Room says so with the Room's own
- * title — "Gaming · Room" — so the pair reads as a pair in every language
- * without a second set of names to translate.
+ * Where the usual chains file, straight under the starred ones: the same
+ * chains in the same order, under the same heading, as the quick pick on the
+ * equaliser's page (`QUICK_DSP_PRESETS`).
  */
-const factoryName = (preset: IDspPreset, t: Translate): string =>
-  preset.withRoom
-    ? `${t(preset.labelKey as TranslationKey)} · ${t('dsp.room.title')}`
-    : t(preset.labelKey as TranslationKey);
+const QUICK_GROUP = 'quick';
 
 const DspChainPresetBar = ({
   settings,
@@ -103,7 +101,7 @@ const DspChainPresetBar = ({
     ...DSP_PRESET_GROUPS.flatMap((group) =>
       DSP_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
         id: preset.id,
-        name: factoryName(preset, t),
+        name: dspPresetName(preset, t),
         hint: chainHint(preset.settings, t),
         group,
         icon: (
@@ -112,16 +110,23 @@ const DspChainPresetBar = ({
       })),
     ),
   ];
-  // The starred ones first, in the order they were starred, under a heading
-  // of their own — once each: a preset listed twice is two rows lit at once
-  // and an arrow that visits it twice. `ordered` follows, so the arrows beside
-  // the pill walk what the menu shows.
-  const entries: IRichPickEntry[] = [
-    ...favourites.flatMap((id) => {
+  // The starred ones first, in the order they were starred, then the usual
+  // ones in the order the equaliser's quick pick gives them, each under a
+  // heading of its own — once each: a preset listed twice is two rows lit at
+  // once and an arrow that visits it twice. `ordered` follows, so the arrows
+  // beside the pill walk what the menu shows.
+  const lifted = (ids: readonly string[], group: string): IRichPickEntry[] =>
+    ids.flatMap((id) => {
       const entry = filed.find((one) => one.id === id);
-      return entry ? [{ ...entry, group: FAVOURITE_GROUP }] : [];
-    }),
-    ...filed.filter((entry) => !favourites.includes(entry.id)),
+      return entry ? [{ ...entry, group }] : [];
+    });
+  const usual = QUICK_DSP_PRESETS.filter((id) => !favourites.includes(id));
+  const entries: IRichPickEntry[] = [
+    ...lifted(favourites, FAVOURITE_GROUP),
+    ...lifted(usual, QUICK_GROUP),
+    ...filed.filter(
+      (entry) => !favourites.includes(entry.id) && !usual.includes(entry.id),
+    ),
   ];
   const ordered = entries.map((entry) => entry.id);
 
@@ -232,7 +237,7 @@ const DspChainPresetBar = ({
     );
     const name =
       saved?.name ??
-      (factory ? factoryName(factory, t) : undefined) ??
+      (factory ? dspPresetName(factory, t) : undefined) ??
       t('dsp.eqPreset.custom');
     setNotice('');
     setIsExporting(true);
@@ -258,11 +263,14 @@ const DspChainPresetBar = ({
         <RichPick
           menuClassName="dsp-chain-preset-menu"
           entries={entries}
-          groupLabel={(group) =>
-            group === FAVOURITE_GROUP
-              ? t('library.playlist.favorites')
-              : eqPresetGroupLabel(group, t)
-          }
+          groupLabel={(group) => {
+            if (group === FAVOURITE_GROUP) {
+              return t('library.playlist.favorites');
+            }
+            return group === QUICK_GROUP
+              ? t('dsp.quick.classics')
+              : eqPresetGroupLabel(group, t);
+          }}
           favourites={{
             ids: favourites,
             onToggle: (id) =>
