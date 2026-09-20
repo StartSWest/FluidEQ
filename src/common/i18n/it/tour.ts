@@ -120,7 +120,7 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point1':
     'Scegli i monitor su una mappa della tua scrivania, ognuno con il suo visualizzatore.',
   'tour.desktop.point2':
-    'Si mette in pausa con le app a schermo intero, con il PC bloccato e quando va a batteria.',
+    'Si mette in pausa mentre le finestre coprono il monitor, con il PC bloccato e quando va a batteria.',
   'tour.desktop.point3': 'Riparte da solo al prossimo avvio di FluidEQ.',
   'tour.desktop.how':
     'Con un visualizzatore Plus sul grafico, premi il pulsante del monitor accanto al suo nome oppure scegli Vista → Imposta come sfondo del desktop.',

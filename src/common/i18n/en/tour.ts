@@ -131,7 +131,7 @@ const tour = {
   'tour.desktop.point1':
     'Pick monitors on a map of your desk, each with its own visualizer.',
   'tour.desktop.point2':
-    'It pauses for full-screen apps, a locked PC and battery power.',
+    'It pauses while windows cover the monitor, when the PC is locked and on battery.',
   'tour.desktop.point3':
     'It comes back by itself the next time FluidEQ starts.',
   'tour.desktop.how':

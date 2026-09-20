@@ -78,10 +78,10 @@ const app: Partial<Dictionary> = {
     "Dessine tout ce qui est à l'écran sur la carte graphique : le spectre, la courbe, chaque animation et les scènes des visualiseurs Plus. Occupé dès que quelque chose bouge ; aucun modèle ne tourne ici.",
   'app.processes.name.desktop': 'Visualiseur du Bureau',
   'app.processes.what.desktop':
-    "Un visualiseur Plus dessiné en arrière-plan du Bureau d'un écran, à l'écart de cette fenêtre : un pour chaque écran qui en affiche un. Il se met en pause quand une app en plein écran couvre cet écran ou que le PC est verrouillé.",
+    "Un visualiseur Plus dessiné en arrière-plan du Bureau d'un écran, à l'écart de cette fenêtre : un pour chaque écran qui en affiche un. Il se met en pause tant que des fenêtres couvrent cet écran ou que le PC est verrouillé.",
   'app.processes.name.desktopHost': 'Assistant du visualiseur du Bureau',
   'app.processes.what.desktopHost':
-    "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand une app en plein écran couvre l'écran. Un pour chaque écran qui en affiche un.",
+    "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche un.",
   'app.processes.name.shareCapture': "Capture pour partager l'audio",
   'app.processes.what.shareCapture':
     "Capture ce que joue ce PC, avant l'égaliseur, pour l'envoyer à un autre FluidEQ. Ne tourne que pendant que vous partagez votre audio.",

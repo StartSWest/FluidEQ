@@ -82,7 +82,12 @@ export type TWallpaperError =
   | 'renderer'
   | 'audio';
 
-export type TWallpaperPause = 'locked' | 'suspended' | 'battery' | 'fullscreen';
+/**
+ * Why a monitor is not drawing. `covered` means no part of that
+ * monitor's desktop can be seen: windows over every piece of its work
+ * area, not merely an app in front of the background.
+ */
+export type TWallpaperPause = 'locked' | 'suspended' | 'battery' | 'covered';
 
 /** A monitor as Windows' display settings describe it, in physical pixels. */
 export interface IWallpaperDisplay {
@@ -200,7 +205,7 @@ const WALLPAPER_PAUSES: readonly TWallpaperPause[] = [
   'locked',
   'suspended',
   'battery',
-  'fullscreen',
+  'covered',
 ];
 
 const isRecord = (raw: unknown): raw is Record<string, unknown> =>
@@ -344,7 +349,7 @@ export const wallpaperPauseReason = (conditions: {
   locked: boolean;
   suspended: boolean;
   battery: boolean;
-  fullscreen: boolean;
+  covered: boolean;
   pauseOnBattery: boolean;
 }): TWallpaperPause | undefined => {
   if (conditions.locked) {
@@ -356,8 +361,8 @@ export const wallpaperPauseReason = (conditions: {
   if (conditions.battery && conditions.pauseOnBattery) {
     return 'battery';
   }
-  if (conditions.fullscreen) {
-    return 'fullscreen';
+  if (conditions.covered) {
+    return 'covered';
   }
   return undefined;
 };

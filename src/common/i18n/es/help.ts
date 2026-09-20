@@ -366,7 +366,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     'Pon un visualizador Plus en la gráfica y pulsa el botón del monitor junto a su nombre, o elige Vista → Usar como fondo de escritorio.\nPulsa los monitores en el mapa, elige Con la música o Tranquilo y pulsa Establecer fondo.\nPara cambiarlo o detenerlo, abre Plus → Visualizadores y usa Administrar o Detener todos en la parte superior.',
   'help.desktop.tip':
-    'Se pausa con las apps a pantalla completa, con el PC bloqueado y, si lo eliges, al usar la batería, y vuelve cuando se inicia FluidEQ. Al salir de FluidEQ se detiene. Solo en Windows.',
+    'Se pausa mientras las ventanas cubren el monitor, con el PC bloqueado y, si lo eliges, al usar la batería, y vuelve cuando se inicia FluidEQ. Al salir de FluidEQ se detiene. Solo en Windows.',
   'help.desktop.monitors':
     'Tus monitores tal como los organiza Windows. Pulsa los que quieras usar.',
   'help.desktop.music': 'Se mueve con lo que esté sonando.',

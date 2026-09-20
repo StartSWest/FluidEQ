@@ -77,7 +77,7 @@ const create = (
       member: false,
     },
     executable: 'FluidEQ-Wallpaper.exe',
-    pauseReason: (fullscreen) => (fullscreen ? 'fullscreen' : pause.reason),
+    pauseReason: (covered) => (covered ? 'covered' : pause.reason),
     onChange,
     onFail,
   });
@@ -110,7 +110,7 @@ describe('a desktop background appearing', () => {
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
   });
 
-  it('stays hidden when an app already fills the monitor as it is placed', () => {
+  it('stays hidden when windows already cover the monitor as it is placed', () => {
     const { surface } = create();
     surface.drawn(1);
     mockHost.report('ready');
@@ -134,7 +134,7 @@ describe('a desktop background appearing', () => {
     expect(mockHost.setVisible).not.toHaveBeenCalled();
   });
 
-  it('hides for a full-screen app and waits for a fresh frame before showing again', () => {
+  it('hides while windows cover it and waits for a fresh frame before showing again', () => {
     const { surface } = create();
     surface.drawn(1);
     mockHost.report('ready');
@@ -143,7 +143,7 @@ describe('a desktop background appearing', () => {
 
     mockHost.report('paused');
     expect(surface.phase()).toBe('paused');
-    expect(surface.pauseReason()).toBe('fullscreen');
+    expect(surface.pauseReason()).toBe('covered');
     expect(mockHost.setVisible).toHaveBeenLastCalledWith(false);
     const pausedGeneration = surface.surfaceState().renderGeneration;
     expect(pausedGeneration).toBe(before + 1);

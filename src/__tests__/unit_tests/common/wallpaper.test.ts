@@ -136,7 +136,7 @@ describe('what the window accepts back from main', () => {
         wave: request.wave,
         motion: request.motion,
         phase: 'paused',
-        pauseReason: 'fullscreen',
+        pauseReason: 'covered',
       },
     ],
     pauseOnBattery: true,
@@ -189,7 +189,7 @@ describe('why a monitor pauses', () => {
     locked: false,
     suspended: false,
     battery: false,
-    fullscreen: false,
+    covered: false,
     pauseOnBattery: true,
   };
 
@@ -203,7 +203,7 @@ describe('why a monitor pauses', () => {
       locked: true,
       suspended: true,
       battery: true,
-      fullscreen: true,
+      covered: true,
     };
     expect(wallpaperPauseReason(everything)).toBe('locked');
     expect(wallpaperPauseReason({ ...everything, locked: false })).toBe(
@@ -224,8 +224,8 @@ describe('why a monitor pauses', () => {
         ...quiet,
         battery: true,
         pauseOnBattery: false,
-        fullscreen: true,
+        covered: true,
       }),
-    ).toBe('fullscreen');
+    ).toBe('covered');
   });
 });

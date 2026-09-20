@@ -22,8 +22,11 @@ export interface IMonitorFailure {
 interface IMonitorBackgroundsOptions {
   /** The desktop helper, when this build has one. */
   executable(): string | undefined;
-  /** Why a monitor should not play now, given whether an app fills it. */
-  pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
+  /**
+   * Why a monitor should not play now, given whether anything of its
+   * desktop can still be seen.
+   */
+  pauseReason(covered: boolean): TWallpaperPause | undefined;
   /** The window's frame rate and resolution choice, as it is now. */
   performance(): IScenePerformance;
   /** What the listener set for one visualizer, as it is now. */

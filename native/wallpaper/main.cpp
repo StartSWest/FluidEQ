@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstring>
+#include <iterator>
 #include <limits>
 
 namespace {
@@ -22,6 +23,7 @@ struct State {
   wallpaper::Desktop desktop;
   RECT screen_rect{};
   RECT monitor_rect{};
+  RECT work_rect{};
   HMONITOR monitor = nullptr;
   bool attached = false;
   bool finished = false;
@@ -65,26 +67,92 @@ bool set_style(int index, LONG_PTR style) {
   return SetWindowLongPtrW(state.surface, index, style) != 0 || GetLastError() == ERROR_SUCCESS;
 }
 
-bool fullscreen() {
-  const HWND foreground = GetForegroundWindow();
-  if (!foreground || foreground == state.surface || !IsWindowVisible(foreground) ||
-      IsIconic(foreground) || foreground == GetShellWindow()) return false;
-  const LONG_PTR style = GetWindowLongPtrW(foreground, GWL_EXSTYLE);
-  if ((style & WS_EX_TOOLWINDOW) != 0) return false;
-  for (const auto* name : {L"Progman", L"WorkerW", L"SHELLDLL_DefView",
-                           L"Shell_TrayWnd", L"Shell_SecondaryTrayWnd"}) {
-    if (wallpaper::class_is(foreground, name)) return false;
+/**
+ * Whether this window hides what is behind it, rather than being drawn over
+ * it. A see-through one — click-through, colour-keyed, faded, or painting its
+ * own alpha per pixel as overlays and widgets do — leaves the desktop in
+ * sight, and so does one on another virtual desktop (Windows cloaks those)
+ * and the desktop's own windows.
+ */
+bool hides_desktop(HWND window) {
+  if (window == state.surface || !IsWindowVisible(window) || IsIconic(window)) {
+    return false;
+  }
+  const LONG_PTR extended = GetWindowLongPtrW(window, GWL_EXSTYLE);
+  if ((extended & WS_EX_TRANSPARENT) != 0) return false;
+  if ((extended & WS_EX_LAYERED) != 0) {
+    COLORREF key = 0;
+    BYTE alpha = 0;
+    DWORD flags = 0;
+    // A layered window with no attributes of its own paints per-pixel alpha.
+    if (!GetLayeredWindowAttributes(window, &key, &alpha, &flags)) return false;
+    if ((flags & LWA_COLORKEY) != 0) return false;
+    if ((flags & LWA_ALPHA) != 0 && alpha < 255) return false;
   }
   DWORD cloaked = 0;
-  if (SUCCEEDED(DwmGetWindowAttribute(foreground, DWMWA_CLOAKED, &cloaked,
+  if (SUCCEEDED(DwmGetWindowAttribute(window, DWMWA_CLOAKED, &cloaked,
                                      sizeof(cloaked))) && cloaked != 0) return false;
+  for (const auto* name : {L"Progman", L"WorkerW", L"SHELLDLL_DefView"}) {
+    if (wallpaper::class_is(window, name)) return false;
+  }
+  return true;
+}
+
+struct Covering {
+  RECT work{};
+  RECT windows[64]{};
+  int count = 0;
+  bool overflowed = false;
+};
+
+BOOL CALLBACK collect_covering(HWND window, LPARAM parameter) {
+  auto& covering = *reinterpret_cast<Covering*>(parameter);
+  RECT frame{};
+  RECT overlap{};
+  // Cheap first, and DWM last. Dragging a window sends one of these for every
+  // step of the mouse, and a desk has a couple of hundred top-level windows
+  // of which a handful are on this monitor: asking DWM about each one, as the
+  // style and cloak checks do, is the whole cost of the walk. What DWM
+  // reports is inside the window's own rectangle, so nothing that reaches
+  // this monitor is dropped by measuring against that rectangle here.
+  if (!IsWindowVisible(window) || IsIconic(window) ||
+      !GetWindowRect(window, &frame) ||
+      !IntersectRect(&overlap, &frame, &covering.work) ||
+      !hides_desktop(window)) {
+    return TRUE;
+  }
   RECT bounds{};
-  // DWM excludes the invisible resize border: a maximized window above a
-  // visible taskbar must not be mistaken for a fullscreen application.
-  if (FAILED(DwmGetWindowAttribute(foreground, DWMWA_EXTENDED_FRAME_BOUNDS,
-                                  &bounds, sizeof(bounds))) &&
-      !GetWindowRect(foreground, &bounds)) return false;
-  return wallpaper::covers(bounds, state.monitor_rect);
+  // DWM excludes the invisible resize border, which a window's own rectangle
+  // includes: counted raw, a maximized window appears to cover more than it
+  // does and every neighbouring monitor with it.
+  if (SUCCEEDED(DwmGetWindowAttribute(window, DWMWA_EXTENDED_FRAME_BOUNDS,
+                                      &bounds, sizeof(bounds))) &&
+      !IntersectRect(&overlap, &bounds, &covering.work)) {
+    return TRUE;
+  }
+  if (covering.count == static_cast<int>(std::size(covering.windows))) {
+    covering.overflowed = true;
+    return FALSE;
+  }
+  covering.windows[covering.count++] = overlap;
+  return TRUE;
+}
+
+/**
+ * Whether nothing of this monitor's desktop can be seen: every part of the
+ * work area — the monitor minus its taskbar, which is not desktop and is
+ * often see-through in front of it — is behind a window that hides it.
+ *
+ * A full-screen game is one such window. So are two ordinary windows side by
+ * side, which is what a desk looks like most of the day, and drawing a
+ * visualizer nobody can see is the GPU time this is here to give back.
+ */
+bool hidden() {
+  Covering covering;
+  covering.work = state.work_rect;
+  EnumWindows(collect_covering, reinterpret_cast<LPARAM>(&covering));
+  if (covering.overflowed) return false;
+  return wallpaper::covered(covering.work, covering.windows, covering.count);
 }
 
 void verify_attachment();
@@ -104,7 +172,7 @@ void apply_visibility() {
 
 void visibility() {
   if (!state.attached || state.finished) return;
-  const bool paused = fullscreen();
+  const bool paused = hidden();
   if (!state.reported_visibility || state.paused != paused) {
     state.paused = paused;
     state.reported_visibility = true;
@@ -131,6 +199,10 @@ void verify_attachment() {
     fail("display-changed");
     return;
   }
+  // The taskbar moving, hiding or growing changes the work area alone; the
+  // background still covers the whole monitor, and only what counts as the
+  // desktop being in sight moves with it.
+  state.work_rect = info.rcWork;
   // Reassert ONLY our own sibling's order. Explorer's icons and wallpaper
   // windows are never hidden, restyled, or reordered by this helper.
   if (state.desktop.raised &&
@@ -158,8 +230,13 @@ void CALLBACK on_event(HWINEVENTHOOK, DWORD event, HWND window, LONG object,
   }
   if (!state.attached) return;
   verify_attachment();
+  // Any top-level window appearing, moving, resizing, minimizing or closing
+  // can be the one that covered this monitor or uncovered it, so the whole
+  // desk is looked at again. Windows sends these only when something actually
+  // moved; the look itself is a walk of the top-level windows, once.
   if (event == EVENT_SYSTEM_FOREGROUND || event == EVENT_SYSTEM_MINIMIZESTART ||
-      event == EVENT_SYSTEM_MINIMIZEEND || window == GetForegroundWindow()) visibility();
+      event == EVENT_SYSTEM_MINIMIZEEND ||
+      (window && GetAncestor(window, GA_ROOT) == window)) visibility();
 }
 
 void CALLBACK desktop_ready(HWND, UINT, ULONG_PTR, LRESULT) {
@@ -292,6 +369,7 @@ int run() {
     fail("display-unavailable"); return 1;
   }
   state.monitor_rect = monitor.rcMonitor;
+  state.work_rect = monitor.rcWork;
   // The window's own rectangle only names the monitor. Windows clamps a
   // top-level window to the work area — 2560x1392 on a 2560x1440 display with
   // its taskbar — and Chromium's frame styles add invisible insets, so placing

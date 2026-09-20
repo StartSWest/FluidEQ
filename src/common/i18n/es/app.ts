@@ -77,10 +77,10 @@ const app: Partial<Dictionary> = {
     'Dibuja todo lo que hay en pantalla en la tarjeta gráfica: el espectro, la curva, cada animación y las escenas de los visualizadores de Plus. Trabaja siempre que algo se mueve; aquí no se ejecuta ningún modelo.',
   'app.processes.name.desktop': 'Visualizador de escritorio',
   'app.processes.what.desktop':
-    'Un visualizador de Plus dibujado como fondo de escritorio de un monitor, aparte de esta ventana: uno por cada monitor que lo muestra. Se pausa mientras una app a pantalla completa cubre ese monitor o el PC está bloqueado.',
+    'Un visualizador de Plus dibujado como fondo de escritorio de un monitor, aparte de esta ventana: uno por cada monitor que lo muestra. Se pausa mientras las ventanas cubren ese monitor o el PC está bloqueado.',
   'app.processes.name.desktopHost': 'Ayudante del visualizador de escritorio',
   'app.processes.what.desktopHost':
-    'Coloca el visualizador de escritorio de ese monitor detrás de los iconos y le avisa cuando una app a pantalla completa cubre la pantalla. Uno por cada monitor que lo muestra.',
+    'Coloca el visualizador de escritorio de ese monitor detrás de los iconos y le avisa cuando las ventanas cubren la pantalla. Uno por cada monitor que lo muestra.',
   'app.processes.name.shareCapture': 'Captura para compartir audio',
   'app.processes.what.shareCapture':
     'Captura lo que suena en este PC, antes del ecualizador, para enviarlo a otro FluidEQ. Solo funciona mientras compartes tu audio.',

@@ -48,8 +48,7 @@ const wallpaper = {
   'wallpaper.pause.locked': 'Приостановлено, пока Windows заблокирована',
   'wallpaper.pause.suspended': 'Приостановлено, пока компьютер спит',
   'wallpaper.pause.battery': 'Приостановлено для экономии заряда',
-  'wallpaper.pause.fullscreen':
-    'Приостановлено из-за полноэкранного приложения',
+  'wallpaper.pause.covered': 'Приостановлено, пока окна закрывают этот монитор',
   'wallpaper.error.unsupported': 'Фоны рабочего стола доступны в Windows.',
   'wallpaper.error.unavailable':
     'Не удалось связаться с фоном рабочего стола. Повторите попытку.',

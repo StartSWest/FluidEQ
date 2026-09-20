@@ -325,7 +325,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     '在图表上显示一个 Plus 可视化效果，按下其名称旁的显示器按钮，或选择“视图 → 设为桌面背景”。\n在排布图上点选显示器，选择“随音乐”或“平静”，然后按“设置背景”。\n要更改或停止它，请打开“Plus → 可视化”，使用顶部的“管理”或“停止”。',
   'help.desktop.tip':
-    '运行全屏应用、电脑锁定，以及（如果你选择）使用电池时，它会暂停；FluidEQ 启动时它会恢复。退出 FluidEQ 会停止它。仅限 Windows。',
+    '窗口盖住显示器、电脑锁定，以及（如果你选择）使用电池时，它会暂停；FluidEQ 启动时它会恢复。退出 FluidEQ 会停止它。仅限 Windows。',
   'help.desktop.monitors':
     '你的显示器，按 Windows 中的排列方式显示。点选要使用的显示器。',
   'help.desktop.music': '随正在播放的内容而动。',

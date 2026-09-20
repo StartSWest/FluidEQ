@@ -50,8 +50,8 @@ const wallpaper = {
   'wallpaper.pause.locked': 'En pause lorsque Windows est verrouillé',
   'wallpaper.pause.suspended': "En pause pendant la veille de l'ordinateur",
   'wallpaper.pause.battery': 'En pause pour économiser la batterie',
-  'wallpaper.pause.fullscreen':
-    'En pause pendant une application en plein écran',
+  'wallpaper.pause.covered':
+    'En pause tant que des fenêtres couvrent cet écran',
   'wallpaper.error.unsupported':
     'Les arrière-plans du Bureau sont disponibles sous Windows.',
   'wallpaper.error.unavailable':

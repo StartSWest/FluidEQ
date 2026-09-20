@@ -31,8 +31,11 @@ interface IDesktopSurfaceOptions {
   /** What the listener set for this visualizer, when they set anything. */
   tuning: IWallpaperTuning | undefined;
   executable: string;
-  /** Why this monitor should not play now, given whether an app fills it. */
-  pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
+  /**
+   * Why this monitor should not play now, given whether anything of its
+   * desktop can still be seen.
+   */
+  pauseReason(covered: boolean): TWallpaperPause | undefined;
   /** Something this monitor's status shows has changed. */
   onChange(): void;
   /** At most once, after the surface has let go of its window and helper. */
@@ -81,7 +84,7 @@ const sameTuning = (
 
 /**
  * One monitor's background: its own window, its own desktop helper and its
- * own pause state, so a full-screen game on one monitor pauses only that one.
+ * own pause state, so windows covering one monitor pause only that one.
  */
 export const createDesktopSurface = (
   options: IDesktopSurfaceOptions,
@@ -92,8 +95,8 @@ export const createDesktopSurface = (
   let host: IWallpaperHost | undefined;
   let released = false;
   let attached = false;
-  let fullscreenKnown = false;
-  let fullscreen = false;
+  let coverKnown = false;
+  let covered = false;
   let shown = false;
   let frameReady = false;
   let renderGeneration = 1;
@@ -143,12 +146,13 @@ export const createDesktopSurface = (
   };
 
   const applyPolicy = () => {
-    // The helper reports whether an app fills the monitor right after placing
-    // the window; showing before that report could flash over a game.
-    if (released || !host || !attached || !fullscreenKnown) {
+    // The helper reports whether any of this monitor's desktop is in sight
+    // right after placing the window; showing before that report could
+    // flash over a game.
+    if (released || !host || !attached || !coverKnown) {
       return;
     }
-    const reason = options.pauseReason(fullscreen);
+    const reason = options.pauseReason(covered);
     if (reason && phase !== 'paused') {
       // A new key makes the page draw afresh on resume even when React
       // coalesces the pause and the resume into one render.
@@ -203,8 +207,8 @@ export const createDesktopSurface = (
           if (message === 'ready') {
             attached = true;
           } else {
-            fullscreenKnown = true;
-            fullscreen = message === 'paused';
+            coverKnown = true;
+            covered = message === 'paused';
           }
           applyPolicy();
         },

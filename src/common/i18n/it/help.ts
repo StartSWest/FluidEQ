@@ -367,7 +367,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     'Metti un visualizzatore Plus sul grafico e premi il pulsante del monitor accanto al suo nome, oppure scegli Vista → Imposta come sfondo del desktop.\nPremi i monitor sulla mappa, scegli Con la musica o Calmo e premi Imposta sfondo.\nPer cambiarlo o fermarlo, apri Plus → Visualizzatori e usa Gestisci o Interrompi in alto.',
   'help.desktop.tip':
-    'Si mette in pausa con le app a schermo intero, con il PC bloccato e, se vuoi, a batteria, e torna all’avvio di FluidEQ. Uscire da FluidEQ lo ferma. Solo su Windows.',
+    'Si mette in pausa mentre le finestre coprono il monitor, con il PC bloccato e, se vuoi, a batteria, e torna all’avvio di FluidEQ. Uscire da FluidEQ lo ferma. Solo su Windows.',
   'help.desktop.monitors':
     'I tuoi monitor come li dispone Windows. Premi quelli da usare.',
   'help.desktop.music': 'Si muove con ciò che è in riproduzione.',

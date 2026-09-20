@@ -94,8 +94,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,
-    pauseReason: (fullscreen) =>
-      wallpaperPauseReason({ ...conditions, pauseOnBattery, fullscreen }),
+    pauseReason: (covered) =>
+      wallpaperPauseReason({ ...conditions, pauseOnBattery, covered }),
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],
     onEmpty: () => relay.cancel(),

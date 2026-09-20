@@ -371,7 +371,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     'Mettez un visualiseur Plus sur le graphique et appuyez sur le bouton en forme d’écran à côté de son nom, ou choisissez Affichage → Définir comme arrière-plan du Bureau.\nAppuyez sur les écrans de la carte, choisissez Avec la musique ou Calme, et appuyez sur Définir l’arrière-plan.\nPour le modifier ou l’arrêter, ouvrez Plus → Visualiseurs et utilisez Gérer ou Arrêter en haut.',
   'help.desktop.tip':
-    'Il se met en pause pendant les applications en plein écran, quand le PC est verrouillé et, si vous le choisissez, sur batterie ; il revient au démarrage de FluidEQ. Quitter FluidEQ l’arrête. Windows uniquement.',
+    'Il se met en pause tant que des fenêtres couvrent l’écran, quand le PC est verrouillé et, si vous le choisissez, sur batterie ; il revient au démarrage de FluidEQ. Quitter FluidEQ l’arrête. Windows uniquement.',
   'help.desktop.monitors':
     'Vos écrans tels que Windows les dispose. Appuyez sur ceux à utiliser.',
   'help.desktop.music': 'Bouge avec ce qui est en lecture.',

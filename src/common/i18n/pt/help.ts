@@ -366,7 +366,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     'Coloque um visualizador Plus no gráfico e pressione o botão de monitor ao lado do nome dele, ou escolha Visualização → Definir como fundo do ambiente de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Plus → Visualizadores e use Gerir ou Parar no topo.',
   'help.desktop.tip':
-    'Ele fica em pausa com apps em tela inteira, com o PC bloqueado e, se você quiser, na bateria, e volta quando o FluidEQ inicia. Sair do FluidEQ o interrompe. Só no Windows.',
+    'Ele fica em pausa enquanto as janelas cobrem o monitor, com o PC bloqueado e, se você quiser, na bateria, e volta quando o FluidEQ inicia. Sair do FluidEQ o interrompe. Só no Windows.',
   'help.desktop.monitors':
     'Seus monitores como o Windows os organiza. Pressione os que quer usar.',
   'help.desktop.music': 'Move-se com o que estiver tocando.',

@@ -118,7 +118,7 @@ const tour: Partial<Dictionary> = {
     '把 Plus 可视化效果放到桌面图标后面。它会随你正在听的内容而动，也可以独自平静地播放，而且每台显示器都能显示自己的场景。',
   'tour.desktop.point1':
     '在显示器排布图上挑选显示器，每台都能显示自己的可视化效果。',
-  'tour.desktop.point2': '运行全屏应用、电脑锁定或使用电池供电时，它会暂停。',
+  'tour.desktop.point2': '窗口盖住显示器、电脑锁定或使用电池供电时，它会暂停。',
   'tour.desktop.point3': '下次启动 FluidEQ 时，它会自动恢复。',
   'tour.desktop.how':
     '图表上显示 Plus 可视化效果时，按下其名称旁的显示器按钮，或选择“视图 → 设为桌面背景”。',

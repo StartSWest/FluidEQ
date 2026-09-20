@@ -120,7 +120,7 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point1':
     'Wählen Sie Monitore auf einer Karte Ihres Schreibtischs, jeden mit seinem eigenen Visualizer.',
   'tour.desktop.point2':
-    'Er pausiert bei Vollbild-Apps, gesperrtem PC und im Akkubetrieb.',
+    'Er pausiert, solange Fenster den Monitor verdecken, bei gesperrtem PC und im Akkubetrieb.',
   'tour.desktop.point3':
     'Beim nächsten Start von FluidEQ kommt er von selbst zurück.',
   'tour.desktop.how':

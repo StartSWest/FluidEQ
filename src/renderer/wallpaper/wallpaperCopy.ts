@@ -39,7 +39,7 @@ export const PAUSE_KEYS: Record<TWallpaperPause, TranslationKey> = {
   locked: 'wallpaper.pause.locked',
   suspended: 'wallpaper.pause.suspended',
   battery: 'wallpaper.pause.battery',
-  fullscreen: 'wallpaper.pause.fullscreen',
+  covered: 'wallpaper.pause.covered',
 };
 
 /** One monitor's status as a sentence, where nothing else says what it is. */

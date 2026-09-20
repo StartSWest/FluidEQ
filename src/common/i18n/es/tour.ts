@@ -120,7 +120,7 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point1':
     'Elige los monitores en un mapa de tu escritorio, cada uno con su propio visualizador.',
   'tour.desktop.point2':
-    'Se pausa con las apps a pantalla completa, con el PC bloqueado y al usar la batería.',
+    'Se pausa mientras las ventanas cubren el monitor, con el PC bloqueado y al usar la batería.',
   'tour.desktop.point3': 'Vuelve solo la próxima vez que se inicie FluidEQ.',
   'tour.desktop.how':
     'Con un visualizador Plus en la gráfica, pulsa el botón del monitor junto a su nombre o elige Vista → Usar como fondo de escritorio.',

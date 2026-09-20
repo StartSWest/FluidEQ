@@ -370,7 +370,7 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.steps':
     'Lass einen Plus-Visualizer im Diagramm laufen und drücke den Monitor-Knopf neben seinem Namen, oder wähle Ansicht → Als Desktophintergrund festlegen.\nDrücke die Monitore auf der Karte, wähle Mit der Musik oder Ruhig und drücke Hintergrund festlegen.\nZum Ändern oder Beenden öffne Plus → Visualizer und nutze oben Verwalten oder Beenden.',
   'help.desktop.tip':
-    'Er pausiert bei Vollbild-Apps, bei gesperrtem PC und, wenn du willst, im Akkubetrieb und kehrt zurück, wenn FluidEQ startet. Beim Beenden von FluidEQ stoppt er. Nur unter Windows.',
+    'Er pausiert, solange Fenster den Monitor verdecken, bei gesperrtem PC und, wenn du willst, im Akkubetrieb, und kehrt zurück, wenn FluidEQ startet. Beim Beenden von FluidEQ stoppt er. Nur unter Windows.',
   'help.desktop.monitors':
     'Deine Monitore, so wie Windows sie anordnet. Drücke die, die du nutzen willst.',
   'help.desktop.music': 'Bewegt sich zu dem, was gerade läuft.',

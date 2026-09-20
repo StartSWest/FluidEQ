@@ -78,10 +78,10 @@ const app: Partial<Dictionary> = {
     'Disegna tutto ciò che è sullo schermo sulla scheda grafica: lo spettro, la curva, ogni animazione e le scene dei visualizzatori Plus. Lavora ogni volta che qualcosa si muove; qui non gira alcun modello.',
   'app.processes.name.desktop': 'Visualizzatore del desktop',
   'app.processes.what.desktop':
-    "Un visualizzatore Plus disegnato come sfondo del desktop di un monitor, separato da questa finestra: uno per ogni monitor che ne mostra uno. Va in pausa mentre un'app a schermo intero copre quel monitor o il PC è bloccato.",
+    'Un visualizzatore Plus disegnato come sfondo del desktop di un monitor, separato da questa finestra: uno per ogni monitor che ne mostra uno. Va in pausa mentre le finestre coprono quel monitor o il PC è bloccato.',
   'app.processes.name.desktopHost': 'Assistente del visualizzatore del desktop',
   'app.processes.what.desktopHost':
-    "Mette il visualizzatore del desktop di quel monitor dietro le icone e lo avvisa quando un'app a schermo intero copre lo schermo. Uno per ogni monitor che ne mostra uno.",
+    'Mette il visualizzatore del desktop di quel monitor dietro le icone e lo avvisa quando le finestre coprono lo schermo. Uno per ogni monitor che ne mostra uno.',
   'app.processes.name.shareCapture': "Acquisizione per condividere l'audio",
   'app.processes.what.shareCapture':
     "Acquisisce ciò che suona su questo PC, prima dell'equalizzatore, per inviarlo a un altro FluidEQ. È attivo solo mentre condividi il tuo audio.",

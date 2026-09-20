@@ -120,7 +120,7 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point1':
     'Choisissez les écrans sur une carte de votre bureau, chacun avec son propre visualiseur.',
   'tour.desktop.point2':
-    'Il se met en pause pour les applications en plein écran, quand le PC est verrouillé et sur batterie.',
+    'Il se met en pause tant que des fenêtres couvrent l’écran, quand le PC est verrouillé et sur batterie.',
   'tour.desktop.point3':
     'Il revient tout seul au prochain démarrage de FluidEQ.',
   'tour.desktop.how':

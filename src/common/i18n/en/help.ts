@@ -355,7 +355,7 @@ const help = {
   'help.desktop.steps':
     'Put a Plus visualizer on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Plus → Visualizers and use Manage or Stop at the top.',
   'help.desktop.tip':
-    'It pauses for full-screen apps, a locked PC and, if you choose, battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.',
+    'It pauses while windows cover the monitor, while the PC is locked and, if you choose, on battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.',
   'help.desktop.monitors':
     'Your monitors as Windows arranges them. Press the ones to use.',
   'help.desktop.music': 'Moves to whatever is playing.',

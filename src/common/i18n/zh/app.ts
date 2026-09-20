@@ -77,10 +77,10 @@ const app: Partial<Dictionary> = {
     '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
   'app.processes.name.desktop': '桌面可视化',
   'app.processes.what.desktop':
-    '作为某个显示器桌面背景绘制的 Plus 可视化，与此窗口分开运行：每个显示它的显示器各一个。当全屏应用盖住该显示器或电脑锁定时会暂停。',
+    '作为某个显示器桌面背景绘制的 Plus 可视化，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
   'app.processes.name.desktopHost': '桌面可视化助手',
   'app.processes.what.desktopHost':
-    '把该显示器的桌面可视化放在图标后面，并在全屏应用盖住屏幕时通知它。每个显示它的显示器各一个。',
+    '把该显示器的桌面可视化放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
   'app.processes.name.shareCapture': '共享音频采集',
   'app.processes.what.shareCapture':
     '在均衡器之前采集这台电脑播放的声音，发送给另一个 FluidEQ。只在你共享音频时运行。',

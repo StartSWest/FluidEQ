@@ -49,7 +49,8 @@ const wallpaper = {
   'wallpaper.pause.locked': 'Windows のロック中は一時停止します',
   'wallpaper.pause.suspended': 'コンピューターのスリープ中は一時停止します',
   'wallpaper.pause.battery': 'バッテリー節約のため一時停止しています',
-  'wallpaper.pause.fullscreen': '全画面アプリの使用中は一時停止します',
+  'wallpaper.pause.covered':
+    'ウィンドウがこのモニターを覆っている間は一時停止します',
   'wallpaper.error.unsupported':
     'デスクトップの背景は Windows で利用できます。',
   'wallpaper.error.unavailable':

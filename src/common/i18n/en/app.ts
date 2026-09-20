@@ -75,10 +75,10 @@ const app = {
     "Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the Plus visualizers' scenes. Busy whenever anything moves; it runs no models.",
   'app.processes.name.desktop': 'Desktop visualizer',
   'app.processes.what.desktop':
-    'A Plus visualizer drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while a full-screen app covers that monitor or the PC is locked.',
+    'A Plus visualizer drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while windows cover that monitor or the PC is locked.',
   'app.processes.name.desktopHost': 'Desktop visualizer helper',
   'app.processes.what.desktopHost':
-    'Puts that monitor’s desktop visualizer behind the icons and tells it when a full-screen app covers the screen. One for each monitor showing one.',
+    'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
   'app.processes.name.shareCapture': 'Audio sharing capture',
   'app.processes.what.shareCapture':
     'Captures what this PC plays, before the equalizer, to send it to another FluidEQ. Runs only while you share your audio.',
