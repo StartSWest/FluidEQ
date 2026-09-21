@@ -75,8 +75,17 @@ describe('band design catalog and persistence', () => {
     });
     expect(readBandDesigns(directory)).toEqual([design]);
     const filters = Object.values(filtersFromBandDesign(legacy));
+    // Compared in frequency order, never in the map's own. The map is keyed by
+    // a random eight-hex-character id, and about one id in forty-four is all
+    // digits with no leading zero — which V8 reads as an array index and
+    // iterates ahead of the rest, in numeric order. Measured over 200,000
+    // pairs, 1.5% of them come back reversed: it passed here for months and
+    // failed a cold build. Nothing in the app reads a band's place in that map
+    // either — the chart sorts by frequency, and so does snapshotBandDesign.
     expect(
-      filters.map(({ frequency, quality }) => ({ frequency, quality })),
+      filters
+        .map(({ frequency, quality }) => ({ frequency, quality }))
+        .sort((left, right) => left.frequency - right.frequency),
     ).toEqual(design.bands);
     expect(
       filters.every(
