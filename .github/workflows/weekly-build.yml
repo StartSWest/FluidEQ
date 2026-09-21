@@ -29,8 +29,22 @@ on:
 jobs:
   cold-build:
     runs-on: windows-latest
-    # A build is minutes; a hung toolchain should not burn an hour.
-    timeout-minutes: 45
+    # Long enough for everything below to finish, and no longer. It was 45,
+    # which stopped being enough somewhere between 2026-09-18 and the 1.7.5
+    # cut: `pnpm test` is `jest && pnpm test:native-dsp`, and the native half
+    # compiles the DSP core and runs its whole ctest suite — measured at 2,357
+    # seconds for 70 tests on a developer machine, and a hosted runner is
+    # slower. The room work added most of it, because those tests render real
+    # rooms through the shipped heads at four sample rates.
+    #
+    # The job was cancelled at exactly 45 minutes, mid-suite, which reads on
+    # the actions page as a cancelled build rather than a slow one — a guard
+    # that can never go green is worse than no guard, because everybody learns
+    # to ignore its red mark.
+    #
+    # Raise this when the suite grows again; never answer a timeout by taking
+    # a check out of the job. A hung toolchain still cannot run forever.
+    timeout-minutes: 120
 
     steps:
       - name: Check out FluidEQ
