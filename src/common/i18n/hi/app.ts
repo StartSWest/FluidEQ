@@ -390,20 +390,25 @@ const app: Partial<Dictionary> = {
   'games.source.running': 'अभी खुला',
   'games.source.file': 'आपका चुना हुआ',
   'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
+  'games.front.sounding': '{name} चल रहा है, और उसकी आवाज़ चालू है।',
   'games.front.none': 'सामने: {name}',
   'games.front.desktop': 'ऐसा कुछ नहीं जिसे FluidEQ जानता हो',
   'games.empty':
     'अभी कोई गेम नहीं है। एक जोड़ें, उसे एक आवाज़ दें, और वह गेम सामने आते ही FluidEQ उस पर चला जाएगा।',
   'games.toast.loaded': '{preset} लोड किया',
   'games.toast.forGame': '{game} के लिए',
+  'games.toast.restored': '{preset} पर वापस',
+  'games.toast.restoredNone': 'प्रभाव फिर से बंद',
+  'games.toast.afterGame': '{game} के बाद',
   'games.empty.title': 'अभी कोई गेम नहीं',
   'games.empty.more':
-    'एक गेम जोड़ें, उसे एक आवाज़ दें — वह गेम सामने आते ही FluidEQ उस पर चला जाएगा, और छोड़ने पर वापस आ जाएगा।',
+    'एक गेम जोड़ें, उसे एक आवाज़ दें — वह गेम सामने आते ही FluidEQ उस पर चला जाएगा, और गेम बंद करने पर वापस आ जाएगा।',
   'games.hint':
-    'गेम सामने आने पर आवाज़ बदल जाती है और छोड़ने पर वापस आ जाती है। खेलते समय कोई और आवाज़ चुनें तो वही रहती है: FluidEQ सिर्फ़ वही वापस करता है जो उसने लगाया था।',
+    'गेम सामने आने पर आवाज़ बदल जाती है और गेम बंद करने तक बनी रहती है, बीच में आप किसी और विंडो पर जाएँ तब भी। खेलते समय कोई और आवाज़ चुनें तो वही रहती है: FluidEQ सिर्फ़ वही वापस करता है जो उसने लगाया था।',
   'games.preset.none': 'जैसा है वैसा रहने दें',
   'games.preset.noneHint': 'यह गेम सामने हो तब कुछ नहीं बदलता।',
   'games.row.inFront': 'सामने',
+  'games.row.sounding': 'आवाज़ चालू',
   'games.row.sound': '{name} की आवाज़',
   'games.row.remove': '{name} हटाएँ',
 };

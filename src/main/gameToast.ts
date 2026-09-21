@@ -66,7 +66,32 @@ export interface IGameToast {
   icon?: string;
   /** The game window's place, `x,y,w,h` in real pixels, where it said. */
   rect?: string;
+  /**
+   * The window's own colours, by the names the page keeps them under.
+   *
+   * The card is a file on disk with none of the app's stylesheets behind it,
+   * so it cannot read a theme — and it wore one theme's cyan on one theme's
+   * navy whatever the window looked like. The window computes these at the
+   * moment it asks for a card, which is the only reading that includes both
+   * the theme the listener picked and the accent a scene is tinting the
+   * whole window with.
+   */
+  colors?: Record<string, string>;
 }
+
+/** The five the page declares, and nothing else is passed on. */
+const COLOUR_NAMES = ['accent', 'panel', 'base', 'text', 'muted'];
+
+/**
+ * Plainly a colour, or it does not travel.
+ *
+ * These end up in a stylesheet at the other end. CSS cannot be broken out of
+ * through a custom property — a value that does not parse makes its own
+ * declaration invalid and nothing more — but a value nobody checked has no
+ * business being written into the address of a window either.
+ */
+const isColour = (value: string): boolean =>
+  /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s.,%/]+\))$/.test(value);
 
 // Wide enough that the longest chain name any of the ten languages produces
 // still fits beside the game's icon and the brand mark without an ellipsis:
@@ -173,6 +198,12 @@ export const createGameToasts = (): IGameToasts => {
         what: toast.what,
         game: toast.game,
         ...(toast.icon ? { icon: toast.icon } : {}),
+      });
+      COLOUR_NAMES.forEach((name) => {
+        const value = toast.colors?.[name];
+        if (typeof value === 'string' && isColour(value.trim())) {
+          said.set(name, value.trim());
+        }
       });
       window
         .loadFile(pagePath(), { search: said.toString() })

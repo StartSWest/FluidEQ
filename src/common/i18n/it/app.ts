@@ -400,21 +400,26 @@ const app: Partial<Dictionary> = {
   'games.source.running': 'Aperto ora',
   'games.source.file': 'Scelto da te',
   'games.front.playing': '{name} è in primo piano, e il suo suono è attivo.',
+  'games.front.sounding': '{name} è in esecuzione, e il suo suono è attivo.',
   'games.front.none': 'In primo piano: {name}',
   'games.front.desktop': 'niente che FluidEQ conosca',
   'games.empty':
     'Ancora nessun gioco. Aggiungine uno, dagli un suono, e FluidEQ passerà a quello appena il gioco è in primo piano.',
   'games.toast.loaded': '{preset} caricato',
   'games.toast.forGame': 'per {game}',
+  'games.toast.restored': 'Di nuovo {preset}',
+  'games.toast.restoredNone': 'Effetti di nuovo spenti',
+  'games.toast.afterGame': 'dopo {game}',
   'games.empty.title': 'Ancora nessun gioco',
   'games.empty.more':
-    'Aggiungi un gioco, dagli un suono, e FluidEQ passa a quello appena il gioco è in primo piano — e torna indietro quando lo lasci.',
+    'Aggiungi un gioco, dagli un suono, e FluidEQ passa a quello appena il gioco è in primo piano — e torna indietro quando chiudi il gioco.',
   'games.hint':
-    'Il suono cambia quando il gioco passa in primo piano e torna indietro quando lo lasci. Se ne scegli un altro mentre giochi, resta: FluidEQ rimette solo ciò che ha messo.',
+    'Il suono cambia quando il gioco passa in primo piano e resta finché non chiudi il gioco, qualunque cosa apri nel frattempo. Se ne scegli un altro mentre giochi, resta: FluidEQ rimette solo ciò che ha messo.',
   'games.preset.none': 'Lascia com’è',
   'games.preset.noneHint':
     'Non cambia nulla quando questo gioco è in primo piano.',
   'games.row.inFront': 'in primo piano',
+  'games.row.sounding': 'suono attivo',
   'games.row.sound': 'Suono per {name}',
   'games.row.remove': 'Rimuovi {name}',
 };

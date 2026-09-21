@@ -281,6 +281,10 @@ const showGameToast = (said: {
 const setGamePlaying = (playing: boolean): void =>
   ipcRenderer.send('game-playing', [playing]);
 
+/** Be told when this game ends, which is what puts the sound back; 0 none. */
+const holdGameProcess = (pid: number): void =>
+  ipcRenderer.send('game-hold', [pid]);
+
 /** A program no launcher knows about, pointed at by hand. */
 const chooseGameProgram = (): Promise<unknown> =>
   ipcRenderer.invoke('game-choose');
@@ -301,6 +305,7 @@ export const dspHostBridge = {
   chooseGameProgram,
   showGameToast,
   setGamePlaying,
+  holdGameProcess,
 
   getDspHostStatus,
   startDspHost,

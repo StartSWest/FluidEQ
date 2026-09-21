@@ -15,7 +15,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'sha256-czBn3vfO3QSlBRIGeaf8jEGlKnrM6NC61kC4YBElRok='"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'sha256-s+4s3HGXOH7Mt9cMOV3+9xgNPJD9UQ82QgZuPIlWk6g='"
     />
     <title>FluidEQ</title>
     <style>
@@ -29,6 +29,24 @@
        * no number to guess when the thing that ends it is the fade the user
        * is watching.
        */
+      /*
+       * The window's own colours, which is the point: this card is drawn by
+       * a page with no stylesheet of the app's and no bundler behind it, so
+       * the five it needs travel in its address and land here. What is
+       * written below them is the app's own first theme — what a card shown
+       * with none of them would wear — and never what it should look like on
+       * somebody's machine: the listener picks a theme, and a scene tints the
+       * whole window with its own accent on top of that, so the only honest
+       * answer is the one the window computes at the moment the card is shown.
+       */
+      :root {
+        --accent: #00e5cf;
+        --panel: #1a3a4e;
+        --base: #0d2030;
+        --text: #ecf5fb;
+        --muted: #d6e9f7;
+      }
+
       html,
       body {
         margin: 0;
@@ -61,25 +79,25 @@
         width: 100%;
         height: 100%;
         padding: 16px 20px 18px;
-        border: 1px solid rgba(125, 233, 255, 0.34);
+        border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
         border-radius: 16px;
         /* The sheen sits under the badge, so the left of the card has some
            depth instead of a flat panel with a tile stuck on it. */
         background:
           radial-gradient(
             120px 96px at 46px 50%,
-            rgba(125, 233, 255, 0.16),
+            color-mix(in srgb, var(--accent) 16%, transparent),
             transparent 70%
           ),
           linear-gradient(
             135deg,
-            rgba(17, 25, 38, 0.97),
-            rgba(11, 17, 28, 0.97)
+            color-mix(in srgb, var(--panel) 97%, transparent),
+            color-mix(in srgb, var(--base) 97%, transparent)
           );
         box-shadow:
           0 20px 44px rgba(0, 0, 0, 0.55),
           inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        color: #eaf4ff;
+        color: var(--text);
         animation:
           in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both,
           out 320ms ease 5.4s both;
@@ -91,10 +109,13 @@
         place-items: center;
         width: 56px;
         height: 56px;
-        border: 1px solid rgba(125, 233, 255, 0.28);
+        border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
         border-radius: 13px;
-        background: rgba(125, 233, 255, 0.14);
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        /* The glyph inside is drawn in `currentColor`, so the accent reaches
+           it without a second place to change. */
+        color: var(--accent);
       }
 
       .badge img,
@@ -124,7 +145,7 @@
       .game {
         overflow: hidden;
         margin-top: 4px;
-        color: #b3cadf;
+        color: color-mix(in srgb, var(--muted) 74%, transparent);
         font-size: 13.5px;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -139,7 +160,7 @@
         gap: 7px;
         align-items: center;
         align-self: center;
-        color: #7de9ff;
+        color: var(--accent);
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 0.14em;
@@ -153,7 +174,7 @@
 
       .mark path {
         fill: none;
-        stroke: #7de9ff;
+        stroke: var(--accent);
         stroke-width: 3.5;
         stroke-linecap: round;
       }
@@ -164,7 +185,11 @@
         bottom: 0;
         left: 0;
         height: 3px;
-        background: linear-gradient(90deg, #7de9ff, rgba(125, 233, 255, 0.45));
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          color-mix(in srgb, var(--accent) 45%, transparent)
+        );
         transform-origin: left center;
         animation: drain 5.4s linear both;
       }
@@ -199,7 +224,7 @@
         <svg
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#7de9ff"
+          stroke="currentColor"
           stroke-width="1.6"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -232,6 +257,16 @@
       // and the icon has to be a picture in the address itself, so a game's
       // own name cannot become anything but a game's own name.
       const said = new URLSearchParams(window.location.search);
+      // The window's own five colours, and only colours: each is taken only
+      // if it is plainly one, so nothing else can reach the stylesheet
+      // through the address. A missing or odd one leaves the default above.
+      const COLOUR = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\))$/i;
+      ['accent', 'panel', 'base', 'text', 'muted'].forEach((name) => {
+        const value = (said.get(name) || '').trim();
+        if (COLOUR.test(value)) {
+          document.documentElement.style.setProperty('--' + name, value);
+        }
+      });
       document.getElementById('what').textContent = said.get('what') || '';
       document.getElementById('game').textContent = said.get('game') || '';
       const icon = said.get('icon');

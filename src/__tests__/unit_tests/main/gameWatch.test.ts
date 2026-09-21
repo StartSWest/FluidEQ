@@ -23,6 +23,9 @@ describe('what the game watcher says', () => {
         name: 'Forza Horizon 6',
         path: 'D:\\XboxGames\\Forza Horizon 6\\Content\\forzahorizon6.exe',
         source: 'running',
+        // The running program, which is what the app asks to be told the end
+        // of so a game keeps its sound until it is really closed.
+        pid: 4242,
       },
     });
   });
@@ -34,6 +37,7 @@ describe('what the game watcher says', () => {
       name: 'Overwatch',
       path: 'D:\\Games\\mine\\Overwatch.exe',
       source: 'running',
+      pid: 12,
     });
   });
 
@@ -46,6 +50,7 @@ describe('what the game watcher says', () => {
       name: 'Overwatch',
       path: 'D:\\GAMES\\Overwatch\\ow.exe',
       source: 'running',
+      pid: 7,
       rect: '0,0,2560,1440',
     });
     // The field joined the record after the first watcher shipped: a packaged
@@ -57,12 +62,32 @@ describe('what the game watcher says', () => {
       name: 'Overwatch',
       path: 'D:\\GAMES\\ow.exe',
       source: 'running',
+      pid: 7,
     });
   });
 
   it('knows the end of a list', () => {
     expect(parseGameWatchLine('listed')).toEqual({ kind: 'listed' });
     expect(parseGameWatchLine('listed\r')).toEqual({ kind: 'listed' });
+  });
+
+  /**
+   * The end of the program the app asked to be told the end of. It carries a
+   * pid and nothing else — by the time it is written there is no process left
+   * to read a name or a path from — and it is the only thing that puts a
+   * game's sound back, so a record misread here is a sound that never returns.
+   */
+  it('reads the end of the game it was holding', () => {
+    expect(parseGameWatchLine('gone\t4242')).toEqual({
+      kind: 'gone',
+      pid: 4242,
+    });
+    expect(parseGameWatchLine('gone\t4242\r')).toEqual({
+      kind: 'gone',
+      pid: 4242,
+    });
+    expect(parseGameWatchLine('gone\tnot-a-pid')).toBeUndefined();
+    expect(parseGameWatchLine('gone')).toBeUndefined();
   });
 
   it('drops anything that is not a record', () => {

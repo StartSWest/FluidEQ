@@ -10,9 +10,40 @@ import { useTranslation } from '../utils/I18nContext';
 import { useGameSound } from './useGameSound';
 
 interface IGameToastBridge {
-  showGameToast?: (said: { what: string; game: string; icon?: string }) => void;
+  showGameToast?: (said: {
+    what: string;
+    game: string;
+    icon?: string;
+    colors?: Record<string, string>;
+  }) => void;
   setGamePlaying?: (playing: boolean) => void;
 }
+
+/**
+ * The five colours the card is painted with, as this window wears them now.
+ *
+ * Read rather than remembered: a listener switches theme, and a scene tints
+ * the whole window with its own accent over whichever theme that is. The card
+ * is drawn by a file on disk that has none of this app's stylesheets, so the
+ * answer has to travel with the card, and it has to be the answer at the
+ * moment the card is asked for.
+ */
+const windowColours = (): Record<string, string> => {
+  const style = getComputedStyle(document.documentElement);
+  const found: Record<string, string> = {};
+  const take = (name: string, token: string) => {
+    const value = style.getPropertyValue(token).trim();
+    if (value !== '') {
+      found[name] = value;
+    }
+  };
+  take('accent', '--accent');
+  take('panel', '--surface-panel');
+  take('base', '--surface-base');
+  take('text', '--text-primary');
+  take('muted', '--text-muted');
+  return found;
+};
 
 /**
  * The one place a game's sound is actually switched, and the one that says so.
@@ -42,14 +73,23 @@ const GameSound = () => {
       return;
     }
     const { catalog: known, t: say } = latest.current;
-    const preset =
-      known.find((one) => one.id === switched.presetId)?.name ??
-      say('dsp.eqPreset.custom');
+    const named = known.find((one) => one.id === switched.presetId)?.name;
+    const back = switched.kind === 'restored';
+    // A restore to nothing is the rack going off, which has no name in the
+    // catalogue: "Custom" there would be the card inventing a chain.
+    const preset = named ?? say('dsp.eqPreset.custom');
+    const wentBack =
+      switched.presetId === ''
+        ? say('games.toast.restoredNone')
+        : say('games.toast.restored', { preset });
     const bridge = window.electron?.ipcRenderer as IGameToastBridge | undefined;
     bridge?.showGameToast?.({
-      what: say('games.toast.loaded', { preset }),
-      game: say('games.toast.forGame', { game: switched.game }),
+      what: back ? wentBack : say('games.toast.loaded', { preset }),
+      game: back
+        ? say('games.toast.afterGame', { game: switched.game })
+        : say('games.toast.forGame', { game: switched.game }),
       ...(switched.icon ? { icon: switched.icon } : {}),
+      colors: windowColours(),
     });
     forgetSwitch();
   }, [switched, forgetSwitch]);

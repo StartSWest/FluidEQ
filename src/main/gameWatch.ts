@@ -40,10 +40,22 @@ export interface IGameWatchEvent {
 export const parseGameWatchLine = (
   line: string,
 ):
-  { kind: 'front' | 'open' | 'listed'; program?: IGameProgram } | undefined => {
+  | {
+      kind: 'front' | 'open' | 'listed' | 'gone';
+      program?: IGameProgram;
+      pid?: number;
+    }
+  | undefined => {
   const record = line.replace(/\r$/, '');
   if (record === 'listed') {
     return { kind: 'listed' };
+  }
+  // The program the app asked to be told the end of has ended. It carries a
+  // pid and nothing else: by the time this is written there is no process
+  // left to read a name or a path from.
+  const ended = /^gone\t(\d+)$/.exec(record);
+  if (ended) {
+    return { kind: 'gone', pid: Number(ended[1]) };
   }
   const [kind, pid, third, ...rest] = record.split('\t');
   if ((kind !== 'front' && kind !== 'open') || rest.length === 0) {
@@ -66,6 +78,7 @@ export const parseGameWatchLine = (
       name: name.trim() || path.basename(file).replace(/\.exe$/i, ''),
       path: file,
       source: 'running',
+      pid: Number(pid),
       ...(rect ? { rect } : {}),
     },
   };
@@ -95,11 +108,22 @@ export interface IGameWatch {
   stop: () => void;
   /** Every program with a window, now. Starts the watcher if it is stopped. */
   running: () => Promise<IGameProgram[]>;
+  /**
+   * Be told when this program ends, in place of whatever was held; 0 stops.
+   *
+   * This is what keeps a game's sound on while somebody alt-tabs out of it:
+   * the end of the game is the process ending, not the window losing the
+   * front. Nothing is held while the watcher is stopped, and nothing is put
+   * back afterwards — the watcher only runs while there are profiles, and a
+   * game that ended while nobody was watching has no sound left on.
+   */
+  hold: (pid: number) => void;
   isWatching: () => boolean;
 }
 
 export const createGameWatch = (
   onFront: (program: IGameProgram) => void,
+  onGone: (pid: number) => void = () => undefined,
   locate: () => string | undefined = findGameWatchExecutable,
 ): IGameWatch => {
   let child: ChildProcessWithoutNullStreams | undefined;
@@ -107,6 +131,8 @@ export const createGameWatch = (
   /** The list being gathered, and who is waiting for it. */
   let gathering: IGameProgram[] | undefined;
   let waiting: ((programs: IGameProgram[]) => void)[] = [];
+  /** The program the watcher is waiting on the end of, or 0. */
+  let held = 0;
   // Set once a start failed, so a machine without the watcher is not asked
   // again on every keystroke; cleared by `stop`, so the next visit tries.
   let unavailable = false;
@@ -122,6 +148,7 @@ export const createGameWatch = (
     const running = child;
     child = undefined;
     buffered = '';
+    held = 0;
     settle([]);
     // Closing its input is how it is told to go; nothing needs killing.
     running?.stdin.end();
@@ -138,6 +165,11 @@ export const createGameWatch = (
     }
     if (record.kind === 'open' && record.program && gathering) {
       gathering.push(record.program);
+      return;
+    }
+    if (record.kind === 'gone' && record.pid !== undefined) {
+      held = 0;
+      onGone(record.pid);
       return;
     }
     if (record.kind === 'listed') {
@@ -193,6 +225,15 @@ export const createGameWatch = (
       start();
     },
     stop,
+    hold: (pid: number) => {
+      // The same game asked for twice is one ask: a game raises its window
+      // again every time somebody comes back to it.
+      if (!child || pid === held || !Number.isInteger(pid) || pid < 0) {
+        return;
+      }
+      held = pid;
+      child.stdin.write(`hold ${pid}\n`);
+    },
     isWatching: () => child !== undefined,
     running: () => {
       unavailable = false;

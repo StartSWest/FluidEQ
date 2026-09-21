@@ -386,20 +386,25 @@ const app = {
   'games.source.running': 'Open now',
   'games.source.file': 'Chosen by you',
   'games.front.playing': '{name} is in front, and its sound is on.',
+  'games.front.sounding': '{name} is running, and its sound is on.',
   'games.front.none': 'In front: {name}',
   'games.front.desktop': 'nothing FluidEQ knows',
   'games.empty':
     'No games yet. Add one, give it a sound, and FluidEQ will switch to it the moment that game is in front.',
   'games.toast.loaded': 'Loaded {preset}',
   'games.toast.forGame': 'for {game}',
+  'games.toast.restored': 'Back to {preset}',
+  'games.toast.restoredNone': 'Effects off again',
+  'games.toast.afterGame': 'after {game}',
   'games.empty.title': 'No games yet',
   'games.empty.more':
-    'Add a game, give it a sound, and FluidEQ switches to it the moment that game is in front — and back when you leave it.',
+    'Add a game, give it a sound, and FluidEQ switches to it the moment that game is in front — and back when you close the game.',
   'games.hint':
-    'The sound changes when the game comes to the front and goes back when you leave it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on.',
+    'The sound changes when the game comes to the front and stays on until you close the game, whatever you alt-tab to in between. Pick another sound while you play and it stays: FluidEQ only puts back what it put on.',
   'games.preset.none': 'Leave it as it is',
   'games.preset.noneHint': 'Nothing changes when this game is in front.',
   'games.row.inFront': 'in front',
+  'games.row.sounding': 'sound on',
   'games.row.sound': 'Sound for {name}',
   'games.row.remove': 'Remove {name}',
 } as const;

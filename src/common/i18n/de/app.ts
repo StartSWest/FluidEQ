@@ -399,21 +399,26 @@ const app: Partial<Dictionary> = {
   'games.source.running': 'Jetzt offen',
   'games.source.file': 'Von dir gewählt',
   'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
+  'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
   'games.front.none': 'Im Vordergrund: {name}',
   'games.front.desktop': 'nichts, was FluidEQ kennt',
   'games.empty':
     'Noch keine Spiele. Füge eines hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist.',
   'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
+  'games.toast.restored': 'Zurück zu {preset}',
+  'games.toast.restoredNone': 'Effekte wieder aus',
+  'games.toast.afterGame': 'nach {game}',
   'games.empty.title': 'Noch keine Spiele',
   'games.empty.more':
-    'Füge ein Spiel hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn du es verlässt.',
+    'Füge ein Spiel hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn du das Spiel beendest.',
   'games.hint':
-    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und geht zurück, wenn du es verlässt. Wählst du beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
+    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und bleibt, bis du das Spiel beendest — ganz gleich, wohin du zwischendurch wechselst. Wählst du beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
   'games.preset.none': 'So lassen, wie es ist',
   'games.preset.noneHint':
     'Es ändert sich nichts, wenn dieses Spiel im Vordergrund ist.',
   'games.row.inFront': 'im Vordergrund',
+  'games.row.sounding': 'Klang läuft',
   'games.row.sound': 'Klang für {name}',
   'games.row.remove': '{name} entfernen',
 };

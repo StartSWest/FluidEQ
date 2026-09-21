@@ -66,6 +66,14 @@ export interface IGameProgram {
    * saw it: which screen a card about this game belongs on.
    */
   rect?: string;
+  /**
+   * The running process, while this record is one the watcher just saw.
+   *
+   * It is what the app asks to be told the end of, so a game keeps its sound
+   * until it is really closed. Never kept in a saved row: a profile outlives
+   * a hundred runs of the game and a pid means nothing an hour later.
+   */
+  pid?: number;
 }
 
 export interface IGameProfile extends IGameProgram {
@@ -127,32 +135,52 @@ export interface IGameSoundStep {
   select?: string;
 }
 
+/** Whether the sound playing now is the one a game put on. */
+const isOurs = (memory: IGameSoundMemory, current: string): boolean =>
+  memory.applied !== undefined && memory.applied === current;
+
 /**
  * The step to take now that `wanted` is in front and `current` is playing.
  *
  * - A game with a sound of its own puts it on and remembers what was playing.
- * - Anything else puts back what was playing, but only while the game's sound
- *   is still the one on: a chain the listener picked during the game is
- *   theirs, and taking it away when they alt-tab is the app arguing.
  * - A game whose sound is already on changes nothing and still remembers, so
- *   leaving it is a step back to where they were.
+ *   the end of it is a step back to where they were.
+ * - Anything else changes nothing at all, and forgets nothing: leaving the
+ *   game's window is not leaving the game. Alt-tabbing to a browser, to
+ *   Discord or to FluidEQ itself happens constantly while somebody plays, and
+ *   putting the old sound back on each of those was the app taking the game's
+ *   sound away mid-match. What puts it back is the game ending
+ *   (`gameSoundEndStep`).
  */
 export const gameSoundStep = (
   memory: IGameSoundMemory,
   wanted: string | undefined,
   current: string,
 ): IGameSoundStep => {
-  const ours = memory.applied !== undefined && memory.applied === current;
-  if (wanted !== undefined && wanted !== '') {
-    // Inside one game already, the chain to go back to is the one from before
-    // that game, not the one it is playing.
-    const before = ours ? memory.before : current;
-    if (wanted === current) {
-      return { memory: { before, applied: wanted } };
-    }
-    return { memory: { before, applied: wanted }, select: wanted };
+  if (wanted === undefined || wanted === '') {
+    return { memory };
   }
-  if (!ours || memory.before === undefined) {
+  // Inside one game already, the chain to go back to is the one from before
+  // that game, not the one it is playing.
+  const before = isOurs(memory, current) ? memory.before : current;
+  if (wanted === current) {
+    return { memory: { before, applied: wanted } };
+  }
+  return { memory: { before, applied: wanted }, select: wanted };
+};
+
+/**
+ * The step to take now that the game whose sound is on has ended.
+ *
+ * What was playing before it goes back on, but only while the game's sound is
+ * still the one playing: a chain the listener picked during the game is
+ * theirs, and taking it away when the game closes is the app arguing.
+ */
+export const gameSoundEndStep = (
+  memory: IGameSoundMemory,
+  current: string,
+): IGameSoundStep => {
+  if (!isOurs(memory, current) || memory.before === undefined) {
     return { memory: {} };
   }
   return {

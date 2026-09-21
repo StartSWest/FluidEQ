@@ -39,6 +39,8 @@ export const GAME_WATCH_CHANNEL = 'game-watch';
 export const GAME_CHOOSE_CHANNEL = 'game-choose';
 export const GAME_TOAST_CHANNEL = 'game-toast';
 export const GAME_PLAYING_CHANNEL = 'game-playing';
+export const GAME_HOLD_CHANNEL = 'game-hold';
+export const GAME_ENDED_CHANNEL = 'game-ended';
 
 /** "Overwatch" from "Overwatch.exe": the name a player would have typed. */
 const programName = (file: string): string =>
@@ -88,7 +90,10 @@ export interface IGameProgramsAnswer {
 export interface IGamesIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   scan?: () => Promise<IGameProgram[]>;
-  makeWatch?: (onFront: (program: IGameProgram) => void) => IGameWatch;
+  makeWatch?: (
+    onFront: (program: IGameProgram) => void,
+    onGone: (pid: number) => void,
+  ) => IGameWatch;
   toasts?: { show: (toast: IGameToast) => void; close: () => void };
   /** Told whenever one of this listener's own games comes to the front. */
   onPlaying?: (playing: boolean) => void;
@@ -102,17 +107,27 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   // screen the game is on rather than on whichever one FluidEQ sits on.
   let lastRect: string | undefined;
 
-  const watch = (deps.makeWatch ?? createGameWatch)((program) => {
-    // Our own window coming forward says nothing about the game behind it.
-    if (ours !== '' && program.path.toLowerCase() === ours) {
-      return;
-    }
-    lastRect = program.rect;
+  const toWindow = (channel: string, said: unknown) => {
     const window = deps.getMainWindow();
     if (window && !window.isDestroyed()) {
-      window.webContents.send(GAME_FOREGROUND_CHANNEL, program);
+      window.webContents.send(channel, said);
     }
-  });
+  };
+
+  const watch = (deps.makeWatch ?? createGameWatch)(
+    (program) => {
+      // Our own window coming forward says nothing about the game behind it.
+      if (ours !== '' && program.path.toLowerCase() === ours) {
+        return;
+      }
+      lastRect = program.rect;
+      toWindow(GAME_FOREGROUND_CHANNEL, program);
+    },
+    // The game the window was holding has ended, which is the only thing that
+    // puts the sound back: losing the front is somebody alt-tabbing, not
+    // somebody finishing.
+    (pid) => toWindow(GAME_ENDED_CHANNEL, pid),
+  );
 
   ipcMain.handle(
     GAME_PROGRAMS_CHANNEL,
@@ -189,10 +204,21 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
       return;
     }
     const card = said as IGameToast;
+    // The window's own colours travel as they were read; which of them the
+    // card admits, and what counts as a colour at all, is `gameToast`'s.
+    const colors =
+      typeof card.colors === 'object' && card.colors !== null
+        ? Object.fromEntries(
+            Object.entries(card.colors).filter(
+              ([, value]) => typeof value === 'string',
+            ),
+          )
+        : undefined;
     toasts.show({
       what: card.what,
       game: typeof card.game === 'string' ? card.game : '',
       ...(typeof card.icon === 'string' ? { icon: card.icon } : {}),
+      ...(colors ? { colors } : {}),
       ...(lastRect ? { rect: lastRect } : {}),
     });
   });
@@ -209,6 +235,23 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
       return;
     }
     deps.onPlaying?.(Array.isArray(arg) && arg[0] === true);
+  });
+
+  /**
+   * The game whose sound is on, to be told the end of; 0 for none.
+   *
+   * Only the window can name it: which program counts as a game is the
+   * profiles' answer, and those are the window's. Main passes it to the
+   * watcher, which waits on that process rather than on anything timed.
+   */
+  onWindowMessage(GAME_HOLD_CHANNEL, (event, arg: unknown) => {
+    if (event.sender !== deps.getMainWindow()?.webContents) {
+      return;
+    }
+    const [pid] = Array.isArray(arg) ? arg : [];
+    if (typeof pid === 'number' && Number.isInteger(pid) && pid >= 0) {
+      watch.hold(pid);
+    }
   });
 
   const stop = () => {

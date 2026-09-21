@@ -398,20 +398,25 @@ const app: Partial<Dictionary> = {
   'games.source.running': 'Aberto agora',
   'games.source.file': 'Escolhido por ti',
   'games.front.playing': '{name} está à frente, e o seu som está ligado.',
+  'games.front.sounding': '{name} está aberto, e o seu som está ligado.',
   'games.front.none': 'À frente: {name}',
   'games.front.desktop': 'nada que o FluidEQ conheça',
   'games.empty':
     'Ainda não há jogos. Adiciona um, dá-lhe um som, e o FluidEQ muda para ele assim que esse jogo estiver à frente.',
   'games.toast.loaded': '{preset} carregado',
   'games.toast.forGame': 'para {game}',
+  'games.toast.restored': 'De volta a {preset}',
+  'games.toast.restoredNone': 'Efeitos desligados de novo',
+  'games.toast.afterGame': 'depois de {game}',
   'games.empty.title': 'Ainda não há jogos',
   'games.empty.more':
-    'Adiciona um jogo, dá-lhe um som, e o FluidEQ muda para ele assim que o jogo estiver à frente — e volta quando sais dele.',
+    'Adiciona um jogo, dá-lhe um som, e o FluidEQ muda para ele assim que o jogo estiver à frente — e volta quando fechares o jogo.',
   'games.hint':
-    'O som muda quando o jogo vem para a frente e volta quando sais dele. Se escolheres outro enquanto jogas, fica: o FluidEQ só repõe o que pôs.',
+    'O som muda quando o jogo vem para a frente e fica até fechares o jogo, seja o que for que abras entretanto. Se escolheres outro enquanto jogas, fica: o FluidEQ só repõe o que pôs.',
   'games.preset.none': 'Deixar como está',
   'games.preset.noneHint': 'Nada muda quando este jogo está à frente.',
   'games.row.inFront': 'à frente',
+  'games.row.sounding': 'som ligado',
   'games.row.sound': 'Som para {name}',
   'games.row.remove': 'Remover {name}',
 };

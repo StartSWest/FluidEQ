@@ -49,7 +49,7 @@ const GamesPanel = () => {
   const { t } = useTranslation();
   // Watching while the page is open as well, so the line at the top can say
   // what is in front while a profile is being made for it.
-  const { profiles, playing } = useGameSound({ always: true });
+  const { profiles, playing, sounding } = useGameSound({ always: true });
   const { catalog, favorites } = useDspPresetCatalog(t);
   const [known, setKnown] = useState<IGameProgram[]>([]);
   const [asked, setAsked] = useState(false);
@@ -140,11 +140,16 @@ const GamesPanel = () => {
   return (
     <div className="games-page">
       <div className="games-head">
+        {/* A game's sound outlasts its window being in front, and this page
+            is what somebody alt-tabbed to — so while the sound is a game's it
+            says so, whether or not the game is the window in front. */}
         <p className="games-front is-on" aria-live="polite">
-          {playing ? (
+          {playing || sounding ? (
             <>
               <span className="games-front__pip" aria-hidden="true" />
-              {t('games.front.playing', { name: playing.name })}
+              {playing
+                ? t('games.front.playing', { name: playing.name })
+                : t('games.front.sounding', { name: sounding?.name ?? '' })}
             </>
           ) : null}
         </p>
@@ -233,6 +238,7 @@ const GamesPanel = () => {
               catalog={catalog}
               favourites={favorites}
               isPlaying={playing?.id === profile.id}
+              isSounding={sounding?.id === profile.id}
               onRemove={() => removeGameProfile(profile.id)}
             />
           ))}

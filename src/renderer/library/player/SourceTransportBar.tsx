@@ -265,6 +265,12 @@ const SourceTransportBar = ({
                 title={
                   source.isPlaying ? t('library.pause') : t('library.play')
                 }
+                // A source can honestly have nothing to press — a game makes
+                // sound and registers no player to take a pause — and the
+                // library's own bar has always said so this way. This one
+                // drew the button live and answered the press with nothing.
+                disabled={source.canToggle === false}
+                aria-disabled={source.canToggle === false}
                 onClick={source.toggle}
               >
                 <TransportIcon name={source.isPlaying ? 'pause' : 'play'} />

@@ -373,20 +373,25 @@ const app: Partial<Dictionary> = {
   'games.source.running': '当前打开',
   'games.source.file': '你选择的',
   'games.front.playing': '{name} 在最前面，它的音效已开启。',
+  'games.front.sounding': '{name} 正在运行，它的音效已开启。',
   'games.front.none': '最前面：{name}',
   'games.front.desktop': 'FluidEQ 不认识的程序',
   'games.empty':
     '还没有游戏。添加一个并给它一种音效，游戏到最前面时 FluidEQ 就会切换过去。',
   'games.toast.loaded': '已加载 {preset}',
   'games.toast.forGame': '用于 {game}',
+  'games.toast.restored': '已切回 {preset}',
+  'games.toast.restoredNone': '已重新关闭音效',
+  'games.toast.afterGame': '{game} 之后',
   'games.empty.title': '还没有游戏',
   'games.empty.more':
-    '添加一个游戏并给它一种音效，游戏到最前面时 FluidEQ 就会切换过去，离开时换回来。',
+    '添加一个游戏并给它一种音效，游戏到最前面时 FluidEQ 就会切换过去，关闭游戏时换回来。',
   'games.hint':
-    '游戏到最前面时音效切换，离开时换回来。游戏中另选的音效会保留：FluidEQ 只会撤回自己设置的那一个。',
+    '游戏到最前面时音效切换，期间切到别的窗口也会保持，直到关闭游戏才换回来。游戏中另选的音效会保留：FluidEQ 只会撤回自己设置的那一个。',
   'games.preset.none': '保持不变',
   'games.preset.noneHint': '这个游戏在最前面时什么都不变。',
   'games.row.inFront': '最前面',
+  'games.row.sounding': '音效已开启',
   'games.row.sound': '{name} 的音效',
   'games.row.remove': '移除 {name}',
 };

@@ -53,11 +53,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * app turning somebody's music on for them.
  */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { buildSongIdentity } from 'common/songIdentity';
+import type { IGameProfile } from '../../common/games';
 import type { ISystemMediaSnapshot } from '../../main/systemMedia';
+import { useSoundingGame } from '../games/useGameSound';
 import { stopAllPlayback, usePlaybackOwner } from './playbackOwner';
 import type { TPlaybackOwner } from './playbackOwner';
+import type { ITransportSource } from './transportSource';
 import {
   clearTransportSource,
   isTransportPlaying,
@@ -68,6 +71,32 @@ import { isSinglePlayerEnabled } from '../utils/singlePlayer';
 /** What the bar shows for a player that has published no artist. */
 const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
   snapshot.artist || snapshot.app || undefined;
+
+/**
+ * What the bar spends its one line on for the machine's own sound.
+ *
+ * A game registers no player with Windows — no title, no artist, no
+ * play/pause — so while one is playing the bar had nothing to show and said
+ * nothing was playing at all, which is the same hole this file was written to
+ * fill for browsers. The game goes there instead, but never over a player
+ * that is actually playing: Spotify started over a game in the background is
+ * what somebody is listening to, and the bar follows the sound.
+ *
+ * A player that is merely PAUSED loses to the game, for the same reason: a
+ * paused Spotify is not what is coming out of the speakers, and the game is.
+ */
+export const systemBarShows = (
+  snapshot: ISystemMediaSnapshot | undefined,
+  game: { name: string } | undefined,
+): 'session' | 'game' | 'none' => {
+  if (snapshot?.isPlaying) {
+    return 'session';
+  }
+  if (game) {
+    return 'game';
+  }
+  return snapshot ? 'session' : 'none';
+};
 
 /**
  * Whether the app should go quiet because something outside just started.
@@ -154,6 +183,31 @@ export const useSystemMediaSource = (): void => {
   const knownPlayingAppsRef = useRef<ReadonlySet<string>>(new Set());
   const playingOwnerRef = useRef<TPlaybackOwner | undefined>(undefined);
   playingOwnerRef.current = playingOwner;
+  // The game whose sound is on, which is the machine's own sound as much as a
+  // browser tab is, and the one kind of it Windows publishes nothing about.
+  const game = useSoundingGame();
+  const gameRef = useRef(game);
+  gameRef.current = game;
+
+  /** The one place that decides what the bar says for this machine. */
+  const show = useCallback(
+    (
+      snapshot: ISystemMediaSnapshot | undefined,
+      playingGame: IGameProfile | undefined,
+    ) => {
+      const shown = systemBarShows(snapshot, playingGame);
+      if (shown === 'game' && playingGame) {
+        setTransportSource(gameSource(playingGame));
+        return;
+      }
+      if (shown === 'session' && snapshot) {
+        setTransportSource(sessionSource(snapshot));
+        return;
+      }
+      clearTransportSource('system');
+    },
+    [],
+  );
 
   // THE WATCHER STAYS UP WHILE THIS APP IS PLAYING, and that is the price of
   // the rule working both ways: a browser tab starting is a thing that has to
@@ -193,71 +247,7 @@ export const useSystemMediaSource = (): void => {
         // when somebody presses play on another tab of this app.
         stopAllPlayback();
       }
-      if (!snapshot) {
-        clearTransportSource('system');
-        return;
-      }
-      setTransportSource({
-        owner: 'system',
-        title: snapshot.title,
-        subtitle: subtitleFor(snapshot),
-        identity: buildSongIdentity(
-          'system',
-          snapshot.app,
-          snapshot.title,
-          snapshot.artist,
-        ),
-        isPlaying: snapshot.isPlaying,
-        positionMs: snapshot.positionMs,
-        durationMs: snapshot.durationMs,
-        toggle: () => {
-          window.electron?.ipcRenderer
-            .sendMediaTransport('playPause')
-            .catch(() => undefined);
-        },
-        // Stop is not a media key: it is a distinct session command. Main uses
-        // native Stop where the player has one, or pause-and-rewind where it
-        // does not, so every external player gets the same visible control.
-        stop: () => {
-          window.electron?.ipcRenderer
-            .sendSystemMediaCommand('stop')
-            .catch(() => undefined);
-        },
-        // A STEP RATHER THAN A SLIDER, and the position is the child's.
-        //
-        // Windows will move another player's playhead — measured on Chrome:
-        // 1533s to 1538s — but it publishes a position only when the player
-        // republishes one, so the number here can be seconds old. Working out
-        // "five seconds on" from a stale reading would jump the video
-        // somewhere nobody asked for; the command carries a target worked out
-        // from the last reading and Windows resolves it against the truth.
-        nudge: snapshot.canSeek
-          ? (deltaMs: number) => {
-              window.electron?.ipcRenderer
-                .sendSystemMediaCommand(
-                  'seek',
-                  Math.max(0, snapshot.positionMs + deltaMs),
-                )
-                .catch(() => undefined);
-            }
-          : undefined,
-        // Only where the session says it takes them. A YouTube video in
-        // Chrome answers no to both and a Spotify queue answers yes.
-        next: snapshot.canNext
-          ? () => {
-              window.electron?.ipcRenderer
-                .sendSystemMediaCommand('next')
-                .catch(() => undefined);
-            }
-          : undefined,
-        previous: snapshot.canPrevious
-          ? () => {
-              window.electron?.ipcRenderer
-                .sendSystemMediaCommand('previous')
-                .catch(() => undefined);
-            }
-          : undefined,
-      });
+      show(snapshot, gameRef.current);
     });
 
     bridge.watchSystemMedia(true).catch(() => undefined);
@@ -267,7 +257,13 @@ export const useSystemMediaSource = (): void => {
       bridge.watchSystemMedia(false).catch(() => undefined);
       clearTransportSource('system');
     };
-  }, []);
+  }, [show]);
+
+  // A game starting, ending, or having its chain taken over by hand changes
+  // what the bar should say without Windows publishing anything at all.
+  useEffect(() => {
+    show(lastSnapshotRef.current, game);
+  }, [game, show]);
 
   /**
    * And the same rule from our side: what we start, we start alone.
@@ -295,5 +291,87 @@ export const useSystemMediaSource = (): void => {
       .catch(() => undefined);
   }, [playingOwner]);
 };
+
+/** The machine's own player, as the bar drives it. */
+const sessionSource = (snapshot: ISystemMediaSnapshot): ITransportSource => ({
+  owner: 'system',
+  title: snapshot.title,
+  subtitle: subtitleFor(snapshot),
+  identity: buildSongIdentity(
+    'system',
+    snapshot.app,
+    snapshot.title,
+    snapshot.artist,
+  ),
+  isPlaying: snapshot.isPlaying,
+  positionMs: snapshot.positionMs,
+  durationMs: snapshot.durationMs,
+  toggle: () => {
+    window.electron?.ipcRenderer
+      .sendMediaTransport('playPause')
+      .catch(() => undefined);
+  },
+  // Stop is not a media key: it is a distinct session command. Main uses
+  // native Stop where the player has one, or pause-and-rewind where it
+  // does not, so every external player gets the same visible control.
+  stop: () => {
+    window.electron?.ipcRenderer
+      .sendSystemMediaCommand('stop')
+      .catch(() => undefined);
+  },
+  // A STEP RATHER THAN A SLIDER, and the position is the child's.
+  //
+  // Windows will move another player's playhead — measured on Chrome:
+  // 1533s to 1538s — but it publishes a position only when the player
+  // republishes one, so the number here can be seconds old. Working out
+  // "five seconds on" from a stale reading would jump the video
+  // somewhere nobody asked for; the command carries a target worked out
+  // from the last reading and Windows resolves it against the truth.
+  nudge: snapshot.canSeek
+    ? (deltaMs: number) => {
+        window.electron?.ipcRenderer
+          .sendSystemMediaCommand(
+            'seek',
+            Math.max(0, snapshot.positionMs + deltaMs),
+          )
+          .catch(() => undefined);
+      }
+    : undefined,
+  // Only where the session says it takes them. A YouTube video in
+  // Chrome answers no to both and a Spotify queue answers yes.
+  next: snapshot.canNext
+    ? () => {
+        window.electron?.ipcRenderer
+          .sendSystemMediaCommand('next')
+          .catch(() => undefined);
+      }
+    : undefined,
+  previous: snapshot.canPrevious
+    ? () => {
+        window.electron?.ipcRenderer
+          .sendSystemMediaCommand('previous')
+          .catch(() => undefined);
+      }
+    : undefined,
+});
+
+/**
+ * A game, as the bar drives it — which is to say it does not.
+ *
+ * There is nothing to press: a game publishes no player to Windows, so it
+ * takes no play, no pause and no skip, and a button that answered none of
+ * them would be worse than no button. It carries its own icon as the cover,
+ * the way every other thing on this bar carries one.
+ */
+const gameSource = (game: IGameProfile): ITransportSource => ({
+  owner: 'system',
+  title: game.name,
+  ...(game.icon ? { artworkUrl: game.icon } : {}),
+  isPlaying: true,
+  canToggle: false,
+  positionMs: 0,
+  durationMs: 0,
+  toggle: () => undefined,
+});
 
 export default useSystemMediaSource;

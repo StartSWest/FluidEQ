@@ -8,6 +8,7 @@ import {
   IGameProfile,
   gamePathHolds,
   gameProfileFor,
+  gameSoundEndStep,
   gameSoundStep,
 } from '../../../common/games';
 import {
@@ -87,27 +88,34 @@ describe('what the sound does as games come and go', () => {
     });
   });
 
-  it('puts back what was playing when the game goes', () => {
-    const step = gameSoundStep(
-      { before: 'music', applied: 'gaming' },
-      undefined,
-      'gaming',
-    );
-    expect(step).toEqual({ memory: {}, select: 'music' });
+  /**
+   * The rule this whole file turns on: leaving the game's window is not
+   * leaving the game. Somebody alt-tabs to a browser, to Discord, to FluidEQ
+   * itself a dozen times a match, and every one of those used to take the
+   * game's sound away. Nothing happens now, and nothing is forgotten either —
+   * what puts the sound back is the game ending.
+   */
+  it('changes nothing, and forgets nothing, when anything else comes forward', () => {
+    const memory = { before: 'music', applied: 'gaming' };
+    expect(gameSoundStep(memory, undefined, 'gaming')).toEqual({ memory });
+    expect(gameSoundStep(memory, '', 'gaming')).toEqual({ memory });
+  });
+
+  it('puts back what was playing once the game has ended', () => {
+    expect(
+      gameSoundEndStep({ before: 'music', applied: 'gaming' }, 'gaming'),
+    ).toEqual({ memory: {}, select: 'music' });
   });
 
   /**
    * The rule this exists for: a chain chosen during the game is the
-   * listener's, and taking it away the moment they alt-tab is the app
-   * arguing with them.
+   * listener's, and taking it away when the game closes is the app arguing
+   * with them.
    */
   it('keeps a chain the listener chose while playing', () => {
-    const step = gameSoundStep(
-      { before: 'music', applied: 'gaming' },
-      undefined,
-      'late-night',
-    );
-    expect(step).toEqual({ memory: {} });
+    expect(
+      gameSoundEndStep({ before: 'music', applied: 'gaming' }, 'late-night'),
+    ).toEqual({ memory: {} });
   });
 
   it('goes from one game to another and still remembers the first sound', () => {
@@ -117,7 +125,7 @@ describe('what the sound does as games come and go', () => {
       memory: { before: 'music', applied: 'movie' },
       select: 'movie',
     });
-    expect(gameSoundStep(second.memory, undefined, 'movie')).toEqual({
+    expect(gameSoundEndStep(second.memory, 'movie')).toEqual({
       memory: {},
       select: 'music',
     });
@@ -126,7 +134,7 @@ describe('what the sound does as games come and go', () => {
   it('changes nothing for a game whose sound is already on, and still steps back', () => {
     const step = gameSoundStep({}, 'gaming', 'gaming');
     expect(step).toEqual({ memory: { before: 'gaming', applied: 'gaming' } });
-    expect(gameSoundStep(step.memory, undefined, 'gaming')).toEqual({
+    expect(gameSoundEndStep(step.memory, 'gaming')).toEqual({
       memory: {},
     });
   });
@@ -134,6 +142,13 @@ describe('what the sound does as games come and go', () => {
   it('leaves everything alone for a game with no sound of its own', () => {
     expect(gameSoundStep({}, '', 'music')).toEqual({ memory: {} });
     expect(gameSoundStep({}, undefined, 'music')).toEqual({ memory: {} });
+  });
+
+  it('has nothing to put back when no game put anything on', () => {
+    expect(gameSoundEndStep({}, 'music')).toEqual({ memory: {} });
+    expect(gameSoundEndStep({ applied: 'gaming' }, 'gaming')).toEqual({
+      memory: {},
+    });
   });
 });
 

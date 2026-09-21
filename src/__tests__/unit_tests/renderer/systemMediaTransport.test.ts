@@ -27,8 +27,50 @@ import {
   resetTransportSource,
   useTransportSources,
 } from '../../../renderer/audio/transportSource';
-import { useSystemMediaSource } from '../../../renderer/audio/useSystemMediaSource';
+import {
+  systemBarShows,
+  useSystemMediaSource,
+} from '../../../renderer/audio/useSystemMediaSource';
 import { setSinglePlayer } from '../../../renderer/utils/singlePlayer';
+
+/**
+ * A game registers no player with Windows, so while one played the bar said
+ * nothing at all. It names the game now — but never over a player that is
+ * actually playing, because the bar follows the sound.
+ */
+describe('what the bar says for this machine’s own sound', () => {
+  const session = (isPlaying: boolean) =>
+    ({
+      title: 'Kind of Blue',
+      artist: 'Miles Davis',
+      app: 'Spotify',
+      isPlaying,
+      positionMs: 0,
+      durationMs: 1,
+      canSeek: false,
+      canNext: false,
+      canPrevious: false,
+      playing: isPlaying ? ['Spotify'] : [],
+    }) as unknown as ISystemMediaSnapshot;
+  const game = { name: 'Overwatch' };
+
+  it('names the game when nothing else is playing', () => {
+    expect(systemBarShows(undefined, game)).toBe('game');
+  });
+
+  it('gives the bar to a player that is playing over the game', () => {
+    expect(systemBarShows(session(true), game)).toBe('session');
+  });
+
+  it('takes the bar from a paused player, which is not what is heard', () => {
+    expect(systemBarShows(session(false), game)).toBe('game');
+  });
+
+  it('says what it always said with no game at all', () => {
+    expect(systemBarShows(session(false), undefined)).toBe('session');
+    expect(systemBarShows(undefined, undefined)).toBe('none');
+  });
+});
 
 describe('the transport for another Windows player', () => {
   const originalElectron = window.electron;

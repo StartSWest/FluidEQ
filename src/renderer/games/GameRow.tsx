@@ -23,8 +23,16 @@ interface IGameRowProps {
   catalog: readonly IDspCatalogEntry[];
   /** The starred chains, in the order they were starred. */
   favourites: readonly IDspCatalogEntry[];
-  /** Its game is in front now: the row says which one the sound belongs to. */
+  /** Its game is the window in front now. */
   isPlaying: boolean;
+  /**
+   * Its sound is the one playing, which lasts as long as the game runs.
+   *
+   * The row says this rather than merely which game is in front: this page is
+   * only ever looked at from outside the game, so "in front" alone was never
+   * lit while anybody could read it.
+   */
+  isSounding: boolean;
   onRemove: () => void;
 }
 
@@ -50,6 +58,7 @@ const GameRow = ({
   catalog,
   favourites,
   isPlaying,
+  isSounding,
   onRemove,
 }: IGameRowProps) => {
   const { t } = useTranslation();
@@ -85,13 +94,15 @@ const GameRow = ({
   const chosen = catalog.find((preset) => preset.id === profile.presetId);
 
   return (
-    <li className={`games-row${isPlaying ? ' is-playing' : ''}`}>
+    <li className={`games-row${isPlaying || isSounding ? ' is-playing' : ''}`}>
       <GameIcon program={profile} className="games-row__glyph" />
       <div className="games-row__what">
         <span className="games-row__name">
           {profile.name}
-          {isPlaying ? (
-            <span className="games-row__now">{t('games.row.inFront')}</span>
+          {isPlaying || isSounding ? (
+            <span className="games-row__now">
+              {isPlaying ? t('games.row.inFront') : t('games.row.sounding')}
+            </span>
           ) : undefined}
         </span>
         <span className="games-row__where" title={profile.path}>

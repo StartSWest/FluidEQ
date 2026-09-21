@@ -397,20 +397,25 @@ const app: Partial<Dictionary> = {
   'games.source.running': '今開いている',
   'games.source.file': '自分で選択',
   'games.front.playing': '{name} が手前にあり、その音が有効です。',
+  'games.front.sounding': '{name} は実行中で、その音が有効です。',
   'games.front.none': '手前: {name}',
   'games.front.desktop': 'FluidEQ が知らないもの',
   'games.empty':
     'まだゲームがありません。追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替えます。',
   'games.toast.loaded': '{preset} を読み込みました',
   'games.toast.forGame': '{game} 用',
+  'games.toast.restored': '{preset} に戻しました',
+  'games.toast.restoredNone': 'エフェクトをオフに戻しました',
+  'games.toast.afterGame': '{game} の後',
   'games.empty.title': 'まだゲームがありません',
   'games.empty.more':
-    'ゲームを追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替え、離れると戻します。',
+    'ゲームを追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替え、ゲームを終了すると戻します。',
   'games.hint':
-    'ゲームが手前に来ると音が切り替わり、離れると戻ります。プレイ中に別の音を選べばそのまま：FluidEQ は自分で設定した音だけを戻します。',
+    'ゲームが手前に来ると音が切り替わり、途中で別の画面に移ってもゲームを終了するまでそのままです。プレイ中に別の音を選べばそのまま：FluidEQ は自分で設定した音だけを戻します。',
   'games.preset.none': 'そのままにする',
   'games.preset.noneHint': 'このゲームが手前でも何も変わりません。',
   'games.row.inFront': '手前',
+  'games.row.sounding': '音が有効',
   'games.row.sound': '{name} の音',
   'games.row.remove': '{name} を削除',
 };

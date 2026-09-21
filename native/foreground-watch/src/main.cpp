@@ -26,6 +26,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   in:  list                                        which programs are open?
  *   out: open <tab> pid <tab> rect <tab> name <tab> path   one each, then:
  *   out: listed                                      the end of that answer
+ *   in:  hold <space> pid                            tell me when this ends
+ *   out: gone <tab> pid                              it ended
+ *
+ * `hold` is how a game keeps its sound while somebody alt-tabs out of it: the
+ * app asks to be told when that program actually ends, rather than treating
+ * the loss of the foreground as the end of the game. One at a time — the app
+ * plays one game's sound at a time — and `hold 0` stops holding. A process
+ * that has already ended answers `gone` at once. Waiting on it costs nothing
+ * and no thread: the process handle is signalled when it exits, so it joins
+ * the same wait as everything else here. Nothing polls.
  *
  * `rect` is the window's place on the desktop as `x,y,w,h` in real pixels, so
  * a card about the game can be shown on the screen the game is on rather than
@@ -54,7 +64,11 @@ namespace {
 
 struct State {
   HANDLE input_closed = nullptr;
-  HANDLE list_asked = nullptr;
+  /** Something was asked for; which it was, the flags below say. */
+  HANDLE asked = nullptr;
+  std::atomic<bool> list_wanted{false};
+  std::atomic<bool> hold_wanted{false};
+  std::atomic<DWORD> hold_pid{0};
   std::atomic<bool> bad_command{false};
   DWORD reported = 0;
 };
@@ -296,9 +310,38 @@ void answer_list() {
   say("listed");
 }
 
+/**
+ * One command, already whole.
+ *
+ * Anything that is not a command this knows ends the helper rather than being
+ * ignored: the only thing writing here is FluidEQ, so a line nobody
+ * recognises means the two sides disagree about the protocol, and carrying on
+ * would mean answering a question that was never asked.
+ */
+bool take_command(const char* command, std::size_t used) {
+  if (used == 4 && std::memcmp(command, "list", 4) == 0) {
+    state.list_wanted.store(true);
+    return true;
+  }
+  if (used > 5 && std::memcmp(command, "hold ", 5) == 0) {
+    DWORD pid = 0;
+    for (std::size_t at = 5; at < used; ++at) {
+      if (command[at] < '0' || command[at] > '9') {
+        return false;
+      }
+      pid = pid * 10 + static_cast<DWORD>(command[at] - '0');
+    }
+    state.hold_pid.store(pid);
+    state.hold_wanted.store(true);
+    return true;
+  }
+  return false;
+}
+
 DWORD WINAPI read_input(void*) {
   char buffer[64]{};
-  char command[8]{};
+  // Room for "hold " and every pid Windows can produce.
+  char command[24]{};
   std::size_t used = 0;
   DWORD count = 0;
   while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, sizeof(buffer),
@@ -310,18 +353,18 @@ DWORD WINAPI read_input(void*) {
         continue;
       }
       if (value == '\n') {
-        if (used == 4 && std::memcmp(command, "list", 4) == 0) {
+        if (take_command(command, used)) {
           used = 0;
-          SetEvent(state.list_asked);
+          SetEvent(state.asked);
           continue;
         }
         state.bad_command.store(true);
-        SetEvent(state.list_asked);
+        SetEvent(state.asked);
         return 0;
       }
       if (used >= sizeof(command)) {
         state.bad_command.store(true);
-        SetEvent(state.list_asked);
+        SetEvent(state.asked);
         return 0;
       }
       command[used++] = value;
@@ -331,10 +374,35 @@ DWORD WINAPI read_input(void*) {
   return 0;
 }
 
+/**
+ * Start waiting on the program the app named, in place of whatever was held.
+ *
+ * A process handle is signalled when the process ends, so the wait costs a
+ * handle and nothing else. One that cannot be opened has already ended —
+ * answered at once, because the app is waiting to hear it either way.
+ */
+HANDLE hold_process(HANDLE held, DWORD* held_pid) {
+  if (held != nullptr) {
+    CloseHandle(held);
+  }
+  *held_pid = 0;
+  const DWORD wanted = state.hold_pid.load();
+  if (wanted == 0) {
+    return nullptr;
+  }
+  const HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, wanted);
+  if (process == nullptr) {
+    say("gone\t" + std::to_string(wanted));
+    return nullptr;
+  }
+  *held_pid = wanted;
+  return process;
+}
+
 int run() {
   state.input_closed = CreateEventW(nullptr, TRUE, FALSE, nullptr);
-  state.list_asked = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-  if (state.input_closed == nullptr || state.list_asked == nullptr) {
+  state.asked = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (state.input_closed == nullptr || state.asked == nullptr) {
     return 1;
   }
   const HANDLE reader = CreateThread(nullptr, 0, read_input, nullptr, 0, nullptr);
@@ -360,11 +428,16 @@ int run() {
       report("front", pid, front);
     }
   }
-  const HANDLE handles[]{state.input_closed, state.list_asked};
+  HANDLE held = nullptr;
+  DWORD held_pid = 0;
   bool finished = false;
   while (!finished) {
+    // The held game's own handle is the third thing waited on, while there is
+    // one: its exit is an event like any other here, never a check on a clock.
+    HANDLE handles[]{state.input_closed, state.asked, held};
     const DWORD result = MsgWaitForMultipleObjectsEx(
-        2, handles, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+        held != nullptr ? 3 : 2, handles, INFINITE, QS_ALLINPUT,
+        MWMO_INPUTAVAILABLE);
     if (result == WAIT_OBJECT_0 || result == WAIT_FAILED) {
       break;
     }
@@ -372,7 +445,18 @@ int run() {
       if (state.bad_command.load()) {
         break;
       }
-      answer_list();
+      if (state.list_wanted.exchange(false)) {
+        answer_list();
+      }
+      if (state.hold_wanted.exchange(false)) {
+        held = hold_process(held, &held_pid);
+      }
+    }
+    if (held != nullptr && result == WAIT_OBJECT_0 + 2) {
+      say("gone\t" + std::to_string(held_pid));
+      CloseHandle(held);
+      held = nullptr;
+      held_pid = 0;
     }
     MSG message{};
     while (!finished && PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
@@ -383,6 +467,9 @@ int run() {
       TranslateMessage(&message);
       DispatchMessageW(&message);
     }
+  }
+  if (held != nullptr) {
+    CloseHandle(held);
   }
   UnhookWinEvent(hook);
   return 0;

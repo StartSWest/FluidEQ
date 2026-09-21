@@ -297,6 +297,39 @@ describe('the song-eq badge', () => {
     expect(screen.getByText('Paused video')).toBeVisible();
   });
 
+  /**
+   * A game makes sound and registers no player to take a pause, so the bar
+   * has nothing to send it. The library's own bar has always greyed its
+   * button for a track it cannot play; this one drew the button live and
+   * answered the press with nothing.
+   */
+  it('greys out play for a source that cannot be paused, and keeps it live for one that can', () => {
+    const game: ITransportSource = {
+      owner: 'system',
+      title: 'Overwatch',
+      isPlaying: true,
+      canToggle: false,
+      positionMs: 0,
+      durationMs: 0,
+      toggle: jest.fn(),
+    };
+    const view = render(
+      <I18nProvider>
+        <SourceTransportBar source={game} />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeDisabled();
+    view.unmount();
+
+    // The control: the same source, able to be paused, is a live button.
+    render(
+      <I18nProvider>
+        <SourceTransportBar source={{ ...game, canToggle: undefined }} />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeEnabled();
+  });
+
   it('greys out Media Stop once its loaded source is paused at zero', () => {
     const source: ITransportSource = {
       owner: 'media',

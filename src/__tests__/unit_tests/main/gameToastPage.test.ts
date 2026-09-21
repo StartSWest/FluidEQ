@@ -69,6 +69,43 @@ describe('the game card the desktop shows', () => {
     expect(said).not.toContain('https:');
   });
 
+  /**
+   * The card's colours are the window's, written into its stylesheet from
+   * its address — so the one script on the page is also the thing standing
+   * between a URL and the page's CSS. Run for real here, in a document with
+   * the card's own markup, rather than read as text.
+   */
+  it('takes the window’s colours from its address, and only colours', () => {
+    const body = page.match(/<body>([\s\S]*)<\/body>/);
+    if (!body) {
+      throw new Error('the card has no body');
+    }
+    document.body.innerHTML = body[1].replace(/<script>[\s\S]*<\/script>/, '');
+    const address = new URLSearchParams({
+      what: 'Loaded Gaming',
+      game: 'for Overwatch',
+      accent: '#fab1fb',
+      panel: 'rgb(27, 2, 28)',
+      base: 'red; background: url(https://example.com/)',
+      text: 'var(--anything)',
+    });
+    window.history.replaceState(null, '', `/?${address.toString()}`);
+    const root = document.documentElement.style;
+    ['accent', 'panel', 'base', 'text', 'muted'].forEach((name) =>
+      root.removeProperty(`--${name}`),
+    );
+    // eslint-disable-next-line no-new-func -- the page's own script, run as the page runs it
+    new Function(scriptText(page))();
+
+    expect(root.getPropertyValue('--accent')).toBe('#fab1fb');
+    expect(root.getPropertyValue('--panel')).toBe('rgb(27, 2, 28)');
+    expect(root.getPropertyValue('--base')).toBe('');
+    expect(root.getPropertyValue('--text')).toBe('');
+    expect(root.getPropertyValue('--muted')).toBe('');
+    // And the words still arrive beside them.
+    expect(document.getElementById('what')?.textContent).toBe('Loaded Gaming');
+  });
+
   it('closes itself on an animation rather than on a clock', () => {
     const script = scriptText(page);
     expect(script).toContain('animationend');
