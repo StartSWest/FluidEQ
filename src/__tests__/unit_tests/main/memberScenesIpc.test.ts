@@ -26,7 +26,7 @@ jest.mock('electron', () => ({
   shell: { openPath: jest.fn() },
 }));
 
-// eslint-disable-next-line import/first -- the electron mock must be installed first
+/* eslint-disable import/first -- the electron mock must be installed first */
 import {
   registerMemberScenesIpc,
   type ILinkFolderResult,
@@ -35,13 +35,11 @@ import {
   type TAddOutcome,
   type TNewProjectResult,
 } from '../../../main/ipc/memberScenes';
-// eslint-disable-next-line import/first -- as above
 import { writeStarterProject } from '../../../main/memberScenes/project';
 import { setKnownMaker } from '../../../main/account/knownMakers';
-// eslint-disable-next-line import/first -- as above
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
-// eslint-disable-next-line import/first -- as above
 import { memberPack } from '../../utils/memberSceneFixtures';
+/* eslint-enable import/first */
 
 const ME = '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30';
 const SOMEONE = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';

@@ -58,7 +58,8 @@ const terms = {
   'terms.sent.payment.who':
     '作者，用于把付款对应到你的账户。付款只会对应到已确认的邮箱地址，因此请使用登录所用的邮箱付款。',
   'terms.sent.agreement.what': '你同意了哪个版本的条款，以及同意的时间',
-  'terms.sent.agreement.when': '你继续前往付款、开始免费试用、导出场景或发布场景时',
+  'terms.sent.agreement.when':
+    '你继续前往付款、开始免费试用、导出场景或发布场景时',
   'terms.sent.agreement.who': '作者。它会随你的账户保存，即使你最终没有付款。',
   'terms.sent.looks.what':
     '你的登录令牌，以及你已安装且有新版本的 FluidEQ 场景的 ID，用于下载这些新版本',

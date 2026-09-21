@@ -33,7 +33,8 @@ beforeEach(() => {
   mockSignOut.mockResolvedValue(undefined);
 });
 
-const cancel = () => screen.getByRole('button', { name: 'account.name.cancel' });
+const cancel = () =>
+  screen.getByRole('button', { name: 'account.name.cancel' });
 const signOut = () => screen.getByRole('button', { name: /account\.signOut/ });
 
 test('the caret starts on the answer that keeps the account', async () => {

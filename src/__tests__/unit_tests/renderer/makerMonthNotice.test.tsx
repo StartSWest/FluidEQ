@@ -87,7 +87,9 @@ test('the last week is announced, with the days left', async () => {
       screen.getByText('account.maker.notice.endingTitle:3'),
     ).toBeInTheDocument(),
   );
-  expect(screen.getByText('account.maker.notice.endingBody')).toBeInTheDocument();
+  expect(
+    screen.getByText('account.maker.notice.endingBody'),
+  ).toBeInTheDocument();
 });
 
 test('a month with weeks to run says nothing at all', async () => {
@@ -123,9 +125,7 @@ test('a month that has run out says so, and offers the way back', async () => {
 test('put away, it stays away for the rest of the sitting', async () => {
   month({ until: new Date(Date.now() + 2 * DAY).toISOString() });
   await show();
-  await waitFor(() =>
-    expect(screen.getByRole('dialog')).toBeInTheDocument(),
-  );
+  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
   await userEvent.click(
     screen.getByRole('button', { name: 'account.maker.notice.later' }),
