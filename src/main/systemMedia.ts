@@ -342,7 +342,7 @@ export const watchSystemMedia = (
     return;
   }
 
-  child = spawn(
+  const started = spawn(
     POWERSHELL_PATH,
     [
       '-NoProfile',
@@ -354,9 +354,10 @@ export const watchSystemMedia = (
     ],
     { windowsHide: true },
   );
+  child = started;
 
   let pending = '';
-  child.stdout?.on('data', (chunk: Buffer) => {
+  started.stdout?.on('data', (chunk: Buffer) => {
     pending += chunk.toString('utf8');
     const lines = pending.split(/\r?\n/);
     pending = lines.pop() ?? '';
@@ -375,7 +376,18 @@ export const watchSystemMedia = (
   // `null` for a session it could not read, which is the honest answer and
   // already handled; a machine with the namespace missing would otherwise
   // write a stack trace on every cycle.
-  child.on('exit', () => {
+  started.on('exit', () => {
+    // Only the CURRENT watcher's death means anything. A window reload stops
+    // this child and starts the next one at once, and this exit is delivered
+    // only once the old PowerShell has actually died — after the new one is
+    // already running. Taken as the current child's, it cleared the new child
+    // out of the module while it kept polling: the fresh window was told
+    // nothing was playing in the middle of a song, the next subscribe started
+    // a third PowerShell, and the second one was never killed, because stop
+    // only reaches the child it knows about.
+    if (child !== started) {
+      return;
+    }
     child = undefined;
     lastSnapshot = undefined;
     notify?.(undefined);

@@ -220,6 +220,45 @@ describe('watching across a reload', () => {
 
     expect(listener).toHaveBeenCalledWith(undefined);
   });
+
+  /**
+   * A window reload stops the watcher and starts it again at once, and the
+   * old PowerShell's exit is delivered only once it has actually died — after
+   * the new one is already running. That late exit is the OLD child's news.
+   * Taken as the current child's, it wiped the new child out of the module
+   * while it kept polling, told the fresh window nothing was playing in the
+   * middle of a song, and made the next subscribe start a third PowerShell,
+   * with the second one left running until the app quit: stop only ever
+   * kills the one it knows about.
+   */
+  it('ignores the exit of a watcher it has already replaced', () => {
+    const first = fakeChild();
+    watchSystemMedia(jest.fn());
+    stopWatchingSystemMedia();
+    expect(first.child.kill).toHaveBeenCalled();
+
+    const second = fakeChild();
+    const reloaded = jest.fn();
+    watchSystemMedia(reloaded);
+    second.stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    reloaded.mockClear();
+
+    // The first child's death, delivered late.
+    first.child.emit('exit');
+
+    expect(reloaded).not.toHaveBeenCalled();
+    // Still the second child: a further subscribe is handed its reading and
+    // starts nothing new.
+    fakeChild();
+    watchSystemMedia(reloaded);
+    expect(spawn).toHaveBeenCalledTimes(2);
+    expect(reloaded).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Kura Kura', isPlaying: true }),
+    );
+    // And stopping reaches the child that is actually running.
+    stopWatchingSystemMedia();
+    expect(second.child.kill).toHaveBeenCalled();
+  });
 });
 
 describe('who else is playing', () => {
