@@ -790,15 +790,46 @@ $gallery-card-lead: 120ms;
 // own under "Zu meinen Darstellungen".
 .gallery-scene {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
-  align-items: start;
+  // Both columns end together: whichever is taller sets the row, and the
+  // stage fills it. At 1920 the panel beside the scene is the taller of the
+  // two and the stage used to stop a hundred pixels short of it, leaving a
+  // band of empty panel under the picture (Ivan, 2026-09-20).
+  align-items: stretch;
 
   @container plus (max-width: 720px) {
     grid-template-columns: minmax(0, 1fr);
+    // One column: the panel is under the stage and has no height to follow.
+    align-items: start;
   }
 }
 
 .gallery-scene__main {
+  display: grid;
+  // One row, the stage, which takes the column's whole height.
+  grid-template-rows: minmax(0, 1fr);
   min-width: 0;
+}
+
+/**
+ * The stage on a scene's page: its own 16/9 shape where that fits, the
+ * panel's height where the panel is taller, and never so tall that "More by"
+ * is pushed off the bottom.
+ *
+ * `height: 100%` is what follows the panel — the column stretches to the row,
+ * and the row is the taller of the two. The aspect ratio stays as the natural
+ * size the row is measured from, so a short panel still leaves a 16/9 stage
+ * rather than a strip. The cap is the old one raised to where a full panel
+ * fits under it: at 16/9 across this column the stage stood 797px tall in a
+ * 1392px window and pushed the row of other scenes off the screen.
+ *
+ * The width has to be stated, or the cap takes it with the height: a box whose
+ * width is `auto` stays 16/9 by narrowing, and the preview pulled 428px away
+ * from the panel beside it.
+ */
+.gallery-scene .gallery-preview {
+  width: 100%;
+  height: 100%;
+  max-height: min(68vh, 640px);
 }
 
 .gallery-preview {
@@ -874,12 +905,34 @@ $gallery-card-lead: 120ms;
   backdrop-filter: blur(3px);
 }
 
+// The stage's ground: the scene's own measured sky, and black for a scene
+// nobody has watched yet. Under everything and never faded — the scene's
+// canvas is transparent where the scene leaves it transparent, and this is
+// what the scene is drawn against anyway. Opaque on purpose: the window is
+// transparent to its backdrop material, so any moment when nothing paints
+// here is a moment of the desktop's own colour, which on a light Windows is
+// a white flash.
+.gallery-preview__ground {
+  position: absolute;
+  inset: 0;
+  background: var(--scene-sky, #{$black});
+}
+
 // The picture under a scene that has started drawing: gone once the scene is
 // at full strength — it fades in over its first quarter second — so a scene
 // that leaves some of its canvas transparent never shows a still through it.
+//
+// It holds for the best part of a second first and then takes its time going.
+// On a scene already on the computer the first frame lands a couple of
+// hundred milliseconds after the page opens, and at 300ms of hold the picture
+// was replaced about as fast as it had arrived — two pictures of the same
+// scene swapping inside half a second, which is the blink Ivan asked to be
+// rid of (2026-09-20: "show the preview for at least 1 sec then once is done
+// fade into the real scene"). Costs nothing when the scene is slow: this
+// picture IS a frame of the scene standing behind its canvas.
 .gallery-preview__still.is-behind {
   opacity: 0;
-  transition: opacity $motion-slow $ease-out $motion-slow;
+  transition: opacity 700ms $ease-out 900ms;
 }
 
 .gallery-preview__veil--failed {
@@ -901,6 +954,11 @@ $gallery-card-lead: 120ms;
  * Bloom's petals — while the edges keep enough of the picture to say which
  * scene is coming.
  */
+// How long a scene may take before anything is said about it. A scene already
+// on the computer draws in a couple of hundred milliseconds, so nothing under
+// this ever puts a ring on screen.
+$wait-hold: 500ms;
+
 .gallery-preview__wait {
   gap: 8px;
   background: radial-gradient(
@@ -908,7 +966,51 @@ $gallery-card-lead: 120ms;
     color-mix(in srgb, $surface-plot 82%, transparent),
     color-mix(in srgb, $surface-plot 50%, transparent) 75%
   );
-  @include animate(fade-in, $motion-base, $ease-out);
+  // NOT SHOWN AT ALL UNLESS THE WAIT IS REAL.
+  //
+  // A scene already on the computer is ready in a couple of hundred
+  // milliseconds, and a ring that appears and leaves inside that is a flash
+  // and nothing else — it says less than showing nothing would. The entrance
+  // is held back by half a second with a backwards fill, so for the whole of
+  // that half second the element is painted at the fade's first frame, which
+  // is nothing; a wait that ends inside it is never seen. Only a wait long
+  // enough to be worth saying gets a ring, and it arrives softly.
+  @include animate(fade-in, $motion-slow, $ease-out, $wait-hold);
+  // Leaving is a fade, not an unmount: the element stays through the scene's
+  // own fade-in and goes with it. `visibility` is switched at the end rather
+  // than with the opacity so the words leave the screen reader only once they
+  // have left the screen.
+  transition:
+    opacity 520ms $ease-out,
+    visibility 0s linear 520ms;
+
+  &.is-done {
+    // The entrance is cancelled outright, or a scene that drew inside the
+    // half-second hold would have the ring fade IN behind it once the hold
+    // ran out — the flash this rule exists to prevent, arriving late.
+    opacity: 0;
+    visibility: hidden;
+    animation: none;
+  }
+}
+
+// The hold is what stops the flash, so it is not decoration and it survives
+// both of the ways this app stands animations down: `animate` turns itself
+// off under `prefers-reduced-motion`, which is how the window is launched
+// when Animations are off, and App.scss stands every animation down the
+// moment that switch is thrown mid-session. Either one on its own put the
+// ring back on every fast scene. It is the one entrance in the app whose
+// delay is the point rather than the motion.
+@media (prefers-reduced-motion: reduce) {
+  .gallery-preview__wait:not(.is-done) {
+    animation: fade-in $motion-slow $ease-out $wait-hold backwards;
+  }
+}
+
+// `!important` and a class, to beat the stand-down's own `!important` on `*`.
+:root[data-motion='reduced'] .gallery-preview__wait:not(.is-done) {
+  animation-delay: $wait-hold !important;
+  animation-duration: $motion-slow !important;
 }
 
 // The ring, with what is happening drawn inside it: the download's arrow
