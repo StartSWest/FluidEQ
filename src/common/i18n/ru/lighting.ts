@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'Сохранить цвет',
   'lighting.idle.brightness': 'Яркость в покое',
   'lighting.idle.speed': 'Движение в покое',
-  'lighting.preview.live': 'Предпросмотр подсветки',
   'lighting.tuning.master': 'Общая яркость',
   'lighting.title': 'Динамическая подсветка',
   'lighting.rail.blurb': 'Ваш стол следует за сценой',
@@ -79,13 +78,10 @@ const lighting = {
   'lighting.showGraph': 'Показать график',
 
   'lighting.brightness': 'Яркость',
-  'lighting.brightness.value': '{percent} %',
   'lighting.pulse': 'Пульсировать в ритме',
   'lighting.pulse.off': 'Нет',
   'lighting.pulse.gentle': 'Мягко',
   'lighting.pulse.full': 'Сильно',
-  'lighting.colours.hint':
-    'Цвета берутся из самой сцены, поэтому выбирать ничего не нужно.',
 
   'lighting.devices.title': 'Ваши устройства',
   'lighting.devices.searching': 'Поиск устройств…',

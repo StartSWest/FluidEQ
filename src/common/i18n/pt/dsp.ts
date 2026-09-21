@@ -84,11 +84,6 @@ const dsp = {
   'dsp.preset.music': 'Música',
   'dsp.preset.speech': 'Voz',
   'dsp.quick.classics': 'Presets clássicos',
-  'dsp.favorites.intro':
-    'Marque presets DSP com uma estrela para encontrar seus sons favoritos aqui.',
-  'dsp.favorites.empty':
-    'Nenhum favorito. Marque um preset DSP com uma estrela.',
-  'dsp.favorites.open': 'Abrir DSP',
   'dsp.gameMode.update':
     'Atualize o Motor FluidEQ para usar o Modo jogo. O preset continua aplicando seus ajustes de som.',
   'dsp.gameMode.hint':
@@ -110,8 +105,6 @@ const dsp = {
     'Mede o áudio externo durante a reprodução, ajusta os dois canais juntos e protege os picos antes do Excitador e do EQ.',
   'dsp.normalizer.liveAnalysis': 'Análise da fonte ao vivo',
   'dsp.normalizer.shortTerm': 'Sonoridade de curto prazo',
-  'dsp.normalizer.liveHonesty':
-    'A sonoridade estabiliza após três segundos. Um trecho forte define o nível para o resto da música, e a proteção de picos permanece ativa. Não corrige distorção já presente na fonte.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'O DSP processa apenas faixas de áudio reproduzidas da Biblioteca. Áudio compartilhado recebido, karaokê, vídeos e outros aplicativos não são processados.',
@@ -119,7 +112,6 @@ const dsp = {
     'Reproduza uma faixa de áudio da Biblioteca para usar o DSP. Áudio compartilhado recebido, karaokê, vídeos e outros aplicativos não são processados.',
   'dsp.scope.system': 'Em todo o sistema · {output}',
   'dsp.scope.systemAll': 'Em todo o sistema',
-  'dsp.scope.systemDelay': '{ms} ms de atraso',
   'dsp.latency.label': 'Atraso de processamento',
   'dsp.latency.gameMode': 'Modo jogo',
   'dsp.latency.ms': '{ms} ms',
@@ -131,11 +123,8 @@ const dsp = {
     'Buffers informados pelo motor na taxa atual. Windows, dispositivo e rede não estão incluídos.',
   'dsp.latency.gameNote':
     'O Modo jogo reduz buffers evitáveis. Efeitos ativos podem precisar de atraso. Desative-o para restaurar o processamento normal.',
-  'dsp.latency.stage.linearEq': 'Equalizador de fase linear',
   'dsp.latency.stage.safety': 'Proteção final',
   'dsp.latency.stage.guard': 'Proteção de picos do equalizador',
-  'dsp.latency.stage.eqPhase': 'Equalizador, fase linear',
-  'dsp.latency.stage.curvePhase': 'Camada de curva, fase linear',
   'dsp.latency.stage.curves': 'Curvas de correção',
   'dsp.scope.useFluid': 'Usar o Motor FluidEQ',
   'dsp.unavailable':
@@ -146,7 +135,6 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofônico',
-  'dsp.preset.bassPower': 'Potência de graves',
   'dsp.bypassed': 'Ignorado',
   'dsp.enabled': 'Ligado',
 
@@ -188,7 +176,6 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Limpeza intensa',
   'dsp.denoise.description':
     'Repara a fonte antes que algo a colore: chiado, zumbido da rede, estalos e um limpador neural de voz. Medido na própria faixa, não adivinhado.',
-  'dsp.denoise.libraryOnly': 'Apenas na reprodução da Biblioteca',
   'dsp.denoise.isolate': 'Isolar',
   'dsp.denoise.isolateHint': 'Ouvir apenas o que esta etapa remove.',
   'dsp.denoise.isolateOn':
@@ -208,8 +195,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'Esta faixa não tem uma análise salva. Analisado permanece transparente até você analisar novamente.',
   'dsp.denoise.hiss': 'Chiado',
-  'dsp.denoise.hissHint':
-    'Supressão de banda larga em relação ao piso medido. Acrescenta 21 ms de latência enquanto está ligada.',
   'dsp.denoise.amount': 'Quantidade',
   'dsp.denoise.reductionLimit': 'Limite de redução',
   'dsp.denoise.reductionLimitHint':
@@ -275,7 +260,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'Nome da curva',
   'dsp.crossfade.handleOutgoing': 'Alça da curva de saída',
   'dsp.crossfade.handleIncoming': 'Alça da curva de entrada',
-  'dsp.crossfade.sum': 'Nível combinado',
   'dsp.crossfade.hint':
     'Aplica-se ao Próximo manual e aos finais naturais. A busca continua imediata.',
 
@@ -405,8 +389,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'Cancelar',
 
   'dsp.eq.title': 'Equalizador',
-  'dsp.eq.description':
-    'Quinze bandas paramétricas, desenhadas como os filtros realmente respondem e não como foram pedidos.',
   'dsp.eq.band': 'Banda',
   'dsp.eq.bands': 'Bandas',
   'dsp.eq.shape': 'Tipo de banda',
@@ -422,15 +404,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Passa-banda',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Ganho',
-  'dsp.eq.trim': 'Ajuste auto',
-  'dsp.eq.adaptive': 'Adaptativo',
-  'dsp.eq.trimFixed': 'Fixo',
-  'dsp.eq.trimOff': 'Sem ajuste',
-  'dsp.eq.adaptiveHint':
-    'Mede a música e devolve a margem que não é necessária. Desligado mantém o nível totalmente estável.',
-  'dsp.eq.trimHint':
-    'Margem reservada antes das bandas para esta curva não saturar.',
-  'dsp.eq.overUnity': '{gain} dB acima',
   'dsp.eq.character': 'Caráter',
   'dsp.eq.subsonic': 'Subgraves',
   'dsp.eq.fuzz': 'Fuzz',
@@ -447,12 +420,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Limiar',
   'dsp.eq.legend.subsonic': 'Subgraves',
   'dsp.eq.legend.input': 'Entrada',
-  'dsp.eq.inputMark': 'entrada {gain} dB',
   'dsp.eq.legend.gain': 'ganho',
   'dsp.eq.legend.level': 'nível por banda',
   'dsp.eq.thresholdMark': 'limiar {level} dBFS',
   'dsp.eq.dynamic': 'Dinâmico',
-  'dsp.eq.dynamicOn': 'Dinâmico ON',
   'dsp.eq.dynamicHint':
     'Age apenas enquanto esta banda ultrapassa o seu limiar.',
 
@@ -574,8 +545,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'Só os lados são alterados, por isso em mono se ouve exatamente o mesmo que sem isto. A proteção fecha quando a mistura já está fora de fase.',
   'dsp.dimension.title': 'Dimensão',
-  'dsp.dimension.description':
-    'Alarga a imagem estéreo por banda. A soma mono nunca muda.',
   'dsp.dimension.lowWidth': 'Largura graves',
   'dsp.dimension.midWidth': 'Largura médios',
   'dsp.dimension.highWidth': 'Largura agudos',
@@ -610,21 +579,13 @@ const dsp = {
     'Controle transparente da saída final após todos os processadores. Não altera o nível que alimenta o EQ, o Excitador ou as outras etapas.',
   'dsp.master.outputTrim': 'Ganho de saída',
   'dsp.master.autoHeadroom': 'Margem automática',
-  'dsp.master.autoHeadroomHint':
-    'Reduz suavemente apenas os picos que se aproximam do teto de pico verdadeiro estéreo escolhido.',
   'dsp.master.ceiling': 'Teto',
   'dsp.master.release': 'Liberação',
   'dsp.master.loudnessMaximize': 'Maximizar LUFS',
   'dsp.master.loudnessMaximizeHint':
     'Aplica {gain} dB com base na medição da faixa completa e mantém o pico real final abaixo do teto. O ganho é constante; apenas os picos são controlados.',
   'dsp.master.loudnessTarget': 'Alvo de sonoridade',
-  'dsp.master.meter': 'Saída final',
-  'dsp.master.safetyHint':
-    'Detecção de pico verdadeiro {factor}× · teto de {ceiling} dBTP · joelho suave de {knee} dB · vínculo estéreo.',
-  'dsp.master.manualHint':
-    'Ganho de saída manual. A proteção final continua controlando os picos quando ativada.',
   'dsp.master.truePeak': 'TP entrada',
-  'dsp.master.gainReduction': 'Redução de ganho',
   'dsp.master.devSafety': 'Segurança A/B',
   'dsp.master.devSafetyHint':
     'Apenas desenvolvimento: ignora toda a proteção final para ouvir exatamente o que ela altera.',
@@ -686,12 +647,10 @@ const dsp = {
   'dsp.room.preset.openAir': 'Ar livre',
   'dsp.room.presetHint':
     'Sala de {size} m · alto-falantes a {distance} m · paredes {live}% vivas',
-  'dsp.room.saveRoom': 'Salvar sala…',
   'dsp.room.saveTitle': 'Salvar esta sala',
   'dsp.room.saveHint':
     'A sala inteira tal como está é salva com este nome, ao lado das já salvas: a forma, os alto-falantes, os seus níveis e silêncios, as escolhas de graves e estéreo, Espaço e Ambiente. A sua cabeça e os seus fones de ouvido continuam seus.',
   'dsp.room.savePlaceholder': 'Nome da sala',
-  'dsp.room.deleteRoom': 'Excluir sala',
   'dsp.room.groupHead': 'Cabeça',
   'dsp.room.size': 'Tamanho',
   'dsp.room.walls': 'Paredes',
@@ -739,7 +698,6 @@ const dsp = {
   'dsp.room.live.on': 'Sala ligada',
   'dsp.room.live.idle': 'Nada passando pelo motor',
   'dsp.room.live.unknown': 'Só com o motor',
-  'dsp.room.fit': 'Ajustar…',
   'dsp.room.profile.referenceV2': 'Referência',
   'dsp.room.profile.musicSpaceV2': 'Espaço musical',
   'dsp.room.profile.cinemaV2': 'Cinema',

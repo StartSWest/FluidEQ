@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'फ़ोल्डर जोड़ें',
   'library.rescan': 'फिर से स्कैन करें',
   'library.rescan.force': 'पुनः स्कैन करने के लिए बाध्य करें',
-  'library.search': 'लाइब्रेरी में खोजें',
   'library.searchPlaceholder': 'गाने, कलाकार, एल्बम खोजें',
 
   'library.browse.album': 'एल्बम',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'किसी अक्षर पर जाएँ',
   'library.coverflow.previous': 'पिछला कवर',
   'library.coverflow.next': 'अगला कवर',
-  'library.folderCount': '{count} फ़ोल्डर',
   'library.filterHere': 'इन गानों को फ़िल्टर करें',
   'library.view.list': 'सूची',
   'library.view.grid': 'ग्रिड',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} पढ़ा जा रहा है',
   'library.scan.counted': '{seen} में से {parsed} फ़ाइलें',
   'library.scan.cancel': 'रोकें',
-  'library.scan.done': '{count} गाने जोड़े गए',
 
   'library.roots': 'फ़ोल्डर',
   'library.root.remove': 'यह फ़ोल्डर हटाएँ',
@@ -123,7 +120,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': '5 सेकंड आगे',
   'library.next': 'अगला',
   'library.shuffle': 'शफ़ल',
-  'library.repeat': 'दोहराएँ',
   'library.repeat.all': 'सभी दोहराएँ',
   'library.repeat.one': 'यह गाना दोहराएँ',
   'library.repeat.off': 'न दोहराएँ',

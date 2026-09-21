@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     'Usalo sul computer collegato alle cuffie o agli altoparlanti. Accetta uno o più mittenti e li riproduce sull’uscita selezionata in FluidEQ.',
   'remoteAudio.listen.start': 'Crea codice di connessione',
-  'remoteAudio.listen.activeTitle': 'Questo computer è in ascolto',
   'remoteAudio.listen.newCode': 'Crea nuovo codice',
   'remoteAudio.listen.stop': 'Interrompi ascolto',
   'remoteAudio.send.kicker': 'MITTENTE · CLIENT',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': 'Codice di connessione',
   'remoteAudio.send.codePlaceholder': 'Incolla FLUIDEQ-LAN-2…',
   'remoteAudio.send.start': 'Connetti e invia',
-  'remoteAudio.send.activeTitle': 'Invio audio di sistema',
-  'remoteAudio.send.activeBody':
-    'Tieni FluidEQ aperto su entrambi i computer. Il ricevitore riproduce questo flusso senza perdita insieme a tutti gli altri mittenti collegati.',
   'remoteAudio.send.destination': 'Riproduzione su {name}',
   'remoteAudio.send.stop': 'Interrompi invio',
   'remoteAudio.send.readyHint':
@@ -45,7 +41,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': 'Connessione in tempo reale',
   'remoteAudio.monitor.inactive': 'Scegli un ruolo per iniziare',
   'remoteAudio.monitor.ready': 'Pronto per un codice di connessione',
-  'remoteAudio.monitor.waveform': 'Forma d’onda dell’audio condiviso',
   'remoteAudio.monitor.waveformFor': 'Forma d’onda in tempo reale di {name}',
   'remoteAudio.monitor.buffer': 'Riproduzione {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': 'Coda invio {milliseconds} ms',

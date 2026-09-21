@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'Adicionar pasta',
   'library.rescan': 'Escanear novamente',
   'library.rescan.force': 'Forçar nova leitura',
-  'library.search': 'Pesquisar na biblioteca',
   'library.searchPlaceholder': 'Pesquisar músicas, artistas, álbuns',
 
   'library.browse.album': 'Álbuns',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Ir para uma letra',
   'library.coverflow.previous': 'Capa anterior',
   'library.coverflow.next': 'Próxima capa',
-  'library.folderCount': '{count} pastas',
   'library.filterHere': 'Filtrar estas músicas',
   'library.view.list': 'Lista',
   'library.view.grid': 'Grade',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lendo {name}',
   'library.scan.counted': '{parsed} de {seen} arquivos',
   'library.scan.cancel': 'Parar',
-  'library.scan.done': '{count} músicas adicionadas',
 
   'library.roots': 'Pastas',
   'library.root.remove': 'Remover esta pasta',
@@ -125,7 +122,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': 'Avançar 5 segundos',
   'library.next': 'Próximo',
   'library.shuffle': 'Aleatório',
-  'library.repeat': 'Repetir',
   'library.repeat.all': 'Repetir tudo',
   'library.repeat.one': 'Repetir esta música',
   'library.repeat.off': 'Não repetir',

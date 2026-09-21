@@ -228,7 +228,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bandas',
   'tabs.presets': 'Presets EQ',
-  'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
   'tabs.games': 'Presets de juego',
   'tabs.config': 'Config',
@@ -363,7 +362,6 @@ const app: Partial<Dictionary> = {
     'El instalador oficial firmado de FluidEQ se entrega únicamente a través de fluideq.com. Las compilaciones desde el código fuente deben partir del repositorio oficial. La GPL permite que terceros copien, modifiquen, recompilen y vendan FluidEQ, pero sus versiones no están automáticamente firmadas, revisadas, respaldadas ni aprobadas por FluidEQ. Si una descarga afirma ser oficial y no tiene una firma digital de Windows válida, ciérrala e informa de ella.',
   'provenance.site': 'Sitio oficial: fluideq.com',
   'provenance.repository': 'Código oficial: github.com/StartSWest/FluidEQ',
-  'language.title': 'Idioma',
   'language.aria': 'Idioma de la interfaz',
   'theme.aria': 'Tema',
   'motion.aria': 'Animaciones',
@@ -399,10 +397,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Elegido por ti',
   'games.front.playing': '{name} está al frente, y su sonido está puesto.',
   'games.front.sounding': '{name} está abierto, y su sonido está puesto.',
-  'games.front.none': 'Al frente: {name}',
-  'games.front.desktop': 'nada que FluidEQ conozca',
-  'games.empty':
-    'Aún no hay juegos. Añade uno, dale un sonido y FluidEQ cambiará a él en cuanto ese juego esté al frente.',
   'games.toast.loaded': '{preset} cargado',
   'games.toast.forGame': 'para {game}',
   'games.toast.restored': '{preset} de nuevo',
@@ -411,8 +405,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'Aún no hay juegos',
   'games.empty.more':
     'Añade un juego, dale un sonido y FluidEQ cambia a él en cuanto ese juego está al frente, y vuelve cuando cierras el juego.',
-  'games.hint':
-    'El sonido cambia cuando el juego pasa al frente y se queda hasta que cierras el juego, aunque cambies de ventana mientras tanto. Si eliges otro sonido mientras juegas, se queda: FluidEQ solo devuelve lo que puso.',
   'games.preset.none': 'Dejarlo como está',
   'games.preset.noneHint': 'No cambia nada cuando este juego está al frente.',
   'games.row.inFront': 'al frente',

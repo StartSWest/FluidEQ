@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': '保持颜色',
   'lighting.idle.brightness': '静默亮度',
   'lighting.idle.speed': '静默运动',
-  'lighting.preview.live': '桌面实时预览',
   'lighting.tuning.master': '整体亮度',
   'lighting.title': '动态灯效',
   'lighting.rail.blurb': '桌面灯光跟随场景',
@@ -73,12 +72,10 @@ const lighting = {
   'lighting.showGraph': '显示图表',
 
   'lighting.brightness': '亮度',
-  'lighting.brightness.value': '{percent}%',
   'lighting.pulse': '随节拍律动',
   'lighting.pulse.off': '关',
   'lighting.pulse.gentle': '轻柔',
   'lighting.pulse.full': '强烈',
-  'lighting.colours.hint': '颜色直接取自场景本身，无需挑选。',
 
   'lighting.devices.title': '你的设备',
   'lighting.devices.searching': '正在查找设备…',

@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'रंग बनाए रखें',
   'lighting.idle.brightness': 'विराम में चमक',
   'lighting.idle.speed': 'विराम में गति',
-  'lighting.preview.live': 'डेस्क का लाइव पूर्वावलोकन',
   'lighting.tuning.master': 'कुल चमक',
   'lighting.title': 'डायनेमिक लाइटिंग',
   'lighting.rail.blurb': 'आपकी डेस्क सीन के साथ चमकती है',
@@ -77,13 +76,10 @@ const lighting = {
   'lighting.showGraph': 'ग्राफ़ दिखाएँ',
 
   'lighting.brightness': 'चमक',
-  'lighting.brightness.value': '{percent}%',
   'lighting.pulse': 'बीट पर धड़कें',
   'lighting.pulse.off': 'बंद',
   'lighting.pulse.gentle': 'हल्का',
   'lighting.pulse.full': 'पूरा',
-  'lighting.colours.hint':
-    'रंग ख़ुद सीन से आते हैं, इसलिए कुछ चुनने की ज़रूरत नहीं।',
 
   'lighting.devices.title': 'आपके डिवाइस',
   'lighting.devices.searching': 'डिवाइस खोजे जा रहे हैं…',

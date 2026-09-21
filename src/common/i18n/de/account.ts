@@ -33,7 +33,6 @@ const account = {
   'account.name.changeBody':
     'Ihr Kürzel und Ihr Name in der Rangliste und auf den Szenen, die Sie veröffentlicht haben. Sie ändern sich überall zugleich; Ihre E-Mail-Adresse bleibt privat.',
   'account.name.cancel': 'Abbrechen',
-  'account.signedIn': 'Angemeldet',
   'account.backToSignIn': 'Zurück zur Anmeldung',
 
   'account.field.email': 'E-Mail',

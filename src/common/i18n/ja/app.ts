@@ -227,7 +227,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'バンド',
   'tabs.presets': 'EQ プリセット',
-  'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
   'tabs.games': 'ゲームプリセット',
   'tabs.config': 'Config',
@@ -362,7 +361,6 @@ const app: Partial<Dictionary> = {
     'FluidEQ の公式な署名済みインストーラーは fluideq.com からのみ配布されます。ソースからのビルドは公式リポジトリを使用してください。GPL は第三者が FluidEQ を複製、改変、再ビルド、販売することを認めていますが、それらのビルドが FluidEQ によって自動的に署名、検査、サポート、承認されるわけではありません。公式を名乗るダウンロードに有効な Windows のデジタル署名がない場合は、閉じて報告してください。',
   'provenance.site': '公式サイト: fluideq.com',
   'provenance.repository': '公式ソース: github.com/StartSWest/FluidEQ',
-  'language.title': '言語',
   'language.aria': '表示言語',
   'theme.aria': 'テーマ',
   'motion.aria': 'アニメーション',
@@ -398,10 +396,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': '自分で選択',
   'games.front.playing': '{name} が手前にあり、その音が有効です。',
   'games.front.sounding': '{name} は実行中で、その音が有効です。',
-  'games.front.none': '手前: {name}',
-  'games.front.desktop': 'FluidEQ が知らないもの',
-  'games.empty':
-    'まだゲームがありません。追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替えます。',
   'games.toast.loaded': '{preset} を読み込みました',
   'games.toast.forGame': '{game} 用',
   'games.toast.restored': '{preset} に戻しました',
@@ -410,8 +404,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'まだゲームがありません',
   'games.empty.more':
     'ゲームを追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替え、ゲームを終了すると戻します。',
-  'games.hint':
-    'ゲームが手前に来ると音が切り替わり、途中で別の画面に移ってもゲームを終了するまでそのままです。プレイ中に別の音を選べばそのまま：FluidEQ は自分で設定した音だけを戻します。',
   'games.preset.none': 'そのままにする',
   'games.preset.noneHint': 'このゲームが手前でも何も変わりません。',
   'games.row.inFront': '手前',

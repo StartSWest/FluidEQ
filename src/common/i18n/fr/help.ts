@@ -414,9 +414,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.stop': 'Arrête tous les arrière-plans du Bureau.',
   'help.gallery.sceneCaption': 'La page d’une scène',
   'help.gallery.back': 'Retour à la galerie, là où vous l’aviez laissée.',
-  'help.gallery.stepName': 'Précédente et suivante',
-  'help.gallery.step':
-    'Parcourt la liste depuis laquelle vous avez ouvert la scène.',
   'help.gallery.play':
     'Ajoute la scène à vos styles, ou la lance sur le graphique.',
   'help.gallery.desktop': 'Place la scène derrière les icônes du Bureau.',
@@ -445,15 +442,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par un modérateur, et une scène approuvée vous offre un mois de Plus.',
   'help.studio.project': 'Vos projets, et des scènes FluidEQ à explorer.',
-  'help.studio.switchName': 'Projet précédent et suivant',
-  'help.studio.switch': 'Passe au projet précédent ou suivant.',
   'help.studio.stageName': 'Aperçu',
   'help.studio.stage':
     'La scène, en direct sur votre musique. Double-cliquez pour le plein écran.',
   'help.studio.code':
     'Le code de la scène, en direct, mis à jour à chaque enregistrement de votre IA.',
-  'help.studio.prompt':
-    'Copie le prompt qui explique à votre IA comment sont faites les scènes.',
   'help.studio.hears':
     'Ce que reçoit la scène : niveau, temps, basses, médiums, aigus.',
   'help.studio.signals': 'Des signaux de test qui n’animent que cet aperçu.',

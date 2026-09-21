@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'Добавить папку',
   'library.rescan': 'Пересканировать',
   'library.rescan.force': 'Принудительное сканирование',
-  'library.search': 'Поиск по библиотеке',
   'library.searchPlaceholder': 'Поиск песен, исполнителей, альбомов',
 
   'library.browse.album': 'Альбомы',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Перейти к букве',
   'library.coverflow.previous': 'Предыдущая обложка',
   'library.coverflow.next': 'Следующая обложка',
-  'library.folderCount': 'Папок: {count}',
   'library.filterHere': 'Фильтр по этим песням',
   'library.view.list': 'Список',
   'library.view.grid': 'Сетка',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Чтение {name}',
   'library.scan.counted': '{parsed} из {seen} файлов',
   'library.scan.cancel': 'Остановить',
-  'library.scan.done': 'Добавлено {count} песен',
 
   'library.roots': 'Папки',
   'library.root.remove': 'Удалить эту папку',
@@ -123,7 +120,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': 'Вперёд на 5 секунд',
   'library.next': 'Следующий',
   'library.shuffle': 'Перемешать',
-  'library.repeat': 'Повтор',
   'library.repeat.all': 'Повторять всё',
   'library.repeat.one': 'Повторять эту песню',
   'library.repeat.off': 'Не повторять',

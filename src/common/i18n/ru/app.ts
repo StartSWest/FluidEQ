@@ -228,7 +228,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'Эквалайзер',
   'tabs.eqMain': 'Полосы',
   'tabs.presets': 'Пресеты EQ',
-  'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
   'tabs.games': 'Пресеты игр',
   'tabs.config': 'Config',
@@ -360,7 +359,6 @@ const app: Partial<Dictionary> = {
   'provenance.site': 'Официальный сайт: fluideq.com',
   'provenance.repository':
     'Официальный исходный код: github.com/StartSWest/FluidEQ',
-  'language.title': 'Язык',
   'language.aria': 'Язык интерфейса',
   'theme.aria': 'Тема',
   'motion.aria': 'Анимация',
@@ -396,10 +394,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Выбрано вами',
   'games.front.playing': '{name} на переднем плане, её звук включён.',
   'games.front.sounding': '{name} запущена, её звук включён.',
-  'games.front.none': 'На переднем плане: {name}',
-  'games.front.desktop': 'ничего знакомого FluidEQ',
-  'games.empty':
-    'Игр пока нет. Добавьте одну, дайте ей звук — и FluidEQ переключится на него, как только игра окажется на переднем плане.',
   'games.toast.loaded': 'Загружено: {preset}',
   'games.toast.forGame': 'для {game}',
   'games.toast.restored': 'Снова: {preset}',
@@ -408,8 +402,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'Игр пока нет',
   'games.empty.more':
     'Добавьте игру, дайте ей звук — и FluidEQ переключится на него, как только игра выйдет на передний план, и вернётся, когда вы закроете игру.',
-  'games.hint':
-    'Звук меняется, когда игра выходит на передний план, и остаётся, пока вы не закроете игру, — что бы вы ни открыли тем временем. Если во время игры выбрать другой звук, он останется: FluidEQ возвращает только то, что включил сам.',
   'games.preset.none': 'Оставить как есть',
   'games.preset.noneHint':
     'Ничего не меняется, когда эта игра на переднем плане.',

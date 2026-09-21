@@ -27,13 +27,10 @@ const karaoke = {
   'karaoke.fullscreen.hideHeader': 'Hide the FluidEQ header',
   'karaoke.fullscreen.showHeader': 'Show the FluidEQ header',
   'karaoke.actions': 'Karaoke actions',
-  'karaoke.readiness.resize': 'Resize microphone and pitch panels',
   'karaoke.empty.title': 'Your stage is ready',
   'karaoke.empty.body':
     'Open audio with optional lyrics, or add a whole folder. FluidEQ links same-name files into a playlist.',
-  'karaoke.import.pending': 'Song import comes next',
   'karaoke.import.open': 'Open song',
-  'karaoke.import.replace': 'Replace song',
   'karaoke.import.addFiles': 'Add files',
   'karaoke.import.folder': 'Add folder',
   'karaoke.import.clear': 'Clear',
@@ -100,22 +97,17 @@ const karaoke = {
   'karaoke.lyrics.none':
     'No timed lyrics were selected. Playback and the live tuner still work.',
   'karaoke.lyrics.line': 'Lyric line {number}',
-  'karaoke.lyrics.previous': 'Previous lyric',
-  'karaoke.lyrics.next': 'Next lyric',
   'karaoke.lyrics.follow': 'Follow lyrics',
   'karaoke.lyrics.textSize': 'Lyric text size',
   'karaoke.transport.title': 'Karaoke playback controls',
-  'karaoke.transport.restart': 'Restart song',
   'karaoke.transport.play': 'Play',
   'karaoke.transport.pause': 'Pause',
   'karaoke.transport.spaceShortcut': '{action} · Space',
   'karaoke.transport.seek': 'Song position',
-  'karaoke.transport.volume': 'Volume',
   'karaoke.transport.vocalLevel': 'Guide vocal',
   'karaoke.transport.vocalOff': 'Backing only',
   'karaoke.transport.vocalFull': 'Original',
   'karaoke.transport.mixSettings': 'Mix settings',
-  'karaoke.transport.openMixSettings': 'Open mix settings for {channel}',
   'karaoke.mic.title': 'Microphone',
   'karaoke.mic.settings': 'Microphone settings',
   'karaoke.mic.off': 'Off',
@@ -143,19 +135,11 @@ const karaoke = {
   'karaoke.pitch.show': 'Show pitch guide',
   'karaoke.pitch.hide': 'Hide pitch guide',
   'karaoke.pitch.guide': 'Melody guide',
-  'karaoke.pitch.toneGuide': 'Melody tone',
-  'karaoke.pitch.toneEnable': 'Play melody guide tone',
-  'karaoke.pitch.toneDisable': 'Stop melody guide tone',
   'karaoke.pitch.toneVolume': 'Melody tone volume',
   'karaoke.pitch.scrubHint':
     'Drag left or right to move through the song; release to stay paused.',
-  'karaoke.pitch.viewSelector': 'Pitch display',
-  'karaoke.pitch.viewNotes': 'Notes',
-  'karaoke.pitch.viewWave': 'Curve',
   'karaoke.pitch.waveCanvas':
     'Real-time singer pitch curve over the song notes',
-  'karaoke.pitch.waveSong': 'Song pitch',
-  'karaoke.pitch.waveVoice': 'Your voice',
   'karaoke.pitch.waveFooter':
     'Blue blocks are the song notes; the thin live curve is the pitch coming from your microphone.',
   'karaoke.pitch.review': 'Performance review',
@@ -177,8 +161,6 @@ const karaoke = {
   'karaoke.pitch.high': 'High',
   'karaoke.pitch.tuned': 'In tune',
   'karaoke.pitch.low': 'Low',
-  'karaoke.pitch.ultrastar':
-    'Blue bars are target notes; the trace shows whether your voice is high, in tune, or low.',
   'karaoke.chords.aria': 'Estimated guitar chords from the backing track',
   'karaoke.chords.analyzing': 'Finding chords… {percent}%',
   'karaoke.chords.estimate': 'Estimated chord',
@@ -197,13 +179,11 @@ const karaoke = {
   'karaoke.maker.untitled': 'Untitled karaoke',
   'karaoke.maker.undo': 'Undo',
   'karaoke.maker.redo': 'Redo',
-  'karaoke.maker.preview': 'Preview · 1, 2, 3',
   'karaoke.maker.apply': 'Use in player',
   'karaoke.maker.applyHint':
     'Use these edits in the player. Your original karaoke file is unchanged; Export creates a new file.',
   'karaoke.maker.lyrics': 'Lyrics',
   'karaoke.maker.toolsEdit': 'Editing tools',
-  'karaoke.maker.toolsAnalysis': 'Analysis tools',
   'karaoke.maker.lyricsTiming': 'Lyrics timing',
   'karaoke.maker.timingAll': 'Whole song',
   'karaoke.maker.timingFromWord': 'From selected word',
@@ -218,15 +198,10 @@ const karaoke = {
     'Project loaded. The current audio remains attached.',
   'karaoke.maker.karaokeImported':
     'Karaoke timing imported. The current audio remains attached.',
-  'karaoke.maker.tapWords': 'Tap words',
   'karaoke.maker.recordLines': 'Record line entries',
   'karaoke.maker.syncLinesFromHere': 'Sync lines from here',
-  'karaoke.maker.syncWordsFromHere': 'Sync words from here',
-  'karaoke.maker.syncNow': 'Now',
-  'karaoke.maker.syncNext': 'Next: {item}',
   'karaoke.maker.markLine': 'Mark line start',
   'karaoke.maker.markLineEnd': 'Mark line end',
-  'karaoke.maker.captureEnd': 'Listening for the end',
   'karaoke.maker.capturePressStart': 'Step 1 · Press Enter at START',
   'karaoke.maker.captureReplaceStart':
     'Next lyric ready · Enter replaces its START',
@@ -234,17 +209,12 @@ const karaoke = {
     'Start saved at {time} · Press Enter at END',
   'karaoke.maker.captureAutomaticStart':
     'Automatic start {time} · Press Enter at END',
-  'karaoke.maker.captureAutomaticSuggestion':
-    'Suggested start {time} · Enter now records START',
-  'karaoke.maker.captureFixEnd': 'Recorded line · Enter fixes its END',
   'karaoke.maker.captureStartPoint': 'START',
   'karaoke.maker.captureEndPoint': 'END',
   'karaoke.maker.captureGuideTitle': 'Line timing',
   'karaoke.maker.captureSetupTitle': 'Ready to record the lyric timing?',
   'karaoke.maker.captureSetupBody':
     'Listen to the singer. Press Enter when the line starts, optionally press Tab at each new word, then press Enter again when the line ends. This lets a held final word keep its full length.',
-  'karaoke.maker.captureSetupStatus':
-    'Read the guide in Live Preview, then start recording.',
   'karaoke.maker.captureStartRecording': 'Start recording',
   'karaoke.maker.captureMoveGuide':
     'Drag to move this guide. Double-click to reset its position.',
@@ -260,14 +230,10 @@ const karaoke = {
   'karaoke.maker.captureGuideWords': 'mark the next word',
   'karaoke.maker.captureGuideUndo': 'undo last mark',
   'karaoke.maker.stopRecording': 'Stop recording',
-  'karaoke.maker.markWord': 'Mark word',
   'karaoke.maker.markNextWord': 'Next word',
-  'karaoke.maker.done': 'Done',
   'karaoke.maker.ignoreLine': 'Ignore line',
   'karaoke.maker.lineTimingComplete':
     'Line timing complete. Ready to review and use in the player.',
-  'karaoke.maker.recordLinesHint':
-    'ENTER marks line start/end · TAB marks the next word · ↑ selects the previous lyric and jumps to its recorded start · ↓ selects the next lyric · ←/→ moves only the audio 2s · SPACE plays or pauses · Backspace undoes',
   'karaoke.maker.panView': 'Hand · pan timeline',
   'karaoke.maker.panHint':
     'Hand tool: drag anywhere on the canvas to move through the song without editing.',
@@ -285,7 +251,6 @@ const karaoke = {
   'karaoke.maker.pasteNotes': 'Paste notes at playhead',
   'karaoke.maker.notePasted': 'Note pasted at the playhead.',
   'karaoke.maker.notesPasted': '{count} notes pasted at the playhead.',
-  'karaoke.maker.attachNotesByTime': 'Attach to lyrics',
   'karaoke.maker.detachNotes': 'Detach from lyrics',
   'karaoke.maker.noteAttachHelp':
     'Hold Ctrl and drag a selected note onto a word or syllable to attach it. Attached notes follow that lyric timing and remain fully locked until detached.',
@@ -304,18 +269,12 @@ const karaoke = {
   'karaoke.maker.hearNote': 'Hear note',
   'karaoke.maker.split': 'Split',
   'karaoke.maker.delete': 'Delete',
-  'karaoke.maker.analyze': 'Analyze melody',
-  'karaoke.maker.prepare': 'Prepare karaoke',
   'karaoke.maker.advanced': 'Repair tools',
   'karaoke.maker.prepared': 'This karaoke already has timed lyrics and melody.',
   'karaoke.maker.repairLyrics': 'Re-detect lyric timing',
   'karaoke.maker.repairMelody': 'Re-detect melody notes',
   'karaoke.maker.rebuildKaraoke': 'Rebuild lyrics + melody',
-  'karaoke.maker.autoAlign': 'Auto align',
-  'karaoke.maker.aiMelody': 'AI melody',
-  'karaoke.maker.transcribe': 'Transcribe',
   'karaoke.maker.vocalStem': 'Load vocal-only track',
-  'karaoke.maker.vocalStemLoaded': 'Vocal-only track loaded',
   'karaoke.maker.groupVoice': 'Voice and music',
   'karaoke.maker.stemsTitle': 'Separated tracks',
   'karaoke.maker.stemBacking': 'Backing track',
@@ -358,16 +317,11 @@ const karaoke = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'Enhanced LRC',
   'karaoke.maker.exportInstrumental': 'Backing track (no vocals)',
-  'karaoke.maker.tapHint':
-    'SPACE or ENTER marks “{word}” · ←/→ nudges 25 ms · ↑/↓ changes word · Backspace undoes',
-  'karaoke.maker.editHint':
-    'Box-select notes to move or delete them together. Paint notes directly on the pitch grid. Ctrl-click a lyric syllable to attach selected notes. Ctrl + wheel zooms.',
   'karaoke.maker.stats': '{notes} notes · {words} words · {checks} checks',
   'karaoke.maker.wordStateLegend': 'Lyric timing work status',
   'karaoke.maker.userAdjustedWords': '{count} adjusted',
   'karaoke.maker.pendingWords': '{count} pending',
   'karaoke.maker.artist': 'Artist',
-  'karaoke.maker.zoom': 'Zoom',
   'karaoke.maker.songPosition': 'Song position',
   'karaoke.maker.previousView': 'Previous section',
   'karaoke.maker.nextView': 'Next section',
@@ -375,8 +329,6 @@ const karaoke = {
   'karaoke.maker.livePreview': 'Live preview',
   'karaoke.maker.showPreview': 'Show preview',
   'karaoke.maker.hidePreview': 'Hide preview',
-  'karaoke.maker.previewEmpty':
-    'Add or align timed lyrics to see the live preview.',
   'karaoke.maker.noteNormal': 'Note',
   'karaoke.maker.noteGolden': 'Golden',
   'karaoke.maker.noteFree': 'Free',
@@ -390,8 +342,6 @@ const karaoke = {
   'karaoke.maker.localAnalysis': 'Local analysis',
   'karaoke.maker.lyricsEyebrow': 'LYRICS',
   'karaoke.maker.lyricsTitle': 'Paste or edit one lyric line per row',
-  'karaoke.maker.lyricsWarning':
-    'Replacing the text clears word links so the new words can be tapped or aligned safely.',
   'karaoke.maker.lyricsReferenceHint':
     'Provide the complete lyrics, including repeated lines and markers such as [Verse] or [Chorus]. FluidEQ keeps this text and uses local speech recognition to find its timing.',
   'karaoke.maker.referenceLyrics': 'Reference lyrics',
@@ -438,14 +388,12 @@ const karaoke = {
     'The words changed. Replacing them rebuilds word IDs and automatic timing; existing manual word corrections cannot be transferred reliably. Melody notes remain and will be relinked.',
   'karaoke.maker.replaceAndDetect': 'Replace and detect',
   'karaoke.maker.wordText': 'Word',
-  'karaoke.maker.wordStart': 'Start (ms)',
   'karaoke.maker.wordPosition': 'Position',
   'karaoke.maker.wordDuration': 'Length (ms)',
   'karaoke.maker.wordTimingSliderHint':
     'Adjusts the shared boundary; the neighbouring word gives or receives time while the line range stays fixed.',
   'karaoke.maker.usePlayhead': 'Use playhead',
   'karaoke.maker.playWord': 'Play word',
-  'karaoke.maker.allowAutoTiming': 'Allow automatic timing',
   'karaoke.maker.replaceLyrics': 'Replace lyrics',
   'karaoke.maker.lyricsAutoAligned':
     'New lyrics applied and aligned to the available melody.',
@@ -458,15 +406,12 @@ const karaoke = {
   'karaoke.maker.transcriptionReview':
     'Recognition is only a starting point. FluidEQ keeps your original lyric spelling when matching existing text, and all timestamps remain editable.',
   'karaoke.maker.notNow': 'Not now',
-  'karaoke.maker.downloadTranscribe': 'Download and transcribe',
   'karaoke.maker.downloadPrepare': 'Download and prepare lyrics',
   'karaoke.maker.downloadingWhisper': 'Downloading speech model',
   'karaoke.maker.downloadOverall': 'Overall download',
   'karaoke.maker.downloadFiles': '{complete} of {total} files',
   'karaoke.maker.loadingWhisper': 'Loading speech model',
   'karaoke.maker.analysisRunning': 'Analyzing pitch locally',
-  'karaoke.maker.analysisAligned':
-    'Aligned untouched words from {count} detected note regions. Manual timing was preserved.',
   'karaoke.maker.analysisFound': 'Analysis found {count} note regions.',
   'karaoke.maker.basicPitchRunning': 'Detecting the melody notes',
   'karaoke.maker.basicPitchFound':
@@ -480,8 +425,6 @@ const karaoke = {
   'karaoke.maker.whisperComplete': 'Lyric timing detected',
   'karaoke.maker.whisperMatched':
     'Whisper matched {count} recognized words. Review their editable timing before export.',
-  'karaoke.maker.autoAlignComplete':
-    'Untouched lyrics aligned to the detected melody. Manual timing was preserved.',
   'karaoke.maker.speechMemory': 'AI model memory',
   'karaoke.maker.speechMemoryReady': 'Ready in RAM',
   'karaoke.maker.speechMemoryCached': 'Cached on disk',

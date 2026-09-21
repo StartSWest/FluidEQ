@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'Seu nome de usuário e seu nome na classificação e nas cenas que você publicou. Mudam em todo lugar ao mesmo tempo; seu email continua privado.',
   'account.name.cancel': 'Cancelar',
-  'account.signedIn': 'Conectado',
   'account.backToSignIn': 'Voltar para o login',
 
   'account.field.email': 'Email',

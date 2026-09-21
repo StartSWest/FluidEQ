@@ -84,11 +84,6 @@ const dsp = {
   'dsp.preset.music': 'संगीत',
   'dsp.preset.speech': 'बोलचाल',
   'dsp.quick.classics': 'क्लासिक प्रीसेट',
-  'dsp.favorites.intro':
-    'अपने पसंदीदा साउंड यहाँ रखने के लिए DSP प्रीसेट पर तारा लगाएँ।',
-  'dsp.favorites.empty':
-    'अभी कोई पसंदीदा नहीं है। जोड़ने के लिए DSP प्रीसेट पर तारा लगाएँ।',
-  'dsp.favorites.open': 'DSP खोलें',
   'dsp.gameMode.update':
     'गेम मोड के लिए FluidEQ इंजन अपडेट करें। आपके प्रीसेट की ध्वनि सेटिंग लागू रहती हैं।',
   'dsp.gameMode.hint':
@@ -110,8 +105,6 @@ const dsp = {
     'बाहरी ऑडियो के बजते समय उसे मापता है, दोनों चैनलों को साथ समायोजित करता है और एक्साइटर व EQ से पहले पीक की सुरक्षा करता है।',
   'dsp.normalizer.liveAnalysis': 'लाइव स्रोत विश्लेषण',
   'dsp.normalizer.shortTerm': 'अल्पकालिक लाउडनेस',
-  'dsp.normalizer.liveHonesty':
-    'लाइव लाउडनेस तीन सेकंड बाद स्थिर होती है। तेज़ हिस्सा बाकी गाने का स्तर तय करता है, और पीक सुरक्षा सक्रिय रहती है। स्रोत में पहले से मौजूद विकृति को ठीक नहीं करता।',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP केवल लाइब्रेरी से चलाए गए ऑडियो ट्रैक को प्रोसेस करता है। प्राप्त साझा ऑडियो, कराओके, वीडियो और दूसरे ऐप्स को प्रोसेस नहीं किया जाता।',
@@ -119,7 +112,6 @@ const dsp = {
     'DSP इस्तेमाल करने के लिए लाइब्रेरी से कोई ऑडियो ट्रैक चलाएँ। प्राप्त साझा ऑडियो, कराओके, वीडियो और दूसरे ऐप्स को प्रोसेस नहीं किया जाता।',
   'dsp.scope.system': 'पूरे सिस्टम में · {output}',
   'dsp.scope.systemAll': 'पूरे सिस्टम में',
-  'dsp.scope.systemDelay': '{ms} ms विलंब',
   'dsp.latency.label': 'प्रोसेसिंग देरी',
   'dsp.latency.gameMode': 'गेम मोड',
   'dsp.latency.ms': '{ms} ms',
@@ -131,11 +123,8 @@ const dsp = {
     'वर्तमान सैंपल रेट पर इंजन द्वारा बताए गए बफ़र। Windows, डिवाइस और नेटवर्क की देरी शामिल नहीं है।',
   'dsp.latency.gameNote':
     'गेम मोड अनावश्यक बफ़र घटाता है। सक्रिय प्रभावों को फिर भी देरी की ज़रूरत हो सकती है। सामान्य प्रोसेसिंग के लिए इसे बंद करें।',
-  'dsp.latency.stage.linearEq': 'लीनियर-फ़ेज़ EQ',
   'dsp.latency.stage.safety': 'अंतिम सुरक्षा',
   'dsp.latency.stage.guard': 'EQ पीक सुरक्षा',
-  'dsp.latency.stage.eqPhase': 'EQ, लीनियर फ़ेज़',
-  'dsp.latency.stage.curvePhase': 'कर्व परत, लीनियर फ़ेज़',
   'dsp.latency.stage.curves': 'सुधार कर्व',
   'dsp.scope.useFluid': 'FluidEQ इंजन इस्तेमाल करें',
   'dsp.unavailable':
@@ -146,7 +135,6 @@ const dsp = {
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
   'dsp.preset.broadcast': 'ब्रॉडकास्ट',
-  'dsp.preset.bassPower': 'बास पावर',
   'dsp.bypassed': 'बायपास',
   'dsp.enabled': 'चालू',
 
@@ -185,7 +173,6 @@ const dsp = {
   'dsp.denoisePreset.strong': 'गहरी सफ़ाई',
   'dsp.denoise.description':
     'रंग चढ़ाने से पहले स्रोत की मरम्मत करता है: हिस, मेन्स हम, क्लिक और एक न्यूरल वॉइस क्लीनर। ट्रैक से ही मापा गया, अनुमान नहीं।',
-  'dsp.denoise.libraryOnly': 'केवल लाइब्रेरी प्लेबैक में',
   'dsp.denoise.isolate': 'अलग करें',
   'dsp.denoise.isolateHint': 'केवल वही सुनें जो यह चरण हटा रहा है।',
   'dsp.denoise.isolateOn':
@@ -205,8 +192,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'इस ट्रैक का कोई सहेजा हुआ स्कैन नहीं है। दोबारा स्कैन करने तक मापा गया मोड ध्वनि नहीं बदलेगा।',
   'dsp.denoise.hiss': 'हिस',
-  'dsp.denoise.hissHint':
-    'मापे गए स्तर के सापेक्ष व्यापक-बैंड दमन। चालू रहने पर 21 ms विलंब जोड़ता है।',
   'dsp.denoise.amount': 'मात्रा',
   'dsp.denoise.reductionLimit': 'कमी की सीमा',
   'dsp.denoise.reductionLimitHint':
@@ -272,7 +257,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'कर्व का नाम',
   'dsp.crossfade.handleOutgoing': 'आउटगोइंग कर्व हैंडल',
   'dsp.crossfade.handleIncoming': 'इनकमिंग कर्व हैंडल',
-  'dsp.crossfade.sum': 'संयुक्त स्तर',
   'dsp.crossfade.hint':
     'मैनुअल अगला और ट्रैक के स्वाभाविक अंत पर लागू होता है। सीक तुरंत रहता है।',
 
@@ -402,8 +386,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'रद्द करें',
 
   'dsp.eq.title': 'इक्वलाइज़र',
-  'dsp.eq.description':
-    'पंद्रह पैरामीट्रिक बैंड, जैसा फ़िल्टर वास्तव में प्रतिक्रिया देते हैं वैसा खींचा गया, न कि जैसा माँगा गया था।',
   'dsp.eq.band': 'बैंड',
   'dsp.eq.bands': 'बैंड',
   'dsp.eq.shape': 'बैंड का प्रकार',
@@ -419,14 +401,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'बैंड पास',
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
-  'dsp.eq.trim': 'स्वतः समायोजन',
-  'dsp.eq.adaptive': 'अनुकूली',
-  'dsp.eq.trimFixed': 'स्थिर',
-  'dsp.eq.trimOff': 'कोई समायोजन नहीं',
-  'dsp.eq.adaptiveHint':
-    'गाने को मापकर बिना ज़रूरत की गुंजाइश लौटाता है। बंद करने पर स्तर पूरी तरह स्थिर रहता है।',
-  'dsp.eq.trimHint': 'बैंड से पहले रखी गई गुंजाइश, ताकि यह कर्व क्लिप न हो।',
-  'dsp.eq.overUnity': '{gain} dB अधिक',
   'dsp.eq.character': 'चरित्र',
   'dsp.eq.subsonic': 'सबसोनिक',
   'dsp.eq.fuzz': 'फ़ज़',
@@ -443,12 +417,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'थ्रेशोल्ड',
   'dsp.eq.legend.subsonic': 'सबसोनिक',
   'dsp.eq.legend.input': 'इनपुट',
-  'dsp.eq.inputMark': 'इनपुट {gain} dB',
   'dsp.eq.legend.gain': 'गेन',
   'dsp.eq.legend.level': 'प्रति बैंड स्तर',
   'dsp.eq.thresholdMark': 'थ्रेशोल्ड {level} dBFS',
   'dsp.eq.dynamic': 'डायनामिक',
-  'dsp.eq.dynamicOn': 'डायनामिक चालू',
   'dsp.eq.dynamicHint':
     'यह बैंड अपने थ्रेशोल्ड से तेज़ होने पर ही काम करता है।',
 
@@ -567,8 +539,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'केवल साइड सिग्नल बदला जाता है, इसलिए मोनो में वही सुनाई देता है जो इसे बंद रखने पर। मिक्स पहले से आउट-ऑफ-फेज़ हो तो सुरक्षा बंद हो जाती है।',
   'dsp.dimension.title': 'डाइमेंशन',
-  'dsp.dimension.description':
-    'प्रति बैंड स्टीरियो छवि चौड़ी करता है। मोनो योग कभी नहीं बदलता।',
   'dsp.dimension.lowWidth': 'लो चौड़ाई',
   'dsp.dimension.midWidth': 'मिड चौड़ाई',
   'dsp.dimension.highWidth': 'हाई चौड़ाई',
@@ -603,21 +573,13 @@ const dsp = {
     'सभी प्रोसेसरों के बाद पारदर्शी अंतिम आउटपुट नियंत्रण। यह EQ, एक्साइटर या दूसरे चरणों के ड्राइव स्तर को नहीं बदलता।',
   'dsp.master.outputTrim': 'आउटपुट गेन',
   'dsp.master.autoHeadroom': 'ऑटो हेडरूम',
-  'dsp.master.autoHeadroomHint':
-    'चुनी गई स्टीरियो-लिंक्ड ट्रू-पीक सीमा के पास आने वाले पीक को ही सहजता से कम करता है।',
   'dsp.master.ceiling': 'सीमा',
   'dsp.master.release': 'रिलीज़',
   'dsp.master.loudnessMaximize': 'LUFS अधिकतम करें',
   'dsp.master.loudnessMaximizeHint':
     'पूरे ट्रैक की माप से {gain} dB लागू करता है और अंतिम ट्रू पीक को सीमा के नीचे रखता है। गेन स्थिर रहता है; केवल पीक नियंत्रित होते हैं।',
   'dsp.master.loudnessTarget': 'लाउडनेस लक्ष्य',
-  'dsp.master.meter': 'अंतिम आउटपुट',
-  'dsp.master.safetyHint':
-    '{factor}× ट्रू-पीक डिटेक्शन · {ceiling} dBTP सीमा · {knee} dB सॉफ्ट नी · स्टीरियो-लिंक्ड।',
-  'dsp.master.manualHint':
-    'मैन्युअल आउटपुट गेन। अंतिम सुरक्षा चालू होने पर पीक सुरक्षित रहते हैं।',
   'dsp.master.truePeak': 'TP इन',
-  'dsp.master.gainReduction': 'गेन रिडक्शन',
   'dsp.master.devSafety': 'सुरक्षा A/B',
   'dsp.master.devSafetyHint':
     'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',
@@ -678,12 +640,10 @@ const dsp = {
   'dsp.room.preset.openAir': 'खुली हवा',
   'dsp.room.presetHint':
     '{size} m का कमरा · स्पीकर {distance} m पर · दीवारें {live}% जीवंत',
-  'dsp.room.saveRoom': 'कमरा सहेजें…',
   'dsp.room.saveTitle': 'यह कमरा सहेजें',
   'dsp.room.saveHint':
     'पूरा कमरा जैसा है वैसा इस नाम से, पहले से सहेजे गए कमरों के साथ सहेजा जाता है: उसका आकार, स्पीकर, उनके लेवल और म्यूट, बास और स्टीरियो के चुनाव, स्पेस और एम्बिएंस। आपका सिर और हेडफ़ोन आपके ही रहते हैं।',
   'dsp.room.savePlaceholder': 'कमरे का नाम',
-  'dsp.room.deleteRoom': 'कमरा हटाएँ',
   'dsp.room.groupHead': 'सिर',
   'dsp.room.size': 'आकार',
   'dsp.room.walls': 'दीवारें',
@@ -730,7 +690,6 @@ const dsp = {
   'dsp.room.live.on': 'कमरा चालू',
   'dsp.room.live.idle': 'इंजन से कुछ नहीं बज रहा',
   'dsp.room.live.unknown': 'सिर्फ़ इंजन के साथ',
-  'dsp.room.fit': 'फ़िट करें…',
   'dsp.room.profile.referenceV2': 'रेफ़रेंस',
   'dsp.room.profile.musicSpaceV2': 'म्यूज़िक स्पेस',
   'dsp.room.profile.cinemaV2': 'सिनेमा',

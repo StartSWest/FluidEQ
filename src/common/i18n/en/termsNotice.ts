@@ -10,7 +10,6 @@
  */
 const termsNotice = {
   'termsNotice.title': 'The Plus terms have changed',
-  'termsNotice.version': 'Version {version}',
   'termsNotice.read': 'Read the terms',
   'termsNotice.gotIt': 'Got it',
 

@@ -231,7 +231,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'Égaliseur',
   'tabs.eqMain': 'Bandes',
   'tabs.presets': 'Préréglages EQ',
-  'tabs.voicing': 'Caractère',
   'tabs.convolution': 'Convolution',
   'tabs.games': 'Préréglages de jeu',
   'tabs.config': 'Config',
@@ -366,7 +365,6 @@ const app: Partial<Dictionary> = {
   'provenance.site': 'Site officiel : fluideq.com',
   'provenance.repository':
     'Sources officielles : github.com/StartSWest/FluidEQ',
-  'language.title': 'Langue',
   'language.aria': 'Langue de l’interface',
   'theme.aria': 'Thème',
   'motion.aria': 'Animations',
@@ -402,10 +400,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Choisi par vous',
   'games.front.playing': '{name} est au premier plan, et son son est activé.',
   'games.front.sounding': '{name} est lancé, et son son est activé.',
-  'games.front.none': 'Au premier plan : {name}',
-  'games.front.desktop': 'rien que FluidEQ connaisse',
-  'games.empty':
-    'Pas encore de jeux. Ajoutez-en un, donnez-lui un son, et FluidEQ y passera dès que ce jeu sera au premier plan.',
   'games.toast.loaded': '{preset} chargé',
   'games.toast.forGame': 'pour {game}',
   'games.toast.restored': 'Retour à {preset}',
@@ -414,8 +408,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'Aucun jeu pour l’instant',
   'games.empty.more':
     'Ajoutez un jeu, donnez-lui un son, et FluidEQ y passe dès que ce jeu est au premier plan — et revient quand vous fermez le jeu.',
-  'games.hint':
-    'Le son change quand le jeu passe au premier plan et reste jusqu’à ce que vous fermiez le jeu, quoi que vous ouvriez entre-temps. Si vous en choisissez un autre en jouant, il reste : FluidEQ ne remet que ce qu’il a mis.',
   'games.preset.none': 'Ne rien changer',
   'games.preset.noneHint': 'Rien ne change quand ce jeu est au premier plan.',
   'games.row.inFront': 'au premier plan',

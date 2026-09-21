@@ -19,8 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import PresetsBar, { PresetErrorEnum } from 'renderer/PresetsBar';
+import en from 'common/i18n/en';
+import { translate } from 'common/i18n';
+import PresetsBar, { PRESET_NAME_ERRORS } from 'renderer/PresetsBar';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import { I18nProvider } from 'renderer/utils/I18nContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 
@@ -203,12 +206,16 @@ describe('PresetListItem', () => {
     // Restricted preset name
     await clearAndType(user, editInput, 'COM1');
     await user.keyboard('{Enter}');
-    expect(screen.getByText(PresetErrorEnum.RESTRICTED)).toBeInTheDocument();
+    expect(
+      screen.getByText(en[PRESET_NAME_ERRORS.RESTRICTED]),
+    ).toBeInTheDocument();
 
     // Exact duplicate exists
     await clearAndType(user, editInput, 'Banana');
     await user.keyboard('{Enter}');
-    expect(screen.getByText(PresetErrorEnum.DUPLICATE)).toBeInTheDocument();
+    expect(
+      screen.getByText(en[PRESET_NAME_ERRORS.DUPLICATE]),
+    ).toBeInTheDocument();
 
     // Allow name that differs by case only
     await clearAndType(user, editInput, 'bAnAnA');
@@ -251,21 +258,85 @@ describe('PresetListItem', () => {
     // Restricted preset name
     await clearAndType(user, editInput, 'COM1');
     await user.keyboard('{Enter}');
-    expect(screen.getByText(PresetErrorEnum.RESTRICTED)).toBeInTheDocument();
+    expect(
+      screen.getByText(en[PRESET_NAME_ERRORS.RESTRICTED]),
+    ).toBeInTheDocument();
 
     // Exact duplicate exists
     await clearAndType(user, editInput, 'Banana');
     await user.keyboard('{Enter}');
-    expect(screen.getByText(PresetErrorEnum.DUPLICATE)).toBeInTheDocument();
+    expect(
+      screen.getByText(en[PRESET_NAME_ERRORS.DUPLICATE]),
+    ).toBeInTheDocument();
 
     // Duplicate that differs only by case exists
     await clearAndType(user, editInput, 'bAnAnA');
     await user.keyboard('{Enter}');
-    expect(screen.getByText(PresetErrorEnum.DUPLICATE)).toBeInTheDocument();
+    expect(
+      screen.getByText(en[PRESET_NAME_ERRORS.DUPLICATE]),
+    ).toBeInTheDocument();
 
     // Allow rename to the same name that differs by case only
     await clearAndType(user, editInput, 'aPpLe');
     await user.keyboard('{Enter}');
     expect(screen.getByText('aPpLe')).toBeInTheDocument();
+  });
+
+  /*
+   * The three refusals used to be English sentences written into the
+   * component, so a German user renaming a profile to a taken name was told so
+   * in English while their translations sat unused in the dictionaries.
+   */
+  it('says why a name is refused in the language the app is in', async () => {
+    fetchPresets.mockReturnValue(samplePresetNames);
+    const user = userEvent.setup();
+    window.localStorage.setItem('fluideq.locale', 'de');
+    try {
+      await act(async () => {
+        setup(
+          <I18nProvider>
+            <FluidEqProviderWrapper value={defaultFluidEqContext}>
+              <PresetsBar
+                fetchPresets={fetchPresets}
+                loadPreset={loadPreset}
+                savePreset={savePreset}
+                createPreset={createPreset}
+                renamePreset={renamePreset}
+                deletePreset={deletePreset}
+              />
+            </FluidEqProviderWrapper>
+          </I18nProvider>,
+        );
+      });
+
+      await user.click(
+        screen.getAllByLabelText(translate('de', 'common.icon.edit'))[0],
+      );
+      const editInput = screen.getByLabelText(translate('de', 'profiles.edit'));
+
+      await user.clear(editInput);
+      await user.keyboard('{Enter}');
+      expect(
+        screen.getByText(translate('de', PRESET_NAME_ERRORS.EMPTY)),
+      ).toBeInTheDocument();
+
+      await clearAndType(user, editInput, 'COM1');
+      await user.keyboard('{Enter}');
+      expect(
+        screen.getByText(translate('de', PRESET_NAME_ERRORS.RESTRICTED)),
+      ).toBeInTheDocument();
+
+      await clearAndType(user, editInput, 'Banana');
+      await user.keyboard('{Enter}');
+      expect(
+        screen.getByText(translate('de', PRESET_NAME_ERRORS.DUPLICATE)),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(en[PRESET_NAME_ERRORS.DUPLICATE]),
+      ).not.toBeInTheDocument();
+      expect(renamePreset).not.toHaveBeenCalled();
+    } finally {
+      window.localStorage.removeItem('fluideq.locale');
+    }
   });
 });

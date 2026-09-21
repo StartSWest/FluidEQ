@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'Aggiungi cartella',
   'library.rescan': 'Analizza di nuovo',
   'library.rescan.force': 'Forza nuova scansione',
-  'library.search': 'Cerca nella libreria',
   'library.searchPlaceholder': 'Cerca brani, artisti, album',
 
   'library.browse.album': 'Album',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Vai a una lettera',
   'library.coverflow.previous': 'Copertina precedente',
   'library.coverflow.next': 'Copertina successiva',
-  'library.folderCount': '{count} cartelle',
   'library.filterHere': 'Filtra questi brani',
   'library.view.list': 'Elenco',
   'library.view.grid': 'Griglia',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lettura di {name}',
   'library.scan.counted': '{parsed} di {seen} file',
   'library.scan.cancel': 'Interrompi',
-  'library.scan.done': '{count} brani aggiunti',
 
   'library.roots': 'Cartelle',
   'library.root.remove': 'Rimuovi questa cartella',
@@ -125,7 +122,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': 'Avanti di 5 secondi',
   'library.next': 'Successivo',
   'library.shuffle': 'Casuale',
-  'library.repeat': 'Ripeti',
   'library.repeat.all': 'Ripeti tutto',
   'library.repeat.one': 'Ripeti questo brano',
   'library.repeat.off': 'Non ripetere',

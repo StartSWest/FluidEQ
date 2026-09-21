@@ -25,6 +25,7 @@ import {
   IDeviceProfileAssignment,
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
+import type { TranslationKey } from 'common/i18n/en';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
@@ -39,11 +40,18 @@ import {
   restorePresetBaseline,
 } from './utils/equalizerApi';
 
-export enum PresetErrorEnum {
-  EMPTY = 'Preset name cannot be empty.',
-  RESTRICTED = 'Invalid preset name, please use another.',
-  DUPLICATE = 'Duplicate name found, please use another.',
-}
+/**
+ * Why a rename is refused, as the key of the line the name field shows.
+ *
+ * These were English sentences, shown as written in every language while their
+ * translations sat unused in the dictionaries. The field prints whatever
+ * `validate` returns, so the sentence is translated here, before it gets there.
+ */
+export const PRESET_NAME_ERRORS = {
+  EMPTY: 'profiles.error.empty',
+  RESTRICTED: 'profiles.error.restricted',
+  DUPLICATE: 'profiles.error.duplicate',
+} as const satisfies Record<string, TranslationKey>;
 
 export enum PresetActionEnum {
   INIT,
@@ -343,19 +351,22 @@ const PresetsBar = ({
   );
 
   // Validating a new preset name
-  const validatePresetName = useCallback((newValue: string) => {
-    if (isRestrictedPresetName(newValue)) {
-      return PresetErrorEnum.RESTRICTED;
-    }
+  const validatePresetName = useCallback(
+    (newValue: string) => {
+      if (isRestrictedPresetName(newValue)) {
+        return t(PRESET_NAME_ERRORS.RESTRICTED);
+      }
 
-    return '';
-  }, []);
+      return '';
+    },
+    [t],
+  );
 
   // Validating a preset rename
   const validatePresetRename = useCallback(
     (oldName: string) => (newName: string) => {
       if (!newName) {
-        return PresetErrorEnum.EMPTY;
+        return t(PRESET_NAME_ERRORS.EMPTY);
       }
 
       /**
@@ -376,12 +387,12 @@ const PresetsBar = ({
                   newName.toLocaleLowerCase(),
             )
       ) {
-        return PresetErrorEnum.DUPLICATE;
+        return t(PRESET_NAME_ERRORS.DUPLICATE);
       }
 
       return validatePresetName(newName);
     },
-    [isCaseSensitiveFs, presetNames, validatePresetName],
+    [isCaseSensitiveFs, presetNames, t, validatePresetName],
   );
 
   // Restore targets the profile attached to this output, falling back to the

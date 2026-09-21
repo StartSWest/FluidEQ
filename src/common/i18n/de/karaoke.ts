@@ -29,13 +29,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.hideHeader': 'FluidEQ-Kopfzeile ausblenden',
   'karaoke.fullscreen.showHeader': 'FluidEQ-Kopfzeile einblenden',
   'karaoke.actions': 'Karaoke-Aktionen',
-  'karaoke.readiness.resize': 'Mikrofon- und Tonhöhenbereiche skalieren',
   'karaoke.empty.title': 'Ihre Bühne ist bereit',
   'karaoke.empty.body':
     'Öffnen Sie Audiodateien mit optionalen Texten oder fügen Sie einen ganzen Ordner hinzu. FluidEQ verknüpft gleichnamige Dateien in einer Playlist.',
-  'karaoke.import.pending': 'Als Nächstes: Songs importieren',
   'karaoke.import.open': 'Song öffnen',
-  'karaoke.import.replace': 'Song ersetzen',
   'karaoke.import.addFiles': 'Dateien hinzufügen',
   'karaoke.import.folder': 'Ordner hinzufügen',
   'karaoke.import.clear': 'Entfernen',
@@ -100,22 +97,17 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.none':
     'Kein synchronisierter Text ausgewählt. Wiedergabe und Live-Tuner funktionieren weiterhin.',
   'karaoke.lyrics.line': 'Textzeile {number}',
-  'karaoke.lyrics.previous': 'Vorherige Textzeile',
-  'karaoke.lyrics.next': 'Nächste Textzeile',
   'karaoke.lyrics.follow': 'Text folgen',
   'karaoke.lyrics.textSize': 'Songtextgröße',
   'karaoke.transport.title': 'Karaoke-Wiedergabesteuerung',
-  'karaoke.transport.restart': 'Song neu starten',
   'karaoke.transport.play': 'Wiedergeben',
   'karaoke.transport.pause': 'Pause',
   'karaoke.transport.spaceShortcut': '{action} · Leertaste',
   'karaoke.transport.seek': 'Songposition',
-  'karaoke.transport.volume': 'Lautstärke',
   'karaoke.transport.vocalLevel': 'Führungsstimme',
   'karaoke.transport.vocalOff': 'Nur Playback',
   'karaoke.transport.vocalFull': 'Original',
   'karaoke.transport.mixSettings': 'Mix-Einstellungen',
-  'karaoke.transport.openMixSettings': 'Mix-Einstellungen für {channel} öffnen',
   'karaoke.mic.title': 'Mikrofon',
   'karaoke.mic.settings': 'Mikrofoneinstellungen',
   'karaoke.mic.off': 'Aus',
@@ -143,19 +135,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.show': 'Tonhöhenanzeige einblenden',
   'karaoke.pitch.hide': 'Tonhöhenanzeige ausblenden',
   'karaoke.pitch.guide': 'Melodieführung',
-  'karaoke.pitch.toneGuide': 'Melodieton',
-  'karaoke.pitch.toneEnable': 'Melodie als Ton abspielen',
-  'karaoke.pitch.toneDisable': 'Melodieton stoppen',
   'karaoke.pitch.toneVolume': 'Lautstärke des Melodietons',
   'karaoke.pitch.scrubHint':
     'Nach links oder rechts ziehen, um durch den Song zu gehen; loslassen, um pausiert zu bleiben.',
-  'karaoke.pitch.viewSelector': 'Tonhöhenanzeige',
-  'karaoke.pitch.viewNotes': 'Noten',
-  'karaoke.pitch.viewWave': 'Kurve',
   'karaoke.pitch.waveCanvas':
     'Echtzeit-Tonhöhenkurve der Stimme über den Songnoten',
-  'karaoke.pitch.waveSong': 'Song',
-  'karaoke.pitch.waveVoice': 'Ihre Stimme',
   'karaoke.pitch.waveFooter':
     'Die blauen Blöcke sind die Songnoten; die dünne Live-Kurve zeigt die vom Mikrofon erfasste Tonhöhe.',
   'karaoke.pitch.review': 'Leistungsübersicht',
@@ -182,8 +166,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.high': 'Zu hoch',
   'karaoke.pitch.tuned': 'Richtig',
   'karaoke.pitch.low': 'Zu tief',
-  'karaoke.pitch.ultrastar':
-    'Blaue Balken sind die Zieltöne; die Spur zeigt, ob Ihre Stimme zu hoch, richtig oder zu tief ist.',
   'karaoke.chords.aria': 'Aus der Begleitspur geschätzte Gitarrenakkorde',
   'karaoke.chords.analyzing': 'Akkorde werden gesucht… {percent}%',
   'karaoke.chords.estimate': 'Geschätzter Akkord',
@@ -202,13 +184,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.untitled': 'Karaoke ohne Titel',
   'karaoke.maker.undo': 'Rückgängig',
   'karaoke.maker.redo': 'Wiederholen',
-  'karaoke.maker.preview': 'Vorschau · 1, 2, 3',
   'karaoke.maker.apply': 'Im Player verwenden',
   'karaoke.maker.applyHint':
     'Diese Änderungen im Player verwenden. Die Originaldatei bleibt unverändert; Export erstellt eine neue Datei.',
   'karaoke.maker.lyrics': 'Liedtext',
   'karaoke.maker.toolsEdit': 'Bearbeitungswerkzeuge',
-  'karaoke.maker.toolsAnalysis': 'Analysewerkzeuge',
   'karaoke.maker.lyricsTiming': 'Liedtext-Timing',
   'karaoke.maker.timingAll': 'Ganzer Song',
   'karaoke.maker.timingFromWord': 'Ab gewähltem Wort',
@@ -223,15 +203,10 @@ const karaoke: Partial<Dictionary> = {
     'Projekt geladen. Das aktuelle Audio bleibt verknüpft.',
   'karaoke.maker.karaokeImported':
     'Karaoke-Timing importiert. Das aktuelle Audio bleibt verknüpft.',
-  'karaoke.maker.tapWords': 'Wörter takten',
   'karaoke.maker.recordLines': 'Zeilenanfänge aufnehmen',
   'karaoke.maker.syncLinesFromHere': 'Zeilen ab hier synchronisieren',
-  'karaoke.maker.syncWordsFromHere': 'Wörter ab hier synchronisieren',
-  'karaoke.maker.syncNow': 'Jetzt',
-  'karaoke.maker.syncNext': 'Als Nächstes: {item}',
   'karaoke.maker.markLine': 'Zeilenanfang markieren',
   'karaoke.maker.markLineEnd': 'Zeilenende markieren',
-  'karaoke.maker.captureEnd': 'Auf Zeilenende achten',
   'karaoke.maker.capturePressStart': 'Schritt 1 · Enter beim START',
   'karaoke.maker.captureReplaceStart':
     'Nächste Zeile bereit · Enter ersetzt den START',
@@ -239,18 +214,12 @@ const karaoke: Partial<Dictionary> = {
     'Start bei {time} gespeichert · Enter beim ENDE',
   'karaoke.maker.captureAutomaticStart':
     'Automatischer Start {time} · Enter beim ENDE',
-  'karaoke.maker.captureAutomaticSuggestion':
-    'Startvorschlag {time} · Enter speichert den START',
-  'karaoke.maker.captureFixEnd':
-    'Zeile aufgenommen · Enter korrigiert das ENDE',
   'karaoke.maker.captureStartPoint': 'START',
   'karaoke.maker.captureEndPoint': 'ENDE',
   'karaoke.maker.captureGuideTitle': 'Zeilen-Timing',
   'karaoke.maker.captureSetupTitle': 'Bereit, das Liedtext-Timing aufzunehmen?',
   'karaoke.maker.captureSetupBody':
     'Hören Sie auf den Gesang. Drücken Sie am Zeilenanfang Enter, optional bei jedem neuen Wort Tab und am Zeilenende erneut Enter. So behält ein langes letztes Wort seine volle Dauer.',
-  'karaoke.maker.captureSetupStatus':
-    'Lesen Sie die Anleitung in der Live-Vorschau und starten Sie dann die Aufnahme.',
   'karaoke.maker.captureStartRecording': 'Aufnahme starten',
   'karaoke.maker.captureMoveGuide':
     'Zum Verschieben ziehen. Doppelklicken, um die Position zurückzusetzen.',
@@ -267,14 +236,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureGuideWords': 'nächstes Wort markieren',
   'karaoke.maker.captureGuideUndo': 'letzte Markierung rückgängig',
   'karaoke.maker.stopRecording': 'Aufnahme beenden',
-  'karaoke.maker.markWord': 'Wort markieren',
   'karaoke.maker.markNextWord': 'Nächstes Wort',
-  'karaoke.maker.done': 'Fertig',
   'karaoke.maker.ignoreLine': 'Zeile ignorieren',
   'karaoke.maker.lineTimingComplete':
     'Zeilensynchronisierung abgeschlossen. Bereit zum Prüfen und Abspielen.',
-  'karaoke.maker.recordLinesHint':
-    'ENTER markiert Start/Ende · ↑/↓ wählt die Zeile · ←/→ verschiebt nur das Audio um 2 s · LEERTASTE spielt oder pausiert · Rücktaste macht rückgängig',
   'karaoke.maker.panView': 'Hand · Zeitleiste verschieben',
   'karaoke.maker.panHint':
     'Handwerkzeug: Ziehen Sie auf der Fläche, um ohne Bearbeitung durch den Song zu navigieren.',
@@ -292,7 +257,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pasteNotes': 'Noten am Abspielkopf einfügen',
   'karaoke.maker.notePasted': 'Note am Abspielkopf eingefügt.',
   'karaoke.maker.notesPasted': '{count} Noten am Abspielkopf eingefügt.',
-  'karaoke.maker.attachNotesByTime': 'Mit Liedtext verknüpfen',
   'karaoke.maker.detachNotes': 'Vom Liedtext lösen',
   'karaoke.maker.noteAttachHelp':
     'Halten Sie Strg und ziehen Sie eine Note auf ein Wort oder eine Silbe. Verknüpfte Noten folgen dem Liedtext und sind gesperrt.',
@@ -311,19 +275,13 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.hearNote': 'Note anhören',
   'karaoke.maker.split': 'Teilen',
   'karaoke.maker.delete': 'Löschen',
-  'karaoke.maker.analyze': 'Melodie analysieren',
-  'karaoke.maker.prepare': 'Karaoke vorbereiten',
   'karaoke.maker.advanced': 'Reparaturwerkzeuge',
   'karaoke.maker.prepared':
     'Dieses Karaoke hat bereits getakteten Liedtext und eine Melodie.',
   'karaoke.maker.repairLyrics': 'Liedtext-Timing neu erkennen',
   'karaoke.maker.repairMelody': 'Melodienoten neu erkennen',
   'karaoke.maker.rebuildKaraoke': 'Liedtext + Melodie neu erstellen',
-  'karaoke.maker.autoAlign': 'Automatisch ausrichten',
-  'karaoke.maker.aiMelody': 'KI-Melodie',
-  'karaoke.maker.transcribe': 'Transkribieren',
   'karaoke.maker.vocalStem': 'Gesangsspur verwenden',
-  'karaoke.maker.vocalStemLoaded': 'Gesangsspur geladen',
   'karaoke.maker.groupVoice': 'Stimme und Musik',
   'karaoke.maker.stemsTitle': 'Getrennte Spuren',
   'karaoke.maker.stemBacking': 'Playback',
@@ -367,16 +325,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'Erweitertes LRC',
   'karaoke.maker.exportInstrumental': 'Playback (ohne Gesang)',
-  'karaoke.maker.tapHint':
-    'LEERTASTE oder ENTER für „{word}“ · Rücktaste macht rückgängig',
-  'karaoke.maker.editHint':
-    'Noten ziehen, um Tonhöhe/Zeit zu ändern. An Kanten ziehen zum Skalieren. Strg + Rad zoomt.',
   'karaoke.maker.stats': '{notes} Noten · {words} Wörter · {checks} Prüfungen',
   'karaoke.maker.wordStateLegend': 'Status der Liedtext-Zeitsetzung',
   'karaoke.maker.userAdjustedWords': '{count} angepasst',
   'karaoke.maker.pendingWords': '{count} ausstehend',
   'karaoke.maker.artist': 'Interpret',
-  'karaoke.maker.zoom': 'Zoom',
   'karaoke.maker.songPosition': 'Position im Song',
   'karaoke.maker.previousView': 'Vorheriger Abschnitt',
   'karaoke.maker.nextView': 'Nächster Abschnitt',
@@ -384,8 +337,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.livePreview': 'Live-Vorschau',
   'karaoke.maker.showPreview': 'Vorschau anzeigen',
   'karaoke.maker.hidePreview': 'Vorschau ausblenden',
-  'karaoke.maker.previewEmpty':
-    'Fügen Sie zeitlich abgestimmten Liedtext hinzu, um die Live-Vorschau zu sehen.',
   'karaoke.maker.noteNormal': 'Note',
   'karaoke.maker.noteGolden': 'Gold',
   'karaoke.maker.noteFree': 'Frei',
@@ -401,8 +352,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsEyebrow': 'LIEDTEXT',
   'karaoke.maker.lyricsTitle':
     'Pro Zeile eine Liedtextzeile einfügen oder bearbeiten',
-  'karaoke.maker.lyricsWarning':
-    'Beim Ersetzen werden Wortverknüpfungen gelöscht, damit die Wörter sicher neu getaktet werden können.',
   'karaoke.maker.lyricsReferenceHint':
     'Geben Sie den vollständigen Liedtext einschließlich Wiederholungen und Markierungen wie [Strophe] oder [Refrain] an. FluidEQ behält diesen Text und ermittelt sein Timing mit lokaler Spracherkennung.',
   'karaoke.maker.referenceLyrics': 'Referenz-Liedtext',
@@ -450,14 +399,12 @@ const karaoke: Partial<Dictionary> = {
     'Die Wörter wurden geändert. Beim Ersetzen werden Wort-IDs und automatisches Timing neu erstellt; vorhandene manuelle Korrekturen können nicht zuverlässig übertragen werden. Die Noten bleiben erhalten und werden neu verknüpft.',
   'karaoke.maker.replaceAndDetect': 'Ersetzen und erkennen',
   'karaoke.maker.wordText': 'Wort',
-  'karaoke.maker.wordStart': 'Start (ms)',
   'karaoke.maker.wordPosition': 'Position',
   'karaoke.maker.wordDuration': 'Länge (ms)',
   'karaoke.maker.wordTimingSliderHint':
     'Passt die gemeinsame Grenze an; das Nachbarwort gibt Zeit ab oder erhält sie, während der Zeilenbereich gleich bleibt.',
   'karaoke.maker.usePlayhead': 'Abspielposition verwenden',
   'karaoke.maker.playWord': 'Wort abspielen',
-  'karaoke.maker.allowAutoTiming': 'Automatisches Timing erlauben',
   'karaoke.maker.replaceLyrics': 'Liedtext ersetzen',
   'karaoke.maker.lyricsAutoAligned':
     'Neuer Liedtext angewendet und an der verfügbaren Melodie ausgerichtet.',
@@ -470,15 +417,12 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionReview':
     'Die Erkennung ist nur ein Ausgangspunkt. FluidEQ behält beim Abgleich Ihre Schreibweise bei und alle Zeiten bleiben bearbeitbar.',
   'karaoke.maker.notNow': 'Nicht jetzt',
-  'karaoke.maker.downloadTranscribe': 'Herunterladen und transkribieren',
   'karaoke.maker.downloadPrepare': 'Herunterladen und Liedtext vorbereiten',
   'karaoke.maker.downloadingWhisper': 'Whisper-Modell wird heruntergeladen',
   'karaoke.maker.downloadOverall': 'Gesamtdownload',
   'karaoke.maker.downloadFiles': '{complete} von {total} Dateien',
   'karaoke.maker.loadingWhisper': 'Whisper-Modell wird geladen',
   'karaoke.maker.analysisRunning': 'Tonhöhe wird lokal analysiert',
-  'karaoke.maker.analysisAligned':
-    'Unbearbeitete Wörter wurden an {count} erkannte Notenbereiche angepasst. Manuelle Zeitangaben blieben erhalten.',
   'karaoke.maker.analysisFound':
     'Die Analyse hat {count} Notenbereiche gefunden.',
   'karaoke.maker.basicPitchRunning': 'Melodienoten werden erkannt',
@@ -493,8 +437,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Transkription abgeschlossen',
   'karaoke.maker.whisperMatched':
     'Whisper hat {count} erkannte Wörter zugeordnet. Prüfen Sie vor dem Export die bearbeitbaren Zeitangaben.',
-  'karaoke.maker.autoAlignComplete':
-    'Unbearbeiteter Liedtext wurde an die erkannte Melodie angepasst. Manuelle Zeitangaben blieben erhalten.',
   'karaoke.maker.speechMemory': 'KI-Modellspeicher',
   'karaoke.maker.speechMemoryReady': 'Im Arbeitsspeicher bereit',
   'karaoke.maker.speechMemoryCached': 'Auf Datenträger zwischengespeichert',

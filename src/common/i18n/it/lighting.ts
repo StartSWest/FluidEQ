@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'Mantieni colore',
   'lighting.idle.brightness': 'Luminosità a riposo',
   'lighting.idle.speed': 'Movimento a riposo',
-  'lighting.preview.live': 'Anteprima della scrivania',
   'lighting.tuning.master': 'Luminosità generale',
   'lighting.title': 'Illuminazione dinamica',
   'lighting.rail.blurb': 'La tua scrivania segue la scena',
@@ -80,13 +79,10 @@ const lighting = {
   'lighting.showGraph': 'Mostra il grafico',
 
   'lighting.brightness': 'Luminosità',
-  'lighting.brightness.value': '{percent}%',
   'lighting.pulse': 'Pulsa a tempo',
   'lighting.pulse.off': 'No',
   'lighting.pulse.gentle': 'Leggero',
   'lighting.pulse.full': 'Forte',
-  'lighting.colours.hint':
-    'I colori vengono dalla scena stessa, quindi non c’è niente da scegliere.',
 
   'lighting.devices.title': 'I tuoi dispositivi',
   'lighting.devices.searching': 'Ricerca dei dispositivi…',

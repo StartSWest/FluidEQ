@@ -1,6 +1,5 @@
 const termsNotice = {
   'termsNotice.title': 'Plus की शर्तें बदल गई हैं',
-  'termsNotice.version': 'संस्करण {version}',
   'termsNotice.read': 'शर्तें पढ़ें',
   'termsNotice.gotIt': 'ठीक है',
 

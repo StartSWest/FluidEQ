@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     'Используйте эту роль на компьютере с гарнитурой или колонками. Он принимает один или несколько источников и воспроизводит их через выход, выбранный в FluidEQ.',
   'remoteAudio.listen.start': 'Создать код подключения',
-  'remoteAudio.listen.activeTitle': 'Этот компьютер принимает звук',
   'remoteAudio.listen.newCode': 'Создать новый код',
   'remoteAudio.listen.stop': 'Остановить приём',
   'remoteAudio.send.kicker': 'ИСТОЧНИК · КЛИЕНТ',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': 'Код подключения',
   'remoteAudio.send.codePlaceholder': 'Вставьте FLUIDEQ-LAN-2…',
   'remoteAudio.send.start': 'Подключить и передавать',
-  'remoteAudio.send.activeTitle': 'Передаётся системный звук',
-  'remoteAudio.send.activeBody':
-    'Оставьте FluidEQ открытым на обоих компьютерах. Приёмник воспроизводит этот поток без потерь вместе со всеми другими подключёнными источниками.',
   'remoteAudio.send.destination': 'Воспроизведение на {name}',
   'remoteAudio.send.stop': 'Остановить передачу',
   'remoteAudio.send.readyHint':
@@ -46,7 +42,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': 'Связь в реальном времени',
   'remoteAudio.monitor.inactive': 'Выберите роль, чтобы начать',
   'remoteAudio.monitor.ready': 'Готов к коду подключения',
-  'remoteAudio.monitor.waveform': 'График передаваемого звука',
   'remoteAudio.monitor.waveformFor': 'График звука от {name}',
   'remoteAudio.monitor.buffer': 'Воспроизведение {milliseconds} мс',
   'remoteAudio.monitor.sendQueue': 'Очередь отправки {milliseconds} мс',

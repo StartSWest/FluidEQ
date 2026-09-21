@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': '色を保つ',
   'lighting.idle.brightness': '待機時の明るさ',
   'lighting.idle.speed': '待機時の動き',
-  'lighting.preview.live': 'デスクのライブプレビュー',
   'lighting.tuning.master': '全体の明るさ',
   'lighting.title': 'ダイナミック ライティング',
   'lighting.rail.blurb': 'デスクがシーンに合わせて光る',
@@ -80,13 +79,10 @@ const lighting = {
   'lighting.showGraph': 'グラフを表示',
 
   'lighting.brightness': '明るさ',
-  'lighting.brightness.value': '{percent}%',
   'lighting.pulse': 'ビートに合わせて脈打つ',
   'lighting.pulse.off': 'オフ',
   'lighting.pulse.gentle': '控えめ',
   'lighting.pulse.full': 'しっかり',
-  'lighting.colours.hint':
-    '色はシーンそのものから取られるので、選ぶ必要はありません。',
 
   'lighting.devices.title': 'あなたのデバイス',
   'lighting.devices.searching': 'デバイスを探しています…',

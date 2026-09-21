@@ -18,8 +18,6 @@ const plus = {
   'plus.rail.collapse': 'Seitenleiste einklappen',
 
   'plus.gate.cta': 'Plus ansehen',
-  'plus.browse.text':
-    'Mit Plus laufen diese Szenen zu Ihrer Musik, Sie fügen sie Ihren Darstellungen hinzu und können sie mit „Gefällt mir“ markieren.',
 
   'plus.gallery.search': 'Szenen oder Ersteller suchen',
   'plus.gallery.sort': 'Sortieren',
@@ -319,23 +317,6 @@ const plus = {
   'plus.report.failed':
     'Die Meldung konnte nicht gesendet werden. Versuchen Sie es erneut.',
 
-  'plus.welcome.title':
-    'Melden Sie sich an und sehen Sie, was Mitglieder bauen',
-  'plus.welcome.body':
-    'Mit einem Konto können Sie die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu Ihren Darstellungen hinzuzufügen, eigene im Studio zu bauen und das, was Sie bauen, überallhin mitzunehmen.',
-  'plus.welcome.browse':
-    'Alle Szenen durchstöbern, die Mitglieder veröffentlichen',
-  'plus.welcome.play':
-    'Sie zu Ihrer Musik abspielen und zu Ihren Darstellungen hinzufügen',
-  'plus.welcome.studio':
-    'Was Sie im Studio bauen, in Ihre Darstellungen, auf den Desktop und in die Galerie bringen',
-  'plus.welcome.board':
-    'Mit den „Gefällt mir“ für Ihre Szenen in der Rangliste aufsteigen',
-  'plus.welcome.account.label': 'Konto',
-  'plus.welcome.account.access': 'Galerie erkunden und kurze Demos ansehen.',
-  'plus.welcome.paid.label': 'Kostenpflichtiges Plus',
-  'plus.welcome.paid.access':
-    'Szenen herunterladen und behalten, vollständig abspielen und eigene erstellen.',
   'plus.welcome.fine': 'Konto erstellen',
   'plus.welcome.scene.neonHorizon': 'Neon-Horizont',
   'plus.welcome.scene.nebulaHeart': 'Nebelherz',

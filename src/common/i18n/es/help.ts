@@ -409,8 +409,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.stop': 'Detiene todos los fondos de escritorio.',
   'help.gallery.sceneCaption': 'La página de una escena',
   'help.gallery.back': 'Vuelve a la galería, donde la dejaste.',
-  'help.gallery.stepName': 'Anterior y siguiente',
-  'help.gallery.step': 'Recorre la lista desde la que abriste la escena.',
   'help.gallery.play': 'Añade la escena a tus estilos o la pone en la gráfica.',
   'help.gallery.desktop': 'Pone la escena detrás de los iconos del escritorio.',
   'help.gallery.inspect':
@@ -439,15 +437,11 @@ const help: Record<keyof typeof en, string> = {
     'Haz doble clic en el escenario para verlo a pantalla completa. Ver por dentro una escena de FluidEQ… abre una de las escenas de FluidEQ para aprender de ella; no se puede publicar. Las escenas que parpadean demasiado o son demasiado pesadas quedan bloqueadas. Una escena que publicas la lee antes un moderador, y una que se aprueba te da un mes de Plus.',
   'help.studio.project':
     'Tus proyectos y escenas de FluidEQ para ver por dentro.',
-  'help.studio.switchName': 'Proyecto anterior y siguiente',
-  'help.studio.switch': 'Retrocede o avanza entre tus proyectos.',
   'help.studio.stageName': 'Escenario',
   'help.studio.stage':
     'La escena, reproduciéndose con tu música. Haz doble clic para verla a pantalla completa.',
   'help.studio.code':
     'El código de la escena, en directo, actualizado a medida que tu IA lo guarda.',
-  'help.studio.prompt':
-    'Copia el prompt que explica a tu IA cómo se hacen las escenas.',
   'help.studio.hears':
     'Lo que recibe la escena: nivel, golpe, graves, medios, agudos.',
   'help.studio.signals': 'Señales de prueba que solo mueven esta vista previa.',

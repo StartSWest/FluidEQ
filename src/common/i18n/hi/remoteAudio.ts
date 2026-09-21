@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     'हेडसेट या स्पीकर वाले कंप्यूटर पर यह भूमिका इस्तेमाल करें। यह एक या अधिक सेंडर स्वीकार करता है और FluidEQ में चुने गए आउटपुट पर उन्हें चलाता है।',
   'remoteAudio.listen.start': 'कनेक्शन कोड बनाएँ',
-  'remoteAudio.listen.activeTitle': 'यह कंप्यूटर सुन रहा है',
   'remoteAudio.listen.newCode': 'नया कोड बनाएँ',
   'remoteAudio.listen.stop': 'सुनना बंद करें',
   'remoteAudio.send.kicker': 'सेंडर · क्लाइंट',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': 'कनेक्शन कोड',
   'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-2… चिपकाएँ',
   'remoteAudio.send.start': 'कनेक्ट करके भेजें',
-  'remoteAudio.send.activeTitle': 'सिस्टम ऑडियो भेजा जा रहा है',
-  'remoteAudio.send.activeBody':
-    'दोनों कंप्यूटरों पर FluidEQ खुला रखें। रिसीवर इस लॉसलेस स्ट्रीम को अन्य जुड़े प्रेषकों के साथ चलाता है।',
   'remoteAudio.send.destination': '{name} पर चल रहा है',
   'remoteAudio.send.stop': 'भेजना बंद करें',
   'remoteAudio.send.readyHint':
@@ -46,7 +42,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': 'लाइव कनेक्शन',
   'remoteAudio.monitor.inactive': 'शुरू करने के लिए भूमिका चुनें',
   'remoteAudio.monitor.ready': 'कनेक्शन कोड के लिए तैयार',
-  'remoteAudio.monitor.waveform': 'साझा ऑडियो का लाइव वेवफ़ॉर्म',
   'remoteAudio.monitor.waveformFor': '{name} का लाइव ऑडियो वेवफ़ॉर्म',
   'remoteAudio.monitor.buffer': 'प्लेबैक {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': 'भेजने की कतार {milliseconds} ms',

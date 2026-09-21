@@ -17,8 +17,6 @@ const plus = {
   'plus.rail.collapse': 'Contraer la barra lateral',
 
   'plus.gate.cta': 'Ver Plus',
-  'plus.browse.text':
-    'Con Plus, estas escenas se mueven con tu música, las añades a tus estilos y les das me gusta.',
 
   'plus.gallery.search': 'Buscar escenas o creadores',
   'plus.gallery.sort': 'Ordenar',
@@ -311,21 +309,6 @@ const plus = {
   'plus.report.cancel': 'Cancelar',
   'plus.report.failed': 'No se pudo enviar la denuncia. Vuelve a intentarlo.',
 
-  'plus.welcome.title': 'Inicia sesión y mira lo que crean los miembros',
-  'plus.welcome.body':
-    'Con una cuenta puedes explorar la galería y ver demostraciones breves. Necesitas Plus para descargar escenas y conservarlas, reproducirlas completas, añadirlas a tus estilos, crear las tuyas en el Estudio y llevar lo que haces a cualquier parte.',
-  'plus.welcome.browse': 'Explora todas las escenas que publican los miembros',
-  'plus.welcome.play': 'Reprodúcelas con tu música y añádelas a tus estilos',
-  'plus.welcome.studio':
-    'Lleva lo que haces en el Estudio a tus estilos, a tu escritorio y a la galería',
-  'plus.welcome.board':
-    'Sube en la clasificación con los me gusta de tus escenas',
-  'plus.welcome.account.label': 'Cuenta',
-  'plus.welcome.account.access':
-    'Explora la galería y mira demostraciones breves.',
-  'plus.welcome.paid.label': 'Plus de pago',
-  'plus.welcome.paid.access':
-    'Descarga y conserva escenas, úsalas completas y crea las tuyas.',
   'plus.welcome.fine': 'Crear una cuenta',
   'plus.welcome.scene.neonHorizon': 'Horizonte de neón',
   'plus.welcome.scene.nebulaHeart': 'Corazón de nebulosa',

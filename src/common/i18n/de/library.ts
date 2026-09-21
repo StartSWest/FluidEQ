@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'Ordner hinzufügen',
   'library.rescan': 'Erneut einlesen',
   'library.rescan.force': 'Neu einlesen erzwingen',
-  'library.search': 'Bibliothek durchsuchen',
   'library.searchPlaceholder': 'Songs, Interpreten, Alben durchsuchen',
 
   'library.browse.album': 'Alben',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Zu einem Buchstaben springen',
   'library.coverflow.previous': 'Vorheriges Cover',
   'library.coverflow.next': 'Nächstes Cover',
-  'library.folderCount': '{count} Ordner',
   'library.filterHere': 'Diese Songs filtern',
   'library.view.list': 'Liste',
   'library.view.grid': 'Raster',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} wird eingelesen',
   'library.scan.counted': '{parsed} von {seen} Dateien',
   'library.scan.cancel': 'Stopp',
-  'library.scan.done': '{count} Songs hinzugefügt',
 
   'library.roots': 'Ordner',
   'library.root.remove': 'Diesen Ordner entfernen',
@@ -124,7 +121,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': '5 Sekunden vor',
   'library.next': 'Nächster Titel',
   'library.shuffle': 'Zufallswiedergabe',
-  'library.repeat': 'Wiederholen',
   'library.repeat.all': 'Alles wiederholen',
   'library.repeat.one': 'Diesen Song wiederholen',
   'library.repeat.off': 'Nicht wiederholen',

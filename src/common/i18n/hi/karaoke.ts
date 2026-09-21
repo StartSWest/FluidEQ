@@ -29,13 +29,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.hideHeader': 'FluidEQ हेडर छिपाएँ',
   'karaoke.fullscreen.showHeader': 'FluidEQ हेडर दिखाएँ',
   'karaoke.actions': 'कराओके क्रियाएँ',
-  'karaoke.readiness.resize': 'माइक्रोफ़ोन और सुर पैनल का आकार बदलें',
   'karaoke.empty.title': 'आपका मंच तैयार है',
   'karaoke.empty.body':
     'वैकल्पिक बोल के साथ ऑडियो खोलें या पूरा फ़ोल्डर जोड़ें। FluidEQ समान नाम वाली फ़ाइलों को प्लेलिस्ट में जोड़ता है।',
-  'karaoke.import.pending': 'अगला: गाने आयात करें',
   'karaoke.import.open': 'गाना खोलें',
-  'karaoke.import.replace': 'गाना बदलें',
   'karaoke.import.addFiles': 'फ़ाइलें जोड़ें',
   'karaoke.import.folder': 'फ़ोल्डर जोड़ें',
   'karaoke.import.clear': 'हटाएँ',
@@ -97,22 +94,17 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.none':
     'समयबद्ध बोल नहीं चुने गए। प्लेबैक और लाइव ट्यूनर फिर भी काम करेंगे।',
   'karaoke.lyrics.line': 'बोल पंक्ति {number}',
-  'karaoke.lyrics.previous': 'पिछली बोल पंक्ति',
-  'karaoke.lyrics.next': 'अगली बोल पंक्ति',
   'karaoke.lyrics.follow': 'गीत के बोलों का अनुसरण करें',
   'karaoke.lyrics.textSize': 'गीत के बोलों का आकार',
   'karaoke.transport.title': 'कराओके प्लेबैक नियंत्रण',
-  'karaoke.transport.restart': 'गाना फिर शुरू करें',
   'karaoke.transport.play': 'चलाएँ',
   'karaoke.transport.pause': 'रोकें',
   'karaoke.transport.spaceShortcut': '{action} · Space',
   'karaoke.transport.seek': 'गाने की स्थिति',
-  'karaoke.transport.volume': 'आवाज़',
   'karaoke.transport.vocalLevel': 'गाइड वोकल',
   'karaoke.transport.vocalOff': 'केवल बैकिंग',
   'karaoke.transport.vocalFull': 'मूल',
   'karaoke.transport.mixSettings': 'मिक्स सेटिंग',
-  'karaoke.transport.openMixSettings': '{channel} की मिक्स सेटिंग खोलें',
   'karaoke.mic.title': 'माइक्रोफ़ोन',
   'karaoke.mic.settings': 'माइक्रोफ़ोन सेटिंग्स',
   'karaoke.mic.off': 'बंद',
@@ -140,18 +132,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.show': 'पिच गाइड दिखाएँ',
   'karaoke.pitch.hide': 'पिच गाइड छिपाएँ',
   'karaoke.pitch.guide': 'धुन मार्गदर्शक',
-  'karaoke.pitch.toneGuide': 'धुन स्वर',
-  'karaoke.pitch.toneEnable': 'धुन स्वर चलाएँ',
-  'karaoke.pitch.toneDisable': 'धुन स्वर रोकें',
   'karaoke.pitch.toneVolume': 'धुन स्वर का वॉल्यूम',
   'karaoke.pitch.scrubHint':
     'गाने में आगे या पीछे जाने के लिए बाएँ या दाएँ खींचें; छोड़ने पर गाना रुका रहेगा।',
-  'karaoke.pitch.viewSelector': 'सुर दृश्य',
-  'karaoke.pitch.viewNotes': 'नोट्स',
-  'karaoke.pitch.viewWave': 'कर्व',
   'karaoke.pitch.waveCanvas': 'गाने के नोट्स पर गायक के सुर का रीयल-टाइम कर्व',
-  'karaoke.pitch.waveSong': 'गाने का सुर',
-  'karaoke.pitch.waveVoice': 'आपकी आवाज़',
   'karaoke.pitch.waveFooter':
     'नीले ब्लॉक गाने के नोट हैं; पतली लाइव रेखा माइक्रोफ़ोन से आ रहा सुर दिखाती है।',
   'karaoke.pitch.review': 'प्रदर्शन समीक्षा',
@@ -173,8 +157,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.high': 'ऊँचा',
   'karaoke.pitch.tuned': 'सुर में',
   'karaoke.pitch.low': 'नीचा',
-  'karaoke.pitch.ultrastar':
-    'नीली पट्टियाँ लक्षित सुर हैं; रेखा बताती है कि आपकी आवाज़ ऊँची, सुर में या नीची है।',
   'karaoke.chords.aria': 'बैकिंग ट्रैक से अनुमानित गिटार कॉर्ड',
   'karaoke.chords.analyzing': 'कॉर्ड खोजे जा रहे हैं… {percent}%',
   'karaoke.chords.estimate': 'अनुमानित कॉर्ड',
@@ -193,13 +175,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.untitled': 'बिना शीर्षक का कराओके',
   'karaoke.maker.undo': 'पूर्ववत',
   'karaoke.maker.redo': 'फिर करें',
-  'karaoke.maker.preview': 'पूर्वावलोकन · 1, 2, 3',
   'karaoke.maker.apply': 'प्लेयर में उपयोग करें',
   'karaoke.maker.applyHint':
     'इन बदलावों को प्लेयर में उपयोग करें। मूल कराओके फ़ाइल नहीं बदलेगी; निर्यात नई फ़ाइल बनाएगा।',
   'karaoke.maker.lyrics': 'बोल',
   'karaoke.maker.toolsEdit': 'संपादन उपकरण',
-  'karaoke.maker.toolsAnalysis': 'विश्लेषण उपकरण',
   'karaoke.maker.lyricsTiming': 'बोल का समय',
   'karaoke.maker.timingAll': 'पूरा गीत',
   'karaoke.maker.timingFromWord': 'चुने हुए शब्द से',
@@ -213,23 +193,15 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.projectLoaded': 'प्रोजेक्ट लोड हुआ। मौजूदा ऑडियो जुड़ा रहेगा।',
   'karaoke.maker.karaokeImported':
     'कराओके समय आयात हुआ। मौजूदा ऑडियो जुड़ा रहेगा।',
-  'karaoke.maker.tapWords': 'शब्द टैप करें',
   'karaoke.maker.recordLines': 'पंक्ति आरंभ रिकॉर्ड करें',
   'karaoke.maker.syncLinesFromHere': 'यहाँ से पंक्तियाँ सिंक करें',
-  'karaoke.maker.syncWordsFromHere': 'यहाँ से शब्द सिंक करें',
-  'karaoke.maker.syncNow': 'अभी',
-  'karaoke.maker.syncNext': 'अगला: {item}',
   'karaoke.maker.markLine': 'पंक्ति आरंभ चिह्नित करें',
   'karaoke.maker.markLineEnd': 'पंक्ति अंत चिह्नित करें',
-  'karaoke.maker.captureEnd': 'अंत की प्रतीक्षा',
   'karaoke.maker.capturePressStart': 'चरण 1 · आरंभ पर Enter',
   'karaoke.maker.captureReplaceStart':
     'अगली पंक्ति तैयार · Enter आरंभ बदलता है',
   'karaoke.maker.captureStartSaved': '{time} पर आरंभ सहेजा · अंत पर Enter',
   'karaoke.maker.captureAutomaticStart': 'स्वचालित आरंभ {time} · अंत पर Enter',
-  'karaoke.maker.captureAutomaticSuggestion':
-    'सुझाया आरंभ {time} · Enter आरंभ रिकॉर्ड करता है',
-  'karaoke.maker.captureFixEnd': 'पंक्ति रिकॉर्ड हुई · Enter अंत सुधारता है',
   'karaoke.maker.captureStartPoint': 'आरंभ',
   'karaoke.maker.captureEndPoint': 'अंत',
   'karaoke.maker.captureGuideTitle': 'पंक्ति समय',
@@ -237,8 +209,6 @@ const karaoke: Partial<Dictionary> = {
     'बोल का समय रिकॉर्ड करने के लिए तैयार हैं?',
   'karaoke.maker.captureSetupBody':
     'गायक को सुनें। पंक्ति शुरू होते ही Enter दबाएँ, चाहें तो हर नए शब्द पर Tab दबाएँ, फिर पंक्ति समाप्त होने पर Enter दबाएँ। इससे आखिरी लंबा शब्द अपनी पूरी अवधि रखता है।',
-  'karaoke.maker.captureSetupStatus':
-    'लाइव पूर्वावलोकन में मार्गदर्शिका पढ़ें, फिर रिकॉर्डिंग शुरू करें।',
   'karaoke.maker.captureStartRecording': 'रिकॉर्डिंग शुरू करें',
   'karaoke.maker.captureMoveGuide':
     'मार्गदर्शिका को खींचकर ले जाएँ। स्थिति रीसेट करने के लिए डबल-क्लिक करें।',
@@ -254,14 +224,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureGuideWords': 'अगला शब्द चिह्नित करें',
   'karaoke.maker.captureGuideUndo': 'पिछला चिह्न पूर्ववत करें',
   'karaoke.maker.stopRecording': 'रिकॉर्डिंग रोकें',
-  'karaoke.maker.markWord': 'शब्द चिह्नित करें',
   'karaoke.maker.markNextWord': 'अगला शब्द',
-  'karaoke.maker.done': 'पूर्ण',
   'karaoke.maker.ignoreLine': 'पंक्ति छोड़ें',
   'karaoke.maker.lineTimingComplete':
     'पंक्ति समय पूरा हुआ। समीक्षा करके प्लेयर में उपयोग करने के लिए तैयार है।',
-  'karaoke.maker.recordLinesHint':
-    'ENTER आरंभ/अंत चिह्नित करता है · ↑/↓ पंक्ति चुनता है · ←/→ केवल ऑडियो 2 सेकंड चलाता है · SPACE चलाता/रोकता है · Backspace पूर्ववत करता है',
   'karaoke.maker.panView': 'हाथ · टाइमलाइन खिसकाएँ',
   'karaoke.maker.panHint':
     'हाथ टूल: बिना संपादन किए गीत में घूमने के लिए कैनवास पर खींचें।',
@@ -279,7 +245,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pasteNotes': 'प्लेबैक स्थिति पर सुर चिपकाएँ',
   'karaoke.maker.notePasted': 'प्लेबैक स्थिति पर सुर चिपकाया गया।',
   'karaoke.maker.notesPasted': 'प्लेबैक स्थिति पर {count} सुर चिपकाए गए।',
-  'karaoke.maker.attachNotesByTime': 'बोल से जोड़ें',
   'karaoke.maker.detachNotes': 'बोल से अलग करें',
   'karaoke.maker.noteAttachHelp':
     'Ctrl दबाकर सुर को शब्द या अक्षरांश पर खींचें। जुड़े सुर बोल के समय के साथ चलते हैं और लॉक रहते हैं।',
@@ -298,18 +263,12 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.hearNote': 'स्वर सुनें',
   'karaoke.maker.split': 'विभाजित करें',
   'karaoke.maker.delete': 'हटाएँ',
-  'karaoke.maker.analyze': 'धुन का विश्लेषण',
-  'karaoke.maker.prepare': 'कराओके तैयार करें',
   'karaoke.maker.advanced': 'मरम्मत टूल',
   'karaoke.maker.prepared': 'इस कराओके में पहले से समयबद्ध बोल और धुन हैं।',
   'karaoke.maker.repairLyrics': 'बोल का समय फिर पहचानें',
   'karaoke.maker.repairMelody': 'धुन के सुर फिर पहचानें',
   'karaoke.maker.rebuildKaraoke': 'बोल और धुन फिर बनाएँ',
-  'karaoke.maker.autoAlign': 'स्वतः मिलाएँ',
-  'karaoke.maker.aiMelody': 'AI धुन',
-  'karaoke.maker.transcribe': 'लिप्यंतरण',
   'karaoke.maker.vocalStem': 'वोकल स्टेम उपयोग करें',
-  'karaoke.maker.vocalStemLoaded': 'वोकल स्टेम लोड हुआ',
   'karaoke.maker.groupVoice': 'आवाज़ और संगीत',
   'karaoke.maker.stemsTitle': 'अलग किए गए ट्रैक',
   'karaoke.maker.stemBacking': 'बैकिंग ट्रैक',
@@ -352,16 +311,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'उन्नत LRC',
   'karaoke.maker.exportInstrumental': 'बैकिंग ट्रैक (बिना आवाज़)',
-  'karaoke.maker.tapHint':
-    '“{word}” के लिए SPACE या ENTER दबाएँ · Backspace पूर्ववत करता है',
-  'karaoke.maker.editHint':
-    'स्वर/समय बदलने के लिए नोट खींचें। आकार के लिए किनारा खींचें। Ctrl + व्हील ज़ूम करता है।',
   'karaoke.maker.stats': '{notes} स्वर · {words} शब्द · {checks} जाँच',
   'karaoke.maker.wordStateLegend': 'गीत समय-निर्धारण की स्थिति',
   'karaoke.maker.userAdjustedWords': '{count} समायोजित',
   'karaoke.maker.pendingWords': '{count} लंबित',
   'karaoke.maker.artist': 'कलाकार',
-  'karaoke.maker.zoom': 'ज़ूम',
   'karaoke.maker.songPosition': 'गीत में स्थान',
   'karaoke.maker.previousView': 'पिछला भाग',
   'karaoke.maker.nextView': 'अगला भाग',
@@ -369,8 +323,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.livePreview': 'लाइव पूर्वावलोकन',
   'karaoke.maker.showPreview': 'पूर्वावलोकन दिखाएँ',
   'karaoke.maker.hidePreview': 'पूर्वावलोकन छिपाएँ',
-  'karaoke.maker.previewEmpty':
-    'लाइव पूर्वावलोकन के लिए समयबद्ध गीत जोड़ें या संरेखित करें।',
   'karaoke.maker.noteNormal': 'स्वर',
   'karaoke.maker.noteGolden': 'गोल्डन',
   'karaoke.maker.noteFree': 'मुक्त',
@@ -385,8 +337,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsEyebrow': 'बोल',
   'karaoke.maker.lyricsTitle':
     'हर पंक्ति में बोल की एक पंक्ति चिपकाएँ या संपादित करें',
-  'karaoke.maker.lyricsWarning':
-    'टेक्स्ट बदलने पर शब्द लिंक मिटते हैं ताकि उन्हें सुरक्षित रूप से फिर टैप या मिलाया जा सके।',
   'karaoke.maker.lyricsReferenceHint':
     '[Verse] या [Chorus] जैसे चिह्न और दोहराई गई पंक्तियों सहित पूरे बोल दें। FluidEQ इस पाठ को रखता है और स्थानीय वाणी पहचान से उसका समय खोजता है।',
   'karaoke.maker.referenceLyrics': 'संदर्भ बोल',
@@ -433,14 +383,12 @@ const karaoke: Partial<Dictionary> = {
     'शब्द बदल गए हैं। बदलने पर शब्द ID और स्वचालित समय फिर बनेंगे; मौजूदा मैन्युअल सुधार भरोसे से स्थानांतरित नहीं हो सकते। सुर रहेंगे और फिर लिंक किए जाएँगे।',
   'karaoke.maker.replaceAndDetect': 'बदलें और पहचानें',
   'karaoke.maker.wordText': 'शब्द',
-  'karaoke.maker.wordStart': 'आरंभ (ms)',
   'karaoke.maker.wordPosition': 'स्थिति',
   'karaoke.maker.wordDuration': 'लंबाई (ms)',
   'karaoke.maker.wordTimingSliderHint':
     'साझा सीमा समायोजित करता है; पंक्ति की सीमा स्थिर रखते हुए पड़ोसी शब्द समय देता या लेता है।',
   'karaoke.maker.usePlayhead': 'प्लेबैक स्थिति उपयोग करें',
   'karaoke.maker.playWord': 'शब्द चलाएँ',
-  'karaoke.maker.allowAutoTiming': 'स्वचालित समय की अनुमति दें',
   'karaoke.maker.replaceLyrics': 'बोल बदलें',
   'karaoke.maker.lyricsAutoAligned':
     'नए गीत लागू हुए और उपलब्ध धुन से संरेखित किए गए।',
@@ -453,15 +401,12 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionReview':
     'पहचान केवल शुरुआती बिंदु है। मौजूदा बोल मिलाते समय FluidEQ आपकी वर्तनी रखता है और सभी समय संपादन योग्य रहते हैं।',
   'karaoke.maker.notNow': 'अभी नहीं',
-  'karaoke.maker.downloadTranscribe': 'डाउनलोड और लिप्यंतरण करें',
   'karaoke.maker.downloadPrepare': 'डाउनलोड कर बोल तैयार करें',
   'karaoke.maker.downloadingWhisper': 'Whisper मॉडल डाउनलोड हो रहा है',
   'karaoke.maker.downloadOverall': 'कुल डाउनलोड',
   'karaoke.maker.downloadFiles': '{total} में से {complete} फ़ाइलें',
   'karaoke.maker.loadingWhisper': 'Whisper मॉडल लोड हो रहा है',
   'karaoke.maker.analysisRunning': 'पिच का स्थानीय विश्लेषण हो रहा है',
-  'karaoke.maker.analysisAligned':
-    'बिना बदले शब्दों को मिले {count} स्वर क्षेत्रों से मिलाया गया। मैन्युअल समय सुरक्षित रखा गया।',
   'karaoke.maker.analysisFound': 'विश्लेषण में {count} स्वर क्षेत्र मिले।',
   'karaoke.maker.basicPitchRunning': 'मेलोडी नोट्स का पता लगाया जा रहा है',
   'karaoke.maker.basicPitchFound':
@@ -475,8 +420,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'लिप्यंतरण पूरा हुआ',
   'karaoke.maker.whisperMatched':
     'Whisper ने {count} पहचाने शब्द मिलाए। निर्यात से पहले उनके संपादन योग्य समय की जाँच करें।',
-  'karaoke.maker.autoAlignComplete':
-    'बिना बदले बोल पहचानी गई धुन से मिलाए गए। मैन्युअल समय सुरक्षित रखा गया।',
   'karaoke.maker.speechMemory': 'AI मॉडल मेमोरी',
   'karaoke.maker.speechMemoryReady': 'RAM में तैयार',
   'karaoke.maker.speechMemoryCached': 'डिस्क पर कैश',

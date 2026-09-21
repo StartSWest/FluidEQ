@@ -21,9 +21,9 @@ const SOUND_CHAPTERS = [
         controls: [
           {
             box: [673, 75, 93, 32],
-            // `dsp.presets`, not `voicing.quickLabel`: the picker was renamed
-            // when the catalogue became whole chains instead of curves, and
-            // the old key is now referenced by nothing else in the app.
+            // `dsp.presets`, the picker's label on screen: it was Voicing
+            // until the catalogue became whole chains instead of curves, and
+            // that label and its key are gone.
             name: 'dsp.presets',
             text: 'help.eq.voicing',
           },

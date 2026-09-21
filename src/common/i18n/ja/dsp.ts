@@ -84,11 +84,6 @@ const dsp = {
   'dsp.preset.music': '音楽',
   'dsp.preset.speech': '音声',
   'dsp.quick.classics': '定番プリセット',
-  'dsp.favorites.intro':
-    'DSPのプリセットに星を付けると、ここからすぐに選べます。',
-  'dsp.favorites.empty':
-    'お気に入りはありません。DSPのプリセットに星を付けて追加してください。',
-  'dsp.favorites.open': 'DSPを開く',
   'dsp.gameMode.update':
     'ゲームモードを使うには FluidEQ エンジンを更新してください。プリセットの音質設定は引き続き適用されます。',
   'dsp.gameMode.hint':
@@ -110,8 +105,6 @@ const dsp = {
     '再生中の外部音声を測定し、両チャンネルを同時に調整して、エキサイターとEQの前でピークを保護します。',
   'dsp.normalizer.liveAnalysis': '入力音声のリアルタイム解析',
   'dsp.normalizer.shortTerm': '短時間ラウドネス',
-  'dsp.normalizer.liveHonesty':
-    'ラウドネスは3秒後に安定します。大きな部分が曲の残りの音量を決め、ピーク保護は有効のままです。元の音声に含まれる歪みは修復できません。',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP はライブラリから再生する音声トラックのみを処理します。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
@@ -119,7 +112,6 @@ const dsp = {
     'DSP を使用するには、ライブラリから音声トラックを再生してください。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
   'dsp.scope.system': 'システム全体 · {output}',
   'dsp.scope.systemAll': 'システム全体',
-  'dsp.scope.systemDelay': '遅延 {ms} ms',
   'dsp.latency.label': '処理遅延',
   'dsp.latency.gameMode': 'ゲームモード',
   'dsp.latency.ms': '{ms} ms',
@@ -131,11 +123,8 @@ const dsp = {
     '現在のサンプルレートでエンジンが報告したバッファです。Windows、デバイス、ネットワークの遅延は含みません。',
   'dsp.latency.gameNote':
     'ゲームモードは不要なバッファを減らします。有効なエフェクトには遅延が必要な場合があります。オフにすると通常の処理に戻ります。',
-  'dsp.latency.stage.linearEq': 'リニアフェーズ EQ',
   'dsp.latency.stage.safety': '最終保護',
   'dsp.latency.stage.guard': 'EQ のピーク保護',
-  'dsp.latency.stage.eqPhase': 'EQ（リニアフェーズ）',
-  'dsp.latency.stage.curvePhase': 'カーブレイヤー（リニアフェーズ）',
   'dsp.latency.stage.curves': '補正カーブ',
   'dsp.scope.useFluid': 'FluidEQ エンジンを使う',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
@@ -145,7 +134,6 @@ const dsp = {
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
   'dsp.preset.broadcast': '放送',
-  'dsp.preset.bassPower': 'ベースパワー',
   'dsp.bypassed': 'バイパス',
   'dsp.enabled': 'オン',
 
@@ -183,7 +171,6 @@ const dsp = {
   'dsp.denoisePreset.strong': '強力なクリーンアップ',
   'dsp.denoise.description':
     '色付けの前に音源を修復します。ヒス、電源ハム、クリック、そしてニューラル音声クリーナー。推測ではなく、曲そのものから実測した値で動きます。',
-  'dsp.denoise.libraryOnly': 'ライブラリ再生のみ',
   'dsp.denoise.isolate': 'アイソレート',
   'dsp.denoise.isolateHint': 'この段が取り除いている成分だけを聴きます。',
   'dsp.denoise.isolateOn':
@@ -203,8 +190,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'このトラックには保存済みの解析がありません。再解析するまで解析済みモードは音を変えません。',
   'dsp.denoise.hiss': 'ヒス',
-  'dsp.denoise.hissHint':
-    '実測フロアに対する広帯域の抑制。オンの間は 21 ms の遅延が増えます。',
   'dsp.denoise.amount': '量',
   'dsp.denoise.reductionLimit': '低減の上限',
   'dsp.denoise.reductionLimitHint':
@@ -270,7 +255,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'カーブ名',
   'dsp.crossfade.handleOutgoing': 'アウトゴーイングカーブのハンドル',
   'dsp.crossfade.handleIncoming': 'インカミングカーブのハンドル',
-  'dsp.crossfade.sum': '合成レベル',
   'dsp.crossfade.hint':
     '手動の次へ操作と自然な曲末に適用します。シークは即時のままです。',
 
@@ -400,8 +384,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'キャンセル',
 
   'dsp.eq.title': 'イコライザー',
-  'dsp.eq.description':
-    '15 バンドのパラメトリック EQ。設定値ではなく、フィルターの実際の応答を描いています。',
   'dsp.eq.band': 'バンド',
   'dsp.eq.bands': 'バンド',
   'dsp.eq.shape': 'バンドの種類',
@@ -417,14 +399,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'バンドパス',
   'dsp.eq.frequency': '周波数',
   'dsp.eq.gain': 'ゲイン',
-  'dsp.eq.trim': '自動調整',
-  'dsp.eq.adaptive': '適応',
-  'dsp.eq.trimFixed': '固定',
-  'dsp.eq.trimOff': '調整なし',
-  'dsp.eq.adaptiveHint':
-    '曲を測り、不要な余裕を戻します。オフでレベルは完全に一定になります。',
-  'dsp.eq.trimHint': 'このカーブがクリップしないようバンドの前に確保した余裕。',
-  'dsp.eq.overUnity': '{gain} dB 超過',
   'dsp.eq.character': 'キャラ量',
   'dsp.eq.subsonic': 'サブソニック',
   'dsp.eq.fuzz': 'ファズ',
@@ -441,12 +415,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'しきい値',
   'dsp.eq.legend.subsonic': '超低域',
   'dsp.eq.legend.input': '入力',
-  'dsp.eq.inputMark': '入力 {gain} dB',
   'dsp.eq.legend.gain': 'ゲイン',
   'dsp.eq.legend.level': '帯域ごとのレベル',
   'dsp.eq.thresholdMark': 'しきい値 {level} dBFS',
   'dsp.eq.dynamic': 'ダイナミック',
-  'dsp.eq.dynamicOn': 'ダイナミック ON',
   'dsp.eq.dynamicHint':
     'このバンドがスレッショルドを超えている間だけ効きます。',
 
@@ -563,8 +535,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'サイド成分のみを処理するため、モノラルではオフのときと同じに聞こえます。位相が乱れた素材では保護が働きます。',
   'dsp.dimension.title': 'ディメンション',
-  'dsp.dimension.description':
-    '帯域ごとにステレオ感を広げます。モノラル合成は変わりません。',
   'dsp.dimension.lowWidth': '低域の広がり',
   'dsp.dimension.midWidth': '中域の広がり',
   'dsp.dimension.highWidth': '高域の広がり',
@@ -599,21 +569,13 @@ const dsp = {
     'すべてのプロセッサーの後に置く透明な最終出力コントロールです。EQ、エキサイターなど前段への入力レベルは変えません。',
   'dsp.master.outputTrim': '出力ゲイン',
   'dsp.master.autoHeadroom': '自動ヘッドルーム',
-  'dsp.master.autoHeadroomHint':
-    '選択したステレオリンクのトゥルーピーク上限に近づくピークだけを滑らかに下げます。',
   'dsp.master.ceiling': '上限',
   'dsp.master.release': 'リリース',
   'dsp.master.loudnessMaximize': 'LUFS 最大化',
   'dsp.master.loudnessMaximizeHint':
     '曲全体の測定値から {gain} dB の補正を適用し、最終トゥルーピークを上限以下に保ちます。ゲインは一定で、ピークのみを制御します。',
   'dsp.master.loudnessTarget': 'ラウドネス目標',
-  'dsp.master.meter': '最終出力',
-  'dsp.master.safetyHint':
-    '{factor}×トゥルーピーク検出 · 上限{ceiling} dBTP · {knee} dBソフトニー · ステレオリンク。',
-  'dsp.master.manualHint':
-    '手動出力ゲイン。最終保護が有効な間はピーク保護が働きます。',
   'dsp.master.truePeak': 'TP入力',
-  'dsp.master.gainReduction': 'ゲインリダクション',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',
@@ -673,12 +635,10 @@ const dsp = {
   'dsp.room.preset.openAir': '野外',
   'dsp.room.presetHint':
     '{size} m の部屋 · スピーカーまで {distance} m · 壁の反射 {live}%',
-  'dsp.room.saveRoom': 'ルームを保存…',
   'dsp.room.saveTitle': 'このルームを保存',
   'dsp.room.saveHint':
     '今のルーム全体がこの名前で、保存済みのルームと並んで保存されます：形、スピーカー、そのレベルとミュート、低音とステレオの設定、スペースとアンビエンス。頭とヘッドホンはあなたのものです。',
   'dsp.room.savePlaceholder': 'ルーム名',
-  'dsp.room.deleteRoom': 'ルームを削除',
   'dsp.room.groupHead': '頭',
   'dsp.room.size': 'サイズ',
   'dsp.room.walls': '壁',
@@ -725,7 +685,6 @@ const dsp = {
   'dsp.room.live.on': 'ルーム オン',
   'dsp.room.live.idle': 'エンジンを通る音がありません',
   'dsp.room.live.unknown': 'エンジンでのみ',
-  'dsp.room.fit': 'フィット…',
   'dsp.room.profile.referenceV2': 'リファレンス',
   'dsp.room.profile.musicSpaceV2': 'ミュージックスペース',
   'dsp.room.profile.cinemaV2': 'シネマ',

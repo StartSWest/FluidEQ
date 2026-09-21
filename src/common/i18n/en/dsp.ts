@@ -93,11 +93,6 @@ const dsp = {
   'dsp.preset.music': 'Music',
   'dsp.preset.speech': 'Speech',
   'dsp.quick.classics': 'Classic presets',
-  'dsp.favorites.intro':
-    'Star presets in DSP to keep your favorite sounds here.',
-  'dsp.favorites.empty':
-    'No favorites yet. Star a preset in DSP to add it here.',
-  'dsp.favorites.open': 'Open DSP',
   'dsp.gameMode.update':
     'Update the FluidEQ Engine to use Game mode. Your preset still applies its sound settings.',
   'dsp.gameMode.hint':
@@ -119,8 +114,6 @@ const dsp = {
     'Measures external audio as it plays, adjusts both channels together, and protects peaks before the Exciter and EQ.',
   'dsp.normalizer.liveAnalysis': 'Live source analysis',
   'dsp.normalizer.shortTerm': 'Short-term loudness',
-  'dsp.normalizer.liveHonesty':
-    'Live loudness settles after three seconds. A loud passage sets the level for the rest of the song, and peak protection remains active. It cannot repair distortion already in the source.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',
@@ -128,7 +121,6 @@ const dsp = {
     'Play an audio track from Library to use DSP. Received shared audio, karaoke, videos and other apps are not processed.',
   'dsp.scope.system': 'System-wide · {output}',
   'dsp.scope.systemAll': 'System-wide',
-  'dsp.scope.systemDelay': '{ms} ms delay',
   'dsp.latency.label': 'Processing delay',
   'dsp.latency.gameMode': 'Game mode',
   'dsp.latency.ms': '{ms} ms',
@@ -140,11 +132,8 @@ const dsp = {
     'Engine-reported processing buffers at the current sample rate. Windows, device and network latency are not included.',
   'dsp.latency.gameNote':
     'Game mode reduces avoidable buffering. Active effects may still need delay. Turn Game mode off to restore normal processing.',
-  'dsp.latency.stage.linearEq': 'Linear-phase EQ',
   'dsp.latency.stage.safety': 'Final safety',
   'dsp.latency.stage.guard': 'EQ peak protection',
-  'dsp.latency.stage.eqPhase': 'EQ, linear phase',
-  'dsp.latency.stage.curvePhase': 'Curve layer, linear phase',
   'dsp.latency.stage.curves': 'Correction curves',
   'dsp.scope.useFluid': 'Use FluidEQ Engine',
   'dsp.unavailable':
@@ -155,7 +144,6 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
   'dsp.preset.broadcast': 'Broadcast',
-  'dsp.preset.bassPower': 'Bass power',
   'dsp.bypassed': 'Bypassed',
   'dsp.enabled': 'On',
 
@@ -195,7 +183,6 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Strong cleanup',
   'dsp.denoise.description':
     'Repairs the source before anything colours it: hiss, mains hum, clicks and a neural voice cleaner. Measured from the track itself, not guessed.',
-  'dsp.denoise.libraryOnly': 'Library playback only',
   'dsp.denoise.isolate': 'Isolate',
   'dsp.denoise.isolateHint': 'Hear only what this stage is removing.',
   'dsp.denoise.isolateOn':
@@ -215,8 +202,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'No saved scan for this track. Scanned stays transparent until you rescan.',
   'dsp.denoise.hiss': 'Hiss',
-  'dsp.denoise.hissHint':
-    'Broadband suppression against the measured floor. Adds 21 ms of latency while it is on.',
   'dsp.denoise.amount': 'Amount',
   'dsp.denoise.reductionLimit': 'Reduction limit',
   'dsp.denoise.reductionLimitHint':
@@ -284,7 +269,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'Curve name',
   'dsp.crossfade.handleOutgoing': 'Outgoing curve handle',
   'dsp.crossfade.handleIncoming': 'Incoming curve handle',
-  'dsp.crossfade.sum': 'Combined level',
   'dsp.crossfade.hint':
     'Applies to manual Next and natural track endings. Seeking stays immediate.',
 
@@ -413,8 +397,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'Cancel',
 
   'dsp.eq.title': 'Equaliser',
-  'dsp.eq.description':
-    'Fifteen parametric bands, drawn as the filters actually respond rather than as they were asked to.',
   'dsp.eq.band': 'Band',
   'dsp.eq.bands': 'Bands',
   'dsp.eq.shape': 'Band shape',
@@ -430,15 +412,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Band pass',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Gain',
-  'dsp.eq.trim': 'Auto trim',
-  'dsp.eq.adaptive': 'Adaptive',
-  'dsp.eq.trimFixed': 'Fixed',
-  'dsp.eq.trimOff': 'No trim',
-  'dsp.eq.adaptiveHint':
-    'Measures the song and gives back the headroom it does not need. Off holds the level perfectly still.',
-  'dsp.eq.trimHint':
-    'Room made in front of the bands so this curve cannot clip.',
-  'dsp.eq.overUnity': '{gain} dB over',
   'dsp.eq.character': 'Character',
   'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.fuzz': 'Fuzz',
@@ -455,12 +428,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Threshold',
   'dsp.eq.legend.subsonic': 'Subsonic',
   'dsp.eq.legend.input': 'Input',
-  'dsp.eq.inputMark': 'input {gain} dB',
   'dsp.eq.legend.gain': 'gain',
   'dsp.eq.legend.level': 'level per band',
   'dsp.eq.thresholdMark': 'threshold {level} dBFS',
   'dsp.eq.dynamic': 'Dynamic',
-  'dsp.eq.dynamicOn': 'Dynamic ON',
   'dsp.eq.dynamicHint':
     'Acts only while this band is louder than its threshold.',
 
@@ -582,8 +553,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'Only the sides are touched, so a mono listener hears exactly what they would with this off. The guard closes when a mix is already out of phase.',
   'dsp.dimension.title': 'Dimension',
-  'dsp.dimension.description':
-    'Widens the stereo picture per band. The mono sum never changes.',
   'dsp.dimension.lowWidth': 'Low width',
   'dsp.dimension.midWidth': 'Mid width',
   'dsp.dimension.highWidth': 'High width',
@@ -618,21 +587,13 @@ const dsp = {
     'Transparent final output control after every processor. It does not change how hard the EQ, Exciter or other stages are driven.',
   'dsp.master.outputTrim': 'Output gain',
   'dsp.master.autoHeadroom': 'Auto headroom',
-  'dsp.master.autoHeadroomHint':
-    'Smoothly reduces only peaks that approach the selected stereo-linked true-peak ceiling.',
   'dsp.master.ceiling': 'Ceiling',
   'dsp.master.release': 'Release',
   'dsp.master.loudnessMaximize': 'LUFS maximize',
   'dsp.master.loudnessMaximizeHint':
     'Applies {gain} dB from the cached whole-track loudness measurement, then keeps the final true peak below the ceiling. The gain is constant; only peaks are controlled.',
   'dsp.master.loudnessTarget': 'Loudness target',
-  'dsp.master.meter': 'Final output',
-  'dsp.master.safetyHint':
-    '{factor}× true-peak detection · {ceiling} dBTP ceiling · {knee} dB soft knee · stereo-linked.',
-  'dsp.master.manualHint':
-    'Manual output gain. Final safety still protects peaks when enabled.',
   'dsp.master.truePeak': 'TP in',
-  'dsp.master.gainReduction': 'Gain reduction',
   'dsp.master.devSafety': 'Safety A/B',
   'dsp.master.devSafetyHint':
     'Development only: bypasses the complete final protection so you can hear exactly what it changes.',
@@ -693,12 +654,10 @@ const dsp = {
   'dsp.room.preset.openAir': 'Open air',
   'dsp.room.presetHint':
     '{size} m room · speakers at {distance} m · walls {live}% live',
-  'dsp.room.saveRoom': 'Save room…',
   'dsp.room.saveTitle': 'Save this room',
   'dsp.room.saveHint':
     'The whole room as it stands is saved under this name, beside the rooms already saved: its shape, its speakers, their levels and mutes, the bass and stereo choices, Space and Ambience. Your head and headphones stay yours.',
   'dsp.room.savePlaceholder': 'Room name',
-  'dsp.room.deleteRoom': 'Delete room',
   'dsp.room.groupHead': 'Head',
   'dsp.room.size': 'Size',
   'dsp.room.walls': 'Walls',
@@ -745,7 +704,6 @@ const dsp = {
   'dsp.room.live.on': 'Room on',
   'dsp.room.live.idle': 'Nothing playing through the engine',
   'dsp.room.live.unknown': 'Engine only',
-  'dsp.room.fit': 'Fit…',
   'dsp.room.profile.referenceV2': 'Reference',
   'dsp.room.profile.musicSpaceV2': 'Music Space',
   'dsp.room.profile.cinemaV2': 'Cinema',

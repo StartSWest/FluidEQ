@@ -84,10 +84,6 @@ const dsp = {
   'dsp.preset.music': 'Музыка',
   'dsp.preset.speech': 'Речь',
   'dsp.quick.classics': 'Классические пресеты',
-  'dsp.favorites.intro':
-    'Отмечайте пресеты DSP звёздочкой, чтобы они появились здесь.',
-  'dsp.favorites.empty': 'Избранного пока нет. Отметьте пресет DSP звёздочкой.',
-  'dsp.favorites.open': 'Открыть DSP',
   'dsp.gameMode.update':
     'Обновите движок FluidEQ для игрового режима. Звуковые настройки пресета по-прежнему применяются.',
   'dsp.gameMode.hint':
@@ -109,8 +105,6 @@ const dsp = {
     'Измеряет внешний звук во время воспроизведения, регулирует оба канала вместе и защищает пики перед эксайтером и эквалайзером.',
   'dsp.normalizer.liveAnalysis': 'Анализ источника в реальном времени',
   'dsp.normalizer.shortTerm': 'Кратковременная громкость',
-  'dsp.normalizer.liveHonesty':
-    'Громкость определяется за три секунды. Громкий фрагмент задаёт уровень до конца композиции; защита пиков остаётся активной. Искажения исходного звука не исправляются.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP обрабатывает только аудиотреки из Библиотеки. Принимаемый звук, караоке, видео и другие приложения не обрабатываются.',
@@ -118,7 +112,6 @@ const dsp = {
     'Включите аудиотрек из Библиотеки, чтобы использовать DSP. Принимаемый звук, караоке, видео и другие приложения не обрабатываются.',
   'dsp.scope.system': 'Для всей системы · {output}',
   'dsp.scope.systemAll': 'Для всей системы',
-  'dsp.scope.systemDelay': 'задержка {ms} мс',
   'dsp.latency.label': 'Задержка обработки',
   'dsp.latency.gameMode': 'Игровой режим',
   'dsp.latency.ms': '{ms} мс',
@@ -130,11 +123,8 @@ const dsp = {
     'Буферы, сообщённые движком при текущей частоте. Windows, устройство и сеть не учитываются.',
   'dsp.latency.gameNote':
     'Игровой режим сокращает лишнюю буферизацию. Активным эффектам может требоваться задержка. Выключите режим для обычной обработки.',
-  'dsp.latency.stage.linearEq': 'Линейно-фазовый эквалайзер',
   'dsp.latency.stage.safety': 'Финальная защита',
   'dsp.latency.stage.guard': 'Защита пиков эквалайзера',
-  'dsp.latency.stage.eqPhase': 'Эквалайзер, линейная фаза',
-  'dsp.latency.stage.curvePhase': 'Слой кривой, линейная фаза',
   'dsp.latency.stage.curves': 'Кривые коррекции',
   'dsp.scope.useFluid': 'Использовать движок FluidEQ',
   'dsp.unavailable':
@@ -145,7 +135,6 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
   'dsp.preset.broadcast': 'Эфирный',
-  'dsp.preset.bassPower': 'Мощный бас',
   'dsp.bypassed': 'Обход',
   'dsp.enabled': 'Включено',
 
@@ -187,7 +176,6 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Глубокая очистка',
   'dsp.denoise.description':
     'Восстанавливает источник до того, как что-либо его окрасит: шипение, сетевой фон, щелчки и нейронная очистка голоса. Измерено по самому треку, а не угадано.',
-  'dsp.denoise.libraryOnly': 'Только при воспроизведении из Библиотеки',
   'dsp.denoise.isolate': 'Изолировать',
   'dsp.denoise.isolateHint': 'Слушать только то, что убирает этот этап.',
   'dsp.denoise.isolateOn':
@@ -207,8 +195,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'Для этой дорожки нет сохранённого измерения. Режим «Измерен» остаётся прозрачным до повторного анализа.',
   'dsp.denoise.hiss': 'Шипение',
-  'dsp.denoise.hissHint':
-    'Широкополосное подавление относительно измеренного уровня. Добавляет 21 мс задержки, пока включено.',
   'dsp.denoise.amount': 'Количество',
   'dsp.denoise.reductionLimit': 'Предел подавления',
   'dsp.denoise.reductionLimitHint':
@@ -274,7 +260,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'Имя кривой',
   'dsp.crossfade.handleOutgoing': 'Точка исходящей кривой',
   'dsp.crossfade.handleIncoming': 'Точка входящей кривой',
-  'dsp.crossfade.sum': 'Суммарный уровень',
   'dsp.crossfade.hint':
     'Работает для ручного перехода и естественного конца трека. Перемотка остаётся мгновенной.',
 
@@ -402,8 +387,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'Отмена',
 
   'dsp.eq.title': 'Эквалайзер',
-  'dsp.eq.description':
-    'Пятнадцать параметрических полос, нарисованных так, как фильтры отвечают на самом деле, а не как их просили.',
   'dsp.eq.band': 'Полоса',
   'dsp.eq.bands': 'Полосы',
   'dsp.eq.shape': 'Тип полосы',
@@ -419,14 +402,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Полосовой',
   'dsp.eq.frequency': 'Частота',
   'dsp.eq.gain': 'Усиление',
-  'dsp.eq.trim': 'Авторегулировка',
-  'dsp.eq.adaptive': 'Адаптивно',
-  'dsp.eq.trimFixed': 'Фиксировано',
-  'dsp.eq.trimOff': 'Без регулировки',
-  'dsp.eq.adaptiveHint':
-    'Измеряет песню и возвращает ненужный запас. Выключено — уровень стоит совершенно ровно.',
-  'dsp.eq.trimHint': 'Запас перед полосами, чтобы эта кривая не перегружалась.',
-  'dsp.eq.overUnity': 'превышение {gain} дБ',
   'dsp.eq.character': 'Характер',
   'dsp.eq.subsonic': 'Инфраниз.',
   'dsp.eq.fuzz': 'Фузз',
@@ -443,12 +418,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Порог',
   'dsp.eq.legend.subsonic': 'Инфраниз',
   'dsp.eq.legend.input': 'Вход',
-  'dsp.eq.inputMark': 'вход {gain} дБ',
   'dsp.eq.legend.gain': 'усиление',
   'dsp.eq.legend.level': 'уровень по полосам',
   'dsp.eq.thresholdMark': 'порог {level} дБFS',
   'dsp.eq.dynamic': 'Динамика',
-  'dsp.eq.dynamicOn': 'Динамика ВКЛ',
   'dsp.eq.dynamicHint':
     'Работает, только пока эта полоса громче своего порога.',
 
@@ -569,8 +542,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'Обрабатываются только боковые каналы, поэтому в моно звучит ровно так же, как без эффекта. Защита закрывается, если микс уже в противофазе.',
   'dsp.dimension.title': 'Пространство',
-  'dsp.dimension.description':
-    'Расширяет стереокартину по полосам. Моносумма не меняется.',
   'dsp.dimension.lowWidth': 'Ширина низа',
   'dsp.dimension.midWidth': 'Ширина середины',
   'dsp.dimension.highWidth': 'Ширина верха',
@@ -605,21 +576,13 @@ const dsp = {
     'Прозрачное управление финальным выходом после всех процессоров. Не меняет уровень сигнала, поступающего в EQ, эксайтер и другие каскады.',
   'dsp.master.outputTrim': 'Выходной уровень',
   'dsp.master.autoHeadroom': 'Автозапас',
-  'dsp.master.autoHeadroomHint':
-    'Плавно ослабляет только пики, приближающиеся к выбранному стереосвязанному потолку истинного пика.',
   'dsp.master.ceiling': 'Потолок',
   'dsp.master.release': 'Восстановление',
   'dsp.master.loudnessMaximize': 'Максимум LUFS',
   'dsp.master.loudnessMaximizeHint':
     'Применяет коррекцию {gain} дБ по измерению всего трека и удерживает итоговый истинный пик ниже предела. Усиление постоянно; регулируются только пики.',
   'dsp.master.loudnessTarget': 'Целевая громкость',
-  'dsp.master.meter': 'Финальный выход',
-  'dsp.master.safetyHint':
-    'Детектор истинного пика {factor}× · потолок {ceiling} дБTP · мягкое колено {knee} дБ · стереосвязь.',
-  'dsp.master.manualHint':
-    'Ручное усиление выхода. Включённая финальная защита продолжает ограничивать пики.',
   'dsp.master.truePeak': 'TP вход',
-  'dsp.master.gainReduction': 'Ослабление',
   'dsp.master.devSafety': 'Защита A/B',
   'dsp.master.devSafetyHint':
     'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',
@@ -682,12 +645,10 @@ const dsp = {
   'dsp.room.preset.openAir': 'Открытый воздух',
   'dsp.room.presetHint':
     'Комната {size} м · колонки на {distance} м · стены {live}% живые',
-  'dsp.room.saveRoom': 'Сохранить комнату…',
   'dsp.room.saveTitle': 'Сохранить эту комнату',
   'dsp.room.saveHint':
     'Вся комната как есть сохраняется под этим именем, рядом с уже сохранёнными: форма, колонки, их уровни и заглушения, выбор баса и стерео, Объём и Атмосфера. Голова и наушники остаются вашими.',
   'dsp.room.savePlaceholder': 'Название комнаты',
-  'dsp.room.deleteRoom': 'Удалить комнату',
   'dsp.room.groupHead': 'Голова',
   'dsp.room.size': 'Размер',
   'dsp.room.walls': 'Стены',
@@ -734,7 +695,6 @@ const dsp = {
   'dsp.room.live.on': 'Комната включена',
   'dsp.room.live.idle': 'Через движок ничего не играет',
   'dsp.room.live.unknown': 'Только с движком',
-  'dsp.room.fit': 'Подобрать…',
   'dsp.room.profile.referenceV2': 'Эталон',
   'dsp.room.profile.musicSpaceV2': 'Музыкальная сцена',
   'dsp.room.profile.cinemaV2': 'Кино',

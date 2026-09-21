@@ -32,7 +32,6 @@ const library: Partial<Dictionary> = {
   'library.add': '添加文件夹',
   'library.rescan': '重新扫描',
   'library.rescan.force': '强制重新扫描',
-  'library.search': '搜索媒体库',
   'library.searchPlaceholder': '搜索歌曲、歌手、专辑',
 
   'library.browse.album': '专辑',
@@ -47,7 +46,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': '跳转到字母',
   'library.coverflow.previous': '上一张封面',
   'library.coverflow.next': '下一张封面',
-  'library.folderCount': '{count} 个文件夹',
   'library.filterHere': '筛选这些歌曲',
   'library.view.list': '列表',
   'library.view.grid': '网格',
@@ -87,7 +85,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '正在读取 {name}',
   'library.scan.counted': '{parsed} / {seen} 个文件',
   'library.scan.cancel': '停止',
-  'library.scan.done': '已添加 {count} 首歌曲',
 
   'library.roots': '文件夹',
   'library.root.remove': '移除此文件夹',
@@ -120,7 +117,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': '前进 5 秒',
   'library.next': '下一首',
   'library.shuffle': '随机播放',
-  'library.repeat': '循环播放',
   'library.repeat.all': '列表循环',
   'library.repeat.one': '单曲循环',
   'library.repeat.off': '不循环',

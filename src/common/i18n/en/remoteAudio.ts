@@ -22,7 +22,6 @@ const remoteAudio = {
   'remoteAudio.listen.body':
     'Use this on the computer connected to your headset or speakers. It accepts one or more senders and plays them through the output already selected in FluidEQ.',
   'remoteAudio.listen.start': 'Create connection code',
-  'remoteAudio.listen.activeTitle': 'This computer is listening',
   'remoteAudio.listen.newCode': 'Create new code',
   'remoteAudio.listen.stop': 'Stop listening',
   'remoteAudio.send.kicker': 'SENDER · CLIENT',
@@ -32,9 +31,6 @@ const remoteAudio = {
   'remoteAudio.send.codeLabel': 'Connection code',
   'remoteAudio.send.codePlaceholder': 'Paste FLUIDEQ-LAN-2…',
   'remoteAudio.send.start': 'Connect and send',
-  'remoteAudio.send.activeTitle': 'Sending system audio',
-  'remoteAudio.send.activeBody':
-    'Keep FluidEQ open on both computers. The listener plays this lossless stream together with every other connected sender.',
   'remoteAudio.send.destination': 'Playing on {name}',
   'remoteAudio.send.stop': 'Stop sending',
   'remoteAudio.send.readyHint': 'Your saved code stays here after stopping.',
@@ -49,7 +45,6 @@ const remoteAudio = {
   'remoteAudio.monitor.title': 'Live connection',
   'remoteAudio.monitor.inactive': 'Choose a role to begin',
   'remoteAudio.monitor.ready': 'Ready for a connection code',
-  'remoteAudio.monitor.waveform': 'Live shared audio waveform',
   'remoteAudio.monitor.waveformFor': 'Live audio waveform for {name}',
   'remoteAudio.monitor.buffer': 'Playback {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': 'Send queue {milliseconds} ms',

@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'ランキングと、あなたが公開したシーンに表示されるハンドルと名前です。変更はすべての場所に同時に反映されます。メールアドレスは公開されません。',
   'account.name.cancel': 'キャンセル',
-  'account.signedIn': 'サインイン済み',
   'account.backToSignIn': 'サインインに戻る',
 
   'account.field.email': 'メールアドレス',

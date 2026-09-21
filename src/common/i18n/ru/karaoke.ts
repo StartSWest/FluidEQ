@@ -29,13 +29,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.hideHeader': 'Скрыть панель FluidEQ',
   'karaoke.fullscreen.showHeader': 'Показать панель FluidEQ',
   'karaoke.actions': 'Действия караоке',
-  'karaoke.readiness.resize': 'Изменить размер панелей микрофона и высоты тона',
   'karaoke.empty.title': 'Ваша сцена готова',
   'karaoke.empty.body':
     'Откройте аудио с необязательными текстами или добавьте целую папку. FluidEQ связывает одноимённые файлы в плейлист.',
-  'karaoke.import.pending': 'Далее: импорт песен',
   'karaoke.import.open': 'Открыть песню',
-  'karaoke.import.replace': 'Заменить песню',
   'karaoke.import.addFiles': 'Добавить файлы',
   'karaoke.import.folder': 'Добавить папку',
   'karaoke.import.clear': 'Убрать',
@@ -98,22 +95,17 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.none':
     'Синхронный текст не выбран. Воспроизведение и тюнер остаются доступными.',
   'karaoke.lyrics.line': 'Строка текста {number}',
-  'karaoke.lyrics.previous': 'Предыдущая строка',
-  'karaoke.lyrics.next': 'Следующая строка',
   'karaoke.lyrics.follow': 'Следить за текстом',
   'karaoke.lyrics.textSize': 'Размер текста песни',
   'karaoke.transport.title': 'Управление воспроизведением Караоке',
-  'karaoke.transport.restart': 'Начать песню заново',
   'karaoke.transport.play': 'Воспроизвести',
   'karaoke.transport.pause': 'Пауза',
   'karaoke.transport.spaceShortcut': '{action} · Пробел',
   'karaoke.transport.seek': 'Позиция песни',
-  'karaoke.transport.volume': 'Громкость',
   'karaoke.transport.vocalLevel': 'Направляющий вокал',
   'karaoke.transport.vocalOff': 'Только минус',
   'karaoke.transport.vocalFull': 'Оригинал',
   'karaoke.transport.mixSettings': 'Настройки микса',
-  'karaoke.transport.openMixSettings': 'Открыть настройки микса для {channel}',
   'karaoke.mic.title': 'Микрофон',
   'karaoke.mic.settings': 'Настройки микрофона',
   'karaoke.mic.off': 'Выкл.',
@@ -141,19 +133,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.show': 'Показать направляющую высоты тона',
   'karaoke.pitch.hide': 'Скрыть направляющую высоты тона',
   'karaoke.pitch.guide': 'Мелодический ориентир',
-  'karaoke.pitch.toneGuide': 'Тон мелодии',
-  'karaoke.pitch.toneEnable': 'Воспроизвести мелодию тоном',
-  'karaoke.pitch.toneDisable': 'Остановить тон мелодии',
   'karaoke.pitch.toneVolume': 'Громкость тона мелодии',
   'karaoke.pitch.scrubHint':
     'Перетащите влево или вправо для перемещения по песне; отпустите, чтобы оставить паузу.',
-  'karaoke.pitch.viewSelector': 'Отображение высоты тона',
-  'karaoke.pitch.viewNotes': 'Ноты',
-  'karaoke.pitch.viewWave': 'Кривая',
   'karaoke.pitch.waveCanvas':
     'Кривая высоты голоса певца в реальном времени поверх нот песни',
-  'karaoke.pitch.waveSong': 'Песня',
-  'karaoke.pitch.waveVoice': 'Ваш голос',
   'karaoke.pitch.waveFooter':
     'Синие блоки — это ноты песни; тонкая живая кривая показывает высоту тона с микрофона.',
   'karaoke.pitch.review': 'Анализ исполнения',
@@ -179,8 +163,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.high': 'Высоко',
   'karaoke.pitch.tuned': 'В тон',
   'karaoke.pitch.low': 'Низко',
-  'karaoke.pitch.ultrastar':
-    'Синие полосы — целевые ноты; линия показывает, поёте ли вы выше, в тон или ниже.',
   'karaoke.chords.aria': 'Гитарные аккорды, оценённые по минусовке',
   'karaoke.chords.analyzing': 'Поиск аккордов… {percent}%',
   'karaoke.chords.estimate': 'Оценочный аккорд',
@@ -199,13 +181,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.untitled': 'Караоке без названия',
   'karaoke.maker.undo': 'Отменить',
   'karaoke.maker.redo': 'Повторить',
-  'karaoke.maker.preview': 'Предпросмотр · 1, 2, 3',
   'karaoke.maker.apply': 'Использовать в проигрывателе',
   'karaoke.maker.applyHint':
     'Использовать эти изменения в проигрывателе. Исходный файл не изменится; экспорт создаст новый файл.',
   'karaoke.maker.lyrics': 'Текст',
   'karaoke.maker.toolsEdit': 'Инструменты редактирования',
-  'karaoke.maker.toolsAnalysis': 'Инструменты анализа',
   'karaoke.maker.lyricsTiming': 'Время текста',
   'karaoke.maker.timingAll': 'Вся песня',
   'karaoke.maker.timingFromWord': 'От выбранного слова',
@@ -220,15 +200,10 @@ const karaoke: Partial<Dictionary> = {
     'Проект загружен. Текущее аудио осталось подключено.',
   'karaoke.maker.karaokeImported':
     'Синхронизация импортирована. Текущее аудио осталось подключено.',
-  'karaoke.maker.tapWords': 'Разметить слова',
   'karaoke.maker.recordLines': 'Записать начала строк',
   'karaoke.maker.syncLinesFromHere': 'Синхронизировать строки отсюда',
-  'karaoke.maker.syncWordsFromHere': 'Синхронизировать слова отсюда',
-  'karaoke.maker.syncNow': 'Сейчас',
-  'karaoke.maker.syncNext': 'Далее: {item}',
   'karaoke.maker.markLine': 'Отметить начало строки',
   'karaoke.maker.markLineEnd': 'Отметить конец строки',
-  'karaoke.maker.captureEnd': 'Ожидание конца',
   'karaoke.maker.capturePressStart': 'Шаг 1 · Enter в НАЧАЛЕ',
   'karaoke.maker.captureReplaceStart':
     'Следующая строка готова · Enter заменит НАЧАЛО',
@@ -236,17 +211,12 @@ const karaoke: Partial<Dictionary> = {
     'Начало сохранено в {time} · Enter в КОНЦЕ',
   'karaoke.maker.captureAutomaticStart':
     'Автоматическое начало {time} · Enter в КОНЦЕ',
-  'karaoke.maker.captureAutomaticSuggestion':
-    'Предложенное начало {time} · Enter записывает НАЧАЛО',
-  'karaoke.maker.captureFixEnd': 'Строка записана · Enter исправляет КОНЕЦ',
   'karaoke.maker.captureStartPoint': 'НАЧАЛО',
   'karaoke.maker.captureEndPoint': 'КОНЕЦ',
   'karaoke.maker.captureGuideTitle': 'Тайминг строки',
   'karaoke.maker.captureSetupTitle': 'Готовы записать тайминг текста?',
   'karaoke.maker.captureSetupBody':
     'Слушайте вокал. Нажмите Enter в начале строки, при желании Tab на каждом новом слове, затем Enter в конце. Так последнее протяжное слово сохранит полную длительность.',
-  'karaoke.maker.captureSetupStatus':
-    'Прочитайте подсказку в предпросмотре и начните запись.',
   'karaoke.maker.captureStartRecording': 'Начать запись',
   'karaoke.maker.captureMoveGuide':
     'Перетащите подсказку. Двойной щелчок вернёт её на место.',
@@ -263,14 +233,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureGuideWords': 'отметить следующее слово',
   'karaoke.maker.captureGuideUndo': 'отменяет последнюю метку',
   'karaoke.maker.stopRecording': 'Остановить запись',
-  'karaoke.maker.markWord': 'Отметить слово',
   'karaoke.maker.markNextWord': 'Следующее слово',
-  'karaoke.maker.done': 'Готово',
   'karaoke.maker.ignoreLine': 'Пропустить строку',
   'karaoke.maker.lineTimingComplete':
     'Синхронизация строк завершена. Можно проверить и использовать в проигрывателе.',
-  'karaoke.maker.recordLinesHint':
-    'ENTER отмечает начало/конец · ↑/↓ выбирает строку · ←/→ двигает только аудио на 2 с · ПРОБЕЛ запускает или ставит на паузу · Backspace отменяет',
   'karaoke.maker.panView': 'Рука · перемещение шкалы',
   'karaoke.maker.panHint':
     'Инструмент «Рука»: перетаскивайте холст для навигации по песне без редактирования.',
@@ -288,7 +254,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pasteNotes': 'Вставить ноты у курсора',
   'karaoke.maker.notePasted': 'Нота вставлена у курсора.',
   'karaoke.maker.notesPasted': 'У курсора вставлено нот: {count}.',
-  'karaoke.maker.attachNotesByTime': 'Привязать к тексту',
   'karaoke.maker.detachNotes': 'Отвязать от текста',
   'karaoke.maker.noteAttachHelp':
     'Удерживайте Ctrl и перетащите ноту на слово или слог. Привязанные ноты следуют таймингу текста и блокируются.',
@@ -307,19 +272,13 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.hearNote': 'Прослушать ноту',
   'karaoke.maker.split': 'Разделить',
   'karaoke.maker.delete': 'Удалить',
-  'karaoke.maker.analyze': 'Анализ мелодии',
-  'karaoke.maker.prepare': 'Подготовить караоке',
   'karaoke.maker.advanced': 'Инструменты исправления',
   'karaoke.maker.prepared':
     'В этом караоке уже есть синхронизированный текст и мелодия.',
   'karaoke.maker.repairLyrics': 'Повторно определить время текста',
   'karaoke.maker.repairMelody': 'Повторно определить ноты мелодии',
   'karaoke.maker.rebuildKaraoke': 'Пересоздать текст + мелодию',
-  'karaoke.maker.autoAlign': 'Автовыравнивание',
-  'karaoke.maker.aiMelody': 'ИИ-мелодия',
-  'karaoke.maker.transcribe': 'Распознать',
   'karaoke.maker.vocalStem': 'Использовать вокальную дорожку',
-  'karaoke.maker.vocalStemLoaded': 'Вокальная дорожка загружена',
   'karaoke.maker.groupVoice': 'Голос и музыка',
   'karaoke.maker.stemsTitle': 'Разделённые дорожки',
   'karaoke.maker.stemBacking': 'Минусовка',
@@ -362,16 +321,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'Расширенный LRC',
   'karaoke.maker.exportInstrumental': 'Минусовка (без голоса)',
-  'karaoke.maker.tapHint':
-    'Нажмите ПРОБЕЛ или ENTER для «{word}» · Backspace отменяет',
-  'karaoke.maker.editHint':
-    'Перетаскивайте ноты для изменения высоты/времени. Тяните края для размера. Ctrl + колёсико — масштаб.',
   'karaoke.maker.stats': '{notes} нот · {words} слов · {checks} проверок',
   'karaoke.maker.wordStateLegend': 'Состояние синхронизации текста',
   'karaoke.maker.userAdjustedWords': 'Исправлено: {count}',
   'karaoke.maker.pendingWords': 'Ожидает: {count}',
   'karaoke.maker.artist': 'Исполнитель',
-  'karaoke.maker.zoom': 'Масштаб',
   'karaoke.maker.songPosition': 'Позиция в песне',
   'karaoke.maker.previousView': 'Предыдущий участок',
   'karaoke.maker.nextView': 'Следующий участок',
@@ -379,8 +333,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.livePreview': 'Предпросмотр',
   'karaoke.maker.showPreview': 'Показать предпросмотр',
   'karaoke.maker.hidePreview': 'Скрыть предпросмотр',
-  'karaoke.maker.previewEmpty':
-    'Добавьте или выровняйте текст по времени для предпросмотра.',
   'karaoke.maker.noteNormal': 'Нота',
   'karaoke.maker.noteGolden': 'Золотая',
   'karaoke.maker.noteFree': 'Свободная',
@@ -395,8 +347,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsEyebrow': 'ТЕКСТ',
   'karaoke.maker.lyricsTitle':
     'Вставьте или измените по одной строке текста в каждой строке',
-  'karaoke.maker.lyricsWarning':
-    'При замене текста связи слов удаляются, чтобы их можно было безопасно разметить заново.',
   'karaoke.maker.lyricsReferenceHint':
     'Укажите полный текст, включая повторяющиеся строки и метки вроде [Куплет] или [Припев]. FluidEQ сохраняет этот текст и использует локальное распознавание речи для определения времени.',
   'karaoke.maker.referenceLyrics': 'Эталонный текст',
@@ -443,14 +393,12 @@ const karaoke: Partial<Dictionary> = {
     'Слова изменились. Замена пересоздаст идентификаторы и автоматическое время; существующие ручные исправления нельзя надёжно перенести. Ноты останутся и будут привязаны заново.',
   'karaoke.maker.replaceAndDetect': 'Заменить и определить',
   'karaoke.maker.wordText': 'Слово',
-  'karaoke.maker.wordStart': 'Начало (мс)',
   'karaoke.maker.wordPosition': 'Позиция',
   'karaoke.maker.wordDuration': 'Длительность (мс)',
   'karaoke.maker.wordTimingSliderHint':
     'Изменяет общую границу: соседнее слово отдаёт или получает время, а диапазон строки остаётся неизменным.',
   'karaoke.maker.usePlayhead': 'Использовать позицию воспроизведения',
   'karaoke.maker.playWord': 'Воспроизвести слово',
-  'karaoke.maker.allowAutoTiming': 'Разрешить автоматическое время',
   'karaoke.maker.replaceLyrics': 'Заменить текст',
   'karaoke.maker.lyricsAutoAligned':
     'Новый текст применён и выровнен по доступной мелодии.',
@@ -464,15 +412,12 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionReview':
     'Распознавание — лишь начало. FluidEQ сохраняет написание вашего текста при сопоставлении, а все времена можно редактировать.',
   'karaoke.maker.notNow': 'Не сейчас',
-  'karaoke.maker.downloadTranscribe': 'Скачать и распознать',
   'karaoke.maker.downloadPrepare': 'Скачать и подготовить текст',
   'karaoke.maker.downloadingWhisper': 'Загрузка модели Whisper',
   'karaoke.maker.downloadOverall': 'Общая загрузка',
   'karaoke.maker.downloadFiles': '{complete} из {total} файлов',
   'karaoke.maker.loadingWhisper': 'Запуск модели Whisper',
   'karaoke.maker.analysisRunning': 'Локальный анализ высоты тона',
-  'karaoke.maker.analysisAligned':
-    'Неизменённые слова выровнены по {count} найденным участкам нот. Ручная синхронизация сохранена.',
   'karaoke.maker.analysisFound': 'Анализ обнаружил участки нот: {count}.',
   'karaoke.maker.basicPitchRunning': 'Распознавание нот мелодии',
   'karaoke.maker.basicPitchFound':
@@ -486,8 +431,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Распознавание завершено',
   'karaoke.maker.whisperMatched':
     'Whisper сопоставил распознанные слова: {count}. Проверьте редактируемую синхронизацию перед экспортом.',
-  'karaoke.maker.autoAlignComplete':
-    'Неизменённый текст выровнен по обнаруженной мелодии. Ручная синхронизация сохранена.',
   'karaoke.maker.speechMemory': 'Память моделей ИИ',
   'karaoke.maker.speechMemoryReady': 'Готова в ОЗУ',
   'karaoke.maker.speechMemoryCached': 'Сохранена на диске',

@@ -1,6 +1,5 @@
 const termsNotice = {
   'termsNotice.title': 'Les conditions de Plus ont changé',
-  'termsNotice.version': 'Version {version}',
   'termsNotice.read': 'Lire les conditions',
   'termsNotice.gotIt': 'Compris',
 

@@ -407,8 +407,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.stop': 'Para todos os fundos da área de trabalho.',
   'help.gallery.sceneCaption': 'A página de uma cena',
   'help.gallery.back': 'Volta à galeria, onde você parou.',
-  'help.gallery.stepName': 'Anterior e próxima',
-  'help.gallery.step': 'Percorre a lista de onde você abriu a cena.',
   'help.gallery.play':
     'Adiciona a cena aos seus visuais ou a reproduz no gráfico.',
   'help.gallery.desktop': 'Coloca a cena atrás dos ícones da área de trabalho.',
@@ -438,15 +436,11 @@ const help: Record<keyof typeof en, string> = {
     'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
   'help.studio.project':
     'Seus projetos e as cenas do FluidEQ para ver por dentro.',
-  'help.studio.switchName': 'Projeto anterior e próximo',
-  'help.studio.switch': 'Volta ou avança pelos seus projetos.',
   'help.studio.stageName': 'Palco',
   'help.studio.stage':
     'A cena, tocando com sua música. Clique duas vezes para tela cheia.',
   'help.studio.code':
     'O código da cena, ao vivo, atualizado conforme sua IA o salva.',
-  'help.studio.prompt':
-    'Copia o prompt que explica à sua IA como as cenas são feitas.',
   'help.studio.hears':
     'O que a cena recebe: nível, batida, graves, médios, agudos.',
   'help.studio.signals': 'Sinais de teste que movem só esta prévia.',

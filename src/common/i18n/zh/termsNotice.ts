@@ -1,6 +1,5 @@
 const termsNotice = {
   'termsNotice.title': 'Plus 条款已更新',
-  'termsNotice.version': '第 {version} 版',
   'termsNotice.read': '阅读条款',
   'termsNotice.gotIt': '知道了',
 

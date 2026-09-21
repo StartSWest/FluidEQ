@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     '在连接耳机或扬声器的电脑上使用此角色。它可接收一个或多个发送端，并通过 FluidEQ 中已选择的输出播放。',
   'remoteAudio.listen.start': '创建连接码',
-  'remoteAudio.listen.activeTitle': '此电脑正在接收',
   'remoteAudio.listen.newCode': '创建新连接码',
   'remoteAudio.listen.stop': '停止接收',
   'remoteAudio.send.kicker': '发送端 · 客户端',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': '连接码',
   'remoteAudio.send.codePlaceholder': '粘贴 FLUIDEQ-LAN-2…',
   'remoteAudio.send.start': '连接并发送',
-  'remoteAudio.send.activeTitle': '正在发送系统音频',
-  'remoteAudio.send.activeBody':
-    '请在两台电脑上保持 FluidEQ 开启。接收端会将此无损音频流与其他已连接发送端一起播放。',
   'remoteAudio.send.destination': '正在 {name} 上播放',
   'remoteAudio.send.stop': '停止发送',
   'remoteAudio.send.readyHint': '停止后，已保存的代码仍会保留在这里。',
@@ -44,7 +40,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': '实时连接',
   'remoteAudio.monitor.inactive': '选择一个角色以开始',
   'remoteAudio.monitor.ready': '可输入连接码',
-  'remoteAudio.monitor.waveform': '共享音频实时波形',
   'remoteAudio.monitor.waveformFor': '{name} 的实时音频波形',
   'remoteAudio.monitor.buffer': '播放 {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': '发送队列 {milliseconds} ms',

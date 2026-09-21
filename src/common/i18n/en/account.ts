@@ -43,7 +43,6 @@ const account = {
   'account.name.changeBody':
     'Your handle and name on the board and on the scenes you have published. They change everywhere at once; your email stays private.',
   'account.name.cancel': 'Cancel',
-  'account.signedIn': 'Signed in',
   'account.backToSignIn': 'Back to sign in',
 
   'account.field.email': 'Email',

@@ -1,6 +1,5 @@
 const termsNotice = {
   'termsNotice.title': 'Plus の利用規約が変わりました',
-  'termsNotice.version': 'バージョン {version}',
   'termsNotice.read': '利用規約を読む',
   'termsNotice.gotIt': 'OK',
 

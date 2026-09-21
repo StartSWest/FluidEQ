@@ -84,9 +84,6 @@ const dsp = {
   'dsp.preset.music': '音乐',
   'dsp.preset.speech': '语音',
   'dsp.quick.classics': '经典预设',
-  'dsp.favorites.intro': '在 DSP 中为预设加星，即可在这里快速选择。',
-  'dsp.favorites.empty': '暂无收藏。请在 DSP 中为预设加星。',
-  'dsp.favorites.open': '打开 DSP',
   'dsp.gameMode.update':
     '请更新 FluidEQ 引擎以使用游戏模式。预设的音效设置仍会应用。',
   'dsp.gameMode.hint':
@@ -108,8 +105,6 @@ const dsp = {
     '实时测量正在播放的外部音频，同步调整双声道，并在激励器和均衡器之前保护峰值。',
   'dsp.normalizer.liveAnalysis': '实时音源分析',
   'dsp.normalizer.shortTerm': '短时响度',
-  'dsp.normalizer.liveHonesty':
-    '实时响度在三秒后稳定。响亮段落决定歌曲其余部分的电平，峰值保护始终有效。无法修复音源中已有的失真。',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP 仅处理从媒体库播放的音轨，不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
@@ -117,7 +112,6 @@ const dsp = {
     '请从媒体库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
   'dsp.scope.system': '全系统 · {output}',
   'dsp.scope.systemAll': '全系统',
-  'dsp.scope.systemDelay': '{ms} 毫秒延迟',
   'dsp.latency.label': '处理延迟',
   'dsp.latency.gameMode': '游戏模式',
   'dsp.latency.ms': '{ms} 毫秒',
@@ -128,11 +122,8 @@ const dsp = {
     '引擎在当前采样率下报告的缓冲。不包括 Windows、设备和网络延迟。',
   'dsp.latency.gameNote':
     '游戏模式减少可避免的缓冲。启用的效果仍可能需要延迟。关闭此模式可恢复正常处理。',
-  'dsp.latency.stage.linearEq': '线性相位均衡器',
   'dsp.latency.stage.safety': '最终保护',
   'dsp.latency.stage.guard': '均衡器峰值保护',
-  'dsp.latency.stage.eqPhase': '均衡器，线性相位',
-  'dsp.latency.stage.curvePhase': '曲线层，线性相位',
   'dsp.latency.stage.curves': '校正曲线',
   'dsp.scope.useFluid': '使用 FluidEQ 引擎',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
@@ -142,7 +133,6 @@ const dsp = {
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
   'dsp.preset.broadcast': '广播',
-  'dsp.preset.bassPower': '强劲低音',
   'dsp.bypassed': '旁路',
   'dsp.enabled': '开启',
 
@@ -178,7 +168,6 @@ const dsp = {
   'dsp.denoisePreset.strong': '强力清理',
   'dsp.denoise.description':
     '在任何染色之前先修复音源：嘶声、市电哼声、爆音，以及一个神经网络人声清理器。数值取自音轨本身的实测，而非猜测。',
-  'dsp.denoise.libraryOnly': '仅限媒体库播放',
   'dsp.denoise.isolate': '独听',
   'dsp.denoise.isolateHint': '只听这一级正在去掉的部分。',
   'dsp.denoise.isolateOn': '保留信号已移除——现在只听到被去掉的部分。',
@@ -197,8 +186,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     '此曲目没有已保存的扫描结果。重新扫描前，已扫描模式不会改变声音。',
   'dsp.denoise.hiss': '嘶声',
-  'dsp.denoise.hissHint':
-    '相对实测本底噪声的宽带抑制。开启时增加 21 毫秒延迟。',
   'dsp.denoise.amount': '强度',
   'dsp.denoise.reductionLimit': '衰减上限',
   'dsp.denoise.reductionLimitHint':
@@ -261,7 +248,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': '曲线名称',
   'dsp.crossfade.handleOutgoing': '淡出曲线控制点',
   'dsp.crossfade.handleIncoming': '淡入曲线控制点',
-  'dsp.crossfade.sum': '合成电平',
   'dsp.crossfade.hint': '适用于手动下一曲和自然结束。拖动进度仍保持即时。',
 
   'dsp.eqPreset.custom': '自定义',
@@ -384,8 +370,6 @@ const dsp = {
   'dsp.eqImport.cancel': '取消',
 
   'dsp.eq.title': '均衡器',
-  'dsp.eq.description':
-    '十五段参数均衡，曲线按滤波器的实际响应绘制，而非按设定值。',
   'dsp.eq.band': '频段',
   'dsp.eq.bands': '频段',
   'dsp.eq.shape': '频段类型',
@@ -401,13 +385,6 @@ const dsp = {
   'dsp.eq.type.bandPass': '带通',
   'dsp.eq.frequency': '频率',
   'dsp.eq.gain': '增益',
-  'dsp.eq.trim': '自动调整',
-  'dsp.eq.adaptive': '自适应',
-  'dsp.eq.trimFixed': '固定',
-  'dsp.eq.trimOff': '不调整',
-  'dsp.eq.adaptiveHint': '测量歌曲并归还不需要的余量。关闭则电平完全稳定。',
-  'dsp.eq.trimHint': '在频段之前预留的余量，使此曲线不会削波。',
-  'dsp.eq.overUnity': '超出 {gain} dB',
   'dsp.eq.character': '音色量',
   'dsp.eq.subsonic': '超低频',
   'dsp.eq.fuzz': '失真',
@@ -424,12 +401,10 @@ const dsp = {
   'dsp.eq.legend.threshold': '阈值',
   'dsp.eq.legend.subsonic': '超低频',
   'dsp.eq.legend.input': '输入',
-  'dsp.eq.inputMark': '输入 {gain} dB',
   'dsp.eq.legend.gain': '增益',
   'dsp.eq.legend.level': '各频段电平',
   'dsp.eq.thresholdMark': '阈值 {level} dBFS',
   'dsp.eq.dynamic': '动态',
-  'dsp.eq.dynamicOn': '动态 开',
   'dsp.eq.dynamicHint': '仅在此频段超过阈值时起作用。',
 
   'dsp.exciter.title': '激励器',
@@ -544,7 +519,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     '只处理侧信号，因此单声道听感与关闭时完全相同。当混音本身已反相时，保护会自动收紧。',
   'dsp.dimension.title': '空间感',
-  'dsp.dimension.description': '分频段展宽立体声像，单声道叠加始终不变。',
   'dsp.dimension.lowWidth': '低频宽度',
   'dsp.dimension.midWidth': '中频宽度',
   'dsp.dimension.highWidth': '高频宽度',
@@ -578,20 +552,13 @@ const dsp = {
     '位于所有处理器之后的透明最终输出控制，不会改变均衡器、激励器或其他前级的驱动电平。',
   'dsp.master.outputTrim': '输出增益',
   'dsp.master.autoHeadroom': '自动余量',
-  'dsp.master.autoHeadroomHint':
-    '仅平滑衰减接近所选立体声联动真峰值上限的峰值。',
   'dsp.master.ceiling': '上限',
   'dsp.master.release': '释放时间',
   'dsp.master.loudnessMaximize': 'LUFS 最大化',
   'dsp.master.loudnessMaximizeHint':
     '根据整首曲目测量应用 {gain} dB，并将最终真实峰值保持在上限以下。增益恒定，仅控制峰值。',
   'dsp.master.loudnessTarget': '响度目标',
-  'dsp.master.meter': '最终输出',
-  'dsp.master.safetyHint':
-    '{factor}× 真峰值检测 · {ceiling} dBTP 上限 · {knee} dB 软拐点 · 立体声联动。',
-  'dsp.master.manualHint': '手动输出增益。启用最终保护时，峰值仍受到保护。',
   'dsp.master.truePeak': 'TP 输入',
-  'dsp.master.gainReduction': '增益衰减',
   'dsp.master.devSafety': '安全 A/B',
   'dsp.master.devSafetyHint':
     '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',
@@ -650,12 +617,10 @@ const dsp = {
   'dsp.room.preset.openAir': '露天',
   'dsp.room.presetHint':
     '{size} m 房间 · 音箱距离 {distance} m · 墙面反射 {live}%',
-  'dsp.room.saveRoom': '保存房间…',
   'dsp.room.saveTitle': '保存此房间',
   'dsp.room.saveHint':
     '当前的整个房间会以这个名字保存，与已保存的房间并列：形状、音箱、它们的电平和静音、低音与立体声的选择、房间感和余韵。你的头部和耳机仍归你所有。',
   'dsp.room.savePlaceholder': '房间名称',
-  'dsp.room.deleteRoom': '删除房间',
   'dsp.room.groupHead': '头部',
   'dsp.room.size': '大小',
   'dsp.room.walls': '墙面',
@@ -702,7 +667,6 @@ const dsp = {
   'dsp.room.live.on': '房间已开启',
   'dsp.room.live.idle': '没有声音经过引擎',
   'dsp.room.live.unknown': '仅限引擎',
-  'dsp.room.fit': '适配…',
   'dsp.room.profile.referenceV2': '参考',
   'dsp.room.profile.musicSpaceV2': '音乐空间',
   'dsp.room.profile.cinemaV2': '影院',

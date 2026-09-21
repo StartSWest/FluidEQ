@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'Votre pseudo et votre nom au classement et sur les scènes que vous avez publiées. Ils changent partout à la fois ; votre e-mail reste privé.',
   'account.name.cancel': 'Annuler',
-  'account.signedIn': 'Connecté',
   'account.backToSignIn': 'Retour à la connexion',
 
   'account.field.email': 'E-mail',

@@ -395,8 +395,6 @@ const help = {
   'help.gallery.stop': 'Stops every desktop background.',
   'help.gallery.sceneCaption': "A scene's page",
   'help.gallery.back': 'Back to the gallery, where you left it.',
-  'help.gallery.stepName': 'Previous and next',
-  'help.gallery.step': 'Steps through the list you opened the scene from.',
   'help.gallery.play':
     'Adds the scene to your looks, or plays it on the graph.',
   'help.gallery.desktop': 'Puts the scene behind your desktop icons.',
@@ -425,14 +423,10 @@ const help = {
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by a moderator first, and one that is approved earns you a month of Plus.',
   'help.studio.project': 'Your projects, and FluidEQ scenes to look inside.',
-  'help.studio.switchName': 'Previous and next project',
-  'help.studio.switch': 'Steps back or forward through your projects.',
   'help.studio.stageName': 'Stage',
   'help.studio.stage':
     'The scene, playing on your music. Double-click for full screen.',
   'help.studio.code': 'The scene’s code, live, updated as your AI saves it.',
-  'help.studio.prompt':
-    'Copies the prompt that tells your AI how scenes are made.',
   'help.studio.hears':
     'What the scene receives: level, beat, bass, mids, treble.',
   'help.studio.signals': 'Test signals that drive only this preview.',

@@ -220,7 +220,6 @@ const app = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bands',
   'tabs.presets': 'EQ Presets',
-  'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
   'tabs.games': 'Game presets',
   'tabs.config': 'Config',
@@ -351,7 +350,6 @@ const app = {
     "FluidEQ's official signed installer is delivered only through fluideq.com. Source builds should come from the official repository. The GPL permits third parties to copy, modify, rebuild, and sell FluidEQ, but their builds are not automatically signed, reviewed, supported, or endorsed by FluidEQ. If a download claims to be official and has no valid Windows digital signature, close it and report it.",
   'provenance.site': 'Official site: fluideq.com',
   'provenance.repository': 'Official source: github.com/StartSWest/FluidEQ',
-  'language.title': 'Language',
   'language.aria': 'Interface language',
   'theme.aria': 'Theme',
   'motion.aria': 'Animations',
@@ -387,10 +385,6 @@ const app = {
   'games.source.file': 'Chosen by you',
   'games.front.playing': '{name} is in front, and its sound is on.',
   'games.front.sounding': '{name} is running, and its sound is on.',
-  'games.front.none': 'In front: {name}',
-  'games.front.desktop': 'nothing FluidEQ knows',
-  'games.empty':
-    'No games yet. Add one, give it a sound, and FluidEQ will switch to it the moment that game is in front.',
   'games.toast.loaded': 'Loaded {preset}',
   'games.toast.forGame': 'for {game}',
   'games.toast.restored': 'Back to {preset}',
@@ -399,8 +393,6 @@ const app = {
   'games.empty.title': 'No games yet',
   'games.empty.more':
     'Add a game, give it a sound, and FluidEQ switches to it the moment that game is in front — and back when you close the game.',
-  'games.hint':
-    'The sound changes when the game comes to the front and stays on until you close the game, whatever you alt-tab to in between. Pick another sound while you play and it stays: FluidEQ only puts back what it put on.',
   'games.preset.none': 'Leave it as it is',
   'games.preset.noneHint': 'Nothing changes when this game is in front.',
   'games.row.inFront': 'in front',

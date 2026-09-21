@@ -17,8 +17,6 @@ const plus = {
   'plus.rail.collapse': 'Replier la barre latérale',
 
   'plus.gate.cta': 'Découvrir Plus',
-  'plus.browse.text':
-    'Avec Plus, ces scènes s’animent sur votre musique, vous les ajoutez à vos styles et vous pouvez les aimer.',
 
   'plus.gallery.search': 'Rechercher des scènes ou des créateurs',
   'plus.gallery.sort': 'Trier',
@@ -314,21 +312,6 @@ const plus = {
   'plus.report.cancel': 'Annuler',
   'plus.report.failed': 'Le signalement n’a pas pu être envoyé. Réessayez.',
 
-  'plus.welcome.title': 'Connectez-vous pour voir ce que créent les membres',
-  'plus.welcome.body':
-    'Un compte permet de parcourir la galerie et de regarder de courtes démonstrations. Plus est nécessaire pour télécharger et conserver les scènes, les lire intégralement, les ajouter à vos styles, créer les vôtres dans le Studio et emmener ce que vous créez partout.',
-  'plus.welcome.browse': 'Parcourez toutes les scènes publiées par les membres',
-  'plus.welcome.play':
-    'Lancez-les sur votre musique et ajoutez-les à vos styles',
-  'plus.welcome.studio':
-    'Emmenez ce que vous créez dans le Studio vers vos styles, votre bureau et la galerie',
-  'plus.welcome.board': 'Grimpez au classement grâce aux j’aime de vos scènes',
-  'plus.welcome.account.label': 'Compte',
-  'plus.welcome.account.access':
-    'Parcourez la galerie et regardez de courtes démonstrations.',
-  'plus.welcome.paid.label': 'Plus payant',
-  'plus.welcome.paid.access':
-    'Téléchargez et conservez des scènes, lisez-les intégralement et créez les vôtres.',
   'plus.welcome.fine': 'Créer un compte',
   'plus.welcome.scene.neonHorizon': 'Horizon néon',
   'plus.welcome.scene.nebulaHeart': 'Cœur de nébuleuse',

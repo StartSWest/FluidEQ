@@ -18,8 +18,6 @@ const plus = {
   'plus.rail.collapse': 'サイドバーを折りたたむ',
 
   'plus.gate.cta': 'Plus を見る',
-  'plus.browse.text':
-    'Plus なら、これらのシーンがあなたの音楽で動き、マイ表示に追加したり、いいねしたりできます。',
 
   'plus.gallery.search': 'シーンや作者を検索',
   'plus.gallery.sort': '並べ替え',
@@ -312,19 +310,6 @@ const plus = {
   'plus.report.cancel': 'キャンセル',
   'plus.report.failed': '報告を送信できませんでした。もう一度お試しください。',
 
-  'plus.welcome.title': 'サインインして、メンバーの作品を見てみましょう',
-  'plus.welcome.body':
-    'アカウントがあればギャラリーの閲覧と短いデモの視聴ができます。シーンのダウンロードと保存、全編再生、マイ表示への追加、スタジオで自分のシーンを作ること、作ったものをどこへでも届けることには Plus が必要です。',
-  'plus.welcome.browse': 'メンバーが公開したシーンをすべて見られます',
-  'plus.welcome.play': 'あなたの音楽で再生し、マイ表示に追加できます',
-  'plus.welcome.studio':
-    'スタジオで作ったものを自分の表示、デスクトップ、ギャラリーへ届けられます',
-  'plus.welcome.board': 'シーンへのいいねでランキングを上がれます',
-  'plus.welcome.account.label': 'アカウント',
-  'plus.welcome.account.access': 'ギャラリーの閲覧と短いデモの視聴。',
-  'plus.welcome.paid.label': '有料のPlus',
-  'plus.welcome.paid.access':
-    'シーンのダウンロードと保存、全編再生、自分のシーンの作成。',
   'plus.welcome.fine': 'アカウントを作成',
   'plus.welcome.scene.neonHorizon': 'ネオンの地平線',
   'plus.welcome.scene.nebulaHeart': '星雲の心臓',

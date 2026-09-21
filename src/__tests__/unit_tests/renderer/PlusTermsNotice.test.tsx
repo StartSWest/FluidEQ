@@ -91,7 +91,6 @@ describe('the Plus terms notice', () => {
     expect(notice).toHaveTextContent(`termsNotice.change.${CURRENT}`);
     expect(notice).not.toHaveTextContent('termsNotice.change.5');
     expect(notice).not.toHaveTextContent('termsNotice.change.4');
-    expect(notice).not.toHaveTextContent(`termsNotice.version:${CURRENT}`);
     expect(
       screen.getByText(new RegExp(`^terms\\.meta:${PLUS_TERMS_EDITION},`)),
     ).toBeInTheDocument();

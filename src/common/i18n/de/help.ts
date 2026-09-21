@@ -411,9 +411,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.sceneCaption': 'Die Seite einer Szene',
   'help.gallery.back':
     'Zurück zur Galerie, dorthin, wo Sie sie verlassen haben.',
-  'help.gallery.stepName': 'Vorherige und nächste Szene',
-  'help.gallery.step':
-    'Blättert durch die Liste, aus der Sie die Szene geöffnet haben.',
   'help.gallery.play':
     'Fügt die Szene Ihren Darstellungen hinzu oder spielt sie im Diagramm ab.',
   'help.gallery.desktop': 'Legt die Szene hinter Ihre Desktopsymbole.',
@@ -442,15 +439,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst ein Moderator, und eine freigegebene Szene bringt Ihnen einen Monat Plus.',
   'help.studio.project': 'Ihre Projekte und FluidEQ-Szenen zum Hineinschauen.',
-  'help.studio.switchName': 'Vorheriges und nächstes Projekt',
-  'help.studio.switch': 'Blättert rückwärts oder vorwärts durch Ihre Projekte.',
   'help.studio.stageName': 'Bühne',
   'help.studio.stage':
     'Die Szene, live zu Ihrer Musik. Doppelklick für Vollbild.',
   'help.studio.code':
     'Der Code der Szene, live aktualisiert, sobald Ihre KI ihn speichert.',
-  'help.studio.prompt':
-    'Kopiert den Prompt, der Ihrer KI erklärt, wie Szenen gebaut werden.',
   'help.studio.hears':
     'Was die Szene empfängt: Pegel, Schlag, Bass, Mitten, Höhen.',
   'help.studio.signals': 'Testsignale, die nur diese Vorschau antreiben.',

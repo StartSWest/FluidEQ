@@ -22,8 +22,6 @@ const plus = {
   'plus.rail.collapse': 'Collapse the sidebar',
 
   'plus.gate.cta': 'See Plus',
-  'plus.browse.text':
-    'Plus plays these scenes on your music, adds them to your looks and lets you like them.',
 
   'plus.gallery.search': 'Search scenes or makers',
   'plus.gallery.sort': 'Sort',
@@ -309,19 +307,6 @@ const plus = {
   'plus.report.failed': 'The report could not be sent. Try again.',
 
   // The tab before signing in.
-  'plus.welcome.title': 'Sign in to see what members make',
-  'plus.welcome.body':
-    'With an account you can browse the gallery and watch brief demos. Plus is required to download scenes to keep, play them in full, add them to your looks, make your own in the Studio, and take what you make anywhere.',
-  'plus.welcome.browse': 'Browse every scene members publish',
-  'plus.welcome.play': 'Play them on your music and add them to your looks',
-  'plus.welcome.studio':
-    'Take what you make in the Studio to your looks, your desktop and the gallery',
-  'plus.welcome.board': 'Climb the leaderboard with the likes your scenes earn',
-  'plus.welcome.account.label': 'Account',
-  'plus.welcome.account.access': 'Browse the gallery and watch brief demos.',
-  'plus.welcome.paid.label': 'Paid Plus membership',
-  'plus.welcome.paid.access':
-    'Download and keep scenes, play them in full and create your own.',
   'plus.welcome.fine': 'Create an account',
   'plus.welcome.scene.neonHorizon': 'Neon Horizon',
   'plus.welcome.scene.nebulaHeart': 'Nebula Heart',

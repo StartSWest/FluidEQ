@@ -395,8 +395,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.stop': 'すべてのデスクトップの背景を停止します。',
   'help.gallery.sceneCaption': 'シーンのページ',
   'help.gallery.back': '離れたときの位置のまま、ギャラリーに戻ります。',
-  'help.gallery.stepName': '前と次',
-  'help.gallery.step': 'シーンを開いた一覧の中で、前後のシーンに移動します。',
   'help.gallery.play': 'シーンをマイ表示に追加するか、グラフで再生します。',
   'help.gallery.desktop': 'シーンをデスクトップアイコンの背面に表示します。',
   'help.gallery.inspect':
@@ -425,15 +423,11 @@ const help: Record<keyof typeof en, string> = {
     'ステージをダブルクリックすると全画面になります。「FluidEQ のシーンの中を見る…」では、参考になるよう FluidEQ 自身のシーンを開けますが、公開はできません。激しく点滅するシーンや重すぎるシーンは、FluidEQ が止めます。公開したシーンはまずモデレーターが読み、承認されたシーンは Plus を1か月分もたらします。',
   'help.studio.project':
     'あなたのプロジェクトと、中を見られる FluidEQ のシーン。',
-  'help.studio.switchName': '前後のプロジェクト',
-  'help.studio.switch': 'プロジェクトを前後に切り替えます。',
   'help.studio.stageName': 'ステージ',
   'help.studio.stage':
     'あなたの音楽で再生中のシーン。ダブルクリックで全画面になります。',
   'help.studio.code':
     'シーンのコード。AI が保存するたびにリアルタイムで更新されます。',
-  'help.studio.prompt':
-    'シーンの作り方を AI に伝えるプロンプトをコピーします。',
   'help.studio.hears':
     'シーンが受け取るもの：レベル、ビート、低音、中音、高音。',
   'help.studio.signals': 'このプレビューだけを動かすテスト信号。',

@@ -223,7 +223,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'बैंड',
   'tabs.presets': 'EQ प्रीसेट',
-  'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
   'tabs.games': 'गेम प्रीसेट',
   'tabs.config': 'Config',
@@ -356,7 +355,6 @@ const app: Partial<Dictionary> = {
     'FluidEQ का आधिकारिक हस्ताक्षरित इंस्टॉलर केवल fluideq.com के माध्यम से दिया जाता है। स्रोत से बने बिल्ड आधिकारिक रिपॉज़िटरी से आने चाहिए। GPL तीसरे पक्षों को FluidEQ की नकल करने, उसे बदलने, दोबारा बनाने और बेचने की अनुमति देता है, पर उनके बिल्ड स्वतः FluidEQ द्वारा हस्ताक्षरित, समीक्षित, समर्थित या अनुमोदित नहीं होते। यदि कोई डाउनलोड स्वयं को आधिकारिक बताता है और उसमें वैध Windows डिजिटल हस्ताक्षर नहीं है, तो उसे बंद करें और उसकी सूचना दें।',
   'provenance.site': 'आधिकारिक साइट: fluideq.com',
   'provenance.repository': 'आधिकारिक स्रोत: github.com/StartSWest/FluidEQ',
-  'language.title': 'भाषा',
   'language.aria': 'इंटरफ़ेस की भाषा',
   'theme.aria': 'थीम',
   'motion.aria': 'एनिमेशन',
@@ -391,10 +389,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'आपका चुना हुआ',
   'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
   'games.front.sounding': '{name} चल रहा है, और उसकी आवाज़ चालू है।',
-  'games.front.none': 'सामने: {name}',
-  'games.front.desktop': 'ऐसा कुछ नहीं जिसे FluidEQ जानता हो',
-  'games.empty':
-    'अभी कोई गेम नहीं है। एक जोड़ें, उसे एक आवाज़ दें, और वह गेम सामने आते ही FluidEQ उस पर चला जाएगा।',
   'games.toast.loaded': '{preset} लोड किया',
   'games.toast.forGame': '{game} के लिए',
   'games.toast.restored': '{preset} पर वापस',
@@ -403,8 +397,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'अभी कोई गेम नहीं',
   'games.empty.more':
     'एक गेम जोड़ें, उसे एक आवाज़ दें — वह गेम सामने आते ही FluidEQ उस पर चला जाएगा, और गेम बंद करने पर वापस आ जाएगा।',
-  'games.hint':
-    'गेम सामने आने पर आवाज़ बदल जाती है और गेम बंद करने तक बनी रहती है, बीच में आप किसी और विंडो पर जाएँ तब भी। खेलते समय कोई और आवाज़ चुनें तो वही रहती है: FluidEQ सिर्फ़ वही वापस करता है जो उसने लगाया था।',
   'games.preset.none': 'जैसा है वैसा रहने दें',
   'games.preset.noneHint': 'यह गेम सामने हो तब कुछ नहीं बदलता।',
   'games.row.inFront': 'सामने',

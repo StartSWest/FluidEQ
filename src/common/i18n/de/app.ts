@@ -227,7 +227,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bänder',
   'tabs.presets': 'EQ-Presets',
-  'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
   'tabs.games': 'Spiel-Presets',
   'tabs.config': 'Config',
@@ -364,7 +363,6 @@ const app: Partial<Dictionary> = {
   'provenance.site': 'Offizielle Website: fluideq.com',
   'provenance.repository':
     'Offizieller Quellcode: github.com/StartSWest/FluidEQ',
-  'language.title': 'Sprache',
   'language.aria': 'Sprache der Oberfläche',
   'theme.aria': 'Design',
   'motion.aria': 'Animationen',
@@ -400,10 +398,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Von Ihnen gewählt',
   'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
   'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
-  'games.front.none': 'Im Vordergrund: {name}',
-  'games.front.desktop': 'nichts, was FluidEQ kennt',
-  'games.empty':
-    'Noch keine Spiele. Fügen Sie eines hinzu, geben Sie ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist.',
   'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
   'games.toast.restored': 'Zurück zu {preset}',
@@ -412,8 +406,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'Noch keine Spiele',
   'games.empty.more':
     'Fügen Sie ein Spiel hinzu, geben Sie ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn Sie das Spiel beenden.',
-  'games.hint':
-    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und bleibt, bis Sie das Spiel beenden — ganz gleich, wohin Sie zwischendurch wechseln. Wählen Sie beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
   'games.preset.none': 'So lassen, wie es ist',
   'games.preset.noneHint':
     'Es ändert sich nichts, wenn dieses Spiel im Vordergrund ist.',

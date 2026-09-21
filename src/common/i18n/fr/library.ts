@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'Ajouter un dossier',
   'library.rescan': 'Analyser à nouveau',
   'library.rescan.force': 'Forcer une nouvelle analyse',
-  'library.search': 'Rechercher dans la bibliothèque',
   'library.searchPlaceholder': 'Rechercher des chansons, artistes, albums',
 
   'library.browse.album': 'Albums',
@@ -49,7 +48,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Aller à une lettre',
   'library.coverflow.previous': 'Pochette précédente',
   'library.coverflow.next': 'Pochette suivante',
-  'library.folderCount': '{count} dossiers',
   'library.filterHere': 'Filtrer ces chansons',
   'library.view.list': 'Liste',
   'library.view.grid': 'Grille',
@@ -90,7 +88,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lecture de {name}',
   'library.scan.counted': '{parsed} sur {seen} fichiers',
   'library.scan.cancel': 'Arrêter',
-  'library.scan.done': '{count} chansons ajoutées',
 
   'library.roots': 'Dossiers',
   'library.root.remove': 'Retirer ce dossier',
@@ -126,7 +123,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': 'Avancer de 5 secondes',
   'library.next': 'Suivant',
   'library.shuffle': 'Aléatoire',
-  'library.repeat': 'Répéter',
   'library.repeat.all': 'Tout répéter',
   'library.repeat.one': 'Répéter cette chanson',
   'library.repeat.off': 'Ne pas répéter',

@@ -31,7 +31,6 @@ const account = {
   'account.name.changeBody':
     'लीडरबोर्ड और आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
   'account.name.cancel': 'रद्द करें',
-  'account.signedIn': 'साइन इन किया गया',
   'account.backToSignIn': 'साइन इन पर वापस',
 
   'account.field.email': 'ईमेल',

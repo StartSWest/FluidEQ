@@ -29,13 +29,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.hideHeader': 'FluidEQ ヘッダーを隠す',
   'karaoke.fullscreen.showHeader': 'FluidEQ ヘッダーを表示',
   'karaoke.actions': 'カラオケ操作',
-  'karaoke.readiness.resize': 'マイクとピッチパネルのサイズを変更',
   'karaoke.empty.title': 'ステージの準備ができました',
   'karaoke.empty.body':
     '音声と任意の歌詞を開くか、フォルダー全体を追加します。FluidEQ は同名ファイルをプレイリストで関連付けます。',
-  'karaoke.import.pending': '次へ：曲をインポート',
   'karaoke.import.open': '曲を開く',
-  'karaoke.import.replace': '曲を入れ替える',
   'karaoke.import.addFiles': 'ファイルを追加',
   'karaoke.import.folder': 'フォルダーを追加',
   'karaoke.import.clear': '削除',
@@ -97,22 +94,17 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.none':
     '同期歌詞が選択されていません。再生とライブチューナーは利用できます。',
   'karaoke.lyrics.line': '歌詞行 {number}',
-  'karaoke.lyrics.previous': '前の歌詞',
-  'karaoke.lyrics.next': '次の歌詞',
   'karaoke.lyrics.follow': '歌詞を追従',
   'karaoke.lyrics.textSize': '歌詞の文字サイズ',
   'karaoke.transport.title': 'カラオケ再生コントロール',
-  'karaoke.transport.restart': '曲を最初から再生',
   'karaoke.transport.play': '再生',
   'karaoke.transport.pause': '一時停止',
   'karaoke.transport.spaceShortcut': '{action} · スペース',
   'karaoke.transport.seek': '曲の位置',
-  'karaoke.transport.volume': '音量',
   'karaoke.transport.vocalLevel': 'ガイドボーカル',
   'karaoke.transport.vocalOff': '伴奏のみ',
   'karaoke.transport.vocalFull': '原曲',
   'karaoke.transport.mixSettings': 'ミックス設定',
-  'karaoke.transport.openMixSettings': '{channel}のミックス設定を開く',
   'karaoke.mic.title': 'マイク',
   'karaoke.mic.settings': 'マイク設定',
   'karaoke.mic.off': 'オフ',
@@ -140,19 +132,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.show': 'ピッチガイドを表示',
   'karaoke.pitch.hide': 'ピッチガイドを非表示',
   'karaoke.pitch.guide': 'メロディーガイド',
-  'karaoke.pitch.toneGuide': 'メロディー音',
-  'karaoke.pitch.toneEnable': 'メロディー音を再生',
-  'karaoke.pitch.toneDisable': 'メロディー音を停止',
   'karaoke.pitch.toneVolume': 'メロディー音の音量',
   'karaoke.pitch.scrubHint':
     '左右にドラッグして曲内を移動します。離すと一時停止したままになります。',
-  'karaoke.pitch.viewSelector': 'ピッチ表示',
-  'karaoke.pitch.viewNotes': 'ノート',
-  'karaoke.pitch.viewWave': 'カーブ',
   'karaoke.pitch.waveCanvas':
     '曲のノート上に表示する歌声のリアルタイム音程カーブ',
-  'karaoke.pitch.waveSong': '曲の音程',
-  'karaoke.pitch.waveVoice': 'あなたの声',
   'karaoke.pitch.waveFooter':
     '青いブロックが曲のノートで、細いリアルタイム曲線がマイクから検出した音程です。',
   'karaoke.pitch.review': 'パフォーマンスレビュー',
@@ -177,8 +161,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.high': '高い',
   'karaoke.pitch.tuned': '音程一致',
   'karaoke.pitch.low': '低い',
-  'karaoke.pitch.ultrastar':
-    '青いバーが目標音程です。軌跡は声が高い、合っている、低いのどれかを示します。',
   'karaoke.chords.aria': '伴奏音源から推定したギターコード',
   'karaoke.chords.analyzing': 'コードを解析中… {percent}%',
   'karaoke.chords.estimate': '推定コード',
@@ -197,13 +179,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.untitled': '無題のカラオケ',
   'karaoke.maker.undo': '元に戻す',
   'karaoke.maker.redo': 'やり直す',
-  'karaoke.maker.preview': 'プレビュー · 1、2、3',
   'karaoke.maker.apply': 'プレーヤーで使用',
   'karaoke.maker.applyHint':
     'この編集をプレイヤーで使用します。元のカラオケファイルは変更されず、エクスポートで新しいファイルを作成します。',
   'karaoke.maker.lyrics': '歌詞',
   'karaoke.maker.toolsEdit': '編集ツール',
-  'karaoke.maker.toolsAnalysis': '解析ツール',
   'karaoke.maker.lyricsTiming': '歌詞タイミング',
   'karaoke.maker.timingAll': '曲全体',
   'karaoke.maker.timingFromWord': '選択した歌詞から',
@@ -218,31 +198,21 @@ const karaoke: Partial<Dictionary> = {
     'プロジェクトを読み込みました。現在の音声は接続されたままです。',
   'karaoke.maker.karaokeImported':
     'タイミングを読み込みました。現在の音声は接続されたままです。',
-  'karaoke.maker.tapWords': '歌詞をタップ',
   'karaoke.maker.recordLines': '行の開始位置を記録',
   'karaoke.maker.syncLinesFromHere': 'ここから行を同期',
-  'karaoke.maker.syncWordsFromHere': 'ここから単語を同期',
-  'karaoke.maker.syncNow': '現在',
-  'karaoke.maker.syncNext': '次: {item}',
   'karaoke.maker.markLine': '行の開始をマーク',
   'karaoke.maker.markLineEnd': '行の終了をマーク',
-  'karaoke.maker.captureEnd': '終了位置を待機中',
   'karaoke.maker.capturePressStart': '手順 1 · 開始時に Enter',
   'karaoke.maker.captureReplaceStart':
     '次の歌詞を表示中 · Enter で開始位置を置換',
   'karaoke.maker.captureStartSaved': '{time} に開始を保存 · 終了時に Enter',
   'karaoke.maker.captureAutomaticStart': '自動開始 {time} · 終了時に Enter',
-  'karaoke.maker.captureAutomaticSuggestion':
-    '開始候補 {time} · Enter で開始を記録',
-  'karaoke.maker.captureFixEnd': '記録済み行 · Enter で終了を修正',
   'karaoke.maker.captureStartPoint': '開始',
   'karaoke.maker.captureEndPoint': '終了',
   'karaoke.maker.captureGuideTitle': '行タイミング',
   'karaoke.maker.captureSetupTitle': '歌詞のタイミングを記録しますか？',
   'karaoke.maker.captureSetupBody':
     '歌声を聴き、行の開始で Enter、新しい単語ごとに必要なら Tab、行の終了でもう一度 Enter を押します。最後の長い単語も正しい長さで残せます。',
-  'karaoke.maker.captureSetupStatus':
-    'ライブプレビューのガイドを確認してから記録を開始してください。',
   'karaoke.maker.captureStartRecording': '記録を開始',
   'karaoke.maker.captureMoveGuide':
     'ドラッグしてガイドを移動します。ダブルクリックで位置をリセットします。',
@@ -258,14 +228,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureGuideWords': '次の単語を記録',
   'karaoke.maker.captureGuideUndo': '最後のマークを元に戻す',
   'karaoke.maker.stopRecording': '記録を停止',
-  'karaoke.maker.markWord': '単語をマーク',
   'karaoke.maker.markNextWord': '次の単語',
-  'karaoke.maker.done': '完了',
   'karaoke.maker.ignoreLine': '行を無視',
   'karaoke.maker.lineTimingComplete':
     '歌詞行のタイミングが完了しました。確認してプレーヤーで使用できます。',
-  'karaoke.maker.recordLinesHint':
-    'ENTER で開始/終了 · ↑/↓ で歌詞行を選択 · ←/→ は音声だけを2秒移動 · スペースで再生/一時停止 · Backspace で元に戻す',
   'karaoke.maker.panView': '手のひら · タイムライン移動',
   'karaoke.maker.panHint':
     '手のひらツール：キャンバスをドラッグして、編集せずに曲内を移動します。',
@@ -284,7 +250,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.notePasted': '再生ヘッドに音符を貼り付けました。',
   'karaoke.maker.notesPasted':
     '再生ヘッドに {count} 個の音符を貼り付けました。',
-  'karaoke.maker.attachNotesByTime': '歌詞に関連付け',
   'karaoke.maker.detachNotes': '歌詞との関連付けを解除',
   'karaoke.maker.noteAttachHelp':
     'Ctrl を押しながら音符を単語または音節へドラッグします。関連付けた音符は歌詞のタイミングに従いロックされます。',
@@ -303,19 +268,13 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.hearNote': 'ノートを聴く',
   'karaoke.maker.split': '分割',
   'karaoke.maker.delete': '削除',
-  'karaoke.maker.analyze': 'メロディーを解析',
-  'karaoke.maker.prepare': 'カラオケを準備',
   'karaoke.maker.advanced': '修復ツール',
   'karaoke.maker.prepared':
     'このカラオケには、タイミング付きの歌詞とメロディーがすでにあります。',
   'karaoke.maker.repairLyrics': '歌詞タイミングを再検出',
   'karaoke.maker.repairMelody': 'メロディーノートを再検出',
   'karaoke.maker.rebuildKaraoke': '歌詞とメロディーを再構築',
-  'karaoke.maker.autoAlign': '自動整列',
-  'karaoke.maker.aiMelody': 'AI メロディー',
-  'karaoke.maker.transcribe': '文字起こし',
   'karaoke.maker.vocalStem': 'ボーカルステムを使用',
-  'karaoke.maker.vocalStemLoaded': 'ボーカルステム読み込み済み',
   'karaoke.maker.groupVoice': '歌声と伴奏',
   'karaoke.maker.stemsTitle': '分離したトラック',
   'karaoke.maker.stemBacking': '伴奏',
@@ -359,16 +318,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': '拡張 LRC',
   'karaoke.maker.exportInstrumental': '伴奏トラック（歌声なし）',
-  'karaoke.maker.tapHint':
-    '「{word}」でスペースまたは Enter · Backspace で元に戻す',
-  'karaoke.maker.editHint':
-    'ノートをドラッグして音高/時間を変更。端をドラッグして長さを変更。Ctrl + ホイールでズーム。',
   'karaoke.maker.stats': '{notes} ノート · {words} 語 · {checks} チェック',
   'karaoke.maker.wordStateLegend': '歌詞タイミングの作業状況',
   'karaoke.maker.userAdjustedWords': '{count} 語を調整済み',
   'karaoke.maker.pendingWords': '{count} 語が未処理',
   'karaoke.maker.artist': 'アーティスト',
-  'karaoke.maker.zoom': 'ズーム',
   'karaoke.maker.songPosition': '曲内の位置',
   'karaoke.maker.previousView': '前の区間',
   'karaoke.maker.nextView': '次の区間',
@@ -376,8 +330,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.livePreview': 'ライブプレビュー',
   'karaoke.maker.showPreview': 'プレビューを表示',
   'karaoke.maker.hidePreview': 'プレビューを隠す',
-  'karaoke.maker.previewEmpty':
-    'タイミング付き歌詞を追加または整列してプレビューします。',
   'karaoke.maker.noteNormal': 'ノート',
   'karaoke.maker.noteGolden': 'ゴールデン',
   'karaoke.maker.noteFree': 'フリー',
@@ -391,8 +343,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.localAnalysis': 'ローカル解析',
   'karaoke.maker.lyricsEyebrow': '歌詞',
   'karaoke.maker.lyricsTitle': '1 行ごとに歌詞を貼り付けまたは編集',
-  'karaoke.maker.lyricsWarning':
-    'テキストを置き換えると、安全に再同期できるよう単語リンクが消去されます。',
   'karaoke.maker.lyricsReferenceHint':
     '[Verse] や [Chorus] などのマーカーと繰り返し行を含む完全な歌詞を入力してください。FluidEQ はこのテキストを保持し、ローカル音声認識でタイミングを検出します。',
   'karaoke.maker.referenceLyrics': '参照歌詞',
@@ -440,14 +390,12 @@ const karaoke: Partial<Dictionary> = {
     '単語が変更されています。置換すると単語 ID と自動タイミングが再構築され、既存の手動修正は確実に移行できません。ノートは保持され再リンクされます。',
   'karaoke.maker.replaceAndDetect': '置換して検出',
   'karaoke.maker.wordText': '単語',
-  'karaoke.maker.wordStart': '開始（ms）',
   'karaoke.maker.wordPosition': '位置',
   'karaoke.maker.wordDuration': '長さ（ms）',
   'karaoke.maker.wordTimingSliderHint':
     '共有境界を調整します。行全体の範囲を固定したまま、隣の単語との時間を受け渡します。',
   'karaoke.maker.usePlayhead': '再生位置を使用',
   'karaoke.maker.playWord': '単語を再生',
-  'karaoke.maker.allowAutoTiming': '自動タイミングを許可',
   'karaoke.maker.replaceLyrics': '歌詞を置き換える',
   'karaoke.maker.lyricsAutoAligned':
     '新しい歌詞を適用し、利用可能なメロディーに揃えました。',
@@ -461,15 +409,12 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionReview':
     '認識結果は出発点です。既存歌詞との照合では元の表記を保持し、すべての時刻を編集できます。',
   'karaoke.maker.notNow': '今はしない',
-  'karaoke.maker.downloadTranscribe': 'ダウンロードして文字起こし',
   'karaoke.maker.downloadPrepare': 'ダウンロードして歌詞を準備',
   'karaoke.maker.downloadingWhisper': 'Whisper モデルをダウンロード中',
   'karaoke.maker.downloadOverall': '全体のダウンロード',
   'karaoke.maker.downloadFiles': '{total} ファイル中 {complete} 完了',
   'karaoke.maker.loadingWhisper': 'Whisper モデルを読み込み中',
   'karaoke.maker.analysisRunning': 'ピッチをローカルで解析中',
-  'karaoke.maker.analysisAligned':
-    '未編集の歌詞を検出された {count} 個の音符領域に合わせました。手動タイミングは保持されています。',
   'karaoke.maker.analysisFound':
     '解析で {count} 個の音符領域が見つかりました。',
   'karaoke.maker.basicPitchRunning': 'メロディーの音符を検出中',
@@ -484,8 +429,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': '文字起こし完了',
   'karaoke.maker.whisperMatched':
     'Whisper が認識した {count} 語を対応付けました。エクスポート前に編集可能なタイミングを確認してください。',
-  'karaoke.maker.autoAlignComplete':
-    '未編集の歌詞を検出されたメロディーに合わせました。手動タイミングは保持されています。',
   'karaoke.maker.speechMemory': 'AIモデルのメモリ',
   'karaoke.maker.speechMemoryReady': 'RAM で準備完了',
   'karaoke.maker.speechMemoryCached': 'ディスクにキャッシュ済み',

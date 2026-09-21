@@ -33,7 +33,6 @@ const library: Partial<Dictionary> = {
   'library.add': 'フォルダーを追加',
   'library.rescan': '再スキャン',
   'library.rescan.force': '強制的に再スキャン',
-  'library.search': 'ライブラリを検索',
   'library.searchPlaceholder': '曲、アーティスト、アルバムを検索',
 
   'library.browse.album': 'アルバム',
@@ -48,7 +47,6 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': '頭文字へ移動',
   'library.coverflow.previous': '前のジャケット',
   'library.coverflow.next': '次のジャケット',
-  'library.folderCount': '{count} 個のフォルダ',
   'library.filterHere': 'この中の曲を絞り込む',
   'library.view.list': 'リスト',
   'library.view.grid': 'グリッド',
@@ -88,7 +86,6 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} を読み込み中',
   'library.scan.counted': '{seen} 件中 {parsed} 件のファイル',
   'library.scan.cancel': '停止',
-  'library.scan.done': '{count} 曲を追加しました',
 
   'library.roots': 'フォルダー',
   'library.root.remove': 'このフォルダーを削除',
@@ -126,7 +123,6 @@ const library: Partial<Dictionary> = {
   'library.forward5': '5秒進む',
   'library.next': '次の曲',
   'library.shuffle': 'シャッフル',
-  'library.repeat': 'リピート',
   'library.repeat.all': 'すべてをリピート',
   'library.repeat.one': 'この曲をリピート',
   'library.repeat.off': 'リピートしない',

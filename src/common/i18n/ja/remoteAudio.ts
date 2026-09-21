@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     'ヘッドセットまたはスピーカーを接続したコンピューターで使います。1 台以上の送信側を受け入れ、FluidEQ で選択中の出力から再生します。',
   'remoteAudio.listen.start': '接続コードを作成',
-  'remoteAudio.listen.activeTitle': 'このコンピューターで受信中',
   'remoteAudio.listen.newCode': '新しいコードを作成',
   'remoteAudio.listen.stop': '受信を停止',
   'remoteAudio.send.kicker': '送信側 · クライアント',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': '接続コード',
   'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-2… を貼り付け',
   'remoteAudio.send.start': '接続して送信',
-  'remoteAudio.send.activeTitle': 'システム音声を送信中',
-  'remoteAudio.send.activeBody':
-    '両方のコンピューターで FluidEQ を開いたままにしてください。受信側では、このロスレス音声とほかの送信元の音声をまとめて再生します。',
   'remoteAudio.send.destination': '{name} で再生中',
   'remoteAudio.send.stop': '送信を停止',
   'remoteAudio.send.readyHint': '停止後も保存済みコードはここに残ります。',
@@ -45,7 +41,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': 'ライブ接続',
   'remoteAudio.monitor.inactive': '開始する役割を選択してください',
   'remoteAudio.monitor.ready': '接続コードを入力できます',
-  'remoteAudio.monitor.waveform': '共有音声のライブ波形',
   'remoteAudio.monitor.waveformFor': '{name} のライブ音声波形',
   'remoteAudio.monitor.buffer': '再生 {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': '送信待ち {milliseconds} ms',

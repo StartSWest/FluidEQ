@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'Garder la couleur',
   'lighting.idle.brightness': 'Luminosité au repos',
   'lighting.idle.speed': 'Mouvement au repos',
-  'lighting.preview.live': 'Aperçu du bureau en direct',
   'lighting.tuning.master': 'Luminosité générale',
   'lighting.title': 'Éclairage dynamique',
   'lighting.rail.blurb': 'Votre bureau suit la scène',
@@ -81,13 +80,10 @@ const lighting = {
   'lighting.showGraph': 'Afficher le graphique',
 
   'lighting.brightness': 'Luminosité',
-  'lighting.brightness.value': '{percent} %',
   'lighting.pulse': 'Battre au rythme',
   'lighting.pulse.off': 'Non',
   'lighting.pulse.gentle': 'Doux',
   'lighting.pulse.full': 'Fort',
-  'lighting.colours.hint':
-    'Les couleurs viennent de la scène elle-même : il n’y a rien à choisir.',
 
   'lighting.devices.title': 'Vos appareils',
   'lighting.devices.searching': 'Recherche d’appareils…',

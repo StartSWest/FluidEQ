@@ -17,8 +17,6 @@ const plus = {
   'plus.rail.collapse': '收起侧边栏',
 
   'plus.gate.cta': '了解 Plus',
-  'plus.browse.text':
-    '有了 Plus，这些场景会随你的音乐播放，还能添加到你的外观并点赞。',
 
   'plus.gallery.search': '搜索场景或作者',
   'plus.gallery.sort': '排序',
@@ -282,17 +280,6 @@ const plus = {
   'plus.report.cancel': '取消',
   'plus.report.failed': '无法发送举报。请重试。',
 
-  'plus.welcome.title': '登录，看看会员们创作了什么',
-  'plus.welcome.body':
-    '有账户即可浏览图库、观看简短演示。下载并保留场景、完整播放、添加到外观、在工作室里创作自己的场景，以及把你创作的场景带到任何地方，都需要 Plus。',
-  'plus.welcome.browse': '浏览会员发布的每一个场景',
-  'plus.welcome.play': '用你的音乐播放它们，并添加到你的外观',
-  'plus.welcome.studio': '把在工作室里创作的场景带到你的外观、桌面和图库',
-  'plus.welcome.board': '凭借场景获得的点赞登上排行榜',
-  'plus.welcome.account.label': '账户',
-  'plus.welcome.account.access': '浏览图库并观看简短演示。',
-  'plus.welcome.paid.label': '付费Plus会员',
-  'plus.welcome.paid.access': '下载并保留场景、完整播放并创建自己的场景。',
   'plus.welcome.fine': '创建账户',
   'plus.welcome.scene.neonHorizon': '霓虹地平线',
   'plus.welcome.scene.nebulaHeart': '星云之心',

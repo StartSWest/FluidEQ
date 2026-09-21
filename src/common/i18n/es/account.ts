@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'Tu alias y tu nombre en la clasificación y en las escenas que has publicado. Cambian en todas partes a la vez; tu correo sigue siendo privado.',
   'account.name.cancel': 'Cancelar',
-  'account.signedIn': 'Sesión iniciada',
   'account.backToSignIn': 'Volver a iniciar sesión',
 
   'account.field.email': 'Correo electrónico',

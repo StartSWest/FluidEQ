@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'Manter cor',
   'lighting.idle.brightness': 'Brilho em repouso',
   'lighting.idle.speed': 'Movimento em repouso',
-  'lighting.preview.live': 'Prévia da mesa ao vivo',
   'lighting.tuning.master': 'Brilho geral',
   'lighting.title': 'Iluminação dinâmica',
   'lighting.rail.blurb': 'Sua mesa segue a cena',
@@ -80,13 +79,10 @@ const lighting = {
   'lighting.showGraph': 'Mostrar o gráfico',
 
   'lighting.brightness': 'Brilho',
-  'lighting.brightness.value': '{percent}%',
   'lighting.pulse': 'Pulsar com a batida',
   'lighting.pulse.off': 'Não',
   'lighting.pulse.gentle': 'Suave',
   'lighting.pulse.full': 'Forte',
-  'lighting.colours.hint':
-    'As cores vêm da própria cena, então não há nada para escolher.',
 
   'lighting.devices.title': 'Seus dispositivos',
   'lighting.devices.searching': 'Procurando dispositivos…',

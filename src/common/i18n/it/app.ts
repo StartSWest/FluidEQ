@@ -231,7 +231,6 @@ const app: Partial<Dictionary> = {
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bande',
   'tabs.presets': 'Preset EQ',
-  'tabs.voicing': 'Carattere',
   'tabs.convolution': 'Convoluzione',
   'tabs.games': 'Preset di gioco',
   'tabs.config': 'Config',
@@ -365,7 +364,6 @@ const app: Partial<Dictionary> = {
     'Il programma di installazione ufficiale firmato di FluidEQ viene distribuito soltanto tramite fluideq.com. Le build dal codice sorgente devono provenire dal repository ufficiale. La GPL consente a terzi di copiare, modificare, ricompilare e vendere FluidEQ, ma le loro build non sono automaticamente firmate, riviste, supportate o approvate da FluidEQ. Se un download afferma di essere ufficiale e non ha una firma digitale di Windows valida, chiudilo e segnalalo.',
   'provenance.site': 'Sito ufficiale: fluideq.com',
   'provenance.repository': 'Codice ufficiale: github.com/StartSWest/FluidEQ',
-  'language.title': 'Lingua',
   'language.aria': 'Lingua dell’interfaccia',
   'theme.aria': 'Tema',
   'motion.aria': 'Animazioni',
@@ -401,10 +399,6 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Scelto da te',
   'games.front.playing': '{name} è in primo piano, e il suo suono è attivo.',
   'games.front.sounding': '{name} è in esecuzione, e il suo suono è attivo.',
-  'games.front.none': 'In primo piano: {name}',
-  'games.front.desktop': 'niente che FluidEQ conosca',
-  'games.empty':
-    'Ancora nessun gioco. Aggiungine uno, dagli un suono, e FluidEQ passerà a quello appena il gioco è in primo piano.',
   'games.toast.loaded': '{preset} caricato',
   'games.toast.forGame': 'per {game}',
   'games.toast.restored': 'Di nuovo {preset}',
@@ -413,8 +407,6 @@ const app: Partial<Dictionary> = {
   'games.empty.title': 'Ancora nessun gioco',
   'games.empty.more':
     'Aggiungi un gioco, dagli un suono, e FluidEQ passa a quello appena il gioco è in primo piano — e torna indietro quando chiudi il gioco.',
-  'games.hint':
-    'Il suono cambia quando il gioco passa in primo piano e resta finché non chiudi il gioco, qualunque cosa apri nel frattempo. Se ne scegli un altro mentre giochi, resta: FluidEQ rimette solo ciò che ha messo.',
   'games.preset.none': 'Lascia com’è',
   'games.preset.noneHint':
     'Non cambia nulla quando questo gioco è in primo piano.',

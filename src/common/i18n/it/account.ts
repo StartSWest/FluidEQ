@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'Il tuo nickname e il tuo nome in classifica e sulle scene che hai pubblicato. Cambiano ovunque nello stesso momento; la tua email resta privata.',
   'account.name.cancel': 'Annulla',
-  'account.signedIn': 'Accesso effettuato',
   'account.backToSignIn': 'Torna all’accesso',
 
   'account.field.email': 'Email',

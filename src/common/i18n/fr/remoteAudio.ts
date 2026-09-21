@@ -17,7 +17,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.body':
     'Utilisez ce rôle sur l’ordinateur relié au casque ou aux enceintes. Il accepte un ou plusieurs émetteurs et les lit sur la sortie sélectionnée dans FluidEQ.',
   'remoteAudio.listen.start': 'Créer le code de connexion',
-  'remoteAudio.listen.activeTitle': 'Cet ordinateur écoute',
   'remoteAudio.listen.newCode': 'Créer un nouveau code',
   'remoteAudio.listen.stop': 'Arrêter l’écoute',
   'remoteAudio.send.kicker': 'ÉMETTEUR · CLIENT',
@@ -27,9 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.codeLabel': 'Code de connexion',
   'remoteAudio.send.codePlaceholder': 'Collez FLUIDEQ-LAN-2…',
   'remoteAudio.send.start': 'Connecter et envoyer',
-  'remoteAudio.send.activeTitle': 'Envoi du son système',
-  'remoteAudio.send.activeBody':
-    'Gardez FluidEQ ouvert sur les deux ordinateurs. Le récepteur lit ce flux sans perte avec tous les autres émetteurs connectés.',
   'remoteAudio.send.destination': 'Lecture sur {name}',
   'remoteAudio.send.stop': 'Arrêter l’envoi',
   'remoteAudio.send.readyHint': 'Le code enregistré reste ici après l’arrêt.',
@@ -44,7 +40,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.title': 'Connexion en direct',
   'remoteAudio.monitor.inactive': 'Choisissez un rôle pour commencer',
   'remoteAudio.monitor.ready': 'Prêt pour un code de connexion',
-  'remoteAudio.monitor.waveform': 'Forme d’onde du son partagé en direct',
   'remoteAudio.monitor.waveformFor': 'Forme d’onde en direct de {name}',
   'remoteAudio.monitor.buffer': 'Lecture {milliseconds} ms',
   'remoteAudio.monitor.sendQueue': 'File d’envoi {milliseconds} ms',

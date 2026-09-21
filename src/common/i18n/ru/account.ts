@@ -32,7 +32,6 @@ const account = {
   'account.name.changeBody':
     'Ваш ник и имя в таблице лидеров и на опубликованных вами сценах. Они меняются везде сразу; ваш адрес почты остаётся скрытым.',
   'account.name.cancel': 'Отмена',
-  'account.signedIn': 'Вход выполнен',
   'account.backToSignIn': 'Назад ко входу',
 
   'account.field.email': 'Эл. почта',

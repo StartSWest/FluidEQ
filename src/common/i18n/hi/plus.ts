@@ -17,8 +17,6 @@ const plus = {
   'plus.rail.collapse': 'साइडबार छोटा करें',
 
   'plus.gate.cta': 'Plus देखें',
-  'plus.browse.text':
-    'Plus के साथ ये सीन आपके संगीत पर चलते हैं, आप इन्हें अपने रूपों में जोड़ सकते हैं और पसंद कर सकते हैं।',
 
   'plus.gallery.search': 'सीन या बनाने वाले खोजें',
   'plus.gallery.sort': 'क्रम',
@@ -301,19 +299,6 @@ const plus = {
   'plus.report.cancel': 'रद्द करें',
   'plus.report.failed': 'रिपोर्ट भेजी नहीं जा सकी। फिर कोशिश करें।',
 
-  'plus.welcome.title': 'साइन इन करें और देखें सदस्य क्या बनाते हैं',
-  'plus.welcome.body':
-    'खाते से आप गैलरी देख सकते हैं और छोटे डेमो चला सकते हैं। सीन डाउनलोड करके रखने, पूरे चलाने, अपने रूपों में जोड़ने, स्टूडियो में अपने सीन बनाने और अपने बनाए सीन को कहीं भी ले जाने के लिए Plus आवश्यक है।',
-  'plus.welcome.browse': 'सदस्यों के प्रकाशित हर सीन को देखें',
-  'plus.welcome.play': 'इन्हें अपने संगीत पर चलाएँ और अपने रूपों में जोड़ें',
-  'plus.welcome.studio':
-    'स्टूडियो में बनाए सीन को अपने रूपों, डेस्कटॉप और गैलरी तक ले जाएँ',
-  'plus.welcome.board': 'अपने सीन को मिली पसंद से लीडरबोर्ड पर ऊपर चढ़ें',
-  'plus.welcome.account.label': 'खाता',
-  'plus.welcome.account.access': 'गैलरी देखें और छोटे डेमो चलाएँ।',
-  'plus.welcome.paid.label': 'सशुल्क Plus सदस्यता',
-  'plus.welcome.paid.access':
-    'सीन डाउनलोड करके रखें, पूरे चलाएँ और अपने सीन बनाएँ।',
   'plus.welcome.fine': 'खाता बनाएँ',
   'plus.welcome.scene.neonHorizon': 'नियॉन क्षितिज',
   'plus.welcome.scene.nebulaHeart': 'नीहारिका का हृदय',

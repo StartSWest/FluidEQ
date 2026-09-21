@@ -40,7 +40,6 @@ const lighting = {
   'lighting.idle.hold': 'Farbe halten',
   'lighting.idle.brightness': 'Ruhehelligkeit',
   'lighting.idle.speed': 'Ruhebewegung',
-  'lighting.preview.live': 'Live-Vorschau des Schreibtischs',
   'lighting.tuning.master': 'Gesamthelligkeit',
   'lighting.title': 'Dynamische Beleuchtung',
   'lighting.rail.blurb': 'Ihr Schreibtisch folgt der Szene',
@@ -80,13 +79,10 @@ const lighting = {
   'lighting.showGraph': 'Diagramm anzeigen',
 
   'lighting.brightness': 'Helligkeit',
-  'lighting.brightness.value': '{percent} %',
   'lighting.pulse': 'Im Beat pulsieren',
   'lighting.pulse.off': 'Aus',
   'lighting.pulse.gentle': 'Sanft',
   'lighting.pulse.full': 'Voll',
-  'lighting.colours.hint':
-    'Die Farben kommen aus der Szene selbst, deshalb gibt es nichts auszuwählen.',
 
   'lighting.devices.title': 'Ihre Geräte',
   'lighting.devices.searching': 'Geräte werden gesucht…',

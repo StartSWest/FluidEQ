@@ -84,11 +84,6 @@ const dsp = {
   'dsp.preset.music': 'Música',
   'dsp.preset.speech': 'Voz',
   'dsp.quick.classics': 'Presets clásicos',
-  'dsp.favorites.intro':
-    'Marca presets con la estrella en DSP para tener aquí tus sonidos favoritos.',
-  'dsp.favorites.empty':
-    'Aún no hay favoritos. Marca un preset en DSP para añadirlo aquí.',
-  'dsp.favorites.open': 'Abrir DSP',
   'dsp.gameMode.update':
     'Actualiza el Motor FluidEQ para usar el modo juego. El preset sigue aplicando sus ajustes de sonido.',
   'dsp.gameMode.hint':
@@ -110,8 +105,6 @@ const dsp = {
     'Mide el audio externo mientras se reproduce, ajusta ambos canales a la vez y protege los picos antes del excitador y el ecualizador.',
   'dsp.normalizer.liveAnalysis': 'Análisis de la fuente en directo',
   'dsp.normalizer.shortTerm': 'Sonoridad a corto plazo',
-  'dsp.normalizer.liveHonesty':
-    'La sonoridad en directo se estabiliza tras tres segundos. Un pasaje fuerte fija el nivel para el resto de la canción y la protección de picos sigue activa. No repara la distorsión ya presente.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
@@ -119,7 +112,6 @@ const dsp = {
     'Reproduce una pista de audio desde la Biblioteca para usar el DSP. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
   'dsp.scope.system': 'En todo el sistema · {output}',
   'dsp.scope.systemAll': 'En todo el sistema',
-  'dsp.scope.systemDelay': '{ms} ms de retardo',
   'dsp.latency.label': 'Retardo de procesamiento',
   'dsp.latency.gameMode': 'Modo juego',
   'dsp.latency.ms': '{ms} ms',
@@ -131,11 +123,8 @@ const dsp = {
     'Búferes informados por el motor a la frecuencia de muestreo actual. No incluye Windows, el dispositivo ni la red.',
   'dsp.latency.gameNote':
     'El modo juego reduce los búferes evitables. Los efectos activos pueden necesitar retardo. Desactívalo para volver al procesamiento normal.',
-  'dsp.latency.stage.linearEq': 'Ecualizador de fase lineal',
   'dsp.latency.stage.safety': 'Protección final',
   'dsp.latency.stage.guard': 'Protección de picos del ecualizador',
-  'dsp.latency.stage.eqPhase': 'Ecualizador, fase lineal',
-  'dsp.latency.stage.curvePhase': 'Capa de curva, fase lineal',
   'dsp.latency.stage.curves': 'Curvas de corrección',
   'dsp.scope.useFluid': 'Usar el Motor FluidEQ',
   'dsp.unavailable':
@@ -146,7 +135,6 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
-  'dsp.preset.bassPower': 'Potencia de graves',
   'dsp.bypassed': 'Desactivado',
   'dsp.enabled': 'Activado',
 
@@ -189,7 +177,6 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Limpieza intensa',
   'dsp.denoise.description':
     'Repara la fuente antes de que nada la coloree: siseo, zumbido de red, chasquidos y un limpiador neuronal de voz. Medido a partir de la propia pista, no supuesto.',
-  'dsp.denoise.libraryOnly': 'Solo en la reproducción de la Biblioteca',
   'dsp.denoise.isolate': 'Aislar',
   'dsp.denoise.isolateHint': 'Escucha solo lo que esta etapa elimina.',
   'dsp.denoise.isolateOn':
@@ -209,8 +196,6 @@ const dsp = {
   'dsp.denoise.scanRequired':
     'Esta pista no tiene un análisis guardado. Analizado permanece transparente hasta que pulses Reanalizar.',
   'dsp.denoise.hiss': 'Siseo',
-  'dsp.denoise.hissHint':
-    'Supresión de banda ancha contra el suelo medido. Añade 21 ms de latencia mientras está activo.',
   'dsp.denoise.amount': 'Cantidad',
   'dsp.denoise.reductionLimit': 'Límite de reducción',
   'dsp.denoise.reductionLimitHint':
@@ -277,7 +262,6 @@ const dsp = {
   'dsp.crossfade.savePlaceholder': 'Nombre de la curva',
   'dsp.crossfade.handleOutgoing': 'Punto de la curva saliente',
   'dsp.crossfade.handleIncoming': 'Punto de la curva entrante',
-  'dsp.crossfade.sum': 'Nivel combinado',
   'dsp.crossfade.hint':
     'Se aplica a Siguiente manual y al final natural de la pista. Buscar sigue siendo inmediato.',
 
@@ -407,8 +391,6 @@ const dsp = {
   'dsp.eqImport.cancel': 'Cancelar',
 
   'dsp.eq.title': 'Ecualizador',
-  'dsp.eq.description':
-    'Quince bandas paramétricas, dibujadas como responden los filtros de verdad y no como se les pidió.',
   'dsp.eq.band': 'Banda',
   'dsp.eq.bands': 'Bandas',
   'dsp.eq.shape': 'Tipo de banda',
@@ -424,15 +406,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Paso banda',
   'dsp.eq.frequency': 'Frec',
   'dsp.eq.gain': 'Ganancia',
-  'dsp.eq.trim': 'Ajuste auto',
-  'dsp.eq.adaptive': 'Adaptativo',
-  'dsp.eq.trimFixed': 'Fijo',
-  'dsp.eq.trimOff': 'Sin ajuste',
-  'dsp.eq.adaptiveHint':
-    'Mide la canción y devuelve el margen que no hace falta. Apagado mantiene el nivel completamente fijo.',
-  'dsp.eq.trimHint':
-    'Espacio reservado antes de las bandas para que esta curva no sature.',
-  'dsp.eq.overUnity': '{gain} dB de más',
   'dsp.eq.character': 'Carácter',
   'dsp.eq.subsonic': 'Subgraves',
   'dsp.eq.fuzz': 'Fuzz',
@@ -449,12 +422,10 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Umbral',
   'dsp.eq.legend.subsonic': 'Subgraves',
   'dsp.eq.legend.input': 'Entrada',
-  'dsp.eq.inputMark': 'entrada {gain} dB',
   'dsp.eq.legend.gain': 'ganancia',
   'dsp.eq.legend.level': 'nivel por banda',
   'dsp.eq.thresholdMark': 'umbral {level} dBFS',
   'dsp.eq.dynamic': 'Dinámico',
-  'dsp.eq.dynamicOn': 'Dinámico SÍ',
   'dsp.eq.dynamicHint': 'Actúa solo mientras esta banda supera su umbral.',
 
   'dsp.exciter.title': 'Excitador',
@@ -573,8 +544,6 @@ const dsp = {
   'dsp.dimension.monoNote':
     'Solo se tocan los laterales, así que en mono se oye exactamente lo mismo que con esto apagado. La protección se cierra si la mezcla ya está desfasada.',
   'dsp.dimension.title': 'Dimensión',
-  'dsp.dimension.description':
-    'Ensancha la imagen estéreo por banda. La suma mono nunca cambia.',
   'dsp.dimension.lowWidth': 'Ancho graves',
   'dsp.dimension.midWidth': 'Ancho medios',
   'dsp.dimension.highWidth': 'Ancho agudos',
@@ -609,21 +578,13 @@ const dsp = {
     'Control transparente de la salida final después de todos los procesadores. No cambia la intensidad con que se alimentan el EQ, el Excitador ni las demás etapas.',
   'dsp.master.outputTrim': 'Ganancia de salida',
   'dsp.master.autoHeadroom': 'Margen automático',
-  'dsp.master.autoHeadroomHint':
-    'Reduce suavemente solo los picos que se acercan al techo de pico verdadero enlazado en estéreo.',
   'dsp.master.ceiling': 'Techo',
   'dsp.master.release': 'Relajación',
   'dsp.master.loudnessMaximize': 'Maximizar LUFS',
   'dsp.master.loudnessMaximizeHint':
     'Aplica {gain} dB según la medición completa de la pista y mantiene el pico real final bajo el techo. La ganancia es constante; solo se controlan los picos.',
   'dsp.master.loudnessTarget': 'Objetivo de sonoridad',
-  'dsp.master.meter': 'Salida final',
-  'dsp.master.safetyHint':
-    'Detección de pico verdadero {factor}× · techo de {ceiling} dBTP · rodilla suave de {knee} dB · enlace estéreo.',
-  'dsp.master.manualHint':
-    'Ganancia de salida manual. La protección final sigue controlando los picos cuando está activada.',
   'dsp.master.truePeak': 'TP entrada',
-  'dsp.master.gainReduction': 'Reducción de ganancia',
   'dsp.master.devSafety': 'Seguridad A/B',
   'dsp.master.devSafetyHint':
     'Solo desarrollo: omite toda la protección final para que puedas escuchar exactamente lo que cambia.',
@@ -685,12 +646,10 @@ const dsp = {
   'dsp.room.preset.openAir': 'Aire libre',
   'dsp.room.presetHint':
     'Sala de {size} m · altavoces a {distance} m · paredes {live}% vivas',
-  'dsp.room.saveRoom': 'Guardar sala…',
   'dsp.room.saveTitle': 'Guardar esta sala',
   'dsp.room.saveHint':
     'La sala entera tal como está se guarda con este nombre, junto a las ya guardadas: su forma, sus altavoces, sus niveles y silencios, las opciones de graves y estéreo, Espacio y Ambiente. Tu cabeza y tus auriculares siguen siendo tuyos.',
   'dsp.room.savePlaceholder': 'Nombre de la sala',
-  'dsp.room.deleteRoom': 'Eliminar sala',
   'dsp.room.groupHead': 'Cabeza',
   'dsp.room.size': 'Tamaño',
   'dsp.room.walls': 'Paredes',
@@ -737,7 +696,6 @@ const dsp = {
   'dsp.room.live.on': 'Sala encendida',
   'dsp.room.live.idle': 'Nada suena por el motor',
   'dsp.room.live.unknown': 'Solo con el motor',
-  'dsp.room.fit': 'Ajustar…',
   'dsp.room.profile.referenceV2': 'Referencia',
   'dsp.room.profile.musicSpaceV2': 'Espacio musical',
   'dsp.room.profile.cinemaV2': 'Cine',

@@ -52,7 +52,6 @@ const lighting = {
   'lighting.idle.hold': 'Hold colour',
   'lighting.idle.brightness': 'Idle brightness',
   'lighting.idle.speed': 'Idle motion',
-  'lighting.preview.live': 'Live desk preview',
   'lighting.tuning.master': 'Master brightness',
   'lighting.title': 'Dynamic lighting',
   'lighting.rail.blurb': 'Your desk follows the scene',
@@ -89,13 +88,10 @@ const lighting = {
   'lighting.showGraph': 'Show the graph',
 
   'lighting.brightness': 'Brightness',
-  'lighting.brightness.value': '{percent} %',
   'lighting.pulse': 'Pulse with the beat',
   'lighting.pulse.off': 'Off',
   'lighting.pulse.gentle': 'Gentle',
   'lighting.pulse.full': 'Full',
-  'lighting.colours.hint':
-    'The colours come from the scene itself, so there is nothing to pick.',
 
   'lighting.devices.title': 'Your devices',
   'lighting.devices.searching': 'Looking for devices…',

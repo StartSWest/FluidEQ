@@ -31,7 +31,6 @@ const library = {
   'library.add': 'Add folder',
   'library.rescan': 'Rescan',
   'library.rescan.force': 'Force rescan',
-  'library.search': 'Search the library',
   'library.searchPlaceholder': 'Search songs, artists, albums',
 
   'library.browse.album': 'Albums',
@@ -46,7 +45,6 @@ const library = {
   'library.jumpTo': 'Jump to a letter',
   'library.coverflow.previous': 'Previous cover',
   'library.coverflow.next': 'Next cover',
-  'library.folderCount': '{count} folders',
   'library.filterHere': 'Filter these songs',
   'library.view.list': 'List',
   'library.view.grid': 'Grid',
@@ -86,7 +84,6 @@ const library = {
   'library.scan.running': 'Reading {name}',
   'library.scan.counted': '{parsed} of {seen} files',
   'library.scan.cancel': 'Stop',
-  'library.scan.done': 'Added {count} songs',
 
   'library.roots': 'Folders',
   'library.root.remove': 'Remove this folder',
@@ -122,7 +119,6 @@ const library = {
   'library.forward5': 'Forward 5 seconds',
   'library.next': 'Next',
   'library.shuffle': 'Shuffle',
-  'library.repeat': 'Repeat',
   'library.repeat.all': 'Repeat everything',
   'library.repeat.one': 'Repeat this song',
   'library.repeat.off': 'Do not repeat',
