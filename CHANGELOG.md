@@ -6,6 +6,165 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 1.7.5
+
+The Room is the centre of this one. Thirteen new rooms stand beside the eleven
+it shipped with, each one told apart by measurement rather than by name, its
+page was rebuilt so nothing is hidden behind a tab, and its locks came off:
+sound has never been the part of FluidEQ you pay for, and a listening room is
+sound.
+
+Plus changed shape around that. The Studio is Plus's now and opens with a free
+trial, and there is a way in that costs nothing at all — publish a scene, have it
+approved, and the next month is free. Every member's scene is now
+held for approval before anybody sees it.
+
+The equaliser and the sound profiles had a pass of their own. Every profile was
+re-measured and levelled so switching between them changes character and not
+volume, each music style became a whole chain instead of a curve, the quick
+layouts moved onto the international standard's frequencies, and the main
+equaliser gained Bass, Mid and Treble across the whole rack.
+
+Games got their own sound: a chain per game, switched the moment Windows puts
+that game in front. And a pass went through the window for controls that took
+an answer and did nothing with it — eight of them, plus seven strings that had
+been translated into ten languages for a screen nobody reaches.
+
+### New
+
+- **Thirteen new rooms, told apart by measurement.** Twenty-four in all, each
+  with its speakers where that place would put them and its own air. None of
+  them is another one under a different name: every pair is measured against
+  every other for level, for how wide it sits at the ears, for top against
+  bottom, and on a surround stream for the centre, a side and a rear against
+  the front. Three rooms written that week measured as copies of ones already
+  there and were taken out again.
+- **The Room's page hides nothing.** The rooms are in the same picker every
+  other stage uses, under Featured, Classic rooms and Yours; what a room is
+  made of is on the page rather than behind Tune and Fit tabs; the picture
+  stands on the left with six bands beside it, and the speaker you pressed has
+  its own pane from the moment you press it, with its angle as a number you can
+  type. The whole page fills the width the rest of FluidEQ does.
+- **The Room is not part of Plus, and never was meant to be.** Shaping a room,
+  saving one, fitting the head by ear: all of it is open to everybody. Sound is
+  not the part of FluidEQ that is paid for.
+- **A chain in the Room, with its own tone.** Every preset picker now leads
+  with the usual chains and a Room copy of each, and the Room copies carry five
+  measured bands in front of the Room so a chain sounds like itself through it:
+  a record leaves a room about 3 dB louder and 3 to 4 dB darker than it went
+  in, and those bands are that difference, measured.
+- **Every game its own sound.** A chain per game, switched the moment Windows
+  puts that game in front and switched back when it goes away. The card a game
+  raises says what it did, and a chain can be starred on it. The equaliser's
+  fourth pill is named for what it holds — game presets.
+- **Bass, Mid and Treble across the whole rack**, the way an amplifier has
+  them, on the main equaliser whenever no band is selected. Each moves its own
+  third of the spectrum smoothly; Ctrl+click puts that third back to flat. The
+  equaliser now also opens with nothing selected, showing the whole rack
+  instead of the lowest bass band.
+- **A whole chain per music style.** The bass, the exciter, the width and the
+  compression are now chosen for each style rather than a curve alone, and only
+  where they suit it.
+- **A twenty-band quick layout**, and the existing ones moved onto the
+  international standard's frequencies: four of the six-band's centres and two
+  of the ten's were not on it, so a band labelled 64 Hz is now the 63 Hz
+  everything else means by it. Bands also open at a width that matches how far
+  apart they are — a thirty-one-band rack no longer has three bands playing the
+  same note, and a six-band no longer leaves holes between them.
+- **The FluidEQ Engine has a new build.** The rack grew a control this version,
+  so the copy on your machine is offered an update the first time you run
+  1.7.5: one press in the notice, and Windows restarts its audio itself. Until
+  you take it the equaliser keeps working and the DSP effects stay off, which
+  is what the "Update engine" card is telling you.
+- **Publish a scene, keep FluidEQ free.** A scene of yours that is approved earns
+  the next month of Plus. The account panel shows the month you earned, counts
+  down its last week and says so on the day it ends: nothing renews quietly and
+  nothing is charged. A maker whose month has run out can still publish the
+  next scene — that is the way back in, so it stays open.
+- **The Studio is part of Plus, and opens with a free trial.** Fifteen days,
+  no card, nothing charged when it ends — and **only for an account created
+  after the offer opened on 20 September 2026**. An account older than that
+  cannot start one, and that does not change if the offer is switched off and
+  on again. Somebody without Plus now meets a page that says what the Studio is
+  and how to get in, rather than an editor that refuses every press; a maker
+  whose earned month has run out keeps one project, so the way back in stays
+  open.
+- **Every member's scene is held for approval before anyone sees it.** A scene
+  is reviewed before it reaches the gallery, and a new version is published
+  above the highest number that scene was ever out at, so a number can never
+  come back around.
+- **A desktop background keeps its place.** It plays on as its replacement is
+  prepared rather than blinking out between the two, stops where it stands
+  rather than being taken off the desktop, gives the desktop its own wallpaper
+  back while it waits on battery, and takes the whole visualizer performance
+  choice with it instead of two fields of it.
+
+### Fixed
+
+- **FluidEQ says when it is not reaching the output**, instead of looking
+  switched on while nothing goes through it. When part of the audio engine is
+  not running, its name no longer sits there in full colour as though
+  everything were fine, and "Fix this" reopens the card after you have put it
+  away once.
+- **The engine finds the place a sound card actually loads it from.** Windows
+  keeps an effect in one of eight places and which one a driver reads is
+  written down nowhere, so FluidEQ steps through them on the machine itself. It
+  was stepping over three of them, walking outputs back up a rung it had
+  already heard fail, throwing away the name of the rung it had just tried, and
+  knowing only two of Windows' own four effect ids — so on a Bluetooth headset
+  it came to rest in a place that endpoint is never read from, attached by
+  every reading and never once created.
+- **A flush of Windows' audio pipeline no longer puts a hole in the Room.**
+  The chain was rebuilt cold, and a cold room is silence.
+- **The room you draw is drawn to scale.** Stand a speaker further away than
+  the room is wide and it now stands outside its walls, where it is; and
+  turning Distance always walks the speakers out instead of stopping them at
+  the wall. A small room used to pin every speaker to the wall and then ignore
+  the dial.
+- **The Master's loudness target works everywhere**, not only on tracks played
+  from the Library. Setting it and hearing nothing change was the old
+  behaviour; it now measures what is playing and lands on the number you asked
+  for.
+- **Switching sound profiles changes character, not volume.** All hundred-odd
+  of them were re-measured and levelled; Lo-Fi and Laptop, which played louder
+  than the rest, came down.
+- **The DSP page comes back to the processor you left it on**, instead of
+  always the Normalizer.
+- **The Room is as loud at 192 kHz as at 48.** A head is a filter, and it was
+  being resampled as if it were a sound: a tone left the room 12 dB louder at
+  192 kHz than at 48, and the large head played louder than the small one
+  inside the listening test that asks you to pick between them.
+- **Eight controls that took an answer and did nothing with it** are either
+  wired up or gone, and three more are no longer drawn on the screens that
+  cannot read them. The Room's headphone switch is off the page: it never
+  changed a sample.
+- **The Master's loudness readout says why it reads +0.0** rather than leaving
+  it as a number that looks wrong.
+- **Shared audio is sent as it was recorded**, with the processing delay and
+  the presets answered the same way on both machines.
+- **The leaderboard shows real people.** The twelve invented names it was
+  built with are gone from every build.
+- **Plus given as a gift is not described as a subscription.** No badge saying
+  it is ending from its first day, no button to a payment page that has never
+  heard of the account, and it stops on the day it ends rather than a fortnight
+  later.
+- **Sending more than two scenes in a month says exactly that**, and when you
+  can send again, rather than asking you to slow down.
+- **A server answer nobody can read no longer shuts the Studio**, and the page
+  says where the projects are.
+- **A scene's colours reach the rest of the window** — the engine label, the
+  arrows, the companion in the title bar — and the Library stops blurring
+  FluidEQ's own scenes as though they were a stranger's.
+- **The graph's wave sliders move the wave in the pane they are offered in.**
+- **The Room is built on other people's measurements, and says so.** The
+  acknowledgement names them, and SwiftF0's author with them.
+- **The guide matches the app again.** The Room's chapter was rewritten to the
+  page as it is now and re-photographed, and the chapters on Plus, the gallery
+  and the Studio say what the Studio costs, that a published scene waits for
+  approval, and what an approved scene earns.
+
+---
+
 ## 1.7.4
 
 Most of this release is about what a visualizer somebody else wrote is allowed
