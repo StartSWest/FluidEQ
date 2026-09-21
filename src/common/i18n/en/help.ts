@@ -273,11 +273,11 @@ const help = {
 
   'help.plus.title': 'FluidEQ Plus and your account',
   'help.plus.intro':
-    'An account is optional: everything that was free runs on this computer without one, and any account can make one scene in the Studio. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, Dynamic lighting and the desktop visualizer, and takes what the Studio makes to your looks, the gallery and other members.',
+    'An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A new account can try Plus free for fifteen days, and a scene you publish that is approved earns you a month.',
   'help.plus.steps':
     'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nPress Upgrade to Plus, read the terms, tick that you agree, and pay on Buy Me a Coffee in your browser with the same email.\nOpen the Plus tab. Its rail leads to the Leaderboard, Visualizers, the Studio and Dynamic lighting.',
   'help.plus.tip':
-    'The app never sees your card; Manage subscription changes or cancels it. An account stays signed in on up to five computers, and Plus keeps working offline for a while.',
+    'The app never sees your card; Manage subscription changes or cancels it. The free trial asks for no card and charges nothing when it ends. An account stays signed in on up to five computers, and Plus keeps working offline for a while.',
   'help.plus.leaderboard': 'Who listens most, among Plus members who join.',
   'help.plus.visualizers':
     'Scenes by FluidEQ and members, ready for your music.',
@@ -291,7 +291,7 @@ const help = {
   'help.gallery.steps':
     'Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike members’ scenes with the heart, and report one that should not be there.',
   'help.gallery.tip':
-    'Scenes in your looks update themselves, and a scene’s page says what changed in each version. Open in Studio shows how FluidEQ’s own scenes are made.',
+    'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once a moderator has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
   'help.gallery.search': 'Finds scenes and makers.',
   'help.gallery.sortName': 'Sort',
   'help.gallery.sort': 'Most liked, liked this week, or newest.',
@@ -329,11 +329,11 @@ const help = {
 
   'help.studio.title': 'Make scenes in the Studio',
   'help.studio.intro':
-    'The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved.',
+    'The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is part of Plus; a new account can open it on the free trial.',
   'help.studio.steps':
-    'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nWatch the stage as files are saved and try the test signals. Then, with Plus, Add to my looks, Publish… or Export….',
+    'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
   'help.studio.tip':
-    'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back.',
+    'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by a moderator first, and one that is approved earns you a month of Plus.',
   'help.studio.project': 'Your projects, and FluidEQ scenes to look inside.',
   'help.studio.switchName': 'Previous and next project',
   'help.studio.switch': 'Steps back or forward through your projects.',

@@ -281,11 +281,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'FluidEQ Plus und dein Konto',
   'help.plus.intro':
-    'Ein Konto ist freiwillig: Alles, was kostenlos war, läuft auch ohne Konto auf diesem Computer, und mit jedem Konto lässt sich eine Szene im Studio bauen. FluidEQ Plus, monatlich oder jährlich, fügt Visualizer, die Rangliste, Dynamische Beleuchtung und den Desktop-Visualizer hinzu und bringt, was das Studio baut, in deine Darstellungen, in die Galerie und zu anderen Mitgliedern.',
+    'Ein Konto ist freiwillig: Alles, was kostenlos war, läuft auch ohne Konto auf diesem Computer. FluidEQ Plus, monatlich oder jährlich, fügt Visualizer, die Rangliste, das Studio, Dynamische Beleuchtung und den Desktop-Visualizer hinzu. Ein neues Konto kann Plus fünfzehn Tage kostenlos testen, und eine Szene, die du veröffentlichst und die freigegeben wird, bringt dir einen Monat.',
   'help.plus.steps':
     'Öffne Konto im Aktionsmenü. Melde dich an, oder erstelle ein Konto und gib den sechsstelligen Code ein, der an deine E-Mail-Adresse geschickt wurde.\nDrücke Auf Plus umsteigen, lies die Bedingungen, setze das Häkchen, dass du zustimmst, und bezahle in deinem Browser bei Buy Me a Coffee mit derselben E-Mail-Adresse.\nÖffne den Tab Plus. In seiner Seitenleiste findest du Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
   'help.plus.tip':
-    'Die App sieht deine Karte nie; über Abonnement verwalten änderst oder kündigst du es. Ein Konto bleibt auf bis zu fünf Computern angemeldet, und Plus funktioniert eine Zeit lang auch offline.',
+    'Die App sieht deine Karte nie; über Abonnement verwalten änderst oder kündigst du es. Der kostenlose Testzeitraum verlangt keine Karte und kostet am Ende nichts. Ein Konto bleibt auf bis zu fünf Computern angemeldet, und Plus funktioniert eine Zeit lang auch offline.',
   'help.plus.leaderboard':
     'Wer am meisten hört, unter den Plus-Mitgliedern, die beitreten.',
   'help.plus.visualizers':
@@ -301,7 +301,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Öffne Plus → Visualizer. Suche, sortiere nach Beliebteste, Diese Woche oder Neueste, oder wähle eine Kategorie.\nÖffne eine Szene, drücke Zu meinen Darstellungen und dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nVergib mit dem Herzsymbol Likes an Szenen von Mitgliedern und melde eine, die dort nicht hingehört.',
   'help.gallery.tip':
-    'Szenen in deinen Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
+    'Szenen in deinen Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Eine Szene, die du veröffentlichst, erscheint, sobald ein Moderator sie freigegeben hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
   'help.gallery.search': 'Findet Szenen und Ersteller.',
   'help.gallery.sortName': 'Sortieren',
   'help.gallery.sort': 'Meiste Likes, meiste Likes dieser Woche oder neueste.',
@@ -341,11 +341,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Szenen im Studio bauen',
   'help.studio.intro':
-    'Das Studio macht aus einer Beschreibung einen Visualizer. Dein eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu deiner Musik ab, sobald sie gespeichert ist.',
+    'Das Studio macht aus einer Beschreibung einen Visualizer. Dein eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu deiner Musik ab, sobald sie gespeichert ist. Das Studio gehört zu Plus; ein neues Konto kann es mit dem kostenlosen Testzeitraum öffnen.',
   'help.studio.steps':
-    'Öffne Plus → Studio und drücke Neues Projekt…. Gib ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreibe deine Idee, öffne den Ordner in deinem KI-Assistenten und füge den Prompt aus KI-Prompt kopieren ein.\nBeobachte die Bühne, während Dateien gespeichert werden, und probiere die Testsignale aus. Dann, mit Plus, Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
+    'Öffne Plus → Studio und drücke Neues Projekt…. Gib ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreibe deine Idee, öffne den Ordner in deinem KI-Assistenten und füge den Prompt aus KI-Prompt kopieren ein.\nBeobachte die Bühne, während Dateien gespeichert werden, und probiere die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
-    'Doppelklicke auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten.',
+    'Doppelklicke auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die du veröffentlichst, liest zuerst ein Moderator, und eine freigegebene Szene bringt dir einen Monat Plus.',
   'help.studio.project': 'Deine Projekte und FluidEQ-Szenen zum Hineinschauen.',
   'help.studio.switchName': 'Vorheriges und nächstes Projekt',
   'help.studio.switch':

@@ -28,6 +28,8 @@ const termsNotice = {
     'The leaderboard now ranks an account only while it has Plus, and Report a problem can also open a private email to FluidEQ’s maker.',
   'termsNotice.change.8':
     'The fourteen-day refund is withdrawn. Cancelling still keeps Plus on to the end of the period you paid for, and nothing more is charged.',
+  'termsNotice.change.9':
+    'Every scene published in Visualizers is now read by a moderator before anyone else sees it. And Plus can arrive without a payment: a free trial a new account can take once, and a month earned by a scene that is approved. Neither renews, and nothing is ever charged for either.',
 } as const;
 
 export default termsNotice;

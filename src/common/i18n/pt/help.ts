@@ -277,11 +277,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'O FluidEQ Plus e sua conta',
   'help.plus.intro':
-    'Uma conta é opcional: tudo o que era grátis funciona neste computador sem ela, e qualquer conta pode fazer uma cena no Estúdio. O FluidEQ Plus, mensal ou anual, acrescenta Visualizadores, a Classificação, a Iluminação dinâmica e o visualizador do ambiente de trabalho, e leva o que o Estúdio faz para os seus visuais, a galeria e outros membros.',
+    'Uma conta é opcional: tudo o que era grátis funciona neste computador sem ela. O FluidEQ Plus, mensal ou anual, acrescenta Visualizadores, a Classificação, o Estúdio, a Iluminação dinâmica e o visualizador do ambiente de trabalho. Uma conta nova pode experimentar o Plus grátis durante quinze dias, e uma cena que publique e que seja aprovada dá-lhe um mês.',
   'help.plus.steps':
     'Abra Conta no menu de ações. Inicie sessão, ou crie uma conta e digite o código de seis dígitos enviado para seu e-mail.\nPressione Passar ao Plus, leia os termos, marque que concorda e pague no Buy Me a Coffee, no seu navegador, com o mesmo e-mail.\nAbra a aba Plus. A barra lateral dela leva à Classificação, aos Visualizadores, ao Estúdio e à Iluminação dinâmica.',
   'help.plus.tip':
-    'O app nunca vê seu cartão; Gerir subscrição permite alterá-la ou cancelá-la. Uma conta fica com a sessão iniciada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
+    'O app nunca vê seu cartão; Gerir subscrição permite alterá-la ou cancelá-la. O período gratuito não pede cartão e não cobra nada ao terminar. Uma conta fica com a sessão iniciada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
   'help.plus.leaderboard':
     'Quem ouve mais, entre os membros Plus que participam.',
   'help.plus.visualizers':
@@ -297,7 +297,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena, pressione Adicionar aos meus visuais e depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta as cenas dos membros com o coração e denuncie uma que não deveria estar lá.',
   'help.gallery.tip':
-    'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
+    'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que um moderador a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
   'help.gallery.search': 'Encontra cenas e criadores.',
   'help.gallery.sortName': 'Ordenar',
   'help.gallery.sort': 'Mais curtidas, curtidas nesta semana ou mais novas.',
@@ -337,11 +337,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Crie cenas no Estúdio',
   'help.studio.intro':
-    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva.',
+    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio faz parte do Plus; uma conta nova pode abri-lo com o período gratuito.',
   'help.studio.steps':
-    'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, com o Plus, Adicionar aos meus visuais, Publicar… ou Exportar….',
+    'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
-    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena da FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas.',
+    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena da FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
   'help.studio.project':
     'Seus projetos e as cenas do FluidEQ para ver por dentro.',
   'help.studio.switchName': 'Projeto anterior e próximo',

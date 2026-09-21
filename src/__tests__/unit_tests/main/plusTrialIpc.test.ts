@@ -14,6 +14,9 @@ import type { IAccountState } from '../../../main/account/session';
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import { AuthError } from '../../../main/account/authClient';
 import { registerPlusTrialIpc } from '../../../main/ipc/plusTrial';
+// The version this build carries, never a literal: what is under test is
+// that consent has to name THIS one, not that it happens to be a number.
+import { PLUS_TERMS_VERSION } from '../../../common/plusTerms';
 /* eslint-enable import/first */
 
 const config = {
@@ -29,7 +32,7 @@ const OFFER = {
   state: 'eligible',
   startedAt: null,
   endsAt: null,
-  termsVersion: 8,
+  termsVersion: PLUS_TERMS_VERSION,
   trialTermsVersion: 1,
 };
 const ACTIVE = {
@@ -38,7 +41,11 @@ const ACTIVE = {
   startedAt: '2026-09-19T12:00:00Z',
   endsAt: '2026-10-19T12:00:00Z',
 };
-const ACCEPTANCE = { accepted: true, termsVersion: 8, trialTermsVersion: 1 };
+const ACCEPTANCE = {
+  accepted: true,
+  termsVersion: PLUS_TERMS_VERSION,
+  trialTermsVersion: 1,
+};
 
 const deferred = <T>() => {
   let complete: (value: T) => void = () => {
@@ -112,7 +119,7 @@ it('loads a generic signed-out offer using only the public API key', async () =>
       enabled: true,
       days: 15,
       state: 'sign-in',
-      termsVersion: 8,
+      termsVersion: PLUS_TERMS_VERSION,
       trialTermsVersion: 1,
     },
   });
@@ -143,9 +150,9 @@ it.each([
 );
 
 it.each([
-  { ...ACCEPTANCE, termsVersion: 7 },
+  { ...ACCEPTANCE, termsVersion: PLUS_TERMS_VERSION - 1 },
   { ...ACCEPTANCE, trialTermsVersion: 0 },
-  { ...ACCEPTANCE, termsVersion: '8' },
+  { ...ACCEPTANCE, termsVersion: String(PLUS_TERMS_VERSION) },
 ])(
   'refuses consent to different terms without contacting the server: %j',
   async (value) => {
@@ -173,7 +180,11 @@ it('waits for the entitlement refresh before returning a successful grant', asyn
   });
   await checking.promise;
   expect(completed).toBe(false);
-  expect(effects).toEqual(['agreed:8', 'expect', 'checking']);
+  expect(effects).toEqual([
+    `agreed:${PLUS_TERMS_VERSION}`,
+    'expect',
+    'checking',
+  ]);
   checked.complete({ state: 'active', plan: 'trial' });
   expect(await starting).toMatchObject({
     ok: true,
@@ -182,7 +193,7 @@ it('waits for the entitlement refresh before returning a successful grant', asyn
   const [url, init] = fetchImpl.mock.calls[0];
   expect(url).toMatch(/\/rest\/v1\/rpc\/start_plus_trial$/);
   expect(JSON.parse(String(init?.body))).toEqual({
-    p_terms_version: 8,
+    p_terms_version: PLUS_TERMS_VERSION,
     p_trial_terms_version: 1,
   });
   expect(init?.headers).toMatchObject({

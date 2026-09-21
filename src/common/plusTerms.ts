@@ -66,18 +66,28 @@
  * payment can do is the merchant's own policy, and this is the first
  * published edition to take something away, so it is edition 2 and every
  * member who agreed to 7 is told.
+ *
+ * 9: a published scene is now held until a moderator approves it, and Plus
+ * can arrive without a payment — a free trial an account can take once, and a
+ * month earned by a scene that is approved. The review is the reason this is
+ * edition 3 rather than an amendment: it takes something away that revision 8
+ * gave, which was a scene appearing the moment it was published, so every
+ * member who agreed to 8 is asked again. Both ways in are administrator
+ * switches on the server, so the text says "when FluidEQ offers it" rather
+ * than promising an offer that may answer "unavailable"; the trial has its
+ * own conditions and its own version beside these (`plusTrial.ts`).
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  */
-export const PLUS_TERMS_VERSION = 8;
+export const PLUS_TERMS_VERSION = 9;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 2;
+export const PLUS_TERMS_EDITION = 3;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-15';
+export const PLUS_TERMS_EFFECTIVE = '2026-09-20';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

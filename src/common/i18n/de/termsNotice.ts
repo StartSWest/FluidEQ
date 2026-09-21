@@ -18,6 +18,8 @@ const termsNotice = {
     'Die Rangliste führt ein Konto jetzt nur noch, solange es Plus hat, und „Problem melden“ kann auch eine private E-Mail an den Macher von FluidEQ öffnen.',
   'termsNotice.change.8':
     'Die vierzehntägige Erstattung entfällt. Nach einer Kündigung bleibt Plus bis zum Ende des bezahlten Zeitraums aktiv, und es wird nichts mehr berechnet.',
+  'termsNotice.change.9':
+    'Jede in Visualizer veröffentlichte Szene wird jetzt von einem Moderator gelesen, bevor sie jemand anderes sieht. Und Plus kann ohne Zahlung dazukommen: ein kostenloser Testzeitraum, den ein neues Konto einmal nehmen kann, und ein Monat, den eine freigegebene Szene einbringt. Beides verlängert sich nicht, und es wird nie etwas dafür berechnet.',
 } as const;
 
 export default termsNotice;

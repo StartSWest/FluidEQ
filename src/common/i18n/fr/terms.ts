@@ -26,7 +26,7 @@ const terms = {
   'terms.membership.p2':
     'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin de la période payée, et rien d’autre n’est prélevé.',
   'terms.membership.p4':
-    'Quand un abonnement prend fin, les styles Plus et les scènes des membres se verrouillent à nouveau et FluidEQ revient à ses styles gratuits ; rien de ce que vous avez créé n’est supprimé. Sans connexion, Plus continue de fonctionner jusqu’à la fin de la période payée, et encore jusqu’à {graceDays} jours après celle-ci si l’application n’a pas pu confirmer un renouvellement. Rien de gratuit n’est jamais touché.',
+    'Quand un abonnement prend fin, les styles Plus et les scènes des membres se verrouillent à nouveau et FluidEQ revient à ses styles gratuits ; rien de ce que vous avez créé n’est supprimé. Sans connexion, Plus continue de fonctionner jusqu’à la fin de la période payée, et encore jusqu’à {graceDays} jours après celle-ci si l’application n’a pas pu confirmer un renouvellement. Un essai gratuit, un cadeau et un mois gagné en publiant se terminent à leur propre date : rien ne les renouvelle, il n’y a donc aucun délai après. Rien de gratuit n’est jamais touché.',
   'terms.membership.p5':
     'Le créateur peut offrir Plus à une adresse e-mail. Le cadeau s’active quand un compte confirme cette adresse, et dure jusqu’à la date de fin choisie par le créateur, s’il en a fixé une, ou jusqu’à ce que le créateur le reprenne.',
 
@@ -56,7 +56,7 @@ const terms = {
   'terms.sent.membership.when':
     'Au démarrage de l’application, quand vous vous connectez, quand vous revenez à l’ordinateur (au plus une fois toutes les quelques heures), et quand vous cliquez sur Vérifier à nouveau',
   'terms.sent.membership.who':
-    'Vous et le créateur seulement. Le service confirme votre abonnement, cherche un paiement Buy Me a Coffee fait avec votre e-mail confirmé, et lit la version de ces conditions que vous avez acceptée, pour que l’application puisse vous prévenir quand elles changent.',
+    'Vous et le créateur seulement. Le service confirme votre abonnement, cherche un paiement Buy Me a Coffee fait avec votre e-mail confirmé, et lit la version de ces conditions que vous avez acceptée, pour que l’application puisse vous prévenir quand elles changent. Ce même jeton demande si un essai gratuit est ouvert à ce compte et où en sont ses mois gagnés.',
   'terms.sent.payment.what':
     'L’e-mail avec lequel vous payez, l’état et la période de votre abonnement, et les identifiants de votre abonnement chez Buy Me a Coffee, envoyés par Buy Me a Coffee',
   'terms.sent.payment.when': 'Quand vous payez, renouvelez ou résiliez',
@@ -65,7 +65,7 @@ const terms = {
   'terms.sent.agreement.what':
     'La version de ces conditions que vous avez acceptée, et quand',
   'terms.sent.agreement.when':
-    'Quand vous passez au paiement, exportez une scène ou en publiez une',
+    'Quand vous passez au paiement, démarrez un essai gratuit, exportez une scène ou en publiez une',
   'terms.sent.agreement.who':
     'Le créateur. Cette information est conservée avec votre compte, même si vous n’allez pas jusqu’au paiement.',
   'terms.sent.looks.what':
@@ -149,7 +149,7 @@ const terms = {
 
   'terms.fair.title': 'Fair-play au classement',
   'terms.fair.p1':
-    'Les points viennent de l’écoute et des J’aime : {hourPoints} pour chaque heure de musique, {dayPoints} pour chaque jour comptant au moins {activeMinutes} minutes de musique, et {likePoints} pour chaque J’aime sur vos scènes. Le classement affiche les 100 premiers et ne classe un compte que tant qu’il a Plus ; ses jours sont conservés et comptent à nouveau quand Plus revient.',
+    'Les points viennent de l’écoute et des J’aime : {hourPoints} pour chaque heure de musique, {dayPoints} pour chaque jour comptant au moins {activeMinutes} minutes de musique, et {likePoints} pour chaque J’aime sur vos scènes. Le classement affiche les 100 premiers et ne classe un compte que tant qu’il a un Plus payé, offert ou gagné en publiant : un essai gratuit n’est pas classé. Ses jours sont conservés dans tous les cas et comptent à nouveau quand Plus revient.',
   'terms.fair.p2':
     'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les nombres de vos ordinateurs s’additionnent en un seul jour, qui n’augmente pas non plus plus vite que l’horloge : plusieurs ordinateurs qui jouent en même temps ne peuvent donc pas totaliser plus de temps qu’il ne s’en est écoulé.',
   'terms.fair.p3':
@@ -165,7 +165,7 @@ const terms = {
   'terms.rules.p3':
     'Vous pouvez dépublier vos propres scènes à tout moment. Toute personne connectée peut signaler une scène publiée. Le créateur de FluidEQ peut retirer une scène, ce qui l’empêche de s’ouvrir où que ce soit, la marque comme retirée dans vos scènes et suspend vos exports et vos publications pendant {takedownDays} jours, et peut bannir un compte, ce qui masque ses scènes et l’empêche de publier, d’aimer et de signaler.',
   'terms.rules.p4':
-    'Pour que le service fonctionne pour tout le monde, un compte peut exporter ou publier jusqu’à {sharesPerHour} scènes par heure, tentatives refusées comprises, et garder jusqu’à {maxPublished} scènes publiées.',
+    'Pour que le service fonctionne pour tout le monde, un compte peut exporter ou publier jusqu’à {sharesPerHour} scènes par heure, tentatives refusées comprises, et garder jusqu’à {maxPublished} scènes publiées. Une scène que vous publiez, et chacune de ses nouvelles versions, attend que le créateur de FluidEQ la lise avant que quiconque d’autre la voie ; le nombre que vous pouvez envoyer en relecture dans un mois civil est limité, et le Studio vous le dit quand vous y êtes.',
 
   'terms.keep.title': 'Ce qui est conservé, et comment l’effacer',
   'terms.keep.p1':
@@ -175,7 +175,7 @@ const terms = {
   'terms.keep.p3':
     'Abonnement : votre e-mail de paiement, l’état de votre abonnement et ses identifiants chez Buy Me a Coffee sont conservés pour relier les paiements à votre compte, et sont effacés avec lui. La trace de chaque événement de paiement ne garde que les identifiants de Buy Me a Coffee et l’horodatage.',
   'terms.keep.p4':
-    'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos jours au classement, votre abonnement, vos acceptations des conditions, vos J’aime, vos ajouts, vos signalements, et les scènes que vous avez publiées avec leurs fichiers. Un cadeau de Plus fait à votre adresse e-mail reste en place jusqu’à ce que le créateur le retire.',
+    'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos jours au classement, votre abonnement, vos essais gratuits et vos mois gagnés, vos acceptations des conditions, vos J’aime, vos ajouts, vos signalements, et les scènes que vous avez publiées avec leurs fichiers. Un cadeau de Plus fait à votre adresse e-mail reste en place jusqu’à ce que le créateur le retire.',
   'terms.keep.p5':
     'Scènes : dépublier une scène la retire de Visualiseurs avec son image, son fichier et son historique de versions. Les J’aime, les ajouts et les signalements qu’elle a reçus restent jusqu’à la suppression des comptes dont ils proviennent, et comptent à nouveau si vous la publiez une nouvelle fois. Une scène bloquée pour non-respect de ces conditions garde une empreinte faite à partir de l’identifiant de votre compte et de celui de la scène, avec le motif et la date, pour rester bloquée.',
   'terms.keep.p6':
@@ -197,7 +197,7 @@ const terms = {
   'terms.scenes.p3':
     'En exportant une scène, vous laissez FluidEQ la vérifier — y compris en la comparant aux scènes créées par FluidEQ — retirer les commentaires de son code et la signer de votre nom d’affichage et de l’identifiant de votre compte, pour que d’autres membres Plus puissent la jouer et voir que vous l’avez faite. C’est toute la permission : le créateur de FluidEQ ne vendra pas votre scène et ne l’utilisera pas dans de la publicité, n’en fera pas l’un des styles Plus sans vous le demander d’abord, et ne vous empêche pas de faire quoi que ce soit d’autre avec votre propre travail.',
   'terms.scenes.p4':
-    'Partager fait partie de Plus, ce n’est pas un travail : personne n’est payé pour une scène et personne n’en paie une. Ce que vous recevez en retour, ce sont toutes les scènes que les autres membres partagent.',
+    'Partager fait partie de Plus, ce n’est pas un travail : personne n’est payé en argent pour une scène et personne n’en paie une. Ce que vous recevez en retour, ce sont toutes les scènes que les autres membres partagent — et, quand le créateur de FluidEQ approuve une de vos scènes, un mois de Plus, qui est un accès et jamais de l’argent.',
   'terms.scenes.p5':
     'Les membres qui aiment votre scène vous donnent des points au classement, si vous l’avez rejoint. Les J’aime sont comptés par le serveur ; voir Fair-play.',
   'terms.scenes.p6':
@@ -207,7 +207,7 @@ const terms = {
   'terms.scenes.p8':
     'Un fichier que vous avez envoyé reste entre les mains de ceux qui l’ont, et dépublier ne reprend pas les copies que des membres ont déjà ajoutées ; elles restent concédées pour un usage personnel tant que ces membres ont Plus. Si vous voulez qu’une scène ne s’ouvre plus nulle part, demandez-le au créateur de FluidEQ, qui peut la bloquer de la même façon qu’une scène qui enfreint les règles.',
   'terms.scenes.p9':
-    'Si vous publiez une scène dans Visualiseurs, vous permettez aussi à FluidEQ de l’y garder jusqu’à ce que vous la dépubliiez, de montrer son image, son nom, ses catégories et ses notes de version, avec votre nom d’affichage et votre identifiant, à toute personne connectée à FluidEQ, et de proposer la scène elle-même aux membres Plus, qui peuvent la lire et l’ajouter. Les éléments d’ambiance que vous lui donnez l’accompagnent, et les membres qui choisissent le mode Ambiance les voient autour de leur fenêtre. Vous pouvez la dépublier à tout moment, avec ou sans Plus.',
+    'Si vous publiez une scène dans Visualiseurs, vous permettez aussi au créateur de FluidEQ de la lire avant que quiconque d’autre la voie, et à FluidEQ de l’y garder jusqu’à ce que vous la dépubliiez, de montrer son image, son nom, ses catégories et ses notes de version, avec votre nom d’affichage et votre identifiant, à toute personne connectée à FluidEQ, et de proposer la scène elle-même aux membres Plus, qui peuvent la lire et l’ajouter. Les éléments d’ambiance que vous lui donnez l’accompagnent, et les membres qui choisissent le mode Ambiance les voient autour de leur fenêtre. Vous pouvez la dépublier à tout moment, avec ou sans Plus.',
   'terms.scenes.p10':
     'Publier est facultatif et distinct de l’export d’un fichier. Une note de version est publique, comme la scène à laquelle elle appartient.',
 

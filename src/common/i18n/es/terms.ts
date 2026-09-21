@@ -26,7 +26,7 @@ const terms = {
   'terms.membership.p2':
     'El pago lo gestiona Buy Me a Coffee, con sus propias condiciones. FluidEQ nunca ve tu tarjeta ni tus datos bancarios. Puedes cancelar cuando quieras en Buy Me a Coffee: Plus sigue activo hasta el final del periodo que pagaste y no se cobra nada más.',
   'terms.membership.p4':
-    'Cuando termina una membresía, los looks Plus y las escenas de los miembros vuelven a bloquearse y FluidEQ vuelve a sus looks gratuitos; nada de lo que creaste se borra. Sin conexión, Plus sigue funcionando hasta el final del periodo que pagaste y, si la aplicación no pudo confirmar una renovación, hasta {graceDays} días más. Nada de lo gratuito se ve afectado, nunca.',
+    'Cuando termina una membresía, los looks Plus y las escenas de los miembros vuelven a bloquearse y FluidEQ vuelve a sus looks gratuitos; nada de lo que creaste se borra. Sin conexión, Plus sigue funcionando hasta el final del periodo que pagaste y, si la aplicación no pudo confirmar una renovación, hasta {graceDays} días más. Una prueba gratuita, un regalo y un mes ganado publicando terminan en su propia fecha: nada los renueva, así que después no hay margen. Nada de lo gratuito se ve afectado, nunca.',
   'terms.membership.p5':
     'El creador puede regalar Plus a una dirección de correo. Se activa cuando una cuenta confirma esa dirección y dura hasta la fecha de fin que haya elegido el creador, si la hay, o hasta que el creador lo quite.',
 
@@ -55,7 +55,7 @@ const terms = {
   'terms.sent.membership.when':
     'Al abrir la aplicación, al iniciar sesión, al volver al ordenador (como mucho cada pocas horas) y al pulsar Comprobar de nuevo',
   'terms.sent.membership.who':
-    'Solo tú y el creador. El servicio confirma tu membresía, busca un pago de Buy Me a Coffee hecho con tu correo confirmado y lee qué versión de estas condiciones aceptaste, para que la aplicación pueda avisarte cuando cambien.',
+    'Solo tú y el creador. El servicio confirma tu membresía, busca un pago de Buy Me a Coffee hecho con tu correo confirmado y lee qué versión de estas condiciones aceptaste, para que la aplicación pueda avisarte cuando cambien. Ese mismo token pregunta si esta cuenta puede empezar una prueba gratuita y cómo están sus meses ganados.',
   'terms.sent.payment.what':
     'El correo con el que pagas, el estado y el periodo de tu membresía, y los identificadores de tu membresía en Buy Me a Coffee, enviados por Buy Me a Coffee',
   'terms.sent.payment.when': 'Al pagar, renovar o cancelar',
@@ -64,7 +64,7 @@ const terms = {
   'terms.sent.agreement.what':
     'Qué versión de estas condiciones aceptaste, y cuándo',
   'terms.sent.agreement.when':
-    'Al continuar al pago, exportar una escena o publicar una',
+    'Al continuar al pago, empezar una prueba gratuita, exportar una escena o publicar una',
   'terms.sent.agreement.who':
     'El creador. Se guarda con tu cuenta, aunque no llegues a pagar.',
   'terms.sent.looks.what':
@@ -146,7 +146,7 @@ const terms = {
 
   'terms.fair.title': 'Juego limpio en la clasificación',
   'terms.fair.p1':
-    'Los puntos vienen de la escucha y de los me gusta: {hourPoints} por cada hora de música, {dayPoints} por cada día con al menos {activeMinutes} minutos de música y {likePoints} por cada me gusta en tus escenas. La clasificación muestra a los 100 primeros y solo incluye una cuenta mientras tiene Plus; sus días se conservan y vuelven a contar cuando vuelve Plus.',
+    'Los puntos vienen de la escucha y de los me gusta: {hourPoints} por cada hora de música, {dayPoints} por cada día con al menos {activeMinutes} minutos de música y {likePoints} por cada me gusta en tus escenas. La clasificación muestra a los 100 primeros y solo incluye una cuenta mientras tiene un Plus pagado, regalado o ganado publicando: una prueba gratuita no entra en la clasificación. Sus días se conservan igualmente y vuelven a contar cuando vuelve Plus.',
   'terms.fair.p2':
     'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los números de tus ordenadores se suman en un solo día, que tampoco crece más rápido que el reloj, así que varios sonando a la vez no pueden sumar más tiempo del que ha pasado.',
   'terms.fair.p3':
@@ -162,7 +162,7 @@ const terms = {
   'terms.rules.p3':
     'Puedes retirar tus propias escenas cuando quieras. Cualquiera con sesión iniciada puede denunciar una escena publicada. El creador de FluidEQ puede retirar una escena, lo que hace que deje de abrirse en todas partes, la marca como retirada en tus escenas y pausa tus exportaciones y publicaciones durante {takedownDays} días, y puede bloquear una cuenta, lo que oculta sus escenas y le impide publicar, dar me gusta y denunciar.',
   'terms.rules.p4':
-    'Para que el servicio funcione para todos, una cuenta puede exportar o publicar hasta {sharesPerHour} escenas por hora, contando los intentos rechazados, y tener hasta {maxPublished} escenas publicadas.',
+    'Para que el servicio funcione para todos, una cuenta puede exportar o publicar hasta {sharesPerHour} escenas por hora, contando los intentos rechazados, y tener hasta {maxPublished} escenas publicadas. Una escena que publicas, y cada nueva versión de ella, espera a que el creador de FluidEQ la lea antes de que nadie más la vea; hay un límite de cuántas puedes enviar a revisión en un mes natural, y el Estudio te avisa cuando lo alcanzas.',
 
   'terms.keep.title': 'Qué se guarda, y cómo borrarlo',
   'terms.keep.p1':
@@ -172,7 +172,7 @@ const terms = {
   'terms.keep.p3':
     'Membresía: tu correo de pago, el estado y los identificadores de tu membresía en Buy Me a Coffee se guardan para asociar los pagos a tu cuenta, y se borran con ella. El registro de cada evento de pago solo conserva los identificadores de Buy Me a Coffee y la hora.',
   'terms.keep.p4':
-    'Tu cuenta: pide que se borre y desaparece en un plazo de {deletionDays} días, junto con tu perfil, tus días en la clasificación, tu membresía, tus aceptaciones de las condiciones, tus me gusta, tus añadidos, tus denuncias y las escenas que publicaste con sus archivos. Un regalo de Plus a tu correo se mantiene hasta que el creador lo quite.',
+    'Tu cuenta: pide que se borre y desaparece en un plazo de {deletionDays} días, junto con tu perfil, tus días en la clasificación, tu membresía, tus pruebas gratuitas y tus meses ganados, tus aceptaciones de las condiciones, tus me gusta, tus añadidos, tus denuncias y las escenas que publicaste con sus archivos. Un regalo de Plus a tu correo se mantiene hasta que el creador lo quite.',
   'terms.keep.p5':
     'Escenas: retirar una escena la quita de Visualizadores junto con su imagen, su archivo y su historial de versiones. Los me gusta, las veces que se añadió y las denuncias que recibió se conservan hasta que se borren esas cuentas, y vuelven a contar si la publicas de nuevo. Una escena bloqueada por incumplir estas condiciones conserva una huella hecha a partir del id de tu cuenta y del id de la escena, con el motivo y la fecha, para que siga bloqueada.',
   'terms.keep.p6':
@@ -194,7 +194,7 @@ const terms = {
   'terms.scenes.p3':
     'Al exportar una escena, permites que FluidEQ la revise —también comparándola con las escenas propias de FluidEQ—, quite los comentarios de su código y la firme con tu nombre visible y el id de tu cuenta, para que otros miembros de Plus puedan reproducirla y ver que la hiciste tú. Ese es todo el permiso: el creador de FluidEQ no venderá tu escena ni la usará en publicidad, no la convertirá en uno de los looks Plus sin preguntarte antes, y no te impide hacer nada más con tu propio trabajo.',
   'terms.scenes.p4':
-    'Compartir es parte de Plus, no un trabajo: nadie cobra por una escena y nadie paga por una. Lo que recibes a cambio son todas las escenas que comparten los demás miembros.',
+    'Compartir es parte de Plus, no un trabajo: nadie cobra dinero por una escena y nadie paga dinero por una. Lo que recibes a cambio son todas las escenas que comparten los demás miembros y, cuando el creador de FluidEQ aprueba una escena tuya, un mes de Plus, que es acceso y nunca dinero.',
   'terms.scenes.p5':
     'Los miembros a los que les gusta tu escena te dan puntos en la clasificación, si te has unido a ella. Los me gusta se cuentan en el servidor; consulta Juego limpio.',
   'terms.scenes.p6':
@@ -204,7 +204,7 @@ const terms = {
   'terms.scenes.p8':
     'Un archivo que has enviado se queda con quien lo tenga, y retirar una escena no quita las copias que los miembros ya añadieron; siguen con licencia para uso personal mientras esos miembros tengan Plus. Si quieres que una escena deje de abrirse en todas partes, pídeselo al creador de FluidEQ, que puede bloquearla igual que una escena que incumple las normas.',
   'terms.scenes.p9':
-    'Si publicas una escena en Visualizadores, también permites que FluidEQ la guarde ahí hasta que la retires, que muestre su imagen, su nombre, sus categorías y sus notas de versión, con tu nombre visible y tu nombre de usuario, a cualquiera con sesión iniciada en FluidEQ, y que ofrezca la escena en sí a los miembros Plus, que pueden reproducirla y añadirla. Los elementos de ambiente que le pongas viajan con ella, y los miembros que eligen el modo Ambiente los ven alrededor de su ventana. Puedes retirarla cuando quieras, tengas Plus o no.',
+    'Si publicas una escena en Visualizadores, también permites que el creador de FluidEQ la lea antes de que nadie más la vea, y que FluidEQ la guarde ahí hasta que la retires, que muestre su imagen, su nombre, sus categorías y sus notas de versión, con tu nombre visible y tu nombre de usuario, a cualquiera con sesión iniciada en FluidEQ, y que ofrezca la escena en sí a los miembros Plus, que pueden reproducirla y añadirla. Los elementos de ambiente que le pongas viajan con ella, y los miembros que eligen el modo Ambiente los ven alrededor de su ventana. Puedes retirarla cuando quieras, tengas Plus o no.',
   'terms.scenes.p10':
     'Publicar es opcional y distinto de exportar un archivo. Una nota de versión es pública, igual que la escena a la que pertenece.',
 

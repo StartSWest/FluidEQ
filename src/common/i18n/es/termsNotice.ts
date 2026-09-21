@@ -18,6 +18,8 @@ const termsNotice = {
     'La clasificación ahora solo incluye una cuenta mientras tiene Plus, e Informar de un problema también puede abrir un correo privado para el creador de FluidEQ.',
   'termsNotice.change.8':
     'Se retira el reembolso de catorce días. Al cancelar, Plus sigue activo hasta el final del periodo que pagaste y no se cobra nada más.',
+  'termsNotice.change.9':
+    'Ahora, cada escena publicada en Visualizadores la lee un moderador antes de que nadie más la vea. Y Plus puede llegar sin pagar: una prueba gratuita que una cuenta nueva puede usar una vez, y un mes ganado con una escena aprobada. Ninguno se renueva, y nunca se cobra nada por ellos.',
 } as const;
 
 export default termsNotice;

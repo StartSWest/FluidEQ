@@ -37,7 +37,7 @@ const terms = {
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p4':
-    'When a membership ends, the Plus looks and the scenes members made lock again and FluidEQ goes back to its free looks; nothing you made is deleted. Without a connection, Plus keeps working until the end of the period you paid for, and for up to {graceDays} days after it if the app could not confirm a renewal. Nothing that is free is ever affected.',
+    'When a membership ends, the Plus looks and the scenes members made lock again and FluidEQ goes back to its free looks; nothing you made is deleted. Without a connection, Plus keeps working until the end of the period you paid for, and for up to {graceDays} days after it if the app could not confirm a renewal. A free trial, a gift and a month earned by publishing end on their own date: nothing renews them, so there is no grace after one. Nothing that is free is ever affected.',
   'terms.membership.p5':
     'The maker can give Plus to an email address as a gift. It turns on when an account confirms that address, and lasts until the end date the maker chose, if any, or until the maker takes it back.',
 
@@ -66,7 +66,7 @@ const terms = {
   'terms.sent.membership.when':
     'When the app starts, when you sign in, when you come back to the computer (at most every few hours), and when you press Check again',
   'terms.sent.membership.who':
-    'Only you and the maker. The service confirms your membership, looks for a Buy Me a Coffee payment made with your confirmed email, and reads which version of these terms you agreed to, so the app can tell you when they change.',
+    'Only you and the maker. The service confirms your membership, looks for a Buy Me a Coffee payment made with your confirmed email, and reads which version of these terms you agreed to, so the app can tell you when they change. The same token asks whether a free trial is open to this account and how its earned months stand.',
   'terms.sent.payment.what':
     'The email you pay with, your membership status and period, and Buy Me a Coffee’s ids for your membership, sent by Buy Me a Coffee',
   'terms.sent.payment.when': 'When you pay, renew or cancel',
@@ -75,7 +75,7 @@ const terms = {
   'terms.sent.agreement.what':
     'Which version of these terms you agreed to, and when',
   'terms.sent.agreement.when':
-    'When you continue to payment, export a scene or publish one',
+    'When you continue to payment, start a free trial, export a scene or publish one',
   'terms.sent.agreement.who':
     'The maker. It is kept with your account, even if you do not go on to pay.',
   'terms.sent.looks.what':
@@ -156,7 +156,7 @@ const terms = {
 
   'terms.fair.title': 'Fair play on the leaderboard',
   'terms.fair.p1':
-    'Points come from listening and likes: {hourPoints} for each hour of music, {dayPoints} for each day with at least {activeMinutes} minutes of it, and {likePoints} for each like on your scenes. The board shows the top 100, and ranks an account only while it has Plus; its days are kept and count again when Plus returns.',
+    'Points come from listening and likes: {hourPoints} for each hour of music, {dayPoints} for each day with at least {activeMinutes} minutes of it, and {likePoints} for each like on your scenes. The board shows the top 100, and ranks an account only while it has Plus that was paid for, given or earned by publishing — a free trial is not ranked. Its days are kept either way, and count again when Plus returns.',
   'terms.fair.p2':
     'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed.',
   'terms.fair.p3':
@@ -172,7 +172,7 @@ const terms = {
   'terms.rules.p3':
     'You can unpublish your own scenes at any time. Anyone signed in can report a published scene. FluidEQ’s maker can take a scene down, which stops it opening everywhere, marks it as taken down in your scenes and pauses your exporting and publishing for {takedownDays} days, and can ban an account, which hides its scenes and stops it publishing, liking and reporting.',
   'terms.rules.p4':
-    'To keep the service working for everyone, an account can export or publish up to {sharesPerHour} scenes an hour, refused attempts included, and keep up to {maxPublished} scenes published.',
+    'To keep the service working for everyone, an account can export or publish up to {sharesPerHour} scenes an hour, refused attempts included, and keep up to {maxPublished} scenes published. A scene you publish, and each new version of it, waits for FluidEQ’s maker to read it before anyone else sees it; there is a limit on how many you can send for review in a calendar month, and the Studio says when you have reached it.',
 
   'terms.keep.title': 'What is kept, and how to delete it',
   'terms.keep.p1':
@@ -182,7 +182,7 @@ const terms = {
   'terms.keep.p3':
     'Membership: your payment email, status and Buy Me a Coffee’s ids for your membership are kept to match payments to your account, and are deleted with it. The record of each payment event keeps only Buy Me a Coffee’s ids and the time.',
   'terms.keep.p4':
-    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, leaderboard days, membership, agreements, likes, adds, reports, and the scenes you published with their files. A gift of Plus to your email stays until the maker removes it.',
+    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, leaderboard days, membership, free trials and earned months, agreements, likes, adds, reports, and the scenes you published with their files. A gift of Plus to your email stays until the maker removes it.',
   'terms.keep.p5':
     'Scenes: unpublishing removes a scene from Visualizers with its picture, file and version history. Likes, adds and reports on it stay until those accounts are deleted, and count again if you publish it once more. A scene blocked for breaking these terms keeps a fingerprint made from your account id and the scene’s id, with the reason and the date, so it stays blocked.',
   'terms.keep.p6':
@@ -204,7 +204,7 @@ const terms = {
   'terms.scenes.p3':
     'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other Plus members can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of the Plus looks without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
-    'Sharing is part of Plus, not a job: nobody is paid for a scene and nobody pays for one. What you get back is every scene the other members share.',
+    'Sharing is part of Plus, not a job: nobody is paid money for a scene and nobody pays money for one. What you get back is every scene the other members share — and, when FluidEQ’s maker approves a scene of yours, a month of Plus, which is access and never cash.',
   'terms.scenes.p5':
     'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
   'terms.scenes.p6':
@@ -214,7 +214,7 @@ const terms = {
   'terms.scenes.p8':
     'A file you have sent stays with whoever has it, and unpublishing does not take back copies members already added; they stay licensed for personal use while those members have Plus. If you want a scene to stop opening everywhere, ask FluidEQ’s maker, who can block it the same way as a scene that breaks the rules.',
   'terms.scenes.p9':
-    'If you publish a scene to Visualizers, you also let FluidEQ keep it there until you unpublish it, show its picture, name, categories and version notes with your display name and handle to anyone signed in to FluidEQ, and offer the scene itself to Plus members, who can play it and add it. The ambient elements you give it travel with it, and members who choose Ambient mode see them around their window. You can unpublish it at any time, with or without Plus.',
+    'If you publish a scene to Visualizers, you also let FluidEQ’s maker read it before anyone else sees it, and let FluidEQ keep it there until you unpublish it, show its picture, name, categories and version notes with your display name and handle to anyone signed in to FluidEQ, and offer the scene itself to Plus members, who can play it and add it. The ambient elements you give it travel with it, and members who choose Ambient mode see them around their window. You can unpublish it at any time, with or without Plus.',
   'terms.scenes.p10':
     'Publishing is optional and separate from exporting a file. A version note is public like the scene it belongs to.',
 

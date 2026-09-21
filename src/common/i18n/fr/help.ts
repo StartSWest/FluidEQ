@@ -282,11 +282,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'FluidEQ Plus et votre compte',
   'help.plus.intro':
-    'Un compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte, et n’importe quel compte peut créer une scène dans le Studio. FluidEQ Plus, mensuel ou annuel, ajoute les Visualiseurs, le Classement, l’Éclairage dynamique et le visualiseur du Bureau, et emmène ce que le Studio crée vers vos styles, la galerie et les autres membres.',
+    'Un compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. FluidEQ Plus, mensuel ou annuel, ajoute les Visualiseurs, le Classement, le Studio, l’Éclairage dynamique et le visualiseur du Bureau. Un nouveau compte peut essayer Plus gratuitement pendant quinze jours, et une scène que vous publiez et qui est approuvée vous offre un mois.',
   'help.plus.steps':
     'Ouvrez Compte dans le menu des actions. Connectez-vous, ou créez un compte et saisissez le code à six chiffres envoyé à votre adresse e-mail.\nAppuyez sur Passer à Plus, lisez les conditions, cochez la case pour les accepter, et payez sur Buy Me a Coffee dans votre navigateur avec la même adresse e-mail.\nOuvrez l’onglet Plus. Sa barre latérale mène au Classement, aux Visualiseurs, au Studio et à l’Éclairage dynamique.',
   'help.plus.tip':
-    'L’application ne voit jamais votre carte ; Gérer l’abonnement permet de le modifier ou de l’annuler. Un compte reste connecté sur cinq ordinateurs au maximum, et Plus continue de fonctionner hors ligne pendant un certain temps.',
+    'L’application ne voit jamais votre carte ; Gérer l’abonnement permet de le modifier ou de l’annuler. L’essai gratuit ne demande aucune carte et ne prélève rien à la fin. Un compte reste connecté sur cinq ordinateurs au maximum, et Plus continue de fonctionner hors ligne pendant un certain temps.',
   'help.plus.leaderboard':
     'Qui écoute le plus, parmi les membres Plus qui y participent.',
   'help.plus.visualizers':
@@ -302,7 +302,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Ouvrez Plus → Visualiseurs. Recherchez, triez par Les plus aimées, Cette semaine ou Les plus récentes, ou choisissez une catégorie.\nOuvrez une scène, appuyez sur Ajouter à mes styles, puis sur Lancer sur le graphique. Les flèches, ou ← et →, passent d’une scène à l’autre.\nAimez les scènes des membres avec le cœur, et signalez celle qui n’a pas sa place ici.',
   'help.gallery.tip':
-    'Les scènes de vos styles se mettent à jour d’elles-mêmes, et la page d’une scène indique ce qui a changé à chaque version. Ouvrir dans le Studio montre comment sont faites les scènes de FluidEQ.',
+    'Les scènes de vos styles se mettent à jour d’elles-mêmes, et la page d’une scène indique ce qui a changé à chaque version. Une scène que vous publiez apparaît une fois qu’un modérateur l’a approuvée. Ouvrir dans le Studio montre comment sont faites les scènes de FluidEQ.',
   'help.gallery.search': 'Trouve des scènes et des créateurs.',
   'help.gallery.sortName': 'Trier',
   'help.gallery.sort':
@@ -343,11 +343,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Créez des scènes dans le Studio',
   'help.studio.intro':
-    'Le Studio transforme une description en visualiseur. Votre propre assistant IA écrit la scène dans un dossier de projet, et FluidEQ lance chaque version sur votre musique dès qu’elle est enregistrée.',
+    'Le Studio transforme une description en visualiseur. Votre propre assistant IA écrit la scène dans un dossier de projet, et FluidEQ lance chaque version sur votre musique dès qu’elle est enregistrée. Le Studio fait partie de Plus ; un nouveau compte peut l’ouvrir avec l’essai gratuit.',
   'help.studio.steps':
-    'Ouvrez Plus → Studio et appuyez sur Nouveau projet… Donnez-lui un nom ; FluidEQ crée son dossier avec une scène qui bouge déjà.\nDécrivez votre idée, ouvrez le dossier dans votre assistant IA et collez le prompt copié avec Copier le prompt IA.\nRegardez l’aperçu à chaque enregistrement de fichier et essayez les signaux de test. Puis, avec Plus, Ajouter à mes styles, Publier… ou Exporter…',
+    'Ouvrez Plus → Studio et appuyez sur Nouveau projet… Donnez-lui un nom ; FluidEQ crée son dossier avec une scène qui bouge déjà.\nDécrivez votre idée, ouvrez le dossier dans votre assistant IA et collez le prompt copié avec Copier le prompt IA.\nRegardez l’aperçu à chaque enregistrement de fichier et essayez les signaux de test. Puis Ajouter à mes styles, Publier… ou Exporter…',
   'help.studio.tip':
-    'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues.',
+    'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par un modérateur, et une scène approuvée vous offre un mois de Plus.',
   'help.studio.project': 'Vos projets, et des scènes FluidEQ à explorer.',
   'help.studio.switchName': 'Projet précédent et suivant',
   'help.studio.switch': 'Passe au projet précédent ou suivant.',
