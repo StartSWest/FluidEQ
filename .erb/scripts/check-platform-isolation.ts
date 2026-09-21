@@ -115,15 +115,25 @@ const ALLOWED = new Map<string, IAllowance>([
       expected: 1,
     },
   ],
+  [
+    'native/dsp-core/tests/room_comparison_test.cpp',
+    {
+      reason:
+        'fopen_s vs fopen for the optional frame dump, the same C runtime difference as the decoder',
+      expected: 1,
+    },
+  ],
 ]);
 
 /**
- * Whole programs that exist on one platform and are compiled only there —
- * each sits under `if(WIN32)` in CMake, either in `native/CMakeLists.txt` or
- * in a list of its own. They are not the seam: nothing in them is shared, so
- * there is nothing for a second platform to inherit and no `platform/` split
- * to make. The FluidEQ Engine loads inside audiodg.exe; a macOS equivalent
- * is its own program, not a branch of this one.
+ * Programs that exist on one platform — their platform parts sit under
+ * `if(WIN32)` in CMake, either in `native/CMakeLists.txt` or in a list of
+ * their own. They are not the seam: what is Windows in them is shared with
+ * nothing, so there is nothing for a second platform to inherit and no
+ * `platform/` split to make. The FluidEQ Engine loads inside audiodg.exe; a
+ * macOS equivalent is its own program, not a branch of this one. The few that
+ * keep a platform-free core compiled and tested everywhere have those files
+ * named below, and they stay checked.
  *
  * Named, with a reason, for the same reason the file allowances are: the
  * check's job is to notice the NEXT single-platform tree appearing, and a
@@ -141,16 +151,32 @@ const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
   ['native/lighting-host/', 'Windows Dynamic Lighting through C++/WinRT'],
   ['native/process-meter/', 'the Processes list meter, which reads psapi'],
   ['native/remote-audio-capture/', 'WASAPI process-loopback capture'],
+  ['native/remote-audio-playback/', 'WASAPI playback of audio from the LAN'],
+  [
+    'native/foreground-watch/',
+    "game profiles' watcher, which asks Windows which program is in front",
+  ],
 ]);
 
 /**
- * Files under one of those trees that the shared host compiles on every
- * platform as well (`native/CMakeLists.txt` lists them for `fluideq-dsp-host`
- * outside the platform branches), so they stay held to the rule.
+ * Files under one of those trees that are compiled on every platform, so they
+ * stay held to the rule: the room's head reader, which the shared host lists
+ * outside the platform branches, and the platform-free cores of the two LAN
+ * helpers, which CMake builds and tests everywhere. A Windows header in one of
+ * these fails the Mac build before it fails this check — this check is the
+ * one that says why.
  */
 const SHARED_WITHIN_PROGRAMS = new Set([
   'native/system-apo/src/room_head.cpp',
   'native/system-apo/src/room_head.h',
+  'native/remote-audio-capture/src/capture_queue.cpp',
+  'native/remote-audio-capture/src/capture_queue.h',
+  'native/remote-audio-capture/tests/capture_queue_test.cpp',
+  'native/remote-audio-playback/src/playback_core.cpp',
+  'native/remote-audio-playback/src/playback_core.h',
+  'native/remote-audio-playback/src/sinc_kernel.cpp',
+  'native/remote-audio-playback/src/sinc_kernel.h',
+  'native/remote-audio-playback/tests/playback_test.cpp',
 ]);
 
 const isSinglePlatformProgram = (name: string) =>
