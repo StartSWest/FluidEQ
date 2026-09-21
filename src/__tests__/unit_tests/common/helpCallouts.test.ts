@@ -5,13 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  HELP_CALLOUT_BADGE,
   planHelpCallouts,
+  type IHelpCalloutPlan,
+} from '../../../common/helpCallouts';
+import {
+  HELP_CALLOUT_BADGE,
   readingOrder,
   spreadAlong,
-  type IHelpCalloutPlan,
   type IHelpRect,
-} from '../../../common/helpCallouts';
+} from '../../../common/helpCalloutGeometry';
 import {
   HELP_CAPTURE_SCALE,
   HELP_CHAPTERS,

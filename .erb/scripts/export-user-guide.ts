@@ -9,11 +9,13 @@ import {
   type IHelpFigure,
 } from '../../src/common/helpGuide';
 import {
-  HELP_CALLOUT_BADGE,
   planHelpCallouts,
-  readingOrder,
   type IHelpCalloutRoom,
 } from '../../src/common/helpCallouts';
+import {
+  HELP_CALLOUT_BADGE,
+  readingOrder,
+} from '../../src/common/helpCalloutGeometry';
 import en from '../../src/common/i18n/en';
 
 // The shipped reader and the document use the same text and captures, so a
