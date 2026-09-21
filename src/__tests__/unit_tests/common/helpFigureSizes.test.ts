@@ -11,23 +11,19 @@ import { HELP_CHAPTERS } from '../../../common/helpGuide';
 /**
  * Every help figure's declared size against the screenshot actually on disk.
  *
- * The icon beside each control in Help and in the exported guide is a crop of
- * the screenshot: the element is given a `background-size` computed from the
- * DECLARED width and height, and a `background-position` from the control's
- * own coordinates. Recapture a screenshot at another size and the declaration
- * is left behind — every crop is then scaled by the ratio between the two and
- * lands somewhere else in the image, which shows as an empty square beside
- * each control.
+ * Every numbered call-out in Help and in the exported guide is placed by its
+ * control's box, scaled by the DECLARED width and height. Recapture a
+ * screenshot at another size and the declaration is left behind — every box
+ * then lands somewhere else on the picture, and every line points at the
+ * wrong thing.
  *
- * That is exactly what shipped: the DSP page was recaptured at 1976x622 and
+ * That is what shipped once already, when the controls still carried a crop
+ * of the screenshot beside them: the DSP page was recaptured at 1976x622 and
  * its twelve controls were moved to match, while the figure went on claiming
- * 2560x1392. The crops were stretched 1.3x across and 2.2x down, off the end
- * of the rail and onto bare background, in the app's own Help as well as the
- * exported guide. Nothing could see it — no test reads the file, and the
- * `<img>` beside it is scaled by CSS, so the screenshot itself looked right.
- *
- * The declared size is also what `helpCaptureWidth` lays the figure out by, so
- * a wrong one gives the capture the wrong aspect ratio as well.
+ * 2560x1392. The crops were stretched 1.3x across and 2.2x down onto bare
+ * background, in the app's own Help and in the exported guide alike. Nothing
+ * could see it — no test read the file, and the capture itself is scaled by
+ * CSS, so it looked perfectly right.
  */
 
 const DOCS = path.join(__dirname, '../../../../docs');
@@ -73,21 +69,18 @@ describe('help figures', () => {
     expect(sizes.size).toBeGreaterThan(1);
   });
 
-  it('keeps every crop inside the screenshot it is cut from', () => {
-    figures.forEach((figure) => {
-      (figure.controls ?? []).forEach((control) => {
-        [control.box, control.icon].forEach((area) => {
-          if (!area) {
-            return;
-          }
-          const [x, y, width, height] = area;
-          expect({
-            image: figure.image,
-            right: x + width <= figure.width,
-            bottom: y + height <= figure.height,
-          }).toEqual({ image: figure.image, right: true, bottom: true });
-        });
-      });
-    });
+  it('keeps every control inside the screenshot it is on', () => {
+    const outside = figures.flatMap((figure) =>
+      (figure.controls ?? [])
+        .filter(
+          ({ box: [x, y, width, height] }) =>
+            x < 0 ||
+            y < 0 ||
+            x + width > figure.width ||
+            y + height > figure.height,
+        )
+        .map((control) => `${figure.image}: ${control.name}`),
+    );
+    expect(outside).toEqual([]);
   });
 });

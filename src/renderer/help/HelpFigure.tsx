@@ -1,42 +1,9 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { type CSSProperties, useState } from 'react';
-import {
-  helpCaptureWidth,
-  helpPieceScale,
-  type IHelpControl,
-  type IHelpFigure,
-  type THelpBox,
-} from 'common/helpGuide';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { HELP_CAPTURE_MAX_VIEWPORT, type IHelpFigure } from 'common/helpGuide';
+import { planHelpCallouts } from 'common/helpCallouts';
 import { useTranslation } from '../utils/I18nContext';
-
-/** Where a box sits on the capture, as percentages, so it follows its size. */
-const placed = (
-  figure: IHelpFigure,
-  [x, y, width, height]: THelpBox,
-): CSSProperties => ({
-  left: `${(x / figure.width) * 100}%`,
-  top: `${(y / figure.height) * 100}%`,
-  width: `${(width / figure.width) * 100}%`,
-  height: `${(height / figure.height) * 100}%`,
-});
-
-/** The capture itself as the piece's background, moved so only the icon shows. */
-const pieceStyle = (
-  src: string,
-  figure: IHelpFigure,
-  icon: THelpBox,
-): CSSProperties => {
-  const [x, y, width, height] = icon;
-  const scale = helpPieceScale(icon);
-  return {
-    width: width * scale,
-    height: height * scale,
-    backgroundImage: `url("${src}")`,
-    backgroundSize: `${figure.width * scale}px ${figure.height * scale}px`,
-    backgroundPosition: `${-x * scale}px ${-y * scale}px`,
-  };
-};
 
 interface IHelpFigureProps {
   figure: IHelpFigure;
@@ -47,14 +14,21 @@ interface IHelpFigureProps {
   onEnlarge: () => void;
 }
 
+interface IRoom {
+  width: number;
+  height: number;
+}
+
 /**
- * One capture and every control it explains, beside it when there is room.
+ * One capture, with a numbered call-out on every control it explains and the
+ * numbered list of them under it — laid out like a printed manual.
  *
- * A control with a picture worth repeating carries its own piece of the
- * capture rather than a redrawing of its icon, so the icon a reader is told
- * about is exactly the one they will look for, and it cannot drift from the
- * capture when an icon changes. Pointing at a line rings its control on the
- * capture.
+ * The call-outs are placed for the width the column actually has, measured
+ * here and measured again whenever it changes, so the circles stay one
+ * readable size and never overlap; the numbers themselves never move, because
+ * they follow the capture in reading order (`helpCallouts.ts`). Pointing at a
+ * line of the list, or at a circle, rings its control on the capture and
+ * lights its line.
  */
 export default function HelpFigure({
   figure,
@@ -63,24 +37,67 @@ export default function HelpFigure({
   onEnlarge,
 }: IHelpFigureProps) {
   const { t } = useTranslation();
-  const [pointed, setPointed] = useState<IHelpControl>();
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [room, setRoom] = useState<IRoom>();
+  const [pointed, setPointed] = useState<number>();
   const controls = figure.controls ?? [];
-  const width = helpCaptureWidth(figure);
+
+  // Before the first paint, so the capture never appears at one size and
+  // jumps to another. A resize of the window alone can change the height a
+  // capture may take without changing the column's width, which is the one
+  // thing the observer watches, so both are listened to.
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    if (!host) {
+      return undefined;
+    }
+    const measure = () =>
+      setRoom((last) =>
+        last?.width === host.clientWidth && last.height === window.innerHeight
+          ? last
+          : { width: host.clientWidth, height: window.innerHeight },
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(host);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  const plan = useMemo(
+    () =>
+      room &&
+      planHelpCallouts(figure, {
+        width: room.width,
+        maxImageHeight: room.height * HELP_CAPTURE_MAX_VIEWPORT,
+      }),
+    [figure, room],
+  );
+  const lit = plan?.callouts.find((callout) => callout.index === pointed);
 
   return (
     <figure className="help-figure">
       {figure.caption && (
         <h3 className="help-figure__caption">{t(figure.caption)}</h3>
       )}
-      <div className="help-figure__body">
-        <div
-          className="help-figure__shot"
-          style={{ flexBasis: width, maxWidth: width }}
-        >
-          <div className="help-figure__frame">
+      <div className="help-figure__host" ref={hostRef}>
+        {plan && (
+          <div
+            className="help-figure__frame"
+            style={{ width: plan.width, height: plan.height }}
+          >
             <button
               type="button"
-              className="help-guide__capture"
+              className="help-guide__capture help-figure__capture"
+              style={{
+                left: plan.image.left,
+                top: plan.image.top,
+                width: plan.image.width,
+                height: plan.image.height,
+              }}
               aria-label={t('help.enlarge', { title })}
               onClick={onEnlarge}
             >
@@ -92,36 +109,84 @@ export default function HelpFigure({
                 height={figure.height}
               />
             </button>
-            {pointed && (
+            {plan.callouts.length > 0 && (
+              <svg
+                className="help-callouts"
+                width={plan.width}
+                height={plan.height}
+                aria-hidden="true"
+              >
+                {plan.callouts.map((callout) => (
+                  <g
+                    key={callout.index}
+                    className={`help-callouts__lead${
+                      callout.index === pointed ? ' is-lit' : ''
+                    }`}
+                  >
+                    <line
+                      x1={callout.start.x}
+                      y1={callout.start.y}
+                      x2={callout.anchor.x}
+                      y2={callout.anchor.y}
+                    />
+                    <circle
+                      cx={callout.anchor.x}
+                      cy={callout.anchor.y}
+                      r={2.5}
+                    />
+                  </g>
+                ))}
+              </svg>
+            )}
+            {lit && (
               <span
                 className="help-figure__ring"
                 aria-hidden="true"
-                style={placed(figure, pointed.box)}
+                style={{
+                  left: lit.box.left,
+                  top: lit.box.top,
+                  width: lit.box.width,
+                  height: lit.box.height,
+                }}
               />
             )}
-          </div>
-          <figcaption>{t('help.enlarge', { title })}</figcaption>
-        </div>
-        {controls.length > 0 && (
-          <ul
-            className="help-controls"
-            aria-label={t('help.controlsOf', { title })}
-          >
-            {controls.map((control) => (
-              <li
-                key={control.text}
-                className={`help-control${control.icon ? '' : ' help-control--plain'}`}
-                onPointerEnter={() => setPointed(control)}
+            {plan.callouts.map((callout) => (
+              <span
+                key={callout.index}
+                className={`help-callout${
+                  callout.index === pointed ? ' is-lit' : ''
+                }`}
+                style={{ left: callout.badge.x, top: callout.badge.y }}
+                aria-hidden="true"
+                onPointerEnter={() => setPointed(callout.index)}
                 onPointerLeave={() => setPointed(undefined)}
               >
-                {control.icon && (
-                  <span className="help-control__well" aria-hidden="true">
-                    <span
-                      className="help-control__piece"
-                      style={pieceStyle(src, figure, control.icon)}
-                    />
-                  </span>
-                )}
+                {callout.number}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <figcaption className="help-figure__note">
+        {t('help.enlarge', { title })}
+      </figcaption>
+      {plan && plan.callouts.length > 0 && (
+        <ol
+          className="help-controls"
+          aria-label={t('help.controlsOf', { title })}
+        >
+          {plan.callouts.map(({ index, number }) => {
+            const control = controls[index];
+            return (
+              <li
+                key={control.text}
+                className={`help-control${index === pointed ? ' is-lit' : ''}`}
+                onPointerEnter={() => setPointed(index)}
+                onPointerLeave={() => setPointed(undefined)}
+              >
+                <span className="help-control__number" aria-hidden="true">
+                  {number}
+                </span>
                 <span className="help-control__body">
                   <span className="help-control__name">
                     <strong>{t(control.name)}</strong>
@@ -130,10 +195,10 @@ export default function HelpFigure({
                   <span className="help-control__text">{t(control.text)}</span>
                 </span>
               </li>
-            ))}
-          </ul>
-        )}
-      </div>
+            );
+          })}
+        </ol>
+      )}
     </figure>
   );
 }

@@ -110,6 +110,17 @@ been translated into ten languages for a screen nobody reaches.
   not running, its name no longer sits there in full colour as though
   everything were fine, and "Fix this" reopens the card after you have put it
   away once.
+- **The EQ page stops taking changes the engine cannot hear.** When the audio
+  engine is not reaching your output, the page now greys out and stops taking
+  changes, the same way it does when FluidEQ is switched off — instead of
+  letting you move bands that change nothing.
+- **Help's pictures point at things again, the way a printed manual does.**
+  Each control on a screenshot now has a numbered circle beside the picture
+  and a line to it, with the same numbers in the list underneath, in the app
+  and in the printed guide alike. The old small pictures beside each line were
+  cut out of the screenshot, and most came out as empty squares or half a
+  word. Several lines also pointed at the wrong control, and those are
+  corrected.
 - **The engine finds the place a sound card actually loads it from.** Windows
   keeps an effect in one of eight places and which one a driver reads is
   written down nowhere, so FluidEQ steps through them on the machine itself. It

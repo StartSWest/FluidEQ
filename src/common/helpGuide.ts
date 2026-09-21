@@ -14,11 +14,11 @@ export type THelpBox = readonly [number, number, number, number];
 /**
  * One control a capture explains.
  *
- * The boxes were measured in the running window as the capture was taken:
- * `box` is where the control is, and pointing at its line rings it there;
- * `icon`, where the control has a picture worth repeating, is the piece of
- * the capture drawn beside the line, so the icon a reader is told about is
- * the one they will look for.
+ * `box` was measured in the running window as the capture was taken: it is
+ * where the control is, what its numbered call-out points at
+ * (`helpCallouts.ts`), and what is ringed while its line is pointed at. It has
+ * to stay true to the capture — retake a capture and its boxes are retaken
+ * with it.
  *
  * `name` is the app's own label for the control wherever it has one that
  * reads on its own, so the name in the guide is the name on screen in every
@@ -26,7 +26,6 @@ export type THelpBox = readonly [number, number, number, number];
  */
 export interface IHelpControl {
   readonly box: THelpBox;
-  readonly icon?: THelpBox;
   readonly name: TranslationKey;
   readonly text: TranslationKey;
   /** The shortcut, as the app prints it. */
@@ -44,43 +43,19 @@ export interface IHelpFigure<TImage extends string = string> {
 }
 
 /**
- * The largest a control's piece of the capture is drawn beside its line.
- *
- * Wide enough for the look picker's pill and a menu row's icon alike, and
- * never scaled up: a piece drawn larger than it was captured is only a
- * blurrier copy of it.
- */
-const PIECE = { width: 168, height: 44 } as const;
-
-export const helpPieceScale = ([, , width, height]: THelpBox): number =>
-  Math.min(1, PIECE.width / width, PIECE.height / height);
-
-/**
  * What a capture is drawn down by, so it is never shown larger than it was
  * on screen: drawn to the reading column's full width, the
  * band menu came out nearly three times its size and EQ mode 2,229px tall.
  * The whole-window captures are wider than any column either way.
  */
-const CAPTURE_SCALE = 1.5;
+export const HELP_CAPTURE_SCALE = 1.5;
 
 /**
  * The tallest a capture is drawn, as a share of the window's height, so a tall
- * panel shrinks to be read beside its legend instead of scrolled past.
+ * panel shrinks to be read above its numbered list instead of scrolled past.
  * Enlarging it still shows every pixel.
  */
-const CAPTURE_MAX_VIEWPORT = 72;
-
-/**
- * The widest a capture may be drawn, as a CSS length: the column, its size on
- * screen, or the width at which it is as tall as the window allows — whichever
- * is least. The reader and the exported guide both use it as the capture's
- * flex basis too, so a narrow capture leaves room for its legend beside it and
- * a wide one takes the line, with the legend under it.
- */
-export const helpCaptureWidth = (figure: IHelpFigure): string =>
-  `min(100%, ${figure.width / CAPTURE_SCALE}px, ${CAPTURE_MAX_VIEWPORT}vh * ${
-    figure.width / figure.height
-  })`;
+export const HELP_CAPTURE_MAX_VIEWPORT = 0.72;
 
 export const HELP_GROUPS = [
   'start',
@@ -132,19 +107,16 @@ const CHAPTERS = [
         controls: [
           {
             box: [66, 100, 512, 109],
-            icon: [74, 145, 20, 20],
             name: 'engine.fluid.name',
             text: 'help.engine.fluid',
           },
           {
             box: [66, 251, 512, 86],
-            icon: [74, 284, 20, 20],
             name: 'engine.apo.name',
             text: 'help.engine.apo',
           },
           {
             box: [541, 387, 54, 32],
-            icon: [549, 393, 20, 20],
             name: 'engine.apply',
             text: 'help.engine.apply',
           },
@@ -164,7 +136,6 @@ const CHAPTERS = [
         controls: [
           {
             box: [663, 14, 101, 32],
-            icon: [671, 20, 20, 20],
             // `dsp.presets`, not `voicing.quickLabel`: the picker was renamed
             // when the catalogue became whole chains instead of curves, and
             // the old key is now referenced by nothing else in the app. The
@@ -174,55 +145,46 @@ const CHAPTERS = [
           },
           {
             box: [774, 14, 75, 32],
-            icon: [782, 20, 20, 20],
             name: 'eq.smart',
             text: 'help.eq.smart',
           },
           {
             box: [883, 14, 88, 32],
-            icon: [891, 20, 20, 20],
             name: 'eq.clear',
             text: 'help.eq.clear',
           },
           {
             box: [981, 11, 133, 38],
-            icon: [989, 20, 20, 20],
             name: 'eq.mode',
             text: 'help.eq.mode',
           },
           {
             box: [1124, 14, 95, 32],
-            icon: [1132, 20, 20, 20],
             name: 'eq.addBand',
             text: 'help.eq.add',
           },
           {
             box: [1229, 14, 104, 32],
-            icon: [1237, 20, 20, 20],
             name: 'eq.quickLayouts',
             text: 'help.eq.layouts',
           },
           {
             box: [950, 518, 50, 50],
-            icon: [958, 533, 20, 20],
             name: 'eq.frequency',
             text: 'help.eq.frequency',
           },
           {
             box: [1022, 518, 50, 50],
-            icon: [1030, 533, 20, 20],
             name: 'eq.gain',
             text: 'help.eq.gain',
           },
           {
             box: [1094, 518, 50, 50],
-            icon: [1102, 533, 20, 20],
             name: 'eq.quality',
             text: 'help.eq.q',
           },
           {
             box: [1223, 524, 112, 38],
-            icon: [1231, 533, 20, 20],
             name: 'eq.delete',
             text: 'help.eq.delete',
           },
@@ -236,25 +198,21 @@ const CHAPTERS = [
         controls: [
           {
             box: [6, 30, 188, 34],
-            icon: [14, 37, 20, 20],
             name: 'eq.menu.reset',
             text: 'help.eq.reset',
           },
           {
             box: [6, 65, 188, 34],
-            icon: [14, 72, 20, 20],
             name: 'eq.menu.disable',
             text: 'help.eq.disable',
           },
           {
             box: [6, 110, 188, 34],
-            icon: [14, 117, 20, 20],
             name: 'eq.menu.addLeft',
             text: 'help.eq.addLeft',
           },
           {
             box: [6, 145, 188, 34],
-            icon: [14, 152, 20, 20],
             name: 'eq.menu.addRight',
             text: 'help.eq.addRight',
           },
@@ -274,31 +232,26 @@ const CHAPTERS = [
         controls: [
           {
             box: [34, 119, 352, 72],
-            icon: [42, 145, 20, 20],
             name: 'eq.mode.strength',
             text: 'help.eqmode.strength',
           },
           {
             box: [34, 207, 352, 72],
-            icon: [42, 233, 20, 20],
             name: 'eq.mode.q',
             text: 'help.eqmode.q',
           },
           {
             box: [34, 666, 352, 72],
-            icon: [42, 692, 20, 20],
             name: 'eq.mode.smoothing',
             text: 'help.eqmode.smoothing',
           },
           {
             box: [34, 295, 352, 108],
-            icon: [42, 339, 20, 20],
             name: 'eq.mode.phase',
             text: 'help.eqmode.phase',
           },
           {
             box: [338, 17, 65, 32],
-            icon: [346, 23, 20, 20],
             name: 'eq.mode.reset',
             text: 'help.eqmode.reset',
           },
@@ -312,13 +265,11 @@ const CHAPTERS = [
         controls: [
           {
             box: [15, 15, 300, 190],
-            icon: [23, 100, 20, 20],
             name: 'eq.layouts.builtIn',
             text: 'help.eqmode.builtIn',
           },
           {
             box: [205, 173, 111, 32],
-            icon: [213, 179, 20, 20],
             name: 'eq.layouts.saveNew',
             text: 'help.eqmode.save',
           },
@@ -364,77 +315,64 @@ const CHAPTERS = [
         controls: [
           {
             box: [0, 83, 200, 42],
-            icon: [8, 94, 20, 20],
             name: 'dsp.normalizer.title',
             text: 'help.dsp.normalizer',
           },
           {
             box: [0, 129, 200, 42],
-            icon: [8, 140, 20, 20],
             name: 'dsp.denoise.title',
             text: 'help.dsp.denoise',
           },
           {
             box: [0, 175, 200, 42],
-            icon: [8, 186, 20, 20],
             name: 'dsp.exciter.title',
             text: 'help.dsp.exciter',
           },
           {
             box: [0, 221, 200, 42],
-            icon: [8, 232, 20, 20],
             name: 'dsp.bassForge.title',
             text: 'help.dsp.bassForge',
           },
           {
             box: [0, 267, 200, 42],
-            icon: [8, 278, 20, 20],
             name: 'dsp.eq.title',
             text: 'help.dsp.equaliser',
           },
           {
             box: [0, 313, 200, 42],
-            icon: [8, 324, 20, 20],
             name: 'dsp.bassPunch.title',
             text: 'help.dsp.bassPunch',
           },
           {
             box: [0, 359, 200, 42],
-            icon: [8, 370, 20, 20],
             name: 'dsp.dimension.title',
             text: 'help.dsp.dimension',
           },
           {
             box: [0, 451, 200, 42],
-            icon: [8, 462, 20, 20],
             name: 'dsp.maximizer.title',
             text: 'help.dsp.maximizer',
           },
           {
             box: [0, 497, 200, 42],
-            icon: [8, 508, 20, 20],
             name: 'dsp.master.title',
             text: 'help.dsp.master',
           },
           {
             box: [0, 580, 200, 42],
-            icon: [8, 591, 20, 20],
             name: 'dsp.crossfade.title',
             text: 'help.dsp.crossfade',
           },
           {
             // The chip under the header, not the On switch at the other end
-            // of it: this card is about where the rack runs, and a crop of
-            // the switch is a plain teal block that says nothing. Wide and
-            // short, so the piece scales to its full 168px and stays legible.
+            // of it, which is where this pointed until 1.7.5: the line is
+            // about where the rack runs, and the chip is what says so.
             box: [0, 30, 580, 31],
-            icon: [6, 31, 200, 29],
             name: 'help.dsp.scopeName',
             text: 'help.dsp.scope',
           },
           {
             box: [123, 3, 210, 32],
-            icon: [131, 9, 20, 20],
             name: 'dsp.presets',
             text: 'help.dsp.presets',
           },
@@ -460,19 +398,16 @@ const CHAPTERS = [
         controls: [
           {
             box: [23, 128, 728, 831],
-            icon: [268, 309, 91, 101],
             name: 'dsp.room.graphLabel',
             text: 'help.room.picture',
           },
           {
             box: [765, 128, 604, 250],
-            icon: [782, 152, 41, 27],
             name: 'help.room.speakerName',
             text: 'help.room.speaker',
           },
           {
             box: [1384, 128, 604, 250],
-            icon: [1507, 171, 117, 138],
             name: 'help.room.dialsName',
             text: 'help.room.dials',
           },
@@ -483,7 +418,6 @@ const CHAPTERS = [
           },
           {
             box: [89, 24, 315, 48],
-            icon: [105, 37, 23, 23],
             name: 'dsp.room.presets',
             text: 'help.room.picker',
           },
@@ -499,7 +433,6 @@ const CHAPTERS = [
           },
           {
             box: [654, 24, 98, 48],
-            icon: [671, 38, 20, 20],
             name: 'dsp.eqSave.save',
             text: 'help.room.saved',
           },
@@ -531,7 +464,6 @@ const CHAPTERS = [
         controls: [
           {
             box: [289, 12, 81, 28],
-            icon: [297, 16, 20, 20],
             name: 'graph.liveOutput',
             text: 'help.graph.live',
           },
@@ -562,7 +494,6 @@ const CHAPTERS = [
           },
           {
             box: [766, 12, 67, 28],
-            icon: [774, 16, 20, 20],
             name: 'graph.design.new',
             text: 'help.graph.newLook',
           },
@@ -578,7 +509,6 @@ const CHAPTERS = [
           },
           {
             box: [898, 12, 56, 28],
-            icon: [906, 16, 20, 20],
             name: 'help.graph.viewName',
             text: 'help.graph.view',
           },
@@ -615,53 +545,45 @@ const CHAPTERS = [
         controls: [
           {
             box: [6, 34, 352, 28],
-            icon: [14, 38, 20, 20],
             name: 'graph.view.expand',
             text: 'help.graph.expand',
             keys: 'Ctrl+S',
           },
           {
             box: [6, 62, 352, 28],
-            icon: [14, 66, 20, 20],
             name: 'graph.view.fullscreen',
             text: 'help.graph.fullscreen',
             keys: 'Ctrl+F',
           },
           {
             box: [6, 155, 352, 28],
-            icon: [14, 159, 20, 20],
             name: 'help.graph.showingName',
             text: 'help.graph.showing',
             keys: 'Ctrl+W',
           },
           {
             box: [6, 267, 352, 28],
-            icon: [14, 271, 20, 20],
             name: 'help.graph.waveName',
             text: 'help.graph.wave',
           },
           {
             box: [6, 295, 352, 28],
-            icon: [14, 299, 20, 20],
             name: 'help.graph.topWaveName',
             text: 'help.graph.topWave',
           },
           {
             box: [6, 323, 352, 28],
-            icon: [14, 327, 20, 20],
             name: 'help.graph.gridName',
             text: 'help.graph.grid',
             keys: 'Ctrl+G',
           },
           {
             box: [6, 351, 352, 28],
-            icon: [14, 355, 20, 20],
             name: 'help.graph.bandsName',
             text: 'help.graph.bandsMenu',
           },
           {
             box: [6, 379, 352, 28],
-            icon: [14, 383, 20, 20],
             name: 'help.graph.meterName',
             text: 'help.graph.meter',
           },
@@ -677,14 +599,12 @@ const CHAPTERS = [
           },
           {
             box: [6, 492, 352, 28],
-            icon: [14, 496, 20, 20],
             name: 'graph.style.next',
             text: 'help.graph.next',
             keys: 'Space',
           },
           {
             box: [6, 520, 352, 28],
-            icon: [14, 524, 20, 20],
             name: 'graph.style.previous',
             text: 'help.graph.previous',
             keys: 'Ctrl+Space',
@@ -701,13 +621,11 @@ const CHAPTERS = [
           },
           {
             box: [6, 648, 352, 28],
-            icon: [14, 652, 20, 20],
             name: 'graph.scene.ownTiming',
             text: 'help.graph.ownTiming',
           },
           {
             box: [6, 90, 352, 28],
-            icon: [14, 94, 20, 20],
             name: 'wallpaper.action',
             text: 'help.graph.desktop',
           },
@@ -726,29 +644,30 @@ const CHAPTERS = [
         controls: [
           {
             box: [1, 1, 778, 32],
-            icon: [9, 7, 20, 20],
             name: 'help.looks.searchName',
             text: 'help.looks.search',
           },
           {
             box: [1, 33, 326, 526],
-            icon: [9, 286, 20, 20],
             name: 'graph.picker.styles',
             text: 'help.looks.styles',
           },
           {
-            box: [47, 63, 41, 20],
+            // Every filter chip, both rows, not "Lines" alone — a line to
+            // the one chip read as pointing at it and struck through "All".
+            box: [10, 62, 268, 47],
             name: 'help.looks.familiesName',
             text: 'help.looks.families',
           },
           {
             box: [327, 33, 452, 526],
-            icon: [335, 286, 20, 20],
             name: 'graph.picker.plus',
             text: 'help.looks.plus',
           },
           {
-            box: [374, 68, 49, 20],
+            // From "All" to "Made by you", not "Nature" alone: a line to the
+            // one chip had to strike through the other four to reach it.
+            box: [338, 67, 274, 22],
             name: 'help.looks.categoriesName',
             text: 'help.looks.categories',
           },
@@ -767,31 +686,26 @@ const CHAPTERS = [
         controls: [
           {
             box: [5, 47, 218, 42],
-            icon: [13, 58, 20, 20],
             name: 'leaderboard.title',
             text: 'help.plus.leaderboard',
           },
           {
             box: [5, 91, 218, 42],
-            icon: [13, 102, 20, 20],
             name: 'plus.visualizers.title',
             text: 'help.plus.visualizers',
           },
           {
             box: [5, 135, 218, 42],
-            icon: [13, 146, 20, 20],
             name: 'studio.title',
             text: 'help.plus.studio',
           },
           {
             box: [5, 179, 218, 42],
-            icon: [13, 190, 20, 20],
             name: 'lighting.title',
             text: 'help.plus.lighting',
           },
           {
             box: [11, 9, 28, 28],
-            icon: [19, 13, 20, 20],
             name: 'plus.rail.collapse',
             text: 'help.plus.fold',
           },
@@ -810,7 +724,6 @@ const CHAPTERS = [
         controls: [
           {
             box: [240, 61, 320, 32],
-            icon: [248, 67, 20, 20],
             name: 'plus.gallery.search',
             text: 'help.gallery.search',
           },
@@ -820,31 +733,29 @@ const CHAPTERS = [
             text: 'help.gallery.sort',
           },
           {
-            box: [240, 109, 1740, 24],
+            // The chips themselves, not the whole row they sit in: a line to
+            // the row's far end pointed at empty space beside them.
+            box: [240, 109, 660, 24],
             name: 'help.gallery.categoriesName',
             text: 'help.gallery.categories',
           },
           {
             box: [240, 149, 211, 229],
-            icon: [248, 254, 20, 20],
             name: 'help.gallery.cardName',
             text: 'help.gallery.card',
           },
           {
             box: [1880, 61, 100, 32],
-            icon: [1888, 67, 20, 20],
             name: 'plus.gallery.mine',
             text: 'help.gallery.mine',
           },
           {
             box: [1844, 2, 66, 32],
-            icon: [1852, 8, 20, 20],
             name: 'wallpaper.manage',
             text: 'help.gallery.manage',
           },
           {
             box: [1917, 2, 63, 32],
-            icon: [1925, 8, 20, 20],
             name: 'wallpaper.stopAll',
             text: 'help.gallery.stop',
           },
@@ -858,19 +769,16 @@ const CHAPTERS = [
         controls: [
           {
             box: [1689, 280, 266, 32],
-            icon: [1697, 286, 20, 20],
             name: 'plus.scene.play',
             text: 'help.gallery.play',
           },
           {
             box: [1689, 355, 266, 32],
-            icon: [1697, 361, 20, 20],
             name: 'wallpaper.action',
             text: 'help.gallery.desktop',
           },
           {
             box: [1689, 414, 266, 32],
-            icon: [1697, 420, 20, 20],
             name: 'plus.inspect.open',
             text: 'help.gallery.inspect',
           },
@@ -894,19 +802,16 @@ const CHAPTERS = [
         controls: [
           {
             box: [240, 62, 142, 27],
-            icon: [248, 66, 20, 20],
             name: 'help.leaderboard.periodName',
             text: 'help.leaderboard.period',
           },
           {
             box: [385, 123, 1246, 85],
-            icon: [393, 156, 20, 20],
             name: 'leaderboard.hero.title',
             text: 'help.leaderboard.standing',
           },
           {
             box: [1687, 123, 270, 32],
-            icon: [1695, 129, 20, 20],
             name: 'leaderboard.guide.title',
             text: 'help.leaderboard.earn',
           },
@@ -925,13 +830,11 @@ const CHAPTERS = [
         controls: [
           {
             box: [240, 60, 330, 30],
-            icon: [248, 65, 20, 20],
             name: 'studio.project.label',
             text: 'help.studio.project',
           },
           {
             box: [240, 110, 1460, 632],
-            icon: [248, 416, 20, 20],
             name: 'help.studio.stageName',
             text: 'help.studio.stage',
           },
@@ -942,25 +845,27 @@ const CHAPTERS = [
           },
           {
             box: [1724, 110, 248, 215],
-            icon: [1732, 208, 20, 20],
             name: 'studio.meters.title',
             text: 'help.studio.hears',
           },
+          // These three were measured before the column gained its "Trying
+          // the scene" heading, and each pointed one section too high — the
+          // test signals' box sat inside the meters above them. Measured
+          // again off this capture with a ruler, 2026-09-20. The wave's box
+          // stops where the sticky "When it's ready" footer covers the rest
+          // of its section in the capture.
           {
-            box: [1737, 283, 222, 30],
-            icon: [1745, 288, 20, 20],
+            box: [1737, 398, 222, 140],
             name: 'studio.signals.title',
             text: 'help.studio.signals',
           },
           {
-            box: [1737, 397, 222, 60],
-            icon: [1745, 417, 20, 20],
+            box: [1737, 666, 222, 68],
             name: 'studio.size.title',
             text: 'help.studio.size',
           },
           {
-            box: [1737, 998, 222, 157],
-            icon: [1745, 1067, 20, 20],
+            box: [1737, 998, 222, 36],
             name: 'studio.wave.title',
             text: 'help.studio.wave',
           },
@@ -978,20 +883,19 @@ const CHAPTERS = [
         height: 567,
         controls: [
           {
-            box: [445, 109, 110, 32],
-            icon: [453, 115, 20, 20],
+            // The monitor tiles the line describes, not the "All monitors"
+            // box above them, which is where this pointed until 1.7.5.
+            box: [42, 178, 496, 106],
             name: 'wallpaper.monitors',
             text: 'help.desktop.monitors',
           },
           {
             box: [25, 352, 261, 71],
-            icon: [33, 378, 20, 20],
             name: 'wallpaper.motion.music',
             text: 'help.desktop.music',
           },
           {
             box: [294, 352, 261, 71],
-            icon: [302, 378, 20, 20],
             name: 'wallpaper.motion.calm',
             text: 'help.desktop.calm',
           },
@@ -1002,7 +906,6 @@ const CHAPTERS = [
           },
           {
             box: [448, 511, 107, 32],
-            icon: [456, 517, 20, 20],
             name: 'wallpaper.start',
             text: 'help.desktop.start',
           },
@@ -1026,31 +929,31 @@ const CHAPTERS = [
           },
           {
             box: [240, 170, 1732, 432],
-            icon: [248, 376, 20, 20],
             name: 'help.lighting.previewName',
             text: 'help.lighting.preview',
           },
           {
-            box: [240, 618, 1014, 497],
-            icon: [248, 857, 20, 20],
+            // The device rows, not the whole card: the card held the "All
+            // devices" chip, so that chip's line could run down through every
+            // row of the list without it counting as a crossing.
+            box: [256, 684, 934, 304],
             name: 'lighting.devices.title',
             text: 'help.lighting.devices',
           },
           {
-            box: [1283, 630, 615, 43],
-            icon: [1291, 642, 20, 20],
+            // The four style buttons, not the card's header row — that box
+            // put the line on the card's Reset button.
+            box: [1282, 686, 678, 116],
             name: 'lighting.tuning.title',
             text: 'help.lighting.style',
           },
           {
             box: [1837, 111, 120, 32],
-            icon: [1845, 117, 20, 20],
             name: 'lighting.pickScene',
             text: 'help.lighting.browse',
           },
           {
             box: [1161, 630, 80, 32],
-            icon: [1169, 636, 20, 20],
             name: 'lighting.target.all',
             text: 'help.lighting.all',
           },
@@ -1091,66 +994,59 @@ const CHAPTERS = [
         controls: [
           {
             box: [4, 5, 32, 32],
-            icon: [10, 11, 20, 20],
             name: 'karaoke.maker.openProject',
             text: 'help.makerBar.import',
           },
           {
             box: [40, 5, 32, 32],
-            icon: [46, 11, 20, 20],
             name: 'karaoke.maker.lyrics',
             text: 'help.makerBar.lyrics',
           },
           {
             box: [148, 5, 32, 32],
-            icon: [154, 11, 20, 20],
             name: 'karaoke.maker.lyricsTiming',
             text: 'help.makerBar.timing',
           },
           {
             box: [184, 5, 32, 32],
-            icon: [190, 11, 20, 20],
             name: 'karaoke.maker.panView',
             text: 'help.makerBar.pan',
           },
           {
-            box: [226, 1, 258, 40],
+            // The "As recorded" picker itself. The old box ran on over the
+            // bin to "Add a language", and its middle — where the line lands —
+            // was the bin.
+            box: [226, 1, 118, 40],
             name: 'karaoke.translation.picker',
             text: 'help.makerBar.language',
           },
           {
             box: [494, 5, 32, 32],
-            icon: [500, 11, 20, 20],
             name: 'karaoke.maker.recordLines',
             text: 'help.makerBar.record',
           },
           {
             box: [530, 5, 32, 32],
-            icon: [536, 11, 20, 20],
             name: 'karaoke.maker.selectNotes',
             text: 'help.makerBar.select',
           },
           {
             box: [566, 5, 32, 32],
-            icon: [572, 11, 20, 20],
             name: 'karaoke.maker.paintNotes',
             text: 'help.makerBar.paint',
           },
           {
             box: [674, 5, 32, 32],
-            icon: [680, 11, 20, 20],
             name: 'karaoke.maker.split',
             text: 'help.makerBar.split',
           },
           {
             box: [756, 5, 32, 32],
-            icon: [762, 11, 20, 20],
             name: 'karaoke.maker.advanced',
             text: 'help.makerBar.repair',
           },
           {
             box: [798, 5, 32, 32],
-            icon: [804, 11, 20, 20],
             name: 'karaoke.maker.export',
             text: 'help.makerBar.export',
           },
@@ -1187,25 +1083,21 @@ const CHAPTERS = [
         controls: [
           {
             box: [17, 40, 396, 32],
-            icon: [25, 46, 20, 20],
             name: 'karaoke.maker.removeBackground',
             text: 'help.maker.separate',
           },
           {
             box: [17, 77, 396, 32],
-            icon: [25, 83, 20, 20],
             name: 'karaoke.maker.vocalStem',
             text: 'help.maker.loadVocals',
           },
           {
             box: [17, 163, 396, 32],
-            icon: [25, 169, 20, 20],
             name: 'karaoke.maker.repairLyrics',
             text: 'help.maker.redetectTiming',
           },
           {
             box: [17, 200, 396, 32],
-            icon: [25, 206, 20, 20],
             name: 'karaoke.maker.repairMelody',
             text: 'help.maker.redetectNotes',
           },

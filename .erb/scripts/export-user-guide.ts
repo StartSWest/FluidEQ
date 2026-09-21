@@ -5,11 +5,15 @@ import path from 'path';
 import prettier from 'prettier';
 import {
   HELP_CHAPTERS,
-  helpCaptureWidth,
-  helpPieceScale,
   type IHelpControl,
   type IHelpFigure,
 } from '../../src/common/helpGuide';
+import {
+  HELP_CALLOUT_BADGE,
+  planHelpCallouts,
+  readingOrder,
+  type IHelpCalloutRoom,
+} from '../../src/common/helpCallouts';
 import en from '../../src/common/i18n/en';
 
 // The shipped reader and the document use the same text and captures, so a
@@ -48,8 +52,13 @@ captures.forEach((image) => {
 const figureTitle = (figure: IHelpFigure, chapterTitle: string) =>
   figure.caption ? en[figure.caption] : chapterTitle;
 
-const controlLine = (control: IHelpControl) =>
-  `- **${en[control.name]}**${control.keys ? ` (\`${control.keys}\`)` : ''} — ${en[control.text]}`;
+// Numbered in the order the capture is read, the same numbers the illustrated
+// edition prints in its circles and the reader shows in the app.
+const controlLines = (controls: readonly IHelpControl[]) =>
+  readingOrder(controls.map((control) => control.box)).map((index, step) => {
+    const control = controls[index];
+    return `${step + 1}. **${en[control.name]}**${control.keys ? ` (\`${control.keys}\`)` : ''} — ${en[control.text]}`;
+  });
 
 const startsGroup = (index: number) =>
   index === 0 || chapters[index].group !== chapters[index - 1].group;
@@ -85,7 +94,7 @@ const markdown = [
       ...(figure.caption ? [`### ${en[figure.caption]}`, ''] : []),
       `![${figureTitle(figure, chapter.title)}](${figure.image})`,
       '',
-      ...(figure.controls ?? []).map(controlLine),
+      ...controlLines(figure.controls ?? []),
       ...(figure.controls?.length ? [''] : []),
     ]),
     `### ${en['help.steps']}`,
@@ -97,29 +106,58 @@ const markdown = [
   ]),
 ];
 
-const piece = (figure: IHelpFigure, control: IHelpControl) => {
-  if (!control.icon) {
-    return '';
-  }
-  const [x, y, width, height] = control.icon;
-  const scale = helpPieceScale(control.icon);
-  return `<span class="well"><span class="piece" style="width:${width * scale}px;height:${height * scale}px;background-image:url('${figure.image}');background-size:${figure.width * scale}px ${figure.height * scale}px;background-position:${-x * scale}px ${-y * scale}px"></span></span>`;
+/**
+ * The columns the illustrated guide lays its call-outs out for: its reading
+ * column, and a phone's. A static page cannot lay them out again when the
+ * window changes, and one layout scaled down to a phone shrank the numbers to
+ * a few pixels, so both are written and the stylesheet shows the one that
+ * fits. The numbers are the same in both — they follow the capture, not the
+ * layout.
+ */
+const WIDE: IHelpCalloutRoom = { width: 1040, maxImageHeight: 620 };
+const NARROW: IHelpCalloutRoom = { width: 340, maxImageHeight: 520 };
+
+/** Tenths of a pixel are plenty, and keep the page a readable size. */
+const px = (value: number) => String(Math.round(value * 10) / 10);
+
+const calloutSvg = (
+  figure: IHelpFigure,
+  title: string,
+  room: IHelpCalloutRoom,
+  layout: 'wide' | 'narrow',
+) => {
+  const plan = planHelpCallouts(figure, room);
+  const { image } = plan;
+  const clip = `clip-${layout}-${figure.image.replace(/[^a-z0-9]/gi, '-')}`;
+  const leads = plan.callouts
+    .map(
+      ({ start, anchor }) =>
+        `<line x1="${px(start.x)}" y1="${px(start.y)}" x2="${px(anchor.x)}" y2="${px(anchor.y)}"/><circle class="dot" cx="${px(anchor.x)}" cy="${px(anchor.y)}" r="2.5"/>`,
+    )
+    .join('');
+  const numbers = plan.callouts
+    .map(
+      ({ badge, number }) =>
+        `<g class="num"><circle cx="${px(badge.x)}" cy="${px(badge.y)}" r="${HELP_CALLOUT_BADGE / 2}"/><text x="${px(badge.x)}" y="${px(badge.y)}">${number}</text></g>`,
+    )
+    .join('');
+  return `<svg class="callouts ${layout}" viewBox="0 0 ${px(plan.width)} ${px(plan.height)}" width="${px(plan.width)}" height="${px(plan.height)}" role="img" aria-label="${escape(title)}"><defs><clipPath id="${clip}"><rect x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" rx="10"/></clipPath></defs><a href="${figure.image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><image href="${figure.image}" x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" clip-path="url(#${clip})"/></a><rect class="edge" x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" rx="10"/><g class="leads">${leads}</g>${numbers}</svg>`;
 };
 
 const figureHtml = (figure: IHelpFigure, chapterTitle: string) => {
   const title = figureTitle(figure, chapterTitle);
   const controls = figure.controls ?? [];
-  const width = helpCaptureWidth(figure);
-  return `${figure.caption ? `<h3>${escape(title)}</h3>` : ''}<div class="figure-body"><figure style="flex-basis:${width};max-width:${width}"><a href="${figure.image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><img src="${figure.image}" width="${figure.width}" height="${figure.height}" alt="${escape(title)}" loading="lazy"></a><figcaption>${escape(title)} · FluidEQ</figcaption></figure>${
-    controls.length
-      ? `<ul class="controls">${controls
-          .map(
-            (control) =>
-              `<li${control.icon ? '' : ' class="plain"'}>${piece(figure, control)}<span><span class="name"><strong>${escape(en[control.name])}</strong>${control.keys ? `<kbd>${escape(control.keys)}</kbd>` : ''}</span><span class="text">${escape(en[control.text])}</span></span></li>`,
-          )
-          .join('')}</ul>`
-      : ''
-  }</div>`;
+  const heading = figure.caption ? `<h3>${escape(title)}</h3>` : '';
+  if (controls.length === 0) {
+    return `${heading}<figure><a href="${figure.image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><img src="${figure.image}" width="${figure.width}" height="${figure.height}" alt="${escape(title)}" loading="lazy"></a><figcaption>${escape(title)} · FluidEQ</figcaption></figure>`;
+  }
+  const legend = planHelpCallouts(figure, WIDE)
+    .callouts.map(({ index, number }) => {
+      const control = controls[index];
+      return `<li><span class="n">${number}</span><span><span class="name"><strong>${escape(en[control.name])}</strong>${control.keys ? `<kbd>${escape(control.keys)}</kbd>` : ''}</span><span class="text">${escape(en[control.text])}</span></span></li>`;
+    })
+    .join('');
+  return `${heading}<figure class="annotated">${calloutSvg(figure, title, WIDE, 'wide')}${calloutSvg(figure, title, NARROW, 'narrow')}<figcaption>${escape(title)} · FluidEQ</figcaption></figure><ol class="controls">${legend}</ol>`;
 };
 
 const sections = chapters
@@ -145,9 +183,10 @@ a{color:var(--accent);text-underline-offset:4px}a:focus-visible,button:focus-vis
 .brand{font-size:24px;font-weight:bold;letter-spacing:-.04em}.rail small{display:block;color:var(--accent);margin-bottom:28px}.rail nav{display:grid;gap:7px}.rail nav a{color:var(--muted);font-size:14px;text-decoration:none;padding:6px 0}.rail nav a:hover{color:var(--accent)}.rail nav .part{margin-top:14px;color:var(--accent);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
 main{min-width:0;padding:60px clamp(22px,5vw,80px)}.hero{padding-bottom:38px}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:12px;color:var(--accent)}.eyebrow.part{display:block;margin-bottom:14px}h1{font-size:clamp(36px,4.5vw,64px);line-height:1.08;letter-spacing:-.04em;max-width:750px;margin:26px 0}h2{font-size:28px;line-height:1.25;margin:0}h3{font-size:17px}.lead{font-size:20px;color:var(--muted);max-width:730px}.note{font-size:13px;color:var(--muted);max-width:760px}
 .badge,button{display:inline-block;border:1px solid var(--line);border-radius:9px;padding:8px 13px;font:inherit;font-size:13px}.badge{color:var(--accent)}button{background:var(--accent);color:var(--bg);cursor:pointer;margin:10px 0}section{padding:40px 0 52px;border-top:1px solid var(--line)}.chapter-heading{display:flex;align-items:center;gap:20px}.number{color:var(--accent);font-size:18px;border:1px solid var(--line);border-radius:50%;width:44px;height:44px;display:grid;place-items:center;flex-shrink:0}p{margin:18px 0 24px}figure{margin:28px 0 12px}figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:12px}figcaption{color:var(--muted);font-size:12px;margin-top:8px}li{padding-left:8px;margin:12px 0}li::marker{color:var(--accent);font-weight:bold}.tip{background:var(--panel);border-left:3px solid var(--accent);border-radius:8px;padding:18px 22px}.tip strong{color:var(--accent)}.tip p{margin:4px 0 0}footer{font-size:13px;color:var(--muted)}
-.figure-body{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:16px 20px;margin:28px 0 12px}.figure-body figure{flex-grow:0;flex-shrink:1;min-width:0;margin:0}.controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:8px;flex:1 1 300px;min-width:min(100%,300px);margin:0;padding:0;list-style:none}.controls li{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;margin:0;padding:9px 12px 9px 9px;border:1px solid var(--line);border-radius:10px;background:var(--panel);break-inside:avoid}.controls li::marker{content:none}.controls li.plain{grid-template-columns:minmax(0,1fr)}.well{display:grid;place-items:center;min-width:44px;min-height:44px;padding:4px;border-radius:8px;background:var(--well)}.piece{display:block;background-repeat:no-repeat}.name{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;line-height:1.35}.name kbd{padding:1px 6px;border:1px solid var(--line);border-radius:6px;font-size:11px;white-space:nowrap}.text{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.annotated{margin:28px 0 8px}.callouts{display:block;max-width:100%;height:auto;margin:0 auto;overflow:visible}.callouts.narrow{display:none}.callouts .edge{fill:none;stroke:var(--line)}.callouts .leads line{stroke:var(--accent);stroke-opacity:.75;stroke-width:1.25;stroke-linecap:round}.callouts .dot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.callouts .num circle{fill:var(--accent);stroke:var(--bg);stroke-width:4;paint-order:stroke}.callouts .num text{fill:var(--bg);font-size:12px;font-weight:bold;text-anchor:middle;dominant-baseline:central}.annotated figcaption{text-align:center}.controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:8px;margin:18px 0 12px;padding:0;list-style:none}.controls li{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);break-inside:avoid}.controls li::marker{content:none}.controls .n{display:grid;place-items:center;width:22px;height:22px;margin-top:1px;border-radius:50%;background:var(--accent);color:var(--bg);font-size:12px;font-weight:bold;line-height:1}.name{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;line-height:1.35}.name kbd{padding:1px 6px;border:1px solid var(--line);border-radius:6px;font-size:11px;white-space:nowrap}.text{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+@media(max-width:700px){.callouts.wide{display:none}.callouts.narrow{display:block}}
 @media(max-width:850px){.shell{display:block}.rail{position:static;height:auto;padding:20px}.rail nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:32px 20px}h2{font-size:24px}}
-@media print{ :root{color-scheme:light;--bg:white;--panel:#f2f6f7;--well:#dfe8ec;--text:#132b38;--muted:#425d6d;--accent:#17665e;--line:#b7cbd4}body{font-size:10pt}.shell{display:block}.rail{display:none}main{padding:0}.hero{break-after:page}h1{font-size:38pt}section{break-before:page;padding:12pt 0;border:0}.chapter-heading,figure,.tip{break-inside:avoid}figure img{border-radius:4px}figure{margin:14pt 0}h2{font-size:20pt}h3{break-after:avoid}li{margin:6pt 0}button{display:none}a{color:inherit;text-decoration:none}.piece{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:16mm}}
+@media print{ :root{color-scheme:light;--bg:white;--panel:#f2f6f7;--well:#dfe8ec;--text:#132b38;--muted:#425d6d;--accent:#17665e;--line:#b7cbd4}body{font-size:10pt}.shell{display:block}.rail{display:none}main{padding:0}.hero{break-after:page}h1{font-size:38pt}section{break-before:page;padding:12pt 0;border:0}.chapter-heading,figure,.tip{break-inside:avoid}figure img{border-radius:4px}figure{margin:14pt 0}h2{font-size:20pt}h3{break-after:avoid}li{margin:6pt 0}button{display:none}a{color:inherit;text-decoration:none}.callouts.wide{display:block!important}.callouts.narrow{display:none!important}.callouts,.controls .n{-webkit-print-color-adjust:exact;print-color-adjust:exact}.annotated{break-inside:avoid}@page{size:A4;margin:16mm}}
 </style></head><body><div class="shell"><aside class="rail"><div class="brand">FluidEQ</div><small>User guide · Offline edition</small><nav aria-label="In this guide">${chapters.map((chapter, index) => `${startsGroup(index) ? `<span class="part">${escape(en[`help.group.${chapter.group}`])}</span>` : ''}<a href="#${chapter.id}">${String(index + 1).padStart(2, '0')} &nbsp; ${escape(chapter.title)}</a>`).join('')}</nav></aside>
 <main><header class="hero"><span class="eyebrow">FluidEQ / The illustrated guide</span><h1>${escape(en['help.subtitle'])}</h1><p class="lead">${escape(en['help.intro'])}</p><span class="badge">${chapters.length} chapters · ${captures.size} real interface captures · Offline</span><p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p><button type="button" id="print">Print / Save as PDF</button><p class="note">${escape(en['help.captureNote'])}</p></header>${sections}<footer>FluidEQ · User guide · © 2026 Ivan Carmenates Garcia. Screenshots remain unaltered. Keep this document beside its PNG files for offline viewing.</footer></main></div>
 <script>document.getElementById('print').addEventListener('click',async()=>{const button=document.getElementById('print');button.disabled=true;try{await Promise.all(Array.from(document.images,image=>{image.loading='eager';return image.decode()}));window.print()}catch(error){console.error('Cannot print the guide because a screenshot did not load.',error);button.textContent='A screenshot could not load. Keep the PNG files beside this document, then try again.'}finally{button.disabled=false}});</script></body></html>`;

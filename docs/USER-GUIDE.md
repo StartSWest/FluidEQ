@@ -95,9 +95,9 @@ FluidEQ processes your sound with its own engine or with Equalizer APO. The Flui
 
 ![The FluidEQ Engine](15-engine-dialog.png)
 
-- **FluidEQ Engine** — Recommended. Your sound card's effects keep working, and the EQ and DSP rack reach every app.
-- **Equalizer APO** — Runs custom APO commands, Peace and VST plugins. The DSP rack stays with Library playback.
-- **Apply** — Switches the engine. Windows asks once, and audio restarts for a few seconds.
+1. **FluidEQ Engine** — Recommended. Your sound card's effects keep working, and the EQ and DSP rack reach every app.
+2. **Equalizer APO** — Runs custom APO commands, Peace and VST plugins. The DSP rack stays with Library playback.
+3. **Apply** — Switches the engine. Windows asks once, and audio restarts for a few seconds.
 
 ### Try it
 
@@ -117,25 +117,25 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 
 ![The Bands page](16-eq-bands.png)
 
-- **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
-- **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
-- **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
-- **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
-- **Add band** — Adds a band beside the selected one.
-- **Quick layouts** — Band counts, and the band designs you saved.
-- **Frequency** — Where the selected band acts, from 1 Hz to 20 kHz.
-- **Gain** — How much it boosts or cuts. Ctrl-click returns it to 0 dB.
-- **Quality (Q)** — How wide it is: higher is narrower.
-- **Delete band** — Press twice to delete the band; Keep changes your mind.
+1. **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
+2. **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
+3. **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
+4. **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
+5. **Add band** — Adds a band beside the selected one.
+6. **Quick layouts** — Band counts, and the band designs you saved.
+7. **Frequency** — Where the selected band acts, from 1 Hz to 20 kHz.
+8. **Gain** — How much it boosts or cuts. Ctrl-click returns it to 0 dB.
+9. **Quality (Q)** — How wide it is: higher is narrower.
+10. **Delete band** — Press twice to delete the band; Keep changes your mind.
 
 ### A band's right-click menu
 
 ![A band's right-click menu](17-band-menu.png)
 
-- **Reset band** — Gain back to 0 dB and Q back to 2.
-- **Disable band** — Takes the band out of the sound and keeps its settings.
-- **Add band to the left** — Adds a band halfway to its lower neighbour.
-- **Add band to the right** — Adds a band halfway to its higher neighbour.
+1. **Reset band** — Gain back to 0 dB and Q back to 2.
+2. **Disable band** — Takes the band out of the sound and keeps its settings.
+3. **Add band to the left** — Adds a band halfway to its lower neighbour.
+4. **Add band to the right** — Adds a band halfway to its higher neighbour.
 
 ### Try it
 
@@ -155,18 +155,18 @@ EQ mode changes how your bands and your correction curves are applied, without e
 
 ![EQ mode](18-eq-mode.png)
 
-- **Strength** — Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.
-- **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.
-- **Curve smoothing** — Softens sampled correction curves.
-- **Phase** — Minimum or Linear. With the FluidEQ Engine only.
-- **Reset** — Everything back to Normal.
+1. **Reset** — Everything back to Normal.
+2. **Strength** — Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.
+3. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.
+4. **Phase** — Minimum or Linear. With the FluidEQ Engine only.
+5. **Curve smoothing** — Softens sampled correction curves.
 
 ### Band designs
 
 ![Band designs](19-band-designs.png)
 
-- **Built-in layouts** — Standard layouts of 6, 10, 15, 20 or 31 bands.
-- **Save design…** — Names the current frequencies and Q as a design, listed under My designs.
+1. **Built-in layouts** — Standard layouts of 6, 10, 15, 20 or 31 bands.
+2. **Save design…** — Names the current frequencies and Q as a design, listed under My designs.
 
 ### Try it
 
@@ -248,18 +248,18 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 
 ![Explore the DSP rack](20-dsp.png)
 
-- **Normalizer** — Evens out loudness. On live audio it levels song by song.
-- **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
-- **Exciter** — Adds harmonics for body and air.
-- **Bass Forge** — Adds a real octave below the bass, or its harmonics for small speakers.
-- **Equaliser** — Fifteen parametric bands, with minimum or linear phase.
-- **Bass Punch** — Shapes the attack, sustain and bloom of the bass.
-- **Dimension** — Widens the stereo picture without changing the mono sum.
-- **Maximizer** — Raises the level without letting peaks pass the ceiling.
-- **Master** — Final level, loudness target and peak safety.
-- **Crossfade** — Blends one Library track into the next.
-- **System-wide** — Where the rack is running, and any delay linear phase adds.
-- **Presets** — Whole-rack chains for genres, devices and repairs.
+1. **Presets** — Whole-rack chains for genres, devices and repairs.
+2. **System-wide** — Where the rack is running, and any delay linear phase adds.
+3. **Normalizer** — Evens out loudness. On live audio it levels song by song.
+4. **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
+5. **Exciter** — Adds harmonics for body and air.
+6. **Bass Forge** — Adds a real octave below the bass, or its harmonics for small speakers.
+7. **Equaliser** — Fifteen parametric bands, with minimum or linear phase.
+8. **Bass Punch** — Shapes the attack, sustain and bloom of the bass.
+9. **Dimension** — Widens the stereo picture without changing the mono sum.
+10. **Maximizer** — Raises the level without letting peaks pass the ceiling.
+11. **Master** — Final level, loudness target and peak safety.
+12. **Crossfade** — Blends one Library track into the next.
 
 ### Try it
 
@@ -277,14 +277,14 @@ The Room turns headphones into a listening room. Every channel of the sound beco
 
 ![The Room: surround on headphones](32-dsp-room.png)
 
-- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. All of it is drawn to one scale, so a speaker standing further out than the room is wide is drawn outside its walls. Drag one and its pair moves with it; hold Shift to move it alone.
-- **The chosen speaker** — Press a speaker in the room and this pane becomes its own: its angle as a number, its own distance, its level, and Mute or Solo to hear it alone.
-- **Space, Ambience, Distance** — How much of the walls you hear, the soft tail after them, and how far the speakers stand. Size, Walls and the tail's own length and tone are in Room character below.
-- **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
-- **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
-- **Start the listening test** — Five listening pairs that pick the head for your ears.
-- **Head** — The measured head the room renders through: small, medium or large.
-- **Save** — Name the room as it stands; it comes back with a press.
+1. **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
+2. **Save** — Name the room as it stands; it comes back with a press.
+3. **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
+4. **The chosen speaker** — Press a speaker in the room and this pane becomes its own: its angle as a number, its own distance, its level, and Mute or Solo to hear it alone.
+5. **Space, Ambience, Distance** — How much of the walls you hear, the soft tail after them, and how far the speakers stand. Size, Walls and the tail's own length and tone are in Room character below.
+6. **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. All of it is drawn to one scale, so a speaker standing further out than the room is wide is drawn outside its walls. Drag one and its pair moves with it; hold Shift to move it alone.
+7. **Head** — The measured head the room renders through: small, medium or large.
+8. **Start the listening test** — Five listening pairs that pick the head for your ears.
 
 ### Try it
 
@@ -321,45 +321,45 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 
 ![With a standard style](21-graph-strip.png)
 
-- **Live output** — Shows or hides the live wave.
-- **Previous style** — Steps back to the previous look.
-- **Styles and visualizers** — Opens every style and visualizer.
-- **Next style** — Steps forward to the next look.
-- **Auto** — Changes the look every 10 seconds to 2 minutes.
-- **Colouring** — Colours the style: Auto, Flat, Frequency, Level or Heat.
-- **New look** — Designs a look of your own from this style.
-- **Listening bands** — Shades the bands you hear most.
-- **Grid** — Shows or hides the grid and scales.
-- **View** — Size, what is drawn, and the wave.
+1. **Live output** — Shows or hides the live wave.
+2. **Previous style** — Steps back to the previous look.
+3. **Styles and visualizers** — Opens every style and visualizer.
+4. **Next style** — Steps forward to the next look.
+5. **Auto** — Changes the look every 10 seconds to 2 minutes.
+6. **Colouring** — Colours the style: Auto, Flat, Frequency, Level or Heat.
+7. **New look** — Designs a look of your own from this style.
+8. **Listening bands** — Shades the bands you hear most.
+9. **Grid** — Shows or hides the grid and scales.
+10. **View** — Size, what is drawn, and the wave.
 
 ### With a Plus visualizer
 
 ![With a Plus visualizer](22-graph-strip-plus.png)
 
-- **Window colours** — The app's theme, the visualizer's colours, or its colours with light (Ambient).
-- **Dynamic lighting** — Lights your RGB devices with this scene.
-- **Set as desktop background** — Puts this visualizer behind your desktop icons.
+1. **Window colours** — The app's theme, the visualizer's colours, or its colours with light (Ambient).
+2. **Dynamic lighting** — Lights your RGB devices with this scene.
+3. **Set as desktop background** — Puts this visualizer behind your desktop icons.
 
 ### The View menu
 
 ![The View menu](23-graph-view-menu.png)
 
-- **Expand view** (`Ctrl+S`) — The graph grows over the editor.
-- **Full screen** (`Ctrl+F`) — The graph fills the screen.
-- **Showing** (`Ctrl+W`) — Steps through what the graph shows.
-- **The wave** — The live spectrum drawing.
-- **Top wave** — The small wave in the title bar.
-- **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
-- **Listening bands** — The same shading; greyed over a Plus visualizer, which never draws it.
-- **Level meter** — The output meter in the left rail.
-- **Wave height** — How tall the wave is drawn.
-- **Wave position** — From the bottom edge up to the middle.
-- **Next style** (`Space`) — Steps forward to the next look.
-- **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
-- **Attack** — How fast a Plus visualizer rises to the music.
-- **Release** — How slowly it falls back after each hit.
-- **Use its own timing** — Back to the timing the visualizer came with.
-- **Set as desktop background** — Puts this visualizer behind your desktop icons.
+1. **Expand view** (`Ctrl+S`) — The graph grows over the editor.
+2. **Full screen** (`Ctrl+F`) — The graph fills the screen.
+3. **Set as desktop background** — Puts this visualizer behind your desktop icons.
+4. **Showing** (`Ctrl+W`) — Steps through what the graph shows.
+5. **The wave** — The live spectrum drawing.
+6. **Top wave** — The small wave in the title bar.
+7. **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
+8. **Listening bands** — The same shading; greyed over a Plus visualizer, which never draws it.
+9. **Level meter** — The output meter in the left rail.
+10. **Wave height** — How tall the wave is drawn.
+11. **Wave position** — From the bottom edge up to the middle.
+12. **Next style** (`Space`) — Steps forward to the next look.
+13. **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
+14. **Attack** — How fast a Plus visualizer rises to the music.
+15. **Release** — How slowly it falls back after each hit.
+16. **Use its own timing** — Back to the timing the visualizer came with.
 
 ### Try it
 
@@ -378,11 +378,11 @@ Standard styles are free drawings of the live sound that you can colour and desi
 
 ![Styles and Plus visualizers](24-look-picker.png)
 
-- **Search** — Finds styles and visualizers by name, maker or category.
-- **Styles** — Free styles drawn by FluidEQ, and the looks you saved.
-- **Style filters** — Lines, Fills, Bars, Points, Scenes and Yours.
-- **Plus visualizers** — Scenes from FluidEQ and from members, each with a picture.
-- **Categories** — Nature, Cities, Abstract and more.
+1. **Search** — Finds styles and visualizers by name, maker or category.
+2. **Style filters** — Lines, Fills, Bars, Points, Scenes and Yours.
+3. **Categories** — Nature, Cities, Abstract and more.
+4. **Styles** — Free styles drawn by FluidEQ, and the looks you saved.
+5. **Plus visualizers** — Scenes from FluidEQ and from members, each with a picture.
 
 ### Try it
 
@@ -400,11 +400,11 @@ An account is optional: everything that was free runs on this computer without o
 
 ![FluidEQ Plus and your account](25-plus-visualizers.png)
 
-- **Leaderboard** — Who listens most, among Plus members who join.
-- **Visualizers** — Scenes by FluidEQ and members, ready for your music.
-- **Studio** — Make your own scenes with your AI.
-- **Dynamic lighting** — Your RGB devices follow the scene.
-- **Collapse the sidebar** — Folds the rail to its pictures; it opens again on hover.
+1. **Collapse the sidebar** — Folds the rail to its pictures; it opens again on hover.
+2. **Leaderboard** — Who listens most, among Plus members who join.
+3. **Visualizers** — Scenes by FluidEQ and members, ready for your music.
+4. **Studio** — Make your own scenes with your AI.
+5. **Dynamic lighting** — Your RGB devices follow the scene.
 
 ### Try it
 
@@ -422,22 +422,22 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 
 ![The Visualizers gallery](25-plus-visualizers.png)
 
-- **Search scenes or makers** — Finds scenes and makers.
-- **Sort** — Most liked, liked this week, or newest.
-- **Categories** — Shows one kind of scene.
-- **A scene** — Its picture opens the scene; Add puts it in your looks.
-- **Your scenes** — The scenes you published, with their likes.
-- **Manage** — What each monitor shows as a desktop background.
-- **Stop all** — Stops every desktop background.
+1. **Manage** — What each monitor shows as a desktop background.
+2. **Stop all** — Stops every desktop background.
+3. **Search scenes or makers** — Finds scenes and makers.
+4. **Sort** — Most liked, liked this week, or newest.
+5. **Your scenes** — The scenes you published, with their likes.
+6. **Categories** — Shows one kind of scene.
+7. **A scene** — Its picture opens the scene; Add puts it in your looks.
 
 ### A scene's page
 
 ![A scene's page](26-plus-scene.png)
 
-- **Play on the graph** — Adds the scene to your looks, or plays it on the graph.
-- **Set as desktop background** — Puts the scene behind your desktop icons.
-- **Open in Studio** — Opens FluidEQ’s scene in the Studio to see how it is made.
-- **Back** — Back to the gallery, where you left it.
+1. **Back** — Back to the gallery, where you left it.
+2. **Play on the graph** — Adds the scene to your looks, or plays it on the graph.
+3. **Set as desktop background** — Puts the scene behind your desktop icons.
+4. **Open in Studio** — Opens FluidEQ’s scene in the Studio to see how it is made.
 
 ### Try it
 
@@ -455,9 +455,9 @@ The Leaderboard ranks the Plus members who join it, by how much they listen and 
 
 ![The Leaderboard](28-plus-leaderboard.png)
 
-- **All time or This month** — The whole history, or this month only.
-- **Your standing** — Your rank and points, and how far the next place is.
-- **How to earn points** — 10 points an hour, 20 for each day of 30 minutes or more, 5 for each like.
+1. **All time or This month** — The whole history, or this month only.
+2. **How to earn points** — 10 points an hour, 20 for each day of 30 minutes or more, 5 for each like.
+3. **Your standing** — Your rank and points, and how far the next place is.
 
 ### Try it
 
@@ -475,13 +475,13 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 
 ![Make scenes in the Studio](31-plus-studio.png)
 
-- **Project** — Your projects, and FluidEQ scenes to look inside.
-- **Stage** — The scene, playing on your music. Double-click for full screen.
-- **Code** — The scene’s code, live, updated as your AI saves it.
-- **What it hears now** — What the scene receives: level, beat, bass, mids, treble.
-- **Preview audio** — Test signals that drive only this preview.
-- **Size** — Tries the scene on a graph, narrow, wide or full-screen panel.
-- **Wave on the graph** — Tries the wave height and position listeners can set.
+1. **Project** — Your projects, and FluidEQ scenes to look inside.
+2. **What it hears now** — What the scene receives: level, beat, bass, mids, treble.
+3. **Stage** — The scene, playing on your music. Double-click for full screen.
+4. **Preview audio** — Test signals that drive only this preview.
+5. **Size** — Tries the scene on a graph, narrow, wide or full-screen panel.
+6. **Wave on the graph** — Tries the wave height and position listeners can set.
+7. **Code** — The scene’s code, live, updated as your AI saves it.
 
 ### Try it
 
@@ -499,11 +499,11 @@ The desktop visualizer puts a Plus visualizer behind your desktop icons, on one 
 
 ![The desktop visualizer](27-desktop-dialog.png)
 
-- **Monitors** — Your monitors as Windows arranges them. Press the ones to use.
-- **With the music** — Moves to whatever is playing.
-- **Calm** — A slow, quiet animation that ignores the music.
-- **Pause on battery power** — Saves power while the computer is unplugged.
-- **Set background** — Starts it on the monitors you chose.
+1. **Monitors** — Your monitors as Windows arranges them. Press the ones to use.
+2. **With the music** — Moves to whatever is playing.
+3. **Calm** — A slow, quiet animation that ignores the music.
+4. **Pause on battery power** — Saves power while the computer is unplugged.
+5. **Set background** — Starts it on the monitors you chose.
 
 ### Try it
 
@@ -521,12 +521,12 @@ Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with t
 
 ![Dynamic lighting (beta)](29-plus-lighting.png)
 
-- **Light my devices while a Plus scene plays** — Lights your devices while a Plus visualizer plays.
-- **Live desk preview** — Your own desk, lit with the colours sent to it.
-- **Your devices** — Every device found. Click one to tune it alone.
-- **Lighting style** — Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.
-- **Browse visualizers** — Opens the gallery to choose a visualizer.
-- **All devices** — Back to tuning every device at once.
+1. **Light my devices while a Plus scene plays** — Lights your devices while a Plus visualizer plays.
+2. **Browse visualizers** — Opens the gallery to choose a visualizer.
+3. **Live desk preview** — Your own desk, lit with the colours sent to it.
+4. **All devices** — Back to tuning every device at once.
+5. **Lighting style** — Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.
+6. **Your devices** — Every device found. Click one to tune it alone.
 
 ### Try it
 
@@ -612,36 +612,36 @@ Maker turns your audio into an editable karaoke project. Its timeline brings tog
 
 ![The tools along the top of the maker](35-karaoke-maker-toolbar.png)
 
-- **Import karaoke** — Opens a karaoke file or a saved project, and keeps the audio already loaded.
-- **Lyrics** — The words and their timing, in one window.
-- **Lyrics timing** — Moves the words and notes together, for a song that runs early or late from the first second.
-- **Hand · pan timeline** — Drag anywhere on the timeline to travel through the song without changing anything.
-- **Lyrics language** — Which language the words are in, and a second one beside it so the song can be sung in either.
-- **Record line entries** — Play the song and press a key as each line starts and ends. The timing comes from your presses.
-- **Select notes** — Draw a box around notes to move or delete them as one.
-- **Paint notes** — Draw the melody straight onto the pitch grid.
-- **Split** — Cuts a word into syllables, so a long word can carry a note on each one.
-- **Repair tools** — The tools that listen for you, and the models they need.
-- **Export** — Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.
+1. **Import karaoke** — Opens a karaoke file or a saved project, and keeps the audio already loaded.
+2. **Lyrics** — The words and their timing, in one window.
+3. **Lyrics timing** — Moves the words and notes together, for a song that runs early or late from the first second.
+4. **Hand · pan timeline** — Drag anywhere on the timeline to travel through the song without changing anything.
+5. **Lyrics language** — Which language the words are in, and a second one beside it so the song can be sung in either.
+6. **Record line entries** — Play the song and press a key as each line starts and ends. The timing comes from your presses.
+7. **Select notes** — Draw a box around notes to move or delete them as one.
+8. **Paint notes** — Draw the melody straight onto the pitch grid.
+9. **Split** — Cuts a word into syllables, so a long word can carry a note on each one.
+10. **Repair tools** — The tools that listen for you, and the models they need.
+11. **Export** — Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.
 
 ### The words, and when each one is sung
 
 ![The words, and when each one is sung](34-karaoke-maker-lyrics.png)
 
-- **Reference lyrics** — The whole song as text, one line per row. Paste it or load a file; FluidEQ finds the timing from it.
-- **Word timing** — Every word, in order, with how many are timed so far. Press one to work on it.
-- **Selected word** — Where the chosen word starts and how long it lasts. Moving its edge gives or takes time from the word beside it; the line keeps its length.
+1. **Reference lyrics** — The whole song as text, one line per row. Paste it or load a file; FluidEQ finds the timing from it.
+2. **Word timing** — Every word, in order, with how many are timed so far. Press one to work on it.
+3. **Selected word** — Where the chosen word starts and how long it lasts. Moving its edge gives or takes time from the word beside it; the line keeps its length.
 
 ### The AI tools, and the models they need
 
 ![The AI tools, and the models they need](33-karaoke-maker-tools.png)
 
-- **Separate voice from music** — Splits the recording into voice and music, so the karaoke can play without the singer.
-- **Load vocal-only track** — Use a vocal-only file you already have, instead of separating one here.
-- **Re-detect lyric timing** — Listens to the voice again and re-times the words you already have.
-- **Re-detect melody notes** — Listens again for the melody and rewrites the notes under the words.
-- **AI model memory** — What each model needs and whether it is on this computer. They are downloaded the first time you use one.
-- **When it is idle** — Whether a model stays in memory between uses, and for how long. Releasing it frees memory; keeping it makes the next run start at once.
+1. **Separate voice from music** — Splits the recording into voice and music, so the karaoke can play without the singer.
+2. **Load vocal-only track** — Use a vocal-only file you already have, instead of separating one here.
+3. **Re-detect lyric timing** — Listens to the voice again and re-times the words you already have.
+4. **Re-detect melody notes** — Listens again for the melody and rewrites the notes under the words.
+5. **AI model memory** — What each model needs and whether it is on this computer. They are downloaded the first time you use one.
+6. **When it is idle** — Whether a model stays in memory between uses, and for how long. Releasing it frees memory; keeping it makes the next run start at once.
 
 ### Try it
 

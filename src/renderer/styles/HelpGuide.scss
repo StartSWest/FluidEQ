@@ -281,10 +281,10 @@
   color: $text-accent;
 }
 
-// A capture, and the controls it explains: beside it when the capture leaves
-// room — a menu, a panel — and under it when the capture takes the line. The
-// capture's width is its flex basis (set inline from its size), so the two
-// sit side by side or wrap by what fits, not by a breakpoint.
+// A capture laid out like a printed manual's: a numbered circle in the margin
+// for every control, a line from it to the control, and the numbered list
+// under the picture. `helpCallouts.ts` places the circles in pixels for the
+// column's measured width, so this sheet only has to draw them.
 .help-figure {
   margin: 24px 0 28px;
 }
@@ -295,23 +295,93 @@
   font-weight: $weight-bold;
 }
 
-.help-figure__body {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 16px 20px;
-}
-
-.help-figure__shot {
-  flex-grow: 0;
-  flex-shrink: 1;
+// The column being measured. The frame inside it is given its size inline
+// and centred, so a narrow capture sits in the middle of a wide column.
+.help-figure__host {
+  width: 100%;
   min-width: 0;
 }
 
-// The capture's own box, so a pointed-at control can be ringed on it.
+// The capture and its margins, so a circle, a line and a ring can all be
+// placed on it by the same coordinates.
 .help-figure__frame {
   position: relative;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.help-guide__capture.help-figure__capture {
+  position: absolute;
+  width: auto;
+}
+
+.help-figure__note {
+  margin: 8px 0 0;
+  color: $text-faint;
+  font-size: 12px;
+  text-align: center;
+}
+
+// The leader lines. Thin and a little translucent at rest so the capture stays
+// the thing being read; the one being pointed at is drawn in the full accent.
+.help-callouts {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+
+  line {
+    stroke: color-mix(in srgb, $secondary-light 70%, transparent);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    transition: stroke $motion-fast ease;
+  }
+
+  circle {
+    fill: $secondary-light;
+    stroke: $surface-base;
+    stroke-width: 1.5;
+  }
+}
+
+.help-callouts__lead.is-lit {
+  line {
+    stroke: $secondary-light;
+    stroke-width: 2;
+  }
+}
+
+// The number, in the app's filled-accent style: the colours `.button.small`
+// wears, so it reads as part of FluidEQ rather than as a label stuck on top.
+.help-callout {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $surface-base;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow:
+    0 0 0 3px $surface-base,
+    0 4px 12px color-mix(in srgb, $secondary-default 22%, transparent),
+    inset 0 1px 0 rgba($white, 0.36);
+  font-size: 12px;
+  font-weight: $weight-bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: translate(-50%, -50%);
+  transition:
+    background $motion-fast ease,
+    transform $motion-fast ease;
+
+  &.is-lit {
+    background: $secondary-light;
+    transform: translate(-50%, -50%) scale(1.14);
+  }
 }
 
 .help-figure__ring {
@@ -329,14 +399,12 @@
   @include animate(fade-in, $motion-fast);
 }
 
-// Every control a line: its piece of the capture, its name and shortcut, and
-// what it is for. As many columns as fit at a readable measure, one on a
-// narrow window — the tracks decide it, not a breakpoint.
+// The numbered list under the capture: every control a line, its number, its
+// name and shortcut, and what it is for. As many columns as fit at a readable
+// measure, one on a narrow window — the tracks decide it, not a breakpoint.
 .help-guide__article .help-controls {
   display: grid;
-  flex: 1 1 300px;
-  min-width: min(100%, 300px);
-  margin: 0;
+  margin: 18px 0 0;
   padding: 0;
   gap: 8px;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
@@ -346,9 +414,9 @@
 .help-guide__article .help-control {
   @include dialog.section-surface;
   display: grid;
-  align-items: center;
+  align-items: start;
   margin: 0;
-  padding: 9px 12px 9px 9px;
+  padding: 10px 12px;
   gap: 12px;
   grid-template-columns: auto minmax(0, 1fr);
   transition: $transition-control;
@@ -357,34 +425,36 @@
     content: none;
   }
 
-  &:hover {
+  &:hover,
+  &.is-lit {
     border-color: color-mix(in srgb, $secondary-light 32%, transparent);
     background: color-mix(in srgb, $secondary-default 8%, $block-lift);
   }
 }
 
-// No picture to repeat: the words take the whole line.
-.help-guide__article .help-control--plain {
-  padding-left: 14px;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-// As wide as its own piece: one width for every line left a lone arrow
-// floating in a black box sized for the look picker's pill.
-.help-control__well {
+// The same circle the capture carries, so the eye matches them at a glance.
+// Nudged down to sit on the name's first line rather than the middle of a
+// three-line description.
+.help-control__number {
   display: grid;
-  min-width: 44px;
-  min-height: 44px;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
   place-items: center;
-  padding: 4px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  background: $surface-well;
-}
+  color: $surface-base;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: inset 0 1px 0 rgba($white, 0.36);
+  font-size: 12px;
+  font-weight: $weight-bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: background $motion-fast ease;
 
-.help-control__piece {
-  display: block;
-  background-repeat: no-repeat;
+  .help-control.is-lit & {
+    background: $secondary-light;
+  }
 }
 
 .help-control__body {
