@@ -13,7 +13,11 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick from '../widgets/RichPick';
 import GameIcon from './GameIcon';
 import GameRow from './GameRow';
-import { addGameProfile, removeGameProfile } from './gameProfiles';
+import {
+  addGameProfile,
+  fillGameProfileIcons,
+  removeGameProfile,
+} from './gameProfiles';
 import { useGameSound } from './useGameSound';
 import '../styles/Games.scss';
 
@@ -75,7 +79,11 @@ const GamesPanel = () => {
     ask()
       .then((answer) => {
         if (!gone) {
-          setKnown(programsOf(answer));
+          const programs = programsOf(answer);
+          setKnown(programs);
+          // Rows saved before their icon was carried across get it here, the
+          // first time the launchers answer again.
+          fillGameProfileIcons(programs);
         }
         return undefined;
       })
@@ -92,11 +100,18 @@ const GamesPanel = () => {
     };
   }, [bridge]);
 
+  // Field by field rather than spread: what a running program carries beyond
+  // these — where its window is, which process it is — belongs to this
+  // minute and not to a saved row. The icon does belong to it, and was the
+  // one thing this list kept from the launchers and then dropped here, so
+  // every row saved before now wears a gamepad and so does the card a game
+  // raises.
   const add = useCallback((program: IGameProgram) => {
     addGameProfile({
       name: program.name,
       path: program.path,
       source: program.source,
+      ...(program.icon ? { icon: program.icon } : {}),
     });
   }, []);
 

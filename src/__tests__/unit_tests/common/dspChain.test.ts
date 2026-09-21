@@ -13,6 +13,7 @@ import {
   clampDspSettings,
 } from '../../../common/dsp/chain';
 import { compressorPresetSettings } from '../../../common/dsp/compressorPresets';
+import { GENRE_CHAIN_STAGES } from '../../../common/dsp/genreChains';
 import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
 import { roomPresetSettings } from '../../../common/dsp/roomPresets';
@@ -119,6 +120,35 @@ describe('dsp chain settings', () => {
     });
   });
 
+  /**
+   * A style's stages are looked up by a plain string, and a misspelled one
+   * fails the quiet way: that style keeps shipping as its curve and a gentle
+   * compressor — a chain that sounds thinner than every one beside it, with
+   * nothing anywhere saying why. The profile ids inside each row are typed
+   * and cannot rot; the key is what needs watching.
+   */
+  it('names a real style in every row of the genre stage table', () => {
+    const chains = new Set(DSP_PRESETS.map((preset) => preset.id));
+    const unknown = Object.keys(GENRE_CHAIN_STAGES).filter(
+      (style) => !chains.has(style),
+    );
+    expect(unknown).toEqual([]);
+    Object.entries(GENRE_CHAIN_STAGES).forEach(([style, stages]) => {
+      const chain = DSP_PRESETS.find((preset) => preset.id === style);
+      expect({ style, group: chain?.group }).toEqual({
+        style,
+        group: 'genre',
+      });
+      // And the row reached the rack: whatever it names is switched on.
+      expect({ style, on: chain?.settings.dimension.enabled ?? false }).toEqual(
+        { style, on: stages?.dimension !== undefined },
+      );
+      expect({ style, on: chain?.settings.maximizer.enabled ?? false }).toEqual(
+        { style, on: stages?.maximizer !== undefined },
+      );
+    });
+  });
+
   it('never loads an audition-only isolate state', () => {
     DSP_PRESETS.forEach((preset) => {
       expect({
@@ -164,21 +194,39 @@ describe('dsp chain settings', () => {
     });
   });
 
-  it('gives every chain at most one harmonic or transient character stage', () => {
+  /**
+   * One stage owns the bottom octave, and the Exciter works above it.
+   *
+   * Bass Forge and Bass Punch both shape the same band — one generates
+   * harmonics under the bass, the other re-times its hit — and together they
+   * were the overdone low end reported in listening, so a chain has one or
+   * neither. An Exciter may sit beside either (Ivan, 2026-09-19: "bass punch
+   * or forge and exciter, only if clean"), and what makes that clean is that
+   * the two never touch the same octave: the Exciter's low band, which adds
+   * harmonics at 20-300 Hz, is off in any chain that also runs a bass stage.
+   */
+  it('lets one stage own the bass, and keeps the Exciter above it', () => {
     DSP_PRESETS.forEach((preset) => {
-      const characterStages = [
-        preset.settings.exciter.enabled,
-        preset.settings.bassForge.enabled,
-        preset.settings.bassPunch.enabled,
-      ].filter(Boolean).length;
-      expect({ id: preset.id, tooMany: characterStages > 1 }).toEqual({
+      const { exciter, bassForge, bassPunch } = preset.settings;
+      expect({
         id: preset.id,
-        tooMany: false,
-      });
+        bothBassStages: bassForge.enabled && bassPunch.enabled,
+      }).toEqual({ id: preset.id, bothBassStages: false });
+      const bassStage = bassForge.enabled || bassPunch.enabled;
+      expect({
+        id: preset.id,
+        exciterInTheBass:
+          bassStage && exciter.enabled && exciter.bands[0].enabled,
+      }).toEqual({ id: preset.id, exciterInTheBass: false });
     });
   });
 
-  it('keeps every chain to five intentional processors or fewer', () => {
+  /**
+   * Six at most: tone, harmonics above the bass, the bass, glue, width and a
+   * ceiling — each stage with its own job. Past that a chain is two stages
+   * doing one job, which is what the catalogue measured before 2026-09-19.
+   */
+  it('keeps every chain to six intentional processors or fewer', () => {
     DSP_PRESETS.forEach((preset) => {
       const stages = [
         preset.settings.denoise.enabled,
@@ -191,7 +239,7 @@ describe('dsp chain settings', () => {
         preset.settings.maximizer.enabled,
         preset.settings.master.enabled,
       ].filter(Boolean).length;
-      expect({ id: preset.id, tooMany: stages > 5 }).toEqual({
+      expect({ id: preset.id, tooMany: stages > 6 }).toEqual({
         id: preset.id,
         tooMany: false,
       });
@@ -264,18 +312,48 @@ describe('dsp chain settings', () => {
     const mastered = DSP_PRESETS.filter(
       (preset) => preset.settings.master.enabled,
     );
+    /**
+     * The spoken-word three joined the list on 2026-09-20, and they belong:
+     * a podcast, an audiobook and whatever else is being listened to for the
+     * words arrive at a different level from every other one, and the
+     * listener cannot ride the volume through a car journey. A limiter
+     * cannot fix that — only a target can.
+     */
     expect(mastered.map((preset) => preset.id)).toEqual([
       'balanced',
       'reference',
+      'speech',
       'vinyl-restore',
       'tape-restore',
+      'podcast',
+      'audiobook',
     ]);
     mastered.forEach((preset) => {
       expect(preset.settings.maximizer.enabled).toBe(false);
     });
-    expect(
-      DSP_PRESETS.filter((preset) => preset.settings.maximizer.enabled),
-    ).toHaveLength(24);
+    /**
+     * Everything else ends in a ceiling, and the handful that do not are
+     * named here rather than counted.
+     *
+     * A chain with no final stage at all can be pushed past full scale by its
+     * own curve, and only the output safety — which is protection, not a
+     * sound — is left to catch it. These six are deliberate: Expansive and
+     * Lo-fi add no level to catch, World is the plainest row in the
+     * catalogue, and the three Gaming chains give up every millisecond a
+     * look-ahead would cost.
+     */
+    const open = DSP_PRESETS.filter(
+      (preset) =>
+        !preset.settings.maximizer.enabled && !preset.settings.master.enabled,
+    ).map((preset) => preset.id);
+    expect(open).toEqual([
+      'expansive',
+      'lofi',
+      'world',
+      'gaming',
+      'gaming-room',
+      'gaming-competitive',
+    ]);
   });
 
   it('does not replace a named final profile with a generic Maximizer', () => {
@@ -291,8 +369,6 @@ describe('dsp chain settings', () => {
       metal: 'metal',
       reggae: 'reggae',
       movie: 'movie',
-      podcast: 'podcast',
-      audiobook: 'audiobook',
     } as const;
     Object.entries(expected).forEach(([chainId, maximizerId]) => {
       const chain = DSP_PRESETS.find((preset) => preset.id === chainId);

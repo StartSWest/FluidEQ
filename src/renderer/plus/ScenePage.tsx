@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
 import type { IReportedScene } from 'common/plusModeration';
@@ -13,6 +20,8 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import BrandMark from '../icons/BrandMark';
 import { useTranslation } from '../utils/I18nContext';
 import { setGraphLook } from '../utils/graphStyle';
+import { sceneSkyColour } from '../utils/sceneTint';
+import { useRememberedSceneSky } from '../utils/sceneTintStore';
 import { WallpaperSceneAction } from '../wallpaper/WallpaperControls';
 import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
@@ -188,6 +197,8 @@ export default function ScenePage({
     preview.state === 'ready' || preview.state === 'taste'
       ? `${scene.lookId}@${preview.pack.version}`
       : undefined;
+  // The ground this scene waits on, measured the last time anybody watched it.
+  const sky = useRememberedSceneSky(scene.lookId);
   const [liveIdentity, setLiveIdentity] = useState<string>();
   const liveRef = useRef<string | undefined>(undefined);
   const live = playing !== undefined && liveIdentity === playing;
@@ -279,12 +290,28 @@ export default function ScenePage({
     <div className="gallery-page gallery-scene">
       <div className="gallery-scene__main">
         <div className="gallery-preview">
-          {/* Always under the scene, and first in the stage so the scene's
-              canvas stands over it: the scene's picture is on screen the
-              moment the page opens, stays through the download AND through
-              the first compile — which for a large scene seen for the first
-              time on this computer takes seconds, and used to be seconds of
-              black — and the live scene fades in over it. */}
+          {/* THE SCENE'S OWN GROUND, under everything and never faded.
+              The colour measured for the window's tint, darkened to a ground,
+              which is what the graph has waited on for a while; a scene nobody
+              has watched yet waits on black, which is what every scene is
+              drawn against. It is opaque on purpose: the window is
+              transparent to its backdrop material, so a stage with nothing of
+              its own underneath is the desktop's colour for any frame in
+              which neither the picture nor the canvas paints. */}
+          <div
+            className="gallery-preview__ground"
+            style={
+              sky
+                ? ({ '--scene-sky': sceneSkyColour(sky) } as CSSProperties)
+                : undefined
+            }
+            aria-hidden="true"
+          />
+          {/* The scene's picture while it comes down and is built, over that
+              ground and under its canvas, and crossed over to the scene
+              rather than swapped for it: a card's framing is not this band's,
+              so Neon City's buildings sit lower in the picture than in the
+              scene and a hard swap makes them jump. */}
           <ScenePicture
             scene={scene}
             className={`gallery-preview__still${live ? ' is-behind' : ''}`}
@@ -313,16 +340,24 @@ export default function ScenePage({
               onOver={() => setPreview({ state: 'plus', tasted: true })}
             />
           )}
-          {/* The second half of one wait, in the shape of the first: the
-              scene has arrived and is being built for the screen. It was a
-              small line at the foot of the picture while the download was a
-              ring in the middle, which read as two different things
-              happening rather than one wait in two parts (Ivan,
-              2026-09-17). Same ring, same words underneath, and the
-              visualizer's own mark in place of the download arrow. */}
-          {playing !== undefined && !live && (
+          {/* ONE wait, from the first byte to the first frame.
+              It was two: a ring with a download arrow while the scene came
+              down, and then a second ring with the visualizer's mark while
+              it was built. Two elements in two places in the tree, so the
+              handover unmounted one and mounted the other — the ring
+              restarted, the words changed, and on a scene already on the
+              computer the whole thing was a blink (Ivan, 2026-09-20: "it
+              will download and run it in the single spinner no flashing").
+              One element now, mounted from the moment a scene is asked for
+              and faded out once it draws, so nothing on screen changes at
+              the handover. What stops it flashing on a fast scene is in
+              `Gallery.scss`: it starts invisible and only begins to appear
+              once the wait has gone on long enough to be worth saying. */}
+          {(preview.state === 'loading' || playing !== undefined) && (
             <span
-              className="gallery-preview__veil gallery-preview__wait"
+              className={`gallery-preview__veil gallery-preview__wait${
+                live ? ' is-done' : ''
+              }`}
               role="status"
               aria-live="polite"
             >
@@ -330,7 +365,7 @@ export default function ScenePage({
                 <Glyph name="looks" />
               </span>
               <span className="gallery-preview__wait-title">
-                {t('plus.scene.starting')}
+                {t('plus.scene.loading')}
               </span>
               <span className="gallery-preview__wait-name">{name}</span>
             </span>
@@ -339,24 +374,6 @@ export default function ScenePage({
             <span className="gallery-preview__tag">
               <span className="gallery-preview__live" aria-hidden="true" />
               {t('plus.scene.playing')}
-            </span>
-          )}
-          {/* The Studio stage's loader, with the scene coming down in the
-              ring instead of the Studio's mark: the same wait, said the same
-              way, over the scene's own picture. */}
-          {preview.state === 'loading' && (
-            <span
-              className="gallery-preview__veil gallery-preview__wait"
-              role="status"
-              aria-live="polite"
-            >
-              <span className="gallery-preview__wait-mark" aria-hidden="true">
-                <Glyph name="download" />
-              </span>
-              <span className="gallery-preview__wait-title">
-                {t('plus.scene.loading')}
-              </span>
-              <span className="gallery-preview__wait-name">{name}</span>
             </span>
           )}
           {preview.state === 'failed' && (

@@ -8,7 +8,9 @@ import { DSP_DEFAULTS, IDimensionSettings } from './chain';
 
 export const DIMENSION_PRESET_GROUPS = [
   'basic',
-  'playback',
+  'genre',
+  'device',
+  'scene',
   'character',
 ] as const;
 
@@ -102,20 +104,96 @@ export const DIMENSION_PRESET_BY_ID = {
     group: 'basic',
     settings: profile(0.6, 0.85, 0.9, 220, 3_500, 0),
   },
+  /**
+   * The genres, told apart by where each keeps its centre.
+   *
+   * What separates them is mostly the bottom and the middle, not how wide the
+   * top goes. The ones built on a kick and a bass line under a voice — pop,
+   * rock, hip-hop, electronic — pull the low band toward mono (a club system
+   * or a phone sums it anyway, and a centred kick is where the punch lives)
+   * and spend the width above it: on doubled guitars in rock's mids, on the
+   * pads and effects in electronic's top. The ones recorded in a room — jazz,
+   * classical, acoustic — keep their low band near unity, because a hall's
+   * bass arrives from everywhere and narrowing it moves the room, not a part.
+   * None of them decorrelates as far as `expansive`: a genre profile has to
+   * hold up on every record of its genre, not just on the airy ones.
+   */
+  pop: {
+    id: 'pop',
+    labelKey: 'dsp.eqPreset.pop',
+    group: 'genre',
+    settings: profile(0.7, 1.1, 1.4, 180, 3_000, 0.3),
+  },
+  rock: {
+    id: 'rock',
+    labelKey: 'dsp.eqPreset.rock',
+    group: 'genre',
+    // Doubled guitars are panned apart in the mix already; widening the mids
+    // is what makes that wall of them read, while the kick stays centred.
+    settings: profile(0.7, 1.2, 1.3, 170, 2_800, 0.2),
+  },
+  hiphop: {
+    id: 'hiphop',
+    labelKey: 'dsp.eqPreset.hiphop',
+    group: 'genre',
+    // The voice and the 808 are the record, and both belong in the middle.
+    settings: profile(0.55, 1, 1.3, 200, 3_500, 0.15),
+  },
+  electronic: {
+    id: 'electronic',
+    labelKey: 'dsp.eqPreset.electronic',
+    group: 'genre',
+    settings: profile(0.5, 1.25, 1.6, 150, 2_500, 0.4),
+  },
+  jazz: {
+    id: 'jazz',
+    labelKey: 'dsp.eqPreset.jazz',
+    group: 'genre',
+    settings: profile(0.95, 1.1, 1.2, 150, 3_000, 0.15),
+  },
+  classical: {
+    id: 'classical',
+    labelKey: 'dsp.eqPreset.classical',
+    group: 'genre',
+    // The widest of the room profiles: a hall, not a club.
+    settings: profile(1, 1.15, 1.35, 150, 3_500, 0.2),
+  },
+  acoustic: {
+    id: 'acoustic',
+    labelKey: 'dsp.eqPreset.acoustic',
+    group: 'genre',
+    // One voice and one guitar: barely wider than the record, and only up top.
+    settings: profile(0.9, 1.05, 1.2, 180, 3_500, 0.1),
+  },
   headphones: {
     id: 'headphones',
     labelKey: 'dsp.dimensionPreset.headphones',
-    group: 'playback',
-    // Headphones already put the two channels in separate ears, so the image
-    // starts wider than any speaker can make it. Widening further is what
-    // makes a record feel like it is happening behind the listener's head;
-    // this pulls the top back instead and spends the difference on spread.
-    settings: profile(0.8, 0.9, 0.95, 200, 3_200, 0.4),
+    group: 'device',
+    /**
+     * Narrower at the bottom, and no spread at all: what headphones lack is
+     * each channel reaching the far ear, not width.
+     *
+     * A speaker's left channel arrives at the right ear a little later and
+     * shadowed by the head; headphones deliver each channel to one ear only,
+     * which is why a record heard on them sits inside the skull and tires the
+     * listener. Crossfeed is the fix, and every implementation of it — bs2b's
+     * defaults are 700 Hz and 4.5 dB — works by taking the bottom of the side
+     * signal down. This profile does that part: the side below 600 Hz (the
+     * lowest corner the stage offers, near enough to 700) comes down 4.4 dB,
+     * the middle a little, and the air is left alone.
+     *
+     * It used to spread instead — 0.4 of decorrelation on the one device that
+     * already over-separates. That is the opposite of what the literature
+     * says headphones want, and decorrelation pulls against crossfeed rather
+     * than helping it, so it is off here. The stage cannot supply the delay
+     * or the head shadow; for those there is the Room.
+     */
+    settings: profile(0.6, 0.85, 0.95, 600, 3_200, 0.05),
   },
   speakers: {
     id: 'speakers',
     labelKey: 'dsp.dimensionPreset.speakers',
-    group: 'playback',
+    group: 'device',
     // Two boxes a metre apart give a narrow picture and a strong centre, which
     // is the case width was invented for.
     settings: profile(0.9, 1.15, 1.45, 190, 2_800, 0.3),
@@ -123,7 +201,7 @@ export const DIMENSION_PRESET_BY_ID = {
   laptop: {
     id: 'laptop',
     labelKey: 'dsp.dimensionPreset.laptop',
-    group: 'playback',
+    group: 'device',
     // Drivers centimetres apart and often facing away. Width up top is the
     // only part that survives, and the bottom is summed by the enclosure
     // whatever this does, so it goes to mono and saves the excursion.
@@ -155,19 +233,19 @@ export const DIMENSION_PRESET_BY_ID = {
   gaming: {
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
-    group: 'playback',
+    group: 'scene',
     settings: profile(0.75, 1.25, 1.55, 180, 2_400, 0.55),
   },
   movie: {
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
-    group: 'playback',
+    group: 'scene',
     settings: profile(0.8, 1.2, 1.65, 160, 2_200, 0.6),
   },
   club: {
     id: 'club',
     labelKey: 'dsp.masterPreset.club',
-    group: 'playback',
+    group: 'scene',
     // Bass approaches mono for a PA, while the top stays only modestly wide;
     // the room supplies more spread than the record needs to manufacture.
     settings: profile(0.45, 1, 1.15, 180, 3_200, 0.15),

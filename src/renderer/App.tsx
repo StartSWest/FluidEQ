@@ -2260,7 +2260,16 @@ const AppContent = () => {
                 ? engineStatus?.fluid.dllVersion
                 : undefined
             }
-            onFix={() => setPrereqNonce((n) => n + 1)}
+            onFix={() => {
+              // The pill is the only thing left on screen saying something is
+              // wrong once its card has been put away with "Not now", so it
+              // has to be the way back to the card that says why and offers
+              // the repair. It used to re-check the prerequisites only, which
+              // on the commonest trouble — part of the engine failing to
+              // start — did nothing anybody could see.
+              handleAskAboutEngine();
+              setPrereqNonce((n) => n + 1);
+            }}
             onOpenEngine={handleOpenEngineDialog}
             onTroubleshoot={() => setShowTroubleshooter(true)}
             onRestartAudio={handleRestartWindowsAudio}

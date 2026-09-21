@@ -238,6 +238,10 @@ int feq_chain_settings_decode(const double* values,
 
   out->surround_all_channels = flag();
 
+  // What the Master's loudness target may spend on limiting. Last before the
+  // band count, where a new scalar goes: see `chainWire.ts`.
+  out->master.peak_limiting_db = next();
+
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {
     return 0;

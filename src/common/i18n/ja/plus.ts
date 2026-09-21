@@ -92,8 +92,7 @@ const plus = {
   'plus.scene.back': '戻る',
   'plus.scene.previous': '前のシーン：{name}',
   'plus.scene.next': '次のシーン：{name}',
-  'plus.scene.loading': 'シーンをダウンロード中…',
-  'plus.scene.starting': 'シーンを開始しています…',
+  'plus.scene.loading': 'シーンを読み込み中…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
   'plus.scene.plusPlays':
     'Plus なら、このシーンがここであなたの音楽に合わせて動きます',

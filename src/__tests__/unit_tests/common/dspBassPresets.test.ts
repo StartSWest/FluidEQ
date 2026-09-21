@@ -118,7 +118,7 @@ describe('bass punch profiles', () => {
   it.each([0, 0.5, 1, 1.5, 2])(
     'preserves Mix %s for every shipped profile',
     (mix) => {
-      expect(BASS_PUNCH_PRESETS).toHaveLength(18);
+      expect(BASS_PUNCH_PRESETS).toHaveLength(19);
       BASS_PUNCH_PRESETS.forEach((preset) => {
         expect(preset.settings.mix).toBe(1);
         const bassPunch = {

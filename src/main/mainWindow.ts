@@ -305,9 +305,15 @@ export const createMainWindowFactory = ({
     const policy = contentSecurityPolicy(isDebug);
 
     appSession.webRequest.onHeadersReceived((details, callback) => {
-      // Only this window's own documents. The webview's session is separate, so
-      // a policy applied here cannot reach a video site — and must not, since
-      // those pages are not ours to constrain.
+      // Every document loaded in this SESSION, which is the default one — not
+      // only this window's. The webview's session is separate, so a policy
+      // applied here cannot reach a video site, and must not, since those
+      // pages are not ours to constrain. For the same reason any other window
+      // of ours that carries a policy of its own needs a session of its own:
+      // two policies both have to allow a thing, and this one refuses inline
+      // script. The game card got its words from an inline script and was
+      // drawn blank until it was given one (`gameToast.ts`), and the wallpaper
+      // surfaces have had theirs from the start (`wallpaper/window.ts`).
       callback({
         responseHeaders: {
           ...details.responseHeaders,

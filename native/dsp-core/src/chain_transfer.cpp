@@ -158,6 +158,22 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.transition_frames, previous.transition_frames);
   swap(prepared.transition_elapsed, previous.transition_elapsed);
   swap(prepared.master_gain_now, previous.master_gain_now);
+  /**
+   * What the Master learned about the programme comes across whole.
+   *
+   * Windows rebuilds this chain every time a stream starts, stops or changes
+   * format — eight times in thirteen minutes of ordinary listening — and a
+   * makeup that started measuring again at each of those would put the song
+   * back to unity in the middle of itself, which is the fault the leveler's
+   * memory exists to prevent one stage earlier.
+   */
+  swap(prepared.programme_meter, previous.programme_meter);
+  swap(prepared.live_master_song, previous.live_master_song);
+  swap(prepared.live_master_peak_db, previous.live_master_peak_db);
+  swap(prepared.live_master_target_db, previous.live_master_target_db);
+  swap(prepared.live_master_now_db, previous.live_master_now_db);
+  swap(prepared.live_master_frames, previous.live_master_frames);
+  swap(prepared.host_track_gains, previous.host_track_gains);
 }
 
 }

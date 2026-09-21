@@ -22,7 +22,7 @@ const terms = {
 
   'terms.membership.title': 'Die Mitgliedschaft',
   'terms.membership.p1':
-    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Looks nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen.',
+    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Looks nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen. Plus kann auch ohne Zahlung dazukommen. Wenn FluidEQ einen kostenlosen Testzeitraum anbietet, kann ein Konto, das ab dem Tag des Angebotsbeginns angelegt wurde, ihn einmal nutzen: {trialDays} Tage, ohne Karte, und am Ende wird nichts abgebucht. Und eine Szene, die Sie veröffentlichen und die ein Moderator freigibt, kann Ihnen einen Monat Plus einbringen. Beides ist kein Abonnement: Nichts verlängert sie, und es wird nie etwas dafür berechnet.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und danach wird nichts mehr abgebucht.',
   'terms.membership.p4':
@@ -104,7 +104,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
   'terms.sent.scenePublish.who':
-    'Unter „Visualizer“ sehen alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Handle und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+    'Sobald ein Moderator sie freigegeben hat, sehen unter „Visualizer“ alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Handle und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
   'terms.sent.gallery.what':
     'Unter „Visualizer“: wonach Sie suchen, welche Szenen und Ersteller Sie öffnen, welche Szenen Sie hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
   'terms.sent.gallery.when':

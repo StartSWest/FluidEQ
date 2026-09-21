@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { IFiltersMap, NO_GAIN_FILTER_TYPES } from 'common/constants';
 import { cloneFilters } from 'common/utils';
+import { chosenMotion } from './motionPreference';
 import { clamp } from './utils';
 
 /**
@@ -102,6 +103,13 @@ export interface IBandRevealOptions {
  * absent matchMedia means "animate", not "do not".
  */
 export const prefersReducedMotion = (): boolean => {
+  // The app's own switch first, which is felt the moment it is pressed; the
+  // media query answers a Chromium launch switch and cannot change under a
+  // running window (`utils/motionPreference.ts`).
+  const chosen = chosenMotion();
+  if (chosen) {
+    return chosen === 'reduced';
+  }
   if (
     typeof window === 'undefined' ||
     typeof window.matchMedia !== 'function'

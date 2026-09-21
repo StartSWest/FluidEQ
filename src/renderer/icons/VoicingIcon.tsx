@@ -155,6 +155,83 @@ const ALIASES: Record<string, string> = {
   vinyl: 'hiphop',
   orchestra: 'classical',
   lofi: 'tape',
+  soul: 'jazz',
+  edm: 'electronic',
+  // Hand percussion is what the ear picks this genre out by.
+  latin: 'drumBass',
+  /*
+   * The rest of the styles, each to the nearest idea already drawn.
+   *
+   * Seventy-one styles arrived in the pickers wearing the generic sliders,
+   * which is the glyph for "no answer" — a list where most rows say nothing
+   * about themselves reads as unfinished however good the names are. None of
+   * these is a new drawing: a style borrows the mark of the music it is
+   * nearest to, the way Punk already borrowed Rock's.
+   */
+  indiePop: 'pop',
+  synthPop: 'electronic',
+  newWave: 'electronic',
+  kPop: 'pop',
+  jPop: 'pop',
+  cPop: 'pop',
+  classicRock: 'rock',
+  alternativeRock: 'rock',
+  indieRock: 'rock',
+  progressiveRock: 'rock',
+  hardRock: 'rock',
+  popPunk: 'rock',
+  grunge: 'rock',
+  modernCountry: 'acoustic',
+  americana: 'acoustic',
+  bluegrass: 'acoustic',
+  folk: 'acoustic',
+  singerSongwriter: 'acoustic',
+  rap: 'hiphop',
+  rnb: 'jazz',
+  neoSoul: 'jazz',
+  funk: 'drumBass',
+  disco: 'drumBass',
+  smoothJazz: 'jazz',
+  fusion: 'jazz',
+  opera: 'classical',
+  indianClassical: 'classical',
+  house: 'electronic',
+  techno: 'electronic',
+  trance: 'electronic',
+  dubstep: 'electronic',
+  amapiano: 'electronic',
+  downtempo: 'ambient',
+  chillout: 'ambient',
+  newAge: 'ambient',
+  dub: 'reggae',
+  dancehall: 'reggae',
+  ska: 'reggae',
+  latinPop: 'pop',
+  reggaeton: 'hiphop',
+  salsa: 'drumBass',
+  merengue: 'drumBass',
+  cumbia: 'drumBass',
+  samba: 'drumBass',
+  bhangra: 'drumBass',
+  afrobeat: 'drumBass',
+  afrobeats: 'drumBass',
+  highlife: 'drumBass',
+  bachata: 'acoustic',
+  bossaNova: 'acoustic',
+  flamenco: 'acoustic',
+  regionalMexican: 'acoustic',
+  corridos: 'acoustic',
+  world: 'music',
+  bollywood: 'music',
+  arabicPop: 'music',
+  turkishPop: 'music',
+  // A choir is a room full of voices, which is the one thing both of these
+  // always have.
+  gospel: 'speech',
+  christian: 'speech',
+  // The Exciter profile that generates nothing at all: a flat line says it
+  // leaves the tone where it found it, which is the whole of its character.
+  timing: 'flat',
   // The Maximizer's own profiles, drawn as what they do to the envelope.
   // "Safety" applies no gain at all, "Transparent" rounds nothing off, and
   // "Punch" is a kick's first cycle arriving before the limiter has moved.
@@ -191,6 +268,8 @@ const ALIASES: Record<string, string> = {
   openAir: 'air',
   frontStage: 'stage',
   livingRoom: 'smallSpeakers',
+  // The Exciter profile that rebuilds the octave an encoder threw away.
+  'lossy-repair': 'air',
   // Repairs, all of them a notch.
   deEss: 'notch',
   sibilance: 'notch',

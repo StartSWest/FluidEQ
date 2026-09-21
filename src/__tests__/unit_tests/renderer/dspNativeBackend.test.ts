@@ -229,7 +229,7 @@ describe('the native backend controller', () => {
         applyDspHostChain: (values) => {
           // The room's size rides the chain, so it names which settings a
           // push carried: the third of the room's scalars.
-          sizes.push(values[CHAIN_PARAM_LEAD - 44 + 2]);
+          sizes.push(values[CHAIN_PARAM_LEAD - 45 + 2]);
           return new Promise<boolean>((resolve, reject) => {
             gates.push((applied) =>
               applied instanceof Error ? reject(applied) : resolve(applied),

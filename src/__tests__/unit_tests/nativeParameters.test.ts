@@ -36,7 +36,7 @@ import { FilterTypeEnum } from '../../common/constants';
 const EXPECTED_VOCABULARIES: Record<string, readonly string[]> = {
   'normalizer.mode': ['off', 'truePeak', 'loudness'],
   'crossfade.curve': ['equalPower', 'smooth', 'linear', 'custom'],
-  'eq.model': ['clean', 'proportional', 'wide'],
+  'eq.model': ['clean', 'proportional', 'wide', 'asymmetric'],
   'eq.engine': ['serial', 'parallel'],
   'eq.phase': ['minimum', 'linear'],
   'denoise.profileSource': ['scanned', 'adaptive'],

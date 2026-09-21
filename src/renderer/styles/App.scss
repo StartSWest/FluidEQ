@@ -444,6 +444,13 @@ select option {
     background: $red;
     box-shadow: 0 0 10px rgba($red, 0.8);
   }
+
+  // Something is running and not all of it: the app's one caution colour,
+  // which is exactly what "partly" means here.
+  &.warning {
+    background: $amber;
+    box-shadow: 0 0 10px rgba($amber, 0.75);
+  }
 }
 
 // *** Titlebar ***************************************************************
@@ -1726,6 +1733,33 @@ textarea,
 .is-selectable {
   -webkit-user-select: text;
   user-select: text;
+}
+
+// ANIMATIONS OFF, FELT NOW.
+//
+// The choice is a Chromium launch switch (`main/motionPreference.ts`), which
+// is how `prefers-reduced-motion` comes to say what the app wants rather than
+// what Windows' "Animation effects" says - and a launch switch cannot change
+// under a running window, so the switch in the menu did nothing at all until
+// the next start. The choice is written on the document as well
+// (`utils/motionPreference.ts`), and this is what it means: everything the
+// window animates stands down at once, the same as every rule written for
+// reduced motion. The drawings are not animation - a visualizer, a meter and
+// the spectrum are the picture, and they keep moving.
+:root[data-motion='reduced'] {
+  &,
+  *,
+  *::before,
+  *::after {
+    // Not zero: a duration of none cancels the event that tells a component
+    // its transition finished, and the ones that wait for it never arrive.
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 // THE THEME, in one place.

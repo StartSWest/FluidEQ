@@ -210,6 +210,14 @@ add_executable(fluideq-chain-transfer-test dsp-core/tests/chain_transfer_test.cp
 target_link_libraries(fluideq-chain-transfer-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 
+# The Master's loudness target with no track analysis behind it, which is
+# every stream the system engine plays: measured as the loudness of what
+# leaves, because that is the only thing a listener could have complained
+# about when the dial did nothing.
+add_executable(fluideq-master-live-test dsp-core/tests/master_live_test.cpp)
+target_link_libraries(fluideq-master-live-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME master-live COMMAND fluideq-master-live-test)
+
 # The chain on six channels: the front pair bit-identical to stereo, the
 # surrounds identical to the front under the same programme, one level
 # decision across all of them, and every channel leaving on the same frame.

@@ -264,6 +264,14 @@ typedef struct FeqChainSettings {
     double ceiling_db;
     double release_ms;
     /**
+     * How much gain reduction the loudness target may buy, in dB.
+     *
+     * Read by the engine, which has no track analysis to work from and so
+     * measures the programme itself; the Library computes its makeup in the
+     * app and sends it as a gain, and ignores this.
+     */
+    double peak_limiting_db;
+    /**
      * Play the maximized result at the loudness it had before maximizing.
      *
      * Auto Headroom still reserves the whole makeup, so the limiting is
@@ -333,8 +341,19 @@ typedef struct FeqChainSettings {
  * band count — which has to stay last, because both `isChainWirePayload`
  * and the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 157
+#define FEQ_CHAIN_PARAM_LEAD 158
 #define FEQ_CHAIN_BAND_PARAMS 7
+
+/**
+ * What the Master's loudness makeup may reach, in dB, from either side.
+ *
+ * The same pair the app applies to the makeup it computes from a cached
+ * analysis (`MASTER_LOUDNESS_GAIN_MIN_DB` / `MAX` in `chain.ts`): the chain
+ * measuring a programme for itself must land on the same number the Library
+ * would have sent it for the same music.
+ */
+#define FEQ_MASTER_LOUDNESS_MIN_DB (-48.0)
+#define FEQ_MASTER_LOUDNESS_MAX_DB 12.0
 /** ROOM tag, schema version, payload size, then eight Room values. */
 #define FEQ_CHAIN_ROOM_TAG 1380929357
 #define FEQ_CHAIN_ROOM_SCHEMA 1

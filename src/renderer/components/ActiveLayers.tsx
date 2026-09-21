@@ -41,6 +41,7 @@ import {
 import { useSmartEqMode } from '../utils/smartEqMode';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
+import { askToneClear } from '../eq/toneIntent';
 import { LAYER_SWATCH } from '../styles/color';
 import '../styles/ActiveLayers.scss';
 
@@ -431,6 +432,9 @@ const ActiveLayers = () => {
        */
       clearHint: t('eq.layers.clearBands'),
       onClear: async () => {
+        // The same as Clear EQ, so the EQ's three tone dials go back to zero
+        // with the bands. See `eq/toneIntent.ts`.
+        askToneClear();
         await clearGains();
         await refreshState();
       },

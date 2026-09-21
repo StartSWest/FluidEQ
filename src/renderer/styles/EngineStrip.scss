@@ -1,0 +1,115 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE ENGINE STRIP: the game-mode switch and the delay it moves, beside the
+// EQ page's heading, drawn as one instrument.
+//
+// They were two pills of two different heights standing side by side — a 28px
+// field with a switch in it and an 18px chip — and they read as two things
+// dropped next to the title rather than as one reading and the one control
+// that changes it. Here the capsule is the object: one edge, one radius, a
+// hairline seam, and each half lighting on its own under the pointer. The
+// seam and the inner-fill-on-hover are the app's segmented control (Dsp.scss),
+// which is the same idea drawn for a set of choices.
+//
+// The halves keep their own components, because each one stands alone
+// elsewhere: the switch sits with the rack's other switches on the DSP page,
+// and the readout sits in that page's scope row. This only draws them as one
+// where they appear together.
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.engine-strip {
+  @include field-surface;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  padding: 2px;
+  border-radius: $radius-pill;
+
+  // The halves already carry a field's edge and fill of their own, which
+  // inside this would be a capsule drawn inside a capsule. They keep their
+  // hover and their pressed fill — that is what makes the two halves read as
+  // separate targets without a second border.
+  > .game-mode-switch,
+  > .latency-readout {
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    // Both halves stretch to the taller one — the switch — so the well runs
+    // the full height of the capsule's face and the two share one centre
+    // line. The two pixels above and below keep the capsule at the 28px the
+    // switch pill stood at on its own, so merging them did not shorten the
+    // heading's line.
+    padding: 2px 10px;
+  }
+
+  // The switch's own shape carries the air on that side; 10px after it stood
+  // the capsule visibly wider on the right of the thumb than on the left of
+  // the glyph.
+  > .game-mode-switch {
+    gap: 8px;
+    padding-right: 7px;
+  }
+
+  // Both captions say the same kind of thing — what this half is — so they
+  // are drawn the same, and the measured figure is then the only element in
+  // the capsule at full strength. It is the reading; the rest is its label.
+  .game-mode-switch__label,
+  .latency-readout__name {
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+  }
+
+  .latency-readout__value {
+    font-size: $text-body;
+  }
+
+  // The reading sits in a well, the way the app's segmented control seats its
+  // options: a small display let into the capsule, with the control beside it
+  // on the capsule's own face. A hairline between two flat halves said they
+  // were two halves; this says which one is the instrument and which one is
+  // the switch, and it costs no extra edge.
+  > .latency-readout {
+    background: $track-well;
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'] {
+      background: color-mix(in srgb, $secondary-light 12%, $track-well);
+    }
+  }
+
+  // Game mode is a state of the whole strip — it is what the figure beside it
+  // is reading — so the capsule takes the colour and the halves stop painting
+  // their own, which would have stacked two fills on the left one.
+  &:has(.game-mode-switch.is-on) {
+    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 11%, transparent);
+
+    .game-mode-switch__label,
+    .latency-readout__name {
+      color: $secondary-default;
+    }
+  }
+
+  // The halves stop painting their own state fill — the capsule is wearing it
+  // now, and two fills stacked on the left half made it the darker of the two.
+  // The well keeps its recess and takes the colour with it.
+  > .game-mode-switch.is-on {
+    background: none;
+  }
+
+  > .latency-readout.is-game {
+    background: color-mix(in srgb, $secondary-default 13%, $track-well);
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'] {
+      background: color-mix(in srgb, $secondary-default 22%, $track-well);
+    }
+  }
+}

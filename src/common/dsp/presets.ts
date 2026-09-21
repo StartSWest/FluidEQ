@@ -18,6 +18,7 @@ import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
 import { exciterPresetSettings } from './exciterPresets';
+import { GENRE_CHAIN_STAGES } from './genreChains';
 import { TMasterPresetId, masterPresetSettings } from './masterPresets';
 import {
   TMaximizerPresetId,
@@ -204,7 +205,8 @@ export const chainRoom = (
 };
 
 // Every EQ genre is also a complete DSP chain. Detailed recipes above win;
-// the remaining genres use their own EQ with gentle dynamics and final safety.
+// the remaining genres are their own EQ plus the stages `genreChains.ts`
+// gives that style, and a gentle compressor where it names none.
 const recipes: readonly IDspPresetRecipe[] = [
   ...DSP_PRESET_RECIPES,
   ...EQ_PRESETS.filter(
@@ -213,13 +215,16 @@ const recipes: readonly IDspPresetRecipe[] = [
       !DSP_PRESET_RECIPES.some(
         (recipe) => recipe.group === 'genre' && recipe.eq === eq.id,
       ),
-  ).map((eq): IDspPresetRecipe => ({
-    id: eq.id,
-    labelKey: eq.labelKey,
-    group: 'genre',
-    eq: eq.id,
-    compressor: 'gentle',
-  })),
+  ).map((eq): IDspPresetRecipe => {
+    const stages = GENRE_CHAIN_STAGES[eq.id];
+    return {
+      id: eq.id,
+      labelKey: eq.labelKey,
+      group: 'genre',
+      eq: eq.id,
+      ...(stages ?? { compressor: 'gentle' }),
+    };
+  }),
 ];
 
 /** Complete chains in the order the picker shows them. */

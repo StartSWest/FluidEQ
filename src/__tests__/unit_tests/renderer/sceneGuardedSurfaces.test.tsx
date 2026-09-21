@@ -70,9 +70,13 @@ describe('who the brightness limiter is for', () => {
     expect(wiring('graph/SceneCanvas.tsx')).toContain(
       "madeBy: own ? 'listener' : 'member'",
     );
+    // Worked out once at the top of the page and passed down from there,
+    // because FluidEQ's own collection is not a stranger's either — the same
+    // distinction, with the official scenes taken out of it first.
     expect(wiring('plus/ScenePage.tsx')).toContain(
-      "madeBy={own ? 'listener' : 'member'}",
+      "const theirs: TSceneMaker = own ? 'listener' : 'member'",
     );
+    expect(wiring('plus/ScenePage.tsx')).toContain('madeBy={madeBy}');
     // The stage and the publish camera are the author's own work by
     // definition; a scene FluidEQ released is watched before it ships.
     expect(wiring('studio/StudioStage.tsx')).toContain("madeBy: 'listener'");

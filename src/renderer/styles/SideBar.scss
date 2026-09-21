@@ -101,7 +101,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Selected through the parent, because `.side-bar > div` sets `flex: 0 0 auto`
 // on every card and one class alone loses to a class plus an element. The rule
 // was there and simply never applied, which is the least visible way for CSS to
-// be wrong.
+// be wrong — and it has since gone missing once more, which looks the same from
+// the window: the card shrinks to its contents and the meter drops to its 96px
+// floor with half the column empty under it.
 .side-bar > .side-bar__response {
   min-height: 158px;
   flex: 1 0 158px;

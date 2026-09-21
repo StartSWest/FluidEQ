@@ -208,24 +208,23 @@ export default function ReviewScene({ item }: IReviewSceneProps) {
                 onDrawn={markLive}
               />
             )}
+            {/* One wait for the download and the build alike, faded out once
+                the scene draws — see the scene page, where the same ring
+                changing its mark and its words mid-wait read as a blink. */}
             {(scene.state === 'loading' ||
-              (scene.state === 'ready' && !live && !trouble)) && (
+              (scene.state === 'ready' && !trouble)) && (
               <span
-                className="gallery-preview__veil gallery-preview__wait"
+                className={`gallery-preview__veil gallery-preview__wait${
+                  live ? ' is-done' : ''
+                }`}
                 role="status"
                 aria-live="polite"
               >
                 <span className="gallery-preview__wait-mark" aria-hidden="true">
-                  <Glyph
-                    name={scene.state === 'loading' ? 'download' : 'looks'}
-                  />
+                  <Glyph name="looks" />
                 </span>
                 <span className="gallery-preview__wait-title">
-                  {t(
-                    scene.state === 'loading'
-                      ? 'plus.scene.loading'
-                      : 'plus.scene.starting',
-                  )}
+                  {t('plus.scene.loading')}
                 </span>
                 <span className="gallery-preview__wait-name">{name}</span>
               </span>

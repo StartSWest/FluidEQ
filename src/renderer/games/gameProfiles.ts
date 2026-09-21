@@ -13,7 +13,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * window decides what that means.
  */
 
-import { GAME_SOURCES, IGameProfile, TGameSource } from '../../common/games';
+import {
+  GAME_SOURCES,
+  IGameProfile,
+  IGameProgram,
+  TGameSource,
+} from '../../common/games';
 
 const STORAGE_KEY = 'fluideq.games.profiles.v1';
 
@@ -126,6 +131,42 @@ export const setGameProfilePreset = (
 
 export const removeGameProfile = (id: string): IGameProfile[] => {
   const next = readGameProfiles().filter((profile) => profile.id !== id);
+  write(next);
+  return next;
+};
+
+/**
+ * Give a saved row the icon it should have had, from the launchers' answer.
+ *
+ * A row saved without one keeps its gamepad for ever otherwise: the same game
+ * cannot be added twice, so nothing would ever look at it again — and the
+ * card a game raises draws that same glyph on the desktop. Rows that already
+ * have a picture are left alone, and nothing is written unless something
+ * changed, because a write tells every page holding this list to re-read it.
+ */
+export const fillGameProfileIcons = (
+  programs: readonly IGameProgram[],
+): IGameProfile[] => {
+  const profiles = readGameProfiles();
+  const icons = new Map(
+    programs
+      .filter((program) => program.icon)
+      .map((program) => [program.path.toLowerCase(), program.icon]),
+  );
+  let filled = false;
+  const next = profiles.map((profile) => {
+    const icon = profile.icon
+      ? undefined
+      : icons.get(profile.path.toLowerCase());
+    if (!icon || icon.length > ICON_MAX) {
+      return profile;
+    }
+    filled = true;
+    return { ...profile, icon };
+  });
+  if (!filled) {
+    return profiles;
+  }
   write(next);
   return next;
 };

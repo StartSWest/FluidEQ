@@ -20,10 +20,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * counts time.
  */
 
-import { BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen, session } from 'electron';
 import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
+
+const PARTITION = 'fluideq-game-card';
+let sessionReady = false;
+
+/**
+ * The card's own session, and the reason it needs one.
+ *
+ * FluidEQ's window installs its Content-Security-Policy on the session it
+ * runs in (`mainWindow.ts`), which is the default one — so a window opened
+ * here with no session of its own was handed the app's policy as well as the
+ * page's. Both then have to allow a thing, and the app's `script-src 'self'`
+ * refuses an inline script whatever the page says about itself: the card drew
+ * its icon, its rule and its brand mark and said nothing at all, and — the
+ * listener that closes it living in that same script — never closed either,
+ * so an invisible always-on-top window was left behind by every game.
+ *
+ * On its own session the only policy is the one the page declares, which is
+ * `default-src 'none'` plus the hash of that one script. Nothing here may
+ * ask for a camera, a microphone or a place on the disk, so nothing is
+ * granted, the way the wallpaper's surfaces already do it.
+ */
+const cardSession = (): Electron.Session => {
+  const isolated = session.fromPartition(PARTITION);
+  if (sessionReady) {
+    return isolated;
+  }
+  sessionReady = true;
+  isolated.setPermissionRequestHandler((_contents, _permission, answer) =>
+    answer(false),
+  );
+  isolated.setPermissionCheckHandler(() => false);
+  return isolated;
+};
 
 export interface IGameToast {
   /** "Loaded Gaming · Competitive", already in the listener's language. */
@@ -115,6 +148,8 @@ export const createGameToasts = (): IGameToasts => {
           contextIsolation: true,
           sandbox: true,
           devTools: false,
+          // Never the app's session: its policy refuses this page's script.
+          session: cardSession(),
         },
       });
       card = window;

@@ -21,6 +21,7 @@ import {
   PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
+import { PLUS_TRIAL_DAYS } from 'common/plusTrial';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import plusPriceText from './plusPrice';
@@ -50,6 +51,7 @@ export const termsValues = (
   age: PLUS_MINIMUM_AGE,
   computers: PLUS_MAX_COMPUTERS,
   tasteSeconds: PLUS_TASTE_SECONDS,
+  trialDays: PLUS_TRIAL_DAYS,
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,

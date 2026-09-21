@@ -78,7 +78,9 @@ typedef struct FeqBiquadState {
 typedef enum FeqEqModel {
   FEQ_EQ_MODEL_CLEAN = 0,
   FEQ_EQ_MODEL_PROPORTIONAL = 1,
-  FEQ_EQ_MODEL_WIDE = 2
+  FEQ_EQ_MODEL_WIDE = 2,
+  /** Boosts widen and cuts narrow: the main equaliser's fourth mode. */
+  FEQ_EQ_MODEL_ASYMMETRIC = 3
 } FeqEqModel;
 
 /** The cookbook, with no character model applied. */

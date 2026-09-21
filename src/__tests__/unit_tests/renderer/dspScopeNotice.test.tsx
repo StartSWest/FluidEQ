@@ -23,7 +23,6 @@ import { act, render, screen } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import type { IAudioEngineStatus } from '../../../common/audioEngine';
 import type { IAudioDevice } from '../../../common/constants';
-import type { IEngineLatency } from '../../../common/engineHealth';
 import en from '../../../common/i18n/en';
 import DspScopeNotice from '../../../renderer/dsp/DspScopeNotice';
 import { getAudioDevices } from '../../../renderer/utils/equalizerApi';
@@ -50,24 +49,9 @@ const SPEAKERS: IAudioDevice = {
   isActive: true,
 };
 
-const notice = (
-  shown: IAudioEngineStatus | undefined,
-  {
-    latency,
-    gameMode = false,
-  }: {
-    latency?: IEngineLatency;
-    gameMode?: boolean;
-  } = {},
-) => (
+const notice = (shown: IAudioEngineStatus | undefined) => (
   <FluidEqProviderWrapper value={{ ...defaultFluidEqContext, isEnabled: true }}>
-    <DspScopeNotice
-      status={shown}
-      suspension={undefined}
-      isRackEngaged
-      latency={latency}
-      gameMode={gameMode}
-    />
+    <DspScopeNotice status={shown} suspension={undefined} isRackEngaged />
   </FluidEqProviderWrapper>
 );
 

@@ -33,7 +33,7 @@ const terms = {
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel.',
+    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel. Plus can also arrive without a payment. When FluidEQ offers a free trial, an account created on or after the day that offer began can take it once, for {trialDays} days, with no card and nothing charged when it ends. And a scene you publish that a moderator approves can earn you a month of Plus. Neither is a subscription: nothing renews them, and nothing is ever charged for them.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p4':
@@ -114,7 +114,7 @@ const terms = {
     'A scene you publish, as for an export, with one cover picture, up to two categories and a note about what is new, if you write one',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
   'terms.sent.scenePublish.who':
-    'In Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page. Only Plus members can play the scene and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
+    'Once a moderator approves it, in Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page. Only Plus members can play the scene and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
   'terms.sent.gallery.what':
     'In Visualizers: what you search for, the scenes and makers you open, the scenes you add, and any scene you report with its reason',
   'terms.sent.gallery.when':

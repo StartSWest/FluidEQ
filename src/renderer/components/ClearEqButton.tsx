@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { clearGains } from '../utils/equalizerApi';
+import { askToneClear } from '../eq/toneIntent';
 import { reportError } from '../utils/logger';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
@@ -31,6 +32,8 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setFailed(false);
     try {
+      // The EQ's three tone dials go back to zero with the curve.
+      askToneClear();
       await clearGains();
       await refreshState();
       onClose();

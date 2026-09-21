@@ -233,6 +233,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     0,
     0,
     1, // the rack on every channel of a surround output
+    9, // how much limiting the Master's loudness target may spend
     1, // one EQ band
   );
   if (values.length !== CHAIN_PARAM_LEAD) {

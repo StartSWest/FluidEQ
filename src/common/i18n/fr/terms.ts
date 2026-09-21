@@ -22,7 +22,7 @@ const terms = {
 
   'terms.membership.title': 'L’abonnement',
   'terms.membership.p1':
-    'Avec un compte gratuit, vous pouvez parcourir Visualiseurs, voir l’image et les détails de chaque scène publiée, essayer chacune des scènes de FluidEQ proposées en essai gratuit pendant {tasteSeconds} secondes et voir le classement. Plus lance et ajoute toutes les scènes, débloque les styles Plus, vous permet de créer des scènes dans le Studio et de les exporter ou de les publier, vous permet de rejoindre le classement, et met des scènes sur votre Bureau et sur vos éclairages RGB. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez.',
+    'Avec un compte gratuit, vous pouvez parcourir Visualiseurs, voir l’image et les détails de chaque scène publiée, essayer chacune des scènes de FluidEQ proposées en essai gratuit pendant {tasteSeconds} secondes et voir le classement. Plus lance et ajoute toutes les scènes, débloque les styles Plus, vous permet de créer des scènes dans le Studio et de les exporter ou de les publier, vous permet de rejoindre le classement, et met des scènes sur votre Bureau et sur vos éclairages RGB. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez. Plus peut aussi arriver sans paiement. Lorsque FluidEQ propose un essai gratuit, un compte créé à partir du jour où cette offre a commencé peut en profiter une fois, pendant {trialDays} jours, sans carte et sans prélèvement à la fin. Et une scène que vous publiez et qu’un modérateur approuve peut vous donner un mois de Plus. Ni l’un ni l’autre n’est un abonnement : rien ne les renouvelle et rien n’est jamais prélevé pour eux.',
   'terms.membership.p2':
     'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin de la période payée, et rien d’autre n’est prélevé.',
   'terms.membership.p4':
@@ -107,7 +107,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Quand vous cliquez sur Publier dans le Studio',
   'terms.sent.scenePublish.who':
-    'Dans Visualiseurs, jusqu’à ce que vous la dépubliiez, toute personne connectée à FluidEQ voit son image, son nom, ses catégories, ses notes de version, ses J’aime et ses ajouts, avec votre nom d’affichage, votre identifiant et votre page de créateur. Seuls les membres Plus peuvent lire la scène et l’ajouter. Le créateur de FluidEQ conserve la scène et la trace de votre publication, comme pour un export.',
+    'Une fois qu’un modérateur l’a approuvée, dans Visualiseurs, jusqu’à ce que vous la dépubliiez, toute personne connectée à FluidEQ voit son image, son nom, ses catégories, ses notes de version, ses J’aime et ses ajouts, avec votre nom d’affichage, votre identifiant et votre page de créateur. Seuls les membres Plus peuvent lire la scène et l’ajouter. Le créateur de FluidEQ conserve la scène et la trace de votre publication, comme pour un export.',
   'terms.sent.gallery.what':
     'Dans Visualiseurs : ce que vous recherchez, les scènes et les pages de créateurs que vous ouvrez, les scènes que vous ajoutez, et toute scène que vous signalez avec son motif',
   'terms.sent.gallery.when':

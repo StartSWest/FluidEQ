@@ -217,6 +217,9 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->channels = channels;
   chain->max_frames = maximum_block_frames;
   chain->loudness_meter = feq_loudness_meter_create(sample_rate, channels);
+  // The Master measures the programme with one of its own where nobody has
+  // measured the track for it: see `chain_update_live_master`.
+  chain->programme_meter = feq_loudness_meter_create(sample_rate, channels);
   feq_chain_settings_defaults(&chain->settings);
 
   const uint32_t frames = maximum_block_frames;
@@ -438,6 +441,7 @@ void feq_chain_destroy(FeqChain* chain) {
   // largest allocation in the chain.
   chain_release_kernel_handoff(chain);
   feq_loudness_meter_destroy(chain->loudness_meter);
+  feq_loudness_meter_destroy(chain->programme_meter);
   feq_live_normalizer_destroy(chain->live_normalizer);
   feq_room_destroy(chain->room);
   chain->room = nullptr;
@@ -578,6 +582,9 @@ void feq_chain_set_track_level_gains(FeqChain* chain,
   if (chain == nullptr) {
     return;
   }
+  // Somebody has measured this track, so the chain must not measure it again:
+  // the Library's makeup and a live one would be the same correction twice.
+  chain->host_track_gains = 1;
   if (snap != 0) {
     chain->input_gain_now = std::pow(10.0, input_gain_db / 20.0);
     chain->master_loudness_now_db = master_loudness_gain_db;
@@ -678,6 +685,12 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
      * would make the number unreadable exactly when it is being watched.
      */
     feq_loudness_meter_reset(chain->loudness_meter);
+    // And the Master's own measurement of the programme, for the same reason
+    // and with the same exception for a seek.
+    feq_loudness_meter_reset(chain->programme_meter);
+    chain->live_master_peak_db = -120.0;
+    chain->live_master_frames = 0;
+    chain->live_master_target_db = 0.0;
   }
 
   feq_room_reset(chain->room);
@@ -984,8 +997,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // Reserve only gain actually present in this quantum. Reserving the future
   // target made Auto Headroom latch attenuation while the LUFS makeup was
   // still ramping, so uncached and cached playback disagreed.
-  headroom.following_gain_db =
-      chain->settings.master.output_trim_db + chain->master_loudness_now_db;
+  headroom.following_gain_db = chain->settings.master.output_trim_db +
+                               chain->master_loudness_now_db +
+                               chain->live_master_now_db;
   headroom.release_ms = chain->settings.master.release_ms;
   headroom.sample_rate = chain->sample_rate;
   feq_post_filter_normalizer_process(&chain->post_normalizer, channels, frames,
@@ -1031,6 +1045,17 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   master_report.auto_headroom_reduction_db = headroom_report.gain_reduction_db;
   master_report.auto_headroom_true_peak_db =
       headroom_report.input_true_peak_db;
+  /**
+   * The same true peak, kept as the programme's loudest so far.
+   *
+   * This is the peak of the signal entering the master gain, measured with
+   * the oversampling detector Auto Headroom already runs — so the chain's own
+   * loudness makeup can be capped by the room the programme has left without
+   * a second true-peak detector anywhere.
+   */
+  if (headroom_report.input_true_peak_db > chain->live_master_peak_db) {
+    chain->live_master_peak_db = headroom_report.input_true_peak_db;
+  }
   master_report.safety_reduction_db = safety_report.gain_reduction_db;
   master_report.safety_true_peak_db = safety_report.input_true_peak_db;
   master_report.dc_correction_db = safety_report.dc_correction_db;
@@ -1076,7 +1101,11 @@ int feq_chain_enable_live_normalizer(FeqChain* chain) {
   return chain->live_normalizer != nullptr ? 1 : 0;
 }
 void feq_chain_attach_leveling_memory(FeqChain* chain, FeqLevelingMemory* memory) {
-  if (chain != nullptr) feq_live_normalizer_attach_memory(chain->live_normalizer, memory);
+  if (chain == nullptr) return;
+  feq_live_normalizer_attach_memory(chain->live_normalizer, memory);
+  // The Master reads it too, for one thing only: whether the song changed,
+  // because integrated loudness describes one piece of music.
+  chain->leveling = memory;
 }
 void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames) {
   if (chain != nullptr) feq_live_normalizer_silence(chain->live_normalizer, frames);

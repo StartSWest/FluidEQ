@@ -70,7 +70,19 @@ export interface IEqPreset {
    * an ungrouped entry would silently land under whatever heading came before.
    */
   group: TEqPresetGroup;
-  /** One gain in dB per band, low to high. Always `EQ_BAND_COUNT` long. */
+  /**
+   * One gain in dB per band, low to high. Always `EQ_BAND_COUNT` long.
+   *
+   * A curve is a TILT, and the level it happens to add is not part of it: the
+   * whole chain a curve belongs to is rendered through the engine against DSP
+   * Off, and a curve that lands the chain more than about a decibel over it
+   * is shifted down until it does. Shifting rather than reshaping, so the
+   * tone is untouched and only the volume moves. This matters more than it
+   * sounds: louder wins every comparison it is in, so a hot curve reads as
+   * "better" while the listener has not heard what it did to the tone yet.
+   * Six of these were between two and four decibels hot before anyone
+   * measured them, and each one felt like the best preset in its section.
+   */
   gains: readonly number[];
   /**
    * Per band: the level its gain should wait for, or `null` to always apply.
@@ -188,8 +200,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.rock',
     group: 'genre',
     gains: [
-      0.9, 0.9, 0.9, -0.2, -1.2, -2.5, -1.8, -0.6, 0.4, 0.3, 0.4, -0.2, -0.1,
-      -0.9, -1.8,
+      1.4, 1.4, 1.4, 0.3, -0.7, -2, -1.3, -0.1, 0.9, 0.8, 0.9, 0.3, 0.4, -0.4,
+      -1.3,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -200,8 +212,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
     gains: [
-      1.6, 1.6, 0.4, 0.6, -0.4, -1.7, -0.7, 0.3, 0.7, 1, 0.8, 1.2, 0.8, 0.6,
-      0.1,
+      1.3, 1.3, 0.1, 0.3, -0.7, -2, -1, 0, 0.4, 0.7, 0.5, 0.9, 0.5, 0.3, -0.2,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -212,7 +223,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
     gains: [
-      1.6, 1.6, 0, 0.8, 0.2, -0.1, 0.1, 0.4, 0.8, 0.3, 1, 1, 1.5, 1.9, 1.4,
+      1.4, 1.4, -0.2, 0.6, 0, -0.3, -0.1, 0.2, 0.6, 0.1, 0.8, 0.8, 1.3, 1.7,
+      1.2,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -223,7 +235,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.classical',
     group: 'genre',
     gains: [
-      2.2, 2.2, 0.9, 0.8, 0.3, 0.2, 0.3, 0.3, 1.2, 0.6, 0.8, 1.9, 2.5, 3.5, 3.5,
+      2.6, 2.6, 1.3, 1.2, 0.7, 0.6, 0.7, 0.7, 1.6, 1, 1.2, 2.3, 2.9, 3.9, 3.9,
     ],
     // No mono-below: the hall IS the recording, and summing its bottom end
     // throws away the space it was captured in.
@@ -246,9 +258,11 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
+    // The bottom three bands are held a little under what the curve alone
+    // would take, because this chain also runs Bass Forge: the two together
+    // measured +6.5 dB below 60 Hz, past the +6 the catalogue keeps to.
     gains: [
-      1.8, 2, 1.8, -0.5, -1.6, -1.3, -0.8, 0, -0.4, 0.3, 0.7, 0.6, -0.1, -0.5,
-      -0.8,
+      1.8, 2, 2, -0.1, -1.2, -0.9, -0.4, 0.4, 0, 0.7, 1.1, 1, 0.3, -0.1, -0.4,
     ],
     // Sub-bass this heavy is where cancellation actually costs something,
     // so the mono corner sits above the fundamental rather than under it.
@@ -260,7 +274,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.acoustic',
     group: 'genre',
     gains: [
-      -0.3, 0.2, -1.3, 1.7, 0.9, 1, 0.3, -0.1, 0.4, 1, 2.1, 0.5, 1.1, 0.9, 0.7,
+      -0.7, -0.2, -1.7, 1.3, 0.5, 0.6, -0.1, -0.5, 0, 0.6, 1.7, 0.1, 0.7, 0.5,
+      0.3,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -641,8 +656,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.metal',
     group: 'genre',
     gains: [
-      -1.2, -1.2, -0.4, 0.3, -1.1, -3.9, -2.7, -0.9, 1.1, 2.1, 2.6, 3, 1.4,
-      -0.3, -0.8,
+      -0.9, -0.9, -0.1, 0.6, -0.8, -3.6, -2.4, -0.6, 1.4, 2.4, 2.9, 3.3, 1.7, 0,
+      -0.5,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -652,7 +667,10 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'punk',
     labelKey: 'dsp.eqPreset.punk',
     group: 'genre',
-    gains: [1, 1.5, 2, 2, 0.5, -1, -0.5, 0.5, 1.5, 2, 2, 1, 0, -1, -2],
+    gains: [
+      0.3, 0.8, 1.3, 1.3, -0.2, -1.7, -1.2, -0.2, 0.8, 1.3, 1.3, 0.3, -0.7,
+      -1.7, -2.7,
+    ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
@@ -663,8 +681,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
     gains: [
-      0.7, 0.9, 1.8, 1.7, 0.6, -1, -0.1, 1.2, -0.4, -0.2, 0.3, -0.3, -0.5, -0.4,
-      -0.7,
+      0.5, 0.7, 1.6, 1.5, 0.4, -1.2, -0.3, 1, -0.6, -0.4, 0.1, -0.5, -0.7, -0.6,
+      -0.9,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
@@ -675,9 +693,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'country',
     labelKey: 'dsp.eqPreset.country',
     group: 'genre',
-    gains: [
-      0.9, 1.1, 1.7, 1.8, 1.1, 0.3, 0.5, 0.9, 1.4, 1.8, 1.8, 1.7, 1.8, 1.8, 1.4,
-    ],
+    gains: [0, 0.3, 0.9, 1, 0.3, -0.5, -0.3, 0, 0.6, 1, 1, 0.9, 1, 1, 0.6],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
@@ -687,7 +703,9 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'blues',
     labelKey: 'dsp.eqPreset.blues',
     group: 'genre',
-    gains: [1.5, 2, 2, 1.5, 0.5, 0, 0.8, 1.8, 2, 1.5, 1, 0.8, 0.8, 0.5, 0],
+    gains: [
+      0.7, 1.2, 1.2, 0.7, -0.3, -0.8, 0, 1, 1.2, 0.7, 0.1, 0, 0, -0.3, -0.8,
+    ],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
@@ -697,7 +715,16 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'lofi',
     labelKey: 'dsp.eqPreset.lofi',
     group: 'genre',
-    gains: [-2, -1, 0.5, 2, 2, 1.2, 0.5, 0.5, 0.5, 0, -1, -2.5, -4, -5.5, -7],
+    // The whole shape 0.6 dB lower than it was drawn, because the middle it
+    // leans on is where music keeps its energy: the curve's own average was a
+    // decibel BELOW flat and it still played 2.4 dB louder than DSP Off, which
+    // is a chain winning its own A/B on loudness. A level move, not a shape
+    // one — every gain moved by the same amount. It buys more than it spends
+    // (2.4 dB down to 0.9) because the fuzz below and the compressor after it
+    // both make fewer harmonics from a quieter curve.
+    gains: [
+      -2.5, -1.5, 0, 1.5, 1.5, 0.7, 0, 0, 0, -0.5, -1.5, -3, -4.5, -6, -7.5,
+    ],
     setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
   },
   {
@@ -718,8 +745,15 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'trap',
     labelKey: 'dsp.eqPreset.trap',
     group: 'genre',
+    // The bottom two bands come down from 3.6 and 3.2, because this is the
+    // one chain where the curve is not the only thing making sub: Bass Forge
+    // generates a real octave under the 808 as well, and the two together
+    // measured +7.8 dB below 60 Hz — past the +6 the catalogue holds itself
+    // to, which is a small speaker's excursion and everything above it
+    // losing headroom.
     gains: [
-      3.4, 3, 2.1, 0.7, -1, -2, -1.5, -0.5, 0.3, 1, 1.4, 1.4, 1.7, 1.4, 0.7,
+      1.7, 1.6, 1.5, 0.9, -0.8, -1.8, -1.3, -0.3, 0.5, 1.2, 1.6, 1.6, 1.9, 1.6,
+      0.9,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
@@ -743,7 +777,9 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'piano',
     labelKey: 'dsp.eqPreset.piano',
     group: 'genre',
-    gains: [1, 1.2, 1.4, 1, -0.5, -1, 0, 0.5, 1, 1.2, 1.4, 1.6, 2, 1.8, 1.2],
+    gains: [
+      1.4, 1.6, 1.8, 1.4, -0.1, -0.6, 0.4, 0.9, 1.4, 1.6, 1.8, 2, 2.4, 2.2, 1.6,
+    ],
     setup: { ...PROTECTED, model: 'clean' },
   },
   {
@@ -752,9 +788,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'strings',
     labelKey: 'dsp.eqPreset.strings',
     group: 'genre',
-    gains: [
-      0.5, 1, 1.5, 2, 1.5, 0.8, 0.5, 0.5, 0, -0.8, -1, 0.5, 1.5, 2.2, 2.5,
-    ],
+    gains: [0, 0.5, 1, 1.5, 1, 0.3, 0, 0, -0.5, -1.3, -1.5, 0, 1, 1.7, 2],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
@@ -855,9 +889,13 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
     group: 'device',
+    // Drawn 1.2 dB lower than it measured, for the same reason as `lofi`: the
+    // lift sits where the energy is, so a curve averaging flat played 2.5 dB
+    // louder than DSP Off. The shape is untouched — the bottom stays as far
+    // below the lift as it was.
     gains: [
-      -7.2, -6.2, -3.4, -1.2, 2.3, 2.2, 1.5, 1.4, 1.9, 2.2, 2.5, 1.8, 1.4, -0.1,
-      -1,
+      -8.4, -7.4, -4.6, -2.4, 1.1, 1, 0.3, 0.2, 0.7, 1, 1.3, 0.6, 0.2, -1.3,
+      -2.2,
     ],
     setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 200 },
   },

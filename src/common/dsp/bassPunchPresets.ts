@@ -152,6 +152,21 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     group: 'genre',
     settings: profile(100, 0.6, -0.15, 0.15, 90, 0.3),
   },
+  metal: {
+    id: 'metal',
+    labelKey: 'dsp.eqPreset.metal',
+    group: 'genre',
+    /**
+     * Sixteenth notes on two kick drums, each one heard as its own hit.
+     *
+     * At 200 BPM a double-kick run leaves 75 ms between hits, less than the
+     * 90 ms bloom `rock` gives each one, so the run blurs into one low rumble
+     * under the guitars. This is `slam`'s leading edge with no bloom and a
+     * shorter tail, and the split lowered from its 130 Hz so the detector
+     * hears more of the kick and less of the palm-muted guitars above it.
+     */
+    settings: profile(100, 0.85, -0.65, 0, 50, 0),
+  },
   electronic: {
     id: 'electronic',
     labelKey: 'dsp.eqPreset.electronic',

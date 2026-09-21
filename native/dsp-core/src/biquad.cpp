@@ -146,12 +146,33 @@ FeqBiquadCoefficients feq_biquad_coefficients_modelled(FeqFilterType type,
                                    sample_rate);
   }
 
+  /**
+   * How far a band narrows at a given gain, and it is the app's own law
+   * (`shapeEqFilters` in `eqShape.ts`, mirrored in `renderer/dsp/biquad.ts`)
+   * rather than a second one. Two pages offering the same character under the
+   * same name have to mean the same thing by it; these differed by half again
+   * at 12 dB until 2026-09-20.
+   */
+  const double driven = std::fabs(gain_db) < 20.0 ? std::fabs(gain_db) : 20.0;
+  const double narrowing = std::sqrt(1.0 + driven / 12.0);
+  const double factor = 1.0 + amount * (narrowing - 1.0);
+
   if (model == FEQ_EQ_MODEL_PROPORTIONAL) {
-    const double narrowed =
-        quality * (1.0 + (std::fabs(gain_db) / 24.0) * 1.6 * amount);
+    const double narrowed = quality * factor;
     return feq_biquad_coefficients(type, frequency, gain_db,
                                    narrowed < 18.0 ? narrowed : 18.0,
                                    sample_rate);
+  }
+
+  if (model == FEQ_EQ_MODEL_ASYMMETRIC) {
+    // A cut is aimed at something and should take as little else with it as
+    // it can; a boost is a tone move and should be broad enough not to read
+    // as a resonance. Opposite treatments of the same dial, which is why this
+    // is its own model rather than proportional with a sign flipped.
+    const double shaped = gain_db > 0.0 ? quality / factor : quality * factor;
+    return feq_biquad_coefficients(
+        type, frequency, gain_db,
+        shaped < 0.25 ? 0.25 : (shaped > 18.0 ? 18.0 : shaped), sample_rate);
   }
 
   const bool is_shelf = type == FEQ_FILTER_LSC || type == FEQ_FILTER_HSC;

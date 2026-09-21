@@ -458,6 +458,90 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   }
 }
 
+namespace {
+
+/** Below this there is nothing to measure: BS.1770's absolute gate. */
+constexpr double kLiveMasterGateLufs = -70.0;
+/** Enough programme for a gated integration to mean something. */
+constexpr double kLiveMasterSettleSeconds = 3.0;
+/** How long the makeup takes to arrive once it changes. */
+constexpr double kLiveMasterGlideSeconds = 2.0;
+
+/**
+ * The Master's makeup where the chain has to measure the programme itself.
+ *
+ * Runs on the signal about to receive the master gain — after Auto Headroom,
+ * which is the stage that has already computed this block's true peak — and
+ * follows the same arithmetic the app uses on a cached analysis: the target
+ * minus the programme's integrated loudness, capped by the peak room it has
+ * left plus the limiting the listener has agreed to spend.
+ *
+ * Two honest differences from the Library's number, neither of which moves
+ * the result by more than a fraction of a decibel: the loudness is measured
+ * after the limiter rather than before it, so any reduction it is already
+ * applying counts as programme; and the peak is the true peak of the loudest
+ * block so far rather than of the whole file, which a first play only
+ * approaches as the song goes on.
+ */
+void chain_update_live_master(FeqChain* chain, float* const* channels,
+                              uint32_t frames) {
+  const auto& master = chain->settings.master;
+  const bool wanted = master.enabled != 0 && master.loudness_maximize != 0 &&
+                      chain->host_track_gains == 0 &&
+                      chain->programme_meter != nullptr;
+  if (!wanted) {
+    // Nothing measured means nothing applied, and the gain that is already on
+    // the signal leaves the way every other gain here does rather than in a
+    // step: switching the stage off must not click.
+    chain->live_master_target_db = 0.0;
+  } else {
+    if (chain->leveling != nullptr) {
+      FeqSongLevel song{};
+      if (feq_leveling_memory_read_song(chain->leveling, &song) != 0 &&
+          song.song_id != chain->live_master_song) {
+        chain->live_master_song = song.song_id;
+        feq_loudness_meter_reset(chain->programme_meter);
+        chain->live_master_peak_db = -120.0;
+        chain->live_master_frames = 0;
+        chain->live_master_target_db = 0.0;
+      }
+    }
+    feq_loudness_meter_process(chain->programme_meter, channels, frames);
+    chain->live_master_frames += static_cast<int64_t>(frames);
+    const double heard_seconds =
+        static_cast<double>(chain->live_master_frames) / chain->sample_rate;
+    FeqLoudnessReading reading{};
+    feq_loudness_meter_read(chain->programme_meter, &reading);
+    if (heard_seconds >= kLiveMasterSettleSeconds &&
+        reading.integrated_lufs > kLiveMasterGateLufs) {
+      const double requested =
+          master.loudness_target_lufs - reading.integrated_lufs;
+      double applied = 0.0;
+      if (requested <= 0.0) {
+        // A target is a target in both directions: a record already louder
+        // than the chosen level is brought DOWN to it, or the dial would mean
+        // "how much boost at most" and read as broken on modern masters.
+        applied = std::max(FEQ_MASTER_LOUDNESS_MIN_DB, requested);
+      } else {
+        const double room = master.ceiling_db - chain->live_master_peak_db -
+                            std::max(0.0, master.output_trim_db);
+        const double allowed = room + master.peak_limiting_db;
+        applied = std::max(
+            0.0, std::min(std::min(FEQ_MASTER_LOUDNESS_MAX_DB, requested),
+                          allowed));
+      }
+      chain->live_master_target_db = applied;
+    }
+  }
+  const double glide =
+      -std::expm1(-static_cast<double>(frames) /
+                  (kLiveMasterGlideSeconds * chain->sample_rate));
+  chain->live_master_now_db +=
+      (chain->live_master_target_db - chain->live_master_now_db) * glide;
+}
+
+}  // namespace
+
 /**
  * The chain's final user gain, after every creative and level-dependent stage.
  *
@@ -467,6 +551,7 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
  */
 void chain_process_master_output(FeqChain* chain, float* const* channels,
                            uint32_t frames) {
+  chain_update_live_master(chain, channels, frames);
   /**
    * Matched listen drops the makeup HERE and nowhere earlier.
    *
@@ -476,9 +561,10 @@ void chain_process_master_output(FeqChain* chain, float* const* channels,
    * leaves is different, which is the entire point: an A/B decided by which
    * side is louder is not an A/B.
    */
-  const double makeup_db = chain->settings.master.matched_bypass != 0
-                               ? 0.0
-                               : chain->master_loudness_now_db;
+  const double makeup_db =
+      chain->settings.master.matched_bypass != 0
+          ? 0.0
+          : chain->master_loudness_now_db + chain->live_master_now_db;
   const double total_db =
       chain->settings.master.output_trim_db + makeup_db;
   const double target =

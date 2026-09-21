@@ -14,7 +14,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { DSP_DEFAULTS, IRoomSettings } from '../../../common/dsp/chain';
-import { encodeChainSettings } from '../../../common/dsp/chainWire';
+import {
+  CHAIN_PARAM_LEAD,
+  encodeChainSettings,
+} from '../../../common/dsp/chainWire';
 import { resetRoom, roomPresetSettings } from '../../../common/dsp/roomPresets';
 import {
   roomMuteWire,
@@ -89,17 +92,18 @@ describe('mute and solo on the room speakers', () => {
       roomMuteWire([true, true, true, true, false, true, true, true]),
     ).toEqual([2, 2, 2, 2, 0, 2, 2, 1]);
     // And it is what goes on the wire: the eight values before the surround
-    // switch and the band count.
+    // switch, the Master's limiting allowance and the band count. Counted
+    // back from the lead rather than from the first 15 found past index 150,
+    // which is any scalar that happens to equal the band count.
     const room: IRoomSettings = {
       ...DSP_DEFAULTS.room,
       enabled: true,
       mutes: withSolo(OPEN, 4),
     };
     const wire = encodeChainSettings({ ...DSP_DEFAULTS, room });
-    const lead = wire.indexOf(DSP_DEFAULTS.eq.bands.length, 150);
-    expect(Array.from(wire.slice(lead - 9, lead - 1))).toEqual([
-      2, 2, 2, 2, 0, 2, 2, 0,
-    ]);
+    expect(
+      Array.from(wire.slice(CHAIN_PARAM_LEAD - 11, CHAIN_PARAM_LEAD - 3)),
+    ).toEqual([2, 2, 2, 2, 0, 2, 2, 0]);
   });
 });
 

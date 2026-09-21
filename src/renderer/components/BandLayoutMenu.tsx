@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FIXED_BAND_SIZES } from '../../common/constants';
 import {
   IBandDesign,
@@ -15,6 +15,7 @@ import {
   saveBandDesign,
 } from '../utils/bandDesignApi';
 import { setFixedBand } from '../utils/equalizerApi';
+import { askToneReapply } from '../eq/toneIntent';
 import { reportError } from '../utils/logger';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
@@ -112,10 +113,18 @@ export default function BandLayoutMenu() {
       cancelDelete.current?.focus();
     }
   }, [deleting]);
-  useEffect(() => {
-    if (naming) {
-      savingName.current?.focus();
+  useLayoutEffect(() => {
+    const field = savingName.current;
+    if (!naming || !field) {
+      return;
     }
+    // Selected, not merely focused: the box opens with the layout's own name
+    // already in it, and a caret parked after it would make the suggestion
+    // something to delete before it is something to accept. Before the paint
+    // and by range rather than `select()`, so the highlight is there in the
+    // first frame the field is on screen rather than arriving after it.
+    field.focus();
+    field.setSelectionRange(0, field.value.length);
   }, [naming]);
 
   const perform = async (action: () => Promise<unknown>, close: boolean) => {
@@ -191,6 +200,10 @@ export default function BandLayoutMenu() {
                   disabled={busy}
                   onClick={() => {
                     if (!selected) {
+                      // The rack is about to be rebuilt at a new size, and
+                      // the EQ's three tone dials are written onto whatever
+                      // it becomes. See `toneIntent.ts`.
+                      askToneReapply();
                       perform(() => setFixedBand(size), true);
                     }
                   }}
@@ -217,9 +230,12 @@ export default function BandLayoutMenu() {
                   className={`button small band-designs__row${design.id === eqBandDesign?.id ? '' : ' subtle'}`}
                   aria-pressed={design.id === eqBandDesign?.id}
                   disabled={busy}
-                  onClick={() =>
-                    perform(() => applyBandDesign(design.id), true)
-                  }
+                  onClick={() => {
+                    // A saved layout is a rack rebuilt too, so the tone dials
+                    // are written onto it the same way.
+                    askToneReapply();
+                    perform(() => applyBandDesign(design.id), true);
+                  }}
                 >
                   <MenuIcon name="layout" className="eq-toolbar__icon" />
                   <span>
@@ -341,7 +357,11 @@ export default function BandLayoutMenu() {
                 className="button small"
                 disabled={busy || !loaded || designs.length >= MAX_BAND_DESIGNS}
                 onClick={() => {
-                  setName('');
+                  // Filled in with what the layout IS, because that is what
+                  // almost every one of these gets called and an empty box
+                  // asks the question anyway. Selected rather than appended
+                  // to, below, so typing replaces it.
+                  setName(t('eq.bandCount', { count }));
                   setNaming(true);
                 }}
               >

@@ -275,37 +275,48 @@ describe('the Official tag on cards', () => {
   });
 });
 
-describe('the picture while the scene starts', () => {
-  it('shows the scene’s picture and says it is starting until a frame shows, then lets the scene take over', async () => {
+describe('the stage while the scene starts', () => {
+  it('waits on the scene’s picture over its own ground with one spinner, and stands that spinner down once a frame shows', async () => {
     const { container } = await openScene(official);
+    // The picture while it comes, over a ground of the scene's own colour —
+    // the ground is what stops the stage ever being a hole through the
+    // window, which is the desktop's colour rather than the app's.
     const still = container.querySelector('.gallery-preview__still');
     expect(still).not.toBeNull();
     expect(still).not.toHaveClass('is-behind');
-    // The same loader the download wears, in the middle of the stage: one
-    // wait in two parts, not two different things happening.
-    const starting = screen.getByRole('status');
-    expect(starting).toHaveTextContent('plus.scene.starting');
-    expect(starting).toHaveClass('gallery-preview__wait');
+    expect(container.querySelector('.gallery-preview__ground')).not.toBeNull();
+
+    // ONE spinner for the download and the build alike. Two of them, swapped
+    // at the handover, is what read as a blink.
+    const waiting = screen.getByRole('status');
+    expect(waiting).toHaveTextContent('plus.scene.loading');
+    expect(waiting).toHaveClass('gallery-preview__wait');
+    expect(waiting).not.toHaveClass('is-done');
     expect(
-      starting.querySelector('.gallery-preview__wait-mark svg'),
+      waiting.querySelector('.gallery-preview__wait-mark svg'),
     ).not.toBeNull();
     expect(screen.queryByText('plus.scene.playing')).toBeNull();
 
     // A frame drawn at no strength is not on screen yet.
     act(() => mockDrawn?.(frame(0)));
-    expect(screen.getByText('plus.scene.starting')).toBeInTheDocument();
+    expect(screen.getByRole('status')).not.toHaveClass('is-done');
 
     act(() => mockDrawn?.(frame(0.05)));
-    expect(screen.queryByText('plus.scene.starting')).toBeNull();
-    expect(screen.getByText('plus.scene.playing')).toBeInTheDocument();
+    // The same element, marked done and faded out by the stylesheet rather
+    // than taken away, so nothing changes shape at the handover.
+    expect(container.querySelector('.gallery-preview__wait')).toHaveClass(
+      'is-done',
+    );
+    // And the picture is crossed over to the scene, never swapped for it.
     expect(container.querySelector('.gallery-preview__still')).toHaveClass(
       'is-behind',
     );
+    expect(screen.getByText('plus.scene.playing')).toBeInTheDocument();
   });
 });
 
 describe('the stage while the scene downloads', () => {
-  it('shows the Studio’s loader, with the download mark, the words and the scene’s name', async () => {
+  it('shows the Studio’s loader, with its mark, the words and the scene’s name', async () => {
     // Never answers: the download is still under way.
     bridge.previewGalleryScene.mockReturnValue(new Promise(() => {}));
     const { container } = render(<VisualizersView onShowGraph={jest.fn()} />);

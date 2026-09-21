@@ -22,7 +22,7 @@ const terms = {
 
   'terms.membership.title': 'L’abbonamento',
   'terms.membership.p1':
-    'Con un account gratuito puoi esplorare Visualizzatori, vedere l’immagine e i dettagli di ogni scena pubblicata, provare per {tasteSeconds} secondi ciascuna delle scene di prova gratuite di FluidEQ e vedere la classifica. Plus ti permette di riprodurre e aggiungere ogni scena, sblocca i look Plus, ti permette di creare scene nello Studio ed esportarle o pubblicarle e di partecipare alla classifica, e porta le scene sul tuo desktop e sulle tue luci RGB. Costa {price} e si rinnova alla fine di ogni periodo pagato finché non disdici.',
+    'Con un account gratuito puoi esplorare Visualizzatori, vedere l’immagine e i dettagli di ogni scena pubblicata, provare per {tasteSeconds} secondi ciascuna delle scene di prova gratuite di FluidEQ e vedere la classifica. Plus ti permette di riprodurre e aggiungere ogni scena, sblocca i look Plus, ti permette di creare scene nello Studio ed esportarle o pubblicarle e di partecipare alla classifica, e porta le scene sul tuo desktop e sulle tue luci RGB. Costa {price} e si rinnova alla fine di ogni periodo pagato finché non disdici. Plus può arrivare anche senza pagare. Quando FluidEQ propone una prova gratuita, un account creato dal giorno in cui è iniziata quell’offerta può usarla una volta sola, per {trialDays} giorni, senza carta e senza alcun addebito alla fine. E una scena che pubblichi e che un moderatore approva può darti un mese di Plus. Nessuno dei due è un abbonamento: nulla li rinnova e non viene mai addebitato nulla.',
   'terms.membership.p2':
     'Il pagamento è gestito da Buy Me a Coffee, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari. Puoi disdire in qualsiasi momento su Buy Me a Coffee: Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro.',
   'terms.membership.p4':
@@ -104,7 +104,7 @@ const terms = {
     'Una scena che pubblichi, come per un’esportazione, con un’immagine di copertina, fino a due categorie e una nota sulle novità, se ne scrivi una',
   'terms.sent.scenePublish.when': 'Quando premi Pubblica nello Studio',
   'terms.sent.scenePublish.who':
-    'In Visualizzatori, finché non la ritiri, chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, le categorie, le note di versione, i mi piace e le aggiunte, con il tuo nome visualizzato, il tuo nome utente e la tua pagina di autore. Solo i membri Plus possono riprodurre la scena e aggiungerla. Il creatore di FluidEQ conserva la scena e il registro della pubblicazione, come per un’esportazione.',
+    'Una volta che un moderatore l’ha approvata, in Visualizzatori, finché non la ritiri, chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, le categorie, le note di versione, i mi piace e le aggiunte, con il tuo nome visualizzato, il tuo nome utente e la tua pagina di autore. Solo i membri Plus possono riprodurre la scena e aggiungerla. Il creatore di FluidEQ conserva la scena e il registro della pubblicazione, come per un’esportazione.',
   'terms.sent.gallery.what':
     'In Visualizzatori: cosa cerchi, le scene e gli autori che apri, le scene che aggiungi, e ogni scena che segnali con il motivo',
   'terms.sent.gallery.when':

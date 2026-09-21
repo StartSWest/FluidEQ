@@ -127,11 +127,41 @@ const cookbook = (
  * at instead of dragging its neighbours with it. It is the same curve at 1 dB
  * and a different instrument at 12.
  */
+/**
+ * How far a band narrows at a given gain, and it is the main equaliser's own
+ * law (`shapeEqFilters` in `eqShape.ts`) rather than a second one.
+ *
+ * Both pages offer the same character under the same name, so they have to
+ * mean the same thing by it: the two used to differ by half again at 12 dB —
+ * ×1.8 here against ×1.41 there — which is a band sounding one way on the EQ
+ * page and another in the rack with both dials reading the same.
+ */
+const narrowing = (gainDb: number): number =>
+  Math.sqrt(1 + Math.min(20, Math.abs(gainDb)) / 12);
+
 const proportionalQuality = (
   { gainDb, quality }: IBandSpec,
   amount: number,
-): number =>
-  Math.min(18, quality * (1 + (Math.abs(gainDb) / 24) * 1.6 * amount));
+): number => Math.min(18, quality * (1 + amount * (narrowing(gainDb) - 1)));
+
+/**
+ * Cuts narrow, boosts widen — the mastering engineer's habit, as a character.
+ *
+ * A cut is usually aimed at something specific and wants to take as little
+ * else with it as it can; a boost is usually a tone move and wants to be
+ * broad enough not to read as a resonance. Which is exactly the opposite
+ * treatment for the same dial, and why this cannot be proportional with a
+ * sign flipped in the amount.
+ */
+const asymmetricQuality = (
+  { gainDb, quality }: IBandSpec,
+  amount: number,
+): number => {
+  const factor = 1 + amount * (narrowing(gainDb) - 1);
+  return gainDb > 0
+    ? Math.max(0.25, quality / factor)
+    : Math.min(18, quality * factor);
+};
 
 /**
  * Broad and overlapping, the way a passive tone stack behaves.
@@ -186,6 +216,12 @@ export const biquadCoefficients = (
   if (model === 'proportional') {
     return cookbook(
       { ...spec, quality: proportionalQuality(spec, amount) },
+      sampleRate,
+    );
+  }
+  if (model === 'asymmetric') {
+    return cookbook(
+      { ...spec, quality: asymmetricQuality(spec, amount) },
       sampleRate,
     );
   }

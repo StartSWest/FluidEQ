@@ -104,7 +104,10 @@ describe('the animations switch in the actions menu', () => {
     expect(fresh.screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('saves reduced motion when switched off and says it applies after a restart, until the choice matches the window again', async () => {
+  // Off is felt at once: the choice is written on the document, where one
+  // rule stands every animation and transition down. It used to be a launch
+  // switch alone, so the switch did nothing at all until the next start.
+  it('stands the window down the moment it is switched off, with no restart asked for', async () => {
     const { Picker, fresh } = load();
     const user = userEvent.setup();
     fresh.render(<Picker />);
@@ -116,25 +119,36 @@ describe('the animations switch in the actions menu', () => {
     await user.click(animations(fresh));
 
     expect(setMotionPreference).toHaveBeenCalledWith('reduced');
-    expect(await fresh.screen.findByRole('status')).toHaveTextContent(
-      'Restart FluidEQ to apply',
+    await fresh.waitFor(() =>
+      expect(document.documentElement).toHaveAttribute(
+        'data-motion',
+        'reduced',
+      ),
     );
     expect(animations(fresh)).not.toBeChecked();
+    // Nothing to restart for: this window is already still.
+    expect(fresh.screen.queryByRole('status')).not.toBeInTheDocument();
 
     await user.click(animations(fresh));
 
     expect(setMotionPreference).toHaveBeenLastCalledWith('full');
     await fresh.waitFor(() => expect(animations(fresh)).toBeChecked());
+    expect(document.documentElement).toHaveAttribute('data-motion', 'full');
     expect(fresh.screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('reopens on a choice made earlier in the session, restart note included, without waiting for main', async () => {
+  it('reopens on a choice made earlier in the session, without waiting for main', async () => {
     const { Picker, fresh } = load();
     const user = userEvent.setup();
     const first = fresh.render(<Picker />);
     await fresh.act(async () => answer?.());
     await user.click(animations(fresh));
-    await fresh.screen.findByRole('status');
+    await fresh.waitFor(() =>
+      expect(document.documentElement).toHaveAttribute(
+        'data-motion',
+        'reduced',
+      ),
+    );
     first.unmount();
     answer = undefined;
 
@@ -142,8 +156,6 @@ describe('the animations switch in the actions menu', () => {
 
     expect(answer).toBeDefined();
     expect(animations(fresh)).not.toBeChecked();
-    expect(fresh.screen.getByRole('status')).toHaveTextContent(
-      'Restart FluidEQ to apply',
-    );
+    expect(fresh.screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });

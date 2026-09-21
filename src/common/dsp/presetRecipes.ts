@@ -97,6 +97,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'basic',
     voicing: 'music',
     compressor: 'gentle',
+    // The everyday chain, so both additions are the quiet kind: the picture
+    // its curve implies, and a ceiling that only catches what the curve's
+    // boosts push over. Nothing here invents harmonics — a chain called
+    // Music has to be safe on a record of any kind.
+    dimension: 'default',
+    maximizer: 'safety',
   },
   {
     // Music on headphones, in the Room's Music Space: the record on a wider
@@ -121,6 +127,11 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     voicing: 'speech',
     compressor: 'voice',
+    // Speech is listened to in the places music is not — a train, a kitchen,
+    // a car — where what costs a sentence is the level, not the tone. The
+    // compressor evens out the voices; this puts whatever is playing at the
+    // level everything else plays at, which a limiter cannot do.
+    master: 'podcast',
   },
   {
     id: 'warm',
@@ -140,6 +151,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.air',
     group: 'basic',
     eq: 'air',
+    // Timing, and no harmonics: this chain's curve already lifts the top, and
+    // exciting it as well is how clarity turns into sibilance. What the
+    // Exciter's Timing profile does instead is put the bottom of the record
+    // back in step with the top — the half of a hardware "maximizer" that was
+    // never about brightness — which costs no level and no air.
+    exciter: 'timing',
     dimension: 'speakers',
     maximizer: 'default',
     maximizerDriveDb: 0.5,
@@ -182,7 +199,18 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.lateNight',
     group: 'basic',
     eq: 'lateNight',
-    bassPunch: 'lateNight',
+    /**
+     * The bass comes back as harmonics, because the real octave is what the
+     * wall lets through.
+     *
+     * A partition stops less the lower the note — roughly six decibels less
+     * per octave down — so the sub-bass is precisely what the neighbours
+     * hear, and this chain's curve cuts it. Re-timing the hit, which is what
+     * Bass Punch did here, does nothing about a record with no bottom left;
+     * Forge's harmonics of the missing fundamental are heard as that bottom
+     * by the listener and stopped by the wall.
+     */
+    bassForge: 'lateNight',
     compressor: 'lateNight',
     maximizer: 'lateNight',
   },
@@ -191,8 +219,14 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
     eq: 'pop',
+    // The two stages a pop master is made of that a curve cannot imitate: the
+    // sparkle on top, and a kick that arrives. Both stay light, and they do
+    // not meet — the Exciter's profile is top-band only, so Punch owns the
+    // bottom by itself.
+    exciter: 'pop',
+    bassPunch: 'pop',
     compressor: 'glue',
-    dimension: 'default',
+    dimension: 'pop',
     maximizer: 'pop',
   },
   {
@@ -200,8 +234,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.rock',
     group: 'genre',
     eq: 'rock',
+    // No Exciter, deliberately: the guitars are already generating harmonics
+    // and more of them land in the fizz band. What a rock record wants is the
+    // kick out from under them.
+    bassPunch: 'rock',
     compressor: 'rock',
-    dimension: 'speakers',
+    dimension: 'rock',
     maximizer: 'rock',
   },
   {
@@ -211,6 +249,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     eq: 'hiphop',
     bassForge: 'hiphop',
     compressor: 'punch',
+    // The 808 and the voice are the record, and both belong in the middle.
+    dimension: 'hiphop',
     maximizer: 'hiphop',
   },
   {
@@ -220,7 +260,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     eq: 'electronic',
     exciter: 'electronic',
     compressor: 'electronic',
-    dimension: 'expansive',
+    // Wide up top and mono at the bottom, which is how the genre is mixed
+    // and what the club system it is made for does to the bottom anyway.
+    dimension: 'electronic',
     maximizer: 'electronic',
   },
   {
@@ -228,7 +270,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
     eq: 'jazz',
-    dimension: 'speakers',
+    dimension: 'jazz',
     maximizer: 'jazz',
   },
   {
@@ -236,7 +278,10 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.classical',
     group: 'genre',
     eq: 'classical',
-    dimension: 'speakers',
+    // The low band stays at unity here where the other genres narrow it: a
+    // hall's bass arrives from every direction, and narrowing it moves the
+    // room rather than an instrument.
+    dimension: 'classical',
     maximizer: 'classical',
   },
   {
@@ -244,6 +289,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.acoustic',
     group: 'genre',
     eq: 'acoustic',
+    // Wood and string: body from the Organic generator and a little air, the
+    // one place in this catalogue where an Exciter is asked for low-mids.
+    exciter: 'acoustic',
     compressor: 'gentle',
     dimension: 'intimate',
     maximizer: 'acoustic',
@@ -253,8 +301,11 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.metal',
     group: 'genre',
     eq: 'metal',
+    // The one profile with no bloom at all: at these tempos a generated tail
+    // arrives on top of the next kick.
+    bassPunch: 'metal',
     compressor: 'rock',
-    dimension: 'speakers',
+    dimension: 'rock',
     maximizer: 'metal',
   },
   {
@@ -264,6 +315,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     eq: 'reggae',
     bassForge: 'dub',
     compressor: 'glue',
+    // A sound system's picture: the bass line mono, the top only modestly
+    // wide, because the room supplies more spread than a record can.
+    dimension: 'club',
     maximizer: 'reggae',
   },
   {
@@ -276,7 +330,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // is named for.
     bassPunch: 'dnb',
     compressor: 'electronic',
-    dimension: 'expansive',
+    // Mono at the bottom: a break's sub carries no image worth keeping, and
+    // any stereo information down there collapses on a club rig.
+    dimension: 'electronic',
     maximizer: 'default',
     // Retain a little level compensation for this EQ/compressor combination;
     // zero drive made the complete preset 2.5 dB quieter in the music audit.
@@ -306,6 +362,18 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.laptop',
     group: 'scene',
     eq: 'laptop',
+    /**
+     * The one chain where a bass generator is not a colour but the only way
+     * to hear the bass at all.
+     *
+     * The curve above it high-passes hard, because that speaker radiates
+     * nothing below its own resonance however much is sent to it — every
+     * octave down costs four times the excursion for the same loudness, so
+     * an EQ boost buys rattle. Forge's laptop profile makes no octave below
+     * at all; it builds the harmonics of the note instead, and the ear
+     * supplies the fundamental that the driver cannot.
+     */
+    bassForge: 'laptop',
     compressor: 'gentle',
     dimension: 'laptop',
     maximizer: 'default',
@@ -428,10 +496,15 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'repair',
     denoise: 'tape',
     eq: 'tape',
+    // The top a cassette lost, generated from the band under it rather than
+    // boosted out of a band that no longer holds it. It works here because
+    // of where it sits: after the restoration, so it builds on de-hissed
+    // audio — in front of it, the same profile would be a hiss enhancer.
+    exciter: 'tape',
     master: 'reference',
     // Tape EQ restores lost body and the cached loudness makeup otherwise
     // adds another four decibels. Calibrate the complete result, not the EQ.
-    masterOutputTrimDb: -1.5,
+    masterOutputTrimDb: -1.8,
   },
   {
     id: 'podcast',
@@ -440,7 +513,19 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     denoise: 'podcast',
     eq: 'podcast',
     compressor: 'voice',
-    maximizer: 'podcast',
+    /**
+     * A target rather than a limiter, because every show arrives at a
+     * different level and none of them at yours.
+     *
+     * Spoken word is the one programme where the listener cannot ride the
+     * volume: a quiet interview in a car is lost, and the next episode is
+     * four decibels louder for no reason anyone chose. Measured across a
+     * large corpus, podcasts average about -19 LUFS with a spread of ten;
+     * -16 is what the platforms normalise to. The compressor above has
+     * already evened out the voices within the show — this puts the show
+     * itself where every other show is.
+     */
+    master: 'podcast',
   },
   {
     id: 'audiobook',
@@ -449,6 +534,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     denoise: 'audiobook',
     eq: 'audiobook',
     compressor: 'voice',
-    maximizer: 'audiobook',
+    // The same, at the quieter target and the -3 dBTP ceiling a submitted
+    // audiobook is held to: hours of listening, so the level that matters is
+    // the one that does not tire.
+    master: 'audiobook',
   },
 ];

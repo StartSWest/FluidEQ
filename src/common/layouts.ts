@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { qualitiesForRack } from './bandQuality';
 import {
   DEFAULT_QUALITY,
   FilterTypeEnum,
@@ -66,10 +67,21 @@ const isSameFrequency = (left: number, right: number) =>
   Math.abs(Math.log10(Math.max(left, 1)) - Math.log10(Math.max(right, 1))) <
   0.0005;
 
-const neutralBand = (frequency: number): ILayoutBand => ({
+/**
+ * A band the target layout is filling a gap with, at the target's own width.
+ *
+ * `quality` is the layout's, not the app's: a band arriving at Q 2 in a
+ * thirty-one-band rack is three times wider than the bands either side of it,
+ * and the one thing a layout change must not do is leave a rack whose bands
+ * are not the same shape.
+ */
+const neutralBand = (
+  frequency: number,
+  quality = DEFAULT_QUALITY,
+): ILayoutBand => ({
   frequency,
   gain: 0,
-  quality: DEFAULT_QUALITY,
+  quality,
   type: FilterTypeEnum.PK,
 });
 
@@ -84,9 +96,19 @@ export const adaptLayoutSnapshot = (
 ): ILayoutSnapshot => {
   const source = sortBands(sourceSnapshot);
   const targetCount = FIXED_BAND_FREQUENCIES[targetSize].length;
+  // Every band this function invents belongs to the TARGET rack, so it takes
+  // that rack's width at its own frequency — which is not one number on a
+  // layout whose spacing changes along it.
+  const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[targetSize]);
+  const filler = (frequency: number) =>
+    neutralBand(
+      frequency,
+      widths[FIXED_BAND_FREQUENCIES[targetSize].indexOf(frequency)] ??
+        DEFAULT_QUALITY,
+    );
 
   if (source.length === 0) {
-    return FIXED_BAND_FREQUENCIES[targetSize].map(neutralBand);
+    return FIXED_BAND_FREQUENCIES[targetSize].map(filler);
   }
 
   if (source.length >= targetCount) {
@@ -109,7 +131,7 @@ export const adaptLayoutSnapshot = (
       expanded.length < targetCount &&
       !expanded.some((band) => isSameFrequency(band.frequency, frequency))
     ) {
-      expanded.push(neutralBand(frequency));
+      expanded.push(filler(frequency));
     }
   });
 
@@ -124,7 +146,7 @@ export const adaptLayoutSnapshot = (
       10 ** (Math.log10(min) + ratio * (Math.log10(max) - Math.log10(min))),
     );
     if (!expanded.some((band) => isSameFrequency(band.frequency, frequency))) {
-      expanded.push(neutralBand(frequency));
+      expanded.push(filler(frequency));
     }
     extraIndex += 1;
   }
@@ -144,8 +166,18 @@ export const adaptLayoutToFixedFrequencies = (
   targetSize: FixedBandSizeEnum,
 ): ILayoutSnapshot => {
   const adapted = adaptLayoutSnapshot(sourceSnapshot, targetSize);
+  const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[targetSize]);
   return FIXED_BAND_FREQUENCIES[targetSize].map((frequency, index) => ({
-    ...(adapted[index] || neutralBand(frequency)),
+    ...(adapted[index] || neutralBand(frequency, widths[index])),
     frequency,
+    // The TARGET rack's width, on every band and not only on the ones this
+    // conversion invented. A band keeping the width it had in the rack it came
+    // from is a band of the wrong shape: fifteen bands brought into a
+    // thirty-one-band rack arrived three times wider than the sixteen filling
+    // the gaps between them, so half the rack rang and half of it did not, and
+    // flattening the gains left the widths mismatched underneath. A band's
+    // frequency is being replaced here anyway — this is a change of rack, not
+    // an edit of one.
+    quality: widths[index],
   }));
 };

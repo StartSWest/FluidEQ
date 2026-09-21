@@ -99,7 +99,10 @@ describe('the linear-phase kernel', () => {
     // narrower than the rack's own.
     expect(kernelResponseDb(kernel, 80)).toBeCloseTo(6, 2);
     expect(kernelResponseDb(kernel, 5_000)).toBeCloseTo(-4, 2);
-    expect(kernelResponseDb(kernel, 40)).toBeCloseTo(1.15, 2);
+    // Off-centre, so this one reads the 80 Hz band's skirt and moves with the
+    // rack's width: 1.15 dB while every layout was built at Q 1.4, 0.52 now
+    // that a fifteen-band rack takes the 2.23 its own spacing asks for.
+    expect(kernelResponseDb(kernel, 40)).toBeCloseTo(0.52, 2);
   });
 
   /** A rack doing nothing is a delay and nothing else: flat everywhere, so

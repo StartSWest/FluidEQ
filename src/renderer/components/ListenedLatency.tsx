@@ -12,6 +12,7 @@ import {
 import LatencyReadout from './LatencyReadout';
 import GameModeSwitch from './GameModeSwitch';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import '../styles/EngineStrip.scss';
 
 /**
  * The delay of the output being listened to, for a page that reads nothing
@@ -29,7 +30,9 @@ const ListenedLatency = () => {
   const listened = useListenedOutput(isFluid && isEnabled);
   const delay = useListenedDelay(listened);
   return isFluid ? (
-    <>
+    // One capsule, because the switch is what moves the figure beside it —
+    // see `EngineStrip.scss` for what the two looked like standing apart.
+    <div className="engine-strip">
       <GameModeSwitch
         installedVersion={status?.fluid.dllVersion}
         reportedGameMode={listened.output?.gameMode}
@@ -37,7 +40,7 @@ const ListenedLatency = () => {
       {isEnabled && delay ? (
         <LatencyReadout latency={delay.latency} gameMode={delay.gameMode} />
       ) : null}
-    </>
+    </div>
   ) : null;
 };
 

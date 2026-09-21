@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { uid } from 'uid';
 import type { IBandDesign } from './bandDesigns';
+import { DEFAULT_BAND_QUALITY, qualitiesForRack } from './bandQuality';
 
 export const MAX_GAIN = 20;
 export const MIN_GAIN = -20;
@@ -35,10 +36,14 @@ export const MIN_GAIN = -20;
 // Two, not one. A Q of 1 is a broad shelf-like bell nearly an octave and a
 // half wide, which is why every default layout read as smeared: neighbouring
 // bands overlapped so far that moving one moved the sound of three. At 2 a
-// band is about two thirds of an octave, which is the spacing the layouts
-// themselves are laid out at. Every band the app creates on its own — the
-// layouts, Add band, and a value that failed to parse — starts here.
-export const DEFAULT_QUALITY = 2;
+// band is about two thirds of an octave, which is the spacing of the
+// fifteen-band layout this app opens with.
+//
+// It is the FALLBACK now rather than the answer: a band's width belongs to
+// its rack's spacing, so the layouts and Add band take theirs from
+// `qualityForRack` and only a band with no rack to measure — or a value that
+// failed to parse — lands here. See `bandQuality.ts`.
+export const DEFAULT_QUALITY = DEFAULT_BAND_QUALITY;
 
 export const clampGain = (gain: number) =>
   Number.isFinite(gain) ? Math.min(MAX_GAIN, Math.max(MIN_GAIN, gain)) : 0;
@@ -920,6 +925,7 @@ export enum FixedBandSizeEnum {
   SIX = 6,
   TEN = 10,
   FIFTEEN = 15,
+  TWENTY = 20,
   THIRTY_ONE = 31,
 }
 
@@ -934,27 +940,55 @@ export const FIXED_BAND_SIZES: readonly FixedBandSizeEnum[] = [
   FixedBandSizeEnum.SIX,
   FixedBandSizeEnum.TEN,
   FixedBandSizeEnum.FIFTEEN,
+  FixedBandSizeEnum.TWENTY,
   FixedBandSizeEnum.THIRTY_ONE,
 ];
 
 /**
  * Band centres for each quick layout.
  *
- * Ten, fifteen and thirty-one are the ISO octave, 2/3-octave and 1/3-octave
- * series used by hardware graphic EQs. Six is the musical shorthand set —
- * roughly 1.5 octaves apart, one band per range a listener actually reaches
- * for: weight, warmth, body, presence, attack and air. (It previously ran
- * 100 Hz to 3.2 kHz, which left both the sub-bass and the whole top octave
- * unreachable.)
+ * Every centre in every layout is an ISO 266 preferred frequency, and each
+ * layout is a whole number of third-octave steps along that series: three for
+ * the ten (the octave series), two for the fifteen (two-thirds), one for the
+ * thirty-one (third), five for the six (five-thirds), and the twenty's
+ * deliberate mix of one and two. Four of the six and two of the ten were not
+ * — 60, 170, 1500 and 12000, and 32 and 64 for 31.5 and 63 — which put four
+ * of this app's five racks off the series every hardware graphic EQ, every
+ * measurement microphone and every room-correction file is labelled in, and
+ * made a band here mean a slightly different frequency from a band of the
+ * same name anywhere else.
+ *
+ * The six is still the musical shorthand set — one band per range a listener
+ * reaches for: weight, warmth, body, presence, attack and air — now at 40,
+ * 125, 400, 1250, 4000 and 12500, which is that shape on the standard's own
+ * centres. (It ran 100 Hz to 3.2 kHz before that, which left both the
+ * sub-bass and the whole top octave unreachable.)
+ *
+ * Twenty is the fifteen with five ISO centres put back where the
+ * two-thirds-octave series skips them and a listener can hear the gap. It
+ * runs third-octave from 63 to 250 — 80, 125 and 200 added — which is the
+ * range every room and every headphone argues about and where one wide band
+ * takes its neighbours with it; and third-octave again from 6.3k to 16k, with
+ * 8k and 12.5k added, where the fifteen crosses presence, sibilance and air
+ * in two steps. Everything between keeps the two-thirds spacing, where the
+ * ear is least fussy about exactly which frequency moved.
+ *
+ * It is what the app opens with: the third-octave rack is more bands than
+ * most listeners want to drag, and the plain fifteen leaves those five
+ * decisions unavailable.
  */
 export const FIXED_BAND_FREQUENCIES: Record<FixedBandSizeEnum, number[]> = {
-  [FixedBandSizeEnum.SIX]: [60, 170, 500, 1500, 4000, 12000],
+  [FixedBandSizeEnum.SIX]: [40, 125, 400, 1250, 4000, 12500],
   [FixedBandSizeEnum.TEN]: [
-    32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000,
+    31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000,
   ],
   [FixedBandSizeEnum.FIFTEEN]: [
     25, 40, 63, 100, 160, 250, 400, 630, 1000, 1600, 2500, 4000, 6300, 10000,
     16000,
+  ],
+  [FixedBandSizeEnum.TWENTY]: [
+    25, 40, 63, 80, 100, 125, 160, 200, 250, 400, 630, 1000, 1600, 2500, 4000,
+    6300, 8000, 10000, 12500, 16000,
   ],
   [FixedBandSizeEnum.THIRTY_ONE]: [
     20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630,
@@ -980,18 +1014,32 @@ export const getDefaultFilterWithId = (): IFilter => {
 /**
  * The bands an equaliser starts with when nobody has chosen any.
  *
- * Fifteen rather than ten: the 2/3-octave series. Ten is the octave series,
- * a grid wide enough that pulling one band down takes a good part of the
- * range either side with it — the resolution somebody reaches for a shelf at
- * is finer than that. Both callers that ask with no size get this: a profile
+ * Fifteen: the 2/3-octave series. Ten is the octave series, a grid wide enough
+ * that pulling one band down takes a good part of the range either side with
+ * it — the resolution somebody reaches for a shelf at is finer than that.
+ *
+ * Not the twenty, which was this for an hour: twenty sliders across a
+ * 1920-wide window leave each one too narrow to read or to drag, and the rack
+ * is the page. It is a layout somebody picks on a wide screen, not the one
+ * the app opens with. Both callers that ask with no size get this: a profile
  * that has never been tuned, and Clear EQ.
  */
 export const getDefaultFilters = (
   size: FixedBandSizeEnum = FixedBandSizeEnum.FIFTEEN,
 ): IFiltersMap => {
   const filters: IFiltersMap = {};
-  FIXED_BAND_FREQUENCIES[size].forEach((f) => {
-    const filter: IFilter = { ...getDefaultFilterWithId(), frequency: f };
+  // Each band its own width, from the distance to the bands either side of
+  // it: a thirty-one-band layout at the fifteen-band's Q is three bands
+  // playing every note, a six-band at it leaves holes nothing can reach, and
+  // the twenty-band is close-spaced at both ends and wide through the middle,
+  // so one number cannot serve it. See `bandQuality.ts`.
+  const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[size]);
+  FIXED_BAND_FREQUENCIES[size].forEach((f, at) => {
+    const filter: IFilter = {
+      ...getDefaultFilterWithId(),
+      frequency: f,
+      quality: widths[at],
+    };
     filters[filter.id] = filter;
   });
   return filters;

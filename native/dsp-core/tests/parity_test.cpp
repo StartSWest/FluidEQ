@@ -263,6 +263,27 @@ constexpr const char* kPunchAlignmentMovesTheMaster[] = {
     "chain/master-headroom/white-noise",
 };
 
+/**
+ * The fixtures whose bands are shaped by the Focused character.
+ *
+ * Its law was the app's second: this side narrowed a band by
+ * 1 + |gain|/24 × 1.6 and the equaliser page by sqrt(1 + |gain|/12), so the
+ * same character under the same name was half again as narrow here at 12 dB.
+ * They are one law now (`shapeEqFilters` is the one), which moves every
+ * fixture that used it — and none that did not.
+ */
+constexpr const char* kFocusedMatchesTheEqualiser[] = {
+    "chain/eq-mid-side/sweep",
+};
+
+/** The linear-phase kernels are built from the same coefficients. */
+constexpr const char* kFocusedKernels[] = {
+    "linear-phase/narrow-low-proportional/serial/44100",
+    "linear-phase/narrow-low-proportional/serial/48000",
+    "linear-phase/narrow-low-proportional/parallel/44100",
+    "linear-phase/narrow-low-proportional/parallel/48000",
+};
+
 /** The only racks in the corpus that turn the compressor on. */
 constexpr const char* kBandSplitMovesTheCompressor[] = {
     "chain/compressor-maximizer/sweep",
@@ -284,6 +305,14 @@ constexpr Superseded kSuperseded[] = {
      "the exciter's Timing delays those same bands, so it inherited the hole: "
      "six exciter profiles measured a 2-4 dB scoop through 250-1000 Hz that "
      "nothing in their settings asked for. Same split, same date"},
+    {kChain, kFocusedMatchesTheEqualiser,
+     "the Focused character narrows by the equaliser page's own law since "
+     "2026-09-20, rather than by a second one half again as steep at 12 dB. "
+     "Ivan asked for the two pages to behave alike; this is the fixture whose "
+     "rack turns that character on"},
+    {kLinearPhase, kFocusedKernels,
+     "the same law, and the linear-phase kernels are built from the same "
+     "coefficients: the four fixtures here are the proportional ones"},
     {kChain, kBandSplitMovesTheCompressor,
      "the compressor divides its three bands with that same split, so the "
      "only two racks that turn it on moved with it, on the same date; neither "

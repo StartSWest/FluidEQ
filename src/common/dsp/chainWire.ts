@@ -41,7 +41,7 @@ import { roomMuteWire } from './roomSpeakers';
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 157;
+export const CHAIN_PARAM_LEAD = 158;
 
 /** Tagged optional Room block follows normalizer and explicit game mode. */
 export const CHAIN_ROOM_TAG = 1380929357; // ASCII ROOM
@@ -63,7 +63,7 @@ const ROOM_WIRE_KEYS = [
  * Where the room's head sits in the lead: the eighth of the room's
  * forty-two scalars, which end two before the band count.
  */
-const ROOM_HEAD_SLOT = CHAIN_PARAM_LEAD - 44 + 7;
+const ROOM_HEAD_SLOT = CHAIN_PARAM_LEAD - 45 + 7;
 
 /**
  * Which shipped head a rack on the wire asks for.
@@ -275,6 +275,17 @@ export const encodeChainSettings = (
     // does with them. The stored choice is untouched, so switching the Room
     // off gives it back.
     settings.surround.allChannels || settings.room.enabled ? 1 : 0,
+    /**
+     * How much limiting the Master's loudness target may spend.
+     *
+     * On the wire because outside the Library nobody measures the track: the
+     * app computes the makeup from a cached analysis and sends it as a gain,
+     * and system-wide there is no analysis, so the dial moved and the sound
+     * did not — the stage was a ceiling and nothing else. The engine measures
+     * the programme itself now, and to do that it needs the one number the
+     * app was keeping to itself.
+     */
+    master.peakLimitingDb,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and
     // `feq_chain_settings_decode` both read the band count from
     // `CHAIN_PARAM_LEAD - 1` to know how long the tail is. A scalar appended
@@ -435,14 +446,14 @@ export const legacyChainWithoutInactiveRoom = (
   const sourceBypassed = values[values.length - 1] === 1;
   if (
     values[0] !== 0 &&
-    values[CHAIN_PARAM_LEAD - 44] !== 0 &&
+    values[CHAIN_PARAM_LEAD - 45] !== 0 &&
     !sourceBypassed
   ) {
     return undefined;
   }
   const base = values.slice(0, -CHAIN_ROOM_TRAILER);
   if (sourceBypassed) {
-    base[CHAIN_PARAM_LEAD - 44] = 0;
+    base[CHAIN_PARAM_LEAD - 45] = 0;
   }
   return base[base.length - 1] === 0 ? base.slice(0, -1) : base;
 };

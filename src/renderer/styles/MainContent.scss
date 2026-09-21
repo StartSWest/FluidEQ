@@ -206,6 +206,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 /*
+ * Running, and not all of it.
+ *
+ * The rainbow is this app's mark for an engine doing everything it was asked
+ * for, and it was being worn beside a card saying part of the sound was not
+ * reaching the output — reported as exactly that. So the name drops the
+ * gradient and takes the one caution colour the rest of the window uses for
+ * "partly", with the amber dot beside it. Lit rather than dimmed: something
+ * IS working, which is the difference from broken.
+ */
+.eq-engine-line--partly .eq-engine-label {
+  color: $amber;
+  background: none;
+  animation: none;
+}
+
+/*
  * Still asking. Faded, with the same crest travelling through the name on a
  * loop — something is happening and nothing has been claimed yet.
  *
@@ -1196,6 +1212,96 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   border-radius: $radius-l;
 }
 
+// The same row with nothing selected: what is being shaped, then three dials
+// for the whole rack.
+//
+// Its own template rather than the band editor's seven columns — a row of
+// four spread across a grid built for seven leaves two dials adrift at the
+// far end with a hole between them. The dials keep the 64px floor and grow to
+// whatever their caption needs, which is what stops the German "Höhen" and
+// the Russian "Средние" from being clipped to stubs.
+// Bigger than a band's dials, deliberately, and doubled up on the class on
+// purpose.
+//
+// The two rows stand in the same place and one replaces the other, so at the
+// same size they read as the same control with different words on it — which
+// is the opposite of true: one moves a band, these three move the whole rack.
+// 68px against 50px is the difference being said in the only language a row
+// of dials has. The taller control line is what keeps them off the captions
+// above; a 68px circle hung in a 38px line by negative margins would cross
+// them.
+//
+// `.eq-flat-editor.eq-flat-editor--tone` rather than the modifier alone
+// because every rule that sizes this row is written as `.eq-flat-editor`,
+// including the ones further down this file and inside its queries: at equal
+// specificity the last one wins, so a single class here quietly lost the dial
+// size to the band row's 50px — measured in the window as exactly that, three
+// dials claiming to be bigger and rendering identical.
+.eq-flat-editor.eq-flat-editor--tone {
+  grid-template-columns:
+    minmax(104px, max-content)
+    repeat(3, minmax(88px, max-content));
+  gap: 14px;
+  padding: 12px 16px;
+
+  .eq-flat-editor__identity,
+  .eq-flat-editor__control {
+    grid-template-rows: 14px 56px;
+  }
+
+  .eq-flat-editor__identity strong {
+    height: 56px;
+    font-size: 1.15rem;
+  }
+
+  .knob {
+    width: 68px;
+    height: 68px;
+    flex-basis: 68px;
+    margin-block: -6px;
+  }
+}
+
+// On a screen with no height to spare, the dials give some back.
+//
+// Every pixel this row takes is a pixel off the response graph under it, and
+// on a 1080-tall window that graph is already the thing being squeezed — the
+// row measured 100px against the band editor's 74, for three dials and four
+// words. At 52px they are still unmistakably larger than a band's 50px face
+// — which is the whole reason they are bigger — and the row comes back to the
+// height of the one it replaces, so nothing below it moves when the selection
+// changes.
+//
+// Height rather than width, because this is not about the row running out of
+// room sideways: it never does. It is about what else is on screen.
+@media (max-height: 1100px) {
+  .eq-flat-editor.eq-flat-editor--tone {
+    // The band editor's own, restated because the rule above overrides them:
+    // the two rows stand in the same place and one replaces the other, so at
+    // this size they have to be the same box or the whole page under them
+    // moves when the selection changes.
+    gap: 8px;
+    padding: 10px 12px;
+
+    .eq-flat-editor__identity,
+    .eq-flat-editor__control {
+      grid-template-rows: 14px $control-height;
+    }
+
+    .eq-flat-editor__identity strong {
+      height: $control-height;
+      font-size: $text-title;
+    }
+
+    .knob {
+      width: 52px;
+      height: 52px;
+      flex-basis: 52px;
+      margin-block: -7px;
+    }
+  }
+}
+
 // Label row then control row, identical in every column, so every field lands
 // on the same two horizontal lines.
 .eq-flat-editor__identity,
@@ -1587,6 +1693,32 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 12px;
+  }
+
+  // Three, because everything on the tone row except its name IS a dial, and
+  // a fourth column here would be a hole the width of one. Its name takes the
+  // line above, the way the band's does — with the eyebrow beside the value
+  // rather than over it, which is what the shared rule below already does and
+  // what the two-row cell would otherwise fight.
+  // Spelled out rather than leaning on the band row's version of the same
+  // idea: the tone row's own rules are more specific than that one, so half
+  // of it applied and half did not, and the name came out stacked over its
+  // value in a cell still holding a 56px line for a dial that is not there.
+  .eq-flat-editor.eq-flat-editor--tone {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    .eq-flat-editor__identity {
+      grid-column: 1 / -1;
+      grid-template-columns: max-content minmax(0, 1fr);
+      grid-template-rows: auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .eq-flat-editor__identity strong {
+      height: auto;
+      justify-content: flex-end;
+    }
   }
 
   .eq-flat-editor__control--wide {

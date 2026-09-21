@@ -40,6 +40,20 @@ interface IMetrics {
   crestDb: number;
 }
 
+/**
+ * What the Library hands a chain whose Master is bringing a track to a target.
+ *
+ * Stood in for here because this harness has no analysis of its own; the real
+ * figure is whatever the song's own loudness asks for.
+ */
+const MASTER_MAKEUP_DB = 4;
+
+/** A chain that is deliberately moving the level toward a delivery target. */
+const normalisesLoudness = (settings: IDspSettings): boolean =>
+  settings.master.enabled &&
+  settings.master.loudnessMaximize &&
+  !settings.master.matchedBypass;
+
 let failures = 0;
 const line = (message: string) => process.stdout.write(`${message}\n`);
 const check = (condition: boolean, what: string) => {
@@ -232,11 +246,7 @@ const main = async (): Promise<void> => {
     check(
       await host.setTrackGains(
         inputGainDb,
-        settings.master.enabled &&
-          settings.master.loudnessMaximize &&
-          !settings.master.matchedBypass
-          ? 4
-          : 0,
+        normalisesLoudness(settings) ? MASTER_MAKEUP_DB : 0,
         true,
       ),
       `${name}: gains apply`,
@@ -286,9 +296,25 @@ const main = async (): Promise<void> => {
         `${preset.id}: no clip, silence, DC, or crushing`,
       );
       if (levelChecks) {
+        /**
+         * The floor is the same for every chain; only the ceiling moves.
+         *
+         * A chain whose Master is bringing the programme to a target cannot
+         * also be level-neutral — the harness hands it a makeup (above) and
+         * the old window then demanded the result come back where it started,
+         * which is why Default failed this for as long as the window existed.
+         * Those chains may spend the makeup they were given and no more; the
+         * Master's own limiter absorbs part of it, and how much is a property
+         * of the destination rather than a fault. Vinyl keeps a -3 dBTP
+         * ceiling for the lathe, so it delivers almost none of it and lands
+         * below DSP Off, which is correct and still inside the floor.
+         */
+        const normalising = normalisesLoudness(preset.settings);
         check(
-          levelDb > -1.5 && levelDb < 1.6,
-          `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
+          levelDb > -1.5 && levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
+          normalising
+            ? `${preset.id}: spends its makeup and no more`
+            : `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
         );
         if (preset.id === 'reference') {
           check(

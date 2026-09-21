@@ -220,6 +220,28 @@ export const BASS_FORGE_PRESET_BY_ID = {
     // that pushes it hardest.
     settings: profile(100, 1, 0, 1.85, 1, 0.7),
   },
+  lateNight: {
+    id: 'lateNight',
+    labelKey: 'dsp.eqPreset.lateNight',
+    group: 'scene',
+    /**
+     * The bass the listener keeps, without the bass the wall lets through.
+     *
+     * A partition stops less the lower the note: transmission loss falls by
+     * about 6 dB per octave on the way down, so the sub-bass is exactly what
+     * arrives in the next room. The Late night curve therefore cuts below
+     * ~70 Hz — and then the record has no bottom. `subAmount` at 0 means
+     * nothing here puts that octave back; the presence generator makes its
+     * harmonics instead, which the ear hears as the missing fundamental at a
+     * fraction of the energy, and which a wall stops.
+     *
+     * Texture at 1 is part of that: pure second order, the octave up, is the
+     * clearest phantom-fundamental cue the generator has. Mixed low, because
+     * this profile is heard at low volume, where the ear has already lost
+     * most of its bass sensitivity and a heavy hand reads as honk.
+     */
+    settings: profile(100, 0.5, 0, 1.2, 1, 0.35),
+  },
   headphones: {
     id: 'headphones',
     labelKey: 'dsp.dimensionPreset.headphones',

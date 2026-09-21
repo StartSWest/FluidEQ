@@ -30,6 +30,7 @@ import DspChainPresetBar from './DspChainPresetBar';
 import DspHeldLock from './DspHeldLock';
 import DspScopeNotice from './DspScopeNotice';
 import GameModeSwitch from '../components/GameModeSwitch';
+import LatencyReadout from '../components/LatencyReadout';
 import DspSideTabs from './DspSideTabs';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
@@ -52,6 +53,7 @@ import {
 } from './store';
 import '../styles/Dsp.scss';
 import { masterLoudnessBreakdown } from './inputNormalizer';
+import { readOpenDspSection, writeOpenDspSection } from './openSection';
 import { useNativeMeters } from './useNativeBackend';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
@@ -281,7 +283,10 @@ const DspPanel = ({
   );
   // Which processor has the page. Local state: it is where the user is
   // looking, not part of the chain, and nothing outside this panel needs it.
-  const [section, setSection] = useState<TDspSection>('normalizer');
+  // Where it was left, not where the rack starts: see `openSection.ts`.
+  const [section, setSection] = useState<TDspSection>(() =>
+    readOpenDspSection('normalizer'),
+  );
   const isStageDisabled =
     section === 'crossfade' ? !hasLibraryPlayback : !areControlsUsable;
 
@@ -420,6 +425,7 @@ const DspPanel = ({
       onCommit();
     }
     setSection(next);
+    writeOpenDspSection(next);
   };
 
   const bandLabels: TranslationKey[] = [
@@ -456,11 +462,24 @@ const DspPanel = ({
               with it. Its two words say which channels, the way the power's
               say on or off; the longer sentence is the tooltip. */}
           <div className="dsp-header-switches">
+            {/* One capsule, the same one the equaliser's page wears: the
+                switch is what moves the figure beside it, and standing apart
+                — the switch up here and the delay down in the scope row —
+                they read as two unrelated things rather than as a cause and
+                its number. */}
             {isSystemWide ? (
-              <GameModeSwitch
-                installedVersion={audioEngine?.fluid.dllVersion}
-                reportedGameMode={listened.output?.gameMode}
-              />
+              <div className="engine-strip">
+                <GameModeSwitch
+                  installedVersion={audioEngine?.fluid.dllVersion}
+                  reportedGameMode={listened.output?.gameMode}
+                />
+                {delay ? (
+                  <LatencyReadout
+                    latency={delay.latency}
+                    gameMode={delay.gameMode}
+                  />
+                ) : null}
+              </div>
             ) : null}
             <div
               className="dsp-global-power dsp-surround"
@@ -522,8 +541,6 @@ const DspPanel = ({
           status={audioEngine}
           suspension={suspension}
           isRackEngaged={isRackEngaged}
-          latency={delay?.latency}
-          gameMode={delay?.gameMode ?? false}
           onOpenEngineDialog={onOpenEngineDialog}
         />
         {engineState === 'failed' ? (

@@ -11,6 +11,7 @@ import type { IMotionPreferenceState } from 'main/ipc/motionPreference';
 import type { TMotionPreference } from 'main/motionPreference';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { useTranslation } from '../utils/I18nContext';
+import { applyMotionPreference } from '../utils/motionPreference';
 import Switch from '../widgets/Switch';
 
 const bridge = () => window.electron?.ipcRenderer;
@@ -56,6 +57,7 @@ const MotionPicker = () => {
       ?.motionPreference?.()
       .then((next) => {
         known = next;
+        applyMotionPreference(next.chosen);
         if (current) {
           setState(next);
         }
@@ -72,6 +74,7 @@ const MotionPicker = () => {
       ?.setMotionPreference?.(next)
       .then((saved) => {
         known = saved;
+        applyMotionPreference(saved.chosen);
         setState(saved);
         return undefined;
       })
@@ -94,7 +97,7 @@ const MotionPicker = () => {
           ariaLabel={t('motion.aria')}
         />
       </span>
-      {state.chosen !== state.atLaunch && (
+      {state.chosen === 'full' && state.atLaunch === 'reduced' && (
         <span className="menu-preference__note" role="status">
           {t('motion.restart')}
         </span>

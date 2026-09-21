@@ -31,6 +31,7 @@ import {
   stopAllPlayback,
 } from '../../../renderer/audio/playbackOwner';
 import DspPanel from '../../../renderer/dsp/DspPanel';
+import { DSP_OPEN_SECTION_KEY } from '../../../renderer/dsp/openSection';
 import {
   IDspDenoiseMeter,
   IDspNormalizerMeter,
@@ -160,6 +161,10 @@ beforeAll(() => {
 
 beforeEach(() => {
   resetAudioEngineStatus();
+  // The page opens where it was last left, which is a per-machine preference
+  // and not what any of these cases is about: without this, a case that opens
+  // a processor decides which card the next one renders.
+  window.localStorage.removeItem(DSP_OPEN_SECTION_KEY);
   jest.mocked(getAudioEngineStatus).mockResolvedValue(APO_STATUS);
   act(() => {
     claimPlayback('library');

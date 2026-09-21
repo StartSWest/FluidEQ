@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dimension.h"
 #include "fluideq/dynamics.h"
 #include "fluideq/exciter.h"
+#include "fluideq/leveling_memory.h"
 #include "fluideq/limiter.h"
 #include "fluideq/linear_phase.h"
 #include "fluideq/loudness_meter.h"
@@ -420,6 +421,37 @@ struct FeqChain {
   int64_t transition_frames = 0;
   int64_t transition_elapsed = 0;
   double master_gain_now = 1.0;
+
+  /* ------------------------------------------- the Master, self-measured -- */
+  /**
+   * What the Master does where nobody has measured the track for it.
+   *
+   * The Library hands the chain a makeup computed from a cached whole-file
+   * analysis (`feq_chain_set_track_level_gains`). Outside it — every stream
+   * Windows plays through the system engine — there is no analysis, so that
+   * makeup was zero for ever: the loudness target could be dragged from one
+   * end of the dial to the other and nothing changed, which is what a
+   * listener reported after living with it.
+   *
+   * So the chain measures the programme itself, on the signal entering the
+   * master gain: gated integrated loudness exactly as the app's analyzer
+   * defines it, and the true peak the Auto Headroom limiter is already
+   * computing one stage earlier. The makeup follows the same arithmetic the
+   * app uses, and glides rather than steps — `kLiveMasterSeconds`.
+   *
+   * Per song, because integrated loudness describes one piece of music: the
+   * leveler's memory says when the song changed (the app names it in
+   * `fluideq-programme.txt`), and everything here starts again.
+   */
+  FeqLoudnessMeter* programme_meter = nullptr;
+  FeqLevelingMemory* leveling = nullptr;
+  uint64_t live_master_song = 0;
+  double live_master_peak_db = -120.0;
+  double live_master_target_db = 0.0;
+  double live_master_now_db = 0.0;
+  int64_t live_master_frames = 0;
+  /** The Library measured the track, so the chain must not measure it again. */
+  int host_track_gains = 0;
 
   /** Scratch for the block's pointer arrays, so the loop allocates none. */
   float* pointers_a[FEQ_CHAIN_MAX_CHANNELS] = {};

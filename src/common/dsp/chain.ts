@@ -21,6 +21,7 @@ import {
   defaultCrossfadeShape,
   ICrossfadeShape,
 } from './crossfadeShape';
+import { qualityForRack } from '../bandQuality';
 import { NOISE_HUM_MAX_HARMONICS } from './noiseProfile';
 import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
 
@@ -714,9 +715,22 @@ export interface IEqBandSettings {
  * sold, and a mode named after somebody's console is a trademark problem
  * rather than a technical one.
  */
-export type TEqModel = 'clean' | 'proportional' | 'wide';
+export type TEqModel = 'clean' | 'proportional' | 'wide' | 'asymmetric';
 
-export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
+/**
+ * Append-only: the wire carries an index into this list, so an insert would
+ * hand a running engine somebody else's character.
+ *
+ * `asymmetric` came last and is the main equaliser's fourth mode, brought
+ * here because the two pages offering different characters under the same
+ * heading is the kind of difference nobody can hear a reason for.
+ */
+export const EQ_MODELS: readonly TEqModel[] = [
+  'clean',
+  'proportional',
+  'wide',
+  'asymmetric',
+];
 
 /**
  * How the bands are put against the audio, which is a different question from
@@ -1324,150 +1338,50 @@ const DEFAULT_BAND: IBandSettings = {
 };
 
 /**
- * The six bands, spread the way a mixing desk lays them out.
+ * The rack this EQ opens with: shelves at the ends and thirteen bells
+ * between, two thirds of an octave apart, all at 0 dB so opening the page
+ * changes nothing until something is moved.
  *
- * Shelves at the ends and bells between, spaced roughly two octaves apart so
- * every band starts somewhere useful and none of them start on top of each
- * other. All at 0 dB, so opening the EQ changes nothing until something is
- * moved.
+ * Where the fifteen bands sit and what each one is, which is what the factory
+ * curves are written against. Their WIDTH is not written here: it comes from
+ * the spacing (`bandQuality.ts`), the same way every other rack size gets
+ * theirs, so the one number that decides how much neighbouring bands overlap
+ * cannot drift between the two equalisers.
  */
-const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
-  {
-    enabled: true,
-    type: 'LSC',
-    frequency: 32,
-    gainDb: 0,
-    quality: 0.7,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 50,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 80,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 125,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 200,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 315,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 500,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 800,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 1_250,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 2_000,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 3_150,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 5_000,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 8_000,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'PK',
-    frequency: 12_500,
-    gainDb: 0,
-    quality: 1.4,
-    dynamic: false,
-    thresholdDb: -24,
-  },
-  {
-    enabled: true,
-    type: 'HSC',
-    frequency: 16_000,
-    gainDb: 0,
-    quality: 0.7,
-    dynamic: false,
-    thresholdDb: -24,
-  },
+const DEFAULT_EQ_LAYOUT: readonly (readonly [number, string])[] = [
+  [32, 'LSC'],
+  [50, 'PK'],
+  [80, 'PK'],
+  [125, 'PK'],
+  [200, 'PK'],
+  [315, 'PK'],
+  [500, 'PK'],
+  [800, 'PK'],
+  [1250, 'PK'],
+  [2000, 'PK'],
+  [3150, 'PK'],
+  [5000, 'PK'],
+  [8000, 'PK'],
+  [12500, 'PK'],
+  [16000, 'HSC'],
 ];
+
+/** Bells take the rack's own width; shelves keep the Butterworth 0.7. */
+const DEFAULT_BELL_QUALITY = qualityForRack(
+  DEFAULT_EQ_LAYOUT.map(([frequency]) => frequency),
+);
+
+const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = DEFAULT_EQ_LAYOUT.map(
+  ([frequency, type]) => ({
+    enabled: true,
+    type,
+    frequency,
+    gainDb: 0,
+    quality: type === 'PK' ? DEFAULT_BELL_QUALITY : 0.7,
+    dynamic: false,
+    thresholdDb: -24,
+  }),
+);
 
 /**
  * The rack sizes offered, and the ISO centres each one lands on.
@@ -1492,16 +1406,11 @@ const RACK_FREQUENCIES: Record<number, readonly number[]> = {
 
 export const EQ_RACK_SIZES = [6, 10, 15, 31] as const;
 
-/**
- * Q for a rack whose bands sit `octaves` apart.
- *
- * The standard relation, Q = 1 / (2^(n/2) - 2^(-n/2)). It is what makes a
- * graphic EQ's bands meet at their skirts instead of leaving holes between
- * them (Q too high) or piling three bands onto one frequency (Q too low), and
- * it is why a 31-band rack wants Q≈4.3 where a 10-band wants Q≈1.4.
+/*
+ * Q for a rack whose bands sit a given distance apart lives in
+ * `../bandQuality`, because the main equaliser's layouts and its Add band
+ * answer the same question and must answer it the same way.
  */
-const qForSpacing = (octaves: number): number =>
-  Math.round((1 / (2 ** (octaves / 2) - 2 ** (-octaves / 2))) * 100) / 100;
 
 /**
  * A full rack at one of the offered sizes.
@@ -1527,11 +1436,7 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
   if (count === EQ_BAND_COUNT) {
     return DEFAULT_EQ_BANDS;
   }
-  // Total span in octaves divided by the gaps between bands.
-  const octaves =
-    Math.log2(frequencies[frequencies.length - 1] / frequencies[0]) /
-    Math.max(1, frequencies.length - 1);
-  const quality = qForSpacing(octaves);
+  const quality = qualityForRack(frequencies);
   return frequencies.map((frequency) => ({
     enabled: true,
     dynamic: false,

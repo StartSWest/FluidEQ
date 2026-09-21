@@ -32,6 +32,7 @@ import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
 import { encodeChainSettings } from '../../../common/dsp/chainWire';
 import { FluidEqProviderWrapper } from '../../../renderer/utils/FluidEqContext';
 import DspPanel from '../../../renderer/dsp/DspPanel';
+import { DSP_OPEN_SECTION_KEY } from '../../../renderer/dsp/openSection';
 import {
   applyDspSettings,
   readDspOutputSafetyEnabled,
@@ -195,6 +196,10 @@ beforeEach(() => {
   act(() => applyDspSettings(DSP_DEFAULTS));
   chainsSent = [];
   resetSystemDspChain();
+  // The page opens where it was last left, which is a per-machine preference
+  // and not something any of these cases is about: without this, a case that
+  // opens a processor decides which card the next one renders.
+  window.localStorage.removeItem(DSP_OPEN_SECTION_KEY);
   // The scope notice reads "play a track" until something is playing, and the
   // side tabs are disabled until the rack is live — both of which would make
   // these checks about the transport rather than about the engine.

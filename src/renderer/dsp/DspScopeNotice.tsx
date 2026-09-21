@@ -24,12 +24,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useState } from 'react';
 import type { IAudioDevice } from '../../common/constants';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
-import type { IEngineLatency } from '../../common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
-import LatencyReadout from '../components/LatencyReadout';
 import type { TRackSuspension } from './rackPlacement';
 
 interface IDspScopeNoticeProps {
@@ -42,13 +40,6 @@ interface IDspScopeNoticeProps {
   suspension: TRackSuspension | undefined;
   /** False while nothing is playing through the Library player. */
   isRackEngaged: boolean;
-  /**
-   * The delay the engine measures on the output being listened to, stage by
-   * stage; absent while nothing plays there or from an older engine.
-   */
-  latency: IEngineLatency | undefined;
-  /** Whether the engine is running that output in game mode. */
-  gameMode: boolean;
   /** Absent until the engine dialog exists; the link renders only with it. */
   onOpenEngineDialog?: () => void;
 }
@@ -68,8 +59,6 @@ const DspScopeNotice = ({
   status,
   suspension,
   isRackEngaged,
-  latency,
-  gameMode,
   onOpenEngineDialog,
 }: IDspScopeNoticeProps) => {
   const { t } = useTranslation();
@@ -160,10 +149,9 @@ const DspScopeNotice = ({
             ? t('dsp.scope.system', { output })
             : t('dsp.scope.systemAll')}
         </span>
-        {/* Only measured processing buffers; no guessed fallback. */}
-        {latency ? (
-          <LatencyReadout latency={latency} gameMode={gameMode} />
-        ) : undefined}
+        {/* The delay moved into the game-mode capsule in the header, where
+            the switch that moves it is: apart, the two read as unrelated
+            things rather than as a cause and its number. */}
       </div>
     );
   }

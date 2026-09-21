@@ -90,8 +90,7 @@ const plus = {
   'plus.scene.back': 'Indietro',
   'plus.scene.previous': 'Scena precedente: {name}',
   'plus.scene.next': 'Scena successiva: {name}',
-  'plus.scene.loading': 'Download della scena…',
-  'plus.scene.starting': 'Avvio della scena…',
+  'plus.scene.loading': 'Caricamento della scena…',
   'plus.scene.playing': 'Dal vivo con la tua musica',
   'plus.scene.plusPlays':
     'Con Plus, questa scena si muove qui con la tua musica',

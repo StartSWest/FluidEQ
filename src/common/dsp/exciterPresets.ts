@@ -4,71 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  DSP_DEFAULTS,
-  IExciterBandSettings,
-  IExciterSettings,
-  IOrganicSettings,
-  IPhaseAlignSettings,
-  constrainExciterBandPosition,
-} from './chain';
+import { IExciterSettings } from './chain';
+import { EXCITER_GENRE_PRESETS } from './exciterGenrePresets';
+import { IExciterPreset, exciterProfile } from './exciterProfile';
 
-export const EXCITER_PRESET_GROUPS = [
-  'basic',
-  'genre',
-  'voice',
-  'scene',
-  'character',
-  'repair',
-] as const;
-
-export type TExciterPresetGroup = (typeof EXCITER_PRESET_GROUPS)[number];
-
-/**
- * A processor profile owns the Exciter's sound, not its place in the chain.
- *
- * Bypass and Isolate are deliberately absent. A future chain preset decides
- * whether this processor participates at all, while Isolate remains a
- * temporary monitoring action. Keeping those fields out is what lets Rock
- * reference EQ Rock and Exciter Rock independently or omit either one.
- */
-export type IExciterPresetSettings = Pick<
-  IExciterSettings,
-  'stereo' | 'bands' | 'organic' | 'align'
->;
-
-export interface IExciterPreset {
-  id: string;
-  labelKey: string;
-  group: TExciterPresetGroup;
-  settings: IExciterPresetSettings;
-}
-
-type TBandPatches = readonly [
-  Partial<IExciterBandSettings>,
-  Partial<IExciterBandSettings>,
-  Partial<IExciterBandSettings>,
-];
-
-const NO_BAND_PATCHES: TBandPatches = [{}, {}, {}];
-
-const settings = (
-  bands: TBandPatches = NO_BAND_PATCHES,
-  organic: Partial<IOrganicSettings> = {},
-  align: Partial<IPhaseAlignSettings> = {},
-  stereo: IExciterSettings['stereo'] = DSP_DEFAULTS.exciter.stereo,
-): IExciterPresetSettings => ({
-  stereo,
-  bands: DSP_DEFAULTS.exciter.bands.map((band, index) => {
-    const next = { ...band, ...bands[index] };
-    return {
-      ...next,
-      ...constrainExciterBandPosition(index, next.freqHz, next.range),
-    };
-  }),
-  organic: { ...DSP_DEFAULTS.exciter.organic, ...organic },
-  align: { ...DSP_DEFAULTS.exciter.align, ...align },
-});
+export { EXCITER_PRESET_GROUPS, exciterProfile } from './exciterProfile';
+export type {
+  IExciterPreset,
+  IExciterPresetSettings,
+  TExciterPresetGroup,
+} from './exciterProfile';
 
 /**
  * Processor-local profiles, keyed by the stable id a chain preset references.
@@ -102,7 +47,7 @@ export const EXCITER_PRESET_BY_ID = {
     // None clears every sound-producing section but leaves the stage's own
     // On/Off state alone. The reset values remain available behind the off
     // section toggles, so the user starts from a known neutral rack.
-    settings: settings(
+    settings: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: false },
       { enabled: false },
@@ -112,146 +57,39 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'default',
     labelKey: 'dsp.eqPreset.default',
     group: 'basic',
-    settings: settings(),
+    settings: exciterProfile(),
   },
-  rock: {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    settings: settings(
-      [
-        { freqHz: 90, range: 0.3, drive: 2, mix: 0.25 },
-        {
-          freqHz: 1_100,
-          range: 0.28,
-          drive: 2.1,
-          mix: 0.28,
-          texture: 0.22,
-        },
-        { freqHz: 6_800, drive: 2.65, mix: 0.45, texture: 0.62 },
-      ],
-      {},
-      { enabled: true, amount: 0.3 },
+  timing: {
+    id: 'timing',
+    labelKey: 'dsp.exciter.align',
+    group: 'basic',
+    /**
+     * The only profile here that generates nothing at all.
+     *
+     * Every other one adds harmonics; this one just puts the bottom of the
+     * record back in time with the top, which is the half of a hardware
+     * "maximizer" that was never about brightness — BBE built theirs around
+     * loudspeaker phase smear, not around harmonics. It is the profile to
+     * reach for when a mix is dull in a way that adding sparkle does not fix,
+     * and the safe one on material already too bright to excite.
+     *
+     * Rendered against DSP Off, the difference signal it leaves sits 2.3 dB
+     * under the programme itself: a phase rotation changes nearly every
+     * sample, which is worth knowing before reading any level meter for what
+     * this does. What it changes in LEVEL is nothing at all.
+     */
+    settings: exciterProfile(
+      [{ enabled: false }, { enabled: false }, { enabled: false }],
+      { enabled: false },
+      { enabled: true, amount: 0.5 },
     ),
   },
-  pop: {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    settings: settings(
-      [
-        { mix: 0.11 },
-        { freqHz: 1_250, mix: 0.19, texture: 0.2 },
-        { freqHz: 7_200, drive: 2.65, mix: 0.32, texture: 0.62 },
-      ],
-      {
-        enabled: true,
-        amount: 0.13,
-        focusHz: 500,
-        range: 0.28,
-      },
-    ),
-  },
-  jazz: {
-    id: 'jazz',
-    labelKey: 'dsp.eqPreset.jazz',
-    group: 'genre',
-    settings: settings(
-      [{ mix: 0.07 }, { mix: 0.11 }, { mix: 0.16, texture: 0.5 }],
-      { enabled: true, amount: 0.16, focusHz: 450, range: 0.35 },
-    ),
-  },
-  classical: {
-    id: 'classical',
-    labelKey: 'dsp.eqPreset.classical',
-    group: 'genre',
-    // The most transparent profile in the catalogue, and the one that has to
-    // stay that way: its harmonics sit around 32 dB under the note.
-    settings: settings([
-      { mix: 0.035 },
-      { mix: 0.065 },
-      { freqHz: 8_500, drive: 2.25, mix: 0.15, texture: 0.52 },
-    ]),
-  },
-  electronic: {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    settings: settings(
-      [
-        { freqHz: 72, drive: 2.2, mix: 0.25, texture: 0.04 },
-        { mix: 0.17 },
-        { drive: 2.8, mix: 0.53, texture: 0.64 },
-      ],
-      { enabled: true, amount: 0.16, focusHz: 180, range: 0.28 },
-      { enabled: true, amount: 0.28 },
-    ),
-  },
-  hiphop: {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    settings: settings(
-      [
-        // The most forward low band in the catalogue: its octave sits 18 dB
-        // under the note, which is where a small speaker starts finding a
-        // fundamental it cannot reproduce.
-        { freqHz: 65, drive: 2.15, mix: 0.26, texture: 0.03 },
-        { mix: 0.15 },
-        { drive: 2.35, mix: 0.19, texture: 0.5 },
-      ],
-      {
-        enabled: true,
-        amount: 0.18,
-        focusHz: 150,
-        range: 0.25,
-      },
-      { enabled: true, amount: 0.2 },
-    ),
-  },
-  acoustic: {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    settings: settings(
-      [
-        { mix: 0.08 },
-        { freqHz: 800, mix: 0.24, texture: 0.12 },
-        { drive: 2.45, mix: 0.38, texture: 0.55 },
-      ],
-      { enabled: true, amount: 0.16, focusHz: 420, range: 0.32 },
-      { enabled: true, amount: 0.12 },
-    ),
-  },
-  metal: {
-    id: 'metal',
-    labelKey: 'dsp.eqPreset.metal',
-    group: 'genre',
-    settings: settings(
-      [
-        { mix: 0.18 },
-        { freqHz: 1_500, mix: 0.25, texture: 0.28 },
-        { freqHz: 6_800, drive: 2.7, mix: 0.5, texture: 0.64 },
-      ],
-      {},
-      { enabled: true, amount: 0.35 },
-    ),
-  },
-  ambient: {
-    id: 'ambient',
-    labelKey: 'dsp.eqPreset.ambient',
-    group: 'genre',
-    settings: settings(
-      [{ mix: 0.08 }, { mix: 0.13 }, { drive: 2.4, mix: 0.4 }],
-      { enabled: true, amount: 0.12, focusHz: 500, range: 0.38 },
-      { enabled: true, amount: 0.1 },
-    ),
-  },
+  ...EXCITER_GENRE_PRESETS,
   vocal: {
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
     group: 'voice',
-    settings: settings(
+    settings: exciterProfile(
       [
         { enabled: false },
         { freqHz: 850, range: 0.25, mix: 0.29, texture: 0.12 },
@@ -277,7 +115,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'audiobook',
     labelKey: 'dsp.eqPreset.audiobook',
     group: 'voice',
-    settings: settings(
+    settings: exciterProfile(
       [
         { enabled: false },
         { freqHz: 1_000, range: 0.24, mix: 0.18, texture: 0.1 },
@@ -292,7 +130,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    settings: settings(
+    settings: exciterProfile(
       [
         { drive: 2.05, mix: 0.18 },
         { freqHz: 1_500, mix: 0.14, texture: 0.25 },
@@ -306,7 +144,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
-    settings: settings(
+    settings: exciterProfile(
       [{ mix: 0.1 }, { mix: 0.19 }, { drive: 2.4, mix: 0.36 }],
       {
         enabled: true,
@@ -324,7 +162,7 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'scene',
     // Body helps quiet listening; a forward air band would do the opposite by
     // making sibilance and effects the first things heard at low level.
-    settings: settings(
+    settings: exciterProfile(
       [{ mix: 0.1 }, { mix: 0.18, texture: 0.1 }, { mix: 0.12 }],
       { enabled: true, amount: 0.18, focusHz: 350, range: 0.32 },
     ),
@@ -333,7 +171,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'warm',
     labelKey: 'dsp.eqPreset.warm',
     group: 'character',
-    settings: settings(
+    settings: exciterProfile(
       // Even orders forward on Low and Mid, High deliberately held back: warmth
       // is body without the air that would read as brightness.
       [
@@ -348,7 +186,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'air',
     labelKey: 'dsp.eqPreset.air',
     group: 'character',
-    settings: settings([
+    settings: exciterProfile([
       { enabled: false },
       { enabled: false },
       {
@@ -360,11 +198,36 @@ export const EXCITER_PRESET_BY_ID = {
       },
     ]),
   },
+  tape: {
+    id: 'tape',
+    labelKey: 'dsp.eqPreset.tape',
+    group: 'repair',
+    /**
+     * The top a cassette lost, rebuilt from the band under it.
+     *
+     * This is the one restoration an enhancer is actually documented for —
+     * bringing back highs lost to duplication or to a noise-reduction
+     * mismatch — and the reason it works here rather than making things worse
+     * is the order of the rack: the Exciter runs AFTER the restoration, so it
+     * generates from de-hissed audio. In front of it, the same profile would
+     * be a hiss enhancer.
+     *
+     * Centred lower and mixed at half of what `lossy-repair` uses: tape rolls
+     * off gradually from around 8 kHz rather than stopping dead at an
+     * encoder's cut-off, so there is real material either side of this band
+     * and only a little is missing.
+     */
+    settings: exciterProfile([
+      { enabled: false },
+      { enabled: false },
+      { freqHz: 6_500, range: 0.24, drive: 2.45, mix: 0.4, texture: 0.55 },
+    ]),
+  },
   'lossy-repair': {
     id: 'lossy-repair',
     labelKey: 'dsp.preset.lossyRepair',
     group: 'repair',
-    settings: settings([
+    settings: exciterProfile([
       { enabled: false },
       { enabled: false },
       {
@@ -383,7 +246,7 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'loud',
     labelKey: 'dsp.preset.loud',
     group: 'character',
-    settings: settings(
+    settings: exciterProfile(
       [
         { enabled: false },
         { enabled: false },
@@ -413,7 +276,7 @@ export const EXCITER_PRESET_BY_ID = {
      * like, and nothing said so. Mid reaches 7 kHz, so the same centre gets its
      * full width there, and High goes back to making air.
      */
-    settings: settings(
+    settings: exciterProfile(
       [
         { enabled: false },
         {
