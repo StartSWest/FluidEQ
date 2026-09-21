@@ -74,6 +74,7 @@ import {
   TONE_MAX_DB,
 } from '../common/toneStack';
 import { recallTone, rememberTone } from './eq/toneMemory';
+import useBubblePlacement from './eq/useBubblePlacement';
 import {
   askToneReapply,
   takeToneClear,
@@ -246,6 +247,10 @@ const MainContent = () => {
    * and a mode that has stopped.
    */
   const bubbleText = balanceStatus || (isContinuousRunning ? listeningFor : '');
+  // Somewhere free around the button, chosen from what the header holds at
+  // this width: see `eq/bubblePlacement.ts`.
+  const bubbleRef = useRef<HTMLSpanElement>(null);
+  const bubbleSpot = useBubblePlacement(modeMenuHolder, bubbleRef, bubbleText);
   const modeLabel = (entry: TSmartEqMode) => {
     if (entry === 'detail') {
       return t('eq.smart.mode.detail');
@@ -1368,8 +1373,20 @@ const MainContent = () => {
                 // happen: it means it just did.
                 className={`eq-mode__bubble${
                   flashedRanges.length > 0 ? ' is-applied' : ''
-                }`}
+                }${bubbleSpot?.isBelow ? ' is-below' : ''}`}
                 role="status"
+                ref={bubbleRef}
+                style={
+                  bubbleSpot
+                    ? ({
+                        left: bubbleSpot.offsetLeft,
+                        top: bubbleSpot.offsetTop,
+                        right: 'auto',
+                        bottom: 'auto',
+                        '--bubble-tail': `${bubbleSpot.tailX}px`,
+                      } as React.CSSProperties)
+                    : undefined
+                }
               >
                 <span className="eq-mode__bubble-pet" aria-hidden>
                   <PetArt />

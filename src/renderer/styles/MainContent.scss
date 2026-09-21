@@ -542,12 +542,15 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 .eq-mode__bubble {
   position: absolute;
   z-index: 5;
-  // Above the pair, and starting where the label ends rather than past the
-  // caret. The caret is the control for opening the menu; a bubble hanging off
-  // it would read as belonging to the menu instead of to the mode that is
-  // running.
+  // Where it stands is measured, not written here (`eq/bubblePlacement.ts`):
+  // somewhere free around the pair, its tail aimed at the label rather than
+  // the caret, which is the control for the menu. One fixed side covered
+  // something at one width or another — grown right, the Game mode switch
+  // the title row centres; grown left, the page's title and past the window's
+  // edge once the toolbar wrapped. What follows is only where it starts, for
+  // the one frame before it has been measured: above, ending at the label.
   bottom: calc(100% + 9px);
-  left: calc(100% - #{$eq-caret-width});
+  right: $eq-caret-width;
   display: flex;
   // `max-content`, and it is not a nicety.
   //
@@ -586,7 +589,8 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     eq-bubble-float 3.4s ease-in-out 240ms infinite;
 
   // The tail, which is what makes it a bubble rather than a floating label.
-  // Underneath, pointing back down at the corner it grew from.
+  // On the edge that faces the button, its point at `--bubble-tail` — where
+  // the label is, however far the bubble had to slide to find room.
   //
   // Painted in the bubble's own opaque colour, and it has to be: the tail
   // is a square turned through 45° whose top half lies over the bubble's
@@ -595,7 +599,7 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   &::before {
     position: absolute;
     bottom: -5px;
-    left: 12px;
+    left: calc(var(--bubble-tail, calc(100% - 16px)) - 4px);
     width: 8px;
     height: 8px;
     border-right: 1px solid $border-menu;
@@ -629,6 +633,24 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     .eq-mode__bubble-text {
       color: $active;
     }
+  }
+
+  // Under the button when above had no room: the tail on the top edge,
+  // pointing up, drawn by the two borders that face up.
+  &.is-below::before {
+    top: -5px;
+    bottom: auto;
+    border-top: 1px solid $border-menu;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid $border-menu;
+    border-radius: 0;
+    border-top-left-radius: 2px;
+  }
+
+  &.is-below.is-applied::before {
+    border-top-color: color-mix(in srgb, $active 50%, transparent);
+    border-left-color: color-mix(in srgb, $active 50%, transparent);
   }
 }
 
