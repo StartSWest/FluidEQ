@@ -114,6 +114,9 @@ been translated into ten languages for a screen nobody reaches.
   engine is not reaching your output, the page now greys out and stops taking
   changes, the same way it does when FluidEQ is switched off — instead of
   letting you move bands that change nothing.
+- **The Target button on the EQ page no longer flashes the wrong look for a
+  moment at launch** — it opens ready, and on the rare occasion it can't be
+  used, the whole button dims together instead of half of it.
 - **Help's pictures point at things again, the way a printed manual does.**
   Each control on a screenshot now has a numbered circle beside the picture
   and a line to it, with the same numbers in the list underneath, in the app
