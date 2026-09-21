@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import online from '../../../docs/01-online-media-youtube-live-eq.png';
-import outputs from '../../../docs/02-online-media-multiple-outputs-one-player-at-a-time.png';
 import eq from '../../../docs/03-eq-parametric-bands-and-live-response.png';
 import headphones from '../../../docs/04-eq-headphone-correction-and-import.png';
 import convolution from '../../../docs/05-eq-convolution-library.png';
@@ -33,12 +32,17 @@ import studio from '../../../docs/31-plus-studio.png';
 import makerTools from '../../../docs/33-karaoke-maker-tools.png';
 import makerLyrics from '../../../docs/34-karaoke-maker-lyrics.png';
 import makerToolbar from '../../../docs/35-karaoke-maker-toolbar.png';
+import bandSelected from '../../../docs/36-eq-band-selected.png';
+import headerLeft from '../../../docs/37-header-left.png';
+import headerRight from '../../../docs/38-header-right.png';
+import railLeft from '../../../docs/39-rail-left.png';
+import railRight from '../../../docs/40-rail-right.png';
+import games from '../../../docs/41-game-presets.png';
 import type { THelpImage } from '../../common/helpGuide';
 
 /** Static imports make webpack include every capture in offline packaged builds. */
 const screenshots: Record<THelpImage, string> = {
   '01-online-media-youtube-live-eq.png': online,
-  '02-online-media-multiple-outputs-one-player-at-a-time.png': outputs,
   '03-eq-parametric-bands-and-live-response.png': eq,
   '04-eq-headphone-correction-and-import.png': headphones,
   '05-eq-convolution-library.png': convolution,
@@ -70,6 +74,12 @@ const screenshots: Record<THelpImage, string> = {
   '33-karaoke-maker-tools.png': makerTools,
   '34-karaoke-maker-lyrics.png': makerLyrics,
   '35-karaoke-maker-toolbar.png': makerToolbar,
+  '36-eq-band-selected.png': bandSelected,
+  '37-header-left.png': headerLeft,
+  '38-header-right.png': headerRight,
+  '39-rail-left.png': railLeft,
+  '40-rail-right.png': railRight,
+  '41-game-presets.png': games,
 };
 
 export default screenshots;

@@ -121,6 +121,16 @@ been translated into ten languages for a screen nobody reaches.
   cut out of the screenshot, and most came out as empty squares or half a
   word. Several lines also pointed at the wrong control, and those are
   corrected.
+- **The guide shows this version.** The pictures of the EQ pages were
+  retaken, so they show Presets where they showed Voicing, and the Bands page
+  is shown twice: as it opens, with Bass, Mid and Treble, and with a band
+  selected. New chapters number the header, the left rail and Game presets;
+  the right rail's profiles and second output are numbered in their own
+  chapter; and Game mode and Also applied are explained where they sit.
+- **Labels that stayed in English follow your language.** The Bands page's
+  Filter list, the Squiglink import panel and the headphone correction graph
+  were English in every language. They are translated now, and each language
+  calls the FluidEQ Engine by one name everywhere.
 - **The engine finds the place a sound card actually loads it from.** Windows
   keeps an effect in one of eight places and which one a driver reads is
   written down nowhere, so FluidEQ steps through them on the machine itself. It

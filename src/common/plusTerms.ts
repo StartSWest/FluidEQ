@@ -79,6 +79,11 @@
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
+ *
+ * Checkout and publishing only need it to reach a floor. The free trial needs
+ * it to EQUAL the server's `plus_terms_version()`: an app ahead of the server
+ * tells every eligible new account to update FluidEQ, on the newest build
+ * there is. Raise both in the same release.
  */
 export const PLUS_TERMS_VERSION = 9;
 

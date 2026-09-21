@@ -13,48 +13,50 @@ Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control pos
 **Get started**
 
 1. [Your first five minutes](#start)
-2. [What your PC needs](#requirements)
-3. [The FluidEQ Engine](#engine)
+2. [Around the window](#window)
+3. [What your PC needs](#requirements)
+4. [The FluidEQ Engine](#engine)
 
 **Shape your sound**
 
-4. [Shape your sound with EQ](#eq)
-5. [EQ mode and band designs](#eqmode)
-6. [Headphone correction & imports](#headphones)
-7. [Use an impulse response](#convolution)
-8. [Devices, profiles & second output](#profiles)
-9. [Inspect & back up a chain](#config)
-10. [Explore the DSP rack](#dsp)
-11. [The Room: surround on headphones](#room)
-12. [Denoise & source analysis](#denoise)
+5. [Shape your sound with EQ](#eq)
+6. [EQ mode and band designs](#eqmode)
+7. [Game presets](#games)
+8. [Headphone correction & imports](#headphones)
+9. [Use an impulse response](#convolution)
+10. [Devices, profiles & second output](#profiles)
+11. [Inspect & back up a chain](#config)
+12. [Explore the DSP rack](#dsp)
+13. [The Room: surround on headphones](#room)
+14. [Denoise & source analysis](#denoise)
 
 **See your music**
 
-13. [The graph and its controls](#graph)
-14. [Styles and Plus visualizers](#looks)
+15. [The graph and its controls](#graph)
+16. [Styles and Plus visualizers](#looks)
 
 **FluidEQ Plus**
 
-15. [FluidEQ Plus and your account](#plus)
-16. [The Visualizers gallery](#gallery)
-17. [The Leaderboard](#leaderboard)
-18. [Make scenes in the Studio](#studio)
-19. [The desktop visualizer](#desktop)
-20. [Dynamic lighting (beta)](#lighting)
+17. [FluidEQ Plus and your account](#plus)
+18. [The Visualizers gallery](#gallery)
+19. [The Leaderboard](#leaderboard)
+20. [Make scenes in the Studio](#studio)
+21. [The desktop visualizer](#desktop)
+22. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-21. [Listen with Online Media](#online)
-22. [Build your local library](#library)
-23. [Albums & your play queue](#queue)
-24. [Sing with Karaoke](#karaoke)
-25. [Create in Karaoke Maker](#maker)
-26. [Share audio between computers](#share)
+23. [Listen with Online Media](#online)
+24. [Build your local library](#library)
+25. [Albums & your play queue](#queue)
+26. [Sing with Karaoke](#karaoke)
+27. [Create in Karaoke Maker](#maker)
+28. [Share audio between computers](#share)
 
 **When you need help**
 
-27. [When something sounds wrong](#trouble)
-28. [Ask in the Forum](#forum)
+29. [When something sounds wrong](#trouble)
+30. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -71,6 +73,52 @@ Start with a familiar song at a comfortable volume. The left rail switches Fluid
 3. Play a song, open EQ → Bands, make a small change, and compare with System EQ off and on.
 
 > **Good to know:** System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.
+
+<a id="window"></a>
+
+## Around the window
+
+The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.
+
+### The header, up to the signal
+
+![The header, up to the signal](37-header-left.png)
+
+1. **Rainbow mode** — Colours the window and draws the curves and meters at your screen’s full rate.
+2. **Online Media** — YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.
+3. **Share Audio** — Sends this computer’s sound to another one, or plays another one’s here.
+4. **EQ** — Your bands, presets, headphone correction, game presets and the engine’s config.
+5. **Audio signal** — What is playing, as it plays. Press it to change how it is drawn.
+
+### The header, after the signal
+
+![The header, after the signal](38-header-right.png)
+
+1. **DSP** — The effects rack: presets, the Room and every stage of the chain.
+2. **Library** — Your music files, albums and play queue.
+3. **Karaoke** — Sing along, and make karaoke out of your own songs.
+4. **Plus** — Visualizers, the gallery, the leaderboard and the Studio.
+5. **Support the work** — Ways to support the work on FluidEQ.
+6. **Help** — This guide, What’s new, the audio troubleshooter and Report a problem.
+7. **FluidEQ actions** — The engine, importing EQ settings, restarting Windows audio and Processes.
+
+### The left rail
+
+![The left rail](39-rail-left.png)
+
+1. **System EQ** — Turns FluidEQ’s processing on or off for everything the PC plays.
+2. **Preamp** — Lowers the level before the EQ so boosts have room. Auto normalize sets it for you.
+3. **Auto normalize** — Keeps the preamp just low enough that nothing you boost can clip.
+4. **Response graph** — Shows or hides the graph under the page.
+5. **Level meter** — The output level, left and right, in real decibels. Press it to change its style.
+
+### Try it
+
+1. Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.
+2. Turn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.
+3. Press the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.
+
+> **Good to know:** Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, and Processes, which shows what each part of FluidEQ is using.
 
 <a id="requirements"></a>
 
@@ -111,11 +159,11 @@ FluidEQ processes your sound with its own engine or with Equalizer APO. The Flui
 
 ## Shape your sound with EQ
 
-Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. Begin with small, broad changes and compare often.
+Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, Bass, Mid and Treble move the whole curve at once. Begin with small, broad changes and compare often.
 
-### The Bands page
+### The Bands page, nothing selected
 
-![The Bands page](16-eq-bands.png)
+![The Bands page, nothing selected](16-eq-bands.png)
 
 1. **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
 2. **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
@@ -123,10 +171,24 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 4. **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
 5. **Add band** — Adds a band beside the selected one.
 6. **Quick layouts** — Band counts, and the band designs you saved.
-7. **Frequency** — Where the selected band acts, from 1 Hz to 20 kHz.
-8. **Gain** — How much it boosts or cuts. Ctrl-click returns it to 0 dB.
-9. **Quality (Q)** — How wide it is: higher is narrower.
-10. **Delete band** — Press twice to delete the band; Keep changes your mind.
+7. **Also applied** — What else shapes this output — a headphone correction, Smart EQ, a convolution — each with its strength, its switch and ×.
+8. **A band** — Drag its point to boost or cut. Click its frequency to select it.
+9. **Bass** — Raises or lowers the low end of the whole curve.
+10. **Mid** — Raises or lowers the middle, where voices sit.
+11. **Treble** — Raises or lowers the top, the air and the detail.
+
+### A band selected
+
+![A band selected](36-eq-band-selected.png)
+
+1. **Game mode** — Cuts the delay FluidEQ adds, for games and calls. Gaming presets turn it on.
+2. **Selected band** — The band being edited. Ctrl-click or Shift-click to select several.
+3. **Filter** — Its shape: a peak, a shelf, a notch or a pass filter.
+4. **Frequency** — Where the selected band acts, from 1 Hz to 20 kHz.
+5. **Gain** — How much it boosts or cuts. Ctrl-click returns it to 0 dB.
+6. **Quality (Q)** — How wide it is: higher is narrower.
+7. **Active** — Takes the band out of the sound and keeps its settings.
+8. **Delete band** — Press twice to delete the band; Keep changes your mind.
 
 ### A band's right-click menu
 
@@ -139,11 +201,11 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 
 ### Try it
 
-1. Select a band in EQ → Bands. Turn its Frequency, Gain and Quality (Q) dials, or drag its point on the graph.
-2. Right-click a band to reset it, switch it off, or add a band beside it. Ctrl-click a slider or dial to return it to its default.
-3. Press Clear EQ to set every gain to 0 dB while keeping your bands. It asks first.
+1. Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone.
+2. Click a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.
+3. Right-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain to 0 dB while keeping your bands. It asks first.
 
-> **Good to know:** The response curve describes your filters; the moving spectrum describes the sound. Switching a band off with Active keeps its settings for later.
+> **Good to know:** Also applied lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.
 
 <a id="eqmode"></a>
 
@@ -176,11 +238,33 @@ EQ mode changes how your bands and your correction curves are applied, without e
 
 > **Good to know:** A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.
 
+<a id="games"></a>
+
+## Game presets
+
+Give each game its own sound. When the game comes to the front, FluidEQ switches to that sound and keeps it until you close the game, whatever you alt-tab to in between. Then it puts back what you had.
+
+![Game presets](41-game-presets.png)
+
+1. **Game presets** — Your games and the sound each one gets.
+2. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.
+3. **A game** — The game, and the folder FluidEQ knows it by.
+4. **Its sound** — The sound FluidEQ switches to when this game comes to the front, or Leave it as it is.
+5. **Remove** — Forgets the game. The preset it used stays.
+
+### Try it
+
+1. Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.
+2. Pick the sound it should get in the picker on its row: a Gaming preset, or any other.
+3. Start the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.
+
+> **Good to know:** While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode.
+
 <a id="headphones"></a>
 
 ## Headphone correction & imports
 
-A headphone correction compensates for a measured model. It is a starting point you can combine with your own bands and voicing. Check the exact model and the measurement author before applying a result.
+A headphone correction compensates for a measured model. It is a starting point you can combine with your own bands and presets. Check the exact model and the measurement author before applying a result.
 
 ![Headphone correction & imports](04-eq-headphone-correction-and-import.png)
 
@@ -214,7 +298,17 @@ Convolution applies a WAV impulse response as another correction layer. FluidEQ 
 
 Your EQ follows the output device. Automatic mapping saves edits to the current output, while Named profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.
 
-![Devices, profiles & second output](02-online-media-multiple-outputs-one-player-at-a-time.png)
+![Devices, profiles & second output](40-rail-right.png)
+
+1. **Named profiles** — Sounds you saved. ON marks the one this output uses; press another to switch.
+2. **Update** — Saves your changes into the profile you are on.
+3. **New profile** — Starts a new profile from the EQ you have now.
+4. **Restore** — Brings the profile back as you last saved it.
+5. **Output device** — The output you are listening on. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.
+6. **Automatic mapping** — The profile this output follows. Any change you make is saved to it by itself.
+7. **One player at a time** — Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.
+8. **Second output** — Your other outputs. Switch one on to play there too, with its own profile.
+9. **Driver type** — A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.
 
 ### Try it
 
@@ -365,7 +459,7 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 
 1. Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.
 2. Open View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.
-3. A Plus visualizer adds its own controls to View — whatever its author left for you to set — and Restore puts the wave back to the height and position that author chose.
+3. A Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.
 4. Double-click the plot for full screen. A single click hides or shows the strip.
 
 > **Good to know:** Everything here changes only the drawing, never your sound. Rainbow mode — Help → What’s new turns it on — draws the standard styles, the meters and the wave at your screen’s full refresh rate instead of 30 frames a second. Esc leaves the expanded and full-screen views.
@@ -662,7 +756,7 @@ Share Audio sends system audio between computers on the same private network. Th
 ### Try it
 
 1. On the listening computer, open Share Audio, choose Play audio on this computer and press Create connection code. Start at a low volume.
-2. On each source computer, choose Send audio from this computer, pick Music or Game/Video, paste the code for your network and press Connect and send.
+2. On each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.
 3. Watch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.
 
 > **Good to know:** Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, and the receiver’s Volume sets it. Under the FluidEQ Engine, received audio also goes through the DSP rack.
