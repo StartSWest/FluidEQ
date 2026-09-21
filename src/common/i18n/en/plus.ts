@@ -311,7 +311,7 @@ const plus = {
   // The tab before signing in.
   'plus.welcome.title': 'Sign in to see what members make',
   'plus.welcome.body':
-    'With an account you can browse the gallery, watch brief demos and make one scene in the Studio. Plus is required to download scenes to keep, play them in full, add them to your looks, and take what you make anywhere.',
+    'With an account you can browse the gallery and watch brief demos. Plus is required to download scenes to keep, play them in full, add them to your looks, make your own in the Studio, and take what you make anywhere.',
   'plus.welcome.browse': 'Browse every scene members publish',
   'plus.welcome.play': 'Play them on your music and add them to your looks',
   'plus.welcome.studio':

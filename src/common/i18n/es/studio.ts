@@ -27,7 +27,7 @@ const studio = {
   'studio.plus.body':
     'Tu escena se queda en este equipo. Con Plus la pones en la gráfica, en tu escritorio, en la galería o en un archivo para enviar.',
   'studio.plus.locked': 'Solo con Plus',
-  'studio.locked.title': 'El Taller es parte de Plus',
+  'studio.locked.title': 'El Estudio es parte de Plus',
   'studio.locked.body':
     'Aquí se hacen las escenas de FluidEQ, y aquí puede estar la tuya.',
   'studio.locked.write':
@@ -38,13 +38,13 @@ const studio = {
   'studio.locked.keptMany':
     'Tus {count} proyectos siguen donde los dejaste, en',
   'studio.locked.earn':
-    'Publica una escena al mes y el siguiente mes de Plus es gratis.',
+    'Una escena que publiques te da un mes de Plus en cuanto se apruebe.',
   'studio.plus.oneFolder':
     'Sin Plus se abre la primera; las demás quedan en la lista con un candado, para Plus.',
   'studio.plus.lockedProject':
     'Con Plus este proyecto también se abre; sin Plus el Estudio guarda uno.',
   'studio.plus.oneProject':
-    'Sin Plus el Taller conserva un proyecto. Publica una escena para ganar gratis el mes siguiente, o toma Plus para tener los que quieras.',
+    'Sin Plus el Estudio conserva un proyecto. Publica una escena y, en cuanto se apruebe, el mes siguiente es gratis, o toma Plus para tener los que quieras.',
 
   'studio.maker.title': 'Hazla con tu IA',
   'studio.maker.describe': 'Describe tu escena',

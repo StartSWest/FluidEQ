@@ -33,13 +33,13 @@ const studio = {
   'studio.locked.publish': '发布到画廊，让所有会员都能安装',
   'studio.locked.keptOne': '你的项目还在原处:',
   'studio.locked.keptMany': '你的 {count} 个项目还在原处:',
-  'studio.locked.earn': '每月发布一个场景，下个月的 Plus 免费。',
+  'studio.locked.earn': '你发布的场景通过审核后，可换来一个月的 Plus。',
   'studio.plus.oneFolder':
     '没有 Plus 时只打开第一个；其余的带锁留在列表中，有 Plus 即可打开。',
   'studio.plus.lockedProject':
     '有 Plus 也能打开这个项目；没有 Plus 时工作室保留一个。',
   'studio.plus.oneProject':
-    '没有 Plus，工作室只保留一个项目。发布一个场景可免费获得下个月，或开通 Plus 不限数量。',
+    '没有 Plus，工作室只保留一个项目。发布一个场景，通过审核后可免费获得下个月，或开通 Plus 不限数量。',
 
   'studio.maker.title': '用你的 AI 来做',
   'studio.maker.describe': '描述你的场景',

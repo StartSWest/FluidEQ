@@ -38,13 +38,13 @@ const studio = {
   'studio.locked.keptMany':
     'Os teus {count} projetos estão onde os deixaste, em',
   'studio.locked.earn':
-    'Publique uma cena por mês e o próximo mês de Plus é grátis.',
+    'Uma cena que você publique dá um mês de Plus assim que for aprovada.',
   'studio.plus.oneFolder':
     'Sem o Plus abre-se a primeira; as outras ficam na lista com um cadeado, para o Plus.',
   'studio.plus.lockedProject':
     'Com o Plus este projeto também abre; sem o Plus o Estúdio guarda um.',
   'studio.plus.oneProject':
-    'Sem Plus o Estúdio guarda um projeto. Publique uma cena para ganhar o próximo mês grátis, ou assine o Plus para ter quantos quiser.',
+    'Sem Plus o Estúdio guarda um projeto. Publique uma cena e, assim que for aprovada, o próximo mês é grátis, ou assine o Plus para ter quantos quiser.',
 
   'studio.maker.title': 'Faça com sua IA',
   'studio.maker.describe': 'Descreva sua cena',

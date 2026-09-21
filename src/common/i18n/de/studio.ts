@@ -41,13 +41,13 @@ const studio = {
   'studio.locked.keptMany':
     'Ihre {count} Projekte liegen dort, wo Sie sie gelassen haben, in',
   'studio.locked.earn':
-    'Veröffentlichen Sie eine Szene pro Monat, und der nächste Monat Plus ist kostenlos.',
+    'Eine Szene, die Sie veröffentlichen, bringt einen Monat Plus, sobald sie freigegeben ist.',
   'studio.plus.oneFolder':
     'Ohne Plus öffnet sich die erste; die übrigen stehen mit Schloss in der Liste, für Plus.',
   'studio.plus.lockedProject':
     'Mit Plus öffnet sich auch dieses Projekt; ohne Plus behält das Studio eines.',
   'studio.plus.oneProject':
-    'Ohne Plus behält das Studio ein Projekt. Veröffentlichen Sie eine Szene, um den nächsten Monat frei zu bekommen, oder nehmen Sie Plus für beliebig viele.',
+    'Ohne Plus behält das Studio ein Projekt. Veröffentlichen Sie eine Szene: sobald sie freigegeben ist, ist der nächste Monat frei. Oder nehmen Sie Plus für beliebig viele.',
 
   'studio.maker.title': 'Mit Ihrer KI erstellen',
   'studio.maker.describe': 'Beschreiben Sie Ihre Szene',

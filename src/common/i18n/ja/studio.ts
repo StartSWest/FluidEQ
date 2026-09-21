@@ -37,13 +37,13 @@ const studio = {
   'studio.locked.keptMany':
     '{count} 件のプロジェクトはそのまま、ここにあります:',
   'studio.locked.earn':
-    '月に 1 つシーンを公開すると、次の 1 か月の Plus は無料です。',
+    '公開したシーンが承認されると、Plus が 1 か月分もらえます。',
   'studio.plus.oneFolder':
     'Plus なしでは最初の1つが開きます。残りはロック付きで一覧に残り、Plus で開けます。',
   'studio.plus.lockedProject':
     'Plus ならこのプロジェクトも開けます。Plus なしではスタジオは1つを保持します。',
   'studio.plus.oneProject':
-    'Plus がないとスタジオはプロジェクトを 1 つだけ保持します。シーンを公開すれば次の 1 か月が無料になり、Plus なら数に制限はありません。',
+    'Plus がないとスタジオはプロジェクトを 1 つだけ保持します。シーンを公開して承認されれば次の 1 か月が無料になり、Plus なら数に制限はありません。',
 
   'studio.maker.title': 'AI と作る',
   'studio.maker.describe': 'シーンを説明する',

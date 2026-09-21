@@ -45,13 +45,13 @@ const studio = {
   'studio.locked.keptOne': 'Your project is where you left it, in',
   'studio.locked.keptMany': 'Your {count} projects are where you left them, in',
   'studio.locked.earn':
-    'Publish one scene a month and the next month of Plus is free.',
+    'A scene you publish earns a month of Plus once it is approved.',
   'studio.plus.oneFolder':
     'Without Plus, the first of these opens; the rest are listed with a lock, for Plus.',
   'studio.plus.lockedProject':
     'With Plus this project opens too; without Plus the Studio keeps one.',
   'studio.plus.oneProject':
-    'Without Plus the Studio keeps one project. Publish a scene to earn the next month free, or take Plus for as many as you like.',
+    'Without Plus the Studio keeps one project. Publish a scene and the next month is free once it is approved, or take Plus for as many as you like.',
 
   'studio.maker.title': 'Make it with your AI',
   'studio.maker.describe': 'Describe your scene',

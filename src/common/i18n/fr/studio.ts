@@ -40,13 +40,13 @@ const studio = {
   'studio.locked.keptMany':
     'Vos {count} projets sont là où vous les avez laissés, dans',
   'studio.locked.earn':
-    'Publiez une scène par mois et le mois de Plus suivant est offert.',
+    'Une scène que vous publiez offre un mois de Plus dès qu’elle est approuvée.',
   'studio.plus.oneFolder':
     'Sans Plus, la première s’ouvre ; les autres restent dans la liste avec un cadenas, pour Plus.',
   'studio.plus.lockedProject':
     'Avec Plus, ce projet s’ouvre aussi ; sans Plus, le Studio en garde un.',
   'studio.plus.oneProject':
-    'Sans Plus, le Studio garde un projet. Publiez une scène pour obtenir le mois suivant gratuitement, ou prenez Plus pour en avoir autant que vous voulez.',
+    'Sans Plus, le Studio garde un projet. Publiez une scène : dès qu’elle est approuvée, le mois suivant est offert. Ou prenez Plus pour en avoir autant que vous voulez.',
 
   'studio.maker.title': 'Créez-la avec votre IA',
   'studio.maker.describe': 'Décrivez votre scène',
