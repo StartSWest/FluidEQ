@@ -17,7 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, FilterTypeToLabelMap } from 'common/constants';
+import { FilterTypeEnum } from 'common/constants';
+import type { Translate } from 'common/i18n';
+import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 
 /**
  * The box every filter shape is drawn in: 0 dB at y=10, with a stroke's worth
@@ -82,25 +84,14 @@ const FILTER_PATHS: Record<FilterTypeEnum, { d: string; stroke: string }> = {
   },
 };
 
-/**
- * The name without the word "Filter", for use beside the icon.
- *
- * The full label is still what the option carries — it is what the dropdown
- * searches and what a screen reader announces — but repeating "Filter" seven
- * times down a list of filters costs the width that tells Low Shelf and Low
- * Pass apart.
- */
-export const FILTER_TYPE_SHORT_LABELS: Record<FilterTypeEnum, string> = {
-  [FilterTypeEnum.PK]: 'Peak',
-  [FilterTypeEnum.NO]: 'Notch',
-  [FilterTypeEnum.LSC]: 'Low Shelf',
-  [FilterTypeEnum.HSC]: 'High Shelf',
-  [FilterTypeEnum.LPQ]: 'Low Pass',
-  [FilterTypeEnum.HPQ]: 'High Pass',
-  [FilterTypeEnum.BP]: 'Band Pass',
-};
-
-const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
+const FilterTypeIcon = ({
+  type,
+  title,
+}: {
+  type: FilterTypeEnum;
+  /** The shape's name in the reader's language, for a pointer or a reader. */
+  title: string;
+}) => {
   const shape = FILTER_PATHS[type];
   if (!shape) {
     return null;
@@ -117,7 +108,7 @@ const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
       style={{ overflow: 'visible' }}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{FilterTypeToLabelMap[type]}</title>
+      <title>{title}</title>
       <path
         d={shape.d}
         stroke={shape.stroke}
@@ -129,39 +120,48 @@ const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
   );
 };
 
-export const FILTER_OPTIONS = Object.values(FilterTypeEnum).map(
-  (filterType: FilterTypeEnum) => {
-    return {
-      value: filterType,
-      label: FilterTypeToLabelMap[filterType],
-      display: <FilterTypeIcon type={filterType} />,
-    };
-  },
-);
-
 /**
- * The same options with the name spelled out next to the drawing.
+ * The Filter list's options: each shape's drawing with its name beside it, in
+ * the reader's language.
  *
- * Kept separate from FILTER_OPTIONS rather than replacing it, because the
- * other place this list appears is the dropdown inside a band column, which at
- * sixteen bands is narrower than the words are long. This one is for the
- * editor row under the bands, which has the room.
+ * Built per language rather than once at load, which is how the names stayed
+ * English in every language: a list made when the module loads is made before
+ * anyone has chosen a language, and never again. The name is also each
+ * option's label, which is what the list searches and a screen reader
+ * announces.
+ *
+ * Every option also carries all seven names, hidden, so the box is as wide as
+ * the longest name in this language whichever is chosen: the band editor sizes
+ * its filter column by it, and a box sized by the shown name jumped every time
+ * the shape changed.
  */
-export const LABELLED_FILTER_OPTIONS = Object.values(FilterTypeEnum).map(
-  (filterType: FilterTypeEnum) => {
+export const labelledFilterOptions = (t: Translate) => {
+  const types = Object.values(FilterTypeEnum);
+  const names = types.map((type) => t(FILTER_TYPE_NAME_KEYS[type]));
+  return types.map((filterType: FilterTypeEnum, index) => {
+    const name = names[index];
     return {
       value: filterType,
-      label: FilterTypeToLabelMap[filterType],
+      label: name,
       display: (
         <span className="filter-type-option">
-          <FilterTypeIcon type={filterType} />
+          <FilterTypeIcon type={filterType} title={name} />
           <span className="filter-type-option__label">
-            {FILTER_TYPE_SHORT_LABELS[filterType]}
+            <span className="filter-type-option__name">{name}</span>
+            {types.map((sizerType, sizerIndex) => (
+              <span
+                key={sizerType}
+                className="filter-type-option__sizer"
+                aria-hidden="true"
+              >
+                {names[sizerIndex]}
+              </span>
+            ))}
           </span>
         </span>
       ),
     };
-  },
-);
+  });
+};
 
 export default FilterTypeIcon;

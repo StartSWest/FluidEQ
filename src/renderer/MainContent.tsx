@@ -28,7 +28,6 @@ import {
 } from 'react';
 import {
   FilterTypeEnum,
-  FilterTypeToLabelMap,
   IFilter,
   IFilterEdit,
   isBandEnabled,
@@ -81,7 +80,7 @@ import {
   takeToneReapply,
 } from './eq/toneIntent';
 
-import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
+import { labelledFilterOptions } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
@@ -181,6 +180,7 @@ const MainContent = () => {
     bypassed,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
   const { isActive: isLiveOutputActive } = useLiveAudioControl();
   /**
    * What Smart EQ is doing, read from where it is actually happening.
@@ -1497,7 +1497,7 @@ const MainContent = () => {
               <strong>
                 {(() => {
                   if (isGroupEdit) {
-                    return `${selectedCount} bands`;
+                    return t('eq.selectedCount', { count: selectedCount });
                   }
                   return selectedFilter.frequency >= 1000
                     ? `${Number((selectedFilter.frequency / 1000).toFixed(1))} kHz`
@@ -1510,7 +1510,7 @@ const MainContent = () => {
               <Dropdown
                 name="selected-band-filter-type"
                 value={selectedFilter.type}
-                options={LABELLED_FILTER_OPTIONS}
+                options={filterOptions}
                 isDisabled={isBlockingError}
                 placement="up"
                 handleChange={(newValue) =>
@@ -1528,11 +1528,7 @@ const MainContent = () => {
                 the reason on the row itself. */}
             <div
               className="eq-flat-editor__control eq-flat-editor__control--centred"
-              title={
-                isGroupEdit
-                  ? 'Frequency is per band — select a single band to change it'
-                  : undefined
-              }
+              title={isGroupEdit ? t('eq.frequencyPerBand') : undefined}
             >
               <span>{t('eq.frequency')}</span>
               {/* A dial, like Q beside it. The knob reads a range that starts
@@ -1575,9 +1571,9 @@ const MainContent = () => {
               {isSelectedGainDisabled ? (
                 <div
                   className="eq-flat-editor__gain-na"
-                  title={`A ${FilterTypeToLabelMap[selectedFilter.type]} has no gain in Equalizer APO. Use Frequency and Q to shape it, or switch to a Peak or Shelf filter to set a level.`}
+                  title={t('eq.gainNaHint')}
                 >
-                  Set by Q
+                  {t('eq.setByQ')}
                 </div>
               ) : (
                 /* Bipolar, so the dial grows its arc from the centre and rests

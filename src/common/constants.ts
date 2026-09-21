@@ -256,16 +256,6 @@ export interface ICustomFxSettings {
   graphicEq?: IGraphicEqPoint[];
 }
 
-export const FilterTypeToLabelMap: Record<FilterTypeEnum, string> = {
-  [FilterTypeEnum.PK]: 'Peak Filter',
-  [FilterTypeEnum.NO]: 'Notch Filter',
-  [FilterTypeEnum.LSC]: 'Low Shelf Filter',
-  [FilterTypeEnum.HSC]: 'High Shelf Filter',
-  [FilterTypeEnum.LPQ]: 'Low Pass Filter',
-  [FilterTypeEnum.HPQ]: 'High Pass Filter',
-  [FilterTypeEnum.BP]: 'Band Pass Filter',
-};
-
 /**
  * The same string read back as bands, for anything that needs the shape itself
  * rather than a comparison against it.

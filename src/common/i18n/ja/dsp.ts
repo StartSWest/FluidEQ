@@ -90,7 +90,7 @@ const dsp = {
     'お気に入りはありません。DSPのプリセットに星を付けて追加してください。',
   'dsp.favorites.open': 'DSPを開く',
   'dsp.gameMode.update':
-    'ゲームモードを使うには Fluid Engine を更新してください。プリセットの音質設定は引き続き適用されます。',
+    'ゲームモードを使うには FluidEQ エンジンを更新してください。プリセットの音質設定は引き続き適用されます。',
   'dsp.gameMode.hint':
     'ゲームモードは不要なバッファを省き、最小位相EQを使用します。有効なエフェクトには遅延が残る場合があります。ゲーム用プリセットで有効になりますが、プリセットを変えずにオフにできます。',
   'dsp.latency.buffer': 'バイパス中のバッファ',
@@ -137,7 +137,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': 'EQ（リニアフェーズ）',
   'dsp.latency.stage.curvePhase': 'カーブレイヤー（リニアフェーズ）',
   'dsp.latency.stage.curves': '補正カーブ',
-  'dsp.scope.useFluid': 'FluidEQ Engine を使う',
+  'dsp.scope.useFluid': 'FluidEQ エンジンを使う',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
   'dsp.engineDown':
     'ネイティブのオーディオエンジンを起動できなかったため、すべての DSP ステージがオフになっています。下の処理は一切かかっておらず、操作も無効です。再生そのものには影響しません。通常は FluidEQ を再起動すると復帰します。',

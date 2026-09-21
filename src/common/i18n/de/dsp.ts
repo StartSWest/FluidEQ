@@ -90,7 +90,7 @@ const dsp = {
     'Noch keine Favoriten. Markiere ein DSP-Preset mit einem Stern.',
   'dsp.favorites.open': 'DSP öffnen',
   'dsp.gameMode.update':
-    'Aktualisiere Fluid Engine, um den Spielmodus zu nutzen. Dein Preset wendet seine Klangeinstellungen weiterhin an.',
+    'Aktualisiere die FluidEQ-Engine, um den Spielmodus zu nutzen. Dein Preset wendet seine Klangeinstellungen weiterhin an.',
   'dsp.gameMode.hint':
     'Der Spielmodus entfernt vermeidbare Puffer und nutzt minimalphasigen EQ. Aktive Effekte können weiterhin Verzögerung hinzufügen. Spiele-Presets aktivieren ihn; du kannst ihn ohne Preset-Wechsel ausschalten.',
   'dsp.latency.buffer': 'Puffer bei umgangenem Effekt',
@@ -137,7 +137,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': 'EQ, linearphasig',
   'dsp.latency.stage.curvePhase': 'Kurvenebene, linearphasig',
   'dsp.latency.stage.curves': 'Korrekturkurven',
-  'dsp.scope.useFluid': 'FluidEQ Engine verwenden',
+  'dsp.scope.useFluid': 'FluidEQ-Engine verwenden',
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.engineDown':

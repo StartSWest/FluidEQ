@@ -90,7 +90,7 @@ const dsp = {
     'Aún no hay favoritos. Marca un preset en DSP para añadirlo aquí.',
   'dsp.favorites.open': 'Abrir DSP',
   'dsp.gameMode.update':
-    'Actualiza Fluid Engine para usar el modo Juego. El preset sigue aplicando sus ajustes de sonido.',
+    'Actualiza el Motor FluidEQ para usar el modo Juego. El preset sigue aplicando sus ajustes de sonido.',
   'dsp.gameMode.hint':
     'El modo de juego elimina búferes evitables y usa EQ de fase mínima. Los efectos activos aún pueden añadir retardo. Los presets de juego lo activan; puedes desactivarlo sin cambiar el preset.',
   'dsp.latency.buffer': 'Búfer con efecto desactivado',
@@ -137,7 +137,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': 'Ecualizador, fase lineal',
   'dsp.latency.stage.curvePhase': 'Capa de curva, fase lineal',
   'dsp.latency.stage.curves': 'Curvas de corrección',
-  'dsp.scope.useFluid': 'Usar FluidEQ Engine',
+  'dsp.scope.useFluid': 'Usar el Motor FluidEQ',
   'dsp.unavailable':
     'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.engineDown':

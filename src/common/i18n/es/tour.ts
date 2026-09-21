@@ -243,7 +243,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point2':
     'Usa el selector de perfil de EQ bajo ese dispositivo para elegir uno de sus perfiles guardados. La salida principal conserva su ajuste.',
   'tour.output.point3':
-    'Un reproductor a la vez: iniciar algo en FluidEQ pausa el resto de la máquina, y al revés.',
+    'Un solo reproductor: iniciar algo en FluidEQ pausa el resto de la máquina, y al revés.',
   'tour.output.point4':
     'Juego/Vídeo empieza con unos 30 ms de reserva y se resincroniza tras una interrupción; Música empieza con unos 100 ms para una escucha más fluida. El búfer del dispositivo añade retardo.',
   'tour.output.how':
@@ -304,7 +304,7 @@ const tour: Partial<Dictionary> = {
   'tour.maker.open': 'Abrir Karaoke',
 
   'tour.media.kicker': 'LA WEB, A TRAVÉS DE TU EQ',
-  'tour.media.title': 'Medios en línea',
+  'tour.media.title': 'Multimedia en línea',
   'tour.media.subtitle': 'YouTube, YouTube Music, Bandcamp, Twitch y Suno',
   'tour.media.lead':
     'Un reproductor integrado para los sitios de streaming, para que lo que ves y escuchas en línea pase por tu EQ en vez de por otro navegador. Hay cinco sitios preparados, cada uno con su buscador, y los enlaces que salen del sitio se detienen con la opción «Abrir en el navegador».',
@@ -317,8 +317,8 @@ const tour: Partial<Dictionary> = {
   'tour.media.point4':
     'Descargas con indicador de progreso y «Mostrar en la carpeta» al terminar, y un botón «Cerrar sesión en todos los sitios» que borra cada cookie e inicio de sesión de una vez.',
   'tour.media.how':
-    'Abre la pestaña Medios en línea, elige un sitio de la fila superior, escribe en el campo de búsqueda y pulsa Buscar. Atrás, Adelante y Recargar funcionan como en un navegador.',
-  'tour.media.open': 'Abrir Medios en línea',
+    'Abre la pestaña Multimedia en línea, elige un sitio de la fila superior, escribe en el campo de búsqueda y pulsa Buscar. Atrás, Adelante y Recargar funcionan como en un navegador.',
+  'tour.media.open': 'Abrir Multimedia en línea',
 };
 
 export default tour;

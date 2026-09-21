@@ -242,7 +242,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point2':
     'Scegli uno dei profili salvati dal selettore del profilo EQ sotto il dispositivo. L’uscita principale mantiene la sua regolazione.',
   'tour.output.point3':
-    'Un lettore alla volta: avviare qualcosa in FluidEQ mette in pausa il resto della macchina, e viceversa.',
+    'Un solo lettore: avviare qualcosa in FluidEQ mette in pausa il resto della macchina, e viceversa.',
   'tour.output.point4':
     'Gioco/Video parte con circa 30 ms di riserva e si risincronizza dopo un’interruzione; Musica parte con circa 100 ms per un ascolto più fluido. Il buffer del dispositivo aggiunge ritardo.',
   'tour.output.how':

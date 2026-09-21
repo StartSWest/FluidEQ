@@ -35,27 +35,27 @@ it('shows the rainbow label only for the installed, enabled Fluid engine', () =>
   mockWorld.status = status('fluid', { fluid: true });
   mockWorld.isEngineUsable = true;
   const { rerender } = render(<FluidEngineLabel />);
-  expect(screen.getByText('Fluid EQ Engine')).toHaveClass('eq-engine-label');
+  expect(screen.getByText('FluidEQ Engine')).toHaveClass('eq-engine-label');
 
   mockWorld.isEngineUsable = false;
   rerender(<FluidEngineLabel />);
-  expect(screen.queryByText('Fluid EQ Engine')).not.toBeInTheDocument();
+  expect(screen.queryByText('FluidEQ Engine')).not.toBeInTheDocument();
 
   mockWorld.isEngineUsable = true;
   rerender(<FluidEngineLabel />);
-  expect(screen.getByText('Fluid EQ Engine')).toBeInTheDocument();
+  expect(screen.getByText('FluidEQ Engine')).toBeInTheDocument();
 
   mockWorld.status = status('apo', { fluid: true });
   rerender(<FluidEngineLabel />);
-  expect(screen.queryByText('Fluid EQ Engine')).not.toBeInTheDocument();
+  expect(screen.queryByText('FluidEQ Engine')).not.toBeInTheDocument();
 
   mockWorld.status = status('fluid', { fluid: false });
   rerender(<FluidEngineLabel />);
-  expect(screen.queryByText('Fluid EQ Engine')).not.toBeInTheDocument();
+  expect(screen.queryByText('FluidEQ Engine')).not.toBeInTheDocument();
 
   mockWorld.status = undefined;
   rerender(<FluidEngineLabel />);
-  expect(screen.queryByText('Fluid EQ Engine')).not.toBeInTheDocument();
+  expect(screen.queryByText('FluidEQ Engine')).not.toBeInTheDocument();
   expect(screen.queryByText('APO Engine')).not.toBeInTheDocument();
 });
 
@@ -67,7 +67,7 @@ it('names Equalizer APO when it is the installed, enabled engine', () => {
     'eq-engine-label',
     'eq-engine-label--apo',
   );
-  expect(screen.queryByText('Fluid EQ Engine')).not.toBeInTheDocument();
+  expect(screen.queryByText('FluidEQ Engine')).not.toBeInTheDocument();
 
   mockWorld.isEngineUsable = false;
   rerender(<FluidEngineLabel />);
@@ -83,7 +83,7 @@ it('names Equalizer APO when it is the installed, enabled engine', () => {
   mockWorld.status = status('fluid', { apo: true, fluid: true });
   rerender(<FluidEngineLabel />);
   expect(screen.queryByText('APO Engine')).not.toBeInTheDocument();
-  expect(screen.getByText('Fluid EQ Engine')).toBeInTheDocument();
+  expect(screen.getByText('FluidEQ Engine')).toBeInTheDocument();
 });
 
 /**
@@ -94,7 +94,7 @@ it('names Equalizer APO when it is the installed, enabled engine', () => {
  * an output nothing was reaching. It now belongs to one state only.
  */
 const lineOf = (): HTMLElement => {
-  const label = screen.getByText('Fluid EQ Engine');
+  const label = screen.getByText('FluidEQ Engine');
   const line = label.parentElement;
   if (!line) {
     throw new Error('the label has no line around it');
@@ -112,23 +112,23 @@ describe('what the engine line is saying', () => {
     render(<FluidEngineLabel />);
     expect(lineOf()).toHaveClass('eq-engine-line--checking');
     // Nothing is being celebrated yet, and nothing is being blamed.
-    expect(screen.getByText('Fluid EQ Engine')).not.toHaveClass('is-riding');
+    expect(screen.getByText('FluidEQ Engine')).not.toHaveClass('is-riding');
     expect(document.querySelector('.status-dot.error')).not.toBeInTheDocument();
   });
 
   it('celebrates once, on becoming the engine that is working', () => {
     const { rerender } = render(<FluidEngineLabel />);
-    expect(screen.getByText('Fluid EQ Engine')).not.toHaveClass('is-riding');
+    expect(screen.getByText('FluidEQ Engine')).not.toHaveClass('is-riding');
 
     rerender(<FluidEngineLabel isEngineOnOutput />);
     expect(lineOf()).toHaveClass('eq-engine-line--working');
-    expect(screen.getByText('Fluid EQ Engine')).toHaveClass('is-riding');
+    expect(screen.getByText('FluidEQ Engine')).toHaveClass('is-riding');
   });
 
   it('shows the red dot and no celebration when it is not reaching the output', () => {
     render(<FluidEngineLabel isEngineOnOutput={false} />);
     expect(lineOf()).toHaveClass('eq-engine-line--broken');
-    expect(screen.getByText('Fluid EQ Engine')).not.toHaveClass('is-riding');
+    expect(screen.getByText('FluidEQ Engine')).not.toHaveClass('is-riding');
     expect(document.querySelector('.status-dot.error')).toBeInTheDocument();
   });
 
@@ -138,7 +138,7 @@ describe('what the engine line is saying', () => {
     // happened, or the success animation is meaningless.
     const { rerender } = render(<FluidEngineLabel />);
     rerender(<FluidEngineLabel isEngineOnOutput={false} />);
-    expect(screen.getByText('Fluid EQ Engine')).not.toHaveClass('is-riding');
+    expect(screen.getByText('FluidEQ Engine')).not.toHaveClass('is-riding');
   });
 
   it('leaves Equalizer APO out of all three, because it says nothing', () => {

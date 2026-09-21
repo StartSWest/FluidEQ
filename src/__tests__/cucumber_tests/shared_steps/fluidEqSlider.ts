@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { DefineStepFunction } from 'jest-cucumber';
 import { IDriverSession, requireDriver } from '__tests__/utils/webdriver';
-import { FilterTypeEnum, FilterTypeToLabelMap } from 'common/constants';
+import { FilterTypeEnum } from 'common/constants';
+import { translate } from 'common/i18n';
+import FILTER_TYPE_NAME_KEYS from 'renderer/utils/filterTypeNames';
 
 export const givenBandCount = (
   given: DefineStepFunction,
@@ -255,7 +257,7 @@ const setFrequencyFilterType = async (
 
   // Need to reselect from driver since these elements didn't exist before clicking on the dropdown
   const filterElement = await requireDriver(webdriver).$(
-    `.dropdown li[aria-label="${FilterTypeToLabelMap[filterTypeAsEnum]}"]`,
+    `.dropdown li[aria-label="${translate('en', FILTER_TYPE_NAME_KEYS[filterTypeAsEnum])}"]`,
   );
   expect(filterElement).not.toBeNull();
   filterElement.click();

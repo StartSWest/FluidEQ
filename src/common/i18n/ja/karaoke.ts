@@ -101,7 +101,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': '次の歌詞',
   'karaoke.lyrics.follow': '歌詞を追従',
   'karaoke.lyrics.textSize': '歌詞の文字サイズ',
-  'karaoke.transport.title': 'Karaoke 再生コントロール',
+  'karaoke.transport.title': 'カラオケ再生コントロール',
   'karaoke.transport.restart': '曲を最初から再生',
   'karaoke.transport.play': '再生',
   'karaoke.transport.pause': '一時停止',

@@ -90,7 +90,7 @@ const dsp = {
     'अभी कोई पसंदीदा नहीं है। जोड़ने के लिए DSP प्रीसेट पर तारा लगाएँ।',
   'dsp.favorites.open': 'DSP खोलें',
   'dsp.gameMode.update':
-    'गेम मोड के लिए Fluid Engine अपडेट करें। आपके प्रीसेट की ध्वनि सेटिंग लागू रहती हैं।',
+    'गेम मोड के लिए FluidEQ इंजन अपडेट करें। आपके प्रीसेट की ध्वनि सेटिंग लागू रहती हैं।',
   'dsp.gameMode.hint':
     'गेम मोड अनावश्यक बफ़र हटाता है और न्यूनतम-फेज़ EQ इस्तेमाल करता है। सक्रिय प्रभाव फिर भी देरी जोड़ सकते हैं। गेमिंग प्रीसेट इसे चालू करते हैं; प्रीसेट बदले बिना इसे बंद कर सकते हैं।',
   'dsp.latency.buffer': 'बायपास के दौरान बफ़र',
@@ -137,7 +137,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': 'EQ, लीनियर फ़ेज़',
   'dsp.latency.stage.curvePhase': 'कर्व लेयर, लीनियर फ़ेज़',
   'dsp.latency.stage.curves': 'सुधार कर्व',
-  'dsp.scope.useFluid': 'FluidEQ Engine इस्तेमाल करें',
+  'dsp.scope.useFluid': 'FluidEQ इंजन इस्तेमाल करें',
   'dsp.unavailable':
     'ऑडियो प्रोसेसिंग शुरू नहीं हो सकी। प्लेबैक पर कोई असर नहीं पड़ता।',
   'dsp.engineDown':

@@ -1194,7 +1194,11 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   padding: 10px 12px;
   // The filter column is the wide one because it is the only field whose value
   // is a name rather than a number, and the two shelves and the two passes are
-  // told apart by a word each.
+  // told apart by a word each. It grows past its 162px floor to the longest
+  // shape name in the reader's language — every option carries all seven
+  // names, hidden, to measure by (`.filter-type-option__sizer`) — so it does
+  // not jump as the selection changes. Fixed at 162px it cut the Russian
+  // "Высокий шельф" to "Высокий шел…" once the names were translated.
   //
   // The three dials get a floor of 64px — the 50px face plus air — and grow to
   // whatever their caption needs. Fixed columns were tried at 64px and clipped
@@ -1202,8 +1206,9 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   // dial is the same size in every language and the word above it is not, so
   // the word is what has to size the column.
   grid-template-columns:
-    minmax(104px, max-content) 162px repeat(3, minmax(64px, max-content))
-    minmax(56px, max-content) minmax(104px, max-content);
+    minmax(104px, max-content) minmax(162px, max-content)
+    repeat(3, minmax(64px, max-content)) minmax(56px, max-content)
+    minmax(104px, max-content);
   align-items: stretch;
   justify-self: center;
   gap: 8px;
@@ -1402,14 +1407,29 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 
 // The line box has to be taller than the glyphs, because `truncate` brings
 // `overflow: hidden` with it: at a line height of 1 the box is exactly the
-// font size, so the descender of the p in "Low Pass" and the top of the L
+// font size, so the descender of the p in "Low pass" and the top of the L
 // were being shaved off by the very rule meant to add an ellipsis.
+//
+// The shown name and the hidden sizers share one grid cell, so the label is
+// as wide as the longest name there is rather than the one shown: that is
+// what the band editor's filter column measures.
 .filter-type-option__label {
-  @include truncate;
+  display: grid;
+  min-width: 0;
   padding-block: 1px;
   color: rgba($white, 0.92);
   font-size: $text-body;
   line-height: 1.45;
+}
+
+.filter-type-option__name,
+.filter-type-option__sizer {
+  @include truncate;
+  grid-area: 1 / 1;
+}
+
+.filter-type-option__sizer {
+  visibility: hidden;
 }
 
 // Stands in for the gain field on filter types that have no gain parameter.

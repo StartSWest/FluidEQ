@@ -406,7 +406,10 @@ const SquiglinkImport = () => {
                   </span>
                   <strong>{previewLabel}</strong>
                   <small>
-                    {previewBandCount} {t('squigImport.bands')} ·{' '}
+                    {/* The count inside the string, not beside it: a number
+                        glued to a word cannot be right in a language whose
+                        word for "bands" changes with the number. */}
+                    {t('squigImport.bands', { count: previewBandCount })} ·{' '}
                     {formatName(previewFormat)}
                   </small>
                 </div>

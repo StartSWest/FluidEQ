@@ -287,7 +287,7 @@ const tour: Partial<Dictionary> = {
   'tour.karaoke.open': 'Karaoke öffnen',
 
   'tour.maker.kicker': 'SELBST GEMACHT',
-  'tour.maker.title': 'Der Karaoke-Maker',
+  'tour.maker.title': 'Der Karaoke-Editor',
   'tour.maker.subtitle': 'Jeder Song wird zur Karaoke-Datei',
   'tour.maker.lead':
     'Ein vollständiges Autorenstudio im Tab Karaoke. Es kann die ganze Arbeit allein erledigen: die Stimme von der Musik trennen, Wörter und Timing mit einem lokalen Sprachmodell lesen und die Melodienoten erkennen. Oder Sie tippen, nehmen auf und zeichnen jedes Timing von Hand auf einer zoombaren Zeitleiste. Alles läuft auf diesem Computer.',

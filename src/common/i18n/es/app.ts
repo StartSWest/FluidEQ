@@ -62,7 +62,7 @@ const app: Partial<Dictionary> = {
   'app.processes.sceneRate':
     '{place}: {name} a {fps} fps, dibujado a {drawn} para {shown}',
   'app.processes.place.graph': 'Visualizador del gráfico',
-  'app.processes.place.studio': 'Escenario del Studio',
+  'app.processes.place.studio': 'Escenario del Estudio',
   'app.processes.name.window': 'Interfaz',
   'app.processes.what.window':
     'La ventana que estás viendo: la curva, la biblioteca, el reproductor, todos los controles. Un proceso por ventana, para que un redibujado pesado no frene el sonido. Los visualizadores de Plus funcionan dentro, en un hilo propio, para que una escena pesada no frene los controles.',

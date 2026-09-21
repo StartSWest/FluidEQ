@@ -88,7 +88,7 @@ const dsp = {
   'dsp.favorites.empty': '暂无收藏。请在 DSP 中为预设加星。',
   'dsp.favorites.open': '打开 DSP',
   'dsp.gameMode.update':
-    '请更新 Fluid Engine 以使用游戏模式。预设的音效设置仍会应用。',
+    '请更新 FluidEQ 引擎以使用游戏模式。预设的音效设置仍会应用。',
   'dsp.gameMode.hint':
     '游戏模式移除可避免的缓冲并使用最小相位 EQ。启用的效果仍可能增加延迟。游戏预设会开启此模式；你可以手动关闭而不更改预设。',
   'dsp.latency.buffer': '旁路时保留的缓冲',
@@ -134,7 +134,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': '均衡器，线性相位',
   'dsp.latency.stage.curvePhase': '曲线层，线性相位',
   'dsp.latency.stage.curves': '校正曲线',
-  'dsp.scope.useFluid': '使用 FluidEQ Engine',
+  'dsp.scope.useFluid': '使用 FluidEQ 引擎',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.engineDown':
     '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',

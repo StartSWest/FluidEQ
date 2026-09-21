@@ -20,8 +20,15 @@ import '@testing-library/jest-dom';
 import { act, screen } from '@testing-library/react';
 import { setup } from '../utils/userEventUtils';
 import Dropdown from '../../renderer/widgets/Dropdown';
-import { FILTER_OPTIONS } from '../../renderer/icons/FilterTypeIcon';
-import { FilterTypeEnum, FilterTypeToLabelMap } from '../../common/constants';
+import { labelledFilterOptions } from '../../renderer/icons/FilterTypeIcon';
+import FILTER_TYPE_NAME_KEYS from '../../renderer/utils/filterTypeNames';
+import { FilterTypeEnum } from '../../common/constants';
+import { translate, Translate } from '../../common/i18n';
+
+// The Filter list the Bands page shows, in English.
+const english: Translate = (key, vars) => translate('en', key, vars);
+const FILTER_OPTIONS = labelledFilterOptions(english);
+const nameOf = (type: FilterTypeEnum) => english(FILTER_TYPE_NAME_KEYS[type]);
 
 describe('Dropdown', () => {
   const name = 'dropdown';
@@ -43,14 +50,14 @@ describe('Dropdown', () => {
       />,
     );
 
-    const value = screen.getByTitle(FilterTypeToLabelMap[filterType]);
+    const value = screen.getByTitle(nameOf(filterType));
     expect(value).toBeInTheDocument();
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
     expect(screen.getByLabelText(`${name}-items`)).toBeInTheDocument();
 
     const newFilterType = FilterTypeEnum.LSC;
-    const newValue = screen.getByLabelText(FilterTypeToLabelMap[newFilterType]);
+    const newValue = screen.getByLabelText(nameOf(newFilterType));
     expect(newValue).toBeInTheDocument();
     await user.click(newValue);
     expect(handleChange).toHaveBeenCalledWith(newFilterType);
@@ -70,7 +77,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(FilterTypeToLabelMap[filterType]);
+    const item = screen.getByLabelText(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.keyboard('{ArrowDown}{Enter}');
@@ -91,7 +98,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(FilterTypeToLabelMap[filterType]);
+    const item = screen.getByLabelText(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.keyboard('{Tab}{Enter}');
@@ -180,13 +187,11 @@ describe('Dropdown', () => {
       />,
     );
 
-    const value = screen.getByTitle(FilterTypeToLabelMap[filterType]);
+    const value = screen.getByTitle(nameOf(filterType));
     expect(value).toBeInTheDocument();
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    expect(
-      screen.queryByLabelText(FilterTypeToLabelMap[filterType]),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(nameOf(filterType))).not.toBeInTheDocument();
   });
 
   it('should close the dropdown when clicking outside', async () => {
@@ -206,7 +211,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(FilterTypeToLabelMap[filterType]);
+    const item = screen.getByLabelText(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.click(screen.getByText('Outside'));
@@ -230,7 +235,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(FilterTypeToLabelMap[filterType]);
+    const item = screen.getByLabelText(nameOf(filterType));
     expect(item).toHaveFocus();
 
     // Need this because the focus triggers a state update and so we need to wait

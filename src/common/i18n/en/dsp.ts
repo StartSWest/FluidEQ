@@ -99,7 +99,7 @@ const dsp = {
     'No favorites yet. Star a preset in DSP to add it here.',
   'dsp.favorites.open': 'Open DSP',
   'dsp.gameMode.update':
-    'Update Fluid Engine to use Game mode. Your preset still applies its sound settings.',
+    'Update the FluidEQ Engine to use Game mode. Your preset still applies its sound settings.',
   'dsp.gameMode.hint':
     'Game mode removes avoidable buffering and uses minimum-phase EQ. Active effects can still add delay. Gaming presets enable it; you can turn it off without changing your preset.',
   'dsp.latency.buffer': 'Buffer while bypassed',

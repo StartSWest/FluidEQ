@@ -15,6 +15,7 @@ import {
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
+import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
@@ -23,15 +24,16 @@ import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
 import DspDynamicReadout from './DspDynamicReadout';
 
+/** This card's order; the names are the ones the Bands page uses too. */
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
-  { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
-  { type: FilterTypeEnum.LSC, labelKey: 'dsp.eq.type.lowShelf' },
-  { type: FilterTypeEnum.HSC, labelKey: 'dsp.eq.type.highShelf' },
-  { type: FilterTypeEnum.NO, labelKey: 'dsp.eq.type.notch' },
-  { type: FilterTypeEnum.LPQ, labelKey: 'dsp.eq.type.lowPass' },
-  { type: FilterTypeEnum.HPQ, labelKey: 'dsp.eq.type.highPass' },
-  { type: FilterTypeEnum.BP, labelKey: 'dsp.eq.type.bandPass' },
-];
+  FilterTypeEnum.PK,
+  FilterTypeEnum.LSC,
+  FilterTypeEnum.HSC,
+  FilterTypeEnum.NO,
+  FilterTypeEnum.LPQ,
+  FilterTypeEnum.HPQ,
+  FilterTypeEnum.BP,
+].map((type) => ({ type, labelKey: FILTER_TYPE_NAME_KEYS[type] }));
 
 /** Shapes with no gain of their own — the dial would do nothing. */
 const NO_GAIN = new Set<string>([

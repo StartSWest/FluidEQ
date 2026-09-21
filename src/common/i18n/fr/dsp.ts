@@ -90,7 +90,7 @@ const dsp = {
     'Aucun favori. Ajoutez une étoile à un preset DSP pour le retrouver ici.',
   'dsp.favorites.open': 'Ouvrir DSP',
   'dsp.gameMode.update':
-    'Mettez Fluid Engine à jour pour utiliser le mode Jeu. Le préréglage conserve ses réglages sonores.',
+    'Mettez le Moteur FluidEQ à jour pour utiliser le mode Jeu. Le préréglage conserve ses réglages sonores.',
   'dsp.gameMode.hint':
     'Le mode jeu retire les tampons évitables et utilise une EQ à phase minimale. Les effets actifs peuvent encore ajouter un délai. Les presets de jeu l’activent ; vous pouvez le désactiver sans changer de preset.',
   'dsp.latency.buffer': 'Tampon avec effet désactivé',
@@ -137,7 +137,7 @@ const dsp = {
   'dsp.latency.stage.eqPhase': 'Égaliseur, phase linéaire',
   'dsp.latency.stage.curvePhase': 'Couche de courbe, phase linéaire',
   'dsp.latency.stage.curves': 'Courbes de correction',
-  'dsp.scope.useFluid': 'Utiliser FluidEQ Engine',
+  'dsp.scope.useFluid': 'Utiliser le Moteur FluidEQ',
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
   'dsp.engineDown':
