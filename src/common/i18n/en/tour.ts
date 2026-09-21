@@ -73,7 +73,7 @@ const tour = {
   'tour.room.point1':
     'Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring, decided by what is playing.',
   'tour.room.point2':
-    'Eleven rooms to start from — studio, living room, cinema, concert hall — plus your own, saved under a name.',
+    'Twenty-four rooms to start from — studio, living room, cinema, concert hall — plus your own, saved under a name.',
   'tour.room.point3':
     'Fit picks the head that puts sounds in front of you, by ear, in five pairs.',
   'tour.room.how':

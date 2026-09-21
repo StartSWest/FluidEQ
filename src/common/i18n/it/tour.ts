@@ -64,7 +64,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.point1':
     'Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello, a seconda di cosa suona.',
   'tour.room.point2':
-    'Undici stanze da cui partire — studio, salotto, cinema, sala da concerto — più le tue, salvate con un nome.',
+    'Ventiquattro stanze da cui partire — studio, salotto, cinema, sala da concerto — più le tue, salvate con un nome.',
   'tour.room.point3':
     'Adatta sceglie a orecchio la testa che mette i suoni davanti a te, in cinque coppie.',
   'tour.room.how':
