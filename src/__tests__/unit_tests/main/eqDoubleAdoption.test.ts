@@ -36,6 +36,20 @@ const eqText = (state: IState) =>
     ?.features.find(({ feature }) => feature === 'eq')
     ?.lines.join('\n') ?? '';
 
+/**
+ * The bands' gains, lowest first — never in the map's own order.
+ *
+ * The map is keyed by a random eight-hex-character id, and about one id in
+ * forty-four is all digits with no leading zero, which V8 iterates as an
+ * array index, ahead of the rest: the same chance failure the band design
+ * test had (dd1c3c0f9). Both bands here stand at 1000 Hz, so frequency cannot
+ * order them either, and which comes first means nothing to the sound.
+ */
+const gains = (state: IState) =>
+  Object.values(state.filters)
+    .map(({ gain }) => gain)
+    .sort((left, right) => left - right);
+
 describe('two-pass external EQ adoption', () => {
   it.each(['double', 'studio'] as const)(
     'refuses external curve edits that would reset other strengthened layers in %s',
@@ -100,9 +114,7 @@ describe('two-pass external EQ adoption', () => {
       unsupported: 0,
     });
     expect(state.isEqDoubleOn).toBe(false);
-    expect(Object.values(state.filters).map(({ gain }) => gain)).toEqual([
-      4, 7,
-    ]);
+    expect(gains(state)).toEqual([4, 7]);
     expect(describeApoFeatureText(eqText(state))).toBe(
       describeApoFeatureText(external),
     );
@@ -213,9 +225,7 @@ describe('startup adoption of x2 output', () => {
     );
     adopt(state);
     expect(getEqMode(state)).toBe('normal');
-    expect(Object.values(state.filters).map(({ gain }) => gain)).toEqual([
-      4, 7,
-    ]);
+    expect(gains(state)).toEqual([4, 7]);
   });
 
   it.each([AutoEqFormat.PARAMETRIC, AutoEqFormat.GRAPHIC])(
@@ -257,9 +267,7 @@ describe('startup adoption of x2 output', () => {
     );
     adopt(state, external);
     expect(state.isEqDoubleOn).toBe(false);
-    expect(Object.values(state.filters).map(({ gain }) => gain)).toEqual([
-      4, 7,
-    ]);
+    expect(gains(state)).toEqual([4, 7]);
   });
 
   it('refuses partial adoption and signals callers not to overwrite unrepresentable stages', () => {
