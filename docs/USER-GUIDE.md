@@ -277,23 +277,23 @@ The Room turns headphones into a listening room. Every channel of the sound beco
 
 ![The Room: surround on headphones](32-dsp-room.png)
 
-- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it. Press one to set it by itself: its level, its own distance, its angle by number, and Mute and Solo to hear it alone.
-- **Size, Walls, Distance, Centre, Sub** — The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.
+- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. All of it is drawn to one scale, so a speaker standing further out than the room is wide is drawn outside its walls. Drag one and its pair moves with it; hold Shift to move it alone.
+- **The chosen speaker** — Press a speaker in the room and this pane becomes its own: its angle as a number, its own distance, its level, and Mute or Solo to hear it alone.
+- **Space, Ambience, Distance** — How much of the walls you hear, the soft tail after them, and how far the speakers stand. Size, Walls and the tail's own length and tone are in Room character below.
 - **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
 - **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
-- **Fit…** — Five listening pairs that pick the head for your ears.
+- **Start the listening test** — Five listening pairs that pick the head for your ears.
 - **Head** — The measured head the room renders through: small, medium or large.
-- **Headphones** — Whether your headphone profile from the EQ page runs after the room, so the speakers sound like speakers.
-- **Save room…** — Name the room as it stands; it comes back with a press.
+- **Save** — Name the room as it stands; it comes back with a press.
 
 ### Try it
 
 1. Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.
 2. Pick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.
-3. Press Fit and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.
+3. Press Start the listening test and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.
 4. Save a room you like under a name; a saved room comes back with a press and never changes your head.
 
-> **Good to know:** Shaping the room — the dials, dragging a speaker, Fit and saving — is part of Plus; the rooms and the head choice are for everyone. Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.
+> **Good to know:** Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.
 
 <a id="denoise"></a>
 
@@ -396,7 +396,7 @@ Standard styles are free drawings of the live sound that you can colour and desi
 
 ## FluidEQ Plus and your account
 
-An account is optional: everything that was free runs on this computer without one, and any account can make one scene in the Studio. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, Dynamic lighting and the desktop visualizer, and takes what the Studio makes to your looks, the gallery and other members.
+An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A new account can try Plus free for fifteen days, and a scene you publish that is approved earns you a month.
 
 ![FluidEQ Plus and your account](25-plus-visualizers.png)
 
@@ -412,7 +412,7 @@ An account is optional: everything that was free runs on this computer without o
 2. Press Upgrade to Plus, read the terms, tick that you agree, and pay on Buy Me a Coffee in your browser with the same email.
 3. Open the Plus tab. Its rail leads to the Leaderboard, Visualizers, the Studio and Dynamic lighting.
 
-> **Good to know:** The app never sees your card; Manage subscription changes or cancels it. An account stays signed in on up to five computers, and Plus keeps working offline for a while.
+> **Good to know:** The app never sees your card; Manage subscription changes or cancels it. The free trial asks for no card and charges nothing when it ends. An account stays signed in on up to five computers, and Plus keeps working offline for a while.
 
 <a id="gallery"></a>
 
@@ -445,7 +445,7 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 2. Open a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.
 3. Like members’ scenes with the heart, and report one that should not be there.
 
-> **Good to know:** Scenes in your looks update themselves, and a scene’s page says what changed in each version. Open in Studio shows how FluidEQ’s own scenes are made.
+> **Good to know:** Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once a moderator has approved it. Open in Studio shows how FluidEQ’s own scenes are made.
 
 <a id="leaderboard"></a>
 
@@ -471,7 +471,7 @@ The Leaderboard ranks the Plus members who join it, by how much they listen and 
 
 ## Make scenes in the Studio
 
-The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved.
+The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is part of Plus; a new account can open it on the free trial.
 
 ![Make scenes in the Studio](31-plus-studio.png)
 
@@ -487,9 +487,9 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 
 1. Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.
 2. Describe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.
-3. Watch the stage as files are saved and try the test signals. Then, with Plus, Add to my looks, Publish… or Export….
+3. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
 
-> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back.
+> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by a moderator first, and one that is approved earns you a month of Plus.
 
 <a id="desktop"></a>
 
@@ -511,7 +511,7 @@ The desktop visualizer puts a Plus visualizer behind your desktop icons, on one 
 2. Press the monitors on the map, choose With the music or Calm, and press Set background.
 3. To change or stop it, open Plus → Visualizers and use Manage or Stop at the top.
 
-> **Good to know:** It pauses for full-screen apps, a locked PC and, if you choose, battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.
+> **Good to know:** It pauses while windows cover the monitor, while the PC is locked and, if you choose, on battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.
 
 <a id="lighting"></a>
 
