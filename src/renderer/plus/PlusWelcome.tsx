@@ -25,7 +25,11 @@ const SCENES: readonly { key: TranslationKey; picture: string }[] = [
   { key: 'plus.welcome.scene.prismBloom', picture: prismBloom },
 ];
 
-/** What signing in opens, and which of it takes Plus. */
+/**
+ * What signing in opens, and which of it takes Plus. The Room is not on it:
+ * its Plus locks came off in 1.7.5, and a list headed "Only with Plus" that
+ * still named it told a free account it could not have what it already had.
+ */
 const PERKS: readonly {
   glyph: TCommunityGlyph;
   key: TranslationKey;
@@ -33,7 +37,6 @@ const PERKS: readonly {
   { glyph: 'looks', key: 'trial.extras.scenes' },
   { glyph: 'studio', key: 'trial.extras.studio' },
   { glyph: 'lighting', key: 'trial.extras.desktop' },
-  { glyph: 'headphones', key: 'trial.extras.room' },
   { glyph: 'board', key: 'trial.extras.board' },
 ];
 

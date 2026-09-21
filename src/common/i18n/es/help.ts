@@ -55,7 +55,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.share':
     'Envía el sonido de este ordenador a otro, o reproduce aquí el de otro.',
   'help.window.eq':
-    'Tus bandas, presets, corrección de auriculares, perfiles de juego y la configuración del motor.',
+    'Tus bandas, presets, corrección de auriculares, presets de juego y la configuración del motor.',
   'help.window.waveName': 'Señal de audio',
   'help.window.wave':
     'Lo que está sonando, mientras suena. Púlsala para cambiar cómo se dibuja.',
@@ -172,11 +172,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Guarda las frecuencias y la Q actuales como un diseño con nombre, que aparece en Mis diseños.',
 
-  'help.games.title': 'Perfiles de juego',
+  'help.games.title': 'Presets de juego',
   'help.games.intro':
     'Dale a cada juego su propio sonido. Cuando el juego pasa al frente, FluidEQ cambia a ese sonido y lo mantiene hasta que cierras el juego, aunque cambies de ventana con Alt+Tab mientras tanto. Después vuelve a lo que tenías.',
   'help.games.steps':
-    'Abre EQ → Perfiles de juego y pulsa Añadir un juego. Escoge uno de tus lanzadores o un programa que esté abierto ahora, o elige su programa a mano.\nEn el selector de su fila, elige el sonido que debe recibir: un preset de Juegos o cualquier otro.\nInicia el juego. Una tarjeta en el escritorio indica a qué ha cambiado FluidEQ, y otra, qué ha vuelto al cerrarlo.',
+    'Abre EQ → Presets de juego y pulsa Añadir un juego. Escoge uno de tus lanzadores o un programa que esté abierto ahora, o elige su programa a mano.\nEn el selector de su fila, elige el sonido que debe recibir: un preset de Juegos o cualquier otro.\nInicia el juego. Una tarjeta en el escritorio indica a qué ha cambiado FluidEQ, y otra, qué ha vuelto al cerrarlo.',
   'help.games.tip':
     'Mientras un juego mantiene su sonido, la barra de la parte inferior de la ventana muestra el nombre del juego. Si eliges otro sonido mientras juegas, se queda: FluidEQ solo devuelve lo que puso. Los presets de Juegos también activan el Modo juego.',
   'help.games.tab': 'Tus juegos y el sonido que recibe cada uno.',
@@ -242,7 +242,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'El rack DSP es una cadena de etapas de estudio. Con el Motor FluidEQ procesa todo lo que suena en el PC; con Equalizer APO, las pistas de audio de la Biblioteca. Mientras FluidEQ está apagado, el rack también lo está.',
   'help.dsp.steps':
-    'Abre DSP. Elige una cadena en Ajustes, o selecciona una etapa en las pestañas laterales y actívala.\nCambia un control cada vez y compara con la etapa desactivada a un volumen parecido. Aislar te permite oír solo lo que añade una etapa.\nGuarda un rack que te guste y usa Exportar e Importar para compartirlo.',
+    'Abre DSP. Elige una cadena en Presets, o selecciona una etapa en las pestañas laterales y actívala.\nCambia un control cada vez y compara con la etapa desactivada a un volumen parecido. Aislar te permite oír solo lo que añade una etapa.\nGuarda un rack que te guste y usa Exportar e Importar para compartirlo.',
   'help.dsp.tip':
     'Lo que suena más fuerte suele parecer mejor solo por sonar más fuerte, así que compara con niveles igualados. Haz Ctrl+clic en un mando para devolverlo a su valor predeterminado.',
   'help.dsp.normalizer':
@@ -275,7 +275,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.tip':
     'Los juegos y las películas solo envían sus canales surround a una salida que Windows cree que tiene tantos altavoces: cuando el controlador lo admite, el panel de salida ofrece un solo clic a 7.1.',
   'help.room.picker':
-    'Las salas de partida, agrupadas como los perfiles de las demás etapas; Personalizado en cuanto das forma a una.',
+    'Las salas de partida, agrupadas como los presets de las demás etapas; Personalizado en cuanto das forma a una.',
   'help.room.picture':
     'La sala vista desde arriba: paredes que se apagan al absorber, los altavoces en su anillo, la cabeza en el centro. Todo está dibujado a una sola escala, así que un altavoz situado más lejos de lo que mide la sala se dibuja fuera de sus paredes. Arrastra uno y su pareja se mueve con él; mantén Mayús para moverlo solo.',
   'help.room.speaker':
@@ -391,7 +391,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.intro':
     'Visualizadores reúne las escenas de FluidEQ y las que publican los miembros. Cualquier cuenta puede explorar la galería y probar durante diez segundos las muestras gratuitas de FluidEQ; Plus reproduce todas las escenas con tu música y las añade a tus estilos.',
   'help.gallery.steps':
-    'Abre Plus → Visualizadores. Busca, ordena por Más gustadas, Esta semana o Más nuevas, o elige una categoría.\nAbre una escena, pulsa Añadir a mis estilos y después Poner en el gráfico. Las flechas, o ← y →, pasan de una escena a otra.\nDale me gusta con el corazón a las escenas de los miembros, y denuncia la que no debería estar ahí.',
+    'Abre Plus → Visualizadores. Busca, ordena por Más gustadas, Esta semana o Más nuevas, o elige una categoría.\nAbre una escena, pulsa Añadir a mis estilos y después Poner en la gráfica. Las flechas, o ← y →, pasan de una escena a otra.\nDale me gusta con el corazón a las escenas de los miembros, y denuncia la que no debería estar ahí.',
   'help.gallery.tip':
     'Las escenas de tus estilos se actualizan solas, y la página de cada escena cuenta qué cambió en cada versión. Una escena que publicas aparece cuando un moderador la aprueba. Abrir en el Estudio muestra cómo están hechas las escenas de FluidEQ.',
   'help.gallery.search': 'Encuentra escenas y creadores.',
@@ -422,7 +422,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Abre Cuenta y pulsa Unirme a la clasificación.\nAbre Plus → Clasificación. Elige el alias y el nombre con los que apareces en la clasificación, y cambia entre Histórico y Este mes.\nPara dejarlo, pulsa Salir de la clasificación. Eliminar todos mis datos borra todo lo que has enviado.',
   'help.leaderboard.tip':
-    'De tu ordenador sale un solo número al día, los minutos de música que han sonado, y nunca lo que escuchas. Cada número se comprueba en el servidor. Tu apodo y tu nombre se pueden cambiar después desde Cuenta → Cambiar nombre; la clasificación y tus escenas publicadas lo siguen.',
+    'De tu ordenador sale un solo número al día, los minutos de música que han sonado, y nunca lo que escuchas. Cada número se comprueba en el servidor. Tu alias y tu nombre se pueden cambiar después desde Cuenta → Cambiar nombre; la clasificación y tus escenas publicadas lo siguen.',
   'help.leaderboard.periodName': 'Histórico o Este mes',
   'help.leaderboard.period': 'Todo el historial, o solo este mes.',
   'help.leaderboard.standing':

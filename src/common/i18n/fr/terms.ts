@@ -124,7 +124,7 @@ const terms = {
   'terms.never.title': 'Ce que le service de FluidEQ ne reçoit jamais',
   'terms.never.p1':
     'Votre son, et tout ce qui concerne ce que vous écoutez : titres, artistes, fichiers, dossiers et playlists.',
-  'terms.never.p2': 'Vos réglages d’égaliseur, vos presets et vos profils.',
+  'terms.never.p2': 'Vos réglages d’égaliseur, vos préréglages et vos profils.',
   'terms.never.p3':
     'Vos périphériques audio, vos écrans et vos éclairages RGB, leurs noms, et les autres applications de votre ordinateur.',
   'terms.never.p4':

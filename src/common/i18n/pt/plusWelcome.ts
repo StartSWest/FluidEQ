@@ -2,26 +2,26 @@ const plusWelcome = {
   'plusWelcome.eyebrow': 'FluidEQ Plus',
   'plusWelcome.title': 'Bem-vindo ao Plus',
   'plusWelcome.lead':
-    'A tua subscrição está activa. Obrigado — é o que mantém o FluidEQ a ser feito. Isto é o que acabou de abrir.',
+    'Sua assinatura está ativa. Obrigado — é o que mantém o FluidEQ sendo feito. Isto é o que acabou de abrir.',
   'plusWelcome.scenes.title': 'Todos os visualizadores',
   'plusWelcome.scenes.line':
-    'As cenas do FluidEQ e tudo o que os membros publicam, na tua música.',
-  'plusWelcome.studio.title': 'O Creator Studio',
+    'As cenas do FluidEQ e tudo o que os membros publicam, com a sua música.',
+  'plusWelcome.studio.title': 'O Estúdio',
   'plusWelcome.studio.line':
-    'Cria as tuas próprias cenas e publica-as na galeria.',
-  'plusWelcome.desktop.title': 'O teu ambiente de trabalho',
+    'Crie suas próprias cenas e publique-as na galeria.',
+  'plusWelcome.desktop.title': 'Sua área de trabalho',
   'plusWelcome.desktop.line':
     'Um visualizador atrás dos ícones, num monitor ou em todos.',
-  'plusWelcome.lighting.title': 'Luzes dinâmicas',
+  'plusWelcome.lighting.title': 'Iluminação dinâmica',
   'plusWelcome.lighting.line':
-    'As tuas luzes seguem a música, nas cores da cena que está a tocar.',
+    'Suas luzes seguem a música, nas cores da cena que está tocando.',
   'plusWelcome.board.title': 'A classificação',
   'plusWelcome.board.line':
-    'Sobe com as horas que ouves e os gostos que as tuas cenas ganham.',
+    'Suba com as horas que você ouve e as curtidas que suas cenas ganham.',
   'plusWelcome.where':
-    'A tua subscrição vive no menu {menu}, em {account} — abre-o quando quiseres para a ver, mudar o teu nome ou geri-la.',
+    'Sua assinatura vive no menu {menu}, em {account} — abra-o quando quiser para vê-la, mudar seu nome ou gerenciá-la.',
   'plusWelcome.note':
-    'O Plus funciona em até cinco dos teus computadores, e o equalizador, o rack e os players continuam gratuitos.',
+    'O Plus funciona em até cinco dos seus computadores, e o equalizador, o rack e os players continuam gratuitos.',
   'plusWelcome.open': 'Abrir Visualizadores',
   'plusWelcome.later': 'Mais tarde',
 };

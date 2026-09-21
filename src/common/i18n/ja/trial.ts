@@ -4,9 +4,8 @@ const trial = {
     'イコライザー、音楽再生、無料のプリセットとビジュアライザーは、これからも無料です。Plus では、希望する方が追加機能を利用できます。',
   'trial.extras.title': 'Plus 限定の機能',
   'trial.extras.scenes': 'Plus のビジュアライザーとコミュニティのシーン',
-  'trial.extras.studio': 'Studio でシーンをエクスポート・公開',
+  'trial.extras.studio': 'スタジオでシーンをエクスポート・公開',
   'trial.extras.desktop': 'デスクトップのシーンと RGB ライティング',
-  'trial.extras.room': 'ルームの詳細なカスタマイズとフィット',
   'trial.extras.board': '希望者のみランキングに参加',
   'trial.browse':
     '無料アカウントでギャラリーの閲覧やフォーラムへの参加ができます。',
@@ -18,7 +17,7 @@ const trial = {
   'trial.consent.title': 'ご希望の方に無料体験',
   'trial.consent.period': '利用開始から15日間',
   'trial.consent.after':
-    '15日後に終了するのは、Plus の追加機能へのアクセスだけです。FluidEQ は通常どおり動作し、Studio のプロジェクトも保持されます。',
+    '15日後に終了するのは、Plus の追加機能へのアクセスだけです。FluidEQ は通常どおり動作し、スタジオのプロジェクトも保持されます。',
   'trial.consent.paid':
     'その後も Plus の追加機能を使い続けたい場合は、有料プランを選べます。自動で始まることはありません。',
   'trial.consent.checkbox': 'Plus の利用規約と無料体験の条件に同意します。',
@@ -26,7 +25,7 @@ const trial = {
   'trial.consent.starting': '無料体験を開始しています…',
   'trial.consent.fullTerms': 'Plus の利用規約をすべて読む',
   'trial.consent.signIn':
-    'アカウントを作成するかログインして、対象かどうかを確認してください。アカウントを作成しただけでは無料体験は始まりません。',
+    'アカウントを作成するかサインインして、対象かどうかを確認してください。アカウントを作成しただけでは無料体験は始まりません。',
   'trial.consent.checking': '無料体験の対象か確認しています…',
   'trial.terms.title': '無料体験の条件',
   'trial.terms.body':
@@ -40,7 +39,7 @@ const trial = {
   'trial.active.badge': '無料体験',
   'trial.ended.title': 'Plus の無料体験が終了しました。',
   'trial.ended.body':
-    'FluidEQ は引き続き通常どおり動作します。イコライザー、音楽再生、無料のプリセットとビジュアライザーは無料のままです。Studio のプロジェクトも保持されます。',
+    'FluidEQ は引き続き通常どおり動作します。イコライザー、音楽再生、無料のプリセットとビジュアライザーは無料のままです。スタジオのプロジェクトも保持されます。',
   'trial.ended.paid':
     '有料の Plus プランが必要なのは、Plus の追加機能を使い続けたい場合だけです。',
   'trial.ended.free': '無料で使い続ける',
@@ -48,7 +47,7 @@ const trial = {
   'trial.error.offline':
     'サービスに接続できませんでした。接続を確認して、もう一度お試しください。',
   'trial.error.signedOut':
-    'もう一度ログインして、無料体験の対象か確認してください。',
+    'もう一度サインインして、無料体験の対象か確認してください。',
   'trial.error.server':
     '無料体験の対象か確認できませんでした。もう一度お試しください。',
   'trial.error.forbidden': 'この特典を変更できるのは管理者のみです。',

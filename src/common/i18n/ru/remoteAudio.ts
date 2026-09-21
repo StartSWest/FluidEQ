@@ -60,7 +60,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.nowPlaying': 'Сейчас играет',
   'remoteAudio.monitor.paused': 'Пауза',
   'remoteAudio.monitor.peakLevel': 'Пиковый уровень звука',
-  'remoteAudio.monitor.peak': 'Пик {decibels} dB',
+  'remoteAudio.monitor.peak': 'Пик {decibels} дБ',
   'remoteAudio.monitor.networkUsage': 'LAN {megabits} Мбит/с',
   'remoteAudio.monitor.networkHealthy': 'Сеть стабильна',
   'remoteAudio.monitor.networkQueued': '{milliseconds} мс в очереди',

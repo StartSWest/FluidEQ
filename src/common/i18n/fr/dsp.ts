@@ -85,14 +85,14 @@ const dsp = {
   'dsp.preset.speech': 'Voix',
   'dsp.quick.classics': 'Préréglages classiques',
   'dsp.favorites.intro':
-    'Ajoutez une étoile aux presets DSP pour retrouver vos sons favoris ici.',
+    'Ajoutez une étoile aux préréglages DSP pour retrouver vos sons favoris ici.',
   'dsp.favorites.empty':
-    'Aucun favori. Ajoutez une étoile à un preset DSP pour le retrouver ici.',
+    'Aucun favori. Ajoutez une étoile à un préréglage DSP pour le retrouver ici.',
   'dsp.favorites.open': 'Ouvrir DSP',
   'dsp.gameMode.update':
-    'Mettez le Moteur FluidEQ à jour pour utiliser le mode Jeu. Le préréglage conserve ses réglages sonores.',
+    'Mettez le Moteur FluidEQ à jour pour utiliser le mode jeu. Le préréglage conserve ses réglages sonores.',
   'dsp.gameMode.hint':
-    'Le mode jeu retire les tampons évitables et utilise une EQ à phase minimale. Les effets actifs peuvent encore ajouter un délai. Les presets de jeu l’activent ; vous pouvez le désactiver sans changer de preset.',
+    'Le mode jeu retire les tampons évitables et utilise une EQ à phase minimale. Les effets actifs peuvent encore ajouter un délai. Les préréglages Jeux l’activent ; vous pouvez le désactiver sans changer de préréglage.',
   'dsp.latency.buffer': 'Tampon avec effet désactivé',
   'dsp.normalizer.liveTitle': 'Contrôle du niveau en direct',
   'dsp.normalizer.livePeak': 'Protection des crêtes',
@@ -103,9 +103,9 @@ const dsp = {
   'dsp.normalizer.liveGuidance':
     'Le nivellement en direct suit le morceau indiqué par Windows. Un passage fort baisse le gain pour le reste du morceau ; le suivant garde ce niveau sauf s’il est nettement plus calme. Les morceaux déjà entendus sont nivelés dès la première seconde. Le gain monte d’au plus 6\u00a0dB dans la marge des crêtes ; la cible n’est pas garantie. Désactivez puis réactivez pour relancer l’analyse. Il ne répare pas la distorsion existante.',
   'dsp.denoise.liveHint':
-    'L’audio externe utilise un niveau de bruit adaptatif mesuré en direct. La réduction du souffle, des clics et du ronflement à 50/60 Hz agit sur la source en lecture. Le mode automatique attend des harmoniques secteur persistantes.',
+    'L’audio externe utilise un niveau de bruit adaptatif mesuré en direct. La réduction du souffle, des craquements et du ronflement à 50/60 Hz agit sur la source en lecture. Le mode automatique attend des harmoniques secteur persistantes.',
   'dsp.denoise.voiceLibraryOnly':
-    'Le traitement neuronal de la voix est réservé à la lecture de la Bibliothèque. La réduction du souffle, du ronflement et des clics fonctionne avec l’audio externe.',
+    'Le traitement neuronal de la voix est réservé à la lecture de la Bibliothèque. La réduction du souffle, du ronflement et des craquements fonctionne avec l’audio externe.',
   'dsp.normalizer.liveDescription':
     'Mesure l’audio externe pendant la lecture, ajuste les deux canaux ensemble et protège les crêtes avant l’exciteur et l’égaliseur.',
   'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
@@ -152,7 +152,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normaliseur',
   'dsp.normalizer.description':
-    "Mesure une fois la source complète, puis applique un gain stéréo lié avant l'Exciter et l'EQ. Sans pompage ni suiveur RMS mobile.",
+    "Mesure une fois la source complète, puis applique un gain stéréo lié avant l'Exciteur et l'EQ. Sans pompage ni suiveur RMS mobile.",
   'dsp.normalizer.mode': 'Mode de normalisation',
   'dsp.normalizer.off': 'Désactivé',
   'dsp.normalizer.truePeak': 'Crête vraie',
@@ -199,9 +199,9 @@ const dsp = {
   'dsp.denoise.graphHissAction': 'Réduction du souffle appliquée',
   'dsp.denoise.graphHum': 'Ronflement',
   'dsp.denoise.graphIdle': 'Inactif',
-  'dsp.denoise.graphClicks': 'Réparation de clics',
+  'dsp.denoise.graphClicks': 'Réparation des craquements',
   'dsp.denoise.graphClicksIn': '{{count}} réparations en {{seconds}} s',
-  'dsp.denoise.graphClicksOff': 'Réparation de clics désactivée',
+  'dsp.denoise.graphClicksOff': 'Réparation des craquements désactivée',
   'dsp.denoise.graphHumAt': 'Ronflement {{hz}} Hz',
   'dsp.denoise.profileSource': 'Plancher de bruit',
   'dsp.denoise.scanned': 'Analysé',
@@ -256,7 +256,7 @@ const dsp = {
 
   'dsp.crossfade.title': 'Fondu enchaîné',
   'dsp.crossfade.description':
-    'Superpose les pistes sortante et entrante après la normalisation, avant l’Exciter et l’EQ.',
+    'Superpose les pistes sortante et entrante après la normalisation, avant l’Exciteur et l’EQ.',
   'dsp.crossfade.outgoing': 'Sortante',
   'dsp.crossfade.incoming': 'Entrante',
   'dsp.crossfade.duration': 'Durée',
@@ -608,11 +608,11 @@ const dsp = {
 
   'dsp.master.title': 'Master',
   'dsp.master.description':
-    'Contrôle transparent de la sortie finale après tous les processeurs. Il ne modifie pas le niveau d’attaque de l’EQ, de l’Exciter ou des autres étages.',
+    'Contrôle transparent de la sortie finale après tous les processeurs. Il ne modifie pas le niveau d’attaque de l’EQ, de l’Exciteur ou des autres étages.',
   'dsp.master.outputTrim': 'Gain de sortie',
   'dsp.master.autoHeadroom': 'Marge automatique',
   'dsp.master.autoHeadroomHint':
-    'Réduit en douceur uniquement les crêtes qui approchent le plafond true peak stéréo choisi.',
+    'Réduit en douceur uniquement les crêtes qui approchent le plafond de crête vraie stéréo choisi.',
   'dsp.master.ceiling': 'Plafond',
   'dsp.master.release': 'Relâchement',
   'dsp.master.loudnessMaximize': 'Maximiser les LUFS',
@@ -621,7 +621,7 @@ const dsp = {
   'dsp.master.loudnessTarget': 'Cible de sonie',
   'dsp.master.meter': 'Sortie finale',
   'dsp.master.safetyHint':
-    'Détection true peak {factor}× · plafond {ceiling} dBTP · coude doux {knee} dB · liaison stéréo.',
+    'Détection de crête vraie {factor}× · plafond {ceiling} dBTP · coude doux {knee} dB · liaison stéréo.',
   'dsp.master.manualHint':
     'Gain de sortie manuel. La protection finale reste active sur les crêtes lorsqu’elle est activée.',
   'dsp.master.truePeak': 'TP entrée',
@@ -643,7 +643,7 @@ const dsp = {
   'dsp.master.graph.peakWarning':
     'Alerte · sortie à {peak} dBTP au-dessus du plafond',
   'dsp.master.graph.peakFixed': 'Crête contrôlée · {gain} dB de réduction',
-  'dsp.master.graph.peakSafe': 'True peak sous le plafond',
+  'dsp.master.graph.peakSafe': 'Crête vraie sous le plafond',
   'dsp.master.graph.dcFixed': 'Décalage DC supprimé · {amount}',
   'dsp.master.graph.dcClean': 'Décalage DC propre',
   'dsp.master.graph.faultFixed':
@@ -710,7 +710,7 @@ const dsp = {
   'dsp.room.bassHint':
     'Tout ce qui est sous la coupure quitte les enceintes et va au sub, pareil dans les deux oreilles, comme le fait un ampli : les graves ne rebondissent jamais sur les murs, et un mixage stéréo garde ses graves au centre.',
   'dsp.room.groupMusic': 'Musique',
-  'dsp.room.music.front': 'Scène frontale',
+  'dsp.room.music.front': 'Scène avant',
   'dsp.room.music.fill': 'Remplir la salle',
   'dsp.room.music.amount': 'Quantité',
   'dsp.room.musicHint':
@@ -721,7 +721,7 @@ const dsp = {
   'dsp.room.speaker.angle': 'Angle',
   'dsp.room.speaker.mute': 'Muet',
   'dsp.room.speaker.solo': 'Solo',
-  'dsp.room.speaker.pick': 'Choisis une enceinte pour régler ses paramètres',
+  'dsp.room.speaker.pick': 'Choisissez une enceinte pour régler ses paramètres',
   'dsp.room.speaker.soloUnfed':
     'Rien de ce qui est lu n’atteint cette enceinte : il n’y a rien à écouter seul.',
   'dsp.room.speakerName.FL': 'Avant gauche',
@@ -779,7 +779,7 @@ const dsp = {
   'dsp.room.profilePurpose.conductorV2':
     'Sur le podium : les musiciens vous entourent de l’extrême gauche à l’extrême droite.',
   'dsp.room.profilePurpose.rearGuardV2':
-    'Pour entendre ce qui est derrière vous : surrounds et arrières relevés, ni murs ni queue.',
+    'Pour entendre ce qui est derrière vous : surrounds et arrières relevés, ni murs ni traîne.',
   'dsp.room.fedExpanded':
     'De la stéréo est jouée, répartie dans la salle : les enceintes en pointillés sont calculées à partir de la paire avant, ce ne sont pas des canaux à part.',
   'dsp.room.speaker.isMuted': 'muette',
@@ -806,7 +806,7 @@ const dsp = {
   'dsp.room.tune.decay': 'Longueur de la traîne',
   'dsp.room.tune.damping': 'Couleur de la traîne',
   'dsp.room.tune.characterHint':
-    'Taille et Murs façonnent les premières réflexions. Longueur et Couleur façonnent l’Ambiance qui les suit.',
+    'Taille et Murs façonnent les premières réflexions. Longueur de la traîne et Couleur de la traîne façonnent l’Ambiance qui les suit.',
   'dsp.room.tune.preserve': 'Garder leurs positions',
   'dsp.room.tune.preserveHint':
     'L’élargissement de Dimension se repose tant que la Salle est active, car il déplacerait ce que la Salle vient de placer. Ses réglages sont conservés.',
@@ -871,7 +871,7 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
-  'dsp.master.graph.matchedActive': 'Gain compensé · {gain} dB retirés',
+  'dsp.master.graph.matchedActive': 'Compensation de gain · {gain} dB retirés',
   'dsp.masterPreset.label': 'Destination',
   'dsp.masterPreset.streaming': 'Streaming',
   'dsp.masterPreset.streamingQuiet': 'Streaming, faible',

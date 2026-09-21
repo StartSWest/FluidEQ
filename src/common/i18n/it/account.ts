@@ -120,7 +120,7 @@ const account = {
   'account.dev.cancel': 'Simula una disdetta',
   'account.dev.working': 'Invio…',
 
-  'account.perk.looks': 'Look Plus, disegnati dalla scheda grafica.',
+  'account.perk.looks': 'Aspetti Plus, disegnati dalla scheda grafica.',
   'account.perk.visualizers':
     'Visualizzatori: le scene create dai membri, aperte a ogni account.',
   'account.perk.board': 'Una classifica di chi ascolta di più.',

@@ -1,7 +1,7 @@
 const leaderboard = {
   'leaderboard.title': 'Таблица лидеров',
   'leaderboard.description':
-    'Участники Plus по прослушиванию, активным дням и отметкам «Нравится»',
+    'Участники Plus по прослушиванию, активным дням и лайкам',
   'leaderboard.card.title': 'Таблица лидеров',
   'leaderboard.card.whatSummary': 'Что отправляется',
   'leaderboard.card.body':
@@ -13,7 +13,7 @@ const leaderboard = {
   'leaderboard.card.removed': 'Удалено. В таблице ничего вашего не осталось.',
   'leaderboard.card.removeConfirmTitle': 'Удалить всё, что вы отправляли?',
   'leaderboard.card.removeConfirmBody':
-    'Ваше место и каждый день прослушивания в рейтинге будут удалены навсегда. Вернуть их нельзя; при повторном участии всё начнётся с нуля.',
+    'Ваше место и каждый день прослушивания в таблице лидеров будут удалены навсегда. Вернуть их нельзя; при повторном участии всё начнётся с нуля.',
   'leaderboard.card.removeKeep': 'Оставить мои данные',
   'leaderboard.card.removeConfirm': 'Удалить всё',
   'leaderboard.card.plusOnly':
@@ -30,7 +30,7 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Вы лидируете.',
   'leaderboard.part.hours': 'Прослушивание',
   'leaderboard.part.days': 'Активные дни',
-  'leaderboard.part.likes': 'Отметки «Нравится»',
+  'leaderboard.part.likes': 'Лайки',
   'leaderboard.guide.title': 'Как заработать очки',
   'leaderboard.guide.lead': 'Все зарабатывают одинаково, автор тоже.',
   'leaderboard.guide.hours':
@@ -38,17 +38,17 @@ const leaderboard = {
   'leaderboard.guide.days':
     'Каждый день, когда вы слушаете {limit} минут или больше.',
   'leaderboard.guide.likes':
-    'Каждая отметка «Нравится», которую другой участник ставит вашей сцене.',
+    'Каждый лайк, который другой участник ставит вашей сцене.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Откуда берутся цифры',
   'leaderboard.guide.fair':
-    'Ваш компьютер считает минуты музыки и отправляет одну сумму за день, только после того как вы присоединились, и никогда — что вы слушаете. Отметки «Нравится» считает сервер. Там проверяется каждое число, а за подделку убирают из таблицы лидеров.',
+    'Ваш компьютер считает минуты музыки и отправляет одну сумму за день, только после того как вы присоединились, и никогда — что вы слушаете. Лайки считает сервер. Там проверяется каждое число, а за подделку убирают из таблицы лидеров.',
   'leaderboard.guide.terms': 'Всё, что отправляет приложение',
   'leaderboard.stat.hours': '{hours} часов прослушивания',
   'leaderboard.stat.days': 'Активных дней: {count}',
-  'leaderboard.stat.likes': 'Отметок «Нравится» на сценах: {count}',
+  'leaderboard.stat.likes': 'Лайков на сценах: {count}',
   'leaderboard.scoring':
-    'Очки: {hours} за час прослушивания, {days} за активный день, {likes} за каждую отметку «Нравится» на вашей сцене. Автор получает их так же.',
+    'Очки: {hours} за час прослушивания, {days} за активный день, {likes} за каждый лайк на вашей сцене. Автор получает их так же.',
   'leaderboard.rail.blurb': 'Кто слушает больше всех',
   'leaderboard.role.admin': 'Создатель',
 

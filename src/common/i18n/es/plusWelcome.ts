@@ -6,13 +6,13 @@ const plusWelcome = {
   'plusWelcome.scenes.title': 'Todos los visualizadores',
   'plusWelcome.scenes.line':
     'Las escenas de FluidEQ y todo lo que publican los miembros, sonando con tu música.',
-  'plusWelcome.studio.title': 'El Creator Studio',
+  'plusWelcome.studio.title': 'El Estudio',
   'plusWelcome.studio.line':
     'Crea tus propias escenas y publícalas en la galería.',
   'plusWelcome.desktop.title': 'Tu escritorio',
   'plusWelcome.desktop.line':
     'Pon un visualizador detrás de tus iconos, en un monitor o en todos.',
-  'plusWelcome.lighting.title': 'Luces dinámicas',
+  'plusWelcome.lighting.title': 'Iluminación dinámica',
   'plusWelcome.lighting.line':
     'Tus luces siguen la música, con los colores de la escena que suena.',
   'plusWelcome.board.title': 'La clasificación',

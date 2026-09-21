@@ -1,14 +1,13 @@
 const trial = {
   'trial.free.title': 'FluidEQ 免费使用。Plus 可按需开通。',
   'trial.free.body':
-    '均衡器、音乐播放、免费预设和免费可视化场景始终免费。Plus 提供可选的额外功能。',
+    '均衡器、音乐播放、免费预设和免费可视化效果始终免费。Plus 提供可选的额外功能。',
   'trial.extras.title': 'Plus 专属功能',
-  'trial.extras.scenes': 'Plus 可视化场景和社区场景',
-  'trial.extras.studio': '在 Studio 中导出和发布场景',
+  'trial.extras.scenes': 'Plus 可视化效果和社区场景',
+  'trial.extras.studio': '在工作室中导出和发布场景',
   'trial.extras.desktop': '桌面场景与 RGB 灯光',
-  'trial.extras.room': '房间高级自定义与适配',
   'trial.extras.board': '自愿参与排行榜',
-  'trial.browse': '免费账户即可浏览画廊并参与论坛。',
+  'trial.browse': '免费账户即可浏览图库并参与论坛。',
   'trial.offer.title': '免费体验 Plus 15 天',
   'trial.offer.body': '新账户可自行选择免费体验。只有你选择开始时才会生效。',
   'trial.offer.action': '了解免费体验',
@@ -16,7 +15,7 @@ const trial = {
   'trial.consent.title': '由你选择的免费体验',
   'trial.consent.period': '自激活起 15 天',
   'trial.consent.after':
-    '15 天后，仅 Plus 的额外功能到期。FluidEQ 继续正常运行，你的 Studio 项目也会保留。',
+    '15 天后，仅 Plus 的额外功能到期。FluidEQ 继续正常运行，你的工作室项目也会保留。',
   'trial.consent.paid':
     '如果之后还想使用 Plus 的额外功能，可以自行选择付费订阅。不会自动开通任何订阅。',
   'trial.consent.checkbox': '我接受 Plus 条款及免费体验的条件。',
@@ -37,7 +36,7 @@ const trial = {
   'trial.active.badge': '免费体验',
   'trial.ended.title': '你的 Plus 免费体验已结束。',
   'trial.ended.body':
-    'FluidEQ 仍然正常运行。均衡器、音乐播放、免费预设和免费可视化场景继续免费。你的 Studio 项目也会保留。',
+    'FluidEQ 仍然正常运行。均衡器、音乐播放、免费预设和免费可视化效果继续免费。你的工作室项目也会保留。',
   'trial.ended.paid': '只有想继续使用 Plus 的额外功能时，才需要付费订阅 Plus。',
   'trial.ended.free': '继续免费使用',
   'trial.ended.plans': '查看 Plus 方案',

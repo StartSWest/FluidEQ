@@ -87,7 +87,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Визуализаторы, которых нет больше нигде, Студия, чтобы создавать свои, таблица лидеров — и каждая новая функция отныне сначала для участников. Эквалайзер, рэк и плееры остаются бесплатными, как были всегда.',
+    'Визуализаторы, которых нет больше нигде, Студия, чтобы создавать свои, таблица лидеров — и каждая новая функция отныне сначала для участников. Эквалайзер, стойка DSP и плееры остаются бесплатными, как были всегда.',
   'account.plus.upgrade': 'Перейти на Plus',
   'account.plus.opening': 'Открываем…',
   'account.plus.checkoutHint':
@@ -118,10 +118,10 @@ const account = {
   'account.dev.cancel': 'Имитировать отмену',
   'account.dev.working': 'Отправка…',
 
-  'account.perk.looks': 'Стили Plus, отрисованные видеокартой.',
+  'account.perk.looks': 'Оформления Plus, отрисованные видеокартой.',
   'account.perk.visualizers':
     '«Визуализаторы»: сцены, которые создают участники, открыты для любого аккаунта.',
-  'account.perk.board': 'Рейтинг тех, кто слушает больше всех.',
+  'account.perk.board': 'Таблица лидеров: кто слушает больше всех.',
   // What publishing earns: one approved scene a month keeps Plus free
   // (server migration 0041). Months earned while a paid membership runs
   // wait for it to end; nothing here changes what anybody pays.

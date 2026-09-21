@@ -1,10 +1,10 @@
 const lighting = {
-  'lighting.alignment.title': 'दृश्य का संरेखण',
+  'lighting.alignment.title': 'सीन का संरेखण',
   'lighting.alignment.hint':
-    'इस डिवाइस पर दृश्य को खिसकाएँ या उसका आकार बदलें। स्थिति चौड़ाई या ऊँचाई का प्रतिशत है।',
+    'इस डिवाइस पर सीन को खिसकाएँ या उसका आकार बदलें। स्थिति चौड़ाई या ऊँचाई का प्रतिशत है।',
   'lighting.alignment.keyboardFit':
-    'पहचानी गई कुंजियों की स्थिति के अनुसार समायोजित। यहाँ दृश्य को और सटीक करें।',
-  'lighting.alignment.size': 'दृश्य का आकार',
+    'पहचानी गई कुंजियों की स्थिति के अनुसार समायोजित। यहाँ सीन को और सटीक करें।',
+  'lighting.alignment.size': 'सीन का आकार',
   'lighting.alignment.horizontal': 'क्षैतिज स्थिति (%)',
   'lighting.alignment.vertical': 'ऊर्ध्वाधर स्थिति (%)',
   'lighting.alignment.reset': 'बीच में लाएँ और फ़िट करें',
@@ -18,7 +18,7 @@ const lighting = {
   'lighting.target.shared': 'साझा लाइटिंग: {devices}',
   'lighting.tuning.title': 'लाइटिंग शैली',
   'lighting.tuning.reset': 'रीसेट करें',
-  'lighting.effect.scene': 'दृश्य',
+  'lighting.effect.scene': 'सीन',
   'lighting.effect.flow': 'रंग की लहर',
   'lighting.effect.spectrum': 'स्पेक्ट्रम',
   'lighting.effect.pulse': 'ताल की लहर',
@@ -43,14 +43,14 @@ const lighting = {
   'lighting.preview.live': 'डेस्क का लाइव पूर्वावलोकन',
   'lighting.tuning.master': 'कुल चमक',
   'lighting.title': 'डायनेमिक लाइटिंग',
-  'lighting.rail.blurb': 'आपकी डेस्क दृश्य के साथ चमकती है',
+  'lighting.rail.blurb': 'आपकी डेस्क सीन के साथ चमकती है',
   'lighting.description':
-    'आपका कीबोर्ड, माउस, माउसपैड, हेडसेट और स्टैंड दृश्य के साथ जगमगाते हैं',
+    'आपका कीबोर्ड, माउस, माउसपैड, हेडसेट और स्टैंड सीन के साथ जगमगाते हैं',
 
   'lighting.gate.title':
-    'हर Plus दृश्य के साथ अपना कीबोर्ड, माउस और हेडसेट जगमगाइए',
+    'हर Plus सीन के साथ अपना कीबोर्ड, माउस और हेडसेट जगमगाइए',
   'lighting.gate.body':
-    'डायनेमिक लाइटिंग FluidEQ Plus का हिस्सा है। आपके डिवाइस ग्राफ़ पर चल रहे दृश्य के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
+    'डायनेमिक लाइटिंग FluidEQ Plus का हिस्सा है। आपके डिवाइस ग्राफ़ पर चल रहे सीन के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
   'lighting.gate.cta': 'Plus देखें',
 
   'lighting.preview.status':
@@ -61,19 +61,18 @@ const lighting = {
   'lighting.preview.moreScenes': 'हर सीन Plus के साथ',
   'lighting.preview.held':
     'Plus के साथ आपके डिवाइस हर सीन में ऐसे ही जगमगाते रहते हैं।',
-  'lighting.preview.locked': 'चमक, स्टाइल और अलाइनमेंट Plus के साथ आते हैं।',
+  'lighting.preview.locked': 'चमक, शैली और संरेखण Plus के साथ आते हैं।',
 
   'lighting.unsupported.title': 'डायनेमिक लाइटिंग Windows पर काम करती है',
   'lighting.unsupported.body':
     'यह Windows Dynamic Lighting और Razer Chroma के ज़रिए डिवाइस जगमगाती है, और ये दोनों सिर्फ़ Windows पर हैं।',
 
-  'lighting.switch': 'Plus दृश्य चलते समय मेरे डिवाइस जगमगाएँ',
+  'lighting.switch': 'Plus सीन चलते समय मेरे डिवाइस जगमगाएँ',
   'lighting.status.live': '{scene} के साथ',
   'lighting.status.waiting': 'संगीत का इंतज़ार',
-  'lighting.status.nothingLit': 'दृश्य चल रहा है, पर कोई डिवाइस नहीं जगमगा रहा',
+  'lighting.status.nothingLit': 'सीन चल रहा है, पर कोई डिवाइस नहीं जगमगा रहा',
   'lighting.status.off': 'बंद: आपके डिवाइस अपनी लाइटिंग रखते हैं',
-  'lighting.status.noScene':
-    'कोई Plus दृश्य चुनिए, आपके डिवाइस उसके साथ चलेंगे',
+  'lighting.status.noScene': 'कोई Plus सीन चुनिए, आपके डिवाइस उसके साथ चलेंगे',
   'lighting.pickScene': 'विज़ुअलाइज़र देखें',
   'lighting.showGraph': 'ग्राफ़ दिखाएँ',
 
@@ -84,7 +83,7 @@ const lighting = {
   'lighting.pulse.gentle': 'हल्का',
   'lighting.pulse.full': 'पूरा',
   'lighting.colours.hint':
-    'रंग ख़ुद दृश्य से आते हैं, इसलिए कुछ चुनने की ज़रूरत नहीं।',
+    'रंग ख़ुद सीन से आते हैं, इसलिए कुछ चुनने की ज़रूरत नहीं।',
 
   'lighting.devices.title': 'आपके डिवाइस',
   'lighting.devices.searching': 'डिवाइस खोजे जा रहे हैं…',
@@ -183,7 +182,7 @@ const lighting = {
     'Razer Chroma में Chroma Apps चालू करें और वहाँ FluidEQ को अनुमति दें।',
 
   'lighting.graph.on': 'मेरे डिवाइस जगमगाना बंद करें',
-  'lighting.graph.off': 'इस दृश्य से मेरे डिवाइस जगमगाएँ',
+  'lighting.graph.off': 'इस सीन से मेरे डिवाइस जगमगाएँ',
 } as const;
 
 export default lighting;

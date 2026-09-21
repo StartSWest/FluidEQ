@@ -93,16 +93,16 @@ const app = {
     'Reads your music folders while the library scans them: tags, lengths and cover art. Starts for a scan and closes when it ends.',
   'app.processes.name.sound': 'Browser sound',
   'app.processes.what.sound':
-    "Chromium's own audio, for the Video tab and for sounds a page plays. Your music does not go through it.",
+    "Chromium's own audio, for the Online Media tab and for sounds a page plays. Your music does not go through it.",
   'app.processes.name.network': 'Network',
   'app.processes.what.network':
-    'Update checks, cover art, and everything the Video tab loads. Nothing else here reaches the network.',
+    'Update checks, cover art, and everything the Online Media tab loads. Nothing else here reaches the network.',
   'app.processes.name.devices': 'Device list',
   'app.processes.what.devices':
     'Started by Chromium when the app asks Windows which audio devices there are; the same request also lists video devices. It opens no camera and records nothing.',
   'app.processes.name.page': 'Web page',
   'app.processes.what.page':
-    'A page open in the Video tab. It runs in its own process, apart from the interface.',
+    'A page open in the Online Media tab. It runs in its own process, apart from the interface.',
   'app.processes.name.systemEngine': 'FluidEQ Engine (Windows audio)',
   'app.processes.what.systemEngine':
     "The equalizer running inside Windows' own audio service, which applies it to everything you hear. Windows shares that service with your sound card's effects, so its memory and CPU are shown but not added to the total.",

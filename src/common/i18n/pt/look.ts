@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
-  'look.connectingLine': 'Linha de ligação',
+  'look.connectingLine': 'Linha de conexão',
   'look.peak.blink': 'Piscar no ritmo',
   'look.peakFill': 'Preencher picos',
   'look.peak.live': 'Picos ao vivo',
@@ -111,28 +111,28 @@ const look: Partial<Dictionary> = {
   'look.error.emptyFile': 'Nenhum visual foi encontrado nesse arquivo.',
   'look.error.readFile': 'O FluidEQ não conseguiu ler esse arquivo visual.',
   'support.eyebrow': 'TOTALMENTE OPCIONAL',
-  'support.petHint': 'Pressione espaço para fazê-lo pular',
+  'support.petHint': 'Pressione Espaço para fazê-lo pular',
   'support.game.hint': 'Toque no ritmo quando o pico chegar à linha',
   'support.game.howTo':
     'Reproduza música e toque no mascote ou pressione Espaço quando um pico chegar à linha central. Alcance ×10 para desbloquear o modo arco-íris.',
   'support.game.thanks':
-    'Se algo aqui te fez sorrir, ideias e apoio são o que mantêm isto vivo.',
+    'Se algo aqui fez você sorrir, ideias e apoio são o que mantêm isto vivo.',
   'support.game.noAudio': 'Toque algo e o ritmo aparece aqui',
   'support.game.listening': 'Procurando o ritmo…',
-  'support.game.share': 'Partilhar',
-  'support.game.shareEuphoria': 'Partilhar o arco-íris',
-  'support.game.shareTitle': 'Partilhe a sua pontuação',
+  'support.game.share': 'Compartilhar',
+  'support.game.shareEuphoria': 'Compartilhar o arco-íris',
+  'support.game.shareTitle': 'Compartilhe sua pontuação',
   'support.game.shareUnlock':
     'Desbloqueie o modo arco-íris jogando ou confirmando sua contribuição para dar suas cores a este cartão.',
   'support.game.shareNote':
-    'Guarde o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
-  'support.game.shareSave': 'Guardar cartão',
+    'Salve o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
+  'support.game.shareSave': 'Salvar cartão',
   'support.game.shareCopyCard': 'Copiar cartão',
   'support.game.shareCardCopied': 'Copiado — cole-o',
   'support.game.shareCopy': 'Copiar texto',
   'support.game.shareCopied': 'Copiado',
   'support.game.shareLinkOnly':
-    'Partilha apenas o link: cole o texto você mesmo',
+    'Compartilha apenas o link: cole o texto você mesmo',
   'support.game.euphoria': 'Modo arco-íris',
   'support.game.euphoriaToggle': 'Ligar ou desligar o modo arco-íris',
   'support.game.euphoriaHint':

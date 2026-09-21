@@ -27,9 +27,9 @@ import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 describe('PresetListItem', () => {
   const samplePresetNames = ['Apple', 'Banana', 'Oranges'];
   const newPresetButtonLabel = 'Start a new profile from the current EQ';
-  const savePresetButtonLabel = 'Save settings to preset';
+  const savePresetButtonLabel = 'Save settings to this profile';
   const editIconLabel = 'Edit';
-  const editModeLabel = 'Edit Preset Name';
+  const editModeLabel = 'Edit profile name';
   const caseSensitiveContext = {
     ...defaultFluidEqContext,
     isCaseSensitiveFs: true,

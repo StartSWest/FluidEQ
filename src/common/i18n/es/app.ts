@@ -61,7 +61,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} ms por fotograma a {fps} fps, dibujado a {drawn} para {shown}',
   'app.processes.sceneRate':
     '{place}: {name} a {fps} fps, dibujado a {drawn} para {shown}',
-  'app.processes.place.graph': 'Visualizador del gráfico',
+  'app.processes.place.graph': 'Visualizador de la gráfica',
   'app.processes.place.studio': 'Escenario del Estudio',
   'app.processes.name.window': 'Interfaz',
   'app.processes.what.window':
@@ -95,16 +95,16 @@ const app: Partial<Dictionary> = {
     'Lee tus carpetas de música mientras la biblioteca las escanea: etiquetas, duraciones y carátulas. Arranca para un escaneo y se cierra al terminar.',
   'app.processes.name.sound': 'Sonido del navegador',
   'app.processes.what.sound':
-    'El audio propio de Chromium, para la pestaña Vídeo y para los sonidos de una página. Tu música no pasa por aquí.',
+    'El audio propio de Chromium, para la pestaña Multimedia en línea y para los sonidos de una página. Tu música no pasa por aquí.',
   'app.processes.name.network': 'Red',
   'app.processes.what.network':
-    'Comprobación de actualizaciones, carátulas y todo lo que carga la pestaña Vídeo. Nada más de esta lista sale a la red.',
+    'Comprobación de actualizaciones, carátulas y todo lo que carga la pestaña Multimedia en línea. Nada más de esta lista sale a la red.',
   'app.processes.name.devices': 'Lista de dispositivos',
   'app.processes.what.devices':
     'Lo inicia Chromium cuando la app pregunta a Windows qué dispositivos de audio hay; esa misma consulta enumera también los de vídeo. No abre ninguna cámara ni graba nada.',
   'app.processes.name.page': 'Página web',
   'app.processes.what.page':
-    'Una página abierta en la pestaña Vídeo. Se ejecuta en su propio proceso, aparte de la interfaz.',
+    'Una página abierta en la pestaña Multimedia en línea. Se ejecuta en su propio proceso, aparte de la interfaz.',
   'app.processes.name.systemEngine': 'Motor FluidEQ (audio de Windows)',
   'app.processes.what.systemEngine':
     'El ecualizador funcionando dentro del propio servicio de audio de Windows, que lo aplica a todo lo que oyes. Windows comparte ese servicio con los efectos de tu tarjeta de sonido, así que su memoria y su CPU se muestran pero no se suman al total.',
@@ -148,7 +148,7 @@ const app: Partial<Dictionary> = {
     'Se denegó el permiso de Windows, así que no ha cambiado nada.',
   'engine.failed': 'No se pudo cambiar el motor. No ha cambiado nada.',
   'engine.detachFailed':
-    'No se pudo quitar el motor FluidEQ de esta salida. No ha cambiado nada.',
+    'No se pudo quitar el Motor FluidEQ de esta salida. No ha cambiado nada.',
   'engine.unsupported': 'Requiere Windows 10 versión 1803 o posterior.',
   'prereq.title.apo': 'Equalizer APO necesita atención',
   'prereq.title.fluid': 'El Motor FluidEQ necesita atención',
@@ -230,7 +230,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Presets EQ',
   'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
-  'tabs.games': 'Perfiles de juego',
+  'tabs.games': 'Presets de juego',
   'tabs.config': 'Config',
   'tabs.media': 'Multimedia en línea',
   'tabs.mediaShort': 'Multimedia',

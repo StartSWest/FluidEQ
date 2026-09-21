@@ -6,7 +6,7 @@ const about: Record<keyof typeof en, string> = {
   'about.title': 'Über',
   'about.mascot': 'Fluid, das Maskottchen von FluidEQ',
   'about.description':
-    'Präziser EQ, automatische Geräteprofile und ein Zuhause für deine Musik. Für deinen eigenen Hörgenuss.',
+    'Präziser EQ, automatische Geräteprofile und ein Zuhause für Ihre Musik. Für Ihren eigenen Hörgenuss.',
   'about.author': 'Entwickelt und gepflegt von {author}',
   'about.website': 'Offizielle Website',
   'about.source': 'Quellcode',

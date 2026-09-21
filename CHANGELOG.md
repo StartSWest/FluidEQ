@@ -131,6 +131,25 @@ been translated into ten languages for a screen nobody reaches.
   Filter list, the Squiglink import panel and the headphone correction graph
   were English in every language. They are translated now, and each language
   calls the FluidEQ Engine by one name everywhere.
+- **Every language uses the names on its own screen.** Smart EQ, the Studio,
+  the Exciter, Karaoke and the Equalizer APO engine were still named in
+  English inside translated sentences, and some features had two names in the
+  same language — French called Smart EQ three different things. Each
+  language now calls every feature by the label you see. Game presets follow
+  their English rename in Spanish, German, French, Portuguese and Russian;
+  Russian writes decibels as дБ; German and French address you the same way
+  throughout; and Spanish's preset picker no longer reads "Settings".
+- **Portuguese is one Portuguese.** About half of it was written for Portugal
+  and addressed you as "tu", the other half for Brazil with "você" — the Plus
+  terms and the account dialog on one side, most of the app on the other,
+  sometimes on the same screen. All of it is Brazilian Portuguese now.
+- **"Voicing" is gone for good.** The equaliser's picker became Presets in
+  this version, but a preset's curve on the graph, its chip under Also
+  applied and the driver list's hint still said Voicing. They say Preset. The
+  What's New tour also calls the themes Dark and Light, as the theme picker
+  does, and the Room's head test by its name.
+- **The Plus page no longer lists the Room as Plus-only.** Its locks came off
+  in this version, but the list headed "Only with Plus" still named it.
 - **The engine finds the place a sound card actually loads it from.** Windows
   keeps an effect in one of eight places and which one a driver reads is
   written down nowhere, so FluidEQ steps through them on the machine itself. It

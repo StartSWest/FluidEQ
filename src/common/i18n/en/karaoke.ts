@@ -450,7 +450,7 @@ const karaoke = {
   'karaoke.maker.lyricsAutoAligned':
     'New lyrics applied and aligned to the available melody.',
   'karaoke.maker.lyricsNeedPreparation':
-    'New lyrics applied. Choose Prepare karaoke to detect their timing.',
+    'New lyrics applied. Open Repair tools and choose Re-detect lyric timing to time them.',
   'karaoke.maker.transcriptionEyebrow': 'ONE-TIME LOCAL MODEL',
   'karaoke.maker.transcriptionTitle': 'Download the speech model?',
   'karaoke.maker.transcriptionBody':

@@ -62,7 +62,7 @@ const app: Partial<Dictionary> = {
   'app.processes.sceneRate':
     '{place}：{name}、{fps} fps、{drawn} で描いて {shown} に表示',
   'app.processes.place.graph': 'グラフのビジュアライザー',
-  'app.processes.place.studio': 'Studio のステージ',
+  'app.processes.place.studio': 'スタジオのステージ',
   'app.processes.name.window': '画面',
   'app.processes.what.window':
     'いま見ているウィンドウです。カーブ、ライブラリ、プレーヤー、すべての操作部。ウィンドウごとに 1 プロセスなので、重い再描画が音を止めることはありません。Plus のビジュアライザーはこの中の専用スレッドで動くので、重いシーンでも操作部は止まりません。',
@@ -95,16 +95,16 @@ const app: Partial<Dictionary> = {
     'ライブラリが音楽フォルダーをスキャンする間、タグ、長さ、カバーアートを読み取ります。スキャンのたびに起動し、終わると閉じます。',
   'app.processes.name.sound': 'ブラウザーの音',
   'app.processes.what.sound':
-    'Chromium 自身の音声で、動画タブやページが鳴らす音に使われます。あなたの音楽はここを通りません。',
+    'Chromium 自身の音声で、「オンラインメディア」タブやページが鳴らす音に使われます。あなたの音楽はここを通りません。',
   'app.processes.name.network': 'ネットワーク',
   'app.processes.what.network':
-    '更新の確認、ジャケット画像、動画タブが読み込むすべて。この一覧のほかのプロセスはネットワークに触れません。',
+    '更新の確認、ジャケット画像、「オンラインメディア」タブが読み込むすべて。この一覧のほかのプロセスはネットワークに触れません。',
   'app.processes.name.devices': 'デバイス一覧',
   'app.processes.what.devices':
     'アプリが Windows にオーディオデバイスの一覧を求めると Chromium が起動します。同じ問い合わせがビデオデバイスも列挙するためです。カメラを開くことも、何かを録画することもありません。',
   'app.processes.name.page': 'ウェブページ',
   'app.processes.what.page':
-    '動画タブで開いているページです。画面とは別の、独自のプロセスで動きます。',
+    '「オンラインメディア」タブで開いているページです。画面とは別の、独自のプロセスで動きます。',
   'app.processes.name.systemEngine': 'FluidEQ エンジン (Windows オーディオ)',
   'app.processes.what.systemEngine':
     'Windows 自身のオーディオサービスの中で動くイコライザーで、聞こえるすべての音に適用されます。このサービスはサウンドカードのエフェクトと共有されているため、メモリと CPU は表示しますが合計には加えません。',

@@ -22,9 +22,9 @@ import { Dictionary } from '../en';
 const app: Partial<Dictionary> = {
   'recovery.title': 'FluidEQ wird wiederhergestellt',
   'recovery.working':
-    'Die Wiedergabe wird gestoppt und das Fenster mit deinen gespeicherten Einstellungen neu geladen. Nicht gespeicherte Arbeit kann verloren gehen.',
+    'Die Wiedergabe wird gestoppt und das Fenster mit Ihren gespeicherten Einstellungen neu geladen. Nicht gespeicherte Arbeit kann verloren gehen.',
   'recovery.stopped':
-    'FluidEQ konnte nicht sicher wiederhergestellt werden. Automatische Versuche wurden gestoppt. Du kannst neu laden oder beenden. Nicht gespeicherte Arbeit kann verloren gehen.',
+    'FluidEQ konnte nicht sicher wiederhergestellt werden. Automatische Versuche wurden gestoppt. Sie können neu laden oder beenden. Nicht gespeicherte Arbeit kann verloren gehen.',
   'recovery.reload': 'FluidEQ neu laden',
   'recovery.quit': 'Beenden',
   'recovery.copy': 'Details kopieren',
@@ -61,7 +61,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} ms pro Bild bei {fps} fps, gezeichnet in {drawn} für {shown}',
   'app.processes.sceneRate':
     '{place}: {name} bei {fps} fps, gezeichnet in {drawn} für {shown}',
-  'app.processes.place.graph': 'Visualisierung im Graphen',
+  'app.processes.place.graph': 'Visualizer im Diagramm',
   'app.processes.place.studio': 'Studio-Bühne',
   'app.processes.name.window': 'Oberfläche',
   'app.processes.what.window':
@@ -95,16 +95,16 @@ const app: Partial<Dictionary> = {
     'Liest Ihre Musikordner, während die Bibliothek sie durchsucht: Tags, Längen und Cover. Startet für einen Scan und beendet sich danach.',
   'app.processes.name.sound': 'Browser-Ton',
   'app.processes.what.sound':
-    'Chromiums eigenes Audio, für den Video-Tab und für Töne, die eine Seite abspielt. Ihre Musik läuft nicht darüber.',
+    'Chromiums eigenes Audio, für den Tab „Online-Medien“ und für Töne, die eine Seite abspielt. Ihre Musik läuft nicht darüber.',
   'app.processes.name.network': 'Netzwerk',
   'app.processes.what.network':
-    'Update-Prüfungen, Cover-Bilder und alles, was der Video-Tab lädt. Sonst geht hier nichts ins Netz.',
+    'Update-Prüfungen, Cover-Bilder und alles, was der Tab „Online-Medien“ lädt. Sonst geht hier nichts ins Netz.',
   'app.processes.name.devices': 'Geräteliste',
   'app.processes.what.devices':
     'Wird von Chromium gestartet, wenn die App Windows fragt, welche Audiogeräte es gibt; dieselbe Abfrage listet auch Videogeräte auf. Es öffnet keine Kamera und nimmt nichts auf.',
   'app.processes.name.page': 'Webseite',
   'app.processes.what.page':
-    'Eine im Video-Tab geöffnete Seite. Sie läuft in einem eigenen Prozess, getrennt von der Oberfläche.',
+    'Eine im Tab „Online-Medien“ geöffnete Seite. Sie läuft in einem eigenen Prozess, getrennt von der Oberfläche.',
   'app.processes.name.systemEngine': 'FluidEQ-Engine (Windows-Audio)',
   'app.processes.what.systemEngine':
     'Der Equalizer im Audiodienst von Windows, der ihn auf alles anwendet, was Sie hören. Windows teilt diesen Dienst mit den Effekten Ihrer Soundkarte, daher werden sein Speicher und seine CPU angezeigt, aber nicht zur Summe addiert.',
@@ -120,22 +120,22 @@ const app: Partial<Dictionary> = {
   'app.menu.reinstallApp': '{product} neu installieren…',
   'app.menu.fixAudio': 'Audioprobleme beheben…',
   'engine.apo.reinstall': 'Equalizer APO neu installieren…',
-  'engine.title': 'Wie soll FluidEQ deinen Ton verarbeiten?',
+  'engine.title': 'Wie soll FluidEQ Ihren Ton verarbeiten?',
   'engine.subtitle':
     'Eine Engine läuft für den ganzen PC. Ein Wechsel fragt Windows einmal um Erlaubnis.',
   'engine.now': 'Aktuell: {engine}',
   'engine.recommended': 'EMPFOHLEN',
   'engine.fluid.name': 'FluidEQ-Engine',
   'engine.fluid.l1':
-    'Die Effekte und das Bedienfeld deiner Soundkarte laufen weiter',
+    'Die Effekte und das Bedienfeld Ihrer Soundkarte laufen weiter',
   'engine.fluid.l2': 'EQ und DSP-Rack gelten für alles, ohne Neustart',
   'engine.fluid.l3': 'Eigene APO-Befehle, Peace und VST-Plugins laufen nicht',
   'engine.fluid.l4':
-    'Equalizer APO wird ausgeschaltet, solange diese Engine läuft, und genau so wiederhergestellt, wenn du zurückwechselst',
+    'Equalizer APO wird ausgeschaltet, solange diese Engine läuft, und genau so wiederhergestellt, wenn Sie zurückwechseln',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Eigene Befehle, Peace, VST-Plugins',
   'engine.apo.l2':
-    'Belegt den Effekt-Slot deiner Soundkarte; Hersteller-Bedienfelder können Regler verlieren',
+    'Belegt den Effekt-Slot Ihrer Soundkarte; Hersteller-Bedienfelder können Regler verlieren',
   'engine.apo.l3':
     'Das DSP-Rack läuft nur in der Wiedergabe der Bibliothek. Eigene Einrichtung, und Windows startet neu.',
   'engine.apply': 'Übernehmen',
@@ -162,7 +162,7 @@ const app: Partial<Dictionary> = {
   'prereq.bundleMissing':
     'Dieser Build enthält keine Kopie von Equalizer APO. Stattdessen wird das offizielle Projekt geöffnet.',
   'prereq.notStarted':
-    'Equalizer APO wurde nicht gestartet — es braucht Administratorrechte. Versuche es erneut und bestätige die Windows-Abfrage.',
+    'Equalizer APO wurde nicht gestartet — es braucht Administratorrechte. Versuchen Sie es erneut und bestätigen Sie die Windows-Abfrage.',
   'whatsNew.eyebrow': 'VERSIONSVERLAUF',
   'whatsNew.title': 'Versionshinweise zu FluidEQ',
   'whatsNew.loading': 'Versionshinweise werden geladen…',
@@ -229,7 +229,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ-Presets',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
-  'tabs.games': 'Spielprofile',
+  'tabs.games': 'Spiel-Presets',
   'tabs.config': 'Config',
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
@@ -385,7 +385,7 @@ const app: Partial<Dictionary> = {
   // Game profiles: the page, its list and what it says.
   'games.add': 'Spiel hinzufügen',
   'games.addHint':
-    'Wähle ein Spiel aus deinen Launchern oder ein gerade geöffnetes Programm.',
+    'Wählen Sie ein Spiel aus Ihren Launchern oder ein gerade geöffnetes Programm.',
   'games.choose': 'Programm auswählen…',
   'games.group.installed': 'Installiert',
   'games.group.running': 'Jetzt offen',
@@ -397,13 +397,13 @@ const app: Partial<Dictionary> = {
   'games.source.battlenet': 'Battle.net',
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Jetzt offen',
-  'games.source.file': 'Von dir gewählt',
+  'games.source.file': 'Von Ihnen gewählt',
   'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
   'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
   'games.front.none': 'Im Vordergrund: {name}',
   'games.front.desktop': 'nichts, was FluidEQ kennt',
   'games.empty':
-    'Noch keine Spiele. Füge eines hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist.',
+    'Noch keine Spiele. Fügen Sie eines hinzu, geben Sie ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist.',
   'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
   'games.toast.restored': 'Zurück zu {preset}',
@@ -411,9 +411,9 @@ const app: Partial<Dictionary> = {
   'games.toast.afterGame': 'nach {game}',
   'games.empty.title': 'Noch keine Spiele',
   'games.empty.more':
-    'Füge ein Spiel hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn du das Spiel beendest.',
+    'Fügen Sie ein Spiel hinzu, geben Sie ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn Sie das Spiel beenden.',
   'games.hint':
-    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und bleibt, bis du das Spiel beendest — ganz gleich, wohin du zwischendurch wechselst. Wählst du beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
+    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und bleibt, bis Sie das Spiel beenden — ganz gleich, wohin Sie zwischendurch wechseln. Wählen Sie beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
   'games.preset.none': 'So lassen, wie es ist',
   'games.preset.noneHint':
     'Es ändert sich nichts, wenn dieses Spiel im Vordergrund ist.',

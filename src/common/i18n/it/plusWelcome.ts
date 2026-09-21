@@ -8,10 +8,10 @@ const plusWelcome = {
     'Le scene di FluidEQ e tutto ciò che pubblicano i membri, sulla tua musica.',
   'plusWelcome.studio.title': 'Il Creator Studio',
   'plusWelcome.studio.line': 'Crea le tue scene e pubblicale nella galleria.',
-  'plusWelcome.desktop.title': 'La tua scrivania',
+  'plusWelcome.desktop.title': 'Il tuo desktop',
   'plusWelcome.desktop.line':
     'Un visualizzatore dietro le icone, su un monitor o su tutti.',
-  'plusWelcome.lighting.title': 'Luci dinamiche',
+  'plusWelcome.lighting.title': 'Illuminazione dinamica',
   'plusWelcome.lighting.line':
     'Le tue luci seguono la musica, nei colori della scena in corso.',
   'plusWelcome.board.title': 'La classifica',

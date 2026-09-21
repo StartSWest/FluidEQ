@@ -116,7 +116,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Appuyez sur espace pour le faire sauter',
   'support.game.hint': 'Appuyez en rythme quand le pic atteint la ligne',
   'support.game.howTo':
-    'Lance de la musique, puis touche la mascotte ou appuie sur Espace quand un pic atteint la ligne centrale. Atteins ×10 pour débloquer le mode arc-en-ciel.',
+    'Lancez de la musique, puis touchez la mascotte ou appuyez sur Espace quand un pic atteint la ligne centrale. Atteignez ×10 pour débloquer le mode arc-en-ciel.',
   'support.game.thanks':
     'Si tout cela vous a fait sourire, vos idées et votre soutien sont ce qui fait avancer le projet.',
   'support.game.noAudio': 'Lancez un morceau et le rythme apparaîtra ici',
@@ -125,7 +125,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': "Partager l'arc-en-ciel",
   'support.game.shareTitle': 'Partagez votre score',
   'support.game.shareUnlock':
-    'Débloque le mode arc-en-ciel en jouant ou en confirmant ta contribution pour donner ses couleurs à cette carte.',
+    'Débloquez le mode arc-en-ciel en jouant ou en confirmant votre contribution pour donner ses couleurs à cette carte.',
   'support.game.shareNote':
     "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
   'support.game.shareSave': 'Enregistrer la carte',
@@ -161,9 +161,9 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'Ouvrir dans le portefeuille',
   'support.contributed': 'J’ai contribué — activer le mode arc-en-ciel',
   'support.rainbowHint':
-    'Tu as contribué ? Active immédiatement le mode arc-en-ciel avec « J’ai contribué » : ses couleurs, et un mouvement plus fluide sur le graphique et les vumètres. Pas besoin d’atteindre ×10.',
+    'Vous avez contribué ? Activez immédiatement le mode arc-en-ciel avec « J’ai contribué » : ses couleurs, et un mouvement plus fluide sur le graphique et les vumètres. Pas besoin d’atteindre ×10.',
   'support.thanks':
-    'Merci — le mode arc-en-ciel est débloqué, et ta mascotte a son étoile et sa danse.',
+    'Merci — le mode arc-en-ciel est débloqué, et votre mascotte a son étoile et sa danse.',
   'support.releaseNotes': 'Voir les nouveautés de cette version',
   'support.footerBefore':
     'Vous préférez donner du temps ? Les tickets et les pull requests sont tout aussi bienvenus sur',

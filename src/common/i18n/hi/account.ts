@@ -119,7 +119,7 @@ const account = {
   'account.dev.cancel': 'रद्द करने का अनुकरण करें',
   'account.dev.working': 'भेजा जा रहा है…',
 
-  'account.perk.looks': 'ग्राफ़िक्स कार्ड पर बनने वाले Plus लुक्स।',
+  'account.perk.looks': 'ग्राफ़िक्स कार्ड पर बनने वाले Plus रूप।',
   'account.perk.visualizers':
     'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
   'account.perk.board': 'सबसे ज़्यादा सुनने वालों का लीडरबोर्ड।',

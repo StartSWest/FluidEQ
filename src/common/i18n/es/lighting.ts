@@ -50,7 +50,7 @@ const lighting = {
   'lighting.gate.title':
     'Ilumina tu teclado, ratón y auriculares con cada escena Plus',
   'lighting.gate.body':
-    'La iluminación dinámica es parte de FluidEQ Plus. Tus dispositivos toman los colores de la escena del gráfico y laten con su ritmo.',
+    'La iluminación dinámica es parte de FluidEQ Plus. Tus dispositivos toman los colores de la escena de la gráfica y laten con su ritmo.',
   'lighting.gate.cta': 'Ver Plus',
 
   'lighting.preview.status':
@@ -77,7 +77,7 @@ const lighting = {
   'lighting.status.noScene':
     'Elige una escena Plus y tus dispositivos la seguirán',
   'lighting.pickScene': 'Ver visualizadores',
-  'lighting.showGraph': 'Mostrar el gráfico',
+  'lighting.showGraph': 'Mostrar la gráfica',
 
   'lighting.brightness': 'Brillo',
   'lighting.brightness.value': '{percent} %',

@@ -47,9 +47,9 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'Processos…',
   'app.processes.eyebrow': 'Processos',
   'app.processes.hint':
-    'O Windows dá a todos eles o nome da aplicação, porque são o mesmo programa. Isto é o que cada um faz na realidade pelo FluidEQ.',
+    'O Windows dá a todos eles o nome do app, porque são o mesmo programa. Isto é o que cada um faz na realidade pelo FluidEQ.',
   'app.processes.hintSplit':
-    'A divisão é propositada: a interface, o desenho e o som funcionam cada um por si, para que uma janela ocupada não atrase a música e uma falha numa parte não leve as restantes atrás.',
+    'A divisão é proposital: a interface, o desenho e o som funcionam cada um por si, para que uma janela ocupada não atrase a música e uma falha em uma parte não leve as outras junto.',
   'app.processes.process': 'Processo',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'Memória',
@@ -62,56 +62,56 @@ const app: Partial<Dictionary> = {
   'app.processes.sceneRate':
     '{place}: {name} a {fps} fps, desenhado em {drawn} para {shown}',
   'app.processes.place.graph': 'Visualizador do gráfico',
-  'app.processes.place.studio': 'Palco do Studio',
+  'app.processes.place.studio': 'Palco do Estúdio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'A janela que está a ver: a curva, a biblioteca, o leitor, todos os controlos. Um processo por janela, para que um redesenho pesado não atrase o som. Os visualizadores Plus correm aqui dentro num fio de execução próprio, para que uma cena pesada não prenda os controlos.',
-  'app.processes.name.core': 'Núcleo da app',
+    'A janela que você está vendo: a curva, a biblioteca, o player, todos os controles. Um processo por janela, para que um redesenho pesado não atrase o som. Os visualizadores Plus rodam aqui dentro em uma linha de execução própria, para que uma cena pesada não trave os controles.',
+  'app.processes.name.core': 'Núcleo do app',
   'app.processes.what.core':
-    'A parte sem janela. Guarda as suas definições, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e arranca tudo o resto desta lista.',
+    'A parte sem janela. Armazena suas configurações, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e inicia todo o resto desta lista.',
   'app.processes.name.engine': 'Motor de áudio (C++)',
   'app.processes.what.engine':
-    'O motor próprio do FluidEQ. Descodifica o que reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows arruma-o longe dos restantes.',
+    'O motor próprio do FluidEQ. Decodifica o que você reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows o coloca separado dos outros.',
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
-    'Desenha tudo o que está no ecrã na placa gráfica: o espetro, a curva, cada animação e as cenas dos visualizadores Plus. Trabalha sempre que algo se move; aqui não corre nenhum modelo.',
-  'app.processes.name.desktop': 'Visualizador do ambiente de trabalho',
+    'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas dos visualizadores Plus. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
+  'app.processes.name.desktop': 'Visualizador da área de trabalho',
   'app.processes.what.desktop':
-    'Um visualizador Plus desenhado como fundo do ambiente de trabalho de um monitor, à parte desta janela: um por cada monitor que o mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
+    'Um visualizador Plus desenhado como fundo da área de trabalho de um monitor, à parte desta janela: um para cada monitor que o mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
   'app.processes.name.desktopHost':
-    'Ajudante do visualizador do ambiente de trabalho',
+    'Ajudante do visualizador da área de trabalho',
   'app.processes.what.desktopHost':
-    'Coloca o visualizador do ambiente de trabalho desse monitor atrás dos ícones e avisa-o quando as janelas cobrem o ecrã. Um por cada monitor que o mostra.',
-  'app.processes.name.shareCapture': 'Captura para partilhar áudio',
+    'Coloca o visualizador da área de trabalho desse monitor atrás dos ícones e o avisa quando as janelas cobrem a tela. Um para cada monitor que o mostra.',
+  'app.processes.name.shareCapture': 'Captura para compartilhar áudio',
   'app.processes.what.shareCapture':
-    'Captura o que este PC toca, antes do equalizador, para o enviar para outro FluidEQ. Só corre enquanto partilha o seu áudio.',
-  'app.processes.name.mediaWatch': 'Multimédia de outras apps',
+    'Captura o que este PC toca, antes do equalizador, para enviá-lo a outro FluidEQ. Só roda enquanto você compartilha seu áudio.',
+  'app.processes.name.mediaWatch': 'Mídia de outros apps',
   'app.processes.what.mediaWatch':
-    'Lê o que o Spotify, um navegador ou outro leitor está a reproduzir, para que a barra do leitor o possa mostrar e controlar. Fecha quando o FluidEQ já não precisa dele.',
-  'app.processes.name.models': 'Modelos de karaoke',
+    'Lê o que o Spotify, um navegador ou outro player está reproduzindo, para que a barra do player possa mostrá-lo e controlá-lo. Fecha quando o FluidEQ não precisa mais dele.',
+  'app.processes.name.models': 'Modelos de karaokê',
   'app.processes.what.models':
-    'Separa a voz da música e segue a afinação de quem canta quando uma música é preparada para karaoke. Arranca da primeira vez que é precisa e corre à parte, para que um modelo que falhe não arraste a app consigo.',
+    'Separa a voz da música e segue a afinação de quem canta quando uma música é preparada para karaokê. Inicia na primeira vez que é preciso e roda à parte, para que um modelo que falhe não derrube o app junto.',
   'app.processes.name.libraryScan': 'Análise da biblioteca',
   'app.processes.what.libraryScan':
-    'Lê as suas pastas de música enquanto a biblioteca as analisa: etiquetas, durações e capas. Arranca para uma análise e fecha quando termina.',
+    'Lê suas pastas de música enquanto a biblioteca as analisa: tags, durações e capas. Inicia para uma análise e fecha quando termina.',
   'app.processes.name.sound': 'Som do navegador',
   'app.processes.what.sound':
-    'O áudio próprio do Chromium, para o separador Vídeo e para os sons de uma página. A sua música não passa por aqui.',
+    'O áudio próprio do Chromium, para a aba Mídia online e para os sons de uma página. Sua música não passa por aqui.',
   'app.processes.name.network': 'Rede',
   'app.processes.what.network':
-    'Verificação de atualizações, capas e tudo o que o separador Vídeo carrega. Mais nada nesta lista vai à rede.',
+    'Verificação de atualizações, capas e tudo o que a aba Mídia online carrega. Nada mais nesta lista acessa a rede.',
   'app.processes.name.devices': 'Lista de dispositivos',
   'app.processes.what.devices':
-    'Iniciado pelo Chromium quando a app pergunta ao Windows que dispositivos de áudio existem; o mesmo pedido enumera também os de vídeo. Não abre nenhuma câmara nem grava nada.',
+    'Iniciado pelo Chromium quando o app pergunta ao Windows quais dispositivos de áudio existem; o mesmo pedido também lista os de vídeo. Não abre nenhuma câmera nem grava nada.',
   'app.processes.name.page': 'Página web',
   'app.processes.what.page':
-    'Uma página aberta no separador Vídeo. Corre no seu próprio processo, à parte da interface.',
+    'Uma página aberta na aba Mídia online. Roda no seu próprio processo, à parte da interface.',
   'app.processes.name.systemEngine': 'Motor FluidEQ (áudio do Windows)',
   'app.processes.what.systemEngine':
-    'O equalizador a correr dentro do próprio serviço de áudio do Windows, que o aplica a tudo o que ouve. O Windows partilha esse serviço com os efeitos da sua placa de som, por isso a memória e a CPU são mostradas mas não somadas ao total.',
+    'O equalizador rodando dentro do próprio serviço de áudio do Windows, que o aplica a tudo o que você ouve. O Windows compartilha esse serviço com os efeitos da sua placa de som, por isso a memória e a CPU são mostradas mas não somadas ao total.',
   'app.processes.name.meter': 'Medidor de processos',
   'app.processes.what.meter':
-    'Mede os valores desta lista como o Gestor de Tarefas, para que a soma bata certo. Só corre enquanto esta lista está aberta.',
+    'Mede os valores desta lista como o Gerenciador de Tarefas, para que a soma confira. Só roda enquanto esta lista está aberta.',
   'app.processes.name.lighting': 'Iluminação dinâmica',
   'app.processes.what.lighting':
     'Passa as cores da cena para os dispositivos compatíveis com o Windows Dynamic Lighting. Só roda enquanto a iluminação está ligada ou a página dela está aberta.',
@@ -121,35 +121,35 @@ const app: Partial<Dictionary> = {
   'app.menu.reinstallApp': 'Reinstalar {product}…',
   'app.menu.fixAudio': 'Corrigir problemas de áudio…',
   'engine.apo.reinstall': 'Reinstalar Equalizer APO…',
-  'engine.title': 'Como deve o FluidEQ processar o teu som?',
+  'engine.title': 'Como o FluidEQ deve processar seu som?',
   'engine.subtitle':
     'Um único motor funciona em todo o PC. Trocar pede permissão ao Windows uma vez.',
   'engine.now': 'Agora: {engine}',
   'engine.recommended': 'RECOMENDADO',
   'engine.fluid.name': 'Motor FluidEQ',
   'engine.fluid.l1':
-    'Os efeitos e o painel da tua placa de som continuam a funcionar',
-  'engine.fluid.l2': 'O EQ e o rack DSP aplicam-se a tudo, sem reiniciar',
+    'Os efeitos e o painel da sua placa de som continuam funcionando',
+  'engine.fluid.l2': 'O EQ e o rack DSP se aplicam a tudo, sem reiniciar',
   'engine.fluid.l3':
     'Comandos personalizados do APO, Peace e plugins VST não funcionam',
   'engine.fluid.l4':
-    'O Equalizer APO fica desligado enquanto este motor funciona e volta exatamente como estava se mudar para ele',
+    'O Equalizer APO fica desligado enquanto este motor funciona e volta exatamente como estava se você mudar para ele',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Comandos personalizados, Peace, plugins VST',
   'engine.apo.l2':
-    'Ocupa a ranhura de efeitos da tua placa de som; os painéis do fabricante podem perder controlos',
+    'Ocupa o slot de efeitos da sua placa de som; os painéis do fabricante podem perder controles',
   'engine.apo.l3':
     'O rack DSP só funciona na reprodução da Biblioteca. Instalação à parte e o Windows reinicia.',
   'engine.apply': 'Aplicar',
   'engine.cancel': 'Cancelar',
   'engine.close': 'Fechar',
   'engine.switched': 'Alterado para {engine}',
-  'engine.installing': 'A trocar de motor…',
+  'engine.installing': 'Trocando de motor…',
   'engine.declined':
     'A permissão do Windows foi recusada, por isso nada mudou.',
   'engine.failed': 'Não foi possível trocar de motor. Nada mudou.',
   'engine.detachFailed':
-    'Não foi possível remover o motor FluidEQ desta saída. Nada mudou.',
+    'Não foi possível remover o Motor FluidEQ desta saída. Nada mudou.',
   'engine.unsupported': 'Requer o Windows 10 versão 1803 ou posterior.',
   'prereq.title.apo': 'O Equalizer APO precisa de atenção',
   'prereq.title.fluid': 'O Motor FluidEQ precisa de atenção',
@@ -158,12 +158,12 @@ const app: Partial<Dictionary> = {
   'prereq.retry': 'Tentar de novo',
   'prereq.dismiss': 'Dispensar',
   'prereq.credit.apo':
-    'O Equalizer APO vem incluído no {product} — nada será descarregado. A sua instalação pergunta que dispositivos de áudio equalizar e pede um reinício no fim. Projeto GPLv2 independente de {author}, incluído sem alterações.',
-  'prereq.starting': 'A iniciar…',
+    'O Equalizer APO vem incluído no {product} — nada será baixado. A instalação dele pergunta quais dispositivos de áudio equalizar e pede um reinício no fim. Projeto GPLv2 independente de {author}, incluído sem alterações.',
+  'prereq.starting': 'Iniciando…',
   'prereq.bundleMissing':
-    'Esta versão não traz a sua cópia do Equalizer APO. Vai abrir o projeto oficial em vez disso.',
+    'Esta versão não traz a própria cópia do Equalizer APO. O projeto oficial será aberto em vez disso.',
   'prereq.notStarted':
-    'O Equalizer APO não arrancou — é precisa permissão de administrador. Tenta de novo e aceita o pedido do Windows.',
+    'O Equalizer APO não iniciou — é necessária permissão de administrador. Tente de novo e aceite o pedido do Windows.',
   'whatsNew.eyebrow': 'HISTÓRICO DE VERSÕES',
   'whatsNew.title': 'Notas da versão do FluidEQ',
   'whatsNew.loading': 'Carregando as notas da versão…',
@@ -189,14 +189,14 @@ const app: Partial<Dictionary> = {
   'app.notification.updateReady.bodyNoVersion':
     'Uma atualização está pronta. Clique para reiniciar o FluidEQ.',
   'app.notification.upToDate.title': 'O FluidEQ está atualizado',
-  'app.notification.upToDate.body': 'Já tem a versão mais recente.',
+  'app.notification.upToDate.body': 'Você já tem a versão mais recente.',
   'app.notification.updateFound.title': 'Atualização do FluidEQ encontrada',
   'app.notification.updateFound.body':
-    'A versão {version} está a ser transferida. Avisamos quando estiver pronta para instalar.',
+    'A versão {version} está sendo baixada. Avisamos quando estiver pronta para instalar.',
   'app.notification.checkFailed.title':
     'Não foi possível procurar atualizações',
   'app.notification.checkFailed.body':
-    'Não foi possível contactar o servidor de atualizações. O FluidEQ tentará novamente mais tarde.',
+    'Não foi possível contatar o servidor de atualizações. O FluidEQ tentará novamente mais tarde.',
   'app.notification.installFailed.title':
     'Não foi possível instalar a atualização',
   'app.notification.installFailed.body':
@@ -233,14 +233,14 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Presets EQ',
   'tabs.voicing': 'Caráter',
   'tabs.convolution': 'Convolução',
-  'tabs.games': 'Perfis de jogo',
+  'tabs.games': 'Presets de jogo',
   'tabs.config': 'Config',
   'tabs.media': 'Mídia online',
   'tabs.mediaShort': 'Mídia',
   'tabs.karaoke': 'Karaokê',
   'tabs.plus': 'Plus',
-  'tabs.scrollBack': 'Rolar separadores para trás',
-  'tabs.scrollForward': 'Rolar separadores para a frente',
+  'tabs.scrollBack': 'Rolar abas para trás',
+  'tabs.scrollForward': 'Rolar abas para a frente',
   'notice.apoReconfigured':
     'O Equalizer APO foi instalado ou reconfigurado. Se ficar sem som, reinicie o serviço de áudio do Windows em vez de reiniciar o computador.',
   'notice.restartNow': 'Reiniciar o áudio agora',
@@ -262,24 +262,24 @@ const app: Partial<Dictionary> = {
     'A versão {version} está pronta. Reinicie o FluidEQ para concluir.',
   'update.restart': 'Reiniciar agora',
   'update.restarting': 'Reiniciando…',
-  'update.mandatory.title': 'Esta versão precisa de ser atualizada',
+  'update.mandatory.title': 'Esta versão precisa ser atualizada',
   'update.mandatory.body':
-    'Esta versão corrige um problema grave o suficiente para que o FluidEQ não deva continuar a funcionar como está. A atualização está a ser transferida agora.',
+    'Esta versão corrige um problema grave o suficiente para que o FluidEQ não deva continuar funcionando como está. A atualização está sendo baixada agora.',
   'update.mandatory.notOptional':
-    'Não é uma atualização opcional. Pode fechar este aviso e terminar o que estava a fazer — voltará a aparecer até o FluidEQ estar atualizado.',
+    'Não é uma atualização opcional. Você pode fechar este aviso e terminar o que estava fazendo — ele voltará a aparecer até o FluidEQ ser atualizado.',
   'update.mandatory.later': 'Agora não',
-  'update.mandatory.waiting': 'A obter a atualização…',
+  'update.mandatory.waiting': 'Obtendo a atualização…',
   'update.mandatory.readyPrompt':
-    'A atualização já foi transferida. O FluidEQ vai fechar durante a instalação e abrir novamente a seguir.',
+    'A atualização já foi baixada. O FluidEQ vai fechar durante a instalação e abrir novamente em seguida.',
   'update.mandatory.install': 'Instalar e reiniciar',
-  'update.mandatory.installing': 'A instalar…',
+  'update.mandatory.installing': 'Instalando…',
   'update.mandatory.failedDownload':
-    'Não foi possível transferir a atualização. Ou não se conseguiu contactar o servidor de transferências, ou a ligação caiu a meio.',
+    'Não foi possível baixar a atualização. Ou não foi possível contatar o servidor de downloads, ou a conexão caiu no meio.',
   'update.mandatory.failedInstall':
-    'A atualização foi transferida, mas o instalador não arrancou. O Windows pode tê-lo recusado, ou o ficheiro transferido pode estar danificado.',
+    'A atualização foi baixada, mas o instalador não iniciou. O Windows pode tê-lo recusado, ou o arquivo baixado pode estar danificado.',
   'update.mandatory.manual':
-    'Também pode instalá-la manualmente: transfira a versão mais recente na página de lançamentos e execute-a. As suas definições e perfis são mantidos.',
-  'update.mandatory.releasePage': 'Abrir a página de transferências',
+    'Você também pode instalá-la manualmente: baixe a versão mais recente na página de downloads e execute-a. Suas configurações e perfis são mantidos.',
+  'update.mandatory.releasePage': 'Abrir a página de downloads',
   'notice.restartDone':
     'O áudio do Windows foi reiniciado. Reabra qualquer aplicativo que continuar mudo.',
   'sidebar.engine': 'MOTOR',
@@ -331,7 +331,7 @@ const app: Partial<Dictionary> = {
   'config.file.missing': 'ausente',
   'config.export': 'Exportar cadeia',
   'config.import': 'Importar cadeia',
-  'config.import.hint': 'A importação aplica-se à saída que estás a ouvir.',
+  'config.import.hint': 'A importação se aplica à saída que você está ouvindo.',
   'config.import.customSkipped':
     'O arquivo próprio do remetente foi ignorado: uma linha Include: ou Plugin: carregaria código no áudio do Windows.',
   'config.file.yours': 'seu',
@@ -346,14 +346,14 @@ const app: Partial<Dictionary> = {
   'config.save': 'Salvar',
   'disclaimer.heading': 'Sem garantia e sem responsabilidade',
   'disclaimer.asIs':
-    'O FluidEQ é fornecido tal como está, sem garantia de qualquer tipo. Ninguém promete que funciona, que serve para aquilo que quer fazer com ele, nem que continuará a funcionar. É o que dizem as secções 15 e 16 da GNU General Public License, e aplica-se quer lhe tenham dado esta cópia quer tenha pago por ela.',
+    'O FluidEQ é fornecido tal como está, sem garantia de qualquer tipo. Ninguém promete que funciona, que serve para aquilo que você quer fazer com ele, nem que continuará funcionando. É o que dizem as seções 15 e 16 da GNU General Public License, e isso se aplica quer esta cópia lhe tenha sido dada, quer você tenha pago por ela.',
   'disclaimer.liability':
-    'O FluidEQ altera a forma como o áudio é processado no seu computador e instala e comanda o Equalizer APO, um programa separado que corre com direitos de administrador e fica no caminho de áudio do Windows. Na máxima medida permitida por lei, {author} não responde por quaisquer danos resultantes da sua utilização — à sua audição, a colunas, auscultadores ou outro equipamento, a dados ou a outro software, nem a seja o que for, incluindo perdas que não pudesse ter previsto.',
+    'O FluidEQ altera a forma como o áudio é processado no seu computador e instala e comanda o Equalizer APO, um programa separado que roda com direitos de administrador e fica no caminho de áudio do Windows. Na máxima medida permitida por lei, {author} não responde por quaisquer danos resultantes da sua utilização — à sua audição, a alto-falantes, fones de ouvido ou outro equipamento, a dados ou a outro software, nem a qualquer outra coisa, incluindo perdas que você não pudesse ter previsto.',
   'disclaimer.volume':
-    'O som pode ser alto, e a equalização pode torná-lo mais alto do que o material original. Baixe o volume antes de mudar uma definição e suba-o depois.',
+    'O som pode ser alto, e a equalização pode torná-lo mais alto do que o material original. Baixe o volume antes de mudar uma configuração e suba-o depois.',
   'disclaimer.localLaw':
     'Alguns países não permitem que um vendedor exclua certas garantias ou responsabilidades. Onde for esse o caso, aplicam-se essas regras e este aviso não lhe retira os direitos que a lei lhe dá.',
-  'disclaimer.accepting': 'Ao usar o FluidEQ, aceita o que está acima.',
+  'disclaimer.accepting': 'Ao usar o FluidEQ, você aceita o que está acima.',
   'disclaimer.language':
     'Este aviso foi escrito em inglês. Se uma tradução divergir do texto em inglês, prevalece o texto em inglês.',
   'disclaimer.accept': 'Compreendo e aceito',
@@ -369,7 +369,7 @@ const app: Partial<Dictionary> = {
   'motion.aria': 'Animações',
   'motion.restart': 'Reinicie o FluidEQ para aplicar',
   'startup.label': 'Iniciar com o Windows',
-  'startup.blocked': 'O Windows desativou isto em Aplicações de arranque',
+  'startup.blocked': 'O Windows desativou isto em Aplicativos de inicialização',
   'startup.failed': 'O Windows não permitiu alterar isto',
   'theme.ocean': 'Claro',
   'theme.black': 'Escuro',
@@ -378,13 +378,13 @@ const app: Partial<Dictionary> = {
   'settings.group.picture': 'A imagem',
   'settings.group.visualizer': 'O visualizador',
   'settings.group.drawing': 'Como é desenhado',
-  'settings.group.thisView': 'Esta vista',
+  'settings.group.thisView': 'Esta visualização',
   'settings.group.studioOnly': 'Só aqui no Estúdio',
 
   // Game profiles: the page, its list and what it says.
   'games.add': 'Adicionar um jogo',
   'games.addHint':
-    'Escolhe um jogo dos teus lançadores, ou um programa aberto agora.',
+    'Escolha um jogo dos seus lançadores, ou um programa aberto agora.',
   'games.choose': 'Escolher um programa…',
   'games.group.installed': 'Instalados',
   'games.group.running': 'Abertos agora',
@@ -396,9 +396,9 @@ const app: Partial<Dictionary> = {
   'games.source.battlenet': 'Battle.net',
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Aberto agora',
-  'games.source.file': 'Escolhido por ti',
-  'games.front.playing': '{name} está à frente, e o seu som está ligado.',
-  'games.front.sounding': '{name} está aberto, e o seu som está ligado.',
+  'games.source.file': 'Escolhido por você',
+  'games.front.playing': '{name} está à frente, e o som dele está ligado.',
+  'games.front.sounding': '{name} está aberto, e o som dele está ligado.',
   'games.front.none': 'À frente: {name}',
   'games.front.desktop': 'nada que o FluidEQ conheça',
   'games.empty':
@@ -410,7 +410,7 @@ const app: Partial<Dictionary> = {
   'games.toast.afterGame': 'depois de {game}',
   'games.empty.title': 'Ainda não há jogos',
   'games.empty.more':
-    'Adiciona um jogo, dá-lhe um som, e o FluidEQ muda para ele assim que o jogo estiver à frente — e volta quando fechares o jogo.',
+    'Adicione um jogo, dê um som a ele, e o FluidEQ muda para ele assim que o jogo estiver à frente — e volta quando você fechar o jogo.',
   'games.hint':
     'O som muda quando o jogo vem para a frente e fica até fechares o jogo, seja o que for que abras entretanto. Se escolheres outro enquanto jogas, fica: o FluidEQ só repõe o que pôs.',
   'games.preset.none': 'Deixar como está',

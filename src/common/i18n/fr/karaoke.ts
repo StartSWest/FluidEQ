@@ -49,7 +49,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     'Plusieurs associations sont possibles. Sélectionnez un fichier audio et, éventuellement, un fichier de paroles.',
   'karaoke.error.unsupported':
-    'Aucun de ces fichiers n’est encore un format audio ou de paroles Karaoke pris en charge. La pochette et la vidéo ont besoin d’une chanson à côté d’elles.',
+    'Aucun de ces fichiers n’est encore un format audio ou de paroles Karaoké pris en charge. La pochette et la vidéo ont besoin d’une chanson à côté d’elles.',
   'karaoke.error.read':
     'FluidEQ n’a pas pu lire les fichiers locaux sélectionnés.',
   'karaoke.error.playback':
@@ -76,7 +76,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.warning.ambiguousLyrics':
     'Deux fichiers de paroles correspondaient à la même chanson ; aucun n’a donc été utilisé : {files}.',
   'karaoke.warning.andMore': 'et {count} de plus',
-  'karaoke.countdown.sing': 'Chante',
+  'karaoke.countdown.sing': 'Chantez',
   'karaoke.song.unknownArtist': 'Chanson locale',
   'karaoke.stage.videoUnsupported':
     'Les vidéos {format} ne peuvent pas être lues ici',
@@ -105,7 +105,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': 'Paroles suivantes',
   'karaoke.lyrics.follow': 'Suivre les paroles',
   'karaoke.lyrics.textSize': 'Taille du texte des paroles',
-  'karaoke.transport.title': 'Commandes de lecture Karaoke',
+  'karaoke.transport.title': 'Commandes de lecture Karaoké',
   'karaoke.transport.restart': 'Recommencer la chanson',
   'karaoke.transport.play': 'Lire',
   'karaoke.transport.pause': 'Pause',
@@ -216,7 +216,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.timingAll': 'Chanson entière',
   'karaoke.maker.timingFromWord': 'Depuis le mot choisi',
   'karaoke.maker.timingAllHint':
-    'Déplace ensemble tous les mots et toutes les notes synchronisés.',
+    'Déplace ensemble tous les mots et toutes les notes calés.',
   'karaoke.maker.timingFromWordHint':
     'Déplace « {word} » et la suite. Le calage précédent reste fixe.',
   'karaoke.maker.earlier': 'Avancer toutes les paroles',
@@ -248,7 +248,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureEndPoint': 'FIN',
   'karaoke.maker.captureGuideTitle': 'Calage de ligne',
   'karaoke.maker.captureSetupTitle':
-    'Prêt à enregistrer le minutage des paroles ?',
+    'Prêt à enregistrer le calage des paroles ?',
   'karaoke.maker.captureSetupBody':
     'Écoutez le chanteur. Appuyez sur Entrée au début de la ligne, éventuellement sur Tab à chaque nouveau mot, puis encore sur Entrée à la fin. Le dernier mot peut ainsi garder toute sa durée.',
   'karaoke.maker.captureSetupStatus':
@@ -274,7 +274,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.done': 'Terminer',
   'karaoke.maker.ignoreLine': 'Ignorer la ligne',
   'karaoke.maker.lineTimingComplete':
-    'Synchronisation des lignes terminée. Prête à vérifier et à utiliser dans le lecteur.',
+    'Calage des lignes terminé. Prêt à vérifier et à utiliser dans le lecteur.',
   'karaoke.maker.recordLinesHint':
     'ENTRÉE marque début/fin · ↑/↓ choisit la ligne · ←/→ déplace seulement l’audio de 2 s · ESPACE lit ou met en pause · Retour arrière annule',
   'karaoke.maker.panView': 'Main · déplacer la timeline',
@@ -315,9 +315,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.delete': 'Supprimer',
   'karaoke.maker.analyze': 'Analyser la mélodie',
   'karaoke.maker.prepare': 'Préparer le karaoké',
-  'karaoke.maker.advanced': 'Avancé',
+  'karaoke.maker.advanced': 'Outils de réparation',
   'karaoke.maker.prepared':
-    'Ce karaoké possède déjà des notes mélodiques synchronisées.',
+    'Ce karaoké a déjà des paroles calées et une mélodie.',
   'karaoke.maker.repairLyrics': 'Redétecter le calage des paroles',
   'karaoke.maker.repairMelody': 'Redétecter les notes de la mélodie',
   'karaoke.maker.rebuildKaraoke': 'Reconstruire paroles + mélodie',
@@ -336,7 +336,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.stemMp3Failed': 'Le MP3 n’a pas pu être encodé.',
   'karaoke.maker.stemVoice': 'Voix',
   'karaoke.maker.stemSave': 'Enregistrer',
-  'karaoke.maker.groupLyrics': 'Paroles et minutage',
+  'karaoke.maker.groupLyrics': 'Paroles et calage',
   'karaoke.maker.removeBackground': 'Séparer la voix de la musique',
   'karaoke.maker.removeBackgroundDone': 'Voix déjà séparée',
   'karaoke.maker.separationDownloading':
@@ -353,9 +353,9 @@ const karaoke: Partial<Dictionary> = {
     'Séparez d’abord la voix : la détection des notes suit une seule voix, et dans un mixage c’est généralement un instrument.',
   'karaoke.maker.wizardTitle': 'Préparer ce morceau automatiquement',
   'karaoke.maker.wizardIntro':
-    'Ce morceau n’a pas encore de minutage. FluidEQ peut séparer la voix de la musique, puis en lire les mots et leur minutage. Tout s’exécute sur cet ordinateur.',
+    'Ce morceau n’a pas encore de calage. FluidEQ peut séparer la voix de la musique, puis en lire les mots et leur calage. Tout s’exécute sur cet ordinateur.',
   'karaoke.maker.wizardStepSeparate': 'Séparer la voix',
-  'karaoke.maker.wizardStepTranscribe': 'Lire les mots et le minutage',
+  'karaoke.maker.wizardStepTranscribe': 'Lire les mots et le calage',
   'karaoke.maker.wizardLanguage': 'Langue des paroles',
   'karaoke.maker.wizardLanguageAuto': 'Détection automatique',
   'karaoke.maker.wizardStart': 'Préparer automatiquement',
@@ -375,7 +375,7 @@ const karaoke: Partial<Dictionary> = {
     'Faites glisser les notes pour modifier hauteur/temps. Tirez un bord pour redimensionner. Ctrl + molette zoome.',
   'karaoke.maker.stats':
     '{notes} notes · {words} mots · {checks} vérifications',
-  'karaoke.maker.wordStateLegend': 'État du minutage des paroles',
+  'karaoke.maker.wordStateLegend': 'État du calage des paroles',
   'karaoke.maker.userAdjustedWords': '{count} ajustés',
   'karaoke.maker.pendingWords': '{count} en attente',
   'karaoke.maker.artist': 'Artiste',
@@ -388,13 +388,13 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.showPreview': 'Afficher l’aperçu',
   'karaoke.maker.hidePreview': 'Masquer l’aperçu',
   'karaoke.maker.previewEmpty':
-    'Ajoutez ou alignez des paroles minutées pour voir l’aperçu.',
+    'Ajoutez ou alignez des paroles calées pour voir l’aperçu.',
   'karaoke.maker.noteNormal': 'Note',
   'karaoke.maker.noteGolden': 'Dorée',
   'karaoke.maker.noteFree': 'Libre',
   'karaoke.maker.untimed': 'Non calé',
   'karaoke.maker.applyUntimed':
-    '{count} mots des paroles n’ont toujours pas de timing vocal vérifié. Détectez-les ou placez-les avant d’utiliser ce karaoké dans le lecteur.',
+    '{count} mots des paroles n’ont toujours pas de calage vocal vérifié. Détectez-les ou placez-les avant d’utiliser ce karaoké dans le lecteur.',
   'karaoke.maker.selectHint':
     'Sélectionnez une parole ou une note pour l’inspecter.',
   'karaoke.maker.rights':
@@ -465,7 +465,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     'Nouvelles paroles appliquées et alignées sur la mélodie disponible.',
   'karaoke.maker.lyricsNeedPreparation':
-    'Nouvelles paroles appliquées. Choisissez Préparer le karaoké pour détecter leur calage.',
+    'Nouvelles paroles appliquées. Ouvrez « Outils de réparation » et choisissez « Redétecter le calage des paroles » pour les caler.',
   'karaoke.maker.transcriptionEyebrow': 'TRANSCRIPTION LOCALE FACULTATIVE',
   'karaoke.maker.transcriptionTitle': 'Télécharger le modèle vocal local ?',
   'karaoke.maker.transcriptionBody':
@@ -481,22 +481,22 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.loadingWhisper': 'Chargement du modèle Whisper',
   'karaoke.maker.analysisRunning': 'Analyse locale de la hauteur',
   'karaoke.maker.analysisAligned':
-    '{count} régions de notes détectées ont été alignées avec les mots non modifiés. Le minutage manuel a été conservé.',
+    '{count} régions de notes détectées ont été alignées avec les mots non modifiés. Le calage manuel a été conservé.',
   'karaoke.maker.analysisFound': 'L’analyse a trouvé {count} régions de notes.',
   'karaoke.maker.basicPitchRunning': 'Détection des notes de la mélodie',
   'karaoke.maker.basicPitchFound':
     '{count} notes de mélodie modifiables détectées depuis la voix.',
-  'karaoke.maker.whisperPreparing': 'Préparation de Whisper',
+  'karaoke.maker.whisperPreparing': 'Préparation du calage des paroles',
   'karaoke.maker.whisperDecoding': 'Décodage local de l’audio',
-  'karaoke.maker.whisperTranscribing': 'Transcription locale',
+  'karaoke.maker.whisperTranscribing': 'Détection du calage des paroles',
   'karaoke.maker.whisperTranscribingProgress':
-    'Détection du minutage · passe {pass}/{passes} · bloc {chunk}/{chunks}',
+    'Détection du calage des paroles · passe {pass}/{passes} · bloc {chunk}/{chunks}',
   'karaoke.maker.whisperAligning': 'Ajustement des paroles au chant',
-  'karaoke.maker.whisperComplete': 'Transcription terminée',
+  'karaoke.maker.whisperComplete': 'Calage des paroles détecté',
   'karaoke.maker.whisperMatched':
-    'Whisper a associé {count} mots reconnus. Vérifiez leur minutage modifiable avant l’exportation.',
+    'Whisper a associé {count} mots reconnus. Vérifiez leur calage modifiable avant l’exportation.',
   'karaoke.maker.autoAlignComplete':
-    'Les paroles non modifiées ont été alignées avec la mélodie détectée. Le minutage manuel a été conservé.',
+    'Les paroles non modifiées ont été alignées avec la mélodie détectée. Le calage manuel a été conservé.',
   'karaoke.maker.speechMemory': 'Mémoire des modèles IA',
   'karaoke.maker.speechMemoryReady': 'Prêt en mémoire vive',
   'karaoke.maker.speechMemoryCached': 'En cache sur le disque',
@@ -521,7 +521,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.keepLoaded': 'Garder chargé',
   'karaoke.maker.exported': '{file} a été exporté',
   'karaoke.maker.exportedPartialLrc':
-    '{file} a été exporté, sans {lines} lignes de paroles : le LRC exige un timing sur la ligne ou sur l’un de ses mots, et celles-ci n’en ont aucun. Chronométrez-les dans le Créateur, puis exportez de nouveau pour obtenir un fichier complet.',
+    '{file} a été exporté, sans {lines} lignes de paroles : le LRC exige un calage sur la ligne ou sur l’un de ses mots, et celles-ci n’en ont aucun. Calez-les dans le Créateur, puis exportez de nouveau pour obtenir un fichier complet.',
   'karaoke.maker.exportedPartialUltraStar':
     '{file} a été exporté, sans {words} mots des paroles : UltraStar ne retient un mot que là où la mélodie a une note, et ceux-ci n’en ont aucune. Détectez ou tracez leurs notes, puis exportez de nouveau pour obtenir un fichier complet.',
   'karaoke.maker.exportFallback': 'fichier de karaoké',
@@ -562,7 +562,7 @@ const karaoke: Partial<Dictionary> = {
     'Confirmez que vous détenez les droits sur le son et les paroles avant de publier un export.',
   'karaoke.maker.draftRestored': 'Brouillon restauré',
   'karaoke.maker.playerTimingLoaded':
-    'Le minutage actuel du lecteur est utilisé. Annuler restaure le brouillon enregistré.',
+    'Le calage actuel du lecteur est utilisé. Annuler restaure le brouillon enregistré.',
 
   'karaoke.translation.picker': 'Langue des paroles',
   'karaoke.translation.original': 'Telles qu’enregistrées',

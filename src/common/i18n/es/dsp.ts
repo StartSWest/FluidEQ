@@ -90,9 +90,9 @@ const dsp = {
     'Aún no hay favoritos. Marca un preset en DSP para añadirlo aquí.',
   'dsp.favorites.open': 'Abrir DSP',
   'dsp.gameMode.update':
-    'Actualiza el Motor FluidEQ para usar el modo Juego. El preset sigue aplicando sus ajustes de sonido.',
+    'Actualiza el Motor FluidEQ para usar el modo juego. El preset sigue aplicando sus ajustes de sonido.',
   'dsp.gameMode.hint':
-    'El modo de juego elimina búferes evitables y usa EQ de fase mínima. Los efectos activos aún pueden añadir retardo. Los presets de juego lo activan; puedes desactivarlo sin cambiar el preset.',
+    'El modo juego elimina búferes evitables y usa EQ de fase mínima. Los efectos activos aún pueden añadir retardo. Los presets de Juegos lo activan; puedes desactivarlo sin cambiar el preset.',
   'dsp.latency.buffer': 'Búfer con efecto desactivado',
   'dsp.normalizer.liveTitle': 'Control de nivel en directo',
   'dsp.normalizer.livePeak': 'Protección de picos',
@@ -130,7 +130,7 @@ const dsp = {
   'dsp.latency.note':
     'Búferes informados por el motor a la frecuencia de muestreo actual. No incluye Windows, el dispositivo ni la red.',
   'dsp.latency.gameNote':
-    'El modo de juego reduce los búferes evitables. Los efectos activos pueden necesitar retardo. Desactívalo para volver al procesamiento normal.',
+    'El modo juego reduce los búferes evitables. Los efectos activos pueden necesitar retardo. Desactívalo para volver al procesamiento normal.',
   'dsp.latency.stage.linearEq': 'Ecualizador de fase lineal',
   'dsp.latency.stage.safety': 'Protección final',
   'dsp.latency.stage.guard': 'Protección de picos del ecualizador',
@@ -142,7 +142,7 @@ const dsp = {
     'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.engineDown':
     'El motor de audio nativo no pudo iniciarse, así que todas las etapas de DSP están apagadas. Nada de lo de abajo está procesando tu música y los controles están deshabilitados; la reproducción en sí no se ve afectada. Reiniciar FluidEQ suele solucionarlo.',
-  'dsp.presets': 'Ajustes',
+  'dsp.presets': 'Presets',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
@@ -152,7 +152,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normalizador',
   'dsp.normalizer.description':
-    'Mide una vez la fuente completa y aplica una sola ganancia estéreo antes del Exciter y el EQ. Sin bombeo ni seguidor RMS móvil.',
+    'Mide una vez la fuente completa y aplica una sola ganancia estéreo antes del Excitador y el EQ. Sin bombeo ni seguidor RMS móvil.',
   'dsp.normalizer.mode': 'Modo de normalización',
   'dsp.normalizer.off': 'Apagado',
   'dsp.normalizer.truePeak': 'Pico real',
@@ -282,7 +282,7 @@ const dsp = {
     'Se aplica a Siguiente manual y al final natural de la pista. Buscar sigue siendo inmediato.',
 
   'dsp.eqPreset.custom': 'Personalizado',
-  'dsp.eqPreset.label': 'Ajuste',
+  'dsp.eqPreset.label': 'Preset',
   'dsp.eqPreset.saved': 'Tuyos',
   'dsp.eqPresetGroup.basic': 'Básicos',
   'dsp.eqPresetGroup.genre': 'Géneros',
@@ -294,8 +294,8 @@ const dsp = {
   'dsp.eqPreset.default': 'Por defecto',
   'dsp.eqPreset.balanced': 'Equilibrado',
   'dsp.eqPreset.reset': 'Restablecer',
-  'dsp.eqPreset.previous': 'Ajuste anterior',
-  'dsp.eqPreset.next': 'Ajuste siguiente',
+  'dsp.eqPreset.previous': 'Preset anterior',
+  'dsp.eqPreset.next': 'Preset siguiente',
   'dsp.eqPreset.flat': 'Plano',
   'dsp.eqPreset.vShape': 'Forma en V',
   'dsp.eqPreset.rock': 'Rock',
@@ -347,28 +347,28 @@ const dsp = {
   'dsp.eqPreset.export': 'Exportar',
   'dsp.chainSave.title': 'Guardar cadena DSP',
   'dsp.chainSave.hint':
-    'Guarda todos los filtros y su estado en un solo ajuste.',
+    'Guarda todos los filtros y su estado en un solo preset.',
   'dsp.chainShare.hint':
     'Guarda toda la cadena de filtros en un archivo para compartir.',
   'dsp.chainImport.title': 'Importar una cadena DSP',
   'dsp.chainImport.hint':
-    'Pega un ajuste de cadena DSP de FluidEQ o elige su archivo JSON.',
+    'Pega un preset de cadena DSP de FluidEQ o elige su archivo JSON.',
   'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
-  'dsp.chainImport.invalid': 'Esto no es un ajuste de cadena DSP de FluidEQ.',
-  'dsp.eqSave.title': 'Guardar ajuste',
+  'dsp.chainImport.invalid': 'Esto no es un preset de cadena DSP de FluidEQ.',
+  'dsp.eqSave.title': 'Guardar preset',
   'dsp.eqSave.hint': 'Guarda el rack tal y como está.',
   'dsp.eqSave.placeholder': 'Nombre',
   'dsp.eqSave.save': 'Guardar',
   'dsp.eqSave.delete': 'Borrar',
   'dsp.eqSave.overwrite':
-    'Ya existe un ajuste con ese nombre y se reemplazará.',
+    'Ya existe un preset con ese nombre y se reemplazará.',
   'dsp.eqSave.saved': 'Guardado como {name}.',
   'dsp.eqSave.deleted': 'Borrado {name}.',
   'dsp.eqSave.imported': 'Importado {name}.',
   'dsp.eqShare.share': 'Compartir',
   'dsp.eqShare.hint': 'Guarda este rack como archivo que otros pueden abrir.',
-  'dsp.eqShare.saved': 'Archivo de ajuste guardado.',
-  'dsp.eqShare.failed': 'No se pudo guardar el archivo de ajuste.',
+  'dsp.eqShare.saved': 'Archivo de preset guardado.',
+  'dsp.eqShare.failed': 'No se pudo guardar el archivo de preset.',
   'dsp.eq.isolate': 'Aislar',
   'dsp.eq.isolateHint': 'Escucha solo lo que cambia el EQ.',
   'dsp.eq.isolateOn':
@@ -487,7 +487,7 @@ const dsp = {
   'dsp.bassForge.isolate': 'Aislar',
   'dsp.bassForge.isolateHint': 'Escucha solo los graves que esta etapa añade.',
   'dsp.bassForge.isolateOn':
-    'Señal original quitada: solo se oye lo que Forge añade.',
+    'Señal original quitada: solo se oye lo que la Forja de graves añade.',
   'dsp.bassForge.description':
     'Añade una octava real por debajo del bajo para los altavoces que puedan reproducirla, y los armónicos de esa octava para los que no puedan — un altavoz pequeño no radia nada a 45 Hz, pero los armónicos permiten que el oído reconstruya el tono de todos modos. El volumen de los graves no cambia.',
   'dsp.bassForge.splitHz': 'Corte',
@@ -606,7 +606,7 @@ const dsp = {
 
   'dsp.master.title': 'Master',
   'dsp.master.description':
-    'Control transparente de la salida final después de todos los procesadores. No cambia la intensidad con que se alimentan el EQ, el Exciter ni las demás etapas.',
+    'Control transparente de la salida final después de todos los procesadores. No cambia la intensidad con que se alimentan el EQ, el Excitador ni las demás etapas.',
   'dsp.master.outputTrim': 'Ganancia de salida',
   'dsp.master.autoHeadroom': 'Margen automático',
   'dsp.master.autoHeadroomHint':
@@ -653,7 +653,7 @@ const dsp = {
   'dsp.master.peakLimiting': 'Limitación de picos',
   'dsp.master.matchedBypass': 'Igualar ganancia',
   'dsp.master.matchedBypassHint':
-    'Quita del salida los {gain} dB de compensación, así encender y apagar Master compara el sonido y no el volumen. La limitación es idéntica en ambos casos; solo cambia el nivel.',
+    'Quita de la salida los {gain} dB de compensación, así encender y apagar Master compara el sonido y no el volumen. La limitación es idéntica en ambos casos; solo cambia el nivel.',
   'dsp.surround.title': 'Surround',
   'dsp.surround.onHint':
     'Pasa el rack por todos los canales de una salida 5.1 o 7.1, según lo que tenga configurado Windows, con una sola decisión de nivel para todos.',
@@ -671,7 +671,7 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Suena estéreo: solo FL y FR llevan sonido. Los demás esperan una señal 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suena 5.1: el par trasero no lleva nada.',
-  'dsp.room.presets': 'Sala predefinida',
+  'dsp.room.presets': 'Preset de sala',
   'dsp.room.preset.studio': 'Estudio',
   'dsp.room.preset.livingRoom': 'Salón',
   'dsp.room.preset.cinema': 'Cine',
@@ -831,7 +831,7 @@ const dsp = {
   'dsp.room.savedClassic': 'Sonido clásico',
   'dsp.room.saveFailed':
     'No se pudo guardar la sala: el almacenamiento la rechazó. No se cambió nada.',
-  'dsp.room.restore': 'Restaurar perfil',
+  'dsp.room.restore': 'Restaurar preset',
   'dsp.room.restoreHint':
     'Volver a {name}. Tu cabeza, tus auriculares y tus opciones de fuente se quedan.',
   'dsp.room.resetHint':

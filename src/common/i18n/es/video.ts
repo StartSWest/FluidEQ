@@ -45,7 +45,7 @@ const video: Partial<Dictionary> = {
   'video.openInBrowser': 'Abrir en el navegador',
   'video.downloadChoosing': 'Elige dónde guardar este archivo',
   'video.downloadSaving': 'Guardando {file}',
-  'video.downloadComplete': 'Guardado en tu computadora',
+  'video.downloadComplete': 'Guardado en tu ordenador',
   'video.downloadFailed': 'No se pudo guardar la descarga',
   'video.downloadProgress': 'Progreso de la descarga',
   'video.downloadCopyPath': 'Copiar ruta',

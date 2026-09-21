@@ -28,7 +28,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.exit': '退出全屏',
   'karaoke.fullscreen.hideHeader': '隐藏 FluidEQ 顶栏',
   'karaoke.fullscreen.showHeader': '显示 FluidEQ 顶栏',
-  'karaoke.actions': '卡拉 OK 操作',
+  'karaoke.actions': '卡拉OK 操作',
   'karaoke.readiness.resize': '调整麦克风和音高面板大小',
   'karaoke.empty.title': '舞台已经准备好',
   'karaoke.empty.body':
@@ -47,7 +47,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     '存在多种配对方式。请选择一个音频文件，并可选择一个歌词文件。',
   'karaoke.error.unsupported':
-    '这些文件中暂时没有受支持的 Karaoke 音频或歌词文件。封面和视频需要与歌曲一起添加。',
+    '这些文件中暂时没有受支持的卡拉OK 音频或歌词文件。封面和视频需要与歌曲一起添加。',
   'karaoke.error.read': 'FluidEQ 无法读取所选的本地文件。',
   'karaoke.error.playback': '此 Chromium 版本无法播放该音频文件或编解码器。',
   'karaoke.warning.lyrics': '无法解析。',
@@ -94,7 +94,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': '下一句歌词',
   'karaoke.lyrics.follow': '跟随歌词',
   'karaoke.lyrics.textSize': '歌词文字大小',
-  'karaoke.transport.title': 'Karaoke 播放控件',
+  'karaoke.transport.title': '卡拉OK 播放控件',
   'karaoke.transport.restart': '重新开始歌曲',
   'karaoke.transport.play': '播放',
   'karaoke.transport.pause': '暂停',
@@ -172,20 +172,20 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.chords.none': '未找到稳定和弦',
   'karaoke.chords.confidence': '音频估算置信度：{percent}%',
   'karaoke.maker.open': '制作',
-  'karaoke.maker.openTitle': '创建或编辑此卡拉 OK',
-  'karaoke.maker.dialog': '卡拉 OK 制作器',
-  'karaoke.maker.eyebrow': 'FLUIDEQ 卡拉 OK 制作器',
+  'karaoke.maker.openTitle': '创建或编辑此卡拉OK',
+  'karaoke.maker.dialog': '卡拉OK 制作器',
+  'karaoke.maker.eyebrow': 'FLUIDEQ 卡拉OK 制作器',
   'karaoke.maker.close': '关闭制作器',
   'karaoke.maker.exitBusy':
     '本地模型仍在运行。请先取消或等待其完成，然后再离开编辑器。',
   'karaoke.maker.songTitle': '歌曲标题',
-  'karaoke.maker.untitled': '未命名卡拉 OK',
+  'karaoke.maker.untitled': '未命名卡拉OK',
   'karaoke.maker.undo': '撤销',
   'karaoke.maker.redo': '重做',
   'karaoke.maker.preview': '预览 · 1、2、3',
   'karaoke.maker.apply': '在播放器中使用',
   'karaoke.maker.applyHint':
-    '在播放器中使用这些编辑。原始卡拉 OK 文件不会改变；导出会创建新文件。',
+    '在播放器中使用这些编辑。原始卡拉OK 文件不会改变；导出会创建新文件。',
   'karaoke.maker.lyrics': '歌词',
   'karaoke.maker.toolsEdit': '编辑工具',
   'karaoke.maker.toolsAnalysis': '分析工具',
@@ -197,9 +197,9 @@ const karaoke: Partial<Dictionary> = {
     '移动“{word}”及其后的全部内容，之前的时间保持锁定。',
   'karaoke.maker.earlier': '将全部歌词提前',
   'karaoke.maker.later': '将全部歌词延后',
-  'karaoke.maker.openProject': '导入卡拉 OK',
+  'karaoke.maker.openProject': '导入卡拉OK',
   'karaoke.maker.projectLoaded': '项目已加载，当前音频保持关联。',
-  'karaoke.maker.karaokeImported': '卡拉 OK 时间已导入，当前音频保持关联。',
+  'karaoke.maker.karaokeImported': '卡拉OK 时间已导入，当前音频保持关联。',
   'karaoke.maker.tapWords': '敲击对词',
   'karaoke.maker.recordLines': '录制歌词行起点',
   'karaoke.maker.syncLinesFromHere': '从这里同步歌词行',
@@ -245,7 +245,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lineTimingComplete':
     '歌词行计时已完成，可以检查并在播放器中使用。',
   'karaoke.maker.recordLinesHint':
-    'ENTER 标记开始/结束 · ↑/↓ 选择歌词行 · ←/→ 仅移动音频 2 秒 · 空格播放或暂停 · Backspace 撤销',
+    'ENTER 标记开始/结束 · ↑/↓ 选择歌词行 · ←/→ 仅移动音频 2 秒 · 空格键播放或暂停 · Backspace 撤销',
   'karaoke.maker.panView': '手形工具 · 平移时间线',
   'karaoke.maker.panHint':
     '手形工具：在画布任意位置拖动以浏览歌曲，不会编辑内容。',
@@ -281,9 +281,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.split': '拆分',
   'karaoke.maker.delete': '删除',
   'karaoke.maker.analyze': '分析旋律',
-  'karaoke.maker.prepare': '准备卡拉 OK',
-  'karaoke.maker.advanced': '高级',
-  'karaoke.maker.prepared': '此卡拉 OK 已包含同步的旋律音符。',
+  'karaoke.maker.prepare': '准备卡拉OK',
+  'karaoke.maker.advanced': '修复工具',
+  'karaoke.maker.prepared': '此卡拉OK 已包含定时歌词和旋律。',
   'karaoke.maker.repairLyrics': '重新检测歌词时间',
   'karaoke.maker.repairMelody': '重新检测旋律音符',
   'karaoke.maker.rebuildKaraoke': '重建歌词和旋律',
@@ -334,7 +334,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': '增强 LRC',
   'karaoke.maker.exportInstrumental': '伴奏音轨（无人声）',
-  'karaoke.maker.tapHint': '按空格或回车标记“{word}” · 退格键撤销',
+  'karaoke.maker.tapHint': '按空格键或 Enter 标记“{word}” · Backspace 撤销',
   'karaoke.maker.editHint':
     '拖动音符可更改音高/时间，拖动边缘可调整长度，Ctrl + 滚轮缩放。',
   'karaoke.maker.stats': '{notes} 个音符 · {words} 个词 · {checks} 项检查',
@@ -356,7 +356,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.noteFree': '自由',
   'karaoke.maker.untimed': '未定时',
   'karaoke.maker.applyUntimed':
-    '仍有 {count} 个歌词词语没有经过验证的人声时间。请先检测或放置它们，再在播放器中使用此卡拉 OK。',
+    '仍有 {count} 个歌词词语没有经过验证的人声时间。请先检测或放置它们，再在播放器中使用此卡拉OK。',
   'karaoke.maker.selectHint': '请选择歌词或旋律音符进行检查。',
   'karaoke.maker.rights': '我有权使用并导出此音频和歌词。',
   'karaoke.maker.cancel': '取消',
@@ -371,7 +371,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wordTiming': '词语时间',
   'karaoke.maker.lyricsWordCount': '参考中有 {count} 个词',
   'karaoke.maker.lyricsTimedCount': '已定时 {timed}/{total}',
-  'karaoke.maker.lyricsApplyBeforeTiming': '编辑词语时间前请先检测新歌词',
+  'karaoke.maker.lyricsApplyBeforeTiming': '编辑词语时间前请先接受新歌词',
   'karaoke.maker.lyricsNoTimedWords': '尚无已定时词语',
   'karaoke.maker.lyricsTimingEditorHint':
     '检测后，选择任意词语以修正文字、开始时间或长度。',
@@ -420,7 +420,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.replaceLyrics': '替换歌词',
   'karaoke.maker.lyricsAutoAligned': '新歌词已应用并与可用旋律自动对齐。',
   'karaoke.maker.lyricsNeedPreparation':
-    '已应用新歌词。请选择“准备卡拉 OK”以检测其时间。',
+    '已应用新歌词。请打开“修复工具”，选择“重新检测歌词时间”来为其定时。',
   'karaoke.maker.transcriptionEyebrow': '可选本地转写',
   'karaoke.maker.transcriptionTitle': '下载本地语音模型？',
   'karaoke.maker.transcriptionBody':
@@ -478,7 +478,7 @@ const karaoke: Partial<Dictionary> = {
     '已导出 {file}，但其中缺少 {lines} 行歌词：LRC 需要该行或行内某个词带有时间，而这些行两者都没有。请在制作器中为它们设定时间，然后重新导出以获得完整文件。',
   'karaoke.maker.exportedPartialUltraStar':
     '已导出 {file}，但其中缺少 {words} 个歌词词语：UltraStar 只会收录旋律上有音符的词语，而这些词语没有音符。请检测或绘制它们的音符，然后重新导出以获得完整文件。',
-  'karaoke.maker.exportFallback': '卡拉 OK 文件',
+  'karaoke.maker.exportFallback': '卡拉OK 文件',
   'karaoke.maker.projectTooLarge': '项目超过 16 MB。',
   'karaoke.maker.previewResize': '调整实时预览大小',
   'karaoke.maker.seekBack': '后退 {seconds} 秒',
@@ -492,10 +492,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.errorAnalysis': 'FluidEQ 无法在本地分析此音频。',
   'karaoke.maker.errorExportNeedsNotes':
     '导出 UltraStar 至少需要一个旋律音符。',
-  'karaoke.maker.errorExport': 'FluidEQ 无法导出此卡拉 OK。',
+  'karaoke.maker.errorExport': 'FluidEQ 无法导出此卡拉OK。',
   'karaoke.maker.errorProjectVersion': '此项目由不受支持的 FluidEQ 版本创建。',
-  'karaoke.maker.errorImport': 'FluidEQ 无法导入此卡拉 OK 或项目文件。',
-  'karaoke.maker.errorParse': '无法解析所选歌词或卡拉 OK 文件。',
+  'karaoke.maker.errorImport': 'FluidEQ 无法导入此卡拉OK 或项目文件。',
+  'karaoke.maker.errorParse': '无法解析所选歌词或卡拉OK 文件。',
   'karaoke.maker.downloadFailed': 'Whisper 模型下载失败',
   'karaoke.maker.pitchDownloadFailed': '音高模型下载失败',
   'karaoke.maker.pitchDownloadError':
@@ -507,7 +507,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.dismiss': '关闭错误',
   'karaoke.maker.analysisSource': '仅将“{file}”用作本地分析源。',
   'karaoke.maker.rightsRequired':
-    '发布导出文件前，请确认您拥有音频和歌词的权利。',
+    '发布导出文件前，请确认你拥有音频和歌词的权利。',
   'karaoke.maker.draftRestored': '草稿已恢复',
   'karaoke.maker.playerTimingLoaded':
     '正在使用播放器的当前时间。撤销可恢复已保存的草稿。',

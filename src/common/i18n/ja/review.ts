@@ -88,7 +88,7 @@ const review = {
   'review.notice.keepsLive':
     'すでに持っている人はバージョン {version} のままです。',
   'review.notice.gotIt': 'OK',
-  'review.notice.openStudio': 'Studio を開く',
+  'review.notice.openStudio': 'スタジオを開く',
   'review.notice.openMine': 'あなたのシーン',
 } as const;
 

@@ -422,7 +422,7 @@ const studio = {
 
   'studio.performance.title': 'Rendimiento',
   'studio.performance.hint':
-    'Una sola elección para el gráfico, este escenario y el escritorio: las mismas filas que el menú del gráfico.',
+    'Una sola elección para la gráfica, este escenario y el escritorio: las mismas filas que el menú de la gráfica.',
   'studio.cost.full': 'Funciona con fluidez',
   'studio.cost.reading': '{ms} ms · {fps} fps · {size} %',
   'studio.cost.readingRate': '{fps} fps · {size} %',

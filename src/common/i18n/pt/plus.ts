@@ -221,7 +221,7 @@ const plus = {
     'Só você vê isto: as cenas aguardando a sua aprovação, as cenas que os membros denunciam, todas as contas e o Plus que você dá de presente',
   'plus.accounts.listHint':
     'As mais novas primeiro. Clique em uma conta para ver o que ela tem e apagá-la de vez quando o dono pedir.',
-  'plus.accounts.search': 'Buscar por e-mail, usuário ou nome',
+  'plus.accounts.search': 'Buscar por e-mail, nome de usuário ou nome',
   'plus.accounts.refresh': 'Atualizar',
   'plus.accounts.filter': 'Mostrar contas',
   'plus.accounts.filter.all': 'Todas as contas',
@@ -264,14 +264,14 @@ const plus = {
   'plus.accounts.note.admin':
     'Esta é uma conta de admin, e contas de admin não são apagadas por aqui.',
   'plus.accounts.note.gone':
-    'Esta conta já foi apagada, mas a exclusão não terminou: arquivos publicados ainda podem estar guardados. Terminar exclusão remove esses arquivos.',
+    'Esta conta já foi apagada, mas a exclusão não terminou: arquivos publicados ainda podem estar armazenados. Terminar exclusão remove esses arquivos.',
   'plus.accounts.note.deleting':
     'Uma exclusão anterior desta conta parou no meio. Terminar exclusão conclui o processo.',
   'plus.accounts.note.gift':
     'O Plus de presente para este endereço continua, como dizem os termos. Retire em Plus de presente se isso também foi pedido.',
   'plus.accounts.give': 'Dar Plus',
-  'plus.accounts.giveConfirm': 'Dar Plus a {name}? Dura até o tirares.',
-  'plus.accounts.giving': 'A dar Plus a {name}…',
+  'plus.accounts.giveConfirm': 'Dar Plus a {name}? Dura até você retirá-lo.',
+  'plus.accounts.giving': 'Dando Plus a {name}…',
   'plus.accounts.giveYes': 'Dar Plus',
   'plus.accounts.giveNo': 'Agora não',
   'plus.accounts.delete': 'Apagar conta',
@@ -309,18 +309,19 @@ const plus = {
 
   'plus.welcome.title': 'Entre e veja o que os membros criam',
   'plus.welcome.body':
-    'Com uma conta você pode explorar a galeria e assistir a demonstrações breves. É necessário Plus para baixar e guardar cenas, reproduzi-las por completo, adicioná-las aos seus estilos, criar as suas no Estúdio e levar o que você faz para qualquer lugar.',
+    'Com uma conta você pode explorar a galeria e assistir a demonstrações breves. É necessário Plus para baixar e salvar cenas, reproduzi-las por completo, adicioná-las aos seus visuais, criar as suas no Estúdio e levar o que você faz para qualquer lugar.',
   'plus.welcome.browse': 'Explore todas as cenas que os membros publicam',
   'plus.welcome.play':
     'Toque-as com a sua música e adicione-as aos seus visuais',
   'plus.welcome.studio':
-    'Leve o que você faz no Estúdio para os seus estilos, a área de trabalho e a galeria',
+    'Leve o que você faz no Estúdio para os seus visuais, a área de trabalho e a galeria',
   'plus.welcome.board': 'Suba na classificação com as curtidas das suas cenas',
   'plus.welcome.account.label': 'Conta',
-  'plus.welcome.account.access': 'Explora a galeria e vê demonstrações breves.',
+  'plus.welcome.account.access':
+    'Explore a galeria e veja demonstrações breves.',
   'plus.welcome.paid.label': 'Plus pago',
   'plus.welcome.paid.access':
-    'Descarrega e guarda cenas, reproduz as cenas completas e cria as tuas.',
+    'Baixe e salve cenas, reproduza as cenas completas e crie as suas.',
   'plus.welcome.fine': 'Criar uma conta',
   'plus.welcome.scene.neonHorizon': 'Horizonte de néon',
   'plus.welcome.scene.nebulaHeart': 'Coração de nebulosa',

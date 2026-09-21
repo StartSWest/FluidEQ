@@ -24,11 +24,11 @@ const library: Partial<Dictionary> = {
 
   'library.empty.title': 'Noch keine Musik',
   'library.empty.body':
-    'Füge einen Ordner hinzu, und FluidEQ liest die Songs und Videos darin ein.',
+    'Fügen Sie einen Ordner hinzu, und FluidEQ liest die Songs und Videos darin ein.',
   'library.empty.add': 'Ordner hinzufügen',
   'library.empty.drop': 'oder hier einen Ordner ablegen',
   'library.karaokeSkipped':
-    '{count} Karaoke-Songs übersprungen — öffne sie im Karaoke-Tab',
+    '{count} Karaoke-Songs übersprungen — öffnen Sie sie im Karaoke-Tab',
 
   'library.add': 'Ordner hinzufügen',
   'library.rescan': 'Erneut einlesen',
@@ -107,7 +107,7 @@ const library: Partial<Dictionary> = {
 
   'library.upNext': 'Als Nächstes',
   'library.upNext.empty': 'Noch nichts in der Warteschlange',
-  'library.upNext.added': 'Deine Auswahl',
+  'library.upNext.added': 'Ihre Auswahl',
   'library.upNext.rest': 'Danach',
   'library.upNext.continued': 'Mehr in dieser Richtung',
   'library.upNext.keepPlaying': 'Weiterspielen',
@@ -136,7 +136,7 @@ const library: Partial<Dictionary> = {
   'library.queue.remove': 'Aus der Warteschlange entfernen',
   'library.nowPlaying': 'Wird gerade wiedergegeben',
   'library.nothingPlaying': 'Nichts läuft',
-  'library.nothingPlayingHint': 'Wähle etwas zum Abspielen',
+  'library.nothingPlayingHint': 'Wählen Sie etwas zum Abspielen',
   'library.systemAudio': 'Systemaudio',
   'library.remoteAudio': 'Remote-Wiedergabe · {name}',
 
@@ -145,7 +145,7 @@ const library: Partial<Dictionary> = {
   'library.playlist.favorites': 'Favoriten',
   'library.playlist.addToFavorites': 'Zu Favoriten hinzufügen',
   'library.playlist.removeFromFavorites': 'Aus Favoriten entfernen',
-  'library.playlist.favorite': 'In deinen Favoriten',
+  'library.playlist.favorite': 'In Ihren Favoriten',
   'library.playlist.addTo': 'Zu Playlist hinzufügen',
   'library.playlist.alreadyIn': 'Schon in dieser Playlist',
   'library.playlist.removeFrom': 'Aus dieser Playlist entfernen',
@@ -156,7 +156,7 @@ const library: Partial<Dictionary> = {
   'library.playlist.keep': 'Behalten',
   'library.playlist.delete': 'Playlist löschen',
   'library.playlist.deleteConfirm':
-    '„{name}“ löschen? Die Titel bleiben in deiner Bibliothek.',
+    '„{name}“ löschen? Die Titel bleiben in Ihrer Bibliothek.',
   'library.playlist.builtIn':
     'Favoriten ist immer da und lässt sich nicht entfernen',
   'library.playlist.songCount': '{count} Titel',
@@ -165,9 +165,9 @@ const library: Partial<Dictionary> = {
   'library.playlist.emptyHint':
     'Rechtsklick auf einen Titel und „Zu Playlist hinzufügen“ wählen.',
   'library.playlist.missing':
-    '{count} Titel dieser Playlist sind derzeit nicht in deiner Bibliothek',
+    '{count} Titel dieser Playlist sind derzeit nicht in Ihrer Bibliothek',
   'library.playlist.reset':
-    'Deine Playlists konnten nicht gelesen werden und wurden zurückgesetzt.',
+    'Ihre Playlists konnten nicht gelesen werden und wurden zurückgesetzt.',
   'library.karaoke.send': 'An Karaoke senden',
   'library.karaoke.sending': 'Wird an Karaoke gesendet…',
   'library.karaoke.failed':

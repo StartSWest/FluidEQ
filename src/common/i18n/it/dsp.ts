@@ -90,9 +90,9 @@ const dsp = {
     'Nessun preferito. Aggiungi una stella a un preset DSP.',
   'dsp.favorites.open': 'Apri DSP',
   'dsp.gameMode.update':
-    'Aggiorna il Motore FluidEQ per usare la modalità Gioco. Il preset continua ad applicare le sue impostazioni audio.',
+    'Aggiorna il Motore FluidEQ per usare la modalità gioco. Il preset continua ad applicare le sue impostazioni audio.',
   'dsp.gameMode.hint':
-    'La modalità gioco elimina i buffer evitabili e usa EQ a fase minima. Gli effetti attivi possono ancora aggiungere ritardo. I preset di gioco la attivano; puoi disattivarla senza cambiare preset.',
+    'La modalità gioco elimina i buffer evitabili e usa EQ a fase minima. Gli effetti attivi possono ancora aggiungere ritardo. I preset Gaming la attivano; puoi disattivarla senza cambiare preset.',
   'dsp.latency.buffer': 'Buffer con effetto escluso',
   'dsp.normalizer.liveTitle': 'Controllo del livello dal vivo',
   'dsp.normalizer.livePeak': 'Protezione dei picchi',
@@ -109,7 +109,7 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'Misura l’audio esterno durante la riproduzione, regola insieme i due canali e protegge i picchi prima di Exciter ed EQ.',
   'dsp.normalizer.liveAnalysis': 'Analisi della sorgente dal vivo',
-  'dsp.normalizer.shortTerm': 'Loudness a breve termine',
+  'dsp.normalizer.shortTerm': 'Sonorità a breve termine',
   'dsp.normalizer.liveHonesty':
     'Il loudness si stabilizza dopo tre secondi. Un passaggio forte fissa il livello per il resto del brano; la protezione dei picchi resta attiva. Non ripara distorsioni già presenti.',
   'dsp.title': 'DSP',
@@ -142,7 +142,7 @@ const dsp = {
     "L'elaborazione audio non è riuscita ad avviarsi. La riproduzione non è interessata.",
   'dsp.engineDown':
     'Il motore audio nativo non è riuscito ad avviarsi, quindi ogni stadio DSP è spento. Niente qui sotto sta elaborando la tua musica e i controlli sono disattivati; la riproduzione in sé non è interessata. Di solito basta riavviare FluidEQ.',
-  'dsp.presets': 'Preimpostazioni',
+  'dsp.presets': 'Preset',
   'dsp.preset.lossyRepair': 'Ripara compresso',
   'dsp.preset.loud': 'Forte',
   'dsp.preset.broadcast': 'Radiofonico',
@@ -168,7 +168,7 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Sonorità integrata',
   'dsp.normalizer.appliedGain': 'Guadagno applicato',
   'dsp.normalizer.limitedByCeiling':
-    '{requested} necessari — limitato dal tetto di picco',
+    '{requested} necessari — limite di picco raggiunto',
   'dsp.normalizer.limitedByMaxGain':
     '{requested} necessari — guadagno massimo raggiunto',
   'dsp.normalizer.limitedByMinGain':
@@ -243,7 +243,7 @@ const dsp = {
   'dsp.denoise.analysis': 'Analisi della sorgente',
   'dsp.denoise.rescan': 'Rianalizza',
   'dsp.denoise.analyzing': 'Misurazione del rumore di fondo · {progress}%',
-  'dsp.denoise.waiting': 'Riproduci un brano della libreria per misurarlo.',
+  'dsp.denoise.waiting': 'Riproduci un brano dalla Libreria per misurarlo.',
   'dsp.denoise.measuredFloor': 'Rumore di fondo',
   'dsp.denoise.measuredHum': 'Ronzio trovato',
   'dsp.denoise.measuredClicks': 'Click',
@@ -281,7 +281,7 @@ const dsp = {
     'Si applica ad Avanti manuale e alle fini naturali. La ricerca resta immediata.',
 
   'dsp.eqPreset.custom': 'Personalizzato',
-  'dsp.eqPreset.label': 'Preimpostazione',
+  'dsp.eqPreset.label': 'Preset',
   'dsp.eqPreset.saved': 'I tuoi',
   'dsp.eqPresetGroup.basic': 'Base',
   'dsp.eqPresetGroup.genre': 'Generi',
@@ -487,7 +487,7 @@ const dsp = {
   'dsp.bassForge.isolateHint':
     'Ascolta solo i bassi che questo stadio aggiunge.',
   'dsp.bassForge.isolateOn':
-    'Segnale originale rimosso: si sente solo ciò che Forge aggiunge.',
+    'Segnale originale rimosso: si sente solo ciò che la Fucina dei bassi aggiunge.',
   'dsp.bassForge.description':
     "Aggiunge un'ottava reale sotto il basso per gli altoparlanti in grado di riprodurla, e le armoniche di quell'ottava per quelli che non possono — un altoparlante piccolo non irradia nulla a 45 Hz, ma le armoniche permettono comunque all'orecchio di ricostruire l'intonazione. Quanto sono forti i bassi non cambia.",
   'dsp.bassForge.splitHz': 'Taglio',
@@ -615,7 +615,7 @@ const dsp = {
   'dsp.master.release': 'Rilascio',
   'dsp.master.loudnessMaximize': 'Massimizza LUFS',
   'dsp.master.loudnessMaximizeHint':
-    'Applica {gain} dB dalla misura del brano completo e mantiene il picco reale finale sotto il limite. Il guadagno è costante; vengono controllati solo i picchi.',
+    'Applica {gain} dB dalla misura del brano completo e mantiene il picco reale finale sotto il tetto. Il guadagno è costante; vengono controllati solo i picchi.',
   'dsp.master.loudnessTarget': 'Obiettivo di sonorità',
   'dsp.master.meter': 'Uscita finale',
   'dsp.master.safetyHint':
@@ -672,7 +672,7 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Suona stereo: solo FL e FR portano suono. Gli altri aspettano un flusso 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suona 5.1: la coppia posteriore non porta nulla.',
-  'dsp.room.presets': 'Stanza predefinita',
+  'dsp.room.presets': 'Preset della stanza',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Salotto',
   'dsp.room.preset.cinema': 'Cinema',
@@ -805,7 +805,7 @@ const dsp = {
   'dsp.room.tune.decay': 'Lunghezza della coda',
   'dsp.room.tune.damping': 'Tono della coda',
   'dsp.room.tune.characterHint':
-    'Dimensione e Pareti modellano le prime riflessioni. Lunghezza e Tono modellano l’Ambiente che le segue.',
+    'Dimensione e Pareti modellano le prime riflessioni. Lunghezza della coda e Tono della coda modellano l’Ambiente che le segue.',
   'dsp.room.tune.preserve': 'Mantieni le posizioni',
   'dsp.room.tune.preserveHint':
     'L’allargamento di Dimensione riposa mentre la Stanza è accesa, perché sposterebbe ciò che la Stanza ha appena posizionato. Le sue impostazioni restano.',
@@ -870,7 +870,7 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
-  'dsp.master.graph.matchedActive': 'Guadagno pareggiato · {gain} dB tolti',
+  'dsp.master.graph.matchedActive': 'Pareggia guadagno · {gain} dB tolti',
   'dsp.masterPreset.label': 'Destinazione',
   'dsp.masterPreset.streaming': 'Streaming',
   'dsp.masterPreset.streamingQuiet': 'Streaming, basso',

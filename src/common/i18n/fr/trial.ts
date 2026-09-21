@@ -6,7 +6,6 @@ const trial = {
   'trial.extras.scenes': 'Visualiseurs Plus et scènes de la communauté',
   'trial.extras.studio': 'Exporter et publier des scènes dans Studio',
   'trial.extras.desktop': 'Scènes de bureau et éclairage RGB',
-  'trial.extras.room': 'Personnalisation avancée de Salle et fonction Ajuster',
   'trial.extras.board': 'Participation facultative au classement',
   'trial.browse':
     'Un compte gratuit vous permet de parcourir la galerie et de participer au Forum.',

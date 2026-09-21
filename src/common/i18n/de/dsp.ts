@@ -85,14 +85,14 @@ const dsp = {
   'dsp.preset.speech': 'Sprache',
   'dsp.quick.classics': 'Klassische Presets',
   'dsp.favorites.intro':
-    'Markiere DSP-Presets mit einem Stern, um deine Lieblingsklänge hier zu finden.',
+    'Markieren Sie DSP-Presets mit einem Stern, um Ihre Lieblingsklänge hier zu finden.',
   'dsp.favorites.empty':
-    'Noch keine Favoriten. Markiere ein DSP-Preset mit einem Stern.',
+    'Noch keine Favoriten. Markieren Sie ein DSP-Preset mit einem Stern.',
   'dsp.favorites.open': 'DSP öffnen',
   'dsp.gameMode.update':
-    'Aktualisiere die FluidEQ-Engine, um den Spielmodus zu nutzen. Dein Preset wendet seine Klangeinstellungen weiterhin an.',
+    'Aktualisieren Sie die FluidEQ-Engine, um den Spielmodus zu nutzen. Ihr Preset wendet seine Klangeinstellungen weiterhin an.',
   'dsp.gameMode.hint':
-    'Der Spielmodus entfernt vermeidbare Puffer und nutzt minimalphasigen EQ. Aktive Effekte können weiterhin Verzögerung hinzufügen. Spiele-Presets aktivieren ihn; du kannst ihn ohne Preset-Wechsel ausschalten.',
+    'Der Spielmodus entfernt vermeidbare Puffer und nutzt minimalphasigen EQ. Aktive Effekte können weiterhin Verzögerung hinzufügen. Gaming-Presets aktivieren ihn; Sie können ihn ohne Preset-Wechsel ausschalten.',
   'dsp.latency.buffer': 'Puffer bei umgangenem Effekt',
   'dsp.normalizer.liveTitle': 'Live-Pegelregelung',
   'dsp.normalizer.livePeak': 'Spitzenschutz',
@@ -105,7 +105,7 @@ const dsp = {
   'dsp.denoise.liveHint':
     'Externes Audio nutzt einen laufend ermittelten adaptiven Rauschpegel. Rausch-, Klick- und 50/60-Hz-Brummreduzierung bearbeiten die laufende Quelle. Die Brummautomatik wartet auf anhaltende Netzoberwellen.',
   'dsp.denoise.voiceLibraryOnly':
-    'Die neuronale Sprachverarbeitung ist nur bei der Bibliothekswiedergabe verfügbar. Rausch-, Brumm- und Klickreduzierung funktionieren mit externem Audio.',
+    'Der neuronale Stimmreiniger ist nur bei der Bibliothekswiedergabe verfügbar. Rausch-, Brumm- und Klickreduzierung funktionieren mit externem Audio.',
   'dsp.normalizer.liveDescription':
     'Misst externes Audio während der Wiedergabe, regelt beide Kanäle gemeinsam und schützt Spitzen vor Exciter und EQ.',
   'dsp.normalizer.liveAnalysis': 'Live-Analyse der Quelle',
@@ -116,7 +116,7 @@ const dsp = {
   'dsp.scopeNotice':
     'DSP verarbeitet nur Audiotitel aus der Bibliothek. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
   'dsp.idle':
-    'Spiele einen Audiotitel aus der Bibliothek ab, um DSP zu nutzen. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
+    'Spielen Sie einen Audiotitel aus der Bibliothek ab, um DSP zu nutzen. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
   'dsp.scope.system': 'Systemweit · {output}',
   'dsp.scope.systemAll': 'Systemweit',
   'dsp.scope.systemDelay': '{ms} ms Verzögerung',
@@ -124,7 +124,7 @@ const dsp = {
   'dsp.latency.gameMode': 'Spielmodus',
   'dsp.latency.ms': '{ms} ms',
   'dsp.latency.hint':
-    'Vom Engine-Processing hinzugefügte Verzögerung. Windows, Gerät und Netzwerk sind nicht enthalten.',
+    'Von der Engine hinzugefügte Verarbeitungsverzögerung. Windows, Gerät und Netzwerk sind nicht enthalten.',
   'dsp.latency.title': 'Aktive Effekte und Verarbeitungspuffer',
   'dsp.latency.total': 'Gesamt',
   'dsp.latency.note':
@@ -141,8 +141,8 @@ const dsp = {
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.engineDown':
-    'Die native Audio-Engine konnte nicht starten, daher sind alle DSP-Stufen aus. Nichts unten verarbeitet deine Musik und die Regler sind deaktiviert – die Wiedergabe selbst ist nicht betroffen. Ein Neustart von FluidEQ hilft meist.',
-  'dsp.presets': 'Voreinstellungen',
+    'Die native Audio-Engine konnte nicht starten, daher sind alle DSP-Stufen aus. Nichts unten verarbeitet Ihre Musik und die Regler sind deaktiviert – die Wiedergabe selbst ist nicht betroffen. Ein Neustart von FluidEQ hilft meist.',
+  'dsp.presets': 'Presets',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
   'dsp.preset.broadcast': 'Rundfunk',
@@ -169,7 +169,7 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Integrierte Lautheit',
   'dsp.normalizer.appliedGain': 'Angewandte Verstärkung',
   'dsp.normalizer.limitedByCeiling':
-    '{requested} nötig — durch Peak-Limit begrenzt',
+    '{requested} nötig — durch die Peak-Grenze begrenzt',
   'dsp.normalizer.limitedByMaxGain':
     '{requested} nötig — maximale Anhebung erreicht',
   'dsp.normalizer.limitedByMinGain':
@@ -188,7 +188,7 @@ const dsp = {
   'dsp.denoisePreset.gentle': 'Sanfte Bereinigung',
   'dsp.denoisePreset.strong': 'Starke Bereinigung',
   'dsp.denoise.description':
-    'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Sprachreiniger. Am Titel selbst gemessen, nicht geraten.',
+    'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Stimmreiniger. Am Titel selbst gemessen, nicht geraten.',
   'dsp.denoise.libraryOnly': 'Nur bei Wiedergabe aus der Bibliothek',
   'dsp.denoise.isolate': 'Isolieren',
   'dsp.denoise.isolateHint': 'Nur hören, was diese Stufe entfernt.',
@@ -210,7 +210,7 @@ const dsp = {
     'Für diesen Titel ist keine Messung gespeichert. Gemessen bleibt transparent, bis neu gemessen wird.',
   'dsp.denoise.hiss': 'Rauschen',
   'dsp.denoise.hissHint':
-    'Breitbandige Absenkung gegen den gemessenen Teppich. Fügt eingeschaltet 21 ms Latenz hinzu.',
+    'Breitbandige Absenkung gegen den gemessenen Rauschteppich. Fügt eingeschaltet 21 ms Latenz hinzu.',
   'dsp.denoise.amount': 'Stärke',
   'dsp.denoise.reductionLimit': 'Reduktionsgrenze',
   'dsp.denoise.reductionLimitHint':
@@ -245,7 +245,7 @@ const dsp = {
   'dsp.denoise.rescan': 'Neu messen',
   'dsp.denoise.analyzing': 'Rauschteppich wird gemessen · {progress}%',
   'dsp.denoise.waiting':
-    'Spiele einen Titel aus der Bibliothek ab, um ihn zu messen.',
+    'Spielen Sie einen Titel aus der Bibliothek ab, um ihn zu messen.',
   'dsp.denoise.measuredFloor': 'Rauschteppich',
   'dsp.denoise.measuredHum': 'Brummen gefunden',
   'dsp.denoise.measuredClicks': 'Knackser',
@@ -284,7 +284,7 @@ const dsp = {
     'Gilt für manuelles Weiter und natürliche Titelenden. Suchen bleibt sofort.',
 
   'dsp.eqPreset.custom': 'Eigen',
-  'dsp.eqPreset.label': 'Voreinstellung',
+  'dsp.eqPreset.label': 'Preset',
   'dsp.eqPreset.saved': 'Eigene',
   'dsp.eqPresetGroup.basic': 'Basis',
   'dsp.eqPresetGroup.genre': 'Genre',
@@ -354,7 +354,7 @@ const dsp = {
     'Speichert die vollständige Filterkette als Datei zum Weitergeben.',
   'dsp.chainImport.title': 'DSP-Kette importieren',
   'dsp.chainImport.hint':
-    'Füge ein FluidEQ-DSP-Kettenpreset ein oder wähle seine JSON-Datei.',
+    'Fügen Sie ein FluidEQ-DSP-Kettenpreset ein oder wählen Sie seine JSON-Datei.',
   'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'Dies ist kein FluidEQ-DSP-Kettenpreset.',
   'dsp.eqSave.title': 'Preset speichern',
@@ -404,7 +404,7 @@ const dsp = {
   'dsp.eqOversample.on': '2x',
   'dsp.eqImport.title': 'EQ-Kurve importieren',
   'dsp.eqImport.hint':
-    'Füge eine Kurve aus Squiglink, AutoEq oder Equalizer APO ein – oder wähle die Datei, in der sie steht.',
+    'Fügen Sie eine Kurve aus Squiglink, AutoEq oder Equalizer APO ein – oder wählen Sie die Datei, in der sie steht.',
   'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Datei wählen',
   'dsp.eqImport.apply': 'Importieren',
@@ -494,7 +494,7 @@ const dsp = {
   'dsp.bassForge.isolateHint':
     'Nur die Bässe hören, die diese Stufe hinzufügt.',
   'dsp.bassForge.isolateOn':
-    'Programm entfernt — zu hören ist nur, was Forge hinzufügt.',
+    'Programm entfernt — zu hören ist nur, was die Bass-Schmiede hinzufügt.',
   'dsp.bassForge.description':
     'Fügt eine echte Oktave unter dem Bass hinzu, für Lautsprecher, die sie wiedergeben können, und die Obertöne dieser Oktave für Lautsprecher, die es nicht können — ein kleiner Lautsprecher strahlt bei 45 Hz nichts ab, aber die Obertöne lassen das Ohr die Tonhöhe trotzdem rekonstruieren. Wie laut der Bass ist, ändert sich nicht.',
   'dsp.bassForge.splitHz': 'Trennung',
@@ -534,7 +534,7 @@ const dsp = {
   'dsp.bassPunch.mixHint':
     '0 % erhält den Originalklang; 100 % ist der normale Effekt; 200 % verdoppelt zusätzlichen Punch und Blüte und verstärkt Bassabsenkungen. Isolieren folgt dem Mix.',
   'dsp.bassPunch.meterNote':
-    'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und Ducking dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
+    'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und „Nachklang senken“ dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
   'dsp.bassPunch.graph.now': 'jetzt',
   'dsp.bassPunch.graph.perWindow': 'Spitze pro Fenster',
   'dsp.bassPunch.graph.sampled': 'abgetastet',
@@ -597,7 +597,7 @@ const dsp = {
   'dsp.maximizer.release': 'Release',
   'dsp.maximizer.group.loudness': 'Lautheit',
   'dsp.maximizer.group.loudnessHint':
-    'Verstärkung gegen eine Decke, die sich nie bewegt. Alles unter den Spitzen kommt hoch.',
+    'Verstärkung gegen eine Obergrenze, die sich nie bewegt. Alles unter den Spitzen kommt hoch.',
   'dsp.maximizer.group.timing': 'Timing',
   'dsp.maximizer.group.timingHint':
     'Wie früh der Limiter eine Spitze sieht und wie lange er zum Loslassen braucht.',
@@ -616,12 +616,12 @@ const dsp = {
   'dsp.master.outputTrim': 'Ausgangsverstärkung',
   'dsp.master.autoHeadroom': 'Auto-Headroom',
   'dsp.master.autoHeadroomHint':
-    'Reduziert nur Spitzen nahe der gewählten stereo-gekoppelten True-Peak-Grenze weich.',
+    'Reduziert nur Spitzen nahe der gewählten stereo-gekoppelten True-Peak-Obergrenze weich.',
   'dsp.master.ceiling': 'Obergrenze',
   'dsp.master.release': 'Release',
   'dsp.master.loudnessMaximize': 'LUFS maximieren',
   'dsp.master.loudnessMaximizeHint':
-    'Wendet anhand der Messung des ganzen Titels {gain} dB an und hält den finalen True Peak unter der Grenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
+    'Wendet anhand der Messung des ganzen Titels {gain} dB an und hält den finalen True Peak unter der Obergrenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
   'dsp.master.loudnessTarget': 'Lautheitsziel',
   'dsp.master.meter': 'Endausgang',
   'dsp.master.safetyHint':
@@ -645,10 +645,10 @@ const dsp = {
   'dsp.master.graph.integratedLine': 'Integriert {value} LUFS',
   'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
-    'Warnung · Ausgang {peak} dBTP über der Grenze',
+    'Warnung · Ausgang {peak} dBTP über der Obergrenze',
   'dsp.master.graph.peakFixed':
     'Spitze kontrolliert · {gain} dB Pegelreduktion',
-  'dsp.master.graph.peakSafe': 'True Peak innerhalb der Grenze',
+  'dsp.master.graph.peakSafe': 'True Peak innerhalb der Obergrenze',
   'dsp.master.graph.dcFixed': 'DC-Offset entfernt · {amount}',
   'dsp.master.graph.dcClean': 'DC-Offset sauber',
   'dsp.master.graph.faultFixed':
@@ -668,18 +668,18 @@ const dsp = {
   'dsp.surround.offHint':
     'Nur das vordere Paar: die übrigen Kanäle eines Surround-Ausgangs laufen unverändert durch das Rack.',
   'dsp.surround.roomHint':
-    'Der Raum stellt jeden Kanal um deinen Kopf herum auf und nimmt deshalb alle, solange er an ist. Deine Wahl kommt zurück, sobald der Raum aus ist.',
+    'Der Raum stellt jeden Kanal um Ihren Kopf herum auf und nimmt deshalb alle, solange er an ist. Ihre Wahl kommt zurück, sobald der Raum aus ist.',
   'dsp.surround.allChannels': 'Alle Kanäle',
   'dsp.surround.frontPair': 'Vorderes Paar',
   'dsp.room.title': 'Raum',
   'dsp.room.graphLabel': 'Der Raum von oben',
   'dsp.room.front': 'Vorn',
   'dsp.room.dragHint':
-    'Ziehe einen Lautsprecher, und sein Partner geht mit; halte Umschalt oder Strg, um ihn allein zu bewegen. Mit der Tastatur: Auf und Ab wählen einen Lautsprecher, Links und Rechts bewegen ihn.',
+    'Ziehen Sie einen Lautsprecher, und sein Partner geht mit; halten Sie Umschalt oder Strg, um ihn allein zu bewegen. Mit der Tastatur: Auf und Ab wählen einen Lautsprecher, Links und Rechts bewegen ihn.',
   'dsp.room.fedFrontStage':
     'Es läuft Stereo: nur FL und FR führen Ton. Die anderen warten auf einen 5.1- oder 7.1-Stream.',
   'dsp.room.fedFiveOne': 'Es läuft 5.1: das hintere Paar führt nichts.',
-  'dsp.room.presets': 'Raumvorgabe',
+  'dsp.room.presets': 'Raum-Preset',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Wohnzimmer',
   'dsp.room.preset.cinema': 'Kino',
@@ -696,7 +696,7 @@ const dsp = {
   'dsp.room.saveRoom': 'Raum speichern…',
   'dsp.room.saveTitle': 'Diesen Raum speichern',
   'dsp.room.saveHint':
-    'Der ganze Raum, wie er steht, wird unter diesem Namen gespeichert, neben den schon gespeicherten: Form, Lautsprecher, ihre Pegel und Stummschaltungen, die Bass- und Stereo-Wahl, Raumanteil und Nachklang. Dein Kopf und deine Kopfhörer bleiben deine.',
+    'Der ganze Raum, wie er steht, wird unter diesem Namen gespeichert, neben den schon gespeicherten: Form, Lautsprecher, ihre Pegel und Stummschaltungen, die Bass- und Stereo-Wahl, Raumanteil und Nachklang. Ihr Kopf und Ihre Kopfhörer bleiben Ihre.',
   'dsp.room.savePlaceholder': 'Raumname',
   'dsp.room.deleteRoom': 'Raum löschen',
   'dsp.room.groupHead': 'Kopf',
@@ -726,7 +726,7 @@ const dsp = {
   'dsp.room.speaker.angle': 'Winkel',
   'dsp.room.speaker.mute': 'Stumm',
   'dsp.room.speaker.solo': 'Solo',
-  'dsp.room.speaker.pick': 'Wähle einen Lautsprecher, um ihn einzustellen',
+  'dsp.room.speaker.pick': 'Wählen Sie einen Lautsprecher, um ihn einzustellen',
   'dsp.room.speaker.soloUnfed':
     'Nichts von dem, was gerade läuft, erreicht diesen Lautsprecher – es gäbe nichts allein zu hören.',
   'dsp.room.speakerName.FL': 'Vorn links',
@@ -760,13 +760,13 @@ const dsp = {
   'dsp.room.profile.conductorV2': 'Dirigent',
   'dsp.room.profile.rearGuardV2': 'Rückendeckung',
   'dsp.room.profilePurpose.referenceV2':
-    'Ein naher, bedämpfter Raum. Die Aufnahme vor dir, nichts dazu.',
+    'Ein naher, bedämpfter Raum. Die Aufnahme vor Ihnen, nichts dazu.',
   'dsp.room.profilePurpose.musicSpaceV2':
     'Eine breitere Bühne, die Stimme vorn gehalten, danach etwas Luft.',
   'dsp.room.profilePurpose.cinemaV2':
-    'Eine breite Leinwand, eine geerdete Stimme und der Raum um dich herum.',
+    'Eine breite Leinwand, eine geerdete Stimme und der Raum um Sie herum.',
   'dsp.room.profilePurpose.gameWorldV2':
-    'Eine Welt um dich herum, in der kurze Klänge kurz bleiben.',
+    'Eine Welt um Sie herum, in der kurze Klänge kurz bleiben.',
   'dsp.room.profilePurpose.competitiveV2':
     'Richtung und sonst nichts: keine Wände, kein Nachhall.',
   'dsp.room.profilePurpose.liveVenueV2':
@@ -795,15 +795,15 @@ const dsp = {
   'dsp.room.speaker.noteDerived':
     'Aus dem Stereopaar errechnet. Dahinter steht kein eigener Kanal.',
   'dsp.room.speaker.noteUnfed':
-    'Nichts von dem, was läuft, erreicht diesen Lautsprecher. Platzieren kannst du ihn trotzdem, für später.',
+    'Nichts von dem, was läuft, erreicht diesen Lautsprecher. Platzieren können Sie ihn trotzdem, für später.',
   'dsp.room.speaker.noteSub': 'Der Subwoofer-Kanal dessen, was läuft.',
   'dsp.room.speaker.noteSubUnfed':
     'Stereo hat keinen Subwoofer-Kanal, also gibt es für diesen Pegel nichts zu regeln. Wenn der Bass zum Sub geht, spielt der Tiefton der Lautsprecher trotzdem hierüber.',
-  'dsp.room.quick.title': 'Mach ihn zu deinem',
+  'dsp.room.quick.title': 'Machen Sie ihn zu Ihrem',
   'dsp.room.quick.space': 'Raumanteil',
   'dsp.room.quick.ambience': 'Nachklang',
   'dsp.room.quick.hint':
-    'Raumanteil ist, wie viel du von den Wänden hörst. Nachklang ist der weiche Ausklang danach und braucht etwas Raumanteil, dem er folgen kann.',
+    'Raumanteil ist, wie viel Sie von den Wänden hören. Nachklang ist der weiche Ausklang danach und braucht etwas Raumanteil, dem er folgen kann.',
   'dsp.room.classic.hint':
     'Ein klassischer Raum, der genau so klingt wie immer. Raumanteil, Nachklang und weichere Lautsprecher-Platzierung gehören zum neuen Klang.',
   'dsp.room.classic.upgrade': 'Diesen Raum auf den neuen Klang umstellen',
@@ -824,31 +824,31 @@ const dsp = {
   'dsp.room.tune.stereo': 'Stereoquelle',
   'dsp.room.tune.stereoHint':
     'Nur für Stereo. Ein 5.1- oder 7.1-Signal behält seine Kanäle, wo sie sind.',
-  'dsp.room.fitView.head': 'Dein Kopf',
+  'dsp.room.fitView.head': 'Ihr Kopf',
   'dsp.room.fitView.headHint':
-    'Drei Größen eines einzigen gemessenen Kopfes: nicht drei Personen und kein Scan deiner Ohren. Wähle die Größe, die Klänge vor dich setzt statt in deinen Kopf.',
-  'dsp.room.fitView.guided': 'Deine Passform nach Gehör finden',
+    'Drei Größen eines einzigen gemessenen Kopfes: nicht drei Personen und kein Scan Ihrer Ohren. Wählen Sie die Größe, die Klänge vor Sie setzt statt in Ihren Kopf.',
+  'dsp.room.fitView.guided': 'Ihre Passform nach Gehör finden',
   'dsp.room.fitView.guidedHint':
-    'Fünf kurze Klangpaare. Wähle jedes Mal den, der mehr um dich herum klingt; der Kopf, der gewinnt, ist deiner.',
+    'Fünf kurze Klangpaare. Wählen Sie jedes Mal den, der mehr um Sie herum klingt; der Kopf, der gewinnt, ist Ihrer.',
   'dsp.room.fitView.start': 'Hörtest starten',
   'dsp.room.signal.updateRequired':
-    'Der neue Klang braucht die aktualisierte Audio-Engine. Dieser Raum wurde ihr nicht geschickt: Aktualisiere die Engine, um ihn zu hören.',
+    'Der neue Klang braucht die aktualisierte Audio-Engine. Dieser Raum wurde ihr nicht geschickt: Aktualisieren Sie die Engine, um ihn zu hören.',
   'dsp.room.featured': 'Empfohlen',
   'dsp.room.classicRooms': 'Klassische Räume',
   'dsp.room.savedNew': 'Neuer Klang',
   'dsp.room.savedClassic': 'Klassischer Klang',
   'dsp.room.saveFailed':
     'Der Raum konnte nicht gespeichert werden: Der Speicher hat ihn abgelehnt. Nichts wurde geändert.',
-  'dsp.room.restore': 'Profil wiederherstellen',
+  'dsp.room.restore': 'Preset wiederherstellen',
   'dsp.room.restoreHint':
-    'Zurück zu {name}. Dein Kopf, deine Kopfhörer und deine Quellen-Wahl bleiben.',
+    'Zurück zu {name}. Ihr Kopf, Ihre Kopfhörer und Ihre Quellen-Wahl bleiben.',
   'dsp.room.resetHint':
     'Zurück zum Raum „Referenz“, wie er ausgeliefert wird; jede Option dieser Seite wird zurückgesetzt, auch die des Hörers. Nur der Ein-Schalter bleibt.',
   'dsp.room.saveKeepsBoth':
     'Der Name ist vergeben. Dieser Raum wird als „{name}“ gespeichert, der andere bleibt.',
-  'dsp.roomFit.title': 'Den Raum an deinen Kopf anpassen',
+  'dsp.roomFit.title': 'Den Raum an Ihren Kopf anpassen',
   'dsp.roomFit.hint':
-    'Ein kurzer Klang wandert um dich herum — vorn, rechts, hinten, links — durch zwei Köpfe. Drück den, der mehr um dich herum klingt.',
+    'Ein kurzer Klang wandert um Sie herum — vorn, rechts, hinten, links — durch zwei Köpfe. Drücken Sie den, der mehr um Sie herum klingt.',
   'dsp.roomFit.pair': 'Paar {n} von {total}',
   'dsp.roomFit.playA': 'A abspielen',
   'dsp.roomFit.playB': 'B abspielen',
@@ -857,7 +857,7 @@ const dsp = {
   'dsp.roomFit.same': 'Sie klingen gleich',
   'dsp.roomFit.loading': 'Klänge werden vorbereitet…',
   'dsp.roomFit.error': 'Die Köpfe konnten nicht geladen werden.',
-  'dsp.roomFit.resultTitle': 'Dein Kopf: {head}',
+  'dsp.roomFit.resultTitle': 'Ihr Kopf: {head}',
   'dsp.roomFit.resultBody':
     'Der Raum verwendet ihn ab jetzt; unter Kopf lässt er sich jederzeit ändern.',
   'dsp.roomFit.use': 'Verwenden',
@@ -890,7 +890,7 @@ const dsp = {
   'dsp.masterPreset.reference': 'Referenz',
   'dsp.masterPresetGroup.streaming': 'Bei Auslieferung normalisiert',
   'dsp.masterPresetGroup.broadcast': 'Rundfunk und Kino',
-  'dsp.masterPresetGroup.unnormalized': 'Niemand dreht dich leiser',
+  'dsp.masterPresetGroup.unnormalized': 'Niemand dreht Sie leiser',
   'dsp.masterPresetGroup.tool': 'Zum Vergleichen',
 
   'dsp.scope.rawSender':

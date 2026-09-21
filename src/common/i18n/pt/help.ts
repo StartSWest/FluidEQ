@@ -55,14 +55,14 @@ const help: Record<keyof typeof en, string> = {
   'help.window.share':
     'Envia o som deste computador para outro, ou toca aqui o som de outro.',
   'help.window.eq':
-    'Suas bandas, presets, correção de fones, perfis de jogo e a configuração do motor.',
+    'Suas bandas, presets, correção de fones, presets de jogo e a configuração do motor.',
   'help.window.waveName': 'Sinal de áudio',
   'help.window.wave':
     'O que está tocando, enquanto toca. Pressione-o para mudar como ele é desenhado.',
   'help.window.rainbow':
     'Colore a janela e desenha as curvas e os medidores na taxa de atualização total da sua tela.',
   'help.window.dsp':
-    'O rack de efeitos: predefinições, a Sala e cada estágio da cadeia.',
+    'O rack de efeitos: presets, a Sala e cada estágio da cadeia.',
   'help.window.library':
     'Seus arquivos de música, álbuns e a fila de reprodução.',
   'help.window.karaoke':
@@ -86,7 +86,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.requirements.title': 'O que o seu PC precisa',
   'help.requirements.intro':
-    'O FluidEQ roda em qualquer PC com Windows dos últimos dez anos. Duas partes pedem mais que o resto: os visualizadores do Plus desenham na placa de vídeo, e o karaokê com IA baixa seus modelos na primeira vez que você o usa.',
+    'O FluidEQ roda em qualquer PC com Windows dos últimos dez anos. Duas partes pedem mais que o resto: os visualizadores Plus desenham na placa de vídeo, e o karaokê com IA baixa seus modelos na primeira vez que você o usa.',
   'help.requirements.steps':
     'Veja qual Windows você tem: Windows 10 versão 1803 ou posterior, ou Windows 11, de 64 bits, 4 GB de memória e cerca de 600 MB de disco. Processar tudo o que o PC toca precisa do Motor FluidEQ ou do Equalizer APO, e o Windows pede permissão uma vez durante a instalação.\nAbra um visualizador: qualquer placa de vídeo ou vídeo integrado de 2013 em diante. Em 1080p o vídeo integrado basta; para 4K, ou um plano de fundo em várias telas ao mesmo tempo, uma placa dedicada é melhor. Com a placa ocupada, o FluidEQ desenha a cena menor e solta as que você não está vendo.\nExperimente o karaokê com IA: separar a voz baixa um modelo de 713 MB na primeira vez, o da afinação acrescenta cerca de 180 MB e o de remover ruído, 11 MB. Com uma placa de vídeo com DirectX 12, uma música de quatro minutos é separada em meio minuto; só com o processador leva cerca de quatro minutos. Deixe 2 GB de memória livres enquanto ele trabalha.\nMire nisto se puder: Windows 11, 8 GB de memória, vídeo de 2018 em diante e 3 GB de disco livres se você usar os recursos com IA.',
   'help.requirements.tip':
@@ -131,7 +131,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.filter':
     'A forma dela: Sino, Shelf grave, Shelf agudo, Notch, Passa-baixa, Passa-alta ou Passa-banda.',
   'help.eq.voicing':
-    'Uma cadeia pronta para o som, como Música ou um género. Nenhum deixa só as suas bandas.',
+    'Uma cadeia pronta para o som, como Música ou um gênero. Nenhum deixa só as suas bandas.',
   'help.eq.smart':
     'Ouve o que está tocando e corrige: Detalhe, Equilíbrio ou Alvo.',
   'help.eq.clear':
@@ -155,11 +155,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modo EQ e designs de bandas',
   'help.eqmode.intro':
-    'O Modo EQ muda como suas bandas e suas curvas de correção são aplicadas, sem editá-las. Os designs de bandas guardam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
+    'O Modo EQ muda como suas bandas e suas curvas de correção são aplicadas, sem editá-las. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
     'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
-    'Um design guarda só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
+    'Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
   'help.eqmode.modeCaption': 'Modo EQ',
   'help.eqmode.strength':
     'Normal, Estúdio ×1.5 ou ×2, para seu EQ e suas curvas separadamente.',
@@ -173,11 +173,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Dá nome às frequências e ao Q atuais como um design, listado em Meus designs.',
 
-  'help.games.title': 'Perfis de jogo',
+  'help.games.title': 'Presets de jogo',
   'help.games.intro':
     'Dê a cada jogo o seu próprio som. Quando o jogo vem para a frente, o FluidEQ muda para esse som e o mantém até você fechar o jogo, mesmo que você vá para outra janela com Alt+Tab nesse meio-tempo. Depois, ele restaura o que você tinha.',
   'help.games.steps':
-    'Abra EQ → Perfis de jogo e pressione Adicionar um jogo. Escolha um jogo dos seus lançadores, um programa aberto agora, ou escolha você mesmo o programa dele.\nNo seletor da linha dele, escolha o som que ele deve receber: um preset de jogo ou qualquer outro.\nInicie o jogo. Um cartão na tela diz para qual som o FluidEQ mudou, e outro diz qual som voltou quando você o fecha.',
+    'Abra EQ → Presets de jogo e pressione Adicionar um jogo. Escolha um jogo dos seus lançadores, um programa aberto agora, ou escolha você mesmo o programa dele.\nNo seletor da linha dele, escolha o som que ele deve receber: um preset de jogo ou qualquer outro.\nInicie o jogo. Um cartão na tela diz para qual som o FluidEQ mudou, e outro diz qual som voltou quando você o fecha.',
   'help.games.tip':
     'Enquanto um jogo estiver no comando do som, a barra na parte de baixo da janela mostra o nome dele. Se você escolher outro som enquanto joga, ele é mantido: o FluidEQ só desfaz o que ele mesmo aplicou. Os presets de jogo também ativam o Modo jogo.',
   'help.games.tab': 'Seus jogos e o som que cada um recebe.',
@@ -209,7 +209,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Dispositivos, perfis e segunda saída',
   'help.profiles.intro':
-    'Seu EQ acompanha o dispositivo de saída. O Vínculo automático salva as edições na saída atual, e os Perfis salvos permitem guardar sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
+    'Seu EQ acompanha o dispositivo de saída. O Vínculo automático salva as edições na saída atual, e os Perfis salvos permitem manter sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
   'help.profiles.steps':
     'Confira o Dispositivo de saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
   'help.profiles.tip':
@@ -243,7 +243,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'O rack DSP é uma cadeia de estágios de estúdio. Com o Motor FluidEQ, ele processa tudo o que o PC toca; com o Equalizer APO, processa as faixas de áudio da Biblioteca. Ele fica desligado enquanto o FluidEQ está desligado.',
   'help.dsp.steps':
-    'Abra a aba DSP. Escolha uma cadeia em Predefinições, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.',
+    'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.',
   'help.dsp.tip':
     'Mais alto costuma soar melhor só por ser mais alto, então compare em níveis equivalentes. Ctrl+clique em um controle giratório para voltar ao valor padrão.',
   'help.dsp.normalizer':
@@ -267,31 +267,31 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.scope':
     'Onde o rack está funcionando e qualquer atraso que a fase linear acrescente.',
 
-  'help.room.title': 'A Sala: surround nos auscultadores',
+  'help.room.title': 'A Sala: surround nos fones de ouvido',
   'help.room.intro':
-    'A Sala transforma os auscultadores numa sala de escuta. Cada canal do som passa a ser uma coluna à volta da tua cabeça, renderizada através de uma cabeça medida e das reflexões de uma sala que tu próprio moldas, e um filme fica à tua frente e um jogo rodeia-te. Precisa do Motor FluidEQ e de auscultadores; em colunas não serve para nada.',
+    'A Sala transforma os fones de ouvido em uma sala de escuta. Cada canal do som passa a ser um alto-falante ao redor da sua cabeça, renderizado através de uma cabeça medida e das reflexões de uma sala que você mesmo molda, e um filme fica à sua frente e um jogo envolve você. Precisa do Motor FluidEQ e de fones de ouvido; em alto-falantes não serve para nada.',
   'help.room.steps':
-    'Abre DSP, escolhe Sala na barra e liga-a. O estéreo passa a duas colunas à tua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolhe uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou roda Tamanho, Paredes e Distância tu próprio e arrasta uma coluna pelo anel. As colunas que o fluxo em reprodução não alcança são desenhadas a dormir.\nCarrega em Começar o teste de escuta e responde a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à tua frente. Pequena, Média e Grande também se escolhem à mão.\nGuarda uma sala de que gostes com um nome; uma sala guardada volta com um toque e nunca muda a tua cabeça.',
+    'Abra DSP, escolha Sala na barra e ligue-a. O estéreo vira dois alto-falantes à sua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolha uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou gire Tamanho, Paredes e Distância você mesmo e arraste um alto-falante pelo anel. Os alto-falantes que o fluxo em reprodução não alcança são desenhados adormecidos.\nPressione Começar o teste de escuta e responda a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à sua frente. Pequena, Média e Grande também podem ser escolhidas à mão.\nSalve uma sala de que você goste com um nome; uma sala salva volta com um toque e nunca muda a sua cabeça.',
   'help.room.tip':
-    'Jogos e filmes só enviam os canais surround para uma saída que o Windows acredita ter esse número de colunas: quando o controlador aceita, o painel de saída oferece um toque para 7.1.',
+    'Jogos e filmes só enviam os canais surround para uma saída que o Windows acredita ter esse número de alto-falantes: quando o driver aceita, o painel de saída oferece um toque para 7.1.',
   'help.room.picker':
-    'As salas de partida, agrupadas como os perfis de cada outro andar; Personalizado assim que moldas uma.',
+    'As salas de partida, agrupadas como os perfis de todos os outros estágios; Personalizado assim que você molda uma.',
   'help.room.picture':
-    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Está tudo desenhado numa só escala, por isso uma coluna mais afastada do que a sala é larga fica desenhada fora das suas paredes. Arraste uma e o seu par acompanha-a; mantenha Shift para movê-la sozinha.',
+    'A sala vista de cima: paredes que se apagam ao absorver, os alto-falantes no anel deles, a cabeça no centro. Está tudo desenhado em uma só escala, por isso um alto-falante mais afastado do que a sala é larga fica desenhado fora das paredes dela. Arraste um e o par dele o acompanha; mantenha Shift para movê-lo sozinho.',
   'help.room.speaker':
-    'Toque numa coluna da sala e este painel passa a ser dela: o seu ângulo em graus, a sua própria distância, o seu nível, e Silenciar ou Solo para a ouvir sozinha.',
-  'help.room.speakerName': 'A coluna escolhida',
+    'Toque em um alto-falante da sala e este painel passa a ser dele: o ângulo em graus, a própria distância, o nível, e Silenciar ou Solo para ouvi-lo sozinho.',
+  'help.room.speakerName': 'O alto-falante escolhido',
   'help.room.dialsName': 'Espaço, Ambiente, Distância',
   'help.room.dials':
-    'Quanto ouve das paredes, a cauda suave que vem a seguir e a que distância estão as colunas. Tamanho, Paredes e a duração e o tom da cauda estão em Carácter da sala, abaixo.',
+    'Quanto você ouve das paredes, a cauda suave que vem depois e a que distância estão os alto-falantes. Tamanho, Paredes e a duração e o tom da cauda estão em Caráter da sala, abaixo.',
   'help.room.fit':
-    'Cinco pares de escuta que escolhem a cabeça para os teus ouvidos.',
+    'Cinco pares de escuta que escolhem a cabeça para os seus ouvidos.',
   'help.room.head':
     'A cabeça medida através da qual a sala é renderizada: pequena, média ou grande.',
   'help.room.saved': 'Dá um nome à sala tal como está; volta com um toque.',
-  'help.room.liveName': 'O que a sala está a fazer',
+  'help.room.liveName': 'O que a sala está fazendo',
   'help.room.live':
-    'Lido do motor: que colunas o fluxo em reprodução alcança, ou porque é que a sala está parada.',
+    'Lido do motor: quais alto-falantes o fluxo em reprodução alcança, ou por que a sala está parada.',
 
   'help.denoise.title': 'Redução de ruído e análise',
   'help.denoise.intro':
@@ -305,9 +305,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou um visualizador Plus.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Space e Ctrl+Space percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que o seu ecrã oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controlos a Visualização — o que o autor lhe deixou ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela inteira. Um clique simples oculta ou mostra a barra.',
+    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia. Um clique simples oculta ou mostra a barra.',
   'help.graph.tip':
-    'Tudo aqui muda só o desenho, nunca o seu som. O Modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Esc sai das visualizações expandida e em tela inteira.',
+    'Tudo aqui muda só o desenho, nunca o seu som. O Modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Esc sai das visualizações expandida e em tela cheia.',
   'help.graph.stripCaption': 'Com um estilo padrão',
   'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
   'help.graph.previous': 'Volta ao visual anterior.',
@@ -332,7 +332,7 @@ const help: Record<keyof typeof en, string> = {
     'O tema do app, as cores do visualizador ou as cores dele com luz (Ambiente).',
   'help.graph.lighting': 'Ilumina seus dispositivos RGB com esta cena.',
   'help.graph.desktop':
-    'Coloca este visualizador atrás dos ícones do ambiente de trabalho.',
+    'Coloca este visualizador atrás dos ícones da área de trabalho.',
   'help.graph.viewCaption': 'O menu Visualização',
   'help.graph.expand': 'O gráfico cresce por cima do editor.',
   'help.graph.fullscreen': 'O gráfico ocupa a tela toda.',
@@ -353,7 +353,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.ownTiming': 'Volta ao ritmo original do visualizador.',
   'help.looks.title': 'Estilos e visualizadores Plus',
   'help.looks.intro':
-    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa gráfica, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
+    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
     'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
   'help.looks.tip':
@@ -372,11 +372,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'O FluidEQ Plus e sua conta',
   'help.plus.intro':
-    'Uma conta é opcional: tudo o que era grátis funciona neste computador sem ela. O FluidEQ Plus, mensal ou anual, acrescenta Visualizadores, a Classificação, o Estúdio, a Iluminação dinâmica e o visualizador do ambiente de trabalho. Uma conta nova pode experimentar o Plus grátis durante quinze dias, e uma cena que publique e que seja aprovada dá-lhe um mês.',
+    'Uma conta é opcional: tudo o que era grátis funciona neste computador sem ela. O FluidEQ Plus, mensal ou anual, acrescenta Visualizadores, a Classificação, o Estúdio, a Iluminação dinâmica e o visualizador da área de trabalho. Uma conta nova pode experimentar o Plus grátis por quinze dias, e uma cena que você publicar e que for aprovada lhe dá um mês.',
   'help.plus.steps':
-    'Abra Conta no menu de ações. Inicie sessão, ou crie uma conta e digite o código de seis dígitos enviado para seu e-mail.\nPressione Passar ao Plus, leia os termos, marque que concorda e pague no Buy Me a Coffee, no seu navegador, com o mesmo e-mail.\nAbra a aba Plus. A barra lateral dela leva à Classificação, aos Visualizadores, ao Estúdio e à Iluminação dinâmica.',
+    'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nPressione Passar ao Plus, leia os termos, marque que concorda e pague no Buy Me a Coffee, no seu navegador, com o mesmo email.\nAbra a aba Plus. A barra lateral dela leva à Classificação, aos Visualizadores, ao Estúdio e à Iluminação dinâmica.',
   'help.plus.tip':
-    'O app nunca vê seu cartão; Gerir subscrição permite alterá-la ou cancelá-la. O período gratuito não pede cartão e não cobra nada ao terminar. Uma conta fica com a sessão iniciada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
+    'O app nunca vê seu cartão; Gerenciar assinatura permite alterá-la ou cancelá-la. O teste gratuito não pede cartão e não cobra nada ao terminar. Uma conta fica conectada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
   'help.plus.leaderboard':
     'Quem ouve mais, entre os membros Plus que participam.',
   'help.plus.visualizers':
@@ -403,16 +403,15 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.card':
     'A imagem abre a cena; Adicionar a coloca nos seus visuais.',
   'help.gallery.manage':
-    'O que cada monitor mostra como fundo do ambiente de trabalho.',
-  'help.gallery.stop': 'Para todos os fundos do ambiente de trabalho.',
+    'O que cada monitor mostra como fundo da área de trabalho.',
+  'help.gallery.stop': 'Para todos os fundos da área de trabalho.',
   'help.gallery.sceneCaption': 'A página de uma cena',
   'help.gallery.back': 'Volta à galeria, onde você parou.',
   'help.gallery.stepName': 'Anterior e próxima',
   'help.gallery.step': 'Percorre a lista de onde você abriu a cena.',
   'help.gallery.play':
     'Adiciona a cena aos seus visuais ou a reproduz no gráfico.',
-  'help.gallery.desktop':
-    'Coloca a cena atrás dos ícones do ambiente de trabalho.',
+  'help.gallery.desktop': 'Coloca a cena atrás dos ícones da área de trabalho.',
   'help.gallery.inspect':
     'Abre a cena do FluidEQ no Estúdio para ver como ela é feita.',
 
@@ -420,9 +419,9 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.intro':
     'A Classificação ordena os membros Plus que participam dela pelo quanto ouvem e pelas curtidas que suas cenas recebem. Ela fica desligada a menos que você entre.',
   'help.leaderboard.steps':
-    'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de utilizador e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
+    'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de usuário e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
   'help.leaderboard.tip':
-    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu identificador e seu nome podem ser mudados depois em Conta → Mudar nome; o ranking e suas cenas publicadas acompanham.',
+    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu nome de usuário e seu nome visível podem ser mudados depois em Conta → Mudar nome; a Classificação e suas cenas publicadas acompanham.',
   'help.leaderboard.periodName': 'Desde sempre ou Este mês',
   'help.leaderboard.period': 'Todo o histórico, ou só este mês.',
   'help.leaderboard.standing':
@@ -432,11 +431,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Crie cenas no Estúdio',
   'help.studio.intro':
-    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio faz parte do Plus; uma conta nova pode abri-lo com o período gratuito.',
+    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio faz parte do Plus; uma conta nova pode abri-lo com o teste gratuito.',
   'help.studio.steps':
     'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
-    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena da FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
+    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
   'help.studio.project':
     'Seus projetos e as cenas do FluidEQ para ver por dentro.',
   'help.studio.switchName': 'Projeto anterior e próximo',
@@ -456,11 +455,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.wave':
     'Testa a altura e a posição da onda que os ouvintes podem ajustar.',
 
-  'help.desktop.title': 'O visualizador do ambiente de trabalho',
+  'help.desktop.title': 'O visualizador da área de trabalho',
   'help.desktop.intro':
-    'O visualizador do ambiente de trabalho coloca um visualizador Plus atrás dos seus ícones, em um monitor ou em cada um deles, enquanto o FluidEQ estiver aberto.',
+    'O visualizador da área de trabalho coloca um visualizador Plus atrás dos seus ícones, em um monitor ou em cada um deles, enquanto o FluidEQ estiver aberto.',
   'help.desktop.steps':
-    'Coloque um visualizador Plus no gráfico e pressione o botão de monitor ao lado do nome dele, ou escolha Visualização → Definir como fundo do ambiente de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Plus → Visualizadores e use Gerir ou Parar no topo.',
+    'Coloque um visualizador Plus no gráfico e pressione o botão de monitor ao lado do nome dele, ou escolha Visualização → Definir como fundo da área de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Plus → Visualizadores e use Gerenciar ou Parar no topo.',
   'help.desktop.tip':
     'Ele fica em pausa enquanto as janelas cobrem o monitor, com o PC bloqueado e, se você quiser, na bateria, e volta quando o FluidEQ inicia. Sair do FluidEQ o interrompe. Só no Windows.',
   'help.desktop.monitors':
@@ -488,7 +487,7 @@ const help: Record<keyof typeof en, string> = {
     'Todos os dispositivos encontrados. Clique em um para ajustá-lo separadamente.',
   'help.lighting.all': 'Volta a ajustar todos os dispositivos de uma vez.',
   'help.lighting.style':
-    'Cena, Onda de cor, Espectro ou Onda rítmica, guardado para cada visualizador.',
+    'Cena, Onda de cor, Espectro ou Onda rítmica, salvo para cada visualizador.',
 
   'help.online.title': 'Ouça com Mídia online',
   'help.online.intro':
@@ -504,13 +503,13 @@ const help: Record<keyof typeof en, string> = {
   'help.library.steps':
     'Abra Biblioteca e adicione a pasta com suas mídias. Deixe a leitura terminar antes de avaliar o que está faltando.\nEscolha um artista ou álbum, ou busque uma música. Inicie uma faixa nos resultados.\nUse a barra na parte de baixo da janela para pausar, mudar a posição e pular. O volume dela é um nível único para todos os players.',
   'help.library.tip':
-    'Passe o mouse sobre o botão do FluidEQ na barra de tarefas do Windows para ter Anterior, Reproduzir e Seguinte, mesmo com ele minimizado. A Biblioteca precisa dos arquivos originais: reconecte uma unidade ou adicione de novo uma pasta que foi movida.',
+    'Passe o mouse sobre o botão do FluidEQ na barra de tarefas do Windows para ter Anterior, Reproduzir e Próximo, mesmo com ele minimizado. A Biblioteca precisa dos arquivos originais: reconecte uma unidade ou adicione de novo uma pasta que foi movida.',
 
   'help.queue.title': 'Álbuns e fila de reprodução',
   'help.queue.intro':
     'A fila define a ordem de escuta. Abrir outro álbum permite explorar sem trocar a música atual. A faixa ativa e A seguir ajudam a acompanhar.',
   'help.queue.steps':
-    'Abra um álbum para ver as faixas dele e inicie a que você quer ouvir.\nClique com o botão direito em uma música para Adicionar à fila, Adicionar aos Favoritos ou Adicionar a uma playlist.\nAbra A seguir para ver o que toca depois e ative Continuar a tocar para seguir com mais do mesmo gênero.',
+    'Abra um álbum para ver as faixas dele e inicie a que você quer ouvir.\nClique com o botão direito em uma música para Adicionar à fila, Adicionar aos Favoritos ou Adicionar a uma playlist.\nAbra A seguir para ver o que toca depois e ative Continuar tocando para seguir com mais do mesmo gênero.',
   'help.queue.tip':
     'Iniciar a reprodução da Biblioteca assume o lugar dos outros players do FluidEQ. Use a faixa atual mostrada na barra para confirmar qual fonte está com a reprodução.',
 
@@ -520,7 +519,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.steps':
     'Abra Karaokê e use Adicionar arquivos ou Adicionar pasta para áudio e letras correspondentes.\nSelecione uma música, reproduza e confira o pareamento.\nConfigure o microfone, ajuste o tamanho das letras e use a tela cheia do palco.',
   'help.karaoke.tip':
-    'Um arquivo só de letras não tem notas-alvo. O Karaokê segue o Volume do app; os níveis da melodia, da base e da voz guia ficam em Definições de mistura.',
+    'Um arquivo só de letras não tem notas-alvo. O Karaokê segue o Volume do app; os níveis da melodia, da base e da voz guia ficam em Configurações de mistura.',
 
   'help.maker.title': 'Crie no Criador de karaokê',
   'help.maker.intro':
@@ -531,52 +530,51 @@ const help: Record<keyof typeof en, string> = {
   'help.maker.lyricsCaption': 'A letra, e quando cada palavra é cantada',
   'help.maker.referenceName': 'Letra de referência',
   'help.maker.reference':
-    'A canção inteira como texto, uma linha por fila. Cole-a ou carregue um ficheiro; o FluidEQ tira daí os tempos.',
+    'A música inteira como texto, um verso por linha. Cole-a ou carregue um arquivo; o FluidEQ encontra os tempos a partir dela.',
   'help.maker.timingName': 'Tempo da palavra',
   'help.maker.timing':
-    'Todas as palavras por ordem, com quantas já têm tempo. Carregue numa para a trabalhar.',
+    'Todas as palavras em ordem, com quantas já têm tempo. Clique em uma para trabalhar nela.',
   'help.maker.wordName': 'Palavra selecionada',
   'help.maker.word':
-    'Onde começa a palavra escolhida e quanto dura. Mover a sua margem dá ou tira tempo à palavra ao lado; a linha mantém a duração.',
+    'Onde começa a palavra escolhida e quanto dura. Mover a borda dela dá ou tira tempo da palavra ao lado; a linha mantém a duração.',
   'help.maker.toolsCaption':
     'As ferramentas de IA e os modelos de que precisam',
   'help.maker.separate':
-    'Separa a gravação em voz e música, para o karaoke tocar sem o cantor.',
+    'Separa a gravação em voz e música, para o karaokê tocar sem o cantor.',
   'help.maker.loadVocals':
-    'Use um ficheiro só de voz que já tenha, em vez de o separar aqui.',
+    'Use um arquivo só de voz que você já tenha, em vez de separá-lo aqui.',
   'help.maker.redetectTiming':
-    'Volta a ouvir a voz e recalcula os tempos das palavras que já tem.',
+    'Volta a ouvir a voz e recalcula os tempos das palavras que você já tem.',
   'help.maker.redetectNotes':
     'Volta a ouvir a melodia e reescreve as notas sob as palavras.',
   'help.maker.modelsName': 'Memória dos modelos de IA',
   'help.maker.models':
-    'O que cada modelo precisa e se está neste computador. São descarregados na primeira vez que usa um.',
+    'O que cada modelo precisa e se ele está neste computador. Eles são baixados na primeira vez que você usa um.',
   'help.maker.idleName': 'Quando estiver ocioso',
   'help.maker.idle':
-    'Se um modelo fica em memória entre utilizações, e por quanto tempo. Libertá-lo deixa memória livre; mantê-lo faz a próxima vez arrancar de imediato.',
+    'Se um modelo fica na memória entre usos, e por quanto tempo. Liberá-lo deixa memória livre; mantê-lo faz a próxima vez começar de imediato.',
 
-  'help.makerBar.caption': 'As ferramentas no topo do criador',
+  'help.makerBar.caption': 'As ferramentas no topo do Criador',
   'help.makerBar.import':
-    'Abre um ficheiro de karaoke ou um projeto guardado, e mantém o áudio já carregado.',
+    'Abre um arquivo de karaokê ou um projeto salvo, e mantém o áudio já carregado.',
   'help.makerBar.lyrics': 'As palavras e os seus tempos, numa só janela.',
   'help.makerBar.timing':
-    'Move palavras e notas em conjunto, para uma canção adiantada ou atrasada desde o primeiro segundo.',
+    'Move palavras e notas em conjunto, para uma música adiantada ou atrasada desde o primeiro segundo.',
   'help.makerBar.pan':
-    'Arraste pela linha do tempo para percorrer a canção sem mudar nada.',
+    'Arraste pela linha do tempo para percorrer a música sem mudar nada.',
   'help.makerBar.language':
-    'Em que língua estão as palavras, e uma segunda ao lado para a cantar em qualquer uma.',
+    'Em que língua estão as palavras, e uma segunda ao lado para que a música possa ser cantada em qualquer uma.',
   'help.makerBar.record':
-    'Ponha a canção e carregue numa tecla ao início e ao fim de cada linha. O tempo vem das suas teclas.',
+    'Toque a música e pressione uma tecla no início e no fim de cada linha. O tempo vem das suas teclas.',
   'help.makerBar.select':
-    'Desenhe uma caixa à volta das notas para as mover ou apagar juntas.',
-  'help.makerBar.paint':
-    'Desenhe a melodia diretamente sobre a grelha de tons.',
+    'Desenhe uma caixa ao redor das notas para movê-las ou apagá-las juntas.',
+  'help.makerBar.paint': 'Desenhe a melodia diretamente sobre a grade de tons.',
   'help.makerBar.split':
     'Corta uma palavra em sílabas, para que uma palavra longa leve uma nota em cada uma.',
   'help.makerBar.repair':
-    'As ferramentas que ouvem por si, e os modelos de que precisam.',
+    'As ferramentas que ouvem por você, e os modelos de que precisam.',
   'help.makerBar.export':
-    'Guarda o karaoke pronto como projeto FluidEQ, UltraStar TXT, LRC ou LRC aprimorado.',
+    'Salva o karaokê pronto como projeto FluidEQ, UltraStar TXT, LRC ou LRC aprimorado.',
   'help.maker.tip':
     'Modelos exigem conexão e espaço. O tempo depende do computador e da música. Use áudio autorizado e revise antes de compartilhar.',
 
@@ -592,7 +590,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Comece pela fonte e pela saída, depois isole a camada. Um gráfico, um preset salvo ou um interruptor ativado não provam, sozinhos, que o som chegou ao dispositivo certo. O menu Ajuda também leva à solução de problemas de áudio, ao relato de problemas e ao Fórum.',
   'help.trouble.steps':
-    'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado e que a saída não mostra o selo DESLIG. Se mostrar, pressione Ativar. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.\nEstá tudo certo e o EQ continua sem fazer nada: o Windows pode estar a tocar a música por fora do motor. O aviso di-lo e oferece movê-lo com um toque para onde o Windows o use; custa uma permissão e um segundo de silêncio.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
+    'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado e que a saída não mostra o selo DESLIG. Se mostrar, pressione Ativar. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.\nEstá tudo certo e o EQ continua sem fazer nada: o Windows pode estar tocando a música por fora do motor. O aviso diz isso e oferece, com um toque, mover o motor para onde o Windows o use; custa uma permissão e um segundo de silêncio.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
   'help.trouble.tip':
     'F1 abre este guia. Esc fecha uma captura ampliada e depois o guia. Se a interface estiver grande demais, Ctrl + 0 restaura o zoom. Processos, no menu de ações, mostra o que cada parte do FluidEQ está fazendo.',
 
@@ -600,7 +598,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'O Fórum traz o GitHub Discussions do FluidEQ para dentro do app: anúncios, ideias, perguntas e ajustes de que as pessoas se orgulham. Qualquer um pode ler; para publicar, você usa sua conta do GitHub, não uma do FluidEQ.',
   'help.forum.steps':
-    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostra o teu som.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Iniciar sessão com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
+    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
   'help.forum.tip':
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre.',
 };

@@ -86,7 +86,7 @@ const review = {
   'review.notice.rejectedUpdate': 'La versión {version} de {name} no se aprobó',
   'review.notice.keepsLive': 'Quien la tiene conserva la versión {version}.',
   'review.notice.gotIt': 'Entendido',
-  'review.notice.openStudio': 'Abrir el Studio',
+  'review.notice.openStudio': 'Abrir el Estudio',
   'review.notice.openMine': 'Tus escenas',
 } as const;
 

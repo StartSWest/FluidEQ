@@ -4,16 +4,16 @@ import { Dictionary } from '../en';
 const tour: Partial<Dictionary> = {
   'tour.contribute': 'Merci de contribuer',
   'tour.rainbow.title': 'Bienvenue dans le mode arc-en-ciel',
-  'tour.rainbow.subtitle': 'Active-le en un clic',
+  'tour.rainbow.subtitle': 'Activez-le en un clic',
   'tour.rainbow.lead':
     'Des couleurs arc-en-ciel, des accents lumineux et une bordure qui parcourt le spectre — et un mouvement plus fluide : le graphique, les vumètres et l’onde sont dessinés à la pleine fréquence de votre écran au lieu de trente images par seconde. Votre son ne change jamais.',
   'tour.rainbow.how':
-    'Active-le ici immédiatement, sans atteindre ×10. Ton choix est mémorisé et tu peux le désactiver à tout moment. Contribuer est facultatif.',
+    'Activez-le ici immédiatement, sans atteindre ×10. Votre choix est mémorisé et vous pouvez le désactiver à tout moment. Contribuer est facultatif.',
   'tour.rainbow.enable': 'Activer le mode arc-en-ciel',
   'tour.rainbow.disable': 'Désactiver le mode arc-en-ciel',
   'tour.rainbow.waveform': 'Aperçu de la forme d’onde du haut',
   'tour.rainbow.toggleHint':
-    'Clique sur le bouton « RAINBOW MODE » au-dessus pour activer ou désactiver le mode.',
+    'Cliquez sur le bouton « RAINBOW MODE » au-dessus pour activer ou désactiver le mode.',
   'tour.eyebrow': 'NOUVEAU DANS CETTE VERSION',
   'tour.title': 'Nouveautés de FluidEQ',
   'tour.close': 'Fermer',
@@ -66,9 +66,9 @@ const tour: Partial<Dictionary> = {
   'tour.room.point2':
     'Vingt-quatre salles pour commencer — studio, salon, cinéma, salle de concert — et les vôtres, enregistrées sous un nom.',
   'tour.room.point3':
-    'Ajuster choisit à l’oreille la tête qui place les sons devant vous, en cinq paires.',
+    'Un test d’écoute choisit à l’oreille la tête qui place les sons devant vous, en cinq paires.',
   'tour.room.how':
-    'Ouvrez DSP, choisissez Salle dans le rail et activez-la. Choisissez une salle, puis faites glisser une enceinte ou tournez un bouton ; appuyez sur Ajuster pour choisir votre tête.',
+    'Ouvrez DSP, choisissez Salle dans le rail et activez-la. Choisissez une salle, puis faites glisser une enceinte ou tournez un bouton ; sous Votre tête, appuyez sur Lancer le test d’écoute.',
   'tour.room.open': 'Ouvrir la Salle',
   'tour.room.imageAlt':
     'Une salle vue de dessus : sept enceintes et un sub autour d’une tête au centre, chacune avec son chemin vers les oreilles.',
@@ -147,23 +147,23 @@ const tour: Partial<Dictionary> = {
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
   'tour.theme.kicker': 'UN NOUVEAU LOOK',
-  'tour.theme.title': 'Voici le thème Noir',
+  'tour.theme.title': 'Voici le thème Sombre',
   'tour.theme.subtitle': 'Noir pur, pour les nuits tardives et les écrans OLED',
   'tour.theme.lead':
-    'FluidEQ a désormais un second visage. Noir efface toute trace du bleu ardoise d’origine : panneaux, menus et barres passent en monochrome, l’accent reste, et le spectre est la seule couleur de la pièce.',
+    'FluidEQ a désormais un second visage. Sombre efface toute trace du bleu ardoise d’origine : panneaux, menus et barres passent en monochrome, l’accent reste, et le spectre est la seule couleur de la pièce.',
   'tour.theme.point1':
-    'Fonds noir absolu : sur un écran OLED, les pixels autour du graphe s’éteignent.',
+    'Fonds noir absolu : sur un écran OLED, les pixels autour du graphique s’éteignent.',
   'tour.theme.point2':
     'Toutes les fenêtres suivent : menus, boîtes de dialogue, la scène karaoké et la Bibliothèque changent ensemble.',
   'tour.theme.point3':
     'Votre couleur d’accent et le mode arc-en-ciel sont conservés. Rien ne change dans votre son : seule la peinture.',
   'tour.theme.howTitle': 'Comment changer',
   'tour.theme.how':
-    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et, tout en bas, choisissez Noir sous Thème. Océan reste à un clic si vous voulez revenir.',
-  'tour.theme.tryBlack': 'Passer en Noir maintenant',
-  'tour.theme.tryOcean': 'Revenir à Océan',
+    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et, tout en bas, choisissez Sombre sous Thème. Clair reste à un clic si vous voulez revenir.',
+  'tour.theme.tryBlack': 'Passer en Sombre maintenant',
+  'tour.theme.tryOcean': 'Revenir à Clair',
   'tour.theme.imageAlt':
-    'FluidEQ en thème Noir : l’onglet EQ avec quinze bandes et le spectre en direct pendant la lecture d’un morceau.',
+    'FluidEQ en thème Sombre : l’onglet Égaliseur avec quinze bandes et le spectre en direct pendant la lecture d’un morceau.',
 
   'tour.share.kicker': 'ÉCOUTEZ TOUS VOS PC',
   'tour.share.title': 'Partagez l’audio entre vos ordinateurs',
@@ -210,16 +210,16 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Des playlists et une liste Favoris permanente. Clic droit sur un morceau pour l’ajouter à l’une ou l’autre, ou à la file.',
   'tour.library.point4':
-    'Mémoire d’EQ par morceau : activez « Enregistrer pour ce morceau » pendant la lecture et la correction est retenue pour ce titre.',
+    'Mémoire de l’égalisation auto par morceau : activez « Enregistrer pour cette chanson » pendant la lecture et la correction est retenue pour ce titre.',
   'tour.library.how':
     'Ouvrez l’onglet Bibliothèque, appuyez sur « Ajouter un dossier » ou déposez un dossier sur la page, et laissez l’analyse se terminer. Choisissez Albums, Artistes, Genres, Chansons, Dossiers ou Arborescence, puis appuyez sur Lire.',
   'tour.library.open': 'Ouvrir la Bibliothèque',
 
   'tour.dsp.kicker': 'UN RACK DE MASTERING',
   'tour.dsp.title': 'Le rack DSP',
-  'tour.dsp.subtitle': 'Neuf étages, chacun avec son graphe',
+  'tour.dsp.subtitle': 'Neuf étages, chacun avec son graphique',
   'tour.dsp.lead':
-    'Un rack d’étages de studio, dans l’ordre : Normaliseur, Débruitage, Exciteur, Forge de basses, Égaliseur, Punch des basses, Dimension, Maximiseur et Master, plus un fondu enchaîné entre les pistes de la Bibliothèque. Avec le moteur FluidEQ, il agit sur tout ce que joue l’ordinateur ; avec Equalizer APO, sur la Bibliothèque. Chaque étage est une carte avec un graphe en direct, des préréglages et un bouton Isoler pour n’entendre que ce qu’il fait.',
+    'Un rack d’étages de studio, dans l’ordre : Normaliseur, Débruitage, Exciteur, Forge de basses, Égaliseur, Punch des basses, Dimension, Maximiseur et Master, plus un fondu enchaîné entre les pistes de la Bibliothèque. Avec le moteur FluidEQ, il agit sur tout ce que joue l’ordinateur ; avec Equalizer APO, sur la Bibliothèque. Chaque étage est une carte avec un graphique en direct, des préréglages et un bouton Isoler pour n’entendre que ce qu’il fait.',
   'tour.dsp.point1':
     'Débruitage répare le souffle, le ronflement et les craquements pendant la lecture, et un nettoyeur de voix neuronal agit sur les pistes de la Bibliothèque.',
   'tour.dsp.point2':
@@ -227,33 +227,33 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.point3':
     'Un Égaliseur paramétrique à quinze bandes, phase minimale ou linéaire, mid/side, suréchantillonnage et des dizaines de préréglages nommés.',
   'tour.dsp.point4':
-    'Un Master avec cible de sonie LUFS et sécurité true-peak, des préréglages de livraison du Streaming au Vinyle, et un Gain match pour comparer le son, pas le volume.',
+    'Un Master avec cible de sonie LUFS et sécurité de crête vraie, des préréglages de livraison du Streaming au Vinyle, et une Compensation de gain pour comparer le son, pas le volume.',
   'tour.dsp.how':
     'Ouvrez l’onglet DSP, choisissez une chaîne sous Préréglages, puis cliquez sur un étage dans les onglets latéraux et activez-le. Avec Equalizer APO, lancez d’abord une piste depuis la Bibliothèque.',
   'tour.dsp.open': 'Ouvrir le DSP',
 
   'tour.output.kicker': 'JOUE À DEUX ENDROITS',
-  'tour.output.title': 'Profils de la seconde sortie',
+  'tour.output.title': 'Profils de la deuxième sortie',
   'tour.output.subtitle':
     'Casque et enceintes en même temps, chacun avec son profil',
   'tour.output.lead':
-    'Écoutez au casque et sur les enceintes avec des égalisations séparées. La seconde sortie reçoit le son avant l’égalisation de la sortie principale, puis applique son propre profil enregistré. Aucun pilote de routage nécessaire.',
+    'Écoutez au casque et sur les enceintes avec des égalisations séparées. La deuxième sortie reçoit le son avant l’égalisation de la sortie principale, puis applique son propre profil enregistré. Aucun pilote de routage nécessaire.',
   'tour.output.point1':
-    'Activez un autre appareil dans Seconde sortie et réglez son volume.',
+    'Activez un autre appareil dans Deuxième sortie et réglez son volume.',
   'tour.output.point2':
     'Choisissez un profil enregistré avec le sélecteur de profil d’égalisation sous cet appareil. La sortie principale garde ses réglages.',
   'tour.output.point3':
-    'Un lecteur à la fois : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
+    'Un seul lecteur : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
   'tour.output.point4':
     'Jeu/Vidéo démarre avec environ 30 ms de réserve et se resynchronise après une interruption ; Musique démarre avec environ 100 ms pour une écoute plus fluide. Le tampon de l’appareil ajoute du retard.',
   'tour.output.how':
-    'Ouvrez l’onglet EQ puis Seconde sortie à droite. Activez un appareil, choisissez son profil sous son nom, réglez le volume et sélectionnez Jeu/Vidéo ou Musique.',
-  'tour.output.open': 'Ouvrir l’EQ',
+    'Ouvrez l’onglet Égaliseur puis Deuxième sortie à droite. Activez un appareil, choisissez son profil sous son nom, réglez le volume et sélectionnez Jeu/Vidéo ou Musique.',
+  'tour.output.open': 'Ouvrir l’Égaliseur',
   'tour.output.imageAlt':
-    'Le panneau Seconde sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et les modes Jeu/Vidéo et Musique.',
+    'Le panneau Deuxième sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et les modes Jeu/Vidéo et Musique.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
-  'tour.looks.title': 'Des styles à vous pour le graphe',
+  'tour.looks.title': 'Des styles à vous pour le graphique',
   'tour.looks.subtitle': 'Vingt-huit formes, vos couleurs, votre mouvement',
   'tour.looks.lead':
     'Le spectre sous l’EQ se dessine comme vous voulez. Choisissez une des vingt-huit formes, des simples barres et lignes aux terrasses, aux silhouettes de villes et à un pont nocturne avec sa circulation ; colorez-la avec sa propre coloration Auto, par fréquence, par niveau ou par chaleur ; réglez la vitesse d’attaque et la durée de maintien d’un pic ; marquez les pics d’étincelles, de comètes ou d’ondes. Enregistrez-le comme style à vous, et partagez-le en fichier.',
@@ -266,41 +266,41 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point4':
     'La lueur fonctionne dans tous les modes, et le mode arc-en-ciel ajoute une bordure qui parcourt toute la roue des couleurs. Les styles s’exportent en fichier et s’importent depuis un fichier.',
   'tour.looks.how':
-    'Dans l’onglet EQ, appuyez sur « Nouveau style » dans la barre du graphe. Choisissez une forme avec le sélecteur ou appuyez sur Espace pour les faire défiler, réglez couleurs et mouvement pendant que la musique joue, puis Enregistrer.',
-  'tour.looks.open': 'Ouvrir l’EQ',
+    'Dans l’onglet Égaliseur, appuyez sur « Nouveau style » dans la barre du graphique. Choisissez une forme avec le sélecteur ou appuyez sur Espace pour les faire défiler, réglez couleurs et mouvement pendant que la musique joue, puis Enregistrer.',
+  'tour.looks.open': 'Ouvrir l’Égaliseur',
 
   'tour.karaoke.kicker': 'UNE SCÈNE À LA MAISON',
-  'tour.karaoke.title': 'Le karaoké avec guide de justesse',
+  'tour.karaoke.title': 'Le karaoké avec guide de hauteur',
   'tour.karaoke.subtitle': 'Vos chansons, vos paroles, votre micro',
   'tour.karaoke.lead':
     'Déposez une chanson avec ou sans fichier de paroles : FluidEQ les associe dans une playlist, affiche les paroles synchronisées sur la pochette ou la vidéo, écoute votre micro et trace votre hauteur face à la mélodie. Tout reste sur cet ordinateur ; le micro n’est jamais enregistré ni rejoué.',
   'tour.karaoke.point1':
-    'Un curseur Voix guide qui va de l’original à l’accompagnement seul, retirant la voix principale sans fichier séparé.',
+    'Un curseur Voix témoin qui va de l’original à l’accompagnement seul, retirant la voix principale sans fichier séparé.',
   'tour.karaoke.point2':
-    'Une piste de hauteur en vue Notes ou Courbe : les notes de la chanson en blocs, votre voix en ligne vivante, avec retour Haut, Juste et Bas.',
+    'Un suivi de justesse en vue Notes ou Courbe : les notes de la chanson en blocs, votre voix en ligne vivante, avec retour Trop haut, Juste et Trop bas.',
   'tour.karaoke.point3':
     'Un bilan de performance à la fin, avec les passages à travailler et un décompte pour recommencer.',
   'tour.karaoke.point4':
-    'Lit LRC, LRC enrichi avec timing par mot et UltraStar avec syllabes et hauteur, sur MP3, FLAC, WAV, OGG, M4A et plus. Paroles traduites et accords de guitare estimés en prime.',
+    'Lit LRC, LRC enrichi avec synchronisation par mot et UltraStar avec syllabes et hauteur, sur MP3, FLAC, WAV, OGG, M4A et plus. Paroles traduites et accords de guitare estimés en prime.',
   'tour.karaoke.how':
-    'Ouvrez l’onglet Karaoké, appuyez sur « Ouvrir une chanson » ou « Ajouter un dossier », choisissez une piste dans la playlist, activez le micro, affichez le guide de justesse et appuyez sur Lecture.',
+    'Ouvrez l’onglet Karaoké, appuyez sur « Ouvrir une chanson » ou « Ajouter un dossier », choisissez une piste dans la playlist, activez le micro, affichez le guide de hauteur et appuyez sur Lire.',
   'tour.karaoke.open': 'Ouvrir le Karaoké',
 
   'tour.maker.kicker': 'CRÉEZ LE VÔTRE',
   'tour.maker.title': 'Le Créateur de karaoké',
   'tour.maker.subtitle': 'N’importe quelle chanson devient un fichier karaoké',
   'tour.maker.lead':
-    'Un vrai studio d’édition dans l’onglet Karaoké. Il peut tout faire seul : séparer la voix de la musique, lire les mots et leur timing avec un modèle de parole local, et détecter les notes de la mélodie. Ou vous tapez, enregistrez et dessinez chaque timing à la main sur une timeline zoomable. Tout tourne sur cet ordinateur.',
+    'Un vrai studio d’édition dans l’onglet Karaoké. Il peut tout faire seul : séparer la voix de la musique, lire les mots et leur calage avec un modèle de parole local, et détecter les notes de la mélodie. Ou vous tapez, enregistrez et dessinez chaque calage à la main sur une timeline zoomable. Tout tourne sur cet ordinateur.',
   'tour.maker.point1':
-    '« Configurer cette chanson automatiquement » : séparer la voix, puis lire les mots et le timing, avec l’option de continuer en arrière-plan.',
+    '« Préparer ce morceau automatiquement » : séparer la voix, puis lire les mots et le calage, avec l’option de continuer en arrière-plan.',
   'tour.maker.point2':
     'Gardez les pistes séparées : la voix et l’accompagnement, chacune enregistrable, y compris en MP3.',
   'tour.maker.point3':
-    'Des outils manuels pour les détails : taper les mots, enregistrer les entrées de ligne, un inspecteur de mot avec début et durée, et couper un mot en syllabes.',
+    'Des outils manuels pour les détails : caler les mots, enregistrer les débuts de lignes, un inspecteur de mot avec début et durée, et couper un mot en syllabes.',
   'tour.maker.point4':
     'Peignez la mélodie sur une grille de hauteur, marquez les notes dorées, puis exportez en projet FluidEQ, UltraStar TXT, LRC, LRC enrichi ou accompagnement seul.',
   'tour.maker.how':
-    'Dans Karaoké, chargez une chanson et appuyez sur « Créer ». Acceptez « Configurer automatiquement » dans l’assistant, corrigez les mots sur la timeline, puis « Utiliser dans le lecteur » et « Exporter ».',
+    'Dans Karaoké, chargez une chanson et appuyez sur « Créer ». Acceptez « Préparer automatiquement » dans l’assistant, corrigez les mots sur la timeline, puis « Utiliser dans le lecteur » et « Exporter ».',
   'tour.maker.open': 'Ouvrir le Karaoké',
 
   'tour.media.kicker': 'LE WEB, À TRAVERS VOTRE EQ',
@@ -317,7 +317,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.point4':
     'Des téléchargements avec pastille de progression et « Afficher dans le dossier » à la fin, et un bouton « Se déconnecter de tous les sites » qui efface chaque cookie et connexion d’un coup.',
   'tour.media.how':
-    'Ouvrez l’onglet Médias en ligne, choisissez un site dans la rangée du haut, tapez dans le champ de recherche et appuyez sur Rechercher. Précédent, Suivant et Recharger fonctionnent comme dans un navigateur.',
+    'Ouvrez l’onglet Médias en ligne, choisissez un site dans la rangée du haut, tapez dans le champ de recherche et appuyez sur Rechercher. Précédent, Suivant et Actualiser fonctionnent comme dans un navigateur.',
   'tour.media.open': 'Ouvrir Médias en ligne',
 };
 

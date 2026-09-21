@@ -1,12 +1,12 @@
 const engineUpdate = {
   'engineUpdate.badge': 'ATUALIZAÇÃO DO MOTOR',
-  'engineUpdate.title': 'Um novo motor FluidEQ está pronto',
+  'engineUpdate.title': 'Um novo Motor FluidEQ está pronto',
   'engineUpdate.body':
     'Esta versão do FluidEQ traz um motor de áudio atualizado. Instalá-lo pede permissão ao Windows e reinicia o áudio por alguns segundos.',
   'engineUpdate.action': 'Atualizar o motor',
   'engineUpdate.running': 'Atualizando o motor…',
   'engineUpdate.doneBadge': 'ATUALIZADO',
-  'engineUpdate.doneTitle': 'O motor FluidEQ está atualizado',
+  'engineUpdate.doneTitle': 'O Motor FluidEQ está atualizado',
   'engineUpdate.doneBody':
     'O áudio do Windows reiniciou com o novo motor, com as suas saídas e o seu EQ como estavam. Reabra qualquer aplicativo que continuar mudo.',
   'engineUpdate.declined':

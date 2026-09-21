@@ -214,7 +214,6 @@ describe('the Plus tab', () => {
       'trial.extras.scenes',
       'trial.extras.studio',
       'trial.extras.desktop',
-      'trial.extras.room',
       'trial.extras.board',
     ]);
     expect(bridge.plusProfile).not.toHaveBeenCalled();

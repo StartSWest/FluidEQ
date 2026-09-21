@@ -1,13 +1,13 @@
 const studio = {
   'studio.notes.failed':
     'प्रोजेक्ट का विवरण सेव नहीं हो सका। फिर से कोशिश करें।',
-  'studio.stage.loading': 'दृश्य लोड हो रहा है…',
+  'studio.stage.loading': 'सीन लोड हो रहा है…',
   'studio.picture.download': 'चित्र सहेजें',
   'studio.picture.downloaded': 'चित्र सहेजा गया',
   'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',
   'studio.picture.separate': 'अलग चित्र ({count})',
   'studio.picture.separateHint':
-    'ये एक ही चित्र के हिस्से हैं। इन्हें सहेजने से दृश्य नहीं बदलेगा।',
+    'ये एक ही चित्र के हिस्से हैं। इन्हें सहेजने से सीन नहीं बदलेगा।',
   'studio.picture.view': '{name} बड़ा करके देखें',
   'studio.picture.previous': 'पिछला चित्र',
   'studio.picture.next': 'अगला चित्र',
@@ -20,8 +20,8 @@ const studio = {
   'studio.project.previous': 'पिछला प्रोजेक्ट',
   'studio.project.next': 'अगला प्रोजेक्ट',
   'studio.title': 'स्टूडियो',
-  'studio.description': 'अपने AI के साथ दृश्य बनाएँ और उन्हें लाइव देखें',
-  'studio.rail.blurb': 'अपने खुद के दृश्य बनाएँ',
+  'studio.description': 'अपने AI के साथ सीन बनाएँ और उन्हें लाइव देखें',
+  'studio.rail.blurb': 'अपने खुद के सीन बनाएँ',
 
   'studio.plus.title': 'Plus के साथ',
   'studio.plus.body':
@@ -175,11 +175,11 @@ const studio = {
   'studio.publish.outdated':
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
   'studio.publish.versionTaken':
-    'यह दृश्य अभी-अभी दोबारा प्रकाशित हुआ है। फिर से कोशिश करें, यह अगले संस्करण के रूप में जाएगा।',
+    'यह सीन अभी-अभी दोबारा प्रकाशित हुआ है। फिर से कोशिश करें, यह अगले संस्करण के रूप में जाएगा।',
   'studio.publish.takenDown':
-    'FluidEQ ने यह दृश्य गैलरी से हटा दिया है, इसलिए इसका नया संस्करण नहीं भेजा जा सकता। यह सिर्फ़ तभी, जैसा था वैसा ही, वापस आ सकता है जब FluidEQ इसे बहाल करे।',
+    'FluidEQ ने यह सीन गैलरी से हटा दिया है, इसलिए इसका नया संस्करण नहीं भेजा जा सकता। यह सिर्फ़ तभी, जैसा था वैसा ही, वापस आ सकता है जब FluidEQ इसे बहाल करे।',
   'studio.publish.deleted':
-    'FluidEQ ने यह दृश्य गैलरी से हमेशा के लिए मिटा दिया है, इसलिए इसे दोबारा प्रकाशित नहीं किया जा सकता।',
+    'FluidEQ ने यह सीन गैलरी से हमेशा के लिए मिटा दिया है, इसलिए इसे दोबारा प्रकाशित नहीं किया जा सकता।',
 
   'studio.picture.files': 'चित्र',
   'studio.picture.missing':
@@ -291,11 +291,10 @@ const studio = {
 
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
-    'इस दृश्य का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',
-  'studio.version.live':
-    'इस दृश्य का संस्करण {version}, और यही लोगों के पास है।',
+    'इस सीन का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',
+  'studio.version.live': 'इस सीन का संस्करण {version}, और यही लोगों के पास है।',
   'studio.version.ahead':
-    'इस दृश्य का संस्करण {version}। लोगों के पास संस्करण {published} है।',
+    'इस सीन का संस्करण {version}। लोगों के पास संस्करण {published} है।',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
   'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',
@@ -315,7 +314,7 @@ const studio = {
   'studio.ship.title': 'जब तैयार हो',
   'studio.signals.title': 'प्रीव्यू का ऑडियो',
   'studio.signals.hint':
-    'दृश्य हमेशा हर उपयोगकर्ता के अपने संगीत पर प्रतिक्रिया करता है। परीक्षण संकेत केवल इस प्रीव्यू को चलाते हैं: वे सहेजे या प्रकाशित नहीं होते और आपका ऑडियो नहीं बदलते।',
+    'सीन हमेशा हर उपयोगकर्ता के अपने संगीत पर प्रतिक्रिया करता है। परीक्षण संकेत केवल इस प्रीव्यू को चलाते हैं: वे सहेजे या प्रकाशित नहीं होते और आपका ऑडियो नहीं बदलते।',
   'studio.signal.live': 'आपका संगीत',
   'studio.signal.silence': 'मौन',
   'studio.signal.bass': 'बेस',
@@ -349,9 +348,9 @@ const studio = {
     'सुनने से पहले बदलें कि यह क्या सुनता है। 100% और शून्य पर यह संगीत जैसा है वैसा सुनता है।',
   'studio.settings.ambient': 'विंडो में तत्व',
   'studio.settings.ambientLead':
-    'माहौल मोड में यह दृश्य ऐप के आसपास क्या जोड़ता है।',
+    'माहौल मोड में यह सीन ऐप के आसपास क्या जोड़ता है।',
   'studio.settings.ambientOff':
-    'इन्हें देखने के लिए विंडो लुक को एम्बिएंट पर करें।',
+    'इन्हें देखने के लिए विंडो के रंग “माहौल” पर करें।',
   'studio.settings.sensitivity': 'संवेदनशीलता',
   'studio.settings.sensitivityHint':
     'कितनी ज़ोर से प्रतिक्रिया देता है। धीमे गाने के लिए ज़्यादा, और जब तेज़ गाना इसे हमेशा चरम पर रखे तो कम।',
@@ -372,10 +371,10 @@ const studio = {
   'studio.settings.resetsToPublished':
     '“रीसेट” इन्हें संस्करण {version} पर लौटाता है, जो आपने प्रकाशित किया।',
   'studio.settings.carries':
-    'छोड़ते ही सीन में सहेजा जाता है: आपकी शैलियों और गैलरी को भी यही मिलता है।',
+    'छोड़ते ही सीन में सहेजा जाता है: आपके रूपों और गैलरी को भी यही मिलता है।',
   'studio.settings.saving': 'सीन में सहेजा जा रहा है…',
   'studio.settings.saved': 'सीन में सहेजा गया।',
-  'studio.settings.savedLook': 'सीन और आपकी शैली में सहेजा गया।',
+  'studio.settings.savedLook': 'सीन और आपके रूप में सहेजा गया।',
   'studio.settings.failed': 'सेटिंग सहेजी नहीं जा सकीं। फिर से कोशिश करें।',
 
   'studio.picture.adjust': 'फ़्रेम करें…',
@@ -414,13 +413,13 @@ const studio = {
 
   'studio.performance.title': 'प्रदर्शन',
   'studio.performance.hint':
-    'ग्राफ़, इस मंच और डेस्कटॉप के लिए एक ही चुनाव: ग्राफ़ के मेनू वाली पंक्तियाँ।',
+    'ग्राफ़, इस स्टेज और डेस्कटॉप के लिए एक ही चुनाव: ग्राफ़ के मेनू वाली पंक्तियाँ।',
   'studio.cost.full': 'सहज चल रहा है',
   'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
   'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': '{percent}% आकार पर बन रहा है',
   'studio.cost.heavy': 'इस कंप्यूटर के लिए बहुत भारी',
-  'studio.cost.unavailable': 'यह कंप्यूटर अभी दृश्य नहीं बना सकता',
+  'studio.cost.unavailable': 'यह कंप्यूटर अभी सीन नहीं बना सकता',
 
   'studio.file.pack': 'pack.json',
   'studio.file.source': 'शेडर',
@@ -437,8 +436,7 @@ const studio = {
     'while लूप की अनुमति नहीं है। तय गिनती वाला for लूप इस्तेमाल करें।',
   'studio.problem.do':
     'do लूप की अनुमति नहीं है। तय गिनती वाला for लूप इस्तेमाल करें।',
-  'studio.problem.main':
-    'दृश्य में main() नहीं लिखना है। उसे FluidEQ लिखता है।',
+  'studio.problem.main': 'सीन में main() नहीं लिखना है। उसे FluidEQ लिखता है।',
   'studio.problem.loop-shape':
     'लूप को एक तय संख्या से दूसरी तय संख्या तक गिनना चाहिए।',
   'studio.problem.loop-bound': 'एक लूप 128 से ज़्यादा बार चलता है।',
@@ -446,7 +444,7 @@ const studio = {
   'studio.problem.loop-budget':
     'लूप के अंदर लूप, और उनसे बुलाए गए फ़ंक्शन, हर पिक्सेल पर बहुत बार चलते हैं। नेस्टिंग या दोहराव कम करें।',
   'studio.problem.entry-point': 'vec4 sceneColour(vec2 uv) फ़ंक्शन नहीं है।',
-  'studio.problem.not-a-pack': 'यह ऐसा दृश्य नहीं है जिसे FluidEQ पढ़ सके।',
+  'studio.problem.not-a-pack': 'यह ऐसा सीन नहीं है जिसे FluidEQ पढ़ सके।',
   'studio.problem.bad-id':
     'id में 2 से 48 छोटे अक्षर, अंक और हाइफ़न होने चाहिए।',
   'studio.problem.names-missing': 'अंग्रेज़ी नाम ज़रूरी है।',
@@ -459,14 +457,14 @@ const studio = {
   'studio.problem.bad-param':
     'params के किसी नियंत्रण को a-z, 0-9 और _ से बना id, अंग्रेज़ी नाम और max से छोटा min चाहिए।',
   'studio.problem.too-many-params':
-    'एक दृश्य के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
+    'एक सीन के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
   'studio.problem.bad-ambient':
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
   'studio.problem.bad-json': 'pack.json मान्य JSON नहीं है।',
-  'studio.problem.missing-file': 'दृश्य के लिए ज़रूरी एक फ़ाइल गायब है।',
+  'studio.problem.missing-file': 'सीन के लिए ज़रूरी एक फ़ाइल गायब है।',
   'studio.problem.unsafe-path':
     'फ़ाइल नाम इसी फ़ोल्डर की फ़ाइलों के सादे नाम होने चाहिए।',
-  'studio.problem.file-too-large': 'एक फ़ाइल दृश्य की अनुमति से बड़ी है।',
+  'studio.problem.file-too-large': 'एक फ़ाइल सीन की अनुमति से बड़ी है।',
   'studio.compile.heading': 'शेडर कंपाइल नहीं हुआ',
   'studio.compile.hint':
     'उसे ठीक करके सेव करें, या त्रुटि अपने AI में चिपकाएँ।',

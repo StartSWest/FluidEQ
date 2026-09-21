@@ -2,18 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
-  'tour.contribute': 'Bitte unterstütze uns',
+  'tour.contribute': 'Bitte unterstützen Sie uns',
   'tour.rainbow.title': 'Willkommen im Regenbogenmodus',
   'tour.rainbow.subtitle': 'Mit einem Klick einschalten',
   'tour.rainbow.lead':
-    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft — und flüssigere Bewegung: Graph, Pegelanzeigen und Welle werden mit der vollen Bildwiederholrate des Bildschirms gezeichnet statt mit dreißig Bildern pro Sekunde. Der Klang ändert sich nie.',
+    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft — und flüssigere Bewegung: Diagramm, Pegelanzeigen und Welle werden mit der vollen Bildwiederholrate des Bildschirms gezeichnet statt mit dreißig Bildern pro Sekunde. Der Klang ändert sich nie.',
   'tour.rainbow.how':
-    'Hier sofort einschalten — ×10 ist nicht nötig. Deine Wahl wird gespeichert und du kannst den Modus jederzeit ausschalten. Beiträge sind freiwillig.',
+    'Hier sofort einschalten — ×10 ist nicht nötig. Ihre Wahl wird gespeichert und Sie können den Modus jederzeit ausschalten. Beiträge sind freiwillig.',
   'tour.rainbow.enable': 'Regenbogenmodus einschalten',
   'tour.rainbow.disable': 'Regenbogenmodus ausschalten',
   'tour.rainbow.waveform': 'Vorschau der oberen Wellenform',
   'tour.rainbow.toggleHint':
-    'Klicke oben auf den Schalter „RAINBOW MODE“, um den Modus ein- oder auszuschalten.',
+    'Klicken Sie oben auf den Schalter „RAINBOW MODE“, um den Modus ein- oder auszuschalten.',
   'tour.eyebrow': 'NEU IN DIESER VERSION',
   'tour.title': 'Neu in FluidEQ',
   'tour.close': 'Schließen',
@@ -57,18 +57,18 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.speakers': 'Lautsprecher',
 
   'tour.room.kicker': 'SURROUND AUF KOPFHÖRERN',
-  'tour.room.title': 'Nimm im Raum Platz',
-  'tour.room.subtitle': 'Jeder Kanal ein Lautsprecher um deinen Kopf',
+  'tour.room.title': 'Nehmen Sie im Raum Platz',
+  'tour.room.subtitle': 'Jeder Kanal ein Lautsprecher um Ihren Kopf',
   'tour.room.lead':
-    'Der Raum macht aus deinen Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um dich herum, gerendert durch einen vermessenen Kopf und die Wände eines Raums, den du selbst formst — so sitzt ein Film vor dir statt in deinem Kopf.',
+    'Der Raum macht aus Ihren Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um Sie herum, gerendert durch einen vermessenen Kopf und die Wände eines Raums, den Sie selbst formen — so sitzt ein Film vor Ihnen statt in Ihrem Kopf.',
   'tour.room.point1':
-    'Stereo wird zu zwei Lautsprechern vor dir; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring, je nachdem, was läuft.',
+    'Stereo wird zu zwei Lautsprechern vor Ihnen; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring, je nachdem, was läuft.',
   'tour.room.point2':
-    'Vierundzwanzig Räume zum Anfangen — Studio, Wohnzimmer, Kino, Konzertsaal — und deine eigenen, unter Namen gespeichert.',
+    'Vierundzwanzig Räume zum Anfangen — Studio, Wohnzimmer, Kino, Konzertsaal — und Ihre eigenen, unter Namen gespeichert.',
   'tour.room.point3':
-    'Anpassen wählt nach Gehör den Kopf, der die Klänge vor dich setzt, in fünf Paaren.',
+    'Der Hörtest wählt nach Gehör den Kopf, der die Klänge vor Sie setzt, in fünf Paaren.',
   'tour.room.how':
-    'Öffne DSP, wähle Raum in der Leiste und schalte ihn ein. Wähle einen Raum, dann zieh einen Lautsprecher oder dreh einen Regler; drück Anpassen, um deinen Kopf zu wählen.',
+    'Öffnen Sie DSP, wählen Sie Raum in der Leiste und schalten Sie ihn ein. Wählen Sie einen Raum, dann ziehen Sie einen Lautsprecher oder drehen Sie einen Regler; drücken Sie unter „Ihr Kopf“ auf „Hörtest starten“.',
   'tour.room.open': 'Den Raum öffnen',
   'tour.room.imageAlt':
     'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
@@ -101,13 +101,13 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'Plus-Visualizer sind lebendige Szenen – Berge unter dem Sternenhimmel, Vorhänge aus Polarlicht, eine Neonstadt –, die auf Ihrer Grafikkarte unter Ihren EQ-Kurven gezeichnet werden. Bass, Beat und Höhen bewegen jeweils etwas anderes, und das Fenster um sie herum kann ihre Farben annehmen.',
   'tour.visualizers.point1':
-    'Eine Auswahl für alles: 28 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualisierungen nach Kategorien.',
+    'Eine Auswahl für alles: 28 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualizer nach Kategorien.',
   'tour.visualizers.point2':
     'Stöbern Sie in der Galerie, testen Sie zehn Sekunden lang die Kostproben von FluidEQ und fügen Sie die Szenen hinzu, die Ihnen gefallen.',
   'tour.visualizers.point3':
     'Lassen Sie Darstellungen automatisch wechseln, schalten Sie auf Vollbild und stellen Sie unter Ansicht Attack und Release einer Szene ein.',
   'tour.visualizers.how':
-    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualisierungen eine Szene, oder sehen Sie sich alle unter Plus → Visualizer an.',
+    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualizer eine Szene, oder sehen Sie sich alle unter Plus → Visualizer an.',
   'tour.visualizers.open': 'EQ öffnen',
   'tour.visualizers.imageAlt':
     'Alpin, ein Plus-Visualizer mit Bergen über einem See bei Nacht, läuft im Diagramm unter den EQ-Kurven, darunter vier weitere Szenen.',
@@ -147,23 +147,23 @@ const tour: Partial<Dictionary> = {
     'Eine Tastatur, eine Maus und ein Mauspad, beleuchtet im Pink, Violett und Cyan von Neonstadt.',
 
   'tour.theme.kicker': 'EIN NEUER LOOK',
-  'tour.theme.title': 'Das Schwarz-Theme',
+  'tour.theme.title': 'Das dunkle Design',
   'tour.theme.subtitle': 'Reines Schwarz für lange Nächte und OLED-Bildschirme',
   'tour.theme.lead':
-    'FluidEQ hat jetzt ein zweites Gesicht. Schwarz entfernt jede Spur des Schieferblaus, mit dem die App geboren wurde: Panels, Menüs und Leisten werden monochrom, der Akzent bleibt, und das Spektrum ist die einzige Farbe im Raum.',
+    'FluidEQ hat jetzt ein zweites Gesicht. Das dunkle Design entfernt jede Spur des Schieferblaus, mit dem die App geboren wurde: Panels, Menüs und Leisten werden monochrom, der Akzent bleibt, und das Spektrum ist die einzige Farbe im Raum.',
   'tour.theme.point1':
-    'Echtes Schwarz im Hintergrund: Auf einem OLED-Display schalten sich die Pixel rund um den Graphen ab.',
+    'Echtes Schwarz im Hintergrund: Auf einem OLED-Display schalten sich die Pixel rund um das Diagramm ab.',
   'tour.theme.point2':
     'Jedes Fenster zieht mit: Menüs, Dialoge, die Karaoke-Bühne und die Bibliothek wechseln gemeinsam.',
   'tour.theme.point3':
     'Akzentfarbe und Regenbogenmodus bleiben erhalten. Am Klang ändert sich nichts – nur der Anstrich.',
   'tour.theme.howTitle': 'So wechseln Sie',
   'tour.theme.how':
-    'Öffnen Sie das Menü hinter dem Puls-Symbol oben rechts und wählen Sie ganz unten unter Design die Option Schwarz. Ozean ist einen Klick entfernt, wenn Sie zurück wollen.',
-  'tour.theme.tryBlack': 'Jetzt zu Schwarz wechseln',
-  'tour.theme.tryOcean': 'Zurück zu Ozean',
+    'Öffnen Sie das Menü hinter dem Puls-Symbol oben rechts und wählen Sie ganz unten unter Design die Option Dunkel. Hell ist einen Klick entfernt, wenn Sie zurück wollen.',
+  'tour.theme.tryBlack': 'Jetzt zu Dunkel wechseln',
+  'tour.theme.tryOcean': 'Zurück zu Hell',
   'tour.theme.imageAlt':
-    'FluidEQ im Schwarz-Theme: der EQ-Tab mit fünfzehn Bändern und dem Live-Spektrum eines laufenden Songs.',
+    'FluidEQ im dunklen Design: der EQ-Tab mit fünfzehn Bändern und dem Live-Spektrum eines laufenden Songs.',
 
   'tour.share.kicker': 'JEDEN PC HÖREN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',
@@ -202,7 +202,7 @@ const tour: Partial<Dictionary> = {
   'tour.library.title': 'Eine Bibliothek für die Musik, die Ihnen gehört',
   'tour.library.subtitle': 'Ordner hinein, Alben heraus',
   'tour.library.lead':
-    'Zeigen Sie FluidEQ einen Ordner, und es liest jeden Song und jedes Video darin, samt Tags und Cover, und macht daraus eine Sammlung, die Sie nach Album, Künstler, Genre, Titel oder Ordner durchstöbern. Die Wiedergabe läuft über den eigenen Player von FluidEQ, sodass EQ und DSP-Rack immer im Signalweg liegen.',
+    'Zeigen Sie FluidEQ einen Ordner, und es liest jeden Song und jedes Video darin, samt Tags und Cover, und macht daraus eine Sammlung, die Sie nach Album, Interpret, Genre, Song oder Ordner durchstöbern. Die Wiedergabe läuft über den eigenen Player von FluidEQ, sodass EQ und DSP-Rack immer im Signalweg liegen.',
   'tour.library.point1':
     'Drei Ansichten auf dasselbe Regal: Liste, Raster und Cover Flow, mit Buchstabensprung für große Sammlungen.',
   'tour.library.point2':
@@ -217,9 +217,9 @@ const tour: Partial<Dictionary> = {
 
   'tour.dsp.kicker': 'EIN MASTERING-RACK',
   'tour.dsp.title': 'Das DSP-Rack',
-  'tour.dsp.subtitle': 'Neun Stufen, jede mit eigenem Graphen',
+  'tour.dsp.subtitle': 'Neun Stufen, jede mit eigenem Diagramm',
   'tour.dsp.lead':
-    'Ein Rack aus Studiostufen, in dieser Reihenfolge: Normalisierung, Rauschentfernung, Exciter, Bass-Schmiede, Equalizer, Bass-Punch, Dimension, Maximizer und Master, plus eine Überblendung zwischen Titeln der Bibliothek. Unter der FluidEQ-Engine wirkt es auf alles, was der Computer abspielt; unter Equalizer APO auf die Bibliothek. Jede Stufe ist eine Karte mit Live-Graph, Presets und einem Isolieren-Knopf, um nur zu hören, was sie tut.',
+    'Ein Rack aus Studiostufen, in dieser Reihenfolge: Normalisierung, Rauschentfernung, Exciter, Bass-Schmiede, Equalizer, Bass-Punch, Dimension, Maximizer und Master, plus eine Überblendung zwischen Titeln der Bibliothek. Unter der FluidEQ-Engine wirkt es auf alles, was der Computer abspielt; unter Equalizer APO auf die Bibliothek. Jede Stufe ist eine Karte mit Live-Diagramm, Presets und einem Isolieren-Knopf, um nur zu hören, was sie tut.',
   'tour.dsp.point1':
     'Rauschentfernung repariert Rauschen, Brummen und Knackser während der Wiedergabe, und ein neuronaler Stimmreiniger arbeitet an Titeln der Bibliothek.',
   'tour.dsp.point2':
@@ -227,33 +227,33 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.point3':
     'Ein parametrischer Equalizer mit fünfzehn Bändern, minimal- oder linearphasig, Mid/Side, Oversampling und Dutzenden benannten Presets.',
   'tour.dsp.point4':
-    'Master mit LUFS-Lautheitsziel und True-Peak-Schutz, Liefer-Presets von Streaming bis Vinyl und einem Gain-Match, um Klang statt Lautstärke zu vergleichen.',
+    'Master mit LUFS-Lautheitsziel und True-Peak-Schutz, Liefer-Presets von Streaming bis Vinyl und einem Pegelabgleich, um Klang statt Lautstärke zu vergleichen.',
   'tour.dsp.how':
-    'Öffnen Sie den Tab DSP, wählen Sie unter Voreinstellungen eine Kette, klicken Sie dann in den Seitentabs auf eine Stufe und schalten Sie sie auf Ein. Unter Equalizer APO spielen Sie vorher einen Titel aus der Bibliothek ab.',
+    'Öffnen Sie den Tab DSP, wählen Sie unter Presets eine Kette, klicken Sie dann in den Seitentabs auf eine Stufe und schalten Sie sie auf Ein. Unter Equalizer APO spielen Sie vorher einen Titel aus der Bibliothek ab.',
   'tour.dsp.open': 'DSP öffnen',
 
   'tour.output.kicker': 'SPIELT AN ZWEI ORTEN',
-  'tour.output.title': 'Profile für den zweiten Ausgang',
+  'tour.output.title': 'Profile für die zweite Ausgabe',
   'tour.output.subtitle':
     'Headset und Lautsprecher zugleich, jedes mit eigenem Profil',
   'tour.output.lead':
     'Kopfhörer und Lautsprecher gleichzeitig mit getrenntem EQ hören. Der zweite Ausgang erhält den Ton vor dem EQ des Hauptausgangs und wendet sein eigenes gespeichertes Profil an. Kein Routing-Treiber nötig.',
   'tour.output.point1':
-    'Ein weiteres Gerät unter Zweiter Ausgang einschalten und seine Lautstärke einstellen.',
+    'Ein weiteres Gerät unter Zweite Ausgabe einschalten und seine Lautstärke einstellen.',
   'tour.output.point2':
     'Im EQ-Profilwähler unter dem Gerät eines seiner gespeicherten Profile auswählen. Die Abstimmung des Hauptausgangs bleibt erhalten.',
   'tour.output.point3':
-    'Ein Player zur Zeit: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
+    'Nur ein Player: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
   'tour.output.point4':
     'Spiel/Video startet mit etwa 30 ms Reserve und holt nach einer Unterbrechung auf; Musik startet mit etwa 100 ms für gleichmäßigere Wiedergabe. Der Gerätepuffer erhöht die Verzögerung.',
   'tour.output.how':
-    'Im EQ-Tab rechts Zweiter Ausgang öffnen. Ein Gerät einschalten, unter seinem Namen das EQ-Profil wählen, die Lautstärke einstellen und Spiel/Video oder Musik auswählen.',
+    'Im EQ-Tab rechts Zweite Ausgabe öffnen. Ein Gerät einschalten, unter seinem Namen das EQ-Profil wählen, die Lautstärke einstellen und Spiel/Video oder Musik auswählen.',
   'tour.output.open': 'EQ öffnen',
   'tour.output.imageAlt':
-    'Zweiter Ausgang mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und den Modi Spiel/Video und Musik.',
+    'Zweite Ausgabe mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und den Modi Spiel/Video und Musik.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
-  'tour.looks.title': 'Eigene Darstellungen für den Graphen',
+  'tour.looks.title': 'Eigene Darstellungen für das Diagramm',
   'tour.looks.subtitle': 'Achtundzwanzig Formen, Ihre Farben, Ihre Bewegung',
   'tour.looks.lead':
     'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von achtundzwanzig Formen, von schlichten Balken und Linien bis zu Terrassen, Skylines und einer nächtlichen Brücke mit Verkehr; färben Sie sie in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen oder Wellen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
@@ -266,24 +266,24 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point4':
     'Leuchten funktioniert in jedem Modus, und der Regenbogenmodus fügt einen Rand hinzu, der das ganze Farbrad durchläuft. Darstellungen lassen sich als Datei exportieren und importieren.',
   'tour.looks.how':
-    'Drücken Sie im Tab EQ „Neue Darstellung“ in der Leiste des Graphen. Wählen Sie eine Form mit dem Wähler oder blättern Sie mit der Leertaste, stellen Sie Farben und Bewegung bei laufender Musik ein und dann Speichern.',
+    'Drücken Sie im Tab EQ „Neue Darstellung“ in der Leiste des Diagramms. Wählen Sie eine Form mit dem Wähler oder blättern Sie mit der Leertaste, stellen Sie Farben und Bewegung bei laufender Musik ein und dann Speichern.',
   'tour.looks.open': 'EQ öffnen',
 
   'tour.karaoke.kicker': 'EINE BÜHNE ZU HAUSE',
-  'tour.karaoke.title': 'Karaoke mit Tonhöhenführung',
+  'tour.karaoke.title': 'Karaoke mit Tonhöhenanzeige',
   'tour.karaoke.subtitle': 'Ihre Songs, Ihre Texte, Ihr Mikrofon',
   'tour.karaoke.lead':
     'Legen Sie einen Song mit oder ohne Textdatei ab: FluidEQ fügt beides zu einer Playlist zusammen, zeigt den getimten Text über Cover oder Video, hört auf Ihr Mikrofon und zeichnet Ihre Tonhöhe gegen die Melodie. Alles bleibt auf diesem Computer; das Mikrofon wird nie aufgenommen oder wiedergegeben.',
   'tour.karaoke.point1':
-    'Ein Guide-Gesang-Regler von Original bis nur Begleitung, der die Hauptstimme ohne separate Datei entfernt.',
+    'Ein Regler „Führungsstimme“ von „Original“ bis „Nur Playback“, der die Hauptstimme ohne separate Datei entfernt.',
   'tour.karaoke.point2':
-    'Eine Tonhöhenspur in der Ansicht Noten oder Kurve: die Noten des Songs als Blöcke, Ihre Stimme als Live-Linie, mit Rückmeldung Hoch, Richtig und Tief.',
+    'Eine Tonhöhenspur in der Ansicht Noten oder Kurve: die Noten des Songs als Blöcke, Ihre Stimme als Live-Linie, mit Rückmeldung Zu hoch, Richtig und Zu tief.',
   'tour.karaoke.point3':
-    'Eine Auswertung danach, die die Stellen zum Üben auflistet, mit Einzähler für den nächsten Durchlauf.',
+    'Eine Leistungsübersicht danach, die die Stellen zum Üben auflistet, mit Einzähler für den nächsten Durchlauf.',
   'tour.karaoke.point4':
     'Liest LRC, erweitertes LRC mit Wort-Timing und UltraStar mit Silben und Tonhöhe, über MP3, FLAC, WAV, OGG, M4A und mehr. Übersetzte Texte und geschätzte Gitarrenakkorde kommen dazu.',
   'tour.karaoke.how':
-    'Öffnen Sie den Tab Karaoke, drücken Sie „Song öffnen“ oder „Ordner hinzufügen“, wählen Sie einen Titel in der Playlist, schalten Sie das Mikrofon ein, blenden Sie die Tonhöhenführung ein und drücken Sie Wiedergabe.',
+    'Öffnen Sie den Tab Karaoke, drücken Sie „Song öffnen“ oder „Ordner hinzufügen“, wählen Sie einen Titel in der Playlist, schalten Sie das Mikrofon ein, blenden Sie die Tonhöhenanzeige ein und drücken Sie Wiedergeben.',
   'tour.karaoke.open': 'Karaoke öffnen',
 
   'tour.maker.kicker': 'SELBST GEMACHT',
@@ -292,13 +292,13 @@ const tour: Partial<Dictionary> = {
   'tour.maker.lead':
     'Ein vollständiges Autorenstudio im Tab Karaoke. Es kann die ganze Arbeit allein erledigen: die Stimme von der Musik trennen, Wörter und Timing mit einem lokalen Sprachmodell lesen und die Melodienoten erkennen. Oder Sie tippen, nehmen auf und zeichnen jedes Timing von Hand auf einer zoombaren Zeitleiste. Alles läuft auf diesem Computer.',
   'tour.maker.point1':
-    '„Diesen Song automatisch einrichten“: Stimme trennen, dann Wörter und Timing lesen, mit der Option, im Hintergrund weiterzumachen.',
+    '„Diesen Song automatisch einrichten“: Stimme trennen, dann Wörter und Timing lesen, mit der Option „Im Hintergrund fortsetzen“.',
   'tour.maker.point2':
-    'Behalten Sie die getrennten Spuren: Stimme und Begleitung, jede speicherbar, auch als MP3.',
+    'Behalten Sie die getrennten Spuren: Stimme und Playback, jede speicherbar, auch als MP3.',
   'tour.maker.point3':
-    'Handwerkzeug für die Details: Wörter tippen, Zeileneinsätze aufnehmen, ein Wortinspektor mit Start und Länge, und ein Wort in Silben teilen.',
+    'Handwerkzeug für die Details: Wörter takten, Zeilenanfänge aufnehmen, ein Wortinspektor mit Start und Länge, und ein Wort in Silben teilen.',
   'tour.maker.point4':
-    'Malen Sie die Melodie auf ein Tonhöhenraster, markieren Sie goldene Noten und exportieren Sie als FluidEQ-Projekt, UltraStar TXT, LRC, erweitertes LRC oder Begleitspur.',
+    'Malen Sie die Melodie auf ein Tonhöhenraster, markieren Sie goldene Noten und exportieren Sie als FluidEQ-Projekt, UltraStar TXT, LRC, erweitertes LRC oder Playback.',
   'tour.maker.how':
     'Laden Sie in Karaoke einen Song und drücken Sie „Erstellen“. Nehmen Sie im Assistenten „Automatisch einrichten“ an, korrigieren Sie die Wörter auf der Zeitleiste, dann „Im Player verwenden“ und „Exportieren“.',
   'tour.maker.open': 'Karaoke öffnen',
@@ -309,7 +309,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.lead':
     'Ein eingebauter Player für die Streaming-Seiten, damit das, was Sie online sehen und hören, durch Ihren EQ läuft statt durch einen separaten Browser. Fünf Seiten sind angebunden, jede mit eigener Suche, und Links nach draußen werden mit der Wahl „Im Browser öffnen“ angehalten.',
   'tour.media.point1':
-    'Ein Suchfeld, das die gerade geöffnete Seite durchsucht, mit letzten Suchen, die Sie löschen können.',
+    'Ein Suchfeld, das die gerade geöffnete Seite durchsucht, mit letzten Suchanfragen, die Sie löschen können.',
   'tour.media.point2':
     '„Werbung blockieren“ überspringt Videowerbung und blendet Werbeplätze auf YouTube aus.',
   'tour.media.point3':
@@ -317,7 +317,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.point4':
     'Downloads mit Fortschrittsanzeige und „Im Ordner anzeigen“ am Ende, und ein Knopf „Von allen Seiten abmelden“, der jedes Cookie und jede Anmeldung auf einmal löscht.',
   'tour.media.how':
-    'Öffnen Sie den Tab Online-Medien, wählen Sie oben eine Seite, tippen Sie ins Suchfeld und drücken Sie Suchen. Zurück, Vor und Neu laden funktionieren wie im Browser.',
+    'Öffnen Sie den Tab Online-Medien, wählen Sie oben eine Seite, tippen Sie ins Suchfeld und drücken Sie Suchen. Zurück, Vorwärts und Neu laden funktionieren wie im Browser.',
   'tour.media.open': 'Online-Medien öffnen',
 };
 

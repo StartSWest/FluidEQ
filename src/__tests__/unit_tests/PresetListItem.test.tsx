@@ -22,7 +22,7 @@ import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 import PresetListItem from '../../renderer/components/PresetListItem';
 
 describe('PresetListItem', () => {
-  const editModeLabel = 'Edit Preset Name';
+  const editModeLabel = 'Edit profile name';
   const editIconLabel = 'Edit';
   const deleteIconLabel = 'Delete';
   const handleRename = jest.fn();

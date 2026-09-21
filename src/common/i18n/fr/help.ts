@@ -55,7 +55,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.share':
     'Envoie le son de cet ordinateur vers un autre, ou lit ici celui d’un autre.',
   'help.window.eq':
-    'Vos bandes, vos préréglages, la correction casque, les profils de jeu et la config du moteur.',
+    'Vos bandes, vos préréglages, la correction du casque, les préréglages de jeu et la config du moteur.',
   'help.window.waveName': 'Signal audio',
   'help.window.wave':
     'Ce qui est en lecture, en direct. Appuyez dessus pour changer la façon dont il est dessiné.',
@@ -107,7 +107,7 @@ const help: Record<keyof typeof en, string> = {
   'help.engine.apply':
     'Change de moteur. Windows demande une autorisation une fois, et l’audio redémarre en quelques secondes.',
 
-  'help.eq.title': 'Façonnez votre son avec EQ',
+  'help.eq.title': 'Façonnez votre son avec l’Égaliseur',
   'help.eq.intro':
     'Fréquence détermine où agit une bande ; Gain, son amplification ou atténuation ; Q, sa largeur : un Q élevé est plus étroit. Sans bande sélectionnée, Graves, Médiums et Aigus déplacent toute la courbe à la fois. Commencez par de petites corrections larges et comparez souvent.',
   'help.eq.steps':
@@ -119,7 +119,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.gameMode':
     'Réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels. Les préréglages Jeux l’activent.',
   'help.eq.layers':
-    'Les autres couches qui façonnent cette sortie — une correction casque, l’Égalisation auto, une convolution — chacune avec son intensité, son interrupteur et son ×.',
+    'Les autres couches qui façonnent cette sortie — une correction du casque, l’Égalisation auto, une convolution — chacune avec son intensité, son interrupteur et son ×.',
   'help.eq.bandName': 'Une bande',
   'help.eq.band':
     'Faites glisser son point pour amplifier ou atténuer. Cliquez sur sa fréquence pour la sélectionner.',
@@ -143,7 +143,7 @@ const help: Record<keyof typeof en, string> = {
     'Les nombres de bandes, et les dispositions de bandes que vous avez enregistrées.',
   'help.eq.frequency': 'Où agit la bande sélectionnée, de 1 Hz à 20 kHz.',
   'help.eq.gain':
-    'De combien elle amplifie ou atténue. Ctrl+click la ramène à 0 dB.',
+    'De combien elle amplifie ou atténue. Ctrl+clic la ramène à 0 dB.',
   'help.eq.q': 'Sa largeur : plus le Q est élevé, plus la bande est étroite.',
   'help.eq.delete':
     'Appuyez deux fois pour supprimer la bande ; Garder annule la suppression.',
@@ -174,11 +174,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Donne un nom aux fréquences et au Q actuels pour en faire une disposition, listée sous Mes dispositions.',
 
-  'help.games.title': 'Profils de jeu',
+  'help.games.title': 'Préréglages de jeu',
   'help.games.intro':
     'Donnez à chaque jeu un son bien à lui. Quand le jeu passe au premier plan, FluidEQ bascule sur ce son et le garde jusqu’à ce que vous fermiez le jeu, même si vous passez à autre chose entre-temps avec Alt+Tab. Puis il remet ce que vous aviez.',
   'help.games.steps':
-    'Ouvrez Égaliseur → Profils de jeu et appuyez sur Ajouter un jeu. Prenez-en un dans vos lanceurs ou parmi les programmes ouverts en ce moment, ou choisissez vous-même son programme.\nDans le sélecteur de sa ligne, choisissez le son qu’il doit recevoir : un préréglage Jeux, ou n’importe quel autre.\nLancez le jeu. Une carte sur le Bureau indique sur quoi FluidEQ a basculé, et une autre, ce qui est revenu quand vous le fermez.',
+    'Ouvrez Égaliseur → Préréglages de jeu et appuyez sur Ajouter un jeu. Prenez-en un dans vos lanceurs ou parmi les programmes ouverts en ce moment, ou choisissez vous-même son programme.\nDans le sélecteur de sa ligne, choisissez le son qu’il doit recevoir : un préréglage Jeux, ou n’importe quel autre.\nLancez le jeu. Une carte sur le Bureau indique sur quoi FluidEQ a basculé, et une autre, ce qui est revenu quand vous le fermez.',
   'help.games.tip':
     'Tant qu’un jeu a la main sur le son, la barre en bas de la fenêtre affiche son nom. Choisissez un autre son en cours de partie et il reste : FluidEQ ne défait que ce qu’il a fait lui-même. Les préréglages Jeux activent aussi le Mode jeu.',
   'help.games.tab': 'Vos jeux et le son que reçoit chacun.',
@@ -192,9 +192,9 @@ const help: Record<keyof typeof en, string> = {
   'help.games.removeName': 'Retirer',
   'help.games.remove': 'Oublie le jeu. Le préréglage qu’il utilisait reste.',
 
-  'help.headphones.title': 'Correction casque et importation',
+  'help.headphones.title': 'Correction du casque et importation',
   'help.headphones.intro':
-    'Une correction compense un modèle mesuré et se combine avec vos bandes et vos préréglages. Vérifiez le modèle exact et l’auteur de la mesure.',
+    'Une correction du casque compense un modèle mesuré et se combine avec vos bandes et vos préréglages. Vérifiez le modèle exact et l’auteur de la mesure.',
   'help.headphones.steps':
     'Ouvrez Égaliseur → Préréglages EQ et cherchez votre modèle de casque. Examinez les mesures disponibles et choisissez l’entrée correspondante.\nPour du texte EQ venant d’un autre outil, utilisez Importer des réglages d’égalisation dans le menu des actions. Vérifiez les bandes et la courbe analysées avant d’appliquer.\nPour Squiglink, collez son export dans le panneau d’importation. Appliquer comme EQ remplace vos bandes ; Appliquer comme courbe l’ajoute comme correction du casque, avec sa propre intensité.',
   'help.headphones.tip':
@@ -208,7 +208,7 @@ const help: Record<keyof typeof en, string> = {
   'help.convolution.tip':
     'Le moteur FluidEQ convertit lui-même la fréquence de n’importe quelle impulsion. Equalizer APO a besoin d’un WAV importé à la fréquence de la sortie. Les téléchargements du catalogue nécessitent une connexion ; le guide, non.',
 
-  'help.profiles.title': 'Appareils, profils et seconde sortie',
+  'help.profiles.title': 'Appareils, profils et deuxième sortie',
   'help.profiles.intro':
     'Votre EQ suit le périphérique de sortie. Association automatique enregistre les modifications sur la sortie actuelle, tandis que Profils enregistrés vous permet de garder d’autres sons. Deuxième sortie duplique la lecture vers d’autres appareils, avec un niveau distinct pour chacun.',
   'help.profiles.steps':
@@ -248,7 +248,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.steps':
     'Ouvrez l’onglet DSP. Choisissez une chaîne sous Préréglages, ou sélectionnez un étage dans la colonne latérale et activez-le.\nChangez un réglage à la fois et comparez avec l’étage contourné, à volume similaire. Isoler vous fait entendre uniquement ce qu’un étage ajoute.\nEnregistrez un rack qui vous plaît, et utilisez Exporter et Importer pour le partager.',
   'help.dsp.tip':
-    'Plus fort paraît souvent meilleur simplement parce que c’est plus fort : comparez donc à niveaux égaux. Faites Ctrl+click sur un bouton rotatif pour le ramener à sa valeur par défaut.',
+    'Plus fort paraît souvent meilleur simplement parce que c’est plus fort : comparez donc à niveaux égaux. Faites Ctrl+clic sur un bouton rotatif pour le ramener à sa valeur par défaut.',
   'help.dsp.normalizer':
     'Uniformise la sonie. Sur l’audio en direct, il la nivelle morceau par morceau.',
   'help.dsp.denoise':
@@ -288,7 +288,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.speakerName': 'L’enceinte choisie',
   'help.room.dialsName': 'Espace, Ambiance, Distance',
   'help.room.dials':
-    'Ce que vous entendez des murs, la queue douce qui suit, et la distance des enceintes. Taille, Murs, ainsi que la longueur et le timbre de la queue sont dans Caractère de la salle, en dessous.',
+    'Ce que vous entendez des murs, la traîne douce qui suit, et la distance des enceintes. Taille, Murs, ainsi que la longueur et la couleur de la traîne sont dans Caractère de la salle, en dessous.',
   'help.room.fit':
     'Cinq paires d’écoute qui choisissent la tête pour vos oreilles.',
   'help.room.head':
@@ -309,9 +309,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'Le graphique et ses commandes',
   'help.graph.intro':
-    'Le graphique de réponse trace vos courbes d’EQ sur le son en direct. La barre au-dessus choisit ce qui est dessiné et comment, et elle change selon le style choisi : style standard ou visualiseur Plus.',
+    'La courbe de réponse trace vos courbes d’EQ sur le son en direct. La barre au-dessus choisit ce qui est dessiné et comment, et elle change selon le style choisi : style standard ou visualiseur Plus.',
   'help.graph.steps':
-    'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Space et Ctrl+Space les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde. La Cadence s’y trouve aussi : toutes les images que votre écran propose, ou 60 ou 30, et 60 sur batterie.\nUn visualiseur Plus ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Utiliser son onde d’origine ramène l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le tracé pour passer en plein écran. Un simple clic masque ou affiche la barre.',
+    'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Espace et Ctrl+Espace les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde. La Cadence s’y trouve aussi : toutes les images que votre écran propose, ou 60 ou 30, et 60 sur batterie.\nUn visualiseur Plus ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Utiliser son onde d’origine ramène l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le tracé pour passer en plein écran. Un simple clic masque ou affiche la barre.',
   'help.graph.tip':
     'Tout ceci ne change que le dessin, jamais votre son. Le mode arc-en-ciel (à activer dans Aide → Nouveautés) dessine les styles standard, les vumètres et l’onde à la pleine fréquence de votre écran au lieu de 30 images par seconde. Échap quitte la vue agrandie et le plein écran.',
   'help.graph.stripCaption': 'Avec un style standard',
@@ -538,10 +538,10 @@ const help: Record<keyof typeof en, string> = {
     'Les paroles, et le moment où chaque mot est chanté',
   'help.maker.referenceName': 'Paroles de référence',
   'help.maker.reference':
-    'La chanson entière en texte, une ligne par rangée. Collez-la ou chargez un fichier ; FluidEQ en tire la synchronisation.',
+    'La chanson entière en texte, une ligne par rangée. Collez-la ou chargez un fichier ; FluidEQ en tire le calage.',
   'help.maker.timingName': 'Calage du mot',
   'help.maker.timing':
-    'Tous les mots dans l’ordre, avec le nombre déjà minuté. Appuyez sur l’un d’eux pour le travailler.',
+    'Tous les mots dans l’ordre, avec le nombre déjà calé. Appuyez sur l’un d’eux pour le travailler.',
   'help.maker.wordName': 'Mot sélectionné',
   'help.maker.word':
     'Où commence le mot choisi et combien de temps il dure. Déplacer son bord donne ou prend du temps au mot voisin ; la ligne garde sa durée.',
@@ -551,7 +551,7 @@ const help: Record<keyof typeof en, string> = {
   'help.maker.loadVocals':
     'Utilisez un fichier de voix seule que vous avez déjà, au lieu d’en séparer un ici.',
   'help.maker.redetectTiming':
-    'Réécoute la voix et recalcule le minutage des mots déjà présents.',
+    'Réécoute la voix et recalcule le calage des mots déjà présents.',
   'help.maker.redetectNotes':
     'Réécoute la mélodie et réécrit les notes sous les mots.',
   'help.maker.modelsName': 'Mémoire des modèles IA',
@@ -564,15 +564,15 @@ const help: Record<keyof typeof en, string> = {
   'help.makerBar.caption': 'Les outils en haut du créateur',
   'help.makerBar.import':
     'Ouvre un fichier karaoké ou un projet enregistré, en gardant l’audio déjà chargé.',
-  'help.makerBar.lyrics': 'Les mots et leur minutage, dans une seule fenêtre.',
+  'help.makerBar.lyrics': 'Les mots et leur calage, dans une seule fenêtre.',
   'help.makerBar.timing':
     'Déplace les mots et les notes ensemble, pour une chanson en avance ou en retard dès la première seconde.',
   'help.makerBar.pan':
-    'Faites glisser la frise pour parcourir la chanson sans rien modifier.',
+    'Faites glisser la timeline pour parcourir la chanson sans rien modifier.',
   'help.makerBar.language':
     'La langue des paroles, et une seconde à côté pour la chanter dans l’une ou l’autre.',
   'help.makerBar.record':
-    'Lancez la chanson et appuyez sur une touche au début et à la fin de chaque ligne. Le minutage vient de vos appuis.',
+    'Lancez la chanson et appuyez sur une touche au début et à la fin de chaque ligne. Le calage vient de vos appuis.',
   'help.makerBar.select':
     'Tracez un cadre autour des notes pour les déplacer ou les supprimer ensemble.',
   'help.makerBar.paint':

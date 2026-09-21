@@ -1,19 +1,19 @@
 const engineHealth = {
-  'engineHealth.offTitle': 'O motor FluidEQ não está a funcionar em {device}',
+  'engineHealth.offTitle': 'O Motor FluidEQ não está funcionando em {device}',
   'engineHealth.offBody':
-    'Esta saída está a tocar sem o seu EQ. Reiniciar o áudio do Windows costuma trazer o motor de volta, e tudo o resto no FluidEQ continua a funcionar entretanto.',
-  'engineHealth.neverRanTitle': 'O Windows nunca iniciou o motor do FluidEQ',
+    'Esta saída está tocando sem o seu EQ. Reiniciar o áudio do Windows costuma trazer o motor de volta, e todo o resto no FluidEQ continua funcionando enquanto isso.',
+  'engineHealth.neverRanTitle': 'O Windows nunca iniciou o Motor FluidEQ',
   'engineHealth.neverRanBody':
-    'O motor está instalado e colocado em {device}, e o Windows não o carregou uma única vez aí — por isso reiniciar o áudio não o trará de volta. O FluidEQ já corrigiu tudo o que consegue alcançar; se continuar assim, é o seu software de segurança ou o controlador da placa de som que o está a impedir. Entretanto, o Equalizer APO processa o seu som.',
+    'O motor está instalado e colocado em {device}, e o Windows não o carregou uma única vez aí — por isso reiniciar o áudio não o trará de volta. O FluidEQ já corrigiu tudo o que consegue alcançar; se continuar assim, é o seu software de segurança ou o driver da placa de som que o está impedindo. Enquanto isso, o Equalizer APO processa o seu som.',
   'engineHealth.bypassedTitle':
-    'O teu som não está a passar pelo FluidEQ em {device}',
+    'O seu som não está passando pelo FluidEQ em {device}',
   'engineHealth.bypassedBody':
-    'O motor está instalado e ligado para esta saída, e o Windows está a reproduzir a música ao lado dele: não lhe chegou som nenhum. Uma saída tem vários sítios onde um efeito pode ficar, e o Windows escolhe um diferente para cada tipo de reprodução; o FluidEQ está num por onde esta música não passa. Mudá-lo pede uma permissão do Windows e um segundo de silêncio.',
-  'engineHealth.tryAnotherSlot': 'Tentar outro sítio',
+    'O motor está instalado e ligado para esta saída, e o Windows está reproduzindo a música ao lado dele: não lhe chegou som nenhum. Uma saída tem vários lugares onde um efeito pode ficar, e o Windows escolhe um diferente para cada tipo de reprodução; o FluidEQ está num por onde esta música não passa. Mudá-lo pede uma permissão do Windows e um segundo de silêncio.',
+  'engineHealth.tryAnotherSlot': 'Tentar outro lugar',
   'engineHealth.partlyOff': 'EM PARTE DESLIG.',
-  'engineHealth.problemsTitle': 'Parte do seu som não está a chegar a {device}',
+  'engineHealth.problemsTitle': 'Parte do seu som não está chegando a {device}',
   'engineHealth.problem.convolution':
-    'A convolução está desligada: o motor não conseguiu carregar a resposta ao impulso. Experimente outro ficheiro.',
+    'A convolução está desligada: o motor não conseguiu carregar a resposta ao impulso. Experimente outro arquivo.',
   'engineHealth.problem.eq-phase':
     'O EQ de fase linear não iniciou; os filtros originais continuam ativos.',
   'engineHealth.problem.graphic-eq':
@@ -21,15 +21,15 @@ const engineHealth = {
   'engineHealth.problem.dsp-rack':
     'Os efeitos DSP estão desligados: o motor não conseguiu iniciá-los.',
   'engineHealth.problem.reload-failed':
-    'A sua última alteração não carregou, por isso a anterior continua a tocar.',
+    'A sua última alteração não carregou, por isso a anterior continua tocando.',
   'engineHealth.problem.unwatched':
-    'O motor não vê as alterações que faz para esta saída.',
+    'O motor não vê as alterações que você faz para esta saída.',
   'engineHealth.problem.other':
-    'Outra coisa pedida ao motor não está a funcionar.',
+    'Outra coisa pedida ao motor não está funcionando.',
   'engineHealth.engineIsOld':
-    'O motor FluidEQ instalado neste PC não é o que esta versão do FluidEQ traz.',
+    'O Motor FluidEQ instalado neste PC não é o que esta versão do FluidEQ traz.',
   'engineHealth.rackNeedsEngine':
-    'Os efeitos DSP correm dentro do próprio motor, por isso reiniciar o áudio do Windows arranca o mesmo motor outra vez. O que resolve é pôr o motor do próprio FluidEQ — uma permissão do Windows e um segundo de silêncio.',
+    'Os efeitos DSP rodam dentro do próprio motor, por isso reiniciar o áudio do Windows inicia o mesmo motor outra vez. O que resolve é colocar no lugar o motor do próprio FluidEQ — uma permissão do Windows e um segundo de silêncio.',
   'engineHealth.useApo': 'Usar o Equalizer APO…',
 } as const;
 

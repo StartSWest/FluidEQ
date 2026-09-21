@@ -36,7 +36,7 @@ const eq: Partial<Dictionary> = {
     'Não foi possível atualizar seus designs. Tente novamente.',
   'eq.layouts.clearTitle': 'Limpar EQ?',
   'eq.layouts.clearWarning':
-    'Definir o ganho de cada banda em 0 dB. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificador atuais.',
+    'Definir o ganho de cada banda em 0 dB. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificação atuais.',
   'eq.layouts.deleteNamed': 'Excluir “{name}”',
   'eq.layouts.deleteWarning':
     'Excluir “{name}” dos designs salvos? Seu EQ atual permanece igual.',
@@ -47,7 +47,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.linearPhase': 'Linear',
   'eq.mode.phaseHint':
     'Mínima é a opção padrão. Mantém a afinação; Linear pode acrescentar atraso e pré-ringing.',
-  'eq.mode.phaseUpdate': 'Atualize o motor FluidEQ para alterar a fase.',
+  'eq.mode.phaseUpdate': 'Atualize o Motor FluidEQ para alterar a fase.',
   'eq.mode.eqPhaseHint':
     'Mínima é a opção padrão. Linear mantém ganho e Q, mas acrescenta atraso e pode ressoar antes de ataques rápidos.',
   'eq.mode.reset': 'Redefinir',
@@ -68,24 +68,24 @@ const eq: Partial<Dictionary> = {
     'Reforços e cortes mais fortes ficam mais estreitos.',
   'eq.mode.asymmetricHint': 'Reforços mais amplos e cortes mais estreitos.',
   'eq.double': 'EQ ×2',
-  'eq.apoEngine': 'APO Engine',
+  'eq.apoEngine': 'Motor APO',
   'eq.fluidEngine': 'Motor FluidEQ',
-  'eq.engineNotHere': 'O FluidEQ não está a chegar a esta saída',
+  'eq.engineNotHere': 'O FluidEQ não está chegando a esta saída',
   'eq.mode': 'Modo EQ',
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Estúdio',
   'eq.mode.yourEq': 'Seu EQ',
   'eq.mode.curves': 'Curvas',
   'eq.studioHint':
-    'Multiplica o ganho do grupo escolhido por ×1.5 e adapta a largura dos sinos. O DSP não muda.',
+    'Multiplica o ganho do grupo escolhido por ×1,5 e adapta a largura dos sinos. O DSP não muda.',
   'eq.doubleHint':
-    'Aplica o grupo EQ escolhido duas vezes. DSP e pré-amplificador não mudam.',
+    'Aplica o grupo EQ escolhido duas vezes. DSP e pré-amplificação não mudam.',
   'graph.resize': 'Arraste para redimensionar o gráfico',
   'graph.view.title': 'Quanto espaço da tela o gráfico ocupa',
   'graph.view.normal': 'Visualização',
   'graph.view.expanded': 'Expandida',
-  'graph.view.fullscreen': 'Tela inteira',
-  'graph.view.exitFullscreen': 'Sair do ecrã inteiro',
+  'graph.view.fullscreen': 'Tela cheia',
+  'graph.view.exitFullscreen': 'Sair da tela cheia',
   'graph.view.expand': 'Expandir visualização',
   'graph.showing': 'Mostrando: {content}',
   'graph.contents.everything': 'Tudo',
@@ -151,13 +151,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent} %',
   'graph.scene.controlHint':
-    'Um controlo do próprio visualizador, tal como o autor o deixou',
+    'Um controle do próprio visualizador, tal como o autor o deixou',
   'graph.scene.ownWave': 'Usar a onda original',
   'graph.scene.ownWaveHint':
-    'Devolve a onda ao sítio onde o autor da cena a deixou. A tua altura e posição ficam guardadas por cena até o fazeres.',
-  'graph.scene.ownControls': 'Usar as definições dele',
+    'Devolve a onda ao lugar onde o autor da cena a deixou. A sua altura e posição ficam salvas por cena até você fazer isso.',
+  'graph.scene.ownControls': 'Usar as configurações dele',
   'graph.scene.ownControlsHint':
-    'Voltar às definições com que este visualizador veio',
+    'Voltar às configurações com que este visualizador veio',
   'graph.scene.ownTiming': 'Usar o ritmo original',
   'graph.scene.ownTimingHint':
     'Volta ao ataque e à liberação com que este visualizador veio',
@@ -227,13 +227,13 @@ const eq: Partial<Dictionary> = {
   'graph.curves': 'Curvas',
   'graph.curvesHint': 'Quais curvas são desenhadas',
   'graph.liveOutput': 'Saída ao vivo',
-  'graph.clip': 'SATURAÇÃO — reduza o pré-amplificador',
+  'graph.clip': 'SATURAÇÃO — reduza a pré-amplificação',
   'graph.driverCurve': 'Resposta de frequência desta correção do driver',
   'graph.curve.convolution': 'Convolução do fone',
   'graph.curve.driver': 'Driver',
   'graph.curve.headphone': 'Fone de ouvido',
   'graph.curve.eq': 'Resposta do EQ',
-  'graph.curve.voicing': 'Sonoridade',
+  'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'EQ inteligente',
   'graph.curve.custom': 'FX personalizados',
   'graph.curve.total': 'Saída final',
@@ -312,8 +312,8 @@ const eq: Partial<Dictionary> = {
   'output.off': 'DESLIG.',
   'output.apoMissingTitle': 'O Equalizer APO não está ativado para esta saída',
   'output.apoMissingBody':
-    'O FluidEQ não pode alterar {device} até o ativar no Seletor de dispositivos do Equalizer APO e reiniciar o Windows.',
-  'output.apoConfigure': 'Ativar no Seletor de dispositivos',
+    'O FluidEQ não pode alterar {device} até que você o ative no Device Selector do Equalizer APO e reinicie o Windows.',
+  'output.apoConfigure': 'Ativar no Device Selector',
   'output.engineMissingTitle': 'O FluidEQ não está ativado para esta saída',
   'output.engineMissingBody':
     'Ativá-lo para {device} pede permissão ao Windows e reinicia o áudio por instantes. Sem reiniciar o computador.',
@@ -321,22 +321,22 @@ const eq: Partial<Dictionary> = {
   'output.notNow': 'Agora não',
   'output.noEffectsTitle': 'Nenhum EQ consegue chegar a esta saída',
   'output.noEffectsBody':
-    'O Windows não aplica efeitos de áudio em {device}, por isso nenhum equalizador a consegue alterar — o áudio do Ambiente de Trabalho Remoto é uma saída assim. Para ouvir o seu EQ, reproduza pelas colunas ou auscultadores do próprio computador.',
-  'output.effectsOffTitle': 'O Windows está a ignorar os efeitos nesta saída',
+    'O Windows não aplica efeitos de áudio em {device}, por isso nenhum equalizador consegue alterá-la — o áudio da Área de Trabalho Remota é uma saída assim. Para ouvir o seu EQ, reproduza pelos alto-falantes ou fones de ouvido do próprio computador.',
+  'output.effectsOffTitle': 'O Windows está ignorando os efeitos nesta saída',
   'output.effectsOffBody':
-    'As melhorias de áudio estão desativadas para {device}, por isso o Windows não executa nenhum efeito nela — incluindo o motor do FluidEQ, por melhor que esteja configurado. Volte a ativá-las para esta saída nas definições de som do Windows e o seu EQ regressa.',
-  'output.openSoundSettings': 'Abrir definições de som',
+    'Os aprimoramentos de áudio estão desativados para {device}, por isso o Windows não executa nenhum efeito nela — incluindo o Motor FluidEQ, por melhor que esteja configurado. Volte a ativá-los para esta saída nas configurações de som do Windows e o seu EQ regressa.',
+  'output.openSoundSettings': 'Abrir configurações de som',
   'output.gotIt': 'Entendido',
   'output.roomBadge': 'SALA',
   'output.roomStereoTitle': '{device} está em estéreo',
   'output.roomStereoBody':
-    'Põe-na em 7.1 para que jogos e filmes cheguem à sala com todos os canais. A música continua exatamente como agora: o estéreo vai para as duas colunas frontais.',
+    'Coloque-a em 7.1 para que jogos e filmes cheguem à sala com todos os canais. A música continua exatamente como agora: o estéreo vai para os dois alto-falantes frontais.',
   'output.setSevenOne': 'Pôr em 7.1',
-  'output.settingSevenOne': 'A alterar…',
+  'output.settingSevenOne': 'Alterando…',
   'output.roomSevenOneTitle': '{device} é agora uma saída 7.1',
   'output.roomSevenOneBody':
-    'A sala tem os oito canais. Anular repõe a saída como estava.',
-  'output.undoSevenOne': 'Anular',
+    'A sala tem os oito canais. Desfazer deixa a saída como estava.',
+  'output.undoSevenOne': 'Desfazer',
   'output.sevenOneFailed': 'O Windows não aceitou o formato 7.1 nesta saída.',
   'output.none': 'Nenhuma saída ativa encontrada',
   'output.mapping': 'Vínculo automático',
@@ -363,7 +363,7 @@ const eq: Partial<Dictionary> = {
   'extraOutput.mode.video.buffer': 'Início ~30 ms',
   'extraOutput.mode.music.title': 'Música',
   'extraOutput.mode.music.body':
-    'Guarda um décimo de segundo de reserva para nunca engasgar.',
+    'Mantém um décimo de segundo de reserva para nunca engasgar.',
   'extraOutput.mode.music.buffer': 'Início ~100 ms',
   'extraOutput.latency.video':
     'O som espelhado fica perto o bastante de uma tela para a fala bater com a boca. Se você ouvir as duas saídas do mesmo lugar, pode notar um leve eco.',
@@ -378,12 +378,12 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'O FluidEQ ainda não consegue ler os nomes das saídas e por isso não consegue combiná-las. Permita o acesso ao microfone para o FluidEQ e abra este painel de novo.',
   'extraOutput.hint':
-    'Cada saída usa seu próprio perfil de EQ. A duplicação funciona apenas enquanto o FluidEQ está aberto.',
+    'Cada saída usa seu próprio perfil de EQ. O espelhamento funciona apenas enquanto o FluidEQ está aberto.',
   'extraOutput.profile': 'Perfil de EQ',
   'extraOutput.profile.error':
     'Não foi possível carregar ou alterar o perfil desta saída.',
   'driver.filter.presenceSoftening':
-    'Corte amplo e suave de presença quando o som parece demasiado frontal.',
+    'Corte amplo e suave de presença quando o som parece frontal demais.',
   'driver.filter.trebleSoftening':
     'Um pequeno corte de agudos para gravações ásperas ou um encaixe brilhante.',
   'driver.filter.edgeSoftening':
@@ -396,11 +396,11 @@ const eq: Partial<Dictionary> = {
     'Um pequeno reforço de ar para experimentar apenas se o som parecer abafado.',
   'driver.filter.edited': 'Editado no Equalizer APO',
   'driver.profile.note.headphone':
-    'Um ponto de partida subtil para ouvir. O tipo de driver não prevê a afinação do modelo. Verifique a vedação das almofadas e prefira um perfil medido para os seus auscultadores exatos.',
+    'Um ponto de partida sutil para ouvir. O tipo de driver não prevê a afinação do modelo. Verifique a vedação das almofadas e prefira um perfil medido para o modelo exato dos seus fones de ouvido.',
   'driver.profile.note.iem':
     'O encaixe e as ponteiras alteram o som. Este é um ajuste suave de escuta, não uma correção para todos os IEM deste tipo. Use medições do modelo exato quando disponíveis.',
   'driver.profile.note.material':
-    'O material por si só não localiza um pico de agudos. Este ajuste amplo de gosto evita cortes em ressonâncias presumidas. Deixe desligado se os auscultadores já soarem equilibrados.',
+    'O material por si só não localiza um pico de agudos. Este ajuste amplo de gosto evita cortes em ressonâncias presumidas. Deixe desligado se os fones de ouvido já soarem equilibrados.',
   'driver.profile.note.size':
     'O diâmetro por si só não identifica um erro de resposta. Este corte amplo e ligeiro é opcional; não substitui um perfil medido para o modelo exato.',
   'driver.profile.note.small':
@@ -408,7 +408,7 @@ const eq: Partial<Dictionary> = {
   'driver.eyebrow': 'NO QUE VOCÊ OUVE',
   'driver.title': 'Tipo de driver',
   'driver.none': 'Sem compensação',
-  'driver.none.hint': 'Apenas suas bandas e o caráter',
+  'driver.none.hint': 'Apenas suas bandas e o preset',
   'driver.strength': 'Intensidade',
   'driver.range': '±{db} dB',
   'profiles.eyebrow': 'SEU SOM',
@@ -512,10 +512,10 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyTitle': 'Sua curva importada aparecerá aqui',
   'squigImport.emptyHint':
     'Cole uma exportação para ver a forma dela antes de continuar o ajuste fino no EQ.',
-  'voicing.quickAria': 'Caráter: {name}',
-  'voicing.quickNone': 'Caráter: nenhum',
-  'voicing.quickTitle': 'Nenhum caráter aplicado',
-  'voicing.quickLabel': 'Caráter',
+  'voicing.quickAria': 'Preset: {name}',
+  'voicing.quickNone': 'Preset: nenhum',
+  'voicing.quickTitle': 'Nenhum preset aplicado',
+  'voicing.quickLabel': 'Presets',
   'voicing.quickNoneHint': 'Apenas suas bandas de EQ',
   'eq.eyebrow': 'AJUSTE FINO',
   'eq.title': 'EQ paramétrico',
@@ -525,17 +525,17 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancelAria': 'Cancelar a medição do EQ inteligente',
   'eq.smart.continuous': 'Contínuo',
   'eq.smart.continuousAria':
-    'Continuar a medir e ajustar o EQ enquanto a música toca',
+    'Continuar medindo e ajustando o EQ enquanto a música toca',
   'eq.smart.modeAria': 'Escolher como o EQ inteligente mede',
   'eq.smart.mode.once.note': 'Uma medição, aplicada de uma vez',
   'eq.smart.mode.detail': 'Detalhe',
-  'eq.smart.mode.detail.note': 'Continua a medir · apenas picos e falhas',
+  'eq.smart.mode.detail.note': 'Continua medindo · apenas picos e falhas',
   'eq.smart.mode.balance': 'Equilíbrio',
   'eq.smart.mode.balance.note':
-    'Continua a medir · uniformiza também brilho e calor',
+    'Continua medindo · uniformiza também brilho e calor',
   'eq.smart.mode.target': 'Alvo',
   'eq.smart.mode.target.note':
-    'Continua a medir · cada gravação para a mesma curva',
+    'Continua medindo · cada gravação para a mesma curva',
   'eq.layers': 'Também aplicado',
   'eq.layers.count': '{count} camadas',
   'eq.layers.countOff': '{count} camadas · {off} desligadas',
@@ -544,19 +544,19 @@ const eq: Partial<Dictionary> = {
   'eq.layers.eq.modified': '(modificado)',
   'eq.layers.eq.bands': '{count} bandas',
   'eq.layers.convolution': 'Convolução',
-  'eq.layers.voicing': 'Caráter',
+  'eq.layers.voicing': 'Preset',
   'eq.layers.driver': 'Driver',
-  'eq.layers.headphone': 'Auscultadores',
-  'eq.layers.customHeadphone': 'Personalizados',
+  'eq.layers.headphone': 'Fone de ouvido',
+  'eq.layers.customHeadphone': 'Personalizado',
   'eq.layers.custom': 'FX personalizado',
-  'eq.layers.disable': 'Desliga {layer} sem a remover',
-  'eq.layers.enable': 'Liga {layer} novamente',
+  'eq.layers.disable': 'Desligar {layer} sem remover a camada',
+  'eq.layers.enable': 'Ligar {layer} novamente',
   'eq.layers.smart': 'EQ inteligente',
   'eq.layers.smart.fullRange': 'Medido · faixa inteira',
   'eq.layers.smart.range': 'Medido · de {low} a {high}',
   'eq.layers.remove': 'Remover a camada de {layer}',
-  'eq.layers.clearBands': 'Repor todas as bandas a 0 dB',
-  'eq.layers.clearReference': 'Remover a correção dos auscultadores',
+  'eq.layers.clearBands': 'Redefinir todas as bandas para 0 dB',
+  'eq.layers.clearReference': 'Remover a correção de fones',
   'eq.layers.clearSmart':
     'Remover a correção medida. Suas bandas e a referência permanecem.',
   'eq.layers.clearCustom': 'Limpar filtros e texto do FX personalizado',
@@ -666,11 +666,11 @@ const eq: Partial<Dictionary> = {
   'eq.smart.error.timedOut': 'A medição demorou demais. Tente de novo.',
   'eq.smart.error.closed': 'O FluidEQ encerrou a medição.',
   'eq.smart.presence.ignoredBelow': 'não conta abaixo de {db} dB',
-  'eq.smart.presence.trustedAbove': 'fiável acima de {db} dB',
-  'eq.smart.presence.reset': 'Repor {range} neste modo',
-  'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
+  'eq.smart.presence.trustedAbove': 'confiável acima de {db} dB',
+  'eq.smart.presence.reset': 'Redefinir {range} neste modo',
+  'eq.smart.limit.label': 'Limite do EQ inteligente {db} dB',
   'eq.smart.gap.title':
-    '{range}: quanto discorda, face ao necessário para agir',
+    '{range}: quanto discorda, em relação ao necessário para agir',
   'eq.smart.gap.countdown': 'escreve em {seconds}s',
   'convolution.eyebrow': 'RESPOSTAS AO IMPULSO DO APO',
   'convolution.eyebrow.fluid': 'RESPOSTAS AO IMPULSO',
@@ -698,20 +698,20 @@ const eq: Partial<Dictionary> = {
   'convolution.none':
     'Nenhuma convolução carregada. A aba de EQ continua totalmente independente.',
   'voicing.eyebrow': 'CURVAS-ALVO',
-  'voicing.title': 'Caráter',
+  'voicing.title': 'Presets',
   'voicing.intro':
     'Um alvo ajustado para o que você realmente está fazendo. Cada um é escrito como uma camada própria depois das suas bandas, então o seu ajuste nunca é tocado e voltar para Nenhum o restaura exatamente.',
-  'voicing.refused': 'Não foi possível mudar o voicing',
+  'voicing.refused': 'Não foi possível mudar o preset',
   'voicing.groupPurpose': 'Para quê',
   'voicing.gameModeHint':
-    'Também é o modo jogo: enquanto este caráter está ativo, o FluidEQ abre mão de todo atraso mantido só por conforto. A página DSP mostra o que resta.',
-  'voicing.groupGenre': 'Género',
+    'Também é o Modo jogo: enquanto este preset está ativo, o FluidEQ abre mão de todo atraso mantido só por conforto. A página DSP mostra o que resta.',
+  'voicing.groupGenre': 'Gênero',
   'voicing.none': 'Nenhum',
   'voicing.none.hint': 'Apenas suas bandas de EQ, sem nada por cima',
   'voicing.strength': 'Intensidade',
   'voicing.off': 'Nada',
   'voicing.full': 'Total',
-  'voicing.inert': 'Com 0% de intensidade este caráter não faz nada.',
+  'voicing.inert': 'Com 0% de intensidade este preset não faz nada.',
   'voicing.headroom':
     'Adiciona até +{peak} dB. Normalizar automaticamente reserva a margem; deixe ligado a menos que você ajuste a pré-amplificação na mão.',
   'waveform.style': 'Mudar o estilo do medidor',

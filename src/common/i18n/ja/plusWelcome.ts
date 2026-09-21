@@ -6,12 +6,12 @@ const plusWelcome = {
   'plusWelcome.scenes.title': 'すべてのビジュアライザー',
   'plusWelcome.scenes.line':
     'FluidEQ のシーンとメンバーが公開したすべてを、あなたの音楽で。',
-  'plusWelcome.studio.title': 'Creator Studio',
+  'plusWelcome.studio.title': 'スタジオ',
   'plusWelcome.studio.line': '自分のシーンを作り、ギャラリーに公開できます。',
   'plusWelcome.desktop.title': 'デスクトップ',
   'plusWelcome.desktop.line':
     'アイコンの背後でビジュアライザーを再生。1 画面でも全画面でも。',
-  'plusWelcome.lighting.title': 'ダイナミックライト',
+  'plusWelcome.lighting.title': 'ダイナミック ライティング',
   'plusWelcome.lighting.line':
     '再生中のシーンの色で、照明が音楽に合わせて動きます。',
   'plusWelcome.board.title': 'ランキング',

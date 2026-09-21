@@ -22,11 +22,11 @@ const terms = {
 
   'terms.membership.title': 'Die Mitgliedschaft',
   'terms.membership.p1':
-    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Looks nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen. Plus kann auch ohne Zahlung dazukommen. Wenn FluidEQ einen kostenlosen Testzeitraum anbietet, kann ein Konto, das ab dem Tag des Angebotsbeginns angelegt wurde, ihn einmal nutzen: {trialDays} Tage, ohne Karte, und am Ende wird nichts abgebucht. Und eine Szene, die Sie veröffentlichen und die ein Moderator freigibt, kann Ihnen einen Monat Plus einbringen. Beides ist kein Abonnement: Nichts verlängert sie, und es wird nie etwas dafür berechnet.',
+    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Darstellungen nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen. Plus kann auch ohne Zahlung dazukommen. Wenn FluidEQ eine Gratis-Testphase anbietet, kann ein Konto, das ab dem Tag des Angebotsbeginns angelegt wurde, sie einmal nutzen: {trialDays} Tage, ohne Karte, und am Ende wird nichts abgebucht. Und eine Szene, die Sie veröffentlichen und die ein Moderator freigibt, kann Ihnen einen Monat Plus einbringen. Beides ist kein Abonnement: Nichts verlängert sie, und es wird nie etwas dafür berechnet.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und danach wird nichts mehr abgebucht.',
   'terms.membership.p4':
-    'Endet eine Mitgliedschaft, werden die Plus-Looks und die Szenen, die Mitglieder erstellt haben, wieder gesperrt und FluidEQ kehrt zu seinen kostenlosen Looks zurück; nichts, was Sie erstellt haben, wird gelöscht. Ohne Verbindung funktioniert Plus bis zum Ende des bezahlten Zeitraums weiter und danach noch bis zu {graceDays} Tage, falls die App keine Verlängerung bestätigen konnte. Ein kostenloser Testzeitraum, ein Geschenk und ein durch Veröffentlichen verdienter Monat enden an ihrem eigenen Datum: Nichts verlängert sie, also gibt es danach keine Kulanzzeit. Nichts Kostenloses ist jemals betroffen.',
+    'Endet eine Mitgliedschaft, werden die Plus-Darstellungen und die Szenen, die Mitglieder erstellt haben, wieder gesperrt und FluidEQ kehrt zu seinen kostenlosen Darstellungen zurück; nichts, was Sie erstellt haben, wird gelöscht. Ohne Verbindung funktioniert Plus bis zum Ende des bezahlten Zeitraums weiter und danach noch bis zu {graceDays} Tage, falls die App keine Verlängerung bestätigen konnte. Eine Gratis-Testphase, ein Geschenk und ein durch Veröffentlichen verdienter Monat enden an ihrem eigenen Datum: Nichts verlängert sie, also gibt es danach keine Kulanzzeit. Nichts Kostenloses ist jemals betroffen.',
   'terms.membership.p5':
     'Der Macher kann Plus an eine E-Mail-Adresse verschenken. Es wird aktiv, sobald ein Konto diese Adresse bestätigt, und gilt bis zu dem Enddatum, das der Macher gewählt hat, falls es eines gibt, oder bis der Macher es zurücknimmt.',
 
@@ -34,7 +34,7 @@ const terms = {
   'terms.account.p1':
     'Ein Konto besteht aus einer E-Mail-Adresse, einem Passwort und, falls Sie einen angeben, einem Namen, und Sie müssen mindestens {age} Jahre alt sein, um eines anzulegen. Das Passwort wird verschlüsselt an den Anmeldedienst übertragen und dort nur als Einweg-Hash gespeichert, den niemand zurücklesen kann, auch der Macher nicht.',
   'terms.account.p2':
-    'An Ihre E-Mail gehen die Codes, die Ihre Adresse bestätigen und Ihr Passwort zurücksetzen. Anderen Mitgliedern wird sie nie gezeigt: In der Rangliste und unter „Visualizer“ erscheinen Sie mit dem Handle und dem Anzeigenamen, die Sie wählen.',
+    'An Ihre E-Mail gehen die Codes, die Ihre Adresse bestätigen und Ihr Passwort zurücksetzen. Anderen Mitgliedern wird sie nie gezeigt: In der Rangliste und unter „Visualizer“ erscheinen Sie mit dem Kürzel und dem Anzeigenamen, die Sie wählen.',
   'terms.account.p3':
     'Auf Ihrem Computer speichert die App Ihre Sitzung, verschlüsselt durch das Betriebssystem. Konten sind persönlich: Behalten Sie Ihr Passwort für sich.',
   'terms.account.p4':
@@ -55,7 +55,7 @@ const terms = {
   'terms.sent.membership.when':
     'Beim Start der App, wenn Sie sich anmelden, wenn Sie an den Computer zurückkehren (höchstens alle paar Stunden) und wenn Sie auf „Erneut prüfen“ klicken',
   'terms.sent.membership.who':
-    'Nur Sie und der Macher. Der Dienst bestätigt Ihre Mitgliedschaft, sucht nach einer Zahlung bei Buy Me a Coffee mit Ihrer bestätigten E-Mail und liest, welcher Version dieser Bedingungen Sie zugestimmt haben, damit die App Ihnen sagen kann, wenn sie sich ändern. Dasselbe Token fragt, ob diesem Konto ein kostenloser Testzeitraum offensteht und wie es um seine verdienten Monate steht.',
+    'Nur Sie und der Macher. Der Dienst bestätigt Ihre Mitgliedschaft, sucht nach einer Zahlung bei Buy Me a Coffee mit Ihrer bestätigten E-Mail und liest, welcher Version dieser Bedingungen Sie zugestimmt haben, damit die App Ihnen sagen kann, wenn sie sich ändern. Dasselbe Token fragt, ob diesem Konto eine Gratis-Testphase offensteht und wie es um seine verdienten Monate steht.',
   'terms.sent.payment.what':
     'Die E-Mail, mit der Sie bezahlen, Status und Zeitraum Ihrer Mitgliedschaft und die IDs von Buy Me a Coffee für Ihre Mitgliedschaft, gesendet von Buy Me a Coffee',
   'terms.sent.payment.when': 'Wenn Sie bezahlen, verlängern oder kündigen',
@@ -64,7 +64,7 @@ const terms = {
   'terms.sent.agreement.what':
     'Welcher Version dieser Bedingungen Sie zugestimmt haben, und wann',
   'terms.sent.agreement.when':
-    'Wenn Sie weiter zur Zahlung gehen, einen kostenlosen Testzeitraum starten, eine Szene exportieren oder eine veröffentlichen',
+    'Wenn Sie weiter zur Zahlung gehen, eine Gratis-Testphase starten, eine Szene exportieren oder eine veröffentlichen',
   'terms.sent.agreement.who':
     'Der Macher. Die Angabe wird bei Ihrem Konto gespeichert, auch wenn Sie danach nicht bezahlen.',
   'terms.sent.looks.what':
@@ -72,13 +72,13 @@ const terms = {
   'terms.sent.looks.when':
     'Beim Start der App, wenn Sie an den Computer zurückkehren und wenn Sie die Liste der Darstellungen öffnen, um neue Versionen zu holen und zu erfahren, welche geteilten Szenen entfernt wurden',
   'terms.sent.looks.who':
-    'Nichts wird gespeichert. Jeder Look ist signiert, und Ihr Computer prüft die Signatur, bevor er ihn abspielt.',
+    'Nichts wird gespeichert. Jede Darstellung ist signiert, und Ihr Computer prüft die Signatur, bevor er sie abspielt.',
   'terms.sent.catalogue.what': 'Nichts über Sie',
   'terms.sent.catalogue.when':
-    'Beim Start von FluidEQ, höchstens alle paar Stunden, um zu zeigen, welche Plus-Looks es gibt, mit oder ohne Konto',
+    'Beim Start von FluidEQ, höchstens alle paar Stunden, um zu zeigen, welche Plus-Darstellungen es gibt, mit oder ohne Konto',
   'terms.sent.catalogue.who':
-    'Nichts wird gespeichert. Die Anfrage holt nur die öffentliche Liste der Looks.',
-  'terms.sent.profile.what': 'Das Handle und der Anzeigename, die Sie wählen',
+    'Nichts wird gespeichert. Die Anfrage holt nur die öffentliche Liste der Darstellungen.',
+  'terms.sent.profile.what': 'Das Kürzel und der Anzeigename, die Sie wählen',
   'terms.sent.profile.when': 'Wenn Sie sie in der Rangliste wählen',
   'terms.sent.profile.who':
     'Jedes angemeldete Konto: in der Rangliste, bei den Szenen, die Sie veröffentlichen, und auf Ihrer Ersteller-Seite unter „Visualizer“, wo man nach ihnen suchen kann. Namen, die sich als FluidEQ oder dessen Mitarbeiter ausgeben, werden abgelehnt.',
@@ -87,7 +87,7 @@ const terms = {
   'terms.sent.board.when':
     'Nur wenn Sie der Rangliste beitreten: beim Beitritt, höchstens alle {uploadHours} Stunden, wenn Sie an den Computer zurückkehren, und wenn Sie die Rangliste oder die Seite eines Erstellers unter „Visualizer“ öffnen',
   'terms.sent.board.who':
-    'Ihr Handle, Ihr Anzeigename, Ihr Rang, Ihre Punkte und woraus sie bestehen: jedes angemeldete Konto, in der Rangliste und auf Ihrer Ersteller-Seite.',
+    'Ihr Kürzel, Ihr Anzeigename, Ihr Rang, Ihre Punkte und woraus sie bestehen: jedes angemeldete Konto, in der Rangliste und auf Ihrer Ersteller-Seite.',
   'terms.sent.sceneExport.what':
     'Eine Szene, die Sie exportieren: ihr Code, ihre Einstellungen, Bilder und Ambiente-Elemente',
   'terms.sent.sceneExport.when': 'Wenn Sie im Studio auf Exportieren klicken',
@@ -104,7 +104,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
   'terms.sent.scenePublish.who':
-    'Sobald ein Moderator sie freigegeben hat, sehen unter „Visualizer“ alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Handle und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+    'Sobald ein Moderator sie freigegeben hat, sehen unter „Visualizer“ alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Kürzel und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
   'terms.sent.gallery.what':
     'Unter „Visualizer“: wonach Sie suchen, welche Szenen und Ersteller Sie öffnen, welche Szenen Sie hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
   'terms.sent.gallery.when':
@@ -134,7 +134,7 @@ const terms = {
   'terms.protect.p2':
     'Die Regeln liegen auf dem Server, nicht in der App: Jedes Konto kann nur seine eigenen Daten ändern, und eine veränderte Kopie von FluidEQ bekommt genau dieselben Antworten.',
   'terms.protect.p3':
-    'Rangliste und „Visualizer“ zeigen Handles und Anzeigenamen, niemals E-Mail-Adressen. Konto-IDs werden nie angezeigt, stehen aber in Szenendateien und in dem, was „Visualizer“ an die App sendet.',
+    'Rangliste und „Visualizer“ zeigen Kürzel und Anzeigenamen, niemals E-Mail-Adressen. Konto-IDs werden nie angezeigt, stehen aber in Szenendateien und in dem, was „Visualizer“ an die App sendet.',
   'terms.protect.p4':
     'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
   'terms.protect.p5':
@@ -146,7 +146,7 @@ const terms = {
 
   'terms.fair.title': 'Fairness in der Rangliste',
   'terms.fair.p1':
-    'Punkte gibt es für Hören und „Gefällt mir“: {hourPoints} für jede Stunde Musik, {dayPoints} für jeden Tag mit mindestens {activeMinutes} Minuten davon und {likePoints} für jedes „Gefällt mir“ für Ihre Szenen. Die Rangliste zeigt die besten 100 und führt ein Konto nur, solange es ein bezahltes, geschenktes oder durch Veröffentlichen verdientes Plus hat — ein kostenloser Testzeitraum wird nicht geführt. Seine Tage bleiben in jedem Fall erhalten und zählen wieder, sobald Plus zurückkehrt.',
+    'Punkte gibt es für Hören und „Gefällt mir“: {hourPoints} für jede Stunde Musik, {dayPoints} für jeden Tag mit mindestens {activeMinutes} Minuten davon und {likePoints} für jedes „Gefällt mir“ für Ihre Szenen. Die Rangliste zeigt die besten 100 und führt ein Konto nur, solange es ein bezahltes, geschenktes oder durch Veröffentlichen verdientes Plus hat — eine Gratis-Testphase wird nicht geführt. Seine Tage bleiben in jedem Fall erhalten und zählen wieder, sobald Plus zurückkehrt.',
   'terms.fair.p2':
     'Die Hörzeit zählt die App auf Ihrem Computer, der Server kann also nicht zusehen. Stattdessen prüft er jede Zahl: nicht mehr als {capHours} Stunden am Tag, kein Tag, der noch nicht begonnen hat, nichts, was älter als {windowDays} Tage ist, und kein Tag, der schneller wächst als die Uhr. Die Zahlen Ihrer Computer ergeben zusammen einen einzigen Tag, der ebenfalls nicht schneller wächst als die Uhr – mehrere Computer, die gleichzeitig spielen, können also nicht mehr Zeit ergeben, als vergangen ist.',
   'terms.fair.p3':
@@ -168,19 +168,19 @@ const terms = {
   'terms.keep.p1':
     'Rangliste: Die Tage, die Sie senden, bleiben in der Rangliste, bis Sie sie entfernen. „Alle meine Daten löschen“ im Konto-Bereich löscht auf einmal jeden Tag, den Sie je gesendet haben; die Rangliste zu verlassen beendet nur das Senden. Ihr Computer behält nur die Summen der letzten {windowDays} Tage.',
   'terms.keep.p2':
-    'Ihr Handle und Anzeigename: gespeichert, solange Sie ein Konto haben, und mit ihm gelöscht.',
+    'Ihr Kürzel und Anzeigename: gespeichert, solange Sie ein Konto haben, und mit ihm gelöscht.',
   'terms.keep.p3':
     'Mitgliedschaft: Ihre Zahlungs-E-Mail, der Status und die IDs von Buy Me a Coffee für Ihre Mitgliedschaft werden gespeichert, um Zahlungen Ihrem Konto zuzuordnen, und mit ihm gelöscht. Der Eintrag zu jedem Zahlungsereignis enthält nur die IDs von Buy Me a Coffee und den Zeitpunkt.',
   'terms.keep.p4':
-    'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen weg, zusammen mit Profil, Ranglistentagen, Mitgliedschaft, kostenlosen Testzeiträumen und verdienten Monaten, Zustimmungen, „Gefällt mir“, Hinzufügungen, Meldungen und den Szenen, die Sie veröffentlicht haben, samt ihren Dateien. Ein Plus-Geschenk an Ihre E-Mail bleibt bestehen, bis der Macher es entfernt.',
+    'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen weg, zusammen mit Profil, Ranglistentagen, Mitgliedschaft, Gratis-Testphasen und verdienten Monaten, Zustimmungen, „Gefällt mir“, Hinzufügungen, Meldungen und den Szenen, die Sie veröffentlicht haben, samt ihren Dateien. Ein Plus-Geschenk an Ihre E-Mail bleibt bestehen, bis der Macher es entfernt.',
   'terms.keep.p5':
     'Szenen: Das Zurückziehen entfernt eine Szene samt Bild, Datei und Versionsverlauf aus „Visualizer“. „Gefällt mir“, Hinzufügungen und Meldungen dazu bleiben, bis die Konten, von denen sie stammen, gelöscht werden, und zählen wieder, wenn Sie die Szene erneut veröffentlichen. Von einer wegen Verstoßes gegen diese Bedingungen gesperrten Szene bleibt ein Fingerabdruck aus Ihrer Konto-ID und der ID der Szene gespeichert, mit Grund und Datum, damit sie gesperrt bleibt.',
   'terms.keep.p6':
-    'Auf Ihrem Computer: die Plus-Looks und die Szenen, die Sie hinzugefügt haben, verschlüsselt; Galeriebilder, bis zu 128 MB; und die Liste der gesperrten Szenen. Sie bleiben, bis Sie sie entfernen oder FluidEQ deinstallieren.',
+    'Auf Ihrem Computer: die Plus-Darstellungen und die Szenen, die Sie hinzugefügt haben, verschlüsselt; Galeriebilder, bis zu 128 MB; und die Liste der gesperrten Szenen. Sie bleiben, bis Sie sie entfernen oder FluidEQ deinstallieren.',
 
-  'terms.looks.title': 'Die Plus-Looks',
+  'terms.looks.title': 'Die Plus-Darstellungen',
   'terms.looks.p1':
-    'Die Plus-Looks sind das eigene Werk des Machers, lizenziert für Ihren persönlichen Gebrauch, solange Sie Mitglied sind. Bitte kopieren, teilen oder verkaufen Sie sie nicht weiter.',
+    'Die Plus-Darstellungen sind das eigene Werk des Machers, lizenziert für Ihren persönlichen Gebrauch, solange Sie Mitglied sind. Bitte kopieren, teilen oder verkaufen Sie sie nicht weiter.',
   'terms.looks.p2':
     'Plus-Mitglieder können die eigenen Szenen von FluidEQ im Studio öffnen, um hineinzuschauen und sich Ideen zu holen. Eine so geöffnete Kopie kann nicht zu Ihren Darstellungen hinzugefügt, exportiert oder veröffentlicht werden.',
   'terms.looks.p3':
@@ -192,7 +192,7 @@ const terms = {
   'terms.scenes.p2':
     'Ihre Studio-Szenen bleiben auf Ihrem Computer, sofern Sie sie nicht exportieren, veröffentlichen oder mit einem anderen Werkzeug wie Ihrem KI-Assistenten teilen.',
   'terms.scenes.p3':
-    'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen – auch im Abgleich mit den eigenen Szenen von FluidEQ –, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Plus-Mitglieder sie abspielen und sehen können, dass sie von Ihnen ist. Das ist die ganze Erlaubnis: Der Macher von FluidEQ wird Ihre Szene weder verkaufen noch für Werbung nutzen, wird sie nicht zu einem der Plus-Looks machen, ohne Sie vorher zu fragen, und hindert Sie nicht daran, mit Ihrer eigenen Arbeit sonst etwas zu tun.',
+    'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen – auch im Abgleich mit den eigenen Szenen von FluidEQ –, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Plus-Mitglieder sie abspielen und sehen können, dass sie von Ihnen ist. Das ist die ganze Erlaubnis: Der Macher von FluidEQ wird Ihre Szene weder verkaufen noch für Werbung nutzen, wird sie nicht zu einer der Plus-Darstellungen machen, ohne Sie vorher zu fragen, und hindert Sie nicht daran, mit Ihrer eigenen Arbeit sonst etwas zu tun.',
   'terms.scenes.p4':
     'Teilen gehört zu Plus und ist keine Arbeit: Niemand wird für eine Szene mit Geld bezahlt, und niemand bezahlt für eine. Was Sie zurückbekommen, sind alle Szenen, die die anderen Mitglieder teilen — und, wenn der Macher von FluidEQ eine Ihrer Szenen freigibt, ein Monat Plus, also Zugang und niemals Geld.',
   'terms.scenes.p5':
@@ -204,7 +204,7 @@ const terms = {
   'terms.scenes.p8':
     'Eine Datei, die Sie verschickt haben, bleibt bei allen, die sie haben, und das Zurückziehen nimmt keine Kopien zurück, die Mitglieder bereits hinzugefügt haben; sie bleiben zur persönlichen Nutzung lizenziert, solange diese Mitglieder Plus haben. Wenn sich eine Szene nirgends mehr öffnen soll, bitten Sie den Macher von FluidEQ darum; er kann sie auf dieselbe Weise sperren wie eine Szene, die gegen die Regeln verstößt.',
   'terms.scenes.p9':
-    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie außerdem dem Macher von FluidEQ, sie zu lesen, bevor jemand anderes sie sieht, und FluidEQ, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien und Versionsnotizen mit Ihrem Anzeigenamen und Ihrem Handle allen bei FluidEQ Angemeldeten zu zeigen und die Szene selbst Plus-Mitgliedern anzubieten, die sie abspielen und hinzufügen können. Die Ambiente-Elemente, die Sie ihr mitgeben, werden mit ihr weitergegeben, und Mitglieder, die den Modus „Ambiente“ wählen, sehen sie rund um ihr Fenster. Sie können sie jederzeit zurückziehen, mit oder ohne Plus.',
+    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie außerdem dem Macher von FluidEQ, sie zu lesen, bevor jemand anderes sie sieht, und FluidEQ, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien und Versionsnotizen mit Ihrem Anzeigenamen und Ihrem Kürzel allen bei FluidEQ Angemeldeten zu zeigen und die Szene selbst Plus-Mitgliedern anzubieten, die sie abspielen und hinzufügen können. Die Ambiente-Elemente, die Sie ihr mitgeben, werden mit ihr weitergegeben, und Mitglieder, die den Modus „Ambiente“ wählen, sehen sie rund um ihr Fenster. Sie können sie jederzeit zurückziehen, mit oder ohne Plus.',
   'terms.scenes.p10':
     'Veröffentlichen ist freiwillig und etwas anderes, als eine Datei zu exportieren. Eine Versionsnotiz ist öffentlich wie die Szene, zu der sie gehört.',
 

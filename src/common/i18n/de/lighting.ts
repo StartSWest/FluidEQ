@@ -1,9 +1,9 @@
 const lighting = {
   'lighting.alignment.title': 'Szene ausrichten',
   'lighting.alignment.hint':
-    'Verschiebe oder skaliere die Szene auf diesem Gerät. Die Position ist ein Prozentwert der Breite oder Höhe.',
+    'Verschieben oder skalieren Sie die Szene auf diesem Gerät. Die Position ist ein Prozentwert der Breite oder Höhe.',
   'lighting.alignment.keyboardFit':
-    'An die erkannten Tastenpositionen angepasst. Hier kannst du die Szene fein abstimmen.',
+    'An die erkannten Tastenpositionen angepasst. Hier können Sie die Szene fein abstimmen.',
   'lighting.alignment.size': 'Szenengröße',
   'lighting.alignment.horizontal': 'Horizontale Position (%)',
   'lighting.alignment.vertical': 'Vertikale Position (%)',

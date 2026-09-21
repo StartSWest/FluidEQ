@@ -30,7 +30,7 @@ const account = {
   'account.name.change': 'Cambiar nombre',
   'account.name.changeTitle': 'Cambia cómo te ven',
   'account.name.changeBody':
-    'Tu apodo y tu nombre en la clasificación y en las escenas que has publicado. Cambian en todas partes a la vez; tu correo sigue siendo privado.',
+    'Tu alias y tu nombre en la clasificación y en las escenas que has publicado. Cambian en todas partes a la vez; tu correo sigue siendo privado.',
   'account.name.cancel': 'Cancelar',
   'account.signedIn': 'Sesión iniciada',
   'account.backToSignIn': 'Volver a iniciar sesión',
@@ -121,7 +121,7 @@ const account = {
   'account.dev.cancel': 'Simular una cancelación',
   'account.dev.working': 'Enviando…',
 
-  'account.perk.looks': 'Looks Plus, dibujados en la tarjeta gráfica.',
+  'account.perk.looks': 'Estilos Plus, dibujados en la tarjeta gráfica.',
   'account.perk.visualizers':
     'Visualizadores: las escenas que crean los miembros, abiertas a todas las cuentas.',
   'account.perk.board': 'Una clasificación de quién escucha más.',

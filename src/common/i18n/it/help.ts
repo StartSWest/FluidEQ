@@ -243,7 +243,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Il rack DSP è una catena di stadi da studio. Con il motore FluidEQ elabora tutto ciò che il PC riproduce; con Equalizer APO elabora le tracce audio della Libreria. Resta spento mentre FluidEQ è spento.',
   'help.dsp.steps':
-    'Apri DSP. Scegli una catena in Preimpostazioni, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.',
+    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.',
   'help.dsp.tip':
     'Un suono più forte spesso sembra migliore solo perché è più forte, quindi confronta a parità di livello. Ctrl+click su una manopola la riporta al valore predefinito.',
   'help.dsp.normalizer':
@@ -276,7 +276,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.tip':
     "Giochi e film inviano i loro canali surround solo a un'uscita che Windows crede abbia altrettanti altoparlanti: quando il driver lo accetta, il pannello di uscita offre un tocco per passare a 7.1.",
   'help.room.picker':
-    'Le stanze da cui partire, raggruppate come i profili di ogni altro stadio; Personalizzato appena ne modelli una.',
+    'Le stanze da cui partire, raggruppate come i preset di ogni altro stadio; Personalizzato appena ne modelli una.',
   'help.room.picture':
     "La stanza vista dall'alto: pareti che sbiadiscono assorbendo, gli altoparlanti sul loro anello, la testa al centro. È tutto disegnato in un'unica scala, quindi un altoparlante più lontano di quanto la stanza sia larga viene disegnato fuori dalle sue pareti. Trascinane uno e il suo gemello lo segue; tieni Maiusc per spostarlo da solo.",
   'help.room.speaker':
@@ -284,7 +284,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.speakerName': "L'altoparlante scelto",
   'help.room.dialsName': 'Spazio, Ambiente, Distanza',
   'help.room.dials':
-    'Quanto senti delle pareti, la coda morbida che le segue e quanto sono lontani gli altoparlanti. Dimensione, Pareti e la durata e il tono della coda sono in Carattere della stanza, qui sotto.',
+    'Quanto senti delle pareti, la coda morbida che le segue e quanto sono lontani gli altoparlanti. Dimensione, Pareti e la lunghezza e il tono della coda sono in Carattere della stanza, qui sotto.',
   'help.room.fit':
     'Cinque coppie d’ascolto che scelgono la testa per le tue orecchie.',
   'help.room.head':
@@ -307,7 +307,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Il grafico di risposta disegna le curve del tuo EQ sopra il suono dal vivo. La barra sopra il grafico sceglie cosa viene disegnato e come, e cambia con l’aspetto: uno stile standard o un visualizzatore Plus.',
   'help.graph.steps':
-    'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Space e Ctrl+Space li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Anche la frequenza dei fotogrammi è lì: tutti i fotogrammi che offre il tuo schermo, oppure 60 o 30, e 60 a batteria.\nUn visualizzatore Plus aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Usa la sua onda originale riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero. Un clic singolo nasconde o mostra la barra.',
+    'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Spazio e Ctrl+Spazio li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Anche la frequenza dei fotogrammi è lì: tutti i fotogrammi che offre il tuo schermo, oppure 60 o 30, e 60 a batteria.\nUn visualizzatore Plus aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Usa la sua onda originale riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero. Un clic singolo nasconde o mostra la barra.',
   'help.graph.tip':
     'Tutto qui cambia solo il disegno, mai il suono. La modalità arcobaleno (si attiva da Aiuto → Novità) disegna gli stili standard, i misuratori e l’onda alla piena frequenza del tuo schermo invece che a 30 fotogrammi al secondo. Esc esce dalla vista espansa e dallo schermo intero.',
   'help.graph.stripCaption': 'Con uno stile standard',

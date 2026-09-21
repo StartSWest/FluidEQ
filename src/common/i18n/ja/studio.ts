@@ -358,7 +358,7 @@ const studio = {
   'studio.settings.ambientLead':
     '環境光モードで、このシーンがアプリの周りに加えるもの。',
   'studio.settings.ambientOff':
-    'ウィンドウの見た目をアンビエントにすると表示されます。',
+    'ウィンドウの見た目を「環境光」にすると表示されます。',
   'studio.settings.sensitivity': '感度',
   'studio.settings.sensitivityHint':
     'どれだけ強く反応するか。静かな曲では上げ、大きな曲で振り切れるなら下げます。',
@@ -378,10 +378,10 @@ const studio = {
   'studio.settings.resetsToPublished':
     '「リセット」で公開したバージョン {version} に戻ります。',
   'studio.settings.carries':
-    '手を離すとシーンに保存されます。スタイルとギャラリーにも反映されます。',
+    '手を離すとシーンに保存されます。マイ表示とギャラリーにも反映されます。',
   'studio.settings.saving': 'シーンに保存しています…',
   'studio.settings.saved': 'シーンに保存しました。',
-  'studio.settings.savedLook': 'シーンとあなたのスタイルに保存しました。',
+  'studio.settings.savedLook': 'シーンとあなたの表示に保存しました。',
   'studio.settings.failed':
     '設定を保存できませんでした。もう一度お試しください。',
 

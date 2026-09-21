@@ -116,7 +116,7 @@ const plus = {
   'plus.inspect.unavailable':
     'No se pudo descargar. Comprueba la conexión e inténtalo de nuevo.',
   'plus.inspect.failed': 'El Estudio no pudo abrirla. Inténtalo de nuevo.',
-  'plus.scene.play': 'Poner en el gráfico',
+  'plus.scene.play': 'Poner en la gráfica',
   'plus.scene.inLooks': 'En tus estilos, en Hechos por miembros',
   'plus.scene.inLooksOwn': 'En tus estilos, en Hechos por ti',
   'plus.scene.inLooksPlus': 'En tus estilos, en FluidEQ Plus',
@@ -222,7 +222,7 @@ const plus = {
     'Solo tú ves esto: las escenas que esperan tu aprobación, las que denuncian los miembros, todas las cuentas y el Plus que regalas',
   'plus.accounts.listHint':
     'Las más nuevas primero. Pulsa una cuenta para ver lo que tiene y borrarla para siempre cuando su dueño lo pida.',
-  'plus.accounts.search': 'Buscar por correo, usuario o nombre',
+  'plus.accounts.search': 'Buscar por correo, alias o nombre',
   'plus.accounts.refresh': 'Actualizar',
   'plus.accounts.filter': 'Mostrar cuentas',
   'plus.accounts.filter.all': 'Todas las cuentas',

@@ -376,14 +376,14 @@ const studio = {
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Ripristina',
   'studio.settings.resetsToScene':
-    'Reimposta li riporta alle impostazioni della scena stessa.',
+    'Ripristina li riporta alle impostazioni della scena stessa.',
   'studio.settings.resetsToPublished':
-    'Reimposta li riporta alla versione {version}, quella che hai pubblicato.',
+    'Ripristina li riporta alla versione {version}, quella che hai pubblicato.',
   'studio.settings.carries':
-    'Salvato nella scena quando lasci: anche i tuoi stili e la galleria lo ricevono.',
+    'Salvato nella scena quando lasci: anche i tuoi aspetti e la galleria lo ricevono.',
   'studio.settings.saving': 'Salvataggio nella scena…',
   'studio.settings.saved': 'Salvato nella scena.',
-  'studio.settings.savedLook': 'Salvato nella scena e nel tuo stile.',
+  'studio.settings.savedLook': 'Salvato nella scena e nel tuo aspetto.',
   'studio.settings.failed':
     'Non è stato possibile salvare le impostazioni. Riprova.',
 

@@ -4,9 +4,8 @@ const trial = {
     'Tu ecualizador, la reproducción de música, los presets y los visualizadores gratuitos siguen siendo gratis. Plus añade funciones opcionales.',
   'trial.extras.title': 'Solo con Plus',
   'trial.extras.scenes': 'Visualizadores Plus y escenas de la comunidad',
-  'trial.extras.studio': 'Exportar y publicar escenas en Studio',
+  'trial.extras.studio': 'Exportar y publicar escenas en el Estudio',
   'trial.extras.desktop': 'Escenas de escritorio e iluminación RGB',
-  'trial.extras.room': 'Personalización avanzada de Sala y función Ajustar',
   'trial.extras.board': 'Participación opcional en la clasificación',
   'trial.browse':
     'Con una cuenta gratuita puedes explorar la galería y participar en el Foro.',
@@ -18,7 +17,7 @@ const trial = {
   'trial.consent.title': 'Tu prueba gratis opcional',
   'trial.consent.period': '15 días desde la activación',
   'trial.consent.after':
-    'Al terminar los 15 días, solo finaliza el acceso a las funciones de Plus. FluidEQ sigue funcionando normalmente y tus proyectos de Studio se conservan.',
+    'Al terminar los 15 días, solo finaliza el acceso a las funciones de Plus. FluidEQ sigue funcionando normalmente y tus proyectos del Estudio se conservan.',
   'trial.consent.paid':
     'Si quieres seguir usando las funciones de Plus después, puedes elegir una suscripción de pago. Nada empieza automáticamente.',
   'trial.consent.checkbox':
@@ -41,7 +40,7 @@ const trial = {
   'trial.active.badge': 'Prueba gratis',
   'trial.ended.title': 'Tu prueba gratis de Plus ha terminado.',
   'trial.ended.body':
-    'FluidEQ sigue funcionando normalmente. Tu ecualizador, la reproducción de música, los presets y los visualizadores gratuitos siguen siendo gratis. Tus proyectos de Studio se conservan.',
+    'FluidEQ sigue funcionando normalmente. Tu ecualizador, la reproducción de música, los presets y los visualizadores gratuitos siguen siendo gratis. Tus proyectos del Estudio se conservan.',
   'trial.ended.paid':
     'Solo necesitas una suscripción de pago a Plus si quieres seguir usando las funciones de Plus.',
   'trial.ended.free': 'Seguir usando gratis',
@@ -54,7 +53,7 @@ const trial = {
     'No se pudo comprobar la oferta de prueba gratis. Vuelve a intentarlo.',
   'trial.error.forbidden': 'Solo un administrador puede cambiar esta oferta.',
   'trial.error.ineligible':
-    'Este prueba gratis es para cuentas nuevas que cumplan los requisitos y solo se puede usar una vez. Puedes seguir usando FluidEQ gratis.',
+    'Esta prueba gratis es para cuentas nuevas que cumplan los requisitos y solo se puede usar una vez. Puedes seguir usando FluidEQ gratis.',
   'trial.error.unavailable':
     'La oferta de prueba gratis no está disponible ahora. Las funciones gratuitas de FluidEQ siempre están disponibles.',
   'trial.error.terms':
@@ -65,7 +64,7 @@ const trial = {
   'trial.settings.title': 'Prueba gratis para cuentas nuevas',
   'trial.settings.label': 'Ofrecer 15 días de Plus',
   'trial.settings.body':
-    'Las cuentas nuevas pueden elegir una prueba gratis después de aceptar los términos. Desactivar esta opción impide nuevas activaciones y mantiene intactos los pruebas gratis ya activados.',
+    'Las cuentas nuevas pueden elegir una prueba gratis después de aceptar los términos. Desactivar esta opción impide nuevas activaciones y mantiene intactas las pruebas gratis ya activadas.',
   'trial.settings.since':
     'Cuentas que pueden acceder: creadas a partir del {date}.',
   'trial.settings.off':
@@ -75,7 +74,7 @@ const trial = {
   'trial.settings.saved': 'Configuración de la oferta guardada.',
   'trial.settings.on':
     'Activada — disponible para cuentas nuevas que cumplan los requisitos',
-  'trial.settings.disabled': 'Desactivada — sin nuevos pruebas gratis',
+  'trial.settings.disabled': 'Desactivada — sin nuevas pruebas gratis',
 };
 
 export default trial;

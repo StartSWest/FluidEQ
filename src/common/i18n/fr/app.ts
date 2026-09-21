@@ -62,8 +62,8 @@ const app: Partial<Dictionary> = {
     '{place} : {name}, {ms} ms par image à {fps} fps, dessiné en {drawn} pour {shown}',
   'app.processes.sceneRate':
     '{place} : {name} à {fps} fps, dessiné en {drawn} pour {shown}',
-  'app.processes.place.graph': 'Visualiseur du graphe',
-  'app.processes.place.studio': 'Scène du Studio',
+  'app.processes.place.graph': 'Visualiseur du graphique',
+  'app.processes.place.studio': 'Aperçu du Studio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
     "La fenêtre que vous regardez : la courbe, la bibliothèque, le lecteur, toutes les commandes. Un processus par fenêtre, pour qu'un redessin lourd ne freine pas le son. Les visualiseurs Plus y tournent dans un fil d'exécution à part, pour qu'une scène lourde ne bloque pas les commandes.",
@@ -96,16 +96,16 @@ const app: Partial<Dictionary> = {
     'Lit vos dossiers de musique pendant que la bibliothèque les analyse : tags, durées et pochettes. Démarre pour une analyse et se ferme à la fin.',
   'app.processes.name.sound': 'Son du navigateur',
   'app.processes.what.sound':
-    "L'audio propre à Chromium, pour l'onglet Vidéo et les sons joués par une page. Votre musique ne passe pas par là.",
+    "L'audio propre à Chromium, pour l'onglet Médias en ligne et les sons joués par une page. Votre musique ne passe pas par là.",
   'app.processes.name.network': 'Réseau',
   'app.processes.what.network':
-    "Recherche de mises à jour, pochettes et tout ce que charge l'onglet Vidéo. Rien d'autre ici ne touche au réseau.",
+    "Recherche de mises à jour, pochettes et tout ce que charge l'onglet Médias en ligne. Rien d'autre ici ne touche au réseau.",
   'app.processes.name.devices': 'Liste des périphériques',
   'app.processes.what.devices':
     "Démarré par Chromium quand l'application demande à Windows quels périphériques audio sont présents ; la même requête énumère aussi les périphériques vidéo. Il n'ouvre aucune caméra et n'enregistre rien.",
   'app.processes.name.page': 'Page web',
   'app.processes.what.page':
-    "Une page ouverte dans l'onglet Vidéo. Elle tourne dans son propre processus, à l'écart de l'interface.",
+    "Une page ouverte dans l'onglet Médias en ligne. Elle tourne dans son propre processus, à l'écart de l'interface.",
   'app.processes.name.systemEngine': 'Moteur FluidEQ (audio Windows)',
   'app.processes.what.systemEngine':
     "L'égaliseur qui tourne dans le service audio de Windows, lequel l'applique à tout ce que vous entendez. Windows partage ce service avec les effets de votre carte son : sa mémoire et son processeur sont affichés mais pas ajoutés au total.",
@@ -233,7 +233,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Préréglages EQ',
   'tabs.voicing': 'Caractère',
   'tabs.convolution': 'Convolution',
-  'tabs.games': 'Profils de jeu',
+  'tabs.games': 'Préréglages de jeu',
   'tabs.config': 'Config',
   'tabs.media': 'Médias en ligne',
   'tabs.mediaShort': 'Médias',
@@ -387,7 +387,7 @@ const app: Partial<Dictionary> = {
   // Game profiles: the page, its list and what it says.
   'games.add': 'Ajouter un jeu',
   'games.addHint':
-    'Choisis un jeu dans tes lanceurs, ou un programme ouvert maintenant.',
+    'Choisissez un jeu dans vos lanceurs, ou un programme ouvert maintenant.',
   'games.choose': 'Choisir un programme…',
   'games.group.installed': 'Installés',
   'games.group.running': 'Ouverts',
@@ -399,13 +399,13 @@ const app: Partial<Dictionary> = {
   'games.source.battlenet': 'Battle.net',
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Ouvert',
-  'games.source.file': 'Choisi par toi',
+  'games.source.file': 'Choisi par vous',
   'games.front.playing': '{name} est au premier plan, et son son est activé.',
   'games.front.sounding': '{name} est lancé, et son son est activé.',
   'games.front.none': 'Au premier plan : {name}',
   'games.front.desktop': 'rien que FluidEQ connaisse',
   'games.empty':
-    'Pas encore de jeux. Ajoutes-en un, donne-lui un son, et FluidEQ y passera dès que ce jeu sera au premier plan.',
+    'Pas encore de jeux. Ajoutez-en un, donnez-lui un son, et FluidEQ y passera dès que ce jeu sera au premier plan.',
   'games.toast.loaded': '{preset} chargé',
   'games.toast.forGame': 'pour {game}',
   'games.toast.restored': 'Retour à {preset}',
@@ -413,9 +413,9 @@ const app: Partial<Dictionary> = {
   'games.toast.afterGame': 'après {game}',
   'games.empty.title': 'Aucun jeu pour l’instant',
   'games.empty.more':
-    'Ajoute un jeu, donne-lui un son, et FluidEQ y passe dès que ce jeu est au premier plan — et revient quand tu fermes le jeu.',
+    'Ajoutez un jeu, donnez-lui un son, et FluidEQ y passe dès que ce jeu est au premier plan — et revient quand vous fermez le jeu.',
   'games.hint':
-    'Le son change quand le jeu passe au premier plan et reste jusqu’à ce que tu fermes le jeu, quoi que tu ouvres entre-temps. Si tu en choisis un autre en jouant, il reste : FluidEQ ne remet que ce qu’il a mis.',
+    'Le son change quand le jeu passe au premier plan et reste jusqu’à ce que vous fermiez le jeu, quoi que vous ouvriez entre-temps. Si vous en choisissez un autre en jouant, il reste : FluidEQ ne remet que ce qu’il a mis.',
   'games.preset.none': 'Ne rien changer',
   'games.preset.noneHint': 'Rien ne change quand ce jeu est au premier plan.',
   'games.row.inFront': 'au premier plan',

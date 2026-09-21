@@ -47,7 +47,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     'एक से अधिक जोड़ियाँ संभव हैं। एक ऑडियो और वैकल्पिक रूप से एक बोल फ़ाइल चुनें।',
   'karaoke.error.unsupported':
-    'इनमें से कोई फ़ाइल अभी समर्थित Karaoke ऑडियो या बोल फ़ाइल नहीं है। कवर आर्ट और वीडियो के साथ एक गाना भी चाहिए।',
+    'इनमें से कोई फ़ाइल अभी समर्थित कराओके ऑडियो या बोल फ़ाइल नहीं है। कवर आर्ट और वीडियो के साथ एक गाना भी चाहिए।',
   'karaoke.error.read': 'FluidEQ चुनी गई स्थानीय फ़ाइलें नहीं पढ़ सका।',
   'karaoke.error.playback':
     'यह Chromium संस्करण उस ऑडियो फ़ाइल या कोडेक को नहीं चला सका।',
@@ -101,11 +101,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': 'अगली बोल पंक्ति',
   'karaoke.lyrics.follow': 'गीत के बोलों का अनुसरण करें',
   'karaoke.lyrics.textSize': 'गीत के बोलों का आकार',
-  'karaoke.transport.title': 'Karaoke प्लेबैक नियंत्रण',
+  'karaoke.transport.title': 'कराओके प्लेबैक नियंत्रण',
   'karaoke.transport.restart': 'गाना फिर शुरू करें',
   'karaoke.transport.play': 'चलाएँ',
   'karaoke.transport.pause': 'रोकें',
-  'karaoke.transport.spaceShortcut': '{action} · स्पेस',
+  'karaoke.transport.spaceShortcut': '{action} · Space',
   'karaoke.transport.seek': 'गाने की स्थिति',
   'karaoke.transport.volume': 'आवाज़',
   'karaoke.transport.vocalLevel': 'गाइड वोकल',
@@ -161,8 +161,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.pitch.issueMissed': '{time} पर छूटे हुए नोट। इस भाग का अभ्यास करें।',
   'karaoke.practice.go': 'शुरू',
   'karaoke.practice.ready': 'फिर से गाने के लिए तैयार हो जाएं',
-  'karaoke.countIn.ready': 'तैयार हो जाएँ — GO के बाद गाना शुरू होगा',
-  'karaoke.pitch.canvas': 'माइक्रोफ़ोन और लक्षित सुरों की लाइव पिच लेन',
+  'karaoke.countIn.ready': 'तैयार हो जाएँ — “शुरू” के बाद गाना शुरू होगा',
+  'karaoke.pitch.canvas': 'माइक्रोफ़ोन और लक्षित सुरों की लाइव सुर लेन',
   'karaoke.pitch.micOff': 'अपना सुर देखने के लिए माइक्रोफ़ोन चालू करें।',
   'karaoke.pitch.loading': 'सुर विश्लेषण शुरू हो रहा है…',
   'karaoke.pitch.unavailable':
@@ -300,8 +300,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.delete': 'हटाएँ',
   'karaoke.maker.analyze': 'धुन का विश्लेषण',
   'karaoke.maker.prepare': 'कराओके तैयार करें',
-  'karaoke.maker.advanced': 'उन्नत',
-  'karaoke.maker.prepared': 'इस कराओके में पहले से समयबद्ध धुन के नोट हैं।',
+  'karaoke.maker.advanced': 'मरम्मत टूल',
+  'karaoke.maker.prepared': 'इस कराओके में पहले से समयबद्ध बोल और धुन हैं।',
   'karaoke.maker.repairLyrics': 'बोल का समय फिर पहचानें',
   'karaoke.maker.repairMelody': 'धुन के सुर फिर पहचानें',
   'karaoke.maker.rebuildKaraoke': 'बोल और धुन फिर बनाएँ',
@@ -445,7 +445,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     'नए गीत लागू हुए और उपलब्ध धुन से संरेखित किए गए।',
   'karaoke.maker.lyricsNeedPreparation':
-    'नए बोल लागू किए गए। उनका समय पहचानने के लिए कराओके तैयार करें चुनें।',
+    'नए बोल लागू किए गए। उनका समय तय करने के लिए “मरम्मत टूल” खोलें और “बोल का समय फिर पहचानें” चुनें।',
   'karaoke.maker.transcriptionEyebrow': 'वैकल्पिक स्थानीय लिप्यंतरण',
   'karaoke.maker.transcriptionTitle': 'स्थानीय वॉइस मॉडल डाउनलोड करें?',
   'karaoke.maker.transcriptionBody':

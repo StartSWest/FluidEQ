@@ -24,13 +24,13 @@ const studio = {
 
   'studio.plus.title': '有 Plus 时',
   'studio.plus.body':
-    '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、画廊里，或导出成可发送的文件。',
+    '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、图库里，或导出成可发送的文件。',
   'studio.plus.locked': '仅限 Plus',
   'studio.locked.title': '工作室属于 Plus',
   'studio.locked.body': 'FluidEQ 的场景在这里诞生，你的场景也可以。',
   'studio.locked.write': '在随保存即时重建的舞台旁编写场景',
   'studio.locked.test': '配上音乐播放，看清绘制的开销',
-  'studio.locked.publish': '发布到画廊，让所有会员都能安装',
+  'studio.locked.publish': '发布到图库，让所有会员都能安装',
   'studio.locked.keptOne': '你的项目还在原处:',
   'studio.locked.keptMany': '你的 {count} 个项目还在原处:',
   'studio.locked.earn': '你发布的场景通过审核后，可换来一个月的 Plus。',
@@ -107,7 +107,7 @@ const studio = {
   'studio.publish.title': '发布 {name}',
   'studio.publish.titleUpdate': '在图库中更新 {name}',
   'studio.publish.version': '版本 {version}',
-  'studio.publish.publishedVersion': '画廊中现有：版本 {version}',
+  'studio.publish.publishedVersion': '图库中现有：版本 {version}',
   'studio.publish.note': '此版本的新内容',
   'studio.publish.notePlaceholder':
     '听众会看到的一句话，例如：宽面板上的山峰不再被裁掉',

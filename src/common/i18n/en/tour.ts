@@ -75,9 +75,9 @@ const tour = {
   'tour.room.point2':
     'Twenty-four rooms to start from — studio, living room, cinema, concert hall — plus your own, saved under a name.',
   'tour.room.point3':
-    'Fit picks the head that puts sounds in front of you, by ear, in five pairs.',
+    'A listening test picks the head that puts sounds in front of you, by ear, in five pairs.',
   'tour.room.how':
-    'Open DSP, choose Room in the rail and switch it on. Pick a room, then drag a speaker or turn a dial; press Fit to choose your head.',
+    'Open DSP, choose Room in the rail and switch it on. Pick a room, then drag a speaker or turn a dial; under Your head, press Start the listening test.',
   'tour.room.open': 'Open the Room',
   'tour.room.imageAlt':
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
@@ -158,10 +158,10 @@ const tour = {
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
   'tour.theme.kicker': 'A NEW LOOK',
-  'tour.theme.title': 'Meet the Black theme',
+  'tour.theme.title': 'Meet the Dark theme',
   'tour.theme.subtitle': 'Pure black, for late nights and OLED screens',
   'tour.theme.lead':
-    'FluidEQ now has a second face. Black drops every trace of the slate-navy the app was born with: panels, menus and bars go monochrome, the accent stays, and the spectrum is the only colour in the room.',
+    'FluidEQ now has a second face. Dark drops every trace of the slate-navy the app was born with: panels, menus and bars go monochrome, the accent stays, and the spectrum is the only colour in the room.',
   'tour.theme.point1':
     'True black backgrounds. On an OLED display the pixels around the graph switch off.',
   'tour.theme.point2':
@@ -170,11 +170,11 @@ const tour = {
     'Your accent colour and rainbow mode carry over. Nothing about your sound changes. It is only the paint.',
   'tour.theme.howTitle': 'How to switch',
   'tour.theme.how':
-    'Open the menu behind the pulse icon in the top-right corner and pick Black under Theme, at the bottom of it. Ocean is one pick away if you want it back.',
-  'tour.theme.tryBlack': 'Switch to Black now',
-  'tour.theme.tryOcean': 'Back to Ocean',
+    'Open the menu behind the pulse icon in the top-right corner and pick Dark under Theme, at the bottom of it. Light is one pick away if you want it back.',
+  'tour.theme.tryBlack': 'Switch to Dark now',
+  'tour.theme.tryOcean': 'Back to Light',
   'tour.theme.imageAlt':
-    'FluidEQ in the Black theme: the EQ tab with fifteen bands and the live spectrum playing a song.',
+    'FluidEQ in the Dark theme: the EQ tab with fifteen bands and the live spectrum playing a song.',
 
   'tour.share.kicker': 'LISTEN TO EVERY PC',
   'tour.share.title': 'Share audio between your computers',

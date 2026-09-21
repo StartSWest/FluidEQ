@@ -90,7 +90,7 @@ const dsp = {
   'dsp.gameMode.update':
     '请更新 FluidEQ 引擎以使用游戏模式。预设的音效设置仍会应用。',
   'dsp.gameMode.hint':
-    '游戏模式移除可避免的缓冲并使用最小相位 EQ。启用的效果仍可能增加延迟。游戏预设会开启此模式；你可以手动关闭而不更改预设。',
+    '游戏模式移除可避免的缓冲并使用最小相位 EQ。启用的效果仍可能增加延迟。“游戏”预设会开启此模式；你可以手动关闭而不更改预设。',
   'dsp.latency.buffer': '旁路时保留的缓冲',
   'dsp.normalizer.liveTitle': '实时电平控制',
   'dsp.normalizer.livePeak': '峰值保护',
@@ -101,9 +101,9 @@ const dsp = {
   'dsp.normalizer.liveGuidance':
     '实时响度调节跟随 Windows 报告的歌曲。响亮段落会降低本曲余下部分的增益；下一首保持该电平，除非明显更安静。听过的歌曲从第一秒起调整。增益最多提升 6\u00a0dB 且不超出峰值余量；不保证达到目标值。关闭后再启用可重新学习。无法修复已有失真。',
   'dsp.denoise.liveHint':
-    '外部音频使用实时自适应噪声底。嘶声、咔嗒声及 50/60 Hz 电源嗡声消减作用于正在播放的音源。自动嗡声检测会等待持续的电源谐波。',
+    '外部音频使用实时自适应本底噪声。嘶声、爆音及 50/60 Hz 电源哼声消减作用于正在播放的音源。自动哼声检测会等待持续的电源谐波。',
   'dsp.denoise.voiceLibraryOnly':
-    '神经网络语音处理仅适用于媒体库播放。嘶声、嗡声和咔嗒声消减可用于外部音频。',
+    '神经网络人声清理器仅适用于媒体库播放。嘶声、哼声和爆音消减可用于外部音频。',
   'dsp.normalizer.liveDescription':
     '实时测量正在播放的外部音频，同步调整双声道，并在激励器和均衡器之前保护峰值。',
   'dsp.normalizer.liveAnalysis': '实时音源分析',
@@ -112,9 +112,9 @@ const dsp = {
     '实时响度在三秒后稳定。响亮段落决定歌曲其余部分的电平，峰值保护始终有效。无法修复音源中已有的失真。',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
-    'DSP 仅处理从音乐库播放的音轨，不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
+    'DSP 仅处理从媒体库播放的音轨，不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
   'dsp.idle':
-    '请从音乐库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
+    '请从媒体库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
   'dsp.scope.system': '全系统 · {output}',
   'dsp.scope.systemAll': '全系统',
   'dsp.scope.systemDelay': '{ms} 毫秒延迟',
@@ -143,12 +143,12 @@ const dsp = {
   'dsp.preset.loud': '响亮',
   'dsp.preset.broadcast': '广播',
   'dsp.preset.bassPower': '强劲低音',
-  'dsp.bypassed': '旁通',
+  'dsp.bypassed': '旁路',
   'dsp.enabled': '开启',
 
   'dsp.normalizer.title': '标准化',
   'dsp.normalizer.description':
-    '完整测量一次音源，在 Exciter 和 EQ 前应用固定的立体声联动增益。不会泵动，也没有跟随式 RMS。',
+    '完整测量一次音源，在激励器和均衡器前应用固定的立体声联动增益。不会泵动，也没有跟随式 RMS。',
   'dsp.normalizer.mode': '标准化模式',
   'dsp.normalizer.off': '关闭',
   'dsp.normalizer.truePeak': '真实峰值',
@@ -158,7 +158,7 @@ const dsp = {
   'dsp.normalizer.analysis': '音源分析',
   'dsp.normalizer.analyzing': '正在分析完整曲目 · {progress}%',
   'dsp.normalizer.unavailable': '无法分析此音源，将按原始电平播放。',
-  'dsp.normalizer.waiting': '播放音乐库曲目以进行测量。',
+  'dsp.normalizer.waiting': '播放媒体库曲目以进行测量。',
   'dsp.normalizer.measuredPeak': '测得峰值',
   'dsp.normalizer.measuredLoudness': '综合响度',
   'dsp.normalizer.appliedGain': '应用增益',
@@ -170,7 +170,7 @@ const dsp = {
   'dsp.normalizer.before': '处理前',
   'dsp.normalizer.after': '处理后',
   'dsp.normalizer.liveMeterHint':
-    '在标准化器前后直接测得的真实采样峰值。零标记表示 0 dBFS。',
+    '在标准化前后直接测得的真实采样峰值。零标记表示 0 dBFS。',
   'dsp.normalizer.honesty': '可防止后级过载，但无法重建文件中已经存在的失真。',
 
   'dsp.denoise.title': '降噪',
@@ -178,7 +178,7 @@ const dsp = {
   'dsp.denoisePreset.strong': '强力清理',
   'dsp.denoise.description':
     '在任何染色之前先修复音源：嘶声、市电哼声、爆音，以及一个神经网络人声清理器。数值取自音轨本身的实测，而非猜测。',
-  'dsp.denoise.libraryOnly': '仅限音乐库播放',
+  'dsp.denoise.libraryOnly': '仅限媒体库播放',
   'dsp.denoise.isolate': '独听',
   'dsp.denoise.isolateHint': '只听这一级正在去掉的部分。',
   'dsp.denoise.isolateOn': '保留信号已移除——现在只听到被去掉的部分。',
@@ -190,14 +190,15 @@ const dsp = {
   'dsp.denoise.graphClicks': '爆音修复',
   'dsp.denoise.graphClicksIn': '{{seconds}} 秒内修复 {{count}} 次',
   'dsp.denoise.graphClicksOff': '爆音修复已关闭',
-  'dsp.denoise.graphHumAt': '交流声 {{hz}} Hz',
+  'dsp.denoise.graphHumAt': '哼声 {{hz}} Hz',
   'dsp.denoise.profileSource': '本底噪声',
   'dsp.denoise.scanned': '已扫描',
   'dsp.denoise.adaptive': '自适应',
   'dsp.denoise.scanRequired':
     '此曲目没有已保存的扫描结果。重新扫描前，已扫描模式不会改变声音。',
   'dsp.denoise.hiss': '嘶声',
-  'dsp.denoise.hissHint': '相对实测本底的宽带抑制。开启时增加 21 毫秒延迟。',
+  'dsp.denoise.hissHint':
+    '相对实测本底噪声的宽带抑制。开启时增加 21 毫秒延迟。',
   'dsp.denoise.amount': '强度',
   'dsp.denoise.reductionLimit': '衰减上限',
   'dsp.denoise.reductionLimitHint':
@@ -228,7 +229,7 @@ const dsp = {
   'dsp.denoise.analysis': '音源分析',
   'dsp.denoise.rescan': '重新扫描',
   'dsp.denoise.analyzing': '正在测量本底噪声 · {progress}%',
-  'dsp.denoise.waiting': '播放一首曲库中的曲目以进行测量。',
+  'dsp.denoise.waiting': '播放一首媒体库中的曲目以进行测量。',
   'dsp.denoise.measuredFloor': '本底噪声',
   'dsp.denoise.measuredHum': '检出哼声',
   'dsp.denoise.measuredClicks': '爆音',
@@ -240,7 +241,7 @@ const dsp = {
 
   'dsp.crossfade.title': '交叉淡化',
   'dsp.crossfade.description':
-    '在标准化之后、激励器和 EQ 之前重叠淡出与淡入曲目。',
+    '在标准化之后、激励器和均衡器之前重叠淡出与淡入曲目。',
   'dsp.crossfade.outgoing': '淡出',
   'dsp.crossfade.incoming': '淡入',
   'dsp.crossfade.duration': '时长',
@@ -267,7 +268,7 @@ const dsp = {
   'dsp.eqPreset.label': '预设',
   'dsp.eqPreset.saved': '我的',
   'dsp.eqPresetGroup.basic': '基础',
-  'dsp.eqPresetGroup.genre': '风格',
+  'dsp.eqPresetGroup.genre': '流派',
   'dsp.eqPresetGroup.voice': '人声',
   'dsp.eqPresetGroup.scene': '场景',
   'dsp.eqPresetGroup.device': '设备',
@@ -384,7 +385,7 @@ const dsp = {
 
   'dsp.eq.title': '均衡器',
   'dsp.eq.description':
-    '十五段参量均衡，曲线按滤波器的实际响应绘制，而非按设定值。',
+    '十五段参数均衡，曲线按滤波器的实际响应绘制，而非按设定值。',
   'dsp.eq.band': '频段',
   'dsp.eq.bands': '频段',
   'dsp.eq.shape': '频段类型',
@@ -459,7 +460,7 @@ const dsp = {
   'dsp.bassForge.title': '低音熔炉',
   'dsp.bassForge.isolate': '独听',
   'dsp.bassForge.isolateHint': '只听这一级正在加进去的低频。',
-  'dsp.bassForge.isolateOn': '原始信号已移除——现在只听到 Forge 加进去的部分。',
+  'dsp.bassForge.isolateOn': '原始信号已移除——现在只听到低音熔炉加进去的部分。',
   'dsp.bassForge.description':
     '为能播放的音箱加入低音下方真实的一个八度，为不能播放的音箱加入该八度的谐波——小音箱在 45 Hz 完全无法发声，但谐波仍能让耳朵重建出音高。低频本身的响度并不改变。',
   'dsp.bassForge.splitHz': '分频',
@@ -574,7 +575,7 @@ const dsp = {
 
   'dsp.master.title': '母带',
   'dsp.master.description':
-    '位于所有处理器之后的透明最终输出控制，不会改变 EQ、激励器或其他前级的驱动电平。',
+    '位于所有处理器之后的透明最终输出控制，不会改变均衡器、激励器或其他前级的驱动电平。',
   'dsp.master.outputTrim': '输出增益',
   'dsp.master.autoHeadroom': '自动余量',
   'dsp.master.autoHeadroomHint':
@@ -618,7 +619,7 @@ const dsp = {
   'dsp.master.peakLimiting': '峰值限制',
   'dsp.master.matchedBypass': '增益匹配',
   'dsp.master.matchedBypassHint':
-    '把 {gain} dB 的补偿从输出端扣回去，这样开关 Master 比较的是声音而不是音量。两种状态下的限制完全相同，只有电平不同。',
+    '把 {gain} dB 的补偿从输出端扣回去，这样开关母带比较的是声音而不是音量。两种状态下的限制完全相同，只有电平不同。',
   'dsp.surround.title': '环绕声',
   'dsp.surround.onHint':
     '按 Windows 的设置，在 5.1 或 7.1 输出的每个声道上运行机架，所有声道共用一个电平决策。',
@@ -652,7 +653,7 @@ const dsp = {
   'dsp.room.saveRoom': '保存房间…',
   'dsp.room.saveTitle': '保存此房间',
   'dsp.room.saveHint':
-    '当前的整个房间会以这个名字保存，与已保存的房间并列：形状、音箱、它们的电平和静音、低音与立体声的选择、房间感和余韵。你的头型和耳机仍归你所有。',
+    '当前的整个房间会以这个名字保存，与已保存的房间并列：形状、音箱、它们的电平和静音、低音与立体声的选择、房间感和余韵。你的头部和耳机仍归你所有。',
   'dsp.room.savePlaceholder': '房间名称',
   'dsp.room.deleteRoom': '删除房间',
   'dsp.room.groupHead': '头部',
@@ -774,7 +775,7 @@ const dsp = {
   'dsp.room.tune.stereo': '立体声音源',
   'dsp.room.tune.stereoHint':
     '只对立体声有效。5.1 或 7.1 音流会保持各声道原位。',
-  'dsp.room.fitView.head': '你的头型',
+  'dsp.room.fitView.head': '你的头部',
   'dsp.room.fitView.headHint':
     '同一个实测头型的三种尺寸：不是三个人，也不是对你耳朵的扫描。选择让声音出现在你面前、而不是头里的那个尺寸。',
   'dsp.room.fitView.guided': '用耳朵找到适合你的',
@@ -789,7 +790,7 @@ const dsp = {
   'dsp.room.savedClassic': '经典声音',
   'dsp.room.saveFailed': '无法保存房间：存储拒绝了写入。没有任何改动。',
   'dsp.room.restore': '恢复配置',
-  'dsp.room.restoreHint': '回到 {name}。你的头型、耳机和音源选择保持不变。',
+  'dsp.room.restoreHint': '回到 {name}。你的头部、耳机和音源选择保持不变。',
   'dsp.room.resetHint':
     '回到出厂的“参考”房间，本页所有选项一并重置，包括听者的选项。只有电源开关保持不变。',
   'dsp.room.saveKeepsBoth':
@@ -815,7 +816,7 @@ const dsp = {
   'dsp.master.limit.maxGain': '需要 {requested} dB — 已达本级的最大校正量。',
   'dsp.master.limit.gate': '太安静，无法测量 — 未应用校正。',
   'dsp.master.limit.noTrack':
-    '没有可测量的曲目——此校正读自整首曲目，因此在音乐库播放时生效。',
+    '没有可测量的曲目——此校正读自整首曲目，因此在媒体库播放时生效。',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',

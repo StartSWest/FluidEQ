@@ -48,7 +48,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     'Возможно несколько сочетаний. Выберите один аудиофайл и, при желании, один файл текста.',
   'karaoke.error.unsupported':
-    'Среди этих файлов пока нет поддерживаемого аудио или текста Karaoke. Обложке и видео нужна песня рядом с ними.',
+    'Среди этих файлов пока нет поддерживаемого аудио или текста для Караоке. Обложке и видео нужна песня рядом с ними.',
   'karaoke.error.read': 'FluidEQ не смог прочитать выбранные локальные файлы.',
   'karaoke.error.playback':
     'Эта сборка Chromium не смогла воспроизвести аудиофайл или кодек.',
@@ -102,7 +102,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': 'Следующая строка',
   'karaoke.lyrics.follow': 'Следить за текстом',
   'karaoke.lyrics.textSize': 'Размер текста песни',
-  'karaoke.transport.title': 'Управление воспроизведением Karaoke',
+  'karaoke.transport.title': 'Управление воспроизведением Караоке',
   'karaoke.transport.restart': 'Начать песню заново',
   'karaoke.transport.play': 'Воспроизвести',
   'karaoke.transport.pause': 'Пауза',
@@ -309,9 +309,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.delete': 'Удалить',
   'karaoke.maker.analyze': 'Анализ мелодии',
   'karaoke.maker.prepare': 'Подготовить караоке',
-  'karaoke.maker.advanced': 'Дополнительно',
+  'karaoke.maker.advanced': 'Инструменты исправления',
   'karaoke.maker.prepared':
-    'В этом караоке уже есть синхронизированные ноты мелодии.',
+    'В этом караоке уже есть синхронизированный текст и мелодия.',
   'karaoke.maker.repairLyrics': 'Повторно определить время текста',
   'karaoke.maker.repairMelody': 'Повторно определить ноты мелодии',
   'karaoke.maker.rebuildKaraoke': 'Пересоздать текст + мелодию',
@@ -455,7 +455,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     'Новый текст применён и выровнен по доступной мелодии.',
   'karaoke.maker.lyricsNeedPreparation':
-    'Новый текст применён. Выберите Подготовить караоке, чтобы определить его время.',
+    'Новый текст применён. Откройте «Инструменты исправления» и выберите «Повторно определить время текста», чтобы синхронизировать его.',
   'karaoke.maker.transcriptionEyebrow':
     'НЕОБЯЗАТЕЛЬНОЕ ЛОКАЛЬНОЕ РАСПОЗНАВАНИЕ',
   'karaoke.maker.transcriptionTitle': 'Скачать локальную модель речи?',

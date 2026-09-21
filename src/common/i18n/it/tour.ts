@@ -66,9 +66,9 @@ const tour: Partial<Dictionary> = {
   'tour.room.point2':
     'Ventiquattro stanze da cui partire — studio, salotto, cinema, sala da concerto — più le tue, salvate con un nome.',
   'tour.room.point3':
-    'Adatta sceglie a orecchio la testa che mette i suoni davanti a te, in cinque coppie.',
+    'Una prova d’ascolto sceglie a orecchio la testa che mette i suoni davanti a te, in cinque coppie.',
   'tour.room.how':
-    'Apri DSP, scegli Stanza nella barra e accendila. Scegli una stanza, poi trascina un diffusore o gira una manopola; premi Adatta per scegliere la tua testa.',
+    'Apri DSP, scegli Stanza nella barra e accendila. Scegli una stanza, poi trascina un diffusore o gira una manopola; sotto «La tua testa», premi «Avvia la prova d’ascolto».',
   'tour.room.open': 'Apri la Stanza',
   'tour.room.imageAlt':
     'Una stanza vista dall’alto: sette diffusori e un sub intorno a una testa al centro, ognuno con il suo percorso verso le orecchie.',
@@ -107,7 +107,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point3':
     'Cambia aspetto in automatico, passa a schermo intero e regola attacco e rilascio di una scena in Vista.',
   'tour.visualizers.how':
-    'Fai clic sul nome dell’aspetto sul grafico e scegli una scena in Visualizzazioni Plus, oppure sfogliale tutte in Plus → Visualizzatori.',
+    'Fai clic sul nome dell’aspetto sul grafico e scegli una scena in Visualizzatori Plus, oppure sfogliale tutte in Plus → Visualizzatori.',
   'tour.visualizers.open': 'Apri l’EQ',
   'tour.visualizers.imageAlt':
     'Alpino, un visualizzatore Plus con montagne su un lago di notte, in riproduzione sul grafico sotto le curve dell’EQ, con altre quattro scene più in basso.',
@@ -147,10 +147,10 @@ const tour: Partial<Dictionary> = {
     'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
   'tour.theme.kicker': 'UN NUOVO ASPETTO',
-  'tour.theme.title': 'Ecco il tema Nero',
+  'tour.theme.title': 'Ecco il tema Scuro',
   'tour.theme.subtitle': 'Nero puro, per le notti tarde e gli schermi OLED',
   'tour.theme.lead':
-    'FluidEQ ha ora un secondo volto. Nero cancella ogni traccia del blu ardesia con cui l’app è nata: pannelli, menu e barre diventano monocromi, l’accento resta e lo spettro è l’unico colore nella stanza.',
+    'FluidEQ ha ora un secondo volto. Scuro cancella ogni traccia del blu ardesia con cui l’app è nata: pannelli, menu e barre diventano monocromi, l’accento resta e lo spettro è l’unico colore nella stanza.',
   'tour.theme.point1':
     'Sfondi nero assoluto: su uno schermo OLED i pixel intorno al grafico si spengono.',
   'tour.theme.point2':
@@ -159,11 +159,11 @@ const tour: Partial<Dictionary> = {
     'Il colore d’accento e la modalità arcobaleno restano. Il suono non cambia affatto: è solo la vernice.',
   'tour.theme.howTitle': 'Come cambiarlo',
   'tour.theme.how':
-    'Apri il menu dietro l’icona a impulso in alto a destra e, in fondo, scegli Nero in Tema. Oceano è a un clic se vuoi tornare indietro.',
-  'tour.theme.tryBlack': 'Passa a Nero adesso',
-  'tour.theme.tryOcean': 'Torna a Oceano',
+    'Apri il menu dietro l’icona a impulso in alto a destra e, in fondo, scegli Scuro in Tema. Chiaro è a un clic se vuoi tornare indietro.',
+  'tour.theme.tryBlack': 'Passa a Scuro adesso',
+  'tour.theme.tryOcean': 'Torna a Chiaro',
   'tour.theme.imageAlt':
-    'FluidEQ con il tema Nero: la scheda EQ con quindici bande e lo spettro dal vivo mentre suona un brano.',
+    'FluidEQ con il tema Scuro: la scheda EQ con quindici bande e lo spettro dal vivo mentre suona un brano.',
 
   'tour.share.kicker': 'ASCOLTA OGNI PC',
   'tour.share.title': 'Condividi l’audio tra i tuoi computer',
@@ -172,7 +172,7 @@ const tour: Partial<Dictionary> = {
     'Il PC da gioco, il portatile del lavoro e il media center suonano tutti nelle cuffie che indossi: sulla tua rete, senza perdite, cifrato e attraverso l’EQ che hai già regolato.',
   'tour.share.receiverLabel': 'RICEVITORE',
   'tour.share.receiverName': 'Il PC con le tue cuffie',
-  'tour.share.senderLabel': 'TRASMETTITORI',
+  'tour.share.senderLabel': 'MITTENTI',
   'tour.share.senderName': 'Tutti gli altri computer',
   'tour.share.wireLabel': 'Senza perdite · Cifrato · LAN privata',
   'tour.share.stepsTitle': 'Configuralo in tre passaggi',
@@ -184,7 +184,7 @@ const tour: Partial<Dictionary> = {
     'Apri FluidEQ lì, vai in Condividi audio, scegli «Invia l’audio di questo computer», seleziona Musica o Gioco/Video, incolla il codice e premi «Connetti e invia». L’audio di sistema inizia a scorrere.',
   'tour.share.step3Title': 'Ascolta e regola il livello',
   'tour.share.step3':
-    'Musica mantiene un buffer più ampio per un ascolto senza interruzioni; Gioco/Video gira con il ritardo minimo per il labiale. Ogni trasmettitore viene mixato nell’uscita del ricevitore, modellato dal suo EQ e regolato dal suo Volume. La barra di riproduzione del ricevitore mostra il brano del trasmettitore più recente, e i suoi pulsanti funzionano attraverso la rete.',
+    'Musica mantiene un buffer più ampio per un ascolto senza interruzioni; Gioco/Video gira con il ritardo minimo per il labiale. Ogni mittente viene mixato nell’uscita del ricevitore, modellato dal suo EQ e regolato dal suo Volume. La barra di riproduzione del ricevitore mostra il brano del mittente più recente, e i suoi pulsanti funzionano attraverso la rete.',
   'tour.share.fact1Title': 'Senza perdite',
   'tour.share.fact1':
     'PCM Float32 da un capo all’altro. Nessun codec, nessuna perdita di generazione.',
@@ -206,11 +206,11 @@ const tour: Partial<Dictionary> = {
   'tour.library.point1':
     'Tre modi di guardare lo stesso scaffale: elenco, griglia e cover flow, con il salto alla lettera per le collezioni grandi.',
   'tour.library.point2':
-    'Una coda «In coda» con «Continua a riprodurre», che prosegue con altro dello stesso genere quando la lista finisce.',
+    'Una coda «In coda» con «Continua a suonare», che prosegue con altro dello stesso genere quando la lista finisce.',
   'tour.library.point3':
     'Playlist e una lista Preferiti permanente. Clic destro su un brano per aggiungerlo a una delle due, o alla coda.',
   'tour.library.point4':
-    'Memoria EQ per brano: attiva «Salva per questo brano» mentre suona e la correzione che fai resta memorizzata per quella traccia.',
+    'Memoria dell’EQ intelligente per brano: attiva «Salva per questo brano» mentre suona e la correzione che fai resta memorizzata per quella traccia.',
   'tour.library.how':
     'Apri la scheda Libreria, premi «Aggiungi cartella» o trascina una cartella sulla pagina e lascia finire la scansione. Scegli Album, Artisti, Generi, Brani, Cartelle o Albero, poi premi Riproduci.',
   'tour.library.open': 'Apri la Libreria',
@@ -227,9 +227,9 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.point3':
     'Un Equalizzatore parametrico a quindici bande con fase minima o lineare, mid/side, sovracampionamento e decine di preset con nome.',
   'tour.dsp.point4':
-    'Master con obiettivo di loudness LUFS e protezione true-peak, preset di consegna da Streaming a Vinile, e un Gain match per confrontare il suono, non il volume.',
+    'Master con obiettivo di sonorità LUFS e protezione true-peak, preset di consegna da Streaming a Vinile, e Pareggia guadagno per confrontare il suono, non il volume.',
   'tour.dsp.how':
-    'Apri la scheda DSP, scegli una catena in Preimpostazioni, poi clicca uno stadio nelle schede laterali e mettilo su Attivo. Con Equalizer APO, riproduci prima un brano dalla Libreria.',
+    'Apri la scheda DSP, scegli una catena in Preset, poi clicca uno stadio nelle schede laterali e mettilo su Attivo. Con Equalizer APO, riproduci prima un brano dalla Libreria.',
   'tour.dsp.open': 'Apri il DSP',
 
   'tour.output.kicker': 'SUONA IN DUE POSTI',
@@ -272,17 +272,17 @@ const tour: Partial<Dictionary> = {
   'tour.karaoke.title': 'Karaoke con guida all’intonazione',
   'tour.karaoke.subtitle': 'Le tue canzoni, i tuoi testi, il tuo microfono',
   'tour.karaoke.lead':
-    'Trascina una canzone con o senza file di testo e FluidEQ li abbina in una playlist, mostra il testo sincronizzato sopra la copertina o il video, ascolta il microfono e disegna la tua intonazione contro la melodia. Tutto resta su questo computer; il microfono non viene mai registrato né riprodotto.',
+    'Trascina una canzone con o senza file di testo e FluidEQ li abbina in una scaletta, mostra il testo sincronizzato sopra la copertina o il video, ascolta il microfono e disegna la tua intonazione contro la melodia. Tutto resta su questo computer; il microfono non viene mai registrato né riprodotto.',
   'tour.karaoke.point1':
     'Un cursore Voce guida che va dall’originale alla sola base, togliendo la voce principale senza un file a parte.',
   'tour.karaoke.point2':
-    'Una corsia dell’intonazione in vista Note o Curva: le note della canzone come blocchi, la tua voce come linea dal vivo, con feedback Alto, Intonato e Basso.',
+    'Una traccia dell’intonazione in vista Note o Curva: le note della canzone come blocchi, la tua voce come linea dal vivo, con feedback Alta, Intonata e Bassa.',
   'tour.karaoke.point3':
-    'Un riepilogo della performance alla fine, con le parti da esercitare e un conto alla rovescia per riprovare.',
+    'Un riepilogo dell’esibizione alla fine, con le parti da esercitare e un conto alla rovescia per riprovare.',
   'tour.karaoke.point4':
-    'Legge LRC, LRC esteso con tempi per parola e UltraStar con sillabe e intonazione, su MP3, FLAC, WAV, OGG, M4A e altro. In più testi tradotti e accordi di chitarra stimati.',
+    'Legge LRC, LRC avanzato con tempi per parola e UltraStar con sillabe e intonazione, su MP3, FLAC, WAV, OGG, M4A e altro. In più testi tradotti e accordi di chitarra stimati.',
   'tour.karaoke.how':
-    'Apri la scheda Karaoke, premi «Apri brano» o «Aggiungi cartella», scegli una traccia nella playlist, accendi il microfono, mostra la guida all’intonazione e premi Riproduci.',
+    'Apri la scheda Karaoke, premi «Apri brano» o «Aggiungi cartella», scegli una traccia nella scaletta, accendi il microfono, mostra la guida all’intonazione e premi Riproduci.',
   'tour.karaoke.open': 'Apri il Karaoke',
 
   'tour.maker.kicker': 'FALLO TU',
@@ -291,15 +291,15 @@ const tour: Partial<Dictionary> = {
   'tour.maker.lead':
     'Uno studio di authoring completo dentro la scheda Karaoke. Può fare tutto da solo: separare la voce dalla musica, leggere le parole e i loro tempi con un modello vocale locale e rilevare le note della melodia. Oppure batti, registri e disegni ogni tempo a mano su una timeline zoomabile. Tutto gira su questo computer.',
   'tour.maker.point1':
-    '«Imposta questa canzone automaticamente»: separa la voce, poi legge parole e tempi, con l’opzione di continuare in background.',
+    '«Prepara questo brano automaticamente»: separa la voce, poi legge parole e tempi, con l’opzione di continuare in background.',
   'tour.maker.point2':
     'Conserva le tracce separate: la voce e la base, ognuna salvabile, anche in MP3.',
   'tour.maker.point3':
-    'Strumenti manuali per i dettagli: battere le parole, registrare gli attacchi di riga, un ispettore di parola con inizio e durata, e dividere una parola in sillabe.',
+    'Strumenti manuali per i dettagli: battere le parole, registrare gli inizi delle righe, un ispettore di parola con inizio e durata, e dividere una parola in sillabe.',
   'tour.maker.point4':
-    'Dipingi la melodia su una griglia di intonazione, segna le note dorate ed esporta come progetto FluidEQ, UltraStar TXT, LRC, LRC esteso o base senza voce.',
+    'Dipingi la melodia su una griglia di intonazione, segna le note dorate ed esporta come progetto FluidEQ, UltraStar TXT, LRC, LRC avanzato o base senza voce.',
   'tour.maker.how':
-    'In Karaoke carica una canzone e premi «Crea». Accetta «Imposta automaticamente» nella procedura guidata, correggi le parole sulla timeline, poi «Usa nel lettore» ed «Esporta».',
+    'In Karaoke carica una canzone e premi «Crea». Accetta «Prepara automaticamente» nella procedura guidata, correggi le parole sulla timeline, poi «Usa nel lettore» ed «Esporta».',
   'tour.maker.open': 'Apri il Karaoke',
 
   'tour.media.kicker': 'IL WEB, ATTRAVERSO IL TUO EQ',
@@ -310,11 +310,11 @@ const tour: Partial<Dictionary> = {
   'tour.media.point1':
     'Un solo campo di ricerca che cerca nel sito aperto, con ricerche recenti che puoi cancellare.',
   'tour.media.point2':
-    '«Blocca pubblicità» salta gli annunci video e nasconde gli spazi pubblicitari su YouTube.',
+    '«Blocca gli annunci» salta gli annunci video e nasconde gli spazi pubblicitari su YouTube.',
   'tour.media.point3':
     'Riprendi: il lettore ricorda l’ultima pagina e il punto in cui eri, e ti riporta lì.',
   'tour.media.point4':
-    'Download con indicatore di avanzamento e «Mostra nella cartella» a fine lavoro, e un pulsante «Esci da tutti i siti» che cancella ogni cookie e accesso in un colpo.',
+    'Download con indicatore di avanzamento e «Mostra nella cartella» a fine lavoro, e un pulsante «Disconnetti da tutti i siti» che cancella ogni cookie e accesso in un colpo.',
   'tour.media.how':
     'Apri la scheda Media online, scegli un sito dalla riga in alto, scrivi nel campo di ricerca e premi Cerca. Indietro, Avanti e Ricarica funzionano come in un browser.',
   'tour.media.open': 'Apri Media online',

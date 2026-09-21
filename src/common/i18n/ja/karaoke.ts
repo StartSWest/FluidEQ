@@ -48,7 +48,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     '複数の組み合わせが考えられます。音声を1つ、必要なら歌詞を1つ選択してください。',
   'karaoke.error.unsupported':
-    '選択したファイルには、現在対応している Karaoke の音声または歌詞がありません。カバー画像や動画は曲と一緒に追加してください。',
+    '選択したファイルには、現在対応しているカラオケの音声または歌詞がありません。カバー画像や動画は曲と一緒に追加してください。',
   'karaoke.error.read': '選択したローカルファイルを読み込めませんでした。',
   'karaoke.error.playback':
     'この Chromium ビルドでは、その音声ファイルまたはコーデックを再生できません。',
@@ -190,7 +190,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.openTitle': 'このカラオケを作成または編集',
   'karaoke.maker.dialog': 'カラオケメーカー',
   'karaoke.maker.eyebrow': 'FLUIDEQ カラオケメーカー',
-  'karaoke.maker.close': 'メーカーを閉じる',
+  'karaoke.maker.close': 'カラオケメーカーを閉じる',
   'karaoke.maker.exitBusy':
     'ローカルモデルの処理が実行中です。エディターを離れる前に、キャンセルするか完了までお待ちください。',
   'karaoke.maker.songTitle': '曲名',
@@ -265,7 +265,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lineTimingComplete':
     '歌詞行のタイミングが完了しました。確認してプレーヤーで使用できます。',
   'karaoke.maker.recordLinesHint':
-    'ENTER で開始/終了 · ↑/↓ で歌詞行を選択 · ←/→ は音声だけを2秒移動 · SPACE で再生/一時停止 · Backspace で元に戻す',
+    'ENTER で開始/終了 · ↑/↓ で歌詞行を選択 · ←/→ は音声だけを2秒移動 · スペースで再生/一時停止 · Backspace で元に戻す',
   'karaoke.maker.panView': '手のひら · タイムライン移動',
   'karaoke.maker.panHint':
     '手のひらツール：キャンバスをドラッグして、編集せずに曲内を移動します。',
@@ -305,9 +305,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.delete': '削除',
   'karaoke.maker.analyze': 'メロディーを解析',
   'karaoke.maker.prepare': 'カラオケを準備',
-  'karaoke.maker.advanced': '詳細',
+  'karaoke.maker.advanced': '修復ツール',
   'karaoke.maker.prepared':
-    'このカラオケには同期済みのメロディーノートがあります。',
+    'このカラオケには、タイミング付きの歌詞とメロディーがすでにあります。',
   'karaoke.maker.repairLyrics': '歌詞タイミングを再検出',
   'karaoke.maker.repairMelody': 'メロディーノートを再検出',
   'karaoke.maker.rebuildKaraoke': '歌詞とメロディーを再構築',
@@ -452,7 +452,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     '新しい歌詞を適用し、利用可能なメロディーに揃えました。',
   'karaoke.maker.lyricsNeedPreparation':
-    '新しい歌詞を適用しました。「カラオケを準備」でタイミングを検出してください。',
+    '新しい歌詞を適用しました。「修復ツール」を開き、「歌詞タイミングを再検出」を選んでタイミングを合わせてください。',
   'karaoke.maker.transcriptionEyebrow': '任意のローカル文字起こし',
   'karaoke.maker.transcriptionTitle':
     'ローカル音声モデルをダウンロードしますか？',
@@ -510,7 +510,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.keepLoaded': '読み込み状態を維持',
   'karaoke.maker.exported': '{file} をエクスポートしました',
   'karaoke.maker.exportedPartialLrc':
-    '{file} をエクスポートしました。歌詞 {lines} 行は含まれていません。LRC は行または行内のいずれかの単語にタイミングが必要ですが、これらにはどちらもありません。メーカーでタイミングを付けてから、もう一度エクスポートすると完全なファイルになります。',
+    '{file} をエクスポートしました。歌詞 {lines} 行は含まれていません。LRC は行または行内のいずれかの単語にタイミングが必要ですが、これらにはどちらもありません。カラオケメーカーでタイミングを付けてから、もう一度エクスポートすると完全なファイルになります。',
   'karaoke.maker.exportedPartialUltraStar':
     '{file} をエクスポートしました。歌詞 {words} 単語は含まれていません。UltraStar はメロディーに音符がある単語だけを収録しますが、これらには音符がありません。音符を検出または描画してから、もう一度エクスポートすると完全なファイルになります。',
   'karaoke.maker.exportFallback': 'カラオケファイル',

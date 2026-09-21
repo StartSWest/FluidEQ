@@ -126,7 +126,7 @@ const account = {
   // What publishing earns: one approved scene a month keeps Plus free
   // (server migration 0041). Months earned while a paid membership runs
   // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'メーカーの月',
+  'account.maker.title': '作者として獲得した月',
   'account.maker.badge': '無料',
   'account.maker.until': '{date} まで Plus は無料です。',
   'account.maker.endsDays':

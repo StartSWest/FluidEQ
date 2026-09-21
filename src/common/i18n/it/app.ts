@@ -62,7 +62,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} ms per fotogramma a {fps} fps, disegnato a {drawn} per {shown}',
   'app.processes.sceneRate':
     '{place}: {name} a {fps} fps, disegnato a {drawn} per {shown}',
-  'app.processes.place.graph': 'Visualizzazione del grafico',
+  'app.processes.place.graph': 'Visualizzatore del grafico',
   'app.processes.place.studio': 'Palco dello Studio',
   'app.processes.name.window': 'Interfaccia',
   'app.processes.what.window':
@@ -96,16 +96,16 @@ const app: Partial<Dictionary> = {
     'Legge le tue cartelle musicali mentre la libreria le scansiona: tag, durate e copertine. Parte per una scansione e si chiude quando finisce.',
   'app.processes.name.sound': 'Audio del browser',
   'app.processes.what.sound':
-    'Il suono proprio di Chromium, per la scheda Video e per i suoni di una pagina. La tua musica non passa di qui.',
+    'Il suono proprio di Chromium, per la scheda Media online e per i suoni di una pagina. La tua musica non passa di qui.',
   'app.processes.name.network': 'Rete',
   'app.processes.what.network':
-    "Controllo aggiornamenti, copertine e tutto ciò che carica la scheda Video. Nient'altro qui tocca la rete.",
+    "Controllo aggiornamenti, copertine e tutto ciò che carica la scheda Media online. Nient'altro qui tocca la rete.",
   'app.processes.name.devices': 'Elenco dispositivi',
   'app.processes.what.devices':
     "Avviato da Chromium quando l'app chiede a Windows quali dispositivi audio ci sono; la stessa richiesta elenca anche quelli video. Non apre alcuna fotocamera e non registra nulla.",
   'app.processes.name.page': 'Pagina web',
   'app.processes.what.page':
-    'Una pagina aperta nella scheda Video. Gira in un processo tutto suo, separato dall’interfaccia.',
+    'Una pagina aperta nella scheda Media online. Gira in un processo tutto suo, separato dall’interfaccia.',
   'app.processes.name.systemEngine': 'Motore FluidEQ (audio di Windows)',
   'app.processes.what.systemEngine':
     "L'equalizzatore che gira dentro il servizio audio di Windows, che lo applica a tutto ciò che ascolti. Windows condivide quel servizio con gli effetti della tua scheda audio, quindi la sua memoria e la sua CPU sono mostrate ma non sommate al totale.",

@@ -71,7 +71,7 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Bagliore',
   'look.off': 'Disattivato',
   'look.glowHint': 'Quanto la figura cresce e si illumina a ritmo.',
-  'look.needsRainbow': 'Richiede la modalità Arcobaleno.',
+  'look.needsRainbow': 'Richiede la modalità arcobaleno.',
   'look.glowNotForForm': 'Questa forma non ha bagliore.',
   'look.rainbowBorder': 'Bordo arcobaleno',
   'look.rainbowBorderHint':

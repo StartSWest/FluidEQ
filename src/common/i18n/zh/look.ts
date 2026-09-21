@@ -70,7 +70,7 @@ const look: Partial<Dictionary> = {
   'look.off': '关闭',
   'look.glowHint': '图形随节拍扩张和变亮的强度。',
   'look.needsRainbow': '需要彩虹模式。',
-  'look.glowNotForForm': '此形态没有光晕。',
+  'look.glowNotForForm': '此形态没有辉光。',
   'look.rainbowBorder': '彩虹边框',
   'look.rainbowBorderHint': '用贯穿整个色谱的颜色环绕图表。',
   'look.borderWeight': '边框粗细',

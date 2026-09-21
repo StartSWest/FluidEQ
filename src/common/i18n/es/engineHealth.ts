@@ -1,8 +1,8 @@
 const engineHealth = {
-  'engineHealth.offTitle': 'El motor FluidEQ no está funcionando en {device}',
+  'engineHealth.offTitle': 'El Motor FluidEQ no está funcionando en {device}',
   'engineHealth.offBody':
     'Esta salida está sonando sin tu EQ. Reiniciar el audio de Windows suele recuperar el motor, y todo lo demás en FluidEQ sigue funcionando mientras tanto.',
-  'engineHealth.neverRanTitle': 'Windows nunca ha iniciado el motor de FluidEQ',
+  'engineHealth.neverRanTitle': 'Windows nunca ha iniciado el Motor FluidEQ',
   'engineHealth.neverRanBody':
     'El motor está instalado y puesto en {device}, y Windows no lo ha cargado ni una vez ahí, así que reiniciar el audio no va a traerlo. FluidEQ ya ha corregido todo lo que está a su alcance; si sigue así, lo está impidiendo tu antivirus o el driver de tu tarjeta de sonido. Mientras tanto, Equalizer APO sí procesa tu sonido.',
   'engineHealth.bypassedTitle':
@@ -27,7 +27,7 @@ const engineHealth = {
   'engineHealth.problem.other':
     'Otra cosa que se pidió al motor no se está ejecutando.',
   'engineHealth.engineIsOld':
-    'El motor FluidEQ instalado en este PC no es el que trae esta versión de FluidEQ.',
+    'El Motor FluidEQ instalado en este PC no es el que trae esta versión de FluidEQ.',
   'engineHealth.rackNeedsEngine':
     'Los efectos DSP se ejecutan dentro del propio motor, así que reiniciar el audio de Windows vuelve a arrancar el mismo. Lo que lo arregla es poner el motor propio de FluidEQ: un permiso de Windows y un segundo de silencio.',
   'engineHealth.useApo': 'Usar Equalizer APO…',

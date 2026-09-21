@@ -34,17 +34,17 @@ const studio = {
     'Escreva a cena ao lado de um palco que se reconstrói a cada vez que você salva',
   'studio.locked.test': 'Toque com música e veja quanto custa desenhá-la',
   'studio.locked.publish': 'Publique na galeria para todos os membros',
-  'studio.locked.keptOne': 'O teu projeto está onde o deixaste, em',
+  'studio.locked.keptOne': 'Seu projeto está onde você o deixou, em',
   'studio.locked.keptMany':
-    'Os teus {count} projetos estão onde os deixaste, em',
+    'Seus {count} projetos estão onde você os deixou, em',
   'studio.locked.earn':
     'Uma cena que você publique dá um mês de Plus assim que for aprovada.',
   'studio.plus.oneFolder':
-    'Sem o Plus abre-se a primeira; as outras ficam na lista com um cadeado, para o Plus.',
+    'Sem o Plus a primeira abre; as outras ficam na lista com um cadeado, para o Plus.',
   'studio.plus.lockedProject':
-    'Com o Plus este projeto também abre; sem o Plus o Estúdio guarda um.',
+    'Com o Plus este projeto também abre; sem o Plus o Estúdio mantém um.',
   'studio.plus.oneProject':
-    'Sem Plus o Estúdio guarda um projeto. Publique uma cena e, assim que for aprovada, o próximo mês é grátis, ou assine o Plus para ter quantos quiser.',
+    'Sem Plus o Estúdio mantém um projeto. Publique uma cena e, assim que for aprovada, o próximo mês é grátis, ou assine o Plus para ter quantos quiser.',
 
   'studio.maker.title': 'Faça com sua IA',
   'studio.maker.describe': 'Descreva sua cena',
@@ -77,8 +77,8 @@ const studio = {
 
   'studio.project.label': 'Projeto',
   'studio.project.group': 'Seus projetos',
-  'studio.project.groupOfficial': 'Cenas da FluidEQ para ver por dentro',
-  'studio.project.inspect': 'Ver por dentro uma cena da FluidEQ…',
+  'studio.project.groupOfficial': 'Cenas do FluidEQ para ver por dentro',
+  'studio.project.inspect': 'Ver por dentro uma cena do FluidEQ…',
   'studio.project.none': 'Escolha um projeto',
   'studio.project.empty': 'Nenhum projeto ainda',
   'studio.project.add': 'Abrir uma pasta…',
@@ -172,7 +172,7 @@ const studio = {
   'studio.publish.signedOut': 'Entre para publicar sua cena.',
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.officialCopy':
-    'Quase toda esta cena é uma das cenas da FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de publicá-la.',
+    'Quase toda esta cena é uma das cenas do FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de publicá-la.',
   'studio.publish.outdated':
     'Os termos do Plus têm uma versão mais nova. Atualize o FluidEQ para ler e publicar.',
   'studio.publish.versionTaken':
@@ -238,12 +238,12 @@ const studio = {
   'studio.export.signedOut': 'Entre na sua conta para exportar sua cena.',
   'studio.export.failed': 'Não foi possível exportar a cena. Tente de novo.',
   'studio.export.officialCopy':
-    'Quase toda esta cena é uma das cenas da FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de exportá-la.',
-  'studio.inspect.title': 'Uma cena da FluidEQ, para ver por dentro',
+    'Quase toda esta cena é uma das cenas do FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de exportá-la.',
+  'studio.inspect.title': 'Uma cena do FluidEQ, para ver por dentro',
   'studio.inspect.body':
     'Veja como ela é feita e tire ideias para suas próprias cenas. Teste aqui as mudanças que quiser; ela não pode ser adicionada aos seus visuais, publicada nem exportada.',
   'studio.inspect.locked':
-    'Esta é uma cena da FluidEQ, aberta para ver por dentro. Ela não pode ser adicionada aos seus visuais, publicada nem exportada.',
+    'Esta é uma cena do FluidEQ, aberta para ver por dentro. Ela não pode ser adicionada aos seus visuais, publicada nem exportada.',
   'studio.export.banned': 'Esta conta não pode mais compartilhar cenas.',
   'studio.export.outdated':
     'Os termos do Plus têm uma versão nova. Atualize o FluidEQ para lê-la e exportar.',
@@ -260,7 +260,7 @@ const studio = {
 
   'studio.idea.pet.label': 'Meu pet, vivo',
   'studio.idea.pet.text':
-    'A foto do meu pet, viva com a música: ele respira suave com os graves, uma borda de luz contorna sua silhueta a cada batida, suas cores esquentam com os médios e pequenas faíscas sobem ao redor com os agudos. A cada grande momento, uma chuva de confete explode atrás dele, cada vez de uma cor. No silêncio ele só respira, devagar. Controles para o brilho, as faíscas e o quanto ele se mexe. Ao redor do app, no modo Ambiente: pegadinhas de patas e corações passando devagar.',
+    'A foto do meu pet, viva com a música: ele respira suave com os graves, uma borda de luz contorna sua silhueta a cada batida, suas cores esquentam com os médios e pequenas faíscas sobem ao redor com os agudos. A cada grande momento, uma chuva de confete explode atrás dele, cada vez de uma cor. No silêncio ele só respira, devagar. Controles para o brilho, as faíscas e o quanto ele se mexe. Ao redor do app, no modo Ambiente: pegadas de patinhas e corações passando devagar.',
   'studio.idea.city.label': 'Cidade neon',
   'studio.idea.city.text':
     'Uma cidade neon à noite, depois da chuva. O horizonte de prédios é o meu espectro: cada torre sobe com a sua parte da música, os graves à esquerda e os agudos à direita, onde a altura e a posição da minha onda o colocam. As janelas acendem com os médios, as luzes dos telhados piscam a cada batida e a cada grande momento um trem cruza a ponte da frente. A rua molhada reflete tudo e ondula com a forma de onda. No silêncio só o trânsito anda, devagar. Controles para a chuva, as janelas e o brilho do neon. Ao redor do app, no modo Ambiente: luzes suaves da cidade flutuando como bokeh.',
@@ -352,7 +352,7 @@ const studio = {
   'studio.settings.ambientLead':
     'O que esta cena acrescenta ao redor do app no modo Ambiente.',
   'studio.settings.ambientOff':
-    'Muda o aspeto da janela para Ambiente para os veres.',
+    'Mude o aspecto da janela para Ambiente para vê-los.',
   'studio.settings.sensitivity': 'Sensibilidade',
   'studio.settings.sensitivityHint':
     'O quanto reage. Mais para uma música baixa, menos quando uma alta a deixa sempre no máximo.',
@@ -369,14 +369,14 @@ const studio = {
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Redefinir',
   'studio.settings.resetsToScene':
-    'Repor devolve-os às definições da própria cena.',
+    'Redefinir volta aos ajustes da própria cena.',
   'studio.settings.resetsToPublished':
-    'Repor devolve-os à versão {version}, a que publicaste.',
+    'Redefinir volta à versão {version}, a que você publicou.',
   'studio.settings.carries':
-    'Salvo na cena ao soltar: seus estilos e a galeria recebem também.',
+    'Salvo na cena ao soltar: seus visuais e a galeria recebem também.',
   'studio.settings.saving': 'Salvando na cena…',
   'studio.settings.saved': 'Salvo na cena.',
-  'studio.settings.savedLook': 'Salvo na cena e no seu estilo.',
+  'studio.settings.savedLook': 'Salvo na cena e no seu visual.',
   'studio.settings.failed':
     'Não foi possível salvar os ajustes. Tente de novo.',
 
@@ -406,7 +406,7 @@ const studio = {
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':
-    'Fica guardado na cena e é publicado com ela, por isso abre como você deixou. Quem a usar pode alterá-las em Visualização, no gráfico, e voltar à sua. Teste os extremos: uma onda baixa ou elevada até o centro.',
+    'Fica salvo na cena e é publicado com ela, por isso abre como você deixou. Quem a usar pode alterá-las em Visualização, no gráfico, e voltar à sua. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.tint.label': 'O FluidEQ com esta cena',
   'studio.tint.hint':
     'Enquanto você trabalha aqui, todo o app pode assumir as cores da cena, ou brilhar suavemente ao redor dela com a música, para ver e sentir como fica como tema.',

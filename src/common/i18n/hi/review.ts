@@ -85,7 +85,7 @@ const review = {
   'review.notice.keepsLive':
     'जिनके पास यह है, उनके पास संस्करण {version} ही रहेगा।',
   'review.notice.gotIt': 'ठीक है',
-  'review.notice.openStudio': 'Studio खोलें',
+  'review.notice.openStudio': 'स्टूडियो खोलें',
   'review.notice.openMine': 'आपके सीन',
 } as const;
 

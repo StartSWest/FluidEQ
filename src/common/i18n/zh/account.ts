@@ -106,7 +106,7 @@ const account = {
   'account.dev.cancel': '模拟一次取消',
   'account.dev.working': '发送中…',
 
-  'account.perk.looks': '由显卡绘制的 Plus 样式。',
+  'account.perk.looks': '由显卡绘制的 Plus 外观。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
   'account.perk.board': '谁听得最多的排行榜。',
   // What publishing earns: one approved scene a month keeps Plus free

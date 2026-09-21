@@ -19,7 +19,7 @@ const termsNotice = {
   'termsNotice.change.8':
     'Die vierzehntägige Erstattung entfällt. Nach einer Kündigung bleibt Plus bis zum Ende des bezahlten Zeitraums aktiv, und es wird nichts mehr berechnet.',
   'termsNotice.change.9':
-    'Jede in Visualizer veröffentlichte Szene wird jetzt von einem Moderator gelesen, bevor sie jemand anderes sieht. Und Plus kann ohne Zahlung dazukommen: ein kostenloser Testzeitraum, den ein neues Konto einmal nehmen kann, und ein Monat, den eine freigegebene Szene einbringt. Beides verlängert sich nicht, und es wird nie etwas dafür berechnet.',
+    'Jede in Visualizer veröffentlichte Szene wird jetzt von einem Moderator gelesen, bevor sie jemand anderes sieht. Und Plus kann ohne Zahlung dazukommen: eine Gratis-Testphase, die ein neues Konto einmal nehmen kann, und ein Monat, den eine freigegebene Szene einbringt. Beides verlängert sich nicht, und es wird nie etwas dafür berechnet.',
 } as const;
 
 export default termsNotice;

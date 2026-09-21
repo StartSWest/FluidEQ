@@ -40,7 +40,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.status.connectedMany': '{count} 台接続済み',
   'remoteAudio.status.sending': 'ロスレス音声を送信中',
   'remoteAudio.status.playbackBlocked':
-    '音声を聴くには「再開」を押してください',
+    '音声を聴くには「音声を再開」を押してください',
   'remoteAudio.status.disconnected': '受信側が切断されました',
   'remoteAudio.monitor.title': 'ライブ接続',
   'remoteAudio.monitor.inactive': '開始する役割を選択してください',

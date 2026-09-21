@@ -55,7 +55,7 @@ const review = {
     'Aprovada, mas os arquivos não chegaram à galeria. Clique em Aprovar e publicar de novo para concluir.',
   'review.forbidden': 'Só o administrador do FluidEQ pode aprovar cenas.',
   'review.fine.new':
-    'Aprovar a coloca na galeria na versão {version}: todos com sessão iniciada a veem, e os membros Plus podem adicioná-la.',
+    'Aprovar a coloca na galeria na versão {version}: todos que estão conectados a veem, e os membros Plus podem adicioná-la.',
   'review.fine.update':
     'Aprovar substitui a versão {version} para todos que têm a cena. Não aprovar deixa a versão {version} como está.',
   'review.state.pending': 'Em revisão',
@@ -85,7 +85,7 @@ const review = {
     'A versão {version} de {name} não foi aprovada',
   'review.notice.keepsLive': 'Quem a tem continua com a versão {version}.',
   'review.notice.gotIt': 'Entendido',
-  'review.notice.openStudio': 'Abrir o Studio',
+  'review.notice.openStudio': 'Abrir o Estúdio',
   'review.notice.openMine': 'Suas cenas',
 } as const;
 

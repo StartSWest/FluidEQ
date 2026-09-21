@@ -362,7 +362,7 @@ const studio = {
   'studio.settings.ambientLead':
     'Ce que cette scène ajoute autour de l’app en mode Ambiance.',
   'studio.settings.ambientOff':
-    'Passe le style de la fenêtre sur Ambiance pour les voir.',
+    'Passez le style de la fenêtre sur Ambiance pour les voir.',
   'studio.settings.sensitivity': 'Sensibilité',
   'studio.settings.sensitivityHint':
     'Sa force de réaction. Plus pour un morceau doux, moins quand un morceau fort la garde au maximum.',
@@ -383,10 +383,10 @@ const studio = {
   'studio.settings.resetsToPublished':
     'Réinitialiser les ramène à la version {version}, celle que vous avez publiée.',
   'studio.settings.carries':
-    'Enregistré dans la scène quand vous relâchez : vos looks et la galerie le reçoivent aussi.',
+    'Enregistré dans la scène quand vous relâchez : vos styles et la galerie le reçoivent aussi.',
   'studio.settings.saving': 'Enregistrement dans la scène…',
   'studio.settings.saved': 'Enregistré dans la scène.',
-  'studio.settings.savedLook': 'Enregistré dans la scène et dans votre look.',
+  'studio.settings.savedLook': 'Enregistré dans la scène et dans votre style.',
   'studio.settings.failed':
     'Les réglages n’ont pas pu être enregistrés. Réessayez.',
 
@@ -416,7 +416,7 @@ const studio = {
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':
-    'Enregistré dans la scène et publié avec elle : elle s’ouvre comme vous l’avez laissée. Qui l’utilise peut les changer dans Vue, sur le graphique, et revenir à la vôtre. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
+    'Enregistré dans la scène et publié avec elle : elle s’ouvre comme vous l’avez laissée. Qui l’utilise peut les changer dans Affichage, sur le graphique, et revenir à la vôtre. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.tint.label': 'FluidEQ avec cette scène',
   'studio.tint.hint':
     'Pendant que vous travaillez ici, toute l’application peut prendre les couleurs de la scène, ou briller doucement autour d’elle avec la musique, pour la voir et la sentir en thème.',
@@ -426,7 +426,7 @@ const studio = {
 
   'studio.performance.title': 'Performance',
   'studio.performance.hint':
-    'Un seul choix pour le graphique, cette scène et le bureau : les mêmes lignes que le menu du graphique.',
+    'Un seul choix pour le graphique, cet aperçu et le bureau : les mêmes lignes que le menu du graphique.',
   'studio.cost.full': 'Tourne de façon fluide',
   'studio.cost.reading': '{ms} ms · {fps} fps · {size} %',
   'studio.cost.readingRate': '{fps} fps · {size} %',

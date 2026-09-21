@@ -151,7 +151,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'ノーマライザー',
   'dsp.normalizer.description':
-    'ソース全体を一度測定し、Exciter と EQ の前で左右共通の一定ゲインを適用します。ポンピングや追従する RMS はありません。',
+    'ソース全体を一度測定し、エキサイターと EQ の前で左右共通の一定ゲインを適用します。ポンピングや追従する RMS はありません。',
   'dsp.normalizer.mode': 'ノーマライズモード',
   'dsp.normalizer.off': 'オフ',
   'dsp.normalizer.truePeak': 'トゥルーピーク',
@@ -250,7 +250,7 @@ const dsp = {
 
   'dsp.crossfade.title': 'クロスフェード',
   'dsp.crossfade.description':
-    'ノーマライズ後、Exciter と EQ の前で前後のトラックを重ねます。',
+    'ノーマライズ後、エキサイターと EQ の前で前後のトラックを重ねます。',
   'dsp.crossfade.outgoing': 'フェードアウト',
   'dsp.crossfade.incoming': 'フェードイン',
   'dsp.crossfade.duration': '時間',
@@ -479,7 +479,7 @@ const dsp = {
   'dsp.bassForge.isolate': 'アイソレート',
   'dsp.bassForge.isolateHint': 'この段が加えている低域だけを聴きます。',
   'dsp.bassForge.isolateOn':
-    '元の信号を外し、Forge が加えている成分だけを聴いています。',
+    '元の信号を外し、ベースフォージが加えている成分だけを聴いています。',
   'dsp.bassForge.description':
     '再生できるスピーカーには低音の1オクターブ下を実際に加え、それができないスピーカーにはそのオクターブの倍音を加えます。小型スピーカーは45 Hzでは何も出せませんが、倍音があれば耳はピッチを再構成できます。低音の音量そのものは変わりません。',
   'dsp.bassForge.splitHz': '分割',
@@ -641,7 +641,7 @@ const dsp = {
   'dsp.master.peakLimiting': 'ピークリミッティング',
   'dsp.master.matchedBypass': 'ゲインマッチ',
   'dsp.master.matchedBypassHint':
-    '{gain} dB のメイクアップを出力から差し引くので、Master のオンオフで音量ではなく音そのものを比較できます。リミッティングはどちらでも同じで、変わるのはレベルだけです。',
+    '{gain} dB のメイクアップを出力から差し引くので、マスターのオンオフで音量ではなく音そのものを比較できます。リミッティングはどちらでも同じで、変わるのはレベルだけです。',
   'dsp.surround.title': 'サラウンド',
   'dsp.surround.onHint':
     'Windows の設定に従い、5.1 / 7.1 出力のすべてのチャンネルにラックをかけ、レベル判定は全チャンネルで一つにします。',

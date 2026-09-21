@@ -38,7 +38,7 @@ const video: Partial<Dictionary> = {
   'video.signOut': 'Sair de todos os sites',
   'video.signOutBusy': 'Saindo…',
   'video.signOutHint':
-    'Apaga todos os cookies, logins e páginas em cache que o player guarda.',
+    'Apaga todos os cookies, logins e páginas em cache que o player mantém.',
   'video.signOutDone': 'Sessões encerradas',
   'video.signOutFailed': 'Não foi possível sair',
   'video.blockedTitle': 'Esse link leva para fora do player',

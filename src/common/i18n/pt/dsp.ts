@@ -90,9 +90,9 @@ const dsp = {
     'Nenhum favorito. Marque um preset DSP com uma estrela.',
   'dsp.favorites.open': 'Abrir DSP',
   'dsp.gameMode.update':
-    'Atualize o Motor FluidEQ para usar o modo Jogo. O preset continua aplicando seus ajustes de som.',
+    'Atualize o Motor FluidEQ para usar o Modo jogo. O preset continua aplicando seus ajustes de som.',
   'dsp.gameMode.hint':
-    'O modo de jogo remove buffers evitáveis e usa EQ de fase mínima. Efeitos ativos ainda podem adicionar atraso. Presets de jogo o ativam; você pode desativá-lo sem mudar o preset.',
+    'O Modo jogo remove buffers evitáveis e usa EQ de fase mínima. Efeitos ativos ainda podem adicionar atraso. Presets de jogo o ativam; você pode desativá-lo sem mudar o preset.',
   'dsp.latency.buffer': 'Buffer com efeito desativado',
   'dsp.normalizer.liveTitle': 'Controle de nível ao vivo',
   'dsp.normalizer.livePeak': 'Proteção de picos',
@@ -107,7 +107,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'O processamento neural de voz está disponível apenas na reprodução da Biblioteca. A redução de chiado, zumbido e cliques funciona com áudio externo.',
   'dsp.normalizer.liveDescription':
-    'Mede o áudio externo durante a reprodução, ajusta os dois canais juntos e protege os picos antes do excitador e do EQ.',
+    'Mede o áudio externo durante a reprodução, ajusta os dois canais juntos e protege os picos antes do Excitador e do EQ.',
   'dsp.normalizer.liveAnalysis': 'Análise da fonte ao vivo',
   'dsp.normalizer.shortTerm': 'Sonoridade de curto prazo',
   'dsp.normalizer.liveHonesty':
@@ -130,7 +130,7 @@ const dsp = {
   'dsp.latency.note':
     'Buffers informados pelo motor na taxa atual. Windows, dispositivo e rede não estão incluídos.',
   'dsp.latency.gameNote':
-    'O modo de jogo reduz buffers evitáveis. Efeitos ativos podem precisar de atraso. Desative-o para restaurar o processamento normal.',
+    'O Modo jogo reduz buffers evitáveis. Efeitos ativos podem precisar de atraso. Desative-o para restaurar o processamento normal.',
   'dsp.latency.stage.linearEq': 'Equalizador de fase linear',
   'dsp.latency.stage.safety': 'Proteção final',
   'dsp.latency.stage.guard': 'Proteção de picos do equalizador',
@@ -141,18 +141,18 @@ const dsp = {
   'dsp.unavailable':
     'O processamento de áudio não conseguiu iniciar. A reprodução não é afetada.',
   'dsp.engineDown':
-    'O motor de áudio nativo não conseguiu iniciar, por isso todos os estágios de DSP estão desligados. Nada aqui em baixo está a processar a sua música e os controlos estão desativados; a reprodução em si não é afetada. Reiniciar o FluidEQ costuma resolver.',
-  'dsp.presets': 'Predefinições',
+    'O motor de áudio nativo não conseguiu iniciar, por isso todos os estágios de DSP estão desligados. Nada aqui embaixo está processando a sua música e os controles estão desativados; a reprodução em si não é afetada. Reiniciar o FluidEQ costuma resolver.',
+  'dsp.presets': 'Presets',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
-  'dsp.preset.broadcast': 'Radiofónico',
+  'dsp.preset.broadcast': 'Radiofônico',
   'dsp.preset.bassPower': 'Potência de graves',
   'dsp.bypassed': 'Ignorado',
   'dsp.enabled': 'Ligado',
 
   'dsp.normalizer.title': 'Normalizador',
   'dsp.normalizer.description':
-    'Mede uma vez a fonte completa e aplica um único ganho estéreo ligado antes do Exciter e do EQ. Sem bombeamento nem seguidor RMS móvel.',
+    'Mede uma vez a fonte completa e aplica um único ganho estéreo ligado antes do Excitador e do EQ. Sem bombeamento nem seguidor RMS móvel.',
   'dsp.normalizer.mode': 'Modo de normalização',
   'dsp.normalizer.off': 'Desligado',
   'dsp.normalizer.truePeak': 'Pico real',
@@ -187,12 +187,12 @@ const dsp = {
   'dsp.denoisePreset.gentle': 'Limpeza suave',
   'dsp.denoisePreset.strong': 'Limpeza intensa',
   'dsp.denoise.description':
-    'Repara a fonte antes que algo a colora: chiado, zumbido da rede, estalos e um limpador neural de voz. Medido na própria faixa, não adivinhado.',
+    'Repara a fonte antes que algo a colore: chiado, zumbido da rede, estalos e um limpador neural de voz. Medido na própria faixa, não adivinhado.',
   'dsp.denoise.libraryOnly': 'Apenas na reprodução da Biblioteca',
   'dsp.denoise.isolate': 'Isolar',
   'dsp.denoise.isolateHint': 'Ouvir apenas o que esta etapa remove.',
   'dsp.denoise.isolateOn':
-    'O sinal mantido foi removido — ouve-se apenas o que é retirado.',
+    'O sinal mantido foi removido — você ouve apenas o que é retirado.',
   'dsp.denoise.graphOutput': 'Saída',
   'dsp.denoise.graphFloor': 'Piso de ruído',
   'dsp.denoise.graphHissAction': 'Redução de chiado aplicada',
@@ -206,10 +206,10 @@ const dsp = {
   'dsp.denoise.scanned': 'Analisado',
   'dsp.denoise.adaptive': 'Adaptativo',
   'dsp.denoise.scanRequired':
-    'Esta faixa não tem uma análise guardada. Analisado permanece transparente até voltar a analisar.',
+    'Esta faixa não tem uma análise salva. Analisado permanece transparente até você analisar novamente.',
   'dsp.denoise.hiss': 'Chiado',
   'dsp.denoise.hissHint':
-    'Supressão de banda larga face ao piso medido. Acrescenta 21 ms de latência enquanto está ligada.',
+    'Supressão de banda larga em relação ao piso medido. Acrescenta 21 ms de latência enquanto está ligada.',
   'dsp.denoise.amount': 'Quantidade',
   'dsp.denoise.reductionLimit': 'Limite de redução',
   'dsp.denoise.reductionLimitHint':
@@ -218,44 +218,44 @@ const dsp = {
   'dsp.denoise.smoothing': 'Suavização',
   'dsp.denoise.hum': 'Zumbido',
   'dsp.denoise.humHint':
-    'Corta a frequência da rede e os harmónicos que a análise realmente encontrou. Sem latência.',
+    'Corta a frequência da rede e os harmônicos que a análise realmente encontrou. Sem latência.',
   'dsp.denoise.humFrequency': 'Frequência',
   'dsp.denoise.humAuto': 'Auto',
   'dsp.denoise.humFifty': '50 Hz',
   'dsp.denoise.humSixty': '60 Hz',
-  'dsp.denoise.harmonics': 'Harmónicos',
+  'dsp.denoise.harmonics': 'Harmônicos',
   'dsp.denoise.depth': 'Profundidade',
   'dsp.denoise.width': 'Largura',
   'dsp.denoise.humAutoWaiting':
     'Auto usa a frequência medida. Ainda não foi medido nada nesta fonte.',
   'dsp.denoise.click': 'Estalos',
   'dsp.denoise.clickHint':
-    'Encontra e liga os danos impulsivos. Tudo o que seja demasiado longo para ser um estalo fica intacto, por isso a percussão sobrevive.',
-  'dsp.denoise.maxRepair': 'Reparação máxima',
+    'Encontra e liga os danos impulsivos. Tudo o que for longo demais para ser um estalo fica intacto, por isso a percussão sobrevive.',
+  'dsp.denoise.maxRepair': 'Reparo máximo',
   'dsp.denoise.voice': 'Voz',
   'dsp.denoise.voiceHint':
     'Redução neural de ruído de fundo treinada para voz. Ideal para podcasts e entrevistas; não separa faixas musicais.',
   'dsp.denoise.voiceModelMissing':
-    'Precisa de uma transferência única de 10 MB antes de poder funcionar.',
-  'dsp.denoise.voiceDownload': 'Transferir modelo',
-  'dsp.denoise.voiceDownloading': 'A transferir o modelo · {progress}%',
+    'Precisa de um download único de 10 MB antes de poder funcionar.',
+  'dsp.denoise.voiceDownload': 'Baixar modelo',
+  'dsp.denoise.voiceDownloading': 'Baixando o modelo · {progress}%',
   'dsp.denoise.voiceReady': 'Modelo pronto',
   'dsp.denoise.analysis': 'Análise da fonte',
   'dsp.denoise.rescan': 'Analisar novamente',
-  'dsp.denoise.analyzing': 'A medir o piso de ruído · {progress}%',
-  'dsp.denoise.waiting': 'Reproduz uma faixa da biblioteca para a medir.',
+  'dsp.denoise.analyzing': 'Medindo o piso de ruído · {progress}%',
+  'dsp.denoise.waiting': 'Reproduza uma faixa da Biblioteca para medi-la.',
   'dsp.denoise.measuredFloor': 'Piso de ruído',
   'dsp.denoise.measuredHum': 'Zumbido encontrado',
   'dsp.denoise.measuredClicks': 'Estalos',
   'dsp.denoise.noHum': 'Nenhum',
   'dsp.denoise.perMinute': '{count}/min',
-  'dsp.denoise.liveReduction': 'A reduzir',
+  'dsp.denoise.liveReduction': 'Reduzindo',
   'dsp.denoise.clicksRepaired': 'Reparados',
   'dsp.denoise.voiceUnderruns': 'Falhas de voz',
 
   'dsp.crossfade.title': 'Transição cruzada',
   'dsp.crossfade.description':
-    'Sobrepõe as faixas de saída e entrada após a normalização, antes do Exciter e EQ.',
+    'Sobrepõe as faixas de saída e entrada após a normalização, antes do Excitador e do EQ.',
   'dsp.crossfade.outgoing': 'Saindo',
   'dsp.crossfade.incoming': 'Entrando',
   'dsp.crossfade.duration': 'Duração',
@@ -264,36 +264,36 @@ const dsp = {
   'dsp.crossfade.smooth': 'Suave',
   'dsp.crossfade.linear': 'Linear',
   'dsp.crossfade.custom': 'Personalizada',
-  'dsp.crossfade.saveCurve': 'Guardar curva',
-  'dsp.crossfade.resetCurve': 'Repor forma',
+  'dsp.crossfade.saveCurve': 'Salvar curva',
+  'dsp.crossfade.resetCurve': 'Redefinir forma',
   'dsp.crossfade.shapeSection': 'Forma personalizada',
   'dsp.crossfade.applyCurve': 'Aplicar esta forma',
-  'dsp.crossfade.curveApplied': 'Aplicada: é a forma do fundido',
-  'dsp.crossfade.deleteCurve': 'Eliminar curva',
-  'dsp.crossfade.saveTitle': 'Guardar curva de fusão',
-  'dsp.crossfade.saveHint': 'A forma arrastada é guardada com este nome.',
+  'dsp.crossfade.curveApplied': 'Aplicada: é a forma da transição',
+  'dsp.crossfade.deleteCurve': 'Excluir curva',
+  'dsp.crossfade.saveTitle': 'Salvar curva de transição',
+  'dsp.crossfade.saveHint': 'A forma arrastada é salva com este nome.',
   'dsp.crossfade.savePlaceholder': 'Nome da curva',
-  'dsp.crossfade.handleOutgoing': 'Manípulo da curva de saída',
-  'dsp.crossfade.handleIncoming': 'Manípulo da curva de entrada',
+  'dsp.crossfade.handleOutgoing': 'Alça da curva de saída',
+  'dsp.crossfade.handleIncoming': 'Alça da curva de entrada',
   'dsp.crossfade.sum': 'Nível combinado',
   'dsp.crossfade.hint':
     'Aplica-se ao Próximo manual e aos finais naturais. A busca continua imediata.',
 
   'dsp.eqPreset.custom': 'Personalizado',
-  'dsp.eqPreset.label': 'Predefinição',
-  'dsp.eqPreset.saved': 'Os teus',
+  'dsp.eqPreset.label': 'Preset',
+  'dsp.eqPreset.saved': 'Seus',
   'dsp.eqPresetGroup.basic': 'Básicos',
-  'dsp.eqPresetGroup.genre': 'Géneros',
+  'dsp.eqPresetGroup.genre': 'Gêneros',
   'dsp.eqPresetGroup.voice': 'Voz',
   'dsp.eqPresetGroup.scene': 'Situação',
   'dsp.eqPresetGroup.device': 'Dispositivo',
-  'dsp.eqPresetGroup.character': 'Carácter',
+  'dsp.eqPresetGroup.character': 'Caráter',
   'dsp.eqPresetGroup.repair': 'Correções',
-  'dsp.eqPreset.default': 'Predefinição',
+  'dsp.eqPreset.default': 'Padrão',
   'dsp.eqPreset.balanced': 'Equilibrado',
-  'dsp.eqPreset.reset': 'Repor',
-  'dsp.eqPreset.previous': 'Predefinição anterior',
-  'dsp.eqPreset.next': 'Predefinição seguinte',
+  'dsp.eqPreset.reset': 'Redefinir',
+  'dsp.eqPreset.previous': 'Preset anterior',
+  'dsp.eqPreset.next': 'Próximo preset',
   'dsp.eqPreset.flat': 'Plano',
   'dsp.eqPreset.vShape': 'Forma em V',
   'dsp.eqPreset.rock': 'Rock',
@@ -335,39 +335,37 @@ const dsp = {
   'dsp.eqPreset.sibilance': 'Sibilância',
   'dsp.eqPreset.mudCut': 'Tirar lama',
   'dsp.eqPreset.harshTamer': 'Domar dureza',
-  'dsp.eqPreset.earbuds': 'Auriculares in-ear',
-  'dsp.eqPreset.laptop': 'Portátil',
-  'dsp.eqPreset.openBack': 'Auscultadores abertos',
+  'dsp.eqPreset.earbuds': 'Fones in-ear',
+  'dsp.eqPreset.laptop': 'Notebook',
+  'dsp.eqPreset.openBack': 'Fones abertos',
   'dsp.eqPreset.audiobook': 'Audiolivro',
   'dsp.eqPreset.nightMovie': 'Cinema à noite',
 
   'dsp.eqPreset.import': 'Importar',
   'dsp.eqPreset.export': 'Exportar',
-  'dsp.chainSave.title': 'Guardar cadeia DSP',
-  'dsp.chainSave.hint':
-    'Guarda todos os filtros e o seu estado numa só predefinição.',
+  'dsp.chainSave.title': 'Salvar cadeia DSP',
+  'dsp.chainSave.hint': 'Salva todos os filtros e o seu estado num só preset.',
   'dsp.chainShare.hint':
-    'Guarda a cadeia completa num ficheiro que pode ser partilhado.',
+    'Salva a cadeia completa num arquivo que pode ser compartilhado.',
   'dsp.chainImport.title': 'Importar uma cadeia DSP',
   'dsp.chainImport.hint':
-    'Cola uma predefinição de cadeia DSP FluidEQ ou escolhe o ficheiro JSON.',
+    'Cole um preset de cadeia DSP FluidEQ ou escolha o arquivo JSON.',
   'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
-  'dsp.chainImport.invalid':
-    'Isto não é uma predefinição de cadeia DSP FluidEQ.',
-  'dsp.eqSave.title': 'Guardar predefinição',
-  'dsp.eqSave.hint': 'Guarda o rack tal como está.',
+  'dsp.chainImport.invalid': 'Isto não é um preset de cadeia DSP FluidEQ.',
+  'dsp.eqSave.title': 'Salvar preset',
+  'dsp.eqSave.hint': 'Salva o rack tal como está.',
   'dsp.eqSave.placeholder': 'Nome',
-  'dsp.eqSave.save': 'Guardar',
-  'dsp.eqSave.delete': 'Eliminar',
+  'dsp.eqSave.save': 'Salvar',
+  'dsp.eqSave.delete': 'Excluir',
   'dsp.eqSave.overwrite':
-    'Já existe uma predefinição com esse nome e será substituída.',
-  'dsp.eqSave.saved': 'Guardado como {name}.',
-  'dsp.eqSave.deleted': 'Eliminado {name}.',
+    'Já existe um preset com esse nome e será substituído.',
+  'dsp.eqSave.saved': 'Salvo como {name}.',
+  'dsp.eqSave.deleted': 'Excluído {name}.',
   'dsp.eqSave.imported': 'Importado {name}.',
-  'dsp.eqShare.share': 'Partilhar',
-  'dsp.eqShare.hint': 'Guarda este rack como ficheiro que outros podem abrir.',
-  'dsp.eqShare.saved': 'Ficheiro de predefinição guardado.',
-  'dsp.eqShare.failed': 'Não foi possível guardar o ficheiro de predefinição.',
+  'dsp.eqShare.share': 'Compartilhar',
+  'dsp.eqShare.hint': 'Salva este rack como arquivo que outros podem abrir.',
+  'dsp.eqShare.saved': 'Arquivo de preset salvo.',
+  'dsp.eqShare.failed': 'Não foi possível salvar o arquivo de preset.',
   'dsp.eq.isolate': 'Isolar',
   'dsp.eq.isolateHint': 'Ouvir apenas o que o EQ altera.',
   'dsp.eq.isolateOn':
@@ -377,7 +375,7 @@ const dsp = {
     '{count} filtros carregados, {skipped} ignorados.',
   'dsp.eqPreset.importEmpty':
     'Este equalizador não conseguiu ler nenhum filtro.',
-  'dsp.eqPreset.importFailed': 'Não foi possível ler esse ficheiro.',
+  'dsp.eqPreset.importFailed': 'Não foi possível ler esse arquivo.',
   'dsp.eq.rack': 'Bandas',
   'dsp.eqModel.label': 'Caráter',
   'dsp.eqModel.clean': 'Nenhum',
@@ -400,9 +398,9 @@ const dsp = {
   'dsp.eqOversample.on': '2x',
   'dsp.eqImport.title': 'Importar uma curva de EQ',
   'dsp.eqImport.hint':
-    'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',
+    'Cole uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolha o arquivo que a contém.',
   'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
-  'dsp.eqImport.chooseFile': 'Escolher ficheiro',
+  'dsp.eqImport.chooseFile': 'Escolher arquivo',
   'dsp.eqImport.apply': 'Importar',
   'dsp.eqImport.cancel': 'Cancelar',
 
@@ -429,7 +427,7 @@ const dsp = {
   'dsp.eq.trimFixed': 'Fixo',
   'dsp.eq.trimOff': 'Sem ajuste',
   'dsp.eq.adaptiveHint':
-    'Mede a música e devolve a margem que não é precisa. Desligado mantém o nível totalmente estável.',
+    'Mede a música e devolve a margem que não é necessária. Desligado mantém o nível totalmente estável.',
   'dsp.eq.trimHint':
     'Margem reservada antes das bandas para esta curva não saturar.',
   'dsp.eq.overUnity': '{gain} dB acima',
@@ -440,7 +438,7 @@ const dsp = {
   'dsp.eq.phase': 'Fase',
   'dsp.eq.phaseOff': 'Desligado',
   'dsp.eq.phaseNeedle': 'Correlação',
-  'dsp.eq.phaseScope': 'Goniómetro',
+  'dsp.eq.phaseScope': 'Goniômetro',
   'dsp.eq.quality': 'Largura',
   'dsp.eq.threshold': 'Limiar',
   'dsp.eq.legend.curve': 'Curva',
@@ -460,7 +458,7 @@ const dsp = {
 
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':
-    'Gera harmónicos que nunca estiveram no sinal. Três bandas, cada uma escolhendo ordens pares para corpo ou ímpares para ar — mais Orgânico, para a densidade que um equalizador não consegue acrescentar.',
+    'Gera harmônicos que nunca estiveram no sinal. Três bandas, cada uma escolhendo ordens pares para corpo ou ímpares para ar — mais Orgânico, para a densidade que um equalizador não consegue acrescentar.',
   'dsp.exciter.bandFreq': 'Freq.',
   'dsp.exciter.bandRange': 'Alcance',
   'dsp.exciter.drive': 'Intensidade',
@@ -471,28 +469,28 @@ const dsp = {
   'dsp.exciter.texture': 'Textura',
   'dsp.exciter.organic': 'Orgânico',
   'dsp.exciter.organicHint':
-    'Adiciona corpo suave de harmónicos pares na região escolhida. Ideal para tornar uma apresentação limpa e metálica, inclusive com drivers de titânio, mais quente e orgânica sem perder detalhe.',
+    'Adiciona corpo suave de harmônicos pares na região escolhida. Ideal para tornar uma apresentação limpa e metálica, inclusive com drivers de titânio, mais quente e orgânica sem perder detalhe.',
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Foco',
   'dsp.exciter.organicRange': 'Alcance',
   'dsp.exciter.align': 'Tempo',
   'dsp.exciter.alignHint':
-    'Deixa os agudos chegarem primeiro e atrasa suavemente médios e graves para ataques claros e impacto redondo. Não adiciona harmónicos.',
+    'Deixa os agudos chegarem primeiro e atrasa suavemente médios e graves para ataques claros e impacto redondo. Não adiciona harmônicos.',
   'dsp.exciter.alignAmount': 'Quantidade',
   'dsp.exciter.isolate': 'Isolar',
   'dsp.exciter.isolateHint':
-    'Ouve apenas os harmónicos que esta etapa acrescenta.',
+    'Ouvir apenas os harmônicos que esta etapa acrescenta.',
   'dsp.exciter.isolateOn':
-    'Sinal direto desligado — ouves apenas o que isto acrescenta.',
+    'Sinal direto desligado — você ouve apenas o que isto acrescenta.',
 
   'dsp.bassForge.title': 'Forja de graves',
   'dsp.bassForge.isolate': 'Isolar',
   'dsp.bassForge.isolateHint':
     'Ouvir apenas os graves que esta etapa acrescenta.',
   'dsp.bassForge.isolateOn':
-    'Sinal original removido — ouve-se apenas o que o Forge acrescenta.',
+    'Sinal original removido — você ouve apenas o que a Forja acrescenta.',
   'dsp.bassForge.description':
-    'Acrescenta uma oitava real abaixo do grave para colunas capazes de a reproduzir, e os harmónicos dessa oitava para as que não conseguem — uma coluna pequena não irradia nada a 45 Hz, mas os harmónicos permitem que o ouvido reconstrua a altura mesmo assim. O volume dos graves não muda.',
+    'Acrescenta uma oitava real abaixo do grave para alto-falantes capazes de reproduzi-la, e os harmônicos dessa oitava para os que não conseguem — um alto-falante pequeno não irradia nada a 45 Hz, mas os harmônicos permitem que o ouvido reconstrua a altura mesmo assim. O volume dos graves não muda.',
   'dsp.bassForge.splitHz': 'Corte',
   'dsp.bassForge.driveDb': 'Intensidade',
   'dsp.bassForge.subAmount': 'Sub',
@@ -503,13 +501,13 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Acima do corte',
   'dsp.bassForge.monoNote':
     'O grave gerado é somado em mono. Os graves originais mantêm o seu estéreo.',
-  'dsp.bassForgePreset.subtle': 'Subtil',
+  'dsp.bassForgePreset.subtle': 'Sutil',
   'dsp.bassForgePreset.deep': 'Profundo',
   'dsp.bassForgePreset.solid': 'Sólido',
   'dsp.bassForgePreset.hot': 'Quente',
   'dsp.bassForgePreset.round': 'Redondo',
   'dsp.bassForgePreset.dry': 'Seco',
-  'dsp.bassForgePreset.wet': 'Húmido',
+  'dsp.bassForgePreset.wet': 'Úmido',
   'dsp.bassForgePreset.phantom': 'Fantasma',
   'dsp.bassForgePreset.dub': 'Dub',
 
@@ -518,7 +516,7 @@ const dsp = {
   'dsp.bassPunch.isolateHint':
     'Ouvir apenas as alterações nos graves desta etapa.',
   'dsp.bassPunch.isolateOn':
-    'Só se ouvem as alterações nos graves. Fica em silêncio quando o efeito estabiliza com Ataque, Sustentação e Floração a zero.',
+    'Só se ouvem as alterações nos graves. Fica em silêncio quando o efeito estabiliza com Ataque, Sustentação e Floração em zero.',
   'dsp.bassPunch.description':
     'Molda o ataque e a queda dos graves, limitando o efeito às frequências baixas. Foco dos graves escolhe a zona de trabalho; Atenuar cauda reduz apenas a Floração acrescentada durante um novo impacto.',
   'dsp.bassPunch.splitHz': 'Foco dos graves',
@@ -531,7 +529,7 @@ const dsp = {
   'dsp.bassPunch.mixHint':
     '0% mantém o som original; 100% é o efeito normal; 200% duplica o impacto e a Floração acrescentados, com cortes de graves mais fortes. Isolar acompanha a Mistura.',
   'dsp.bassPunch.meterNote':
-    'O ataque é desenhado com marcas separadas, porque cada uma é a maior oscilação dentro da sua própria janela de medição. A sustentação e o ducking duram por várias janelas, por isso são amostrados e correm como traços contínuos.',
+    'O ataque é desenhado com marcas separadas, porque cada uma é a maior oscilação dentro da sua própria janela de medição. A sustentação e a atenuação da cauda duram por várias janelas, por isso são amostradas e correm como traços contínuos.',
   'dsp.bassPunch.graph.now': 'agora',
   'dsp.bassPunch.graph.perWindow': 'pico por janela',
   'dsp.bassPunch.graph.sampled': 'amostrado',
@@ -539,7 +537,7 @@ const dsp = {
   'dsp.bassPunchPreset.open': 'Aberto',
   'dsp.bassPunchPreset.slam': 'Pancada',
   'dsp.bassPunchPreset.dry': 'Seco',
-  'dsp.bassPunchPreset.wet': 'Húmido',
+  'dsp.bassPunchPreset.wet': 'Úmido',
   'dsp.bassPunchPreset.soft': 'Suave',
   'dsp.bassPunchPreset.dnb': 'D&B',
 
@@ -565,16 +563,16 @@ const dsp = {
   'dsp.dimension.legendWidth': 'Largura',
   'dsp.dimension.groupWidth': 'Largura',
   'dsp.dimension.groupShape': 'Forma',
-  'dsp.dimensionPreset.speakers': 'Colunas',
-  'dsp.dimensionPreset.laptop': 'Portátil',
+  'dsp.dimensionPreset.speakers': 'Alto-falantes',
+  'dsp.dimensionPreset.laptop': 'Notebook',
   'dsp.dimensionPreset.intimate': 'Íntimo',
   'dsp.dimensionPreset.expansive': 'Amplo',
   'dsp.dimensionPreset.neutral': 'Neutro',
   'dsp.dimensionPreset.monoSafe': 'Mono seguro',
-  'dsp.dimensionPreset.headphones': 'Auscultadores',
+  'dsp.dimensionPreset.headphones': 'Fones de ouvido',
   'dsp.dimension.guard': 'Proteção mono',
   'dsp.dimension.monoNote':
-    'Só os lados são alterados, por isso em mono ouve-se exatamente o mesmo que sem isto. A proteção fecha quando a mistura já está fora de fase.',
+    'Só os lados são alterados, por isso em mono se ouve exatamente o mesmo que sem isto. A proteção fecha quando a mistura já está fora de fase.',
   'dsp.dimension.title': 'Dimensão',
   'dsp.dimension.description':
     'Alarga a imagem estéreo por banda. A soma mono nunca muda.',
@@ -609,7 +607,7 @@ const dsp = {
 
   'dsp.master.title': 'Master',
   'dsp.master.description':
-    'Controlo transparente da saída final após todos os processadores. Não altera o nível que alimenta o EQ, o Exciter ou as outras etapas.',
+    'Controle transparente da saída final após todos os processadores. Não altera o nível que alimenta o EQ, o Excitador ou as outras etapas.',
   'dsp.master.outputTrim': 'Ganho de saída',
   'dsp.master.autoHeadroom': 'Margem automática',
   'dsp.master.autoHeadroomHint':
@@ -622,16 +620,16 @@ const dsp = {
   'dsp.master.loudnessTarget': 'Alvo de sonoridade',
   'dsp.master.meter': 'Saída final',
   'dsp.master.safetyHint':
-    'Deteção de pico verdadeiro {factor}× · teto de {ceiling} dBTP · joelho suave de {knee} dB · ligação estéreo.',
+    'Detecção de pico verdadeiro {factor}× · teto de {ceiling} dBTP · joelho suave de {knee} dB · vínculo estéreo.',
   'dsp.master.manualHint':
-    'Ganho de saída manual. A proteção final continua a controlar os picos quando ativada.',
+    'Ganho de saída manual. A proteção final continua controlando os picos quando ativada.',
   'dsp.master.truePeak': 'TP entrada',
   'dsp.master.gainReduction': 'Redução de ganho',
   'dsp.master.devSafety': 'Segurança A/B',
   'dsp.master.devSafetyHint':
     'Apenas desenvolvimento: ignora toda a proteção final para ouvir exatamente o que ela altera.',
   'dsp.master.devSafetySpec':
-    'Proteção de picos a −0.1 dBTP · antecipação de 2 ms · recuperação suave · proteção DC e amostras inválidas',
+    'Proteção de picos a −0,1 dBTP · antecipação de 2 ms · recuperação suave · proteção DC e amostras inválidas',
   'dsp.master.dcCorrection': 'Deslocamento DC',
   'dsp.master.faults': 'Falhas',
   'dsp.master.graph.momentary': 'Momentâneo',
@@ -663,18 +661,18 @@ const dsp = {
   'dsp.surround.offHint':
     'Só o par frontal: os restantes canais de uma saída surround atravessam o rack intactos.',
   'dsp.surround.roomHint':
-    'A Sala coloca cada canal à tua volta, por isso usa-os todos enquanto está ligada. A tua escolha volta quando a desligares.',
+    'A Sala coloca cada canal ao seu redor, por isso usa todos eles enquanto está ligada. A sua escolha volta quando você a desligar.',
   'dsp.surround.allChannels': 'Todos os canais',
   'dsp.surround.frontPair': 'Par frontal',
   'dsp.room.title': 'Sala',
   'dsp.room.graphLabel': 'A sala vista de cima',
   'dsp.room.front': 'Frente',
   'dsp.room.dragHint':
-    'Arrasta uma coluna e o par vai com ela; mantém Shift ou Ctrl para a mover sozinha. No teclado, cima e baixo escolhem uma coluna, esquerda e direita movem-na.',
+    'Arraste um alto-falante e o par vai com ele; mantenha Shift ou Ctrl para movê-lo sozinho. No teclado, cima e baixo escolhem um alto-falante, esquerda e direita o movem.',
   'dsp.room.fedFrontStage':
-    'Está a tocar estéreo: só FL e FR levam som. Os outros esperam por um fluxo 5.1 ou 7.1.',
-  'dsp.room.fedFiveOne': 'Está a tocar 5.1: o par traseiro não leva nada.',
-  'dsp.room.presets': 'Sala predefinida',
+    'Está tocando estéreo: só FL e FR levam som. Os outros esperam por um fluxo 5.1 ou 7.1.',
+  'dsp.room.fedFiveOne': 'Está tocando 5.1: o par traseiro não leva nada.',
+  'dsp.room.presets': 'Preset de sala',
   'dsp.room.preset.studio': 'Estúdio',
   'dsp.room.preset.livingRoom': 'Sala de estar',
   'dsp.room.preset.cinema': 'Cinema',
@@ -684,16 +682,16 @@ const dsp = {
   'dsp.room.preset.gaming': 'Jogos',
   'dsp.room.preset.concertHall': 'Sala de concertos',
   'dsp.room.preset.jazzClub': 'Clube de jazz',
-  'dsp.room.preset.club': 'Discoteca',
+  'dsp.room.preset.club': 'Boate',
   'dsp.room.preset.openAir': 'Ar livre',
   'dsp.room.presetHint':
-    'Sala de {size} m · colunas a {distance} m · paredes {live}% vivas',
-  'dsp.room.saveRoom': 'Guardar sala…',
-  'dsp.room.saveTitle': 'Guardar esta sala',
+    'Sala de {size} m · alto-falantes a {distance} m · paredes {live}% vivas',
+  'dsp.room.saveRoom': 'Salvar sala…',
+  'dsp.room.saveTitle': 'Salvar esta sala',
   'dsp.room.saveHint':
-    'A sala inteira tal como está é guardada com este nome, ao lado das já guardadas: a forma, as colunas, os seus níveis e silêncios, as escolhas de graves e estéreo, Espaço e Ambiente. A tua cabeça e os teus auscultadores continuam teus.',
+    'A sala inteira tal como está é salva com este nome, ao lado das já salvas: a forma, os alto-falantes, os seus níveis e silêncios, as escolhas de graves e estéreo, Espaço e Ambiente. A sua cabeça e os seus fones de ouvido continuam seus.',
   'dsp.room.savePlaceholder': 'Nome da sala',
-  'dsp.room.deleteRoom': 'Eliminar sala',
+  'dsp.room.deleteRoom': 'Excluir sala',
   'dsp.room.groupHead': 'Cabeça',
   'dsp.room.size': 'Tamanho',
   'dsp.room.walls': 'Paredes',
@@ -705,40 +703,41 @@ const dsp = {
   'dsp.room.head.large': 'Grande',
   'dsp.room.groupBass': 'Graves',
   'dsp.room.bass.sub': 'Para o sub',
-  'dsp.room.bass.full': 'Gama completa',
+  'dsp.room.bass.full': 'Faixa completa',
   'dsp.room.crossover': 'Cruzamento',
   'dsp.room.bassHint':
-    'Tudo o que fica abaixo do cruzamento sai das colunas e vai para o sub, igual nos dois ouvidos, como faz um receiver: os graves nunca batem nas paredes e uma mistura estéreo mantém os graves ao centro.',
+    'Tudo o que fica abaixo do cruzamento sai dos alto-falantes e vai para o sub, igual nos dois ouvidos, como faz um receiver: os graves nunca batem nas paredes e uma mistura estéreo mantém os graves no centro.',
   'dsp.room.groupMusic': 'Música',
   'dsp.room.music.front': 'Palco frontal',
   'dsp.room.music.fill': 'Encher a sala',
   'dsp.room.music.amount': 'Quantidade',
   'dsp.room.musicHint':
-    'A música estéreo pode encher toda a sala: o par frontal fica como está, o central recebe o que os dois lados partilham, e o que não partilham chega aos laterais um instante depois e aos traseiros a seguir, como faz um descodificador surround. Filmes e jogos nunca são tocados.',
+    'A música estéreo pode encher toda a sala: o par frontal fica como está, o central recebe o que os dois lados compartilham, e o que não compartilham chega aos laterais um instante depois e aos traseiros em seguida, como faz um decodificador surround. Filmes e jogos nunca são tocados.',
   'dsp.room.live.music': 'Estéreo → sala inteira',
   'dsp.room.speaker.level': 'Nível',
   'dsp.room.speaker.distance': 'Distância',
   'dsp.room.speaker.angle': 'Ângulo',
   'dsp.room.speaker.mute': 'Silenciar',
   'dsp.room.speaker.solo': 'Solo',
-  'dsp.room.speaker.pick': 'Escolhe uma coluna para alterar as definições',
+  'dsp.room.speaker.pick':
+    'Escolha um alto-falante para alterar as configurações dele',
   'dsp.room.speaker.soloUnfed':
-    'Nada do que está a tocar chega a esta coluna, por isso não há nada para ouvir a solo.',
-  'dsp.room.speakerName.FL': 'Frontal esquerda',
-  'dsp.room.speakerName.FR': 'Frontal direita',
+    'Nada do que está tocando chega a este alto-falante, por isso não há nada para ouvir em solo.',
+  'dsp.room.speakerName.FL': 'Frontal esquerdo',
+  'dsp.room.speakerName.FR': 'Frontal direito',
   'dsp.room.speakerName.C': 'Central',
-  'dsp.room.speakerName.SL': 'Lateral esquerda',
-  'dsp.room.speakerName.SR': 'Lateral direita',
-  'dsp.room.speakerName.RL': 'Traseira esquerda',
-  'dsp.room.speakerName.RR': 'Traseira direita',
+  'dsp.room.speakerName.SL': 'Lateral esquerdo',
+  'dsp.room.speakerName.SR': 'Lateral direito',
+  'dsp.room.speakerName.RL': 'Traseiro esquerdo',
+  'dsp.room.speakerName.RR': 'Traseiro direito',
   'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.live.off': 'Sala desligada',
-  'dsp.room.live.noHead': 'Ainda sem ficheiro de cabeça',
+  'dsp.room.live.noHead': 'Ainda sem arquivo de cabeça',
   'dsp.room.live.frontStage': 'Estéreo → palco frontal',
-  'dsp.room.live.fiveOne': '5.1 → cinco colunas e o sub',
+  'dsp.room.live.fiveOne': '5.1 → cinco alto-falantes e o sub',
   'dsp.room.live.sevenOne': '7.1 → sala completa',
   'dsp.room.live.on': 'Sala ligada',
-  'dsp.room.live.idle': 'Nada a passar pelo motor',
+  'dsp.room.live.idle': 'Nada passando pelo motor',
   'dsp.room.live.unknown': 'Só com o motor',
   'dsp.room.fit': 'Ajustar…',
   'dsp.room.profile.referenceV2': 'Referência',
@@ -747,125 +746,125 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Mundo de jogo',
   'dsp.room.profile.competitiveV2': 'Competitivo',
   'dsp.room.profile.liveVenueV2': 'Sala ao vivo',
-  'dsp.room.profile.closeUpV2': 'Grande plano',
+  'dsp.room.profile.closeUpV2': 'Primeiro plano',
   'dsp.room.profile.wideStageV2': 'Palco largo',
-  'dsp.room.profile.allAroundV2': 'A toda a volta',
+  'dsp.room.profile.allAroundV2': 'Ao redor',
   'dsp.room.profile.balconyV2': 'Balcão',
   'dsp.room.profile.nightCinemaV2': 'Cinema à noite',
   'dsp.room.profile.conductorV2': 'Maestro',
   'dsp.room.profile.rearGuardV2': 'Retaguarda',
   'dsp.room.profilePurpose.referenceV2':
-    'Uma sala próxima e tratada. O disco à tua frente, sem nada acrescentado.',
+    'Uma sala próxima e tratada. O disco à sua frente, sem nada acrescentado.',
   'dsp.room.profilePurpose.musicSpaceV2':
     'Um palco mais largo, a voz segura à frente e um pouco de ar depois.',
   'dsp.room.profilePurpose.cinemaV2':
-    'Um ecrã largo, uma voz com peso e a sala à tua volta.',
+    'Uma tela larga, uma voz com peso e a sala ao seu redor.',
   'dsp.room.profilePurpose.gameWorldV2':
-    'Um mundo à tua volta, em que os sons curtos continuam curtos.',
+    'Um mundo ao seu redor, em que os sons curtos continuam curtos.',
   'dsp.room.profilePurpose.competitiveV2':
     'Direção e mais nada: sem paredes, sem cauda.',
   'dsp.room.profilePurpose.liveVenueV2':
-    'Uma sala à volta do palco, com uma cauda longa e suave.',
+    'Uma sala ao redor do palco, com uma cauda longa e suave.',
   'dsp.room.profilePurpose.closeUpV2':
-    'Uma voz ou uma guitarra à distância de um braço, numa sala morta. O intérprete e mais nada.',
+    'Uma voz ou um violão à distância de um braço, numa sala morta. O intérprete e mais nada.',
   'dsp.room.profilePurpose.wideStageV2':
-    'O par bem afastado, para um disco que deve passar para lá dos ombros.',
+    'O par bem afastado, para um disco que deve ir além dos ombros.',
   'dsp.room.profilePurpose.allAroundV2':
-    'Um disco estéreo espalhado por todas as colunas: fica sentado no meio.',
+    'Um disco estéreo espalhado por todos os alto-falantes: você fica sentado no meio.',
   'dsp.room.profilePurpose.balconyV2':
-    'Longe de um palco estreito numa sala grande: a banda pequena à frente, a sala a toda a volta.',
+    'Longe de um palco estreito numa sala grande: a banda pequena à frente, a sala toda ao redor.',
   'dsp.room.profilePurpose.nightCinemaV2':
     'Diálogos à frente, o sub e os surrounds contidos, para um filme quando todos dormem.',
   'dsp.room.profilePurpose.conductorV2':
-    'No pódio: os músicos envolvem-no da extrema esquerda à extrema direita.',
+    'No pódio: os músicos o envolvem da extrema esquerda à extrema direita.',
   'dsp.room.profilePurpose.rearGuardV2':
-    'Para ouvir o que está atrás de si: surrounds e traseiras mais altos, sem paredes nem cauda.',
+    'Para ouvir o que está atrás de você: surrounds e traseiros mais altos, sem paredes nem cauda.',
   'dsp.room.fedExpanded':
-    'Está a tocar estéreo, espalhado pela sala: as colunas a tracejado são calculadas a partir do par frontal, não são canais à parte.',
+    'Está tocando estéreo, espalhado pela sala: os alto-falantes tracejados são calculados a partir do par frontal, não são canais à parte.',
   'dsp.room.speaker.isMuted': 'sem som',
   'dsp.room.speaker.isUnfed': 'nada lhe chega',
-  'dsp.room.speaker.isDerived': 'calculada do estéreo',
+  'dsp.room.speaker.isDerived': 'calculado do estéreo',
   'dsp.room.speaker.noteDiscrete':
-    'Esta coluna tem um canal próprio no que está a tocar.',
+    'Este alto-falante tem um canal próprio no que está tocando.',
   'dsp.room.speaker.noteDerived':
-    'Calculada a partir do par estéreo. Não há um canal separado por trás.',
+    'Calculado a partir do par estéreo. Não há um canal separado por trás.',
   'dsp.room.speaker.noteUnfed':
-    'Nada do que está a tocar chega a esta coluna. Podes colocá-la na mesma, para quando chegar.',
-  'dsp.room.speaker.noteSub': 'O canal de subwoofer do que está a tocar.',
+    'Nada do que está tocando chega a este alto-falante. Você pode colocá-lo mesmo assim, para quando chegar.',
+  'dsp.room.speaker.noteSub': 'O canal de subwoofer do que está tocando.',
   'dsp.room.speaker.noteSubUnfed':
-    'O estéreo não tem canal de subwoofer, por isso este nível não tem nada para mexer. Com os graves enviados para o sub, os graves das colunas continuam a passar por aqui.',
-  'dsp.room.quick.title': 'Torna-a tua',
+    'O estéreo não tem canal de subwoofer, por isso este nível não tem nada para mexer. Com os graves enviados para o sub, os graves dos alto-falantes continuam passando por aqui.',
+  'dsp.room.quick.title': 'Torne-a sua',
   'dsp.room.quick.space': 'Espaço',
   'dsp.room.quick.ambience': 'Ambiente',
   'dsp.room.quick.hint':
-    'Espaço é quanto ouves das paredes. Ambiente é a cauda suave que vem depois, e precisa de algum Espaço para ter o que seguir.',
+    'Espaço é quanto você ouve das paredes. Ambiente é a cauda suave que vem depois, e precisa de algum Espaço para ter o que seguir.',
   'dsp.room.classic.hint':
-    'Uma sala clássica, a soar exatamente como sempre. Espaço, Ambiente e uma colocação mais suave das colunas pertencem ao som novo.',
+    'Uma sala clássica, soando exatamente como sempre. Espaço, Ambiente e uma colocação mais suave dos alto-falantes pertencem ao som novo.',
   'dsp.room.classic.upgrade': 'Passar esta sala para o som novo',
-  'dsp.room.tune.character': 'Carácter da sala',
+  'dsp.room.tune.character': 'Caráter da sala',
   'dsp.room.tune.decay': 'Duração da cauda',
   'dsp.room.tune.damping': 'Tom da cauda',
   'dsp.room.tune.characterHint':
-    'Tamanho e Paredes moldam as primeiras reflexões. Duração e Tom moldam o Ambiente que vem depois.',
+    'Tamanho e Paredes moldam as primeiras reflexões. Duração da cauda e Tom da cauda moldam o Ambiente que vem depois.',
   'dsp.room.tune.preserve': 'Manter as posições',
   'dsp.room.tune.preserveHint':
-    'O alargamento da Dimensão descansa enquanto a Sala está ligada, porque moveria o que a Sala acabou de colocar. As definições dele mantêm-se.',
+    'O alargamento da Dimensão descansa enquanto a Sala está ligada, porque moveria o que a Sala acabou de colocar. As configurações dele são mantidas.',
   'dsp.room.tune.bassCentre': 'Graves e central',
   'dsp.room.tune.levels': 'Níveis',
   'dsp.room.tune.centreHint':
     'Central sobe ou desce o canal central. Não separa vozes de uma mistura.',
   'dsp.room.tune.noSubChannel':
-    'O que está a tocar não tem canal de subwoofer, por isso Sub não tem nada para mexer.',
+    'O que está tocando não tem canal de subwoofer, por isso Sub não tem nada para mexer.',
   'dsp.room.tune.stereo': 'Fonte estéreo',
   'dsp.room.tune.stereoHint':
     'Só para estéreo. Um sinal 5.1 ou 7.1 mantém os seus canais onde estão.',
-  'dsp.room.fitView.head': 'A tua cabeça',
+  'dsp.room.fitView.head': 'Sua cabeça',
   'dsp.room.fitView.headHint':
-    'Três tamanhos de uma única cabeça medida: não são três pessoas nem uma digitalização das tuas orelhas. Escolhe o tamanho que põe os sons à tua frente e não dentro da cabeça.',
-  'dsp.room.fitView.guided': 'Encontra a tua medida de ouvido',
+    'Três tamanhos de uma única cabeça medida: não são três pessoas nem uma digitalização das suas orelhas. Escolha o tamanho que põe os sons à sua frente e não dentro da cabeça.',
+  'dsp.room.fitView.guided': 'Encontre a sua medida de ouvido',
   'dsp.room.fitView.guidedHint':
-    'Cinco pares curtos de sons. De cada vez, escolhe o que soa mais à tua volta; a cabeça que ganhar é a tua.',
+    'Cinco pares curtos de sons. A cada vez, escolha o que soa mais ao seu redor; a cabeça que ganhar é a sua.',
   'dsp.room.fitView.start': 'Começar o teste de escuta',
   'dsp.room.signal.updateRequired':
-    'O som novo precisa do motor de áudio atualizado. Esta sala não lhe foi enviada: atualiza o motor para a ouvires.',
+    'O som novo precisa do motor de áudio atualizado. Esta sala não foi enviada a ele: atualize o motor para ouvi-la.',
   'dsp.room.featured': 'Em destaque',
   'dsp.room.classicRooms': 'Salas clássicas',
   'dsp.room.savedNew': 'Som novo',
   'dsp.room.savedClassic': 'Som clássico',
   'dsp.room.saveFailed':
-    'Não foi possível guardar a sala: o armazenamento recusou-a. Nada mudou.',
+    'Não foi possível salvar a sala: o armazenamento a recusou. Nada mudou.',
   'dsp.room.restore': 'Restaurar perfil',
   'dsp.room.restoreHint':
-    'Voltar a {name}. A tua cabeça, os auscultadores e as escolhas de fonte ficam.',
+    'Voltar a {name}. A sua cabeça, os fones de ouvido e as escolhas de fonte ficam.',
   'dsp.room.resetHint':
-    'Volta à sala Referência tal como vem, com todas as opções desta página repostas, incluindo as do ouvinte. Só o interruptor fica.',
+    'Volta à sala Referência tal como vem, com todas as opções desta página redefinidas, incluindo as do ouvinte. Só o interruptor fica.',
   'dsp.room.saveKeepsBoth':
-    'Esse nome já existe. Esta sala será guardada como «{name}» e a outra fica.',
-  'dsp.roomFit.title': 'Ajusta a sala à tua cabeça',
+    'Esse nome já existe. Esta sala será salva como “{name}” e a outra fica.',
+  'dsp.roomFit.title': 'Ajuste a sala à sua cabeça',
   'dsp.roomFit.hint':
-    'Um som breve gira à tua volta — à frente, direita, atrás, esquerda — por duas cabeças. Carrega na que soa mais à tua volta.',
+    'Um som breve gira ao seu redor — à frente, direita, atrás, esquerda — por duas cabeças. Clique na que soa mais ao seu redor.',
   'dsp.roomFit.pair': 'Par {n} de {total}',
   'dsp.roomFit.playA': 'Ouvir A',
   'dsp.roomFit.playB': 'Ouvir B',
-  'dsp.roomFit.chooseA': 'A soa mais à minha volta',
-  'dsp.roomFit.chooseB': 'B soa mais à minha volta',
+  'dsp.roomFit.chooseA': 'A soa mais ao meu redor',
+  'dsp.roomFit.chooseB': 'B soa mais ao meu redor',
   'dsp.roomFit.same': 'Soam igual',
-  'dsp.roomFit.loading': 'A preparar os sons…',
+  'dsp.roomFit.loading': 'Preparando os sons…',
   'dsp.roomFit.error': 'Não foi possível carregar as cabeças.',
-  'dsp.roomFit.resultTitle': 'A tua cabeça: {head}',
+  'dsp.roomFit.resultTitle': 'Sua cabeça: {head}',
   'dsp.roomFit.resultBody':
-    'A sala passa a usá-la; muda-a quando quiseres em Cabeça.',
+    'A sala passa a usá-la; mude-a quando quiser em Cabeça.',
   'dsp.roomFit.use': 'Usar',
   'dsp.roomFit.again': 'Repetir',
   'dsp.roomFit.cancel': 'Cancelar',
   'dsp.master.limit.limiting':
-    'Eram precisos {requested} dB — {room} dB de folga de pico mais a limitação permitida.',
+    'Eram necessários {requested} dB — {room} dB de folga de pico mais a limitação permitida.',
   'dsp.master.limit.maxGain':
-    'Eram precisos {requested} dB — na correção máxima deste estágio.',
+    'Eram necessários {requested} dB — na correção máxima deste estágio.',
   'dsp.master.limit.gate':
-    'Demasiado baixo para medir — nenhuma correção aplicada.',
+    'Baixo demais para medir — nenhuma correção aplicada.',
   'dsp.master.limit.noTrack':
-    'Nenhuma faixa para medir: esta correção é lida de uma faixa inteira, por isso aplica-se enquanto a Biblioteca toca.',
+    'Nenhuma faixa para medir: esta correção é lida de uma faixa inteira, por isso se aplica enquanto a Biblioteca toca.',
   'dsp.master.loudness.momentary': 'M',
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
@@ -886,7 +885,7 @@ const dsp = {
   'dsp.masterPreset.reference': 'Referência',
   'dsp.masterPresetGroup.streaming': 'Normalizado na entrega',
   'dsp.masterPresetGroup.broadcast': 'Radiodifusão e cinema',
-  'dsp.masterPresetGroup.unnormalized': 'Ninguém baixa o teu volume',
+  'dsp.masterPresetGroup.unnormalized': 'Ninguém baixa o seu volume',
   'dsp.masterPresetGroup.tool': 'Para comparar',
 
   'dsp.scope.rawSender':

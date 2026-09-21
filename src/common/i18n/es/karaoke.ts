@@ -260,7 +260,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.captureCountdownReady': 'Prepárate para la primera línea',
   'karaoke.maker.captureGuideNext': 'Luego viene',
   'karaoke.maker.captureGuideAudio':
-    'mueve el audio 2 segundos · Shift: 1 segundo',
+    'mueve el audio 2 segundos · Mayús: 1 segundo',
   'karaoke.maker.captureGuideLyrics': 'elige la línea de letra',
   'karaoke.maker.captureGuidePlayback': 'reproduce o pausa',
   'karaoke.maker.captureGuideWords': 'marca la palabra siguiente',
@@ -460,7 +460,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     'La letra nueva se aplicó y alineó con la melodía disponible.',
   'karaoke.maker.lyricsNeedPreparation':
-    'Se aplicó la letra nueva. Pulsa Preparar karaoke para detectar sus tiempos.',
+    'Se aplicó la letra nueva. Abre «Herramientas de reparación» y elige «Volver a detectar tiempos de letra» para sincronizarla.',
   'karaoke.maker.transcriptionEyebrow': 'MODELO LOCAL DE UNA SOLA DESCARGA',
   'karaoke.maker.transcriptionTitle': '¿Descargar el modelo de voz?',
   'karaoke.maker.transcriptionBody':
@@ -479,8 +479,7 @@ const karaoke: Partial<Dictionary> = {
     'Se alinearon las palabras sin editar con {count} regiones de notas detectadas. Se conservó la sincronización manual.',
   'karaoke.maker.analysisFound':
     'El análisis encontró {count} regiones de notas.',
-  'karaoke.maker.basicPitchRunning':
-    'Ejecutando el modelo Basic Pitch incluido',
+  'karaoke.maker.basicPitchRunning': 'Detectando las notas de la melodía',
   'karaoke.maker.basicPitchFound':
     'Se encontraron {count} notas de melodía editables a partir de la voz.',
   'karaoke.maker.whisperPreparing': 'Preparando tiempos de letra',

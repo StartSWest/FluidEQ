@@ -23,7 +23,7 @@ export default {
   'songEq.waiting': 'Nichts läuft',
   'songEq.listening': 'Noch {remaining}',
   'songEq.willSave': 'Wird gespeichert — {title}',
-  'songEq.noticeTitle': 'Gespeicherte EQ für diesen Song wird verwendet',
+  'songEq.noticeTitle': 'Gespeicherter EQ für diesen Song wird verwendet',
   'songEq.noticeBody': '{title} — über {plays} Wiedergaben gelernt',
   'songEq.noticeBodyOnce': '{title} — einmal gelernt',
   'songEq.undo': 'Rückgängig',

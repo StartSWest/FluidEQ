@@ -3,14 +3,14 @@ const wallpaper = {
   'wallpaper.actionPlus': 'Als Desktophintergrund festlegen, mit FluidEQ Plus',
   'wallpaper.title': 'Desktophintergrund',
   'wallpaper.description':
-    'Dieser Visualizer bleibt hinter den Desktopsymbolen und bewegt sich zu deiner Musik oder ruhig für sich.',
+    'Dieser Visualizer bleibt hinter den Desktopsymbolen und bewegt sich zu Ihrer Musik oder ruhig für sich.',
   'wallpaper.manage.description':
     'Was jeder Monitor hinter den Desktopsymbolen zeigt.',
   'wallpaper.manage.empty':
     'Alle Monitore zeigen ihren gewohnten Windows-Hintergrund.',
   'wallpaper.monitors': 'Monitore',
   'wallpaper.monitors.hint':
-    'Wähle, wo er läuft. Jeder Monitor kann einen eigenen Visualizer zeigen.',
+    'Wählen Sie, wo er läuft. Jeder Monitor kann einen eigenen Visualizer zeigen.',
   'wallpaper.monitors.all': 'Alle Monitore',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Primär',
@@ -56,21 +56,21 @@ const wallpaper = {
   'wallpaper.error.unsupported':
     'Desktophintergründe sind unter Windows verfügbar.',
   'wallpaper.error.unavailable':
-    'Der Desktophintergrund ist nicht erreichbar. Versuche es erneut.',
+    'Der Desktophintergrund ist nicht erreichbar. Versuchen Sie es erneut.',
   'wallpaper.error.notEntitled':
     'Desktop-Visualizer sind in FluidEQ Plus enthalten.',
   'wallpaper.error.missingScene':
-    'Dieser Visualizer ist nicht mehr installiert. Füge ihn erneut hinzu und versuche es wieder.',
+    'Dieser Visualizer ist nicht mehr installiert. Fügen Sie ihn erneut hinzu und versuchen Sie es wieder.',
   'wallpaper.error.refused':
-    'Dieser Visualizer ist mit der Grafik dieses Computers gescheitert. Lege ihn erneut fest, um es noch einmal zu versuchen.',
+    'Dieser Visualizer ist mit der Grafik dieses Computers gescheitert. Legen Sie ihn erneut fest, um es noch einmal zu versuchen.',
   'wallpaper.error.missingDisplay':
     'Dieser Monitor ist getrennt. Sein Hintergrund kehrt zurück, sobald er wieder angeschlossen ist.',
   'wallpaper.error.host':
-    'Windows konnte den Visualizer nicht auf dem Desktop platzieren. Versuche es erneut.',
+    'Windows konnte den Visualizer nicht auf dem Desktop platzieren. Versuchen Sie es erneut.',
   'wallpaper.error.renderer':
-    'Der Visualizer konnte auf dem Desktop nicht dargestellt werden. Versuche es erneut.',
+    'Der Visualizer konnte auf dem Desktop nicht dargestellt werden. Versuchen Sie es erneut.',
   'wallpaper.error.audio':
-    'Der Desktop-Visualizer hat das Musiksignal verloren. Versuche es erneut.',
+    'Der Desktop-Visualizer hat das Musiksignal verloren. Versuchen Sie es erneut.',
 } as const;
 
 export default wallpaper;

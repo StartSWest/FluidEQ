@@ -19,7 +19,7 @@ const plus = {
 
   'plus.gate.cta': 'Plus ansehen',
   'plus.browse.text':
-    'Mit Plus laufen diese Szenen zu Ihrer Musik, Sie fügen sie Ihren Darstellungen hinzu und können sie liken.',
+    'Mit Plus laufen diese Szenen zu Ihrer Musik, Sie fügen sie Ihren Darstellungen hinzu und können sie mit „Gefällt mir“ markieren.',
 
   'plus.gallery.search': 'Szenen oder Ersteller suchen',
   'plus.gallery.sort': 'Sortieren',
@@ -67,7 +67,7 @@ const plus = {
   'plus.card.updateTo': 'Auf v{version} aktualisieren',
   'plus.version.new': 'Neue Version',
   'plus.version.line': 'v{version} · {when}',
-  'plus.version.youHave': 'du hast v{version}',
+  'plus.version.youHave': 'Sie haben v{version}',
   'plus.version.title': 'Versionen',
   'plus.version.pageLine': 'Version {version} · {date}',
   'plus.version.whatsNew': 'Neu in Version {version}',
@@ -76,11 +76,12 @@ const plus = {
   'plus.version.noNote': 'Keine Notiz',
   'plus.card.open': '{name} öffnen',
 
-  'plus.like.label': '{name} liken ({count} Likes)',
-  'plus.like.own': 'Ihre Szene hat {count} Likes',
-  'plus.like.plusOnly': '{count} Likes. Szenen liken gehört zu Plus.',
+  'plus.like.label': '„Gefällt mir“ für {name} ({count} „Gefällt mir“)',
+  'plus.like.own': 'Ihre Szene hat {count} „Gefällt mir“',
+  'plus.like.plusOnly':
+    '{count} „Gefällt mir“. Szenen mit „Gefällt mir“ markieren gehört zu Plus.',
   'plus.like.offline':
-    'Liken braucht eine Verbindung. Versuchen Sie es online erneut.',
+    'Für „Gefällt mir“ ist eine Verbindung nötig. Versuchen Sie es online erneut.',
 
   'plus.add.done': '{name} ist in Ihren Darstellungen.',
   'plus.add.unavailable':
@@ -108,7 +109,7 @@ const plus = {
   'plus.scene.heavy': 'Diese Szene ist für diesen Computer zu aufwendig.',
   'plus.scene.broken': 'Diese Szene läuft auf diesem Computer nicht.',
   'plus.scene.cannotDraw': 'Dieser Computer kann gerade keine Szenen zeichnen.',
-  'plus.scene.likes': 'Likes',
+  'plus.scene.likes': '„Gefällt mir“',
   'plus.scene.week': 'Diese Woche',
   'plus.scene.adds': 'Hinzugefügt',
   'plus.scene.add': 'Zu meinen Darstellungen',
@@ -229,7 +230,7 @@ const plus = {
     'Nur für Sie sichtbar: Szenen, die auf Ihre Genehmigung warten, die Szenen, die Mitglieder melden, alle Konten und das Plus, das Sie verschenken',
   'plus.accounts.listHint':
     'Die neuesten zuerst. Klicken Sie auf ein Konto, um zu sehen, was dazugehört, und löschen Sie es endgültig, wenn der Inhaber darum bittet.',
-  'plus.accounts.search': 'Nach E-Mail, Nutzername oder Name suchen',
+  'plus.accounts.search': 'Nach E-Mail, Kürzel oder Name suchen',
   'plus.accounts.refresh': 'Aktualisieren',
   'plus.accounts.filter': 'Konten anzeigen',
   'plus.accounts.filter.all': 'Alle Konten',
@@ -306,7 +307,7 @@ const plus = {
 
   'plus.report.title': '{name} melden',
   'plus.report.lead':
-    'Was stimmt damit nicht? Nur der Entwickler von FluidEQ liest Meldungen.',
+    'Was stimmt damit nicht? Nur der Macher von FluidEQ liest Meldungen.',
   'plus.report.reason.rights':
     'Sie verwendet mein Werk oder das eines anderen ohne Erlaubnis',
   'plus.report.reason.flashing': 'Sie flackert oder ist schwer anzusehen',
@@ -321,7 +322,7 @@ const plus = {
   'plus.welcome.title':
     'Melden Sie sich an und sehen Sie, was Mitglieder bauen',
   'plus.welcome.body':
-    'Mit einem Konto kannst du die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu deinen Looks hinzuzufügen, eigene im Studio zu bauen und das, was du baust, überallhin mitzunehmen.',
+    'Mit einem Konto können Sie die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu Ihren Darstellungen hinzuzufügen, eigene im Studio zu bauen und das, was Sie bauen, überallhin mitzunehmen.',
   'plus.welcome.browse':
     'Alle Szenen durchstöbern, die Mitglieder veröffentlichen',
   'plus.welcome.play':
@@ -329,7 +330,7 @@ const plus = {
   'plus.welcome.studio':
     'Was Sie im Studio bauen, in Ihre Darstellungen, auf den Desktop und in die Galerie bringen',
   'plus.welcome.board':
-    'Mit den Likes Ihrer Szenen in der Rangliste aufsteigen',
+    'Mit den „Gefällt mir“ für Ihre Szenen in der Rangliste aufsteigen',
   'plus.welcome.account.label': 'Konto',
   'plus.welcome.account.access': 'Galerie erkunden und kurze Demos ansehen.',
   'plus.welcome.paid.label': 'Kostenpflichtiges Plus',

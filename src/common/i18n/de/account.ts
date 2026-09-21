@@ -31,7 +31,7 @@ const account = {
   'account.name.change': 'Namen ändern',
   'account.name.changeTitle': 'Ändern, wie Sie erscheinen',
   'account.name.changeBody':
-    'Ihr Handle und Ihr Name in der Rangliste und auf den Szenen, die Sie veröffentlicht haben. Sie ändern sich überall zugleich; Ihre E-Mail-Adresse bleibt privat.',
+    'Ihr Kürzel und Ihr Name in der Rangliste und auf den Szenen, die Sie veröffentlicht haben. Sie ändern sich überall zugleich; Ihre E-Mail-Adresse bleibt privat.',
   'account.name.cancel': 'Abbrechen',
   'account.signedIn': 'Angemeldet',
   'account.backToSignIn': 'Zurück zur Anmeldung',
@@ -91,7 +91,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Visualisierungen, die es sonst nirgends gibt, das Studio, um eigene zu erstellen, die Rangliste – und jede neue Funktion ab jetzt zuerst für Mitglieder. Der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
+    'Visualizer, die es sonst nirgends gibt, das Studio, um eigene zu erstellen, die Rangliste – und jede neue Funktion ab jetzt zuerst für Mitglieder. Der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
   'account.plus.upgrade': 'Auf Plus umsteigen',
   'account.plus.opening': 'Wird geöffnet…',
   'account.plus.checkoutHint':
@@ -99,7 +99,7 @@ const account = {
   'account.plus.active': 'Aktiv',
   'account.plus.ending': 'Endet',
   'account.plus.renews': 'Verlängert sich am {date}',
-  'account.plus.sorry': 'Schade, dass du gehst.',
+  'account.plus.sorry': 'Schade, dass Sie gehen.',
   'account.plus.until':
     'Plus bleibt bis zum {date} aktiv, und es wird nichts mehr berechnet.',
   'account.plus.gift': 'Ein Geschenk von FluidEQ',
@@ -123,7 +123,7 @@ const account = {
   'account.dev.cancel': 'Kündigung simulieren',
   'account.dev.working': 'Wird gesendet…',
 
-  'account.perk.looks': 'Plus-Looks, gezeichnet von der Grafikkarte.',
+  'account.perk.looks': 'Plus-Darstellungen, gezeichnet von der Grafikkarte.',
   'account.perk.visualizers':
     'Visualizer: die Szenen, die Mitglieder erstellen, offen für jedes Konto.',
   'account.perk.board': 'Eine Rangliste, wer am meisten hört.',

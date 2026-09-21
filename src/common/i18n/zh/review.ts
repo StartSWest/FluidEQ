@@ -79,7 +79,7 @@ const review = {
   'review.notice.rejectedUpdate': '{name} 的版本 {version} 未通过审核',
   'review.notice.keepsLive': '已拥有它的人保留版本 {version}。',
   'review.notice.gotIt': '知道了',
-  'review.notice.openStudio': '打开 Studio',
+  'review.notice.openStudio': '打开工作室',
   'review.notice.openMine': '你的场景',
 } as const;
 

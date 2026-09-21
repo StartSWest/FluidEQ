@@ -124,12 +124,12 @@ const lighting = {
 
   'lighting.notice.windows.title': 'Windows 正将 {devices} 留给前台应用。',
   'lighting.notice.windows.body':
-    '若要在 FluidEQ 位于其他窗口后面时也保持点亮，请在 Windows 的动态灯效设置中允许 FluidEQ 在后台控制灯光。',
-  'lighting.notice.windows.action': '打开灯效设置',
-  'lighting.windows.controller': 'Windows 后台灯光控制',
+    '若要在 FluidEQ 位于其他窗口后面时也保持点亮，请在 Windows 设置的“背景灯控件”中允许 FluidEQ。',
+  'lighting.notice.windows.action': '打开 Windows 动态照明设置',
+  'lighting.windows.controller': 'Windows 动态照明背景灯控件',
   'lighting.windows.notFirst.title':
     'Windows 正优先把 {devices} 交给另一个应用。',
-  'lighting.windows.off.title': 'Windows 中的动态灯效已关闭。',
+  'lighting.windows.off.title': 'Windows 中的动态照明已关闭。',
   'lighting.windows.waiting.title': 'Windows 正在把 {devices} 交给 FluidEQ。',
   'lighting.windows.waiting.body': '最多可能需要一分钟。',
   'lighting.windows.developerMode.title':
@@ -140,28 +140,28 @@ const lighting = {
     'Windows 不允许这个 FluidEQ 副本点亮 {devices}。',
   'lighting.windows.unavailable.body':
     'Windows 只把灯光交给它能识别的应用，而这个副本无法被识别。重新安装 FluidEQ 通常可以解决。',
-  'lighting.windows.step.open': '打开动态灯效设置。',
-  'lighting.windows.step.list': '打开后台灯光控制。',
-  'lighting.windows.step.reset': '在后台灯光控制中，重置所有设备。',
+  'lighting.windows.step.open': '打开“动态照明”设置。',
+  'lighting.windows.step.list': '打开“背景灯控件”。',
+  'lighting.windows.step.reset': '在“背景灯控件”中，重置所有设备。',
   'lighting.windows.step.drag': '把 FluidEQ 拖到列表最上方。',
   'lighting.windows.step.dragAbove':
     '把 FluidEQ 拖到列表最上方，位于 {above} 之上。',
   'lighting.windows.step.wait': '灯光大约一分钟内就会切换。',
-  'lighting.windows.step.turnOn': '开启在你的设备上使用动态灯效。',
+  'lighting.windows.step.turnOn': '开启“在设备上使用动态照明”。',
   'lighting.windows.step.deviceOn':
-    '如果某个设备仍然不亮，打开它的卡片，开启在此设备上使用动态灯效。',
+    '如果某个设备仍然不亮，打开它的卡片，开启“在此设备上使用动态照明”。',
   'lighting.windows.step.foreground':
-    '游戏或其他灯效应用在前台时，灯光由它控制。若要让 FluidEQ 保持控制，请关闭“前台兼容应用始终控制灯光”这一选项。',
+    '游戏或其他灯效应用在前台时，灯光由它控制。若要让 FluidEQ 保持控制，请关闭“前台中的兼容应用始终控制照明”。',
   'lighting.windows.step.openDevelopers': '打开 Windows 的开发者设置。',
   'lighting.windows.step.developerMode': '开启开发人员模式。',
   'lighting.windows.step.comeBack': '回到 FluidEQ；此页面会自动识别这一更改。',
   'lighting.windows.action.developers': '打开开发者设置',
   'lighting.windows.vendor.razer':
-    'Razer 设备还需要在 Razer Synapse 设置的设备灯效中选择 Windows 动态灯效。',
+    'Razer 设备还需要在 Razer Synapse 设置的设备灯效中选择 Windows 动态照明。',
   'lighting.windows.vendor.logitech':
     '当 Windows 正在点亮 Logitech 设备时，G HUB 无法更改它的灯效。',
   'lighting.windows.vendor.asus':
-    '在 Armoury Crate 中，把设备设置为 Aura Sync 与 Windows 动态灯效。',
+    '在 Armoury Crate 中，把设备设置为“Aura Sync 与 Windows 动态照明”。',
   'lighting.notice.chroma.title': 'Razer Chroma 没有响应。',
   'lighting.notice.chroma.body':
     '你的 Razer 设备通过 Razer Chroma 获取颜色。启动它，设备就会加入。',

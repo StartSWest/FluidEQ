@@ -152,8 +152,9 @@ const studio = {
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
   'studio.publish.noteNeeded': 'Erforderlich',
   'studio.publish.point1':
-    'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und liken.',
-  'studio.publish.point2': 'Jedes Like bringt Ihnen Punkte in der Rangliste.',
+    'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und mit „Gefällt mir“ markieren.',
+  'studio.publish.point2':
+    'Jedes „Gefällt mir“ bringt Ihnen Punkte in der Rangliste.',
   'studio.publish.point3':
     'Sie können die Szene zurückziehen, um neue Downloads zu verhindern. Bereits heruntergeladene Kopien bleiben mit Plus verfügbar.',
   'studio.publish.point3Update':
@@ -367,7 +368,7 @@ const studio = {
   'studio.settings.ambientLead':
     'Was diese Szene im Modus Ambiente rund um die App ergänzt.',
   'studio.settings.ambientOff':
-    'Stelle die Fensteroptik auf Ambiente, um sie zu sehen.',
+    'Stellen Sie die Fensteroptik auf Ambiente, um sie zu sehen.',
   'studio.settings.sensitivity': 'Empfindlichkeit',
   'studio.settings.sensitivityHint':
     'Wie stark sie reagiert. Mehr für leise Titel, weniger, wenn ein lauter sie ständig ans Maximum drückt.',
@@ -386,7 +387,7 @@ const studio = {
   'studio.settings.resetsToScene':
     'Zurücksetzen bringt sie auf die eigenen Einstellungen der Szene.',
   'studio.settings.resetsToPublished':
-    'Zurücksetzen bringt sie auf Version {version}, die du veröffentlicht hast.',
+    'Zurücksetzen bringt sie auf Version {version}, die Sie veröffentlicht haben.',
   'studio.settings.carries':
     'Beim Loslassen in der Szene gespeichert: Ihre Darstellungen und die Galerie bekommen es auch.',
   'studio.settings.saving': 'Wird in der Szene gespeichert…',

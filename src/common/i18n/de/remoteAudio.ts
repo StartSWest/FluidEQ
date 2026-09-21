@@ -4,9 +4,9 @@ import { Dictionary } from '../en';
 const remoteAudio: Partial<Dictionary> = {
   'tabs.share': 'Audio teilen',
   'remoteAudio.eyebrow': 'LAN-AUDIOVERBINDUNG',
-  'remoteAudio.title': 'Andere Computer hier anhören',
+  'remoteAudio.title': 'Audio zwischen Ihren Computern teilen',
   'remoteAudio.subtitle':
-    'Wähle eine Rolle für diesen Computer. Der Empfänger ist der PC mit deinem Headset; alle anderen PCs können sich als Sender verbinden.',
+    'Wählen Sie eine Rolle für diesen Computer. Der Empfänger ist der PC mit Ihrem Headset; alle anderen PCs können sich als Sender verbinden.',
   'remoteAudio.choose': 'Rolle dieses Computers wählen',
   'remoteAudio.security': 'Verbindungseigenschaften',
   'remoteAudio.badge.local': 'Nur privates LAN',
@@ -15,7 +15,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.kicker': 'EMPFÄNGER · SERVER',
   'remoteAudio.listen.title': 'Audio auf diesem Computer wiedergeben',
   'remoteAudio.listen.body':
-    'Verwende dies auf dem Computer mit Headset oder Lautsprechern. Er nimmt einen oder mehrere Sender an und spielt sie über die in FluidEQ ausgewählte Ausgabe ab.',
+    'Verwenden Sie dies auf dem Computer mit Headset oder Lautsprechern. Er nimmt einen oder mehrere Sender an und spielt sie über die in FluidEQ ausgewählte Ausgabe ab.',
   'remoteAudio.listen.start': 'Verbindungscode erstellen',
   'remoteAudio.listen.activeTitle': 'Dieser Computer empfängt',
   'remoteAudio.listen.newCode': 'Neuen Code erstellen',
@@ -23,13 +23,13 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.send.kicker': 'SENDER · CLIENT',
   'remoteAudio.send.title': 'Audio dieses Computers senden',
   'remoteAudio.send.body':
-    'Führe dies auf jedem Computer aus, den du hören möchtest. Füge den Code des Headset-Computers ein.',
+    'Führen Sie dies auf jedem Computer aus, den Sie hören möchten. Fügen Sie den Code des Headset-Computers ein.',
   'remoteAudio.send.codeLabel': 'Verbindungscode',
   'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-2… einfügen',
   'remoteAudio.send.start': 'Verbinden und senden',
   'remoteAudio.send.activeTitle': 'Systemaudio wird gesendet',
   'remoteAudio.send.activeBody':
-    'Lass FluidEQ auf beiden Computern geöffnet. Der Empfänger spielt diesen verlustfreien Stream zusammen mit allen anderen verbundenen Sendern ab.',
+    'Lassen Sie FluidEQ auf beiden Computern geöffnet. Der Empfänger spielt diesen verlustfreien Stream zusammen mit allen anderen verbundenen Sendern ab.',
   'remoteAudio.send.destination': 'Wiedergabe auf {name}',
   'remoteAudio.send.stop': 'Senden beenden',
   'remoteAudio.send.readyHint':
@@ -43,7 +43,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.status.playbackBlocked': 'Zum Hören Fortsetzen drücken',
   'remoteAudio.status.disconnected': 'Empfänger getrennt',
   'remoteAudio.monitor.title': 'Live-Verbindung',
-  'remoteAudio.monitor.inactive': 'Wähle eine Rolle, um zu beginnen',
+  'remoteAudio.monitor.inactive': 'Wählen Sie eine Rolle, um zu beginnen',
   'remoteAudio.monitor.ready': 'Bereit für einen Verbindungscode',
   'remoteAudio.monitor.waveform': 'Live-Wellenform des geteilten Audios',
   'remoteAudio.monitor.waveformFor': 'Live-Audiowellenform für {name}',
@@ -65,22 +65,22 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.networkQueued': '{milliseconds} ms in Warteschlange',
   'remoteAudio.code.title': 'Weitere Computer koppeln',
   'remoteAudio.code.hint':
-    'Kopiere einen Code auf jeden Sender. Die Kopplung bleibt beim Schließen der App und nach PC-Neustarts gespeichert. Bei mehreren Adressen nimm das gemeinsame Netzwerk beider Computer.',
+    'Kopieren Sie einen Code auf jeden Sender. Die Kopplung bleibt beim Schließen der App und nach PC-Neustarts gespeichert. Bei mehreren Adressen nehmen Sie das gemeinsame Netzwerk beider Computer.',
   'remoteAudio.code.copy': 'Code kopieren',
   'remoteAudio.code.copied': 'Kopiert',
   'remoteAudio.code.forAddress': 'Kopplungscode für {address}',
   'remoteAudio.resume': 'Audio fortsetzen',
   'remoteAudio.note.title': 'Leise anfangen.',
   'remoteAudio.note.body':
-    'Mehrere Computer werden gemischt und ihre Lautstärke kann sich schnell addieren. Senke die Headset-Lautstärke vor der ersten Verbindung. Nur ein neuer Code trennt gespeicherte Kopplungen.',
+    'Mehrere Computer werden gemischt und ihre Lautstärke kann sich schnell addieren. Senken Sie die Headset-Lautstärke vor der ersten Verbindung. Nur ein neuer Code trennt gespeicherte Kopplungen.',
   'remoteAudio.error.lan':
-    'FluidEQ konnte die lokale Verbindung nicht öffnen. Prüfe, ob beide Computer im selben privaten Netzwerk sind und die Firewall FluidEQ zulässt.',
+    'FluidEQ konnte die lokale Verbindung nicht öffnen. Prüfen Sie, ob beide Computer im selben privaten Netzwerk sind und die Firewall FluidEQ zulässt.',
   'remoteAudio.error.capture':
-    'FluidEQ konnte den Systemton dieses Computers nicht erfassen. Prüfe das aktuelle Ausgabegerät, stoppe und versuche es erneut.',
+    'FluidEQ konnte den Systemton dieses Computers nicht erfassen. Prüfen Sie das aktuelle Ausgabegerät, stoppen Sie und versuchen Sie es erneut.',
   'remoteAudio.error.playback':
-    'FluidEQ konnte die verlustfreie Audio-Engine nicht starten. Starte FluidEQ neu und versuche es erneut.',
+    'FluidEQ konnte die verlustfreie Audio-Engine nicht starten. Starten Sie FluidEQ neu und versuchen Sie es erneut.',
   'remoteAudio.error.connection':
-    'Die verschlüsselte Audioverbindung wurde beendet. Der gespeicherte Code bleibt unten; verbinde dich erneut, sobald der Empfänger bereit ist.',
+    'Die verschlüsselte Audioverbindung wurde beendet. Der gespeicherte Code bleibt unten; verbinden Sie sich erneut, sobald der Empfänger bereit ist.',
 };
 
 export default remoteAudio;

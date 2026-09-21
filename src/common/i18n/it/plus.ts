@@ -223,7 +223,7 @@ const plus = {
     'Solo tu vedi questa sezione: le scene in attesa della tua approvazione, le scene segnalate dai membri, tutti gli account e il Plus che regali',
   'plus.accounts.listHint':
     'Prima i più recenti. Premi un account per vedere cosa contiene ed eliminarlo per sempre quando il titolare lo chiede.',
-  'plus.accounts.search': 'Cerca per email, nome utente o nome',
+  'plus.accounts.search': 'Cerca per email, nickname o nome',
   'plus.accounts.refresh': 'Aggiorna',
   'plus.accounts.filter': 'Mostra account',
   'plus.accounts.filter.all': 'Tutti gli account',

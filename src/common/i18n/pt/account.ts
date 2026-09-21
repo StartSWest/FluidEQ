@@ -11,116 +11,115 @@ const account = {
   'account.close': 'Fechar',
 
   'account.optional':
-    'Iniciar sessão é opcional. O FluidEQ funciona exatamente como sempre sem conta — tudo corre nesta máquina e nada é rastreado. A conta existe apenas para as partes que realmente precisam dela.',
+    'Entrar na conta é opcional. O FluidEQ funciona exatamente como sempre sem conta — tudo roda nesta máquina e nada é rastreado. A conta existe apenas para as partes que realmente precisam dela.',
 
-  'account.signIn': 'Iniciar sessão',
+  'account.signIn': 'Entrar',
   'account.signUp': 'Criar conta',
   'account.signInHint':
-    'A tua palavra-passe vai diretamente para o serviço de contas e não fica guardada em lado nenhum da aplicação.',
+    'Sua senha vai diretamente para o serviço de contas e não fica salva em nenhum lugar do app.',
   'account.signUpHint':
-    'Um código de seis dígitos segue para esse endereço. Escreve-o aqui para terminar.',
+    'Um código de seis dígitos segue para esse endereço. Digite-o aqui para terminar.',
   'account.working': 'Um momento…',
   'account.standing.free': 'Conta gratuita',
-  'account.signOut': 'Terminar sessão',
-  'account.signOut.confirm': 'Terminar a sessão desta conta?',
-  'account.signOut.detail': 'Podes voltar a iniciar sessão quando quiseres.',
+  'account.signOut': 'Sair',
+  'account.signOut.confirm': 'Sair desta conta?',
+  'account.signOut.detail': 'Você pode entrar de novo quando quiser.',
   'account.signOut.detailPlus':
-    'O Plus fica bloqueado aqui até voltares a iniciar sessão.',
+    'O Plus fica bloqueado aqui até você entrar de novo.',
   'account.signOut.kept': 'Nada é apagado deste computador.',
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',
   'account.name.changeBody':
-    'Seu identificador e seu nome no ranking e nas cenas que você publicou. Mudam em todo lugar ao mesmo tempo; seu e-mail continua privado.',
+    'Seu nome de usuário e seu nome na classificação e nas cenas que você publicou. Mudam em todo lugar ao mesmo tempo; seu email continua privado.',
   'account.name.cancel': 'Cancelar',
-  'account.signedIn': 'Sessão iniciada',
-  'account.backToSignIn': 'Voltar ao início de sessão',
+  'account.signedIn': 'Conectado',
+  'account.backToSignIn': 'Voltar para o login',
 
   'account.field.email': 'Email',
   'account.field.emailHint':
-    'nunca é mostrado a ninguém — só para iniciar sessão e os códigos',
-  'account.field.password': 'Palavra-passe',
+    'nunca é mostrado a ninguém — só para entrar e para os códigos',
+  'account.field.password': 'Senha',
   'account.field.passwordHint': 'pelo menos {count} caracteres',
   'account.field.name': 'Nome',
   'account.field.optional': 'opcional',
   'account.field.code': 'Código do email',
 
-  'account.code.sent': 'Enviámos um código de seis dígitos para {email}.',
+  'account.code.sent': 'Enviamos um código de seis dígitos para {email}.',
   'account.code.confirm': 'Confirmar',
   'account.code.sendAgain': 'Enviar o código de novo',
   'account.code.sentAgain': 'Enviado de novo',
   'account.code.otherEmail': 'Usar outro email',
   'account.code.hint':
-    'Não chegou nada? Vê a pasta de spam. E se já tinhas uma conta com este endereço, não é enviado código: inicia sessão em vez disso.',
+    'Não chegou nada? Veja a pasta de spam. E se você já tinha uma conta com este endereço, nenhum código é enviado: entre em vez disso.',
 
-  'account.forgot.link': 'Esqueceste a palavra-passe?',
+  'account.forgot.link': 'Esqueceu a senha?',
   'account.forgot.lead':
-    'Escreve o endereço com que te registaste e um código segue para lá.',
-  'account.forgot.submit': 'Enviar código de reposição',
+    'Digite o endereço com que você se cadastrou e um código segue para lá.',
+  'account.forgot.submit': 'Enviar código de redefinição',
   'account.reset.sent':
-    'Enviámos um código de seis dígitos para {email}. Escreve-o aqui com a tua nova palavra-passe.',
-  'account.reset.submit': 'Definir nova palavra-passe',
+    'Enviamos um código de seis dígitos para {email}. Digite-o aqui com sua nova senha.',
+  'account.reset.submit': 'Definir nova senha',
 
-  'account.unavailable': 'Iniciar sessão não está disponível neste sistema',
+  'account.unavailable': 'O login não está disponível neste sistema',
   'account.unavailableHint':
-    'Não há um lugar seguro para guardar uma sessão nesta máquina, por isso o FluidEQ não a guarda. Tudo o resto funciona normalmente.',
+    'Não há um lugar seguro para armazenar uma sessão nesta máquina, por isso o FluidEQ não a armazena. Todo o resto funciona normalmente.',
 
   'account.error.network':
-    'Não foi possível contactar o serviço de contas. Verifica a tua ligação e tenta de novo.',
+    'Não foi possível contatar o serviço de contas. Verifique sua conexão e tente de novo.',
   'account.error.rejected':
-    'O serviço de contas recusou isso. Tenta de novo daqui a um momento.',
-  'account.error.expired':
-    'Essa sessão já não é válida. Inicia sessão de novo.',
+    'O serviço de contas recusou isso. Tente de novo daqui a um momento.',
+  'account.error.expired': 'Essa sessão não é mais válida. Entre de novo.',
   'account.error.signedOutElsewhere':
-    'A sessão neste computador foi terminada porque a tua conta iniciou sessão noutro. O Plus funciona em até 5 computadores ao mesmo tempo: inicia sessão de novo para o usar aqui e é terminada a do que está há mais tempo sem uso.',
+    'Este computador foi desconectado porque sua conta entrou em outro. O Plus funciona em até 5 computadores ao mesmo tempo: entre de novo para usá-lo aqui, e o que está há mais tempo sem uso é desconectado no lugar dele.',
   'account.error.malformed':
     'O serviço de contas enviou algo que o FluidEQ não conseguiu ler.',
-  'account.error.wrongCredentials': 'Email ou palavra-passe errados.',
+  'account.error.wrongCredentials': 'Email ou senha errados.',
   'account.error.unconfirmed':
-    'Essa conta ainda não foi confirmada. Escreve o código do email para terminar.',
+    'Essa conta ainda não foi confirmada. Digite o código do email para terminar.',
   'account.error.weakPassword':
-    'Essa palavra-passe é demasiado fácil de adivinhar. Tenta uma mais longa, e que não tenhas usado antes.',
-  'account.error.badCode': 'Esse código está errado ou expirou. Pede um novo.',
+    'Essa senha é fácil demais de adivinhar. Tente uma mais longa, e que você não tenha usado antes.',
+  'account.error.badCode': 'Esse código está errado ou expirou. Peça um novo.',
   'account.error.rateLimited':
-    'Demasiadas tentativas em pouco tempo. Espera um minuto e tenta de novo.',
+    'Muitas tentativas em pouco tempo. Espere um minuto e tente de novo.',
   'account.error.invalidEmail': 'Isso não parece um endereço de email.',
   'account.error.alreadyRegistered':
-    'Já existe uma conta com esse endereço. Inicia sessão em vez disso.',
+    'Já existe uma conta com esse endereço. Entre em vez disso.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Visualizadores premium que não existem em mais lado nenhum, o Estúdio para criares os teus, a classificação — e cada funcionalidade nova a partir de agora, primeiro para os membros. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
+    'Visualizadores premium que não existem em nenhum outro lugar, o Estúdio para você criar os seus, a classificação — e cada funcionalidade nova a partir de agora, primeiro para os membros. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
   'account.plus.upgrade': 'Passar ao Plus',
-  'account.plus.opening': 'A abrir…',
+  'account.plus.opening': 'Abrindo…',
   'account.plus.checkoutHint':
-    'Abre o Buy Me a Coffee no teu navegador. Paga com o mesmo email desta conta para que o FluidEQ o reconheça; a aplicação nunca vê o teu cartão.',
+    'Abre o Buy Me a Coffee no seu navegador. Pague com o mesmo email desta conta para que o FluidEQ o reconheça; o app nunca vê seu cartão.',
   'account.plus.active': 'Ativa',
   'account.plus.ending': 'Sem renovação',
-  'account.plus.renews': 'Renova a {date}',
-  'account.plus.sorry': 'É pena vê-lo partir.',
+  'account.plus.renews': 'Renova em {date}',
+  'account.plus.sorry': 'Que pena ver você partir.',
   'account.plus.until':
-    'O Plus fica activo até {date}, e não é cobrado mais nada.',
+    'O Plus fica ativo até {date}, e não é cobrado mais nada.',
   'account.plus.gift': 'Um presente do FluidEQ',
   'account.plus.giftUntil': 'Um presente do FluidEQ, até {date}',
   'account.plus.computers':
-    'Com sessão iniciada em até {count} computadores ao mesmo tempo.',
-  'account.plus.manage': 'Gerir subscrição',
+    'Sua conta fica conectada em até {count} computadores ao mesmo tempo.',
+  'account.plus.manage': 'Gerenciar assinatura',
   'account.plus.grace':
-    'Não foi possível confirmar a tua subscrição. Continua ativa até {date} — liga-te à internet antes disso para a manter.',
+    'Não foi possível confirmar sua assinatura. Ela continua ativa até {date} — conecte-se à internet antes disso para mantê-la.',
   'account.plus.checkAgain': 'Verificar de novo',
   'account.plus.perMonth': '{price} / mês',
   'account.plus.perYear': '{price} / ano',
   'account.plus.priceChoice': '{monthly} ou {yearly}',
   'account.plus.checkoutOpened':
-    'O Buy Me a Coffee está aberto no teu navegador. Volta aqui depois de pagares e o Plus fica ativo.',
+    'O Buy Me a Coffee está aberto no seu navegador. Volte aqui depois de pagar e o Plus fica ativo.',
   'account.plus.error.rejected':
-    'Não foi possível abrir a página de pagamento. Tenta de novo daqui a um momento.',
+    'Não foi possível abrir a página de pagamento. Tente de novo daqui a um momento.',
 
   'account.dev.label': 'Desenvolvimento',
   'account.dev.start': 'Simular um pagamento',
   'account.dev.cancel': 'Simular um cancelamento',
-  'account.dev.working': 'A enviar…',
+  'account.dev.working': 'Enviando…',
 
-  'account.perk.looks': 'Looks Plus, desenhados na placa gráfica.',
+  'account.perk.looks': 'Visuais Plus, desenhados na placa de vídeo.',
   'account.perk.visualizers':
     'Visualizadores: as cenas que os membros criam, abertas a todas as contas.',
   'account.perk.board': 'Uma classificação de quem ouve mais.',
@@ -131,36 +130,36 @@ const account = {
   'account.maker.badge': 'Grátis',
   'account.maker.until': 'O Plus é grátis até {date}.',
   'account.maker.endsDays':
-    'Termina daqui a {days} dias — publica uma cena antes para o manteres.',
+    'Termina daqui a {days} dias — publique uma cena antes para mantê-lo.',
   'account.maker.endsToday':
-    'Termina hoje — publica uma cena antes para o manteres.',
+    'Termina hoje — publique uma cena antes para mantê-lo.',
   'account.maker.endsTomorrow':
-    'Termina amanhã — publica uma cena antes para o manteres.',
-  'account.maker.keep': 'Publica uma cena este mês e o próximo é grátis.',
+    'Termina amanhã — publique uma cena antes para mantê-lo.',
+  'account.maker.keep': 'Publique uma cena este mês e o próximo é grátis.',
   'account.maker.kept':
-    'A cena deste mês já está. Publica outra no mês que vem para continuar.',
+    'A cena deste mês já está. Publique outra no mês que vem para continuar.',
   'account.maker.again':
-    'Publica uma cena e tens outra vez um mês de Plus grátis.',
+    'Publique uma cena e você tem de novo um mês de Plus grátis.',
   'account.maker.againWaiting':
-    'Publica uma cena e mais um mês grátis fica à espera.',
+    'Publique uma cena e mais um mês grátis fica esperando.',
   'account.maker.invite':
-    'Faz uma cena no Estúdio: uma cena aprovada por mês mantém o Plus grátis.',
+    'Faça uma cena no Estúdio: uma cena aprovada por mês mantém o Plus grátis.',
   'account.maker.waitingOne':
-    'Tens um mês ganho à espera. Começa quando a tua subscrição terminar — nada disto muda o que pagas.',
+    'Você tem um mês ganho esperando. Ele começa quando sua assinatura terminar — nada disto muda o que você paga.',
   'account.maker.waitingMany':
-    'Tens {count} meses ganhos à espera. Começam quando a tua subscrição terminar — nada disto muda o que pagas.',
+    'Você tem {count} meses ganhos esperando. Eles começam quando sua assinatura terminar — nada disto muda o que você paga.',
   // The week before an earned month runs out, and the day it does: an
   // earned month renews itself no more than a gift does, so it has to be
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle':
-    'O teu Plus grátis termina daqui a {days} dias',
-  'account.maker.notice.endingToday': 'O teu Plus grátis termina hoje',
-  'account.maker.notice.endingTomorrow': 'O teu Plus grátis termina amanhã',
+    'Seu Plus grátis termina daqui a {days} dias',
+  'account.maker.notice.endingToday': 'Seu Plus grátis termina hoje',
+  'account.maker.notice.endingTomorrow': 'Seu Plus grátis termina amanhã',
   'account.maker.notice.endingBody':
-    'Publica uma cena antes disso e o mês seguinte também é grátis. Não é cobrado nada em nenhum dos casos.',
-  'account.maker.notice.endedTitle': 'O teu Plus grátis terminou',
+    'Publique uma cena antes disso e o mês seguinte também é grátis. Não é cobrado nada em nenhum dos casos.',
+  'account.maker.notice.endedTitle': 'Seu Plus grátis terminou',
   'account.maker.notice.endedBody':
-    'Publica uma cena e começa outra vez. Tudo o que compraste continua a ser teu.',
+    'Publique uma cena e ele começa de novo. Tudo o que você comprou continua sendo seu.',
   'account.maker.notice.open': 'Abrir o Estúdio',
   'account.maker.notice.later': 'Agora não',
 } as const;

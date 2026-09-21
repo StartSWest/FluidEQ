@@ -142,7 +142,7 @@ const plus = {
   'plus.mine.published': '{date} に公開',
   'plus.mine.updated': '{date} に更新',
   'plus.mine.version': 'バージョン {version}',
-  'plus.mine.blocked': 'FluidEQ により削除',
+  'plus.mine.blocked': 'FluidEQ により取り下げ済み',
   'plus.mine.unpublish': '公開を停止',
   'plus.mine.confirm':
     'ギャラリーから非公開にして、新しいダウンロードを停止しますか？ダウンロード済みのメンバーはコピーを保持します。',
@@ -314,7 +314,7 @@ const plus = {
 
   'plus.welcome.title': 'サインインして、メンバーの作品を見てみましょう',
   'plus.welcome.body':
-    'アカウントがあればギャラリーの閲覧と短いデモの視聴ができます。シーンのダウンロードと保存、全編再生、スタイルへの追加、スタジオで自分のシーンを作ること、作ったものをどこへでも届けることには Plus が必要です。',
+    'アカウントがあればギャラリーの閲覧と短いデモの視聴ができます。シーンのダウンロードと保存、全編再生、マイ表示への追加、スタジオで自分のシーンを作ること、作ったものをどこへでも届けることには Plus が必要です。',
   'plus.welcome.browse': 'メンバーが公開したシーンをすべて見られます',
   'plus.welcome.play': 'あなたの音楽で再生し、マイ表示に追加できます',
   'plus.welcome.studio':

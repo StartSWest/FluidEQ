@@ -38,7 +38,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': 'Álbuns',
   'library.browse.artist': 'Artistas',
-  'library.browse.genre': 'Géneros',
+  'library.browse.genre': 'Gêneros',
   'library.browse.song': 'Músicas',
   'library.browse.folder': 'Pastas',
   'library.browse.directory': 'Árvore',
@@ -77,7 +77,7 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': 'Álbum desconhecido',
   'library.unknownArtist': 'Artista desconhecido',
-  'library.genre.unknown': 'Género desconhecido',
+  'library.genre.unknown': 'Gênero desconhecido',
   'library.trackCount': '{count} músicas',
   'library.albumCount': '{count} álbuns',
   'library.artistCount': '{count} artistas',
@@ -108,12 +108,12 @@ const library: Partial<Dictionary> = {
 
   'library.upNext': 'A seguir',
   'library.upNext.empty': 'Nada na fila',
-  'library.upNext.added': 'As suas escolhas',
+  'library.upNext.added': 'Suas escolhas',
   'library.upNext.rest': 'Depois',
   'library.upNext.continued': 'Mais deste estilo',
-  'library.upNext.keepPlaying': 'Continuar a tocar',
+  'library.upNext.keepPlaying': 'Continuar tocando',
   'library.upNext.keepPlayingHint':
-    'Quando a lista acabar, continua com mais música do mesmo género',
+    'Quando a lista acabar, continua com mais música do mesmo gênero',
   'library.queueAdd': 'Adicionar à fila',
 
   'library.alsoInFolder': 'Nesta pasta, não neste álbum',
@@ -123,7 +123,7 @@ const library: Partial<Dictionary> = {
   'library.previous': 'Anterior',
   'library.back5': 'Voltar 5 segundos',
   'library.forward5': 'Avançar 5 segundos',
-  'library.next': 'Seguinte',
+  'library.next': 'Próximo',
   'library.shuffle': 'Aleatório',
   'library.repeat': 'Repetir',
   'library.repeat.all': 'Repetir tudo',
@@ -137,7 +137,7 @@ const library: Partial<Dictionary> = {
   'library.queue.remove': 'Remover da fila',
   'library.nowPlaying': 'Tocando agora',
   'library.nothingPlaying': 'Nada tocando',
-  'library.nothingPlayingHint': 'Escolhe algo para tocar',
+  'library.nothingPlayingHint': 'Escolha algo para tocar',
   'library.systemAudio': 'Áudio do sistema',
   'library.remoteAudio': 'Reprodução remota · {name}',
 

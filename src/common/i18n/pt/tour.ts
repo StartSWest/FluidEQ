@@ -56,34 +56,34 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'Fones de ouvido',
   'tour.engine.flow.speakers': 'Alto-falantes',
 
-  'tour.room.kicker': 'SURROUND NOS AUSCULTADORES',
-  'tour.room.title': 'Senta-te na Sala',
-  'tour.room.subtitle': 'Cada canal, uma coluna à volta da tua cabeça',
+  'tour.room.kicker': 'SURROUND NOS FONES DE OUVIDO',
+  'tour.room.title': 'Sente-se na Sala',
+  'tour.room.subtitle': 'Cada canal, um alto-falante ao redor da sua cabeça',
   'tour.room.lead':
-    'A Sala transforma os teus auscultadores numa sala de escuta. Cada canal do som passa a ser uma coluna à tua volta, renderizada através de uma cabeça medida e das paredes de uma sala que tu próprio moldas, e um filme fica à tua frente em vez de dentro da tua cabeça.',
+    'A Sala transforma seus fones de ouvido em uma sala de escuta. Cada canal do som passa a ser um alto-falante ao seu redor, renderizado através de uma cabeça medida e das paredes de uma sala que você mesmo molda, e um filme fica à sua frente em vez de dentro da sua cabeça.',
   'tour.room.point1':
-    'O estéreo passa a duas colunas à tua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro, conforme o que toca.',
+    'O estéreo vira dois alto-falantes à sua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro, conforme o que toca.',
   'tour.room.point2':
-    'Vinte e quatro salas para começar — estúdio, sala de estar, cinema, sala de concertos — e as tuas, guardadas com nome.',
+    'Vinte e quatro salas para começar — estúdio, sala de estar, cinema, sala de concertos — e as suas, salvas com nome.',
   'tour.room.point3':
-    'Ajustar escolhe de ouvido a cabeça que põe os sons à tua frente, em cinco pares.',
+    'Um teste de escuta escolhe de ouvido a cabeça que põe os sons à sua frente, em cinco pares.',
   'tour.room.how':
-    'Abre DSP, escolhe Sala na barra e liga-a. Escolhe uma sala, depois arrasta uma coluna ou roda um botão; carrega em Ajustar para escolher a tua cabeça.',
+    'Abra DSP, escolha Sala na barra e ligue-a. Escolha uma sala, depois arraste um alto-falante ou gire um botão; em “Sua cabeça”, pressione “Começar o teste de escuta”.',
   'tour.room.open': 'Abrir a Sala',
   'tour.room.imageAlt':
-    'Uma sala vista de cima: sete colunas e um sub à volta de uma cabeça ao centro, cada uma com o seu caminho até aos ouvidos.',
+    'Uma sala vista de cima: sete alto-falantes e um sub ao redor de uma cabeça no centro, cada um com o seu caminho até os ouvidos.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Boas-vindas ao FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
   'tour.plus.lead':
-    'Uma assinatura opcional que mantém o FluidEQ crescendo, com uma aba nova só para ela: cenas desenhadas na sua placa gráfica, um Estúdio para criar as suas, a classificação, fundos do ambiente de trabalho e a Iluminação dinâmica. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
+    'Uma assinatura opcional que mantém o FluidEQ crescendo, com uma aba nova só para ela: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, a Classificação, fundos da área de trabalho e a Iluminação dinâmica. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
   'tour.plus.point1':
-    'Inicie sessão em Conta, no menu de ações; o pagamento é feito no seu navegador e o Plus é ativado sozinho.',
+    'Entre pelo painel Conta, no menu de ações; o pagamento é feito no seu navegador e o Plus é ativado sozinho.',
   'tour.plus.point2':
     'Mensal ou anual, com termos em linguagem simples antes de você pagar. O app nunca vê seu cartão.',
   'tour.plus.point3':
-    'Sessão iniciada em até cinco computadores, com novos visualizadores adicionados ao longo do tempo.',
+    'Conta conectada em até cinco computadores, com novos visualizadores adicionados ao longo do tempo.',
   'tour.plus.how':
     'Abra a aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica ficam do lado esquerdo.',
   'tour.plus.open': 'Abrir Plus',
@@ -97,36 +97,36 @@ const tour: Partial<Dictionary> = {
 
   'tour.visualizers.kicker': 'VISUALIZADORES',
   'tour.visualizers.title': 'Cenas que se movem com sua música',
-  'tour.visualizers.subtitle': 'Desenhadas na sua placa gráfica',
+  'tour.visualizers.subtitle': 'Desenhadas na sua placa de vídeo',
   'tour.visualizers.lead':
-    'Os visualizadores Plus são cenas vivas (montanhas sob as estrelas, cortinas de aurora, uma cidade neon) desenhadas na sua placa gráfica, por baixo das curvas do seu EQ. Os graves, a batida e os agudos movem, cada um, algo diferente, e a janela em volta pode assumir as cores delas.',
+    'Os visualizadores Plus são cenas vivas (montanhas sob as estrelas, cortinas de aurora, uma cidade neon) desenhadas na sua placa de vídeo, por baixo das curvas do seu EQ. Os graves, a batida e os agudos movem, cada um, algo diferente, e a janela em volta pode assumir as cores delas.',
   'tour.visualizers.point1':
     'Um só seletor para tudo: 28 estilos gratuitos para moldar e colorir, e visualizadores Plus por categoria.',
   'tour.visualizers.point2':
     'Explore a galeria, experimente as amostras do FluidEQ por dez segundos e adicione as cenas de que gostar.',
   'tour.visualizers.point3':
-    'Troque de visual automaticamente, use a tela inteira e ajuste o ataque e a liberação de uma cena em Visualização.',
+    'Troque de visual automaticamente, use a tela cheia e ajuste o ataque e a liberação de uma cena em Visualização.',
   'tour.visualizers.how':
     'Clique no nome do visual no gráfico e escolha uma cena em Visualizadores Plus, ou veja todas em Plus → Visualizadores.',
   'tour.visualizers.open': 'Abrir EQ',
   'tour.visualizers.imageAlt':
     'Alpino, um visualizador Plus de montanhas sobre um lago à noite, tocando no gráfico por baixo das curvas do EQ, com mais quatro cenas abaixo.',
 
-  'tour.desktop.kicker': 'VISUALIZADOR DO AMBIENTE DE TRABALHO',
-  'tour.desktop.title': 'Sua música no fundo do ambiente de trabalho',
+  'tour.desktop.kicker': 'VISUALIZADOR DA ÁREA DE TRABALHO',
+  'tour.desktop.title': 'Sua música no fundo da área de trabalho',
   'tour.desktop.subtitle': 'Uma cena em cada monitor',
   'tour.desktop.lead':
-    'Coloque um visualizador Plus atrás dos ícones do ambiente de trabalho. Ele se move com o que você estiver ouvindo, ou calmamente por conta própria, e cada monitor pode mostrar uma cena própria.',
+    'Coloque um visualizador Plus atrás dos ícones da área de trabalho. Ele se move com o que você estiver ouvindo, ou calmamente por conta própria, e cada monitor pode mostrar uma cena própria.',
   'tour.desktop.point1':
     'Escolha os monitores em um mapa da sua mesa, cada um com seu próprio visualizador.',
   'tour.desktop.point2':
     'Fica em pausa enquanto as janelas cobrem o monitor, com o PC bloqueado e na bateria.',
   'tour.desktop.point3': 'Volta sozinho na próxima vez que o FluidEQ iniciar.',
   'tour.desktop.how':
-    'Com um visualizador Plus no gráfico, pressione o botão de monitor ao lado do nome dele ou escolha Visualização → Definir como fundo do ambiente de trabalho.',
+    'Com um visualizador Plus no gráfico, pressione o botão de monitor ao lado do nome dele ou escolha Visualização → Definir como fundo da área de trabalho.',
   'tour.desktop.open': 'Abrir EQ',
   'tour.desktop.imageAlt':
-    'Três monitores, cada um mostrando um visualizador Plus (Aurora, Alpino e Cidade de neon) atrás dos ícones do ambiente de trabalho e da barra de tarefas.',
+    'Três monitores, cada um mostrando um visualizador Plus (Aurora, Alpino e Cidade de neon) atrás dos ícones da área de trabalho e da barra de tarefas.',
 
   'tour.lighting.kicker': 'ILUMINAÇÃO DINÂMICA',
   'tour.lighting.title': 'Sua mesa acende com a cena',
@@ -147,10 +147,10 @@ const tour: Partial<Dictionary> = {
     'Um teclado, um mouse e um mousepad iluminados no rosa, violeta e ciano da cena Cidade de neon.',
 
   'tour.theme.kicker': 'UM NOVO VISUAL',
-  'tour.theme.title': 'Conheça o tema Preto',
+  'tour.theme.title': 'Conheça o tema Escuro',
   'tour.theme.subtitle': 'Preto puro, para as madrugadas e telas OLED',
   'tour.theme.lead':
-    'O FluidEQ agora tem uma segunda cara. O Preto remove todo traço do azul-ardósia com que o app nasceu: painéis, menus e barras ficam monocromáticos, o destaque permanece e o espectro é a única cor na sala.',
+    'O FluidEQ agora tem uma segunda cara. O tema Escuro remove todo traço do azul-ardósia com que o app nasceu: painéis, menus e barras ficam monocromáticos, o destaque permanece e o espectro é a única cor na sala.',
   'tour.theme.point1':
     'Fundos preto puro: em uma tela OLED os pixels ao redor do gráfico se apagam.',
   'tour.theme.point2':
@@ -159,11 +159,11 @@ const tour: Partial<Dictionary> = {
     'Sua cor de destaque e o modo arco-íris continuam. Nada no seu som muda: é só a pintura.',
   'tour.theme.howTitle': 'Como trocar',
   'tour.theme.how':
-    'Abra o menu do ícone de pulso no canto superior direito e, no fundo dele, escolha Preto em Tema. O Oceano fica a um clique se quiser voltar.',
-  'tour.theme.tryBlack': 'Mudar para Preto agora',
-  'tour.theme.tryOcean': 'Voltar ao Oceano',
+    'Abra o menu do ícone de pulso no canto superior direito e, no fundo dele, escolha Escuro em Tema. O tema Claro fica a um clique se você quiser voltar.',
+  'tour.theme.tryBlack': 'Mudar para Escuro agora',
+  'tour.theme.tryOcean': 'Voltar ao Claro',
   'tour.theme.imageAlt':
-    'FluidEQ no tema Preto: a aba EQ com quinze bandas e o espectro ao vivo tocando uma música.',
+    'FluidEQ no tema Escuro: a aba EQ com quinze bandas e o espectro ao vivo tocando uma música.',
 
   'tour.share.kicker': 'OUÇA TODOS OS SEUS PCS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',
@@ -210,16 +210,16 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Playlists e uma lista de Favoritos permanente. Clique com o botão direito em qualquer música para adicioná-la a uma delas, ou à fila.',
   'tour.library.point4':
-    'Memória de EQ por música: ligue “Salvar para esta música” enquanto ela toca e a correção que você fizer fica guardada para aquela faixa.',
+    'Memória por música do EQ inteligente: ligue “Salvar para esta música” enquanto ela toca e a correção que você fizer fica salva para aquela faixa.',
   'tour.library.how':
-    'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere a leitura terminar. Escolha Álbuns, Artistas, Géneros, Músicas, Pastas ou Árvore e pressione Reproduzir.',
+    'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere a leitura terminar. Escolha Álbuns, Artistas, Gêneros, Músicas, Pastas ou Árvore e pressione Reproduzir.',
   'tour.library.open': 'Abrir Biblioteca',
 
   'tour.dsp.kicker': 'UM RACK DE MASTERIZAÇÃO',
   'tour.dsp.title': 'O rack DSP',
   'tour.dsp.subtitle': 'Nove estágios, cada um com seu gráfico',
   'tour.dsp.lead':
-    'Um rack de estágios de estúdio, nesta ordem: Normalizador, Redução de ruído, Excitador, Forja de graves, Equalizador, Punch dos graves, Dimensão, Maximizador e Master, mais uma transição cruzada entre faixas da Biblioteca. Com o Motor FluidEQ, ele funciona em tudo o que o computador toca; com o Equalizer APO, na Biblioteca. Cada estágio é um cartão com gráfico ao vivo, predefinições e um botão Isolar para ouvir só o que ele faz.',
+    'Um rack de estágios de estúdio, nesta ordem: Normalizador, Redução de ruído, Excitador, Forja de graves, Equalizador, Punch dos graves, Dimensão, Maximizador e Master, mais uma transição cruzada entre faixas da Biblioteca. Com o Motor FluidEQ, ele funciona em tudo o que o computador toca; com o Equalizer APO, na Biblioteca. Cada estágio é um cartão com gráfico ao vivo, presets e um botão Isolar para ouvir só o que ele faz.',
   'tour.dsp.point1':
     'A Redução de ruído corrige chiado, zumbido e estalos durante a reprodução, e um limpador de voz neural funciona nas faixas da Biblioteca.',
   'tour.dsp.point2':
@@ -227,9 +227,9 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.point3':
     'Um Equalizador paramétrico de quinze bandas com fase mínima ou linear, mid/side, oversampling e dezenas de presets nomeados.',
   'tour.dsp.point4':
-    'Master com alvo de loudness LUFS e proteção true-peak, presets de entrega de Streaming a Vinil, e um ajuste de ganho para comparar som, não volume.',
+    'Master com alvo de loudness LUFS e proteção true-peak, presets de entrega de Streaming a Vinil, e o controle Igualar ganho, para comparar som, não volume.',
   'tour.dsp.how':
-    'Abra a aba DSP, escolha uma cadeia em Predefinições, depois clique em um estágio nas abas laterais e ligue-o. Com o Equalizer APO, toque antes uma faixa da Biblioteca.',
+    'Abra a aba DSP, escolha uma cadeia em Presets, depois clique em um estágio nas abas laterais e ligue-o. Com o Equalizer APO, toque antes uma faixa da Biblioteca.',
   'tour.dsp.open': 'Abrir DSP',
 
   'tour.output.kicker': 'TOCA EM DOIS LUGARES',
@@ -243,7 +243,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point2':
     'Use o seletor de perfil de EQ abaixo do dispositivo para escolher um dos perfis salvos para ele. A saída principal mantém sua regulagem.',
   'tour.output.point3':
-    'Um player por vez: iniciar algo no FluidEQ pausa o resto da máquina, e vice-versa.',
+    'Um reprodutor de cada vez: iniciar algo no FluidEQ pausa o resto da máquina, e vice-versa.',
   'tour.output.point4':
     'Jogo/Vídeo começa com cerca de 30 ms de reserva e se sincroniza após uma interrupção; Música começa com cerca de 100 ms para uma reprodução mais suave. O buffer do dispositivo acrescenta atraso.',
   'tour.output.how':
@@ -283,24 +283,24 @@ const tour: Partial<Dictionary> = {
   'tour.karaoke.point4':
     'Lê LRC, LRC aprimorado com tempo por palavra e UltraStar com sílabas e afinação, sobre MP3, FLAC, WAV, OGG, M4A e mais. Letras traduzidas e acordes de violão estimados vêm junto.',
   'tour.karaoke.how':
-    'Abra a aba Karaokê, pressione “Abrir música” ou “Adicionar pasta”, escolha uma faixa na playlist, ligue o microfone, mostre o guia de afinação e pressione Play.',
+    'Abra a aba Karaokê, pressione “Abrir música” ou “Adicionar pasta”, escolha uma faixa na playlist, ligue o microfone, mostre o guia de afinação e pressione Reproduzir.',
   'tour.karaoke.open': 'Abrir Karaokê',
 
   'tour.maker.kicker': 'FAÇA O SEU',
-  'tour.maker.title': 'O Criador de Karaokê',
+  'tour.maker.title': 'O Criador de karaokê',
   'tour.maker.subtitle': 'Qualquer música vira um arquivo de karaokê',
   'tour.maker.lead':
     'Um estúdio de criação completo dentro da aba Karaokê. Ele pode fazer todo o trabalho sozinho: separar a voz da música, ler as palavras e seus tempos com um modelo de fala local e detectar as notas da melodia. Ou você marca, grava e desenha cada tempo à mão em uma linha do tempo com zoom. Tudo roda neste computador.',
   'tour.maker.point1':
-    '“Configurar esta música automaticamente”: separa a voz e depois lê as palavras e os tempos, com opção de continuar em segundo plano.',
+    '“Preparar esta música automaticamente”: separa a voz e depois lê as palavras e os tempos, com opção de continuar em segundo plano.',
   'tour.maker.point2':
-    'Guarde as faixas separadas: a voz e a base, cada uma salvável, inclusive como MP3.',
+    'Fique com as faixas separadas: a voz e a base, cada uma salvável, inclusive como MP3.',
   'tour.maker.point3':
     'Ferramentas manuais para os detalhes: marcar palavras, gravar entradas de linha, um inspetor de palavra com início e duração, e dividir uma palavra em sílabas.',
   'tour.maker.point4':
     'Pinte a melodia numa grade de afinação, marque notas douradas e exporte como projeto FluidEQ, UltraStar TXT, LRC, LRC aprimorado ou base sem voz.',
   'tour.maker.how':
-    'No Karaokê, carregue uma música e pressione “Criar”. Aceite “Configurar automaticamente” no assistente, corrija as palavras na linha do tempo, depois “Usar no player” e “Exportar”.',
+    'No Karaokê, carregue uma música e pressione “Criar”. Aceite “Preparar automaticamente” no assistente, corrija as palavras na linha do tempo, depois “Usar no player” e “Exportar”.',
   'tour.maker.open': 'Abrir Karaokê',
 
   'tour.media.kicker': 'A WEB, PELO SEU EQ',

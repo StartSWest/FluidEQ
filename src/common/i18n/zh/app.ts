@@ -62,10 +62,10 @@ const app: Partial<Dictionary> = {
   'app.processes.sceneRate':
     '{place}：{name}，{fps} fps，以 {drawn} 绘制、按 {shown} 显示',
   'app.processes.place.graph': '图表可视化效果',
-  'app.processes.place.studio': 'Studio 舞台',
+  'app.processes.place.studio': '工作室舞台',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
-    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。Plus 可视化在其中的独立线程上运行，因此繁重的场景不会卡住控件。',
+    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。Plus 可视化效果在其中的独立线程上运行，因此繁重的场景不会卡住控件。',
   'app.processes.name.core': '应用核心',
   'app.processes.what.core':
     '没有窗口的那一部分。保存你的设置，与音频设备和系统均衡器通信，检查更新，并启动此列表中的其他一切。',
@@ -74,13 +74,13 @@ const app: Partial<Dictionary> = {
     'FluidEQ 自己的引擎。解码你播放的内容，并顺带应用均衡器。它是独立的程序，所以 Windows 把它与其余进程分开归类。',
   'app.processes.name.graphics': '图形',
   'app.processes.what.graphics':
-    '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
-  'app.processes.name.desktop': '桌面可视化',
+    '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化效果的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
+  'app.processes.name.desktop': '桌面可视化效果',
   'app.processes.what.desktop':
-    '作为某个显示器桌面背景绘制的 Plus 可视化，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
-  'app.processes.name.desktopHost': '桌面可视化助手',
+    '作为某个显示器桌面背景绘制的 Plus 可视化效果，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
+  'app.processes.name.desktopHost': '桌面可视化效果助手',
   'app.processes.what.desktopHost':
-    '把该显示器的桌面可视化放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
+    '把该显示器的桌面可视化效果放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
   'app.processes.name.shareCapture': '共享音频采集',
   'app.processes.what.shareCapture':
     '在均衡器之前采集这台电脑播放的声音，发送给另一个 FluidEQ。只在你共享音频时运行。',
@@ -95,16 +95,16 @@ const app: Partial<Dictionary> = {
     '媒体库扫描你的音乐文件夹时，读取其中的标签、时长和封面。每次扫描时启动，扫描结束后关闭。',
   'app.processes.name.sound': '浏览器声音',
   'app.processes.what.sound':
-    'Chromium 自己的音频，用于视频标签页和网页发出的声音。你的音乐不经过它。',
+    'Chromium 自己的音频，用于“在线媒体”标签页和网页发出的声音。你的音乐不经过它。',
   'app.processes.name.network': '网络',
   'app.processes.what.network':
-    '检查更新、封面图片，以及视频标签页加载的一切。此列表中的其他进程都不联网。',
+    '检查更新、封面图片，以及“在线媒体”标签页加载的一切。此列表中的其他进程都不联网。',
   'app.processes.name.devices': '设备列表',
   'app.processes.what.devices':
     '当应用向 Windows 询问有哪些音频设备时由 Chromium 启动；同一个请求也会列出视频设备。它不会打开任何摄像头，也不会录制任何内容。',
   'app.processes.name.page': '网页',
   'app.processes.what.page':
-    '在视频标签页中打开的网页。它运行在自己的进程里，与界面分开。',
+    '在“在线媒体”标签页中打开的网页。它运行在自己的进程里，与界面分开。',
   'app.processes.name.systemEngine': 'FluidEQ 引擎（Windows 音频）',
   'app.processes.what.systemEngine':
     '在 Windows 自己的音频服务中运行的均衡器，作用于你听到的一切声音。Windows 与声卡的音效共用这个服务，因此显示其内存和 CPU，但不计入总计。',
@@ -179,10 +179,10 @@ const app: Partial<Dictionary> = {
   'app.notification.updateReady.bodyNoVersion':
     '更新已准备好。点击以重启 FluidEQ。',
   'app.notification.upToDate.title': 'FluidEQ 已是最新版本',
-  'app.notification.upToDate.body': '您已经在使用最新版本。',
+  'app.notification.upToDate.body': '你已经在使用最新版本。',
   'app.notification.updateFound.title': '发现 FluidEQ 更新',
   'app.notification.updateFound.body':
-    '正在下载版本 {version}。准备好安装时会通知您。',
+    '正在下载版本 {version}。准备好安装时会通知你。',
   'app.notification.checkFailed.title': '无法检查更新',
   'app.notification.checkFailed.body':
     '无法连接更新服务器。FluidEQ 稍后会再试。',
@@ -274,7 +274,7 @@ const app: Partial<Dictionary> = {
   'sidebar.headroom.fluid': '余量',
   'sidebar.autoPreamp': '自动归一化',
   'sidebar.visualizer': '可视化',
-  'sidebar.graphView': '频响曲线',
+  'sidebar.graphView': '频响图',
   'config.eyebrow': '引擎实际读到的内容',
   'config.title': 'Equalizer APO 配置',
   'config.title.fluid': 'FluidEQ 引擎配置',

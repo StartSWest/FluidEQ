@@ -113,32 +113,32 @@ const look: Partial<Dictionary> = {
     'In dieser Datei wurden keine Darstellungen gefunden.',
   'look.error.readFile': 'FluidEQ konnte diese Darstellungsdatei nicht lesen.',
   'support.eyebrow': 'VÖLLIG FREIWILLIG',
-  'support.petHint': 'Drücke die Leertaste, damit es hüpft',
+  'support.petHint': 'Drücken Sie die Leertaste, damit es hüpft',
   'support.game.hint': 'Im Takt drücken, wenn die Spitze die Linie erreicht',
   'support.game.howTo':
-    'Spiele Musik ab und tippe auf das Tier oder drücke die Leertaste, sobald eine Spitze die Mittellinie erreicht. Erreiche ×10, um den Regenbogenmodus freizuschalten.',
+    'Spielen Sie Musik ab und tippen Sie auf das Tier oder drücken Sie die Leertaste, sobald eine Spitze die Mittellinie erreicht. Erreichen Sie ×10, um den Regenbogenmodus freizuschalten.',
   'support.game.thanks':
-    'Wenn dich davon etwas zum Lächeln gebracht hat: Ideen und Unterstützung halten das hier am Leben.',
-  'support.game.noAudio': 'Spiel etwas ab, dann erscheint der Takt hier',
+    'Wenn Sie davon etwas zum Lächeln gebracht hat: Ideen und Unterstützung halten das hier am Leben.',
+  'support.game.noAudio': 'Spielen Sie etwas ab, dann erscheint der Takt hier',
   'support.game.listening': 'Takt wird gesucht…',
   'support.game.share': 'Teilen',
   'support.game.shareEuphoria': 'Regenbogen teilen',
-  'support.game.shareTitle': 'Teile dein Ergebnis',
+  'support.game.shareTitle': 'Teilen Sie Ihr Ergebnis',
   'support.game.shareUnlock':
-    'Schalte den Regenbogenmodus durch Spielen oder Bestätigen deines Beitrags frei, um dieser Karte Regenbogenfarben zu geben.',
+    'Schalten Sie den Regenbogenmodus durch Spielen oder Bestätigen Ihres Beitrags frei, um dieser Karte Regenbogenfarben zu geben.',
   'support.game.shareNote':
-    'Speichere die Karte und hänge sie an deinen Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
+    'Speichern Sie die Karte und hängen Sie sie an Ihren Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
   'support.game.shareSave': 'Karte speichern',
   'support.game.shareCopyCard': 'Karte kopieren',
   'support.game.shareCardCopied': 'Kopiert — einfach einfügen',
   'support.game.shareCopy': 'Text kopieren',
   'support.game.shareCopied': 'Kopiert',
   'support.game.shareLinkOnly':
-    'Teilt nur den Link – den Text fügst du selbst ein',
+    'Teilt nur den Link – den Text fügen Sie selbst ein',
   'support.game.euphoria': 'Regenbogenmodus',
   'support.game.euphoriaToggle': 'Regenbogenmodus ein- oder ausschalten',
   'support.game.euphoriaHint':
-    'Regenbogenfarben, dazu Graph, Pegelanzeigen und Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde. Zum Ein- oder Ausschalten klicken.',
+    'Regenbogenfarben, dazu Diagramm, Pegelanzeigen und Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde. Zum Ein- oder Ausschalten klicken.',
   'support.game.perfect': 'Perfekt',
   'support.game.great': 'Super',
   'support.game.good': 'Gut',
@@ -152,7 +152,7 @@ const look: Partial<Dictionary> = {
   'support.card': 'Karte oder Wallet',
   'support.card.hint':
     'Sichere Zahlung über Stripe. Öffnet sich im Browser — die App sieht Ihre Kartendaten nie.',
-  'support.coffee': 'Spendier mir einen Kaffee',
+  'support.coffee': 'Spendieren Sie mir einen Kaffee',
   'support.coffee.hint':
     'Ein einmaliges Trinkgeld, ohne Konto. Klicken, um es im Browser zu öffnen, oder den Code mit dem Handy scannen.',
   'support.verify': 'Prüfen Sie die Adresse vor dem Senden.',
@@ -161,9 +161,9 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'In der Wallet öffnen',
   'support.contributed': 'Ich habe beigetragen — Regenbogenmodus aktivieren',
   'support.rainbowHint':
-    'Schon beigetragen? Mit „Ich habe beigetragen“ schaltest du den Regenbogenmodus sofort ein – seine Farben und flüssigere Bewegung in Graph und Pegelanzeigen. ×10 ist nicht nötig.',
+    'Schon beigetragen? Mit „Ich habe beigetragen“ schalten Sie den Regenbogenmodus sofort ein – seine Farben und flüssigere Bewegung in Diagramm und Pegelanzeigen. ×10 ist nicht nötig.',
   'support.thanks':
-    'Danke — der Regenbogenmodus ist freigeschaltet und dein Tier hat seinen Stern und seinen Tanz.',
+    'Danke — der Regenbogenmodus ist freigeschaltet und Ihr Tier hat seinen Stern und seinen Tanz.',
   'support.releaseNotes': 'Sehen, was in dieser Version neu ist',
   'support.footerBefore':
     'Lieber Zeit beitragen? Issues und Pull Requests sind genauso willkommen auf',

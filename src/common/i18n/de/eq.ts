@@ -22,7 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms bei aktivem EQ',
   'eq.mode.linearDelay': '≈ +{ms} ms Verzögerung',
-  'eq.mode.gameMinimum': 'Spielmodus: Minimum',
+  'eq.mode.gameMinimum': 'Spielmodus: Minimal',
   'eq.layouts.builtIn': 'Vorgegebene Layouts',
   'eq.layouts.saved': 'Meine Designs',
   'eq.layouts.empty':
@@ -30,17 +30,17 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.loading': 'Designs werden geladen…',
   'eq.layouts.name': 'Designname',
   'eq.layouts.duplicate':
-    'Dieser Name wird bereits verwendet. Wähle einen anderen.',
+    'Dieser Name wird bereits verwendet. Wählen Sie einen anderen.',
   'eq.layouts.update': 'Gespeichertes aktualisieren',
   'eq.layouts.saveNew': 'Design speichern…',
   'eq.layouts.error':
-    'Deine Designs konnten nicht aktualisiert werden. Versuche es erneut.',
+    'Ihre Designs konnten nicht aktualisiert werden. Versuchen Sie es erneut.',
   'eq.layouts.clearTitle': 'EQ leeren?',
   'eq.layouts.clearWarning':
-    'Jede Bandverstärkung auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärker bleiben erhalten.',
+    'Jede Bandverstärkung auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärkung bleiben erhalten.',
   'eq.layouts.deleteNamed': '„{name}“ löschen',
   'eq.layouts.deleteWarning':
-    '„{name}“ aus deinen gespeicherten Designs löschen? Dein aktueller EQ bleibt unverändert.',
+    '„{name}“ aus Ihren gespeicherten Designs löschen? Ihr aktueller EQ bleibt unverändert.',
   'eq.layouts.delete': 'Design löschen',
   'eq.band.resetGainHint':
     'Strg/⌘-Klick auf einen Regler setzt dessen Verstärkung auf 0 dB.',
@@ -50,9 +50,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.phaseHint':
     'Minimal ist der Standard. Die Abstimmung bleibt erhalten; Linear kann Verzögerung und Vorschwingen hinzufügen.',
   'eq.mode.phaseUpdate':
-    'Aktualisiere die FluidEQ Engine, um die Phase zu ändern.',
+    'Aktualisieren Sie die FluidEQ-Engine, um die Phase zu ändern.',
   'eq.mode.eqPhaseHint':
-    'Minimal ist der Standard. Linear behält Gain und Q bei, fügt aber Verzögerung und mögliches Vorschwingen hinzu.',
+    'Minimal ist der Standard. Linear behält Verstärkung und Q bei, fügt aber Verzögerung und mögliches Vorschwingen hinzu.',
   'eq.mode.reset': 'Zurücksetzen',
   'eq.mode.customized': 'Individuell',
   'eq.mode.strength': 'Stärke',
@@ -71,13 +71,13 @@ const eq: Partial<Dictionary> = {
     'Stärkere Anhebungen und Absenkungen werden schmaler.',
   'eq.mode.asymmetricHint': 'Breitere Anhebungen und schmalere Absenkungen.',
   'eq.double': 'EQ ×2',
-  'eq.apoEngine': 'APO Engine',
+  'eq.apoEngine': 'APO-Engine',
   'eq.fluidEngine': 'FluidEQ-Engine',
   'eq.engineNotHere': 'FluidEQ erreicht diesen Ausgang nicht',
   'eq.mode': 'EQ-Modus',
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Studio',
-  'eq.mode.yourEq': 'Dein EQ',
+  'eq.mode.yourEq': 'Ihr EQ',
   'eq.mode.curves': 'Kurven',
   'eq.studioHint':
     'Verstärkt die gewählte Gruppe um ×1.5 mit pegelabhängiger Glockenbreite. DSP bleibt unverändert.',
@@ -114,14 +114,14 @@ const eq: Partial<Dictionary> = {
   'graph.orientation.mirror': 'Welle spiegeln',
   'graph.orientation.centre': 'Von der Mitte spiegeln',
   'graph.orientation.up': 'Welle aufrichten',
-  'graph.autoSwitch.label': 'Visualisierungen automatisch wechseln',
+  'graph.autoSwitch.label': 'Visualizer automatisch wechseln',
   'graph.autoSwitch.off': 'Auto: Aus',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   'graph.sceneTint.cycle': 'FluidEQ: {mode}. Klicken für {next}',
   'graph.sceneTint.mode.off': 'das App-Design',
-  'graph.sceneTint.mode.tint': 'die Farben der Visualisierung',
+  'graph.sceneTint.mode.tint': 'die Farben des Visualizers',
   'graph.sceneTint.mode.pulse':
-    'die Farben der Visualisierung, mit ihrem Licht ringsum',
+    'die Farben des Visualizers, mit seinem Licht ringsum',
   'graph.sceneTint.short.off': 'Design',
   'graph.sceneTint.short.tint': 'Farben',
   'graph.sceneTint.short.pulse': 'Ambiente',
@@ -140,33 +140,33 @@ const eq: Partial<Dictionary> = {
   'graph.version.new': 'Neu',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'Auf v{version} aktualisiert',
-  'graph.version.dot': 'Eine neue Version seit du es zuletzt gespielt hast',
+  'graph.version.dot': 'Eine neue Version seit Sie es zuletzt gespielt haben',
   'graph.version.updated': '{name} ist jetzt Version {version}',
   'graph.version.updatedNote': '{name} ist jetzt Version {version}: {note}',
   'graph.version.see': 'Neuigkeiten ansehen',
-  'graph.scene.loading': 'Visualisierung wird geladen…',
+  'graph.scene.loading': 'Visualizer wird geladen…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':
-    'Wie schnell diese Visualisierung zur Musik ansteigt. Kurz ist knackig, lang schwillt an.',
+    'Wie schnell dieser Visualizer zur Musik ansteigt. Kurz ist knackig, lang schwillt an.',
   'graph.scene.release': 'Release',
   'graph.scene.releaseHint':
-    'Wie langsam sie nach jedem Schlag wieder fällt. Lang lässt ein Nachglühen.',
+    'Wie langsam er nach jedem Schlag wieder fällt. Lang lässt ein Nachglühen.',
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent} %',
   'graph.scene.controlHint':
     'Ein eigener Regler dieses Visualizers, so wie sein Autor ihn eingestellt hat',
   'graph.scene.ownWave': 'Eigene Welle der Szene',
   'graph.scene.ownWaveHint':
-    'Setzt die Welle dorthin zurück, wo der Urheber der Szene sie wollte. Deine eigene Höhe und Position bleiben bis dahin pro Szene gespeichert.',
+    'Setzt die Welle dorthin zurück, wo der Urheber der Szene sie wollte. Ihre eigene Höhe und Position bleiben bis dahin pro Szene gespeichert.',
   'graph.scene.ownControls': 'Eigene Einstellungen verwenden',
   'graph.scene.ownControlsHint':
     'Zurück zu den Einstellungen, mit denen dieser Visualizer kam',
   'graph.scene.ownTiming': 'Eigenes Timing verwenden',
   'graph.scene.ownTimingHint':
-    'Zurück zu Attack und Release, mit denen diese Visualisierung kam',
+    'Zurück zu Attack und Release, mit denen dieser Visualizer kam',
   'graph.scene.frameRate': 'Bildrate',
   'graph.scene.frameRateHint':
-    'Wie oft Visualisierungen gezeichnet werden: mit jedem Bild des Displays oder begrenzt, um die GPU zu schonen',
+    'Wie oft Visualizer gezeichnet werden: mit jedem Bild des Displays oder begrenzt, um die GPU zu schonen',
   'graph.scene.frameRate.display': 'Wie das Display',
   'graph.scene.frameRate.sixty': '60 pro Sekunde',
   'graph.scene.frameRate.thirty': '30 pro Sekunde',
@@ -209,14 +209,14 @@ const eq: Partial<Dictionary> = {
   'graph.style.next': 'Nächster Stil',
   'graph.style.previous': 'Vorheriger Stil',
   'graph.style.search': 'Stile suchen',
-  'graph.picker.label': 'Stile und Visualisierungen',
-  'graph.picker.search': 'Stile und Visualisierungen suchen',
+  'graph.picker.label': 'Stile und Visualizer',
+  'graph.picker.search': 'Stile und Visualizer suchen',
   'graph.picker.styles': 'Stile',
-  'graph.picker.plus': 'Plus-Visualisierungen',
+  'graph.picker.plus': 'Plus-Visualizer',
   'graph.picker.all': 'Alle',
-  'graph.picker.yours': 'Deine',
+  'graph.picker.yours': 'Ihre',
   'graph.picker.filterStyles': 'Stile filtern',
-  'graph.picker.filterPlus': 'Visualisierungen filtern',
+  'graph.picker.filterPlus': 'Visualizer filtern',
   'graph.family.lines': 'Linien',
   'graph.family.fills': 'Flächen',
   'graph.family.bars': 'Balken',
@@ -236,9 +236,9 @@ const eq: Partial<Dictionary> = {
   'graph.curve.driver': 'Treiber',
   'graph.curve.headphone': 'Kopfhörer',
   'graph.curve.eq': 'EQ-Frequenzgang',
-  'graph.curve.voicing': 'Klangabstimmung',
-  'graph.curve.smart': 'Smart EQ',
-  'graph.curve.custom': 'Eigene Effekte',
+  'graph.curve.voicing': 'Preset',
+  'graph.curve.smart': 'Smart-EQ',
+  'graph.curve.custom': 'Benutzerdefinierte FX',
   'graph.curve.total': 'Endausgabe',
   'graph.design.showWave': 'Zuerst die Welle anzeigen, um sie zu gestalten',
   'graph.design.closeHint': 'Darstellungseditor schließen (Esc)',
@@ -316,8 +316,8 @@ const eq: Partial<Dictionary> = {
   'output.apoMissingTitle':
     'Equalizer APO ist für diesen Ausgang nicht aktiviert',
   'output.apoMissingBody':
-    'FluidEQ kann {device} erst ändern, wenn du es in der Geräteauswahl von Equalizer APO aktivierst und Windows neu startest.',
-  'output.apoConfigure': 'In Geräteauswahl aktivieren',
+    'FluidEQ kann {device} erst ändern, wenn Sie es im Device Selector von Equalizer APO aktivieren und Windows neu starten.',
+  'output.apoConfigure': 'Im Device Selector aktivieren',
   'output.engineMissingTitle': 'FluidEQ ist für diesen Ausgang nicht aktiviert',
   'output.engineMissingBody':
     'Die Aktivierung für {device} fragt Windows um Erlaubnis und startet den Ton kurz neu. Kein Neustart des PCs.',
@@ -325,16 +325,16 @@ const eq: Partial<Dictionary> = {
   'output.notNow': 'Jetzt nicht',
   'output.noEffectsTitle': 'Kein EQ erreicht diesen Ausgang',
   'output.noEffectsBody':
-    'Windows führt auf {device} keine Audioeffekte aus, daher kann kein Equalizer ihn verändern – Remotedesktop-Audio ist so ein Ausgang. Um deinen EQ zu hören, spiele über die eigenen Lautsprecher oder Kopfhörer des PCs ab.',
+    'Windows führt auf {device} keine Audioeffekte aus, daher kann kein Equalizer ihn verändern – Remotedesktop-Audio ist so ein Ausgang. Um Ihren EQ zu hören, spielen Sie über die eigenen Lautsprecher oder Kopfhörer des PCs ab.',
   'output.effectsOffTitle': 'Windows überspringt Effekte auf diesem Ausgang',
   'output.effectsOffBody':
-    'Die Audioverbesserungen sind für {device} ausgeschaltet, daher führt Windows dort überhaupt keine Effekte aus – auch die FluidEQ-Engine nicht, so gut sie auch eingerichtet ist. Schalte sie in den Windows-Soundeinstellungen für diesen Ausgang wieder ein, dann ist dein EQ zurück.',
+    'Die Audioverbesserungen sind für {device} ausgeschaltet, daher führt Windows dort überhaupt keine Effekte aus – auch die FluidEQ-Engine nicht, so gut sie auch eingerichtet ist. Schalten Sie sie in den Windows-Soundeinstellungen für diesen Ausgang wieder ein, dann ist Ihr EQ zurück.',
   'output.openSoundSettings': 'Soundeinstellungen öffnen',
   'output.gotIt': 'Verstanden',
   'output.roomBadge': 'RAUM',
   'output.roomStereoTitle': '{device} steht auf Stereo',
   'output.roomStereoBody':
-    'Stell ihn auf 7.1, damit Spiele und Filme mit allen Kanälen im Raum ankommen. Musik läuft genau wie jetzt: Stereo geht auf die beiden vorderen Lautsprecher.',
+    'Stellen Sie ihn auf 7.1, damit Spiele und Filme mit allen Kanälen im Raum ankommen. Musik läuft genau wie jetzt: Stereo geht auf die beiden vorderen Lautsprecher.',
   'output.setSevenOne': 'Auf 7.1 stellen',
   'output.settingSevenOne': 'Wird gestellt…',
   'output.roomSevenOneTitle': '{device} ist jetzt ein 7.1-Ausgang',
@@ -401,19 +401,19 @@ const eq: Partial<Dictionary> = {
     'Eine kleine Anhebung der obersten Höhen, nur wenn der Klang zu weich wirkt.',
   'driver.filter.edited': 'In Equalizer APO bearbeitet',
   'driver.profile.note.headphone':
-    'Ein dezenter Ausgangspunkt zum Anhören. Die Treiberart sagt die Abstimmung deines Modells nicht voraus. Prüfe den Sitz der Polster und bevorzuge ein gemessenes Profil für deinen genauen Kopfhörer.',
+    'Ein dezenter Ausgangspunkt zum Anhören. Die Treiberart sagt die Abstimmung Ihres Modells nicht voraus. Prüfen Sie den Sitz der Polster und bevorzugen Sie ein gemessenes Profil für Ihren genauen Kopfhörer.',
   'driver.profile.note.iem':
-    'Sitz und Ohrpassstücke verändern den Klang. Dies ist eine sanfte Höranpassung, keine Korrektur für alle IEMs dieses Typs. Nutze Messungen des genauen Modells, sofern verfügbar.',
+    'Sitz und Ohrpassstücke verändern den Klang. Dies ist eine sanfte Höranpassung, keine Korrektur für alle IEMs dieses Typs. Nutzen Sie Messungen des genauen Modells, sofern verfügbar.',
   'driver.profile.note.material':
-    'Das Material allein verrät keine Höhenresonanz. Diese breite Geschmacksanpassung vermeidet Eingriffe an vermuteten Resonanzen. Lass sie aus, wenn dein Kopfhörer bereits ausgewogen klingt.',
+    'Das Material allein verrät keine Höhenresonanz. Diese breite Geschmacksanpassung vermeidet Eingriffe an vermuteten Resonanzen. Lassen Sie sie aus, wenn Ihr Kopfhörer bereits ausgewogen klingt.',
   'driver.profile.note.size':
-    'Der Durchmesser allein verrät keinen Frequenzgangfehler. Diese breite, leichte Absenkung ist optional und ersetzt kein gemessenes Profil deines genauen Modells.',
+    'Der Durchmesser allein verrät keinen Frequenzgangfehler. Diese breite, leichte Absenkung ist optional und ersetzt kein gemessenes Profil Ihres genauen Modells.',
   'driver.profile.note.small':
-    'Verringert sanft überladenen Oberbass, ohne Tiefbass hinzuzufügen. Die Größe sagt die Abstimmung nicht voraus; fordere von einem kleinen Treiber nicht mehr Bass.',
+    'Verringert sanft überladenen Oberbass, ohne Tiefbass hinzuzufügen. Die Größe sagt die Abstimmung nicht voraus; fordern Sie von einem kleinen Treiber nicht mehr Bass.',
   'driver.eyebrow': 'WOMIT SIE HÖREN',
   'driver.title': 'Treibertyp',
   'driver.none': 'Keine Korrektur',
-  'driver.none.hint': 'Nur Ihre Bänder und der Klangcharakter',
+  'driver.none.hint': 'Nur Ihre Bänder und das Preset',
   'driver.strength': 'Stärke',
   'driver.range': '±{db} dB',
   'profiles.eyebrow': 'IHR KLANG',
@@ -484,7 +484,7 @@ const eq: Partial<Dictionary> = {
   'squigImport.eyebrow': 'EIGENE KURVE MITBRINGEN',
   'squigImport.title': 'Squiglink-EQ importieren',
   'squigImport.intro':
-    'Nutze den Rechner von Squiglink und füge den Export hier ein. Als EQ anwenden ersetzt die bearbeitbaren Bänder. Als Kurve anwenden ersetzt die Kopfhörerkorrektur wie bei OPRA, mit eigener Stärke und eigenem Schalter; deine EQ-Bänder bleiben unverändert.',
+    'Nutzen Sie den Rechner von Squiglink und fügen Sie den Export hier ein. Als EQ anwenden ersetzt die bearbeitbaren Bänder. Als Kurve anwenden ersetzt die Kopfhörerkorrektur wie bei OPRA, mit eigener Stärke und eigenem Schalter; Ihre EQ-Bänder bleiben unverändert.',
   'squigImport.open': 'Squiglink öffnen',
   'squigImport.stepOne': 'Auf Squiglink Kopfhörer und Zielkurve wählen',
   'squigImport.stepTwo':
@@ -492,7 +492,7 @@ const eq: Partial<Dictionary> = {
   'squigImport.stepThree': 'Unten einfügen und EQ oder Kurve wählen',
   'squigImport.pasteLabel': 'EQ-Import',
   'squigImport.about':
-    'Squiglink beherbergt Messdatenbanken unabhängiger Tester, jede mit einem Rechner, der einen EQ an die Zielkurve deiner Wahl anpasst.',
+    'Squiglink beherbergt Messdatenbanken unabhängiger Tester, jede mit einem Rechner, der einen EQ an die Zielkurve Ihrer Wahl anpasst.',
   'squigImport.placeholder':
     'ParametricEQ- oder GraphicEQ-Text von Squiglink hier einfügen…',
   'squigImport.fileAria': 'Textdatei mit EQ-Export wählen',
@@ -503,7 +503,7 @@ const eq: Partial<Dictionary> = {
   'squigImport.applyCurve': 'Als Kurve anwenden',
   'squigImport.replaceTitle': 'Aktuellen EQ ersetzen?',
   'squigImport.replaceBody':
-    'Beim Ersetzen des EQ gehen seine aktuellen Bänder verloren. Du kannst den Import stattdessen als separate Korrekturkurve anwenden. Ein Wechsel des Importmodus entfernt den vorherigen Import.',
+    'Beim Ersetzen des EQ gehen seine aktuellen Bänder verloren. Sie können den Import stattdessen als separate Korrekturkurve anwenden. Ein Wechsel des Importmodus entfernt den vorherigen Import.',
   'squigImport.replaceEq': 'EQ ersetzen',
   'squigImport.applied': 'Angewendete Kurve',
   'squigImport.livePreview': 'Live-Vorschau',
@@ -514,9 +514,9 @@ const eq: Partial<Dictionary> = {
   'squigImport.bands': '{count} Bänder',
   'squigImport.clear': 'Import entfernen',
   'squigImport.chartAria': 'Frequenzgang des importierten EQ',
-  'squigImport.emptyTitle': 'Deine importierte Kurve erscheint hier',
+  'squigImport.emptyTitle': 'Ihre importierte Kurve erscheint hier',
   'squigImport.emptyHint':
-    'Füge einen Export ein, um seine Form zu sehen, bevor du mit der Feinabstimmung im EQ weitermachst.',
+    'Fügen Sie einen Export ein, um seine Form zu sehen, bevor Sie mit der Feinabstimmung im EQ weitermachen.',
   'voicing.quickAria': 'Klangcharakter: {name}',
   'voicing.quickNone': 'Klangcharakter: keiner',
   'voicing.quickTitle': 'Kein Klangcharakter aktiv',
@@ -530,8 +530,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancelAria': 'Smart-EQ-Messung abbrechen',
   'eq.smart.continuous': 'Fortlaufend',
   'eq.smart.continuousAria':
-    'Smart EQ misst und justiert weiter, solange Musik läuft',
-  'eq.smart.modeAria': 'Wählen, wie Smart EQ misst',
+    'Smart-EQ misst und justiert weiter, solange Musik läuft',
+  'eq.smart.modeAria': 'Wählen, wie Smart-EQ misst',
   'eq.smart.mode.once.note': 'Eine Messung, auf einmal angewendet',
   'eq.smart.mode.detail': 'Detail',
   'eq.smart.mode.detail.note': 'Misst weiter · nur Spitzen und Senken',
@@ -549,7 +549,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.eq.modified': '(geändert)',
   'eq.layers.eq.bands': '{count} Bänder',
   'eq.layers.convolution': 'Faltung',
-  'eq.layers.voicing': 'Klangcharakter',
+  'eq.layers.voicing': 'Preset',
   'eq.layers.driver': 'Treiber',
   'eq.layers.headphone': 'Kopfhörer',
   'eq.layers.customHeadphone': 'Benutzerdefiniert',
@@ -561,9 +561,9 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart.range': 'Gemessen · {low} bis {high}',
   'eq.layers.remove': 'Ebene {layer} entfernen',
   'eq.layers.clearBands': 'Alle Bänder auf 0 dB zurücksetzen',
-  'eq.layers.clearReference': 'Kopfhörer-Korrektur entfernen',
+  'eq.layers.clearReference': 'Kopfhörerkorrektur entfernen',
   'eq.layers.clearSmart':
-    'Gemessene Korrektur entfernen. Deine Bänder und die Referenz bleiben.',
+    'Gemessene Korrektur entfernen. Ihre Bänder und die Referenz bleiben.',
   'eq.layers.clearCustom': 'Benutzerdefinierte FX-Filter und Text löschen',
   'eq.clear': 'EQ zurücksetzen',
   'eq.addBand': 'Band hinzufügen',
@@ -579,12 +579,12 @@ const eq: Partial<Dictionary> = {
   'eq.filter': 'Filter',
   'eq.frequency': 'Frequenz',
   'eq.frequencyPerBand':
-    'Die Frequenz wird pro Band eingestellt – wähle ein einzelnes Band, um sie zu ändern',
+    'Die Frequenz wird pro Band eingestellt – wählen Sie ein einzelnes Band, um sie zu ändern',
   'eq.gain': 'Verstärkung',
   'eq.gainDisabled': 'Verstärkung · —',
   'eq.setByQ': 'Durch Q bestimmt',
   'eq.gainNaHint':
-    'Diese Filterform hat keine Verstärkung: Forme das Band mit Frequenz und Q oder wechsle auf Glocke, Bass- oder Höhenshelf, um einen Pegel einzustellen.',
+    'Diese Filterform hat keine Verstärkung: Formen Sie das Band mit Frequenz und Q oder wechseln Sie auf Glocke, Bass- oder Höhenshelf, um einen Pegel einzustellen.',
   'eq.gainReset': 'Strg+Klick setzt jedes ausgewählte Band auf 0 dB zurück',
   'eq.quality': 'Güte (Q)',
   'eq.active': 'Aktiv',
@@ -658,7 +658,7 @@ const eq: Partial<Dictionary> = {
   'eq.smart.error.analyserPaused':
     'Der Analysator ist pausiert, deshalb wurde die Messung beendet.',
   'eq.smart.error.noSound':
-    'Es lief nichts. Starte Musik und miss noch einmal.',
+    'Es lief nichts. Starten Sie Musik und messen Sie noch einmal.',
   'eq.smart.error.noAudioTrack':
     'Windows hat keinen System-Audiostream geliefert.',
   'eq.smart.error.formatChanged':
@@ -709,7 +709,7 @@ const eq: Partial<Dictionary> = {
   'voicing.title': 'Klangcharakter',
   'voicing.intro':
     'Eine abgestimmte Zielkurve für das, was Sie gerade tun. Jede wird als eigene Ebene hinter Ihren Bändern geschrieben, Ihre eigene Abstimmung wird also nie angetastet und die Rückkehr zu „Keiner“ stellt sie exakt wieder her.',
-  'voicing.refused': 'Voicing konnte nicht gewechselt werden',
+  'voicing.refused': 'Klangcharakter konnte nicht gewechselt werden',
   'voicing.groupPurpose': 'Wofür',
   'voicing.gameModeHint':
     'Auch der Spielmodus: Solange dieser Klangcharakter aktiv ist, verzichtet FluidEQ auf jede Verzögerung, die nur der Bequemlichkeit dient. Die DSP-Seite zeigt, was übrig bleibt.',
@@ -719,9 +719,9 @@ const eq: Partial<Dictionary> = {
   'voicing.strength': 'Stärke',
   'voicing.off': 'Aus',
   'voicing.full': 'Voll',
-  'voicing.inert': 'Bei 0 % Stärke bewirkt dieser Charakter nichts.',
+  'voicing.inert': 'Bei 0 % Stärke bewirkt dieser Klangcharakter nichts.',
   'voicing.headroom':
-    'Fügt bis zu +{peak} dB hinzu. Die automatische Normalisierung hält den Spielraum frei; lassen Sie sie an, außer Sie setzen die Vorverstärkung selbst.',
+    'Fügt bis zu +{peak} dB hinzu. Automatisch normalisieren hält den Spielraum frei; lassen Sie es an, außer Sie setzen die Vorverstärkung selbst.',
   'waveform.style': 'Stil der Anzeige wechseln',
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',

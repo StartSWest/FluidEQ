@@ -66,9 +66,9 @@ const tour: Partial<Dictionary> = {
   'tour.room.point2':
     'Veinticuatro salas para empezar — estudio, salón, cine, sala de conciertos — y las tuyas, guardadas con nombre.',
   'tour.room.point3':
-    'Ajustar elige de oído la cabeza que pone los sonidos delante de ti, en cinco pares.',
+    'Una prueba de escucha elige de oído la cabeza que pone los sonidos delante de ti, en cinco pares.',
   'tour.room.how':
-    'Abre DSP, elige Sala en el carril y actívala. Elige una sala, luego arrastra un altavoz o gira un dial; pulsa Ajustar para elegir tu cabeza.',
+    'Abre DSP, elige Sala en el carril y actívala. Elige una sala, luego arrastra un altavoz o gira un dial; en «Tu cabeza», pulsa «Empezar la prueba de escucha».',
   'tour.room.open': 'Abrir la Sala',
   'tour.room.imageAlt':
     'Una sala vista desde arriba: siete altavoces y un sub alrededor de una cabeza en el centro, cada uno con su camino hasta los oídos.',
@@ -147,10 +147,10 @@ const tour: Partial<Dictionary> = {
     'Un teclado, un ratón y una alfombrilla iluminados con el rosa, el violeta y el cian de Ciudad de neón.',
 
   'tour.theme.kicker': 'UN NUEVO ASPECTO',
-  'tour.theme.title': 'Conoce el tema Negro',
+  'tour.theme.title': 'Conoce el tema Oscuro',
   'tour.theme.subtitle': 'Negro puro, para las noches y las pantallas OLED',
   'tour.theme.lead':
-    'FluidEQ tiene ahora una segunda cara. Negro elimina todo rastro del azul pizarra con el que nació la app: paneles, menús y barras pasan a monocromo, el acento se mantiene y el espectro es el único color de la sala.',
+    'FluidEQ tiene ahora una segunda cara. Oscuro elimina todo rastro del azul pizarra con el que nació la app: paneles, menús y barras pasan a monocromo, el acento se mantiene y el espectro es el único color de la sala.',
   'tour.theme.point1':
     'Fondos negro puro: en una pantalla OLED los píxeles alrededor de la gráfica se apagan.',
   'tour.theme.point2':
@@ -159,11 +159,11 @@ const tour: Partial<Dictionary> = {
     'Tu color de acento y el modo arcoíris se conservan. Tu sonido no cambia nada: solo la pintura.',
   'tour.theme.howTitle': 'Cómo cambiarlo',
   'tour.theme.how':
-    'Abre el menú del icono de pulso en la esquina superior derecha y, abajo del todo, elige Negro en Tema. Océano queda a un clic si quieres volver.',
-  'tour.theme.tryBlack': 'Cambiar a Negro ahora',
-  'tour.theme.tryOcean': 'Volver a Océano',
+    'Abre el menú del icono de pulso en la esquina superior derecha y, abajo del todo, elige Oscuro en Tema. Claro queda a un clic si quieres volver.',
+  'tour.theme.tryBlack': 'Cambiar a Oscuro ahora',
+  'tour.theme.tryOcean': 'Volver a Claro',
   'tour.theme.imageAlt':
-    'FluidEQ con el tema Negro: la pestaña EQ con quince bandas y el espectro en vivo reproduciendo una canción.',
+    'FluidEQ con el tema Oscuro: la pestaña EQ con quince bandas y el espectro en vivo reproduciendo una canción.',
 
   'tour.share.kicker': 'ESCUCHA TODOS TUS PC',
   'tour.share.title': 'Comparte audio entre tus ordenadores',
@@ -202,15 +202,15 @@ const tour: Partial<Dictionary> = {
   'tour.library.title': 'Una Biblioteca para la música que tienes',
   'tour.library.subtitle': 'Entran carpetas, salen álbumes',
   'tour.library.lead':
-    'Señala una carpeta y FluidEQ lee cada canción y vídeo que contiene, con etiquetas y portadas, y los convierte en una colección que recorres por álbum, artista, género, canción o carpeta. La reproducción pasa por el propio reproductor de FluidEQ, así que el EQ y la cadena DSP están siempre en el camino.',
+    'Señala una carpeta y FluidEQ lee cada canción y vídeo que contiene, con etiquetas y portadas, y los convierte en una colección que recorres por álbum, artista, género, canción o carpeta. La reproducción pasa por el propio reproductor de FluidEQ, así que el EQ y el rack DSP están siempre en el camino.',
   'tour.library.point1':
     'Tres formas de ver el mismo estante: lista, cuadrícula y cover flow, con salto a una letra para colecciones grandes.',
   'tour.library.point2':
-    'Una cola de «A continuación» con «Seguir reproduciendo», que continúa con más del mismo género cuando la lista se acaba.',
+    'Una cola de «A continuación» con «Seguir sonando», que continúa con más del mismo género cuando la lista se acaba.',
   'tour.library.point3':
     'Listas de reproducción y una lista de Favoritos permanente. Clic derecho en cualquier canción para añadirla a una u otra, o a la cola.',
   'tour.library.point4':
-    'Memoria de EQ por canción: activa «Guardar para esta canción» mientras suena y la corrección que hagas se recuerda para ese tema.',
+    'Memoria del EQ inteligente por canción: activa «Guardar para esta canción» mientras suena y la corrección que hagas se recuerda para ese tema.',
   'tour.library.how':
     'Abre la pestaña Biblioteca, pulsa «Añadir carpeta» o suelta una carpeta en la página y deja que termine el escaneo. Elige Álbumes, Artistas, Géneros, Canciones, Carpetas o Árbol y pulsa Reproducir.',
   'tour.library.open': 'Abrir Biblioteca',
@@ -225,11 +225,11 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.point2':
     'Forja de graves añade una octava real por debajo del bajo; Pegada de graves moldea su ataque, sostenimiento y florecimiento, con una Mezcla de hasta el 200 %.',
   'tour.dsp.point3':
-    'Un Ecualizador paramétrico de quince bandas con fase mínima o lineal, mid/side, sobremuestreo y decenas de presets con nombre.',
+    'Un Ecualizador paramétrico de quince bandas con fase mínima o lineal, centro/lados, sobremuestreo y decenas de presets con nombre.',
   'tour.dsp.point4':
-    'Master con objetivo de sonoridad LUFS y protección true-peak, presets de entrega de Streaming a Vinilo, y un ajuste de ganancia para comparar sonido, no volumen.',
+    'Master con objetivo de sonoridad LUFS y protección de pico verdadero, presets de entrega de Streaming a Vinilo, y la opción Igualar ganancia para comparar sonido, no volumen.',
   'tour.dsp.how':
-    'Abre la pestaña DSP, elige una cadena en Ajustes, luego haz clic en una etapa en las pestañas laterales y actívala. Con Equalizer APO, reproduce antes una pista de la Biblioteca.',
+    'Abre la pestaña DSP, elige una cadena en Presets, luego haz clic en una etapa en las pestañas laterales y actívala. Con Equalizer APO, reproduce antes una pista de la Biblioteca.',
   'tour.dsp.open': 'Abrir DSP',
 
   'tour.output.kicker': 'SUENA EN DOS SITIOS',
@@ -252,7 +252,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.imageAlt':
     'El panel Segunda salida con unos BlackShark V2 Pro activados, su selector de perfil de EQ, el volumen y los modos Juego/Vídeo y Música.',
 
-  'tour.looks.kicker': 'TU PROPIO VISUALIZADOR',
+  'tour.looks.kicker': 'TU PROPIO ESTILO',
   'tour.looks.title': 'Estilos propios para la gráfica',
   'tour.looks.subtitle': 'Veintiocho formas, tus colores, tu movimiento',
   'tour.looks.lead':
@@ -270,37 +270,37 @@ const tour: Partial<Dictionary> = {
   'tour.looks.open': 'Abrir EQ',
 
   'tour.karaoke.kicker': 'UN ESCENARIO EN CASA',
-  'tour.karaoke.title': 'Karaoke con guía de tono',
+  'tour.karaoke.title': 'Karaoke con guía de afinación',
   'tour.karaoke.subtitle': 'Tus canciones, tus letras, tu micrófono',
   'tour.karaoke.lead':
     'Suelta una canción con o sin archivo de letra y FluidEQ los empareja en una lista, muestra la letra sincronizada sobre la portada o el vídeo, escucha tu micrófono y dibuja tu tono contra la melodía. Todo se queda en este ordenador; el micro nunca se graba ni se reproduce.',
   'tour.karaoke.point1':
     'Un deslizador de Voz guía que va del original a solo la base, quitando la voz principal sin necesitar otro archivo.',
   'tour.karaoke.point2':
-    'Un carril de tono en vista Notas o Curva: las notas de la canción como bloques, tu voz como una línea en vivo, con aviso de Alto, Afinado y Bajo.',
+    'Una guía de afinación en vista Notas o Curva: las notas de la canción como bloques, tu voz como una línea en vivo, con aviso de Alto, Afinado y Bajo.',
   'tour.karaoke.point3':
-    'Una revisión de la actuación al terminar, con las partes que practicar y una cuenta atrás para otro intento.',
+    'Una revisión de la interpretación al terminar, con las partes que practicar y una cuenta atrás para otro intento.',
   'tour.karaoke.point4':
     'Lee LRC, LRC mejorado con tiempos por palabra y UltraStar con sílabas y tono, sobre MP3, FLAC, WAV, OGG, M4A y más. Con letras traducidas y acordes de guitarra estimados.',
   'tour.karaoke.how':
-    'Abre la pestaña Karaoke, pulsa «Abrir canción» o «Añadir carpeta», elige una pista en la lista, activa el micro, muestra la guía de tono y pulsa Reproducir.',
+    'Abre la pestaña Karaoke, pulsa «Abrir canción» o «Añadir carpeta», elige una pista en la lista, activa el micro, muestra la guía de afinación y pulsa Reproducir.',
   'tour.karaoke.open': 'Abrir Karaoke',
 
   'tour.maker.kicker': 'HAZ EL TUYO',
-  'tour.maker.title': 'El Creador de Karaoke',
+  'tour.maker.title': 'El Creador de karaoke',
   'tour.maker.subtitle': 'Cualquier canción se vuelve un archivo de karaoke',
   'tour.maker.lead':
     'Un estudio de autoría completo dentro de la pestaña Karaoke. Puede hacer todo el trabajo solo: separar la voz de la música, leer las palabras y sus tiempos con un modelo de voz local y detectar las notas de la melodía. O marcas, grabas y dibujas cada tiempo a mano en una línea de tiempo con zoom. Todo se ejecuta en este ordenador.',
   'tour.maker.point1':
-    '«Configurar esta canción automáticamente»: separa la voz y luego lee las palabras y los tiempos, con opción de continuar en segundo plano.',
+    '«Preparar esta canción automáticamente»: separa la voz y luego lee las palabras y los tiempos, con opción de continuar en segundo plano.',
   'tour.maker.point2':
-    'Conserva las pistas separadas: la voz y la base, cada una guardable, incluso como MP3.',
+    'Conserva las pistas separadas: la voz y la pista base, cada una guardable, incluso como MP3.',
   'tour.maker.point3':
     'Herramientas manuales para el detalle: marcar palabras, grabar entradas de línea, un inspector de palabra con inicio y duración, y dividir una palabra en sílabas.',
   'tour.maker.point4':
-    'Pinta la melodía en una rejilla de tono, marca notas doradas y exporta como proyecto FluidEQ, UltraStar TXT, LRC, LRC mejorado o base sin voz.',
+    'Pinta la melodía en una rejilla de tono, marca notas doradas y exporta como proyecto de FluidEQ, TXT de UltraStar, LRC, LRC mejorado o pista base sin voz.',
   'tour.maker.how':
-    'En Karaoke, carga una canción y pulsa «Crear». Acepta «Configurar automáticamente» en el asistente, corrige las palabras en la línea de tiempo y luego «Usar en el reproductor» y «Exportar».',
+    'En Karaoke, carga una canción y pulsa «Crear». Acepta «Preparar automáticamente» en el asistente, corrige las palabras en la línea de tiempo y luego «Usar en el reproductor» y «Exportar».',
   'tour.maker.open': 'Abrir Karaoke',
 
   'tour.media.kicker': 'LA WEB, A TRAVÉS DE TU EQ',

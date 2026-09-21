@@ -133,7 +133,7 @@ const lighting = {
   'lighting.notice.windows.title':
     'Windows отдаёт {devices} приложению на переднем плане.',
   'lighting.notice.windows.body':
-    'Чтобы подсветка не гасла, когда FluidEQ за другими окнами, разрешите FluidEQ управлять подсветкой в фоне в параметрах динамической подсветки Windows.',
+    'Чтобы подсветка не гасла, когда FluidEQ за другими окнами, разрешите FluidEQ управлять подсветкой в фоне в параметрах динамического освещения Windows.',
   'lighting.notice.windows.action': 'Открыть параметры подсветки',
   'lighting.windows.controller': 'Фоновое управление подсветкой Windows',
   'lighting.windows.notFirst.title':

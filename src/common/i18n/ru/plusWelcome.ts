@@ -6,12 +6,12 @@ const plusWelcome = {
   'plusWelcome.scenes.title': 'Все визуализаторы',
   'plusWelcome.scenes.line':
     'Сцены FluidEQ и всё, что публикуют участники, под вашу музыку.',
-  'plusWelcome.studio.title': 'Creator Studio',
+  'plusWelcome.studio.title': 'Студия',
   'plusWelcome.studio.line': 'Создавайте свои сцены и публикуйте их в галерее.',
   'plusWelcome.desktop.title': 'Ваш рабочий стол',
   'plusWelcome.desktop.line':
     'Визуализатор за значками — на одном мониторе или на всех.',
-  'plusWelcome.lighting.title': 'Динамический свет',
+  'plusWelcome.lighting.title': 'Динамическая подсветка',
   'plusWelcome.lighting.line':
     'Ваши лампы следуют за музыкой в цветах играющей сцены.',
   'plusWelcome.board.title': 'Таблица лидеров',
@@ -20,7 +20,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Подписка живёт в меню {menu}, в разделе {account}: откройте его в любой момент, чтобы посмотреть её, сменить имя или управлять ею.',
   'plusWelcome.note':
-    'Plus работает не более чем на пяти ваших компьютерах, а эквалайзер, рэк и плееры остаются бесплатными.',
+    'Plus работает не более чем на пяти ваших компьютерах, а эквалайзер, стойка DSP и плееры остаются бесплатными.',
   'plusWelcome.open': 'Открыть визуализаторы',
   'plusWelcome.later': 'Позже',
 };

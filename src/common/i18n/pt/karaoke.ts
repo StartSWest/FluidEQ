@@ -49,7 +49,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.error.ambiguous':
     'Há mais de uma combinação possível. Selecione um áudio e, opcionalmente, um arquivo de letra.',
   'karaoke.error.unsupported':
-    'Nenhum desses arquivos é ainda um formato de áudio ou letra Karaoke compatível. A capa e o vídeo precisam de uma música ao lado.',
+    'Nenhum desses arquivos é ainda um formato de áudio ou letra compatível com o Karaokê. A capa e o vídeo precisam de uma música ao lado.',
   'karaoke.error.read':
     'O FluidEQ não conseguiu ler os arquivos locais selecionados.',
   'karaoke.error.playback':
@@ -76,7 +76,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.warning.ambiguousLyrics':
     'Dois arquivos de letra combinavam com a mesma música, então nenhum foi usado: {files}.',
   'karaoke.warning.andMore': 'e mais {count}',
-  'karaoke.countdown.sing': 'Canta',
+  'karaoke.countdown.sing': 'Cante',
   'karaoke.song.unknownArtist': 'Música local',
   'karaoke.stage.videoUnsupported':
     'Não é possível reproduzir vídeo {format} aqui',
@@ -85,7 +85,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.hideArt': 'Ocultar a capa',
   'karaoke.stage.showArt': 'Mostrar a capa',
   'karaoke.stage.noArt': 'Esta música não tem capa',
-  'karaoke.playlist.title': 'Lista de reprodução',
+  'karaoke.playlist.title': 'Playlist',
   'karaoke.playlist.groupFolders': 'Agrupar por pasta',
   'karaoke.playlist.looseFiles': 'Arquivos soltos',
   'karaoke.playlist.resize': 'Redimensionar playlist e palco',
@@ -106,7 +106,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.lyrics.next': 'Próxima letra',
   'karaoke.lyrics.follow': 'Seguir a letra',
   'karaoke.lyrics.textSize': 'Tamanho do texto da letra',
-  'karaoke.transport.title': 'Controles de reprodução do Karaoke',
+  'karaoke.transport.title': 'Controles de reprodução do Karaokê',
   'karaoke.transport.restart': 'Reiniciar música',
   'karaoke.transport.play': 'Reproduzir',
   'karaoke.transport.pause': 'Pausar',
@@ -116,9 +116,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.vocalLevel': 'Voz guia',
   'karaoke.transport.vocalOff': 'Somente base',
   'karaoke.transport.vocalFull': 'Original',
-  'karaoke.transport.mixSettings': 'Definições de mistura',
+  'karaoke.transport.mixSettings': 'Configurações de mistura',
   'karaoke.transport.openMixSettings':
-    'Abrir definições de mistura para {channel}',
+    'Abrir configurações de mistura para {channel}',
   'karaoke.mic.title': 'Microfone',
   'karaoke.mic.settings': 'Configurações do microfone',
   'karaoke.mic.off': 'Desligado',
@@ -186,9 +186,9 @@ const karaoke: Partial<Dictionary> = {
     'As barras azuis são as notas-alvo; o traço indica se a sua voz está alta, afinada ou baixa.',
   'karaoke.chords.aria':
     'Acordes de guitarra estimados da faixa de acompanhamento',
-  'karaoke.chords.analyzing': 'A procurar acordes… {percent}%',
+  'karaoke.chords.analyzing': 'Procurando acordes… {percent}%',
   'karaoke.chords.estimate': 'Acorde estimado',
-  'karaoke.chords.next': 'Seguinte',
+  'karaoke.chords.next': 'Próximo',
   'karaoke.chords.in': 'em {seconds}s',
   'karaoke.chords.none': 'Nenhum acorde estável encontrado',
   'karaoke.chords.confidence': 'Confiança da estimativa de áudio: {percent}%',
@@ -204,7 +204,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.undo': 'Desfazer',
   'karaoke.maker.redo': 'Refazer',
   'karaoke.maker.preview': 'Prévia · 1, 2, 3',
-  'karaoke.maker.apply': 'Usar no reprodutor',
+  'karaoke.maker.apply': 'Usar no player',
   'karaoke.maker.applyHint':
     'Use estas edições no player. O arquivo original não muda; Exportar cria um novo arquivo.',
   'karaoke.maker.lyrics': 'Letra',
@@ -312,9 +312,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.delete': 'Excluir',
   'karaoke.maker.analyze': 'Analisar melodia',
   'karaoke.maker.prepare': 'Preparar karaokê',
-  'karaoke.maker.advanced': 'Avançado',
-  'karaoke.maker.prepared':
-    'Este karaokê já tem notas de melodia sincronizadas.',
+  'karaoke.maker.advanced': 'Ferramentas de reparo',
+  'karaoke.maker.prepared': 'Este karaokê já tem letra sincronizada e melodia.',
   'karaoke.maker.repairLyrics': 'Detectar novamente o tempo da letra',
   'karaoke.maker.repairMelody': 'Detectar novamente as notas da melodia',
   'karaoke.maker.rebuildKaraoke': 'Reconstruir letra + melodia',
@@ -326,10 +325,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.groupVoice': 'Voz e música',
   'karaoke.maker.stemsTitle': 'Faixas separadas',
   'karaoke.maker.stemBacking': 'Faixa base',
-  'karaoke.maker.stemSaveAs': 'Guardar {name} como',
-  'karaoke.maker.stemSaveFormat': 'Guardar {name} como {format}',
-  'karaoke.maker.stemMp3Encoding': 'A codificar o MP3…',
-  'karaoke.maker.stemMp3Saved': 'MP3 guardado.',
+  'karaoke.maker.stemSaveAs': 'Salvar {name} como',
+  'karaoke.maker.stemSaveFormat': 'Salvar {name} como {format}',
+  'karaoke.maker.stemMp3Encoding': 'Codificando o MP3…',
+  'karaoke.maker.stemMp3Saved': 'MP3 salvo.',
   'karaoke.maker.stemMp3Failed': 'Não foi possível codificar o MP3.',
   'karaoke.maker.stemVoice': 'Voz',
   'karaoke.maker.stemSave': 'Salvar',
@@ -461,11 +460,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.lyricsAutoAligned':
     'Nova letra aplicada e alinhada à melodia disponível.',
   'karaoke.maker.lyricsNeedPreparation':
-    'Nova letra aplicada. Escolha Preparar karaokê para detectar seu tempo.',
+    'Nova letra aplicada. Abra “Ferramentas de reparo” e escolha “Detectar novamente o tempo da letra” para sincronizá-la.',
   'karaoke.maker.transcriptionEyebrow': 'TRANSCRIÇÃO LOCAL OPCIONAL',
   'karaoke.maker.transcriptionTitle': 'Baixar o modelo de voz local?',
   'karaoke.maker.transcriptionBody':
-    'O FluidEQ vai baixar o modelo {model} com licença MIT do Hugging Face e guardá-lo neste PC — uma única vez, cerca de 570 MB com aceleração gráfica e cerca de 1,1 GB sem ela. Seu áudio nunca sai deste computador. A primeira execução leva alguns minutos e usa bastante memória.',
+    'O FluidEQ vai baixar o modelo {model} com licença MIT do Hugging Face e armazená-lo neste PC — uma única vez, cerca de 570 MB com aceleração gráfica e cerca de 1,1 GB sem ela. Seu áudio nunca sai deste computador. A primeira execução leva alguns minutos e usa bastante memória.',
   'karaoke.maker.transcriptionReview':
     'O reconhecimento é apenas um ponto de partida. O FluidEQ mantém a grafia da sua letra ao comparar texto e todos os tempos continuam editáveis.',
   'karaoke.maker.notNow': 'Agora não',
@@ -488,7 +487,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'Transcrevendo localmente',
   'karaoke.maker.whisperTranscribingProgress':
     'Detectando tempo · passagem {pass}/{passes} · bloco {chunk}/{chunks}',
-  'karaoke.maker.whisperAligning': 'A ajustar a letra ao canto',
+  'karaoke.maker.whisperAligning': 'Ajustando a letra ao canto',
   'karaoke.maker.whisperComplete': 'Transcrição concluída',
   'karaoke.maker.whisperMatched':
     'O Whisper associou {count} palavras reconhecidas. Revise os tempos editáveis antes de exportar.',
@@ -518,7 +517,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.keepLoaded': 'Manter carregado',
   'karaoke.maker.exported': '{file} foi exportado',
   'karaoke.maker.exportedPartialLrc':
-    '{file} foi exportado, sem {lines} linhas da letra: o LRC precisa de um tempo na linha ou em uma de suas palavras, e estas não têm nenhum. Marque o tempo delas no Maker e exporte de novo para obter um arquivo completo.',
+    '{file} foi exportado, sem {lines} linhas da letra: o LRC precisa de um tempo na linha ou em uma de suas palavras, e estas não têm nenhum. Marque o tempo delas no Criador e exporte de novo para obter um arquivo completo.',
   'karaoke.maker.exportedPartialUltraStar':
     '{file} foi exportado, sem {words} palavras da letra: o UltraStar só leva uma palavra onde a melodia tem uma nota, e estas não têm nenhuma. Detecte ou desenhe as notas delas e exporte de novo para obter um arquivo completo.',
   'karaoke.maker.exportFallback': 'arquivo de karaokê',
@@ -573,7 +572,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.fitOk': 'Encaixa na melodia',
   'karaoke.translation.empty': 'Ainda não há letra neste idioma.',
   'karaoke.translation.exportLanguage':
-    'Os ficheiros de letra serão escritos em {language}.',
+    'Os arquivos de letra serão escritos em {language}.',
 };
 
 export default karaoke;
