@@ -930,7 +930,7 @@ export enum FixedBandSizeEnum {
 }
 
 /**
- * The same four, in the order they are offered.
+ * The same five, in the order they are offered.
  *
  * A numeric enum's `Object.values` holds both directions of the mapping, so
  * every reader of the list had to filter the names back out first. Written

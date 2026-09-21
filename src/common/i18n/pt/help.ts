@@ -97,7 +97,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'O Modo EQ muda como suas bandas e suas curvas de correção são aplicadas, sem editá-las. Os designs de bandas guardam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
-    'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
+    'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
     'Um design guarda só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
   'help.eqmode.modeCaption': 'Modo EQ',
@@ -109,7 +109,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.phase': 'Mínima ou Linear. Só com o Motor FluidEQ.',
   'help.eqmode.reset': 'Tudo de volta ao Normal.',
   'help.eqmode.designsCaption': 'Designs de bandas',
-  'help.eqmode.builtIn': 'Layouts padrão de 6, 10, 15 ou 31 bandas.',
+  'help.eqmode.builtIn': 'Layouts padrão de 6, 10, 15, 20 ou 31 bandas.',
   'help.eqmode.save':
     'Dá nome às frequências e ao Q atuais como um design, listado em Meus designs.',
 

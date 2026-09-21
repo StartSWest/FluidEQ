@@ -165,14 +165,14 @@ EQ mode changes how your bands and your correction curves are applied, without e
 
 ![Band designs](19-band-designs.png)
 
-- **Built-in layouts** — Standard layouts of 6, 10, 15 or 31 bands.
+- **Built-in layouts** — Standard layouts of 6, 10, 15, 20 or 31 bands.
 - **Save design…** — Names the current frequencies and Q as a design, listed under My designs.
 
 ### Try it
 
 1. Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.
 2. Under the FluidEQ Engine, choose Minimum or Linear phase. Press Reset to return everything to Normal.
-3. Open the layouts button beside Add band. Pick 6, 10, 15 or 31 bands, or press Save design… to name the current layout.
+3. Open the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.
 
 > **Good to know:** A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.
 

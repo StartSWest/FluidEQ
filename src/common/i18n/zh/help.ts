@@ -88,7 +88,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'EQ 模式改变你的频段和校正曲线的应用方式，而不会修改它们本身。频段布局会记下你喜欢的一套频段的频率和 Q，随时可用于任何输出。',
   'help.eqmode.steps':
-    '在“频段”工具栏上打开“EQ 模式”。在音乐播放时试试“强度”“频段 Q”或“曲线平滑”中的选项；面板会保持打开。\n使用 FluidEQ 引擎时，可将“相位”设为“最小”或“线性”。按“重置”可将一切恢复为“普通”。\n打开“添加频段”旁边的布局按钮。选择 6、10、15 或 31 个频段，或按“保存布局…”为当前布局命名。',
+    '在“频段”工具栏上打开“EQ 模式”。在音乐播放时试试“强度”“频段 Q”或“曲线平滑”中的选项；面板会保持打开。\n使用 FluidEQ 引擎时，可将“相位”设为“最小”或“线性”。按“重置”可将一切恢复为“普通”。\n打开“添加频段”旁边的布局按钮。选择 6、10、15、20 或 31 个频段，或按“保存布局…”为当前布局命名。',
   'help.eqmode.tip':
     '布局只保存频率和 Q：载入布局后，每个频段都从 0 dB 开始。线性相位会增加延迟，并可能在尖锐的瞬态之前产生振铃。',
   'help.eqmode.modeCaption': 'EQ 模式',
@@ -100,7 +100,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.phase': '“最小”或“线性”。仅限 FluidEQ 引擎。',
   'help.eqmode.reset': '全部恢复为“普通”。',
   'help.eqmode.designsCaption': '频段布局',
-  'help.eqmode.builtIn': '6、10、15 或 31 个频段的标准布局。',
+  'help.eqmode.builtIn': '6、10、15、20 或 31 个频段的标准布局。',
   'help.eqmode.save': '把当前的频率和 Q 命名保存为布局，列在“我的布局”下。',
 
   'help.headphones.title': '耳机校正与导入',

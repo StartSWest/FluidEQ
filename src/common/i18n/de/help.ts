@@ -100,7 +100,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Der EQ-Modus ändert, wie deine Bänder und deine Korrekturkurven angewendet werden, ohne sie zu bearbeiten. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das dir gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
-    'Öffne in der Leiste der Seite Bänder den EQ-Modus. Probiere bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWähle unter der FluidEQ-Engine die Phase Minimal oder Linear. Drücke Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffne neben Band hinzufügen den Knopf Schnelle Anordnungen. Wähle 6, 10, 15 oder 31 Bänder oder drücke Design speichern…, um das aktuelle Layout zu benennen.',
+    'Öffne in der Leiste der Seite Bänder den EQ-Modus. Probiere bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWähle unter der FluidEQ-Engine die Phase Minimal oder Linear. Drücke Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffne neben Band hinzufügen den Knopf Schnelle Anordnungen. Wähle 6, 10, 15, 20 oder 31 Bänder oder drücke Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
     'Ein Design speichert nur Frequenzen und Q: Wird eines geladen, beginnt jedes Band bei 0 dB. Lineare Phase fügt Verzögerung hinzu und kann vor harten Schlägen vorschwingen.',
   'help.eqmode.modeCaption': 'EQ-Modus',
@@ -112,7 +112,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.phase': 'Minimal oder Linear. Nur mit der FluidEQ-Engine.',
   'help.eqmode.reset': 'Alles zurück auf Normal.',
   'help.eqmode.designsCaption': 'Band-Designs',
-  'help.eqmode.builtIn': 'Standard-Layouts mit 6, 10, 15 oder 31 Bändern.',
+  'help.eqmode.builtIn': 'Standard-Layouts mit 6, 10, 15, 20 oder 31 Bändern.',
   'help.eqmode.save':
     'Speichert die aktuellen Frequenzen und Q als benanntes Design, aufgeführt unter Meine Designs.',
 

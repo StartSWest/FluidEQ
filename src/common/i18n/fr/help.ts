@@ -97,7 +97,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Mode EQ change la façon dont vos bandes et vos courbes de correction sont appliquées, sans les modifier. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
   'help.eqmode.steps':
-    'Ouvrez Mode EQ dans la barre d’outils de la page Bandes. Essayez un choix d’Intensité, de Q des bandes ou de Lissage des courbes pendant que la musique joue ; le panneau reste ouvert.\nAvec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire. Appuyez sur Réinitialiser pour tout ramener à Normal.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
+    'Ouvrez Mode EQ dans la barre d’outils de la page Bandes. Essayez un choix d’Intensité, de Q des bandes ou de Lissage des courbes pendant que la musique joue ; le panneau reste ouvert.\nAvec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire. Appuyez sur Réinitialiser pour tout ramener à Normal.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
   'help.eqmode.tip':
     'Une disposition ne stocke que les fréquences et le Q : en charger une remet chaque bande à 0 dB. La phase linéaire ajoute du retard et peut résonner avant les attaques franches.',
   'help.eqmode.modeCaption': 'Mode EQ',
@@ -110,7 +110,7 @@ const help: Record<keyof typeof en, string> = {
     'Minimale ou Linéaire. Avec le moteur FluidEQ uniquement.',
   'help.eqmode.reset': 'Tout revient à Normal.',
   'help.eqmode.designsCaption': 'Dispositions de bandes',
-  'help.eqmode.builtIn': 'Dispositions standard de 6, 10, 15 ou 31 bandes.',
+  'help.eqmode.builtIn': 'Dispositions standard de 6, 10, 15, 20 ou 31 bandes.',
   'help.eqmode.save':
     'Donne un nom aux fréquences et au Q actuels pour en faire une disposition, listée sous Mes dispositions.',
 
