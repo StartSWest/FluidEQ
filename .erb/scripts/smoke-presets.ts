@@ -17,8 +17,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
+import {
+  DSP_DEFAULTS,
+  IDspSettings,
+  IEqSettings,
+} from '../../src/common/dsp/chain';
 import { encodeChainSettings } from '../../src/common/dsp/chainWire';
+import { dspPresetVoicing } from '../../src/common/dsp/presetVoicing';
+import {
+  biquadCoefficients,
+  createBiquadState,
+  processBiquad,
+} from '../../src/renderer/dsp/biquad';
 import { filterPresetCases } from './dsp-preset-cases';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_PRESETS } from '../../src/common/dsp/presets';
@@ -47,6 +57,47 @@ interface IMetrics {
  * figure is whatever the song's own loudness asks for.
  */
 const MASTER_MAKEUP_DB = 4;
+
+/**
+ * A preset as it is heard: its rack's output, then its curve.
+ *
+ * A preset's tone left the rack for the main EQ (`presetCurve.ts`), which the
+ * engine applies after everything the rack does, with the cookbook filters
+ * Equalizer APO renders. So the rack alone no longer says how loud a preset
+ * is: Warm's rack lost the level its bass lift carried and measured quieter
+ * than DSP Off while nothing a listener hears had moved. The level windows
+ * judge the rack and its curve together, before the listener's own headroom;
+ * the shape checks stay on the rack, whose limiter they hold, because the
+ * curve's headroom is the preamp's to find — on this engine as on APO.
+ */
+const withCurve = (audio: IAudio, id: string, curve: IEqSettings): IAudio => {
+  const filters = Object.values(
+    dspPresetVoicing(id, curve).apoOverride?.filters ?? {},
+  );
+  return {
+    rate: audio.rate,
+    channels: audio.channels.map((channel) => {
+      const out = Float32Array.from(channel);
+      filters.forEach((filter) => {
+        processBiquad(
+          createBiquadState(),
+          out,
+          biquadCoefficients(
+            {
+              type: filter.type,
+              frequency: filter.frequency,
+              gainDb: filter.gain,
+              quality: filter.quality,
+            },
+            audio.rate,
+            'clean',
+          ),
+        );
+      });
+      return out;
+    }),
+  };
+};
 
 /** A chain that is deliberately moving the level toward a delivery target. */
 const normalisesLoudness = (settings: IDspSettings): boolean =>
@@ -287,9 +338,18 @@ const main = async (): Promise<void> => {
       const preset = DSP_PRESETS[index];
       // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
       const result = await render(preset.settings, `chain-${preset.id}`);
-      const levelDb = dbRatio(result.rms, dry.rms);
+      const heard = preset.curve
+        ? measure(
+            withCurve(
+              readWav(path.join(scratch, `chain-${preset.id}.wav`)),
+              preset.id,
+              preset.curve,
+            ),
+          )
+        : result;
+      const levelDb = dbRatio(heard.rms, dry.rms);
       line(
-        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · RMS ${levelDb.toFixed(1).padStart(5)} dB vs dry · crest ${result.crestDb.toFixed(1)} dB`,
+        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · RMS ${levelDb.toFixed(1).padStart(5)} dB vs dry, with its curve · crest ${result.crestDb.toFixed(1)} dB`,
       );
       check(
         passesShapeSafety(result),

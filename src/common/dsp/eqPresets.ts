@@ -715,15 +715,16 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'lofi',
     labelKey: 'dsp.eqPreset.lofi',
     group: 'genre',
-    // The whole shape 0.6 dB lower than it was drawn, because the middle it
-    // leans on is where music keeps its energy: the curve's own average was a
-    // decibel BELOW flat and it still played 2.4 dB louder than DSP Off, which
-    // is a chain winning its own A/B on loudness. A level move, not a shape
-    // one — every gain moved by the same amount. It buys more than it spends
-    // (2.4 dB down to 0.9) because the fuzz below and the compressor after it
-    // both make fewer harmonics from a quieter curve.
+    // As drawn. It was moved 0.6 dB down as a level fix measured on a scratch
+    // recording that reads about a decibel hot against the loudness gate's
+    // own music — and the gate, the level of record, then measured the chain
+    // 2.3 dB under DSP Off with its tone in the rack, and 2.0 with the tone as
+    // the Preset layer after it: outside the -1.5 dB floor both ways. The
+    // middle it leans on is where music keeps its energy, so a level move of
+    // the whole curve moves the chain by more than itself.
     gains: [
-      -2.5, -1.5, 0, 1.5, 1.5, 0.7, 0, 0, 0, -0.5, -1.5, -3, -4.5, -6, -7.5,
+      -1.9, -0.9, 0.6, 2.1, 2.1, 1.3, 0.6, 0.6, 0.6, 0.1, -0.9, -2.4, -3.9,
+      -5.4, -6.9,
     ],
     setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
   },

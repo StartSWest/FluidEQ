@@ -13,6 +13,7 @@ import {
   fromDspChainPresetFile,
   toDspChainPresetFile,
 } from '../../../common/dsp/dspChainPresetFile';
+import { DSP_PRESETS } from '../../../common/dsp/presets';
 
 const fullChain = (): IDspSettings =>
   clampDspSettings({
@@ -90,6 +91,40 @@ describe('the shareable complete DSP chain file', () => {
     );
     expect(read?.settings.maximizer.ceilingDb).toBeLessThan(50);
     expect(read?.settings.dimension.highWidth).toBeLessThan(90);
+  });
+
+  /*
+   * A chain is shared as it is heard: its rack, and the tone its Preset layer
+   * plays in the main EQ (`presetCurve.ts`). Without the curve, a chain
+   * exported from Metal would import as Metal's rack with none of its tone.
+   */
+  it('carries the chain’s tone beside its rack, still as version 1', () => {
+    const metal = DSP_PRESETS.find((preset) => preset.id === 'metal');
+    if (!metal?.curve) {
+      throw new Error('Metal has no curve');
+    }
+    const text = toDspChainPresetFile('Heavy', metal.settings, {
+      ...metal.curve,
+      isolate: true,
+    });
+    expect(JSON.parse(text).version).toBe(1);
+    const read = fromDspChainPresetFile(text);
+    expect(read?.curve?.bands).toEqual(metal.curve.bands);
+    expect(read?.curve?.subsonicHz).toBe(metal.curve.subsonicHz);
+    // A monitor is never shared, in the curve any more than in the rack.
+    expect(read?.curve?.isolate).toBe(false);
+    expect(read?.curve?.enabled).toBe(true);
+  });
+
+  it('reads a file with no tone as a rack alone, as every older file is', () => {
+    const read = fromDspChainPresetFile(
+      toDspChainPresetFile('Rack only', fullChain()),
+    );
+    expect(read?.settings.exciter.enabled).toBe(true);
+    expect(read?.curve).toBeUndefined();
+    expect(
+      JSON.parse(toDspChainPresetFile('Rack only', fullChain())),
+    ).not.toHaveProperty('curve');
   });
 
   it('quietly rejects unrelated or incomplete JSON', () => {

@@ -346,7 +346,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     bassForge: 'headphones',
     dimension: 'headphones',
     maximizer: 'default',
-    maximizerDriveDb: 1,
+    // 2.3 rather than 1: the loudness gate measured this chain 1.8 to 2 dB
+    // under DSP Off, outside its -1.5 dB floor, with its tone inside the rack
+    // and after it alike. Not the curve's doing — the open-back curve is near
+    // flat — but the bass and width stages', so the chain's own level control
+    // answers it; a decibel of drive buys about half of one here.
+    maximizerDriveDb: 2.3,
   },
   {
     id: 'speakers',

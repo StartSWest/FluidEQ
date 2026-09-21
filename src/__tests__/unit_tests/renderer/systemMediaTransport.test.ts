@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { act, renderHook } from '@testing-library/react';
 import type { ISystemMediaSnapshot } from '../../../main/systemMedia';
+import FluidEqTestProvider from '../../utils/FluidEqTestProvider';
 import {
   claimPlayback,
   registerPlayer,
@@ -72,6 +73,12 @@ describe('what the bar says for this machine’s own sound', () => {
   });
 });
 
+/**
+ * The app around the hook, as the window gives it: the bar asks which preset
+ * is on, and under Equalizer APO that is the Preset layer's, not the rack's.
+ */
+const withApp = FluidEqTestProvider;
+
 describe('the transport for another Windows player', () => {
   const originalElectron = window.electron;
   let publishSnapshot:
@@ -109,10 +116,13 @@ describe('the transport for another Windows player', () => {
   });
 
   it('publishes Stop even when the session needs the rewind fallback', () => {
-    const hook = renderHook(() => {
-      useSystemMediaSource();
-      return useTransportSources().system;
-    });
+    const hook = renderHook(
+      () => {
+        useSystemMediaSource();
+        return useTransportSources().system;
+      },
+      { wrapper: withApp },
+    );
     const snapshot: ISystemMediaSnapshot = {
       app: 'Spotify.exe',
       title: 'Song',
@@ -138,7 +148,7 @@ describe('the transport for another Windows player', () => {
   it('quietens the album when a video is started over it', () => {
     // One player at a time where neither player is this app's: Spotify going,
     // a Netflix tab clicked, and nothing used to stop either of them.
-    const hook = renderHook(() => useSystemMediaSource());
+    const hook = renderHook(() => useSystemMediaSource(), { wrapper: withApp });
     const reading = (app: string, playing: string[]): ISystemMediaSnapshot => ({
       app,
       title: 'Song',
@@ -174,7 +184,7 @@ describe('the transport for another Windows player', () => {
     // started behind a playing Spotify changed nothing about the session the
     // rule was watching, and the song here played straight through it.
     const stopLibrary = jest.fn();
-    const hook = renderHook(() => useSystemMediaSource());
+    const hook = renderHook(() => useSystemMediaSource(), { wrapper: withApp });
     const reading = (playing: string[]): ISystemMediaSnapshot => ({
       app: 'Spotify.exe',
       title: 'Song',
@@ -209,7 +219,7 @@ describe('the transport for another Windows player', () => {
 
   it('leaves both alone when one player at a time is switched off', () => {
     setSinglePlayer(false);
-    const hook = renderHook(() => useSystemMediaSource());
+    const hook = renderHook(() => useSystemMediaSource(), { wrapper: withApp });
     act(() =>
       publishSnapshot?.({
         app: 'Spotify.exe',

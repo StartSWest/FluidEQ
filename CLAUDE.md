@@ -441,6 +441,20 @@ Everything worth knowing about them is available through commands:
   everything. The DSP store is the only sender of the engine's copy and
   switches it off at the root when it belongs elsewhere; anything else that
   sends a rack to the engine brings the doubling back.
+- **A DSP preset's tone is a curve in the main EQ, never a stage of its
+  rack.** Each factory preset carries `curve` beside `settings`, and a pick
+  sends the curve as the Preset layer (a `dsp:<id>` voicing, written as
+  `fluideq-<slug>-preset.txt`) on both engines; the rack's own EQ keeps only
+  what supports its other stages — dynamic bands (the de-essers, the
+  late-night bass guard), bass mono, harmonic colour, a Room copy's
+  compensation (`presetCurve.ts`). The engine applies its layers after the
+  rack, so the curve lands where Equalizer APO plays it. Inside the rack it
+  sat ahead of the compressor and limiter with every chain's level matched,
+  and Pop against Metal was reported as "not noticeable at all" on the
+  FluidEQ Engine while obvious on APO (2026-09-21). Do not move a preset's
+  tone back into its rack; the DSP EQ is the listener's own. Under APO an
+  EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
+  `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
 - **`status-{GUID}.json` is the engine telling the app what it is doing.**
   The DLL writes one per output into its root (`status_file.h`) inside
   `LockForProcess` — before any audio passes — and again on every change and

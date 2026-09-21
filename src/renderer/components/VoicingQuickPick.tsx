@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 import {
   QUICK_DSP_PRESETS,
+  activeDspPresetId,
   dspPresetHint,
   useDspPresetCatalog,
 } from '../dsp/dspPresetCatalog';
@@ -10,6 +11,7 @@ import {
   useDspSettings,
 } from '../dsp/store';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
+import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
@@ -24,11 +26,7 @@ const VoicingQuickPick = () => {
   const { isEnabled, isBlockingError, voicing } = useFluidEqContext();
   const { status } = useAudioEngineStatus();
   const isApo = status?.engine === 'apo';
-  const apoId = voicing?.profileId.startsWith('dsp:')
-    ? voicing.profileId.slice(4)
-    : 'none';
-  const dspId = settings.enabled ? settings.presetId : 'none';
-  const activeId = isApo ? apoId : dspId;
+  const activeId = activeDspPresetId(settings, voicing) ?? 'none';
   const { apply, selecting } = useDspPresetSelection(
     settings,
     applyDspSettings,
@@ -68,7 +66,7 @@ const VoicingQuickPick = () => {
           id: preset.id,
           name: preset.name,
           group: preset.group,
-          hint: isApo ? t('dsp.quick.apo') : dspPresetHint(preset.settings, t),
+          hint: isApo ? t('dsp.quick.apo') : dspPresetHint(preset, t),
           icon: (
             <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
           ),
@@ -84,6 +82,22 @@ const VoicingQuickPick = () => {
         return t(
           group === 'genre' ? 'voicing.groupGenre' : 'dsp.quick.classics',
         );
+      }}
+      // Starred here as on the DSP page's picker, into the same list — both
+      // pickers file it first and follow each other's stars — and in the
+      // same menu style. Every chain the app knows is passed as known, so a
+      // star this picker does not show (a saved chain starred there) stays.
+      menuClassName="dsp-chain-preset-menu"
+      favourites={{
+        ids: favorites.map((preset) => preset.id),
+        onToggle: (id) =>
+          toggleFavouriteDspPreset(
+            id,
+            catalog.map((preset) => preset.id),
+          ),
+        addLabel: t('library.playlist.addToFavorites'),
+        removeLabel: t('library.playlist.removeFromFavorites'),
+        exclude: ['none'],
       }}
       activeId={activeId}
       onPick={apply}

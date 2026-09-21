@@ -19,7 +19,9 @@ import {
   DSP_PRESET_GROUPS,
   chainRoom,
 } from '../../common/dsp/presets';
+import { dspVoicingCurve } from '../../common/dsp/presetVoicing';
 import VoicingIcon from '../icons/VoicingIcon';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { exportDspChainPreset } from '../utils/equalizerApi';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
@@ -72,6 +74,7 @@ const DspChainPresetBar = ({
   onCommit,
 }: IDspChainPresetBarProps) => {
   const { t } = useTranslation();
+  const { voicing } = useFluidEqContext();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isNaming, setIsNaming] = useState(false);
@@ -94,7 +97,7 @@ const DspChainPresetBar = ({
     ...userPresets.map((preset) => ({
       id: preset.id,
       name: preset.name,
-      hint: chainHint(preset.settings, t),
+      hint: chainHint(preset, t),
       group: SAVED_GROUP,
       icon: <VoicingIcon className="rich-pick__glyph" />,
     })),
@@ -102,7 +105,7 @@ const DspChainPresetBar = ({
       DSP_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
         id: preset.id,
         name: dspPresetName(preset, t),
-        hint: chainHint(preset.settings, t),
+        hint: chainHint(preset, t),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
@@ -186,8 +189,10 @@ const DspChainPresetBar = ({
     onCommit();
   };
 
+  // A chain is saved and shared as it is heard: the rack, and the tone the
+  // Preset layer is playing in the main EQ (`presetCurve.ts`).
   const handleSave = (name: string) => {
-    const saved = saveUserDspPreset(name, settings);
+    const saved = saveUserDspPreset(name, settings, dspVoicingCurve(voicing));
     setUserPresets(readUserDspPresets());
     setIsNaming(false);
     onChange({ ...settings, presetId: saved.id });
@@ -223,7 +228,11 @@ const DspChainPresetBar = ({
       setNotice(t('dsp.chainImport.invalid'));
       return;
     }
-    const saved = saveUserDspPreset(imported.name, imported.settings);
+    const saved = saveUserDspPreset(
+      imported.name,
+      imported.settings,
+      imported.curve,
+    );
     setUserPresets(readUserDspPresets());
     setIsImporting(false);
     applyUserPreset(saved);
@@ -244,7 +253,7 @@ const DspChainPresetBar = ({
     try {
       const exported = await exportDspChainPreset(
         name,
-        toDspChainPresetFile(name, settings),
+        toDspChainPresetFile(name, settings, dspVoicingCurve(voicing)),
       );
       if (exported) {
         setNotice(t('dsp.eqShare.saved'));

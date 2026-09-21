@@ -74,7 +74,7 @@ describe("a Room copy keeps its chain's tone", () => {
     expect(roomToneSetOf('competitiveV2')).toBe('frontStage');
   });
 
-  it('is the chain’s own EQ, untouched, with the room’s bands after it', () => {
+  it('is the chain’s own rack EQ and tone, with the room’s bands after it', () => {
     COPIES.forEach(([copyId, chainId]) => {
       const copy = preset(copyId).settings;
       const chain = preset(chainId).settings;
@@ -90,15 +90,32 @@ describe("a Room copy keeps its chain's tone", () => {
       // A rack resized and sized back comes from `sourceBands`: the room's
       // bands have to be in it, or the first resize drops them.
       expect(copy.eq.sourceBands).toEqual(copy.eq.bands);
+      // On whether or not the chain's is: it carries the room's bands. A
+      // chain's own rack EQ holds only its support now (`presetCurve.ts`), and
+      // a chain with none has it off.
       expect(copy.eq.enabled).toBe(true);
       // No longer the catalogue's profile, so it does not claim to be.
       expect(copy.eq.presetId).toBe('');
-      // Everything about the EQ that is not a band is the chain's still.
-      expect({ ...copy.eq, bands: [], sourceBands: [], presetId: '' }).toEqual({
+      // Everything about the EQ that is not a band, or its switch, is the
+      // chain's still.
+      expect({
+        ...copy.eq,
+        bands: [],
+        sourceBands: [],
+        presetId: '',
+        enabled: true,
+      }).toEqual({
         ...chain.eq,
         bands: [],
         sourceBands: [],
         presetId: '',
+        enabled: true,
+      });
+      // And the chain's tone is the copy's: both play the same curve in the
+      // main EQ, after the rack and so after the Room.
+      expect({ copyId, curve: preset(copyId).curve }).toEqual({
+        copyId,
+        curve: preset(chainId).curve,
       });
     });
   });

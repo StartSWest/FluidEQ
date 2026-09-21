@@ -1,13 +1,20 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { useEffect, useState } from 'react';
-import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
+import {
+  IDspSettings,
+  IEqSettings,
+  clampDspSettings,
+} from '../../common/dsp/chain';
 import {
   DSP_PRESETS,
   IDspPreset,
   chainRoom,
+  dspPresetCurve,
   dspPresetSettings,
 } from '../../common/dsp/presets';
+import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
+import type { IVoicingSettings } from '../../common/constants';
 import type { Translate } from '../../common/i18n';
 import type { TranslationKey } from '../../common/i18n/en';
 import {
@@ -51,6 +58,8 @@ export interface IDspCatalogEntry {
   id: string;
   name: string;
   settings: IDspSettings;
+  /** The tone it plays in the main EQ, if any: see `presetCurve.ts`. */
+  curve?: IEqSettings;
   group: string;
 }
 
@@ -62,13 +71,21 @@ export const dspPresetCatalog = (t: Translate): IDspCatalogEntry[] => [
   })),
 ];
 
-export const dspPresetHint = (settings: IDspSettings, t: Translate): string =>
+/**
+ * What a chain does, in the names of its stages. Its tone counts as EQ
+ * wherever it plays: a preset whose curve moved to the main EQ still shapes
+ * the sound with one, and the list saying otherwise would be wrong about it.
+ */
+export const dspPresetHint = (
+  { settings, curve }: Pick<IDspCatalogEntry, 'settings' | 'curve'>,
+  t: Translate,
+): string =>
   [
     settings.normalizer.mode !== 'off' ? t('dsp.normalizer.title') : '',
     settings.denoise.enabled ? t('dsp.denoise.title') : '',
     settings.exciter.enabled ? t('dsp.exciter.title') : '',
     settings.bassForge.enabled ? t('dsp.bassForge.title') : '',
-    settings.eq.enabled ? t('dsp.eq.title') : '',
+    settings.eq.enabled || curve ? t('dsp.eq.title') : '',
     settings.bassPunch.enabled ? t('dsp.bassPunch.title') : '',
     settings.room.enabled ? t('dsp.room.title') : '',
     settings.dimension.enabled ? t('dsp.dimension.title') : '',
@@ -99,6 +116,55 @@ export const resolveDspPreset = (
         room: chainRoom(current.room, saved.settings.room),
       })
     : dspPresetSettings(id, current);
+};
+
+/**
+ * The preset on now, or undefined for none.
+ *
+ * The rack names it while it runs. While it is off — which under Equalizer
+ * APO is always, APO having no rack — the Preset layer does: its curve is
+ * that preset's sound on either engine. Asked by the equaliser's picker and
+ * by a game's sound, which puts back what it finds here when the game ends;
+ * reading the rack alone, it put back nothing under APO and took the curve
+ * away with it.
+ */
+export const activeDspPresetId = (
+  settings: IDspSettings,
+  voicing: IVoicingSettings | undefined,
+): string | undefined =>
+  settings.enabled ? settings.presetId : dspVoicingPresetId(voicing);
+
+/** The tone a pick plays in the main EQ, or undefined for none. */
+export const resolveDspPresetCurve = (id: string): IEqSettings | undefined => {
+  if (id === 'none') {
+    return undefined;
+  }
+  const saved = findUserDspPreset(id);
+  return saved ? saved.curve : dspPresetCurve(id);
+};
+
+/**
+ * The preset a Preset layer came from, by the name its picker gives it, or
+ * undefined for any other voicing.
+ *
+ * A saved chain deleted since goes on playing its curve from the layer until
+ * the layer is removed, and is called Custom meanwhile, as the picker calls a
+ * chain it cannot name.
+ */
+export const presetLayerName = (
+  voicing: IVoicingSettings | undefined,
+  t: Translate,
+): string | undefined => {
+  const id = dspVoicingPresetId(voicing);
+  if (id === undefined) {
+    return undefined;
+  }
+  const saved = findUserDspPreset(id);
+  const factory = DSP_PRESETS.find((preset) => preset.id === id);
+  if (saved) {
+    return saved.name;
+  }
+  return factory ? dspPresetName(factory, t) : t('dsp.eqPreset.custom');
 };
 
 export const useDspPresetCatalog = (t: Translate) => {

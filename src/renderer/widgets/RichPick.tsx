@@ -87,6 +87,11 @@ export interface IRichPickFavourites {
   onToggle: (id: string) => void;
   addLabel: string;
   removeLabel: string;
+  /**
+   * Rows that take no star, drawn as plain full-width rows — a "None", which
+   * is the absence of a choice rather than one worth keeping.
+   */
+  exclude?: readonly string[];
 }
 
 /**
@@ -422,7 +427,7 @@ const RichPick = ({
                     {heading}
                   </span>
                 )}
-                {favourites ? (
+                {favourites && !favourites.exclude?.includes(entry.id) ? (
                   // Beside the row, never inside it: a button cannot hold a
                   // button, and a press on the star must not choose the row.
                   // The menu stays open — starring is a thing done to several

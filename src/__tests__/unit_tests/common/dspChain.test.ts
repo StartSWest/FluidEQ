@@ -230,7 +230,9 @@ describe('dsp chain settings', () => {
     DSP_PRESETS.forEach((preset) => {
       const stages = [
         preset.settings.denoise.enabled,
-        preset.settings.eq.enabled,
+        // The tone is one job wherever it plays: its curve in the main EQ,
+        // and whatever of the rack's EQ stays on to support it.
+        preset.settings.eq.enabled || preset.curve !== undefined,
         preset.settings.exciter.enabled,
         preset.settings.bassForge.enabled,
         preset.settings.bassPunch.enabled,
@@ -257,7 +259,7 @@ describe('dsp chain settings', () => {
      * not have is anything that invents harmonics, which is what turns a
      * default into a colour nobody asked for.
      */
-    expect(balanced?.settings.eq.presetId).toBe('balanced');
+    expect(balanced?.curve?.presetId).toBe('balanced');
     expect(balanced?.settings.eq.fuzzAmount).toBe(0);
     expect(balanced?.settings.exciter.enabled).toBe(false);
     expect(balanced?.settings.bassForge.enabled).toBe(false);
@@ -273,8 +275,8 @@ describe('dsp chain settings', () => {
      * Bass Punch is working in: raising everything the hit stands out from is
      * the stacking this whole chain was rebuilt to stop.
      */
-    expect(punch?.settings.eq.presetId).toBe('punch');
-    const deepest = punch?.settings.eq.bands.slice(0, 3) ?? [];
+    expect(punch?.curve?.presetId).toBe('punch');
+    const deepest = punch?.curve?.bands.slice(0, 3) ?? [];
     expect(deepest.map((band) => band.frequency)).toEqual([32, 50, 80]);
     expect(Math.max(...deepest.map((band) => band.gainDb))).toBeLessThanOrEqual(
       1.5,
@@ -293,7 +295,7 @@ describe('dsp chain settings', () => {
 
   it('keeps Warm tonal instead of stacking harmonic generators', () => {
     const warm = DSP_PRESETS.find((preset) => preset.id === 'warm');
-    expect(warm?.settings.eq.presetId).toBe('warm');
+    expect(warm?.curve?.presetId).toBe('warm');
     expect(warm?.settings.eq.fuzzAmount).toBe(0);
     expect(warm?.settings.exciter.enabled).toBe(false);
     expect(warm?.settings.bassForge.enabled).toBe(false);
@@ -301,7 +303,7 @@ describe('dsp chain settings', () => {
 
   it('keeps Expansive to clean EQ and one controlled width stage', () => {
     const expansive = DSP_PRESETS.find((preset) => preset.id === 'expansive');
-    expect(expansive?.settings.eq.presetId).toBe('ambient');
+    expect(expansive?.curve?.presetId).toBe('ambient');
     expect(expansive?.settings.exciter.enabled).toBe(false);
     expect(expansive?.settings.dimension.presetId).toBe('expansive');
     expect(expansive?.settings.dimension.decorrelation).toBeLessThan(0.5);
@@ -730,7 +732,7 @@ it('keeps traditional Country and modern pop-rock Country as distinct DSP curves
   const modern = DSP_PRESETS.find(
     (preset) => preset.labelKey === 'dsp.eqPreset.modernCountry',
   );
-  expect(traditional?.settings.eq.enabled).toBe(true);
-  expect(modern?.settings.eq.enabled).toBe(true);
-  expect(modern?.settings.eq.bands).not.toEqual(traditional?.settings.eq.bands);
+  expect(traditional?.curve).toBeDefined();
+  expect(modern?.curve).toBeDefined();
+  expect(modern?.curve?.bands).not.toEqual(traditional?.curve?.bands);
 });

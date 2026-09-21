@@ -44,6 +44,17 @@ jest.mock('../../renderer/utils/audioEngineApi', () => ({
   getAudioEngineStatus: jest.fn(),
 }));
 
+/**
+ * The main EQ's side of a pick. A preset's tone is its Preset layer there
+ * (`presetCurve.ts`), sent before the rack is set, so a pick finishes a
+ * moment after the click rather than inside it.
+ */
+const mockSetVoicing = jest.fn();
+jest.mock('../../renderer/utils/equalizerApi', () => ({
+  ...jest.requireActual('../../renderer/utils/equalizerApi'),
+  setVoicing: (...args: unknown[]) => mockSetVoicing(...args),
+}));
+
 const APO_STATUS: IAudioEngineStatus = {
   engine: 'apo',
   apo: { installed: true },
@@ -556,18 +567,28 @@ describe('DspPanel', () => {
     });
   });
 
-  it('applies a preset whole when one is chosen', () => {
+  it('applies a preset whole when one is chosen: its tone to the main EQ, its rack here', async () => {
+    mockSetVoicing.mockResolvedValue(undefined);
     const { onChange, onCommit } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
-    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
+      );
+    });
     const repair = DSP_PRESETS.find((preset) => preset.id === 'lossy-repair');
+    expect(repair?.curve).toBeDefined();
+    expect(mockSetVoicing).toHaveBeenCalledWith(
+      'dsp:lossy-repair',
+      1,
+      repair?.curve,
+    );
     expect(onChange).toHaveBeenCalledWith(repair?.settings);
     expect(onCommit).toHaveBeenCalled();
   });
 
-  it('does not change Crossfade when a DSP preset is chosen', () => {
+  it('does not change Crossfade when a DSP preset is chosen', async () => {
+    mockSetVoicing.mockResolvedValue(undefined);
     const active: IDspSettings = {
       ...DSP_DEFAULTS,
       crossfade: {
@@ -579,7 +600,9 @@ describe('DspPanel', () => {
     };
     const { onChange } = renderPanel(active);
     fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
+    });
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.presetId).toBe('rock');
     expect(next.crossfade).toEqual(active.crossfade);
@@ -644,7 +667,8 @@ describe('DspPanel', () => {
    * the rack runs on all of them, so without this the switch flipped itself
    * back on the way through a preset or the rack's own Reset.
    */
-  it('keeps the surround switch through a preset and through Reset', () => {
+  it('keeps the surround switch through a preset and through Reset', async () => {
+    mockSetVoicing.mockResolvedValue(undefined);
     const pair: IDspSettings = {
       ...DSP_DEFAULTS,
       eq: { ...DSP_DEFAULTS.eq, enabled: true },
@@ -653,7 +677,9 @@ describe('DspPanel', () => {
     const { container, onChange } = renderPanel(pair);
     const rack = within(container.querySelector('.dsp-presets') as HTMLElement);
     fireEvent.click(rack.getByRole('button', { name: 'Presets' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
+    });
     const chosen = onChange.mock.calls[0][0] as IDspSettings;
     expect(chosen.surround).toEqual({ allChannels: false });
 

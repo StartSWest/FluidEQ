@@ -30,6 +30,7 @@ import {
   IDspPresetRecipe,
   TDspPresetGroup,
 } from './presetRecipes';
+import { presetCurve, presetSupport } from './presetCurve';
 import { roomPresetSettings } from './roomPresets';
 import { withRoomTone } from './roomTone';
 import { VOICING_PROFILES } from '../voicing';
@@ -42,7 +43,16 @@ export interface IDspPreset {
   id: string;
   labelKey: string;
   group: TDspPresetGroup;
+  /**
+   * The rack. Its EQ holds only what supports the other stages, never the
+   * preset's tone: see `curve` and `presetCurve.ts`.
+   */
   settings: IDspSettings;
+  /**
+   * The preset's tone, played as the Preset layer of the main EQ on either
+   * engine — or undefined for a preset that leaves the tone alone.
+   */
+  curve: IEqSettings | undefined;
   /**
    * Set on a copy of another chain with the Room switched on: what follows
    * that chain's name in the copy's. The Room's own title ("Gaming · Room")
@@ -129,10 +139,12 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     denoise: recipe.denoise
       ? denoisePresetSettings(recipe.denoise, true)
       : DSP_DEFAULTS.denoise,
-    // A Room copy keeps its chain's tone: see `roomTone.ts`.
+    // Only the EQ's support stays in the rack; its tone is the preset's
+    // curve (`presetCurve.ts`). A Room copy adds what keeps its chain's tone
+    // through the Room, which belongs in front of the Room: see `roomTone.ts`.
     eq: recipe.room
-      ? withRoomTone(recipeEq(recipe), recipe.room)
-      : recipeEq(recipe),
+      ? withRoomTone(presetSupport(recipeEq(recipe)), recipe.room)
+      : presetSupport(recipeEq(recipe)),
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,
@@ -237,6 +249,7 @@ export const DSP_PRESETS: readonly IDspPreset[] = orderRelatedStyles(
         labelKey: recipe.labelKey,
         group: recipe.group,
         settings: materialize(recipe),
+        curve: presetCurve(recipeEq(recipe)),
         copyLabelKey:
           recipe.room === undefined
             ? undefined
@@ -247,6 +260,10 @@ export const DSP_PRESETS: readonly IDspPreset[] = orderRelatedStyles(
 
 export const isDspPresetId = (id: string): boolean =>
   DSP_PRESETS.some((preset) => preset.id === id);
+
+/** The tone a preset plays in the main EQ, or undefined for none. */
+export const dspPresetCurve = (id: string): IEqSettings | undefined =>
+  DSP_PRESETS.find((candidate) => candidate.id === id)?.curve;
 
 /** A fresh, fully clamped rack for a picker selection. */
 export const dspPresetSettings = (

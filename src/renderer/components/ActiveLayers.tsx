@@ -39,6 +39,9 @@ import {
   writeApoConfigFile,
 } from '../utils/equalizerApi';
 import { useSmartEqMode } from '../utils/smartEqMode';
+import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
+import { presetLayerName } from '../dsp/dspPresetCatalog';
+import switchPresetRackOff from '../dsp/presetRackOff';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
 import { askToneClear } from '../eq/toneIntent';
@@ -222,6 +225,10 @@ const ActiveLayers = () => {
     );
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
+  // A preset's tone plays as a voicing named `dsp:<preset>`; its chip wears
+  // the preset's own name and glyph, as the picker that put it there does.
+  const presetName = presetLayerName(voicing, t);
+  const voicingGlyph = dspVoicingPresetId(voicing) ?? voicing?.profileId;
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
 
   const layers: {
@@ -474,14 +481,21 @@ const ActiveLayers = () => {
       key: 'voicing',
       isVoicing: true,
       label: t('eq.layers.voicing'),
-      name: voicingProfile?.name ?? 'Equalizer APO edit',
+      name: presetName ?? voicingProfile?.name ?? 'Equalizer APO edit',
       percent: Math.round((voicing?.intensity ?? 0) * 100),
       strength: voicing?.intensity ?? 1,
       isInactive: !isVoicingActive(voicing),
       onStrength: setVoicingStrength,
       onClear: async () => {
+        // A preset's pill takes the whole preset away: its rack goes off with
+        // its curve, as None in the picker does. Any other voicing is only
+        // this layer, and the DSP page is none of its business.
+        const isPreset = dspVoicingPresetId(voicing) !== undefined;
         setVoicing({ profileId: '', intensity: voicing?.intensity ?? 1 });
         await setVoicingApi('', voicing?.intensity ?? 1);
+        if (isPreset) {
+          switchPresetRackOff();
+        }
         await refreshState();
       },
       feature: 'voicing',
@@ -758,7 +772,7 @@ const ActiveLayers = () => {
           />
           {layer.isVoicing ? (
             <VoicingIcon
-              profileId={voicing?.profileId}
+              profileId={voicingGlyph}
               className="active-layer__icon"
             />
           ) : (
@@ -797,7 +811,7 @@ const ActiveLayers = () => {
           />
           {layer.isVoicing ? (
             <VoicingIcon
-              profileId={voicing?.profileId}
+              profileId={voicingGlyph}
               className="active-layer__icon"
             />
           ) : (

@@ -41,7 +41,9 @@ import {
   persistDspSettings,
   useDspSettings,
 } from '../dsp/store';
+import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { GAME_PROFILES_CHANGED, readGameProfiles } from './gameProfiles';
 import { requestGameWatch } from './gameWatchRequest';
 
@@ -126,9 +128,10 @@ export const useSoundingGame = (): IGameProfile | undefined => {
   const profiles = useGameProfiles();
   const now = useSounding();
   const settings = useDspSettings();
+  const { voicing } = useFluidEqContext();
   const ours =
     now !== undefined &&
-    now.presetId === (settings.enabled ? settings.presetId : '');
+    now.presetId === (activeDspPresetId(settings, voicing) ?? '');
   return ours
     ? profiles.find((profile) => profile.id === now.gameId)
     : undefined;
@@ -186,6 +189,10 @@ export const useGameSound = ({
 }: { applies?: boolean; always?: boolean } = {}): IGameSound => {
   const profiles = useGameProfiles();
   const settings = useDspSettings();
+  const { voicing } = useFluidEqContext();
+  // Under Equalizer APO a picked preset's rack is off and its curve is what
+  // plays, so the rack alone would name no preset there.
+  const presetNow = activeDspPresetId(settings, voicing) ?? '';
   const { apply } = useDspPresetSelection(
     settings,
     applyDspSettings,
@@ -206,7 +213,7 @@ export const useGameSound = ({
   const latest = useRef({ profiles, presetId: '', apply });
   latest.current = {
     profiles,
-    presetId: settings.enabled ? settings.presetId : '',
+    presetId: presetNow,
     apply,
   };
 
@@ -329,9 +336,7 @@ export const useGameSound = ({
   // Judged rather than remembered: the chain playing is what says whether the
   // sound is still the game's, and it changes the moment the listener picks
   // another one — which is a render, so this is answered again with it.
-  const ourSound =
-    soundNow !== undefined &&
-    soundNow.presetId === (settings.enabled ? settings.presetId : '');
+  const ourSound = soundNow !== undefined && soundNow.presetId === presetNow;
 
   return {
     profiles,

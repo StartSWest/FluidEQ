@@ -87,7 +87,7 @@ const GameRow = ({
       id: preset.id,
       name: preset.name,
       group: preset.group,
-      hint: dspPresetHint(preset.settings, t),
+      hint: dspPresetHint(preset, t),
       icon: <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />,
     })),
   ];

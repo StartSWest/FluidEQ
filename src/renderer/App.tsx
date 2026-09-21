@@ -46,6 +46,7 @@ import { useTitlebarSideWidth } from './utils/useTitlebarSideWidth';
 import ConfigInspector from './components/ConfigInspector';
 import GamesPanel from './games/GamesPanel';
 import GameSound from './games/GameSound';
+import RackFollowsEngine from './dsp/RackFollowsEngine';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
@@ -2690,6 +2691,9 @@ const AppContent = () => {
                 only ever work with the page open, which is the one moment
                 nobody is playing. */}
             <GameSound />
+            {/* A preset's rack across an engine switch, which is made in a
+                dialog over whichever page is open. */}
+            <RackFollowsEngine />
           </div>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing

@@ -6,6 +6,8 @@ import {
   getDefaultFilterWithId,
 } from 'common/constants';
 import ActiveLayers from 'renderer/components/ActiveLayers';
+import { holdRackForApo, rackHeldForApo } from 'renderer/dsp/rackHeldForApo';
+import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
 import {
   FluidEqProviderWrapper,
   IFluidEqContext,
@@ -15,6 +17,7 @@ import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 const mockWriteApoConfigFile = jest.fn();
 const mockClearGains = jest.fn();
 const mockRefreshState = jest.fn();
+const mockSetVoicing = jest.fn();
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearConvolution: jest.fn(),
@@ -23,7 +26,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setHeadphone: jest.fn(),
   setLayerBypass: jest.fn(),
   setSmartEq: jest.fn(),
-  setVoicing: jest.fn(),
+  setVoicing: (...args: unknown[]) => mockSetVoicing(...args),
   writeApoConfigFile: (...args: unknown[]) => mockWriteApoConfigFile(...args),
 }));
 
@@ -91,6 +94,31 @@ describe('Custom FX active layer', () => {
     expect(mockClearGains).toHaveBeenCalledTimes(1);
     expect(mockWriteApoConfigFile).not.toHaveBeenCalled();
     expect(mockRefreshState).toHaveBeenCalled();
+  });
+
+  /*
+   * A preset's tone plays as a voicing named `dsp:<preset>`. Its chip says the
+   * preset's own name, as the picker that put it there does — it used to fall
+   * through to "Equalizer APO edit" — and a saved chain deleted since, whose
+   * curve still plays, is called Custom.
+   */
+  it.each([
+    ['dsp:metal', 'Metal'],
+    ['dsp:gaming-room', 'Gaming · Room'],
+    ['dsp:user-chain:gone', 'Custom'],
+  ])('names the Preset layer %s after its preset', (profileId, name) => {
+    render(
+      <FluidEqProviderWrapper
+        value={{
+          ...defaultFluidEqContext,
+          voicing: { profileId, intensity: 1, apoOverride: { filters: {} } },
+        }}
+      >
+        <ActiveLayers />
+      </FluidEqProviderWrapper>,
+    );
+    expect(screen.getByTitle(name)).toHaveClass('active-layer__name');
+    expect(screen.queryByText('Equalizer APO edit')).not.toBeInTheDocument();
   });
 
   it('keeps the Smart EQ chip and strength control visible at zero', () => {
@@ -199,6 +227,51 @@ describe('Custom FX active layer', () => {
       screen.queryByRole('button', { name: 'Reset every band to 0 dB' }),
     ).not.toBeInTheDocument();
   });
+
+  /*
+   * A Preset pill is the whole preset: its curve here, its rack on the DSP
+   * page. Taking the curve alone left the rack playing a preset nothing on the
+   * EQ page named any more — and a rack Equalizer APO was holding off would
+   * have come back at the next switch to the FluidEQ Engine. Any other
+   * voicing's pill is that layer only, and is the control: the rack stays.
+   */
+  it.each([
+    ['a preset', 'dsp:pop', false, undefined],
+    ['any other voicing', 'music', true, 'pop'],
+  ])(
+    'takes the DSP rack off with %s only',
+    async (_what, profileId, rackStaysOn, holdAfter) => {
+      mockSetVoicing.mockResolvedValue(undefined);
+      applyDspSettings({
+        ...readDspSettings(),
+        enabled: true,
+        presetId: 'pop',
+      });
+      holdRackForApo('pop');
+      render(
+        <FluidEqProviderWrapper
+          value={{
+            ...defaultFluidEqContext,
+            voicing: { profileId, intensity: 1, apoOverride: { filters: {} } },
+            refreshState: mockRefreshState,
+          }}
+        >
+          <ActiveLayers />
+        </FluidEqProviderWrapper>,
+      );
+
+      await act(async () => {
+        fireEvent.click(
+          screen.getByRole('button', { name: 'Remove the Preset layer' }),
+        );
+      });
+
+      expect(mockSetVoicing).toHaveBeenCalledWith('', 1);
+      expect(readDspSettings().enabled).toBe(rackStaysOn);
+      expect(rackHeldForApo()).toBe(holdAfter);
+      expect(mockRefreshState).toHaveBeenCalled();
+    },
+  );
 
   it('hides cleared bands even with editing enabled, and returns on a gain edit', async () => {
     const filter = { ...getDefaultFilterWithId(), gain: 4 };

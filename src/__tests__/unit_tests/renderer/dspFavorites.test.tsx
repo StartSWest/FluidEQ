@@ -6,9 +6,11 @@ import VoicingQuickPick from 'renderer/components/VoicingQuickPick';
 import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
 import {
   toggleFavouriteDspPreset,
+  readFavouriteDspPresets,
   DSP_PRESETS_CHANGED,
 } from 'renderer/dsp/favouriteDspPresets';
-import { dspPresetSettings } from 'common/dsp/presets';
+import { holdRackForApo, rackHeldForApo } from 'renderer/dsp/rackHeldForApo';
+import { dspPresetCurve, dspPresetSettings } from 'common/dsp/presets';
 import {
   saveUserDspPreset,
   removeUserDspPreset,
@@ -87,7 +89,12 @@ it('updates favorites from saved presets immediately and removes stale entries',
   expect(readDspSettings().presetId).toBe(saved.id);
 });
 
-it('removes the legacy voicing before enabling the replacement DSP sound', async () => {
+/*
+ * A preset's tone replaces whatever voicing was on — the one tonal layer it
+ * owns (`presetCurve.ts`) — and the rack waits for that to land, so the new
+ * rack never plays under the old layer.
+ */
+it('replaces the legacy voicing with the preset curve before enabling its rack', async () => {
   let finish: () => void = () => undefined;
   jest.mocked(setVoicing).mockImplementation(
     () =>
@@ -99,7 +106,11 @@ it('removes the legacy voicing before enabling the replacement DSP sound', async
   fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
   // Gaming itself, not one of its copies with the Room ("Gaming · Room").
   fireEvent.click(screen.getByRole('menuitemradio', { name: /^Gaming (?!·)/ }));
-  expect(setVoicing).toHaveBeenCalledWith('', 1);
+  expect(setVoicing).toHaveBeenCalledWith(
+    'dsp:gaming',
+    1,
+    dspPresetCurve('gaming'),
+  );
   expect(readDspSettings().enabled).toBe(false);
   await act(async () => {
     finish();
@@ -189,4 +200,53 @@ it('applies an APO tonal curve and keeps DSP and Game mode off for a quick Gamin
     enabled: false,
     gameMode: false,
   });
+  // Written down, so a switch to the FluidEQ Engine puts this preset's rack
+  // on (`RackFollowsEngine`) — and nothing else's.
+  expect(rackHeldForApo()).toBe('gaming');
+});
+
+it('lets go of an APO hold when a pick sets the rack itself', async () => {
+  holdRackForApo('movie');
+  show();
+  fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+  await act(async () => {
+    fireEvent.click(
+      screen.getByRole('menuitemradio', { name: /^Gaming (?!·)/ }),
+    );
+  });
+  expect(readDspSettings()).toMatchObject({
+    enabled: true,
+    presetId: 'gaming',
+  });
+  expect(rackHeldForApo()).toBeUndefined();
+});
+
+/*
+ * Starred here as on the DSP page's own picker, into the one list both file
+ * first. None is the absence of a choice and takes no star.
+ */
+it('stars a preset into the list the DSP page shares, and never None', () => {
+  localStorage.setItem('fluideq.dsp.favouritePresets.v1', '[]');
+  show();
+  fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+  expect(
+    screen.queryByRole('button', { name: /Favourites: None$/ }),
+  ).not.toBeInTheDocument();
+  act(() => {
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add to Favourites: Rock' }),
+    );
+  });
+  expect(readFavouriteDspPresets()).toEqual(['rock']);
+  expect(
+    screen.getByRole('button', { name: 'Remove from Favourites: Rock' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  // The menu stays open, and Rock now leads it, straight after None, under
+  // the Favorites heading.
+  expect(screen.getByText('Favorites')).toBeInTheDocument();
+  const rows = screen
+    .getAllByRole('menuitemradio')
+    .map((row) => row.textContent ?? '');
+  expect(rows[0]).toMatch(/^None/);
+  expect(rows[1]).toMatch(/^Rock/);
 });
