@@ -480,9 +480,20 @@ $eq-caret-width: 24px;
       outline: none;
     }
 
+    // Unavailable the way the half it is attached to is unavailable: an
+    // outline and dim ink, nothing filled. It used to keep its accent fill and
+    // only fade, while a disabled Button goes to the outline — so for the
+    // second after launch, before the live capture opens, the pair drew as a
+    // dark "Target" with a lit chevron stuck to it, and then snapped whole. It
+    // read as the wrong theme loading first, and it was: two halves of one
+    // control following two different rules for the same state.
     &:disabled {
+      border-color: $border-subtle;
+      border-left-color: $border-subtle;
+      background: transparent;
+      color: $text-dim;
+      box-shadow: none;
       cursor: default;
-      opacity: $disabled-opacity;
     }
   }
 

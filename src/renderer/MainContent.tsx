@@ -91,6 +91,7 @@ import {
   useSmartEqMode,
 } from './utils/smartEqMode';
 import { cancelSmartEq, runSmartEq, useSmartEqRun } from './utils/smartEqRun';
+import isSmartEqPairDisabled from './utils/smartEqPair';
 import useIsAutoEqRunning from './utils/autoEqRunning';
 import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
@@ -181,7 +182,8 @@ const MainContent = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
-  const { isActive: isLiveOutputActive } = useLiveAudioControl();
+  const { isActive: isLiveOutputActive, error: liveOutputError } =
+    useLiveAudioControl();
   /**
    * What Smart EQ is doing, read from where it is actually happening.
    *
@@ -212,6 +214,14 @@ const MainContent = () => {
    * over a stopped loop.
    */
   const isContinuousRunning = useIsAutoEqRunning();
+  // Both halves of the Smart EQ pair read this one answer, so they cannot
+  // disagree about being pressable. See `smartEqPair.ts`.
+  const isSmartEqDisabled = isSmartEqPairDisabled({
+    mode: smartEqMode,
+    isBalancing,
+    isCaptureActive: isLiveOutputActive,
+    captureError: liveOutputError,
+  });
   const smartLabel = isBalancing
     ? t('eq.smart.cancelAria')
     : t('eq.smart.aria');
@@ -1245,7 +1255,7 @@ const MainContent = () => {
               button is, and a press then does it. */}
           <span
             className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}${
-              isLiveOutputActive ? '' : ' is-disabled'
+              isSmartEqDisabled ? ' is-disabled' : ''
             }`}
             ref={modeMenuHolder}
           >
@@ -1253,11 +1263,7 @@ const MainContent = () => {
               ariaLabel={
                 isContinuousMode(smartEqMode) ? continuousLabel : smartLabel
               }
-              isDisabled={
-                isContinuousMode(smartEqMode)
-                  ? !isLiveOutputActive
-                  : !isBalancing && !isLiveOutputActive
-              }
+              isDisabled={isSmartEqDisabled}
               // Running gets the breathing outline and nothing else. It keeps
               // the Smart EQ button's own look, because it is that button.
               className={`small eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
@@ -1303,7 +1309,10 @@ const MainContent = () => {
               className="eq-mode__caret"
               aria-label={t('eq.smart.modeAria')}
               aria-expanded={isModeMenuOpen}
-              disabled={!isLiveOutputActive}
+              // With the half it is attached to, always: one control, one
+              // state. Apart, a quiet button with a lit chevron stuck to it was
+              // what every launch drew for its first second.
+              disabled={isSmartEqDisabled}
               onClick={() => setIsModeMenuOpen((wasOpen) => !wasOpen)}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
