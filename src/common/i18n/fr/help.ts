@@ -71,7 +71,7 @@ const help: Record<keyof typeof en, string> = {
     'La courbe de réponse décrit vos filtres ; le spectre animé décrit le son. Désactiver une bande avec Active conserve ses réglages pour plus tard.',
   'help.eq.bandsCaption': 'La page Bandes',
   'help.eq.voicing':
-    'Donne rapidement un caractère au son, comme Music ou Movies.',
+    'Une chaîne toute prête pour le son, comme Music ou un genre. Aucun ne laisse que vos bandes.',
   'help.eq.smart':
     'Écoute ce qui joue et le corrige : Détail, Équilibre ou Cible.',
   'help.eq.clear':

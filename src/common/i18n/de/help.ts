@@ -70,7 +70,8 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.tip':
     'Die Frequenzgangkurve beschreibt deine Filter, das bewegte Spektrum den Klang. Schaltest du ein Band mit Aktiv aus, bleiben seine Einstellungen für später erhalten.',
   'help.eq.bandsCaption': 'Die Seite Bänder',
-  'help.eq.voicing': 'Ein schneller Klangcharakter, etwa Music oder Movies.',
+  'help.eq.voicing':
+    'Eine fertige Kette für den Klang, etwa Music oder ein Genre. Keiner lässt nur Ihre Bänder übrig.',
   'help.eq.smart':
     'Hört, was läuft, und korrigiert es: Detail, Balance oder Ziel.',
   'help.eq.clear':

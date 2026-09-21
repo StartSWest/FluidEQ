@@ -75,7 +75,7 @@ const help = {
     'The response curve describes your filters; the moving spectrum describes the sound. Switching a band off with Active keeps its settings for later.',
   'help.eq.bandsCaption': 'The Bands page',
   'help.eq.voicing':
-    'A quick character for the sound, such as Music or Movies.',
+    'A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.',
   'help.eq.smart':
     'Listens to what plays and corrects it: Detail, Balance or Target.',
   'help.eq.clear': 'Sets every gain to 0 dB and keeps your bands. Asks first.',

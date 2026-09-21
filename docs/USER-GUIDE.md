@@ -117,7 +117,7 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 
 ![The Bands page](16-eq-bands.png)
 
-- **Voicing** — A quick character for the sound, such as Music or Movies.
+- **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
 - **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
 - **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
 - **EQ mode** — How strongly your EQ and curves apply, band Q and phase.

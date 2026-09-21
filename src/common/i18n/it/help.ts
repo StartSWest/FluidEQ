@@ -70,7 +70,8 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.tip':
     'La curva descrive i filtri; lo spettro mobile, il suono. Spegnere una banda con Attiva ne conserva le impostazioni per dopo.',
   'help.eq.bandsCaption': 'La pagina Bande',
-  'help.eq.voicing': 'Un carattere rapido per il suono, come Music o Movies.',
+  'help.eq.voicing':
+    'Una catena già pronta per il suono, come Music o un genere. Nessuno lascia solo le tue bande.',
   'help.eq.smart':
     'Ascolta ciò che suona e lo corregge: Dettaglio, Equilibrio o Obiettivo.',
   'help.eq.clear':

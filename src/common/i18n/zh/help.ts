@@ -67,7 +67,8 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.tip':
     '响应曲线表示你的滤波器，动态频谱表示声音本身。用“启用”开关关闭频段时，它的设置会保留下来，以后还能再用。',
   'help.eq.bandsCaption': '“频段”页面',
-  'help.eq.voicing': '快速为声音选一种风格，例如 Music 或 Movies。',
+  'help.eq.voicing':
+    '为声音准备好的一整条链，例如 Music 或某个风格；选“无”则只保留你自己的频段。',
   'help.eq.smart': '聆听正在播放的内容并加以校正：“细节”“平衡”或“目标”。',
   'help.eq.clear': '把所有增益设为 0 dB，并保留你的频段。执行前会先请你确认。',
   'help.eq.mode': '你的 EQ 和曲线的作用强度、频段 Q 以及相位。',

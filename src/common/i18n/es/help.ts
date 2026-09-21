@@ -70,7 +70,8 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.tip':
     'La curva de respuesta representa tus filtros; el espectro en movimiento representa el sonido. Si desactivas una banda con Activa, sus ajustes se conservan para más tarde.',
   'help.eq.bandsCaption': 'La página Bandas',
-  'help.eq.voicing': 'Da carácter a tu sonido al momento, como Music o Movies.',
+  'help.eq.voicing':
+    'Una cadena ya hecha para el sonido, como Music o un género. Ninguno deja solo tus bandas.',
   'help.eq.smart':
     'Escucha lo que suena y lo corrige: Detalle, Equilibrio u Objetivo.',
   'help.eq.clear':

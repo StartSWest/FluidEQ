@@ -70,7 +70,8 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.tip':
     '応答曲線はフィルターを、動くスペクトルは音そのものを示します。「有効」でバンドをオフにしても、設定は後で使えるよう残ります。',
   'help.eq.bandsCaption': '「バンド」ページ',
-  'help.eq.voicing': 'Music や Movies など、音の傾向をすばやく選べます。',
+  'help.eq.voicing':
+    'Music やジャンルなど、音に合わせて用意されたチェーンです。「なし」なら自分のバンドだけになります。',
   'help.eq.smart':
     '再生中の音を聴いて補正します：ディテール、バランス、ターゲット。',
   'help.eq.clear':

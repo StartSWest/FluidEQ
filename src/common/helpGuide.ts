@@ -165,7 +165,11 @@ const CHAPTERS = [
           {
             box: [663, 14, 101, 32],
             icon: [671, 20, 20, 20],
-            name: 'voicing.quickLabel',
+            // `dsp.presets`, not `voicing.quickLabel`: the picker was renamed
+            // when the catalogue became whole chains instead of curves, and
+            // the old key is now referenced by nothing else in the app. The
+            // capture below still shows the old word and wants retaking.
+            name: 'dsp.presets',
             text: 'help.eq.voicing',
           },
           {
@@ -355,8 +359,8 @@ const CHAPTERS = [
     figures: [
       {
         image: '20-dsp.png',
-        width: 2560,
-        height: 1392,
+        width: 1976,
+        height: 622,
         controls: [
           {
             box: [0, 83, 200, 42],
@@ -419,8 +423,12 @@ const CHAPTERS = [
             text: 'help.dsp.crossfade',
           },
           {
-            box: [1816, 5, 50, 28],
-            icon: [1824, 9, 20, 20],
+            // The chip under the header, not the On switch at the other end
+            // of it: this card is about where the rack runs, and a crop of
+            // the switch is a plain teal block that says nothing. Wide and
+            // short, so the piece scales to its full 168px and stays legible.
+            box: [0, 30, 580, 31],
+            icon: [6, 31, 200, 29],
             name: 'help.dsp.scopeName',
             text: 'help.dsp.scope',
           },
@@ -502,7 +510,14 @@ const CHAPTERS = [
   {
     id: 'denoise',
     group: 'sound',
-    figures: [{ image: '13-dsp-denoise-and-source-analysis.png', ...WINDOW }],
+    // Not WINDOW: this one is a crop of the page, not the whole window.
+    figures: [
+      {
+        image: '13-dsp-denoise-and-source-analysis.png',
+        width: 1762,
+        height: 693,
+      },
+    ],
   },
   {
     id: 'graph',
@@ -1211,7 +1226,7 @@ const CHAPTERS = [
   {
     id: 'share',
     group: 'listen',
-    figures: [{ image: '14-share-audio-roles.png', width: 1976, height: 410 }],
+    figures: [{ image: '14-share-audio-roles.png', ...WINDOW }],
   },
   {
     id: 'trouble',
@@ -1221,7 +1236,7 @@ const CHAPTERS = [
   {
     id: 'forum',
     group: 'help',
-    figures: [{ image: '30-forum.png', width: 2016, height: 1305 }],
+    figures: [{ image: '30-forum.png', width: 2560, height: 1230 }],
   },
 ] as const satisfies readonly IHelpChapter[];
 
