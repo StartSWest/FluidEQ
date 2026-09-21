@@ -133,6 +133,8 @@ const look: Partial<Dictionary> = {
     '共有されるのはリンクのみです。テキストはご自身で貼り付けてください',
   'support.game.euphoria': 'レインボーモード',
   'support.game.euphoriaToggle': 'レインボーモードのオン・オフ',
+  'support.game.euphoriaHint':
+    '虹色のカラーに加え、グラフ、メーター、波形を毎秒30フレームではなく画面のリフレッシュレートいっぱいで描きます。押すとオン・オフを切り替えます。',
   'support.game.perfect': 'パーフェクト',
   'support.game.great': 'グレート',
   'support.game.good': 'グッド',
@@ -155,7 +157,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'ウォレットで開く',
   'support.contributed': '支援しました — レインボーモードを有効にする',
   'support.rainbowHint':
-    '支援済みですか？「支援しました」ですぐにレインボーモードを有効にできます。×10は不要です。',
+    '支援済みですか？「支援しました」ですぐにレインボーモードを有効にできます。虹色のカラーに加え、グラフとメーターの動きも滑らかになります。×10は不要です。',
   'support.thanks':
     'ありがとう！レインボーモードが解除され、ペットに星とダンスが加わりました。',
   'support.releaseNotes': 'このバージョンの新機能を見る',

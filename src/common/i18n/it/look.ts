@@ -136,6 +136,8 @@ const look: Partial<Dictionary> = {
     'Condivide solo il link: incolla il testo tu stesso',
   'support.game.euphoria': 'Modalità arcobaleno',
   'support.game.euphoriaToggle': 'Attiva o disattiva la modalità arcobaleno',
+  'support.game.euphoriaHint':
+    'Colori arcobaleno, e il grafico, i misuratori e l’onda disegnati alla piena frequenza del tuo schermo invece che a 30 fotogrammi al secondo. Premi per attivarla o disattivarla.',
   'support.game.perfect': 'Perfetto',
   'support.game.great': 'Ottimo',
   'support.game.good': 'Bene',
@@ -158,7 +160,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'Apri nel wallet',
   'support.contributed': 'Ho contribuito — attiva la modalità arcobaleno',
   'support.rainbowHint':
-    'Hai contribuito? Attiva subito la modalità arcobaleno con «Ho contribuito». Non serve raggiungere ×10.',
+    'Hai contribuito? Attiva subito la modalità arcobaleno con «Ho contribuito»: i suoi colori e un movimento più fluido nel grafico e nei misuratori. Non serve raggiungere ×10.',
   'support.thanks':
     'Grazie — la modalità arcobaleno è sbloccata e la tua mascotte ha la sua stella e il suo ballo.',
   'support.releaseNotes': 'Guarda le novità di questa versione',

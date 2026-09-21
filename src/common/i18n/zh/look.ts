@@ -131,6 +131,8 @@ const look: Partial<Dictionary> = {
   'support.game.shareLinkOnly': '只会分享链接，文字请自行粘贴',
   'support.game.euphoria': '彩虹模式',
   'support.game.euphoriaToggle': '开启或关闭彩虹模式',
+  'support.game.euphoriaHint':
+    '彩虹色，并让图表、电平表和波形以屏幕的完整刷新率绘制，而不是每秒 30 帧。点击即可开启或关闭。',
   'support.game.perfect': '完美',
   'support.game.great': '很棒',
   'support.game.good': '不错',
@@ -153,7 +155,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': '在钱包中打开',
   'support.contributed': '我支持过了 — 开启彩虹模式',
   'support.rainbowHint':
-    '已经支持过了？点击“我支持过了”即可立即开启彩虹模式，无需达到 ×10。',
+    '已经支持过了？点击“我支持过了”即可立即开启彩虹模式——它的色彩，以及图表和电平表更流畅的动态。无需达到 ×10。',
   'support.thanks': '谢谢！彩虹模式已解锁，你的宠物也有了星星和舞蹈。',
   'support.releaseNotes': '看看这个版本有什么新变化',
   'support.footerBefore':

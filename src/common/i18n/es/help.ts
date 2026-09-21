@@ -214,7 +214,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Haz clic en el nombre del estilo actual para elegir otro estilo o un visualizador. Las flechas de al lado, Espacio y Ctrl+Espacio pasan de uno a otro.\nAbre Vista para cambiar el tamaño de la gráfica, lo que muestra y la altura y la posición de la onda. La velocidad de fotogramas también está ahí: todos los fotogramas que ofrezca tu pantalla, o 60 o 30, y 60 con batería.\nUn visualizador Plus añade sus propios controles a Vista —lo que su autor te dejó ajustar— y Restaurar devuelve la onda a la altura y la posición que eligió ese autor.\nHaz doble clic en la gráfica para verla a pantalla completa. Un solo clic oculta o muestra la barra.',
   'help.graph.tip':
-    'Todo esto cambia solo el dibujo, nunca tu sonido. Esc sale de las vistas ampliada y de pantalla completa.',
+    'Todo esto cambia solo el dibujo, nunca tu sonido. El modo arcoíris (se activa en Ayuda → Novedades) dibuja los estilos estándar, los medidores y la onda a la frecuencia completa de tu pantalla en lugar de a 30 fotogramas por segundo. Esc sale de las vistas ampliada y de pantalla completa.',
   'help.graph.stripCaption': 'Con un estilo estándar',
   'help.graph.live': 'Muestra u oculta la onda en directo.',
   'help.graph.previous': 'Vuelve al estilo anterior.',

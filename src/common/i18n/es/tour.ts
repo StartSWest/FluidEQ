@@ -6,7 +6,7 @@ const tour: Partial<Dictionary> = {
   'tour.rainbow.title': 'Te damos la bienvenida al modo arcoíris',
   'tour.rainbow.subtitle': 'Actívalo con un clic',
   'tour.rainbow.lead':
-    'Colores del arcoíris, detalles luminosos y un borde que recorre el espectro. Solo cambia el aspecto, nunca el sonido.',
+    'Colores del arcoíris, detalles luminosos y un borde que recorre el espectro — y un movimiento más suave: la gráfica, los medidores y la onda se dibujan a la frecuencia completa de tu pantalla en lugar de a treinta fotogramas por segundo. Tu sonido nunca cambia.',
   'tour.rainbow.how':
     'Actívalo aquí al instante, sin llegar a ×10. Tu elección se guarda y puedes desactivarlo cuando quieras. Contribuir es opcional.',
   'tour.rainbow.enable': 'Activar el modo arcoíris',

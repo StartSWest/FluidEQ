@@ -368,7 +368,7 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 3. A Plus visualizer adds its own controls to View — whatever its author left for you to set — and Restore puts the wave back to the height and position that author chose.
 4. Double-click the plot for full screen. A single click hides or shows the strip.
 
-> **Good to know:** Everything here changes only the drawing, never your sound. Esc leaves the expanded and full-screen views.
+> **Good to know:** Everything here changes only the drawing, never your sound. Rainbow mode — Help → What’s new turns it on — draws the standard styles, the meters and the wave at your screen’s full refresh rate instead of 30 frames a second. Esc leaves the expanded and full-screen views.
 
 <a id="looks"></a>
 

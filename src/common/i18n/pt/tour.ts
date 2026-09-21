@@ -6,7 +6,7 @@ const tour: Partial<Dictionary> = {
   'tour.rainbow.title': 'Boas-vindas ao modo arco-íris',
   'tour.rainbow.subtitle': 'Ative com um clique',
   'tour.rainbow.lead':
-    'Cores do arco-íris, detalhes luminosos e uma borda que percorre o espectro. Só a aparência muda, nunca o som.',
+    'Cores do arco-íris, detalhes luminosos e uma borda que percorre o espectro — e movimento mais suave: o gráfico, os medidores e a onda são desenhados na taxa de atualização total da sua tela em vez de trinta quadros por segundo. O seu som nunca muda.',
   'tour.rainbow.how':
     'Ative aqui imediatamente, sem alcançar ×10. Sua escolha fica salva e você pode desativar quando quiser. Contribuir é opcional.',
   'tour.rainbow.enable': 'Ativar o modo arco-íris',

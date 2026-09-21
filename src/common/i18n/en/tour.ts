@@ -15,7 +15,7 @@ const tour = {
   'tour.rainbow.title': 'Welcome to Rainbow mode',
   'tour.rainbow.subtitle': 'Turn it on in one click',
   'tour.rainbow.lead':
-    'Rainbow colours, glowing accents and a border that travels through the spectrum. Only the look changes, never your sound.',
+    'Rainbow colours, glowing accents and a border that travels through the spectrum — and smoother motion: the graph, the meters and the wave draw at your screen’s full refresh rate instead of thirty frames a second. Your sound never changes.',
   'tour.rainbow.how':
     'Enable it here immediately — no ×10 required. Your choice is remembered and you can turn it off any time. Contributions are optional.',
   'tour.rainbow.enable': 'Enable Rainbow mode',

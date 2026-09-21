@@ -6,7 +6,7 @@ const tour: Partial<Dictionary> = {
   'tour.rainbow.title': 'Willkommen im Regenbogenmodus',
   'tour.rainbow.subtitle': 'Mit einem Klick einschalten',
   'tour.rainbow.lead':
-    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft. Nur das Aussehen ändert sich, nie der Klang.',
+    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft — und flüssigere Bewegung: Graph, Pegelanzeigen und Welle werden mit der vollen Bildwiederholrate des Bildschirms gezeichnet statt mit dreißig Bildern pro Sekunde. Der Klang ändert sich nie.',
   'tour.rainbow.how':
     'Hier sofort einschalten — ×10 ist nicht nötig. Deine Wahl wird gespeichert und du kannst den Modus jederzeit ausschalten. Beiträge sind freiwillig.',
   'tour.rainbow.enable': 'Regenbogenmodus einschalten',

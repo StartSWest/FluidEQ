@@ -137,6 +137,8 @@ const look: Partial<Dictionary> = {
     'Teilt nur den Link – den Text fügst du selbst ein',
   'support.game.euphoria': 'Regenbogenmodus',
   'support.game.euphoriaToggle': 'Regenbogenmodus ein- oder ausschalten',
+  'support.game.euphoriaHint':
+    'Regenbogenfarben, dazu Graph, Pegelanzeigen und Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde. Zum Ein- oder Ausschalten klicken.',
   'support.game.perfect': 'Perfekt',
   'support.game.great': 'Super',
   'support.game.good': 'Gut',
@@ -159,7 +161,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'In der Wallet öffnen',
   'support.contributed': 'Ich habe beigetragen — Regenbogenmodus aktivieren',
   'support.rainbowHint':
-    'Schon beigetragen? Mit „Ich habe beigetragen“ schaltest du den Regenbogenmodus sofort ein. ×10 ist nicht nötig.',
+    'Schon beigetragen? Mit „Ich habe beigetragen“ schaltest du den Regenbogenmodus sofort ein – seine Farben und flüssigere Bewegung in Graph und Pegelanzeigen. ×10 ist nicht nötig.',
   'support.thanks':
     'Danke — der Regenbogenmodus ist freigeschaltet und dein Tier hat seinen Stern und seinen Tanz.',
   'support.releaseNotes': 'Sehen, was in dieser Version neu ist',

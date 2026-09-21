@@ -135,6 +135,8 @@ const look: Partial<Dictionary> = {
     'Solo comparte el enlace: pega el texto tú mismo',
   'support.game.euphoria': 'Modo arcoíris',
   'support.game.euphoriaToggle': 'Activa o desactiva el modo arcoíris',
+  'support.game.euphoriaHint':
+    'Colores del arcoíris, y la gráfica, los medidores y la onda dibujados a la frecuencia completa de tu pantalla en lugar de a 30 fotogramas por segundo. Pulsa para activarlo o desactivarlo.',
   'support.game.perfect': 'Perfecto',
   'support.game.great': 'Muy bien',
   'support.game.good': 'Bien',
@@ -157,7 +159,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'Abrir en el monedero',
   'support.contributed': 'He contribuido — activar el modo arcoíris',
   'support.rainbowHint':
-    '¿Has contribuido? Activa el modo arcoíris al instante con «He contribuido». No necesitas llegar a ×10.',
+    '¿Has contribuido? Activa el modo arcoíris al instante con «He contribuido»: sus colores y un movimiento más suave en la gráfica y los medidores. No necesitas llegar a ×10.',
   'support.thanks':
     'Gracias: has desbloqueado el modo arcoíris, y tu mascota tiene su estrella y su baile.',
   'support.releaseNotes': 'Mira las novedades de esta versión',

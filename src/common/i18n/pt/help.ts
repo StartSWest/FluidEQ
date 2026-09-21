@@ -213,7 +213,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Space e Ctrl+Space percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. A taxa de quadros também está lá: todos os quadros que o seu ecrã oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controlos a Ver — o que o autor lhe deixou ajustar — e Restaurar devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela inteira. Um clique simples oculta ou mostra a barra.',
   'help.graph.tip':
-    'Tudo aqui muda só o desenho, nunca o seu som. Esc sai das visualizações expandida e em tela inteira.',
+    'Tudo aqui muda só o desenho, nunca o seu som. O modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Esc sai das visualizações expandida e em tela inteira.',
   'help.graph.stripCaption': 'Com um estilo padrão',
   'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
   'help.graph.previous': 'Volta ao visual anterior.',

@@ -134,6 +134,8 @@ const look = {
     'Shares the link only — paste the text yourself',
   'support.game.euphoria': 'Rainbow mode',
   'support.game.euphoriaToggle': 'Turn Rainbow mode on or off',
+  'support.game.euphoriaHint':
+    'Rainbow colours, and the graph, meters and wave drawn at your screen’s full refresh rate instead of 30 frames a second. Press to turn it on or off.',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',
   'support.game.good': 'Good',
@@ -156,7 +158,7 @@ const look = {
   'support.openWallet': 'Open in wallet',
   'support.contributed': 'I contributed — enable Rainbow mode',
   'support.rainbowHint':
-    'Contributed? Turn Rainbow mode on immediately with “I contributed”. No ×10 required.',
+    'Contributed? Turn Rainbow mode on immediately with “I contributed” — its colours, and smoother motion across the graph and meters. No ×10 required.',
   'support.thanks':
     'Thank you — Rainbow mode is unlocked, and your pet has its star and dance.',
   'support.releaseNotes': "See what's new in this version",

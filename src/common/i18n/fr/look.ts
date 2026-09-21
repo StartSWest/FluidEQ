@@ -137,6 +137,8 @@ const look: Partial<Dictionary> = {
     'Partage seulement le lien : collez le texte vous-même',
   'support.game.euphoria': 'Mode arc-en-ciel',
   'support.game.euphoriaToggle': 'Activer ou désactiver le mode arc-en-ciel',
+  'support.game.euphoriaHint':
+    'Couleurs arc-en-ciel, et le graphique, les vumètres et l’onde dessinés à la pleine fréquence de votre écran au lieu de 30 images par seconde. Appuyez pour l’activer ou le désactiver.',
   'support.game.perfect': 'Parfait',
   'support.game.great': 'Excellent',
   'support.game.good': 'Bien',
@@ -159,7 +161,7 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'Ouvrir dans le portefeuille',
   'support.contributed': 'J’ai contribué — activer le mode arc-en-ciel',
   'support.rainbowHint':
-    'Tu as contribué ? Active immédiatement le mode arc-en-ciel avec « J’ai contribué ». Pas besoin d’atteindre ×10.',
+    'Tu as contribué ? Active immédiatement le mode arc-en-ciel avec « J’ai contribué » : ses couleurs, et un mouvement plus fluide sur le graphique et les vumètres. Pas besoin d’atteindre ×10.',
   'support.thanks':
     'Merci — le mode arc-en-ciel est débloqué, et ta mascotte a son étoile et sa danse.',
   'support.releaseNotes': 'Voir les nouveautés de cette version',

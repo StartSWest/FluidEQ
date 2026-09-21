@@ -216,7 +216,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Space e Ctrl+Space li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Anche la frequenza dei fotogrammi è lì: tutti i fotogrammi che offre il tuo schermo, oppure 60 o 30, e 60 a batteria.\nUn visualizzatore Plus aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Ripristina riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero. Un clic singolo nasconde o mostra la barra.',
   'help.graph.tip':
-    'Tutto qui cambia solo il disegno, mai il suono. Esc esce dalla vista espansa e dallo schermo intero.',
+    'Tutto qui cambia solo il disegno, mai il suono. La modalità arcobaleno (si attiva da Aiuto → Novità) disegna gli stili standard, i misuratori e l’onda alla piena frequenza del tuo schermo invece che a 30 fotogrammi al secondo. Esc esce dalla vista espansa e dallo schermo intero.',
   'help.graph.stripCaption': 'Con uno stile standard',
   'help.graph.live': 'Mostra o nasconde l’onda in tempo reale.',
   'help.graph.previous': 'Torna all’aspetto precedente.',

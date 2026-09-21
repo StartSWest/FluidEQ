@@ -217,7 +217,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Space et Ctrl+Space les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde. La fréquence d’images s’y trouve aussi : toutes les images que votre écran propose, ou 60 ou 30, et 60 sur batterie.\nUn visualiseur Plus ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Rétablir ramène l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le tracé pour passer en plein écran. Un simple clic masque ou affiche la barre.',
   'help.graph.tip':
-    'Tout ceci ne change que le dessin, jamais votre son. Échap quitte la vue agrandie et le plein écran.',
+    'Tout ceci ne change que le dessin, jamais votre son. Le mode arc-en-ciel (à activer dans Aide → Nouveautés) dessine les styles standard, les vumètres et l’onde à la pleine fréquence de votre écran au lieu de 30 images par seconde. Échap quitte la vue agrandie et le plein écran.',
   'help.graph.stripCaption': 'Avec un style standard',
   'help.graph.live': 'Affiche ou masque l’onde en direct.',
   'help.graph.previous': 'Revient au style précédent.',

@@ -6,7 +6,7 @@ const tour: Partial<Dictionary> = {
   'tour.rainbow.title': 'Bienvenue dans le mode arc-en-ciel',
   'tour.rainbow.subtitle': 'Active-le en un clic',
   'tour.rainbow.lead':
-    'Des couleurs arc-en-ciel, des accents lumineux et une bordure qui parcourt le spectre. Seul l’aspect change, jamais le son.',
+    'Des couleurs arc-en-ciel, des accents lumineux et une bordure qui parcourt le spectre — et un mouvement plus fluide : le graphique, les vumètres et l’onde sont dessinés à la pleine fréquence de votre écran au lieu de trente images par seconde. Votre son ne change jamais.',
   'tour.rainbow.how':
     'Active-le ici immédiatement, sans atteindre ×10. Ton choix est mémorisé et tu peux le désactiver à tout moment. Contribuer est facultatif.',
   'tour.rainbow.enable': 'Activer le mode arc-en-ciel',

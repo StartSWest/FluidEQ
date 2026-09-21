@@ -218,7 +218,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Klicke auf den Namen der Darstellung, um einen Stil oder eine Visualisierung zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffne Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. Die Bildrate steht ebenfalls dort: jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Zurücksetzen bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicke auf das Diagramm für Vollbild. Ein einfacher Klick blendet die Leiste aus oder ein.',
   'help.graph.tip':
-    'Alles hier ändert nur, was gezeichnet wird, nie deinen Klang. Esc verlässt die erweiterte Ansicht und das Vollbild.',
+    'Alles hier ändert nur, was gezeichnet wird, nie deinen Klang. Der Regenbogenmodus (einzuschalten unter Hilfe → Neuerungen) zeichnet die Standardstile, die Pegelanzeigen und die Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde. Esc verlässt die erweiterte Ansicht und das Vollbild.',
   'help.graph.stripCaption': 'Mit einem Standardstil',
   'help.graph.live': 'Blendet die Live-Welle ein oder aus.',
   'help.graph.previous': 'Springt zur vorherigen Darstellung zurück.',

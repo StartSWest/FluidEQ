@@ -975,7 +975,10 @@ const WaveformVisualizer = () => {
             isEuphoric ? '' : ' is-dormant'
           }`}
           aria-pressed={isEuphoric}
-          title={t('support.game.euphoriaToggle')}
+          // What it does, not just that it toggles: besides the colours it
+          // draws the graph, the meters and this wave at the display's full
+          // rate instead of thirty frames a second, and nothing else says so.
+          title={t('support.game.euphoriaHint')}
           onClick={toggleEuphoriaEnabled}
         >
           {t('support.game.euphoria')}
