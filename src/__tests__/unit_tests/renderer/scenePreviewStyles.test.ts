@@ -41,7 +41,10 @@ const bodyOf = (selector: string, from = 0): string => {
 
 it('caps the scene page stage without letting it give up its width', () => {
   const body = bodyOf('.gallery-scene .gallery-preview');
-  expect(body).toContain('max-height: min(56vh, 560px)');
+  // Raised from 56vh/560px once the stage was given the room the panel
+  // beside it leaves; the cap is still there so a tall window cannot make the
+  // stage taller than the page.
+  expect(body).toContain('max-height: min(68vh, 640px)');
   // The width has to be stated. A box whose width is `auto` keeps 16/9 by
   // narrowing instead, and the stage pulled 428px away from the panel beside
   // it — measured in the running window.
