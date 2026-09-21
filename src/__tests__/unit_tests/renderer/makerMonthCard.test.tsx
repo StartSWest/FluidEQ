@@ -63,6 +63,24 @@ const show = async () => {
   await waitFor(() => expect(mockMonth).toHaveBeenCalled());
 };
 
+/**
+ * An instant that is tomorrow on this machine's calendar AND less than a day
+ * away, whichever hour the suite runs at.
+ *
+ * The card says "tomorrow" only when both are true: the day counter rounds up
+ * to 1, and the end is not today's date. "+12 hours" satisfied neither before
+ * local noon — it is still today — so this passed every afternoon run here and
+ * failed the cold build, which starts at 01:00 UTC.
+ *
+ * The midpoint of the window is inside it at every hour, including midnight,
+ * where the window closes to the single instant both ends agree on.
+ */
+const tomorrowWithinADay = (): string => {
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0);
+  return new Date((midnight.getTime() + Date.now() + DAY) / 2).toISOString();
+};
+
 test('a running month says when Plus is free until, and nothing about ending', async () => {
   answer({ month: { until: new Date(Date.now() + 20 * DAY).toISOString() } });
   await show();
@@ -86,7 +104,7 @@ test('the last week counts the days down and asks for a scene', async () => {
 });
 
 test('tomorrow is said as tomorrow, not as one day', async () => {
-  answer({ month: { until: new Date(Date.now() + 0.5 * DAY).toISOString() } });
+  answer({ month: { until: tomorrowWithinADay() } });
   await show();
 
   await waitFor(() =>
