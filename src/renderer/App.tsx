@@ -152,6 +152,7 @@ import {
   useDspSettings,
 } from './dsp/store';
 import useEngineTrouble from './audio/useEngineTrouble';
+import eqReachesSound from './utils/eqReachesSound';
 import { sameEndpoint } from './audio/engineTrouble';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import MenuIcon from './icons/MenuIcon';
@@ -683,6 +684,9 @@ const AppContent = () => {
       engineStatus?.fluid,
       engineStatus?.fluidUpdateReady === true,
     );
+  // The EQ pages lock on all three ways a band cannot be heard, not only the
+  // two the context knows about. See `eqReachesSound.ts`.
+  const isEqReachingSound = eqReachesSound(isEngineUsable, isEngineOnOutput);
   const dspEngineState = useDspEngineState();
 
   /**
@@ -2473,12 +2477,12 @@ const AppContent = () => {
               // its rainbow animation. Only the scroll content is keyed.
               <div
                 key="eq-workspace"
-                className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEngineUsable ? ' is-engine-disabled' : ''}`}
+                className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
                 aria-disabled={
                   activeWorkspaceTab === 'config' ||
                   activeWorkspaceTab === 'games'
                     ? undefined
-                    : !isEngineUsable
+                    : !isEqReachingSound
                 }
               >
                 {eqGroupPills}
