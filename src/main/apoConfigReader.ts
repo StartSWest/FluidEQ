@@ -47,9 +47,10 @@ import fs from 'fs';
 import path from 'path';
 import { findBlockForDevice, splitConfigBlocks } from '../common/apoSync';
 import {
-  APO_FEATURES,
+  APO_FEATURE_FILE_WORD_PATTERN,
   FILTER_LINE_PREFIX_REGEX,
   TApoFeature,
+  apoFeatureOfFileWord,
 } from '../common/constants';
 import {
   IApoConfigDevice,
@@ -61,8 +62,10 @@ import { checkConfigFile, FLUIDEQ_CONFIG_FILENAME } from './flush';
 const INCLUDE_LINE = /^\s*Include\s*:\s*(.+?)\s*$/i;
 const DEVICE_FILE = /^fluideq-device-[0-9a-f]{12}\.txt$/i;
 const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/i;
+// Every word a feature's file is or was named by, so a config written before
+// the voicing's file became `-preset.txt` still reads as ours.
 const FEATURE_FILE = new RegExp(
-  `^fluideq-[0-9a-f]{12}-(${APO_FEATURES.join('|')})\\.txt$`,
+  `^fluideq-[0-9a-f]{12}-(${APO_FEATURE_FILE_WORD_PATTERN})\\.txt$`,
   'i',
 );
 
@@ -179,9 +182,12 @@ export const readApoDeviceChain = (
     block.text,
     new Set<string>(),
     (fileName, contents) => {
-      const feature = fileName.match(FEATURE_FILE)?.[1];
+      const word = fileName.match(FEATURE_FILE)?.[1];
+      const feature: TApoFeature | undefined = word
+        ? apoFeatureOfFileWord(word)
+        : undefined;
       if (feature) {
-        features[feature.toLowerCase() as TApoFeature] = contents;
+        features[feature] = contents;
         return;
       }
       if (DEVICE_FILE.test(fileName)) {

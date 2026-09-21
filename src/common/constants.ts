@@ -516,6 +516,45 @@ export const APO_FEATURES = [
 export type TApoFeature = (typeof APO_FEATURES)[number];
 
 /**
+ * The word a feature's file is named by, which is also what the Config page
+ * calls it: `fluideq-<slug>-<word>.txt`.
+ *
+ * The voicing's is `preset`. That layer carries a preset's curve now — a DSP
+ * preset's, on either engine, or a voicing picked by hand — and the EQ page
+ * calls it Preset; the Config page alone said "voicing", on its pill and in
+ * its file name. The feature keeps its key wherever it is stored, because
+ * that is saved data; only the name on disk and on screen moved.
+ */
+const APO_FEATURE_FILE_WORDS: Readonly<Record<TApoFeature, string>> = {
+  driver: 'driver',
+  headphone: 'headphone',
+  eq: 'eq',
+  voicing: 'preset',
+  smart: 'smart',
+};
+
+export const apoFeatureFileWord = (feature: TApoFeature): string =>
+  APO_FEATURE_FILE_WORDS[feature];
+
+/**
+ * The feature a file's word names, now or before: the voicing's file was
+ * `-voicing.txt` until 2026-09-21, and a config written then must still read
+ * as the voicing's until the next write renames it.
+ */
+export const apoFeatureOfFileWord = (word: string): TApoFeature | undefined => {
+  const lower = word.toLowerCase();
+  return (
+    APO_FEATURES.find((feature) => APO_FEATURE_FILE_WORDS[feature] === lower) ??
+    APO_FEATURES.find((feature) => feature === lower)
+  );
+};
+
+/** Every word a feature's file is or was named by, for a file-name pattern. */
+export const APO_FEATURE_FILE_WORD_PATTERN = [
+  ...new Set([...Object.values(APO_FEATURE_FILE_WORDS), ...APO_FEATURES]),
+].join('|');
+
+/**
  * Everything that can be switched off, which is the features plus the impulse.
  *
  * The convolution is not a feature and never gets a file: it is one

@@ -23,7 +23,13 @@ import {
   IApoConfigLayer,
   IApoConfigTree,
 } from 'common/apoConfig';
-import { APO_FEATURES, FILTER_LINE_PREFIX_REGEX } from 'common/constants';
+import {
+  APO_FEATURES,
+  APO_FEATURE_FILE_WORD_PATTERN,
+  FILTER_LINE_PREFIX_REGEX,
+  apoFeatureFileWord,
+  apoFeatureOfFileWord,
+} from 'common/constants';
 import {
   exportDeviceChain,
   getApoConfigTree,
@@ -77,7 +83,7 @@ const isCustomFile = (fileName: string) => /-custom\.txt$/i.test(fileName);
  *
  * This is what puts the pill in the row of the file it describes, and colours
  * both the same. The panel used to name layers in one row and files in another
- * with nothing saying that `voicing` and `fluideq-4e9fbe8266bb-voicing.txt` were
+ * with nothing saying that `preset` and `fluideq-4e9fbe8266bb-preset.txt` were
  * the same thing; the name is what says so, so the name is what they are matched
  * on — never the order they happen to be listed in.
  *
@@ -87,10 +93,26 @@ const isCustomFile = (fileName: string) => /-custom\.txt$/i.test(fileName);
  * pill below because its contents are user-owned rather than a generated
  * feature file.
  */
-const FEATURE_FILE = new RegExp(`-(${APO_FEATURES.join('|')})\\.txt$`, 'i');
+const FEATURE_FILE = new RegExp(
+  `-(${APO_FEATURE_FILE_WORD_PATTERN})\\.txt$`,
+  'i',
+);
 
-const layerOfFile = (fileName: string) =>
-  fileName.match(FEATURE_FILE)?.[1].toLowerCase();
+/** The feature a file holds, by its key: the colours and the chips use it. */
+const layerOfFile = (fileName: string): string | undefined => {
+  const word = fileName.match(FEATURE_FILE)?.[1];
+  return word ? apoFeatureOfFileWord(word) : undefined;
+};
+
+/**
+ * What a pill says: the word in its file's name, which for the voicing is
+ * `preset` — see `apoFeatureFileWord`. The impulse and the custom file have no
+ * feature file and are called by their own names.
+ */
+const pillWord = (layer: string): string => {
+  const feature = APO_FEATURES.find((one) => one === layer);
+  return feature ? apoFeatureFileWord(feature) : layer;
+};
 
 /**
  * Every layer the tree actually holds a file for, read off the names.
@@ -178,18 +200,18 @@ const LayerPill = ({
     // all agree. Every pill used to be the one lime, so the row said which
     // layers existed and nothing about which was which.
     //
-    // The name stays the raw feature key rather than the translated one. It
-    // reads as a developer token, and that is exactly its value here — `voicing`
-    // is literally the suffix of the `fluideq-4e9fbe8266bb-voicing.txt` it now
-    // sits beside, so the word is what ties the pill to the file name a
-    // centimetre to its left. A prettier label would break that.
+    // The name stays the raw word in the file name rather than a translated
+    // label. It reads as a developer token, and that is exactly its value here
+    // — `preset` is literally the suffix of the `fluideq-4e9fbe8266bb-
+    // preset.txt` it sits beside, so the word is what ties the pill to the
+    // file name a centimetre to its left. A prettier label would break that.
     <span
       className={`config-layer${isApplied ? '' : ' is-off'}`}
       style={layerStyle(feature)}
       title={title}
     >
       <span className="config-layer__swatch" aria-hidden />
-      <span className="config-layer__name">{feature}</span>
+      <span className="config-layer__name">{pillWord(feature)}</span>
       {/* The one layer that can be changing while you read this. Everything
           else in the panel is a file sitting on disk exactly as somebody left
           it; Smart EQ under Continuous EQ is being rewritten as the measurement
@@ -307,7 +329,7 @@ const ConfigFileNode = ({
   return (
     // The layer's colour, carried down to the head's edge and into the pill in
     // it. Both are read off the file's own name — see `layerOfFile` — so the
-    // edge, the swatch and the `-voicing.txt` at the end of the name are one
+    // edge, the swatch and the `-preset.txt` at the end of the name are one
     // fact drawn three ways rather than three things to reconcile.
     <li
       className={`config-node${isCustom ? ' config-node--custom' : ''}${

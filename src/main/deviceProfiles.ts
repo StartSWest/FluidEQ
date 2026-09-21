@@ -13,13 +13,14 @@ import log from 'electron-log';
 import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import { normalizeBandDesign } from '../common/bandDesigns';
 import {
-  APO_FEATURES,
+  APO_FEATURE_FILE_WORD_PATTERN,
   ICustomFxSettings,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IPresetV2,
   IState,
   TApoFeature,
+  apoFeatureFileWord,
   getDefaultState,
 } from '../common/constants';
 import {
@@ -300,7 +301,7 @@ const getConvolutionFileName = (deviceId: string) =>
 const deviceFileName = (slug: string) => `fluideq-device-${slug}.txt`;
 
 const featureFileName = (slug: string, feature: TApoFeature) =>
-  `fluideq-${slug}-${feature}.txt`;
+  `fluideq-${slug}-${apoFeatureFileWord(feature)}.txt`;
 
 /**
  * The one file in a device's chain that FluidEQ does not write.
@@ -802,7 +803,9 @@ const RETIRED_FEATURES = ['loudness'];
 
 const GENERATED_FILE = new RegExp(
   `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${[
-    ...APO_FEATURES,
+    // Every word a feature's file is or was named by: a voicing file from
+    // before it was named `-preset.txt` is swept like any file of ours.
+    APO_FEATURE_FILE_WORD_PATTERN,
     ...RETIRED_FEATURES,
     // Named here so the config editor may write it — see isGeneratedConfigFile
     // — and NOT so the sweep may delete it. It is the single file here that

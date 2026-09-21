@@ -20,7 +20,10 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { readApoDeviceChain } from 'main/apoConfigReader';
-import { flushDeviceProfiles } from 'main/deviceProfiles';
+import {
+  flushDeviceProfiles,
+  isGeneratedConfigFile,
+} from 'main/deviceProfiles';
 import { FLUIDEQ_CONFIG_FILENAME } from 'main/flush';
 import { FilterTypeEnum, IDeviceProfileSettings } from 'common/constants';
 
@@ -105,6 +108,42 @@ describe('reading the Equalizer APO config back', () => {
     expect(chain?.features?.eq).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
     expect(chain?.features?.eq).not.toContain('Fc 1000 Hz');
     expect(chain?.features?.smart).toContain('Fc 1000 Hz Gain 2 dB Q 1.4');
+  });
+
+  /*
+   * The Preset layer's file was `-voicing.txt` until 2026-09-21. A config the
+   * previous version wrote has to go on reading as the voicing's until the
+   * next write names it `-preset.txt` — and the old name has to be one the
+   * sweep recognises as ours, or that file would sit in the folder for ever.
+   */
+  it('reads a Preset layer file under the name it had before', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
+    const names = fs.readdirSync(configDir);
+    const current = names.find((name) => name.endsWith('-preset.txt'));
+    const device = names.find((name) => name.startsWith('fluideq-device-'));
+    if (!current || !device) {
+      throw new Error('the writer wrote no Preset layer file');
+    }
+    const old = current.replace(/-preset\.txt$/, '-voicing.txt');
+    fs.renameSync(path.join(configDir, current), path.join(configDir, old));
+    const devicePath = path.join(configDir, device);
+    fs.writeFileSync(
+      devicePath,
+      fs.readFileSync(devicePath, 'utf8').replace(current, old),
+    );
+
+    const chain = readApoDeviceChain(configDir, GUID);
+
+    expect(Object.keys(chain?.features ?? {}).sort()).toEqual([
+      'eq',
+      'smart',
+      'voicing',
+    ]);
+    expect(isGeneratedConfigFile(old)).toBe(true);
+    // The control: a name that was never ours is still not.
+    expect(isGeneratedConfigFile(old.replace('voicing', 'loudnez'))).toBe(
+      false,
+    );
   });
 
   it('keeps the preamp with the device, not with a feature', async () => {

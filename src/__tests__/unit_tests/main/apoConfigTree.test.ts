@@ -125,7 +125,7 @@ describe('reading the whole config as a tree', () => {
     );
     expect(
       kraken?.file?.includes.map(({ fileName }) => fileName.split('-').pop()),
-    ).toEqual(['eq.txt', 'voicing.txt', 'custom.txt']);
+    ).toEqual(['eq.txt', 'preset.txt', 'custom.txt']);
     // The device file holds the preamp itself and delegates the rest.
     expect(kraken?.file?.lines.some((line) => /^Preamp:/.test(line))).toBe(
       true,

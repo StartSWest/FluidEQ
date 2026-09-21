@@ -142,7 +142,7 @@ describe('device profile configuration', () => {
     expect(includes.map((line) => line.split('-').pop())).toEqual([
       'driver.txt',
       'eq.txt',
-      'voicing.txt',
+      'preset.txt',
       'custom.txt',
     ]);
 

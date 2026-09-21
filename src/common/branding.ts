@@ -30,7 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * The `fluideq` that appears in file names, localStorage keys, DOM event names
  * and the Equalizer APO config tree is NOT branding. It is an on-disk and
  * in-storage contract with installations that already exist: `fluideq.txt` is
- * named in APO's own `config.txt`, `fluideq-<slug>-voicing.txt` is what the
+ * named in APO's own `config.txt`, `fluideq-<slug>-eq.txt` is what the
  * config reader matches on, and `fluideq.locale` is where a user's language
  * already is. Routing those through a renameable constant would mean that
  * changing the display name silently orphaned every profile, every preference
