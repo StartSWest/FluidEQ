@@ -21,7 +21,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Tu membresía vive en el menú {menu}, en {account}: ábrelo cuando quieras para verla, cambiar tu nombre o gestionarla.',
   'plusWelcome.note':
-    'Plus funciona en hasta cinco de tus equipos, y todo lo que era gratis sigue siendo gratis.',
+    'Plus funciona en hasta cinco de tus equipos, y el ecualizador, el rack y los reproductores siguen siendo gratis.',
   'plusWelcome.open': 'Abrir Visualizadores',
   'plusWelcome.later': 'Más tarde',
 };

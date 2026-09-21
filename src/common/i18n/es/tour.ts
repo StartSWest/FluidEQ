@@ -77,7 +77,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Te damos la bienvenida a FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizadores, Estudio, iluminación y más',
   'tour.plus.lead':
-    'Una membresía opcional que permite que FluidEQ siga creciendo, con una pestaña nueva solo para ella: escenas dibujadas en tu tarjeta gráfica, un Estudio para crear las tuyas, la clasificación, fondos de escritorio e iluminación dinámica. Todo lo que era gratis sigue siendo gratis.',
+    'Una membresía opcional que permite que FluidEQ siga creciendo, con una pestaña nueva solo para ella: escenas dibujadas en tu tarjeta gráfica, un Estudio para crear las tuyas, la clasificación, fondos de escritorio e iluminación dinámica. El ecualizador, el rack y los reproductores siguen siendo gratis, como siempre lo han sido.',
   'tour.plus.point1':
     'Inicia sesión desde Cuenta, en el menú de acciones; el pago se hace en tu navegador y Plus se activa solo.',
   'tour.plus.point2':

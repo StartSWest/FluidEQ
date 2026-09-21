@@ -21,7 +21,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Deine Mitgliedschaft liegt im Menü {menu} unter {account} — dort kannst du sie jederzeit ansehen, deinen Namen ändern oder sie verwalten.',
   'plusWelcome.note':
-    'Plus gilt für bis zu fünf deiner Computer, und alles bisher Kostenlose bleibt kostenlos.',
+    'Plus gilt für bis zu fünf deiner Computer, und der Equalizer, das Rack und die Player bleiben kostenlos.',
   'plusWelcome.open': 'Visualizer öffnen',
   'plusWelcome.later': 'Später',
 };

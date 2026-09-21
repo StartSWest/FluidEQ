@@ -77,7 +77,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    '别处没有的高级可视化效果、创作你自己场景的工作室、排行榜——以及从现在起的每一项新功能，会员优先。今天免费的一切依然免费。',
+    '别处没有的高级可视化效果、创作你自己场景的工作室、排行榜——以及从现在起的每一项新功能，会员优先。均衡器、机架和播放器一如既往，依然免费。',
   'account.plus.upgrade': '升级到 Plus',
   'account.plus.opening': '正在打开…',
   'account.plus.checkoutHint':

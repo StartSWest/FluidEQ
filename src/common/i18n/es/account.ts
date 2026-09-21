@@ -89,7 +89,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Visualizadores premium que no existen en ningún otro sitio, el Estudio para crear los tuyos, la clasificación — y cada función nueva a partir de ahora, primero para los miembros. Todo lo que hoy es gratis sigue siendo gratis.',
+    'Visualizadores premium que no existen en ningún otro sitio, el Estudio para crear los tuyos, la clasificación — y cada función nueva a partir de ahora, primero para los miembros. El ecualizador, el rack y los reproductores siguen siendo gratis, como siempre lo han sido.',
   'account.plus.upgrade': 'Pasar a Plus',
   'account.plus.opening': 'Abriendo…',
   'account.plus.checkoutHint':

@@ -86,7 +86,7 @@ const tour = {
   'tour.plus.title': 'Welcome to FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
-    'An optional membership that keeps FluidEQ growing, with a whole new tab for it: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. Everything that was free stays free.',
+    'An optional membership that keeps FluidEQ growing, with a whole new tab for it: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. The equaliser, the rack and the players stay free, as they always have been.',
   'tour.plus.point1':
     'Sign in from Account in the actions menu; paying happens in your browser, and Plus switches on by itself.',
   'tour.plus.point2':

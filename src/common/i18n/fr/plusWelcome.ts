@@ -21,7 +21,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Votre abonnement se trouve dans le menu {menu}, à {account} : ouvrez-le quand vous voulez pour le voir, changer votre nom ou le gérer.',
   'plusWelcome.note':
-    'Plus fonctionne sur cinq de vos ordinateurs au maximum, et tout ce qui était gratuit le reste.',
+    'Plus fonctionne sur cinq de vos ordinateurs au maximum, et l’égaliseur, le rack et les lecteurs restent gratuits.',
   'plusWelcome.open': 'Ouvrir les visualiseurs',
   'plusWelcome.later': 'Plus tard',
 };

@@ -20,7 +20,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Il tuo abbonamento è nel menu {menu}, sotto {account}: aprilo quando vuoi per vederlo, cambiare nome o gestirlo.',
   'plusWelcome.note':
-    'Plus vale su un massimo di cinque dei tuoi computer, e tutto ciò che era gratuito resta gratuito.',
+    'Plus vale su un massimo di cinque dei tuoi computer, e l’equalizzatore, il rack e i player restano gratuiti.',
   'plusWelcome.open': 'Apri i visualizzatori',
   'plusWelcome.later': 'Più tardi',
 };

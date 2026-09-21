@@ -21,7 +21,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'Your membership lives in the {menu} menu, under {account} — open it any time to see it, change your name or manage it.',
   'plusWelcome.note':
-    'Plus works on up to five of your computers, and everything that was free stays free.',
+    'Plus works on up to five of your computers, and the equaliser, the rack and the players stay free.',
   'plusWelcome.open': 'Open Visualizers',
   'plusWelcome.later': 'Later',
 };

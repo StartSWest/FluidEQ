@@ -101,7 +101,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Premium visualizers that exist nowhere else, the Studio for making your own, the leaderboard — and every new feature from here on, for members first. Everything that is free today stays free.',
+    'Premium visualizers that exist nowhere else, the Studio for making your own, the leaderboard — and every new feature from here on, for members first. The equaliser, the rack and the players stay free, as they always have been.',
   'account.plus.upgrade': 'Upgrade to Plus',
   'account.plus.opening': 'Opening…',
   'account.plus.checkoutHint':

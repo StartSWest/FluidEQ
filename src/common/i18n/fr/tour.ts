@@ -77,7 +77,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Bienvenue dans FluidEQ Plus',
   'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',
   'tour.plus.lead':
-    'Un abonnement facultatif qui permet à FluidEQ de continuer à grandir, avec un tout nouvel onglet rien que pour lui : des scènes dessinées par votre carte graphique, un Studio pour créer les vôtres, le classement, des arrière-plans du Bureau et l’éclairage dynamique. Tout ce qui était gratuit reste gratuit.',
+    'Un abonnement facultatif qui permet à FluidEQ de continuer à grandir, avec un tout nouvel onglet rien que pour lui : des scènes dessinées par votre carte graphique, un Studio pour créer les vôtres, le classement, des arrière-plans du Bureau et l’éclairage dynamique. L’égaliseur, le rack et les lecteurs restent gratuits, comme ils l’ont toujours été.',
   'tour.plus.point1':
     'Connectez-vous depuis Compte dans le menu des actions ; le paiement se fait dans votre navigateur, et Plus s’active tout seul.',
   'tour.plus.point2':

@@ -77,7 +77,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Benvenuto in FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',
   'tour.plus.lead':
-    'Un abbonamento facoltativo che sostiene la crescita di FluidEQ, con una nuova scheda tutta sua: scene disegnate dalla tua scheda grafica, uno Studio per creare le tue, la classifica, gli sfondi del desktop e l’illuminazione dinamica. Tutto ciò che era gratuito resta gratuito.',
+    'Un abbonamento facoltativo che sostiene la crescita di FluidEQ, con una nuova scheda tutta sua: scene disegnate dalla tua scheda grafica, uno Studio per creare le tue, la classifica, gli sfondi del desktop e l’illuminazione dinamica. L’equalizzatore, il rack e i player restano gratuiti, come sono sempre stati.',
   'tour.plus.point1':
     'Accedi da Account nel menu delle azioni; il pagamento avviene nel browser e Plus si attiva da solo.',
   'tour.plus.point2':

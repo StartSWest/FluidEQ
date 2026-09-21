@@ -21,7 +21,7 @@ const plusWelcome = {
   'plusWelcome.where':
     'A tua subscrição vive no menu {menu}, em {account} — abre-o quando quiseres para a ver, mudar o teu nome ou geri-la.',
   'plusWelcome.note':
-    'O Plus funciona em até cinco dos teus computadores, e tudo o que era gratuito continua gratuito.',
+    'O Plus funciona em até cinco dos teus computadores, e o equalizador, o rack e os players continuam gratuitos.',
   'plusWelcome.open': 'Abrir Visualizadores',
   'plusWelcome.later': 'Mais tarde',
 };
