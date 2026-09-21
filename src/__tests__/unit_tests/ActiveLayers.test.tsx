@@ -167,6 +167,39 @@ describe('Custom FX active layer', () => {
     expect(screen.getByText('1 bands')).toBeInTheDocument();
   });
 
+  /*
+   * The chip is the EQ's only switch. Hidden with the gains, a switched-off
+   * EQ whose bands had all reached 0 dB had no way back on, and nothing on
+   * screen said why its bands were greyed out. The same flat bands with the
+   * EQ on are the control: no chip, as on every first launch.
+   */
+  it('keeps the EQ chip while the EQ is switched off, even with no band shaped', () => {
+    const filter = { ...getDefaultFilterWithId(), gain: 0 };
+    const view = (bypassed: IFluidEqContext['bypassed']) => (
+      <FluidEqProviderWrapper
+        value={{
+          ...defaultFluidEqContext,
+          filters: { [filter.id]: filter },
+          bypassed,
+        }}
+      >
+        <ActiveLayers />
+      </FluidEqProviderWrapper>
+    );
+    const { rerender } = render(view(['eq']));
+    expect(
+      screen.getByRole('button', { name: 'Reset every band to 0 dB' }),
+    ).toBeInTheDocument();
+    expect(screen.getByTitle('Switch EQ back on')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    rerender(view([]));
+    expect(
+      screen.queryByRole('button', { name: 'Reset every band to 0 dB' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('hides cleared bands even with editing enabled, and returns on a gain edit', async () => {
     const filter = { ...getDefaultFilterWithId(), gain: 4 };
     const context = {

@@ -407,8 +407,14 @@ const ActiveLayers = () => {
    * So: how many bands there are, which is the only honest thing to say about a
    * tuning with no source of its own. The attribution lives on the chip that
    * actually holds it.
+   *
+   * AND WHILE THE EQ IS SWITCHED OFF, whatever the bands say. This chip is the
+   * EQ's only switch, so a switched-off EQ whose bands all reached 0 dB — a
+   * layout with nothing on it, every band reset by hand — lost its switch
+   * with them: the bands sat greyed out, whatever was moved next was written
+   * nowhere, and nothing on screen said why or offered the way back.
    */
-  if (hasShapedBands) {
+  if (hasShapedBands || isBypassed('eq')) {
     layers.push({
       key: 'eq',
       icon: 'model',

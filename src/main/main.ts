@@ -2677,6 +2677,7 @@ registerFiltersIpc({
   captureCurrentLayout,
   getStoredLayout,
   switchToParametricEditing,
+  applyingLayer,
 });
 
 registerLayersIpc({

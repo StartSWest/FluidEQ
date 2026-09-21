@@ -31,6 +31,7 @@ import {
   MIN_GAIN,
   MIN_NUM_FILTERS,
   MIN_QUALITY,
+  TApoLayer,
   getDefaultFilterWithId,
   getDefaultFilters,
 } from '../../common/constants';
@@ -91,6 +92,8 @@ export interface IFiltersIpcDeps {
   captureCurrentLayout: () => void;
   getStoredLayout: (size: FixedBandSizeEnum) => ILayoutSnapshot | undefined;
   switchToParametricEditing: () => void;
+  /** Take a layer off the bypass list, because it is being cleared. */
+  applyingLayer: (layer: TApoLayer) => void;
 }
 
 /**
@@ -108,6 +111,7 @@ export const registerFiltersIpc = ({
   captureCurrentLayout,
   getStoredLayout,
   switchToParametricEditing,
+  applyingLayer,
 }: IFiltersIpcDeps) => {
   onWindowMessage(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
     const channel = ChannelEnum.GET_FILTER_GAIN;
@@ -416,6 +420,19 @@ export const registerFiltersIpc = ({
     state.graphicEq = state.graphicEq?.map((point) => ({ ...point, gain: 0 }));
     state.isFlat = false;
     state.eqImport = undefined;
+    /*
+     * A switched-off EQ comes back on when it is cleared.
+     *
+     * Its switch is the EQ chip in Also applied, and that chip is drawn only
+     * while a band is shaped — so clearing took the switch off the screen and
+     * left the EQ switched off: the bands drawn greyed out, every band moved
+     * afterwards written nowhere, nothing left to say why. The full reset
+     * always released it (`resetEqToDefaults`); this handler stopped going
+     * through that reset when clearing learned to keep the layout, and the
+     * release was left behind with it. Clear EQ, the chip's ×, and the
+     * Squiglink import's clear all arrive here.
+     */
+    applyingLayer('eq');
 
     // EQ reset is independent from convolution. Persist the resulting state
     // (including any active convolution) to the device profile so APO keeps the

@@ -35,6 +35,7 @@ describe('band design and clear commands', () => {
   const error = jest.fn();
   const capture = jest.fn();
   const switchEditing = jest.fn();
+  const release = jest.fn();
   const send = async (channel: ChannelEnum, args?: unknown) => {
     const handler = handlers.get(channel);
     if (!handler) {
@@ -64,6 +65,7 @@ describe('band design and clear commands', () => {
       handleUpdate: update,
       doesFilterIdExist: () => true,
       getStoredLayout: () => undefined,
+      applyingLayer: release,
     });
   });
   afterEach(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -173,6 +175,32 @@ describe('band design and clear commands', () => {
       expect(update).toHaveBeenCalledTimes(1);
     },
   );
+
+  /*
+   * The EQ chip in Also applied is the EQ's only switch, and it is drawn only
+   * while a band is shaped. A clear that left the EQ switched off took that
+   * switch away with the gains: the bands sat greyed out and every band moved
+   * afterwards was written nowhere. Released before the write, so the config
+   * written has the EQ in it.
+   */
+  it('switches a switched-off EQ back on when it is cleared', async () => {
+    Object.values(state.filters)[0].gain = 6;
+    await send(ChannelEnum.CLEAR_GAINS);
+    expect(release).toHaveBeenCalledTimes(1);
+    expect(release).toHaveBeenCalledWith('eq');
+    expect(release.mock.invocationCallOrder[0]).toBeLessThan(
+      update.mock.invocationCallOrder[0],
+    );
+  });
+
+  // The other half of the rule: preparing a tuning with the EQ switched off
+  // is a reasonable thing to do, so moving a band must not switch it on.
+  it('leaves a switched-off EQ off while a band is moved', async () => {
+    const [filter] = Object.values(state.filters);
+    await send(ChannelEnum.SET_FILTER_GAIN, [filter.id, 5]);
+    expect(filter.gain).toBe(5);
+    expect(release).not.toHaveBeenCalled();
+  });
 
   it('flattens sampled points without replacing their frequencies or format', async () => {
     state.eqFormat = AutoEqFormat.GRAPHIC;
