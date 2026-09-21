@@ -14,10 +14,12 @@ page was rebuilt so nothing is hidden behind a tab, and its locks came off:
 sound has never been the part of FluidEQ you pay for, and a listening room is
 sound.
 
-Plus changed shape around that. The Studio is Plus's now and opens with a free
-trial, and there is a way in that costs nothing at all — publish a scene, have it
-approved, and the next month is free. Every member's scene is now
-held for approval before anybody sees it.
+Plus changed shape around that. The Studio is Plus's now: the one scene a free
+account could make there in 1.7.4 comes with Plus from this version, and nothing
+you have already made is deleted — the Studio names the folder your project is
+sitting in. It opens with a free trial, and there is a way in that costs nothing
+at all — publish a scene, have it approved, and the next month is free. Every
+member's scene is now held for approval before anybody sees it.
 
 The equaliser and the sound profiles had a pass of their own. Every profile was
 re-measured and levelled so switching between them changes character and not
@@ -86,9 +88,11 @@ been translated into ten languages for a screen nobody reaches.
   after the offer opened on 20 September 2026**. An account older than that
   cannot start one, and that does not change if the offer is switched off and
   on again. Somebody without Plus now meets a page that says what the Studio is
-  and how to get in, rather than an editor that refuses every press; a maker
-  whose earned month has run out keeps one project, so the way back in stays
-  open.
+  and how to get in, rather than a bench that refuses every press — and that
+  page names the folder any project of theirs is sitting in, whole and
+  untouched, for the day they come back to it. A maker whose earned month has
+  run out keeps one project on the bench, with only the ways of taking a scene
+  out of the window locked, so the way back in stays open.
 - **Every member's scene is held for approval before anyone sees it.** A scene
   is reviewed before it reaches the gallery, and a new version is published
   above the highest number that scene was ever out at, so a number can never
