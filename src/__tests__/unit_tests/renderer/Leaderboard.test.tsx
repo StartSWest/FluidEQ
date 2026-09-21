@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PART_POINTS, SCORE_PARTS } from '../../../common/leaderboardScore';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
@@ -177,9 +177,24 @@ describe('the leaderboard card', () => {
 
 describe('the leaderboard view', () => {
   it('lists the board in hours, pins my own place underneath, and switches period', async () => {
-    render(<LeaderboardView />);
-    expect(await screen.findByText('Ada')).toBeInTheDocument();
-    expect(screen.getByText('leaderboard.hours:10')).toBeInTheDocument();
+    const { container } = render(<LeaderboardView />);
+    // The top three stand on the podium AND stay in the list under it, so
+    // the list is the whole board in order rather than everyone from fourth
+    // down (Ivan, 2026-09-20). Each of them is therefore on screen twice.
+    expect(await screen.findAllByText('Ada')).toHaveLength(2);
+    const listed = within(
+      container.querySelector('.leaderboard__rows') as HTMLElement,
+    );
+    expect(listed.getByText('Ada')).toBeInTheDocument();
+    expect(listed.getByText('Bob')).toBeInTheDocument();
+    // First, second and third keep the podium's metal on their rank here.
+    expect(container.querySelector('.leaderboard__rank--1')).toHaveTextContent(
+      '1',
+    );
+    expect(container.querySelector('.leaderboard__rank--2')).toHaveTextContent(
+      '2',
+    );
+    expect(listed.getByText('leaderboard.hours:10')).toBeInTheDocument();
     expect(screen.getByText('leaderboard.players:120')).toBeInTheDocument();
     // My standing leads the board, wherever I rank: the rank of the total,
     // and the one person just ahead with the points it takes to pass them.
@@ -192,15 +207,15 @@ describe('the leaderboard view', () => {
     // Under every name, the three things the points are made of: hours,
     // active days, and — only when there are any — likes on scenes someone
     // made. Ada has three likes, Bob none. Nothing about messages remains.
-    expect(screen.getByTitle('leaderboard.stat.days:9')).toHaveTextContent('9');
-    expect(screen.getByTitle('leaderboard.stat.days:2')).toHaveTextContent('2');
-    expect(screen.getAllByTitle(/^leaderboard\.stat\.likes:/)).toHaveLength(1);
-    expect(screen.getByTitle('leaderboard.stat.likes:3')).toHaveTextContent(
+    expect(listed.getByTitle('leaderboard.stat.days:9')).toHaveTextContent('9');
+    expect(listed.getByTitle('leaderboard.stat.days:2')).toHaveTextContent('2');
+    expect(listed.getAllByTitle(/^leaderboard\.stat\.likes:/)).toHaveLength(1);
+    expect(listed.getByTitle('leaderboard.stat.likes:3')).toHaveTextContent(
       '3',
     );
     expect(screen.queryByTitle(/messages|mentions/)).toBeNull();
-    // The maker wears the one role mark there is.
-    expect(screen.getAllByText('leaderboard.role.admin')).toHaveLength(1);
+    // The maker wears the one role mark there is, in each place they appear.
+    expect(listed.getAllByText('leaderboard.role.admin')).toHaveLength(1);
 
     await userEvent.click(
       screen.getByRole('tab', { name: 'leaderboard.thisMonth' }),
@@ -332,7 +347,8 @@ describe('choosing the name the board shows', () => {
   it('does not ask a member who already has a name', async () => {
     await loadProfile('me');
     render(<LeaderboardView />);
-    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    // Twice: on the podium and in the list under it.
+    expect(await screen.findAllByText('Ada')).toHaveLength(2);
     expect(screen.queryByText('leaderboard.name.title')).toBeNull();
   });
 

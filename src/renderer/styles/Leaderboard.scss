@@ -392,6 +392,24 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
   text-align: center;
   font-variant-numeric: tabular-nums;
+
+  // The three that also stand on the podium keep their metal here, so the
+  // same person is recognisable in both places and the list reads as the
+  // whole board rather than as a second, different one.
+  &--1 {
+    color: #f2bd3d;
+    font-weight: $weight-bold;
+  }
+
+  &--2 {
+    color: #aebbca;
+    font-weight: $weight-bold;
+  }
+
+  &--3 {
+    color: #c98249;
+    font-weight: $weight-bold;
+  }
 }
 
 .leaderboard__who {

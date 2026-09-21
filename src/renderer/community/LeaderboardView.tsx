@@ -25,7 +25,7 @@ const ERROR_KEYS: Record<TLeaderboardFailure, TranslationKey> = {
 };
 
 const PERIODS: readonly TLeaderboardPeriod[] = ['all', 'month'];
-/** How many rows stand on the podium; the list starts after them. */
+/** How many stand on the podium, and wear its metal in the list as well. */
 const PODIUM = 3;
 /** Skeleton rows while the first answer is on its way. */
 const SKELETON_ROWS = 6;
@@ -73,8 +73,11 @@ export default function LeaderboardView() {
   const shareOf = (points: number) =>
     leader > 0 ? Math.max(3, (points / leader) * 100) : 0;
 
+  // The top three stand on the podium AND stay in the list under it (Ivan,
+  // 2026-09-20): the list is the whole board, in order, so counting down from
+  // somebody's row to the top never runs out three places short. Their rank
+  // keeps the medal's colour there, which is what ties the two together.
   const podium = rows.slice(0, PODIUM);
-  const rest = rows.slice(PODIUM);
   // By handle: a rank and points shared with somebody tied with you put
   // "You" on their row too.
   const myHandle = profile.profile?.handle;
@@ -182,9 +185,9 @@ export default function LeaderboardView() {
             </ol>
           )}
 
-          {rest.length > 0 && (
+          {rows.length > 0 && (
             <ol className="leaderboard__rows">
-              {rest.map((row) => (
+              {rows.map((row) => (
                 <li
                   key={`${row.rank}-${row.handle}`}
                   className={`leaderboard__row${isMe(row) ? ' leaderboard__row--me' : ''}`}
@@ -192,7 +195,15 @@ export default function LeaderboardView() {
                     { '--share': `${shareOf(row.points)}%` } as CSSProperties
                   }
                 >
-                  <span className="leaderboard__rank">{row.rank}</span>
+                  <span
+                    className={`leaderboard__rank${
+                      row.rank <= PODIUM
+                        ? ` leaderboard__rank--${row.rank}`
+                        : ''
+                    }`}
+                  >
+                    {row.rank}
+                  </span>
                   <Avatar handle={row.handle} displayName={row.displayName} />
                   <span className="leaderboard__who">
                     <span className="leaderboard__who-line">
