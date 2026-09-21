@@ -273,11 +273,44 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
 
   // The app now replaces files atomically. A watcher that observes only
   // writes to the original file can miss this final rename and stay stale.
-  const std::wstring temporary = config_dir + L"\\config.pending";
-  const ScopeGuard cleanup([&] { DeleteFileW(temporary.c_str()); });
+  //
+  // Staged in a sibling of the watched folder, so writing it wakes nothing:
+  // the only change the engine sees is the rename itself, which is the thing
+  // under test. Staged inside, its creation woke the watcher, which reopened
+  // config.txt to reload it — and a rename cannot replace a file that any
+  // reader holds open, delete sharing or not. On the cold build's runner the
+  // two met and the rename failed outright (2026-09-21, 530679c9c).
+  //
+  // Tried again while refused for exactly that reason, because the reload of
+  // the write above can still be finishing: the swap loop stops at the first
+  // block that shows the new preamp, not when the watcher has let the file
+  // go. The app answers the same refusal with an in-place write
+  // (asyncWriter's overwriteInPlace); here the rename is what is being
+  // tested, so it is retried on the reader's time, never a clock's, and a
+  // bounded number of times so a rename that can never land fails.
+  const std::wstring staging = root + L"\\staging";
+  CHECK(CreateDirectoryW(staging.c_str(), nullptr) != 0);
+  const std::wstring temporary = staging + L"\\config.pending";
+  const ScopeGuard cleanup([&] {
+    DeleteFileW(temporary.c_str());
+    RemoveDirectoryW(staging.c_str());
+  });
   CHECK(write_text_file(temporary, "Preamp: -18 dB\r\n"));
-  CHECK(MoveFileExW(temporary.c_str(), (config_dir + L"\\config.txt").c_str(),
-                     MOVEFILE_REPLACE_EXISTING) != 0);
+  bool renamed = false;
+  for (uint32_t attempt = 0; attempt < kMaxBlocks && !renamed; ++attempt) {
+    renamed =
+        MoveFileExW(temporary.c_str(), (config_dir + L"\\config.txt").c_str(),
+                    MOVEFILE_REPLACE_EXISTING) != 0;
+    if (!renamed) {
+      const DWORD refused = GetLastError();
+      if (refused != ERROR_ACCESS_DENIED &&
+          refused != ERROR_SHARING_VIOLATION) {
+        break;
+      }
+      SwitchToThread();
+    }
+  }
+  CHECK(renamed);
   swapped = false;
   for (uint32_t block = 0; block < kMaxBlocks && !swapped; ++block) {
     process_ones(rt, buffer, kChannels, kFrames);
