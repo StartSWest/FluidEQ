@@ -657,23 +657,12 @@ select option {
   -webkit-app-region: drag;
 }
 
-// What the ends leave over, up to the 420px the grid track used to hand it.
+// What the ends leave over, up to 420px.
 //
-// `--titlebar-side` is the wider of the two ends, measured in the running
-// window by `useTitlebarSideWidth`. Both ends are guaranteed that width by the
-// grid's equal `1fr` tracks whether they need it or not, so the space the
-// spectrum can have without pushing anything is the window less two of them —
-// less the bar's own padding (30), the two grid gaps (32) and 14 of air, which
-// is the 76 below.
-//
-// Without it the wider end simply overflowed its track: measured at 1440px
-// wide, 519px of names, pet, actions and window controls in a 479px track,
-// overhanging the tab beside it by 40. The number cannot be written down as a
-// constant instead — "Online Media" is half again as wide in Spanish.
-//
-// The floor is the point below which the drawing stops being a drawing. Under
-// it the ends overlap the meter rather than the meter vanishing, which is the
-// better of the two on a window nobody can use anyway.
+// And the ends give ground before it does: the tagline and the creature leave
+// the moment keeping them would cost the drawing any width (`data-crowded`,
+// set by `useTitlebarRoom`), and only then does it narrow, to what the two
+// ends' content leaves.
 //
 // A length rather than a flex basis: the pane's own width is a percentage of
 // this box, and a percentage inside a shrink-to-fit parent contributes nothing
@@ -863,20 +852,12 @@ select option {
 @media (max-width: calc(#{$bp-desktop} - 1px)) {
   // Everything the bar can stop spending, spent on the drawing instead: 8px of
   // grid gap rather than 16, 10 of padding either side rather than 18, and 7
-  // around each glyph rather than 12 — six of those, so 60px of it. The air
-  // constant follows the two it names, or the meter goes on reserving room the
-  // bar has already given back.
+  // around each glyph rather than 12 — six of those, so 60px of it.
   // The equal end tracks stay, because they are the only thing that puts the
   // spectrum in the middle of the WINDOW rather than in the middle of whatever
   // is left over. What changes here is what the ends carry, not how they are
-  // measured: glyphs instead of words, no product name, no creature. The bar
-  // spends less on itself too — 8px of grid gap rather than 16 and 10 of
-  // padding either side rather than 18 — and the air constant follows the two
-  // it names, or the meter goes on reserving room that has already been given
-  // back.
+  // measured: glyphs instead of words.
   .window-titlebar {
-    --titlebar-air: 50px;
-
     gap: 8px;
     padding-inline: 10px;
   }
@@ -894,8 +875,9 @@ select option {
 
   // The glyphs spread into room the drawing cannot use anyway.
   //
-  // Widening a strip does cost the spectrum — `useTitlebarSideWidth` sums the
-  // end's children, so every pixel between the glyphs is a pixel off the meter.
+  // Widening a strip does cost the spectrum — an end's track is never
+  // narrower than its content, so every pixel between the glyphs is a pixel
+  // off the meter.
   // What makes this free is the cap: the drawing stops growing at 420, and from
   // about 1200 up there is more room in the ends than it can take. The slope
   // spends only that surplus, so the row opens out on a wide window and closes
@@ -985,9 +967,8 @@ select option {
 
   // The names stand against the meter, the identity stays at the window's
   // edge, and the elastic between them is this margin. It contributes nothing
-  // to the width `useTitlebarSideWidth` measures, which is what lets that
-  // measurement be a statement about content rather than about the track it
-  // was given.
+  // to the content `useTitlebarRoom` measures, which is what lets the room
+  // beside it be read as the room this end has spare.
   .workspace-tabs-shell {
     margin-left: auto;
   }
@@ -1073,15 +1054,29 @@ select option {
   }
 }
 
-// THE CREATURE GOES FIRST, AND EARLIER THAN SHE USED TO (Ivan, 2026-09-22:
-// "remove the pet and help on low narrow width"). She went at 940, which is
-// the width at which the tabs are already glyphs; the strip is crowded long
-// before that, and she is the one thing up here that is company rather than
-// information. Help does not go with her any more — it is a glyph inside the
-// capsule now, which costs 32px — and Support is still one item down in the
-// menu beside her, with the full-screen chrome keeping its own copy.
-@media (max-width: $bp-xl) {
-  .window-titlebar .support-pet {
+// THE TAGLINE AND THE CREATURE GO FIRST, together, the moment keeping them
+// would cost the wave any of its width (Ivan, 2026-09-22: "the moment the
+// wave starts narrowing remove help and pet [...] and also hide the 'Your
+// sound' text to make space"). `useTitlebarRoom` measures that moment in the
+// running window and sets `data-crowded`; it was two fixed widths, 1560 and
+// 1280, and the wave was already giving ground above both — by 191px at 1281
+// in English, the creature still standing beside it — and where it starts
+// depends on the names in the two ends, which is different in every language.
+//
+// Help does not go with them: it is a glyph inside the capsule, and Support is
+// one item down in the menu beside her, with the full-screen chrome keeping
+// its own copy.
+.window-titlebar[data-crowded] {
+  // Out of the flow and not out of the page, so what it would take back can
+  // still be measured, in whatever language it is in by then.
+  .workspace-header__tagline {
+    position: absolute;
+    visibility: hidden;
+  }
+
+  // Out of the page: hidden any other way her animations go on running
+  // unseen. Her width is a fixed box the hook remembers.
+  .window-titlebar__right > .support-pet {
     display: none;
   }
 }
@@ -1396,7 +1391,7 @@ select option {
 
   // The elastic that gives the pet its room: whatever the window is wider than
   // this end needs, it goes here, between the names and the creature. Not
-  // counted by `useTitlebarSideWidth`, which sums children and not margins.
+  // counted by `useTitlebarRoom`, which sums children and not margins.
   .workspace-tabs-shell {
     margin-right: auto;
   }
@@ -3840,10 +3835,6 @@ button.graph-legend {
 
   .right-content-toggle {
     display: grid;
-  }
-
-  .workspace-header__tagline {
-    display: none;
   }
 }
 

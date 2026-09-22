@@ -42,7 +42,7 @@ import {
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
-import { useTitlebarSideWidth } from './utils/useTitlebarSideWidth';
+import { useTitlebarRoom } from './utils/useTitlebarRoom';
 import ConfigInspector from './components/ConfigInspector';
 import GamesPanel from './games/GamesPanel';
 import GameSound from './games/GameSound';
@@ -1082,13 +1082,13 @@ const AppContent = () => {
   // tabs, so this is hosted here rather than inside the EQ page.
   useSongEqSessionHost();
 
-  // What the two ends of the titlebar actually need, so the meter between them
-  // can be given the rest and stay in the middle of the window. The bar's own
-  // element carries the answer as a custom property — see the hook.
+  // Whether the two ends of the titlebar leave the meter between them its
+  // whole width with the tagline and the creature still in them. The bar's
+  // own element carries the answer as `data-crowded` — see the hook.
   const titlebarRef = useRef<HTMLElement | null>(null);
   const titlebarLeftRef = useRef<HTMLDivElement | null>(null);
   const titlebarRightRef = useRef<HTMLDivElement | null>(null);
-  useTitlebarSideWidth(titlebarRef, titlebarLeftRef, titlebarRightRef);
+  useTitlebarRoom(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
   // The graph mode is read above with the titlebar navigation because those
   // controls now participate in leaving full screen.
@@ -2289,8 +2289,8 @@ const AppContent = () => {
         {/* The meter, alone in the middle track and therefore in the middle of
             the window. It is not restyled or resized by being in here — it
             keeps its own pane, its own border and its own drawing, and only
-            its width gives way, to whatever the wider end of the bar leaves
-            over. See `useTitlebarSideWidth`. */}
+            its width gives way, to whatever the two ends leave over once the
+            tagline and the creature have gone. See `useTitlebarRoom`. */}
         <div className="titlebar-nav">
           <WaveformVisualizer />
         </div>
