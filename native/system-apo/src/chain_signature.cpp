@@ -61,6 +61,7 @@ std::string signature_of(const Chain& chain) {
   out += "|p=" + number(chain.preamp_db);
   out += chain.output_guard ? "|og1" : "|og0";
   out += chain.auto_preamp ? "|ap1" : "|ap0";
+  out += "|as=" + number(chain.auto_preamp_start_db);
   out += chain.stable_graphic ? "|sg1" : "|sg0";
   out += chain.low_latency ? "|ll1" : "|ll0";
   out += chain.minimum_curve_phase ? "|cmp1" : "|cmp0";
@@ -87,6 +88,7 @@ std::string signature_of(const Chain& chain) {
     out += ',' + number(band.quality);
     out += band.user_eq ? ",eq" : ",other";
     out += band.curve_layer ? ",curve" : ",untagged";
+    out += band.matched ? ",matched" : ",cookbook";
     out += ';';
   }
   out += "|g=";

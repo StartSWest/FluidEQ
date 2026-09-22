@@ -146,6 +146,17 @@ const subscribe = (listener: () => void): (() => void) => {
 
 const readAudioEngineStatus = (): IAudioEngineStatus | undefined => known;
 
+/**
+ * What the window already knows, without asking main again on mount.
+ *
+ * For a component that only needs a detail of the answer and mounts with its
+ * page — the graph — where every mount of `useAudioEngineStatus` would run
+ * the engine helper and a registry probe once more. `AppContent` holds that
+ * hook for the life of the window, so this answer is as current as its.
+ */
+export const useKnownAudioEngineStatus = (): IAudioEngineStatus | undefined =>
+  useSyncExternalStore(subscribe, readAudioEngineStatus, readAudioEngineStatus);
+
 export const useAudioEngineStatus = (): IAudioEngineStatusHook => {
   const status = useSyncExternalStore(
     subscribe,

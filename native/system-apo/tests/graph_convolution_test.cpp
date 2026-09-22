@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The two convolution stages: a `Convolution:` impulse response read off
- * disk, and the linear-phase FIR a `GraphicEQ:` curve is designed into.
+ * disk, and the FIR a `GraphicEQ:` curve is designed into.
  *
  * These checks measure WHERE a tap comes out, not just how loud it is, which
  * is what makes them the only ones that can see `latency_frames()` being
@@ -48,14 +48,14 @@ using fluideq_engine_test::write_float_wav;
 
 namespace {
 
-// `graph.cpp`'s own `kGraphicTapsAt48k`, mirrored: these checks run at the
-// 48 kHz reference rate, where the design needs no scaling. A linear-phase
-// FIR is centred, so half of this is the group delay `latency_frames()` has
-// to include.
-constexpr size_t kGraphicTapsAt48k = 4097;
-// And the capped count `graph.cpp` falls back to at a rate that would size an
-// unbounded design: `(kMaxKernelTaps - 1) | 1`.
-constexpr size_t kCappedGraphicTaps = 65535;
+// The graphic FIR here is the default design: every curve minimum phase, so
+// the kernel starts on its first tap and `latency_frames()` holds no group
+// delay for it — only each convolver's block pipeline. It used to be designed
+// linear phase and centred, half of 4097 taps late.
+//
+// And the capped count `graph_stages.cpp` falls back to at a rate that would
+// size an unbounded design: `kMaxKernelTaps`.
+constexpr size_t kCappedGraphicTaps = 65536;
 
 /** The two-tap impulse response the convolution checks look for. */
 std::vector<float> two_tap_impulse_response() {
@@ -177,11 +177,9 @@ void convolution_and_graphic_eq_combine() {
         chain.graphic_curves[0].size() == 2);
 
   Graph graph(chain, kRate, 1, 512);
-  // Two convolvers in series, each with its own block-pipeline latency, plus
-  // the graphic FIR's group delay — it is designed linear-phase and therefore
-  // centred, so its energy sits at tap 2048 of 4097.
-  CHECK(graph.latency_frames() ==
-        2 * feq_convolver_latency() + kGraphicTapsAt48k / 2);
+  // Two convolvers in series, each with its own block-pipeline latency, and
+  // nothing for the graphic FIR itself: minimum phase, its energy on tap 0.
+  CHECK(graph.latency_frames() == 2 * feq_convolver_latency());
 
   std::vector<std::vector<float>> channels(1, std::vector<float>(8192, 0.0f));
   channels[0][0] = 1.0f;
@@ -197,11 +195,11 @@ void convolution_and_graphic_eq_combine() {
               " %.5f (target 1.0, 0.5)\n",
               found, graph.latency_frames(), first, second);
   CHECK(found == graph.latency_frames());
-  // A flat (0 dB) GraphicEQ curve is a Hann-windowed frequency-sampled FIR,
-  // not a mathematically exact all-pass, so in principle it can ring by a
-  // small amount rather than reproducing the impulse response's own taps
-  // exactly — hence the looser tolerance than the single-stage check above,
-  // even though this kernel measures exact to print precision.
+  // A flat (0 dB) GraphicEQ curve is a cepstral minimum-phase design, not a
+  // mathematically exact all-pass, so in principle it can ring by a small
+  // amount rather than reproducing the impulse response's own taps exactly —
+  // hence the looser tolerance than the single-stage check above, even
+  // though this kernel measures exact to print precision.
   CHECK(std::fabs(first - 1.0) < 1e-3);
   CHECK(std::fabs(second - 0.5) < 1e-3);
 
@@ -334,9 +332,8 @@ void graphic_eq_applies() {
 
   Graph graph(chain, kRate, 1, 480);
   CHECK(!graph.is_passthrough());
-  // The convolver's block pipeline plus the centred FIR's own group delay.
-  CHECK(graph.latency_frames() ==
-        feq_convolver_latency() + kGraphicTapsAt48k / 2);
+  // The convolver's block pipeline alone: the FIR is minimum phase.
+  CHECK(graph.latency_frames() == feq_convolver_latency());
 
   constexpr uint32_t kFrames = kRate;  // One second.
   std::vector<std::vector<float>> channels(1, tone(1000.0, 0.5, kFrames, 0));
@@ -344,7 +341,7 @@ void graphic_eq_applies() {
   run_blocks(graph, channels, 480);
 
   // Measured over the second half, which starts far past both the
-  // convolver's warm-up and the FIR's own 4097 taps: before then the output
+  // convolver's warm-up and the FIR's own 16384 taps: before then the output
   // is still the filter filling up, not its steady-state response.
   CHECK(kFrames / 2 > feq_convolver_warmup());
   const double change = rms_db(channels[0], kFrames / 2, kFrames) -
@@ -379,11 +376,9 @@ void everything_on_one_output_applies() {
   CHECK(chain.bands.size() == 1);
 
   Graph graph(chain, kRate, 1, 480);
-  // Both curves in ONE graphic FIR: the impulse response's convolver, the
-  // graphic FIR's convolver and that FIR's own group delay — not a second
-  // FIR's worth on top for the second curve.
-  CHECK(graph.latency_frames() ==
-        2 * feq_convolver_latency() + kGraphicTapsAt48k / 2);
+  // Both curves in ONE graphic FIR: the impulse response's convolver and the
+  // graphic FIR's — not a third convolver for the second curve.
+  CHECK(graph.latency_frames() == 2 * feq_convolver_latency());
 
   constexpr uint32_t kFrames = kRate;  // One second.
   std::vector<std::vector<float>> channels(1, tone(1000.0, 0.25, kFrames, 0));
@@ -434,12 +429,11 @@ void absurd_sample_rate_caps_the_graphic_fir() {
   // cap this constructor allocates whatever the format claimed.
   Graph graph(chain, 1000000, 1, 480);
   CHECK(mentions(graph.warnings(), "taps"));
-  CHECK(mentions(graph.warnings(), "65535"));
+  CHECK(mentions(graph.warnings(), std::to_string(kCappedGraphicTaps).c_str()));
   CHECK(!graph.is_passthrough());
-  // The group delay follows the capped tap count rather than the one the
-  // rate asked for, so a capped design still reports what it actually does.
-  CHECK(graph.latency_frames() ==
-        feq_convolver_latency() + kCappedGraphicTaps / 2);
+  // A capped design still reports what it actually does: minimum phase, so
+  // no group delay whatever the tap count.
+  CHECK(graph.latency_frames() == feq_convolver_latency());
 }
 
 void unchanged_convolution_survives_other_edits() {

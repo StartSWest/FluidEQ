@@ -43,7 +43,8 @@ int main() {
   std::vector<std::vector<float>> input(1, tone(1000.0, 0.5, frames, 0));
   run_blocks(running, input, frames);
   slot.finish_block();
-  reference.inherit_state(running);
+  reference.request_state_transfer();
+  reference.adopt_state(&running);
   CHECK(slot.adopt() == &reloaded);
   std::vector<std::vector<float>> continued(1, tone(1000.0, 0.5, frames, frames));
   auto expected = continued;

@@ -16,9 +16,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * arithmetic over memory that already exists.
  *
  * A `Chain` that changes while audio is running is applied by building a
- * second `Graph` off the audio thread and handing it over; `inherit_state`
- * carries the filter histories across so a gain nudge does not restart every
- * biquad from silence, which is heard as a click.
+ * second `Graph` off the audio thread and handing it over; `adopt_state`
+ * carries every band's history across and fades from the old sound to the
+ * new (`IirCascade`), so no edit restarts a filter from silence in the middle
+ * of a waveform, which is heard as a click.
  */
 #ifndef FLUIDEQ_ENGINE_GRAPH_H
 #define FLUIDEQ_ENGINE_GRAPH_H
@@ -61,6 +62,7 @@ struct ChainDeleter {
 }  // namespace detail
 
 class EqPhaseStage;
+class IirCascade;
 
 class Graph {
  public:
@@ -80,11 +82,19 @@ class Graph {
    * format): the rack reads the subwoofer feed and the room's speakers from
    * it. `room_head` is the head the app wrote for the room, or null for
    * none, which leaves the room inactive whatever the rack asks.
+   *
+   * `follows_processing` says the graph it replaces was changing the sound.
+   * A chain with nothing for this output then still builds empty stages and
+   * the output guard, so switching FluidEQ off fades the EQ out and keeps the
+   * guard's two milliseconds of delay: the music neither jumps nor skips.
+   * Switching it off used to swap straight to a graph with no delay at all,
+   * dropping 55 ms of music at the switch.
    */
   Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         uint32_t max_frames,
         std::shared_ptr<FeqLevelingMemory> leveling = nullptr,
-        unsigned long channel_mask = 0, const RoomHead* room_head = nullptr);
+        unsigned long channel_mask = 0, const RoomHead* room_head = nullptr,
+        bool follows_processing = false);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;
@@ -113,22 +123,18 @@ class Graph {
     feq_chain_notify_input_silence(rack_.get(), frames);
   }
 
-  /**
-   * Copy `previous`'s biquad histories into this graph.
-   *
-   * Only when band layout, channel count and sample rate agree; anything else
-   * would feed a filter the tail of a differently shaped one, which rings.
-   * Convolver and DSP rack handovers are handled separately by `adopt_state`.
-   * When the rack has not changed at all, `inherit_rack` takes the whole handle.
-   * Call only
-   * while both graphs' filter histories are idle, at an audio block boundary.
-   */
-  void inherit_state(const Graph& previous) noexcept;
-
   /** Watcher thread, before publication. Reset graphs leave this disabled. */
   void request_state_transfer() noexcept { transfer_state_ = true; }
 
-  /** Audio thread, between blocks, while the previous histories are idle. */
+  /**
+   * Audio thread, between blocks, while the previous histories are idle.
+   *
+   * Every band still here keeps its history and the old bands fade out over
+   * `IirCascade::kFadeSeconds`; the preamp ramps over the same time; the FIR
+   * stages, the rack and the output guard carry their own state across.
+   * When the rack has not changed at all, `inherit_rack` takes the whole
+   * handle.
+   */
   void adopt_state(Graph* previous) noexcept;
 
   /**
@@ -178,9 +184,6 @@ class Graph {
   /** Whether both graphs are running the very same rack chain object. */
   bool rack_is_shared_with(const Graph& other) const noexcept;
 
-  /** Same band count and the same types in the same order. */
-  bool has_same_band_layout(const Graph& other) const noexcept;
-
   /**
    * True when this graph is guaranteed to leave audio exactly as it found it
    * — either the config never named this endpoint, or it named it and asked
@@ -192,13 +195,15 @@ class Graph {
    * Frames of delay this graph adds, for the host to report to Windows.
    *
    * Every convolution stage's block-pipeline latency, plus the graphic-EQ
-   * FIR's own group delay — it is designed linear-phase, so its energy sits
-   * at the centre tap and an n-tap kernel puts the signal out n/2 frames
-   * later. A `Convolution:` impulse response contributes no such term: it is
-   * causal, and its delay is part of the sound it reproduces.
+   * FIR's own group delay when it has one. With every curve in minimum phase
+   * (the default, and game mode) the FIR is minimum-phase and adds none; with
+   * a layer in linear phase it is designed linear-phase, its energy at the
+   * centre tap, and an n-tap kernel puts the signal out n/2 frames later. A
+   * `Convolution:` impulse response contributes no such term: it is causal,
+   * and its delay is part of the sound it reproduces.
    *
    * So this is 0, one convolver's latency, one plus the FIR's half-length,
-   * or both stages together — never a fixed constant.
+   * or several stages together — never a fixed constant.
    *
    * Plus the rack's own (`feq_chain_latency_frames`), which linear-phase EQ
    * dominates at 8192 frames — 171 ms at 48 kHz. That is why the constructor
@@ -254,7 +259,10 @@ class Graph {
   struct LatencyParts {
     /** The rack's own stages, as `feq_chain_latency_parts` reports them. */
     FeqChainLatencyParts rack{};
-    /** The EQ page's graphic curves: one partition, and the FIR's half. */
+    /**
+     * The EQ page's graphic curves: one partition, plus the FIR's half when
+     * a layer asks for linear phase.
+     */
     uint32_t curves = 0;
     /** The EQ's bands under linear phase. */
     uint32_t eq_phase = 0;
@@ -296,20 +304,28 @@ class Graph {
   uint32_t max_frames_;
   bool passthrough_;
   double preamp_linear_;
+  /**
+   * The preamp an edit left behind, ramped to `preamp_linear_` over the same
+   * fade as the bands: a step in gain is a step in the waveform.
+   */
+  double preamp_from_ = 1.0;
+  uint32_t preamp_fade_total_ = 0;
+  uint32_t preamp_fade_left_ = 0;
+  /** Where Auto normalize starts on this curve (`Chain::auto_preamp_start_db`). */
+  double curve_level_db_ = 0.0;
   uint32_t latency_frames_;
   LatencyParts parts_{};
   std::vector<std::string> active_stages_;
   bool low_latency_ = false;
 
-  // Band types in file order, kept apart from the coefficients so a layout
-  // comparison does not have to compare floating-point coefficients that two
-  // equivalent layouts can differ in.
-  std::vector<FilterType> layout_;
-  // One entry per band, shared by every channel: the coefficients depend on
-  // the band and the sample rate, never on which channel is being filtered.
-  std::vector<FeqBiquadCoefficients> coefficients_;
-  // `channels_ * coefficients_.size()`, channel-major.
-  std::vector<FeqBiquadState> states_;
+  /** The preamp at the current point of its ramp. */
+  double current_preamp() const noexcept;
+
+  // Bands no layer claims — a hand-written config's plain `Filter:` lines.
+  // Always built, even empty, like the two phase stages: an empty stage is a
+  // straight copy, and it is what lets bands that appear or disappear in an
+  // edit fade in or out.
+  std::unique_ptr<IirCascade> plain_;
   std::unique_ptr<EqPhaseStage> eq_phase_;
   std::unique_ptr<EqPhaseStage> curve_phase_;
 

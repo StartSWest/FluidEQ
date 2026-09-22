@@ -18,7 +18,21 @@ class OutputGuard {
   uint32_t latency() const noexcept { return latency_; }
   double gain_db() const noexcept;
   void reassess(uint32_t settling_frames) noexcept;
+  /**
+   * The curve's own level, 0 dB or below: where Auto normalize starts, and
+   * how much a louder curve has to come down at once.
+   *
+   * The first enabled block starts here rather than at 0 dB, and the level is
+   * brought back up from it as the music leaves room — Ivan's description of
+   * his normalizer. A later, lower level (a band raised while playing) takes
+   * the level down by the difference at once, so the boost never arrives over
+   * the ceiling; a higher one is left to the recovery.
+   */
+  void set_curve_level(double db) noexcept;
  private:
+  double curve_level_db_ = 0;
+  /** The next enabled block starts from the curve's level. */
+  bool armed_ = true;
   uint32_t rate_;
   uint32_t latency_;
   uint32_t window_frames_;

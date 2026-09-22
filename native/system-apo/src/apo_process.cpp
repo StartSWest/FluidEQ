@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <new>
 #include <string>
 
+#include "fluideq/denormals.h"
 #include "log.h"
 #include "paths.h"
 
@@ -227,6 +228,11 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
   }
   const APO_CONNECTION_PROPERTY& in = *inputs[0];
   APO_CONNECTION_PROPERTY& out = *outputs[0];
+
+  // For the whole call, the swap included: it carries filter histories over.
+  // Without it, the silence a paused player keeps sending costs the EQ 13x
+  // its work (fluideq/denormals.h), on a thread every other effect shares.
+  const FeqScopedDenormalsOff denormals;
 
   // The swap, at the block boundary and nowhere else: a graph exchanged
   // mid-block would filter the first half of a buffer with one set of

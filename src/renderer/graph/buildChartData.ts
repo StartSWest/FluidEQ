@@ -39,6 +39,7 @@ import {
   IGraphicEqPoint,
   isBandEnabled,
   IState,
+  TApoFeature,
   TApoLayer,
 } from 'common/constants';
 import {
@@ -49,8 +50,8 @@ import {
   OUTPUT_CURVE_ID,
 } from './ChartController';
 import {
-  getFilterLineData,
   getCombinedLineData,
+  getDesignedFilterLineData,
   getGraphicEqLineData,
 } from './utils';
 import { ColorEnum } from '../styles/color';
@@ -64,6 +65,7 @@ import {
 } from '../../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
+import { usesMatchedDesign } from '../../common/filterDesign';
 
 /** Supporting curves sit behind the one in focus rather than competing with it. */
 export const SUPPORTING_CURVE_OPACITY = 0.5;
@@ -119,6 +121,18 @@ export interface IBuildChartDataParams extends Pick<
    */
   hasPreAmp: boolean;
   isEqQuiet: boolean;
+  /**
+   * Whether the FluidEQ Engine is the one playing. It builds FluidEQ's own
+   * layers analog-matched (`usesMatchedDesign`), so they are drawn with the
+   * analog shape they play; Equalizer APO plays every band from the cookbook.
+   */
+  matchedDesign: boolean;
+  /**
+   * The rate the output runs at, which is the rate either engine builds every
+   * band at: the lower it is, the more the cookbook narrows a treble band.
+   * Undefined until the output list has answered.
+   */
+  sampleRate?: number;
   t: ReturnType<typeof useTranslation>['t'];
   /**
    * Last render's bands and the lines drawn for them, kept across renders.
@@ -155,6 +169,12 @@ const isFilterEqual = (f1: IFilter, f2: IFilter) => {
 };
 
 /**
+ * Which design and rate each chart's cached band lines were drawn with, keyed
+ * by that chart's own cache so two charts never answer for each other.
+ */
+const drawnDesign = new WeakMap<MutableRefObject<IFiltersMap>, string>();
+
+/**
  * Every curve the graph draws, built in one pass.
  *
  * Six hundred lines inside a component, almost all of it a function of the
@@ -185,9 +205,11 @@ export const buildChartData = ({
   eqBandQ,
   curveBandQ,
   curveSmoothing,
+  matchedDesign,
   preAmp,
   prevFilterLines,
   prevFilters,
+  sampleRate,
   smartEq,
   t,
   voicing,
@@ -197,12 +219,22 @@ export const buildChartData = ({
   const shapeState = { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ };
   const mainShape = getBandQ(shapeState, 'eq');
   const curveShape = getBandQ(shapeState, 'curves');
-  const appliedFilterLine = (filter: IFilter) => {
+  // Whether a layer's bands are drawn analog-matched: only what the engine
+  // playing builds that way. The custom file names no layer, so its bands
+  // stay on the cookbook in the engine and here.
+  const matchedFor = (feature?: TApoFeature) =>
+    matchedDesign && feature !== undefined && usesMatchedDesign(feature);
+  const eqMatched = matchedFor('eq');
+  const appliedFilterLine = (filter: IFilter, feature?: TApoFeature) => {
     const effective =
       curveStrength === 'studio'
         ? getStudioEqFilters([filter], curveShape)[0]
         : shapeEqFilters([filter], curveShape)[0];
-    const original = getFilterLineData(effective);
+    const original = getDesignedFilterLineData(
+      effective,
+      matchedFor(feature),
+      sampleRate,
+    );
     const correction = filterSmoothingCorrection([effective], curveSmoothing);
     const points = correction.length
       ? getCombinedLineData(0, {
@@ -225,6 +257,12 @@ export const buildChartData = ({
       : points;
   };
   const updatedFilterLines: IChartLineDataPointsById = {};
+  // The cached lines were drawn for one engine's design at one rate:
+  // switching engines or outputs redraws every band rather than reusing a
+  // line of another shape.
+  const design = `${eqMatched ? 'matched' : 'cookbook'}@${sampleRate ?? '-'}`;
+  const redrawAll = drawnDesign.get(prevFilters) !== design;
+  drawnDesign.set(prevFilters, design);
 
   // Update filter lines that have changed
   Object.values(filters).forEach((filter) => {
@@ -239,14 +277,22 @@ export const buildChartData = ({
       return;
     }
     // New filters have no previous data
-    if (!(filter.id in prevFilters.current)) {
-      updatedFilterLines[filter.id] = getFilterLineData(filter);
+    if (redrawAll || !(filter.id in prevFilters.current)) {
+      updatedFilterLines[filter.id] = getDesignedFilterLineData(
+        filter,
+        eqMatched,
+        sampleRate,
+      );
       return;
     }
 
     // Recompute filter line if it has been adjusted
     if (!isFilterEqual(filter, prevFilters.current[filter.id])) {
-      updatedFilterLines[filter.id] = getFilterLineData(filter);
+      updatedFilterLines[filter.id] = getDesignedFilterLineData(
+        filter,
+        eqMatched,
+        sampleRate,
+      );
     } else {
       // Otherwise, reuse previous data
       updatedFilterLines[filter.id] = prevFilterLines.current[filter.id];
@@ -279,13 +325,16 @@ export const buildChartData = ({
     : getVoicingFilters(voicing)
   ).forEach((filter, index) => {
     const id = `voicing-${index}`;
-    voicingFilterLines[id] = appliedFilterLine({
-      id,
-      frequency: filter.frequency,
-      gain: filter.gain,
-      quality: filter.quality,
-      type: filter.type,
-    });
+    voicingFilterLines[id] = appliedFilterLine(
+      {
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      },
+      'voicing',
+    );
   });
   const hasVoicing = Object.keys(voicingFilterLines).length > 0;
 
@@ -304,13 +353,16 @@ export const buildChartData = ({
     : getDriverFilters(driver)
   ).forEach((filter, index) => {
     const id = `driver-${index}`;
-    driverFilterLines[id] = appliedFilterLine({
-      id,
-      frequency: filter.frequency,
-      gain: filter.gain,
-      quality: filter.quality,
-      type: filter.type,
-    });
+    driverFilterLines[id] = appliedFilterLine(
+      {
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      },
+      'driver',
+    );
   });
   const hasDriver = Object.keys(driverFilterLines).length > 0;
 
@@ -343,13 +395,16 @@ export const buildChartData = ({
     : getHeadphoneFilters(headphone)
   ).forEach((filter, index) => {
     const id = `headphone-${index}`;
-    headphoneFilterLines[id] = appliedFilterLine({
-      id,
-      frequency: filter.frequency,
-      gain: filter.gain,
-      quality: filter.quality,
-      type: filter.type,
-    });
+    headphoneFilterLines[id] = appliedFilterLine(
+      {
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      },
+      'headphone',
+    );
   });
   const hasHeadphone = Object.keys(headphoneFilterLines).length > 0;
 
@@ -368,13 +423,16 @@ export const buildChartData = ({
     : getSmartEqFilters(smartEq)
   ).forEach((filter, index) => {
     const id = `smart-eq-${index}`;
-    smartFilterLines[id] = appliedFilterLine({
-      id,
-      frequency: filter.frequency,
-      gain: filter.gain,
-      quality: filter.quality,
-      type: filter.type,
-    });
+    smartFilterLines[id] = appliedFilterLine(
+      {
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      },
+      'smart',
+    );
   });
   const hasSmartEq = Object.keys(smartFilterLines).length > 0;
 
@@ -436,7 +494,10 @@ export const buildChartData = ({
     const shapedLines = nativeEqGraphic
       ? eqLineData
       : Object.fromEntries(
-          shaped.map((filter) => [filter.id, getFilterLineData(filter)]),
+          shaped.map((filter) => [
+            filter.id,
+            getDesignedFilterLineData(filter, eqMatched, sampleRate),
+          ]),
         );
     if (strength === 'double') {
       appliedEqLines = {
@@ -454,7 +515,10 @@ export const buildChartData = ({
             getStudioEqFilters(
               Object.values(filters).filter(isBandEnabled),
               mainShape,
-            ).map((filter) => [filter.id, getFilterLineData(filter)]),
+            ).map((filter) => [
+              filter.id,
+              getDesignedFilterLineData(filter, eqMatched, sampleRate),
+            ]),
           );
     } else {
       appliedEqLines = shapedLines;

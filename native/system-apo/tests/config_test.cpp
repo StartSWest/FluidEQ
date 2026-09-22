@@ -270,12 +270,15 @@ void engine_comments_keep_manual_and_custom_preamp_semantics() {
   auto chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
   CHECK(chain.matched && chain.output_guard && chain.auto_preamp);
   CHECK(chain.preamp_db == 0 && chain.stable_graphic);
+  // Auto normalize starts from the level the app sized for the curve.
+  CHECK(chain.auto_preamp_start_db == -12);
   auto other = resolve_chain(L"C:\\cfg", {L"{BBBB}", L"Other"}, provider(files));
   CHECK(!other.matched && !other.output_guard && !other.stable_graphic);
   files[L"C:\\cfg\\config.txt"] += "Include: custom.txt\n";
   files[L"C:\\cfg\\custom.txt"] = "Preamp: -3 dB\n";
   chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
   CHECK(chain.auto_preamp && chain.preamp_db == -3);
+  CHECK(chain.auto_preamp_start_db == -12);
   files[L"C:\\cfg\\config.txt"] = "Preamp: -7 dB\n# FluidEQAutoPreamp: OFF\n";
   chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
   CHECK(chain.output_guard && !chain.auto_preamp && chain.preamp_db == -7);
@@ -368,6 +371,42 @@ void official_phase_files_are_independent_and_default_to_minimum() {
 
 }  // namespace
 
+// The analog-matched design is asked for file by file: a layer's directive
+// governs the filters after it in that file and in what it includes, and
+// never the next file its parent includes — the headphone correction sits
+// beside the EQ layer in one device file and has to stay on the cookbook
+// AutoEQ fitted it with (0.14 dB from its fit, 0.89 dB built matched).
+void filter_design_scopes_follow_includes_without_leaking() {
+  std::printf("filter design scopes follow includes without leaking\n");
+  Files files;
+  files[L"C:\\cfg\\config.txt"] =
+      "Include: eq.txt\r\nInclude: headphone.txt\r\n"
+      "Filter 9: ON PK Fc 9000 Hz Gain 1 dB Q 1\r\n";
+  files[L"C:\\cfg\\eq.txt"] =
+      "Filter 1: ON PK Fc 100 Hz Gain 2 dB Q 1\r\n"
+      "# FluidEQFilterDesign: MATCHED\r\n"
+      "Filter 2: ON PK Fc 16000 Hz Gain 6 dB Q 2\r\n"
+      "Include: eq-more.txt\r\n"
+      "# FluidEQFilterDesign: COOKBOOK\r\n"
+      "Filter 3: ON PK Fc 12000 Hz Gain 3 dB Q 2\r\n";
+  files[L"C:\\cfg\\eq-more.txt"] = "Filter 4: ON PK Fc 10000 Hz Gain 4 dB Q 2\r\n";
+  files[L"C:\\cfg\\headphone.txt"] = "Filter 5: ON PK Fc 8474 Hz Gain -7 dB Q 1\r\n";
+  const Chain chain = resolve_chain(L"C:\\cfg", Endpoint{L"{X}", L"Test"},
+                                    provider(files));
+  CHECK(chain.bands.size() == 6);
+  if (chain.bands.size() != 6) {
+    return;
+  }
+  // POSITIVE CONTROL: the directive does switch the design on, so the
+  // cookbook everywhere else is the scope at work rather than a dead line.
+  CHECK(chain.bands[1].matched);  // after the directive, same file
+  CHECK(chain.bands[2].matched);  // inherited by an include
+  CHECK(!chain.bands[0].matched);  // before it
+  CHECK(!chain.bands[3].matched);  // switched back in the same file
+  CHECK(!chain.bands[4].matched);  // a sibling file: the correction
+  CHECK(!chain.bands[5].matched);  // the parent, after the include returned
+}
+
 int main() {
   std::printf("fluideq engine config\n");
   follows_includes_and_device_guards();
@@ -387,6 +426,7 @@ int main() {
   game_mode_metadata_keeps_the_rack_compatible();
   phase_scopes_follow_includes_without_leaking();
   official_phase_files_are_independent_and_default_to_minimum();
+  filter_design_scopes_follow_includes_without_leaking();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

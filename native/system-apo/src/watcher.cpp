@@ -513,10 +513,17 @@ void Watcher::reload() {
             read_config_file(config_dir_ + L"\\" + kRoomHeadFileName)) {
       head = parse_room_head(*text, static_cast<double>(sample_rate_));
     }
+    // Whether the graph being replaced was changing the sound: if so, a
+    // chain with nothing for this output still fades the EQ out rather than
+    // cutting it, and keeps the timeline (`Graph`'s `follows_processing`).
+    // `active()` cannot return a graph already destroyed — see `GraphSlot`.
+    const Graph* const running = slot_.active();
+    const bool follows_processing =
+        running != nullptr && !running->is_passthrough();
     auto graph = std::make_unique<Graph>(
         chain, sample_rate_, channels_, max_frames_,
         leveling_ ? leveling_->memory() : nullptr, channel_mask_,
-        head ? &*head : nullptr);
+        head ? &*head : nullptr, follows_processing);
     if (!graph->room_note().empty()) {
       log_.write(graph->room_note());
     }

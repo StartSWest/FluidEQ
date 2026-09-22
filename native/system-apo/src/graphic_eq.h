@@ -41,6 +41,20 @@ std::vector<float> design_graphic_kernel(
     const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
     uint32_t taps);
 
+/**
+ * The same summed curve as a minimum-phase FIR that starts on its first tap:
+ * no bulk delay, and no energy ahead of the sound it shapes.
+ *
+ * Designed directly by the real cepstrum on a grid four times the kernel's
+ * length (the fold is exact only where the cepstrum has died away inside the
+ * grid), with the log magnitude floored at -100 dB, and tapered over its last
+ * quarter so the truncation does not ring. No curves at all is an exact unit
+ * impulse at tap 0, so an empty stage is a plain copy.
+ */
+std::vector<float> design_minimum_graphic_kernel(
+    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+    uint32_t taps);
+
 }  // namespace fluideq_engine
 
 #endif  // FLUIDEQ_ENGINE_GRAPHIC_EQ_H

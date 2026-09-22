@@ -44,6 +44,31 @@ Measurement measure(const Chain& chain, uint32_t rate) {
   return result;
 }
 
+/** A curve's own line, as the app draws it: dB linear in log frequency. */
+double drawn_db(const std::vector<std::vector<fluideq_engine::GraphicPoint>>& curves,
+                double frequency) {
+  double sum = 0;
+  for (const auto& curve : curves) {
+    if (frequency <= curve.front().frequency) {
+      sum += curve.front().gain_db;
+      continue;
+    }
+    if (frequency >= curve.back().frequency) {
+      sum += curve.back().gain_db;
+      continue;
+    }
+    for (size_t at = 1; at < curve.size(); ++at) {
+      if (frequency <= curve[at].frequency) {
+        const double t = std::log10(frequency / curve[at - 1].frequency) /
+                         std::log10(curve[at].frequency / curve[at - 1].frequency);
+        sum += curve[at - 1].gain_db + t * (curve[at].gain_db - curve[at - 1].gain_db);
+        break;
+      }
+    }
+  }
+  return sum;
+}
+
 Chain correction() {
   Chain chain;
   chain.matched = true;
@@ -133,7 +158,9 @@ void sampled_curves_keep_magnitude_but_change_phase() {
   double phase_change = 0;
   double largest = 0;
   double positive = 0;
-  for (int mode = 1; mode < 4; ++mode) {
+  // Mixed modes only: with some curve still linear the stage keeps the
+  // linear design, and switching the other layer changes phase alone.
+  for (int mode = 1; mode < 3; ++mode) {
     auto selected = chain;
     selected.minimum_eq_phase = (mode & 1) != 0;
     selected.minimum_curve_phase = (mode & 2) != 0;
@@ -154,6 +181,30 @@ void sampled_curves_keep_magnitude_but_change_phase() {
   CHECK(largest < 0.05);
   CHECK(positive > 3);
   CHECK(phase_change > 0.1);
+
+  // Every curve minimum phase: one minimum-phase kernel with no delay of its
+  // own — only the convolver's partition — that holds the drawn curve at
+  // least as closely as the linear design it replaces, which smoothed it.
+  auto minimum = chain;
+  minimum.minimum_eq_phase = true;
+  minimum.minimum_curve_phase = true;
+  const auto response = measure(minimum, kRate);
+  CHECK(response.latency == feq_convolver_latency());
+  double worst_minimum = 0;
+  double worst_linear = 0;
+  for (uint32_t bin = 1; bin < kFftSize / 2; ++bin) {
+    const double frequency = static_cast<double>(bin) * kRate / kFftSize;
+    if (frequency < 30 || frequency > 16000) continue;
+    const double wanted = drawn_db(chain.graphic_curves, frequency);
+    worst_minimum = std::max(worst_minimum, std::abs(20 * std::log10(
+        std::hypot(response.real[bin], response.imaginary[bin])) - wanted));
+    worst_linear = std::max(worst_linear, std::abs(20 * std::log10(
+        std::hypot(reference.real[bin], reference.imaginary[bin])) - wanted));
+  }
+  std::printf("graphic curves off the drawn line: minimum phase %.3f dB, "
+              "linear design %.3f dB\n", worst_minimum, worst_linear);
+  CHECK(worst_minimum <= worst_linear + 0.01);
+  CHECK(worst_minimum < 0.5);
 }
 
 void switching_never_drops_a_noise_block() {

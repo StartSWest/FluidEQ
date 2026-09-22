@@ -25,6 +25,10 @@ import {
   GRAPH_END,
 } from './ChartController';
 
+/**
+ * The rate a cookbook band is drawn at while the output's own is not known:
+ * high enough that the bilinear squeeze sits above the graph's range.
+ */
 const SAMPLE_FREQUENCY = 96000;
 const NUM_STEPS = 1000;
 
@@ -43,7 +47,15 @@ interface ITransferFuncCoeffs {
   a2: number;
 }
 
-const getTFCoefficients = (filter: IFilter) => {
+/**
+ * The highest centre a band can have at `sampleRate`: the bound both
+ * engines keep (`feq_biquad_coefficients`), clear of Nyquist's degenerate
+ * poles. A band asked for above it plays there.
+ */
+const realizable = (frequency: number, sampleRate: number): number =>
+  Math.min(frequency, sampleRate * 0.499);
+
+const getTFCoefficients = (filter: IFilter, sampleRate: number) => {
   const {
     type: filterType,
     frequency,
@@ -67,7 +79,7 @@ const getTFCoefficients = (filter: IFilter) => {
   const gainFactor = specialFilters.has(filterType) ? 40 : 20;
   const gain = 10 ** (dbGain / gainFactor);
 
-  const omega = (2 * Math.PI * frequency) / SAMPLE_FREQUENCY;
+  const omega = (2 * Math.PI * realizable(frequency, sampleRate)) / sampleRate;
   const cosine = Math.cos(omega);
 
   let b0 = 0;
@@ -158,9 +170,16 @@ const getTFCoefficients = (filter: IFilter) => {
   return { b0, b1, b2, a1, a2 } as ITransferFuncCoeffs;
 };
 
-const gainAtFrequency = (f: number, c: ITransferFuncCoeffs) => {
+const gainAtFrequency = (
+  f: number,
+  c: ITransferFuncCoeffs,
+  sampleRate: number,
+) => {
   const { b0, b1, b2, a1, a2 } = c;
-  const phi = Math.sin((2 * Math.PI * f) / (2 * SAMPLE_FREQUENCY)) ** 2;
+  // Nothing plays above Nyquist, so the line holds the value it has there
+  // rather than drawing the digital response's mirror image.
+  const phi =
+    Math.sin((Math.PI * Math.min(f, sampleRate / 2)) / sampleRate) ** 2;
   const numerator =
     (b0 + b1 + b2) ** 2 -
     4 * (b0 * b1 + 4 * b0 * b2 + b1 * b2) * phi +
@@ -173,20 +192,144 @@ const gainAtFrequency = (f: number, c: ITransferFuncCoeffs) => {
   return 10 * Math.log10(numerator / denominator);
 };
 
-// Get curve and point info for individual filters
-export const getFilterLineData = (filter: IFilter): IChartPointData[] => {
-  const tf = getTFCoefficients(filter);
+/**
+ * One band's line as the cookbook plays it at `sampleRate` — the output's
+ * own rate when the caller knows it, which is where the cookbook narrows the
+ * treble bands, and `SAMPLE_FREQUENCY` when it does not.
+ */
+export const getFilterLineData = (
+  filter: IFilter,
+  sampleRate: number = SAMPLE_FREQUENCY,
+): IChartPointData[] => {
+  const tf = getTFCoefficients(filter, sampleRate);
 
   const data: IChartPointData[] = SAMPLE_FREQUENCIES.map((f) => {
     return { x: f, y: 0 };
   });
 
   for (let i = 0; i < SAMPLE_FREQUENCIES.length; i += 1) {
-    const freqFilterGain = gainAtFrequency(SAMPLE_FREQUENCIES[i], tf);
+    const freqFilterGain = gainAtFrequency(
+      SAMPLE_FREQUENCIES[i],
+      tf,
+      sampleRate,
+    );
     data[i].y = freqFilterGain;
   }
 
   return data;
+};
+
+/**
+ * How far from Butterworth a shelf may be and still be built analog-matched:
+ * `kButterworthTolerance` in `native/dsp-core/src/biquad_matched.cpp`,
+ * mirrored so the graph draws each band with the design the engine uses.
+ */
+const BUTTERWORTH_TOLERANCE = 0.02;
+
+/**
+ * Whether the FluidEQ Engine builds this band analog-matched when its layer
+ * asks: the same rule as `feq_biquad_coefficients_matched`, which keeps the
+ * cookbook for notches and non-Butterworth shelves because no matched design
+ * measured better there.
+ */
+export const playsAnalogMatched = ({
+  type,
+  quality,
+}: Pick<IFilter, 'type' | 'quality'>): boolean => {
+  switch (type) {
+    case FilterTypeEnum.PK:
+    case FilterTypeEnum.LPQ:
+    case FilterTypeEnum.HPQ:
+    case FilterTypeEnum.BP:
+      return true;
+    case FilterTypeEnum.LSC:
+    case FilterTypeEnum.HSC:
+      return Math.abs(quality - Math.SQRT1_2) <= BUTTERWORTH_TOLERANCE;
+    default:
+      return false;
+  }
+};
+
+/**
+ * The analog prototype a cookbook band is the bilinear image of, in dB at
+ * `f`: what an analog-matched band plays, at any sample rate, to within a
+ * few tenths of a decibel of Nyquist.
+ */
+const analogGainDb = (
+  { type, frequency, gain, quality }: IFilter,
+  f: number,
+): number => {
+  const w = f / frequency;
+  const real = 1 - w * w;
+  const poles = real * real + (w / quality) ** 2;
+  if (type === FilterTypeEnum.PK) {
+    const a = 10 ** (gain / 40);
+    return (
+      10 *
+      Math.log10(
+        (real * real + ((w * a) / quality) ** 2) /
+          (real * real + (w / (a * quality)) ** 2),
+      )
+    );
+  }
+  if (type === FilterTypeEnum.LSC || type === FilterTypeEnum.HSC) {
+    const a = 10 ** (gain / 40);
+    const r = (Math.sqrt(a) * w) / quality;
+    const low = (a - w * w) ** 2 + r * r;
+    const high = (1 - a * w * w) ** 2 + r * r;
+    return (
+      10 *
+      Math.log10(
+        type === FilterTypeEnum.LSC
+          ? (a * a * low) / high
+          : (a * a * high) / low,
+      )
+    );
+  }
+  if (type === FilterTypeEnum.LPQ) {
+    return 10 * Math.log10(1 / poles);
+  }
+  if (type === FilterTypeEnum.HPQ) {
+    return 10 * Math.log10(w ** 4 / poles);
+  }
+  // Band-pass: (s/Q) over the same poles, unity at the centre.
+  return 10 * Math.log10((w / quality) ** 2 / poles);
+};
+
+/**
+ * One band as the engine plays it at `sampleRate`: analog-matched when
+ * `matched` and the engine has a matched design for its shape, the cookbook
+ * otherwise.
+ *
+ * A matched band is the analog shape at any rate, bounded the way the engine
+ * bounds it: a bell's or a pass filter's centre held below Nyquist, a
+ * shelf's corner left where it was asked for, and nothing drawn changing
+ * above Nyquist. Without a rate it is the analog shape across the graph.
+ */
+export const getDesignedFilterLineData = (
+  filter: IFilter,
+  matched: boolean,
+  sampleRate?: number,
+): IChartPointData[] => {
+  if (!matched || !playsAnalogMatched(filter)) {
+    return getFilterLineData(filter, sampleRate);
+  }
+  if (sampleRate === undefined) {
+    return SAMPLE_FREQUENCIES.map((f) => ({
+      x: f,
+      y: analogGainDb(filter, f),
+    }));
+  }
+  const isShelf =
+    filter.type === FilterTypeEnum.LSC || filter.type === FilterTypeEnum.HSC;
+  const played = isShelf
+    ? filter
+    : { ...filter, frequency: realizable(filter.frequency, sampleRate) };
+  const nyquist = sampleRate / 2;
+  return SAMPLE_FREQUENCIES.map((f) => ({
+    x: f,
+    y: analogGainDb(played, Math.min(f, nyquist)),
+  }));
 };
 
 /**

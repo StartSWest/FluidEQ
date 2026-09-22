@@ -38,6 +38,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   1.10 supports the shared Game mode control and reports all processing
  *        delay parts, including active stages that add no buffering.
  *   1.11 supports the versioned Room trailer and comparison telemetry.
+ *   1.12 its setup helper takes the one-value slots (`efx-single`,
+ *        `mfx-single`, `sfx-single`) on the slot ladder.
+ *   1.13 builds a layer's bands analog-matched where the file says
+ *        `# FluidEQFilterDesign: MATCHED`, and the graph draws that shape
+ *        only from here on; an older engine reads the line as a comment.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -49,8 +54,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 12, 0, 0
-PRODUCTVERSION 1, 12, 0, 0
+FILEVERSION 1, 13, 0, 0
+PRODUCTVERSION 1, 13, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

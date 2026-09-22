@@ -126,4 +126,74 @@ std::vector<float> design_graphic_kernel(
   return kernel;
 }
 
+std::vector<float> design_minimum_graphic_kernel(
+    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+    uint32_t taps) {
+  const uint32_t n = std::max<uint32_t>(taps, 1u);
+  uint32_t m = 1;
+  while (m < 4 * n) {
+    m <<= 1;
+  }
+
+  std::vector<std::vector<GraphicPoint>> sorted(curves);
+  for (std::vector<GraphicPoint>& curve : sorted) {
+    std::sort(curve.begin(), curve.end(),
+              [](const GraphicPoint& a, const GraphicPoint& b) {
+                return a.frequency < b.frequency;
+              });
+  }
+
+  // The natural log of the target magnitude on every bin, mirrored.
+  constexpr double kFloorDb = -100.0;
+  const double nepers_per_db = std::log(10.0) / 20.0;
+  std::vector<double> real(m, 0.0);
+  std::vector<double> imaginary(m, 0.0);
+  const uint32_t half = m / 2;
+  for (uint32_t k = 0; k <= half; ++k) {
+    const double frequency = static_cast<double>(k) *
+                             static_cast<double>(sample_rate) /
+                             static_cast<double>(m);
+    double gain_db = 0.0;
+    for (const std::vector<GraphicPoint>& curve : sorted) {
+      gain_db += interpolated_gain_db(curve, frequency);
+    }
+    const double log_magnitude = std::max(gain_db, kFloorDb) * nepers_per_db;
+    real[k] = log_magnitude;
+    if (k != 0 && k != half) {
+      real[m - k] = log_magnitude;
+    }
+  }
+
+  // Real cepstrum, folded onto positive quefrency: the minimum-phase
+  // spectrum's log is then its transform.
+  feq_fft_in_place(real.data(), imaginary.data(), m, /*inverse=*/1);
+  for (uint32_t q = 0; q < m; ++q) {
+    const double weight = q == 0 || q == half ? 1.0 : (q < half ? 2.0 : 0.0);
+    real[q] = real[q] * weight / static_cast<double>(m);
+    imaginary[q] = 0.0;
+  }
+  feq_fft_in_place(real.data(), imaginary.data(), m, /*inverse=*/0);
+  for (uint32_t k = 0; k < m; ++k) {
+    const double magnitude = std::exp(real[k]);
+    const double phase = imaginary[k];
+    real[k] = magnitude * std::cos(phase);
+    imaginary[k] = magnitude * std::sin(phase);
+  }
+  feq_fft_in_place(real.data(), imaginary.data(), m, /*inverse=*/1);
+
+  // Flat over the first three quarters, a half-cosine to zero over the last.
+  std::vector<float> kernel(n, 0.0f);
+  const uint32_t taper_from = n - n / 4;
+  for (uint32_t i = 0; i < n; ++i) {
+    double window = 1.0;
+    if (i >= taper_from && n / 4 > 0) {
+      const double t = static_cast<double>(i - taper_from) /
+                       static_cast<double>(n / 4);
+      window = 0.5 + 0.5 * std::cos(kPi * t);
+    }
+    kernel[i] = static_cast<float>(real[i] / static_cast<double>(m) * window);
+  }
+  return kernel;
+}
+
 }  // namespace fluideq_engine

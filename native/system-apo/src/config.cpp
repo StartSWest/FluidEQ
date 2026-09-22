@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq_engine/config.h"
 
+#include <algorithm>
 #include <set>
 
 #include "config_internal.h"
@@ -201,6 +202,10 @@ struct Frame {
   bool matching = true;
   bool curve_layer = false;
   bool eq_layer = false;
+  // `# FluidEQFilterDesign: MATCHED` — the bands after it, here and in any
+  // file this one includes, are built analog-matched rather than from the
+  // cookbook (`Band::matched`).
+  bool matched_design = false;
 };
 
 }  // namespace
@@ -311,7 +316,9 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       chain.files_read.push_back(*resolved);
       const bool curve_layer = stack.back().curve_layer;
       const bool eq_layer = stack.back().eq_layer;
-      stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching, curve_layer, eq_layer});
+      const bool matched_design = stack.back().matched_design;
+      stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching,
+                            curve_layer, eq_layer, matched_design});
       continue;
     }
 
@@ -334,7 +341,15 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       if (line.body == "ON" || line.body == "OFF") {
         chain.output_guard = true;
         chain.auto_preamp = line.body == "ON";
-        if (chain.auto_preamp) chain.preamp_db = 0.0;
+        // The `Preamp:` read so far is the one the app sized for this curve,
+        // written just above the directive: with Auto normalize on it is
+        // where the guard starts, and the graph's own gain is unity. A
+        // `Preamp:` read after this — the user's custom file — is still a
+        // fixed gain of their own.
+        if (chain.auto_preamp) {
+          chain.auto_preamp_start_db = std::min(0.0, chain.preamp_db);
+          chain.preamp_db = 0.0;
+        }
       }
       continue;
     }
@@ -356,6 +371,12 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       if (stack.back().curve_layer) stack.back().eq_layer = false;
       continue;
     }
+    if (detail::iequals(line.command, "FluidEQFilterDesign")) {
+      if (line.body == "MATCHED" || line.body == "COOKBOOK") {
+        stack.back().matched_design = line.body == "MATCHED";
+      }
+      continue;
+    }
     if (detail::iequals(line.command, "FluidEQEqLayer")) {
       stack.back().eq_layer = line.body == "ON";
       if (stack.back().eq_layer) stack.back().curve_layer = false;
@@ -374,6 +395,7 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
         chain.bands.push_back(*band);
         chain.bands.back().user_eq = stack.back().eq_layer;
         chain.bands.back().curve_layer = stack.back().curve_layer;
+        chain.bands.back().matched = stack.back().matched_design;
         chain.matched = true;
       }
       continue;

@@ -26,6 +26,10 @@ import {
   supportsCurveComparison,
   supportsEqPhase,
 } from 'common/curveComparison';
+import {
+  ENGINE_MATCHED_DESIGN_SINCE,
+  enginePlaysMatched,
+} from 'common/filterDesign';
 
 const ENGINE_RC = path.join(
   __dirname,
@@ -99,6 +103,15 @@ describe('the engine this tree builds', () => {
     const below =
       minor > 0 ? `${major}.${minor - 1}.0.0` : `${major - 1}.99.0.0`;
     expect(engineReportsCarried(below)).toBe(false);
+  });
+
+  it('builds the bands it is asked to build analog-matched', () => {
+    // The graph draws a layer matched only from this version on
+    // (`useMatchedDesign`); an engine.rc left behind the gate would have the
+    // graph draw the cookbook over an engine playing the matched shape.
+    expect(enginePlaysMatched(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_MATCHED_DESIGN_SINCE;
+    expect(enginePlaysMatched(`${major}.${minor - 1}.0.0`)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

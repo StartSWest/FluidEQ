@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "fluideq/chain.h"
+#include "fluideq/denormals.h"
 #include "fluideq/bass_punch.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/linear_phase.h"
@@ -697,9 +698,33 @@ void test_maximizer_platform() {
         "the lone kick is limited by 5 dB or more");
 }
 
+void test_denormals_scope() {
+  std::printf("denormals off for one callback\n");
+#if FEQ_HAS_SSE_DENORMAL_CONTROL
+  const unsigned int before = _mm_getcsr();
+  volatile float tiny = 1e-38f;
+  {
+    const FeqScopedDenormalsOff off;
+    check((_mm_getcsr() & 0x8040u) == 0x8040u, "flush and treat-as-zero are on inside");
+    volatile float product = tiny * 1e-3f;
+    check(product == 0.0f, "a denormal result comes out as zero inside");
+  }
+  check(_mm_getcsr() == before, "the caller's setting comes back on the way out");
+  // POSITIVE CONTROL: the same product is a real denormal outside, so the
+  // zero above is the scope's work rather than the arithmetic's.
+  if ((before & 0x8040u) == 0) {
+    volatile float product = tiny * 1e-3f;
+    check(product != 0.0f, "outside it the denormal is kept");
+  }
+#else
+  check(true, "no SSE denormal control on this target");
+#endif
+}
+
 int main() {
   std::printf("fluideq dsp-core, version %s, ABI %u\n", feq_core_version(),
               feq_core_abi_version());
+  test_denormals_scope();
   test_maximizer_look_ahead_drag();
   test_maximizer_platform();
   test_linear_phase_engages();

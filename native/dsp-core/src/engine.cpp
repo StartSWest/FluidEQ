@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "fluideq/dsp.h"
+#include "fluideq/denormals.h"
 #include "fluideq/parameters.h"
 
 #include <algorithm>
@@ -30,11 +31,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <memory>
 #include <new>
 #include <vector>
-
-#if defined(_M_X64) || defined(__x86_64__) || defined(__SSE2__)
-#include <xmmintrin.h>
-#define FEQ_HAS_SSE_DENORMAL_CONTROL 1
-#endif
 
 namespace {
 
@@ -50,40 +46,6 @@ constexpr int kMaxParameterIndex = 64;
 /** Bin width and count for the callback-duration histogram, in microseconds. */
 constexpr int kTimingBins = 64;
 constexpr double kTimingBinUs = 32.0;
-
-/**
- * Denormals off for the duration of the callback, and restored on the way out.
- *
- * A denormal is not a wrong number, it is a slow one — on x86 the hardware
- * traps into microcode and a multiply that costs one cycle starts costing
- * over a hundred. Filter tails and reverbs decay straight into that range, so
- * the cost arrives during the quiet part of a track and looks like a machine
- * that stutters only on fadeouts. Restored on exit because this is a process
- * -wide mode bit and the host's other threads did not ask for it.
- */
-class ScopedDenormalsOff {
- public:
-  ScopedDenormalsOff() {
-#if FEQ_HAS_SSE_DENORMAL_CONTROL
-    previous_ = _mm_getcsr();
-    _mm_setcsr(previous_ | 0x8040u); /* FTZ | DAZ */
-#endif
-  }
-
-  ~ScopedDenormalsOff() {
-#if FEQ_HAS_SSE_DENORMAL_CONTROL
-    _mm_setcsr(previous_);
-#endif
-  }
-
-  ScopedDenormalsOff(const ScopedDenormalsOff&) = delete;
-  ScopedDenormalsOff& operator=(const ScopedDenormalsOff&) = delete;
-
- private:
-#if FEQ_HAS_SSE_DENORMAL_CONTROL
-  unsigned int previous_ = 0;
-#endif
-};
 
 /** One fully resolved chain, owned by whoever published it. */
 struct Snapshot {
@@ -352,7 +314,7 @@ void feq_engine_process_planar(FeqEngine* engine,
       frames == 0) {
     return;
   }
-  const ScopedDenormalsOff denormals;
+  const FeqScopedDenormalsOff denormals;
   const auto started = std::chrono::steady_clock::now();
 
   // Adopted at the block edge, which is the only place a chain may change.

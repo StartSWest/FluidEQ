@@ -73,6 +73,7 @@ endif()
 add_library(fluideq-dsp-core STATIC
   dsp-core/src/engine.cpp
   dsp-core/src/biquad.cpp
+  dsp-core/src/biquad_matched.cpp
   dsp-core/src/eq.cpp
   dsp-core/src/dynamics.cpp
   dsp-core/src/oversample.cpp
@@ -143,6 +144,12 @@ add_test(NAME song-leveling COMMAND fluideq-song-leveling-test)
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
+
+# The analog-matched designs against the shapes they reproduce and the
+# cookbook they replace: a treble band as drawn, never worse, always stable.
+add_executable(fluideq-biquad-matched-test dsp-core/tests/biquad_matched_test.cpp)
+target_link_libraries(fluideq-biquad-matched-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME biquad-matched COMMAND fluideq-biquad-matched-test)
 
 add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
 target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)

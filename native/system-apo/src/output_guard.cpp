@@ -4,6 +4,24 @@
 #include <limits>
 
 namespace fluideq_engine {
+namespace {
+/**
+ * How the level comes back up once the music leaves room: after 5 s with the
+ * loudest peak at least a decibel under what the level allows, at 0.15 dB/s.
+ *
+ * Measured on five of Ivan's songs (rock, pop, EDM, a ballad, smooth jazz)
+ * through his BlackShark curve, starting from the curve's level, against the
+ * normalizer that started at 0 dB: loudness within 0.9 dB on every song, and
+ * the limiter's worst second 15 dB cleaner on the rock master and 11 dB on
+ * the jazz. Faster costs cleanliness — at 0.3 dB/s after 3 s the level
+ * climbs into the limiter over and over, and the jazz came out 10 dB dirtier
+ * than before — and slower costs the loudness this normalizer is for: the
+ * old 0.1 dB/s left the jazz 2.9 dB quieter.
+ */
+constexpr double kRecoverAfterSeconds = 5.0;
+constexpr double kRecoverDbPerSecond = 0.15;
+}  // namespace
+
 OutputGuard::OutputGuard(uint32_t rate, uint32_t channels)
     : rate_(rate), latency_(feq_post_filter_normalizer_look_ahead(rate)),
       window_frames_(std::max(1u, rate / 10)),
@@ -34,6 +52,12 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     reassess_frames_ = 0;
     edit_recovery_ = false;
     state_.limiter.release_hold_remaining = 0;
+    armed_ = true;
+  } else if (armed_) {
+    // The limiter meets this as a drop and back-fills it across its
+    // look-ahead, so the first sample out is already at the curve's level.
+    target_db_ = curve_level_db_;
+    armed_ = false;
   }
   for (uint32_t offset = 0; offset < frames;) {
     const uint32_t count = std::min(frames - offset, window_frames_ - measured_frames_);
@@ -71,7 +95,9 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
         } else if (-1.0 - peak_db > target_db_ + 1.0) {
           const double seconds = static_cast<double>(window_frames_) / rate_;
           quiet_seconds_ += seconds;
-          if (quiet_seconds_ > 5.0) target_db_ = std::min(0.0, target_db_ + 0.1 * seconds);
+          if (quiet_seconds_ > kRecoverAfterSeconds) {
+            target_db_ = std::min(0.0, target_db_ + kRecoverDbPerSecond * seconds);
+          }
         } else {
           quiet_seconds_ = 0;
         }
@@ -95,5 +121,13 @@ void OutputGuard::reassess(uint32_t settling_frames) noexcept {
 }
 double OutputGuard::gain_db() const noexcept {
   return 20.0 * std::log10(std::max(1e-12, state_.limiter.gain));
+}
+
+void OutputGuard::set_curve_level(double db) noexcept {
+  const double level = std::min(0.0, db);
+  if (!armed_ && level < curve_level_db_) {
+    target_db_ = std::min(0.0, target_db_ + (level - curve_level_db_));
+  }
+  curve_level_db_ = level;
 }
 }

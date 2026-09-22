@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq_engine/graph.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -15,41 +16,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "dsp_chain.h"
-#include "graph_stages.h"
-#include "output_guard.h"
 #include "eq_phase.h"
+#include "graph_stages.h"
+#include "iir_cascade.h"
+#include "output_guard.h"
 
 namespace fluideq_engine {
 
 namespace {
 
-/**
- * `FilterType` to the core's own enum, spelled out rather than cast.
- *
- * The two lists happen to agree today, but `biquad.h` says its order is the
- * host protocol's and append-only, while `config.h`'s follows Equalizer APO's
- * type aliases. A cast would keep compiling on the day one of them moves and
- * would silently apply the wrong shape to every band.
- */
-FeqFilterType to_core_type(FilterType type) {
-  switch (type) {
-    case FilterType::NO:
-      return FEQ_FILTER_NO;
-    case FilterType::LSC:
-      return FEQ_FILTER_LSC;
-    case FilterType::HSC:
-      return FEQ_FILTER_HSC;
-    case FilterType::LPQ:
-      return FEQ_FILTER_LPQ;
-    case FilterType::HPQ:
-      return FEQ_FILTER_HPQ;
-    case FilterType::BP:
-      return FEQ_FILTER_BP;
-    case FilterType::PK:
-      break;
-  }
-  return FEQ_FILTER_PK;
-}
+constexpr double kPi = 3.14159265358979323846;
 
 /** Whether every sample of the block is a real number. Audio thread. */
 bool all_finite(float* const* planar, uint32_t channels,
@@ -72,7 +48,8 @@ bool all_finite(float* const* planar, uint32_t channels,
 
 Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
              uint32_t max_frames, std::shared_ptr<FeqLevelingMemory> leveling,
-             unsigned long channel_mask, const RoomHead* room_head)
+             unsigned long channel_mask, const RoomHead* room_head,
+             bool follows_processing)
     : sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
@@ -135,59 +112,67 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
 
   // An endpoint the config never named gets no EQ at all, not even a
   // preamp of 0 dB: `matched` is the difference between "this config has
-  // something to say about this device" and "it does not".
+  // something to say about this device" and "it does not". The one
+  // exception is FluidEQ switched off on a stream it was changing: empty
+  // stages fade the old bands out, and the guard keeps its delay so the
+  // music does not jump — see the constructor's `follows_processing`.
   if (!chain.matched) {
-    passthrough_ = rack_ == nullptr;
+    if (!follows_processing) {
+      passthrough_ = rack_ == nullptr;
+      return;
+    }
+    plain_ = std::make_unique<IirCascade>(std::vector<IirBand>{}, sample_rate_,
+                                          channels_, max_frames_);
+    eq_phase_ = std::make_unique<EqPhaseStage>(std::vector<IirBand>{}, false,
+        sample_rate_, channels_, max_frames_);
+    curve_phase_ = std::make_unique<EqPhaseStage>(std::vector<IirBand>{}, false,
+        sample_rate_, channels_, max_frames_);
+    output_guard_ = std::make_unique<OutputGuard>(sample_rate_, channels_);
+    latency_frames_ += output_guard_->latency();
+    parts_.guard = output_guard_->latency();
+    passthrough_ = false;
     return;
   }
 
   preamp_linear_ = std::pow(10.0, chain.preamp_db / 20.0);
   auto_preamp_ = chain.auto_preamp;
+  curve_level_db_ = chain.auto_preamp_start_db;
   if (chain.output_guard) {
     output_guard_ = std::make_unique<OutputGuard>(sample_rate_, channels_);
+    output_guard_->set_curve_level(curve_level_db_);
     latency_frames_ += output_guard_->latency();
     parts_.guard = output_guard_->latency();
     if (chain.auto_preamp) active_stages_.emplace_back("guard");
   }
 
-  layout_.reserve(chain.bands.size());
-  coefficients_.reserve(chain.bands.size());
-  std::vector<FeqLinearPhaseBand> eq_bands;
-  std::vector<FeqLinearPhaseBand> curve_bands;
+  std::vector<IirBand> eq_bands;
+  std::vector<IirBand> curve_bands;
+  std::vector<IirBand> plain_bands;
   for (const Band& band : chain.bands) {
-    if (band.user_eq || band.curve_layer) {
-      auto& scoped = band.user_eq ? eq_bands : curve_bands;
-      scoped.push_back({1, 0, to_core_type(band.type), band.frequency,
-                        band.gain_db, band.quality});
-      continue;
-    }
-    layout_.push_back(band.type);
-    coefficients_.push_back(feq_biquad_coefficients(
-        to_core_type(band.type), band.frequency, band.gain_db, band.quality,
-        static_cast<double>(sample_rate_)));
+    auto& scoped = band.user_eq ? eq_bands
+                   : band.curve_layer ? curve_bands
+                                      : plain_bands;
+    scoped.push_back(design_band(band, sample_rate_));
   }
-  states_.assign(static_cast<size_t>(channels_) * coefficients_.size(),
-                 FeqBiquadState{});
-  if (!coefficients_.empty()) active_stages_.emplace_back("filters");
+  plain_ = std::make_unique<IirCascade>(std::move(plain_bands), sample_rate_,
+                                        channels_, max_frames_);
+  if (!plain_->empty()) active_stages_.emplace_back("filters");
   if (chain.preamp_db != 0.0) active_stages_.emplace_back("preamp");
-  for (FeqBiquadState& state : states_) {
-    feq_biquad_reset(&state);
-  }
   // Game mode runs every band minimum phase: linear phase is a kernel's half
   // length of delay — up to 181 ms — spent on a property nobody aims by.
-  if (!eq_bands.empty()) {
-    eq_phase_ = std::make_unique<EqPhaseStage>(eq_bands,
-        !chain.minimum_eq_phase && !low_latency_,
-        sample_rate_, channels_, max_frames_);
+  eq_phase_ = std::make_unique<EqPhaseStage>(std::move(eq_bands),
+      !chain.minimum_eq_phase && !low_latency_,
+      sample_rate_, channels_, max_frames_);
+  if (!eq_phase_->empty()) {
     latency_frames_ += eq_phase_->latency();
     parts_.eq_phase = eq_phase_->latency();
     if (!eq_phase_->failed()) active_stages_.emplace_back("eqPhase");
     if (eq_phase_->failed()) problems_.push_back("eq-phase");
   }
-  if (!curve_bands.empty()) {
-    curve_phase_ = std::make_unique<EqPhaseStage>(curve_bands,
-        !chain.minimum_curve_phase && !low_latency_,
-        sample_rate_, channels_, max_frames_);
+  curve_phase_ = std::make_unique<EqPhaseStage>(std::move(curve_bands),
+      !chain.minimum_curve_phase && !low_latency_,
+      sample_rate_, channels_, max_frames_);
+  if (!curve_phase_->empty()) {
     latency_frames_ += curve_phase_->latency();
     parts_.curve_phase = curve_phase_->latency();
     if (!curve_phase_->failed()) active_stages_.emplace_back("curvePhase");
@@ -216,11 +201,11 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   // `Chain::graphic_curves`.
   //
   // `stable_graphic` keeps the stage in place with no curves at all, as a
-  // pure delay, so that adding the first curve never moves the audio — 2560
-  // frames, 53 ms at 48 kHz, of nothing, on every output a curve could ever
-  // reach. Game mode will not pay for that comfort: with no curves there is
-  // no stage, and with curves the stage is minimum phase with no bulk delay
-  // (`design_graphic`).
+  // plain copy, so that adding the first curve never moves the audio. With
+  // every curve minimum phase that costs the convolver's one partition —
+  // 512 frames, 11 ms at 48 kHz — where it used to be 2560, 53 ms, on every
+  // output a curve could ever reach. Game mode will not pay even that: with
+  // no curves there is no stage.
   if (!chain.graphic_curves.empty() ||
       (chain.stable_graphic && !low_latency_)) {
     GraphicDesign design =
@@ -231,10 +216,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
           kernel.data(), static_cast<uint32_t>(kernel.size())));
       if (graphic_kernel_ &&
           build_convolvers(graphic_kernel_.get(), channels_, graphic_)) {
-        // Both comparison paths retain the original fixed FIR delay. The
-        // minimum-phase curve adds frequency-dependent phase, not a second
-        // bulk delay. Padding keeps convolver history transferable between
-        // A and B without changing either path's reported latency.
+        // The linear design's half length when some curve is linear phase,
+        // nothing when every curve is minimum phase (`design_graphic`).
         //
         // The impulse-response stage above adds no such term on purpose: an
         // IR is causal, and whatever delay it carries is the room it is
@@ -260,10 +243,10 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     problems_.push_back("graphic-eq");
   }
 
-  passthrough_ = output_guard_ == nullptr && rack_ == nullptr && coefficients_.empty() &&
-                 eq_phase_ == nullptr && curve_phase_ == nullptr &&
-                 impulse_.empty() && graphic_.empty() &&
-                 preamp_linear_ == 1.0f;
+  passthrough_ = output_guard_ == nullptr && rack_ == nullptr &&
+                 plain_->empty() && eq_phase_->empty() &&
+                 curve_phase_->empty() && impulse_.empty() &&
+                 graphic_.empty() && preamp_linear_ == 1.0;
 }
 
 // Every owning member is a `unique_ptr` (the kernels) or a vector of them
@@ -319,32 +302,48 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
   if (eq_phase_) eq_phase_->process(planar, frames);
   if (curve_phase_) curve_phase_->process(planar, frames);
 
-  const size_t bands = coefficients_.size();
-  const auto preamp = static_cast<float>(preamp_linear_);
   for (uint32_t channel = 0; channel < channels_; ++channel) {
     float* buffer = planar[channel];
     if (buffer == nullptr) {
       continue;
     }
-
     for (size_t stage = channel; stage < impulse_.size(); stage += channels_) {
       feq_convolve(impulse_[stage].get(), buffer, frames);
     }
     if (!graphic_.empty()) {
       feq_convolve(graphic_[channel].get(), buffer, frames);
     }
+  }
+  if (plain_) plain_->process(planar, frames);
 
-    FeqBiquadState* state =
-        states_.data() + static_cast<size_t>(channel) * bands;
-    for (size_t band = 0; band < bands; ++band) {
-      feq_biquad_process(state + band, buffer, frames, &coefficients_[band]);
+  if (preamp_fade_left_ > 0) {
+    const uint32_t done = preamp_fade_total_ - preamp_fade_left_;
+    for (uint32_t channel = 0; channel < channels_; ++channel) {
+      float* buffer = planar[channel];
+      if (buffer == nullptr) {
+        continue;
+      }
+      for (uint32_t at = 0; at < frames; ++at) {
+        double gain = preamp_linear_;
+        if (done + at < preamp_fade_total_) {
+          const double weight =
+              0.5 - 0.5 * std::cos(kPi * static_cast<double>(done + at) /
+                                   static_cast<double>(preamp_fade_total_));
+          gain = preamp_from_ + weight * (preamp_linear_ - preamp_from_);
+        }
+        buffer[at] = static_cast<float>(buffer[at] * gain);
+      }
     }
-
-    // Same test `passthrough_` uses (`preamp_linear_ == 1.0f`, computed once
-    // in the constructor): this used to compare the casted `preamp` against
-    // 1.0f while `passthrough_` compared `chain.preamp_db` against 0.0, so the
-    // two could disagree at the edges of what a cast rounds to.
-    if (preamp_linear_ != 1.0f) {
+    preamp_fade_left_ -= std::min(preamp_fade_left_, frames);
+  } else if (preamp_linear_ != 1.0) {
+    // Same test `passthrough_` uses, on the same double, so the two cannot
+    // disagree at the edges of what a cast rounds to.
+    const auto preamp = static_cast<float>(preamp_linear_);
+    for (uint32_t channel = 0; channel < channels_; ++channel) {
+      float* buffer = planar[channel];
+      if (buffer == nullptr) {
+        continue;
+      }
       for (uint32_t at = 0; at < frames; ++at) {
         buffer[at] *= preamp;
       }
@@ -359,11 +358,11 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
   // engine. A NaN or an infinity — from a program upstream that wrote one, or
   // any stage here that produced one — is played by Windows as silence or as
   // a full-scale burst, and inside a biquad it never leaves: the history
-  // carries it into every block after, and `inherit_state` into the next graph
+  // carries it into every block after, and `adopt_state` into the next graph
   // too. So the block is silenced and every biquad starts over; the next clean
-  // block plays normally. The convolvers are left alone because a finite
-  // impulse response forgets a bad block by itself, one kernel length later,
-  // and nothing on this thread may rebuild one.
+  // block plays normally. The graphic and impulse convolvers are left alone
+  // because a finite impulse response forgets a bad block by itself, one
+  // kernel length later, and nothing on this thread may rebuild one.
   if (!all_finite(planar, channels_, frames)) {
     for (uint32_t channel = 0; channel < channels_; ++channel) {
       if (planar[channel] != nullptr) {
@@ -371,142 +370,11 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
                     static_cast<size_t>(frames) * sizeof(float));
       }
     }
-    for (FeqBiquadState& state : states_) {
-      feq_biquad_reset(&state);
-    }
+    if (plain_) plain_->reset();
     silenced_blocks_.fetch_add(1, std::memory_order_relaxed);
     if (eq_phase_) eq_phase_->reset();
     if (curve_phase_) curve_phase_->reset();
   }
 }
-
-void Graph::adopt_state(Graph* previous) noexcept {
-  if (!transfer_state_ || previous == nullptr || sample_rate_ != previous->sample_rate_ ||
-      channels_ != previous->channels_ || max_frames_ != previous->max_frames_) {
-    return;
-  }
-  inherit_state(*previous);
-  const auto same_phase = [](const std::unique_ptr<EqPhaseStage>& current,
-                             const std::unique_ptr<EqPhaseStage>& before) {
-    return (!current && !before) ||
-        (current && before && current->same_response(*before));
-  };
-  const bool same_eq_phase = same_phase(eq_phase_, previous->eq_phase_) &&
-      same_phase(curve_phase_, previous->curve_phase_);
-  if (eq_phase_ && previous->eq_phase_) eq_phase_->adopt(*previous->eq_phase_);
-  if (curve_phase_ && previous->curve_phase_) curve_phase_->adopt(*previous->curve_phase_);
-  if (output_guard_ && previous->output_guard_) {
-    output_guard_.swap(previous->output_guard_);
-    const bool same_bands = coefficients_.size() == previous->coefficients_.size() &&
-        std::equal(coefficients_.begin(), coefficients_.end(), previous->coefficients_.begin(),
-          [](const FeqBiquadCoefficients& current, const FeqBiquadCoefficients& before) {
-            return current.b0 == before.b0 && current.b1 == before.b1 && current.b2 == before.b2 &&
-                current.a1 == before.a1 && current.a2 == before.a2;
-          });
-    if (auto_preamp_ && (!same_bands || !same_eq_phase || preamp_linear_ != previous->preamp_linear_ ||
-        graphic_identity_ != previous->graphic_identity_ ||
-        impulse_identity_ != previous->impulse_identity_ || impulse_.size() != previous->impulse_.size())) {
-      output_guard_->reassess(std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20);
-    }
-  }
-  if (impulse_identity_ != nullptr && impulse_identity_ == previous->impulse_identity_ &&
-      impulse_.size() == previous->impulse_.size()) {
-    impulse_kernel_.swap(previous->impulse_kernel_);
-    impulse_.swap(previous->impulse_);
-  }
-  if (graphic_identity_ != nullptr && graphic_identity_ == previous->graphic_identity_) {
-    graphic_kernel_.swap(previous->graphic_kernel_);
-    graphic_.swap(previous->graphic_);
-  } else if (graphic_.size() == previous->graphic_.size()) {
-    for (size_t channel = 0; channel < graphic_.size(); ++channel) {
-      feq_convolver_transfer(graphic_[channel].get(), previous->graphic_[channel].get(), sample_rate_ / 20);
-    }
-  }
-  if (rack_ != nullptr && previous->rack_ != nullptr && rack_ != previous->rack_) {
-    feq_chain_transfer_state(rack_.get(), previous->rack_.get());
-  }
-  // The untouched channels' alignment is audio in flight like any other
-  // delay line: a fresh one at a settings change would put its own length of
-  // silence into every channel the rack does not run on. Only where the shape
-  // and the delay match, and element-wise, because this runs on the handover.
-  if (bypass_align_.size() == previous->bypass_align_.size()) {
-    for (size_t at = 0; at < bypass_align_.size(); ++at) {
-      std::vector<float>& line = bypass_align_lines_[at];
-      const std::vector<float>& before = previous->bypass_align_lines_[at];
-      if (line.size() != before.size()) {
-        continue;
-      }
-      for (size_t frame = 0; frame < line.size(); ++frame) {
-        line[frame] = before[frame];
-      }
-      bypass_align_[at].cursor = previous->bypass_align_[at].cursor;
-    }
-  }
-}
-
-void Graph::inherit_state(const Graph& previous) noexcept {
-  if (!has_same_band_layout(previous) || channels_ != previous.channels_ ||
-      sample_rate_ != previous.sample_rate_) {
-    return;
-  }
-  // Element-wise rather than assigning the vector: this runs on the handover
-  // path, where a reallocation is the one thing that must not happen.
-  const size_t count = states_.size() < previous.states_.size()
-                           ? states_.size()
-                           : previous.states_.size();
-  for (size_t at = 0; at < count; ++at) {
-    states_[at] = previous.states_[at];
-  }
-}
-
-void Graph::inherit_rack(const Graph& previous) noexcept {
-  // Every one of these has to hold. `dsp_values_` alone is not enough: the
-  // same array at a different sample rate or channel count builds a chain
-  // with different buffer sizes and a different kernel, and running the old
-  // one on the new stream would be the wrong filter at the wrong rate.
-  // `max_frames_` is checked too: `build_rack` sizes the chain's internal
-  // buffers to it, so a chain built for one block size handed to a graph
-  // that accepted a larger one would have `feq_chain_process` write past
-  // buffers it never sized for that many frames.
-  if (rack_ == nullptr || previous.rack_ == nullptr ||
-      sample_rate_ != previous.sample_rate_ ||
-      channels_ != previous.channels_ ||
-      max_frames_ != previous.max_frames_ ||
-      rack_channels_ != previous.rack_channels_ ||
-      dsp_values_ != previous.dsp_values_) {
-    return;
-  }
-  // The chain this graph built is released here, on the watcher thread, and
-  // was never reachable from the audio thread — this graph has not been
-  // published yet.
-  rack_ = previous.rack_;
-}
-
-bool Graph::rack_is_shared_with(const Graph& other) const noexcept {
-  return rack_ != nullptr && rack_ == other.rack_;
-}
-
-bool Graph::has_same_band_layout(const Graph& other) const noexcept {
-  return layout_ == other.layout_;
-}
-
-bool Graph::is_passthrough() const noexcept { return passthrough_; }
-
-uint32_t Graph::latency_frames() const noexcept { return latency_frames_; }
-double Graph::auto_preamp_gain_db() const noexcept {
-  return output_guard_ ? output_guard_->gain_db() : 0.0;
-}
-
-const std::vector<std::string>& Graph::warnings() const noexcept {
-  return warnings_;
-}
-
-const std::vector<std::string>& Graph::problems() const noexcept {
-  return problems_;
-}
-
-const std::string& Graph::room_note() const noexcept { return room_note_; }
-
-const std::string& Graph::room_state() const noexcept { return room_state_; }
 
 }  // namespace fluideq_engine

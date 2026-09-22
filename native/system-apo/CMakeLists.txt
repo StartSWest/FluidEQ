@@ -24,6 +24,7 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
+  src/graph_handover.cpp src/iir_cascade.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
   src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a

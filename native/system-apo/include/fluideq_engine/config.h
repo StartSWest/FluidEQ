@@ -45,6 +45,15 @@ struct Band {
   double quality;
   bool user_eq = false;
   bool curve_layer = false;
+  /**
+   * Built analog-matched (`feq_biquad_coefficients_matched`) rather than from
+   * the cookbook: FluidEQ's own bands, which were drawn on a graph of the
+   * analog shape. Headphone corrections leave it off — AutoEQ and the graph
+   * tools fit their filters with the cookbook itself, at 44.1 or 48 kHz, so
+   * the cookbook is what plays them back as fitted (0.14 dB from the fit on a
+   * BlackShark correction, against 0.89 dB matched).
+   */
+  bool matched = false;
 };
 
 struct GraphicPoint {
@@ -77,6 +86,16 @@ struct Chain {
   std::vector<Band> bands;
   double preamp_db = 0.0;
   bool auto_preamp = false;
+  /**
+   * Where Auto normalize starts: the `Preamp:` the app sized for this curve,
+   * 0 dB or below. With Auto normalize on, `preamp_db` is 0 and the output
+   * guard owns the level, beginning here and bringing the volume back up
+   * towards 0 dB as the music leaves room. It used to begin at 0 dB and only
+   * turn down, so the first loud hit of every song arrived over the ceiling
+   * and was crushed by the limiter before the level caught up — 7.7 dB deep
+   * on a loud rock master measured through this engine.
+   */
+  double auto_preamp_start_db = 0.0;
   bool output_guard = false;
   bool stable_graphic = false;
   /**

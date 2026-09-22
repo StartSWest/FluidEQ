@@ -42,11 +42,66 @@ void repeated_peaks_do_not_pump() {
     std::vector<std::vector<float>> silence(2, std::vector<float>(kRate * 10));
     run(guard, silence, block);
     CHECK(std::abs(guard.gain_db() - held) < 0.15);
+    // 0.15 dB/s once 5 s have left room: 8 s of quiet is 0.45 dB back.
     std::vector<std::vector<float>> quiet(2, tone(1000, 0.1, kRate * 8, 0));
     run(guard, quiet, block);
-    CHECK(guard.gain_db() > held + 0.1);
-    CHECK(guard.gain_db() < held + 0.6);
+    CHECK(guard.gain_db() > held + 0.2);
+    CHECK(guard.gain_db() < held + 0.7);
   }
+}
+
+// Auto normalize as Ivan described it: the curve's level first, the volume
+// brought back up as the music leaves room.
+void starts_at_the_curve_level_and_recovers() {
+  OutputGuard guard(kRate, 2);
+  guard.set_curve_level(-10);
+  std::vector<std::vector<float>> audio(2, tone(1000, 0.05, kRate * 2, 0));
+  run(guard, audio);
+  CHECK(std::abs(guard.gain_db() + 10) < 0.05);
+  // Nothing over -10 dB reaches the output, from the very first sample.
+  for (uint32_t frame = 0; frame < kRate / 10; ++frame) {
+    CHECK(std::abs(audio[0][frame]) < 0.05f * 0.33f);
+  }
+  std::vector<std::vector<float>> more(2, tone(1000, 0.05, kRate * 10, kRate * 2));
+  run(guard, more);
+  // Twelve seconds in: five waited, seven at 0.15 dB/s.
+  CHECK(guard.gain_db() > -10 + 0.8);
+  CHECK(guard.gain_db() < -10 + 1.4);
+  std::vector<std::vector<float>> long_run(2, tone(1000, 0.05, kRate * 80, 0));
+  run(guard, long_run);
+  CHECK(guard.gain_db() > -0.1);
+}
+
+void a_louder_curve_comes_down_at_once() {
+  OutputGuard guard(kRate, 2);
+  guard.set_curve_level(-6);
+  std::vector<std::vector<float>> audio(2, tone(1000, 0.05, kRate, 0));
+  run(guard, audio);
+  CHECK(std::abs(guard.gain_db() + 6) < 0.05);
+  guard.set_curve_level(-9);
+  std::vector<std::vector<float>> after(2, tone(1000, 0.05, kRate / 10, kRate));
+  run(guard, after);
+  CHECK(std::abs(guard.gain_db() + 9) < 0.05);
+  // A quieter curve is left to the recovery rather than jumping up.
+  guard.set_curve_level(-4);
+  std::vector<std::vector<float>> quieter(2, tone(1000, 0.05, kRate / 10, kRate));
+  run(guard, quieter);
+  CHECK(std::abs(guard.gain_db() + 9) < 0.05);
+}
+
+void switching_it_back_on_starts_from_the_curve_again() {
+  OutputGuard guard(kRate, 2);
+  guard.set_curve_level(-8);
+  std::vector<std::vector<float>> quiet(2, tone(1000, 0.05, kRate * 20, 0));
+  run(guard, quiet);
+  CHECK(guard.gain_db() > -8 + 1.0);
+  // Off releases towards unity on its one-second release.
+  std::vector<std::vector<float>> off(2, tone(1000, 0.05, kRate * 6, 0));
+  run(guard, off, 480, false);
+  CHECK(guard.gain_db() > -0.1);
+  std::vector<std::vector<float>> on(2, tone(1000, 0.05, kRate / 2, 0));
+  run(guard, on);
+  CHECK(std::abs(guard.gain_db() + 8) < 0.05);
 }
 
 void safe_audio_is_only_delayed() {
@@ -100,5 +155,8 @@ int main() {
   safe_audio_is_only_delayed();
   isolated_peak_does_not_set_the_programme_level();
   true_peaks_and_stereo_are_protected();
+  starts_at_the_curve_level_and_recovers();
+  a_louder_curve_comes_down_at_once();
+  switching_it_back_on_starts_from_the_curve_again();
   return report();
 }

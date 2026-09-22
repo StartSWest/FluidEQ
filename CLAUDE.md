@@ -455,6 +455,52 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
+- **FluidEQ's own layers play the treble as drawn; a headphone correction
+  never does.** The cookbook (what Equalizer APO builds every band from)
+  squeezes a band toward Nyquist: Ivan's five treble bands played 1.5 dB
+  short at 8 kHz and 3.8 dB at 20 kHz on a 48 kHz output, invisible on a
+  graph drawn at 96 kHz. Every layer file except `headphone` carries
+  `# FluidEQFilterDesign: MATCHED` (`filterDesign.ts`), scoped like the phase
+  directives — its file and what that file includes — and the engine builds
+  those bands analog-matched (`biquad_matched.cpp`: bells and pass filters,
+  Butterworth shelves; everything else, and anything unstable, stays
+  cookbook; a cut is the exact reciprocal of its boost). A correction stays
+  cookbook because AutoEQ fits with it: 0.14 dB from its fit that way,
+  0.89 dB matched. `playsAnalogMatched` in the graph's `utils.ts` mirrors the
+  engine's rule — change both together. The graph draws matched only over
+  an engine that plays it (`useMatchedDesign`, `ENGINE_MATCHED_DESIGN_SINCE`
+  1.13, read from the status the window already holds, never a new ask on
+  mount), and draws cookbook bands at the output's real rate
+  (`useOutputRate`), holding the Nyquist value above Nyquist. Ivan heard the
+  result as "APO has better bass"; measured on his files the bass was APO's
+  to 0.002 dB and only the treble differed. He chose to keep it ("we need to
+  be unique"), and asked for a Classic choice beside it — open as of
+  2026-09-22.
+- **Every change the engine hears fades, and every band keeps its history.**
+  A graph is rebuilt on each config write, and the previous one is freed two
+  blocks after the swap, so the fade lives in the new graph: `IirCascade`
+  crossfades 20 ms from a copy of the outgoing bands, and each band that is
+  still there carries its filter state over (same type, frequency and Q; then
+  type and frequency; then type at the same index). The preamp ramps over the
+  same 20 ms. A bass +6 → −6 click fell from -68 to -91 dBFS, adding an
+  unrelated band from -49 to -104 dBFS.
+- **Auto normalize starts at the curve's own level and climbs back.** The
+  app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
+  directive so a Preamp in the custom file stays a fixed gain); after 5 s of
+  room the level recovers 0.15 dB/s toward 0 dB. Ivan's own design ("don't
+  touch my auto normalizer", "recover to 0 dB"); 0.3 dB/s after 3 s made a
+  jazz track 10 dB dirtier in its worst second, which is how the rate was
+  chosen on five songs.
+- **With every curve in minimum phase the curves stage adds no delay.** It
+  used to keep a linear design's half length in front of every output —
+  55 ms with `# FluidEQCurveStage: ON`, curve or not; the minimum-phase
+  kernel (16384 taps at 48 kHz, APO's resolution) leaves one partition,
+  12.7 ms on his chain. Decided by the phase settings alone, never by which
+  curves are present, or adding a curve would move the delay mid-song. A
+  linear-phase stage starts on its FIR, which is what stopped it replaying
+  the first 0.7 s of every stream. `APOProcess` turns denormals off for its
+  call and restores them (`denormals.h`): silence from a paused player cost
+  13x the EQ's work without it.
 - **`status-{GUID}.json` is the engine telling the app what it is doing.**
   The DLL writes one per output into its root (`status_file.h`) inside
   `LockForProcess` — before any audio passes — and again on every change and

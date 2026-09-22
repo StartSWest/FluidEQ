@@ -25,14 +25,10 @@ double magnitude_at(const std::vector<FeqBiquadCoefficients>& bands,
 }
 
 std::vector<float> design_linear_bands(
-    const std::vector<FeqLinearPhaseBand>& bands, uint32_t sample_rate) {
+    const std::vector<FeqBiquadCoefficients>& coefficients,
+    uint32_t sample_rate) {
   uint32_t length = 32768;
   if (sample_rate > 48000) length = 65536;
-  std::vector<FeqBiquadCoefficients> coefficients;
-  for (const auto& band : bands) {
-    coefficients.push_back(feq_biquad_coefficients(
-        band.type, band.frequency, band.gain_db, band.quality, sample_rate));
-  }
   std::vector<double> real(length, 0.0);
   std::vector<double> imaginary(length, 0.0);
   for (uint32_t bin = 0; bin <= length / 2; ++bin) {

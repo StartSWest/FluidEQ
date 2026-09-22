@@ -102,6 +102,32 @@ FeqBiquadCoefficients feq_biquad_coefficients_modelled(FeqFilterType type,
                                                        FeqEqModel model,
                                                        double amount);
 
+/**
+ * The same band, matched to the analog prototype the cookbook approximates.
+ *
+ * The cookbook is a bilinear transform, which folds everything between the
+ * band and Nyquist into less than an octave: at 44.1 and 48 kHz a treble band
+ * comes out narrower and weaker than it was drawn — a +6 dB, Q 2 bell at
+ * 16 kHz falls 3 dB short. Martin Vicanek's matched designs ("Matched Second
+ * Order Digital Filters", 2016; the two-pole shelf, 2024/2025) keep the
+ * analog poles by impulse invariance and solve for the numerator that meets
+ * the analog magnitude, at the same cost per sample.
+ *
+ * Only where it was measured better at every setting: bells (a cut built as
+ * the exact reciprocal of the matching boost, which halves a cut's error),
+ * low-, high- and band-pass, and shelves whose Q is Butterworth. Across
+ * 30 Hz-19 kHz, +/-3-12 dB, Q 0.3-8 at 44.1-192 kHz it was never worse than
+ * the cookbook, and at 48 kHz bells stayed within 0.69 dB of the prototype
+ * where the cookbook strayed 7 dB. Notches and other shelves return the
+ * cookbook, since no matched design here beat it. Coefficients are computed
+ * in double: in float, a 30 Hz band at 192 kHz misses by nearly 4 dB.
+ */
+FeqBiquadCoefficients feq_biquad_coefficients_matched(FeqFilterType type,
+                                                      double frequency,
+                                                      double gain_db,
+                                                      double quality,
+                                                      double sample_rate);
+
 void feq_biquad_reset(FeqBiquadState* state);
 
 /** In place, over a planar channel. Real-time safe: arithmetic only. */

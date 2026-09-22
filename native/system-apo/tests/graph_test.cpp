@@ -129,13 +129,13 @@ void state_inherits_across_gain_change() {
   const std::vector<float> next = tone(1000.0, 0.5, kTail, kFrames);
 
   std::vector<std::vector<float>> carried(1, next);
-  Graph warm(b, kRate, 1, kTail);
-  CHECK(warm.has_same_band_layout(first));
-  warm.inherit_state(first);
+  Graph warm(b, kRate, 1, kFrames);
+  warm.request_state_transfer();
+  warm.adopt_state(&first);
   run_blocks(warm, carried, kTail);
 
   std::vector<std::vector<float>> fresh(1, next);
-  Graph cold(b, kRate, 1, kTail);
+  Graph cold(b, kRate, 1, kFrames);
   run_blocks(cold, fresh, kTail);
 
   const double with_state = std::fabs(static_cast<double>(carried[0][0]) - last);
@@ -145,14 +145,21 @@ void state_inherits_across_gain_change() {
   CHECK(with_state < 0.05);
   CHECK(without_state > 0.05);
 
-  // A different layout is refused, so a history is never fed to a filter it
-  // did not come from.
+  // A band added beside it no longer restarts the one already running: that
+  // band keeps its own history — found again by type and frequency, not by
+  // the whole layout matching — and the new one fades in. Adding a band used
+  // to start every band from silence.
   const Chain two_bands = chain_from(
       "Filter: ON PK Fc 1000 Hz Gain -3 dB Q 1\r\n"
       "Filter: ON HPQ Fc 30 Hz Q 0.71\r\n");
-  Graph other(two_bands, kRate, 1, kTail);
-  CHECK(!other.has_same_band_layout(first));
-  CHECK(!first.has_same_band_layout(other));
+  std::vector<std::vector<float>> added(1, next);
+  Graph wider(two_bands, kRate, 1, kFrames);
+  wider.request_state_transfer();
+  wider.adopt_state(&first);
+  run_blocks(wider, added, kTail);
+  const double with_added = std::fabs(static_cast<double>(added[0][0]) - last);
+  std::printf("       step with a band added %.4f\n", with_added);
+  CHECK(with_added < 0.05);
 }
 
 void oversized_block_is_refused() {

@@ -144,6 +144,8 @@ import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
+import useMatchedDesign from './useMatchedDesign';
+import useOutputRate from '../utils/useOutputRate';
 import LookPicker from './LookPicker';
 import liveTraceCurves from './liveTraceCurves';
 import { hasHeadphoneLayer } from '../../common/headphone';
@@ -728,6 +730,8 @@ const FrequencyResponseChart = ({
     customFx,
   } = useFluidEqContext();
   const currentEngine = useCurrentEngine();
+  const matchedDesign = useMatchedDesign();
+  const outputRate = useOutputRate();
   // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
   // display rate on loud passages, so it never enters this component's state:
   // the curves are built without it and `Chart` moves the output curve by it
@@ -1122,9 +1126,11 @@ const FrequencyResponseChart = ({
 
         isEqQuiet,
         hasPreAmp,
+        matchedDesign,
         preAmp,
         prevFilterLines,
         prevFilters,
+        sampleRate: outputRate,
         smartEq,
         t,
         voicing,
@@ -1147,6 +1153,8 @@ const FrequencyResponseChart = ({
       eqBandQ,
       curveBandQ,
       curveSmoothing,
+      matchedDesign,
+      outputRate,
 
       isEqQuiet,
       preAmp,

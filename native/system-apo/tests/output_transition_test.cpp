@@ -55,19 +55,32 @@ void guard_follows_final_samples() {
   for (const float sample : audio[0]) peak = std::max(peak, std::abs(sample));
   for (const float sample : raw[0]) raw_peak = std::max(raw_peak, std::abs(sample));
   CHECK(raw_peak > 3);
+  // It starts at the curve's own level, the -18 dB the app wrote, so the
+  // first second never reaches the limiter at all.
   CHECK(peak <= 0.93f);
-  CHECK(peak > 0.75f);
-  CHECK(graph.auto_preamp_gain_db() < -10);
+  CHECK(std::abs(graph.auto_preamp_gain_db() + 18) < 0.5);
   CHECK(audio[0] == audio[1]);
+  // And brings the level back up while the music leaves room, until the
+  // peaks sit under the ceiling.
+  std::vector<std::vector<float>> steady(2, tone(1000, 0.5, kRate * 60, kRate));
+  run_blocks(graph, steady, 480);
+  float settled = 0;
+  for (uint32_t at = kRate * 59; at < kRate * 60; ++at) {
+    settled = std::max(settled, std::abs(steady[0][at]));
+  }
+  CHECK(settled <= 0.93f);
+  CHECK(settled > 0.75f);
+  CHECK(graph.auto_preamp_gain_db() < -10);
   const double held = graph.auto_preamp_gain_db();
   Graph next(chain, kRate, 2, 480);
   next.request_state_transfer();
   next.adopt_state(&graph);
   CHECK(std::abs(next.auto_preamp_gain_db() - held) < 1e-6);
+  // 0.15 dB/s once 5 s have left room: 8 s of quiet is 0.45 dB.
   std::vector<std::vector<float>> quiet(2, tone(1000, 0.005, kRate * 8, kRate));
   run_blocks(next, quiet, 480);
-  CHECK(next.auto_preamp_gain_db() > held);
-  CHECK(next.auto_preamp_gain_db() < held + 0.6);
+  CHECK(next.auto_preamp_gain_db() > held + 0.2);
+  CHECK(next.auto_preamp_gain_db() < held + 0.7);
   std::vector<std::vector<float>> recovery(2, tone(1000, 0.005, kRate * 160, 0));
   run_blocks(next, recovery, 480);
   CHECK(next.auto_preamp_gain_db() > -0.1);

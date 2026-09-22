@@ -13,6 +13,8 @@ import {
   OUTPUT_CURVE_ID,
 } from '../graph/ChartController';
 import { useEnginePreampAudible } from '../utils/enginePreamp';
+import useMatchedDesign from '../graph/useMatchedDesign';
+import useOutputRate from '../utils/useOutputRate';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -76,6 +78,8 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
     voicing,
   } = useFluidEqContext();
   const isAutomaticAudible = useEnginePreampAudible();
+  const matchedDesign = useMatchedDesign();
+  const outputRate = useOutputRate();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
   // What goes into the curve, and whether there is one to draw at all.
@@ -102,9 +106,11 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
       curveSmoothing,
       isEqQuiet: false,
       hasPreAmp,
+      matchedDesign,
       preAmp: builtPreAmp,
       prevFilterLines,
       prevFilters,
+      sampleRate: outputRate,
       smartEq,
       t,
       voicing,
@@ -119,6 +125,8 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
     return { total, bands, smart };
   }, [
     builtPreAmp,
+    matchedDesign,
+    outputRate,
     bypassed,
     convolution,
     customFx,
