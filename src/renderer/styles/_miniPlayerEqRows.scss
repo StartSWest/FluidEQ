@@ -62,6 +62,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
     padding-inline: 7px;
     font-size: 0;
     letter-spacing: 0;
+
+    // AND THE GLYPH IS SIZED IN EM, so a font size of zero took it with the
+    // word: at 360px the key was an empty 16px box with nothing in it at
+    // all — a control that says neither what it is nor that it is there
+    // (measured in the harness, 2026-09-22). Its size in pixels, which the
+    // trick above cannot reach.
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   .clear-eq-trigger .eq-toolbar__icon {

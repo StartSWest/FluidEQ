@@ -24,9 +24,44 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 5px;
   min-width: 0;
+  // NOTHING IN A ROW SHRINKS, AND NO WORD IN IT BREAKS. Both are what makes
+  // the row overflow when it is too narrow, which is the only signal
+  // `useRowFit` has that it must give a word up. Left to flex's own defaults
+  // the keys shrank instead: the row never overflowed, no step was ever
+  // taken, and at 480px "EQ mode Normal" wrapped INSIDE its key — a
+  // 49px-tall key beside 26px-tall ones, with "15 Band" cut to "1..." next
+  // to it (measured in the harness, 2026-09-22).
+  white-space: nowrap;
+
+  > * {
+    flex: none;
+  }
 
   > :last-child {
     margin-left: auto;
+  }
+
+  // NO GLYPH IN A KEY IS BIGGER THAN THE KEY'S OWN TYPE. The EQ page draws
+  // these same controls at its own scale, where a 24 or 28px glyph sits
+  // beside 13px text; dropped into a 26px key on this deck, the glyph set
+  // the key's height — the EQ mode key measured 36px and the band layout
+  // 32px beside 26px neighbours (harness, 2026-09-22). Capped rather than
+  // set, so the 11px chevrons beside them are left alone.
+  svg {
+    max-width: 14px;
+    max-height: 14px;
+  }
+
+  // AND NO LABEL INSIDE A KEY COMPRESSES TO AN ELLIPSIS. The page's own
+  // labels shrink and clip, which on this deck ate the words a step at a
+  // time and — worse — kept the row from ever overflowing, so `useRowFit`
+  // saw a row that fitted and took no step at all: "15 Band" read "1..."
+  // and "Normal" read "N" while the row still claimed to fit.
+  .band-designs__current,
+  .eq-mode-trigger__summary,
+  .player-led__value {
+    flex: none;
+    overflow: visible;
   }
 
   // For the one layout in which `useRowFit` reads what the row's content
