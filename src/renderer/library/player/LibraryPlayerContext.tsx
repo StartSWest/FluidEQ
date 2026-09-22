@@ -274,6 +274,8 @@ export const LibraryPlayerProvider = ({
     endedTrackRef,
     naturalCrossfadeTrackRef,
     programmeEdgesRef,
+    hostOwnsTransportRef,
+    seekHost,
     hostEnded,
     dspSettings,
     publishedPositionMs,

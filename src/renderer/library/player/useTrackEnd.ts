@@ -32,6 +32,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useRef,
 } from 'react';
 import { IDspSettings } from '../../../common/dsp/chain';
 import {
@@ -57,6 +58,10 @@ const useTrackEnd = (options: {
   programmeEdgesRef: MutableRefObject<
     Map<HTMLMediaElement, ILibraryProgrammeEdges>
   >;
+  /** True while a native deck holds the track, so the element is not audible. */
+  hostOwnsTransportRef: MutableRefObject<boolean>;
+  /** Move the audible deck's playhead. See `usePlayerEngine`. */
+  seekHost: (positionMs: number) => void;
   /** True when the deck has reached the end of its file. */
   hostEnded: boolean;
   dspSettings: IDspSettings;
@@ -73,6 +78,8 @@ const useTrackEnd = (options: {
     endedTrackRef,
     naturalCrossfadeTrackRef,
     programmeEdgesRef,
+    hostOwnsTransportRef,
+    seekHost,
     hostEnded,
     dspSettings,
     publishedPositionMs,
@@ -80,14 +87,15 @@ const useTrackEnd = (options: {
   } = options;
 
   /**
-   * The track that just finished. `repeat: 'one'` restarts it in place, acting
-   * on the element directly rather than letting a `trackId` change trigger a
-   * reload — and this early return is now the ONLY thing implementing that
-   * mode. `advanceQueue` used to hold position for repeat-one as well, which
-   * was redundant here and broke the skip buttons, so it no longer does.
-   * Everything else calls `advanceQueue` and lets that effect take over —
-   * stopping at the end with repeat off is `advanceQueue` holding position at
-   * the last track combined with the check below, not a separate rule here.
+   * The track that just finished. `repeat: 'one'` restarts it in place, on
+   * the engine making the sound, rather than letting a `trackId` change
+   * trigger a reload — and this early return is now the ONLY thing
+   * implementing that mode. `advanceQueue` used to hold position for
+   * repeat-one as well, which was redundant here and broke the skip buttons,
+   * so it no longer does. Everything else calls `advanceQueue` and lets that
+   * effect take over — stopping at the end with repeat off is `advanceQueue`
+   * holding position at the last track combined with the check below, not a
+   * separate rule here.
    */
   const handleEnded = useCallback(
     (element: HTMLMediaElement) => {
@@ -97,6 +105,23 @@ const useTrackEnd = (options: {
       }
       if (current.repeat === 'one') {
         setRetainWhenHidden(true);
+        if (hostOwnsTransportRef.current) {
+          /**
+           * The deck, not the element. While a native deck holds the track
+           * the element is paused and muted (`usePlayerEngine`), so
+           * restarting IT restarted nothing anyone could hear: the deck sat
+           * at its end and the song never came back (Ivan, 2026-09-22,
+           * "the sound in the library is not repeating"). A seek on an ended
+           * deck makes it ready again, and the transport was never stopped.
+           *
+           * And the same track will end again, and that end has to count:
+           * the mark that keeps one end from advancing the queue forty times
+           * a second is let go here, so the next real end is heard as one.
+           */
+          seekHost(0);
+          endedTrackRef.current = undefined;
+          return;
+        }
         element.currentTime = 0;
         element.play().catch(() => undefined);
         return;
@@ -111,7 +136,15 @@ const useTrackEnd = (options: {
         setIsPlaying(false);
       }
     },
-    [queueRef, setIsPlaying, setQueue, setRetainWhenHidden],
+    [
+      endedTrackRef,
+      hostOwnsTransportRef,
+      queueRef,
+      seekHost,
+      setIsPlaying,
+      setQueue,
+      setRetainWhenHidden,
+    ],
   );
 
   /**
@@ -125,8 +158,18 @@ const useTrackEnd = (options: {
    * The element's own `ended` is ignored while the host owns the transport —
    * see `onEnded`. One of them has to be the authority, and it is the one
    * making the sound.
+   *
+   * On the EDGE of the state and nothing else: this effect also re-runs
+   * whenever `handleEnded` is rebuilt, and with repeat one letting go of the
+   * per-track mark so the same song can end again, a re-run against a held
+   * `ended` would restart the song a second time.
    */
+  const seenEndedRef = useRef(false);
   useEffect(() => {
+    if (hostEnded === seenEndedRef.current) {
+      return;
+    }
+    seenEndedRef.current = hostEnded;
     const playing = trackIdRef.current;
     if (!hostEnded || !playing || endedTrackRef.current === playing) {
       return;
