@@ -22,7 +22,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/bass_forge.h"
 #include "fluideq/bass_punch.h"
-#include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/dimension.h"
 #include "fluideq/dynamics.h"
@@ -323,14 +322,6 @@ struct FeqChain {
   double kernel_subsonic_hz = 0.0;
   FeqLinearPhaseBand kernel_bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
 
-  /* -------------------------------------------------------- compressor -- */
-  FeqCrossover crossovers[FEQ_CHAIN_MAX_CHANNELS];
-  FeqCompressor compressors[FEQ_CHAIN_COMPRESSOR_BANDS];
-  std::vector<float> compressor_bands[FEQ_CHAIN_MAX_CHANNELS]
-                                     [FEQ_CHAIN_COMPRESSOR_BANDS];
-  /** How far in the stage is, so switching it on is a fade and not an edge. */
-  double compressor_mix = 0.0;
-
   /* --------------------------------------------------------- maximizer -- */
   FeqLinkedLimiter maximizer{};
   std::vector<FeqTruePeak> maximizer_detectors;
@@ -458,8 +449,6 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
 void chain_process_bass_forge(FeqChain* chain, float* const* channels,
                               uint32_t frames);
 void chain_process_bass_punch(FeqChain* chain, float* const* channels,
-                              uint32_t frames);
-void chain_process_compressor(FeqChain* chain, float* const* channels,
                               uint32_t frames);
 void chain_process_maximizer(FeqChain* chain, float* const* channels,
                              uint32_t frames);

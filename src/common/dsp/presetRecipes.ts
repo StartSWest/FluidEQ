@@ -14,7 +14,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { TNormalizerMode } from './chain';
 import { TBassForgePresetId } from './bassForgePresets';
 import { TBassPunchPresetId } from './bassPunchPresets';
-import { TCompressorPresetId } from './compressorPresets';
 import { TDenoisePresetId } from './denoisePresets';
 import { TDimensionPresetId } from './dimensionPresets';
 import { TExciterPresetId } from './exciterPresets';
@@ -36,7 +35,6 @@ export interface IDspPresetRecipe {
   exciter?: TExciterPresetId;
   bassForge?: TBassForgePresetId;
   bassPunch?: TBassPunchPresetId;
-  compressor?: TCompressorPresetId;
   dimension?: TDimensionPresetId;
   maximizer?: TMaximizerPresetId;
   /** Keep a limiter profile's timing while calibrating full-rack drive. */
@@ -73,6 +71,19 @@ export interface IDspPresetRecipe {
  */
 export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
   {
+    // Nothing at all: every stage off, the Normalizer included, and no
+    // curve. The rack switched on with this chosen is the record as it
+    // came, delayed by the stages' standby buffers and nothing else — the
+    // chain to pick when the question is whether the rack is doing
+    // something. First in the list at Ivan's call (2026-09-22). Not `none`,
+    // which both pickers already read as "take the preset away" and answer
+    // by switching the rack off (`resolveDspPreset`).
+    id: 'empty',
+    labelKey: 'dsp.preset.none',
+    group: 'basic',
+    normalizer: 'off',
+  },
+  {
     id: 'balanced',
     labelKey: 'dsp.eqPreset.default',
     group: 'basic',
@@ -80,7 +91,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // every source before the user had chosen any character at all; the
     // standalone Exciter preset remains available when that colour is wanted.
     eq: 'balanced',
-    compressor: 'gentle',
     dimension: 'default',
     master: 'streaming',
   },
@@ -96,7 +106,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.preset.music',
     group: 'basic',
     voicing: 'music',
-    compressor: 'gentle',
     // The everyday chain, so both additions are the quiet kind: the picture
     // its curve implies, and a ceiling that only catches what the curve's
     // boosts push over. Nothing here invents harmonics — a chain called
@@ -117,7 +126,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.preset.music',
     group: 'basic',
     voicing: 'music',
-    compressor: 'gentle',
     maximizer: 'safety',
     room: 'musicSpaceV2',
   },
@@ -126,11 +134,10 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.preset.speech',
     group: 'scene',
     voicing: 'speech',
-    compressor: 'voice',
     // Speech is listened to in the places music is not — a train, a kitchen,
-    // a car — where what costs a sentence is the level, not the tone. The
-    // compressor evens out the voices; this puts whatever is playing at the
-    // level everything else plays at, which a limiter cannot do.
+    // a car — where what costs a sentence is the level, not the tone. This
+    // puts whatever is playing at the level everything else plays at, which
+    // a limiter cannot do.
     master: 'podcast',
   },
   {
@@ -141,10 +148,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // harmonics on top of the EQ's own colour, which turned a tonal preset
     // into audible grit. Keep the chain clean and let its curve own the name.
     eq: 'warm',
-    compressor: 'gentle',
     dimension: 'intimate',
     maximizer: 'transparent',
-    maximizerDriveDb: 0,
+    // The level its gentle compressor's makeup carried until the compressor
+    // went (2026-09-22): the gate measured the chain 2.3 dB under DSP Off
+    // without it.
+    maximizerDriveDb: 2.2,
   },
   {
     id: 'clarity',
@@ -167,8 +176,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'basic',
     // One source of punch, not five stacked versions of it. The old chain
     // boosted both ends, synthesized a sub octave, exaggerated the bass
-    // transient, let another slow compressor accent it, then drove a second
-    // fast punch limiter. Each stage was reasonable alone and their sum was
+    // transient, let a slow compressor accent it, then drove a second fast
+    // punch limiter. Each stage was reasonable alone and their sum was
     // exactly the overdone sound reported in listening. Bass Punch now owns
     // the character; the other stages support it without adding another hit.
     //
@@ -179,7 +188,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // lift under it.
     eq: 'punch',
     bassPunch: 'punch',
-    compressor: 'gentle',
     maximizer: 'transparent',
     // Punch already raises the bass hit; avoid pushing it harder into limiting.
     maximizerDriveDb: 0,
@@ -211,7 +219,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
      * by the listener and stopped by the wall.
      */
     bassForge: 'lateNight',
-    compressor: 'lateNight',
     maximizer: 'lateNight',
   },
   {
@@ -225,7 +232,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // bottom by itself.
     exciter: 'pop',
     bassPunch: 'pop',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },
@@ -238,7 +244,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // and more of them land in the fizz band. What a rock record wants is the
     // kick out from under them.
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
@@ -248,7 +253,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'genre',
     eq: 'hiphop',
     bassForge: 'hiphop',
-    compressor: 'punch',
     // The 808 and the voice are the record, and both belong in the middle.
     dimension: 'hiphop',
     maximizer: 'hiphop',
@@ -259,7 +263,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'genre',
     eq: 'electronic',
     exciter: 'electronic',
-    compressor: 'electronic',
     // Wide up top and mono at the bottom, which is how the genre is mixed
     // and what the club system it is made for does to the bottom anyway.
     dimension: 'electronic',
@@ -292,7 +295,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // Wood and string: body from the Organic generator and a little air, the
     // one place in this catalogue where an Exciter is asked for low-mids.
     exciter: 'acoustic',
-    compressor: 'gentle',
     dimension: 'intimate',
     maximizer: 'acoustic',
   },
@@ -304,7 +306,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // The one profile with no bloom at all: at these tempos a generated tail
     // arrives on top of the next kick.
     bassPunch: 'metal',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'metal',
   },
@@ -314,7 +315,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'genre',
     eq: 'reggae',
     bassForge: 'dub',
-    compressor: 'glue',
     // A sound system's picture: the bass line mono, the top only modestly
     // wide, because the room supplies more spread than a record can.
     dimension: 'club',
@@ -329,13 +329,12 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // Bass Forge substitution ignored it and softened the breaks the preset
     // is named for.
     bassPunch: 'dnb',
-    compressor: 'electronic',
     // Mono at the bottom: a break's sub carries no image worth keeping, and
     // any stereo information down there collapses on a club rig.
     dimension: 'electronic',
     maximizer: 'default',
-    // Retain a little level compensation for this EQ/compressor combination;
-    // zero drive made the complete preset 2.5 dB quieter in the music audit.
+    // Retain a little level compensation for this chain; zero drive made the
+    // complete preset 2.5 dB quieter in the music audit.
     maximizerDriveDb: 1.3,
   },
   {
@@ -379,7 +378,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
      * supplies the fundamental that the driver cannot.
      */
     bassForge: 'laptop',
-    compressor: 'gentle',
     dimension: 'laptop',
     maximizer: 'default',
     maximizerDriveDb: 0.4,
@@ -390,10 +388,11 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     eq: 'car',
     bassForge: 'car',
-    compressor: 'glue',
     dimension: 'monoSafe',
     maximizer: 'transparent',
-    maximizerDriveDb: 1,
+    // 2.5 rather than 1 since its glue compressor went (2026-09-22): the
+    // gate measured the chain 1.6 dB under DSP Off without it.
+    maximizerDriveDb: 2.5,
   },
   {
     // GAME MODE. Choosing this is the whole of it: the chain gives up every
@@ -405,18 +404,15 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // And it is tuned for hearing a game rather than for its impact, which
     // is what it was before: Bass Punch and Dimension made the explosions
     // bigger and the image wider, and a wider image is a vaguer direction.
-    // Now the blasts are held down and the steps brought up (`gaming` in
-    // the compressor's catalogue), with no limiter and its look-ahead in
-    // the way — the output safety still catches every peak. For the same
-    // reason the Normalizer's peak guard at the input is off: it was a
-    // second limiter in front of that one, and 2 ms of the 6 the chain
-    // still held.
+    // Now the curve alone puts the cues forward, with no limiter and its
+    // look-ahead in the way. For the same reason the Normalizer's peak
+    // guard at the input is off: a limiter in front of the game, and 2 ms
+    // of the delay the chain still held.
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
-    compressor: 'gaming',
     gameMode: true,
   },
   {
@@ -432,9 +428,14 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
-    compressor: 'gaming',
     gameMode: true,
     room: 'gameWorldV2',
+    // WITH the ceiling, as Music's Room copy has it: a full-scale stereo
+    // record leaves a room up to 3 dB over full scale, and since the rack's
+    // final guard went (2026-09-22) nothing after the Room catches that but
+    // a stage of the chain's own. `safety` adds no level, and in game mode
+    // it is the one delay this chain still carries.
+    maximizer: 'safety',
   },
   {
     // Gaming on headphones for a match rather than a world: the same chain in
@@ -447,16 +448,16 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
-    compressor: 'gaming',
     gameMode: true,
     room: 'competitiveV2',
+    // The same ceiling, for the same reason as Gaming's other Room copy.
+    maximizer: 'safety',
   },
   {
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
     eq: 'movie',
-    compressor: 'movie',
     dimension: 'movie',
     maximizer: 'movie',
   },
@@ -470,7 +471,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
     eq: 'movie',
-    compressor: 'movie',
     maximizer: 'movie',
     room: 'cinemaV2',
   },
@@ -490,7 +490,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'repair',
     denoise: 'vinyl',
     eq: 'vinyl',
-    compressor: 'gentle',
     dimension: 'monoSafe',
     master: 'vinyl',
     masterOutputTrimDb: -0.5,
@@ -517,7 +516,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'repair',
     denoise: 'podcast',
     eq: 'podcast',
-    compressor: 'voice',
     /**
      * A target rather than a limiter, because every show arrives at a
      * different level and none of them at yours.
@@ -526,9 +524,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
      * volume: a quiet interview in a car is lost, and the next episode is
      * four decibels louder for no reason anyone chose. Measured across a
      * large corpus, podcasts average about -19 LUFS with a spread of ten;
-     * -16 is what the platforms normalise to. The compressor above has
-     * already evened out the voices within the show — this puts the show
-     * itself where every other show is.
+     * -16 is what the platforms normalise to. This puts the show where every
+     * other show is.
      */
     master: 'podcast',
   },
@@ -538,7 +535,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'repair',
     denoise: 'audiobook',
     eq: 'audiobook',
-    compressor: 'voice',
     // The same, at the quieter target and the -3 dBTP ceiling a submitted
     // audiobook is held to: hours of listening, so the level that matters is
     // the one that does not tire.

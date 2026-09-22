@@ -174,24 +174,8 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 1425, path: 'eq.bands[].dynamic', kind: 'boolean' },
   { id: 1426, path: 'eq.bands[].thresholdDb', kind: 'number' },
 
-  { id: 1501, path: 'compressor.enabled', kind: 'boolean' },
-  {
-    id: 1502,
-    path: 'compressor.crossoverHz.0',
-    kind: 'number',
-    structural: true,
-  },
-  {
-    id: 1503,
-    path: 'compressor.crossoverHz.1',
-    kind: 'number',
-    structural: true,
-  },
-  { id: 1510, path: 'compressor.bands[].thresholdDb', kind: 'number' },
-  { id: 1511, path: 'compressor.bands[].ratio', kind: 'number' },
-  { id: 1512, path: 'compressor.bands[].attackMs', kind: 'number' },
-  { id: 1513, path: 'compressor.bands[].releaseMs', kind: 'number' },
-  { id: 1514, path: 'compressor.bands[].makeupDb', kind: 'number' },
+  // 1501 to 1514 were the multiband compressor's, removed on 2026-09-22.
+  // The ids are the wire's own names and stay retired rather than reused.
 
   { id: 1601, path: 'maximizer.enabled', kind: 'boolean' },
   { id: 1602, path: 'maximizer.ceilingDb', kind: 'number' },

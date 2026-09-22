@@ -119,13 +119,10 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     1, // oversample
     0, // subsonic
     0, // fuzz
-    0, // compressor enabled
-    200,
-    3000,
   );
-  for (let band = 0; band < 3; band += 1) {
-    values.push(-18, 2, 10, 120, 0);
-  }
+  // The multiband compressor's eighteen words, reserved as zeros since the
+  // stage went (2026-09-22) so nothing after them moves.
+  values.push(...new Array<number>(18).fill(0));
   values.push(
     0, // dimension enabled
     1,

@@ -82,6 +82,7 @@ const dsp = {
   'dsp.favorites.title': '收藏',
   'dsp.quick.apo': '仅均衡曲线 · Equalizer APO',
   'dsp.preset.music': '音乐',
+  'dsp.preset.none': '无',
   'dsp.preset.speech': '语音',
   'dsp.quick.classics': '经典预设',
   'dsp.gameMode.update':
@@ -485,19 +486,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': '湿',
   'dsp.bassPunchPreset.soft': '柔和',
   'dsp.bassPunchPreset.dnb': 'D&B',
-
-  'dsp.compressor.title': '多段压缩器',
-  'dsp.compressor.description': '在三个频段中分别平衡音量。',
-  'dsp.compressor.band.low': '低频',
-  'dsp.compressor.band.mid': '中频',
-  'dsp.compressor.band.high': '高频',
-  'dsp.compressor.crossoverLow': '低频 / 中频分割点',
-  'dsp.compressor.crossoverHigh': '中频 / 高频分割点',
-  'dsp.compressor.threshold': '阈值',
-  'dsp.compressor.ratio': '压缩比',
-  'dsp.compressor.attack': '启动时间',
-  'dsp.compressor.release': '释放时间',
-  'dsp.compressor.makeup': '补偿增益',
 
   'dsp.dimension.historyLabel': '侧信号与中置随时间变化',
   'dsp.dimension.legendCorrelation': '相关性',

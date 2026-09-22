@@ -70,7 +70,11 @@ describe('a preset’s tone and its rack’s support, split', () => {
   });
 
   it('gives every preset that shapes the tone a curve, and the curve is all of it', () => {
-    const shaped = DSP_PRESETS.filter((preset) => preset.id !== 'reference');
+    // Reference is a Master alone, and None is nothing at all: neither has
+    // a tone to carry.
+    const shaped = DSP_PRESETS.filter(
+      (preset) => preset.id !== 'reference' && preset.id !== 'empty',
+    );
     shaped.forEach((preset) => {
       const curve = preset.curve as IEqSettings;
       expect({ id: preset.id, hasCurve: curve !== undefined }).toEqual({

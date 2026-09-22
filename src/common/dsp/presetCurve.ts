@@ -12,9 +12,9 @@ import { DSP_DEFAULTS, IEqBandSettings, IEqSettings } from './chain';
  * EQ only supports the stages beside it.
  *
  * Every chain used to carry its tone in the rack's EQ, and the rack's EQ runs
- * ahead of its compressor and limiter — so the stages after it took much of
- * it back. A multiband compressor pulls each of its bands towards its
- * threshold, which is a tone control turning the other way, and each chain's
+ * ahead of its limiter — so the stages after it took much of it back (the
+ * multiband compressor the rack carried then pulled each of its bands towards
+ * its threshold, a tone control turning the other way), and each chain's
  * level was set to land beside every other's. Under Equalizer APO the same
  * filters were written as a layer of their own with nothing after them, and
  * Pop against Metal was plain to hear; through the FluidEQ Engine it was

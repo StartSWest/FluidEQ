@@ -21,7 +21,6 @@ export const DSP_ANALYSER_STAGES = [
   'normalizer',
   'exciter',
   'eq',
-  'compressor',
   'maximizer',
   'denoise',
 ] as const;

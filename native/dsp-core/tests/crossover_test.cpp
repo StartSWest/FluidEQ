@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The three-band split, held to the one thing a split is for.
  *
  * Nothing in this engine splits a signal in order to put it back unchanged:
- * the compressor holds each band on its own detector, Dimension gives each a
- * width, and the exciter's Timing delays the lower two. So the property that
+ * Dimension gives each band a width and the exciter's Timing delays the lower
+ * two. So the property that
  * matters is not that the bands recombine — a subtraction does that trivially,
  * and this split did exactly that until 2026-09-19 — but that they recombine
  * SENSIBLY when they are not equal. A Linkwitz-Riley lowpass is -0.5 at its
@@ -229,8 +229,8 @@ void test_each_band_is_a_band() {
  * own first coefficient times the input, and for these two corners that comes
  * to a little over half. A stage that switched its split on between one sample
  * and the next would drop the signal by nearly half for an instant, which is a
- * click — so the compressor, Dimension and the exciter's Timing each crossfade
- * their own output against their input instead.
+ * click — so Dimension and the exciter's Timing each crossfade their own
+ * output against their input instead.
  *
  * If a future split reconstructs from cold (a linear-phase one would), this
  * check is what says the fades can go.

@@ -32,7 +32,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/oversample.h"
 #include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
-#include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/linear_phase.h"
 #include "fluideq/chain.h"
@@ -270,6 +269,13 @@ constexpr Superseded kSuperseded[] = {
      "the Focused character narrows by the equaliser page's own law since "
      "2026-09-20, and the linear-phase kernels are built from the same "
      "coefficients: the four fixtures here are the proportional ones"},
+    {kCompressor, {},
+     "the multiband compressor was removed on 2026-09-22 at Ivan's call: a "
+     "stage every preset set and no page showed, compressing a rack whose "
+     "every visible card was off. Its fixtures are rendered as the "
+     "pass-through that stands in its place"},
+    {kCompressorLinked, {},
+     "the same stage's linked form, gone with it"},
     {kOutputSafety, {},
      "the final guard — a -0.1 dBTP limiter and a 3 Hz high-pass, always on "
      "— was removed on 2026-09-22 at Ivan's call: it held every record "
@@ -715,38 +721,18 @@ bool render_linked_limiter(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
-/** `[thresholdDb, ratio, attackMs, releaseMs, makeupDb]`. */
-bool render_compressor(const Fixture& fixture, std::vector<float>& actual,
-                       bool linked) {
+/**
+ * `[thresholdDb, ratio, attackMs, releaseMs, makeupDb]`.
+ *
+ * The multiband compressor is gone (`kSuperseded`), and where it stood the
+ * chain now leaves the audio as it came: rendered as that, so its fixtures
+ * still run and still say so.
+ */
+bool render_compressor(const Fixture& fixture, std::vector<float>& actual) {
   if (fixture.params.size() < 5) {
     return false;
   }
-  FeqCompressorBand band;
-  band.threshold_db = fixture.params[0];
-  band.ratio = fixture.params[1];
-  band.attack_ms = fixture.params[2];
-  band.release_ms = fixture.params[3];
-  band.makeup_db = fixture.params[4];
-
   actual = fixture.input;
-  const double rate = static_cast<double>(fixture.sample_rate);
-  if (linked) {
-    std::vector<float*> targets(fixture.channels);
-    for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
-      targets[channel] = channel_at(actual, channel, fixture.frames);
-    }
-    FeqCompressor state;
-    feq_compressor_reset(&state);
-    feq_compressor_process_linked(&state, targets.data(), fixture.channels,
-                                  fixture.frames, &band, rate);
-    return true;
-  }
-  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
-    FeqCompressor state;
-    feq_compressor_reset(&state);
-    feq_compressor_process(&state, channel_at(actual, channel, fixture.frames),
-                           fixture.frames, &band, rate);
-  }
   return true;
 }
 
@@ -1153,12 +1139,13 @@ bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
 constexpr size_t kChainFrozenLead = 112;
 constexpr size_t kChainFrozenBandParams = 7;
 constexpr size_t kChainFrozenExciterBands = 3;
-constexpr size_t kChainFrozenCompressorBands = 3;
-static_assert(FEQ_CHAIN_EXCITER_BANDS == kChainFrozenExciterBands &&
-                  FEQ_CHAIN_COMPRESSOR_BANDS == kChainFrozenCompressorBands,
-              "the frozen chain fixtures carry three exciter bands and three "
-              "compressor bands; what they mean to a rack with another number "
-              "is a decision, not something this reader can guess");
+/** The compressor the frozen racks carried: a switch, two corners, three
+ * bands of five. The stage is gone; its words are read past. */
+constexpr size_t kChainFrozenCompressorWords = 18;
+static_assert(FEQ_CHAIN_EXCITER_BANDS == kChainFrozenExciterBands,
+              "the frozen chain fixtures carry three exciter bands; what they "
+              "mean to a rack with another number is a decision, not "
+              "something this reader can guess");
 
 /**
  * Refuses a whole-chain fixture out loud: printed, and the run fails.
@@ -1244,16 +1231,8 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.eq.subsonic_hz = next();
   settings.eq.fuzz_amount = next();
 
-  settings.compressor.enabled = flag();
-  settings.compressor.crossover_hz[0] = next();
-  settings.compressor.crossover_hz[1] = next();
-  for (size_t index = 0; index < kChainFrozenCompressorBands; ++index) {
-    auto& band = settings.compressor.bands[index];
-    band.threshold_db = next();
-    band.ratio = next();
-    band.attack_ms = next();
-    band.release_ms = next();
-    band.makeup_db = next();
+  for (size_t word = 0; word < kChainFrozenCompressorWords; ++word) {
+    next();
   }
 
   settings.dimension.enabled = flag();
@@ -1449,9 +1428,8 @@ bool render(const Fixture& fixture, std::vector<float>& actual) {
     case kOutputSafety:
       return render_output_safety(fixture, actual);
     case kCompressor:
-      return render_compressor(fixture, actual, false);
     case kCompressorLinked:
-      return render_compressor(fixture, actual, true);
+      return render_compressor(fixture, actual);
     case kLinkedLimiter:
       return render_linked_limiter(fixture, actual);
     case kLimiter:

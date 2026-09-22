@@ -183,7 +183,6 @@ const RACK_STAGES = new Set([
   'bassPunch',
   'room',
   'dimension',
-  'compressor',
   'maximizer',
   'headroom',
   'master',

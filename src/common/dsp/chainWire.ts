@@ -100,7 +100,6 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     bassForge,
     bassPunch,
     dimension,
-    compressor,
     maximizer,
     master,
     room,
@@ -145,21 +144,12 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     eq.oversample,
     eq.subsonicHz,
     eq.fuzzAmount,
-    compressor.enabled ? 1 : 0,
-    compressor.crossoverHz[0],
-    compressor.crossoverHz[1],
-  );
-  for (let band = 0; band < 3; band += 1) {
-    const source = compressor.bands[band];
-    values.push(
-      source.thresholdDb,
-      source.ratio,
-      source.attackMs,
-      source.releaseMs,
-      source.makeupDb,
-    );
-  }
-  values.push(
+    // The multiband compressor's eighteen words — its switch, two corners
+    // and three bands of five — until it was removed on 2026-09-22 at
+    // Ivan's call: a stage every preset set and no page showed. They stay
+    // as zeros so nothing after them moves, and an older engine reads a
+    // compressor that is off.
+    ...new Array<number>(18).fill(0),
     dimension.enabled ? 1 : 0,
     dimension.lowWidth,
     dimension.midWidth,

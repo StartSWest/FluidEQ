@@ -82,6 +82,7 @@ const dsp = {
   'dsp.favorites.title': 'Избранное',
   'dsp.quick.apo': 'Только кривая эквалайзера · Equalizer APO',
   'dsp.preset.music': 'Музыка',
+  'dsp.preset.none': 'Нет',
   'dsp.preset.speech': 'Речь',
   'dsp.quick.classics': 'Классические пресеты',
   'dsp.gameMode.update':
@@ -507,20 +508,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'Влажный',
   'dsp.bassPunchPreset.soft': 'Мягкий',
   'dsp.bassPunchPreset.dnb': 'D&B',
-
-  'dsp.compressor.title': 'Многополосный компрессор',
-  'dsp.compressor.description':
-    'Выравнивает уровень в трёх частотных полосах независимо.',
-  'dsp.compressor.band.low': 'Низкие',
-  'dsp.compressor.band.mid': 'Средние',
-  'dsp.compressor.band.high': 'Высокие',
-  'dsp.compressor.crossoverLow': 'Раздел низких / средних',
-  'dsp.compressor.crossoverHigh': 'Раздел средних / высоких',
-  'dsp.compressor.threshold': 'Порог',
-  'dsp.compressor.ratio': 'Соотношение',
-  'dsp.compressor.attack': 'Атака',
-  'dsp.compressor.release': 'Восстановление',
-  'dsp.compressor.makeup': 'Компенсация',
 
   'dsp.dimension.historyLabel': 'Боковой и средний во времени',
   'dsp.dimension.legendCorrelation': 'Корреляция',

@@ -24,8 +24,11 @@ it.each([
   });
 });
 
-it('keeps the three primary choices first', () => {
-  expect(DSP_PRESETS.slice(0, 3).map((preset) => preset.id)).toEqual([
+it('keeps None, then the three primary choices, first', () => {
+  // None heads the list because it is the way out of every other entry
+  // (Ivan, 2026-09-22: "add a None preset to the top of the DSP presets").
+  expect(DSP_PRESETS.slice(0, 4).map((preset) => preset.id)).toEqual([
+    'empty',
     'balanced',
     'reference',
     'music',

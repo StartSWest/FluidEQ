@@ -676,7 +676,7 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
    * On the element path the volume lives on the `<audio>` element, and an
    * element routed through `createMediaElementSource` applies it to what
    * reaches the graph. So the chain has always seen post-volume audio, and the
-   * compressor and limiter have always responded to it. Applying it after the
+   * limiter and the leveler have always responded to it. Applying it after the
    * chain instead would be a defensible design and a different one, and the two
    * engines would stop matching the moment a dynamics stage was armed.
    *

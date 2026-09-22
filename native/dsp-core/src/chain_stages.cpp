@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The stages that are one call each: gain in, width, both bass stages,
- * compressor, limiter, gain out. Split from `chain.cpp` so that file holds
- * only lifecycle and order.
+ * limiter, gain out. Split from `chain.cpp` so that file holds only
+ * lifecycle and order.
  */
 
 #include "chain_internal.h"
@@ -147,74 +147,6 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
   double output_peaks[2] = {0.0, 0.0};
   peak_pair(channels, chain->channels, frames, output_peaks);
   chain_publish_normalizer_meter(chain, input_peaks, output_peaks, frames);
-}
-
-/** The hidden compressor, which stays a linked downstream stage. */
-void chain_process_compressor(FeqChain* chain, float* const* channels,
-                        uint32_t frames) {
-  const bool wanted = chain->settings.compressor.enabled != 0;
-  if (!wanted && chain->compressor_mix <= 0.0) {
-    for (auto& state : chain->compressors) {
-      state.gain = 1.0;
-    }
-    return;
-  }
-  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    feq_crossover_split(&chain->crossovers[channel], channels[channel],
-                        chain->compressor_bands[channel][0].data(),
-                        chain->compressor_bands[channel][1].data(),
-                        chain->compressor_bands[channel][2].data(), frames,
-                        chain->settings.compressor.crossover_hz[0],
-                        chain->settings.compressor.crossover_hz[1],
-                        chain->sample_rate);
-  }
-  for (uint32_t band = 0; band < FEQ_CHAIN_COMPRESSOR_BANDS; ++band) {
-    for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-      chain->pointers_a[channel] =
-          chain->compressor_bands[channel][band].data();
-    }
-    const FeqChainCompressorBand& source =
-        chain->settings.compressor.bands[band];
-    FeqCompressorBand setup;
-    setup.threshold_db = source.threshold_db;
-    setup.ratio = source.ratio;
-    setup.attack_ms = source.attack_ms;
-    setup.release_ms = source.release_ms;
-    setup.makeup_db = source.makeup_db;
-    feq_compressor_process_linked(&chain->compressors[band],
-                                  chain->pointers_a, chain->channels,
-                                  frames, &setup, chain->sample_rate);
-  }
-  /**
-   * The bands go back over the input, through the fade that lets this stage
-   * appear and disappear silently.
-   *
-   * `channels` still holds the dry signal at this point — the split read it
-   * into buffers of its own — so the crossfade costs nothing but the
-   * multiply. Every channel walks the same trajectory, so the mix is advanced
-   * once and each channel starts from where the last one began.
-   */
-  const double step = feq_split_fade_step(chain->sample_rate);
-  const double target = wanted ? 1.0 : 0.0;
-  const double from = chain->compressor_mix;
-  double mix = from;
-  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    mix = from;
-    for (uint32_t at = 0; at < frames; ++at) {
-      mix = target > mix ? std::min(target, mix + step)
-                         : std::max(target, mix - step);
-      const double wet = static_cast<double>(
-                             chain->compressor_bands[channel][0][at]) +
-                         static_cast<double>(
-                             chain->compressor_bands[channel][1][at]) +
-                         static_cast<double>(
-                             chain->compressor_bands[channel][2][at]);
-      const double dry = static_cast<double>(channels[channel][at]);
-      channels[channel][at] =
-          static_cast<float>(dry + (wet - dry) * mix);
-    }
-  }
-  chain->compressor_mix = mix;
 }
 
 /**

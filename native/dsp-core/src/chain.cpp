@@ -178,15 +178,6 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   feq_denoise_settings_defaults(&settings->denoise);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
-  settings->compressor.crossover_hz[0] = 200.0;
-  settings->compressor.crossover_hz[1] = 3000.0;
-  for (auto& band : settings->compressor.bands) {
-    band.threshold_db = -18.0;
-    band.ratio = 2.0;
-    band.attack_ms = 10.0;
-    band.release_ms = 120.0;
-    band.makeup_db = 0.0;
-  }
   // Both bass stages off, and every generator at rest under that. A decoder
   // that failed halfway leaves these, so the resting values have to be the
   // bit-exact bypass rather than a pleasant-sounding starting point.
@@ -248,13 +239,6 @@ FeqChain* feq_chain_create(double sample_rate,
     chain->linked_wet_doubled[channel].assign(wide, 0.0f);
     chain->linked_middle[channel].assign(static_cast<size_t>(frames) * 2,
                                          0.0f);
-    for (uint32_t band = 0; band < FEQ_CHAIN_COMPRESSOR_BANDS; ++band) {
-      chain->compressor_bands[channel][band].assign(frames, 0.0f);
-    }
-    feq_crossover_reset(&chain->crossovers[channel]);
-  }
-  for (auto& state : chain->compressors) {
-    feq_compressor_reset(&state);
   }
   feq_biquad_reset(&chain->side_highpass);
   // One path per channel, and Mid and Side only where there is a pair to
@@ -603,7 +587,6 @@ void feq_chain_reset_room(FeqChain* chain) {
   feq_bass_punch_reset(&chain->bass_punch);
   // Room output already queued downstream is stale Room audio too.
   feq_dimension_reset(&chain->dimension);
-  for (auto& crossover : chain->crossovers) feq_crossover_reset(&crossover);
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
     // Both alignment lines, as `feq_chain_reset` clears them: each holds
     // audio from before the route changed, on its way to the Room. Only the
@@ -641,12 +624,6 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_denoise_reset(chain->denoise);
   feq_live_normalizer_reset(chain->live_normalizer);
   feq_biquad_reset(&chain->side_highpass);
-  for (auto& crossover : chain->crossovers) {
-    feq_crossover_reset(&crossover);
-  }
-  for (auto& compressor : chain->compressors) {
-    feq_compressor_reset(&compressor);
-  }
   feq_linked_limiter_reset_control(&chain->maximizer);
   // A seek or a new source must not arrive with the previous passage's bloom
   // tail still decaying under it, which is what these two hold that no filter
@@ -753,13 +730,12 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
       feq_chain_room_active(chain) != 0,
       settings.dimension.enabled != 0 && chain->channels >= 2 &&
           !(feq_chain_room_active(chain) && settings.room.preserve_position),
-      settings.compressor.enabled != 0,
       settings.maximizer.enabled != 0,
       settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
       settings.master.enabled != 0,
   };
   uint32_t mask = 0;
-  for (uint32_t stage = 0; stage < 12u; ++stage) {
+  for (uint32_t stage = 0; stage < 11u; ++stage) {
     if (active[stage]) mask |= 1u << stage;
   }
   return mask;
@@ -913,12 +889,12 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   }
 
   /**
-   * Punch after the EQ and before the compressor: shaped, then controlled.
+   * Punch after the EQ and before the level stages: shaped, then controlled.
    *
-   * A transient this stage has sharpened is something the compressor then gets
-   * to decide about. The other order hands the compressor's low band an
-   * envelope that has already been squashed, and Punch spends its range
-   * rebuilding an attack that was just taken away.
+   * A transient this stage has sharpened is something the Maximizer then gets
+   * to decide about. The other order hands Punch an envelope that has already
+   * been held down, and it spends its range rebuilding an attack that was
+   * just taken away.
    */
   chain_process_bass_punch(chain, channels, frames);
   /**
@@ -950,13 +926,11 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    *
    * Anything that changes level has to happen before the ceiling holds it, or
    * the widening pushes peaks back over a limit the Maximizer has already
-   * enforced. Before the compressor too, so the compressor is deciding about
-   * the signal that will actually be heard.
+   * enforced.
    */
   chain_process_dimension(chain, channels, frames);
   feq_meters_publish_dimension(chain->meters,
                                feq_dimension_guard(&chain->dimension));
-  chain_process_compressor(chain, channels, frames);
   chain_process_maximizer(chain, channels, frames);
   // What it is holding down, which the spectrum cannot show either: a limiter
   // that is working looks exactly like one that is not until you see the

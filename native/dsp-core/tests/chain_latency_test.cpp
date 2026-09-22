@@ -52,7 +52,6 @@ FeqChainSettings bare() {
   settings.enabled = 1;
   settings.exciter.enabled = 0;
   settings.eq.enabled = 0;
-  settings.compressor.enabled = 0;
   settings.maximizer.enabled = 0;
   settings.master.enabled = 0;
   settings.bass_forge.enabled = 0;

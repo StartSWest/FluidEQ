@@ -27,7 +27,6 @@ const fullChain = (): IDspSettings =>
     bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
     bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
     dimension: { ...DSP_DEFAULTS.dimension, enabled: true, highWidth: 1.2 },
-    compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
     maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true, ceilingDb: -1.2 },
     master: {
       ...DSP_DEFAULTS.master,
@@ -57,7 +56,6 @@ describe('the shareable complete DSP chain file', () => {
     expect(read.settings.bassForge.enabled).toBe(true);
     expect(read.settings.bassPunch.enabled).toBe(true);
     expect(read.settings.dimension.highWidth).toBe(1.2);
-    expect(read.settings.compressor.enabled).toBe(true);
     expect(read.settings.maximizer.ceilingDb).toBe(-1.2);
     expect(read.settings.master.matchedBypass).toBe(true);
   });

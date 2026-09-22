@@ -1529,9 +1529,9 @@ $dsp-rail-offset: 110ms;
   flex-wrap: wrap;
 }
 
-// The compressor's two split points sit apart from the bands they define, with
-// a rule under them: they belong to the whole processor, and putting them in
-// the first band's group would read as settings of that band.
+// A processor's whole-stage dials, apart from the bands under them and with a
+// rule beneath: putting them in the first band's group would read as settings
+// of that band. The Master's dials sit here.
 .dsp-crossovers {
   display: flex;
   flex-wrap: wrap;
@@ -2180,9 +2180,8 @@ $dsp-pane-columns: 6;
   white-space: nowrap;
 }
 
-// Wide enough for the longest processor name in every locale — German's
-// "Multiband-Kompressor" is the one that sets it — so the rail never ends in
-// an ellipsis the user has to guess at.
+// Wide enough for the longest processor name in every locale, so the rail
+// never ends in an ellipsis the user has to guess at.
 .dsp-rail {
   width: 200px;
 }

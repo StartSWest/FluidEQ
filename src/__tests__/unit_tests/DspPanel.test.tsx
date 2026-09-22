@@ -160,7 +160,7 @@ describe('DspPanel', () => {
     // Include the new worldwide genre chains; the literal is here so that
     // a chain added without a row in the menu is a failure
     // rather than a menu quietly one short.
-    expect(DSP_PRESETS).toHaveLength(105);
+    expect(DSP_PRESETS).toHaveLength(106);
     expect(
       screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
     ).toBeInTheDocument();
@@ -194,9 +194,6 @@ describe('DspPanel', () => {
         rail.getByRole('button', { name: new RegExp(name, 'i') }),
       ).toBeInTheDocument();
     });
-    expect(
-      rail.queryByRole('button', { name: /Multiband compressor/i }),
-    ).not.toBeInTheDocument();
     const filters = within(
       railElement.querySelector('.dsp-rail-processors') as HTMLElement,
     );
@@ -696,7 +693,6 @@ describe('DspPanel', () => {
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.exciter.enabled).toBe(true);
     expect(next.eq.enabled).toBe(false);
-    expect(next.compressor.enabled).toBe(false);
     expect(next.maximizer.enabled).toBe(false);
   });
 

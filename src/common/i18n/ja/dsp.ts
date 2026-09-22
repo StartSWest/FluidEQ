@@ -82,6 +82,7 @@ const dsp = {
   'dsp.favorites.title': 'お気に入り',
   'dsp.quick.apo': 'EQカーブのみ · Equalizer APO',
   'dsp.preset.music': '音楽',
+  'dsp.preset.none': 'なし',
   'dsp.preset.speech': '音声',
   'dsp.quick.classics': '定番プリセット',
   'dsp.gameMode.update':
@@ -501,19 +502,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'ウェット',
   'dsp.bassPunchPreset.soft': 'ソフト',
   'dsp.bassPunchPreset.dnb': 'ドラムンベース',
-
-  'dsp.compressor.title': 'マルチバンドコンプレッサー',
-  'dsp.compressor.description': '3 つの帯域それぞれで音量を均します。',
-  'dsp.compressor.band.low': '低域',
-  'dsp.compressor.band.mid': '中域',
-  'dsp.compressor.band.high': '高域',
-  'dsp.compressor.crossoverLow': '低域 / 中域の分割点',
-  'dsp.compressor.crossoverHigh': '中域 / 高域の分割点',
-  'dsp.compressor.threshold': 'スレッショルド',
-  'dsp.compressor.ratio': 'レシオ',
-  'dsp.compressor.attack': 'アタック',
-  'dsp.compressor.release': 'リリース',
-  'dsp.compressor.makeup': 'メイクアップ',
 
   'dsp.dimension.historyLabel': 'サイドとミッドの推移',
   'dsp.dimension.legendCorrelation': '相関',

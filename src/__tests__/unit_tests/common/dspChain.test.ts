@@ -12,7 +12,6 @@ import {
   buildEqRack,
   clampDspSettings,
 } from '../../../common/dsp/chain';
-import { compressorPresetSettings } from '../../../common/dsp/compressorPresets';
 import { GENRE_CHAIN_STAGES } from '../../../common/dsp/genreChains';
 import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
@@ -22,7 +21,6 @@ describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
     expect(DSP_DEFAULTS.enabled).toBe(true);
     expect(DSP_DEFAULTS.exciter.enabled).toBe(false);
-    expect(DSP_DEFAULTS.compressor.enabled).toBe(false);
     expect(DSP_DEFAULTS.maximizer.enabled).toBe(false);
   });
 
@@ -101,7 +99,7 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(105);
+    expect(DSP_PRESETS).toHaveLength(106);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
@@ -122,10 +120,10 @@ describe('dsp chain settings', () => {
 
   /**
    * A style's stages are looked up by a plain string, and a misspelled one
-   * fails the quiet way: that style keeps shipping as its curve and a gentle
-   * compressor — a chain that sounds thinner than every one beside it, with
-   * nothing anywhere saying why. The profile ids inside each row are typed
-   * and cannot rot; the key is what needs watching.
+   * fails the quiet way: that style keeps shipping as its curve alone — a
+   * chain that sounds thinner than every one beside it, with nothing
+   * anywhere saying why. The profile ids inside each row are typed and
+   * cannot rot; the key is what needs watching.
    */
   it('names a real style in every row of the genre stage table', () => {
     const chains = new Set(DSP_PRESETS.map((preset) => preset.id));
@@ -236,7 +234,6 @@ describe('dsp chain settings', () => {
         preset.settings.exciter.enabled,
         preset.settings.bassForge.enabled,
         preset.settings.bassPunch.enabled,
-        preset.settings.compressor.enabled,
         preset.settings.dimension.enabled,
         preset.settings.maximizer.enabled,
         preset.settings.master.enabled,
@@ -283,9 +280,6 @@ describe('dsp chain settings', () => {
     );
     expect(punch?.settings.bassForge.enabled).toBe(false);
     expect(punch?.settings.bassPunch.presetId).toBe('punch');
-    expect(punch?.settings.compressor).toEqual(
-      compressorPresetSettings('gentle', true),
-    );
     expect(punch?.settings.maximizer).toEqual({
       ...maximizerPresetSettings('transparent', true),
       presetId: '',
@@ -338,24 +332,18 @@ describe('dsp chain settings', () => {
      * named here rather than counted.
      *
      * A chain with no final stage at all can be pushed past full scale by its
-     * own curve, and only the output safety — which is protection, not a
-     * sound — is left to catch it. These six are deliberate: Expansive and
-     * Lo-fi add no level to catch, World is the plainest row in the
-     * catalogue, and the three Gaming chains give up every millisecond a
-     * look-ahead would cost.
+     * own curve, and nothing is left to catch it. These five are deliberate:
+     * None is nothing at all, Expansive and Lo-fi add no level to catch,
+     * World is the plainest row in the catalogue, and Gaming gives up every
+     * millisecond a look-ahead would cost. Its two Room copies do not: a
+     * room leaves a full-scale record over full scale, so they carry the
+     * `safety` ceiling as Music's Room copy does.
      */
     const open = DSP_PRESETS.filter(
       (preset) =>
         !preset.settings.maximizer.enabled && !preset.settings.master.enabled,
     ).map((preset) => preset.id);
-    expect(open).toEqual([
-      'expansive',
-      'lofi',
-      'world',
-      'gaming',
-      'gaming-room',
-      'gaming-competitive',
-    ]);
+    expect(open).toEqual(['empty', 'expansive', 'lofi', 'world', 'gaming']);
   });
 
   it('does not replace a named final profile with a generic Maximizer', () => {
@@ -555,12 +543,18 @@ describe('dsp chain settings', () => {
     );
   });
 
-  it('always returns three compressor bands whatever it was handed', () => {
+  /**
+   * A chain saved before 2026-09-22 carries the multiband compressor that
+   * was removed that day, and it is read as a chain without one — never as
+   * a refusal, and never as a stage that comes back.
+   */
+  it('reads a stored chain that still carries the retired compressor', () => {
     const clamped = clampDspSettings({
       ...DSP_DEFAULTS,
-      compressor: { ...DSP_DEFAULTS.compressor, bands: [] },
+      compressor: { enabled: true, crossoverHz: [180, 3200], bands: [] },
     });
-    expect(clamped.compressor.bands).toHaveLength(3);
+    expect(clamped).toEqual(DSP_DEFAULTS);
+    expect('compressor' in clamped).toBe(false);
   });
 });
 
@@ -717,12 +711,12 @@ describe('bass stages clamp', () => {
     expect(bassPunch).toEqual(DSP_DEFAULTS.bassPunch);
   });
 });
-it('orders the basic presets Default, Reference, Music before the remaining sounds', () => {
+it('orders the basic presets None, Default, Reference, Music before the remaining sounds', () => {
   expect(
     DSP_PRESETS.filter((preset) => preset.group === 'basic')
-      .slice(0, 3)
+      .slice(0, 4)
       .map((preset) => preset.id),
-  ).toEqual(['balanced', 'reference', 'music']);
+  ).toEqual(['empty', 'balanced', 'reference', 'music']);
 });
 
 it('keeps traditional Country and modern pop-rock Country as distinct DSP curves', () => {

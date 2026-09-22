@@ -26,7 +26,6 @@ const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
   bassPunch: 'dsp.bassPunch.title',
   room: 'dsp.room.title',
   dimension: 'dsp.dimension.title',
-  compressor: 'dsp.compressor.title',
   maximizer: 'dsp.maximizer.title',
   headroom: 'dsp.master.autoHeadroom',
   master: 'dsp.master.title',

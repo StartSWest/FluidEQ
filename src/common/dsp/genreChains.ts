@@ -10,8 +10,8 @@ import type { IDspPresetRecipe } from './presetRecipes';
  * What a style switches on besides its own curve.
  *
  * Every EQ genre is also a complete chain, and for a while every one of them
- * was the same chain: its curve and a gentle compressor. Seventy-one styles
- * that differed only in tone, when the thing that actually separates hip-hop
+ * was the same chain: its curve and nothing else. Seventy-one styles that
+ * differed only in tone, when the thing that actually separates hip-hop
  * from bluegrass on a master is which PROCESSORS are in front of it at all.
  *
  * The rules the table follows, in the order they decide a row:
@@ -32,11 +32,10 @@ import type { IDspPresetRecipe } from './presetRecipes';
  *   bass under a voice narrow the bottom and spend the width above it; styles
  *   recorded in a room keep their low end, because a hall's bass arrives from
  *   everywhere. `dimensionPresets.ts` carries the two families.
- * - **A compressor only where the genre's own masters use one** — the rock
- *   family, the groove styles, gospel, and the few rows that switch on little
- *   else. Modern pop, hip-hop and dance masters arrive compressed and limited
- *   already, and glue on top of glue is the density that measures as loudness
- *   and hears as fatigue.
+ * - **No compression.** The rack carried a hidden multiband compressor until
+ *   2026-09-22, set by these rows and shown by no page; Ivan had it removed.
+ *   A master arrives compressed and limited already, and glue on top of glue
+ *   is the density that measures as loudness and hears as fatigue.
  * - **The Maximizer is a ceiling here, not a loudness tool.** Nearly every
  *   profile these rows name drives it by a decibel or less, and the quiet
  *   genres — classical, jazz, acoustic, reggae — drive it by nothing at all.
@@ -52,7 +51,6 @@ export type TGenreChainStages = Pick<
   | 'exciter'
   | 'bassForge'
   | 'bassPunch'
-  | 'compressor'
   | 'dimension'
   | 'maximizer'
   | 'maximizerDriveDb'
@@ -61,9 +59,8 @@ export type TGenreChainStages = Pick<
 /**
  * Keyed by the EQ genre id, which is also the chain's id.
  *
- * A style with no row here still ships as a chain — its curve, and the gentle
- * compressor `presets.ts` falls back to — so a curve added without a row is a
- * plainer sound rather than a missing one.
+ * A style with no row here still ships as a chain — its curve alone — so a
+ * curve added without a row is a plainer sound rather than a missing one.
  */
 export const GENRE_CHAIN_STAGES: Readonly<
   Record<string, TGenreChainStages | undefined>
@@ -102,46 +99,39 @@ export const GENRE_CHAIN_STAGES: Readonly<
   // its room are not a sound anything should sharpen.
   classicRock: {
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
   alternativeRock: {
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
   indieRock: {
     bassPunch: 'rock',
-    compressor: 'glue',
     dimension: 'rock',
     maximizer: 'rock',
   },
   progressiveRock: {
-    compressor: 'gentle',
     dimension: 'rock',
     maximizer: 'rock',
   },
   hardRock: {
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
   punk: {
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
   popPunk: {
     bassPunch: 'rock',
-    compressor: 'rock',
     dimension: 'rock',
     maximizer: 'rock',
   },
-  grunge: { compressor: 'rock', dimension: 'rock', maximizer: 'rock' },
+  grunge: { dimension: 'rock', maximizer: 'rock' },
 
   // Country and folk: wood, strings and a voice, in a natural picture. Modern
   // country is a pop record with a steel guitar on it, and is treated as one.
@@ -181,27 +171,23 @@ export const GENRE_CHAIN_STAGES: Readonly<
   rnb: { exciter: 'soul', dimension: 'pop', maximizer: 'pop' },
   soul: {
     exciter: 'soul',
-    compressor: 'glue',
     dimension: 'jazz',
     maximizer: 'acoustic',
   },
   neoSoul: {
     exciter: 'soul',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },
   funk: {
     exciter: 'latin',
     bassPunch: 'pop',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },
   disco: {
     exciter: 'latin',
     bassPunch: 'pop',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },
@@ -210,7 +196,7 @@ export const GENRE_CHAIN_STAGES: Readonly<
   // drives a limiter, and the picture stays the width the record was made at.
   smoothJazz: { exciter: 'soul', dimension: 'jazz', maximizer: 'jazz' },
   fusion: { exciter: 'jazz', dimension: 'jazz', maximizer: 'jazz' },
-  blues: { compressor: 'gentle', dimension: 'jazz', maximizer: 'jazz' },
+  blues: { dimension: 'jazz', maximizer: 'jazz' },
 
   // Classical: the hall's own width, and a ceiling that only ever catches an
   // isolated peak. A crescendo held down is the piece edited.
@@ -253,7 +239,7 @@ export const GENRE_CHAIN_STAGES: Readonly<
   chillout: { dimension: 'expansive', maximizer: 'ambient' },
   // Dark and soft on purpose. Sharpening any of it would be undoing the
   // record: this one gets the room it is played in and nothing else.
-  lofi: { compressor: 'gentle', dimension: 'intimate' },
+  lofi: { dimension: 'intimate' },
   ambient: { dimension: 'expansive', maximizer: 'ambient' },
   newAge: { dimension: 'expansive', maximizer: 'ambient' },
 
@@ -328,7 +314,6 @@ export const GENRE_CHAIN_STAGES: Readonly<
   // like a pop record, and amapiano's log drum is a synthesised sub.
   afrobeat: {
     exciter: 'latin',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },
@@ -347,7 +332,7 @@ export const GENRE_CHAIN_STAGES: Readonly<
 
   // Everything else, where "world" covers records made in every way there is
   // — so it stays the plainest row in the table.
-  world: { compressor: 'gentle', dimension: 'default' },
+  world: { dimension: 'default' },
   bollywood: {
     exciter: 'pop',
     bassPunch: 'pop',
@@ -368,13 +353,11 @@ export const GENRE_CHAIN_STAGES: Readonly<
 
   gospel: {
     exciter: 'vocal',
-    compressor: 'glue',
     dimension: 'classical',
     maximizer: 'pop',
   },
   christian: {
     exciter: 'pop',
-    compressor: 'glue',
     dimension: 'pop',
     maximizer: 'pop',
   },

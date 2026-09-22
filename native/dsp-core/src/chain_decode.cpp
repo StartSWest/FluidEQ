@@ -126,16 +126,10 @@ int feq_chain_settings_decode(const double* values,
   out->eq.subsonic_hz = next();
   out->eq.fuzz_amount = next();
 
-  out->compressor.enabled = flag();
-  out->compressor.crossover_hz[0] = next();
-  out->compressor.crossover_hz[1] = next();
-  for (auto& band : out->compressor.bands) {
-    band.threshold_db = next();
-    band.ratio = next();
-    band.attack_ms = next();
-    band.release_ms = next();
-    band.makeup_db = next();
-  }
+  // The multiband compressor's eighteen words — switch, two corners, three
+  // bands of five — until it was removed on 2026-09-22. The app writes zeros
+  // there and the layout keeps them, so no band moves.
+  at += 18;
 
   out->dimension.enabled = flag();
   out->dimension.low_width = next();

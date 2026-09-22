@@ -69,7 +69,6 @@ FeqChainSettings settings_for(bool stereo_stages) {
   settings.eq.bands[1].quality = 1.4;
   settings.eq.bands[1].threshold_db = -30.0;
   settings.exciter.enabled = 1;
-  settings.compressor.enabled = 1;
   settings.maximizer.enabled = 1;
   settings.maximizer.drive_db = 6.0;
   settings.master.enabled = 1;
@@ -259,7 +258,6 @@ void channels_stay_aligned() {
   std::printf("channels stay aligned\n");
   FeqChainSettings settings = settings_for(true);
   settings.maximizer.enabled = 0;
-  settings.compressor.enabled = 0;
   settings.exciter.enabled = 0;
   settings.eq.enabled = 0;
   settings.master.enabled = 0;
@@ -352,7 +350,6 @@ void lfe_is_left_alone_by_the_exciter() {
   std::printf("lfe is left alone by the exciter\n");
   FeqChainSettings settings = settings_for(false);
   settings.eq.enabled = 0;
-  settings.compressor.enabled = 0;
   settings.maximizer.enabled = 0;
   settings.master.enabled = 0;
   settings.exciter.bands[0].enabled = 1;

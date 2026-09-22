@@ -122,7 +122,6 @@ export const LATENCY_STAGES = [
   'bassPunch',
   'room',
   'dimension',
-  'compressor',
   'maximizer',
   'headroom',
   'master',

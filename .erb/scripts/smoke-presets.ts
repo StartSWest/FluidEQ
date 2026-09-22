@@ -194,13 +194,29 @@ const measure = (audio: IAudio): IMetrics => {
   };
 };
 
-const passesShapeSafety = (metrics: IMetrics): boolean =>
+/**
+ * Whether the rack carries a stage whose job is holding a ceiling.
+ *
+ * The rack's own final guard held every chain under full scale until it was
+ * removed on 2026-09-22 (`chain_transparency_test.cpp`). A chain that ends in
+ * the Maximizer, or in a Master bringing the programme to a target, still
+ * promises a ceiling; one that ends in nothing is measured and reported, as
+ * it would be under Equalizer APO, where the listener's preamp is the room.
+ */
+const holdsCeiling = (settings: IDspSettings): boolean =>
+  settings.maximizer.enabled ||
+  (settings.master.enabled && settings.master.loudnessMaximize);
+
+const passesShapeSafety = (metrics: IMetrics, held: boolean): boolean =>
   metrics.finite &&
-  metrics.peak <= 1.0001 &&
+  (!held ||
+    (metrics.peak <= 1.0001 && metrics.nearCeilingFraction < 0.0001)) &&
   metrics.rms > 0.003 &&
-  metrics.nearCeilingFraction < 0.0001 &&
   metrics.crestDb > 2 &&
   metrics.dc < 0.02;
+
+const shapeCheckName = (held: boolean): string =>
+  held ? 'no clip, silence, DC, or crushing' : 'no silence, DC, or crushing';
 
 const dbRatio = (value: number, reference: number): number =>
   20 * Math.log10(Math.max(value, 1e-12) / Math.max(reference, 1e-12));
@@ -322,7 +338,7 @@ const main = async (): Promise<void> => {
       { ...DSP_DEFAULTS, enabled: false },
       'dry-reference',
     );
-    check(passesShapeSafety(dry), 'the reference is valid programme');
+    check(passesShapeSafety(dry, false), 'the reference is valid programme');
 
     // Positive control: a flat-topped constant must fail the same predicate.
     const clipped = measure({
@@ -330,7 +346,7 @@ const main = async (): Promise<void> => {
       channels: [new Float32Array(48_000).fill(1)],
     });
     check(
-      !passesShapeSafety(clipped),
+      !passesShapeSafety(clipped, true) && !passesShapeSafety(clipped, false),
       'the safety check rejects clipped audio',
     );
 
@@ -351,9 +367,10 @@ const main = async (): Promise<void> => {
       line(
         `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · RMS ${levelDb.toFixed(1).padStart(5)} dB vs dry, with its curve · crest ${result.crestDb.toFixed(1)} dB`,
       );
+      const held = holdsCeiling(preset.settings);
       check(
-        passesShapeSafety(result),
-        `${preset.id}: no clip, silence, DC, or crushing`,
+        passesShapeSafety(result, held),
+        `${preset.id}: ${shapeCheckName(held)}`,
       );
       if (levelChecks) {
         /**
@@ -404,9 +421,10 @@ const main = async (): Promise<void> => {
           line(
             `       ${preset.family.padEnd(12)} ${preset.id.padEnd(16)} level ${levelDb.toFixed(2).padStart(6)} dB vs dry`,
           );
+          const held = holdsCeiling(preset.settings);
           check(
-            passesShapeSafety(result),
-            `${preset.family}/${preset.id}: no clip, silence, DC, or crushing`,
+            passesShapeSafety(result, held),
+            `${preset.family}/${preset.id}: ${shapeCheckName(held)}`,
           );
           if (levelChecks) {
             check(

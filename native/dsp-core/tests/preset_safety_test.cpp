@@ -76,7 +76,6 @@ void replace(FeqChainSettings& target, const Preset& local) {
   else if (local.family == "exciter") target.exciter = source.exciter;
   else if (local.family == "bass-forge") target.bass_forge = source.bass_forge;
   else if (local.family == "bass-punch") target.bass_punch = source.bass_punch;
-  else if (local.family == "compressor") target.compressor = source.compressor;
   else if (local.family == "dimension") target.dimension = source.dimension;
   else if (local.family == "maximizer") target.maximizer = source.maximizer;
   else if (local.family == "master") target.master = source.master;
@@ -275,7 +274,7 @@ int main(int argc, char** argv) {
     (preset.family == "chain" ? chains : locals).push_back(preset);
   }
   /**
-   * 105 whole chains, including the worldwide genre catalogue.
+   * 106 whole chains, including the worldwide genre catalogue and None.
    *
    * A literal rather than a number the generator declares, because the point
    * is to notice: a catalogue that grows without this file growing with it is
@@ -283,7 +282,7 @@ int main(int argc, char** argv) {
    * It sat at 28 through the two Room copies being added, and the miss only
    * showed when the fixtures were next regenerated.
    */
-  check(chains.size() == 105 && locals.size() > 150,
+  check(chains.size() == 106 && locals.size() > 150,
         "the complete shipped catalogue is present");
   if (partition == "all" || partition == "individual") {
     check_air(presets);

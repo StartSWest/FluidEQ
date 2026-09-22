@@ -95,7 +95,6 @@ std::vector<std::pair<std::string, unsigned>> latency_parts_of(
       {"bassPunch", parts.rack.bass_punch},
       {"room", parts.rack.room},
       {"dimension", 0u},
-      {"compressor", 0u},
       {"maximizer", parts.rack.maximizer},
       {"headroom", parts.rack.headroom},
       {"master", 0u},

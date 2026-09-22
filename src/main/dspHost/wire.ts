@@ -411,7 +411,6 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'bassPunch',
     'room',
     'dimension',
-    'compressor',
     'maximizer',
     'headroom',
     'master',

@@ -67,8 +67,9 @@ const TOP_PARTIALS: readonly number[] = [
  * sees.
  *
  * Normalised by loudness rather than by peak on purpose. Every threshold in the
- * Compressor catalogue is absolute, so the operating point decides whether a
- * profile engages gently or sits five decibels into gain reduction, and a peak
+ * rack is absolute — a dynamic band's, the Maximizer's ceiling — so the
+ * operating point decides whether a stage engages gently or sits five decibels
+ * into gain reduction, and a peak
  * normalisation leaves that to whatever crest factor the synthesis happened to
  * produce. -26 dBFS is where the song this stands in for renders.
  */
@@ -131,7 +132,7 @@ export const writeProgrammeFixture = (
     const t = at / rate;
     const chord = CHORDS[Math.floor(t / BAR_SECONDS) % CHORDS.length];
     // Notes retrigger twice a second, so every render window holds several
-    // attacks — a compressor or a transient stage measured over a single
+    // attacks — a dynamics or a transient stage measured over a single
     // sustained note is measured on the one thing it does not act on.
     const notePhase = t % 0.5;
     const envelope = pluck(notePhase);

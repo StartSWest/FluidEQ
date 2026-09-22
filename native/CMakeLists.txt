@@ -79,7 +79,6 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/primitives.cpp
   dsp-core/src/saturate.cpp
   dsp-core/src/limiter.cpp
-  dsp-core/src/compressor.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
   dsp-core/src/leveling_memory.cpp
@@ -263,7 +262,7 @@ target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_st
 # Every cross-family pair is owned by its first family in catalogue order;
 # Master is last, so its pairs are already covered by the other families.
 foreach(partition individual chains denoise equaliser exciter bass-forge
-                  bass-punch compressor dimension maximizer)
+                  bass-punch dimension maximizer)
   add_test(NAME preset-safety-${partition}
     COMMAND fluideq-preset-safety-test
       "${CMAKE_BINARY_DIR}/preset-fixtures.txt" "${partition}")

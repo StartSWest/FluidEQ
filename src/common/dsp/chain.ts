@@ -262,22 +262,6 @@ export interface IExciterSettings {
   isolate: boolean;
 }
 
-export interface IBandSettings {
-  thresholdDb: number;
-  ratio: number;
-  attackMs: number;
-  releaseMs: number;
-  makeupDb: number;
-}
-
-export interface ICompressorSettings {
-  enabled: boolean;
-  /** The two crossover corners that make three bands, Hz, ascending. */
-  crossoverHz: readonly [number, number];
-  /** Per band, low to high. Always three. */
-  bands: readonly IBandSettings[];
-}
-
 /**
  * Generates low end rather than shaping what the source already has — the
  * difference between this and an EQ boost, which can only raise a
@@ -968,7 +952,6 @@ export interface IDspSettings {
   bassForge: IBassForgeSettings;
   bassPunch: IBassPunchSettings;
   dimension: IDimensionSettings;
-  compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
   master: IMasterSettings;
   room: IRoomSettings;
@@ -1219,13 +1202,6 @@ const RANGES = {
   bassForgeTexture: { min: 0, max: 1 },
   bassPunchShape: { min: -1, max: 1 },
   bassPunchBloomDecayMs: { min: 40, max: 250 },
-  compressorLowHz: { min: 60, max: 600 },
-  compressorHighHz: { min: 1_000, max: 10_000 },
-  thresholdDb: { min: -60, max: 0 },
-  ratio: { min: 1, max: 20 },
-  attackMs: { min: 0.1, max: 200 },
-  releaseMs: { min: 5, max: 2_000 },
-  makeupDb: { min: 0, max: 24 },
   // Down to where a quiet passage lives and up to just under full scale.
   // Below -60 nothing musical ever falls under the threshold, so the band
   // would be permanently engaged and indistinguishable from a static one.
@@ -1328,14 +1304,6 @@ const clampNumber = (
 
 const clampBoolean = (value: unknown, fallback: boolean): boolean =>
   typeof value === 'boolean' ? value : fallback;
-
-const DEFAULT_BAND: IBandSettings = {
-  thresholdDb: -18,
-  ratio: 2,
-  attackMs: 10,
-  releaseMs: 120,
-  makeupDb: 0,
-};
 
 /**
  * The rack this EQ opens with: shelves at the ends and thirteen bells
@@ -1621,11 +1589,6 @@ export const DSP_DEFAULTS: IDspSettings = {
     highHz: 3_000,
     decorrelation: 0.25,
   },
-  compressor: {
-    enabled: false,
-    crossoverHz: [200, 3_000],
-    bands: [DEFAULT_BAND, DEFAULT_BAND, DEFAULT_BAND],
-  },
   maximizer: {
     enabled: false,
     presetId: '',
@@ -1727,27 +1690,6 @@ export const DSP_DEFAULTS: IDspSettings = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
-
-const clampBand = (value: unknown, fallback: IBandSettings): IBandSettings => {
-  if (!isRecord(value)) {
-    return fallback;
-  }
-  return {
-    thresholdDb: clampNumber(
-      value.thresholdDb,
-      RANGES.thresholdDb,
-      fallback.thresholdDb,
-    ),
-    ratio: clampNumber(value.ratio, RANGES.ratio, fallback.ratio),
-    attackMs: clampNumber(value.attackMs, RANGES.attackMs, fallback.attackMs),
-    releaseMs: clampNumber(
-      value.releaseMs,
-      RANGES.releaseMs,
-      fallback.releaseMs,
-    ),
-    makeupDb: clampNumber(value.makeupDb, RANGES.makeupDb, fallback.makeupDb),
-  };
-};
 
 const clampExciterBand = (
   value: unknown,
@@ -1852,7 +1794,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     ? value.bassPunch
     : DSP_DEFAULTS.bassPunch;
   const dimension = isRecord(value.dimension) ? value.dimension : {};
-  const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
   const master = isRecord(value.master) ? value.master : {};
   const room = isRecord(value.room) ? value.room : {};
@@ -1864,10 +1805,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     fallback.map((value, at) =>
       clampNumber(Array.isArray(stored) ? stored[at] : undefined, range, value),
     );
-  const storedBands = Array.isArray(compressor.bands) ? compressor.bands : [];
-  const storedCorners = Array.isArray(compressor.crossoverHz)
-    ? compressor.crossoverHz
-    : [];
   const storedOrganic = isRecord(exciter.organic) ? exciter.organic : {};
   const storedAlign = isRecord(exciter.align) ? exciter.align : {};
   let exciterStereo = DSP_DEFAULTS.exciter.stereo;
@@ -2308,27 +2245,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         dimension.decorrelation,
         RANGES.dimensionDecorrelation,
         DSP_DEFAULTS.dimension.decorrelation,
-      ),
-    },
-    compressor: {
-      enabled: clampBoolean(
-        compressor.enabled,
-        DSP_DEFAULTS.compressor.enabled,
-      ),
-      crossoverHz: [
-        clampNumber(
-          storedCorners[0],
-          RANGES.compressorLowHz,
-          DSP_DEFAULTS.compressor.crossoverHz[0],
-        ),
-        clampNumber(
-          storedCorners[1],
-          RANGES.compressorHighHz,
-          DSP_DEFAULTS.compressor.crossoverHz[1],
-        ),
-      ],
-      bands: DSP_DEFAULTS.compressor.bands.map((fallback, index) =>
-        clampBand(storedBands[index], fallback),
       ),
     },
     maximizer: {

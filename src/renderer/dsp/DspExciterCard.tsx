@@ -36,10 +36,9 @@ const BAND_LABELS: TranslationKey[] = [
  * The exciter's page: three bands, the organic stage, and a display of what
  * both are doing.
  *
- * Its own file because it stopped being three dials. `DspPanel` draws four
- * processors and was over the size this project allows before this page grew a
- * canvas, a per-band switch and a stage of its own; the compressor's page is
- * the next one that should come out.
+ * Its own file because it stopped being three dials. `DspPanel` was over the
+ * size this project allows before this page grew a canvas, a per-band switch
+ * and a stage of its own.
  */
 const DspExciterCard = ({
   exciter,

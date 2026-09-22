@@ -10,16 +10,16 @@ import { TDspSection } from './sections';
  * One glyph per processor, in a 20x20 box.
  *
  * Each is the picture that processor's own front panel would use: faders for
- * the equaliser, a transfer curve with a knee for the compressor, a ceiling
- * with something pushed up against it for the maximizer. Drawn rather than
- * lettered so the rail survives being narrowed to the icons alone, which is
- * what it does once the window is too narrow to carry the names.
+ * the equaliser, a ceiling with something pushed up against it for the
+ * maximizer. Drawn rather than lettered so the rail survives being narrowed
+ * to the icons alone, which is what it does once the window is too narrow to
+ * carry the names.
  *
  * Two paths each, and they are not interchangeable: the frame is the dim
  * scaffolding and the accent is the part that says which processor this is.
- * The compressor's frame is its unity diagonal — a knee alone is just a bent
- * line, and the diagonal behind it is what makes the bend read as gain against
- * input.
+ * The maximizer's frame is its ceiling — an arrow alone is just an arrow, and
+ * the line above it is what makes it read as something pushed against a
+ * limit.
  */
 const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
   normalizer: {
@@ -78,10 +78,6 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M10 10 m-3.6 0 a3.6 3.6 0 1 0 7.2 0 a3.6 3.6 0 1 0 -7.2 0',
     accent:
       'M4.2 6.2 A6.4 6.4 0 0 0 4.2 13.8 M15.8 6.2 A6.4 6.4 0 0 1 15.8 13.8',
-  },
-  compressor: {
-    frame: 'M3 17 L17 3',
-    accent: 'M3 17 L8.5 11.5 C10.5 9.4 12 8.8 17 8.4',
   },
   maximizer: {
     frame: 'M3 4.5 H17',

@@ -417,10 +417,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
      *
      * So the cut moved down and got deeper (-3 at 200 and 315 against the -1
      * it was), the lift moved to where the cues are, and the sub lift came
-     * back a decibel: the compressor's low band is what holds a blast now,
-     * and a shelf that pushed 3 dB into it was making that job harder. All of
-     * it measured on the fair programme rather than the mono-safe one, which
-     * is what made the old curve look reasonable.
+     * back a decibel. All of it measured on the fair programme rather than
+     * the mono-safe one, which is what made the old curve look reasonable.
      */
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
@@ -715,16 +713,14 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'lofi',
     labelKey: 'dsp.eqPreset.lofi',
     group: 'genre',
-    // As drawn. It was moved 0.6 dB down as a level fix measured on a scratch
-    // recording that reads about a decibel hot against the loudness gate's
-    // own music — and the gate, the level of record, then measured the chain
-    // 2.3 dB under DSP Off with its tone in the rack, and 2.0 with the tone as
-    // the Preset layer after it: outside the -1.5 dB floor both ways. The
-    // middle it leans on is where music keeps its energy, so a level move of
-    // the whole curve moves the chain by more than itself.
+    // Drawn 0.3 dB up on 2026-09-22, when the gentle compressor whose makeup
+    // carried part of this chain's level went out of the rack: the gate then
+    // measured it 1.8 dB under DSP Off. The middle it leans on is where
+    // music keeps its energy, so a level move of the whole curve moves the
+    // chain by about three times itself — which is why the step is small.
     gains: [
-      -1.9, -0.9, 0.6, 2.1, 2.1, 1.3, 0.6, 0.6, 0.6, 0.1, -0.9, -2.4, -3.9,
-      -5.4, -6.9,
+      -1.6, -0.6, 0.9, 2.4, 2.4, 1.6, 0.9, 0.9, 0.9, 0.4, -0.6, -2.1, -3.6,
+      -5.1, -6.6,
     ],
     setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
   },

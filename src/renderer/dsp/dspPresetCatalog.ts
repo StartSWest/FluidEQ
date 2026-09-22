@@ -89,7 +89,6 @@ export const dspPresetHint = (
     settings.bassPunch.enabled ? t('dsp.bassPunch.title') : '',
     settings.room.enabled ? t('dsp.room.title') : '',
     settings.dimension.enabled ? t('dsp.dimension.title') : '',
-    settings.compressor.enabled ? t('dsp.compressor.title') : '',
     settings.maximizer.enabled ? t('dsp.maximizer.title') : '',
     settings.master.enabled ? t('dsp.master.title') : '',
   ]

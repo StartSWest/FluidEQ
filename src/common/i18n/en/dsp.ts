@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The DSP chain: exciter, multiband compressor, maximizer.
+ * The DSP rack: the exciter, the maximizer and every stage between them.
  *
  * `dsp.scopeNotice` is the load-bearing string in this file. Every other pill
  * in the EQ group configures Equalizer APO and therefore all system audio;
@@ -91,6 +91,7 @@ const dsp = {
   'dsp.favorites.title': 'Favorites',
   'dsp.quick.apo': 'EQ curve only · Equalizer APO',
   'dsp.preset.music': 'Music',
+  'dsp.preset.none': 'None',
   'dsp.preset.speech': 'Speech',
   'dsp.quick.classics': 'Classic presets',
   'dsp.gameMode.update':
@@ -518,20 +519,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'Wet',
   'dsp.bassPunchPreset.soft': 'Soft',
   'dsp.bassPunchPreset.dnb': 'D&B',
-
-  'dsp.compressor.title': 'Multiband compressor',
-  'dsp.compressor.description':
-    'Evens out the level in three frequency bands independently.',
-  'dsp.compressor.band.low': 'Low',
-  'dsp.compressor.band.mid': 'Mid',
-  'dsp.compressor.band.high': 'High',
-  'dsp.compressor.crossoverLow': 'Low / mid split',
-  'dsp.compressor.crossoverHigh': 'Mid / high split',
-  'dsp.compressor.threshold': 'Threshold',
-  'dsp.compressor.ratio': 'Ratio',
-  'dsp.compressor.attack': 'Attack',
-  'dsp.compressor.release': 'Release',
-  'dsp.compressor.makeup': 'Makeup',
 
   'dsp.dimension.historyLabel': 'Side and mid over time',
   'dsp.dimension.legendCorrelation': 'Correlation',

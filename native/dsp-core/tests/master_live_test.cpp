@@ -49,7 +49,6 @@ FeqChainSettings master_only(double target_lufs, double amplitude_trim = 0.0) {
   settings.normalizer.mode = 0;
   settings.eq.enabled = 0;
   settings.exciter.enabled = 0;
-  settings.compressor.enabled = 0;
   settings.maximizer.enabled = 0;
   settings.dimension.enabled = 0;
   settings.master.enabled = 1;

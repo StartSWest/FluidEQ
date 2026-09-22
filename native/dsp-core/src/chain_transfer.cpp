@@ -72,9 +72,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   }
   swap(prepared.dynamic_states, previous.dynamic_states);
   swap(prepared.side_highpass, previous.side_highpass);
-  swap(prepared.crossovers, previous.crossovers);
-  swap(prepared.compressors, previous.compressors);
-  swap(prepared.compressor_mix, previous.compressor_mix);
 
   swap(prepared.maximizer, previous.maximizer);
   swap(prepared.maximizer_detectors, previous.maximizer_detectors);

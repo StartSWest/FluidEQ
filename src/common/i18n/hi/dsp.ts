@@ -82,6 +82,7 @@ const dsp = {
   'dsp.favorites.title': 'पसंदीदा',
   'dsp.quick.apo': 'केवल EQ कर्व · Equalizer APO',
   'dsp.preset.music': 'संगीत',
+  'dsp.preset.none': 'कोई नहीं',
   'dsp.preset.speech': 'बोलचाल',
   'dsp.quick.classics': 'क्लासिक प्रीसेट',
   'dsp.gameMode.update':
@@ -504,20 +505,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'गीला',
   'dsp.bassPunchPreset.soft': 'मुलायम',
   'dsp.bassPunchPreset.dnb': 'ड्रम एंड बेस',
-
-  'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',
-  'dsp.compressor.description':
-    'तीन फ़्रीक्वेंसी बैंड में अलग-अलग स्तर को बराबर करता है।',
-  'dsp.compressor.band.low': 'लो',
-  'dsp.compressor.band.mid': 'मिड',
-  'dsp.compressor.band.high': 'हाई',
-  'dsp.compressor.crossoverLow': 'लो / मिड विभाजन',
-  'dsp.compressor.crossoverHigh': 'मिड / हाई विभाजन',
-  'dsp.compressor.threshold': 'थ्रेशोल्ड',
-  'dsp.compressor.ratio': 'अनुपात',
-  'dsp.compressor.attack': 'अटैक',
-  'dsp.compressor.release': 'रिलीज़',
-  'dsp.compressor.makeup': 'मेकअप',
 
   'dsp.dimension.historyLabel': 'समय के साथ साइड और मिड',
   'dsp.dimension.legendCorrelation': 'सहसंबंध',

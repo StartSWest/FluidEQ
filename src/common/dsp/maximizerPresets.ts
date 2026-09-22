@@ -197,7 +197,12 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'reggae',
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
-    settings: profile(0, -1, 6, 140),
+    // 1.7 dB of drive since 2026-09-22, when the glue compressor whose
+    // makeup carried that much of the Reggae chain's level went out of the
+    // rack: the gate measured the chain 1.8 dB under DSP Off without it. In
+    // the profile rather than as the chain's own calibration, so the card
+    // still names the profile it plays.
+    settings: profile(1.7, -1, 6, 140),
   },
   ambient: {
     id: 'ambient',

@@ -59,8 +59,8 @@ const HOLD_MS = 6_000;
 /**
  * A deliberately expensive rack, because an idle chain proves nothing.
  *
- * Sixteen bands, four of them dynamic, plus the exciter, compressor and
- * maximizer. If the callback is going to run out of time it will do it here
+ * Sixteen bands, four of them dynamic, plus the exciter and the maximizer.
+ * If the callback is going to run out of time it will do it here
  * rather than on the defaults, and a machine that holds this holds anything the
  * panel can ask for.
  */
@@ -81,7 +81,6 @@ const heavySettings = () => ({
     })) as unknown as IEqSettings['bands'],
   },
   exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
-  compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
   maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true },
 });
 

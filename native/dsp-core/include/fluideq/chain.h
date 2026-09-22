@@ -43,7 +43,6 @@ extern "C" {
 /** Matches `EQ_MAX_BAND_COUNT` in chain.ts. */
 #define FEQ_CHAIN_MAX_EQ_BANDS 64
 #define FEQ_CHAIN_EXCITER_BANDS 3
-#define FEQ_CHAIN_COMPRESSOR_BANDS 3
 /**
  * The stereo pair: the two channels the width, bass and mid/side stages work
  * on, and the pair a Library track has.
@@ -55,7 +54,7 @@ extern "C" {
  *
  * Every channel gets the EQ, the exciter, the restoration's alignment and
  * every level stage, and the level stages make ONE decision for all of them:
- * the compressor, the maximizer and the headroom each
+ * the maximizer and the headroom each
  * listen across every channel and apply the same gain to each, so a surround
  * mix never pumps out of balance. The stages that are stereo by nature —
  * width, both bass stages, mid/side — work on the front pair and leave the
@@ -95,14 +94,6 @@ typedef struct FeqChainExciterBand {
   double mix;
   double texture;
 } FeqChainExciterBand;
-
-typedef struct FeqChainCompressorBand {
-  double threshold_db;
-  double ratio;
-  double attack_ms;
-  double release_ms;
-  double makeup_db;
-} FeqChainCompressorBand;
 
 typedef struct FeqChainExciterSettings {
   int enabled;
@@ -147,11 +138,6 @@ typedef struct FeqChainSettings {
   FeqDenoiseSettings denoise;
   FeqChainExciterSettings exciter;
   FeqChainEqSettings eq;
-  struct {
-    int enabled;
-    double crossover_hz[2];
-    FeqChainCompressorBand bands[FEQ_CHAIN_COMPRESSOR_BANDS];
-  } compressor;
   /**
    * Stereo width per band. Touches the side signal only, so the mono sum is
    * unchanged at every setting — `dimension_test.cpp` asserts that as equality.
@@ -524,7 +510,7 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * compressor, maximizer, headroom, master. CONTROL planning snapshot,
+ * maximizer, headroom, master. CONTROL planning snapshot,
  * read before publishing a prepared chain. Room protection reflects the planned
  * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);

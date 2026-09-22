@@ -112,7 +112,7 @@ typedef struct FeqCrossoverPhase {
  * instant it starts: the first sample out of an empty split is 0.55 of the
  * sample that went in, which beside a stage that was passing the signal
  * through is a click. Ordinary use does this constantly — every preset that
- * has a compressor replacing one that has none — so each stage that owns a
+ * has Dimension replacing one that has none — so each stage that owns a
  * split crossfades its own output against its input over this long. Short
  * enough that nobody hears a fade, long enough that no edge is left.
  */

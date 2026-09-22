@@ -123,7 +123,6 @@ FeqChainSettings settings_for(bool linear) {
 void unchanged_settings_match_uninterrupted_audio() {
   for (const bool linear : {false, true}) {
     auto settings = settings_for(linear);
-    settings.compressor.enabled = 1;
     settings.bass_forge.enabled = 1;
     settings.bass_forge.mix = 0.3;
     settings.bass_forge.sub_amount = 0.1;
@@ -519,12 +518,6 @@ void stages_switch_on_without_a_step() {
     void (*apply)(FeqChainSettings&);
   };
   const Case cases[] = {
-      {"the compressor",
-       [](FeqChainSettings& settings) {
-         settings.compressor.enabled = 1;
-         settings.compressor.crossover_hz[0] = 200.0;
-         settings.compressor.crossover_hz[1] = 3000.0;
-       }},
       {"Dimension",
        [](FeqChainSettings& settings) {
          settings.dimension = {1, 0.9, 1.25, 1.55, 200.0, 3000.0, 0.55};

@@ -82,6 +82,7 @@ const dsp = {
   'dsp.favorites.title': 'Favoritos',
   'dsp.quick.apo': 'Apenas curva de EQ · Equalizer APO',
   'dsp.preset.music': 'Música',
+  'dsp.preset.none': 'Nenhum',
   'dsp.preset.speech': 'Voz',
   'dsp.quick.classics': 'Presets clássicos',
   'dsp.gameMode.update':
@@ -510,20 +511,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'Úmido',
   'dsp.bassPunchPreset.soft': 'Suave',
   'dsp.bassPunchPreset.dnb': 'D&B',
-
-  'dsp.compressor.title': 'Compressor multibanda',
-  'dsp.compressor.description':
-    'Nivela o volume em três faixas de frequência de forma independente.',
-  'dsp.compressor.band.low': 'Graves',
-  'dsp.compressor.band.mid': 'Médios',
-  'dsp.compressor.band.high': 'Agudos',
-  'dsp.compressor.crossoverLow': 'Corte graves / médios',
-  'dsp.compressor.crossoverHigh': 'Corte médios / agudos',
-  'dsp.compressor.threshold': 'Limiar',
-  'dsp.compressor.ratio': 'Proporção',
-  'dsp.compressor.attack': 'Ataque',
-  'dsp.compressor.release': 'Liberação',
-  'dsp.compressor.makeup': 'Compensação',
 
   'dsp.dimension.historyLabel': 'Lados e centro ao longo do tempo',
   'dsp.dimension.legendCorrelation': 'Correlação',

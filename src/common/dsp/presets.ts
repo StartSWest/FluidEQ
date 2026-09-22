@@ -13,7 +13,6 @@ import {
 } from './chain';
 import { bassForgePresetSettings } from './bassForgePresets';
 import { bassPunchPresetSettings } from './bassPunchPresets';
-import { compressorPresetSettings } from './compressorPresets';
 import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
@@ -154,9 +153,6 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     bassPunch: recipe.bassPunch
       ? bassPunchPresetSettings(recipe.bassPunch, true)
       : DSP_DEFAULTS.bassPunch,
-    compressor: recipe.compressor
-      ? compressorPresetSettings(recipe.compressor, true)
-      : DSP_DEFAULTS.compressor,
     dimension: recipe.dimension
       ? dimensionPresetSettings(recipe.dimension, true)
       : DSP_DEFAULTS.dimension,
@@ -218,7 +214,7 @@ export const chainRoom = (
 
 // Every EQ genre is also a complete DSP chain. Detailed recipes above win;
 // the remaining genres are their own EQ plus the stages `genreChains.ts`
-// gives that style, and a gentle compressor where it names none.
+// gives that style, and the curve alone where it names none.
 const recipes: readonly IDspPresetRecipe[] = [
   ...DSP_PRESET_RECIPES,
   ...EQ_PRESETS.filter(
@@ -234,7 +230,7 @@ const recipes: readonly IDspPresetRecipe[] = [
       labelKey: eq.labelKey,
       group: 'genre',
       eq: eq.id,
-      ...(stages ?? { compressor: 'gentle' }),
+      ...stages,
     };
   }),
 ];

@@ -14,10 +14,6 @@ import {
 } from '../../src/common/dsp/bassPunchPresets';
 import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
 import {
-  COMPRESSOR_PRESET_BY_ID,
-  compressorPresetSettings,
-} from '../../src/common/dsp/compressorPresets';
-import {
   DENOISE_PRESET_BY_ID,
   denoisePresetSettings,
 } from '../../src/common/dsp/denoisePresets';
@@ -98,14 +94,6 @@ export const filterPresetCases = (): readonly IFilterPresetCase[] => [
     settings: {
       ...DSP_DEFAULTS,
       bassPunch: bassPunchPresetSettings(id, true),
-    },
-  })),
-  ...presetIds(COMPRESSOR_PRESET_BY_ID).map((id) => ({
-    family: 'compressor',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      compressor: compressorPresetSettings(id, true),
     },
   })),
   ...presetIds(DIMENSION_PRESET_BY_ID).map((id) => ({
