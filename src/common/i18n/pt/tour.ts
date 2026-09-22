@@ -24,11 +24,114 @@ const tour: Partial<Dictionary> = {
   'tour.done': 'Entendi',
   'tour.dontShowAgain': 'Não mostrar de novo nesta versão',
   'tour.releaseNotes': 'Notas da versão completas',
-  'tour.rail.new': 'NOVO NESTA VERSÃO',
+  'tour.rail.newIn': 'NOVIDADES DA {version}',
   'tour.rail.always': 'TAMBÉM NO FLUIDEQ',
   'tour.newBadge': 'NOVO',
   'tour.howTitle': 'Como começar',
   'tour.beta': 'Beta',
+  'tour.player.kicker': 'O PLAYER COMPACTO',
+  'tour.player.title': 'O FluidEQ, recolhido em um player',
+  'tour.player.subtitle': 'Um botão transforma a janela em um player',
+  'tour.player.lead':
+    'Um botão na barra de título transforma a janela no Player compacto: a música, seu equalizador, um visualizador e “A seguir” em uma coluna estreita. O mesmo botão leva você de volta à página em que estava.',
+  'tour.player.point1':
+    'O equalizador inteiro vai junto: presets, layouts de bandas, Modo EQ, EQ inteligente, Graves, Médios e Agudos.',
+  'tour.player.point2':
+    'Recolha-o em uma linha, mantenha-o acima das outras janelas ou clique duas vezes no visualizador para tela cheia.',
+  'tour.player.point3':
+    'Um tema Claro ou Escuro próprio, e as músicas soltas em “A seguir” entram na Biblioteca e na fila.',
+  'tour.player.how':
+    'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.',
+  'tour.player.open': 'Experimentar o Player compacto',
+  'tour.player.imageAlt':
+    'O Player compacto duas vezes, nos temas Escuro e Claro: a música e seu relógio no topo, o equalizador com quinze bandas, “A seguir” embaixo; e o mesmo player recolhido em uma linha.',
+  'tour.games.kicker': 'PRESETS DE JOGO',
+  'tour.games.title': 'Cada jogo com seu próprio som',
+  'tour.games.subtitle': 'Aplicado quando o jogo vem para a frente',
+  'tour.games.lead':
+    'Escolha uma vez um som para cada jogo. Quando o jogo vem para a frente, o FluidEQ muda para esse som e o mantém até você fechar o jogo, por mais que você use Alt+Tab, e depois restaura o que você tinha.',
+  'tour.games.point1':
+    'Jogos de Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, ou qualquer programa que esteja aberto.',
+  'tour.games.point2':
+    'Os presets de jogo ativam o Modo jogo, que reduz o atraso que o FluidEQ acrescenta, e a página mostra esse atraso medido.',
+  'tour.games.point3':
+    'Um cartão na sua área de trabalho diz o que foi trocado, e outro diz o que voltou quando o jogo fechou.',
+  'tour.games.how':
+    'Abra EQ, escolha Presets de jogo e pressione Adicionar um jogo. Depois, escolha o som do jogo no seletor da linha dele.',
+  'tour.games.open': 'Abrir Presets de jogo',
+  'tour.games.imageAlt':
+    'A página Presets de jogo com quatro jogos, cada um com seu próprio som, e os cartões que o FluidEQ mostra na área de trabalho quando um jogo vem para a frente e quando ele fecha.',
+  'tour.presets.kicker': 'NOVOS PRESETS',
+  'tour.presets.title': 'Presets que soam como a música',
+  'tour.presets.subtitle': 'Cadeias inteiras, todas no mesmo volume',
+  'tour.presets.lead':
+    'Cada preset foi medido de novo e nivelado: trocar muda o caráter, não o volume, e agora cada um soa tão claro com o Motor FluidEQ quanto com o Equalizer APO.',
+  'tour.presets.point1':
+    '{chains} cadeias, {styles} delas de estilos musicais, mais cópias para a Sala de Música, Cinema e Jogos.',
+  'tour.presets.point2':
+    'A curva de um preset aparece no gráfico como uma camada própria, com uma intensidade que você pode diminuir.',
+  'tour.presets.point3':
+    '“Nenhum” desliga todos os estágios de uma vez; as cadeias que você marca com estrela vêm logo depois.',
+  'tour.presets.how':
+    'Abra EQ e pressione Presets, ou escolha uma cadeia no topo do DSP.',
+  'tour.presets.open': 'Abrir EQ',
+  'tour.presets.imageAlt':
+    'O seletor de presets com Rock escolhido, os estágios que a cadeia dele liga e três cadeias medidas no mesmo volume.',
+  'tour.presets.chain': 'Uma cadeia inteira, não só uma curva',
+  'tour.presets.level': 'Todas no mesmo volume',
+  'tour.presets.levelNote': 'Trocar muda o caráter, não o volume.',
+  'tour.tone.kicker': 'CONTROLES DE TOM',
+  'tour.tone.title': 'Graves, Médios e Agudos, como em um amplificador',
+  'tour.tone.subtitle': 'Três botões para todo o rack',
+  'tour.tone.lead':
+    'Sem nenhuma banda selecionada, três botões movem, cada um, o seu terço do som em todo o rack de uma vez: o jeito mais rápido de deixar uma música mais quente ou mais brilhante, sem mexer em nenhuma banda.',
+  'tour.tone.point1':
+    'O equalizador abre no rack inteiro, sem nada selecionado.',
+  'tour.tone.point2':
+    'Um novo layout de vinte bandas, e todos os layouts nas frequências padrão.',
+  'tour.tone.point3':
+    'As bandas se abrem tão largas quanto o espaçamento: sem buracos entre elas e sem duas na mesma nota.',
+  'tour.tone.how':
+    'Abra EQ sem nenhuma banda selecionada e gire Graves, Médios ou Agudos. Ctrl+clique em um botão para deixar o terço dele plano de novo.',
+  'tour.tone.open': 'Abrir EQ',
+  'tour.tone.imageAlt':
+    'A curva do equalizador nos seus terços de graves, médios e agudos, os três botões que os movem e os layouts rápidos de seis a trinta e uma bandas.',
+  'tour.studio.kicker': 'FLUIDEQ PLUS',
+  'tour.studio.title': 'Crie seu próprio visualizador',
+  'tour.studio.subtitle': 'Grátis por 15 dias, ou ganhe um mês',
+  'tour.studio.lead':
+    'O Estúdio transforma uma ideia em uma cena que se move com sua música. Agora ele faz parte do Plus, e uma conta nova pode experimentá-lo grátis por quinze dias, sem cartão e sem nenhuma cobrança quando o teste terminar.',
+  'tour.studio.point1':
+    'Publique uma cena e, quando ela for aprovada, seu próximo mês de Plus é grátis.',
+  'tour.studio.point2':
+    'A cena de cada membro é revisada antes de chegar à galeria.',
+  'tour.studio.point3':
+    'Tudo o que você fez antes continua guardado, na pasta que o Estúdio indica.',
+  'tour.studio.how':
+    'Abra Plus e escolha Estúdio na barra lateral. Sem o Plus, a página ali oferece o teste gratuito.',
+  'tour.studio.open': 'Abrir Plus',
+  'tour.studio.imageAlt':
+    'Uma aurora sobre montanhas feita no Estúdio, a ideia que a originou, o teste de quinze dias e o mês que uma cena aprovada rende.',
+  'tour.studio.idea':
+    'Aurora boreal sobre um lago de montanha. Os graves fazem a aurora crescer e as estrelas piscam na batida.',
+  'tour.studio.earned': 'Aprovada: próximo mês grátis',
+  'tour.help.kicker': 'AJUDA',
+  'tour.help.title': 'Pergunte ao guia com suas palavras',
+  'tour.help.subtitle': 'Erros de digitação, plurais e dez idiomas',
+  'tour.help.lead':
+    'Busque no guia do jeito que você perguntaria a um amigo — “sem som”, “limitador”, “papel de parede” — em qualquer um dos dez idiomas. O melhor capítulo vem primeiro, e o guia leva você ao controle, circulado na captura.',
+  'tour.help.point1':
+    'Ele perdoa erros de digitação e plurais, e conhece as palavras que as pessoas usam para as coisas.',
+  'tour.help.point2':
+    'Cada controle em uma captura é numerado como em um manual impresso, e as capturas acompanham o seu tema.',
+  'tour.help.point3':
+    'F1 abre o guia de qualquer lugar, e Enter vai para o próximo resultado.',
+  'tour.help.how':
+    'Pressione F1, ou abra o livro na barra de título e escolha Guia do usuário; depois, digite o que você procura.',
+  'tour.help.open': 'Abrir a Ajuda',
+  'tour.help.imageAlt':
+    'O guia do usuário com a busca “sem som”: os capítulos ordenados com as palavras marcadas, e uma captura com os controles numerados.',
+  'tour.help.query': 'sem som',
 
   'tour.engine.kicker': 'NOSSO PRÓPRIO MOTOR DE ÁUDIO',
   'tour.engine.title': 'Conheça o Motor FluidEQ',
@@ -42,7 +145,7 @@ const tour: Partial<Dictionary> = {
   'tour.engine.point3':
     'Saia do FluidEQ e seu som volta ao normal na hora, mesmo depois de um travamento.',
   'tour.engine.how':
-    'Escolha o Motor FluidEQ ao instalar, ou abra o menu de ações e escolha-o lá. Depois abra a aba DSP e ligue um estágio com qualquer app tocando.',
+    'Escolha o Motor FluidEQ ao instalar, ou abra o menu de ações no ícone de pulso do canto superior direito, pressione o cartão do motor no topo, escolha Motor FluidEQ e pressione Aplicar. Depois abra a aba DSP e ligue um estágio com qualquer app tocando.',
   'tour.engine.open': 'Abrir DSP',
   'tour.engine.flow.label':
     'Tudo o que o computador toca passa pelo Motor FluidEQ (primeiro seu EQ, depois o rack DSP) a caminho dos seus fones de ouvido e alto-falantes.',
@@ -58,13 +161,13 @@ const tour: Partial<Dictionary> = {
 
   'tour.room.kicker': 'SURROUND NOS FONES DE OUVIDO',
   'tour.room.title': 'Sente-se na Sala',
-  'tour.room.subtitle': 'Cada canal, um alto-falante ao redor da sua cabeça',
+  'tour.room.subtitle': 'Vinte e quatro salas, todas gratuitas',
   'tour.room.lead':
-    'A Sala transforma seus fones de ouvido em uma sala de escuta. Cada canal do som passa a ser um alto-falante ao seu redor, renderizado através de uma cabeça medida e das paredes de uma sala que você mesmo molda, e um filme fica à sua frente em vez de dentro da sua cabeça.',
+    'A Sala transforma seus fones de ouvido em uma sala de escuta, cada canal um alto-falante ao seu redor. Treze salas novas se juntam às onze clássicas, cada uma diferenciada por medição, e tudo isso é gratuito.',
   'tour.room.point1':
-    'O estéreo vira dois alto-falantes à sua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro, conforme o que toca.',
+    'O estéreo vira dois alto-falantes à sua frente, ou enche a sala se você pedir; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro.',
   'tour.room.point2':
-    'Vinte e quatro salas para começar — estúdio, sala de estar, cinema, sala de concertos — e as suas, salvas com nome.',
+    'Escolha uma sala em “Em destaque”, “Salas clássicas” ou “Seus”; tudo o que compõe uma sala está na página dela.',
   'tour.room.point3':
     'Um teste de escuta escolhe de ouvido a cabeça que põe os sons à sua frente, em cinco pares.',
   'tour.room.how':
@@ -148,18 +251,18 @@ const tour: Partial<Dictionary> = {
 
   'tour.theme.kicker': 'UM NOVO VISUAL',
   'tour.theme.title': 'Conheça o tema Escuro',
-  'tour.theme.subtitle': 'Preto puro, para as madrugadas e telas OLED',
+  'tour.theme.subtitle': 'Quase preto, para as madrugadas e telas OLED',
   'tour.theme.lead':
     'O FluidEQ agora tem uma segunda cara. O tema Escuro remove todo traço do azul-ardósia com que o app nasceu: painéis, menus e barras ficam monocromáticos, o destaque permanece e o espectro é a única cor na sala.',
   'tour.theme.point1':
-    'Fundos preto puro: em uma tela OLED os pixels ao redor do gráfico se apagam.',
+    'Fundos quase pretos: em uma tela OLED, o espaço ao redor do gráfico fica quase escuro.',
   'tour.theme.point2':
-    'Todas as janelas acompanham: menus, diálogos, o palco do karaokê e a Biblioteca mudam juntos.',
+    'Todas as páginas acompanham: menus, diálogos, o palco do karaokê e a Biblioteca mudam juntos. O Player compacto mantém um tema próprio.',
   'tour.theme.point3':
     'Sua cor de destaque e o modo arco-íris continuam. Nada no seu som muda: é só a pintura.',
   'tour.theme.howTitle': 'Como trocar',
   'tour.theme.how':
-    'Abra o menu do ícone de pulso no canto superior direito e, no fundo dele, escolha Escuro em Tema. O tema Claro fica a um clique se você quiser voltar.',
+    'Abra o menu do ícone de pulso no canto superior direito e escolha Escuro ao lado de Tema, nas configurações da parte de baixo do menu. O tema Claro fica a um clique se você quiser voltar.',
   'tour.theme.tryBlack': 'Mudar para Escuro agora',
   'tour.theme.tryOcean': 'Voltar ao Claro',
   'tour.theme.imageAlt':
@@ -181,10 +284,10 @@ const tour: Partial<Dictionary> = {
     'Abra a aba Compartilhar áudio, escolha “Reproduzir áudio neste computador” e pressione “Criar código de conexão”. Copie o código da sua rede.',
   'tour.share.step2Title': 'Em cada outro PC, cole o código',
   'tour.share.step2':
-    'Abra o FluidEQ lá, vá em Compartilhar áudio, escolha “Enviar o áudio deste computador”, selecione Música ou Jogo/Vídeo, cole o código e pressione “Conectar e enviar”. O áudio do sistema começa a fluir.',
+    'Abra o FluidEQ lá, vá em Compartilhar áudio, escolha “Enviar o áudio deste computador”, cole o código e pressione “Conectar e enviar”. O áudio do sistema começa a fluir, intacto: os efeitos são aplicados no computador em que você ouve.',
   'tour.share.step3Title': 'Ouça e ajuste o nível',
   'tour.share.step3':
-    'Música mantém um buffer maior para ouvir sem cortes; Jogo/Vídeo roda com o menor atraso para sincronia labial. Cada emissor é mixado na saída do receptor, moldado pelo EQ e ajustado pelo Volume dele. A barra de reprodução do receptor mostra a música do emissor mais recente, e os botões dela funcionam pela rede.',
+    'Cada emissor toca com um buffer curto que se recupera sozinho depois de um engasgo. Todos os emissores são mixados na saída do receptor e moldados pelo EQ dele. A barra de reprodução do receptor mostra a música do emissor mais recente, e os botões dela funcionam pela rede.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
@@ -210,22 +313,22 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Playlists e uma lista de Favoritos permanente. Clique com o botão direito em qualquer música para adicioná-la a uma delas, ou à fila.',
   'tour.library.point4':
-    'Memória por música do EQ inteligente: ligue “Salvar para esta música” enquanto ela toca e a correção que você fizer fica salva para aquela faixa.',
+    'Memória por música do EQ inteligente: enquanto o EQ inteligente continua medindo, ligue “Salvar para esta música”, e depois de dois minutos a correção dele fica salva para aquela faixa e volta quando ela tocar de novo.',
   'tour.library.how':
     'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere a leitura terminar. Escolha Álbuns, Artistas, Gêneros, Músicas, Pastas ou Árvore e pressione Reproduzir.',
   'tour.library.open': 'Abrir Biblioteca',
 
   'tour.dsp.kicker': 'UM RACK DE MASTERIZAÇÃO',
   'tour.dsp.title': 'O rack DSP',
-  'tour.dsp.subtitle': 'Nove estágios, cada um com seu gráfico',
+  'tour.dsp.subtitle': 'Dez estágios, cada um em sua própria página',
   'tour.dsp.lead':
-    'Um rack de estágios de estúdio, nesta ordem: Normalizador, Redução de ruído, Excitador, Forja de graves, Equalizador, Punch dos graves, Dimensão, Maximizador e Master, mais uma transição cruzada entre faixas da Biblioteca. Com o Motor FluidEQ, ele funciona em tudo o que o computador toca; com o Equalizer APO, na Biblioteca. Cada estágio é um cartão com gráfico ao vivo, presets e um botão Isolar para ouvir só o que ele faz.',
+    'Um rack de estágios de estúdio: Normalizador, Redução de ruído, Excitador, Forja de graves, Equalizador, Punch dos graves, Dimensão, Sala, Maximizador e Master, mais uma transição cruzada entre faixas da Biblioteca. Com o Motor FluidEQ, ele funciona em tudo o que o computador toca; com o Equalizer APO, na Biblioteca. Cada estágio tem sua própria página com uma visualização ao vivo, a maioria tem presets, e cinco têm um interruptor Isolar para ouvir só o que estão fazendo.',
   'tour.dsp.point1':
     'A Redução de ruído corrige chiado, zumbido e estalos durante a reprodução, e um limpador de voz neural funciona nas faixas da Biblioteca.',
   'tour.dsp.point2':
     'A Forja de graves adiciona uma oitava real abaixo do baixo; o Punch dos graves molda o ataque, a sustentação e a floração, com Mistura de até 200%.',
   'tour.dsp.point3':
-    'Um Equalizador paramétrico de quinze bandas com fase mínima ou linear, mid/side, oversampling e dezenas de presets nomeados.',
+    'Um Equalizador paramétrico de 6 a 31 bandas, quinze para começar, com fase mínima ou linear, mid/side, oversampling e mais de cem presets nomeados.',
   'tour.dsp.point4':
     'Master com alvo de loudness LUFS e proteção true-peak, presets de entrega de Streaming a Vinil, e o controle Igualar ganho, para comparar som, não volume.',
   'tour.dsp.how':
@@ -275,9 +378,9 @@ const tour: Partial<Dictionary> = {
   'tour.karaoke.lead':
     'Solte uma música com ou sem arquivo de letra e o FluidEQ os pareia em uma playlist, mostra a letra sincronizada sobre a capa ou o vídeo, ouve seu microfone e desenha sua afinação contra a melodia. Tudo fica neste computador; o microfone nunca é gravado nem reproduzido.',
   'tour.karaoke.point1':
-    'Um controle de Voz guia que vai do original até só a base, removendo a voz principal sem precisar de outro arquivo.',
+    'Um controle de Voz guia, depois que o FluidEQ separar a voz da música no Criador: vai da base sozinha até o original completo, sem precisar de um arquivo instrumental.',
   'tour.karaoke.point2':
-    'Uma pista de afinação em Notas ou Curva: as notas da música como blocos, sua voz como uma linha ao vivo, com aviso de Alto, Afinado e Baixo.',
+    'Uma pista de afinação: as notas da música como blocos e sua voz como uma linha ao vivo sobre elas, com aviso de Alto, Afinado e Baixo.',
   'tour.karaoke.point3':
     'Uma revisão da performance no fim, listando as partes para praticar, com contagem para outra tentativa.',
   'tour.karaoke.point4':
@@ -311,11 +414,11 @@ const tour: Partial<Dictionary> = {
   'tour.media.point1':
     'Um único campo de busca que pesquisa no site que estiver aberto, com buscas recentes que você pode apagar.',
   'tour.media.point2':
-    '“Bloquear anúncios” pula os anúncios em vídeo e esconde os espaços de anúncio no YouTube.',
+    'Faça login uma vez: o player mantém seus logins entre as visitas até você sair.',
   'tour.media.point3':
     'Retomar: o player lembra a última página e onde você estava nela, e leva você de volta.',
   'tour.media.point4':
-    'Downloads com indicador de progresso e “Mostrar na pasta” ao terminar, e um botão “Sair de todos os sites” que limpa todos os cookies e logins de uma vez.',
+    'Downloads com indicador de progresso e “Mostrar na pasta” ao terminar, e um botão de sair, a porta no fim da barra de ferramentas, que limpa todos os cookies e logins de uma vez.',
   'tour.media.how':
     'Abra a aba Mídia online, escolha um site na fileira de cima, digite no campo de busca e pressione Buscar. Voltar, Avançar e Recarregar funcionam como em um navegador.',
   'tour.media.open': 'Abrir Mídia online',

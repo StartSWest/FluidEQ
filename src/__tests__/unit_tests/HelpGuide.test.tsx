@@ -2,6 +2,7 @@
 
 import '@testing-library/jest-dom';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -9,6 +10,7 @@ import {
   within,
 } from '@testing-library/react';
 import HelpMenu from 'renderer/help/HelpMenu';
+import { requestHelpGuide } from 'renderer/help/helpGuideRequests';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 
 // Counted from the guide itself: a chapter added to it used to fail these two
@@ -121,6 +123,15 @@ it('opens from F1, contains app shortcuts, and restores focus on close', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Close guide' }));
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Help' })).toHaveFocus();
+});
+
+it('opens the guide when asked from elsewhere, as What’s New’s Open Help does', () => {
+  showMenu();
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  act(() => requestHelpGuide());
+  expect(screen.getByRole('dialog', { name: 'User guide' })).toHaveAttribute(
+    'open',
+  );
 });
 
 it('routes the keyboard-selected menu action and dismisses the menu', () => {

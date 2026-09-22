@@ -84,6 +84,15 @@ const app: Partial<Dictionary> = {
   'app.processes.name.shareCapture': '共享音频采集',
   'app.processes.what.shareCapture':
     '在均衡器之前采集这台电脑播放的声音，发送给另一个 FluidEQ。只在你共享音频时运行。',
+  'app.processes.name.sharePlayback': '共享音频播放',
+  'app.processes.what.sharePlayback':
+    '播放另一个 FluidEQ 共享给这台电脑的声音。只在你收听时运行。',
+  'app.processes.name.volume': '系统音量',
+  'app.processes.what.volume':
+    '为 FluidEQ 的音量滑块跟随 Windows 的音量和静音，并在你拖动滑块时设置音量。只在屏幕上有音量滑块时运行。',
+  'app.processes.name.games': '游戏检测',
+  'app.processes.what.games':
+    '告诉 FluidEQ 哪个程序在最前面，让游戏在你切换过去的那一刻就用上它自己的声音。只在某个游戏有自己的声音或“游戏预设”页面打开时运行。',
   'app.processes.name.mediaWatch': '其他应用的媒体',
   'app.processes.what.mediaWatch':
     '读取 Spotify、浏览器或其他播放器正在播放的内容，让播放栏可以显示并控制它。FluidEQ 不再需要时就会关闭。',

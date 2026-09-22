@@ -29,15 +29,37 @@ import {
   RoomSlide,
   VisualizersSlide,
 } from './release17';
+import {
+  CompactPlayerSlide,
+  GamePresetsSlide,
+  GuideSearchSlide,
+  PresetsSlide,
+  StudioSlide,
+  ToneSlide,
+} from './release18';
 
-/** The workspace tabs a slide can send the user to. `community` is Plus. */
+/**
+ * The workspace tabs a slide can send the user to. `community` is Plus;
+ * `games` is the Game presets page behind EQ.
+ */
 export type TTourTab =
-  'eq' | 'share' | 'library' | 'dsp' | 'karaoke' | 'video' | 'community';
+  | 'eq'
+  | 'games'
+  | 'share'
+  | 'library'
+  | 'dsp'
+  | 'karaoke'
+  | 'video'
+  | 'community';
 
 /** What a slide can ask the app to do on the user's behalf. */
 export interface ISlideActions {
   /** Close the tour and land on that tab. */
   openTab: (tab: TTourTab) => void;
+  /** Close the tour and turn the window into the Compact player. */
+  openPlayer: () => void;
+  /** Close the tour and open the user guide. */
+  openGuide: () => void;
 }
 
 export interface ITourSlide {
@@ -45,12 +67,16 @@ export interface ITourSlide {
   /** The rail entry: what the feature is called, and one line under it. */
   titleKey: TranslationKey;
   subtitleKey: TranslationKey;
-  /** Arrived with the running version, as opposed to always being here. */
-  isNew: boolean;
+  /**
+   * The feature release that announced it, `major.minor`, when the tour
+   * shows it as new; absent on a standing slide. The rail heads each
+   * release's slides with its number.
+   */
+  release?: string;
   Body: ComponentType<{ actions: ISlideActions }>;
 }
 
-type TSlideEntry = Omit<ITourSlide, 'isNew'>;
+type TSlideEntry = Omit<ITourSlide, 'release'>;
 
 const SECOND_OUTPUT: TSlideEntry = {
   id: 'second-output',
@@ -80,55 +106,122 @@ const RAINBOW_MODE: TSlideEntry = {
   Body: RainbowModeSlide,
 };
 
+const ROOM: TSlideEntry = {
+  id: 'room',
+  titleKey: 'tour.room.title',
+  subtitleKey: 'tour.room.subtitle',
+  Body: RoomSlide,
+};
+
 /**
- * What each feature release brought, keyed by `major.minor`.
+ * 1.7, in the order it was announced: the engine first, because everything
+ * plays through it.
+ */
+const RELEASE_17: TSlideEntry[] = [
+  {
+    id: 'fluideq-engine',
+    titleKey: 'tour.engine.title',
+    subtitleKey: 'tour.engine.subtitle',
+    Body: FluidEngineSlide,
+  },
+  ROOM,
+  {
+    id: 'fluideq-plus',
+    titleKey: 'tour.plus.title',
+    subtitleKey: 'tour.plus.subtitle',
+    Body: PlusSlide,
+  },
+  {
+    id: 'visualizers',
+    titleKey: 'tour.visualizers.title',
+    subtitleKey: 'tour.visualizers.subtitle',
+    Body: VisualizersSlide,
+  },
+  {
+    id: 'desktop-visualizer',
+    titleKey: 'tour.desktop.title',
+    subtitleKey: 'tour.desktop.subtitle',
+    Body: DesktopVisualizerSlide,
+  },
+  {
+    id: 'dynamic-lighting',
+    titleKey: 'tour.lighting.title',
+    subtitleKey: 'tour.lighting.subtitle',
+    Body: DynamicLightingSlide,
+  },
+  RAINBOW_MODE,
+];
+
+/**
+ * 1.8. The Compact player first, because it is the one thing in it that
+ * changes how the whole window is used. The Room moves up into this release:
+ * thirteen of its twenty-four rooms, the page they are picked on and its free
+ * locks arrived here, and one slide cannot stand in two places.
+ */
+const RELEASE_18: TSlideEntry[] = [
+  {
+    id: 'compact-player',
+    titleKey: 'tour.player.title',
+    subtitleKey: 'tour.player.subtitle',
+    Body: CompactPlayerSlide,
+  },
+  {
+    id: 'game-presets',
+    titleKey: 'tour.games.title',
+    subtitleKey: 'tour.games.subtitle',
+    Body: GamePresetsSlide,
+  },
+  {
+    id: 'presets',
+    titleKey: 'tour.presets.title',
+    subtitleKey: 'tour.presets.subtitle',
+    Body: PresetsSlide,
+  },
+  ROOM,
+  {
+    id: 'tone',
+    titleKey: 'tour.tone.title',
+    subtitleKey: 'tour.tone.subtitle',
+    Body: ToneSlide,
+  },
+  {
+    id: 'studio',
+    titleKey: 'tour.studio.title',
+    subtitleKey: 'tour.studio.subtitle',
+    Body: StudioSlide,
+  },
+  {
+    id: 'guide-search',
+    titleKey: 'tour.help.title',
+    subtitleKey: 'tour.help.subtitle',
+    Body: GuideSearchSlide,
+  },
+];
+
+const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
+  entries.map((entry) => ({ ...entry, release }));
+
+/**
+ * What each feature release shows as new, keyed by `major.minor`.
  *
  * Only the big things go here: an engine, a membership, a theme, a whole new
- * tab. A release whose changes are all fixes and small additions has no
- * entry, and the tour opens with the standing slides alone. The order is the
- * order they are announced in; in 1.7 the engine comes first, because
- * everything else plays through it.
+ * way of using the window. A release whose changes are all fixes and small
+ * additions has no entry, and the tour opens with the standing slides alone.
+ *
+ * A release also keeps showing the release before it as new, under its own
+ * number (Ivan, 2026-09-22: "keep all new stuffs still new"): a week after 1.7
+ * most people had not met its slides yet, and the version they are coming
+ * from decides what is new to them, not the version they are going to.
  */
-const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
-  '1.6': [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO],
-  '1.7': [
-    {
-      id: 'fluideq-engine',
-      titleKey: 'tour.engine.title',
-      subtitleKey: 'tour.engine.subtitle',
-      Body: FluidEngineSlide,
-    },
-    {
-      id: 'room',
-      titleKey: 'tour.room.title',
-      subtitleKey: 'tour.room.subtitle',
-      Body: RoomSlide,
-    },
-    {
-      id: 'fluideq-plus',
-      titleKey: 'tour.plus.title',
-      subtitleKey: 'tour.plus.subtitle',
-      Body: PlusSlide,
-    },
-    {
-      id: 'visualizers',
-      titleKey: 'tour.visualizers.title',
-      subtitleKey: 'tour.visualizers.subtitle',
-      Body: VisualizersSlide,
-    },
-    {
-      id: 'desktop-visualizer',
-      titleKey: 'tour.desktop.title',
-      subtitleKey: 'tour.desktop.subtitle',
-      Body: DesktopVisualizerSlide,
-    },
-    {
-      id: 'dynamic-lighting',
-      titleKey: 'tour.lighting.title',
-      subtitleKey: 'tour.lighting.subtitle',
-      Body: DynamicLightingSlide,
-    },
-    RAINBOW_MODE,
+const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  '1.6': announced('1.6', [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO]),
+  '1.7': announced('1.7', RELEASE_17),
+  '1.8': [
+    ...announced('1.8', RELEASE_18),
+    ...announced(
+      '1.7',
+      RELEASE_17.filter((entry) => !RELEASE_18.includes(entry)),
+    ),
   ],
 };
 
@@ -186,11 +279,5 @@ const ALWAYS: TSlideEntry[] = [
 export const featureTourFor = (version: string): ITourSlide[] => {
   const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
   const featuredIds = new Set(featured.map((entry) => entry.id));
-  return [
-    ...featured.map((entry) => ({ ...entry, isNew: true })),
-    ...ALWAYS.filter((entry) => !featuredIds.has(entry.id)).map((entry) => ({
-      ...entry,
-      isNew: false,
-    })),
-  ];
+  return [...featured, ...ALWAYS.filter((entry) => !featuredIds.has(entry.id))];
 };

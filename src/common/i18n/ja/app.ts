@@ -84,6 +84,15 @@ const app: Partial<Dictionary> = {
   'app.processes.name.shareCapture': '音声共有のキャプチャ',
   'app.processes.what.shareCapture':
     'この PC で鳴っている音をイコライザーの前でキャプチャし、別の FluidEQ に送ります。音声を共有している間だけ動作します。',
+  'app.processes.name.sharePlayback': '共有された音声の再生',
+  'app.processes.what.sharePlayback':
+    '別の FluidEQ がこの PC に共有している音を再生します。聴いている間だけ動作します。',
+  'app.processes.name.volume': 'システムの音量',
+  'app.processes.what.volume':
+    'FluidEQ の音量スライダーのために Windows の音量とミュートを追い、スライダーを動かすと音量を設定します。スライダーが画面にある間だけ動作します。',
+  'app.processes.name.games': 'ゲームの検出',
+  'app.processes.what.games':
+    'どのプログラムが前面にあるかを FluidEQ に伝え、ゲームに切り替えたその瞬間にゲーム専用の音にします。ゲームに専用の音が設定されているときか、「ゲームプリセット」ページを開いているときだけ動作します。',
   'app.processes.name.mediaWatch': 'ほかのアプリのメディア',
   'app.processes.what.mediaWatch':
     'Spotify やブラウザー、ほかのプレーヤーが再生しているものを読み取り、プレーヤー バーで表示・操作できるようにします。FluidEQ が必要としなくなると終了します。',

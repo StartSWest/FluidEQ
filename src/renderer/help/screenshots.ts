@@ -38,10 +38,24 @@ import headerRight from '../../../docs/38-header-right.png';
 import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
 import games from '../../../docs/41-game-presets.png';
+import playerTop from '../../../docs/42-player-top.png';
+import playerEq from '../../../docs/43-player-eq.png';
+import playerQueue from '../../../docs/44-player-queue.png';
+import playerMenu from '../../../docs/45-player-menu.png';
+import playerFolded from '../../../docs/46-player-folded.png';
+import playerTopLight from '../../../docs/light/42-player-top.png';
+import playerEqLight from '../../../docs/light/43-player-eq.png';
+import playerQueueLight from '../../../docs/light/44-player-queue.png';
+import playerMenuLight from '../../../docs/light/45-player-menu.png';
+import playerFoldedLight from '../../../docs/light/46-player-folded.png';
 import type { THelpImage } from '../../common/helpGuide';
+import type { TTheme } from '../utils/theme';
 
-/** Static imports make webpack include every capture in offline packaged builds. */
-const screenshots: Record<THelpImage, string> = {
+/**
+ * Every capture, as taken in the Dark theme. Static imports make webpack
+ * include each one in offline packaged builds.
+ */
+const DARK: Record<THelpImage, string> = {
   '01-online-media-youtube-live-eq.png': online,
   '03-eq-parametric-bands-and-live-response.png': eq,
   '04-eq-headphone-correction-and-import.png': headphones,
@@ -80,6 +94,27 @@ const screenshots: Record<THelpImage, string> = {
   '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,
   '41-game-presets.png': games,
+  '42-player-top.png': playerTop,
+  '43-player-eq.png': playerEq,
+  '44-player-queue.png': playerQueue,
+  '45-player-menu.png': playerMenu,
+  '46-player-folded.png': playerFolded,
 };
 
-export default screenshots;
+/**
+ * The same captures taken in the Light theme, for a reader whose window is
+ * Light (Ivan, 2026-09-22). Each is its Dark twin retaken in the same state
+ * at the same size, so every numbered box fits both, and `helpFigureSizes`
+ * holds the two sizes together. A capture with no Light twin is shown Dark.
+ */
+const LIGHT: Partial<Record<THelpImage, string>> = {
+  '42-player-top.png': playerTopLight,
+  '43-player-eq.png': playerEqLight,
+  '44-player-queue.png': playerQueueLight,
+  '45-player-menu.png': playerMenuLight,
+  '46-player-folded.png': playerFoldedLight,
+};
+
+/** A capture as the reader's theme shows it. */
+export const helpScreenshot = (image: THelpImage, theme: TTheme): string =>
+  (theme === 'ocean' ? LIGHT[image] : undefined) ?? DARK[image];

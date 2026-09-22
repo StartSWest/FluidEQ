@@ -54,6 +54,21 @@ export type TProcessRole =
   /** `FluidEQ-LAN-Capture.exe`: captures this PC's sound while it is shared. */
   | 'shareCapture'
   /**
+   * `FluidEQ-LAN-Playback.exe`: plays what another FluidEQ shares with this
+   * PC, while it is being listened to.
+   */
+  | 'sharePlayback'
+  /**
+   * `FluidEQ-Volume.exe`: follows and sets Windows' volume for the app's
+   * volume sliders, while one of them is on screen.
+   */
+  | 'volume'
+  /**
+   * `FluidEQ-Games.exe`: says which program is in front, for Game presets,
+   * while a game has a sound of its own or the Game presets page is open.
+   */
+  | 'games'
+  /**
    * The PowerShell that reads what other apps are playing for the transport
    * bar (`systemMedia.ts`), and the short-lived one that sends them a command.
    */
@@ -218,9 +233,12 @@ export const roleFor = (
  * The setup helper is left out on purpose — it runs for a moment at a time,
  * and a row that blinks in and out says nothing anybody can read.
  */
-const EXECUTABLE_ROLES: Record<string, TProcessRole> = {
+export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-wallpaper.exe': 'desktopHost',
   'fluideq-lan-capture.exe': 'shareCapture',
+  'fluideq-lan-playback.exe': 'sharePlayback',
+  'fluideq-volume.exe': 'volume',
+  'fluideq-games.exe': 'games',
   'powershell.exe': 'mediaWatch',
   'fluideq-dsp.exe': 'engine',
   'fluideq-lighting.exe': 'lighting',
@@ -273,6 +291,9 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'models',
   'libraryScan',
   'shareCapture',
+  'sharePlayback',
+  'volume',
+  'games',
   'mediaWatch',
   'sound',
   'network',

@@ -24,11 +24,116 @@ const tour: Partial<Dictionary> = {
   'tour.done': 'Compris',
   'tour.dontShowAgain': 'Ne plus afficher pour cette version',
   'tour.releaseNotes': 'Notes de version complètes',
-  'tour.rail.new': 'NOUVEAU DANS CETTE VERSION',
+  'tour.rail.newIn': 'NOUVEAU DANS LA {version}',
   'tour.rail.always': 'AUSSI DANS FLUIDEQ',
   'tour.newBadge': 'NOUVEAU',
   'tour.howTitle': 'Pour commencer',
   'tour.beta': 'Bêta',
+  'tour.player.kicker': 'LE LECTEUR COMPACT',
+  'tour.player.title': 'FluidEQ, replié en un lecteur',
+  'tour.player.subtitle':
+    'Un seul interrupteur transforme la fenêtre en lecteur',
+  'tour.player.lead':
+    'Un seul interrupteur dans la barre de titre transforme la fenêtre en Lecteur compact : le morceau, votre égaliseur, un visualiseur et la file À suivre, dans une seule colonne étroite. Le même interrupteur vous ramène à la page que vous aviez quittée.',
+  'tour.player.point1':
+    'Tout l’égaliseur est du voyage : préréglages, dispositions de bandes, Mode EQ, Égalisation auto, Graves, Médiums et Aigus.',
+  'tour.player.point2':
+    'Repliez-le sur une ligne, gardez-le au-dessus des autres fenêtres, ou double-cliquez sur le visualiseur pour passer en plein écran.',
+  'tour.player.point3':
+    'Son propre thème, Clair ou Sombre, et les morceaux déposés sur À suivre rejoignent la Bibliothèque et la file de lecture.',
+  'tour.player.how':
+    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.',
+  'tour.player.open': 'Essayer le Lecteur compact',
+  'tour.player.imageAlt':
+    'Le Lecteur compact deux fois, dans son thème Sombre et dans son thème Clair : le morceau et son compteur en haut, l’égaliseur à quinze bandes, À suivre en dessous ; et le même lecteur replié sur une ligne.',
+  'tour.games.kicker': 'PRÉRÉGLAGES DE JEU',
+  'tour.games.title': 'À chaque jeu, un son bien à lui',
+  'tour.games.subtitle': 'Appliqué dès que le jeu passe au premier plan',
+  'tour.games.lead':
+    'Choisissez une fois pour toutes un son pour chaque jeu. Quand le jeu passe au premier plan, FluidEQ bascule sur ce son et le garde jusqu’à la fermeture du jeu, malgré tous vos Alt+Tab, puis remet ce que vous aviez.',
+  'tour.games.point1':
+    'Les jeux Steam, Epic Games, EA, GOG, Ubisoft, Battle.net et Xbox, ou tout programme ouvert.',
+  'tour.games.point2':
+    'Les préréglages Jeux activent le Mode jeu, qui réduit le délai qu’ajoute FluidEQ, et la page affiche ce délai tel qu’il est mesuré.',
+  'tour.games.point3':
+    'Une carte sur votre Bureau indique sur quoi FluidEQ a basculé, et une autre ce qui est revenu à la fermeture du jeu.',
+  'tour.games.how':
+    'Dans l’Égaliseur, ouvrez Préréglages de jeu et appuyez sur Ajouter un jeu, puis donnez-lui un son sur sa ligne.',
+  'tour.games.open': 'Ouvrir les Préréglages de jeu',
+  'tour.games.imageAlt':
+    'La page Préréglages de jeu avec quatre jeux, chacun avec un son bien à lui, et les cartes que FluidEQ affiche sur le Bureau quand un jeu passe au premier plan et quand il se ferme.',
+  'tour.presets.kicker': 'NOUVEAUX PRÉRÉGLAGES',
+  'tour.presets.title': 'Des préréglages qui sonnent comme la musique',
+  'tour.presets.subtitle': 'Des chaînes complètes, toutes au même niveau',
+  'tour.presets.lead':
+    'Chaque préréglage a été mesuré de nouveau et nivelé : en changer modifie le caractère, pas le volume, et chacun s’entend désormais aussi nettement avec le moteur FluidEQ qu’avec Equalizer APO.',
+  'tour.presets.point1':
+    '{chains} chaînes, dont {styles} styles musicaux, plus des versions Salle de Musique, Cinéma et Jeux.',
+  'tour.presets.point2':
+    'La courbe d’un préréglage apparaît sur le graphique comme une couche à part, avec une intensité que vous pouvez baisser.',
+  'tour.presets.point3':
+    '« Aucun » désactive tous les étages d’un seul clic ; les chaînes marquées d’une étoile viennent juste après.',
+  'tour.presets.how':
+    'Ouvrez l’Égaliseur et appuyez sur Préréglages, ou choisissez une chaîne en haut du DSP.',
+  'tour.presets.open': 'Ouvrir l’Égaliseur',
+  'tour.presets.imageAlt':
+    'Le sélecteur de préréglages avec Rock choisi, les étages qu’active sa chaîne, et trois chaînes mesurées au même niveau.',
+  'tour.presets.chain': 'Une chaîne complète, pas seulement une courbe',
+  'tour.presets.level': 'Toutes au même niveau',
+  'tour.presets.levelNote':
+    'Passer de l’une à l’autre change le caractère, pas le volume.',
+  'tour.tone.kicker': 'RÉGLAGES DE TONALITÉ',
+  'tour.tone.title': 'Graves, Médiums et Aigus, comme sur un ampli',
+  'tour.tone.subtitle': 'Trois boutons pour tout l’égaliseur',
+  'tour.tone.lead':
+    'Sans bande sélectionnée, trois boutons déplacent chacun leur tiers du spectre sur tout l’égaliseur à la fois : le moyen le plus rapide de réchauffer un morceau ou de le rendre plus brillant, sans toucher à une seule bande.',
+  'tour.tone.point1':
+    'L’égaliseur s’ouvre sur toutes ses bandes, sans aucune sélection.',
+  'tour.tone.point2':
+    'Une nouvelle disposition à vingt bandes, et toutes les dispositions sur les fréquences standard.',
+  'tour.tone.point3':
+    'La largeur des bandes suit leur espacement : aucun trou entre elles, et jamais deux sur la même note.',
+  'tour.tone.how':
+    'Ouvrez l’Égaliseur sans sélectionner de bande et tournez Graves, Médiums ou Aigus. Un Ctrl+clic sur un bouton remet son tiers à plat.',
+  'tour.tone.open': 'Ouvrir l’Égaliseur',
+  'tour.tone.imageAlt':
+    'La courbe de l’égaliseur en ses trois tiers (graves, médiums et aigus), les trois boutons qui les déplacent, et les dispositions rapides de six à trente et une bandes.',
+  'tour.studio.kicker': 'FLUIDEQ PLUS',
+  'tour.studio.title': 'Créez votre propre visualiseur',
+  'tour.studio.subtitle': 'Gratuit pendant 15 jours, ou gagnez un mois',
+  'tour.studio.lead':
+    'Le Studio transforme une idée en une scène qui bouge avec votre musique. Il fait désormais partie de Plus, et un nouveau compte peut l’essayer gratuitement pendant quinze jours, sans carte et sans aucun prélèvement à la fin de l’essai.',
+  'tour.studio.point1':
+    'Publiez une scène et, une fois qu’elle est approuvée, votre prochain mois de Plus est offert.',
+  'tour.studio.point2':
+    'Chaque scène de membre est examinée avant d’arriver dans la galerie.',
+  'tour.studio.point3':
+    'Tout ce que vous aviez créé est conservé, dans le dossier qu’indique le Studio.',
+  'tour.studio.how':
+    'Ouvrez Plus et choisissez Studio dans sa barre latérale. Sans Plus, la page du Studio propose l’essai gratuit.',
+  'tour.studio.open': 'Ouvrir Plus',
+  'tour.studio.imageAlt':
+    'Une aurore boréale au-dessus des montagnes, créée dans le Studio, l’idée dont elle est née, l’essai de quinze jours et le mois qu’une scène approuvée fait gagner.',
+  'tour.studio.idea':
+    'Une aurore boréale au-dessus d’un lac de montagne. Les basses font enfler l’aurore et les étoiles scintillent en rythme.',
+  'tour.studio.earned': 'Approuvée : le mois prochain offert',
+  'tour.help.kicker': 'AIDE',
+  'tour.help.title': 'Interrogez le guide avec vos propres mots',
+  'tour.help.subtitle': 'Fautes de frappe, pluriels et dix langues',
+  'tour.help.lead':
+    'Cherchez dans le guide comme vous demanderiez à un ami — « pas de son », « limiteur », « fond d’écran » — dans l’une des dix langues. Le meilleur chapitre arrive en tête, et le guide vous mène à la commande, entourée sur la capture.',
+  'tour.help.point1':
+    'Il pardonne les fautes de frappe et les pluriels, et connaît les mots de tous les jours.',
+  'tour.help.point2':
+    'Chaque commande d’une capture est numérotée comme dans un manuel imprimé, et les captures suivent votre thème.',
+  'tour.help.point3':
+    'F1 l’ouvre de n’importe où, et Entrée passe au résultat suivant.',
+  'tour.help.how':
+    'Appuyez sur F1, ou ouvrez le livre dans la barre de titre et choisissez Guide utilisateur, puis tapez ce que vous cherchez.',
+  'tour.help.open': 'Ouvrir l’Aide',
+  'tour.help.imageAlt':
+    'Le guide utilisateur interrogé sur « pas de son » : ses chapitres classés, les mots surlignés, et une capture aux commandes numérotées.',
+  'tour.help.query': 'pas de son',
 
   'tour.engine.kicker': 'NOTRE PROPRE MOTEUR AUDIO',
   'tour.engine.title': 'Voici le moteur FluidEQ',
@@ -42,7 +147,7 @@ const tour: Partial<Dictionary> = {
   'tour.engine.point3':
     'Quittez FluidEQ et votre son redevient normal aussitôt, même après un plantage.',
   'tour.engine.how':
-    'Choisissez le moteur FluidEQ à l’installation, ou ouvrez le menu des actions pour le choisir. Ouvrez ensuite le DSP et activez un étage pendant la lecture dans n’importe quelle application.',
+    'Choisissez le moteur FluidEQ à l’installation, ou ouvrez le menu des actions derrière l’icône d’impulsion en haut à droite, appuyez sur la carte du moteur tout en haut, choisissez Moteur FluidEQ et appuyez sur Appliquer. Ouvrez ensuite le DSP et activez un étage pendant la lecture dans n’importe quelle application.',
   'tour.engine.open': 'Ouvrir le DSP',
   'tour.engine.flow.label':
     'Tout ce que joue l’ordinateur passe par le moteur FluidEQ — votre EQ, puis le rack DSP — avant d’arriver à votre casque et à vos enceintes.',
@@ -58,13 +163,13 @@ const tour: Partial<Dictionary> = {
 
   'tour.room.kicker': 'SURROUND AU CASQUE',
   'tour.room.title': 'Prenez place dans la Salle',
-  'tour.room.subtitle': 'Chaque canal, une enceinte autour de votre tête',
+  'tour.room.subtitle': 'Vingt-quatre salles, toutes gratuites',
   'tour.room.lead':
-    'La Salle fait de votre casque une salle d’écoute. Chaque canal du son devient une enceinte autour de vous, rendue à travers une tête mesurée et les murs d’une salle que vous façonnez vous-même : un film se tient devant vous, et non dans votre tête.',
+    'La Salle fait de votre casque une salle d’écoute, où chaque canal devient une enceinte autour de vous. Treize nouvelles salles rejoignent les onze classiques, chacune distincte des autres, mesures à l’appui, et tout est gratuit.',
   'tour.room.point1':
-    'La stéréo devient deux enceintes devant vous ; un film 5.1, cinq et le sub ; un jeu 7.1, tout l’anneau, selon ce qui joue.',
+    'La stéréo devient deux enceintes devant vous, ou remplit la salle si vous le demandez ; un film 5.1, cinq et le sub ; un jeu 7.1, tout l’anneau.',
   'tour.room.point2':
-    'Vingt-quatre salles pour commencer — studio, salon, cinéma, salle de concert — et les vôtres, enregistrées sous un nom.',
+    'Choisissez une salle sous « À la une », « Salles classiques » ou « Les vôtres » ; tout ce qui compose une salle se trouve sur sa page.',
   'tour.room.point3':
     'Un test d’écoute choisit à l’oreille la tête qui place les sons devant vous, en cinq paires.',
   'tour.room.how':
@@ -148,18 +253,19 @@ const tour: Partial<Dictionary> = {
 
   'tour.theme.kicker': 'UN NOUVEAU LOOK',
   'tour.theme.title': 'Voici le thème Sombre',
-  'tour.theme.subtitle': 'Noir pur, pour les nuits tardives et les écrans OLED',
+  'tour.theme.subtitle':
+    'Quasi noir, pour les nuits tardives et les écrans OLED',
   'tour.theme.lead':
     'FluidEQ a désormais un second visage. Sombre efface toute trace du bleu ardoise d’origine : panneaux, menus et barres passent en monochrome, l’accent reste, et le spectre est la seule couleur de la pièce.',
   'tour.theme.point1':
-    'Fonds noir absolu : sur un écran OLED, les pixels autour du graphique s’éteignent.',
+    'Fonds quasi noirs : sur un écran OLED, l’espace autour du graphique est presque éteint.',
   'tour.theme.point2':
-    'Toutes les fenêtres suivent : menus, boîtes de dialogue, la scène karaoké et la Bibliothèque changent ensemble.',
+    'Toutes les pages suivent : menus, boîtes de dialogue, la scène karaoké et la Bibliothèque changent ensemble. Le Lecteur compact garde son propre thème.',
   'tour.theme.point3':
     'Votre couleur d’accent et le mode arc-en-ciel sont conservés. Rien ne change dans votre son : seule la peinture.',
   'tour.theme.howTitle': 'Comment changer',
   'tour.theme.how':
-    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et, tout en bas, choisissez Sombre sous Thème. Clair reste à un clic si vous voulez revenir.',
+    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et choisissez Sombre à côté de Thème, dans les réglages au bas du menu. Clair reste à un clic si vous voulez revenir.',
   'tour.theme.tryBlack': 'Passer en Sombre maintenant',
   'tour.theme.tryOcean': 'Revenir à Clair',
   'tour.theme.imageAlt':
@@ -181,10 +287,10 @@ const tour: Partial<Dictionary> = {
     'Ouvrez l’onglet Partager l’audio, choisissez « Lire le son sur cet ordinateur » et appuyez sur « Créer le code de connexion ». Copiez le code de votre réseau.',
   'tour.share.step2Title': 'Sur chaque autre PC, collez-le',
   'tour.share.step2':
-    'Ouvrez FluidEQ là-bas, allez dans Partager l’audio, choisissez « Envoyer le son de cet ordinateur », sélectionnez Musique ou Jeu/Vidéo, collez le code et appuyez sur « Connecter et envoyer ». Son audio système commence à circuler.',
+    'Ouvrez FluidEQ là-bas, allez dans Partager l’audio, choisissez « Envoyer le son de cet ordinateur », collez le code et appuyez sur « Connecter et envoyer ». Son audio système commence à circuler, intact : les effets s’appliquent sur l’ordinateur où vous écoutez.',
   'tour.share.step3Title': 'Écoutez, puis réglez le niveau',
   'tour.share.step3':
-    'Musique garde un tampon plus large pour une écoute ininterrompue ; Jeu/Vidéo tourne avec le délai le plus court pour la synchronisation labiale. Chaque émetteur est mixé dans la sortie du récepteur, façonné par son EQ et réglé par son Volume. La barre de lecture du récepteur affiche le morceau du dernier émetteur, et ses boutons agissent à travers le réseau.',
+    'Chaque émetteur joue avec un tampon court qui rattrape son retard tout seul après un accroc. Tous les émetteurs sont mixés dans la sortie du récepteur et façonnés par son EQ. La barre de lecture du récepteur affiche le morceau du dernier émetteur, et ses boutons agissent à travers le réseau.',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',
@@ -210,22 +316,22 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Des playlists et une liste Favoris permanente. Clic droit sur un morceau pour l’ajouter à l’une ou l’autre, ou à la file.',
   'tour.library.point4':
-    'Mémoire de l’égalisation auto par morceau : activez « Enregistrer pour cette chanson » pendant la lecture et la correction est retenue pour ce titre.',
+    'Mémoire de l’Égalisation auto par morceau : tant qu’elle continue de mesurer, activez « Enregistrer pour cette chanson » ; au bout de deux minutes, sa correction est retenue pour ce titre et revient quand il repasse.',
   'tour.library.how':
     'Ouvrez l’onglet Bibliothèque, appuyez sur « Ajouter un dossier » ou déposez un dossier sur la page, et laissez l’analyse se terminer. Choisissez Albums, Artistes, Genres, Chansons, Dossiers ou Arborescence, puis appuyez sur Lire.',
   'tour.library.open': 'Ouvrir la Bibliothèque',
 
   'tour.dsp.kicker': 'UN RACK DE MASTERING',
   'tour.dsp.title': 'Le rack DSP',
-  'tour.dsp.subtitle': 'Neuf étages, chacun avec son graphique',
+  'tour.dsp.subtitle': 'Dix étages, chacun sur sa propre page',
   'tour.dsp.lead':
-    'Un rack d’étages de studio, dans l’ordre : Normaliseur, Débruitage, Exciteur, Forge de basses, Égaliseur, Punch des basses, Dimension, Maximiseur et Master, plus un fondu enchaîné entre les pistes de la Bibliothèque. Avec le moteur FluidEQ, il agit sur tout ce que joue l’ordinateur ; avec Equalizer APO, sur la Bibliothèque. Chaque étage est une carte avec un graphique en direct, des préréglages et un bouton Isoler pour n’entendre que ce qu’il fait.',
+    'Un rack d’étages de studio : Normaliseur, Débruitage, Exciteur, Forge de basses, Égaliseur, Punch des basses, Dimension, Salle, Maximiseur et Master, plus un fondu enchaîné entre les pistes de la Bibliothèque. Avec le moteur FluidEQ, il agit sur tout ce que joue l’ordinateur ; avec Equalizer APO, sur la Bibliothèque. Chaque étage a sa propre page avec une vue en direct, la plupart ont des préréglages, et cinq ont un interrupteur Isoler pour n’entendre que ce qu’ils font.',
   'tour.dsp.point1':
     'Débruitage répare le souffle, le ronflement et les craquements pendant la lecture, et un nettoyeur de voix neuronal agit sur les pistes de la Bibliothèque.',
   'tour.dsp.point2':
     'Forge de basses ajoute une vraie octave sous la basse ; Punch des basses en façonne l’attaque, le maintien et l’éclosion, avec un Mix jusqu’à 200 %.',
   'tour.dsp.point3':
-    'Un Égaliseur paramétrique à quinze bandes, phase minimale ou linéaire, mid/side, suréchantillonnage et des dizaines de préréglages nommés.',
+    'Un Égaliseur paramétrique de 6 à 31 bandes, quinze au départ, phase minimale ou linéaire, mid/side, suréchantillonnage et plus d’une centaine de préréglages nommés.',
   'tour.dsp.point4':
     'Un Master avec cible de sonie LUFS et sécurité de crête vraie, des préréglages de livraison du Streaming au Vinyle, et une Compensation de gain pour comparer le son, pas le volume.',
   'tour.dsp.how':
@@ -275,9 +381,9 @@ const tour: Partial<Dictionary> = {
   'tour.karaoke.lead':
     'Déposez une chanson avec ou sans fichier de paroles : FluidEQ les associe dans une playlist, affiche les paroles synchronisées sur la pochette ou la vidéo, écoute votre micro et trace votre hauteur face à la mélodie. Tout reste sur cet ordinateur ; le micro n’est jamais enregistré ni rejoué.',
   'tour.karaoke.point1':
-    'Un curseur Voix témoin qui va de l’original à l’accompagnement seul, retirant la voix principale sans fichier séparé.',
+    'Un curseur Voix témoin, une fois que FluidEQ a séparé la voix du morceau dans le Créateur : il va de l’accompagnement seul à l’original complet, sans fichier instrumental.',
   'tour.karaoke.point2':
-    'Un suivi de justesse en vue Notes ou Courbe : les notes de la chanson en blocs, votre voix en ligne vivante, avec retour Trop haut, Juste et Trop bas.',
+    'Un suivi de justesse : les notes de la chanson en blocs et votre voix en ligne vivante par-dessus, avec retour Trop haut, Juste et Trop bas.',
   'tour.karaoke.point3':
     'Un bilan de performance à la fin, avec les passages à travailler et un décompte pour recommencer.',
   'tour.karaoke.point4':
@@ -311,11 +417,11 @@ const tour: Partial<Dictionary> = {
   'tour.media.point1':
     'Un seul champ de recherche qui interroge le site ouvert, avec des recherches récentes que vous pouvez effacer.',
   'tour.media.point2':
-    '« Bloquer les pubs » saute les publicités vidéo et masque les emplacements publicitaires sur YouTube.',
+    'Connectez-vous une seule fois : le lecteur garde vos connexions d’une visite à l’autre, jusqu’à ce que vous vous déconnectiez.',
   'tour.media.point3':
     'Reprise : le lecteur retient la dernière page et l’endroit où vous en étiez, et vous y ramène.',
   'tour.media.point4':
-    'Des téléchargements avec pastille de progression et « Afficher dans le dossier » à la fin, et un bouton « Se déconnecter de tous les sites » qui efface chaque cookie et connexion d’un coup.',
+    'Des téléchargements avec pastille de progression et « Afficher dans le dossier » à la fin, et un bouton de déconnexion — la porte au bout de la barre d’outils — qui efface chaque cookie et connexion d’un coup.',
   'tour.media.how':
     'Ouvrez l’onglet Médias en ligne, choisissez un site dans la rangée du haut, tapez dans le champ de recherche et appuyez sur Rechercher. Précédent, Suivant et Actualiser fonctionnent comme dans un navigateur.',
   'tour.media.open': 'Ouvrir Médias en ligne',

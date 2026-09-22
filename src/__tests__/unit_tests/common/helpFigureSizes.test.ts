@@ -84,3 +84,48 @@ describe('help figures', () => {
     expect(outside).toEqual([]);
   });
 });
+
+/**
+ * The Light theme's twins (`docs/light`), shown when the window is Light.
+ *
+ * One set of boxes numbers both captures of a figure, so a twin retaken at
+ * any other size puts every call-out in the wrong place in one theme only —
+ * the half of the guide nobody checking in the other theme would see. And a
+ * twin on disk that `screenshots.ts` does not import is never shown at all:
+ * the reader gets the Dark capture with no sign that a Light one exists.
+ */
+describe('help figures in the Light theme', () => {
+  const LIGHT = path.join(DOCS, 'light');
+  const twins = fs.readdirSync(LIGHT).filter((name) => name.endsWith('.png'));
+
+  it('takes every Light capture at its Dark twin’s size', () => {
+    // The positive control: there are twins to check.
+    expect(twins.length).toBeGreaterThan(0);
+    const wrong = twins
+      .map((name) => {
+        const figure = figures.find((one) => one.image === name);
+        if (!figure) {
+          return `${name}: no figure shows it`;
+        }
+        const real = pngSize(path.join(LIGHT, name));
+        return real.width === figure.width && real.height === figure.height
+          ? ''
+          : `${name}: Dark twin is ${figure.width}x${figure.height}, Light is ${real.width}x${real.height}`;
+      })
+      .filter(Boolean);
+    expect(wrong).toEqual([]);
+  });
+
+  it('shows every Light capture on disk', () => {
+    const source = fs.readFileSync(
+      path.join(__dirname, '../../../renderer/help/screenshots.ts'),
+      'utf8',
+    );
+    const imported = Array.from(
+      source.matchAll(/docs\/light\/([^']+\.png)'/g),
+      (match) => match[1],
+    );
+    expect(imported.length).toBeGreaterThan(0);
+    expect([...imported].sort()).toEqual([...twins].sort());
+  });
+});

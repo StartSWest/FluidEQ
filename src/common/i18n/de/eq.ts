@@ -684,7 +684,7 @@ const eq: Partial<Dictionary> = {
   'convolution.none':
     'Keine Faltung geladen. Der EQ-Tab bleibt davon völlig unberührt.',
   'voicing.groupGenre': 'Genre',
-  'voicing.none': 'Keiner',
+  'voicing.none': 'Keine',
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',
   'waveform.style': 'Stil der Anzeige wechseln',

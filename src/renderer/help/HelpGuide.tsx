@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
+import { useTheme } from '../utils/theme';
 import DialogHeader from '../components/DialogHeader';
 import { HelpColumnContext, type IHelpColumn } from './HelpColumn';
 import HelpFigure from './HelpFigure';
@@ -27,7 +28,7 @@ import {
   searchHelp,
   type IHelpHit,
 } from './helpSearch';
-import screenshots from './screenshots';
+import { helpScreenshot } from './screenshots';
 import '../styles/FeatureTour.scss';
 
 interface IHelpGuideProps {
@@ -87,6 +88,8 @@ const stepThroughMarks = (viewport: HTMLElement, direction: 1 | -1) => {
 
 export default function HelpGuide({ onClose }: IHelpGuideProps) {
   const { t, locale } = useTranslation();
+  // The pictures follow the window: Light captures in the Light theme.
+  const theme = useTheme();
   const dialog = useRef<HTMLDialogElement>(null);
   const lightbox = useRef<HTMLDialogElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
@@ -453,10 +456,13 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                         key={figure.image}
                         anchor={helpAnchor.figure(chapter.id, figureIndex)}
                         figure={figure}
-                        src={screenshots[figure.image]}
+                        src={helpScreenshot(figure.image, theme)}
                         title={title}
                         onEnlarge={() =>
-                          setCapture({ src: screenshots[figure.image], title })
+                          setCapture({
+                            src: helpScreenshot(figure.image, theme),
+                            title,
+                          })
                         }
                       />
                     );

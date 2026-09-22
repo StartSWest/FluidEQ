@@ -10,7 +10,8 @@ const terms = {
   'terms.short.price.title': '{price}, отмена в любой момент',
   'terms.short.price.body':
     'Оплата через Buy Me a Coffee. FluidEQ никогда не видит вашу карту.',
-  'terms.short.free.title': 'Ничего бесплатного не отнимается',
+  'terms.short.free.title':
+    'Эквалайзер, стойка DSP и плееры остаются бесплатными',
   'terms.short.free.body':
     'FluidEQ по-прежнему работает офлайн и без аккаунта, как всегда.',
   'terms.short.choice.title': 'Вы решаете, чем делиться',

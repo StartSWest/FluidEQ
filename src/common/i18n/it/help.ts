@@ -49,9 +49,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Premi una pagina nell’intestazione: Media online, Condividi audio ed EQ stanno prima del segnale; DSP, Libreria, Karaoke e Plus dopo.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il segnale o il misuratore di livello per cambiare come viene disegnato, e Modalità arcobaleno per far muovere curve e misuratori alla piena frequenza del tuo schermo.',
   'help.window.tip':
-    'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante a impulso accanto ad Aiuto contiene la scheda del motore, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows e Processi, che mostra cosa sta usando ogni parte di FluidEQ.',
+    'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante a impulso accanto ad Aiuto contiene la scheda del motore, il tuo account, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows e Processi, che mostra cosa sta usando ogni parte di FluidEQ; in fondo al menu ci sono il tema Chiaro o Scuro, le animazioni, Avvia con Windows e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
   'help.window.keywords':
-    'interfaccia, navigazione, panoramica, schermata principale, barra superiore, barra di riproduzione, pannello laterale, layout, tab, header, toolbar, vumetro, VU meter, indicatore di livello',
+    'interfaccia, navigazione, panoramica, schermata principale, barra superiore, barra di riproduzione, pannello laterale, layout, tab, header, toolbar, vumetro, VU meter, indicatore di livello, tema, tema scuro, tema chiaro, modalità scura, modalità chiara, dark mode, lingua, cambiare lingua, avvio con windows, avvio automatico, esecuzione automatica, all’avvio, account',
   'help.window.headerLeftCaption': 'L’intestazione, fino al segnale',
   'help.window.headerRightCaption': 'L’intestazione, dopo il segnale',
   'help.window.railCaption': 'La colonna di sinistra',
@@ -77,7 +77,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema.',
   'help.window.actions':
-    'Il motore, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows e Processi.',
+    'Il motore, il tuo account, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows e Processi; il tema, le animazioni, Avvia con Windows e la lingua.',
   'help.window.systemEq':
     'Attiva o disattiva l’elaborazione di FluidEQ per tutto ciò che il PC riproduce.',
   'help.window.preamp':
@@ -88,6 +88,67 @@ const help: Record<keyof typeof en, string> = {
   'help.window.meterName': 'Misuratore di livello',
   'help.window.meter':
     'Il livello di uscita, sinistro e destro, in decibel reali. Premilo per cambiarne lo stile.',
+  'help.player.title': 'Il Lettore compatto',
+  'help.player.intro':
+    'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto: una colonna stretta con il brano, il tuo equalizzatore, un visualizzatore e In coda, in pannelli che apri e chiudi. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
+  'help.player.steps':
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nApri e chiudi i pannelli con EQ, Visual e Coda. La finestra cresce e si riduce di quanto occupa ciascuno, e il lettore ricorda la sua dimensione e la sua posizione.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua barra o scegli Riduci a una riga nel suo menu; il logo di FluidEQ lo espande di nuovo.\nNel menu del lettore scegli il suo tema, e tienilo sopra le altre finestre con Sempre in primo piano.\nTrascina file musicali su In coda: entrano nella Libreria e nella coda.',
+  'help.player.tip':
+    'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra.',
+  'help.player.keywords':
+    'mini player, mini lettore, lettore piccolo, lettore compatto, modalità compatta, winamp, amp, modalità lettore, sempre in primo piano, always on top, in primo piano, ridurre a una riga, una riga, rimpicciolire, coda, prossimi brani, trascinare file, trascina e rilascia, tema, tema chiaro, tema scuro, modalità chiara, modalità scura, dark mode, finestra piccola, lettore fluttuante, volume',
+  'help.player.topCaption': 'In alto: il brano e la sua riproduzione',
+  'help.player.eqCaption': 'L’equalizzatore',
+  'help.player.queueCaption': 'In coda',
+  'help.player.menuCaption': 'Il menu del lettore',
+  'help.player.foldedCaption': 'Ridotto a una riga',
+  'help.player.menu':
+    'Il ritorno all’app completa o a una delle sue pagine, il tema del lettore, Sempre in primo piano e Riduci a una riga.',
+  'help.player.pin': 'Tiene il lettore sopra tutte le altre finestre.',
+  'help.player.switch':
+    'Torna all’app completa, sulla pagina che avevi lasciato.',
+  'help.player.clock':
+    'Il tempo trascorso. Fai clic per vedere quello rimanente.',
+  'help.player.well':
+    'Il suono in tempo reale. Fai clic per passare dalle barre all’onda.',
+  'help.player.level': 'Il livello del suono in uscita da FluidEQ, in decibel.',
+  'help.player.volume':
+    'Il volume del tuo computer, lo stesso di Windows: regola il livello di tutto ciò che il computer riproduce.',
+  'help.player.decksName': 'EQ, Visual e Coda',
+  'help.player.decks':
+    'Aprono e chiudono l’equalizzatore, il visualizzatore e In coda. La finestra cresce e si riduce di quanto occupa ciascuno.',
+  'help.player.seek': 'A che punto è il brano. Trascina per spostarti.',
+  'help.player.playingName': 'Controlli di riproduzione',
+  'help.player.playing':
+    'Precedente, indietro di cinque secondi, riproduci o pausa, avanti di cinque secondi, successivo e ferma.',
+  'help.player.orderName': 'Casuale e ripetizione',
+  'help.player.order':
+    'Mescola In coda, e non ripete nulla, ripete tutto o solo questo brano.',
+  'help.player.lookName': 'Stile successivo',
+  'help.player.look':
+    'Cambia l’aspetto del visualizzatore. Ctrl+click torna al precedente, e il clic destro li elenca tutti.',
+  'help.player.screen':
+    'Ciò che senti, disegnato: le tue bande, l’EQ intelligente e tutto il resto applicato, sopra un aspetto del visualizzatore. Applicato anche li elenca, e un’etichetta ne spegne uno senza toglierlo.',
+  'help.player.bands':
+    'Trascina una banda in su o in giù per rinforzarla o tagliarla. La sua frequenza è scritta sotto.',
+  'help.player.tone':
+    'Bande mostra tutte le bande; Tono le sostituisce con le manopole Bassi, Medi e Alti.',
+  'help.player.upNext':
+    'La tua posizione nella coda, il tempo che resta e quanto ne hai già ascoltato.',
+  'help.player.library': 'Apre la Libreria nell’app completa.',
+  'help.player.songsName': 'I brani',
+  'help.player.songs':
+    'Cosa suona dopo. Fai doppio clic su un brano per riprodurlo, o trascina qui dei file musicali per aggiungerli.',
+  'help.player.openIn': 'Apre l’app completa su una delle sue pagine.',
+  'help.player.theme':
+    'Il tema Chiaro o Scuro del lettore, separato da quello dell’app completa.',
+  'help.player.fold':
+    'Riduce il lettore a una riga. Il doppio clic sulla sua barra fa lo stesso.',
+  'help.player.unfold':
+    'Espande il lettore. Lo fa anche la freccia all’altra estremità.',
+  'help.player.foldedPlaying':
+    'Precedente, riproduci o pausa, successivo e ferma.',
+  'help.player.foldedClock': 'Il tempo, e a che punto è il brano.',
 
   'help.requirements.title': 'Che cosa serve al tuo PC',
   'help.requirements.intro':
@@ -530,7 +591,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Ascolta con Media online',
   'help.online.intro':
-    'Media online affianca i siti compatibili all’EQ. Riproduzione e accesso dipendono dal fornitore e dalla connessione. La barra in fondo a FluidEQ segue il lettore attivo, e il suo volume è quello del sito.',
+    'Media online affianca i siti compatibili all’EQ. Riproduzione e accesso dipendono dal fornitore e dalla connessione. La barra in fondo a FluidEQ segue il lettore attivo, e il suo volume è quello del tuo computer.',
   'help.online.steps':
     'Apri Media online, scegli un sito e avvia qualcosa sulla pagina.\nPassa a EQ per regolare durante l’ascolto e torna alla pagina per i suoi controlli.\nAttiva Un solo lettore per evitare sovrapposizioni con altri lettori.',
   'help.online.tip':
@@ -542,7 +603,7 @@ const help: Record<keyof typeof en, string> = {
   'help.library.intro':
     'Libreria raccoglie musica e video dai tuoi dischi. Sfoglia per album, artisti, generi, brani, cartelle, albero delle cartelle o playlist. Copertine e dettagli provengono dai file, quindi la stessa collezione può apparire diversa a seconda dei tag.',
   'help.library.steps':
-    'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è un unico livello per tutti i lettori.',
+    'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è quello del tuo computer, lo stesso di Windows.',
   'help.library.tip':
     'Passa il mouse sul pulsante di FluidEQ nella barra delle applicazioni di Windows per Precedente, Riproduci e Successivo, anche quando è ridotto a icona. Libreria ha bisogno dei file originali: ricollega il disco o aggiungi di nuovo una cartella spostata.',
   'help.library.keywords':
@@ -564,7 +625,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.steps':
     'Apri Karaoke e aggiungi file o cartella con audio e testi corrispondenti.\nScegli un brano, avvialo e controlla l’abbinamento.\nConfigura il microfono, regola la dimensione dei testi e usa lo schermo intero del palco.',
   'help.karaoke.tip':
-    'Un file con soli testi non contiene note obiettivo. Karaoke segue il Volume dell’app; i livelli di melodia, base e voce guida sono in Impostazioni mix.',
+    'Un file con soli testi non contiene note obiettivo. Karaoke suona al volume del tuo computer; i livelli di melodia, base e voce guida sono in Impostazioni mix.',
   'help.karaoke.keywords':
     'cantare, canzoni, lyrics, pitch, punteggio, stonato, accordi chitarra, LRC, UltraStar, testi sincronizzati',
 
@@ -633,7 +694,7 @@ const help: Record<keyof typeof en, string> = {
   'help.share.steps':
     'Sul computer d’ascolto apri Condividi audio, scegli Riproduci l’audio su questo computer e premi Crea codice di connessione. Inizia a volume basso.\nSu ogni computer sorgente scegli Invia l’audio di questo computer, incolla il codice della tua rete e premi Connetti e invia.\nControlla il monitor della connessione. Al termine premi Interrompi invio o Interrompi ascolto; Crea nuovo codice scollega tutti gli abbinamenti salvati.',
   'help.share.tip':
-    'Il codice autorizza l’abbinamento: tienilo privato. Più mittenti vengono miscelati e alzano il livello, che si regola con il Volume del ricevitore. Con il motore FluidEQ, anche l’audio ricevuto passa dal rack DSP.',
+    'Il codice autorizza l’abbinamento: tienilo privato. Più mittenti vengono miscelati e alzano il livello, che si regola con il volume del computer che riceve. Con il motore FluidEQ, anche l’audio ricevuto passa dal rack DSP.',
   'help.share.keywords':
     'rete locale, LAN, wifi, altro PC, collegare computer, condividere audio, inviare audio, ricevere audio, trasmettere audio, streaming audio',
 

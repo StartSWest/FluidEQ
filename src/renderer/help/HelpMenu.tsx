@@ -5,6 +5,7 @@ import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import HelpGuide from './HelpGuide';
+import { onHelpGuideRequest } from './helpGuideRequests';
 import '../styles/HelpGuide.scss';
 
 interface IHelpMenuProps {
@@ -52,6 +53,16 @@ export default function HelpMenu({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
+
+  // Asked for from elsewhere: What's New's "Open Help".
+  useEffect(
+    () =>
+      onHelpGuideRequest(() => {
+        setOpen(false);
+        setShowGuide(true);
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (!open) {

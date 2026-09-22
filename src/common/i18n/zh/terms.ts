@@ -10,7 +10,7 @@ const terms = {
   'terms.short.price.title': '{price}，随时可取消',
   'terms.short.price.body':
     '通过 Buy Me a Coffee 付款。FluidEQ 从不接触你的银行卡。',
-  'terms.short.free.title': '免费的一切都不会被拿走',
+  'terms.short.free.title': '均衡器、机架和播放器依然免费',
   'terms.short.free.body': 'FluidEQ 依然可以离线、无需账户地使用，一如既往。',
   'terms.short.choice.title': '分享什么由你决定',
   'terms.short.choice.body':

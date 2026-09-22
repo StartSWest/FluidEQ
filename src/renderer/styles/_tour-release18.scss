@@ -1,0 +1,1035 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The pictures on the 1.8 headline slides (`release18Visuals.tsx`). Like the
+// 1.7 ones, every length is in tour units, so a picture keeps its proportions
+// from a 1440-wide window to a 4K one, and every colour is a theme token: the
+// miniatures are the app's own pages, and they wear whichever theme the app
+// is wearing.
+
+$u: var(--tour-unit);
+
+// A capture's frame: the edge and the shadow the tour's real screenshots wear.
+@mixin framed {
+  border: 1px solid rgba($edge-tint, 0.14);
+  box-shadow:
+    0 22px 56px rgba($black, 0.55),
+    0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
+}
+
+// A miniature of one of the app's panels.
+@mixin panel {
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: $surface-panel;
+  box-shadow: 0 16px 40px rgba($black, 0.4);
+}
+
+// A small rounded label.
+@mixin pill {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.22) calc(#{$u} * 0.6);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-pill;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+  gap: calc(#{$u} * 0.35);
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// The Compact player: a capture of it in each theme, the second standing a
+// step lower and a little behind, as a pair of things you could pick from.
+
+// Sized in tour units rather than as a share of the frame: the frame's own
+// height comes from the slide, and a picture sized from the frame made the
+// slide taller than the panel at 2560 x 1392, with "How to start" under the
+// fold. Twenty-seven units is the height of the other slides' pictures.
+.player-visual {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.player-visual__player {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(#{$u} * 0.55);
+  @include animate(rise-in, $motion-slow);
+
+  & + & {
+    z-index: 0;
+    margin-top: calc(#{$u} * 2.4);
+    margin-left: calc(#{$u} * -1.1);
+    animation-delay: 140ms;
+  }
+}
+
+.player-visual__shot {
+  display: block;
+  width: auto;
+  height: calc(#{$u} * 27);
+  max-width: 100%;
+  border-radius: $radius-l;
+  object-fit: contain;
+  @include framed;
+}
+
+.player-visual__theme {
+  @include pill;
+
+  color: $text-muted;
+  background: color-mix(in srgb, $surface-block 90%, transparent);
+}
+
+// ---------------------------------------------------------------------------
+// Game presets: the page with four games, and the desktop under it with the
+// two cards a game raises — one as it comes to the front, one as it closes.
+
+.games-visual {
+  display: flex;
+  width: 100%;
+  max-width: calc(#{$u} * 34);
+  flex-direction: column;
+  gap: calc(#{$u} * 0.9);
+  @include animate(rise-in, $motion-slow);
+}
+
+.games-visual__page {
+  @include panel;
+
+  overflow: hidden;
+}
+
+.games-visual__head {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.75) calc(#{$u} * 0.9);
+  border-bottom: 1px solid rgba($edge-tint, 0.08);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.95);
+  gap: calc(#{$u} * 0.5);
+}
+
+.games-visual__glyph {
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  color: $secondary-light;
+}
+
+.games-visual__add {
+  @include pill;
+
+  margin-left: auto;
+  color: $text-accent;
+  border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.games-visual__rows {
+  display: grid;
+  margin: 0;
+  padding: calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.4);
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: center;
+    padding: calc(#{$u} * 0.5) calc(#{$u} * 0.6);
+    border: 1px solid transparent;
+    border-radius: $radius-m;
+    background: rgba($white, 0.025);
+    gap: calc(#{$u} * 0.7);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    @include stagger-in(4, 60ms, 180ms);
+  }
+
+  li.is-front {
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+  }
+}
+
+.games-visual__tile {
+  display: grid;
+  width: calc(#{$u} * 2.4);
+  height: calc(#{$u} * 2.4);
+  place-items: center;
+  color: $white;
+  border-radius: $radius-s;
+  background: linear-gradient(135deg, var(--game-from), var(--game-to));
+  font-size: calc(#{$u} * 0.85);
+  font-weight: $weight-bold;
+  text-shadow: 0 1px 2px rgba($black, 0.35);
+}
+
+.games-visual__game {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.2);
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.88);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: calc(#{$u} * 0.4);
+  }
+}
+
+.games-visual__source {
+  @include pill;
+
+  padding-block: 0;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+}
+
+.games-visual__live {
+  overflow: hidden;
+  color: $text-accent;
+  font-size: calc(#{$u} * 0.64);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &::before {
+    display: inline-block;
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    margin-right: calc(#{$u} * 0.3);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 8px $secondary-light;
+    content: '';
+  }
+}
+
+.games-visual__sound {
+  @include pill;
+
+  max-width: calc(#{$u} * 11);
+  overflow: hidden;
+  color: $text-primary;
+  border-color: rgba($edge-tint, 0.16);
+  background: $surface-field;
+  text-overflow: ellipsis;
+
+  &::before {
+    flex: none;
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    border-radius: 50%;
+    background: $secondary-light;
+    content: '';
+  }
+
+  &.is-none {
+    color: $text-muted;
+
+    &::before {
+      background: $text-faint;
+    }
+  }
+}
+
+.games-visual__desk {
+  position: relative;
+  height: calc(#{$u} * 7.6);
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      ellipse 60% 90% at 20% 30%,
+      color-mix(in srgb, $complementary 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 90% at 85% 80%,
+      color-mix(in srgb, $secondary-default 22%, transparent),
+      transparent 70%
+    ),
+    $surface-well;
+}
+
+.games-visual__card {
+  position: absolute;
+  right: calc(#{$u} * 0.9);
+  bottom: calc(#{$u} * 0.9);
+  display: flex;
+  max-width: calc(100% - #{$u} * 1.8);
+  align-items: center;
+  padding: calc(#{$u} * 0.55) calc(#{$u} * 0.8);
+  border: 1px solid $border-menu;
+  border-radius: $radius-l;
+  background: $surface-menu;
+  box-shadow: 0 12px 30px rgba($black, 0.45);
+  gap: calc(#{$u} * 0.6);
+  @include animate(rise-in, $motion-slow);
+
+  > span:not(.games-visual__mode) {
+    display: grid;
+    min-width: 0;
+    gap: calc(#{$u} * 0.1);
+  }
+
+  strong,
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.82);
+  }
+
+  small {
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.68);
+  }
+
+  &.is-behind {
+    top: calc(#{$u} * 0.8);
+    right: auto;
+    bottom: auto;
+    left: calc(#{$u} * 0.9);
+    opacity: 0.72;
+    animation-delay: 220ms;
+  }
+}
+
+.games-visual__card-glyph {
+  flex: none;
+  width: calc(#{$u} * 1.5);
+  height: calc(#{$u} * 1.5);
+  padding: calc(#{$u} * 0.25);
+  color: $secondary-light;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+}
+
+.games-visual__mode {
+  @include pill;
+
+  flex: none;
+  color: $text-accent;
+  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  font-size: calc(#{$u} * 0.62);
+}
+
+// ---------------------------------------------------------------------------
+// Presets: the picker with Rock chosen, and beside it what a chain is now.
+
+.presets-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  align-items: start;
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  @include animate(rise-in, $motion-slow);
+}
+
+.presets-visual__picker {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.7);
+  background: $surface-menu;
+  gap: calc(#{$u} * 0.5);
+}
+
+.presets-visual__search {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-size: calc(#{$u} * 0.75);
+  gap: calc(#{$u} * 0.4);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.presets-visual__section {
+  display: grid;
+  gap: calc(#{$u} * 0.15);
+
+  ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    gap: 1px;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    padding: calc(#{$u} * 0.28) calc(#{$u} * 0.45);
+    color: $text-primary;
+    border-radius: $radius-s;
+    font-size: calc(#{$u} * 0.78);
+    gap: calc(#{$u} * 0.45);
+
+    > span {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  li.is-chosen {
+    color: $text-accent;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    font-weight: $weight-semibold;
+  }
+}
+
+.presets-visual__group {
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.45) calc(#{$u} * 0.1);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+.presets-visual__icon {
+  flex: none;
+  width: calc(#{$u} * 1);
+  height: calc(#{$u} * 1);
+  color: $secondary-light;
+}
+
+// Lit, in the Library's favourite yellow, as the real list lights it.
+.presets-visual__star {
+  flex: none;
+  width: calc(#{$u} * 0.85);
+  height: calc(#{$u} * 0.85);
+  color: $neon-yellow;
+  fill: currentcolor;
+}
+
+.presets-visual__cards {
+  display: grid;
+  gap: calc(#{$u} * 0.7);
+}
+
+.presets-visual__card {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.9);
+  gap: calc(#{$u} * 0.45);
+  @include animate(rise-in, $motion-slow);
+
+  & + & {
+    animation-delay: 140ms;
+  }
+}
+
+.presets-visual__name {
+  color: $text-primary;
+  font-size: calc(#{$u} * 1.25);
+  font-weight: $weight-bold;
+  line-height: 1.15;
+
+  &.is-small {
+    font-size: calc(#{$u} * 0.9);
+  }
+}
+
+.presets-visual__note {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.7);
+  line-height: 1.4;
+}
+
+.presets-visual__stages {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.35);
+  list-style: none;
+
+  li {
+    @include pill;
+
+    color: $text-accent;
+    border-color: color-mix(in srgb, $secondary-light 32%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+    @include stagger-in(6, 50ms, 200ms);
+
+    &::before {
+      width: calc(#{$u} * 0.36);
+      height: calc(#{$u} * 0.36);
+      border-radius: 50%;
+      background: $secondary-light;
+      content: '';
+    }
+  }
+}
+
+.presets-visual__levels {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.4);
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: center;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.72);
+    gap: calc(#{$u} * 0.6);
+    grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr);
+
+    > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // One length for all three: the picture's point is that they are level.
+  i {
+    display: block;
+    width: 78%;
+    height: calc(#{$u} * 0.42);
+    border-radius: $radius-pill;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 55%, transparent),
+      $secondary-light
+    );
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 30%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tone: the curve in its three thirds, the three knobs, the quick layouts.
+
+.tone-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  gap: calc(#{$u} * 0.8);
+  @include animate(rise-in, $motion-slow);
+}
+
+.tone-visual__graph {
+  position: relative;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.12);
+  border-radius: $radius-l;
+  background: $surface-plot;
+  box-shadow: 0 16px 40px rgba($black, 0.4);
+
+  svg {
+    position: absolute;
+    inset: calc(#{$u} * 1.8) 0 calc(#{$u} * 0.4);
+    width: 100%;
+    height: calc(100% - #{$u} * 2.2);
+    overflow: visible;
+  }
+}
+
+// Each third a band of its own light, named along the top.
+.tone-visual__third {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding-top: calc(#{$u} * 0.55);
+  border-right: 1px dashed rgba($edge-tint, 0.14);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.64);
+  font-weight: $weight-bold;
+  text-align: center;
+  text-transform: uppercase;
+  @include tracking(0.12em);
+
+  &:nth-of-type(1) {
+    color: $amber;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $amber 12%, transparent),
+      transparent 80%
+    );
+  }
+
+  &:nth-of-type(3) {
+    border-right: 0;
+    color: $text-accent;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-default 12%, transparent),
+      transparent 80%
+    );
+  }
+}
+
+.tone-visual__zero {
+  stroke: rgba($edge-tint, 0.2);
+  stroke-dasharray: 2 2;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-visual__fill {
+  stroke: none;
+}
+
+// The fill fades from the curve down to nothing, rather than a slab.
+.tone-visual__fade-top {
+  stop-color: $secondary-default;
+  stop-opacity: 0.3;
+}
+
+.tone-visual__fade-bottom {
+  stop-color: $secondary-default;
+  stop-opacity: 0;
+}
+
+.tone-visual__curve {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 6px $secondary-default);
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-visual__controls {
+  display: grid;
+  align-items: stretch;
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+
+.tone-visual__knobs {
+  @include panel;
+
+  display: grid;
+  margin: 0;
+  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.6);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    display: grid;
+    justify-items: center;
+    gap: calc(#{$u} * 0.2);
+    text-align: center;
+  }
+
+  svg {
+    width: calc(#{$u} * 3.2);
+    height: calc(#{$u} * 3.2);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.8);
+  }
+
+  span {
+    color: $text-accent;
+    font-size: calc(#{$u} * 0.7);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// A dial as the app draws its tone dials: a ring with the turned part lit
+// from the middle, a cap, and a pointer.
+.tone-visual__track,
+.tone-visual__value {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 2.6;
+}
+
+.tone-visual__track {
+  stroke: $track-well;
+}
+
+.tone-visual__value {
+  stroke: $secondary-light;
+  filter: drop-shadow(0 0 3px $secondary-default);
+}
+
+.tone-visual__cap {
+  fill: $surface-block;
+  stroke: rgba($edge-tint, 0.22);
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 3px rgba($black, 0.4));
+}
+
+.tone-visual__needle {
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+.tone-visual__layouts {
+  display: grid;
+  align-content: start;
+  gap: calc(#{$u} * 0.45);
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    gap: calc(#{$u} * 0.35);
+    list-style: none;
+  }
+
+  li {
+    @include pill;
+
+    color: $text-primary;
+    background: $surface-field;
+
+    &.is-new {
+      border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+      background: color-mix(in srgb, $secondary-default 12%, transparent);
+    }
+  }
+
+  em {
+    padding: 0 calc(#{$u} * 0.35);
+    color: $surface-base;
+    border-radius: $radius-pill;
+    background: $secondary-light;
+    font-size: calc(#{$u} * 0.56);
+    font-style: normal;
+    font-weight: $weight-bold;
+  }
+}
+
+.tone-visual__caption {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+// ---------------------------------------------------------------------------
+// The Studio: a scene it made, the idea it was made from, the two ways in.
+
+.studio-visual {
+  position: relative;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  aspect-ratio: 16 / 11;
+  overflow: hidden;
+  border-radius: $radius-l;
+  background: $black;
+  @include framed;
+  @include animate(rise-in, $motion-slow);
+}
+
+.studio-visual__scene {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+}
+
+// Frosted over the scene, in the menu's own colour, so it reads on any theme.
+.studio-visual__prompt {
+  position: absolute;
+  right: 38%;
+  bottom: calc(#{$u} * 0.9);
+  left: calc(#{$u} * 0.9);
+  display: grid;
+  padding: calc(#{$u} * 0.7) calc(#{$u} * 0.85);
+  border: 1px solid $border-menu;
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-menu 80%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 14px 34px rgba($black, 0.45);
+  gap: calc(#{$u} * 0.35);
+}
+
+.studio-visual__label {
+  display: flex;
+  align-items: center;
+  color: $text-accent;
+  font-size: calc(#{$u} * 0.64);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  gap: calc(#{$u} * 0.35);
+  @include tracking(0.1em);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.studio-visual__idea {
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.8);
+  line-height: 1.45;
+}
+
+.studio-visual__offers {
+  position: absolute;
+  top: calc(#{$u} * 0.9);
+  right: calc(#{$u} * 0.9);
+  display: grid;
+  justify-items: end;
+  gap: calc(#{$u} * 0.4);
+}
+
+.studio-visual__offer {
+  @include pill;
+
+  color: $surface-base;
+  border-color: transparent;
+  background: $secondary-light;
+  box-shadow: 0 6px 20px rgba($black, 0.35);
+
+  &.is-earned {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $amber 55%, transparent);
+    background: color-mix(in srgb, $surface-menu 85%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The guide, searched: the answers ranked with the words marked, and the
+// first one open with a picture's control numbered.
+
+.guide-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  overflow: hidden;
+  border-radius: $radius-l;
+  background: $surface-base;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  @include framed;
+  @include animate(rise-in, $motion-slow);
+
+  mark {
+    padding: 0 1px;
+    color: $text-primary;
+    border-radius: 3px;
+    background: color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+}
+
+.guide-visual__rail {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.8);
+  border-right: 1px solid rgba($edge-tint, 0.08);
+  background: rgba($white, 0.02);
+  gap: calc(#{$u} * 0.55);
+}
+
+.guide-visual__search {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
+  color: $text-primary;
+  border: 1px solid $border-field-focus;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-size: calc(#{$u} * 0.78);
+  gap: calc(#{$u} * 0.4);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+    fill: none;
+    stroke: $text-muted;
+    stroke-linecap: round;
+    stroke-width: 2;
+  }
+}
+
+.guide-visual__hits {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.3);
+  list-style: none;
+
+  li {
+    display: grid;
+    padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
+    border-left: 2px solid transparent;
+    border-radius: $radius-s;
+    gap: calc(#{$u} * 0.15);
+    @include stagger-in(3, 70ms, 160ms);
+  }
+
+  li.is-active {
+    border-left-color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.8);
+    line-height: 1.3;
+  }
+}
+
+.guide-visual__found {
+  display: -webkit-box;
+  overflow: hidden;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.66);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.guide-visual__page {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.9);
+  gap: calc(#{$u} * 0.6);
+}
+
+.guide-visual__title {
+  color: $text-primary;
+  font-size: calc(#{$u} * 1.02);
+  line-height: 1.25;
+}
+
+// A picture of a page, with one control numbered and ringed.
+.guide-visual__figure {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  padding-left: 22%;
+}
+
+.guide-visual__window {
+  display: grid;
+  height: 100%;
+  align-content: start;
+  padding: calc(#{$u} * 0.55);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  background: $surface-panel;
+  gap: calc(#{$u} * 0.4);
+
+  i {
+    display: block;
+    height: calc(#{$u} * 0.45);
+    border-radius: $radius-pill;
+    background: rgba($edge-tint, 0.14);
+  }
+
+  .is-short {
+    width: 55%;
+  }
+
+  .is-wide {
+    height: calc(#{$u} * 1.2);
+    border-radius: $radius-s;
+    background: $surface-plot;
+  }
+}
+
+.guide-visual__window .guide-visual__control {
+  width: 62%;
+  height: calc(#{$u} * 1.1);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  outline: 2px solid $secondary-light;
+  outline-offset: 2px;
+  box-shadow: 0 0 14px color-mix(in srgb, $secondary-light 45%, transparent);
+}
+
+.guide-visual__lead {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  path {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.guide-visual__number {
+  position: absolute;
+  top: 52%;
+  left: 0;
+  display: grid;
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  place-items: center;
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-light;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-bold;
+  transform: translateY(-50%);
+}
+
+.guide-visual__passage {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.72);
+  line-height: 1.5;
+
+  // The mark the search lands on, as the guide draws its current one.
+  mark:first-of-type {
+    outline: 1px solid $secondary-light;
+  }
+}

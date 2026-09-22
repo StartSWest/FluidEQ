@@ -11,14 +11,17 @@ and 11, processed by its own audio engine or by
 Tune once per output, and the right sound follows the right device without you
 touching anything again.
 
-![The FluidEQ EQ page: fifteen parametric bands drawn as vertical sliders from 25 Hz to 16 kHz, and above them a row of chips naming everything else applied to this output — a Razer Kraken V3 Pro headphone correction at 100%, the fifteen EQ bands, the Music voicing and Smart EQ on Balance — each with its own switch and strength slider. The selected band's filter type, frequency, gain and Q sit in a panel underneath. In the graph below, the headphone, EQ, voicing and Smart EQ curves are drawn over the live spectrum. Down the left are the engine switch, the preamp, auto-normalize and a stereo level meter; down the right, the output column with the device picker, the second output, the driver-type panel and the named profiles for this device. The live output meter runs across the title bar, between Online Media and EQ on one side and DSP, Library and Karaoke on the other.](docs/03-eq-parametric-bands-and-live-response.png)
+![The FluidEQ EQ page: fifteen parametric bands drawn as vertical sliders from 25 Hz to 16 kHz, and under them, with no band selected, Bass, Mid and Treble dials for the whole rack. Above the bands sit the Presets picker on Music, Smart EQ on Target, Clear EQ, the EQ mode, Add band and the band layout, with the Game mode switch over them, and the row naming everything else applied to this output — here a Razer BlackShark V2 Pro 2023 headphone correction at 100%, with its strength slider. In the graph below, the headphone curve is drawn over the flat EQ line, with a point for every band. Down the left are the engine switch, the preamp, auto-normalize and a stereo level meter; down the right, the output column with the device picker, the second output, the driver-type panel and the named profiles for this device. The live output meter runs across the title bar, between Online Media, Share Audio and EQ on one side and DSP, Library, Karaoke and Plus on the other.](docs/03-eq-parametric-bands-and-live-response.png)
 
 ## What it does
 
 **Follows your output.** Every setting below belongs to the device you tuned it
 on. Plug in your headphones and their tuning comes back; switch to speakers and
 theirs does. FluidEQ maps the stable Windows endpoint ID, not the display name,
-so it survives renames and re-plugs.
+so it survives renames and re-plugs. Games can have a sound of their own too:
+give one a preset under **Game presets**, and FluidEQ switches to it when the
+game comes to the front, keeps it until the game is closed, however often you
+alt-tab, and then puts back what you had.
 
 **Six layers, one chain.** Each is written as its own file in the Equalizer APO
 config, included in this order:
@@ -29,11 +32,11 @@ config, included in this order:
 | Driver type          | Twelve compensation profiles for the kind of transducer you are listening on: dynamic and planar headphones, dynamic, balanced-armature and hybrid IEMs, three diaphragm materials, four sizes. |
 | Headphone correction | A published measurement for your exact model, applied as a layer beside your tuning rather than into it.                                                                                        |
 | Parametric EQ        | Your own bands, up to 128 of them. Peak, low/high shelf, low/high pass, band pass and notch, each with frequency, gain and Q.                                                                   |
-| Voicing              | Thirteen curated target curves — music, movies, games, speech and late night, plus eight by genre.                                                                                              |
+| Preset               | The tone of the preset you pick — one of 105 whole DSP chains, 81 of them music styles — as a curve of its own, on either engine.                                                               |
 | Smart EQ             | What a measurement of your own output asked for, one-shot or continuously maintained.                                                                                                           |
 
 **Any layer can be switched off without being lost.** Every one of them has a
-switch on its chip, and the four corrections — driver, headphone, voicing and
+switch on its chip, and the four curves — driver, headphone, preset and
 Smart EQ — have a strength from 0 to 100% beside it. Switching one off leaves its
 file out of the chain and touches nothing it holds, so pressing the switch again
 puts exactly the same settings back: which is how you find out whether a
@@ -52,7 +55,7 @@ you can export its EQ text and import it locally. Published corrections remain
 their own layer; an external export becomes editable EQ bands with a visible
 source and curve preview.
 
-![The EQ Presets tab: at the top, the headphone-correction picker — a brand-grouped model list showing the Razer Kraken V3 Pro and its three curves, the measurement and target beside it, and a line saying the OPRA library is up to date at 6,229 models — with the crinacle measurement applied and its ten-band curve drawn to the right. Underneath sits the OPRA credit. Below that, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as a preamp and ten ParametricEQ filter lines with their own frequency, gain and Q, and on the right the curve those bands produce, marked not applied until you press Apply imported EQ.](docs/04-eq-headphone-correction-and-import.png)
+![The EQ Presets tab: at the top, the headphone-correction picker — the Razer BlackShark V2 Pro 2023 chosen from a list searchable by brand or model, the measurement and target under it, and a line saying the OPRA library is up to date at 6,229 models — with the Rtings measurement applied and its ten-band curve drawn to the right. Underneath sits the OPRA credit. Below that, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as a preamp and ten ParametricEQ filter lines with their own frequency, gain and Q, and on the right the curve those bands produce, marked not applied until you press Apply as EQ or Apply as curve.](docs/04-eq-headphone-correction-and-import.png)
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
 what it hears, rather than assuming a target. It subtracts the rest of the chain
@@ -65,7 +68,7 @@ and dips, _Balance_ also evens out a bright or warm recording, and _Target_
 brings every record to the same tonal balance.
 
 **One preamp, computed.** Every layer contributes to a single `Preamp:` line
-derived from the real combined response, so adding a voicing or a convolution
+derived from the real combined response, so adding a preset or a convolution
 cannot clip you — and removing one gives the headroom back.
 
 Computing it from the response alone is a worst case, though: it assumes the
@@ -95,19 +98,14 @@ the app.
 
 ![The Convolution tab: a searchable library of verified minimum-phase headphone impulse responses from the AutoEq catalogue, each row naming the model and, beneath it, who measured it, on what rig, and that the file is a 48 kHz WAV — because Equalizer APO needs the impulse to match the output's sample rate — with a link to the source and a Download and apply button on the right. A search box sits above the list and an Import a WAV button above that, and a line at the foot notes that no convolution is loaded and the EQ tab remains fully independent.](docs/05-eq-convolution-library.png)
 
-**Send a chain to somebody.** A **Config** tab shows the config Equalizer APO has
+**Send a chain to somebody.** A **Config** tab shows the config the engine has
 actually got on disk, per output, as the include tree it really is — what each
 file holds, which layers are on, and any include pointing at nothing. Every
 output also gets one file FluidEQ never rewrites, for the APO commands that have
 no interface here. From that tab a whole chain exports to a `.fluideq` file and
 imports back onto the output you are listening to.
 
-![The Config tab, headed "what is on disk right now, not what FluidEQ intends", with a green line confirming Equalizer APO is applying this config. A card for every output runs across the top, the one in use marked "playing now" with its profile and filter count. Below them, the include tree for that output as it really is: the device file carrying the computed preamp, and under it one generated file per layer — headphone, eq, voicing and smart — each with its own switch, its filter count, the actual Filter lines it holds, an Edit link, and a note that it is rewritten on the next change. Export chain and Import chain buttons sit above the tree.](docs/06-eq-equalizer-apo-config.png)
-
-**Media buttons in the title bar.** Previous, play/pause and next, commanding
-whatever is playing anywhere on the computer — a desktop player, a browser tab,
-FluidEQ's own Online Media tab. They send the media keys a keyboard sends, so
-anything already listening for those responds. Windows only.
+![The Config tab, headed "FluidEQ Engine config" and "what is on disk right now, not what FluidEQ intends", with a green line confirming the FluidEQ Engine is applying this config. A card for every output runs across the top, the one in use marked "playing now" with its profile and filter count. Below them, the include tree for that output as it really is: the device file carrying the computed preamp, with an Edit link and a note that it is rewritten on the next change, and under it a generated file for each layer that is on — here the headphone correction — with its own switch, its filter count and the actual Filter lines it holds. Export chain and Import chain buttons sit above the tree.](docs/06-eq-equalizer-apo-config.png)
 
 **One transport, at the foot of every tab.** It follows whichever of FluidEQ's
 own players is going — the Library, Karaoke, Online Media — and when none of
@@ -116,16 +114,25 @@ play, pause, skip and seek reaching that player instead. Where a loaded page
 exposes its own Previous, Next, Play and Pause, Online Media uses those rather
 than guessing. Only one thing plays at a time: starting a song in the Library
 stops the Karaoke stage, and starting either stops Online Media. It will stop
-players outside FluidEQ too, if you ask it to.
+players outside FluidEQ too, if you ask it to. Its volume slider is Windows' own
+volume, so it sets the level of everything the computer plays.
+
+**Shrinks to a player.** One switch in the title bar, beside Help, turns the
+window into the **Compact player**: a narrow column with the song and its clock
+at the top and, under them, decks you open and close — the equaliser with its
+presets and bands, a visualizer, and Up Next, where dropped music files join the
+Library and the queue. It folds to one line, stays on top of other windows if
+you ask it to, keeps a Light or Dark theme of its own and remembers its own size
+and place. Its volume, like the transport's, is the computer's own. The same
+switch brings the full app back on the page you left.
 
 **Watch the sound, however you like to.** The live spectrum draws in any of
-fifty-seven forms — lines, bars, terraces, ribbons, flames, a fluid — including
-the ten the title bar has always used, now painted by the same code so the two
-panes agree. Four palettes, ten different marks for a lit peak, and a designer
-that opens on the look you are using and changes its fill, glow, thickness,
-piece count and spacing without touching the geometry. The stereo output meter
-has ten looks of its own: bar, segments, LEDs, fluid, mercury, needle, pulse,
-stack, flow and centre.
+twenty-eight forms — lines, bars, terraces, a skyline, flames, a fluid. Four
+palettes, ten different marks for a lit peak, and a designer that opens on the
+look you are using and changes its fill, glow, thickness, piece count and
+spacing without touching the geometry. The stereo output meter has ten looks of
+its own: bar, segments, LEDs, fluid, mercury, needle, pulse, stack, flow and
+centre.
 
 ![The Library's full-screen player with the visualizer designer open: a mirrored pillar spectrum runs above and below the album artwork, coloured across the frequency axis, over a background blurred out of the cover itself. Down the right, the New look panel sets the colour logic — Flat, Frequency, Level or Heat — the palette and its gradient, the piece count, the gap, the attack and how long a peak hangs before it falls away, whether the form is filled or stroked, the fill amount, the rainbow glow and border, which of ten marks a lit peak uses, and the name the look is saved under.](docs/10-library-customize-visualizer.png)
 
@@ -139,7 +146,7 @@ enabled second output shows that device's saved profiles and applies a selection
 there without switching the main output. Mirroring runs only while FluidEQ is
 open. Switching the main output stops the old mirrors before the change.
 
-![The Second output panel open down the right of the window: every other endpoint on the machine listed with its own switch and level — an NVIDIA display output set to neutral, a second pair of Razer speakers turned on at 100%, a Realtek output and another monitor — each naming the profile attached to it, above the note about how far behind the mirrored sound sits and that it plays only while FluidEQ is open. Above it, the automatic mapping panel says that editing any EQ control saves it to the current output, and that FluidEQ maps the stable endpoint ID so the sound follows the device whenever Windows selects it. Suno is playing inside Online Media to the left.](docs/02-online-media-multiple-outputs-one-player-at-a-time.png)
+![The Second output panel open down the right of the window, under its One player at a time switch: every other endpoint on the machine listed with its own switch — an NVIDIA display output set to neutral, two Razer outputs, a Realtek output and another monitor — each naming the profile attached to it, above the note that each output uses its own EQ profile and that mirroring runs only while FluidEQ is open. Above it, the automatic profile panel names the output device the sound is following. YouTube is open inside Online Media to the left.](docs/02-online-media-multiple-outputs-one-player-at-a-time.png)
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
 Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.
@@ -156,8 +163,8 @@ signed installers are not published here. Whichever it is was decided when the
 build was made and is compiled into it, and each verifies what it downloaded —
 so an installer that ended up on the wrong side is refused rather than run. A
 build you made yourself does not update. Being offline is not an error and says
-nothing. After updating, a **What's new** dialog shows what changed; it is in
-the actions menu any time.
+nothing. After updating, a **What's new** tour shows what changed; it is in
+the Help menu any time.
 
 **Reopens where you left it.** Size, position and maximized state are
 remembered. The position is only reused if a display still covers it, so
@@ -176,9 +183,10 @@ APO config and spend the session undoing each other.
 music and video sites — YouTube, YouTube Music, Bandcamp, Twitch and Suno — in a
 window inside the app, so a track can be playing while the spectrum moves
 underneath it and a band is dragged. It is not a browser: it goes to those sites
-and nowhere else, and it downloads nothing.
+and nowhere else, and it saves a file only when a site offers one and you choose
+where it goes.
 
-![The Online Media tab: YouTube open inside the FluidEQ window, playing a music video with the site's own page, search box, results column and player exactly as they come, and the row of site chips — YouTube, YouTube Music, Bandcamp, Twitch, Suno — along the top beside FluidEQ's own search field and an ad-blocking switch. Underneath the whole thing FluidEQ's response graph carries on, the EQ curve and its draggable points drawn over a live spectrum in the fluid form.](docs/01-online-media-youtube-live-eq.png)
+![The Online Media tab: YouTube open inside the FluidEQ window on a channel's page, with the site's own menu, search box and grid of videos exactly as they come, and the row of site chips — YouTube, YouTube Music, Bandcamp, Twitch, Suno — along the top beside FluidEQ's own search field and the button that signs you out of every site at once. The bar at the foot of the window names the video, with its play controls and volume.](docs/01-online-media-youtube-live-eq.png)
 
 You can sign in, and it remembers you next time. Its cookies live in a store of
 its own that no other part of FluidEQ reads, encrypted at rest by Windows the
@@ -203,7 +211,7 @@ it, titled from the filename and grouped by the folder it sits in; the scan then
 fills in the real tags, cover art and durations behind it, so a large library is
 usable while it is still being read rather than blank until it finishes.
 
-![The Library on its Artists shelf: a grid of tiles, each carrying the artist's own cover art where a file had one and a tile drawn from the name where none did, with the album count beneath. Along the top sit the shelves — Albums, Artists, Genres, Songs, Folders, Videos, Playlists — the view and sort controls, a search box, and buttons to add a folder or rescan. Down the right, the Up Next queue lists what is coming, grouped under the album or folder each run of songs came from, with a Keep playing switch above it.](docs/08-library-artists-and-up-next.png)
+![The Library on its Albums shelf: a grid of tiles, each carrying the album's own cover art where a file had one and a tile drawn from the name where none did, with the album and its artist beneath. Along the top sit the shelves — Albums, Artists, Genres, Songs, the folder tree, Videos, Playlists — the view and sort controls, a search box, and buttons to add a folder or rescan. Down the right, the Up Next queue lists what is coming, grouped under the album or folder each run of songs came from, with a Keep playing switch above it.](docs/08-library-artists-and-up-next.png)
 
 Cover art comes from the file's own tags, or a `cover.jpg` beside it, or a tile
 drawn from the album's name — nothing is fetched from the internet, and no album
@@ -235,7 +243,7 @@ anywhere, and no music ships with it — the songs are your own, and the
 instrumental is either one you already have or one the Karaoke Maker splits out
 of the song itself.
 
-![The Karaoke tab mid-song, headed "a stage built around your music": a playlist of twenty-five paired files down the left with the playing one marked, and the stage beside it showing the song's own artwork behind the words. The current line is large and lit in the middle with the line coming next dimmed beneath it. In the top right corner sit the chord under the playhead and the one after it, and a panel saying the file carries UltraStar syllables and pitch, with a transpose control beside it.](docs/11-karaoke-player.png)
+![The Karaoke tab mid-song, headed "a stage built around your music": the playlist down the left with the playing song marked, and the stage beside it with the song's title over the words. The current line is large and lit in the middle with the lines coming next dimmed beneath it. In the top right corner sit the chord under the playhead and the one after it, and a panel saying the file carries UltraStar syllables and pitch, with the lyric size under it. Along the foot runs the pitch lane: the song's notes as labelled blocks, with a switch to turn the microphone on and see your own pitch over them.](docs/11-karaoke-player.png)
 
 **And make the file when the song does not have one.** The **Karaoke Maker**
 builds one out of a song and nothing else. It can split that song into two
@@ -255,32 +263,36 @@ or add to by hand. There is a counted-in preview, undo and redo throughout, and
 what comes out either goes straight to the player or saves as a project to
 return to.
 
-![The Karaoke Maker with a song open: the track's waveform across the top, the words laid out in two rows beneath it, and under them a pitch lane spanning C1 to C7 where the melody sits as labelled note blocks with a playhead through them. A scrubber below shows the position within the song and follows the lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line word by word, the lines either side of it dimmed, and a coloured syllable strip underneath — beside a running count of notes, words and how many are still pending, the artist and BPM fields, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
+![The Karaoke Maker with a song open: the track's waveform across the top, the words laid out in three staggered rows beneath it, and under them a pitch lane spanning C1 to C7 where the melody sits as labelled note blocks with a playhead through them. A scrubber below shows the position within the song and follows the lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line word by word, the lines either side of it dimmed, and a coloured syllable strip underneath — above a running count of notes, words and how many are still pending, the artist and BPM fields, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
 
-**Shape what FluidEQ itself plays.** A **DSP** tab adds a rack of nine stages to
-the app's own player — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass
-Punch, Dimension, Maximizer and Master. The order is fixed because it is the
-order the arithmetic makes sense in. Every stage starts off, and every one of
-them draws what it is actually doing while it works rather than what it was
-asked to do.
+**Shape the sound with a studio rack.** A **DSP** tab adds a rack of ten stages
+— Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension,
+Room, Maximizer and Master — with a crossfade between Library tracks beside
+them. The order the sound takes through them is fixed, because it is the order
+the arithmetic makes sense in; the Room, listed after Dimension, runs just ahead
+of it. Every stage starts off except the Normalizer, whose True Peak mode only
+ever turns a hot record down, and every one of them draws what it is actually
+doing while it works rather than what it was asked to do.
 
-This is the one part of FluidEQ that stops at the app's own edge. It applies to
-music played inside FluidEQ and changes nothing about Spotify, YouTube or
-anything else on the machine — that is what the equaliser and its per-output
-profiles are for, and they are untouched by it. The DSP tab says so at the top
-of its own page.
+Where it runs depends on the engine. Under the FluidEQ Engine it runs on
+everything the computer plays, every app through the same chain. Under
+Equalizer APO it stops at the app's own edge: it applies to tracks played in the
+Library and changes nothing about Spotify, YouTube or anything else on the
+machine — that is what the equaliser and its per-output profiles are for, and
+they are untouched by it. The DSP tab says so at the top of its own page.
 
-| Stage                  | What it does                                                                                                                                                                                                   |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Normalizer             | Measures the complete track once, then applies one stereo-linked gain before anything colours it. Nothing pumps, because nothing is following — the measurement is of the whole file.                          |
-| Denoise                | Finds the noise floor and the mains hum that are really there rather than assuming them, draws the floor it is subtracting while it subtracts it, and repairs clicks without eating percussion.                |
-| Exciter                | Harmonics that were never in the signal — even orders for body, odd for air — over three bands you place, plus Organic for density and Timing, which sharpens attacks and adds no harmonics at all.            |
-| Bass Forge, Bass Punch | Forge synthesises the missing fundamental for speakers that cannot reach it. Punch works on time instead of frequency: the fifteen milliseconds of attack no filter can get at.                                |
-| Equaliser              | Fifteen bands drawn as the filters actually respond. Serial or parallel, minimum or linear phase, stereo, mid or sides, 2× oversampling, dynamic bands, and forty-seven presets that bring their own headroom. |
-| Dimension, Maximizer   | A widener that works per band and can never change what a mono listener hears, and a maximizer that raises the level without letting peaks past the ceiling, showing how much it holds down.                   |
-| Master                 | A destination rather than a number — Streaming, Podcast, Audiobook, Broadcast, Cinema, CD, Vinyl, Club, Reference — each setting the loudness target and ceiling delivery really uses.                         |
+| Stage                  | What it does                                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Normalizer             | Measures a Library track whole, then applies one stereo-linked gain before anything colours it, so nothing pumps. Live sound it levels song by song, and remembers the songs it has heard.           |
+| Denoise                | Finds the noise floor and the mains hum that are really there rather than assuming them, draws the floor it is subtracting while it subtracts it, and repairs clicks without eating percussion.      |
+| Exciter                | Harmonics that were never in the signal — even orders for body, odd for air — over three bands you place, plus Organic for density and Timing, which sharpens attacks and adds no harmonics at all.  |
+| Bass Forge, Bass Punch | Forge synthesises the missing fundamental for speakers that cannot reach it. Punch works on time instead of frequency: the fifteen milliseconds of attack no filter can get at.                      |
+| Equaliser              | Six to thirty-one bands, drawn as the filters actually respond. Serial or parallel, minimum or linear phase, stereo, mid or sides, up to 4× oversampling, dynamic bands, and over a hundred presets. |
+| Room                   | Surround on headphones: every channel becomes a speaker around your head, heard through a measured head and the walls of a room. Twenty-four rooms to start from, and none of it is part of Plus.    |
+| Dimension, Maximizer   | A widener that works per band and can never change what a mono listener hears, and a maximizer that raises the level without letting peaks past the ceiling, showing how much it holds down.         |
+| Master                 | A destination rather than a number — Streaming, Podcast, Audiobook, Broadcast, Cinema, CD, Vinyl, Club, Reference — each setting the loudness target and ceiling delivery really uses.               |
 
-![The Denoise stage of the DSP tab, headed with what it is for: repairing the source before anything colours it — hiss, mains hum, clicks and a neural voice cleaner, measured from the track itself rather than guessed. A noise-floor graph runs across the top with the output, the floor being subtracted, the hum and the click repairs each drawn as their own line, and a source-analysis strip under it reporting the noise floor, the hum it found and the clicks it counted. Below those sit four panels of controls — hiss with its amount, reduction limit, sensitivity and smoothing; hum with its harmonics, depth and width and a note that it notches the mains frequency the scan actually found; clicks with a sensitivity and a longest repair, which leaves anything too long to be a click alone so percussion survives; and the voice cleaner — each with its own switch, over readouts of what is being reduced, repaired and dropped. Isolate and Bypassed sit at the top right, and the nine stages run down the left with a dot beside the ones that are on.](docs/13-dsp-denoise-and-source-analysis.png)
+![The Denoise stage of the DSP tab, headed with what it is for: repairing the source before anything colours it — hiss, mains hum, clicks and a neural voice cleaner, measured from the track itself rather than guessed — and a line saying that sound from outside the Library gets a live, adaptive noise floor. A noise-floor graph runs across the top with the output, the floor being subtracted, the hum and the click repairs each drawn as their own line, and a box under it for the noise floor it finds. Below those sit four panels of controls — hiss with its amount, reduction limit, sensitivity and smoothing; hum with its harmonics, depth and width and a note that it notches the mains frequency the scan actually found; clicks with a sensitivity and a longest repair, which leaves anything too long to be a click alone so percussion survives; and the voice cleaner, with a note that it is for Library playback only — each with its own switch, over readouts of what is being reduced, repaired and dropped. The stage's preset picker and Reset sit at the top left, Isolate and Bypassed at the top right.](docs/13-dsp-denoise-and-source-analysis.png)
 
 Anything that adds level can hand it back: gain match takes the makeup off again
 so switching a stage on and off compares the sound rather than the volume, and
@@ -289,11 +301,13 @@ which is the only honest way to judge one. A whole rack saves, names and exports
 as a chain file of its own, distinct from an EQ curve, with per-stage profiles
 and a crossfade curve you draw beside it.
 
-The chain is C++ in a process of its own, named `FluidEQ-DSP` so a task list
-says something, and it ends when the app does however the app ended. If it
-cannot start, Library playback carries on unchanged, every stage is visibly
-disabled and the app says why — there is no second implementation waiting to
-drift away from it.
+The chain is C++, the same code wherever it runs: inside Windows' audio service
+under the FluidEQ Engine, and for the Library in a process of its own, named
+`FluidEQ-DSP` so a task list says something, which ends when the app does
+however the app ended. If that process cannot start, Library playback carries
+on: under the FluidEQ Engine the engine's rack takes it, and under Equalizer APO
+it plays unchanged, with every stage visibly disabled and the app saying why —
+there is no second implementation waiting to drift away from it.
 
 ![The DSP tab with the Maximizer stage selected: the nine stages listed down the left in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer, Master — with a dot marking those that are on, and Crossfade under a playback-options heading below them. The stage itself fills the rest: a preset picker reading Rock, a line saying it raises the overall level without letting peaks pass the ceiling, and a rolling six-second graph of the output against the ceiling with the amount being held down shaded under it, annotated with the current reduction, peak hold, output and drive. Beneath the graph sit the drive and ceiling knobs under Loudness, and look-ahead and release under Timing. A line at the top of the page says the rack applies to music played inside FluidEQ and does not change Spotify, YouTube or other apps.](docs/07-dsp-maximizer-and-processing-chain.png)
 
@@ -322,7 +336,7 @@ file is what you are hearing and the app's copy is only what it last believed.
 On startup the file wins.
 
 This used to be hedged, and the hedge is most of why the config is split into
-one file per layer. A voicing, a driver correction and a Smart EQ curve all
+one file per layer. A preset, a driver correction and a Smart EQ curve all
 reached APO as ordinary `Filter N:` lines with nothing marking them as layers, so
 reading a config back would have turned every one of them into hand-placed bands
 — the pickers reading "none" while the sound was unchanged, and the next edit
@@ -335,9 +349,9 @@ switched off from which includes are missing. The old refusal is kept exactly
 where it still applies: a flat config — an older FluidEQ's, a hand-written one,
 another tool's — attributes nothing, and there nothing is adopted.
 
-| Owned by the APO config                                                                          | Owned by the profile                                                             |
-| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| Bands, preamp, GraphicEQ points, which impulse response is loaded, which layers are switched off | Which voicing, which driver profile, which headphone reference, the profile name |
+| Owned by the APO config                                                                          | Owned by the profile                                                            |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Bands, preamp, GraphicEQ points, which impulse response is loaded, which layers are switched off | Which preset, which driver profile, which headphone reference, the profile name |
 
 Nothing in the second column is audible on its own. Everything in the first
 column is.
@@ -370,7 +384,7 @@ Convolution: fluideq-convolution-8f2a1c9b4d70.wav
 Include: fluideq-8f2a1c9b4d70-driver.txt
 Include: fluideq-8f2a1c9b4d70-headphone.txt
 Include: fluideq-8f2a1c9b4d70-eq.txt
-Include: fluideq-8f2a1c9b4d70-voicing.txt
+Include: fluideq-8f2a1c9b4d70-preset.txt
 Include: fluideq-8f2a1c9b4d70-smart.txt
 Preamp: -6.4 dB
 Include: fluideq-8f2a1c9b4d70-custom.txt
@@ -385,7 +399,7 @@ No virtual output device and no kernel driver.
 ## Audio engine
 
 FluidEQ runs on either of two engines, chosen once during install and
-changeable any time from **Audio engine…** in the actions menu. The
+changeable any time from the engine card at the top of the actions menu. The
 **FluidEQ Engine** is FluidEQ's own audio processing engine: it sits after
 your sound card's own effects, so the manufacturer's panel and its own
 effects keep working, and switching to it needs no reboot — one Windows
@@ -403,10 +417,13 @@ Engine sets it too, and leaves it set on removal in case another effect on
 the machine still needs it. It needs Windows 10 version 1803 or later.
 
 Under the FluidEQ Engine, the DSP rack runs for the whole PC rather than only
-what FluidEQ itself plays — every app's sound goes through the same chain.
-Two limits still apply: Denoise still only measures and repairs Library
-tracks, and switching the parametric Equaliser to linear phase adds about
-171 ms of delay, shown right on the DSP page.
+what the Library plays — every app's sound goes through the same chain.
+Two limits still apply: Denoise's neural voice cleaner still only works on
+Library tracks, and switching the parametric Equaliser to linear phase adds
+about 171 ms of delay. The EQ and DSP pages show the delay FluidEQ adds, broken
+down by the effects that add it, and **Game mode**, which the Gaming presets
+turn on, cuts it for aim and for voice chat by giving up whatever is only there
+for comfort.
 
 **EQ mode → Phase** offers independent **Minimum** and **Linear** processing
 for **Your EQ** and **Curves** with FluidEQ Engine 1.6 or later. Minimum is
@@ -478,19 +495,20 @@ with the pencil on its row.
 
 | Path            | What is in it                                                                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                           |
+| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, preset and driver profiles, translations, validation.                                                                            |
 | `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `ipc/` and `main.ts` own the IPC surface and the live state. |
 | `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                            |
 | `native/`       | The C++ audio engine: `dsp-core` is the chain itself, `dsp-host` the executable that runs it in a process of its own, `remote-audio-capture` the Share Audio capture binary. Built with CMake.          |
 | `.erb/scripts/` | Every build, check, smoke-test and packaging script.                                                                                                                                                    |
 | `docs/`         | [ARCHITECTURE.md](docs/ARCHITECTURE.md), the generated user guide, design briefs and specs, and dated QA snapshots under `docs/qa/`.                                                                    |
-| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                          |
+| `CHANGELOG.md`  | The release notes, which the app opens from its **What's new** tour.                                                                                                                                    |
 | `CLAUDE.md`     | Instructions for coding agents; `AGENTS.md` points at it.                                                                                                                                               |
 
 ## Supporting the work
 
 Nothing here is tracked. No telemetry, no analytics, and no account is
-required — signing in is optional, and nothing in the app is gated behind it.
+required — signing in is optional, and nothing that shapes the sound is gated
+behind it.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by
@@ -624,9 +642,14 @@ what you interact with.
   measurement for your model is applied beside your own tuning rather than over
   the top of it, so clearing the EQ does not take it with it and it can be
   weakened or switched off on its own.
-- **Voicing.** Thirteen curated target curves — five by purpose, eight by genre
-  — written after your bands so your own tuning is never overwritten and
-  switching back restores it exactly.
+- **Presets.** 105 whole DSP chains, 81 of them music styles, each measured and
+  levelled so switching changes the character and not the volume. A preset's
+  tone is a layer of its own in the main equaliser, on either engine, written
+  after your bands so your own tuning is never overwritten and taking the
+  preset away restores it exactly.
+- **Game presets.** A sound for each game, switched in the moment the game
+  comes to the front and kept until it is closed, however often you alt-tab,
+  with a Game mode that cuts the delay FluidEQ adds.
 - **Convolution.** Verified minimum-phase impulse responses from the AutoEq
   catalogue, or any WAV of your own, applied ahead of the parametric stage.
 - **Smart EQ.** Measures what is actually coming out of your output and
@@ -640,7 +663,7 @@ what you interact with.
 - **A second output.** What you are hearing, mirrored to other devices with a
   level for each, without a routing driver.
 - **One computed preamp.** Every layer contributes to a single `Preamp:` line
-  derived from the real combined response, so stacking a voicing on a
+  derived from the real combined response, so stacking a preset on a
   convolution cannot clip you and removing one gives the headroom back.
 - **The APO config as source of truth.** FluidEQ reads what is on disk on
   startup instead of trusting its own copy, so a hand edit or another tool
@@ -648,14 +671,19 @@ what you interact with.
 - **Every APO filter type**, not just peak and shelf: low/high pass, band pass
   and notch, with the pass forms written without the `Gain` token APO rejects.
   Up to 128 bands.
+- **Bass, Mid and Treble** across the whole band rack, the way an amplifier has
+  them: each dial moves its own third of the spectrum across every band at
+  once, on top of the shape you set by hand.
 - **Import** of Equalizer APO ParametricEQ and GraphicEQ files, FluidEQ
   profiles, and WAV impulse responses.
 - **A guided external import**, with a link to Squiglink and a
   preview of the EQ text you paste or open locally.
-- **A nine-stage DSP rack for FluidEQ's own player**, running on a C++ engine in
-  a process of its own: normalisation, denoise, exciter, two bass stages, a
-  fifteen-band equaliser, width, maximiser and a mastering stage with a delivery
-  target, saved and exchanged as complete racks.
+- **A ten-stage DSP rack**, on everything the computer plays under the FluidEQ
+  Engine and on the Library under Equalizer APO, running on a C++ engine of its
+  own: normalisation, denoise, exciter, two bass stages, an equaliser of six to
+  thirty-one bands, width, headphone surround in twenty-four rooms, maximiser
+  and a mastering stage with a delivery target, saved and exchanged as complete
+  racks.
 
 **Interface**
 
@@ -665,7 +693,7 @@ what you interact with.
   `prefers-reduced-motion`.
 - **A switch and a strength on every layer**, so any of them can be compared
   against, weakened, or taken out without being taken apart.
-- **A Config tab** showing what Equalizer APO has actually got on disk, and
+- **A Config tab** showing what the engine has actually got on disk, and
   **export and import** of a whole chain as a `.fluideq` file.
 - **An Online Media tab** with a player for a fixed list of sites, so something
   can be playing while a band is dragged.
@@ -676,9 +704,11 @@ what you interact with.
 - **A Library tab** for the music and video on your own drives, browsed by
   album, artist, song, folder or video, with one transport at the foot of every
   tab and only one thing playing at a time.
-- **Media buttons in the title bar** for whatever is playing on the machine.
+- **A Compact player**, the whole app folded into one narrow column — the song
+  and its clock, the equaliser, a visualizer and Up Next — that shrinks to a
+  single line and can stay on top of other windows.
 - **A live spectrum, a response graph and a real level meter**, in three sizes
-  that each remember how you left them, drawn in any of fifty-seven forms and
+  that each remember how you left them, drawn in any of twenty-eight forms and
   ten meter looks.
 - **Ten languages**, with a test that fails the build when one falls behind.
 - **In-app updates** and a What's new dialog rendered from the changelog, with a
@@ -756,11 +786,17 @@ See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 ## User guide
 
 Open **Help → User guide** in FluidEQ, or press **F1**, for the searchable
-offline handbook: 27 practical chapters in six parts, from your first five
-minutes to FluidEQ Plus, illustrated with 29 real interface captures. Beside
-each capture a legend names its controls, with the icon you will see and the
-shortcut; point at a line and the control is ringed on the capture. Click any
-capture to enlarge it. The guide follows the app's selected language.
+offline handbook: 31 practical chapters in six parts, from your first five
+minutes to FluidEQ Plus, illustrated with 43 real interface captures. Each
+capture numbers its controls the way a printed manual does, and the list
+underneath names each one under the same number, with its shortcut where it has
+one; point at a line and the control is ringed on the capture. Click any capture
+to enlarge it.
+Ask the search in your own words: it ranks what it finds, forgives typos and
+plurals, knows the words people use for things in all ten languages and
+searches the English guide alongside yours, then takes you to the passage and
+rings the control it is about. The guide follows the app's selected language
+and theme.
 
 The same instructions are available as an [illustrated, print-ready document](docs/user-guide.html)
 and a [Markdown user guide](docs/USER-GUIDE.md). Keep the HTML beside the PNG

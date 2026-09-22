@@ -82,6 +82,15 @@ const app = {
   'app.processes.name.shareCapture': 'Audio sharing capture',
   'app.processes.what.shareCapture':
     'Captures what this PC plays, before the equalizer, to send it to another FluidEQ. Runs only while you share your audio.',
+  'app.processes.name.sharePlayback': 'Shared audio playback',
+  'app.processes.what.sharePlayback':
+    'Plays the sound another FluidEQ shares with this PC. Runs only while you are listening to it.',
+  'app.processes.name.volume': 'System volume',
+  'app.processes.what.volume':
+    'Follows Windows’ volume and mute for FluidEQ’s volume sliders, and sets it when you move one. Runs only while a slider is on screen.',
+  'app.processes.name.games': 'Game detection',
+  'app.processes.what.games':
+    'Tells FluidEQ which program is in front, so a game gets its own sound the moment you switch to it. Runs only while a game has a sound of its own or the Game presets page is open.',
   'app.processes.name.mediaWatch': 'Other apps’ media',
   'app.processes.what.mediaWatch':
     'Reads what Spotify, a browser or another player is playing, so the player bar can show and control it. It stops when FluidEQ no longer needs it.',

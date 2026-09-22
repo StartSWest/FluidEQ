@@ -29,9 +29,8 @@ export function FluidEngineSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.engine"
-      tab="dsp"
+      onOpen={() => actions.openTab('dsp')}
       visual={<EngineFlow />}
-      actions={actions}
     />
   );
 }
@@ -40,9 +39,8 @@ export function RoomSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.room"
-      tab="dsp"
+      onOpen={() => actions.openTab('dsp')}
       visual={<RoomVisual />}
-      actions={actions}
     />
   );
 }
@@ -51,9 +49,8 @@ export function PlusSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.plus"
-      tab="community"
+      onOpen={() => actions.openTab('community')}
       visual={<PlusVisual />}
-      actions={actions}
     />
   );
 }
@@ -62,9 +59,8 @@ export function VisualizersSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.visualizers"
-      tab="eq"
+      onOpen={() => actions.openTab('eq')}
       visual={<VisualizersVisual />}
-      actions={actions}
     />
   );
 }
@@ -73,9 +69,8 @@ export function DesktopVisualizerSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.desktop"
-      tab="eq"
+      onOpen={() => actions.openTab('eq')}
       visual={<DesktopVisual />}
-      actions={actions}
     />
   );
 }
@@ -84,9 +79,8 @@ export function DynamicLightingSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.lighting"
-      tab="community"
+      onOpen={() => actions.openTab('community')}
       visual={<LightingVisual />}
-      actions={actions}
       tag="tour.beta"
     />
   );

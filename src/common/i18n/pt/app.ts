@@ -85,6 +85,15 @@ const app: Partial<Dictionary> = {
   'app.processes.name.shareCapture': 'Captura para compartilhar áudio',
   'app.processes.what.shareCapture':
     'Captura o que este PC toca, antes do equalizador, para enviá-lo a outro FluidEQ. Só roda enquanto você compartilha seu áudio.',
+  'app.processes.name.sharePlayback': 'Reprodução do áudio compartilhado',
+  'app.processes.what.sharePlayback':
+    'Toca o som que outro FluidEQ compartilha com este PC. Só roda enquanto você está ouvindo.',
+  'app.processes.name.volume': 'Volume do sistema',
+  'app.processes.what.volume':
+    'Acompanha o volume e o mudo do Windows para os controles de volume do FluidEQ, e muda o volume quando você move um deles. Só roda enquanto um deles está na tela.',
+  'app.processes.name.games': 'Detecção de jogos',
+  'app.processes.what.games':
+    'Diz ao FluidEQ qual programa está em primeiro plano, para que um jogo tenha seu próprio som assim que você muda para ele. Só roda enquanto um jogo tem som próprio ou a página Presets de jogo está aberta.',
   'app.processes.name.mediaWatch': 'Mídia de outros apps',
   'app.processes.what.mediaWatch':
     'Lê o que o Spotify, um navegador ou outro player está reproduzindo, para que a barra do player possa mostrá-lo e controlá-lo. Fecha quando o FluidEQ não precisa mais dele.',

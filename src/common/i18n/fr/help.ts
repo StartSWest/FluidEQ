@@ -49,9 +49,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Appuyez sur une page dans l’en-tête : Médias en ligne, Partager l’audio et Égaliseur avant le signal ; DSP, Bibliothèque, Karaoké et Plus après.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur le signal ou sur l’indicateur de niveau pour changer la façon dont il est dessiné, et sur Mode arc-en-ciel pour que les courbes et les vumètres bougent à la pleine fréquence de votre écran.',
   'help.window.tip':
-    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton d’impulsion, juste à côté, contient la carte du moteur, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows, et Processus, qui montre ce que chaque partie de FluidEQ utilise.',
+    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton d’impulsion, juste à côté, contient la carte du moteur, votre compte, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows et Processus, qui montre ce que chaque partie de FluidEQ utilise ; tout en bas se trouvent le thème Clair ou Sombre, les animations, Démarrer avec Windows et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
   'help.window.keywords':
-    "onglets, navigation, naviguer, interface, entête, barre de titre, barre d'outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, icônes, faire un don, donation",
+    'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, compte',
   'help.window.headerLeftCaption': 'L’en-tête, jusqu’au signal',
   'help.window.headerRightCaption': 'L’en-tête, après le signal',
   'help.window.railCaption': 'La colonne de gauche',
@@ -78,7 +78,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Ce guide, Nouveautés, le dépannage audio et Signaler un problème.',
   'help.window.actions':
-    'Le moteur, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows et Processus.',
+    'Le moteur, votre compte, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows et Processus ; le thème, les animations, Démarrer avec Windows et la langue.',
   'help.window.systemEq':
     'Active ou désactive le traitement de FluidEQ pour tout ce que joue le PC.',
   'help.window.preamp':
@@ -89,6 +89,66 @@ const help: Record<keyof typeof en, string> = {
   'help.window.meterName': 'Indicateur de niveau',
   'help.window.meter':
     'Le niveau de sortie des canaux gauche et droit, en décibels réels. Appuyez dessus pour changer son style.',
+  'help.player.title': 'Le Lecteur compact',
+  'help.player.intro':
+    'Un seul interrupteur transforme la fenêtre de FluidEQ en Lecteur compact : une colonne étroite avec le morceau, votre égaliseur, un visualiseur et la file À suivre, en volets que vous ouvrez et fermez. Ce qui est en lecture continue de jouer, et le même interrupteur ramène l’application complète sur la page que vous aviez quittée.',
+  'help.player.steps':
+    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nOuvrez et fermez les volets avec EQ, Visuel et File. La fenêtre s’agrandit et rétrécit selon la place que prend chacun, et le lecteur retient sa taille et sa position.\nDouble-cliquez sur la barre du lecteur, ou choisissez Replier sur une ligne dans son menu, pour qu’il tienne sur une seule ligne ; le logo FluidEQ le déplie.\nChoisissez le thème propre au lecteur dans son menu, et gardez-le au-dessus des autres fenêtres avec Toujours au premier plan.\nDéposez des fichiers musicaux sur À suivre : ils rejoignent la Bibliothèque et la file de lecture.',
+  'help.player.tip':
+    'Le volume du lecteur est celui de votre ordinateur, le même que dans Windows : il règle donc le niveau de tout ce que joue l’ordinateur. Si le lecteur se retrouve hors de l’écran, faites un clic droit sur FluidEQ dans la zone de notification de la barre des tâches et choisissez Récupérer la fenêtre.',
+  'help.player.keywords':
+    'mini lecteur, mini-lecteur, petit lecteur, lecteur compact, mode compact, mode lecteur, mini player, winamp, ampli, toujours au premier plan, au-dessus des autres fenêtres, always on top, épingler, replier, sur une ligne, file de lecture, file d’attente, à suivre, déposer des fichiers, glisser-déposer, thème, thème clair, thème sombre, mode sombre, mode clair, petite fenêtre, lecteur flottant, fenêtre flottante, volume',
+  'help.player.topCaption': 'Le haut : le morceau et sa lecture',
+  'help.player.eqCaption': 'L’égaliseur',
+  'help.player.queueCaption': 'À suivre',
+  'help.player.menuCaption': 'Le menu du lecteur',
+  'help.player.foldedCaption': 'Replié sur une ligne',
+  'help.player.menu':
+    'Revenir à l’application complète ou à l’une de ses pages, le thème du lecteur, Toujours au premier plan et Replier sur une ligne.',
+  'help.player.pin':
+    'Garde le lecteur au-dessus de toutes les autres fenêtres.',
+  'help.player.switch':
+    'Vous ramène à l’application complète, sur la page que vous aviez quittée.',
+  'help.player.clock': 'Le temps écoulé. Cliquez dessus pour le temps restant.',
+  'help.player.well':
+    'Le son en direct. Cliquez dessus pour passer des barres à l’onde, et inversement.',
+  'help.player.level': 'Le niveau du son qui sort de FluidEQ, en décibels.',
+  'help.player.volume':
+    'Le volume de votre ordinateur, le même que dans Windows : il règle le niveau de tout ce que joue l’ordinateur.',
+  'help.player.decksName': 'EQ, Visuel et File',
+  'help.player.decks':
+    'Ouvrez et fermez l’égaliseur, le visualiseur et À suivre. La fenêtre s’agrandit et rétrécit selon la place que prend chacun.',
+  'help.player.seek':
+    'Où en est le morceau. Faites glisser pour vous y déplacer.',
+  'help.player.playingName': 'Commandes de lecture',
+  'help.player.playing':
+    'Précédent, recul de cinq secondes, lecture ou pause, avance de cinq secondes, suivant et arrêt.',
+  'help.player.orderName': 'Aléatoire et répétition',
+  'help.player.order':
+    'Mélange la file À suivre, et répète : rien, tout ou cette chanson.',
+  'help.player.lookName': 'Style suivant',
+  'help.player.look':
+    'Change le style du visualiseur. Ctrl+clic revient au précédent, et un clic droit les liste tous.',
+  'help.player.screen':
+    'Ce que vous entendez, dessiné : vos bandes, l’Égalisation auto et tout autre traitement appliqué, sur un style de visualiseur. Également appliqué les liste, et chaque étiquette désactive sa couche sans la supprimer.',
+  'help.player.bands':
+    'Faites glisser une bande vers le haut ou le bas pour l’amplifier ou l’atténuer. Sa fréquence est écrite en dessous.',
+  'help.player.tone':
+    'Bandes affiche toutes les bandes ; Tonalité les remplace par les boutons Graves, Médiums et Aigus.',
+  'help.player.upNext':
+    'Où vous en êtes dans la file, le temps qu’il y reste, et votre progression.',
+  'help.player.library': 'Ouvre la Bibliothèque dans l’application complète.',
+  'help.player.songsName': 'Les morceaux',
+  'help.player.songs':
+    'Ce qui joue ensuite. Double-cliquez sur un morceau pour le lire, ou déposez ici des fichiers musicaux pour les ajouter.',
+  'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
+  'help.player.theme':
+    'Le thème Clair ou Sombre propre au lecteur, indépendant de celui de l’application complète.',
+  'help.player.fold':
+    'Replie le lecteur sur une ligne. Un double-clic sur sa barre fait de même.',
+  'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',
+  'help.player.foldedPlaying': 'Précédent, lecture ou pause, suivant et arrêt.',
+  'help.player.foldedClock': 'Le temps, et où en est le morceau.',
 
   'help.requirements.title': 'Ce qu’il faut à votre PC',
   'help.requirements.intro':
@@ -536,7 +596,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Écoutez avec Médias en ligne',
   'help.online.intro':
-    'Médias en ligne place les sites compatibles à côté de votre EQ. La lecture et l’identification sur ces sites dépendent toujours du fournisseur et de votre connexion. La barre en bas de FluidEQ suit le lecteur actif, et son volume est celui du site.',
+    'Médias en ligne place les sites compatibles à côté de votre EQ. La lecture et l’identification sur ces sites dépendent toujours du fournisseur et de votre connexion. La barre en bas de FluidEQ suit le lecteur actif, et son volume est celui de votre ordinateur.',
   'help.online.steps':
     'Ouvrez Médias en ligne, choisissez un site et lancez quelque chose sur la page.\nPassez à l’Égaliseur pour régler en écoutant, puis revenez aux commandes propres à la page.\nActivez Un seul lecteur pour éviter les lectures superposées.',
   'help.online.tip':
@@ -548,7 +608,7 @@ const help: Record<keyof typeof en, string> = {
   'help.library.intro':
     'Bibliothèque rassemble la musique et les vidéos de vos disques. Parcourez-les par albums, artistes, genres, chansons, dossiers, par arborescence de dossiers ou dans vos playlists. Les pochettes et les informations viennent de vos fichiers : une même collection peut donc sembler différente selon ses tags.',
   'help.library.steps':
-    'Ouvrez la Bibliothèque et ajoutez le dossier contenant vos médias. Laissez l’analyse se terminer avant de juger ce qui manque.\nChoisissez un artiste ou un album, ou recherchez une chanson. Lancez une piste depuis les résultats.\nUtilisez la barre en bas de la fenêtre pour mettre en pause, vous déplacer dans le morceau et passer au suivant. Son volume est le même pour tous les lecteurs.',
+    'Ouvrez la Bibliothèque et ajoutez le dossier contenant vos médias. Laissez l’analyse se terminer avant de juger ce qui manque.\nChoisissez un artiste ou un album, ou recherchez une chanson. Lancez une piste depuis les résultats.\nUtilisez la barre en bas de la fenêtre pour mettre en pause, vous déplacer dans le morceau et passer au suivant. Son volume est celui de votre ordinateur, le même que dans Windows.',
   'help.library.tip':
     'Survolez le bouton de FluidEQ dans la barre des tâches de Windows pour Précédent, Lire et Suivant, même quand FluidEQ est réduit. Bibliothèque a besoin des fichiers d’origine : rebranchez un disque ou ajoutez de nouveau un dossier déplacé.',
   'help.library.keywords':
@@ -570,7 +630,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.steps':
     'Ouvrez Karaoké et ajoutez fichiers ou dossier contenant audio et paroles correspondantes.\nChoisissez un morceau, lancez-le et vérifiez l’association.\nConfigurez le micro, ajustez la taille des paroles et utilisez le plein écran de la scène.',
   'help.karaoke.tip':
-    'Un fichier contenant seulement des paroles n’a pas de notes cibles. Karaoké suit le Volume de l’application ; les niveaux de la mélodie, de l’instrumental et de la voix témoin se trouvent dans Réglages du mixage.',
+    'Un fichier contenant seulement des paroles n’a pas de notes cibles. Karaoké joue au volume de votre ordinateur ; les niveaux de la mélodie, de l’instrumental et de la voix témoin se trouvent dans Réglages du mixage.',
   'help.karaoke.keywords':
     'chansons, microphone, justesse, chanter juste, fausses notes, lyrics, pitch, score, LRC, UltraStar',
 
@@ -640,7 +700,7 @@ const help: Record<keyof typeof en, string> = {
   'help.share.steps':
     'Sur l’ordinateur d’écoute, ouvrez Partager l’audio, choisissez Lire le son sur cet ordinateur et appuyez sur Créer le code de connexion. Commencez à faible volume.\nSur chaque ordinateur source, choisissez Envoyer le son de cet ordinateur, collez le code de votre réseau et appuyez sur Connecter et envoyer.\nSurveillez le moniteur de connexion. Appuyez sur Arrêter l’envoi ou Arrêter l’écoute une fois terminé ; Créer un nouveau code déconnecte tous les appairages enregistrés.',
   'help.share.tip':
-    'Le code de connexion autorise l’appairage : gardez-le privé. Plusieurs émetteurs se mélangent et augmentent le niveau, et le Volume du récepteur le règle. Avec le moteur FluidEQ, l’audio reçu passe aussi par le rack DSP.',
+    'Le code de connexion autorise l’appairage : gardez-le privé. Plusieurs émetteurs se mélangent et augmentent le niveau, que règle le volume de l’ordinateur qui reçoit. Avec le moteur FluidEQ, l’audio reçu passe aussi par le rack DSP.',
   'help.share.keywords':
     'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet',
 

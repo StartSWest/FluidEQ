@@ -48,9 +48,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     '在标题栏中点击要去的页面：音频信号之前是“在线媒体”“共享音频”和“均衡器”，之后是“DSP”“媒体库”“卡拉OK”和“Plus”。\n在左侧栏开启“系统均衡”，并保持“自动归一化”开启，这样任何提升都不会削波。\n点击音频信号或电平表可更改其绘制方式；按“彩虹模式”则会让曲线和电平表以屏幕的完整刷新率绘制。',
   'help.window.tip':
-    '“帮助”菜单可打开本指南、“更新说明”、音频排障工具和“报告问题”。旁边的脉冲按钮里则有引擎卡片、导入均衡设置或脉冲响应、重启 Windows 音频，以及“进程”——它会显示 FluidEQ 的每个部分正在占用什么。',
+    '“帮助”菜单可打开本指南、“更新说明”、音频排障工具和“报告问题”。旁边的脉冲按钮里则有引擎卡片、你的账户、导入均衡设置或脉冲响应、重启 Windows 音频，以及“进程”——它会显示 FluidEQ 的每个部分正在占用什么；它的菜单底部则是“浅色”或“深色”主题、动画、“随 Windows 启动”和语言。这两个按钮之后的开关会把窗口变成迷你播放器。',
   'help.window.keywords':
-    '主界面, 界面介绍, UI, 导航, 标签页, 选项卡, 工具栏, 侧边栏, 顶栏, 底栏, 播放栏, 音量表',
+    '主界面, 界面介绍, UI, 导航, 标签页, 选项卡, 工具栏, 侧边栏, 顶栏, 底栏, 播放栏, 音量表, 主题, 深色模式, 浅色模式, 暗黑模式, 夜间模式, 深色主题, 浅色主题, 语言, 界面语言, 切换语言, 随 Windows 启动, 开机启动, 开机自启, 自启动, 启动项, 账户, 账号',
   'help.window.headerLeftCaption': '标题栏，到音频信号为止',
   'help.window.headerRightCaption': '标题栏，音频信号之后',
   'help.window.railCaption': '左侧栏',
@@ -69,7 +69,8 @@ const help: Record<keyof typeof en, string> = {
   'help.window.plus': '可视化、图库、排行榜和工作室。',
   'help.window.support': '支持 FluidEQ 开发工作的几种方式。',
   'help.window.help': '本指南、“更新说明”、音频排障工具和“报告问题”。',
-  'help.window.actions': '引擎、导入均衡设置、重启 Windows 音频，以及“进程”。',
+  'help.window.actions':
+    '引擎、你的账户、导入均衡设置、重启 Windows 音频，以及“进程”；还有主题、动画、“随 Windows 启动”和语言。',
   'help.window.systemEq': '为电脑播放的所有声音开启或关闭 FluidEQ 的处理。',
   'help.window.preamp':
     '在 EQ 之前降低电平，给提升留出余量。“自动归一化”会替你设置它。',
@@ -78,6 +79,59 @@ const help: Record<keyof typeof en, string> = {
   'help.window.responseGraph': '显示或隐藏页面下方的图表。',
   'help.window.meterName': '电平表',
   'help.window.meter': '左右声道的输出电平，以真实分贝显示。点击它可更换样式。',
+  'help.player.title': '迷你播放器',
+  'help.player.intro':
+    '一个开关就能把 FluidEQ 的窗口变成迷你播放器：窄窄的一列，装着歌曲、你的均衡器、可视化效果和“接下来播放”，分成几个可以展开或收起的面板。正在播放的内容不会中断，同一个开关也能把完整界面带回你离开时的页面。',
+  'help.player.steps':
+    '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。\n用“均衡”“可视化”和“队列”展开或收起各个面板。窗口会按每个面板所占的空间变大或变小，播放器也会记住自己的大小和位置。\n双击播放器的标题栏，或在它的菜单中选择“折叠为一行”，即可把它折叠成一行；点击 FluidEQ 标志即可重新展开。\n在播放器的菜单中为它选择自己的主题，并用“窗口置顶”让它保持在其他窗口之上。\n把音乐文件拖放到“接下来播放”上：它们会加入媒体库和队列。',
+  'help.player.tip':
+    '播放器的音量就是电脑本身的音量，和 Windows 中的一样，因此它控制着电脑播放的所有声音。如果播放器跑到了屏幕之外，请在任务栏托盘中右键点击 FluidEQ，然后选择“恢复窗口”。',
+  'help.player.keywords':
+    '迷你播放器, 小播放器, 迷你模式, 精简模式, 紧凑模式, 小窗模式, 播放器模式, mini player, winamp, 窗口置顶, 置顶, 总在最前, 折叠, 一行, 单行, 队列, 播放队列, 接下来播放, 拖放文件, 拖入文件, 主题, 浅色主题, 深色主题, 深色模式, 浅色模式, 小窗口, 小窗, 悬浮窗, 悬浮播放器, 音量',
+  'help.player.topCaption': '顶部：歌曲，以及它如何播放',
+  'help.player.eqCaption': '均衡器',
+  'help.player.queueCaption': '接下来播放',
+  'help.player.menuCaption': '播放器菜单',
+  'help.player.foldedCaption': '折叠为一行时',
+  'help.player.menu':
+    '返回完整界面或其中某个页面、播放器的主题、“窗口置顶”和“折叠为一行”。',
+  'help.player.pin': '让播放器保持在所有其他窗口之上。',
+  'help.player.switch': '返回完整界面，回到你离开时的页面。',
+  'help.player.clock': '已播放时间。点击它可显示剩余时间。',
+  'help.player.well': '正在播放的声音。点击它可在柱状图和波形之间切换。',
+  'help.player.level': '离开 FluidEQ 的声音电平，以分贝为单位。',
+  'help.player.volume':
+    '你电脑的音量，和 Windows 中的一样：它控制着电脑播放的所有声音。',
+  'help.player.decksName': '均衡、可视化和队列',
+  'help.player.decks':
+    '展开或收起均衡器、可视化效果和“接下来播放”。窗口会按每个面板所占的空间变大或变小。',
+  'help.player.seek': '歌曲播放到的位置。拖动即可跳转。',
+  'help.player.playingName': '播放控制',
+  'help.player.playing':
+    '上一首、后退五秒、播放或暂停、前进五秒、下一首和停止。',
+  'help.player.orderName': '随机播放和循环',
+  'help.player.order':
+    '随机打乱“接下来播放”，并可设为不循环、列表循环或单曲循环。',
+  'help.player.lookName': '下一个样式',
+  'help.player.look':
+    '更换可视化效果的样式。按住 Ctrl 点击回到上一个，右键点击则列出全部。',
+  'help.player.screen':
+    '把你听到的画出来：你的频段、智能均衡和其他所有生效的设置，叠在可视化效果之上。“同时生效”会列出它们，点一下标签就能关闭其中一项而不移除它。',
+  'help.player.bands': '上下拖动频段即可提升或衰减。它的频率标在下方。',
+  'help.player.tone':
+    '“频段”显示所有频段；“音色”则把它们换成“低音”“中音”和“高音”旋钮。',
+  'help.player.upNext':
+    '你在队列中的位置、队列剩余的时间，以及整个队列已播放的进度。',
+  'help.player.library': '在完整界面中打开媒体库。',
+  'help.player.songsName': '歌曲',
+  'help.player.songs':
+    '接下来要播放的内容。双击一首歌即可播放，也可以把音乐文件拖放到这里来添加。',
+  'help.player.openIn': '打开完整界面，直接进入其中某个页面。',
+  'help.player.theme': '播放器自己的“浅色”或“深色”主题，独立于完整界面的主题。',
+  'help.player.fold': '把播放器折叠为一行。双击它的标题栏也一样。',
+  'help.player.unfold': '展开播放器。另一端的箭头也可以。',
+  'help.player.foldedPlaying': '上一首、播放或暂停、下一首和停止。',
+  'help.player.foldedClock': '时间，以及歌曲播放到了哪里。',
 
   'help.requirements.title': '你的电脑需要什么',
   'help.requirements.intro':
@@ -473,7 +527,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': '聆听在线媒体',
   'help.online.intro':
-    '在线媒体让支持的网站与 EQ 并排使用。播放和登录仍取决于网站与网络。FluidEQ 底部的播放栏跟随活动播放器，它的音量就是网站自身的音量。',
+    '在线媒体让支持的网站与 EQ 并排使用。播放和登录仍取决于网站与网络。FluidEQ 底部的播放栏跟随活动播放器，它的音量就是电脑本身的音量。',
   'help.online.steps':
     '打开在线媒体，选择网站并在页面中播放内容。\n切换到均衡器边听边调，需要网站自身控件时再返回。\n启用“同时只播放一处”，避免与其他播放器重叠发声。',
   'help.online.tip':
@@ -485,7 +539,7 @@ const help: Record<keyof typeof en, string> = {
   'help.library.intro':
     '媒体库汇集你磁盘上的音乐与视频，可按专辑、歌手、流派、歌曲、文件夹、文件夹树或你的播放列表浏览。封面和详细信息来自你的文件，因此同一批收藏可能因标签不同而呈现得不一样。',
   'help.library.steps':
-    '打开“媒体库”并添加存放媒体的文件夹。等扫描完成后，再判断缺了什么。\n选择歌手或专辑，或搜索歌曲，然后从结果中开始播放。\n用窗口底部的播放栏暂停、定位和切歌。它的音量是所有播放器共用的同一个音量。',
+    '打开“媒体库”并添加存放媒体的文件夹。等扫描完成后，再判断缺了什么。\n选择歌手或专辑，或搜索歌曲，然后从结果中开始播放。\n用窗口底部的播放栏暂停、定位和切歌。它的音量就是电脑本身的音量，和 Windows 中的一样。',
   'help.library.tip':
     '将鼠标悬停在 Windows 任务栏上的 FluidEQ 按钮上，即使窗口已最小化，也能使用“上一首”“播放”和“下一首”。媒体库需要原始文件：请重新连接磁盘，或重新添加移动过的文件夹。',
   'help.library.keywords':
@@ -507,7 +561,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.steps':
     '打开卡拉OK，添加包含匹配音频和歌词的文件或文件夹。\n选择歌曲播放，检查歌词与伴奏是否对应。\n配置麦克风，调整歌词大小，并使用舞台的全屏控制。',
   'help.karaoke.tip':
-    '只有歌词的文件不包含目标音符。卡拉OK 跟随应用的“音量”；旋律、伴奏和引导人声的电平在“混音设置”中。',
+    '只有歌词的文件不包含目标音符。卡拉OK 以电脑的音量播放；旋律、伴奏和引导人声的电平在“混音设置”中。',
   'help.karaoke.keywords':
     'K歌, KTV, 唱K, 唱歌, 跟唱, 练歌, 音准, 跑调, 话筒, LRC, UltraStar, 滚动歌词, 吉他和弦',
 
@@ -567,7 +621,7 @@ const help: Record<keyof typeof en, string> = {
   'help.share.steps':
     '在聆听的电脑上打开“共享音频”，选择“在此电脑上播放音频”并按“创建连接码”。先从低音量开始。\n在每台音源电脑上选择“发送此电脑的音频”，粘贴对应你网络的连接码，然后按“连接并发送”。\n留意连接监视器。用完后按“停止发送”或“停止接收”；“创建新连接码”会断开所有已保存的配对。',
   'help.share.tip':
-    '连接码授权配对，请保密。多个发送端会混在一起并提高电平，由接收端的“音量”来控制。使用 FluidEQ 引擎时，接收到的音频也会经过 DSP 机架。',
+    '连接码授权配对，请保密。多个发送端会混在一起并提高电平，由接收端电脑的音量来控制。使用 FluidEQ 引擎时，接收到的音频也会经过 DSP 机架。',
   'help.share.keywords':
     '局域网, 内网, LAN, WiFi, 串流, 音频传输, 声音共享, 远程, 另一台电脑, 两台电脑, 防火墙',
 

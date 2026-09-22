@@ -14,49 +14,50 @@ Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control pos
 
 1. [Your first five minutes](#start)
 2. [Around the window](#window)
-3. [What your PC needs](#requirements)
-4. [The FluidEQ Engine](#engine)
+3. [The Compact player](#player)
+4. [What your PC needs](#requirements)
+5. [The FluidEQ Engine](#engine)
 
 **Shape your sound**
 
-5. [Shape your sound with EQ](#eq)
-6. [EQ mode and band designs](#eqmode)
-7. [Game presets](#games)
-8. [Headphone correction & imports](#headphones)
-9. [Use an impulse response](#convolution)
-10. [Devices, profiles & second output](#profiles)
-11. [Inspect & back up a chain](#config)
-12. [Explore the DSP rack](#dsp)
-13. [The Room: surround on headphones](#room)
-14. [Denoise & source analysis](#denoise)
+6. [Shape your sound with EQ](#eq)
+7. [EQ mode and band designs](#eqmode)
+8. [Game presets](#games)
+9. [Headphone correction & imports](#headphones)
+10. [Use an impulse response](#convolution)
+11. [Devices, profiles & second output](#profiles)
+12. [Inspect & back up a chain](#config)
+13. [Explore the DSP rack](#dsp)
+14. [The Room: surround on headphones](#room)
+15. [Denoise & source analysis](#denoise)
 
 **See your music**
 
-15. [The graph and its controls](#graph)
-16. [Styles and Plus visualizers](#looks)
+16. [The graph and its controls](#graph)
+17. [Styles and Plus visualizers](#looks)
 
 **FluidEQ Plus**
 
-17. [FluidEQ Plus and your account](#plus)
-18. [The Visualizers gallery](#gallery)
-19. [The Leaderboard](#leaderboard)
-20. [Make scenes in the Studio](#studio)
-21. [The desktop visualizer](#desktop)
-22. [Dynamic lighting (beta)](#lighting)
+18. [FluidEQ Plus and your account](#plus)
+19. [The Visualizers gallery](#gallery)
+20. [The Leaderboard](#leaderboard)
+21. [Make scenes in the Studio](#studio)
+22. [The desktop visualizer](#desktop)
+23. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-23. [Listen with Online Media](#online)
-24. [Build your local library](#library)
-25. [Albums & your play queue](#queue)
-26. [Sing with Karaoke](#karaoke)
-27. [Create in Karaoke Maker](#maker)
-28. [Share audio between computers](#share)
+24. [Listen with Online Media](#online)
+25. [Build your local library](#library)
+26. [Albums & your play queue](#queue)
+27. [Sing with Karaoke](#karaoke)
+28. [Create in Karaoke Maker](#maker)
+29. [Share audio between computers](#share)
 
 **When you need help**
 
-29. [When something sounds wrong](#trouble)
-30. [Ask in the Forum](#forum)
+30. [When something sounds wrong](#trouble)
+31. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -100,7 +101,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 4. **Plus** — Visualizers, the gallery, the leaderboard and the Studio.
 5. **Support the work** — Ways to support the work on FluidEQ.
 6. **Help** — This guide, What’s new, the audio troubleshooter and Report a problem.
-7. **FluidEQ actions** — The engine, importing EQ settings, restarting Windows audio and Processes.
+7. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio and Processes; the theme, animations, Start with Windows and the language.
 
 ### The left rail
 
@@ -118,7 +119,82 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 2. Turn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.
 3. Press the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.
 
-> **Good to know:** Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, and Processes, which shows what each part of FluidEQ is using.
+> **Good to know:** Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are the Light or Dark theme, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.
+
+<a id="player"></a>
+
+## The Compact player
+
+One switch turns FluidEQ’s window into the Compact player: a narrow column with the song, your equaliser, a visualizer and Up Next, in decks you open and close. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.
+
+### The top: the song, and how it plays
+
+![The top: the song, and how it plays](42-player-top.png)
+
+1. **Player menu** — Back to the full app or to one of its pages, the player’s theme, Always on top and Fold to one line.
+2. **Always on top** — Keeps the player above every other window.
+3. **Compact player** — Back to the full app, on the page you left.
+4. **Time played or time left** — Time played. Click it for the time left.
+5. **Output level** — The level of the sound leaving FluidEQ, in decibels.
+6. **Spectrum analyzer** — The sound as it plays. Click it to switch between bars and the wave.
+7. **System volume** — Your computer’s volume, the same as in Windows: it sets the level of everything the computer plays.
+8. **EQ, Vis and Queue** — Open and close the equaliser, the visualizer and Up Next. The window grows and shrinks by what each takes.
+9. **Position in the song** — Where the song is. Drag to jump.
+10. **Play controls** — Previous, back five seconds, play or pause, forward five seconds, next and stop.
+11. **Shuffle and repeat** — Shuffles Up Next, and repeats nothing, everything or this song.
+12. **Next look** — Changes the visualizer’s look. Ctrl+click goes back one, and right-click lists them all.
+
+### The equaliser
+
+![The equaliser](43-player-eq.png)
+
+1. **On** — Turns FluidEQ’s processing on or off for everything the PC plays.
+2. **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
+3. **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
+4. **Equalizer curve** — What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.
+5. **Preamp** — Lowers the level before the EQ so boosts have room. Auto normalize sets it for you.
+6. **Bands** — Drag a band up or down to boost or cut it. Its frequency is written under it.
+7. **Tone** — Bands shows every band; Tone swaps them for the Bass, Mid and Treble dials.
+8. **Quick layouts** — Band counts, and the band designs you saved.
+9. **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
+10. **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
+
+### Up Next
+
+![Up Next](44-player-queue.png)
+
+1. **Up next** — Where you are in the queue, the time left in it, and how far through it you are.
+2. **Library** — Opens the Library in the full app.
+3. **The songs** — What plays next. Double-click a song to play it, or drop music files here to add them.
+
+### The player’s menu
+
+![The player’s menu](45-player-menu.png)
+
+1. **Back to the full app** — Back to the full app, on the page you left.
+2. **Open in the full app** — Opens the full app on one of its pages.
+3. **Theme** — The player’s own Light or Dark theme, apart from the full app’s.
+4. **Always on top** — Keeps the player above every other window.
+5. **Fold to one line** — Folds the player to one line. Double-clicking its strip does the same.
+
+### Folded to one line
+
+![Folded to one line](46-player-folded.png)
+
+1. **Unfold** — Unfolds the player. The arrow at the other end does too.
+2. **Play controls** — Previous, play or pause, next and stop.
+3. **Time played or time left** — The time, and where the song is.
+4. **EQ** — Turns FluidEQ’s processing on or off for everything the PC plays.
+
+### Try it
+
+1. Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.
+2. Open and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.
+3. Double-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.
+4. Choose the player’s own theme in its menu, and keep it above other windows with Always on top.
+5. Drop music files on Up Next: they join the Library and the queue.
+
+> **Good to know:** The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.
 
 <a id="requirements"></a>
 
@@ -634,7 +710,7 @@ Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with t
 
 ## Listen with Online Media
 
-Online Media keeps supported sites beside your EQ. Site playback and sign-in still depend on the provider and your connection. The bar at the foot of FluidEQ follows the active player, and its volume is the site’s own.
+Online Media keeps supported sites beside your EQ. Site playback and sign-in still depend on the provider and your connection. The bar at the foot of FluidEQ follows the active player, and its volume is your computer’s own.
 
 ![Listen with Online Media](01-online-media-youtube-live-eq.png)
 
@@ -658,7 +734,7 @@ Library brings together music and video from your drives. Browse by albums, arti
 
 1. Open Library and add the folder containing your media. Let the scan finish before judging what is missing.
 2. Choose an artist or album, or search for a song. Start a track from the results.
-3. Use the bar at the foot of the window to pause, seek and skip. Its volume is one level for every player.
+3. Use the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.
 
 > **Good to know:** Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.
 
@@ -692,7 +768,7 @@ Karaoke pairs your own audio with lyrics. Timed lyrics follow playback; pitch ta
 2. Choose a song and start playback. Check that the correct lyrics and backing track are paired.
 3. Configure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.
 
-> **Good to know:** A lyric-only file does not contain target notes. Karaoke follows the app’s Volume; the melody, backing and guide vocal levels are under Mix settings.
+> **Good to know:** A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings.
 
 <a id="maker"></a>
 
@@ -759,7 +835,7 @@ Share Audio sends system audio between computers on the same private network. Th
 2. On each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.
 3. Watch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.
 
-> **Good to know:** Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, and the receiver’s Volume sets it. Under the FluidEQ Engine, received audio also goes through the DSP rack.
+> **Good to know:** Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, which the receiving computer’s volume sets. Under the FluidEQ Engine, received audio also goes through the DSP rack.
 
 <a id="trouble"></a>
 

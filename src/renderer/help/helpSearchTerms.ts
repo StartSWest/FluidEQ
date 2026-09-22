@@ -6,9 +6,8 @@ import en, { type TranslationKey } from 'common/i18n/en';
 /**
  * The app's own names for what a chapter covers where the chapter's text does
  * not spell them out. The guide explains the DSP rack without listing its
- * stages, so a search for "compressor" found nothing although the rack shows
- * a Multiband compressor on screen; the same went for every style, room,
- * chain and filter shape.
+ * stages, so a search for a stage by the name on its card found nothing; the
+ * same went for every style, room, chain and filter shape.
  *
  * They are searched and never shown, and they are the labels themselves, so
  * they read right in every language, and a stage, style or chain added later

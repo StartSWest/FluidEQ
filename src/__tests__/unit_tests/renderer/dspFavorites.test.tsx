@@ -270,8 +270,8 @@ it('stars a preset into the list the DSP page shares, and never None', () => {
     screen.getByRole('button', { name: 'Remove from Favourites: Rock' }),
   ).toHaveAttribute('aria-pressed', 'true');
   // The menu stays open, and Rock now leads it, straight after None, under
-  // the Favorites heading.
-  expect(screen.getByText('Favorites')).toBeInTheDocument();
+  // the Favourites heading — spelled as the DSP page's and the Library's.
+  expect(screen.getByText('Favourites')).toBeInTheDocument();
   const rows = screen
     .getAllByRole('menuitemradio')
     .map((row) => row.textContent ?? '');

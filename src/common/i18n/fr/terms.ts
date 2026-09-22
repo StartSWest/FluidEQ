@@ -10,7 +10,8 @@ const terms = {
   'terms.short.price.title': '{price}, résiliable à tout moment',
   'terms.short.price.body':
     'Payé sur Buy Me a Coffee. FluidEQ ne voit jamais votre carte.',
-  'terms.short.free.title': 'Rien de gratuit n’est retiré',
+  'terms.short.free.title':
+    'L’égaliseur, le rack et les lecteurs restent gratuits',
   'terms.short.free.body':
     'FluidEQ continue de fonctionner hors ligne et sans compte, comme toujours.',
   'terms.short.choice.title': 'Vous choisissez ce qui est partagé',

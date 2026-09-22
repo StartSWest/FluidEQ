@@ -49,9 +49,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Plus danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf Regenbogenmodus, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen das Design Hell oder Dunkel, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
-    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, preamp, headroom, einschalten, ausschalten',
+    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
   'help.window.headerRightCaption': 'Die Kopfzeile nach dem Signal',
   'help.window.railCaption': 'Die linke Leiste',
@@ -77,7 +77,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
   'help.window.actions':
-    'Die Engine, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse; das Design, die Animationen, Mit Windows starten und die Sprache.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':
@@ -89,6 +89,68 @@ const help: Record<keyof typeof en, string> = {
   'help.window.meterName': 'Pegelanzeige',
   'help.window.meter':
     'Der Ausgangspegel, links und rechts, in echten Dezibel. Drücken Sie darauf, um den Stil der Anzeige zu ändern.',
+  'help.player.title': 'Kompakter Player',
+  'help.player.intro':
+    'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte mit dem Song, Ihrem Equalizer, einem Visualizer und „Als Nächstes“, in Bereichen, die Sie ein- und ausblenden. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
+  'help.player.steps':
+    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nBlenden Sie die Bereiche mit EQ, Visual und Liste ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht, und der Player merkt sich Größe und Position.\nDoppelklicken Sie auf die Leiste des Players oder wählen Sie in seinem Menü Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das FluidEQ-Logo klappt ihn wieder aus.\nWählen Sie im Menü des Players sein eigenes Design und halten Sie ihn mit Immer im Vordergrund über anderen Fenstern.\nLegen Sie Musikdateien auf „Als Nächstes“ ab, und sie kommen in die Bibliothek und in die Warteschlange.',
+  'help.player.tip':
+    'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
+  'help.player.keywords':
+    'mini player, miniplayer, mini-player, kleiner player, kompakt, kompaktmodus, kompakte ansicht, winamp, amp, player-modus, immer im vordergrund, immer oben, always on top, anheften, pin, einklappen, zusammenklappen, eine zeile, warteschlange, als nächstes, dateien ablegen, drag and drop, design, theme, helles design, dunkles design, dark mode, dunkelmodus, light mode, kleines fenster, schwebender player, lautstärke',
+  'help.player.topCaption': 'Der obere Teil: der Song und wie er läuft',
+  'help.player.eqCaption': 'Der Equalizer',
+  'help.player.queueCaption': 'Als Nächstes',
+  'help.player.menuCaption': 'Das Player-Menü',
+  'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
+  'help.player.menu':
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten, das Design des Players, Immer im Vordergrund und Auf eine Zeile einklappen.',
+  'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
+  'help.player.switch':
+    'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
+  'help.player.clock':
+    'Gespielte Zeit. Klicken Sie darauf, um die verbleibende Zeit zu sehen.',
+  'help.player.well':
+    'Der Klang, während er läuft. Klicken Sie darauf, um zwischen Balken und Welle zu wechseln.',
+  'help.player.level':
+    'Der Pegel des Klangs, der FluidEQ verlässt, in Dezibel.',
+  'help.player.volume':
+    'Die Lautstärke Ihres Computers, dieselbe wie in Windows; sie regelt den Pegel von allem, was der Computer abspielt.',
+  'help.player.decksName': 'EQ, Visual und Liste',
+  'help.player.decks':
+    'Blenden Sie den Equalizer, den Visualizer und „Als Nächstes“ ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht.',
+  'help.player.seek': 'Wo der Song gerade steht. Ziehen Sie, um zu springen.',
+  'help.player.playingName': 'Wiedergabesteuerung',
+  'help.player.playing':
+    'Vorheriger Titel, fünf Sekunden zurück, Wiedergabe oder Pause, fünf Sekunden vor, Nächster Titel und Stopp.',
+  'help.player.orderName': 'Zufallswiedergabe und Wiederholen',
+  'help.player.order':
+    'Mischt „Als Nächstes“ und wiederholt nichts, alles oder diesen Song.',
+  'help.player.lookName': 'Nächster Look',
+  'help.player.look':
+    'Wechselt den Look des Visualizers. Strg+Klick geht einen zurück, und ein Rechtsklick zeigt alle.',
+  'help.player.screen':
+    'Was Sie hören, gezeichnet: Ihre Bänder, Smart-EQ und alles andere, was aktiv ist, über einem Visualizer-Look. Unter Ebenfalls aktiv stehen sie einzeln, und ein Chip schaltet seine Ebene aus, ohne sie zu entfernen.',
+  'help.player.bands':
+    'Ziehen Sie ein Band nach oben oder unten, um es anzuheben oder abzusenken. Seine Frequenz steht darunter.',
+  'help.player.tone':
+    'Bänder zeigt jedes Band; Klang ersetzt sie durch die Regler Bass, Mitten und Höhen.',
+  'help.player.upNext':
+    'Wo Sie in der Warteschlange stehen, wie viel Zeit darin noch bleibt und wie weit Sie schon sind.',
+  'help.player.library': 'Öffnet die Bibliothek in der vollständigen App.',
+  'help.player.songsName': 'Die Songs',
+  'help.player.songs':
+    'Was als Nächstes läuft. Doppelklicken Sie auf einen Song, um ihn abzuspielen, oder legen Sie Musikdateien hier ab, um sie hinzuzufügen.',
+  'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
+  'help.player.theme':
+    'Das eigene Design des Players, Hell oder Dunkel, unabhängig vom Design der vollständigen App.',
+  'help.player.fold':
+    'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf die Leiste tut dasselbe.',
+  'help.player.unfold':
+    'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',
+  'help.player.foldedPlaying':
+    'Vorheriger Titel, Wiedergabe oder Pause, Nächster Titel und Stopp.',
+  'help.player.foldedClock': 'Die Zeit und wo der Song gerade steht.',
 
   'help.requirements.title': 'Was Ihr PC braucht',
   'help.requirements.intro':
@@ -142,7 +204,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.filter':
     'Seine Form: eine Glocke, ein Bass- oder Höhenshelf, eine Kerbe oder ein Tief-, Hoch- oder Bandpass.',
   'help.eq.voicing':
-    'Eine fertige Kette für den Klang, etwa Musik oder ein Genre. Keiner lässt nur Ihre Bänder übrig.',
+    'Eine fertige Kette für den Klang, etwa Musik oder ein Genre. Keine lässt nur Ihre Bänder übrig.',
   'help.eq.smart':
     'Hört, was läuft, und korrigiert es: Detail, Balance oder Ziel.',
   'help.eq.clear':
@@ -534,7 +596,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Mit Online-Medien hören',
   'help.online.intro':
-    'Online-Medien hält unterstützte Seiten neben Ihrem EQ bereit. Wiedergabe und Anmeldung auf den Seiten hängen weiterhin vom Anbieter und von Ihrer Verbindung ab. Die Leiste am unteren Rand von FluidEQ folgt dem aktiven Player, und ihre Lautstärke ist die der Seite.',
+    'Online-Medien hält unterstützte Seiten neben Ihrem EQ bereit. Wiedergabe und Anmeldung auf den Seiten hängen weiterhin vom Anbieter und von Ihrer Verbindung ab. Die Leiste am unteren Rand von FluidEQ folgt dem aktiven Player, und ihre Lautstärke ist die Ihres Computers.',
   'help.online.steps':
     'Öffnen Sie Online-Medien, wählen Sie eine Seite und starten Sie dort die Wiedergabe.\nWechseln Sie zum EQ für Anpassungen beim Hören und zurück für seiteneigene Bedienelemente.\nAktivieren Sie Nur ein Player, um überlappende Wiedergabe zu vermeiden.',
   'help.online.tip':
@@ -546,7 +608,7 @@ const help: Record<keyof typeof en, string> = {
   'help.library.intro':
     'Die Bibliothek bringt Musik und Videos von Ihren Laufwerken zusammen. Stöbern Sie nach Alben, Interpreten, Genres, Songs, Ordnern, in einem Ordnerbaum oder in Ihren Playlists. Cover und Details stammen aus Ihren Dateien, deshalb kann dieselbe Sammlung je nach ihren Tags unterschiedlich aussehen.',
   'help.library.steps':
-    'Öffnen Sie Bibliothek und fügen Sie den Ordner mit Ihren Medien hinzu. Warten Sie, bis das Einlesen fertig ist, bevor Sie beurteilen, was fehlt.\nWählen Sie einen Interpreten oder ein Album oder suchen Sie nach einem Song. Starten Sie einen Titel aus den Ergebnissen.\nMit der Leiste am unteren Fensterrand pausieren, spulen und springen Sie. Die Lautstärke dort ist ein gemeinsamer Pegel für alle Player.',
+    'Öffnen Sie Bibliothek und fügen Sie den Ordner mit Ihren Medien hinzu. Warten Sie, bis das Einlesen fertig ist, bevor Sie beurteilen, was fehlt.\nWählen Sie einen Interpreten oder ein Album oder suchen Sie nach einem Song. Starten Sie einen Titel aus den Ergebnissen.\nMit der Leiste am unteren Fensterrand pausieren, spulen und springen Sie. Die Lautstärke dort ist die Ihres Computers, dieselbe wie in Windows.',
   'help.library.tip':
     'Fahren Sie mit der Maus über das Symbol von FluidEQ in der Windows-Taskleiste, um Vorheriger Titel, Wiedergeben und Nächster Titel zu nutzen, auch wenn FluidEQ minimiert ist. Die Bibliothek braucht die Originaldateien: Verbinden Sie ein Laufwerk erneut oder fügen Sie einen verschobenen Ordner neu hinzu.',
   'help.library.keywords':
@@ -568,7 +630,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.steps':
     'Öffnen Sie Karaoke und fügen Sie Dateien oder Ordner mit passendem Audio und Text hinzu.\nWählen Sie ein Lied, starten Sie es und prüfen Sie die Zuordnung.\nRichten Sie das Mikrofon ein, passen Sie die Textgröße an und nutzen Sie den Vollbildknopf der Bühne.',
   'help.karaoke.tip':
-    'Eine reine Textdatei enthält keine Zielnoten. Karaoke folgt der Lautstärke der App; die Pegel für Melodie, Playback und Führungsstimme finden Sie unter Mix-Einstellungen.',
+    'Eine reine Textdatei enthält keine Zielnoten. Karaoke spielt mit der Lautstärke Ihres Computers; die Pegel für Melodie, Playback und Führungsstimme finden Sie unter Mix-Einstellungen.',
   'help.karaoke.keywords':
     'mitsingen, songtext anzeigen, lyrics, mic, pitch, mikrofon einrichten, lieder hinzufügen, LRC, UltraStar',
 
@@ -637,7 +699,7 @@ const help: Record<keyof typeof en, string> = {
   'help.share.steps':
     'Öffnen Sie am Hörcomputer Audio teilen, wählen Sie Audio auf diesem Computer wiedergeben und drücken Sie Verbindungscode erstellen. Beginnen Sie leise.\nWählen Sie an jedem Quellcomputer Audio dieses Computers senden, fügen Sie den Code für Ihr Netzwerk ein und drücken Sie Verbinden und senden.\nBehalten Sie den Verbindungsmonitor im Blick. Drücken Sie Senden beenden oder Empfang beenden, wenn Sie fertig sind; Neuen Code erstellen trennt alle gespeicherten Kopplungen.',
   'help.share.tip':
-    'Halten Sie den Verbindungscode privat: Er erlaubt die Kopplung. Mehrere Sender werden zusammengemischt und erhöhen den Pegel, und die Lautstärke des Empfängers regelt ihn. Unter der FluidEQ-Engine läuft empfangenes Audio außerdem durch das DSP-Rack.',
+    'Halten Sie den Verbindungscode privat: Er erlaubt die Kopplung. Mehrere Sender werden zusammengemischt und erhöhen den Pegel, den die Lautstärke des empfangenden Computers regelt. Unter der FluidEQ-Engine läuft empfangenes Audio außerdem durch das DSP-Rack.',
   'help.share.keywords':
     'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln',
 

@@ -21,7 +21,7 @@ const terms = {
   'terms.short.price.title': '{price}, cancel any time',
   'terms.short.price.body':
     'Paid on Buy Me a Coffee. FluidEQ never sees your card.',
-  'terms.short.free.title': 'Nothing free is taken away',
+  'terms.short.free.title': 'The equaliser, the rack and the players stay free',
   'terms.short.free.body':
     'FluidEQ keeps working offline and without an account, as it always has.',
   'terms.short.choice.title': 'You choose what is shared',

@@ -10,7 +10,7 @@ const terms = {
   'terms.short.price.title': '{price}, जब चाहें रद्द करें',
   'terms.short.price.body':
     'भुगतान Buy Me a Coffee पर होता है। FluidEQ आपका कार्ड कभी नहीं देखता।',
-  'terms.short.free.title': 'मुफ़्त में से कुछ नहीं छीना जाता',
+  'terms.short.free.title': 'इक्वलाइज़र, रैक और प्लेयर मुफ़्त ही रहेंगे',
   'terms.short.free.body':
     'FluidEQ पहले की तरह ही ऑफ़लाइन और बिना खाते के चलता रहता है।',
   'terms.short.choice.title': 'क्या साझा हो, आप तय करते हैं',

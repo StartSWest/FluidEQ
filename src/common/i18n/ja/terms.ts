@@ -10,7 +10,7 @@ const terms = {
   'terms.short.price.title': '{price}、いつでも解約可能',
   'terms.short.price.body':
     'お支払いは Buy Me a Coffee で行います。FluidEQ がカード情報を見ることはありません。',
-  'terms.short.free.title': '無料の機能は何もなくなりません',
+  'terms.short.free.title': 'イコライザー、ラック、プレーヤーは無料のままです',
   'terms.short.free.body':
     'FluidEQ はこれまでどおり、オフラインでもアカウントなしでも動作します。',
   'terms.short.choice.title': '共有する内容はあなたが決めます',

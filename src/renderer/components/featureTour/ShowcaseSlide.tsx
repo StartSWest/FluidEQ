@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
-import type { ISlideActions, TTourTab } from './slides';
 
 /**
  * A feature release's headline slide: the picture larger than the words.
@@ -24,12 +23,20 @@ interface IShowcaseSlideProps {
     | 'tour.plus'
     | 'tour.visualizers'
     | 'tour.desktop'
-    | 'tour.lighting';
-  tab: TTourTab;
+    | 'tour.lighting'
+    | 'tour.player'
+    | 'tour.games'
+    | 'tour.presets'
+    | 'tour.tone'
+    | 'tour.studio'
+    | 'tour.help';
+  /** What the slide's button does: land somewhere, and close the tour. */
+  onOpen: () => void;
   visual: ReactNode;
-  actions: ISlideActions;
   /** A word beside the kicker for something still being finished: "Beta". */
   tag?: TranslationKey;
+  /** Numbers the slide's words quote, counted by the app rather than typed. */
+  values?: Record<string, string | number>;
 }
 
 const POINTS = [1, 2, 3] as const;
@@ -44,10 +51,10 @@ type TSuffix =
 
 export default function ShowcaseSlide({
   prefix,
-  tab,
+  onOpen,
   visual,
-  actions,
   tag,
+  values,
 }: IShowcaseSlideProps) {
   const { t } = useTranslation();
   const key = (suffix: TSuffix): TranslationKey => `${prefix}.${suffix}`;
@@ -60,22 +67,18 @@ export default function ShowcaseSlide({
           {tag && <span className="tour-slide__tag">{t(tag)}</span>}
         </span>
         <h3 className="tour-slide__title">{t(key('title'))}</h3>
-        <p className="tour-slide__lead">{t(key('lead'))}</p>
+        <p className="tour-slide__lead">{t(key('lead'), values)}</p>
 
         <ul className="tour-showcase__points">
           {POINTS.map((point) => (
-            <li key={point}>{t(key(`point${point}`))}</li>
+            <li key={point}>{t(key(`point${point}`), values)}</li>
           ))}
         </ul>
 
         <div className="tour-slide__how">
           <span className="tour-slide__how-title">{t('tour.howTitle')}</span>
           <p>{t(key('how'))}</p>
-          <button
-            type="button"
-            className="button small"
-            onClick={() => actions.openTab(tab)}
-          >
+          <button type="button" className="button small" onClick={onOpen}>
             {t(key('open'))}
           </button>
         </div>

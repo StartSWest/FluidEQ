@@ -129,6 +129,216 @@ const START_CHAPTERS = [
     ],
   },
   {
+    // The Compact player, taken on 2026-09-22 from the real player and its
+    // stylesheets at its first-launch size, 480 x 1080 CSS pixels, drawn at
+    // two device pixels each so it stays sharp enlarged — with a made-up
+    // queue and drawn covers, nobody's real albums. Boxes are the elements'
+    // own rectangles, doubled. Each deck is its own picture: the whole player
+    // held twenty-seven numbered controls, which no layout keeps readable.
+    id: 'player',
+    group: 'start',
+    figures: [
+      {
+        image: '42-player-top.png',
+        width: 960,
+        height: 560,
+        caption: 'help.player.topCaption',
+        controls: [
+          {
+            box: [12, 7, 80, 52],
+            name: 'player.menu',
+            text: 'help.player.menu',
+          },
+          {
+            box: [646, 7, 56, 52],
+            name: 'player.menu.alwaysOnTop',
+            text: 'help.player.pin',
+          },
+          {
+            box: [708, 7, 116, 52],
+            name: 'player.switch.name',
+            text: 'help.player.switch',
+          },
+          {
+            box: [52, 146, 325, 101],
+            name: 'player.clock.aria',
+            text: 'help.player.clock',
+          },
+          {
+            box: [52, 257, 365, 68],
+            name: 'player.well.aria',
+            text: 'help.player.well',
+          },
+          {
+            box: [583, 211, 110, 30],
+            name: 'player.readout.level',
+            text: 'help.player.level',
+          },
+          {
+            box: [32, 359, 518, 48],
+            name: 'player.volume.system',
+            text: 'help.player.volume',
+          },
+          {
+            box: [566, 357, 362, 52],
+            name: 'help.player.decksName',
+            text: 'help.player.decks',
+          },
+          {
+            box: [116, 425, 728, 36],
+            name: 'player.seek',
+            text: 'help.player.seek',
+          },
+          {
+            box: [32, 477, 482, 60],
+            name: 'help.player.playingName',
+            text: 'help.player.playing',
+          },
+          {
+            box: [736, 477, 130, 60],
+            name: 'help.player.orderName',
+            text: 'help.player.order',
+          },
+          {
+            box: [876, 479, 52, 56],
+            name: 'help.player.lookName',
+            text: 'help.player.look',
+          },
+        ],
+      },
+      {
+        image: '43-player-eq.png',
+        width: 960,
+        height: 708,
+        caption: 'help.player.eqCaption',
+        controls: [
+          {
+            box: [32, 29, 102, 52],
+            name: 'player.eq.on',
+            text: 'help.window.systemEq',
+          },
+          { box: [146, 31, 193, 48], name: 'eq.smart', text: 'help.eq.smart' },
+          {
+            box: [736, 29, 192, 52],
+            name: 'dsp.presets',
+            text: 'help.eq.voicing',
+          },
+          {
+            box: [34, 105, 892, 186],
+            name: 'player.eq.curve',
+            text: 'help.player.screen',
+          },
+          {
+            box: [70, 343, 64, 268],
+            name: 'sidebar.preamp',
+            text: 'help.window.preamp',
+          },
+          {
+            box: [174, 352, 740, 208],
+            name: 'tabs.eqMain',
+            text: 'help.player.bands',
+          },
+          {
+            box: [32, 627, 199, 52],
+            name: 'eq.tone',
+            text: 'help.player.tone',
+          },
+          {
+            box: [241, 627, 151, 52],
+            name: 'eq.quickLayouts',
+            text: 'help.eq.layouts',
+          },
+          { box: [402, 627, 286, 52], name: 'eq.mode', text: 'help.eq.mode' },
+          { box: [795, 627, 133, 52], name: 'eq.clear', text: 'help.eq.clear' },
+        ],
+      },
+      {
+        image: '44-player-queue.png',
+        width: 960,
+        height: 900,
+        caption: 'help.player.queueCaption',
+        controls: [
+          {
+            box: [144, 44, 169, 26],
+            name: 'library.upNext',
+            text: 'help.player.upNext',
+          },
+          {
+            box: [789, 31, 139, 52],
+            name: 'tabs.library',
+            text: 'help.player.library',
+          },
+          {
+            box: [42, 109, 876, 320],
+            name: 'help.player.songsName',
+            text: 'help.player.songs',
+          },
+        ],
+      },
+      {
+        image: '45-player-menu.png',
+        width: 672,
+        height: 736,
+        caption: 'help.player.menuCaption',
+        controls: [
+          {
+            box: [30, 85, 612, 60],
+            name: 'player.menu.fullApp',
+            text: 'help.player.switch',
+          },
+          {
+            box: [30, 179, 612, 260],
+            name: 'player.menu.openIn',
+            text: 'help.player.openIn',
+          },
+          {
+            box: [30, 465, 612, 88],
+            name: 'theme.aria',
+            text: 'help.player.theme',
+          },
+          {
+            box: [30, 579, 612, 60],
+            name: 'player.menu.alwaysOnTop',
+            text: 'help.player.pin',
+          },
+          {
+            box: [30, 643, 612, 60],
+            name: 'player.menu.fold',
+            text: 'help.player.fold',
+          },
+        ],
+      },
+      {
+        image: '46-player-folded.png',
+        width: 960,
+        height: 112,
+        caption: 'help.player.foldedCaption',
+        controls: [
+          {
+            box: [12, 30, 56, 52],
+            name: 'player.unfold',
+            text: 'help.player.unfold',
+          },
+          {
+            box: [199, 30, 246, 52],
+            name: 'help.player.playingName',
+            text: 'help.player.foldedPlaying',
+          },
+          {
+            box: [483, 42, 194, 28],
+            name: 'player.clock.aria',
+            text: 'help.player.foldedClock',
+          },
+          {
+            box: [685, 30, 96, 52],
+            name: 'player.eq.short',
+            text: 'help.window.systemEq',
+          },
+        ],
+      },
+    ],
+  },
+  {
     // What a machine needs, before anything is installed on it. The only
     // chapter with no capture: a list of numbers has nothing to point at, and
     // a screenshot of the window here would be one already shown above.

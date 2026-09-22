@@ -53,9 +53,9 @@ const help = {
   'help.window.steps':
     'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, and Processes, which shows what each part of FluidEQ is using.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are the Light or Dark theme, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -80,7 +80,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
   'help.window.actions':
-    'The engine, importing EQ settings, restarting Windows audio and Processes.',
+    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; the theme, animations, Start with Windows and the language.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -91,6 +91,64 @@ const help = {
   'help.window.meterName': 'Level meter',
   'help.window.meter':
     'The output level, left and right, in real decibels. Press it to change its style.',
+  'help.player.title': 'The Compact player',
+  'help.player.intro':
+    'One switch turns FluidEQ’s window into the Compact player: a narrow column with the song, your equaliser, a visualizer and Up Next, in decks you open and close. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
+  'help.player.steps':
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nOpen and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.\nDouble-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.\nChoose the player’s own theme in its menu, and keep it above other windows with Always on top.\nDrop music files on Up Next: they join the Library and the queue.',
+  'help.player.tip':
+    'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
+  'help.player.keywords':
+    'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
+  'help.player.topCaption': 'The top: the song, and how it plays',
+  'help.player.eqCaption': 'The equaliser',
+  'help.player.queueCaption': 'Up Next',
+  'help.player.menuCaption': 'The player’s menu',
+  'help.player.foldedCaption': 'Folded to one line',
+  'help.player.menu':
+    'Back to the full app or to one of its pages, the player’s theme, Always on top and Fold to one line.',
+  'help.player.pin': 'Keeps the player above every other window.',
+  'help.player.switch': 'Back to the full app, on the page you left.',
+  'help.player.clock': 'Time played. Click it for the time left.',
+  'help.player.well':
+    'The sound as it plays. Click it to switch between bars and the wave.',
+  'help.player.level': 'The level of the sound leaving FluidEQ, in decibels.',
+  'help.player.volume':
+    'Your computer’s volume, the same as in Windows: it sets the level of everything the computer plays.',
+  'help.player.decksName': 'EQ, Vis and Queue',
+  'help.player.decks':
+    'Open and close the equaliser, the visualizer and Up Next. The window grows and shrinks by what each takes.',
+  'help.player.seek': 'Where the song is. Drag to jump.',
+  'help.player.playingName': 'Play controls',
+  'help.player.playing':
+    'Previous, back five seconds, play or pause, forward five seconds, next and stop.',
+  'help.player.orderName': 'Shuffle and repeat',
+  'help.player.order':
+    'Shuffles Up Next, and repeats nothing, everything or this song.',
+  'help.player.lookName': 'Next look',
+  'help.player.look':
+    'Changes the visualizer’s look. Ctrl+click goes back one, and right-click lists them all.',
+  'help.player.screen':
+    'What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.',
+  'help.player.bands':
+    'Drag a band up or down to boost or cut it. Its frequency is written under it.',
+  'help.player.tone':
+    'Bands shows every band; Tone swaps them for the Bass, Mid and Treble dials.',
+  'help.player.upNext':
+    'Where you are in the queue, the time left in it, and how far through it you are.',
+  'help.player.library': 'Opens the Library in the full app.',
+  'help.player.songsName': 'The songs',
+  'help.player.songs':
+    'What plays next. Double-click a song to play it, or drop music files here to add them.',
+  'help.player.openIn': 'Opens the full app on one of its pages.',
+  'help.player.theme':
+    'The player’s own Light or Dark theme, apart from the full app’s.',
+  'help.player.fold':
+    'Folds the player to one line. Double-clicking its strip does the same.',
+  'help.player.unfold':
+    'Unfolds the player. The arrow at the other end does too.',
+  'help.player.foldedPlaying': 'Previous, play or pause, next and stop.',
+  'help.player.foldedClock': 'The time, and where the song is.',
 
   'help.requirements.title': 'What your PC needs',
   'help.requirements.intro':
@@ -511,7 +569,7 @@ const help = {
 
   'help.online.title': 'Listen with Online Media',
   'help.online.intro':
-    'Online Media keeps supported sites beside your EQ. Site playback and sign-in still depend on the provider and your connection. The bar at the foot of FluidEQ follows the active player, and its volume is the site’s own.',
+    'Online Media keeps supported sites beside your EQ. Site playback and sign-in still depend on the provider and your connection. The bar at the foot of FluidEQ follows the active player, and its volume is your computer’s own.',
   'help.online.steps':
     'Open Online Media and choose a supported site. Find and start something on that page.\nSwitch to EQ to tune while listening, then return to the page when you need its own controls.\nUse One player at a time if you want FluidEQ and other players to pause one another instead of overlapping.',
   'help.online.tip':
@@ -523,7 +581,7 @@ const help = {
   'help.library.intro':
     'Library brings together music and video from your drives. Browse by albums, artists, genres, songs, folders, a folder tree or your playlists. Album art and details come from your files, so the same collection may look different depending on its tags.',
   'help.library.steps':
-    'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is one level for every player.',
+    'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.',
   'help.library.tip':
     'Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.',
   'help.library.keywords':
@@ -545,7 +603,7 @@ const help = {
   'help.karaoke.steps':
     'Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.\nChoose a song and start playback. Check that the correct lyrics and backing track are paired.\nConfigure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.',
   'help.karaoke.tip':
-    'A lyric-only file does not contain target notes. Karaoke follows the app’s Volume; the melody, backing and guide vocal levels are under Mix settings.',
+    'A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings.',
   'help.karaoke.keywords':
     'sing, singing, sing along, lyrics, microphone, mic, pitch, lrc, ultrastar, songs',
 
@@ -611,7 +669,7 @@ const help = {
   'help.share.steps':
     'On the listening computer, open Share Audio, choose Play audio on this computer and press Create connection code. Start at a low volume.\nOn each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.\nWatch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.',
   'help.share.tip':
-    'Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, and the receiver’s Volume sets it. Under the FluidEQ Engine, received audio also goes through the DSP rack.',
+    'Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, which the receiving computer’s volume sets. Under the FluidEQ Engine, received audio also goes through the DSP rack.',
   'help.share.keywords':
     'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair',
 

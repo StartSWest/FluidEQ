@@ -88,7 +88,7 @@ const dsp = {
   'dsp.eqPreset.newWave': 'New Wave',
   'dsp.eqPreset.fusion': 'Jazz Fusion',
   'dsp.eqPreset.smoothJazz': 'Smooth Jazz',
-  'dsp.favorites.title': 'Favorites',
+  'dsp.favorites.title': 'Favourites',
   'dsp.quick.apo': 'EQ curve only · Equalizer APO',
   'dsp.preset.music': 'Music',
   'dsp.preset.none': 'None',

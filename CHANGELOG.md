@@ -6,209 +6,242 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
-## 1.7.5
+## 1.8.0
 
-The Room is the centre of this one. Thirteen new rooms stand beside the eleven
-it shipped with, each one told apart by measurement rather than by name, its
-page was rebuilt so nothing is hidden behind a tab, and its locks came off:
-sound has never been the part of FluidEQ you pay for, and a listening room is
-sound.
+FluidEQ can now be small. One switch in the title bar turns the whole window
+into the Compact player — the song, the equaliser, a visualizer and Up Next in
+one narrow column — and the same switch brings the full app back on the page
+you left. It has its own Light or Dark theme, folds to a single line, stays on
+top of other windows if you ask, and its volume is your computer's own.
 
-Plus changed shape around that. The Studio is Plus's now: the one scene a free
-account could make there in 1.7.4 comes with Plus from this version, and nothing
-you have already made is deleted — the Studio names the folder your project is
-sitting in. It opens with a free trial, and there is a way in that costs nothing
-at all — publish a scene, have it approved, and the next month is free. Every
-member's scene is now held for approval before anybody sees it.
+Games got their own sound: a chain per game, switched the moment the game
+comes to the front and kept until you close it, however often you alt-tab.
+Game mode cuts the delay FluidEQ adds, and the page now shows that delay as
+measured. The presets were rebuilt around the same idea — every music style a
+whole chain, every chain measured and levelled so switching changes the
+character and not the volume, and each preset's tone played in the main
+equaliser, where it is heard on the FluidEQ Engine as clearly as on Equalizer
+APO. A compressor that every preset switched on without any card showing it
+is gone, so a rack with everything off now plays the sound exactly as it
+came.
 
-The equaliser and the sound profiles had a pass of their own. Every profile was
-re-measured and levelled so switching between them changes character and not
-volume, each music style became a whole chain instead of a curve, the quick
-layouts moved onto the international standard's frequencies, and the main
-equaliser gained Bass, Mid and Treble across the whole rack.
+The Room grew to twenty-four rooms, its page was rebuilt so nothing is hidden
+behind a tab, and its locks came off: sound has never been the part of
+FluidEQ you pay for. Plus changed shape around that — the Studio is Plus's
+now, it opens with a free trial, and a scene you publish that is approved
+earns the next month free. Help can finally be asked a question in your own
+words, and its pictures follow your theme.
 
-Games got their own sound: a chain per game, switched the moment Windows puts
-that game in front. And a pass went through the window for controls that took
-an answer and did nothing with it — eight of them, plus seven strings that had
-been translated into ten languages for a screen nobody reaches.
+1.7.5 was prepared and never released; everything it carried is in this
+version and in these notes.
 
 ### New
 
+- **The Compact player.** The switch beside Help in the title bar turns the
+  window into a player a few hundred pixels wide: the song and its clock at
+  the top, then decks you open and close — the equaliser, a visualizer and Up
+  Next — the window growing and shrinking by what each takes. The equaliser
+  comes along whole: presets, the band layouts, EQ mode, Smart EQ, Clear EQ,
+  and the bands or the Bass, Mid and Treble dials. The visualizer plays any of
+  the graph's looks and fills the screen on a double-click. Up Next shows where
+  you are in the queue and the time left in it, and music files dropped on it
+  join the Library and the queue in one gesture. The player remembers its own
+  size and place, can stay on top of other windows, and folds to one line on a
+  double-click of its strip; its menu opens the full app on any page. If it
+  ever ends up off the screen, FluidEQ's icon in the tray has Recover the
+  window.
+- **The Compact player keeps a theme of its own.** Light or Dark, chosen in its
+  menu, apart from the full app's, so the app can stay Dark while the player
+  sits Light beside your work.
+- **The volume is your computer's own.** FluidEQ's separate volume level is
+  gone: the slider on the player, on both bars and in Karaoke is Windows'
+  volume, so it sets the level of everything the computer plays and stays
+  where you leave it. Every player in FluidEQ plays at full level into it.
+- **Every game its own sound.** A chain per game — from Steam, Epic Games, EA,
+  GOG, Ubisoft, Battle.net and Xbox, or any program that is open — switched
+  the moment the game comes to the front, and kept until the game is closed,
+  however often you alt-tab. A card on the desktop, in the window's own
+  colours, says what was loaded and another what came back. While a game holds
+  the sound, the player bar names it. The equaliser's fourth pill is named for
+  what it holds — Game presets.
+- **Game mode, and the delay you can see.** Game mode cuts the delay FluidEQ
+  adds, for aim and for voice chat, and the Gaming presets turn it on. The EQ
+  and DSP pages now show the delay the chain adds as measured, broken down by
+  the effects that add it, and Linear phase says what it costs.
+- **Presets that sound like the music.** Every preset was measured again and
+  levelled, so switching changes character and not volume. Each music style is
+  a whole chain — its bass, its air and its width chosen for that style, and
+  only where they suit it. Music, Movie and Gaming each have a Room copy, with
+  five measured bands in front of the Room so the chain sounds like itself
+  through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
+  than it went in; those bands are that difference).
+- **None is one choice, first in both pickers.** Picked on the equaliser or on
+  the DSP page, it takes the whole preset away — its tone and every stage of
+  its chain — and it stands above everything in both lists, the chains you
+  star included. Reset on the DSP page puts the Default chain back, tone and
+  all, instead of an empty rack that sounded like None.
+- **A preset's tone plays in the main equaliser.** It used to sit inside the
+  rack, ahead of its compressor and limiter, where on the FluidEQ Engine Pop
+  against Metal was barely a difference at all. It is now the Preset layer of
+  the main equaliser on both engines: it shows on the graph as a curve of its
+  own, named after the preset, with a strength you can turn down, and its ×
+  takes the whole preset away. The rack keeps what supports the tone.
 - **Thirteen new rooms, told apart by measurement.** Twenty-four in all, each
-  with its speakers where that place would put them and its own air. None of
-  them is another one under a different name: every pair is measured against
+  with its speakers where that place would put them and its own air, and none
+  of them another one under a different name: every pair is measured against
   every other for level, for how wide it sits at the ears, for top against
   bottom, and on a surround stream for the centre, a side and a rear against
   the front. Three rooms written that week measured as copies of ones already
   there and were taken out again.
 - **The Room's page hides nothing.** The rooms are in the same picker every
   other stage uses, under Featured, Classic rooms and Yours; what a room is
-  made of is on the page rather than behind Tune and Fit tabs; the picture
-  stands on the left with six bands beside it, and the speaker you pressed has
-  its own pane from the moment you press it, with its angle as a number you can
-  type. The whole page fills the width the rest of FluidEQ does.
-- **The Room is not part of Plus, and never was meant to be.** Shaping a room,
-  saving one, fitting the head by ear: all of it is open to everybody. Sound is
-  not the part of FluidEQ that is paid for.
-- **A chain in the Room, with its own tone.** Every preset picker now leads
-  with the usual chains and a Room copy of each, and the Room copies carry five
-  measured bands in front of the Room so a chain sounds like itself through it:
-  a record leaves a room about 3 dB louder and 3 to 4 dB darker than it went
-  in, and those bands are that difference, measured.
-- **Every game its own sound.** A chain per game, switched the moment Windows
-  puts that game in front and switched back when it goes away. The card a game
-  raises says what it did, and a chain can be starred on it. The equaliser's
-  fourth pill is named for what it holds — game presets.
+  made of is on the page rather than behind tabs; the room stands on the left
+  with six bands beside it, and the speaker you pressed has its own pane from
+  the moment you press it, with its angle as a number you can type.
+- **The Room is not part of Plus.** Shaping a room, saving one, fitting the
+  head by ear: all of it is open to everybody.
 - **Bass, Mid and Treble across the whole rack**, the way an amplifier has
   them, on the main equaliser whenever no band is selected. Each moves its own
-  third of the spectrum smoothly; Ctrl+click puts that third back to flat. The
-  equaliser now also opens with nothing selected, showing the whole rack
-  instead of the lowest bass band.
-- **A whole chain per music style.** The bass, the exciter, the width and the
-  compression are now chosen for each style rather than a curve alone, and only
-  where they suit it.
-- **A twenty-band quick layout**, and the existing ones moved onto the
-  international standard's frequencies: four of the six-band's centres and two
-  of the ten's were not on it, so a band labelled 64 Hz is now the 63 Hz
-  everything else means by it. Bands also open at a width that matches how far
-  apart they are — a thirty-one-band rack no longer has three bands playing the
-  same note, and a six-band no longer leaves holes between them.
-- **The FluidEQ Engine has a new build.** The rack grew a control this version,
-  so the copy on your machine is offered an update the first time you run
-  1.7.5: one press in the notice, and Windows restarts its audio itself. Until
-  you take it the equaliser keeps working and the DSP effects stay off, which
-  is what the "Update engine" card is telling you.
-- **Publish a scene, keep FluidEQ free.** A scene of yours that is approved earns
-  the next month of Plus. The account panel shows the month you earned, counts
-  down its last week and says so on the day it ends: nothing renews quietly and
-  nothing is charged. A maker whose month has run out can still publish the
-  next scene — that is the way back in, so it stays open.
+  third of the spectrum; Ctrl+click puts that third back to flat. The
+  equaliser now opens with nothing selected, showing the whole rack.
+- **A twenty-band quick layout**, and every layout moved onto the
+  international standard's frequencies: a band labelled 64 Hz is now the
+  63 Hz everything else means by it. Bands also open as wide as their spacing
+  — a thirty-one-band rack no longer has three bands playing the same note,
+  and a six-band no longer leaves holes between them.
+- **Ask the guide in your own words.** Help's search ranks what it finds,
+  forgives typos and plurals, knows the words people use for things in all ten
+  languages — "no sound", "limiter", "wallpaper" — and searches the English
+  guide alongside your own, so an English word finds its chapter too. Each
+  result quotes the
+  passage it found with the words marked; the guide takes you there and rings
+  the control on its picture, and Enter walks to the next match.
+- **Help follows your theme**, and has a chapter for the Compact player. Its
+  pictures are shown in Light when the window is Light and in Dark when it is
+  Dark. Help itself is now the book in the title bar, beside the actions menu.
 - **The Studio is part of Plus, and opens with a free trial.** Fifteen days,
-  no card, nothing charged when it ends — and **only for an account created
-  after the offer opened on 20 September 2026**. An account older than that
-  cannot start one, and that does not change if the offer is switched off and
-  on again. Somebody without Plus now meets a page that says what the Studio is
-  and how to get in, rather than a bench that refuses every press — and that
-  page names the folder any project of theirs is sitting in, whole and
-  untouched, for the day they come back to it. A maker whose earned month has
-  run out keeps one project on the bench, with only the ways of taking a scene
-  out of the window locked, so the way back in stays open.
-- **Every member's scene is held for approval before anyone sees it.** A scene
-  is reviewed before it reaches the gallery, and a new version is published
-  above the highest number that scene was ever out at, so a number can never
-  come back around.
-- **A desktop background keeps its place.** It plays on as its replacement is
-  prepared rather than blinking out between the two, stops where it stands
-  rather than being taken off the desktop, gives the desktop its own wallpaper
-  back while it waits on battery, and takes the whole visualizer performance
-  choice with it instead of two fields of it.
+  no card, nothing charged when it ends — **for an account created after the
+  offer opened on 20 September 2026**. Somebody without Plus meets a page that
+  says what the Studio is and how to get in, and names the folder any project
+  of theirs is sitting in, whole and untouched, for the day they come back to
+  it.
+- **Publish a scene, keep FluidEQ free.** A scene of yours that is approved
+  earns the next month of Plus. The account panel shows the month you earned,
+  counts down its last week and says so on the day it ends: nothing renews
+  quietly and nothing is charged. A maker whose month has run out can still
+  publish the next scene, and keeps one project on the bench.
+- **Every member's scene is held for approval before anyone sees it**, and a
+  new version is published above the highest number that scene was ever out
+  at, so a number can never come back around. A scene you find wrong can be
+  reported from the looks menu.
+- **The equaliser shows the output's rate** beside its name, as the DSP page
+  does: the rate Windows runs the output you are listening to at, read again
+  when the output changes or you come back to the window.
+- **Start with Windows.** A switch in the actions menu starts FluidEQ when you
+  sign in.
+- **A desktop background keeps its place.** It plays on while its replacement
+  is prepared, pauses while windows cover its whole monitor or a game is in
+  front, gives the desktop its own wallpaper back while it waits on battery,
+  and follows the visualizer's settings from the window as you change them.
+- **The FluidEQ Engine has a new build.** The copy on your machine is offered
+  an update the first time you run 1.8.0: one press in the notice, and Windows
+  restarts its audio itself. Until you take it the equaliser keeps working and
+  the DSP effects stay off, which is what the "Update engine" card says.
 
 ### Fixed
 
+- **A rack with every effect off plays the sound as it came.** Two things
+  inside it were never shown on any card: a three-band compressor that every
+  factory preset switched on, and a final limiter with a low-cut filter that
+  was always on. Both are gone. Switching DSP on with nothing on no longer
+  changes the sound, and a loud record no longer lights clipping warnings it
+  did not earn; the Master card shows the true peak instead. Where a chain has
+  no Maximizer or Master ceiling it can now peak above full scale like any
+  equaliser, and Auto normalize keeps the headroom, as it does for the main
+  EQ.
+- **The Maximizer holds its level instead of pumping.** On a dense record its
+  gain dipped on every kick and sprang back before the next, so the loudness
+  swung with the beat. It now settles at the reduction the record keeps asking
+  for and stays there, still catching every peak the moment it comes: the
+  swing is about a third smaller, and the ceiling is exactly where it was.
+- **The queue no longer skips a song at the end of a crossfade**, Next is
+  instant, and the seek bar no longer jumps back and forth after you drag it.
+  Getting the next song ready used to reset the effects under the song that
+  was playing twice a track — a small hiccup mid-song — and no longer does.
+- **Repeat One repeats the song again** in the Library.
+- **An EQ switched off from its chip comes back on when you clear its bands.**
+  Switched off from Also applied and then cleared with Clear EQ, the chip's ×
+  or the Squiglink panel, it stayed off for good with the band editor greyed
+  out.
+- **Resizing the window no longer throws it into the recovery screen**, and its
+  edges no longer show a tint of the wallpaper behind it.
+- **The title bar makes room for itself.** The tagline and the little creature
+  leave as soon as the signal would have to narrow, in every language, and
+  Rainbow mode no longer prints over the signal's own readouts. The signal
+  and the meters no longer stay frozen after you come back from the Compact
+  player.
+- **Smart EQ's speech bubble no longer covers Game mode, the delay or the page
+  title.** It finds room above or below its button at any window width.
+- **The phase meters on the EQ and Dimension cards** are drawn in the card's
+  own colour instead of a darker box, in both themes.
+- **Renaming a profile says why a name was refused in your language**, and the
+  Config page calls the preset's layer a preset, not a voicing.
 - **FluidEQ says when it is not reaching the output**, instead of looking
-  switched on while nothing goes through it. When part of the audio engine is
-  not running, its name no longer sits there in full colour as though
-  everything were fine, and "Fix this" reopens the card after you have put it
-  away once.
-- **The EQ page stops taking changes the engine cannot hear.** When the audio
-  engine is not reaching your output, the page now greys out and stops taking
-  changes, the same way it does when FluidEQ is switched off — instead of
-  letting you move bands that change nothing.
+  switched on while nothing goes through it, and the EQ page stops taking
+  changes the engine cannot hear, the way it does when FluidEQ is off.
 - **The Target button on the EQ page no longer flashes the wrong look for a
-  moment at launch** — it opens ready, and on the rare occasion it can't be
-  used, the whole button dims together instead of half of it.
-- **Help's pictures point at things again, the way a printed manual does.**
-  Each control on a screenshot now has a numbered circle beside the picture
-  and a line to it, with the same numbers in the list underneath, in the app
-  and in the printed guide alike. The old small pictures beside each line were
-  cut out of the screenshot, and most came out as empty squares or half a
-  word. Several lines also pointed at the wrong control, and those are
-  corrected.
-- **The guide shows this version.** The pictures of the EQ pages were
-  retaken, so they show Presets where they showed Voicing, and the Bands page
-  is shown twice: as it opens, with Bass, Mid and Treble, and with a band
-  selected. New chapters number the header, the left rail and Game presets;
-  the right rail's profiles and second output are numbered in their own
-  chapter; and Game mode and Also applied are explained where they sit.
-- **Labels that stayed in English follow your language.** The Bands page's
-  Filter list, the Squiglink import panel and the headphone correction graph
-  were English in every language. They are translated now, and each language
-  calls the FluidEQ Engine by one name everywhere.
-- **Every language uses the names on its own screen.** Smart EQ, the Studio,
-  the Exciter, Karaoke and the Equalizer APO engine were still named in
-  English inside translated sentences, and some features had two names in the
-  same language — French called Smart EQ three different things. Each
-  language now calls every feature by the label you see. Game presets follow
-  their English rename in Spanish, German, French, Portuguese and Russian;
-  Russian writes decibels as дБ; German and French address you the same way
-  throughout; and Spanish's preset picker no longer reads "Settings".
-- **Portuguese is one Portuguese.** About half of it was written for Portugal
-  and addressed you as "tu", the other half for Brazil with "você" — the Plus
-  terms and the account dialog on one side, most of the app on the other,
-  sometimes on the same screen. All of it is Brazilian Portuguese now.
-- **"Voicing" is gone for good.** The equaliser's picker became Presets in
-  this version, but a preset's curve on the graph, its chip under Also
-  applied and the driver list's hint still said Voicing. They say Preset. The
-  What's New tour also calls the themes Dark and Light, as the theme picker
-  does, and the Room's head test by its name.
-- **The Plus page no longer lists the Room as Plus-only.** Its locks came off
-  in this version, but the list headed "Only with Plus" still named it.
+  moment at launch.**
+- **Help's pictures point at things, the way a printed manual does.** Each
+  control on a picture has a numbered circle beside it and a line to it, with
+  the same numbers in the list underneath, in the app and in the printed guide
+  alike, and the pictures were retaken against the window as it is now.
+- **Every language uses the names on its own screen.** Labels that stayed in
+  English are translated; Smart EQ, the Studio, the Exciter, Karaoke and the
+  Equalizer APO engine are called in every sentence what the screen calls
+  them; Portuguese is Brazilian Portuguese throughout; Russian writes decibels
+  as дБ; and the theme picker calls its two themes Light and Dark.
+- **"Voicing" is gone for good.** The equaliser's picker became Presets, and a
+  preset's curve on the graph, its chip under Also applied and the driver
+  list's hint say Preset too.
 - **The engine finds the place a sound card actually loads it from.** Windows
   keeps an effect in one of eight places and which one a driver reads is
-  written down nowhere, so FluidEQ steps through them on the machine itself. It
-  was stepping over three of them, walking outputs back up a rung it had
-  already heard fail, throwing away the name of the rung it had just tried, and
-  knowing only two of Windows' own four effect ids — so on a Bluetooth headset
-  it came to rest in a place that endpoint is never read from, attached by
-  every reading and never once created.
-- **A flush of Windows' audio pipeline no longer puts a hole in the Room.**
-  The chain was rebuilt cold, and a cold room is silence.
-- **The room you draw is drawn to scale.** Stand a speaker further away than
-  the room is wide and it now stands outside its walls, where it is; and
-  turning Distance always walks the speakers out instead of stopping them at
-  the wall. A small room used to pin every speaker to the wall and then ignore
-  the dial.
+  written down nowhere, so FluidEQ steps through them on the machine itself.
+  It was stepping over three of them, and on a Bluetooth headset it came to
+  rest in a place that endpoint is never read from.
+- **The Room is as loud at 192 kHz as at 48**, a flush of Windows' audio
+  pipeline no longer puts a hole in it, and the room you draw is drawn to
+  scale: a speaker further away than the room is wide stands outside its
+  walls, where it is. Saved rooms keep every speaker's setting, mutes
+  included.
 - **The Master's loudness target works everywhere**, not only on tracks played
-  from the Library. Setting it and hearing nothing change was the old
-  behaviour; it now measures what is playing and lands on the number you asked
-  for.
-- **Switching sound profiles changes character, not volume.** All hundred-odd
-  of them were re-measured and levelled; Lo-Fi and Laptop, which played louder
-  than the rest, came down.
-- **The DSP page comes back to the processor you left it on**, instead of
-  always the Normalizer.
-- **The Room is as loud at 192 kHz as at 48.** A head is a filter, and it was
-  being resampled as if it were a sound: a tone left the room 12 dB louder at
-  192 kHz than at 48, and the large head played louder than the small one
-  inside the listening test that asks you to pick between them.
+  from the Library, and its readout says why it reads +0.0.
+- **The DSP page comes back to the stage you left it on**, instead of always
+  the Normalizer, and no longer shows a "System-wide" pill that told you
+  nothing the page did not.
 - **Eight controls that took an answer and did nothing with it** are either
   wired up or gone, and three more are no longer drawn on the screens that
-  cannot read them. The Room's headphone switch is off the page: it never
-  changed a sample.
-- **The Master's loudness readout says why it reads +0.0** rather than leaving
-  it as a number that looks wrong.
+  cannot read them.
 - **Shared audio is sent as it was recorded**, with the processing delay and
-  the presets answered the same way on both machines.
-- **The leaderboard shows real people.** The twelve invented names it was
-  built with are gone from every build.
-- **Plus given as a gift is not described as a subscription.** No badge saying
-  it is ending from its first day, no button to a payment page that has never
-  heard of the account, and it stops on the day it ends rather than a fortnight
-  later.
+  the presets answered the same way on both machines, and Share Audio no
+  longer asks the sender to pick Music or Game/Video.
+- **The leaderboard shows real people**, from first place down; the invented
+  names it was built with are gone from every build.
+- **Plus given as a gift is not described as a subscription**, and a maker
+  with another earned month waiting keeps Plus the moment one runs out.
 - **Sending more than two scenes in a month says exactly that**, and when you
-  can send again, rather than asking you to slow down.
-- **A server answer nobody can read no longer shuts the Studio**, and the page
-  says where the projects are.
-- **A scene's colours reach the rest of the window** — the engine label, the
-  arrows, the companion in the title bar — and the Library stops blurring
-  FluidEQ's own scenes as though they were a stranger's.
-- **The graph's wave sliders move the wave in the pane they are offered in.**
+  can send again; a server answer nobody can read no longer shuts the Studio.
+- **A scene's colours reach the rest of the window**, and the Library stops
+  blurring FluidEQ's own scenes as though they were a stranger's; the gallery's
+  pictures fill their panel.
+- **Signing out asks through a clear card**, the Animations switch takes effect
+  at once, and the player bar no longer says nothing is playing after the
+  window reloads mid-song.
+- **The Processes list names every program FluidEQ starts.** The helpers that
+  follow Windows' volume, tell FluidEQ which game is in front and play audio
+  another FluidEQ shares with you each have a row saying what they do, and
+  their memory is in the total.
 - **The Room is built on other people's measurements, and says so.** The
   acknowledgement names them, and SwiftF0's author with them.
-- **The guide matches the app again.** The Room's chapter was rewritten to the
-  page as it is now and re-photographed, and the chapters on Plus, the gallery
-  and the Studio say what the Studio costs, that a published scene waits for
-  approval, and what an approved scene earns.
 
 ---
 

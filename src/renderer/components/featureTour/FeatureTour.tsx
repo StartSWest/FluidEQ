@@ -15,6 +15,8 @@ import {
   useState,
 } from 'react';
 import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
+import { requestHelpGuide } from '../../help/helpGuideRequests';
+import { setWindowMode } from '../../player/windowModeStore';
 import { useTranslation } from '../../utils/I18nContext';
 import DialogHeader from '../DialogHeader';
 import type { ISlideActions, ITourSlide, TTourTab } from './slides';
@@ -133,9 +135,21 @@ export default function FeatureTour({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [close, goNext, goBack, isLast, isCovered]);
 
+  // Leaving for somewhere a slide sent you is not being done with the tour:
+  // it closes as if the tick were off, the way `onOpenTab` treats a tab.
   const actions = useMemo<ISlideActions>(
-    () => ({ openTab: onOpenTab }),
-    [onOpenTab],
+    () => ({
+      openTab: onOpenTab,
+      openPlayer: () => {
+        onClose(false);
+        setWindowMode('player').catch(() => undefined);
+      },
+      openGuide: () => {
+        onClose(false);
+        requestHelpGuide();
+      },
+    }),
+    [onOpenTab, onClose],
   );
 
   const slide = slides[index];
@@ -184,15 +198,16 @@ export default function FeatureTour({
             aria-label={t('tour.rail')}
           >
             {slides.map((entry, entryIndex) => {
-              // A group heading above the first entry of each kind: what
-              // this version brought, then what has been here all along.
+              // A heading above the first entry of each group: every release
+              // still shown as new under its own number, newest first, then
+              // what has been here all along.
               const startsGroup =
                 entryIndex === 0 ||
-                entry.isNew !== slides[entryIndex - 1].isNew;
+                entry.release !== slides[entryIndex - 1].release;
               let heading: string | null = null;
               if (startsGroup) {
-                heading = entry.isNew
-                  ? t('tour.rail.new')
+                heading = entry.release
+                  ? t('tour.rail.newIn', { version: entry.release })
                   : t('tour.rail.always');
               }
               return (
@@ -216,7 +231,7 @@ export default function FeatureTour({
                     <span className="feature-tour__rail-text">
                       <span className="feature-tour__rail-title">
                         {t(entry.titleKey)}
-                        {entry.isNew && (
+                        {entry.release && (
                           <span className="feature-tour__rail-new">
                             {t('tour.newBadge')}
                           </span>

@@ -33,11 +33,120 @@ const tour = {
   'tour.done': 'Got it',
   'tour.dontShowAgain': "Don't show this again for this version",
   'tour.releaseNotes': 'Full release notes',
-  'tour.rail.new': 'NEW IN THIS VERSION',
+  'tour.rail.newIn': 'NEW IN {version}',
   'tour.rail.always': 'ALSO IN FLUIDEQ',
   'tour.newBadge': 'NEW',
   'tour.howTitle': 'How to start',
   'tour.beta': 'Beta',
+
+  'tour.player.kicker': 'THE COMPACT PLAYER',
+  'tour.player.title': 'FluidEQ, folded into a player',
+  'tour.player.subtitle': 'One switch turns the window into a player',
+  'tour.player.lead':
+    'One switch in the title bar turns the window into the Compact player: the song, your equaliser, a visualizer and Up Next in one narrow column. The same switch takes you back to the page you left.',
+  'tour.player.point1':
+    'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
+  'tour.player.point2':
+    'Fold it to one line, keep it on top of other windows, or double-click the visualizer to fill the screen.',
+  'tour.player.point3':
+    'A Light or Dark theme of its own, and songs dropped on Up Next join the Library and the queue.',
+  'tour.player.how':
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.',
+  'tour.player.open': 'Try the Compact player',
+  'tour.player.imageAlt':
+    'The Compact player twice, in its Dark and in its Light theme: the song and its clock at the top, the equaliser with fifteen bands, Up Next below; and the same player folded to one line.',
+
+  'tour.games.kicker': 'GAME PRESETS',
+  'tour.games.title': 'Every game, its own sound',
+  'tour.games.subtitle': 'Switched when the game comes to the front',
+  'tour.games.lead':
+    'Pick a sound for each game once. When the game comes to the front, FluidEQ switches to it and keeps it until you close the game, however often you alt-tab, then puts back what you had.',
+  'tour.games.point1':
+    'Steam, Epic Games, EA, GOG, Ubisoft, Battle.net and Xbox games, or any program that is open.',
+  'tour.games.point2':
+    'The Gaming presets turn on Game mode, which cuts the delay FluidEQ adds, and the page shows that delay as measured.',
+  'tour.games.point3':
+    'A card on your desktop says what was switched, and another says what came back when the game closed.',
+  'tour.games.how':
+    'Open EQ, choose Game presets and press Add a game. Then pick its sound in the picker on its row.',
+  'tour.games.open': 'Open Game presets',
+  'tour.games.imageAlt':
+    'The Game presets page with four games, each with its own sound, and the cards FluidEQ shows on the desktop when a game comes to the front and when it closes.',
+
+  'tour.presets.kicker': 'NEW PRESETS',
+  'tour.presets.title': 'Presets that sound like the music',
+  'tour.presets.subtitle': 'Whole chains, all at one loudness',
+  'tour.presets.lead':
+    'Every preset was measured again and levelled, so switching changes the character, not the volume, and each one now sounds as clearly on the FluidEQ Engine as on Equalizer APO.',
+  'tour.presets.point1':
+    '{chains} chains, {styles} of them music styles, plus Room copies of Music, Movie and Gaming.',
+  'tour.presets.point2':
+    'A preset’s curve shows on the graph as a layer of its own, with a strength you can turn down.',
+  'tour.presets.point3':
+    'None switches every stage off in one pick; the chains you star come right after it.',
+  'tour.presets.how':
+    'Open EQ and press Presets, or pick a chain at the top of DSP.',
+  'tour.presets.open': 'Open EQ',
+  'tour.presets.imageAlt':
+    'The presets picker with Rock chosen, the stages its chain switches on, and three chains measured at the same loudness.',
+  'tour.presets.chain': 'A whole chain, not just a curve',
+  'tour.presets.level': 'All at one loudness',
+  'tour.presets.levelNote': 'Switching changes the character, not the volume.',
+
+  'tour.tone.kicker': 'TONE CONTROLS',
+  'tour.tone.title': 'Bass, Mid and Treble, like an amplifier',
+  'tour.tone.subtitle': 'Three knobs over the whole rack',
+  'tour.tone.lead':
+    'With no band selected, three knobs move their third of the sound across the whole rack at once: the quickest way to warm a song or brighten it, without touching a single band.',
+  'tour.tone.point1':
+    'The equaliser opens on the whole rack, with nothing selected.',
+  'tour.tone.point2':
+    'A new twenty-band layout, and every layout on the standard frequencies.',
+  'tour.tone.point3':
+    'Bands open as wide as their spacing: no holes between them, and no two playing the same note.',
+  'tour.tone.how':
+    'Open EQ with no band selected and turn Bass, Mid or Treble. Ctrl+click a knob to put its third back to flat.',
+  'tour.tone.open': 'Open EQ',
+  'tour.tone.imageAlt':
+    'The equaliser’s curve in its bass, middle and treble thirds, the three knobs that move them, and the quick layouts from six to thirty-one bands.',
+
+  'tour.studio.kicker': 'FLUIDEQ PLUS',
+  'tour.studio.title': 'Make your own visualizer',
+  'tour.studio.subtitle': 'Free for 15 days, or earn a month',
+  'tour.studio.lead':
+    'The Studio turns an idea into a scene that moves with your music. It is part of Plus now, and a new account can try it free for fifteen days, with no card and nothing charged when the trial ends.',
+  'tour.studio.point1':
+    'Publish a scene and, once it is approved, your next month of Plus is free.',
+  'tour.studio.point2':
+    'Every member’s scene is reviewed before it reaches the gallery.',
+  'tour.studio.point3':
+    'Anything you made before is kept, in the folder the Studio names.',
+  'tour.studio.how':
+    'Open Plus and choose Studio in its rail. Without Plus, the page there offers the free trial.',
+  'tour.studio.open': 'Open Plus',
+  'tour.studio.imageAlt':
+    'An aurora over mountains made in the Studio, the idea it was made from, the fifteen-day trial and the month an approved scene earns.',
+  'tour.studio.idea':
+    'Northern lights over a mountain lake. The bass swells the aurora and the stars flicker on the beat.',
+  'tour.studio.earned': 'Approved: next month free',
+
+  'tour.help.kicker': 'HELP',
+  'tour.help.title': 'Ask the guide in your own words',
+  'tour.help.subtitle': 'Typos, plurals and ten languages',
+  'tour.help.lead':
+    'Search the guide the way you would ask a friend — “no sound”, “limiter”, “wallpaper” — in any of ten languages. The best chapter comes first, and the guide takes you to the control, ringed on the picture.',
+  'tour.help.point1':
+    'It forgives typos and plurals, and knows the words people use for things.',
+  'tour.help.point2':
+    'Every control on a picture is numbered like a printed manual, and the pictures follow your theme.',
+  'tour.help.point3':
+    'F1 opens it from anywhere, and Enter walks to the next match.',
+  'tour.help.how':
+    'Press F1, or open the book in the title bar and choose User guide, then type what you are looking for.',
+  'tour.help.open': 'Open Help',
+  'tour.help.imageAlt':
+    'The user guide searched for “no sound”: its chapters ranked with the words marked, and a picture with its controls numbered.',
+  'tour.help.query': 'no sound',
 
   'tour.engine.kicker': 'OUR OWN AUDIO ENGINE',
   'tour.engine.title': 'Meet the FluidEQ Engine',
@@ -51,7 +160,7 @@ const tour = {
   'tour.engine.point3':
     'Quit FluidEQ and your sound goes back to normal at once, even after a crash.',
   'tour.engine.how':
-    'Choose the FluidEQ Engine when you install, or open the actions menu and choose it there. Then open DSP and switch a stage on while any app plays.',
+    'Choose the FluidEQ Engine when you install, or open the actions menu behind the pulse icon at the top right, press the engine card at its top, pick FluidEQ Engine and press Apply. Then open DSP and switch a stage on while any app plays.',
   'tour.engine.open': 'Open DSP',
   'tour.engine.flow.label':
     'Everything the computer plays passes through the FluidEQ Engine — your EQ, then the DSP rack — on its way to your headphones and speakers.',
@@ -67,13 +176,13 @@ const tour = {
 
   'tour.room.kicker': 'SURROUND ON HEADPHONES',
   'tour.room.title': 'Sit in the Room',
-  'tour.room.subtitle': 'Every channel a speaker around your head',
+  'tour.room.subtitle': 'Twenty-four rooms, all of them free',
   'tour.room.lead':
-    'The Room turns your headphones into a listening room. Each channel of the sound becomes a speaker standing around you, rendered through a measured head and the walls of a room you shape yourself, so a film sits in front of you instead of inside your head.',
+    'The Room turns your headphones into a listening room, every channel a speaker standing around you. Thirteen new rooms join the eleven classics, each told apart by measurement, and all of it is free.',
   'tour.room.point1':
-    'Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring, decided by what is playing.',
+    'Stereo becomes two speakers in front of you, or fills the room if you ask; a 5.1 film five and the sub; a 7.1 game the whole ring.',
   'tour.room.point2':
-    'Twenty-four rooms to start from — studio, living room, cinema, concert hall — plus your own, saved under a name.',
+    'Pick a room under Featured, Classic rooms or Yours; everything a room is made of is on its page.',
   'tour.room.point3':
     'A listening test picks the head that puts sounds in front of you, by ear, in five pairs.',
   'tour.room.how':
@@ -159,18 +268,18 @@ const tour = {
 
   'tour.theme.kicker': 'A NEW LOOK',
   'tour.theme.title': 'Meet the Dark theme',
-  'tour.theme.subtitle': 'Pure black, for late nights and OLED screens',
+  'tour.theme.subtitle': 'Near-black, for late nights and OLED screens',
   'tour.theme.lead':
     'FluidEQ now has a second face. Dark drops every trace of the slate-navy the app was born with: panels, menus and bars go monochrome, the accent stays, and the spectrum is the only colour in the room.',
   'tour.theme.point1':
-    'True black backgrounds. On an OLED display the pixels around the graph switch off.',
+    'Near-black backgrounds. On an OLED display the space around the graph goes almost dark.',
   'tour.theme.point2':
-    'Every window follows: menus, dialogs, the karaoke stage and the Library all change together.',
+    'Every page follows: menus, dialogs, the karaoke stage and the Library all change together. The Compact player keeps a theme of its own.',
   'tour.theme.point3':
     'Your accent colour and rainbow mode carry over. Nothing about your sound changes. It is only the paint.',
   'tour.theme.howTitle': 'How to switch',
   'tour.theme.how':
-    'Open the menu behind the pulse icon in the top-right corner and pick Dark under Theme, at the bottom of it. Light is one pick away if you want it back.',
+    'Open the menu behind the pulse icon at the top right and pick Dark beside Theme, in the settings at the foot of the menu. Light is one pick away if you want it back.',
   'tour.theme.tryBlack': 'Switch to Dark now',
   'tour.theme.tryOcean': 'Back to Light',
   'tour.theme.imageAlt':
@@ -192,10 +301,10 @@ const tour = {
     'Open the Share Audio tab, choose "Play audio on this computer" and press "Create connection code". Copy the code shown for your network.',
   'tour.share.step2Title': 'On every other PC, paste it',
   'tour.share.step2':
-    'Open FluidEQ there, go to Share Audio, choose "Send audio from this computer", pick Music or Game/Video, paste the code and press "Connect and send". Its system audio starts flowing.',
+    'Open FluidEQ there, go to Share Audio, choose “Send audio from this computer”, paste the code and press “Connect and send”. Its system audio starts flowing, untouched: the effects are applied on the computer you listen on.',
   'tour.share.step3Title': 'Listen, and set the level',
   'tour.share.step3':
-    'Music keeps a bigger safety buffer for uninterrupted listening; Game/Video runs with the lowest delay for lip-sync. Every sender is mixed into the receiver’s output, shaped by its EQ and set by its Volume. The receiver’s playback bar shows the latest sender’s song, and its buttons work across the wire.',
+    'Each sender plays with a short buffer that catches up by itself after a hiccup. Every sender is mixed into the receiver’s output and shaped by its EQ. The receiver’s playback bar shows the latest sender’s song, and its buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
@@ -221,22 +330,22 @@ const tour = {
   'tour.library.point3':
     'Playlists and a permanent Favourites list. Right-click any song to add it to either, or to the queue.',
   'tour.library.point4':
-    'Smart EQ song memory: flip "Save for this song" while it plays and the correction you make is remembered for that track.',
+    'Smart EQ song memory: while Smart EQ keeps measuring, flip “Save for this song”, and after two minutes its correction is kept for that track and comes back when it plays again.',
   'tour.library.how':
     'Open the Library tab, press "Add folder" or drop a folder on the page, and let the scan finish. Pick Albums, Artists, Genres, Songs, Folders or Tree, then press Play.',
   'tour.library.open': 'Open Library',
 
   'tour.dsp.kicker': 'A MASTERING RACK',
   'tour.dsp.title': 'The DSP rack',
-  'tour.dsp.subtitle': 'Nine stages, each with its own graph',
+  'tour.dsp.subtitle': 'Ten stages, each on a page of its own',
   'tour.dsp.lead':
-    'A rack of studio stages, in order: Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer and Master, plus a crossfade between Library tracks. Under the FluidEQ Engine it plays on everything the computer plays; under Equalizer APO, on the Library. Each stage is a card with a live graph, presets, and an Isolate button to hear only what it is doing.',
+    'A rack of studio stages: Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Room, Maximizer and Master, plus a crossfade between Library tracks. Under the FluidEQ Engine it plays on everything the computer plays; under Equalizer APO, on the Library. Each stage has its own page with a live view, most have presets, and five have an Isolate switch to hear only what they are doing.',
   'tour.dsp.point1':
     'Denoise repairs hiss, hum and clicks as they play, and a neural voice cleaner works on Library tracks.',
   'tour.dsp.point2':
     'Bass Forge adds a real octave below the bass; Bass Punch shapes its attack, sustain and bloom, with a Mix up to 200%.',
   'tour.dsp.point3':
-    'A fifteen-band parametric Equaliser with minimum or linear phase, mid/side, oversampling and dozens of named presets.',
+    'A parametric Equaliser of 6 to 31 bands, fifteen to start, with minimum or linear phase, mid/side, oversampling and over a hundred named presets.',
   'tour.dsp.point4':
     'Master with a LUFS loudness target and true-peak safety, delivery presets from Streaming to Vinyl, and a Gain match to compare sound, not volume.',
   'tour.dsp.how':
@@ -286,9 +395,9 @@ const tour = {
   'tour.karaoke.lead':
     'Drop in a song with or without a lyric file and FluidEQ pairs them into a playlist, shows the timed lyrics over the cover art or video, listens to your microphone and draws your pitch against the melody. Everything stays on this computer; the mic is never recorded or played back.',
   'tour.karaoke.point1':
-    'A Guide vocal slider that sweeps from the original to backing only, removing the lead voice without a separate file.',
+    'A Guide vocal slider, once FluidEQ has separated the song’s voice in the Maker: it sweeps from backing only to the full original, with no instrumental file needed.',
   'tour.karaoke.point2':
-    'A pitch lane in Notes or Curve view: the song’s notes as blocks, your voice as a live line, with High, In tune and Low feedback.',
+    'A pitch lane: the song’s notes as blocks and your voice as a live line over them, with High, In tune and Low feedback.',
   'tour.karaoke.point3':
     'A performance review afterwards that lists the parts to practise, with a count-in for another run.',
   'tour.karaoke.point4':
@@ -322,11 +431,11 @@ const tour = {
   'tour.media.point1':
     'One search field that searches whichever site is open, with recent searches you can clear.',
   'tour.media.point2':
-    '"Block ads" skips video ads and hides ad slots on YouTube.',
+    'Sign in once: the player keeps your logins between visits until you sign out.',
   'tour.media.point3':
     'Resume: the player remembers the last page and where you were in it, and brings you back there.',
   'tour.media.point4':
-    'Downloads with a progress pill and "Show in folder" when done, and a "Sign out of all sites" button that clears every cookie and login in one press.',
+    'Downloads with a progress pill and “Show in folder” when done, and a sign-out button, the door at the end of the toolbar, that clears every cookie and login in one press.',
   'tour.media.how':
     'Open the Online Media tab, pick a site from the row at the top, type in the search field and press Search. Back, Forward and Reload work as in a browser.',
   'tour.media.open': 'Open Online Media',
