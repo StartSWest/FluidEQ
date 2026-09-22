@@ -528,7 +528,7 @@ void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
   const auto sum_of = [](const Graph::LatencyParts& parts) {
     const FeqChainLatencyParts& rack = parts.rack;
     return rack.linear_eq + rack.restoration + rack.leveler + rack.room +
-           rack.bass_punch + rack.maximizer + rack.headroom + rack.safety +
+           rack.bass_punch + rack.maximizer + rack.headroom +
            parts.curves + parts.eq_phase + parts.curve_phase +
            parts.convolution + parts.guard;
   };

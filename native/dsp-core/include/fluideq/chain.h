@@ -55,7 +55,7 @@ extern "C" {
  *
  * Every channel gets the EQ, the exciter, the restoration's alignment and
  * every level stage, and the level stages make ONE decision for all of them:
- * the compressor, the maximizer, the headroom and the safety limiter each
+ * the compressor, the maximizer and the headroom each
  * listen across every channel and apply the same gain to each, so a surround
  * mix never pumps out of balance. The stages that are stereo by nature —
  * width, both bass stages, mid/side — work on the front pair and leave the
@@ -281,13 +281,6 @@ typedef struct FeqChainSettings {
      */
     int matched_bypass;
   } master;
-  /**
-   * The A/B that proves the safety net is the net and not the sound.
-   *
-   * A setting rather than a build flag because the whole value of it is
-   * switching while the same audio plays.
-   */
-  int output_safety_enabled;
   /**
    * Whether a host with more than two channels runs the rack on all of them.
    *
@@ -525,15 +518,13 @@ typedef struct FeqChainLatencyParts {
   uint32_t maximizer;
   /** The Master's auto headroom look-ahead, likewise. */
   uint32_t headroom;
-  /** The output safety's look-ahead, while the safety is on. */
-  uint32_t safety;
 } FeqChainLatencyParts;
 
 void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * compressor, maximizer, headroom, safety, master. CONTROL planning snapshot,
+ * compressor, maximizer, headroom, master. CONTROL planning snapshot,
  * read before publishing a prepared chain. Room protection reflects the planned
  * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);

@@ -126,7 +126,6 @@ export const LATENCY_STAGES = [
   'maximizer',
   'headroom',
   'master',
-  'safety',
   'eqPhase',
   'curvePhase',
   'convolution',

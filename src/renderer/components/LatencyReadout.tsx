@@ -30,7 +30,6 @@ const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
   maximizer: 'dsp.maximizer.title',
   headroom: 'dsp.master.autoHeadroom',
   master: 'dsp.master.title',
-  safety: 'dsp.latency.stage.safety',
   eqPhase: 'eq.title',
   curvePhase: 'eq.mode.curves',
   convolution: 'eq.layers.convolution',

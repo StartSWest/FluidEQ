@@ -173,7 +173,6 @@ void a_measured_track_is_left_to_its_host() {
 /** Whatever the target asks for, the ceiling is still the ceiling. */
 void the_ceiling_holds() {
   FeqChainSettings settings = master_only(-6.0);
-  settings.output_safety_enabled = 1;
   Rack rack = build(settings);
   std::vector<float> left(kFrames);
   std::vector<float> right(kFrames);

@@ -330,43 +330,29 @@ int main() {
   FeqMasterTelemetry first{};
   first.auto_headroom_reduction_db = -2.0;
   first.auto_headroom_true_peak_db = -6.0;
-  first.safety_reduction_db = -0.5;
-  first.safety_true_peak_db = -3.0;
-  first.dc_correction_db = -70.0;
-  first.repaired_samples = 2;
-  first.true_peak_factor = 4;
-  first.safety_enabled = 1;
 
   FeqMasterTelemetry second = first;
   // The block the meter has to keep: deeper reduction, higher peak.
   second.auto_headroom_reduction_db = -9.5;
   second.auto_headroom_true_peak_db = -1.0;
-  second.safety_reduction_db = -0.25;  // shallower, and must be ignored
-  second.safety_true_peak_db = -4.0;   // lower, and must be ignored
-  second.dc_correction_db = -80.0;     // quieter, and must be ignored
-  second.repaired_samples = 3;
+
+  FeqMasterTelemetry third = first;
+  // Shallower and quieter, and both must be ignored.
+  third.auto_headroom_reduction_db = -0.25;
+  third.auto_headroom_true_peak_db = -4.0;
 
   feq_meters_publish_master(meters, &first);
   feq_meters_publish_master(meters, &second);
+  feq_meters_publish_master(meters, &third);
 
   FeqMasterTelemetry taken{};
   feq_meters_read_master(meters, &taken);
-  std::printf("       auto headroom %.2f dB over two blocks of -2.00 / -9.50\n",
+  std::printf("       auto headroom %.2f dB over blocks of -2.00 / -9.50 / -0.25\n",
               taken.auto_headroom_reduction_db);
   check(std::fabs(taken.auto_headroom_reduction_db + 9.5) < 1e-4,
         "the window keeps the deepest Auto Headroom reduction, not the last");
   check(std::fabs(taken.auto_headroom_true_peak_db + 1.0) < 1e-4,
         "and the highest peak that arrived at it");
-  check(std::fabs(taken.safety_reduction_db + 0.5) < 1e-4,
-        "the guard's deepest reduction survives a shallower block after it");
-  check(std::fabs(taken.safety_true_peak_db + 3.0) < 1e-4,
-        "and its highest peak survives a quieter one");
-  check(std::fabs(taken.dc_correction_db + 70.0) < 1e-4,
-        "DC reports the worst baseline seen, not the most recent");
-  check(taken.repaired_samples == 5,
-        "faults are summed across the window rather than replaced");
-  check(taken.true_peak_factor == 4 && taken.safety_enabled != 0,
-        "and the configuration comes through as it was published");
 
   /**
    * The clear, which is what lets a peak event end.
@@ -377,14 +363,10 @@ int main() {
    */
   FeqMasterTelemetry after{};
   feq_meters_read_master(meters, &after);
-  check(after.auto_headroom_reduction_db == 0.0 &&
-            after.safety_reduction_db == 0.0,
+  check(after.auto_headroom_reduction_db == 0.0,
         "a window in which nothing happened reports no reduction");
-  check(after.auto_headroom_true_peak_db < -119.0 &&
-            after.safety_true_peak_db < -119.0 &&
-            after.dc_correction_db < -119.0,
-        "and its peaks fall back to the floor rather than holding");
-  check(after.repaired_samples == 0, "and its fault count starts again at zero");
+  check(after.auto_headroom_true_peak_db < -119.0,
+        "and its peak falls back to the floor rather than holding");
 
   /**
    * The Normalizer's bars decay instead of clearing, and that is deliberate.

@@ -52,7 +52,7 @@ import {
   setDspDimensionGuard,
   setDspMaximizerReduction,
   setDspNormalizerMeter,
-  setDspOutputSafetyMeter,
+  setDspHeadroomMeter,
   setDspPeak,
   setDspScatter,
 } from './store';
@@ -227,30 +227,17 @@ export const createNativeMeters = (
     // zero decibels went unseen for the life of the stage.
     setDspLoudness(frame.loudness);
     /**
-     * The Master card's five readouts, which had no source at all.
+     * The Master card's Auto Headroom readouts, which had no source at all.
      *
-     * Auto headroom, True peak, Safety active, DC correction and faults were
-     * fed by the worklet's `outputSafety` message. The worklet is a passthrough
-     * now and posts nothing, so every one of them printed its construction
+     * They were fed by the worklet's `outputSafety` message. The worklet is a
+     * passthrough now and posts nothing, so each printed its construction
      * default — 0.0 dB of reduction and a -120 dBFS peak — over a chain that
-     * was measuring all five and discarding them. Nothing about the card was
+     * was measuring both and discarding them. Nothing about the card was
      * broken; it was reading an engine that had stopped talking.
-     *
-     * Shaped here rather than in the store because the wire is flat and the
-     * store's type is not: Auto Headroom is a nested stage in the panel's model
-     * and two adjacent floats on the pipe.
      */
-    setDspOutputSafetyMeter({
-      enabled: frame.master.safetyEnabled,
-      truePeakFactor: frame.master.truePeakFactor,
-      postFilterNormalizer: {
-        gainReductionDb: frame.master.autoHeadroomReductionDb,
-        inputTruePeakDb: frame.master.autoHeadroomTruePeakDb,
-      },
-      gainReductionDb: frame.master.safetyReductionDb,
-      inputTruePeakDb: frame.master.safetyTruePeakDb,
-      dcCorrectionDb: frame.master.dcCorrectionDb,
-      repairedSamples: frame.master.repairedSamples,
+    setDspHeadroomMeter({
+      gainReductionDb: frame.master.autoHeadroomReductionDb,
+      inputTruePeakDb: frame.master.autoHeadroomTruePeakDb,
     });
     // The Normalizer's four bars, dead for the same reason and fixed the same
     // way. The gain beside them is the one the engine is actually applying,

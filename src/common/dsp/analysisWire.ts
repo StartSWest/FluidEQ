@@ -253,30 +253,14 @@ export interface IHostAnalysisDenoise {
 }
 
 /**
- * Everything the Master card prints, measured by the tail that produced it.
- *
- * Auto Headroom and the final guard are two separate limiters and the card
- * shows them separately, because they mean different things: the first is the
- * chain reserving room for gain still to come, the second is a fault boundary
- * that should read zero on every piece of music ever made.
+ * What the Master card prints, measured by the stage that produced it: the
+ * chain's Auto Headroom, reserving room for gain still to come.
  */
 export interface IHostAnalysisMaster {
   /** Auto Headroom's deepest reduction over the window, dB. Never positive. */
   autoHeadroomReductionDb: number;
   /** What Auto Headroom saw arriving, dBTP, floored at -120. */
   autoHeadroomTruePeakDb: number;
-  /** The guard's own deepest reduction, dB. Never positive. */
-  safetyReductionDb: number;
-  /** What the guard saw arriving, dBTP, floored at -120. */
-  safetyTruePeakDb: number;
-  /** The DC baseline the blocker removed, dBFS, floored at -120. */
-  dcCorrectionDb: number;
-  /** Non-finite samples repaired over the window. */
-  repairedSamples: number;
-  /** The oversampling the true-peak detectors ran at. */
-  truePeakFactor: 1 | 2 | 4;
-  /** Whether the guard is armed; development may bypass it. */
-  safetyEnabled: boolean;
 }
 
 /** The Normalizer's before and after bars, and the gain between them. */

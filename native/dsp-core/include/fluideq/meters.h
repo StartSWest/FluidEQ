@@ -256,14 +256,13 @@ void feq_meters_read_dimension(FeqMeters* meters, float* out_guard);
 void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db);
 
 /**
- * What the Master tail did to this block: Auto Headroom, then the guard.
+ * What the Master's Auto Headroom did to this block.
  *
- * Every number the Master card prints — Auto headroom, True peak, Safety
- * active, DC correction, faults — used to arrive in the worklet's `outputSafety`
- * message. The worklet is a passthrough now and posts nothing, so all five sat
- * at their construction defaults for the life of the app while the C++ chain
- * measured them and threw them away: `feq_output_safety_take_telemetry` and
- * `feq_post_filter_normalizer_take_telemetry` were compiled and called by
+ * The numbers the Master card prints used to arrive in the worklet's
+ * `outputSafety` message. The worklet is a passthrough now and posts nothing,
+ * so they sat at their construction defaults for the life of the app while
+ * the C++ chain measured them and threw them away:
+ * `feq_post_filter_normalizer_take_telemetry` was compiled and called by
  * nobody. A Master showing "Auto headroom 0.0 dB" while it is holding the
  * signal down six decibels is worse than one showing nothing, because it is a
  * measurement and it is wrong.
@@ -273,18 +272,6 @@ typedef struct FeqMasterTelemetry {
   double auto_headroom_reduction_db;
   /** What Auto Headroom saw arriving, dBTP. */
   double auto_headroom_true_peak_db;
-  /** The final guard's own deepest gain, dB. Never positive. */
-  double safety_reduction_db;
-  /** What the final guard saw arriving, dBTP. */
-  double safety_true_peak_db;
-  /** The estimated DC baseline the blocker removed, dBFS. */
-  double dc_correction_db;
-  /** Samples repaired because they arrived non-finite, over the window. */
-  uint64_t repaired_samples;
-  /** 1, 2 or 4: the oversampling the true-peak detectors are running at. */
-  uint32_t true_peak_factor;
-  /** Whether the guard is armed at all; development may bypass it. */
-  int safety_enabled;
 } FeqMasterTelemetry;
 
 /**

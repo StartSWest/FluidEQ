@@ -55,12 +55,6 @@ interface IAnalysisTail {
   dimensionGuard: number;
   autoHeadroomReductionDb: number;
   autoHeadroomTruePeakDb: number;
-  safetyReductionDb: number;
-  safetyTruePeakDb: number;
-  dcCorrectionDb: number;
-  repairedSamples: number;
-  truePeakFactor: number;
-  safetyEnabled: boolean;
   normalizerInputPeaks: readonly [number, number];
   normalizerOutputPeaks: readonly [number, number];
   normalizerAppliedGainDb: number;
@@ -114,12 +108,11 @@ const buildAnalysis = (options: {
     frame.writeFloatLE(tail.dimensionGuard, 60);
     frame.writeFloatLE(tail.autoHeadroomReductionDb, 64);
     frame.writeFloatLE(tail.autoHeadroomTruePeakDb, 68);
-    frame.writeFloatLE(tail.safetyReductionDb, 72);
-    frame.writeFloatLE(tail.safetyTruePeakDb, 76);
-    frame.writeFloatLE(tail.dcCorrectionDb, 80);
-    frame.writeUInt32LE(tail.repairedSamples, 84);
-    frame.writeUInt32LE(tail.truePeakFactor, 88);
-    frame.writeUInt32LE(tail.safetyEnabled ? 1 : 0, 92);
+    // 72 through 92 were the final guard's six words, zero since its removal;
+    // written as something else here so a decoder that read them would show.
+    for (let offset = 72; offset <= 92; offset += 4) {
+      frame.writeUInt32LE(0xdeadbeef, offset);
+    }
     frame.writeFloatLE(tail.normalizerInputPeaks[0], 96);
     frame.writeFloatLE(tail.normalizerInputPeaks[1], 100);
     frame.writeFloatLE(tail.normalizerOutputPeaks[0], 104);
@@ -409,12 +402,6 @@ describe('the Master, Normalizer and Dimension fields', () => {
     dimensionGuard: 0.5,
     autoHeadroomReductionDb: -6.5,
     autoHeadroomTruePeakDb: -1.25,
-    safetyReductionDb: -0.75,
-    safetyTruePeakDb: -0.25,
-    dcCorrectionDb: -54,
-    repairedSamples: 7,
-    truePeakFactor: 2,
-    safetyEnabled: false,
     normalizerInputPeaks: [0.375, 0.4375] as const,
     normalizerOutputPeaks: [0.625, 0.6875] as const,
     normalizerAppliedGainDb: 4.5,
@@ -429,12 +416,6 @@ describe('the Master, Normalizer and Dimension fields', () => {
     expect(decoded?.master).toEqual({
       autoHeadroomReductionDb: -6.5,
       autoHeadroomTruePeakDb: -1.25,
-      safetyReductionDb: -0.75,
-      safetyTruePeakDb: -0.25,
-      dcCorrectionDb: -54,
-      repairedSamples: 7,
-      truePeakFactor: 2,
-      safetyEnabled: false,
     });
     expect(decoded?.normalizer).toEqual({
       inputPeaks: [0.375, 0.4375],
@@ -464,27 +445,6 @@ describe('the Master, Normalizer and Dimension fields', () => {
     expect(decoded?.master.autoHeadroomReductionDb).toBeCloseTo(-6.5, 6);
     expect(decoded?.normalizer.appliedGainDb).toBeCloseTo(4.5, 6);
     expect(decoded?.spectra.master?.[0]).toBeCloseTo(-12, 6);
-  });
-
-  /**
-   * An oversampling factor this build does not know is not printed as a fact.
-   *
-   * The panel puts this number beside the ceiling it was measured at. A zero
-   * from a frame written by some other build would read as "measured at 0x",
-   * which is not a thing; four overstates the measurement rather than
-   * understating it, which is the safe direction for a headroom readout.
-   */
-  it('falls back to 4x for a true-peak factor it does not recognise', () => {
-    const frame = buildAnalysis({
-      stages: ['master'],
-      withScope: false,
-      tail,
-    });
-    frame.writeUInt32LE(0, 88);
-    expect(decodeAnalysis(frame)?.master.truePeakFactor).toBe(4);
-
-    frame.writeUInt32LE(1, 88);
-    expect(decodeAnalysis(frame)?.master.truePeakFactor).toBe(1);
   });
 });
 
@@ -545,12 +505,6 @@ describe('the Bass Forge and Bass Punch meters', () => {
           dimensionGuard: 0.5,
           autoHeadroomReductionDb: -6.5,
           autoHeadroomTruePeakDb: -1.25,
-          safetyReductionDb: -0.75,
-          safetyTruePeakDb: -0.25,
-          dcCorrectionDb: -54,
-          repairedSamples: 7,
-          truePeakFactor: 2,
-          safetyEnabled: false,
           normalizerInputPeaks: [0.375, 0.4375],
           normalizerOutputPeaks: [0.625, 0.6875],
           normalizerAppliedGainDb: 4.5,

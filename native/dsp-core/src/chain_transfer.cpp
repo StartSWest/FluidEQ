@@ -136,12 +136,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // this chain's to decide, as the Maximizer's is above.
   feq_linked_limiter_set_look_ahead(&prepared.post_normalizer.limiter,
                                     chain_headroom_look_ahead(&prepared));
-  swap(prepared.safety, previous.safety);
-  swap(prepared.safety_dc, previous.safety_dc);
-  swap(prepared.safety_detectors, previous.safety_detectors);
-  swap(prepared.safety_delay, previous.safety_delay);
-  swap(prepared.safety_delay_pointers, previous.safety_delay_pointers);
-  swap(prepared.safety_reduction, previous.safety_reduction);
   swap(prepared.loudness_meter, previous.loudness_meter);
 
   swap(prepared.input_gain_now, previous.input_gain_now);

@@ -25,9 +25,7 @@ import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
 import { resetAudioEngineStatus } from '../../renderer/utils/useAudioEngineStatus';
 import {
   TDspEngineState,
-  readDspOutputSafetyEnabled,
   setDspNativeState,
-  setDspOutputSafetyEnabled,
   setDspSampleRate,
 } from '../../renderer/dsp/store';
 
@@ -138,18 +136,6 @@ describe('DspPanel', () => {
         /Received shared audio, karaoke, videos and other apps are not processed/i,
       ),
     ).toBeInTheDocument();
-  });
-
-  it('offers an ephemeral final-safety A/B in development', () => {
-    act(() => setDspOutputSafetyEnabled(true));
-    renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Master/i }));
-    const toggle = screen.getByRole('checkbox', { name: 'Safety A/B' });
-    expect(toggle).toBeChecked();
-    fireEvent.click(toggle);
-    expect(readDspOutputSafetyEnabled()).toBe(false);
-    expect(toggle).not.toBeChecked();
-    act(() => setDspOutputSafetyEnabled(true));
   });
 
   it('shows the automatic system rate compactly in the DSP title', () => {

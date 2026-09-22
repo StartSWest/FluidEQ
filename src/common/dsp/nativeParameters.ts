@@ -254,14 +254,6 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 1707, path: 'master.peakLimitingDb', kind: 'number' },
   { id: 1708, path: 'master.matchedBypass', kind: 'boolean' },
 
-  /**
-   * The A/B that proves the safety net is the net and not the sound.
-   *
-   * Carried in the protocol rather than left to a build flag because the whole
-   * value of it is switching while the same audio plays.
-   */
-  { id: 1901, path: 'debug.outputSafetyEnabled', kind: 'boolean' },
-
   /*
    * Denoise owns 2200-2299. 2000-2199 belongs to the bass stages.
    *

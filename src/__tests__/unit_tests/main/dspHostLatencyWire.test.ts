@@ -12,9 +12,10 @@ it('decodes processing buffers separately from the output device buffer', () => 
   bytes.writeUInt32LE(1440, 24);
   bytes.writeUInt32LE(48000, 80);
   bytes.writeUInt32LE(336, 112);
-  // linear EQ, restoration, leveler, room, bass punch, maximizer, headroom, safety.
+  // linear EQ, restoration, leveler, room, bass punch, maximizer, headroom,
+  // then the word the final guard used to write, a zero since it was removed.
   bytes.writeUInt32LE(240, 136);
-  bytes.writeUInt32LE(96, 144);
+  bytes.writeUInt32LE(96, 140);
   bytes.write('{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}', 152, 'ascii');
   const result = decodeTelemetry(bytes);
   expect(result?.latencyFrames).toBe(1440);
@@ -25,7 +26,7 @@ it('decodes processing buffers separately from the output device buffer', () => 
       frames: 336,
       parts: [
         { stage: 'maximizer', frames: 240 },
-        { stage: 'safety', frames: 96 },
+        { stage: 'headroom', frames: 96 },
       ],
     },
   });

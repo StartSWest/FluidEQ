@@ -104,8 +104,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   const uint32_t active = feq_chain_active_stages(rack_.get());
   const char* const names[] = {"leveler", "restoration", "exciter", "bassForge",
       "linearEq", "bassPunch", "room", "dimension", "compressor", "maximizer",
-      "headroom", "safety", "master"};
-  for (uint32_t stage = 0; stage < 13u; ++stage) {
+      "headroom", "master"};
+  for (uint32_t stage = 0; stage < 12u; ++stage) {
     if ((active & (1u << stage)) != 0u) active_stages_.emplace_back(names[stage]);
   }
   // Game mode, from the rack's own value or the EQ side's directive: the

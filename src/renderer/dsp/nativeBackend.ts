@@ -66,10 +66,7 @@ export interface INativeBackendController {
    * and a device opened first is a device that has already produced a block by
    * the time the chain arrives.
    */
-  engage: (
-    settings: IDspSettings,
-    outputSafetyEnabled: boolean,
-  ) => Promise<boolean>;
+  engage: (settings: IDspSettings) => Promise<boolean>;
   /** Release the endpoint, decoder decks, and native process. */
   disengage: () => Promise<void>;
   /**
@@ -81,10 +78,7 @@ export interface INativeBackendController {
    * carried these settings or newer ones — true means the host now holds a
    * chain at least as new as the one asked for.
    */
-  update: (
-    settings: IDspSettings,
-    outputSafetyEnabled: boolean,
-  ) => Promise<boolean>;
+  update: (settings: IDspSettings) => Promise<boolean>;
   readonly transport: INativeTransport;
 }
 
@@ -169,7 +163,6 @@ const serialize = <T>(work: () => Promise<T>): Promise<T> => {
 /** The newest settings asked for, and everyone waiting to hear about them. */
 interface IPendingPush {
   settings: IDspSettings;
-  outputSafetyEnabled: boolean;
   resolve: Array<(applied: boolean) => void>;
   reject: Array<(reason: unknown) => void>;
 }
@@ -203,10 +196,8 @@ export const createNativeBackendController = (
   // Engine as well, and the engine then ran it a second time on everything
   // the host played; the store is now the one sender, and it knows when the
   // engine's copy has to stand aside (`rackPlacement.ts`).
-  const pushChain = (settings: IDspSettings, outputSafetyEnabled: boolean) =>
-    bridge.applyDspHostChain(
-      encodeChainSettings(settings, { outputSafetyEnabled }),
-    );
+  const pushChain = (settings: IDspSettings) =>
+    bridge.applyDspHostChain(encodeChainSettings(settings));
 
   /**
    * Engage and disengage are barriers: an update asked for after one must
@@ -219,7 +210,7 @@ export const createNativeBackendController = (
   };
 
   return {
-    engage: (settings, outputSafetyEnabled) => {
+    engage: (settings) => {
       barrier();
       return serialize(async () => {
         const status = await bridge.startDspHost();
@@ -233,7 +224,7 @@ export const createNativeBackendController = (
            */
           return false;
         }
-        if (!(await pushChain(settings, outputSafetyEnabled))) {
+        if (!(await pushChain(settings))) {
           await settle(bridge.stopDspHost);
           return false;
         }
@@ -272,18 +263,16 @@ export const createNativeBackendController = (
       });
     },
 
-    update: (settings, outputSafetyEnabled) =>
+    update: (settings) =>
       new Promise<boolean>((resolve, reject) => {
         if (waiting !== undefined) {
           waiting.settings = settings;
-          waiting.outputSafetyEnabled = outputSafetyEnabled;
           waiting.resolve.push(resolve);
           waiting.reject.push(reject);
           return;
         }
         const push: IPendingPush = {
           settings,
-          outputSafetyEnabled,
           resolve: [resolve],
           reject: [reject],
         };
@@ -298,7 +287,7 @@ export const createNativeBackendController = (
             // the Library has not successfully engaged.
             return false;
           }
-          return pushChain(push.settings, push.outputSafetyEnabled);
+          return pushChain(push.settings);
         }).then(
           (applied) => push.resolve.forEach((settle_) => settle_(applied)),
           (reason) => push.reject.forEach((settle_) => settle_(reason)),

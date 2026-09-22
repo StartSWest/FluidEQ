@@ -138,9 +138,9 @@ struct BandWindow {
 /**
  * The floor every dB reading in this file lands on when there is nothing.
  *
- * Matches `amplitude_db` in `output_safety.cpp` and the `-120` the renderer's
- * meters treat as "no signal", so a silent window reads the same whichever of
- * the three produced the number.
+ * Matches `amplitude_db` in `post_filter_normalizer.cpp` and the `-120` the
+ * renderer's meters treat as "no signal", so a silent window reads the same
+ * whichever of the three produced the number.
  */
 constexpr float kMeterFloorDb = -120.0f;
 
@@ -263,12 +263,6 @@ struct FeqMeters {
    */
   std::atomic<float> auto_headroom_reduction_db{0.0f};
   std::atomic<float> auto_headroom_true_peak_db{kMeterFloorDb};
-  std::atomic<float> safety_reduction_db{0.0f};
-  std::atomic<float> safety_true_peak_db{kMeterFloorDb};
-  std::atomic<float> dc_correction_db{kMeterFloorDb};
-  std::atomic<uint32_t> repaired_samples{0};
-  std::atomic<uint32_t> true_peak_factor{4};
-  std::atomic<int> safety_enabled{1};
   /** The Normalizer's bars: held peaks with their own release, never cleared. */
   std::atomic<float> normalizer_input_peaks[2];
   std::atomic<float> normalizer_output_peaks[2];
@@ -752,22 +746,6 @@ void feq_meters_publish_master(FeqMeters* meters,
                static_cast<float>(telemetry->auto_headroom_reduction_db));
   fold_maximum(meters->auto_headroom_true_peak_db,
                static_cast<float>(telemetry->auto_headroom_true_peak_db));
-  fold_minimum(meters->safety_reduction_db,
-               static_cast<float>(telemetry->safety_reduction_db));
-  fold_maximum(meters->safety_true_peak_db,
-               static_cast<float>(telemetry->safety_true_peak_db));
-  fold_maximum(meters->dc_correction_db,
-               static_cast<float>(telemetry->dc_correction_db));
-  if (telemetry->repaired_samples > 0) {
-    meters->repaired_samples.fetch_add(
-        static_cast<uint32_t>(telemetry->repaired_samples),
-        std::memory_order_relaxed);
-  }
-  // Configuration rather than measurement: the latest is the right one.
-  meters->true_peak_factor.store(telemetry->true_peak_factor,
-                                 std::memory_order_relaxed);
-  meters->safety_enabled.store(telemetry->safety_enabled != 0 ? 1 : 0,
-                               std::memory_order_relaxed);
 }
 
 void feq_meters_read_master(FeqMeters* meters, FeqMasterTelemetry* out) {
@@ -780,18 +758,6 @@ void feq_meters_read_master(FeqMeters* meters, FeqMasterTelemetry* out) {
   out->auto_headroom_true_peak_db =
       meters->auto_headroom_true_peak_db.exchange(kMeterFloorDb,
                                                   std::memory_order_relaxed);
-  out->safety_reduction_db =
-      meters->safety_reduction_db.exchange(0.0f, std::memory_order_relaxed);
-  out->safety_true_peak_db = meters->safety_true_peak_db.exchange(
-      kMeterFloorDb, std::memory_order_relaxed);
-  out->dc_correction_db =
-      meters->dc_correction_db.exchange(kMeterFloorDb,
-                                        std::memory_order_relaxed);
-  out->repaired_samples =
-      meters->repaired_samples.exchange(0, std::memory_order_relaxed);
-  out->true_peak_factor =
-      meters->true_peak_factor.load(std::memory_order_relaxed);
-  out->safety_enabled = meters->safety_enabled.load(std::memory_order_relaxed);
 }
 
 void feq_meters_publish_normalizer(FeqMeters* meters,

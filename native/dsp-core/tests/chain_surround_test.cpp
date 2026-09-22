@@ -341,12 +341,12 @@ void alignment_survives_a_handover() {
  * The subwoofer feed gets no harmonics, and the channel beside it does.
  *
  * Against a chain with the exciter off rather than against the input: the
- * always-on stages after the exciter (the headroom's look-ahead, the DC
- * block) touch every channel whatever the settings, so "unchanged" means "as
- * it would be with no exciter at all". Every level stage that decides once
- * is off, the safety limiter included: harmonics on the centre raise what
- * the linked detector hears, and the gain it then takes is taken from the
- * LFE too, which is the surround design and not the exciter touching it.
+ * always-on delays after the exciter (the headroom's look-ahead) touch every
+ * channel whatever the settings, so "unchanged" means "as it would be with
+ * no exciter at all". Every level stage that decides once is off: harmonics
+ * on the centre raise what a linked detector hears, and the gain it then
+ * takes is taken from the LFE too, which is the surround design and not the
+ * exciter touching it.
  */
 void lfe_is_left_alone_by_the_exciter() {
   std::printf("lfe is left alone by the exciter\n");
@@ -355,7 +355,6 @@ void lfe_is_left_alone_by_the_exciter() {
   settings.compressor.enabled = 0;
   settings.maximizer.enabled = 0;
   settings.master.enabled = 0;
-  settings.output_safety_enabled = 0;
   settings.exciter.bands[0].enabled = 1;
   settings.exciter.bands[0].drive = 1.0;
   settings.exciter.bands[0].mix = 1.0;

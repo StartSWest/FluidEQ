@@ -123,7 +123,6 @@ const dsp = {
     'Von der Engine gemeldete Puffer bei der aktuellen Abtastrate. Windows, Gerät und Netzwerk sind nicht enthalten.',
   'dsp.latency.gameNote':
     'Der Spielmodus reduziert vermeidbare Puffer. Aktive Effekte können Verzögerung benötigen. Ausschalten stellt die normale Verarbeitung wieder her.',
-  'dsp.latency.stage.safety': 'Endschutz',
   'dsp.latency.stage.guard': 'EQ-Spitzenschutz',
   'dsp.latency.stage.curves': 'Korrekturkurven',
   'dsp.scope.useFluid': 'FluidEQ-Engine verwenden',
@@ -590,14 +589,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Wendet anhand der Messung des ganzen Titels {gain} dB an und hält den finalen True Peak unter der Obergrenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
   'dsp.master.loudnessTarget': 'Lautheitsziel',
-  'dsp.master.truePeak': 'TP Eingang',
-  'dsp.master.devSafety': 'Sicherheit A/B',
-  'dsp.master.devSafetyHint':
-    'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',
-  'dsp.master.devSafetySpec':
-    'Spitzenschutz bei −0.1 dBTP · 2 ms Vorausschau · sanfte Erholung · Schutz vor DC und ungültigen Samples',
-  'dsp.master.dcCorrection': 'DC-Offset',
-  'dsp.master.faults': 'Fehler',
   'dsp.master.graph.momentary': 'Momentan',
   'dsp.master.graph.shortTerm': 'Kurzzeit',
   'dsp.master.graph.target': 'Ziel',
@@ -610,13 +601,7 @@ const dsp = {
   'dsp.master.graph.peakFixed':
     'Spitze kontrolliert · {gain} dB Pegelreduktion',
   'dsp.master.graph.peakSafe': 'True Peak innerhalb der Obergrenze',
-  'dsp.master.graph.dcFixed': 'DC-Offset entfernt · {amount}',
-  'dsp.master.graph.dcClean': 'DC-Offset sauber',
-  'dsp.master.graph.faultFixed':
-    '{count} ungültige oder fehlerhafte Samples repariert',
-  'dsp.master.graph.faultClean': 'Samples gültig',
-  'dsp.master.graph.safetyActive': 'Schutz aktiv',
-  'dsp.master.graph.safetyBypassed': 'Warnung · Schutz umgangen',
+  'dsp.master.graph.peakMeasured': 'True Peak {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'LUFS maximieren · {gain} dB Richtung {target} LUFS',
   'dsp.master.peakLimiting': 'Spitzenbegrenzung',

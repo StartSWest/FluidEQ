@@ -187,7 +187,6 @@ const RACK_STAGES = new Set([
   'maximizer',
   'headroom',
   'master',
-  'safety',
 ]);
 
 /** During a rack handoff, wait for both engines to agree about where it runs. */

@@ -9,6 +9,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * pair of different processors, and every local replacement in every chain.
  * The music smoke used -6 dB for local profiles and could not see ordinary
  * overloads. Measure sample AND reconstructed peaks, including startup.
+ *
+ * What is held: every render is finite and audible, and a rack that carries
+ * a ceiling of its own — the Maximizer, or the Master with its loudness
+ * target — never leaves over full scale. A rack without one is measured and
+ * reported, not held: the final guard that used to hold every rack under
+ * -0.1 dBTP was removed on 2026-09-22 (`chain_transparency_test.cpp`), and
+ * what such a rack does with a record already at full scale is the record's
+ * and the listener's, as it is under Equalizer APO.
  */
 #include "fluideq/chain.h"
 #include "fluideq/primitives.h"
@@ -141,13 +149,23 @@ Metrics measure(const Audio& audio) {
   return result;
 }
 
-bool safe(const Metrics& result) {
-  return result.finite && result.peak <= 1.0 && result.true_peak <= 1.0 &&
-         result.rms > 0.01;
+/** Whether the rack carries a stage whose job is holding a ceiling. */
+bool has_ceiling(const FeqChainSettings& settings) {
+  return settings.maximizer.enabled != 0 ||
+         (settings.master.enabled != 0 &&
+          settings.master.loudness_maximize != 0);
+}
+
+bool safe(const FeqChainSettings& settings, const Metrics& result) {
+  if (!result.finite || result.rms <= 0.01) return false;
+  return !has_ceiling(settings) ||
+         (result.peak <= 1.0 && result.true_peak <= 1.0);
 }
 
 size_t g_checked = 0;
 double g_largest_peak = 0.0;
+/** The loudest true peak left by a rack with no ceiling of its own. */
+double g_largest_open_peak = 0.0;
 
 void verify(const FeqChainSettings& settings, const Audio& source,
             double rate, const std::string& name) {
@@ -158,7 +176,10 @@ void verify(const FeqChainSettings& settings, const Audio& source,
   const Metrics result = measure(render(settings, source, rate, makeup));
   ++g_checked;
   g_largest_peak = std::max(g_largest_peak, result.true_peak);
-  if (!safe(result)) {
+  if (!has_ceiling(settings)) {
+    g_largest_open_peak = std::max(g_largest_open_peak, result.true_peak);
+  }
+  if (!safe(settings, result)) {
     std::printf("  FAIL %s @ %.0f: sample %.6f true %.6f rms %.6f finite %d\n",
                 name.c_str(), rate, result.peak, result.true_peak, result.rms,
                 result.finite ? 1 : 0);
@@ -204,13 +225,16 @@ void check_air(const std::vector<Preset>& presets) {
     const double residual = distortion(output, rate, 8000.0);
     std::printf("  Air %s: THD+N %.5f%%, true peak %.6f\n",
                 preset.family.c_str(), residual * 100.0, measure(output).true_peak);
-    check(safe(measure(output)), "Air remains audible and below full scale");
+    check(safe(preset.settings, measure(output)),
+          "Air remains audible, and under its own ceiling where it has one");
     check(residual < 0.002, "Air adds less than 0.2% distortion to a clean tone");
     if (preset.family == "equaliser") {
-      auto unguarded = preset.settings;
-      unguarded.output_safety_enabled = 0;
-      Audio clipped = render(unguarded, note, rate);
-      check(!safe(measure(clipped)), "positive control: unguarded Air overloads");
+      // The EQ alone carries no ceiling, so a boosted tone at 0.94 leaves
+      // over full scale — intact, as floating point, which is the point:
+      // nothing here reshapes it. Clipped by hand, the measurement sees it.
+      Audio clipped = output;
+      check(measure(clipped).true_peak > 1.0,
+            "positive control: Air alone takes the tone over full scale");
       for (auto& channel : clipped) {
         for (float& value : channel) value = std::clamp(value, -1.0f, 1.0f);
       }
@@ -227,8 +251,10 @@ void check_air(const std::vector<Preset>& presets) {
     }
   }
   check(found == 2, "both the Air EQ and the complete Air chain were checked");
-  check(!safe(measure(Audio(2, std::vector<float>(48000, 0.0f)))),
-        "positive control: silence cannot pass safety");
+  FeqChainSettings none{};
+  feq_chain_settings_defaults(&none);
+  check(!safe(none, measure(Audio(2, std::vector<float>(48000, 0.0f)))),
+        "positive control: silence cannot pass");
 }
 
 }  // namespace
@@ -305,8 +331,9 @@ int main(int argc, char** argv) {
       std::fflush(stdout);
     }
   }
-  std::printf("  %zu renders at 0 dB input; largest true peak %.6f\n",
-              g_checked, g_largest_peak);
+  std::printf("  %zu renders at 0 dB input; largest true peak %.6f, "
+              "%.6f on a rack with no ceiling of its own\n",
+              g_checked, g_largest_peak, g_largest_open_peak);
   check(g_checked > 0, "the selected catalogue partition rendered audio");
   return feq_test::finish();
 }

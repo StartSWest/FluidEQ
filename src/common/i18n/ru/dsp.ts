@@ -123,7 +123,6 @@ const dsp = {
     'Буферы, сообщённые движком при текущей частоте. Windows, устройство и сеть не учитываются.',
   'dsp.latency.gameNote':
     'Игровой режим сокращает лишнюю буферизацию. Активным эффектам может требоваться задержка. Выключите режим для обычной обработки.',
-  'dsp.latency.stage.safety': 'Финальная защита',
   'dsp.latency.stage.guard': 'Защита пиков эквалайзера',
   'dsp.latency.stage.curves': 'Кривые коррекции',
   'dsp.scope.useFluid': 'Использовать движок FluidEQ',
@@ -582,14 +581,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Применяет коррекцию {gain} дБ по измерению всего трека и удерживает итоговый истинный пик ниже предела. Усиление постоянно; регулируются только пики.',
   'dsp.master.loudnessTarget': 'Целевая громкость',
-  'dsp.master.truePeak': 'TP вход',
-  'dsp.master.devSafety': 'Защита A/B',
-  'dsp.master.devSafetyHint':
-    'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',
-  'dsp.master.devSafetySpec':
-    'Защита пиков на −0,1 дБTP · упреждение 2 мс · плавное восстановление · защита от DC и неверных отсчётов',
-  'dsp.master.dcCorrection': 'DC-смещение',
-  'dsp.master.faults': 'Сбои',
   'dsp.master.graph.momentary': 'Мгновенная',
   'dsp.master.graph.shortTerm': 'Кратковременная',
   'dsp.master.graph.target': 'Цель',
@@ -601,13 +592,7 @@ const dsp = {
     'Предупреждение · выход {peak} дБTP выше потолка',
   'dsp.master.graph.peakFixed': 'Пик ограничен · ослабление {gain} дБ',
   'dsp.master.graph.peakSafe': 'Истинный пик в пределах потолка',
-  'dsp.master.graph.dcFixed': 'DC-смещение удалено · {amount}',
-  'dsp.master.graph.dcClean': 'DC-смещение в норме',
-  'dsp.master.graph.faultFixed':
-    'Исправлено неверных или аварийных отсчётов: {count}',
-  'dsp.master.graph.faultClean': 'Отсчёты исправны',
-  'dsp.master.graph.safetyActive': 'Защита активна',
-  'dsp.master.graph.safetyBypassed': 'Предупреждение · защита обойдена',
+  'dsp.master.graph.peakMeasured': 'Истинный пик {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'Максимум LUFS · {gain} дБ к {target} LUFS',
   'dsp.master.peakLimiting': 'Ограничение пиков',

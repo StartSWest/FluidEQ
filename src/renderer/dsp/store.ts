@@ -102,14 +102,11 @@ export type TDspEngineState = 'idle' | 'running' | 'failed';
  * up as a response that does not match what will be heard.
  */
 const ASSUMED_SAMPLE_RATE = 48_000;
-const IS_DEV = process.env.NODE_ENV !== 'production';
 
 let settings: IDspSettings = DSP_DEFAULTS;
 let loaded = false;
 let engineState: TDspEngineState = 'idle';
 let sampleRate = ASSUMED_SAMPLE_RATE;
-/** Ephemeral A/B control. Production is hard-wired to the safe path. */
-let outputSafetyEnabled = true;
 
 /**
  * The C++ engine is the only one that processes audio. There is no switch.
@@ -128,7 +125,7 @@ let outputSafetyEnabled = true;
  */
 
 const listeners = new Set<() => void>();
-const outputSafetyListeners = new Set<() => void>();
+const headroomListeners = new Set<() => void>();
 const inputAnalysisListeners = new Set<() => void>();
 const noiseRescanListeners = new Set<() => void>();
 const normalizerMeterListeners = new Set<() => void>();
@@ -156,7 +153,6 @@ const pushSystemChain = (): void => {
   sendSystemDspChain(
     encodeChainSettings(
       rackFor(readDspSettings(), engineRunsRack(readRackGate())),
-      { outputSafetyEnabled },
     ),
   );
 };
@@ -260,19 +256,6 @@ export const readDspSampleRate = (): number => sampleRate;
 
 export const useDspSampleRate = (): number =>
   useSyncExternalStore(subscribe, readDspSampleRate, readDspSampleRate);
-
-export const readDspOutputSafetyEnabled = (): boolean => outputSafetyEnabled;
-
-export const setDspOutputSafetyEnabled = (next: boolean): void => {
-  if (!IS_DEV || next === outputSafetyEnabled) {
-    return;
-  }
-  outputSafetyEnabled = next;
-  emit();
-  // It rides on the same wire as the rack, so the A/B has to reach the
-  // system-wide engine too or the two paths stop being comparable.
-  pushSystemChain();
-};
 
 /**
  * Whether the native engine is actually carrying the audio right now.
@@ -440,59 +423,38 @@ export const useDspNativeTransport = (): IDspNativeTransport =>
 /** The one question the worklet asks: is something else making the sound? */
 export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
 
-export const useDspOutputSafetyEnabled = (): boolean =>
-  useSyncExternalStore(
-    subscribe,
-    readDspOutputSafetyEnabled,
-    readDspOutputSafetyEnabled,
-  );
-
-export interface IDspOutputSafetyMeter {
-  enabled: boolean;
-  truePeakFactor: 1 | 2 | 4;
-  postFilterNormalizer: {
-    gainReductionDb: number;
-    inputTruePeakDb: number;
-  };
+/** What the Master's Auto Headroom is doing, as the engine measures it. */
+export interface IDspHeadroomMeter {
+  /** Its deepest reduction over the window, dB. Never positive. */
   gainReductionDb: number;
+  /** What it saw arriving, dBTP; -120 is nothing measured. */
   inputTruePeakDb: number;
-  dcCorrectionDb: number;
-  repairedSamples: number;
 }
 
-let outputSafetyMeter: IDspOutputSafetyMeter = {
-  enabled: true,
-  truePeakFactor: 4,
-  postFilterNormalizer: {
-    gainReductionDb: 0,
-    inputTruePeakDb: -120,
-  },
+let headroomMeter: IDspHeadroomMeter = {
   gainReductionDb: 0,
   inputTruePeakDb: -120,
-  dcCorrectionDb: -120,
-  repairedSamples: 0,
 };
 
-const subscribeOutputSafety = (listener: () => void) => {
-  outputSafetyListeners.add(listener);
+const subscribeHeadroom = (listener: () => void) => {
+  headroomListeners.add(listener);
   return () => {
-    outputSafetyListeners.delete(listener);
+    headroomListeners.delete(listener);
   };
 };
 
-export const setDspOutputSafetyMeter = (next: IDspOutputSafetyMeter): void => {
-  outputSafetyMeter = next;
-  outputSafetyListeners.forEach((listener) => listener());
+export const setDspHeadroomMeter = (next: IDspHeadroomMeter): void => {
+  headroomMeter = next;
+  headroomListeners.forEach((listener) => listener());
 };
 
-export const readDspOutputSafetyMeter = (): IDspOutputSafetyMeter =>
-  outputSafetyMeter;
+export const readDspHeadroomMeter = (): IDspHeadroomMeter => headroomMeter;
 
-export const useDspOutputSafetyMeter = (): IDspOutputSafetyMeter =>
+export const useDspHeadroomMeter = (): IDspHeadroomMeter =>
   useSyncExternalStore(
-    subscribeOutputSafety,
-    readDspOutputSafetyMeter,
-    readDspOutputSafetyMeter,
+    subscribeHeadroom,
+    readDspHeadroomMeter,
+    readDspHeadroomMeter,
   );
 
 export type TInputAnalysisStatus =
@@ -1053,14 +1015,7 @@ export const clearDspMeterTelemetry = (): void => {
   };
   normalizerMeterListeners.forEach((listener) => listener());
   setDspDenoiseMeter(DENOISE_METER_IDLE);
-  setDspOutputSafetyMeter({
-    ...outputSafetyMeter,
-    postFilterNormalizer: { gainReductionDb: 0, inputTruePeakDb: -120 },
-    gainReductionDb: 0,
-    inputTruePeakDb: -120,
-    dcCorrectionDb: -120,
-    repairedSamples: 0,
-  });
+  setDspHeadroomMeter({ gainReductionDb: 0, inputTruePeakDb: -120 });
   setDspPeak(0);
   setDspChannelPeaks([0, 0]);
   setDspCorrelation(1);

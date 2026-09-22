@@ -90,7 +90,6 @@ FeqChainSettings quiet_chain() {
   settings.maximizer.enabled = 0;
   settings.dimension.enabled = 0;
   settings.master.enabled = 0;
-  settings.output_safety_enabled = 0;
   settings.bass_forge.enabled = 0;
   settings.bass_punch.enabled = 0;
   return settings;

@@ -245,15 +245,9 @@ describe('the chain wire layout', () => {
     expect(withRoom.surround.allChannels).toBe(false);
   });
 
-  it('carries the output-safety A/B rather than leaving it to a build flag', () => {
-    // The whole value of that switch is flipping it while the same audio
-    // plays, which a compile-time flag cannot do.
-    const on = encodeChainSettings(DSP_DEFAULTS);
-    const off = encodeChainSettings(DSP_DEFAULTS, {
-      outputSafetyEnabled: false,
-    });
-
-    expect(on[1]).toBe(1);
-    expect(off[1]).toBe(0);
+  it('writes a zero where the retired final guard read its switch', () => {
+    // The slot stays so no band moves, and a zero keeps the guard off on an
+    // engine older than its removal.
+    expect(encodeChainSettings(DSP_DEFAULTS)[1]).toBe(0);
   });
 });

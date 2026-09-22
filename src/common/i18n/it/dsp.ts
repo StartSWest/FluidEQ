@@ -123,7 +123,6 @@ const dsp = {
     'Buffer segnalati dal motore alla frequenza attuale. Windows, dispositivo e rete sono esclusi.',
   'dsp.latency.gameNote':
     'La modalità gioco riduce i buffer evitabili. Gli effetti attivi possono richiedere ritardo. Disattivala per ripristinare l’elaborazione normale.',
-  'dsp.latency.stage.safety': 'Protezione finale',
   'dsp.latency.stage.guard': 'Protezione dei picchi dell’equalizzatore',
   'dsp.latency.stage.curves': 'Curve di correzione',
   'dsp.scope.useFluid': 'Usa il Motore FluidEQ',
@@ -584,14 +583,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Applica {gain} dB dalla misura del brano completo e mantiene il picco reale finale sotto il tetto. Il guadagno è costante; vengono controllati solo i picchi.',
   'dsp.master.loudnessTarget': 'Obiettivo di sonorità',
-  'dsp.master.truePeak': 'TP ingresso',
-  'dsp.master.devSafety': 'Sicurezza A/B',
-  'dsp.master.devSafetyHint':
-    'Solo sviluppo: esclude tutta la protezione finale per ascoltare esattamente cosa cambia.',
-  'dsp.master.devSafetySpec':
-    'Protezione dei picchi a −0.1 dBTP · anticipo di 2 ms · recupero graduale · protezione DC e campioni non validi',
-  'dsp.master.dcCorrection': 'Offset DC',
-  'dsp.master.faults': 'Guasti',
   'dsp.master.graph.momentary': 'Momentaneo',
   'dsp.master.graph.shortTerm': 'Breve termine',
   'dsp.master.graph.target': 'Obiettivo',
@@ -603,13 +594,7 @@ const dsp = {
     'Avviso · uscita a {peak} dBTP oltre il tetto',
   'dsp.master.graph.peakFixed': 'Picco controllato · {gain} dB di riduzione',
   'dsp.master.graph.peakSafe': 'True peak entro il tetto',
-  'dsp.master.graph.dcFixed': 'Offset DC rimosso · {amount}',
-  'dsp.master.graph.dcClean': 'Offset DC pulito',
-  'dsp.master.graph.faultFixed':
-    'Riparati {count} campioni non validi o guasti',
-  'dsp.master.graph.faultClean': 'Campioni validi',
-  'dsp.master.graph.safetyActive': 'Protezioni attive',
-  'dsp.master.graph.safetyBypassed': 'Avviso · protezioni escluse',
+  'dsp.master.graph.peakMeasured': 'True peak {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'Massimizza LUFS · {gain} dB verso {target} LUFS',
   'dsp.master.peakLimiting': 'Limitazione dei picchi',

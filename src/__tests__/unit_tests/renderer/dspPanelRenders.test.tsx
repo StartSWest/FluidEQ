@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The DSP page keeping still while the engine talks to it.
  *
  * The host publishes its meters a hundred times a second. The whole page used
- * to subscribe to the Master's safety meter, and the Normalizer and Denoise
+ * to subscribe to the Master's headroom meter, and the Normalizer and Denoise
  * pages to their own meters, at the top: measured in the running window at
  * 90 to 100 renders a second on every page, and on the Normalizer, Denoise
  * and Master pages every dial and switch redrawn with each one to move a few
@@ -34,15 +34,15 @@ import DspPanel from '../../../renderer/dsp/DspPanel';
 import { DSP_OPEN_SECTION_KEY } from '../../../renderer/dsp/openSection';
 import {
   IDspDenoiseMeter,
+  IDspHeadroomMeter,
   IDspNormalizerMeter,
-  IDspOutputSafetyMeter,
   readDspDenoiseMeter,
+  readDspHeadroomMeter,
   readDspNormalizerMeter,
-  readDspOutputSafetyMeter,
   setDspDenoiseMeter,
+  setDspHeadroomMeter,
   setDspNativeState,
   setDspNormalizerMeter,
-  setDspOutputSafetyMeter,
   setDspSampleRate,
 } from '../../../renderer/dsp/store';
 import RemoteAudioContext, {
@@ -108,7 +108,7 @@ const LISTENING: IRemoteAudioValue = {
   subscribeMeter: jest.fn(() => jest.fn()),
 };
 
-let idleSafety: IDspOutputSafetyMeter;
+let idleHeadroom: IDspHeadroomMeter;
 let idleNormalizer: IDspNormalizerMeter;
 let idleDenoise: IDspDenoiseMeter;
 let setRemote: (next: IRemoteAudioValue) => void = () => undefined;
@@ -154,7 +154,7 @@ const hostFrames = (publish: (frame: number) => void) => {
 };
 
 beforeAll(() => {
-  idleSafety = readDspOutputSafetyMeter();
+  idleHeadroom = readDspHeadroomMeter();
   idleNormalizer = readDspNormalizerMeter();
   idleDenoise = readDspDenoiseMeter();
 });
@@ -174,7 +174,7 @@ beforeEach(() => {
 
 afterEach(() =>
   act(() => {
-    setDspOutputSafetyMeter(idleSafety);
+    setDspHeadroomMeter(idleHeadroom);
     setDspNormalizerMeter(idleNormalizer);
     setDspDenoiseMeter(idleDenoise);
     stopAllPlayback();
@@ -183,13 +183,16 @@ afterEach(() =>
 );
 
 describe('the DSP page while the engine publishes meters', () => {
-  it('does not redraw for the safety meter on a page that does not show it', async () => {
+  it('does not redraw for the headroom meter on a page that does not show it', async () => {
     renderPanel();
     await screen.findByText(/played from Library only/i);
     const before = mockRenders.rail;
 
     hostFrames((frame) =>
-      setDspOutputSafetyMeter({ ...idleSafety, gainReductionDb: -frame / 10 }),
+      setDspHeadroomMeter({
+        gainReductionDb: -frame / 10,
+        inputTruePeakDb: -6,
+      }),
     );
     expect(mockRenders.rail).toBe(before);
 
@@ -206,16 +209,17 @@ describe('the DSP page while the engine publishes meters', () => {
     const { dials } = mockRenders;
 
     hostFrames((frame) =>
-      setDspOutputSafetyMeter({
-        ...idleSafety,
-        postFilterNormalizer: {
-          gainReductionDb: -frame / 10,
-          inputTruePeakDb: -6,
-        },
+      setDspHeadroomMeter({
+        gainReductionDb: -frame / 10,
+        inputTruePeakDb: -6,
       }),
     );
 
-    expect(screen.getByText(/Auto headroom -2\.0 dB/)).toBeInTheDocument();
+    // The chip moves in half-decibel steps, so twenty frames stepping by a
+    // tenth land it on 1.6 (see `dspMasterGraphHold.test.tsx`).
+    expect(
+      screen.getByText(/Peak controlled · 1\.6 dB gain reduction/),
+    ).toBeInTheDocument();
     expect(mockRenders.dials).toBe(dials);
     expect(mockRenders.rail).toBe(rail);
   });
@@ -235,7 +239,7 @@ describe('the DSP page while the engine publishes meters', () => {
     );
 
     expect(
-      container.querySelector('.dsp-normalizer-live .dsp-dev-safety-spec'),
+      container.querySelector('.dsp-normalizer-live .dsp-band-spec'),
     ).toHaveTextContent('2.0 dB');
     expect(mockRenders.dials).toBe(dials);
   });

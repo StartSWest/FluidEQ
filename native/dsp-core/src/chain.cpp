@@ -145,7 +145,6 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   }
   *settings = FeqChainSettings{};
   settings->enabled = 1;
-  settings->output_safety_enabled = 1;
   settings->surround_all_channels = 1;
   FeqRoomSettings room{};
   feq_room_settings_defaults(&room);
@@ -347,23 +346,6 @@ FeqChain* feq_chain_create(double sample_rate,
       &chain->post_normalizer, chain->post_detectors.data(),
       chain->post_delay_pointers.data(), chain->post_reduction.data(), channels,
       post_capacity, feq_oversample_factor_for_sample_rate(sample_rate));
-
-  const uint32_t safety_capacity =
-      feq_output_safety_look_ahead(sample_rate) + 1;
-  chain->safety_dc.assign(channels, FeqDcBlock{});
-  chain->safety_detectors.assign(channels, FeqTruePeak{});
-  chain->safety_reduction.assign(safety_capacity, 0.0f);
-  chain->safety_delay_pointers.assign(channels, nullptr);
-  for (uint32_t channel = 0; channel < channels; ++channel) {
-    chain->safety_delay[channel].assign(safety_capacity, 0.0f);
-    chain->safety_delay_pointers[channel] =
-        chain->safety_delay[channel].data();
-  }
-  feq_output_safety_init(&chain->safety, chain->safety_dc.data(),
-                         chain->safety_detectors.data(),
-                         chain->safety_delay_pointers.data(),
-                         chain->safety_reduction.data(), channels,
-                         safety_capacity, sample_rate);
 
   /**
    * Every filter history, sized for the largest rack the app allows, once.
@@ -623,11 +605,10 @@ void feq_chain_reset_room(FeqChain* chain) {
   feq_dimension_reset(&chain->dimension);
   for (auto& crossover : chain->crossovers) feq_crossover_reset(&crossover);
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    chain->safety_dc[channel] = {};
     // Both alignment lines, as `feq_chain_reset` clears them: each holds
     // audio from before the route changed, on its way to the Room. Only the
     // stereo host calls this today, where neither carries anything.
-    for (auto* line : {&chain->safety_delay[channel], &chain->post_delay[channel],
+    for (auto* line : {&chain->post_delay[channel],
                        &chain->maximizer_delay[channel],
                        &chain->punch_align_line[channel],
                        &chain->denoise_align_line[channel]}) {
@@ -703,8 +684,6 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
      * a second of the wrong track at the wrong level.
      */
     for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-      std::fill(chain->safety_delay[channel].begin(),
-                chain->safety_delay[channel].end(), 0.0f);
       std::fill(chain->post_delay[channel].begin(),
                 chain->post_delay[channel].end(), 0.0f);
       std::fill(chain->maximizer_delay[channel].begin(),
@@ -744,24 +723,21 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
     // aligning deck transitions.
     out->bass_punch = feq_bass_punch_latency_frames(chain->sample_rate);
   }
-  // The three limiters at the end of the chain hold the audio back by their
-  // look-ahead on every block — the Maximizer and the auto headroom even when
-  // they are off, so that switching them on is never a jump — and for years
-  // none of them was counted here. Read from the limiters themselves, so the
-  // number is whatever they were last set to, game mode's zero included.
+  // The two limiters at the end of the chain hold the audio back by their
+  // look-ahead on every block — even when they are off, so that switching
+  // them on is never a jump — and for years neither was counted here. Read
+  // from the limiters themselves, so the number is whatever they were last
+  // set to, game mode's zero included.
   out->maximizer =
       chain->maximizer.delay != nullptr ? chain->maximizer.look_ahead : 0u;
   out->headroom = chain->post_normalizer.limiter.look_ahead;
-  out->safety = chain->settings.output_safety_enabled != 0
-                    ? chain->safety.limiter.look_ahead
-                    : 0u;
 }
 
 uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   FeqChainLatencyParts parts{};
   feq_chain_latency_parts(chain, &parts);
   return parts.linear_eq + parts.restoration + parts.leveler + parts.room +
-         parts.bass_punch + parts.maximizer + parts.headroom + parts.safety;
+         parts.bass_punch + parts.maximizer + parts.headroom;
 }
 
 uint32_t feq_chain_active_stages(const FeqChain* chain) {
@@ -780,11 +756,10 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
       settings.compressor.enabled != 0,
       settings.maximizer.enabled != 0,
       settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
-      settings.output_safety_enabled != 0,
       settings.master.enabled != 0,
   };
   uint32_t mask = 0;
-  for (uint32_t stage = 0; stage < 13u; ++stage) {
+  for (uint32_t stage = 0; stage < 12u; ++stage) {
     if (active[stage]) mask |= 1u << stage;
   }
   return mask;
@@ -1007,40 +982,43 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
 
   chain_process_master_output(chain, channels, frames);
 
-  if (chain->settings.output_safety_enabled != 0) {
-    // EQ boosts and processor combinations can overload at 0 dB input even
-    // with Master and Maximizer off. The former +10 dBTP activation left that
-    // entire overload range to hard-clip at the device. Catch peaks at the
-    // actual output ceiling, after every stage and the final gain.
-    FeqOutputSafetyOptions options{};
-    options.limiter_enabled = 1;
-    options.ceiling = std::pow(10.0, kOutputSafetyCeilingDb / 20.0);
-    options.activation_threshold = options.ceiling;
-    // Slow recovery avoids modulating sustained bass, but still restores the
-    // level after an overload. No drive or loudness makeup is added here.
-    options.release_coefficient = std::exp(
-        -1.0 / ((FEQ_SAFETY_RELEASE_MS / 1000.0) * chain->sample_rate));
-    options.knee_db = 0.0;
-    // Without a hold the guard recovered between bass peaks: a clean 20 Hz
-    // note driven by +9 dB measured 0.63% THD+N despite never clipping.
-    options.release_hold_samples = std::floor(
-        (FEQ_SAFETY_RELEASE_HOLD_MS / 1000.0) * chain->sample_rate + 0.5);
-    feq_output_safety_process(&chain->safety, channels, frames, &options);
+  /**
+   * There is nothing after the Master's gain: no final limiter, no DC filter.
+   *
+   * A guard used to sit here — a -0.1 dBTP true-peak limiter and a 3 Hz
+   * high-pass, always on, whatever the cards said. It held every record
+   * mastered above its ceiling, which is most of them, so a rack with every
+   * card off still changed the sound and the window read it as clipping. It
+   * was removed on 2026-09-22 at Ivan's call: the rack with nothing on is a
+   * delay and nothing else (`chain_transparency_test.cpp`), and a stage that
+   * raises the level carries its own ceiling — the Maximizer, the Master's
+   * Auto Headroom, the Normalizer's peak guard. Nothing is put back here that
+   * touches a sample the listener did not ask to be touched.
+   *
+   * The one thing that does leave here is a sample that is not a number: a
+   * NaN or an infinity plays as silence or a full-scale burst and, inside a
+   * biquad's history, never ends. It is replaced by silence without a meter,
+   * because a finite sample is never changed by this.
+   */
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    float* samples = channels[channel];
+    for (uint32_t at = 0; at < frames; ++at) {
+      if (!std::isfinite(samples[at])) {
+        samples[at] = 0.0f;
+      }
+    }
   }
 
   /**
-   * What the Master tail just did, for the card that claims to show it.
+   * What the Master's Auto Headroom just did, for the card that shows it.
    *
-   * Taken unconditionally, including while the panel is closed and while
-   * safety is bypassed. Both stages hold their readings until something takes
-   * them, so skipping the take would let a reduction from minutes ago be the
-   * first thing displayed when the tab is opened — a meter reporting a peak
-   * event that is over. Taking costs five `log10` calls a block.
+   * Taken unconditionally, including while the panel is closed. The stage
+   * holds its reading until something takes it, so skipping the take would
+   * let a reduction from minutes ago be the first thing displayed when the
+   * tab is opened — a meter reporting a peak event that is over.
    */
   const FeqPostFilterNormalizerTelemetry headroom_report =
       feq_post_filter_normalizer_take_telemetry(&chain->post_normalizer);
-  const FeqOutputSafetyTelemetry safety_report =
-      feq_output_safety_take_telemetry(&chain->safety);
   FeqMasterTelemetry master_report{};
   master_report.auto_headroom_reduction_db = headroom_report.gain_reduction_db;
   master_report.auto_headroom_true_peak_db =
@@ -1056,17 +1034,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   if (headroom_report.input_true_peak_db > chain->live_master_peak_db) {
     chain->live_master_peak_db = headroom_report.input_true_peak_db;
   }
-  master_report.safety_reduction_db = safety_report.gain_reduction_db;
-  master_report.safety_true_peak_db = safety_report.input_true_peak_db;
-  master_report.dc_correction_db = safety_report.dc_correction_db;
-  master_report.repaired_samples = safety_report.repaired_samples;
-  master_report.true_peak_factor = safety_report.true_peak_factor;
-  master_report.safety_enabled = chain->settings.output_safety_enabled;
   feq_meters_publish_master(chain->meters, &master_report);
 
-  // Last, after safety, because this is the one tap that has to be what leaves
-  // for the device. A master meter read before the final limiter would show a
-  // peak the listener never hears and miss the reduction that removed it.
+  // Last, because this is the one tap that has to be what leaves for the
+  // device: what the master meter draws is what the listener hears.
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_MASTER, channels, frames);
 
   /**

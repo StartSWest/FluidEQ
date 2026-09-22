@@ -98,7 +98,7 @@ export const DspNormalizerLiveMeter = () => {
     <section className="dsp-normalizer-live">
       <div className="dsp-band-head">
         <span className="dsp-band-title">{t('dsp.normalizer.liveMeter')}</span>
-        <span className="dsp-dev-safety-spec">
+        <span className="dsp-band-spec">
           {liveMeter.appliedGainDb.toFixed(1)} dB
         </span>
       </div>

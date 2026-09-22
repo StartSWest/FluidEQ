@@ -466,7 +466,6 @@ void raw_route_checks() {
     s.room.bass_management = 0;
     s.dimension.enabled = 1;
     s.eq.enabled = 0;
-    s.output_safety_enabled = 1;
     feq_chain_configure(chain, &s);
     ChainRoute route;
     ProcessingLatency latency;

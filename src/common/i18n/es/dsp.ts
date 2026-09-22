@@ -123,7 +123,6 @@ const dsp = {
     'Búferes informados por el motor a la frecuencia de muestreo actual. No incluye Windows, el dispositivo ni la red.',
   'dsp.latency.gameNote':
     'El modo juego reduce los búferes evitables. Los efectos activos pueden necesitar retardo. Desactívalo para volver al procesamiento normal.',
-  'dsp.latency.stage.safety': 'Protección final',
   'dsp.latency.stage.guard': 'Protección de picos del ecualizador',
   'dsp.latency.stage.curves': 'Curvas de corrección',
   'dsp.scope.useFluid': 'Usar el Motor FluidEQ',
@@ -584,14 +583,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Aplica {gain} dB según la medición completa de la pista y mantiene el pico real final bajo el techo. La ganancia es constante; solo se controlan los picos.',
   'dsp.master.loudnessTarget': 'Objetivo de sonoridad',
-  'dsp.master.truePeak': 'TP entrada',
-  'dsp.master.devSafety': 'Seguridad A/B',
-  'dsp.master.devSafetyHint':
-    'Solo desarrollo: omite toda la protección final para que puedas escuchar exactamente lo que cambia.',
-  'dsp.master.devSafetySpec':
-    'Protección de picos a −0.1 dBTP · 2 ms de anticipación · recuperación suave · protección contra DC y muestras inválidas',
-  'dsp.master.dcCorrection': 'Desplazamiento DC',
-  'dsp.master.faults': 'Fallos',
   'dsp.master.graph.momentary': 'Momentáneo',
   'dsp.master.graph.shortTerm': 'Corto plazo',
   'dsp.master.graph.target': 'Objetivo',
@@ -602,13 +593,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': 'Aviso · salida a {peak} dBTP sobre el techo',
   'dsp.master.graph.peakFixed': 'Pico controlado · {gain} dB de reducción',
   'dsp.master.graph.peakSafe': 'Pico verdadero dentro del techo',
-  'dsp.master.graph.dcFixed': 'Desplazamiento DC eliminado · {amount}',
-  'dsp.master.graph.dcClean': 'Desplazamiento DC limpio',
-  'dsp.master.graph.faultFixed':
-    'Se repararon {count} muestras inválidas o defectuosas',
-  'dsp.master.graph.faultClean': 'Muestras válidas',
-  'dsp.master.graph.safetyActive': 'Protecciones activas',
-  'dsp.master.graph.safetyBypassed': 'Aviso · protecciones omitidas',
+  'dsp.master.graph.peakMeasured': 'Pico verdadero {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'Maximizar LUFS · {gain} dB hacia {target} LUFS',
   'dsp.master.peakLimiting': 'Limitación de picos',

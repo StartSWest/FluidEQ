@@ -93,20 +93,7 @@ export const CHAIN_FILTER_TYPES: readonly FilterTypeEnum[] = [
   FilterTypeEnum.BP,
 ];
 
-export interface IChainWireOptions {
-  /**
-   * The A/B that proves the safety net is the net and not the sound.
-   *
-   * Carried in the snapshot rather than left to a build flag because the whole
-   * value of it is switching while the same audio plays.
-   */
-  outputSafetyEnabled?: boolean;
-}
-
-export const encodeChainSettings = (
-  settings: IDspSettings,
-  options: IChainWireOptions = {},
-): number[] => {
+export const encodeChainSettings = (settings: IDspSettings): number[] => {
   const {
     exciter,
     eq,
@@ -121,7 +108,10 @@ export const encodeChainSettings = (
   } = settings;
   const values: number[] = [
     settings.enabled ? 1 : 0,
-    options.outputSafetyEnabled === false ? 0 : 1,
+    // The final guard's switch until 2026-09-22, when the guard was removed:
+    // a -0.1 dBTP limiter that held every record mastered above it. The slot
+    // stays so no band moves, and a 0 keeps an older engine's guard off.
+    0,
     exciter.enabled ? 1 : 0,
     exciter.isolate ? 1 : 0,
     EQ_STEREO_MODES.indexOf(exciter.stereo),

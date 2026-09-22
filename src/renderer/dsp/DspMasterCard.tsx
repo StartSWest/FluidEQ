@@ -9,15 +9,11 @@ import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterBar from './DspMasterBar';
-import DspMasterDevSafety from './DspMasterDevSafety';
 import DspMasterGraph from './DspMasterGraph';
 import { IMasterLoudnessBreakdown } from './inputNormalizer';
 
-const IS_DEV = process.env.NODE_ENV !== 'production';
-
 interface IDspMasterCardProps {
   master: IMasterSettings;
-  safetyEnabled: boolean;
   /**
    * The makeup AND why it is that number.
    *
@@ -26,24 +22,21 @@ interface IDspMasterCardProps {
    * drift until the readout contradicts the dial above it.
    */
   loudness: IMasterLoudnessBreakdown;
-  onSafetyToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
 }
 
-/** The transparent output boundary, deliberately last in the visible chain. */
+/** The final level, deliberately last in the visible chain. */
 const DspMasterCard = ({
   master,
-  safetyEnabled,
   loudness,
-  onSafetyToggle,
   onPatch,
   onCommit,
 }: IDspMasterCardProps) => {
   const { t } = useTranslation();
-  // No output-safety meter on this component: it changes with every host
-  // frame, so the graph and the development readout each read it themselves
-  // and this page's dials are not redrawn a hundred times a second.
+  // No headroom meter on this component: it changes with every host frame,
+  // so the graph reads it itself and this page's dials are not redrawn a
+  // hundred times a second.
   const loudnessGainDb = loudness.appliedDb;
   /**
    * Any change to a delivery number makes the result Custom; the rest do not.
@@ -69,11 +62,7 @@ const DspMasterCard = ({
         <DspMasterBar master={master} onChange={onPatch} onCommit={onCommit} />
       }
     >
-      <DspMasterGraph
-        master={master}
-        safetyEnabled={safetyEnabled}
-        loudnessGainDb={loudnessGainDb}
-      />
+      <DspMasterGraph master={master} loudnessGainDb={loudnessGainDb} />
       <div className="dsp-crossovers">
         <Dial
           labelKey="dsp.master.outputTrim"
@@ -212,15 +201,6 @@ const DspMasterCard = ({
           })}
         </p>
       </div>
-
-      {IS_DEV ? (
-        <DspMasterDevSafety
-          master={master}
-          safetyEnabled={safetyEnabled}
-          loudnessGainDb={loudnessGainDb}
-          onSafetyToggle={onSafetyToggle}
-        />
-      ) : undefined}
     </ProcessorCard>
   );
 };

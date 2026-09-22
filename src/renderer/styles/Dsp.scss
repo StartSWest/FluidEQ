@@ -369,31 +369,9 @@ $dsp-rail-offset: 110ms;
   user-select: none;
 }
 
-// Development-only A/B lives inside Master because that is the output boundary
-// it bypasses. Production never renders this control and the worklet
-// independently refuses to bypass the guard in a production bundle.
-.dsp-dev-safety {
-  min-height: 30px;
-  border-color: color-mix(in srgb, $secondary-default 24%, transparent);
-  background: color-mix(in srgb, $secondary-default 4.5%, transparent);
-  color: $text-faint;
-}
-
-.dsp-dev-safety-control {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex: 0 0 auto;
-}
-
-.dsp-dev-safety-details {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-width: 600px;
-}
-
-.dsp-dev-safety-spec {
+// A small figure beside a band's title: the Normalizer's live gain, the voice
+// model's download progress.
+.dsp-band-spec {
   color: $text-faint;
   font-size: $text-eyebrow;
   line-height: 1.2;
@@ -1263,41 +1241,11 @@ $dsp-rail-offset: 110ms;
   background: rgba($white, 0.48);
 }
 
-.dsp-dev-safety-label,
-.dsp-dev-safety-state {
-  font-size: $text-small;
-  @include tracking(0.06em);
-  text-transform: uppercase;
-}
-
-.dsp-dev-safety-state {
-  min-width: 22px;
-  color: $red;
-  font-weight: $weight-semibold;
-}
-
-.dsp-dev-safety.is-on .dsp-dev-safety-state {
-  color: $secondary-default;
-}
-
-.dsp-dev-safety.is-off {
-  border-color: rgba($red, 0.28);
-  background: rgba($red, 0.045);
-}
-
-.dsp-dev-safety.is-reducing .dsp-level-meters {
-  color: $secondary-default;
-}
-
-.dsp-dev-safety.is-off .dsp-dev-safety-details {
-  opacity: $disabled-opacity;
-}
-
-// Three equal Master scopes: loudness maximize, its adjacent gain match, and
-// the development-only safety A/B. Gain match used to sit inside the first
-// surface and made that one card set a needlessly tall row at Full HD.
-// Siblings keep the dependency clear in reading order without spending a
-// second row of height. They wrap as complete surfaces on narrow cards.
+// Two equal Master scopes: loudness maximize and its adjacent gain match.
+// Gain match used to sit inside the first surface and made that one card set
+// a needlessly tall row at Full HD. Siblings keep the dependency clear in
+// reading order without spending a second row of height. They wrap as
+// complete surfaces on narrow cards.
 #dsp-master .dsp-band {
   flex-basis: 280px;
 }

@@ -574,7 +574,7 @@ const DspDenoiseCard = ({
                   a button that looks like it did nothing. */}
               {model.state === 'downloading' ? (
                 <>
-                  <span className="dsp-dev-safety-spec">
+                  <span className="dsp-band-spec">
                     {t('dsp.denoise.voiceDownloading', {
                       progress: Math.round(model.fraction * 100),
                     })}

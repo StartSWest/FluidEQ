@@ -50,7 +50,6 @@ import {
   setDspNativeState,
   setDspRackGate,
   useDspNativeState,
-  useDspOutputSafetyEnabled,
   useDspSettings,
 } from './store';
 
@@ -86,7 +85,6 @@ export const useNativeBackend = (
   hasLibraryAudioTrack = true,
 ): INativeBackendController | undefined => {
   const nativeState = useDspNativeState();
-  const outputSafetyEnabled = useDspOutputSafetyEnabled();
   // The rack as this player may run it: switched off at the root while the
   // FluidEQ Engine is off, the one case the player's copy stands aside for
   // (`rackPlacement.ts`). The same identity as `settings` otherwise, so the
@@ -98,11 +96,9 @@ export const useNativeBackend = (
   );
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
   const settingsRef = useRef(hostSettings);
-  const safetyRef = useRef(outputSafetyEnabled);
-  // Assigned at render rather than in an effect: an effect below may read them
+  // Assigned at render rather than in an effect: an effect below may read it
   // in the same commit, and child effects run before a parent's.
   settingsRef.current = hostSettings;
-  safetyRef.current = outputSafetyEnabled;
 
   useEffect(() => {
     if (!hasLibraryAudioTrack) {
@@ -136,7 +132,7 @@ export const useNativeBackend = (
     let isCurrent = true;
     controllerRef.current = controller;
     controller
-      .engage(settingsRef.current, safetyRef.current)
+      .engage(settingsRef.current)
       .then(async (ready) => {
         if (!isCurrent) {
           // The player paused or unmounted while the host was negotiating its
@@ -179,10 +175,8 @@ export const useNativeBackend = (
   }, [hasLibraryAudioTrack]);
 
   useEffect(() => {
-    controllerRef.current
-      ?.update(hostSettings, outputSafetyEnabled)
-      .catch(() => undefined);
-  }, [hostSettings, outputSafetyEnabled]);
+    controllerRef.current?.update(hostSettings).catch(() => undefined);
+  }, [hostSettings]);
 
   /**
    * The track-level gains, routed to the host for as long as it is audible.

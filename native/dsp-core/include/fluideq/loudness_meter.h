@@ -31,9 +31,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *    constant however long the session runs, and the gated mean stays exact —
  *    reconstructing energy from bin centres, which is the usual shortcut, puts
  *    the error in the measurement rather than only in the gate threshold.
- *  - **No true peak.** The safety stage already measures the final output's
- *    true peak with an oversampling FIR, and a second one here would be the
- *    most expensive thing in the file to learn a number the chain already has.
+ *  - **No true peak.** The Master's Auto Headroom already measures its
+ *    input's true peak with an oversampling FIR, and a second one here would
+ *    be the most expensive thing in the file to learn a number the chain
+ *    already has.
  *
  * ## What runs where
  *

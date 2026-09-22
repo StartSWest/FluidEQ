@@ -123,7 +123,6 @@ const dsp = {
     'Tampons signalés par le moteur à la fréquence actuelle. Windows, le périphérique et le réseau sont exclus.',
   'dsp.latency.gameNote':
     'Le mode jeu réduit les tampons évitables. Les effets actifs peuvent nécessiter un délai. Désactivez-le pour rétablir le traitement normal.',
-  'dsp.latency.stage.safety': 'Protection finale',
   'dsp.latency.stage.guard': 'Protection des crêtes de l’égaliseur',
   'dsp.latency.stage.curves': 'Courbes de correction',
   'dsp.scope.useFluid': 'Utiliser le Moteur FluidEQ',
@@ -586,14 +585,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Applique {gain} dB selon la mesure du morceau complet, puis maintient la crête vraie finale sous le plafond. Le gain reste constant ; seules les crêtes sont contrôlées.',
   'dsp.master.loudnessTarget': 'Cible de sonie',
-  'dsp.master.truePeak': 'TP entrée',
-  'dsp.master.devSafety': 'Sécurité A/B',
-  'dsp.master.devSafetyHint':
-    'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',
-  'dsp.master.devSafetySpec':
-    'Protection des crêtes à −0.1 dBTP · anticipation de 2 ms · retour progressif · protection DC et échantillons invalides',
-  'dsp.master.dcCorrection': 'Décalage DC',
-  'dsp.master.faults': 'Défauts',
   'dsp.master.graph.momentary': 'Momentané',
   'dsp.master.graph.shortTerm': 'Court terme',
   'dsp.master.graph.target': 'Cible',
@@ -605,13 +596,7 @@ const dsp = {
     'Alerte · sortie à {peak} dBTP au-dessus du plafond',
   'dsp.master.graph.peakFixed': 'Crête contrôlée · {gain} dB de réduction',
   'dsp.master.graph.peakSafe': 'Crête vraie sous le plafond',
-  'dsp.master.graph.dcFixed': 'Décalage DC supprimé · {amount}',
-  'dsp.master.graph.dcClean': 'Décalage DC propre',
-  'dsp.master.graph.faultFixed':
-    '{count} échantillons invalides ou défaillants réparés',
-  'dsp.master.graph.faultClean': 'Échantillons valides',
-  'dsp.master.graph.safetyActive': 'Protections actives',
-  'dsp.master.graph.safetyBypassed': 'Alerte · protections contournées',
+  'dsp.master.graph.peakMeasured': 'Crête vraie {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'Maximisation LUFS · {gain} dB vers {target} LUFS',
   'dsp.master.peakLimiting': 'Limitation des crêtes',

@@ -460,12 +460,14 @@ void drain_analysis(HostState& state) {
       static_cast<float>(master.auto_headroom_reduction_db);
   frame.auto_headroom_true_peak_db =
       static_cast<float>(master.auto_headroom_true_peak_db);
-  frame.safety_reduction_db = static_cast<float>(master.safety_reduction_db);
-  frame.safety_true_peak_db = static_cast<float>(master.safety_true_peak_db);
-  frame.dc_correction_db = static_cast<float>(master.dc_correction_db);
-  frame.repaired_samples = static_cast<uint32_t>(master.repaired_samples);
-  frame.true_peak_factor = master.true_peak_factor;
-  frame.safety_enabled = master.safety_enabled != 0 ? 1u : 0u;
+  // The six words after Auto Headroom were the final guard's readings until
+  // it was removed on 2026-09-22; they stay in the layout as zeros.
+  frame.safety_reduction_db = 0.0f;
+  frame.safety_true_peak_db = 0.0f;
+  frame.dc_correction_db = 0.0f;
+  frame.repaired_samples = 0u;
+  frame.true_peak_factor = 0u;
+  frame.safety_enabled = 0u;
   feq_meters_read_normalizer(state.meters, frame.normalizer_input_peaks,
                              frame.normalizer_output_peaks,
                              &frame.normalizer_applied_gain_db);

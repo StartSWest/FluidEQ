@@ -38,7 +38,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/chain.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/loudness.h"
-#include "fluideq/output_safety.h"
 #include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
 #include "fluideq/saturate.h"
@@ -243,55 +242,17 @@ struct Superseded {
   const char* reason;
 };
 
-/** Racks with nothing ahead of the final guard, on signals over its ceiling. */
-constexpr const char* kGuardHoldsTheCeiling[] = {
-    "chain/bypass/white-noise",
-    "chain/bypass/transient-then-silence",
-    "chain/eq-stereo/white-noise",
-    "chain/eq-stereo/transient-then-silence",
-    "chain/eq-mid-side/white-noise",
-    "chain/eq-mid-side/transient-then-silence",
-    "chain/eq-oversampled-fuzz/white-noise",
-    "chain/eq-oversampled-fuzz/transient-then-silence",
-    "chain/eq-dynamic/white-noise",
-    "chain/eq-dynamic/transient-then-silence",
-    "chain/exciter/white-noise",
-    "chain/exciter/transient-then-silence",
-};
-
-constexpr const char* kPunchAlignmentMovesTheMaster[] = {
-    "chain/master-headroom/white-noise",
-};
-
 /**
- * The fixtures whose bands are shaped by the Focused character.
- *
- * Its law was the app's second: this side narrowed a band by
- * 1 + |gain|/24 × 1.6 and the equaliser page by sqrt(1 + |gain|/12), so the
- * same character under the same name was half again as narrow here at 12 dB.
- * They are one law now (`shapeEqFilters` is the one), which moves every
- * fixture that used it — and none that did not.
+ * The linear-phase kernels are built from the same coefficients as the
+ * equaliser page's Focused character, which narrows by the page's own law
+ * since 2026-09-20 (`shapeEqFilters` is the one): the four fixtures here are
+ * the proportional ones.
  */
-constexpr const char* kFocusedMatchesTheEqualiser[] = {
-    "chain/eq-mid-side/sweep",
-};
-
-/** The linear-phase kernels are built from the same coefficients. */
 constexpr const char* kFocusedKernels[] = {
     "linear-phase/narrow-low-proportional/serial/44100",
     "linear-phase/narrow-low-proportional/serial/48000",
     "linear-phase/narrow-low-proportional/parallel/44100",
     "linear-phase/narrow-low-proportional/parallel/48000",
-};
-
-/** The only racks in the corpus that turn the compressor on. */
-constexpr const char* kBandSplitMovesTheCompressor[] = {
-    "chain/compressor-maximizer/sweep",
-    "chain/compressor-maximizer/white-noise",
-    "chain/compressor-maximizer/transient-then-silence",
-    "chain/everything/sweep",
-    "chain/everything/white-noise",
-    "chain/everything/transient-then-silence",
 };
 
 constexpr Superseded kSuperseded[] = {
@@ -305,34 +266,27 @@ constexpr Superseded kSuperseded[] = {
      "the exciter's Timing delays those same bands, so it inherited the hole: "
      "six exciter profiles measured a 2-4 dB scoop through 250-1000 Hz that "
      "nothing in their settings asked for. Same split, same date"},
-    {kChain, kFocusedMatchesTheEqualiser,
-     "the Focused character narrows by the equaliser page's own law since "
-     "2026-09-20, rather than by a second one half again as steep at 12 dB. "
-     "Ivan asked for the two pages to behave alike; this is the fixture whose "
-     "rack turns that character on"},
     {kLinearPhase, kFocusedKernels,
-     "the same law, and the linear-phase kernels are built from the same "
+     "the Focused character narrows by the equaliser page's own law since "
+     "2026-09-20, and the linear-phase kernels are built from the same "
      "coefficients: the four fixtures here are the proportional ones"},
-    {kChain, kBandSplitMovesTheCompressor,
-     "the compressor divides its three bands with that same split, so the "
-     "only two racks that turn it on moved with it, on the same date; neither "
-     "turns on the exciter's Timing. Held by crossover_test.cpp, like the "
-     "split itself"},
-    {kChain, kGuardHoldsTheCeiling,
-     "the final guard has held every rack to its -0.1 dBTP ceiling since "
-     "2026-09-04, where it used to arm only above +10 dBTP. Nothing ahead of it "
-     "holds the level on these racks, so the noise and the transients that "
-     "went over the ceiling unchecked are limited now. Held by "
-     "output_quality_test.cpp, on the ceiling and on a limited note staying "
-     "clean, and by preset_safety_test.cpp across the factory catalogue"},
-    {kChain, kPunchAlignmentMovesTheMaster,
-     "Bass Punch has kept its FIR's alignment under bypass since 2026-09-06, "
-     "which puts the programme 549 frames later at 48 kHz — 37 into a "
-     "128-frame block — and the Master decides its loudness gain per block: "
-     "over white noise it lands up to 0.01 dB from where it did. Every rack "
-     "is compared that many frames late, and on every other one that delay "
-     "is all Punch changed; the alignment is held by bass_mix_test.cpp and "
-     "engine_test.cpp"},
+    {kOutputSafety, {},
+     "the final guard — a -0.1 dBTP limiter and a 3 Hz high-pass, always on "
+     "— was removed on 2026-09-22 at Ivan's call: it held every record "
+     "mastered above its ceiling, so a rack with every card off still "
+     "changed the sound. Its fixtures are rendered as the pass-through that "
+     "stands in its place. Held by chain_transparency_test.cpp: an idle rack "
+     "is a delay and nothing else"},
+    {kChain, {},
+     "every whole-chain fixture was frozen with that guard's high-pass on its "
+     "last stage, which is gone, so none of them is the TypeScript rack's "
+     "output any more. Before this they had already left one by one: the "
+     "three-band split stopped deriving bands by subtraction (2026-09-19; "
+     "crossover_test.cpp), the Focused character took the equaliser page's "
+     "law (2026-09-20), Bass Punch kept its FIR alignment under bypass "
+     "(2026-09-06; bass_mix_test.cpp, engine_test.cpp), and the guard held "
+     "the -0.1 dBTP ceiling on racks with nothing ahead of it (2026-09-04). "
+     "Every stage is still held to its own fixtures above"},
 };
 
 /** The entry that takes a fixture out of comparison, or null. */
@@ -796,41 +750,24 @@ bool render_compressor(const Fixture& fixture, std::vector<float>& actual,
   return true;
 }
 
-/** `[limiterEnabled, ceiling, activation, releaseCoefficient, kneeDb, hold]`. */
+/**
+ * `[limiterEnabled, ceiling, activation, releaseCoefficient, kneeDb, hold]`.
+ *
+ * The stage these fixtures were frozen from is gone (`kSuperseded`), and
+ * what stands where it stood leaves every finite sample as it came and puts
+ * silence where a sample was not a number (the chain's tail): rendered as
+ * that, so the fixtures still run and still say so.
+ */
 bool render_output_safety(const Fixture& fixture, std::vector<float>& actual) {
   if (fixture.params.size() < 6) {
     return false;
   }
-  FeqOutputSafetyOptions options{};
-  options.limiter_enabled = fixture.params[0] != 0.0 ? 1 : 0;
-  options.ceiling = fixture.params[1];
-  options.activation_threshold = fixture.params[2];
-  options.release_coefficient = fixture.params[3];
-  options.knee_db = fixture.params[4];
-  options.release_hold_samples = fixture.params[5];
-
-  const double rate = static_cast<double>(fixture.sample_rate);
-  const uint32_t look_ahead = feq_output_safety_look_ahead(rate);
-  const uint32_t capacity = look_ahead + 1;
-  const uint32_t channels = fixture.channels;
-
   actual = fixture.input;
-  std::vector<FeqDcBlock> dc(channels);
-  std::vector<FeqTruePeak> detectors(channels);
-  std::vector<std::vector<float>> lines(channels, std::vector<float>(capacity));
-  std::vector<float*> line_pointers(channels);
-  std::vector<float*> targets(channels);
-  for (uint32_t channel = 0; channel < channels; ++channel) {
-    line_pointers[channel] = lines[channel].data();
-    targets[channel] = channel_at(actual, channel, fixture.frames);
+  for (float& sample : actual) {
+    if (!std::isfinite(sample)) {
+      sample = 0.0f;
+    }
   }
-  std::vector<float> reduction(capacity);
-
-  FeqOutputSafety state;
-  feq_output_safety_init(&state, dc.data(), detectors.data(),
-                         line_pointers.data(), reduction.data(), channels,
-                         capacity, rate);
-  feq_output_safety_process(&state, targets.data(), fixture.frames, &options);
   return true;
 }
 
@@ -1273,7 +1210,8 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   const auto flag = [&next]() { return next() != 0.0 ? 1 : 0; };
 
   settings.enabled = flag();
-  settings.output_safety_enabled = flag();
+  // The final guard's switch, still in the frozen layout; the guard is gone.
+  flag();
   settings.exciter.enabled = flag();
   settings.exciter.isolate = flag();
   settings.exciter.stereo = static_cast<FeqStereoMode>(

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Master page's status chips holding an event, and letting it go.
+ * The Master page's peak chip holding an event, and letting it go.
  *
  * The hold was a `setTimeout` restarted on every change, which this project
  * does not allow, and which released an event that held one steady reading
@@ -23,9 +23,9 @@ import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import en from '../../../common/i18n/en';
 import DspMasterGraph from '../../../renderer/dsp/DspMasterGraph';
 import {
-  IDspOutputSafetyMeter,
-  readDspOutputSafetyMeter,
-  setDspOutputSafetyMeter,
+  IDspHeadroomMeter,
+  readDspHeadroomMeter,
+  setDspHeadroomMeter,
 } from '../../../renderer/dsp/store';
 
 const pending = new Map<number, FrameRequestCallback>();
@@ -33,7 +33,7 @@ let nextHandle = 1;
 let now = 10_000;
 let realRequest: typeof window.requestAnimationFrame;
 let realCancel: typeof window.cancelAnimationFrame;
-let idleMeter: IDspOutputSafetyMeter;
+let idleMeter: IDspHeadroomMeter;
 
 /** Every callback pending when the frame began, and none it goes on to ask for. */
 const runFrame = (): void => {
@@ -47,12 +47,9 @@ const runFrame = (): void => {
 /** A host frame: the meter the engine would publish, with this reduction. */
 const publish = (autoReductionDb: number): void => {
   act(() => {
-    setDspOutputSafetyMeter({
-      ...idleMeter,
-      postFilterNormalizer: {
-        gainReductionDb: autoReductionDb,
-        inputTruePeakDb: -6,
-      },
+    setDspHeadroomMeter({
+      gainReductionDb: autoReductionDb,
+      inputTruePeakDb: -6,
     });
   });
 };
@@ -61,7 +58,7 @@ const fixedChip = (gain: string) =>
   en['dsp.master.graph.peakFixed'].replace('{gain}', gain);
 
 beforeEach(() => {
-  idleMeter = readDspOutputSafetyMeter();
+  idleMeter = readDspHeadroomMeter();
   pending.clear();
   nextHandle = 1;
   now = 10_000;
@@ -80,20 +77,41 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  act(() => setDspOutputSafetyMeter(idleMeter));
+  act(() => setDspHeadroomMeter(idleMeter));
   window.requestAnimationFrame = realRequest;
   window.cancelAnimationFrame = realCancel;
   jest.restoreAllMocks();
 });
 
-const renderGraph = () =>
-  render(
-    <DspMasterGraph
-      master={DSP_DEFAULTS.master}
-      safetyEnabled
-      loudnessGainDb={0}
-    />,
-  );
+/** The Master with its ceiling on: the only state the chip can warn in. */
+const MAXIMIZING = {
+  ...DSP_DEFAULTS.master,
+  enabled: true,
+  loudnessMaximize: true,
+};
+
+const renderGraph = (master = MAXIMIZING) =>
+  render(<DspMasterGraph master={master} loudnessGainDb={0} />);
+
+describe('the peak chip with the Master off', () => {
+  /**
+   * No ceiling, no warning. A record already over full scale used to make
+   * the chip shout "above ceiling" with the Master switched off, which read
+   * as the rack doing something when it was doing nothing at all.
+   */
+  it('reports the peak and never warns', () => {
+    renderGraph(DSP_DEFAULTS.master);
+    act(() =>
+      setDspHeadroomMeter({ gainReductionDb: 0, inputTruePeakDb: 6.1 }),
+    );
+    expect(
+      screen.getByText(
+        en['dsp.master.graph.peakMeasured'].replace('{peak}', '6.1'),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/above ceiling/i)).not.toBeInTheDocument();
+  });
+});
 
 describe('the peak chip after the limiter lets go', () => {
   it('keeps saying what was fixed for the hold, then says the peak is safe', () => {
@@ -159,28 +177,6 @@ describe('the peak chip after the limiter lets go', () => {
     }
     expect(
       screen.getByText(en['dsp.master.graph.peakSafe']),
-    ).toBeInTheDocument();
-  });
-
-  it('holds the DC chip the same way', () => {
-    renderGraph();
-    const dcChip = en['dsp.master.graph.dcFixed'].replace(
-      '{amount}',
-      '-40.0 dBFS',
-    );
-    act(() => setDspOutputSafetyMeter({ ...idleMeter, dcCorrectionDb: -40 }));
-    expect(screen.getByText(dcChip)).toBeInTheDocument();
-
-    now += 16;
-    act(() => setDspOutputSafetyMeter({ ...idleMeter, dcCorrectionDb: -120 }));
-    now += 2_400;
-    runFrame();
-    expect(screen.getByText(dcChip)).toBeInTheDocument();
-
-    now += 200;
-    runFrame();
-    expect(
-      screen.getByText(en['dsp.master.graph.dcClean']),
     ).toBeInTheDocument();
   });
 

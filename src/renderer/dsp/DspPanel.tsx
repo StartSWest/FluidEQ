@@ -43,11 +43,9 @@ import {
 import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
-  setDspOutputSafetyEnabled,
   requestDspNoiseRescan,
   publishSystemDspChain,
   useDspNativeState,
-  useDspOutputSafetyEnabled,
   useDspSampleRate,
   useDspInputAnalysis,
 } from './store';
@@ -219,7 +217,6 @@ const DspPanel = ({
    * would hide the one error the display is for.
    */
   const sampleRate = useDspSampleRate();
-  const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
   const playingOwner = usePlaybackOwner();
   const sources = useTransportIdentitySources();
@@ -270,11 +267,11 @@ const DspPanel = ({
    * multiplying processes and doubled audio.
    */
   const areControlsUsable = isRackLive;
-  // No output-safety meter here: it is published with every host frame, a
-  // hundred times a second, and subscribing to it at this level re-rendered
-  // the header, the rail and whichever processor was open on every one of
-  // them — measured at 90–100 renders a second on every page, Master or not.
-  // The two things on the Master page that show it read it themselves.
+  // No headroom meter here: it is published with every host frame, a hundred
+  // times a second, and subscribing to it at this level re-rendered the
+  // header, the rail and whichever processor was open on every one of them —
+  // measured at 90–100 renders a second on every page, Master or not. The
+  // Master page's graph, the one thing that shows it, reads it itself.
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
     master,
@@ -875,11 +872,7 @@ const DspPanel = ({
           {section === 'master' && (
             <DspMasterCard
               master={master}
-              safetyEnabled={outputSafetyEnabled}
               loudness={loudness}
-              onSafetyToggle={() =>
-                setDspOutputSafetyEnabled(!outputSafetyEnabled)
-              }
               onPatch={(next) => patch({ master: next })}
               onCommit={onCommit}
             />

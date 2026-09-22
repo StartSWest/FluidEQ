@@ -73,7 +73,6 @@ import {
   GRID_SIDE_MARGIN,
   plotTopMargin,
 } from './plotMargins';
-import { useInternalClipping } from '../audio/internalClipping';
 import {
   useLiveAudioCapture,
   useLiveAudioFrame,
@@ -438,8 +437,7 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
 const LiveClipWarning = () => {
   const { t } = useTranslation();
   const { isClipping } = useLiveAudioFrame();
-  const isInternallyClipping = useInternalClipping();
-  return isClipping || isInternallyClipping ? (
+  return isClipping ? (
     <span className="graph-clip-warning" role="status">
       {t('graph.clip')}
     </span>

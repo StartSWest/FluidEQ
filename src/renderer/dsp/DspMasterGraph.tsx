@@ -13,19 +13,16 @@ import {
   LOUDNESS_SAMPLE_MS,
   paintMasterLoudness,
 } from './masterLoudnessPlot';
-import { readDspLoudness, readDspPeak, useDspOutputSafetyMeter } from './store';
+import { readDspLoudness, readDspPeak, useDspHeadroomMeter } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS } from './dspInks';
 
-/** Below this, the slow DC estimate is beneath a useful reporting floor. */
-const DC_REPORT_THRESHOLD_DB = -60;
 /**
- * How long a status chip keeps reporting an event after the last frame that
+ * How long the status chip keeps reporting an event after the last frame that
  * showed it — long enough to be read, since a limiter catching one transient
  * is over within a few milliseconds.
  */
 const PEAK_EVENT_HOLD_MS = 2_500;
-const DC_EVENT_HOLD_MS = 2_500;
 /** The floor every reading in this display treats as "nothing measured yet". */
 const SILENCE_LUFS = -120;
 
@@ -36,9 +33,6 @@ interface IPeakEvent {
 
 const amplitudeDb = (value: number): number =>
   value > 1e-6 ? 20 * Math.log10(value) : -120;
-
-const displayDbfs = (value: number): string =>
-  value <= -119.5 ? '≤−120 dBFS' : `${value.toFixed(1)} dBFS`;
 
 /** A loudness that has not been measured yet is absent, not quiet. */
 const displayLufs = (value: number): string =>
@@ -59,7 +53,6 @@ const signedDb = (value: number): string =>
 
 interface IDspMasterGraphProps {
   master: IMasterSettings;
-  safetyEnabled: boolean;
   loudnessGainDb: number;
 }
 
@@ -73,23 +66,19 @@ interface IDspMasterGraphProps {
  * mastered track, which nobody could see. A target with no meter beside it is
  * a setting that cannot be checked.
  */
-const DspMasterGraph = ({
-  master,
-  safetyEnabled,
-  loudnessGainDb,
-}: IDspMasterGraphProps) => {
+const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
   const { t } = useTranslation();
   // Read here, where the status line that shows it lives. Handed down from the
   // card, every host frame re-rendered the card's five dials and three
   // switches along with it.
-  const meter = useDspOutputSafetyMeter();
+  const meter = useDspHeadroomMeter();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   /** The running loop's way in, for a render that has to reach the canvas. */
   const redraw = useRef<(() => void) | undefined>(undefined);
   /**
-   * When each chip's event was last seen, on the `performance.now()` clock.
+   * When the chip's event was last seen, on the `performance.now()` clock.
    *
-   * The chips hold their event for a while after it ends, and that hold is
+   * The chip holds its event for a while after it ends, and that hold is
    * measured, not scheduled: every host frame re-renders this component and
    * stamps the time if the event is still in it, and the frame loop below
    * releases a hold once that stamp is old enough. It was a `setTimeout`
@@ -99,7 +88,6 @@ const DspMasterGraph = ({
    * holding one steady value was released while it was still happening.
    */
   const peakSeenAtRef = useRef(0);
-  const dcSeenAtRef = useRef(0);
   /**
    * The history rings, owned outside React on purpose.
    *
@@ -127,7 +115,6 @@ const DspMasterGraph = ({
   const meterRef = useRef(meter);
   meterRef.current = meter;
   const [heldPeakEvent, setHeldPeakEvent] = useState<IPeakEvent | undefined>();
-  const [heldDcCorrectionDb, setHeldDcCorrectionDb] = useState(-120);
   /**
    * The readouts, which DO go through React.
    *
@@ -144,49 +131,40 @@ const DspMasterGraph = ({
   });
 
   const maximizeActive = master.enabled && master.loudnessMaximize;
-  const effectiveCeiling = maximizeActive ? master.ceilingDb : 0;
-  const autoGainReductionDb = meter.postFilterNormalizer.gainReductionDb;
-  const safetyGainReductionDb = safetyEnabled ? meter.gainReductionDb : 0;
+  const autoGainReductionDb = meter.gainReductionDb;
   const observedPeakDb = Math.max(
     amplitudeDb(readDspPeak()),
-    safetyEnabled ? meter.inputTruePeakDb : -120,
+    meter.inputTruePeakDb,
   );
-  const overCeiling = observedPeakDb > effectiveCeiling + 0.05;
+  // There is a ceiling to be over only while LUFS maximize holds one. With
+  // the Master off, a record already over full scale is the record's own
+  // business and the chip reports the peak rather than warning about it —
+  // the warning read as the rack doing something when it was doing nothing.
+  const overCeiling =
+    maximizeActive && observedPeakDb > master.ceilingDb + 0.05;
   const autoReducing = autoGainReductionDb < -0.05;
-  const safetyReducing = safetyGainReductionDb < -0.05;
-  const reducing = autoReducing || safetyReducing;
-  const dcFixed = heldDcCorrectionDb > DC_REPORT_THRESHOLD_DB;
-  const faults = meter.repairedSamples;
   let currentPeakEvent: IPeakEvent | undefined;
   if (autoReducing) {
     currentPeakEvent = {
       kind: 'fixed',
       amount: Math.abs(autoGainReductionDb),
     };
-  } else if (overCeiling && !safetyReducing) {
+  } else if (overCeiling) {
     currentPeakEvent = { kind: 'warning', amount: observedPeakDb };
   }
-  const dcActive = meter.dcCorrectionDb > DC_REPORT_THRESHOLD_DB;
   /**
    * What the frame loop needs to decide a release, read there rather than
    * closed over: the loop outlives many renders, and rebuilding it for every
    * change to these would cancel frames instead of drawing them.
    */
-  const holdRef = useRef({
-    peakActive: false,
-    peakHeld: false,
-    dcActive: false,
-    dcHeld: false,
-  });
+  const holdRef = useRef({ peakActive: false, peakHeld: false });
   holdRef.current = {
     peakActive: currentPeakEvent !== undefined,
     peakHeld: heldPeakEvent !== undefined,
-    dcActive,
-    dcHeld: dcFixed,
   };
 
   useEffect(() => {
-    if (!autoReducing && (!overCeiling || safetyReducing)) {
+    if (!autoReducing && !overCeiling) {
       return;
     }
     const nextPeakEvent: IPeakEvent = autoReducing
@@ -207,26 +185,15 @@ const DspMasterGraph = ({
         ? nextPeakEvent
         : previous;
     });
-  }, [
-    autoGainReductionDb,
-    autoReducing,
-    observedPeakDb,
-    overCeiling,
-    safetyReducing,
-  ]);
-
-  useEffect(() => {
-    if (meter.dcCorrectionDb <= DC_REPORT_THRESHOLD_DB) {
-      return;
-    }
-    setHeldDcCorrectionDb((previous) =>
-      Math.max(previous, meter.dcCorrectionDb),
-    );
-  }, [meter.dcCorrectionDb]);
+  }, [autoGainReductionDb, autoReducing, observedPeakDb, overCeiling]);
 
   const displayedPeakEvent = heldPeakEvent ?? currentPeakEvent;
-  let peakStatusClass = 'is-safe';
-  let peakStatus = t('dsp.master.graph.peakSafe');
+  let peakStatusClass = maximizeActive ? 'is-safe' : '';
+  let peakStatus = maximizeActive
+    ? t('dsp.master.graph.peakSafe')
+    : t('dsp.master.graph.peakMeasured', {
+        peak: observedPeakDb <= -119.5 ? '—' : observedPeakDb.toFixed(1),
+      });
   if (displayedPeakEvent?.kind === 'warning') {
     peakStatusClass = 'is-warning';
     peakStatus = t('dsp.master.graph.peakWarning', {
@@ -238,14 +205,6 @@ const DspMasterGraph = ({
       gain: displayedPeakEvent.amount.toFixed(1),
     });
   }
-  let safetyStatusClass = safetyEnabled ? 'is-safe' : 'is-warning';
-  let safetyStatus = safetyEnabled
-    ? t('dsp.master.graph.safetyActive')
-    : t('dsp.master.graph.safetyBypassed');
-  if (safetyReducing) {
-    safetyStatusClass = 'is-fixed';
-    safetyStatus = `${t('dsp.master.graph.safetyActive')} · ${safetyGainReductionDb.toFixed(1)} dB`;
-  }
 
   const targetLabel = t('dsp.master.graph.targetLine', {
     target: master.loudnessTargetLufs.toFixed(1),
@@ -254,7 +213,7 @@ const DspMasterGraph = ({
 
   useEffect(() => {
     /**
-     * Releases a chip whose event has not been seen for its hold.
+     * Releases the chip once its event has not been seen for its hold.
      *
      * Checked on animation frames rather than on host frames, because an
      * engine that stops takes its host frames with it and the chip still has
@@ -269,13 +228,6 @@ const DspMasterGraph = ({
       if (hold.peakHeld && !hold.peakActive) {
         if (now - peakSeenAtRef.current >= PEAK_EVENT_HOLD_MS) {
           setHeldPeakEvent(undefined);
-        } else {
-          schedule();
-        }
-      }
-      if (hold.dcHeld && !hold.dcActive) {
-        if (now - dcSeenAtRef.current >= DC_EVENT_HOLD_MS) {
-          setHeldDcCorrectionDb(-120);
         } else {
           schedule();
         }
@@ -305,8 +257,7 @@ const DspMasterGraph = ({
       context.clearRect(0, 0, width, height);
 
       const live = readDspLoudness();
-      const nowReduction =
-        meterRef.current.postFilterNormalizer.gainReductionDb;
+      const nowReduction = meterRef.current.gainReductionDb;
       if (nowReduction < pendingReductionRef.current) {
         pendingReductionRef.current = nowReduction;
       }
@@ -344,7 +295,7 @@ const DspMasterGraph = ({
         targetLufs: master.loudnessTargetLufs,
         liveReductionDb: nowReduction,
         targetActive: maximizeActive,
-        overCeiling: overCeiling && !reducing,
+        overCeiling: overCeiling && !autoReducing,
         targetLabel,
         integratedLabel: t('dsp.master.graph.integratedLine', {
           value: displayLufs(live.integratedLufs),
@@ -383,10 +334,10 @@ const DspMasterGraph = ({
       loop.stop();
     };
   }, [
+    autoReducing,
     maximizeActive,
     master.loudnessTargetLufs,
     overCeiling,
-    reducing,
     reductionLabel,
     t,
     targetLabel,
@@ -400,12 +351,8 @@ const DspMasterGraph = ({
   // an event still in the readings is stamped as seen: the last frame that
   // carried it is the evidence the hold counts from.
   useEffect(() => {
-    const now = performance.now();
     if (holdRef.current.peakActive) {
-      peakSeenAtRef.current = now;
-    }
-    if (holdRef.current.dcActive) {
-      dcSeenAtRef.current = now;
+      peakSeenAtRef.current = performance.now();
     }
     redraw.current?.();
   });
@@ -419,19 +366,6 @@ const DspMasterGraph = ({
       />
       <div className="dsp-master-status" aria-live="polite">
         <span className={peakStatusClass}>{peakStatus}</span>
-        <span className={dcFixed ? 'is-fixed' : 'is-safe'}>
-          {dcFixed
-            ? t('dsp.master.graph.dcFixed', {
-                amount: displayDbfs(heldDcCorrectionDb),
-              })
-            : t('dsp.master.graph.dcClean')}
-        </span>
-        <span className={faults > 0 ? 'is-fixed' : 'is-safe'}>
-          {faults > 0
-            ? t('dsp.master.graph.faultFixed', { count: faults })
-            : t('dsp.master.graph.faultClean')}
-        </span>
-        <span className={safetyStatusClass}>{safetyStatus}</span>
         {maximizeActive ? (
           <span className="is-safe">
             {t('dsp.master.graph.loudnessActive', {

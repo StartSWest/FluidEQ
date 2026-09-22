@@ -54,7 +54,6 @@ import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
 import useSmoothFrames from '../utils/useSmoothFrames';
-import { readInternalClipping } from '../audio/internalClipping';
 import {
   LEVEL_FLOOR_DB,
   LEVEL_HOT_DB,
@@ -1700,8 +1699,6 @@ const OutputLevelMeter = () => {
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
-  const internalClippingRef = useRef(false);
-  const [isInternallyClipping, setIsInternallyClipping] = useState(false);
 
   // Remembered across launches: which one somebody likes is a preference,
   // and being handed back a different meter every morning is not charming.
@@ -1814,31 +1811,26 @@ const OutputLevelMeter = () => {
           },
         ]
       : outputLevels;
-    // One verdict for the whole app — see `internalClipping.ts`. The wave in
-    // the titlebar and the graph's badge read the same thing, so the three
-    // agree about a moment instead of one of them being the only one that
-    // ever went red.
-    const internalClipping = readInternalClipping(performance.now());
-    let anyInternalClipping = false;
     targetsRef.current = channels.map((channel, index) => {
       const level = levelFraction(channel.levelDb);
       const peak = levelFraction(channel.peakDb);
       /**
        * Only measured samples at a digital rail say CLIP.
        *
-       * The loopback supplies each endpoint channel; FluidEQ's worklet supplies
-       * each channel before Windows gets a chance to limit or clamp it. Neither
-       * path consults settings or predicts a ceiling. Orange remains measured
-       * near-ceiling level; red is evidence in samples from either path.
+       * The capture's own verdict, from samples pinned to either rail, and
+       * the app's one definition of clipping — the titlebar wave and the
+       * graph's badge read the same flag. It used to be joined by a second
+       * verdict read off the engine's own peaks at -1 dBFS, which called
+       * every loud record clipped whether or not anything touched it.
+       * Orange remains measured near-ceiling level; red is evidence.
        */
-      anyInternalClipping ||= internalClipping;
-      const isRailed = channel.isClipping || internalClipping;
+      const isRailed = channel.isClipping;
       railedRef.current[index] = isRailed;
       return {
         level,
         peak,
-        // Zones from this channel's own decibels. The global flag is
-        // deliberately not folded in here for the reason above.
+        // Zones from this channel's own decibels. The flag is deliberately
+        // not folded in here for the reason above.
         zone: levelZone(channel.levelDb, false),
         peakZone: isRailed
           ? ('clip' as const)
@@ -1848,13 +1840,7 @@ const OutputLevelMeter = () => {
     if (easedRef.current.length !== targetsRef.current.length) {
       easedRef.current = targetsRef.current.map((channel) => ({ ...channel }));
     }
-    if (anyInternalClipping !== internalClippingRef.current) {
-      internalClippingRef.current = anyInternalClipping;
-      setIsInternallyClipping(anyInternalClipping);
-    }
   }, [isOff, outputLevels]);
-
-  const isDisplayedClipping = isClipping || isInternallyClipping;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -2294,7 +2280,7 @@ const OutputLevelMeter = () => {
   // Kick the loop on new frames and on state that changes the drawing.
   useEffect(() => {
     kickFrames();
-  }, [isDisplayedClipping, isEuphoric, kickFrames, outputLevels, style]);
+  }, [isClipping, isEuphoric, kickFrames, outputLevels, style]);
 
   if (isHidden) {
     return null;
@@ -2305,7 +2291,7 @@ const OutputLevelMeter = () => {
     <button
       type="button"
       className={`output-meter${
-        isDisplayedClipping && !isOff ? ' is-clipping' : ''
+        isClipping && !isOff ? ' is-clipping' : ''
       }${isIdle && !isOff ? ' is-idle' : ''}${isOff ? ' is-off' : ''}`}
       aria-label={`${t('graph.meter.aria')} — ${style}`}
       title={`${t('graph.meter.aria')} — ${style}`}

@@ -123,7 +123,6 @@ const dsp = {
     'Buffers informados pelo motor na taxa atual. Windows, dispositivo e rede não estão incluídos.',
   'dsp.latency.gameNote':
     'O Modo jogo reduz buffers evitáveis. Efeitos ativos podem precisar de atraso. Desative-o para restaurar o processamento normal.',
-  'dsp.latency.stage.safety': 'Proteção final',
   'dsp.latency.stage.guard': 'Proteção de picos do equalizador',
   'dsp.latency.stage.curves': 'Curvas de correção',
   'dsp.scope.useFluid': 'Usar o Motor FluidEQ',
@@ -585,14 +584,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Aplica {gain} dB com base na medição da faixa completa e mantém o pico real final abaixo do teto. O ganho é constante; apenas os picos são controlados.',
   'dsp.master.loudnessTarget': 'Alvo de sonoridade',
-  'dsp.master.truePeak': 'TP entrada',
-  'dsp.master.devSafety': 'Segurança A/B',
-  'dsp.master.devSafetyHint':
-    'Apenas desenvolvimento: ignora toda a proteção final para ouvir exatamente o que ela altera.',
-  'dsp.master.devSafetySpec':
-    'Proteção de picos a −0,1 dBTP · antecipação de 2 ms · recuperação suave · proteção DC e amostras inválidas',
-  'dsp.master.dcCorrection': 'Deslocamento DC',
-  'dsp.master.faults': 'Falhas',
   'dsp.master.graph.momentary': 'Momentâneo',
   'dsp.master.graph.shortTerm': 'Curto prazo',
   'dsp.master.graph.target': 'Alvo',
@@ -603,13 +594,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': 'Aviso · saída a {peak} dBTP acima do teto',
   'dsp.master.graph.peakFixed': 'Pico controlado · {gain} dB de redução',
   'dsp.master.graph.peakSafe': 'Pico verdadeiro dentro do teto',
-  'dsp.master.graph.dcFixed': 'Deslocamento DC removido · {amount}',
-  'dsp.master.graph.dcClean': 'Deslocamento DC limpo',
-  'dsp.master.graph.faultFixed':
-    'Reparadas {count} amostras inválidas ou com falha',
-  'dsp.master.graph.faultClean': 'Amostras válidas',
-  'dsp.master.graph.safetyActive': 'Proteções ativas',
-  'dsp.master.graph.safetyBypassed': 'Aviso · proteções ignoradas',
+  'dsp.master.graph.peakMeasured': 'Pico verdadeiro {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'Maximizar LUFS · {gain} dB rumo a {target} LUFS',
   'dsp.master.peakLimiting': 'Limitação de picos',

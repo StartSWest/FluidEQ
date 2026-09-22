@@ -16,10 +16,12 @@ class ProcessingLatency {
   void publish(const FeqChain* chain) noexcept {
     FeqChainLatencyParts parts{};
     feq_chain_latency_parts(chain, &parts);
+    // The word before the mask carried the final guard's look-ahead until the
+    // guard was removed on 2026-09-22; it stays in the layout as 0.
     const uint32_t words[] = {
         feq_chain_latency_frames(chain), parts.linear_eq, parts.restoration,
         parts.leveler, parts.room, parts.bass_punch, parts.maximizer,
-        parts.headroom, parts.safety, feq_chain_processed_stages(chain)};
+        parts.headroom, 0u, feq_chain_processed_stages(chain)};
     sequence_.fetch_add(1);
     for (size_t i = 0; i < values_.size(); ++i) values_[i].store(words[i]);
     sequence_.fetch_add(1);

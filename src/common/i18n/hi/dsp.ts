@@ -123,7 +123,6 @@ const dsp = {
     'वर्तमान सैंपल रेट पर इंजन द्वारा बताए गए बफ़र। Windows, डिवाइस और नेटवर्क की देरी शामिल नहीं है।',
   'dsp.latency.gameNote':
     'गेम मोड अनावश्यक बफ़र घटाता है। सक्रिय प्रभावों को फिर भी देरी की ज़रूरत हो सकती है। सामान्य प्रोसेसिंग के लिए इसे बंद करें।',
-  'dsp.latency.stage.safety': 'अंतिम सुरक्षा',
   'dsp.latency.stage.guard': 'EQ पीक सुरक्षा',
   'dsp.latency.stage.curves': 'सुधार कर्व',
   'dsp.scope.useFluid': 'FluidEQ इंजन इस्तेमाल करें',
@@ -579,14 +578,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'पूरे ट्रैक की माप से {gain} dB लागू करता है और अंतिम ट्रू पीक को सीमा के नीचे रखता है। गेन स्थिर रहता है; केवल पीक नियंत्रित होते हैं।',
   'dsp.master.loudnessTarget': 'लाउडनेस लक्ष्य',
-  'dsp.master.truePeak': 'TP इन',
-  'dsp.master.devSafety': 'सुरक्षा A/B',
-  'dsp.master.devSafetyHint':
-    'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',
-  'dsp.master.devSafetySpec':
-    '−0.1 dBTP पर पीक सुरक्षा · 2 ms लुक-अहेड · सहज रिकवरी · DC और अमान्य सैम्पल सुरक्षा',
-  'dsp.master.dcCorrection': 'DC ऑफसेट',
-  'dsp.master.faults': 'फॉल्ट',
   'dsp.master.graph.momentary': 'क्षणिक',
   'dsp.master.graph.shortTerm': 'अल्पकालिक',
   'dsp.master.graph.target': 'लक्ष्य',
@@ -597,12 +588,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': 'चेतावनी · आउटपुट {peak} dBTP सीमा से ऊपर',
   'dsp.master.graph.peakFixed': 'पीक नियंत्रित · {gain} dB गेन रिडक्शन',
   'dsp.master.graph.peakSafe': 'ट्रू पीक सीमा के भीतर',
-  'dsp.master.graph.dcFixed': 'DC ऑफसेट हटाया · {amount}',
-  'dsp.master.graph.dcClean': 'DC ऑफसेट साफ़',
-  'dsp.master.graph.faultFixed': '{count} अमान्य या खराब सैम्पल सुधारे गए',
-  'dsp.master.graph.faultClean': 'सैम्पल मान्य',
-  'dsp.master.graph.safetyActive': 'सुरक्षा सक्रिय',
-  'dsp.master.graph.safetyBypassed': 'चेतावनी · सुरक्षा बायपास',
+  'dsp.master.graph.peakMeasured': 'ट्रू पीक {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'LUFS अधिकतम · {target} LUFS की ओर {gain} dB',
   'dsp.master.peakLimiting': 'पीक लिमिटिंग',

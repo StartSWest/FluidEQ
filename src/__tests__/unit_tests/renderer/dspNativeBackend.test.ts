@@ -59,7 +59,7 @@ describe('the native backend controller', () => {
     const { bridge, calls } = recordingBridge();
     const controller = createNativeBackendController(bridge);
 
-    expect(await controller.engage(DSP_DEFAULTS, true)).toBe(true);
+    expect(await controller.engage(DSP_DEFAULTS)).toBe(true);
     expect(calls).toEqual(['start', 'chain', 'open']);
   });
 
@@ -72,25 +72,11 @@ describe('the native backend controller', () => {
       },
     });
     const controller = createNativeBackendController(bridge);
-    await controller.engage(DSP_DEFAULTS, true);
+    await controller.engage(DSP_DEFAULTS);
 
     expect(sent).toHaveLength(1);
     expect(sent[0].length).toBeGreaterThanOrEqual(CHAIN_PARAM_LEAD);
     expect(sent[0][CHAIN_PARAM_LEAD - 1]).toBe(DSP_DEFAULTS.eq.bands.length);
-  });
-
-  it('carries the output-safety A/B into the chain it sends', async () => {
-    const sent: number[][] = [];
-    const { bridge } = recordingBridge({
-      applyDspHostChain: (values) => {
-        sent.push([...values]);
-        return Promise.resolve(true);
-      },
-    });
-    const controller = createNativeBackendController(bridge);
-    await controller.engage(DSP_DEFAULTS, false);
-
-    expect(sent[0][1]).toBe(0);
   });
 
   describe('when the host will not come up', () => {
@@ -107,7 +93,7 @@ describe('the native backend controller', () => {
       });
       const controller = createNativeBackendController(bridge);
 
-      expect(await controller.engage(DSP_DEFAULTS, true)).toBe(false);
+      expect(await controller.engage(DSP_DEFAULTS)).toBe(false);
       expect(calls).not.toContain('open');
     });
 
@@ -117,7 +103,7 @@ describe('the native backend controller', () => {
       });
       const controller = createNativeBackendController(bridge);
 
-      expect(await controller.engage(DSP_DEFAULTS, true)).toBe(false);
+      expect(await controller.engage(DSP_DEFAULTS)).toBe(false);
       expect(calls).not.toContain('open');
       expect(calls).toContain('stop');
     });
@@ -135,7 +121,7 @@ describe('the native backend controller', () => {
     it('empties both decks, stops, and only then releases the endpoint', async () => {
       const { bridge, calls } = recordingBridge();
       const controller = createNativeBackendController(bridge);
-      await controller.engage(DSP_DEFAULTS, true);
+      await controller.engage(DSP_DEFAULTS);
       calls.length = 0;
 
       await controller.disengage();
@@ -161,7 +147,7 @@ describe('the native backend controller', () => {
     it('is idempotent, so a double switch does not close twice', async () => {
       const { bridge, calls } = recordingBridge();
       const controller = createNativeBackendController(bridge);
-      await controller.engage(DSP_DEFAULTS, true);
+      await controller.engage(DSP_DEFAULTS);
       await controller.disengage();
       calls.length = 0;
 
@@ -175,7 +161,7 @@ describe('the native backend controller', () => {
         unloadDspHostDeck: () => Promise.reject(new Error('deck already gone')),
       });
       const controller = createNativeBackendController(bridge);
-      await controller.engage(DSP_DEFAULTS, true);
+      await controller.engage(DSP_DEFAULTS);
       calls.length = 0;
 
       await controller.disengage();
@@ -189,10 +175,10 @@ describe('the native backend controller', () => {
     it('pushes the chain again while engaged', async () => {
       const { bridge, calls } = recordingBridge();
       const controller = createNativeBackendController(bridge);
-      await controller.engage(DSP_DEFAULTS, true);
+      await controller.engage(DSP_DEFAULTS);
       calls.length = 0;
 
-      expect(await controller.update(DSP_DEFAULTS, true)).toBe(true);
+      expect(await controller.update(DSP_DEFAULTS)).toBe(true);
       expect(calls).toEqual(['chain']);
     });
 
@@ -207,7 +193,7 @@ describe('the native backend controller', () => {
       const { bridge, calls } = recordingBridge();
       const controller = createNativeBackendController(bridge);
 
-      expect(await controller.update(DSP_DEFAULTS, true)).toBe(false);
+      expect(await controller.update(DSP_DEFAULTS)).toBe(false);
       expect(calls).toEqual([]);
     });
   });
@@ -254,7 +240,7 @@ describe('the native backend controller', () => {
     const engaged = async () => {
       const gated = gatedBridge();
       const controller = createNativeBackendController(gated.bridge);
-      const engaging = controller.engage(sized(3), true);
+      const engaging = controller.engage(sized(3));
       await asked(gated.sizes, 1);
       gated.gates[0](true);
       expect(await engaging).toBe(true);
@@ -263,11 +249,11 @@ describe('the native backend controller', () => {
 
     it('sends the first, then only the newest of everything asked meanwhile', async () => {
       const { controller, sizes, gates } = await engaged();
-      const first = controller.update(sized(4), true);
+      const first = controller.update(sized(4));
       await asked(sizes, 2);
       // Blocked: the host has the first. Six more positions of the dial.
       const replaced = [5, 6, 7, 8, 9, 10].map((sizeM) =>
-        controller.update(sized(sizeM), true),
+        controller.update(sized(sizeM)),
       );
       gates[1](true);
       expect(await first).toBe(true);
@@ -282,14 +268,14 @@ describe('the native backend controller', () => {
 
     it('queues afresh once the waiting push has started, so the last value always goes', async () => {
       const { controller, sizes, gates } = await engaged();
-      const first = controller.update(sized(4), true);
+      const first = controller.update(sized(4));
       await asked(sizes, 2);
-      const second = controller.update(sized(5), true);
+      const second = controller.update(sized(5));
       gates[1](true);
       await first;
       await asked(sizes, 3);
       // The 5 is with the host now; a 6 asked here must not be lost in it.
-      const third = controller.update(sized(6), true);
+      const third = controller.update(sized(6));
       gates[2](true);
       await second;
       await asked(sizes, 4);
@@ -300,11 +286,11 @@ describe('the native backend controller', () => {
 
     it('tells everyone who was waiting on a push that failed, and carries on', async () => {
       const { controller, sizes, gates } = await engaged();
-      const first = controller.update(sized(4), true);
+      const first = controller.update(sized(4));
       await asked(sizes, 2);
       const waiting = [
-        controller.update(sized(5), true),
-        controller.update(sized(6), true),
+        controller.update(sized(5)),
+        controller.update(sized(6)),
       ];
       gates[1](true);
       await first;
@@ -313,7 +299,7 @@ describe('the native backend controller', () => {
       await expect(waiting[0]).rejects.toThrow('the host went away');
       await expect(waiting[1]).rejects.toThrow('the host went away');
       // Not wedged: the next update is sent like any other.
-      const next = controller.update(sized(7), true);
+      const next = controller.update(sized(7));
       await asked(sizes, 4);
       gates[3](true);
       expect(await next).toBe(true);
@@ -327,11 +313,11 @@ describe('the native backend controller', () => {
      */
     it('lets nothing asked after a disengage be sent before it', async () => {
       const { controller, sizes, gates, calls } = await engaged();
-      const first = controller.update(sized(4), true);
+      const first = controller.update(sized(4));
       await asked(sizes, 2);
-      const waiting = controller.update(sized(5), true);
+      const waiting = controller.update(sized(5));
       const leaving = controller.disengage();
-      const late = controller.update(sized(9), true);
+      const late = controller.update(sized(9));
       gates[1](true);
       await first;
       await asked(sizes, 3);
@@ -350,13 +336,13 @@ describe('the native backend controller', () => {
      */
     it('keeps its place against a second controller, and sends nothing stale after it', async () => {
       const { controller, bridge, sizes, gates } = await engaged();
-      const first = controller.update(sized(4), true);
+      const first = controller.update(sized(4));
       await asked(sizes, 2);
-      const waiting = controller.update(sized(5), true);
+      const waiting = controller.update(sized(5));
       const leaving = controller.disengage();
       const successor = createNativeBackendController(bridge);
-      const taking = successor.engage(sized(11), true);
-      const stale = controller.update(sized(8), true);
+      const taking = successor.engage(sized(11));
+      const stale = controller.update(sized(8));
       gates[1](true);
       await first;
       await asked(sizes, 3);

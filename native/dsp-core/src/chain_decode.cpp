@@ -91,7 +91,10 @@ int feq_chain_settings_decode(const double* values,
   const auto flag = [&next]() { return next() != 0.0 ? 1 : 0; };
 
   out->enabled = flag();
-  out->output_safety_enabled = flag();
+  // The second word was the final guard's switch until 2026-09-22, when the
+  // guard was removed. The slot stays so no band moves; the app writes a 0
+  // there, which also keeps an older engine's guard off.
+  next();
 
   out->exciter.enabled = flag();
   out->exciter.isolate = flag();

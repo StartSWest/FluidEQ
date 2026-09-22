@@ -269,6 +269,12 @@ foreach(partition individual chains denoise equaliser exciter bass-forge
       "${CMAKE_BINARY_DIR}/preset-fixtures.txt" "${partition}")
 endforeach()
 
+add_executable(fluideq-chain-transparency-test
+  dsp-core/tests/chain_transparency_test.cpp)
+target_link_libraries(fluideq-chain-transparency-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-transparency COMMAND fluideq-chain-transparency-test)
+
 add_executable(fluideq-output-quality-test dsp-core/tests/output_quality_test.cpp)
 target_link_libraries(fluideq-output-quality-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME output-quality COMMAND fluideq-output-quality-test)

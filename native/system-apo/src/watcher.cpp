@@ -99,7 +99,6 @@ std::vector<std::pair<std::string, unsigned>> latency_parts_of(
       {"maximizer", parts.rack.maximizer},
       {"headroom", parts.rack.headroom},
       {"master", 0u},
-      {"safety", parts.rack.safety},
       {"eqPhase", parts.eq_phase},
       {"curvePhase", parts.curve_phase},
       {"convolution", parts.convolution},

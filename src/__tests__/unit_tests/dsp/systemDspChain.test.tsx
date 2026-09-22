@@ -35,7 +35,6 @@ import DspPanel from '../../../renderer/dsp/DspPanel';
 import { DSP_OPEN_SECTION_KEY } from '../../../renderer/dsp/openSection';
 import {
   applyDspSettings,
-  readDspOutputSafetyEnabled,
   setDspNativeState,
   setDspRackGate,
 } from '../../../renderer/dsp/store';
@@ -228,11 +227,7 @@ describe('the rack on its way to the system-wide engine', () => {
     // Byte for byte the array the Library player's host receives. Two
     // encoders would agree until a field was added to one of them, and the
     // failure mode of that is not a crash — it is every band shifted by one.
-    expect(chainsSent[0]).toEqual(
-      encodeChainSettings(edited, {
-        outputSafetyEnabled: readDspOutputSafetyEnabled(),
-      }),
-    );
+    expect(chainsSent[0]).toEqual(encodeChainSettings(edited));
   });
 
   it('keeps the capability result when an identical snapshot is deduplicated in flight', async () => {
@@ -281,11 +276,7 @@ describe('what the DSP page says its scope is', () => {
   it('makes sure the engine has the rack when the page opens', async () => {
     renderPanel();
     await waitFor(() => expect(chainsSent).toHaveLength(1));
-    expect(chainsSent[0]).toEqual(
-      encodeChainSettings(DSP_DEFAULTS, {
-        outputSafetyEnabled: readDspOutputSafetyEnabled(),
-      }),
-    );
+    expect(chainsSent[0]).toEqual(encodeChainSettings(DSP_DEFAULTS));
   });
 
   it('sends nothing on open under Equalizer APO', async () => {
@@ -426,9 +417,7 @@ describe('the rack under the engine with nothing playing at all', () => {
 
 describe('a send the engine refuses', () => {
   it('is not remembered as delivered, so the identical array is sent again', async () => {
-    const values = encodeChainSettings(DSP_DEFAULTS, {
-      outputSafetyEnabled: readDspOutputSafetyEnabled(),
-    });
+    const values = encodeChainSettings(DSP_DEFAULTS);
 
     chainAnswer = 'not-fluid';
     sendSystemDspChain(values);
@@ -450,11 +439,7 @@ describe('a refresh that discovers the chosen engine changed', () => {
     // Prime the cache as though this window had already delivered the
     // defaults — exactly what a first visit to this page under the engine
     // leaves behind.
-    sendSystemDspChain(
-      encodeChainSettings(DSP_DEFAULTS, {
-        outputSafetyEnabled: readDspOutputSafetyEnabled(),
-      }),
-    );
+    sendSystemDspChain(encodeChainSettings(DSP_DEFAULTS));
     await waitFor(() => expect(chainsSent).toHaveLength(1));
     chainsSent = [];
 
@@ -474,11 +459,7 @@ describe('a refresh that discovers the chosen engine changed', () => {
     });
 
     await waitFor(() => expect(chainsSent).toHaveLength(1));
-    expect(chainsSent[0]).toEqual(
-      encodeChainSettings(DSP_DEFAULTS, {
-        outputSafetyEnabled: readDspOutputSafetyEnabled(),
-      }),
-    );
+    expect(chainsSent[0]).toEqual(encodeChainSettings(DSP_DEFAULTS));
   });
 });
 
@@ -490,10 +471,7 @@ describe('where the rack runs, from the engine’s side', () => {
     enabled: true,
     maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true },
   };
-  const encoded = (of: IDspSettings) =>
-    encodeChainSettings(of, {
-      outputSafetyEnabled: readDspOutputSafetyEnabled(),
-    });
+  const encoded = (of: IDspSettings) => encodeChainSettings(of);
 
   /**
    * The engine holding the rack as the page has it, before anything moves

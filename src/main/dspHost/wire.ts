@@ -390,6 +390,9 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
   if (rate < 8000 || rate > 384000 || frames === 0xffffffff) {
     return undefined;
   }
+  // Seven delaying stages in the host's order; the eighth word, at 144, was
+  // the final guard's look-ahead until the guard was removed on 2026-09-22.
+  // The host writes a zero there and the mask stays at 148.
   const delayed: TLatencyStage[] = [
     'linearEq',
     'restoration',
@@ -398,7 +401,6 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'bassPunch',
     'maximizer',
     'headroom',
-    'safety',
   ];
   const active: TLatencyStage[] = [
     'leveler',
@@ -412,7 +414,6 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'compressor',
     'maximizer',
     'headroom',
-    'safety',
     'master',
   ];
   const mask = view.getUint32(148, true);
@@ -547,21 +548,6 @@ export const analysisFrameLength = (header: Buffer): number => {
   );
 };
 
-/**
- * The oversampling the guard measured at, or the safest reading of a bad one.
- *
- * The host sends 1, 2 or 4 and nothing else; a value outside that came from a
- * frame this build does not understand, and the panel would print it beside a
- * ceiling as though it were a fact. Four is the reading that overstates the
- * measurement rather than understating it.
- */
-const truePeakFactorFrom = (raw: number): 1 | 2 | 4 => {
-  if (raw === 1 || raw === 2) {
-    return raw;
-  }
-  return 4;
-};
-
 export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   if (frame.length < ANALYSIS_HEADER_BYTES) {
     return undefined;
@@ -666,13 +652,10 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     master: {
       autoHeadroomReductionDb: view.getFloat32(64, true),
       autoHeadroomTruePeakDb: view.getFloat32(68, true),
-      safetyReductionDb: view.getFloat32(72, true),
-      safetyTruePeakDb: view.getFloat32(76, true),
-      dcCorrectionDb: view.getFloat32(80, true),
-      repairedSamples: view.getUint32(84, true),
-      truePeakFactor: truePeakFactorFrom(view.getUint32(88, true)),
-      safetyEnabled: view.getUint32(92, true) !== 0,
     },
+    // Offsets 72 through 92 were the final guard's six readings until the
+    // guard was removed on 2026-09-22; the engine writes zeros there and
+    // nothing reads them, but the offsets after them stay where they were.
     normalizer: {
       inputPeaks: [view.getFloat32(96, true), view.getFloat32(100, true)],
       outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],

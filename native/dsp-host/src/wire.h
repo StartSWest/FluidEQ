@@ -419,13 +419,18 @@ typedef struct FeqWireAnalysisFrame {
    */
   float auto_headroom_reduction_db;
   float auto_headroom_true_peak_db;
+  /**
+   * The final guard's readings, until the guard was removed on 2026-09-22.
+   *
+   * Six words that stay in the layout as zeros: everything after them is
+   * found by offset, and a frame the app reads by the same offsets must not
+   * move because a stage went.
+   */
   float safety_reduction_db;
   float safety_true_peak_db;
   float dc_correction_db;
   uint32_t repaired_samples;
-  /** 1, 2 or 4; the panel prints it beside the ceiling it was measured at. */
   uint32_t true_peak_factor;
-  /** Development can bypass the guard, and the card says which state it is in. */
   uint32_t safety_enabled;
   float normalizer_input_peaks[2];
   float normalizer_output_peaks[2];

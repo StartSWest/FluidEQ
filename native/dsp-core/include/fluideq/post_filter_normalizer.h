@@ -27,8 +27,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the reduction back-filled as a linear-in-dB ramp that reaches exactly what
  * the peak needs at the sample the peak lands on, a soft knee so the gain law
  * does not snap into limiting, and a hold measured in milliseconds rather than
- * in phrases. The delay is unconditional and matches the safety stage's, so
- * enabling and disabling this stage cannot change the chain's latency.
+ * in phrases. The delay is unconditional, so enabling and disabling this
+ * stage cannot change the chain's latency.
  */
 #ifndef FLUIDEQ_POST_FILTER_NORMALIZER_H
 #define FLUIDEQ_POST_FILTER_NORMALIZER_H
@@ -42,12 +42,11 @@ extern "C" {
 #endif
 
 /**
- * The same two milliseconds the safety stage already spends.
+ * Two milliseconds of look-ahead.
  *
  * It has to clear the true-peak detector's six samples of lag with enough left
  * over to be an attack ramp: 96 samples at 48 kHz leaves 90, which is the
- * ramp. Matching the safety stage keeps one number to reason about for the
- * whole Master tail.
+ * ramp.
  */
 #define FEQ_AUTO_HEADROOM_LOOK_AHEAD_MS 2.0
 /** Long enough that two peaks a phrase apart do not each get their own dip. */

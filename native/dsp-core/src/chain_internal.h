@@ -32,7 +32,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/linear_phase.h"
 #include "fluideq/loudness_meter.h"
 #include "fluideq/organic_stage.h"
-#include "fluideq/output_safety.h"
 #include "fluideq/oversample.h"
 #include "fluideq/phase_align.h"
 #include "fluideq/post_filter_normalizer.h"
@@ -65,7 +64,6 @@ constexpr double kMaximizerSoftKneeDb = 1.5;
 constexpr double kMaximizerMaxLookAheadMs = 20.0;
 /** Completes even the slowest 1 s release inside four seconds. */
 constexpr double kMaximizerReleaseSnapRatio = 0.02;
-constexpr double kOutputSafetyCeilingDb = FEQ_SAFETY_CEILING_DB;
 
 /** Per-domain buffers and single-channel filter state. */
 struct ChainEqSlot {
@@ -401,14 +399,6 @@ struct FeqChain {
    * gated by the meters; the measurement is not.
    */
   FeqLoudnessMeter* loudness_meter = nullptr;
-
-  /* ------------------------------------------------------------ safety -- */
-  FeqOutputSafety safety{};
-  std::vector<FeqDcBlock> safety_dc;
-  std::vector<FeqTruePeak> safety_detectors;
-  std::vector<float> safety_delay[FEQ_CHAIN_MAX_CHANNELS];
-  std::vector<float*> safety_delay_pointers;
-  std::vector<float> safety_reduction;
 
   /* ------------------------------------------------------- track level -- */
   double input_gain_now = 1.0;

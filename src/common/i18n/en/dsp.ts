@@ -132,7 +132,6 @@ const dsp = {
     'Engine-reported processing buffers at the current sample rate. Windows, device and network latency are not included.',
   'dsp.latency.gameNote':
     'Game mode reduces avoidable buffering. Active effects may still need delay. Turn Game mode off to restore normal processing.',
-  'dsp.latency.stage.safety': 'Final safety',
   'dsp.latency.stage.guard': 'EQ peak protection',
   'dsp.latency.stage.curves': 'Correction curves',
   'dsp.scope.useFluid': 'Use FluidEQ Engine',
@@ -593,14 +592,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     'Applies {gain} dB from the cached whole-track loudness measurement, then keeps the final true peak below the ceiling. The gain is constant; only peaks are controlled.',
   'dsp.master.loudnessTarget': 'Loudness target',
-  'dsp.master.truePeak': 'TP in',
-  'dsp.master.devSafety': 'Safety A/B',
-  'dsp.master.devSafetyHint':
-    'Development only: bypasses the complete final protection so you can hear exactly what it changes.',
-  'dsp.master.devSafetySpec':
-    'Peak protection at −0.1 dBTP · 2 ms look-ahead · smooth recovery · DC and invalid-sample protection',
-  'dsp.master.dcCorrection': 'DC offset',
-  'dsp.master.faults': 'Faults',
   'dsp.master.graph.momentary': 'Momentary',
   'dsp.master.graph.shortTerm': 'Short term',
   'dsp.master.graph.target': 'Target',
@@ -611,12 +602,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': 'Warning · output {peak} dBTP above ceiling',
   'dsp.master.graph.peakFixed': 'Peak controlled · {gain} dB gain reduction',
   'dsp.master.graph.peakSafe': 'True peak within ceiling',
-  'dsp.master.graph.dcFixed': 'DC offset removed · {amount}',
-  'dsp.master.graph.dcClean': 'DC offset clean',
-  'dsp.master.graph.faultFixed': '{count} invalid or fault samples repaired',
-  'dsp.master.graph.faultClean': 'Samples valid',
-  'dsp.master.graph.safetyActive': 'Safeguards active',
-  'dsp.master.graph.safetyBypassed': 'Warning · safeguards bypassed',
+  'dsp.master.graph.peakMeasured': 'True peak {peak} dBTP',
   'dsp.master.graph.loudnessActive':
     'LUFS maximize · {gain} dB toward {target} LUFS',
   'dsp.master.peakLimiting': 'Peak limiting',

@@ -123,7 +123,6 @@ const dsp = {
     '現在のサンプルレートでエンジンが報告したバッファです。Windows、デバイス、ネットワークの遅延は含みません。',
   'dsp.latency.gameNote':
     'ゲームモードは不要なバッファを減らします。有効なエフェクトには遅延が必要な場合があります。オフにすると通常の処理に戻ります。',
-  'dsp.latency.stage.safety': '最終保護',
   'dsp.latency.stage.guard': 'EQ のピーク保護',
   'dsp.latency.stage.curves': '補正カーブ',
   'dsp.scope.useFluid': 'FluidEQ エンジンを使う',
@@ -575,14 +574,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     '曲全体の測定値から {gain} dB の補正を適用し、最終トゥルーピークを上限以下に保ちます。ゲインは一定で、ピークのみを制御します。',
   'dsp.master.loudnessTarget': 'ラウドネス目標',
-  'dsp.master.truePeak': 'TP入力',
-  'dsp.master.devSafety': 'セーフティA/B',
-  'dsp.master.devSafetyHint':
-    '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',
-  'dsp.master.devSafetySpec':
-    '−0.1 dBTPでピーク保護 · 2 ms先読み · 滑らかな復帰 · DCと無効サンプルの保護',
-  'dsp.master.dcCorrection': 'DCオフセット',
-  'dsp.master.faults': '障害',
   'dsp.master.graph.momentary': 'モメンタリー',
   'dsp.master.graph.shortTerm': 'ショートターム',
   'dsp.master.graph.target': 'ターゲット',
@@ -593,12 +584,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': '警告 · 出力{peak} dBTP、上限超過',
   'dsp.master.graph.peakFixed': 'ピーク制御 · {gain} dBゲインリダクション',
   'dsp.master.graph.peakSafe': 'トゥルーピークは上限内',
-  'dsp.master.graph.dcFixed': 'DCオフセット除去 · {amount}',
-  'dsp.master.graph.dcClean': 'DCオフセット正常',
-  'dsp.master.graph.faultFixed': '無効または障害サンプルを{count}件修復',
-  'dsp.master.graph.faultClean': 'サンプル正常',
-  'dsp.master.graph.safetyActive': '保護機能有効',
-  'dsp.master.graph.safetyBypassed': '警告 · 保護機能バイパス',
+  'dsp.master.graph.peakMeasured': 'トゥルーピーク {peak} dBTP',
   'dsp.master.graph.loudnessActive': 'LUFS 最大化 · {target} LUFS へ {gain} dB',
   'dsp.master.peakLimiting': 'ピークリミッティング',
   'dsp.master.matchedBypass': 'ゲインマッチ',

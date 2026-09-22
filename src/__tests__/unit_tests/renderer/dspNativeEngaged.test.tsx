@@ -200,14 +200,14 @@ describe('the controller behind it', () => {
     const controller = createNativeBackendController(
       bridgeWith(() => Promise.resolve({ state: 'failed' })),
     );
-    expect(await controller.engage(DSP_DEFAULTS, true)).toBe(false);
+    expect(await controller.engage(DSP_DEFAULTS)).toBe(false);
   });
 
   it('engages on a host that is', async () => {
     const controller = createNativeBackendController(
       bridgeWith(() => Promise.resolve({ state: 'ready' })),
     );
-    expect(await controller.engage(DSP_DEFAULTS, true)).toBe(true);
+    expect(await controller.engage(DSP_DEFAULTS)).toBe(true);
   });
 });
 

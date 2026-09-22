@@ -169,17 +169,11 @@ void reported_latency_is_the_measured_delay() {
   }
   {
     FeqChainSettings one = bare();
-    one.output_safety_enabled = 0;
-    cases.push_back({"no safety", one, false});
-  }
-  {
-    FeqChainSettings one = bare();
     one.maximizer.look_ahead_ms = 1.0;
     cases.push_back({"maximizer 1 ms", one, false});
   }
   {
     FeqChainSettings one = bare();
-    one.output_safety_enabled = 0;
     one.maximizer.look_ahead_ms = 0.0;
     one.low_latency = 1;
     cases.push_back({"nothing at all", one, false});
@@ -239,9 +233,7 @@ void reported_latency_is_the_measured_delay() {
  * Maximizer's look-ahead, the Master's auto headroom and, in the engine, the
  * Normalizer's peak guard. In game mode each of
  * them, while off, costs nothing — and each, while on, still costs what it
- * costs, because then the delay is the effect and not a courtesy. The output
- * safety keeps its two milliseconds either way: that one is the thing
- * standing between a boost and a clipped speaker.
+ * costs, because then the delay is the effect and not a courtesy.
  */
 void game_mode_drops_the_standby_delay() {
   std::printf("game mode drops the delay held for stages that are off\n");
@@ -258,11 +250,10 @@ void game_mode_drops_the_standby_delay() {
   FeqChainLatencyParts dropped{};
   feq_chain_latency_parts(with.get(), &idle);
   feq_chain_latency_parts(without.get(), &dropped);
-  std::printf("  on standby: punch %u, maximizer %u, headroom %u, safety %u\n",
-              idle.bass_punch, idle.maximizer, idle.headroom, idle.safety);
-  std::printf("  game mode:  punch %u, maximizer %u, headroom %u, safety %u\n",
-              dropped.bass_punch, dropped.maximizer, dropped.headroom,
-              dropped.safety);
+  std::printf("  on standby: punch %u, maximizer %u, headroom %u\n",
+              idle.bass_punch, idle.maximizer, idle.headroom);
+  std::printf("  game mode:  punch %u, maximizer %u, headroom %u\n",
+              dropped.bass_punch, dropped.maximizer, dropped.headroom);
   check(idle.bass_punch == feq_bass_punch_latency_frames(kRate) &&
             dropped.bass_punch == 0u,
         "Bass Punch's standby alignment goes");
@@ -270,8 +261,6 @@ void game_mode_drops_the_standby_delay() {
         "the Maximizer's standby look-ahead goes");
   check(idle.headroom > 0u && dropped.headroom == 0u,
         "the auto headroom's standby look-ahead goes");
-  check(dropped.safety == idle.safety && dropped.safety > 0u,
-        "the output safety keeps its look-ahead");
   // The engine's live leveler: its peak guard holds its look-ahead with the
   // Normalizer off, so that switching it on never shifts the audio. Game
   // mode takes that away — and leaves a guard that is working alone.

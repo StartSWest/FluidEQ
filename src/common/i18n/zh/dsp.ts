@@ -122,7 +122,6 @@ const dsp = {
     '引擎在当前采样率下报告的缓冲。不包括 Windows、设备和网络延迟。',
   'dsp.latency.gameNote':
     '游戏模式减少可避免的缓冲。启用的效果仍可能需要延迟。关闭此模式可恢复正常处理。',
-  'dsp.latency.stage.safety': '最终保护',
   'dsp.latency.stage.guard': '均衡器峰值保护',
   'dsp.latency.stage.curves': '校正曲线',
   'dsp.scope.useFluid': '使用 FluidEQ 引擎',
@@ -558,14 +557,6 @@ const dsp = {
   'dsp.master.loudnessMaximizeHint':
     '根据整首曲目测量应用 {gain} dB，并将最终真实峰值保持在上限以下。增益恒定，仅控制峰值。',
   'dsp.master.loudnessTarget': '响度目标',
-  'dsp.master.truePeak': 'TP 输入',
-  'dsp.master.devSafety': '安全 A/B',
-  'dsp.master.devSafetyHint':
-    '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',
-  'dsp.master.devSafetySpec':
-    '−0.1 dBTP 峰值保护 · 2 ms 前瞻 · 平滑恢复 · 直流与无效采样保护',
-  'dsp.master.dcCorrection': '直流偏移',
-  'dsp.master.faults': '故障',
   'dsp.master.graph.momentary': '瞬时',
   'dsp.master.graph.shortTerm': '短期',
   'dsp.master.graph.target': '目标',
@@ -576,12 +567,7 @@ const dsp = {
   'dsp.master.graph.peakWarning': '警告 · 输出 {peak} dBTP，超过上限',
   'dsp.master.graph.peakFixed': '峰值已控制 · 增益衰减 {gain} dB',
   'dsp.master.graph.peakSafe': '真峰值在上限内',
-  'dsp.master.graph.dcFixed': '已移除直流偏移 · {amount}',
-  'dsp.master.graph.dcClean': '直流偏移正常',
-  'dsp.master.graph.faultFixed': '已修复 {count} 个无效或故障采样',
-  'dsp.master.graph.faultClean': '采样有效',
-  'dsp.master.graph.safetyActive': '保护功能已启用',
-  'dsp.master.graph.safetyBypassed': '警告 · 保护功能已旁路',
+  'dsp.master.graph.peakMeasured': '真峰值 {peak} dBTP',
   'dsp.master.graph.loudnessActive': 'LUFS 最大化 · {gain} dB 至 {target} LUFS',
   'dsp.master.peakLimiting': '峰值限制',
   'dsp.master.matchedBypass': '增益匹配',

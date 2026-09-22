@@ -390,9 +390,7 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
    * Gain goes IN and the ceiling holds the top: everything under the peaks
    * comes up while the peaks stay where they were, and that gap is the whole
    * effect. Without it there was no gain term anywhere in this function or in
-   * the limiter it calls, so the stage could only ever attenuate — and the
-   * always-on output safety already guaranteed nothing clipped, which left it
-   * doing nothing that was not already done.
+   * the limiter it calls, so the stage could only ever attenuate.
    *
    * Applied here rather than folded into the ceiling because they are not the
    * same control: the ceiling is where the output is allowed to reach and Drive

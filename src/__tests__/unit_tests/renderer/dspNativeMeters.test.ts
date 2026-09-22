@@ -39,12 +39,12 @@ import {
   readDspDenoiseMeter,
   readDspChannelPeaks,
   readDspScatter,
-  readDspOutputSafetyMeter,
+  readDspHeadroomMeter,
   setDspAnalyser,
   setDspBassForgeBands,
   setDspBassPunchActivity,
   setDspNormalizerMeter,
-  setDspOutputSafetyMeter,
+  setDspHeadroomMeter,
 } from '../../../renderer/dsp/store';
 
 /** Stands in for the worklet's `AnalyserNode`, which a test cannot build. */
@@ -76,12 +76,6 @@ const analysisFrame = (
     master: {
       autoHeadroomReductionDb: 0,
       autoHeadroomTruePeakDb: -120,
-      safetyReductionDb: 0,
-      safetyTruePeakDb: -120,
-      dcCorrectionDb: -120,
-      repairedSamples: 0,
-      truePeakFactor: 4,
-      safetyEnabled: true,
     },
     loudness: {
       momentaryLufs: -120,
@@ -372,12 +366,12 @@ describe('when the slots are emptied underneath', () => {
  * The readouts that are numbers rather than pictures, and the bug they hid.
  *
  * Every check above is about analysers — the slots the graphs read their bins
- * from. The Master card reads none of them: its Auto headroom, True peak,
- * Safety active, DC correction and faults come from `setDspOutputSafetyMeter`,
- * and the Normalizer's four bars from `setDspNormalizerMeter`. Both were posted
- * only by the worklet, which the C++ refactor turned into a passthrough — so
- * both sat at their construction defaults for the life of the app while the
- * engine measured all of it and threw it away.
+ * from. The Master card reads none of them: its Auto headroom readings come
+ * from `setDspHeadroomMeter`, and the Normalizer's four bars from
+ * `setDspNormalizerMeter`. Both were posted only by the worklet, which the
+ * C++ refactor turned into a passthrough — so both sat at their construction
+ * defaults for the life of the app while the engine measured all of it and
+ * threw it away.
  *
  * A green suite is exactly what that shipped with, because nothing here ever
  * asserted that a frame REACHES those two setters. That is what this block is.
@@ -391,15 +385,7 @@ describe('the readouts the Master and Normalizer cards print', () => {
    * defaults are precisely the state that has to be observed changing.
    */
   const restDefaults = () => {
-    setDspOutputSafetyMeter({
-      enabled: true,
-      truePeakFactor: 4,
-      postFilterNormalizer: { gainReductionDb: 0, inputTruePeakDb: -120 },
-      gainReductionDb: 0,
-      inputTruePeakDb: -120,
-      dcCorrectionDb: -120,
-      repairedSamples: 0,
-    });
+    setDspHeadroomMeter({ gainReductionDb: 0, inputTruePeakDb: -120 });
     setDspNormalizerMeter({
       inputPeaks: [0, 0],
       outputPeaks: [0, 0],
@@ -410,14 +396,14 @@ describe('the readouts the Master and Normalizer cards print', () => {
   beforeEach(restDefaults);
   afterEach(restDefaults);
 
-  it('hands the Master tail to the card that prints it', () => {
+  it('hands the Master headroom to the card that prints it', () => {
     const { bridge, send } = fakeBridge();
     createNativeMeters(bridge, ANALYSIS_BINS);
 
     // The state the bug left behind: a card printing 0.0 dB over a chain
     // holding the signal down. If this ever passes trivially, so does the
     // assertion below it.
-    expect(readDspOutputSafetyMeter().postFilterNormalizer).toEqual({
+    expect(readDspHeadroomMeter()).toEqual({
       gainReductionDb: 0,
       inputTruePeakDb: -120,
     });
@@ -426,26 +412,12 @@ describe('the readouts the Master and Normalizer cards print', () => {
     frame.master = {
       autoHeadroomReductionDb: -6.25,
       autoHeadroomTruePeakDb: -1.5,
-      safetyReductionDb: -0.75,
-      safetyTruePeakDb: -0.2,
-      dcCorrectionDb: -48,
-      repairedSamples: 3,
-      truePeakFactor: 2,
-      safetyEnabled: false,
     };
     send(frame);
 
-    const meter = readDspOutputSafetyMeter();
-    // Auto Headroom is a nested stage in the panel's model and two adjacent
-    // floats on the wire, so the reshaping is the part that can go wrong.
-    expect(meter.postFilterNormalizer.gainReductionDb).toBeCloseTo(-6.25, 6);
-    expect(meter.postFilterNormalizer.inputTruePeakDb).toBeCloseTo(-1.5, 6);
-    expect(meter.gainReductionDb).toBeCloseTo(-0.75, 6);
-    expect(meter.inputTruePeakDb).toBeCloseTo(-0.2, 6);
-    expect(meter.dcCorrectionDb).toBeCloseTo(-48, 6);
-    expect(meter.repairedSamples).toBe(3);
-    expect(meter.truePeakFactor).toBe(2);
-    expect(meter.enabled).toBe(false);
+    const meter = readDspHeadroomMeter();
+    expect(meter.gainReductionDb).toBeCloseTo(-6.25, 6);
+    expect(meter.inputTruePeakDb).toBeCloseTo(-1.5, 6);
   });
 
   it('hands the Normalizer its before and after bars', () => {
@@ -484,23 +456,14 @@ describe('the readouts the Master and Normalizer cards print', () => {
     createNativeMeters(bridge, ANALYSIS_BINS);
 
     const reducing = analysisFrame(['master']);
-    reducing.master = {
-      ...reducing.master,
-      autoHeadroomReductionDb: -9,
-      safetyReductionDb: -2,
-    };
+    reducing.master = { ...reducing.master, autoHeadroomReductionDb: -9 };
     send(reducing);
-    expect(
-      readDspOutputSafetyMeter().postFilterNormalizer.gainReductionDb,
-    ).toBeCloseTo(-9, 6);
+    expect(readDspHeadroomMeter().gainReductionDb).toBeCloseTo(-9, 6);
 
     // The next window, in which nothing happened.
     send(analysisFrame(['master']));
 
-    expect(
-      readDspOutputSafetyMeter().postFilterNormalizer.gainReductionDb,
-    ).toBe(0);
-    expect(readDspOutputSafetyMeter().gainReductionDb).toBe(0);
+    expect(readDspHeadroomMeter().gainReductionDb).toBe(0);
   });
 });
 

@@ -18,11 +18,7 @@ import type {
   INativeBackendController,
 } from 'renderer/dsp/nativeBackend';
 import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
-import {
-  readDspOutputSafetyEnabled,
-  setDspNativeState,
-  setDspRackGate,
-} from 'renderer/dsp/store';
+import { setDspNativeState, setDspRackGate } from 'renderer/dsp/store';
 import {
   useNativeBackend,
   useNativeMirror,
@@ -64,10 +60,7 @@ const settings: IDspSettings = {
   maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true },
 };
 
-const encoded = (of: IDspSettings) =>
-  encodeChainSettings(of, {
-    outputSafetyEnabled: readDspOutputSafetyEnabled(),
-  });
+const encoded = (of: IDspSettings) => encodeChainSettings(of);
 
 beforeEach(() => {
   hostChains = [];
