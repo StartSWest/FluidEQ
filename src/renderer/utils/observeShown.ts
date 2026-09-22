@@ -65,6 +65,18 @@ export default function observeShown(
   // would wake on each of those writes. The root's `style` is left out for
   // the same reason — the window's tint lands there on every beat — while its
   // `class` is kept, since the shell's modes are classes.
+  //
+  // AND THE WINDOW'S MODE. While the window is the amp, the whole app is
+  // `display: none` by a rule keyed on the root's `data-window-mode` and on
+  // the amp's host standing in `body` (`_miniPlayerShell.scss`) — an
+  // attribute this list did not have and a child it did not watch. Coming
+  // back from the amp, nothing here was told, and the titlebar's wave stayed
+  // stopped for good unless the intersection observer happened to notice
+  // (Ivan, 2026-09-22: "the top wave stopped when returning from amp view").
+  // Chromium's does not always report an element coming back from
+  // `display: none`, and in a window that is not the focused one it holds
+  // its reports back altogether; the attribute and the host are the events
+  // that actually say so.
   const mutations =
     typeof MutationObserver === 'function'
       ? new MutationObserver(evaluate)
@@ -78,9 +90,14 @@ export default function observeShown(
       attributes: true,
       attributeFilter:
         node === document.documentElement
-          ? ['class', 'hidden', 'inert']
+          ? ['class', 'hidden', 'inert', 'data-window-mode']
           : ['class', 'style', 'hidden', 'inert'],
     });
+  }
+  // `body`'s own children only — the amp's host is one of them — and not
+  // its subtree, for the reason above.
+  if (element !== document.body && document.body.contains(element)) {
+    mutations?.observe(document.body, { childList: true });
   }
 
   // A class that starts a fade has already been seen by the time the fade
