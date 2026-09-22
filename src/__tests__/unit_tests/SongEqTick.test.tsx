@@ -110,6 +110,8 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   commitSongEq: jest.fn(() => Promise.resolve(undefined)),
   forgetSongEq: jest.fn(() => Promise.resolve(undefined)),
   setSmartEq: jest.fn(() => Promise.resolve(undefined)),
+  // The output's rate beside the page's name reads the output list.
+  getAudioDevices: jest.fn(() => Promise.resolve([])),
 }));
 
 jest.mock('renderer/components/VoicingQuickPick', () => () => null);

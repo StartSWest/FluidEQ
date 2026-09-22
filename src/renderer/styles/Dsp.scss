@@ -180,14 +180,6 @@ $dsp-rail-offset: 110ms;
   font-size: 1.22rem;
 }
 
-.dsp-title-rate {
-  color: $text-faint;
-  font-family: $font-mono;
-  font-size: $text-small;
-  font-variant-numeric: tabular-nums;
-  @include tracking(0.04em);
-}
-
 // The scope notice, and it is not a footnote.
 //
 // Every other pill in the EQ group configures Equalizer APO and therefore all

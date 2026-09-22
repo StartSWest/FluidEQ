@@ -1,0 +1,18 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'theme' as *;
+
+// The rate beside a page's title, in the face every other measured number in
+// this app is drawn in, and quieter than the title it qualifies.
+.title-rate {
+  color: $text-faint;
+  font-family: $font-mono;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  @include tracking(0.04em);
+  white-space: nowrap;
+}

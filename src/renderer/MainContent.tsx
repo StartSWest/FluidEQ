@@ -86,6 +86,7 @@ import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import ListenedLatency from './components/ListenedLatency';
+import OutputRate from './components/OutputRate';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
 import BandLayoutMenu from './components/BandLayoutMenu';
@@ -939,7 +940,10 @@ const MainContent = () => {
               one line: a property of the whole path, not one more verb for
               the toolbar under it. */}
           <div className="main-content-title__heading">
-            <h2>{t('eq.title')}</h2>
+            <h2>
+              {t('eq.title')}
+              <OutputRate />
+            </h2>
             <ListenedLatency />
           </div>
         </div>

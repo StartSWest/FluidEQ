@@ -93,6 +93,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > h2 {
     flex: 1 1 0;
     margin: 0;
+
+    // The output's rate, on the title's baseline as on the DSP page, and
+    // never parted from its unit when the title wraps.
+    > .title-rate {
+      margin-inline-start: 8px;
+    }
   }
 
   &::after {

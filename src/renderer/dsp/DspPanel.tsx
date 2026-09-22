@@ -26,6 +26,7 @@ import DspHeldLock from './DspHeldLock';
 import DspScopeNotice from './DspScopeNotice';
 import GameModeSwitch from '../components/GameModeSwitch';
 import LatencyReadout from '../components/LatencyReadout';
+import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
@@ -414,9 +415,7 @@ const DspPanel = ({
           <h2 className="dsp-title">
             {t('dsp.title')}
             {engineState === 'running' && isRackEngaged ? (
-              <span className="dsp-title-rate">
-                {(sampleRate / 1_000).toFixed(1).replace('.0', '')} kHz
-              </span>
+              <TitleRate rate={sampleRate} />
             ) : undefined}
           </h2>
           <DspChainPresetBar
