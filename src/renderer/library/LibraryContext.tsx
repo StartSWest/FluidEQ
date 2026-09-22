@@ -59,6 +59,12 @@ interface ILibraryContextValue {
   progress: ILibraryScanProgress | undefined;
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
+  /**
+   * Music files dropped straight onto a queue: they join the index and their
+   * ids come back, in the order they were dropped, so the caller can queue
+   * them in the same gesture. A file already known keeps its id.
+   */
+  queueFiles: (paths: string[]) => Promise<string[]>;
   rescan: () => Promise<void>;
   /** Re-reads every candidate regardless of whether it changed — see
    * `forceRescanLibrary`'s own comment for why an ordinary rescan cannot
@@ -237,6 +243,17 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     setIndex(next);
   }, []);
 
+  /** For music dropped on a queue; see the note on the context's own type. */
+  const queueFiles = useCallback(async (paths: string[]) => {
+    if (!paths.length) {
+      return [];
+    }
+    const { index: next, trackIds } =
+      await window.electron.ipcRenderer.queueLibraryFiles(paths);
+    setIndex(next);
+    return trackIds;
+  }, []);
+
   const rescan = useCallback(async () => {
     await window.electron.ipcRenderer.rescanLibrary();
   }, []);
@@ -263,6 +280,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       progress,
       addFolder,
       addFolderPaths,
+      queueFiles,
       rescan,
       forceRescan,
       cancelScan,
@@ -276,6 +294,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       progress,
       addFolder,
       addFolderPaths,
+      queueFiles,
       rescan,
       forceRescan,
       cancelScan,

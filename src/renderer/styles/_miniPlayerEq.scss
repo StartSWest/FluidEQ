@@ -1,0 +1,13 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The player's equalizer: its keys, its screen, its faders and its foot, in
+// cascade order (see `MiniPlayer.scss`).
+@use 'miniPlayerEqKeys';
+@use 'miniPlayerEqScreen';
+@use 'miniPlayerEqFaders';
+@use 'miniPlayerMenus';
+@use 'miniPlayerEqRows';

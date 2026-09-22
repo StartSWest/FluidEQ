@@ -55,8 +55,15 @@ const ZOOM_MAX_LEVEL = 4;
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
-  constructor(mainWindow: BrowserWindow) {
+  /**
+   * Told after every zoom step. The player's floor is its layout's size in
+   * CSS pixels, so it is a different number of window pixels at each zoom.
+   */
+  onZoom: () => void;
+
+  constructor(mainWindow: BrowserWindow, onZoom: () => void) {
     this.mainWindow = mainWindow;
+    this.onZoom = onZoom;
   }
 
   buildMenu(): void {
@@ -140,6 +147,7 @@ export default class MenuBuilder {
 
       if (next !== current) {
         webContents.setZoomLevel(next);
+        this.onZoom();
       }
     });
   }

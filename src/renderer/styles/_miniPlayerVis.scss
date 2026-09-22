@@ -1,0 +1,223 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The visualizer deck: the graph's look, edge to edge, with the graph's own
+// strip floating over it.
+
+// ======================================================== the visualizer ===
+//
+// The graph's look, edge to edge, with the graph's own strip floating over
+// its top. With the queue open it keeps the height its divider gave it
+// (`--player-vis-height`, set by the deck) and the queue takes the window's
+// growth; without the queue, it takes that growth itself.
+// THE PICTURE SPENDS THE WHOLE DECK. The deck's own padding, face and glass
+// are all undone here on purpose: framed like the other decks — the card's
+// gradient around a well of glass, tried on 2026-09-21 — the picture lost
+// two borders' worth of width to furniture and Ivan sent it back the same
+// minute ("card wrapper not good put back"). The visualizer is the one deck
+// whose content IS the surface.
+.player-vis {
+  flex: none;
+  height: var(--player-vis-height);
+  min-height: var(--player-vis-min);
+  padding: 0;
+  overflow: hidden;
+  background: var(--player-well);
+}
+
+.player-body:not(:has(> .player-queue)) > .player-vis {
+  flex: 1 1 var(--player-vis-height);
+  height: auto;
+}
+
+// The picture, and the strip over it is its child — so the strip is placed
+// against the picture whatever the deck around it is doing.
+.player-vis__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.player-vis__curves {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  contain: size;
+  pointer-events: none;
+}
+
+// `.live-output-controls` gives it the graph's strip — its placement over
+// the picture and every control in it; this lays out its two ends, and
+// keeps it readable over a picture of any colour.
+//
+// Quiet until the pointer is on it and solid under it (Ivan, 2026-09-21):
+// over a scene, a bare glyph with nothing behind it was invisible — the
+// tint switch could not be found at all — and a strip at full strength
+// sits on top of the picture it is there to let you watch.
+.player-vis__bar {
+  top: 8px;
+  right: 8px;
+  left: 8px;
+  gap: 6px;
+  opacity: 0.85;
+  transition: opacity 160ms ease;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  // Legible over any picture, light or dark, with nothing drawn around
+  // them: the strip's own text carries a shadow for this and the glyphs
+  // had none, so over a bright scene they disappeared (Ivan, 2026-09-21).
+  .graph-look-step svg,
+  .graph-look-step img {
+    filter: drop-shadow(0 1px 2px rgba($black, 0.9))
+      drop-shadow(0 0 5px rgba($black, 0.7));
+  }
+
+  // Bare over the picture — nothing drawn around a glyph until the pointer
+  // is on it, and then a quiet pane under that one control alone (Ivan,
+  // 2026-09-21).
+  .graph-look-step {
+    min-width: 26px;
+    min-height: 24px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+  }
+
+  .graph-look-step:hover,
+  .graph-look-step:focus-visible {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    background: rgba($black, 0.62);
+    backdrop-filter: blur(6px);
+  }
+}
+
+// THE TWO CONTROLS THAT CARRY WORDS WEAR THE AMP'S OWN KEY. They arrived in
+// the graph's ghost pill — a 7% wash of the accent over whatever is behind it
+// (`ghost-button` in _theme.scss) — which reads as a control over a card and
+// as nothing at all over a picture: the spectrum's bars ran straight through
+// the look's name and it could not be read (Ivan, 2026-09-21). A glyph beside
+// them stays bare, because a glyph over a picture carries its own shadow and a
+// name cannot; a name needs a plate, and the plate the player already has is
+// `.player-key`. Qualified by the shell as well as the strip so it outranks
+// `.live-output-controls .dropdown.graph-auto-cycle > [role='menu']`, which
+// carries the same weight and would otherwise be settled by import order.
+.mini-player .player-vis__bar {
+  // A ROW, not a line of text. The trigger is a bare `<button>` here — the
+  // rule that lays it out is scoped to the graph's legend, which the player
+  // has none of — so its name and its chevron were inline boxes sitting on a
+  // shared baseline: measured, the chevron's centre was 2.3px below the
+  // button's and 4.3px below the name's, with nothing between them at all
+  // (Ivan, 2026-09-22: "muy pegada y muy bajo").
+  .look-picker__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .look-picker__trigger,
+  .dropdown.graph-auto-cycle > [role='menu'] {
+    // The one key face (`player-key-face`), at the row's height and radius.
+    @include player-key-face;
+    min-height: 26px;
+    padding: 0 8px;
+    border-radius: 7px;
+    color: var(--player-text);
+  }
+
+  .look-picker__trigger:hover,
+  .dropdown.graph-auto-cycle:hover > [role='menu'],
+  .dropdown--open > .look-picker__trigger,
+  .dropdown.graph-auto-cycle.dropdown--open > [role='menu'] {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--player-key), $white 12%),
+      color-mix(in srgb, var(--player-key-end), $white 4%)
+    );
+    color: var(--player-text);
+  }
+
+  // Switching on is a state worth seeing, and it was said in the graph's
+  // colours. Here it is said in the player's ink, like every other lamp.
+  .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    color: var(--player-ink);
+  }
+
+  // ON A FULL SCREEN, GLASS RATHER THAN KEYS (Ivan, 2026-09-22). The amp's
+  // lit key is right on a deck, where it stands on a face of its own; laid
+  // over a picture that has the whole screen, two of them read as furniture
+  // dropped on somebody's photograph. Frosted dark instead, and the strip
+  // itself stands further back until the pointer is on it — far enough to
+  // stop being the subject, not so far that you cannot find it.
+  .mini-player.is-vis-full & {
+    opacity: 0.42;
+
+    // Stated again because the rule above is less specific than this block:
+    // without it the strip would stay at 0.42 with the pointer on it, which
+    // is the one moment it has to be readable.
+    &:hover,
+    &:focus-within {
+      opacity: 1;
+    }
+
+    .look-picker__trigger,
+    .dropdown.graph-auto-cycle > [role='menu'] {
+      border-color: rgba($white, 0.16);
+      background: rgba($black, 0.45);
+      box-shadow: none;
+      backdrop-filter: blur(10px);
+      color: rgba($white, 0.92);
+    }
+
+    .look-picker__trigger:hover,
+    .dropdown.graph-auto-cycle:hover > [role='menu'],
+    .dropdown--open > .look-picker__trigger,
+    .dropdown.graph-auto-cycle.dropdown--open > [role='menu'] {
+      border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+      background: rgba($black, 0.6);
+    }
+
+    .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      color: var(--player-ink-bright);
+    }
+  }
+
+  // A SCENE'S GLYPH, NOT A THUMBNAIL OF IT (Ivan, 2026-09-21). It draws its
+  // colours on a near-black tile, which gives it a ground on a pale row of
+  // the picker's list; on the key, at 16px and with the window zoomed out,
+  // the tile was the only part big enough to see and the whole control read
+  // as a picture of the scene shrunk past legibility. The tile goes — a
+  // `fill` attribute is the weakest thing in the cascade — and the strokes
+  // stand on the key at the size the name beside them is set in. A standard
+  // look's glyph is line art with no ground and is left alone.
+  .look-picker__trigger .graph-look-option__icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .look-picker__trigger .graph-look-option__icon--scene rect {
+    fill: none;
+  }
+}
+
+.player-vis__looks {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}

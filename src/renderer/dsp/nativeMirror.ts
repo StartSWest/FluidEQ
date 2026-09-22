@@ -62,14 +62,18 @@ export interface INativeMirrorState {
   isPlaying: boolean;
   positionMs: number;
   /**
-   * The listener's fader, 0 to 1.
+   * The track the queue will move to next, and where its music starts.
    *
-   * Belongs here for the same reason muting does: it is a property of the
-   * element that the host has to take over while the element is silent. Without
-   * it the fader moved and the sound did not change — the control was simply
-   * not connected to the engine making the noise.
+   * Held primed on the host's spare deck while the current track plays, so
+   * that the handoff finds it decoded and cued. The fade used to start with a
+   * cold load: the host was told the file at the cue point, opened and
+   * decoded it, and only then began mixing — a second or so late on a slow
+   * disk — so the outgoing track ran out before its fade-out did and stopped
+   * dead, and the incoming one came in late (Ivan, 2026-09-22: "micro cuts
+   * when changing one file for another"). A press on Next lands on the
+   * primed deck too, which is what makes it instant.
    */
-  volume: number;
+  upcoming?: { path: string; startPositionMs: number };
   /**
    * The fade to use if the track changes under us. Absent means cut.
    *
@@ -112,8 +116,11 @@ export interface INativeMirror {
    * seeks — its threshold is half a second — so every drag shorter than that
    * was discarded in silence, and the ones that survived arrived a render late.
    * A command the user gave is not drift and must not be inferred from it.
+   *
+   * Settles with whether the host took it, once the host has answered: the
+   * bar holds the asked-for position until then (`pendingSeek.ts`).
    */
-  seek: (positionMs: number) => void;
+  seek: (positionMs: number) => Promise<boolean>;
   /**
    * Hand the audio back to the element path.
    *
@@ -188,15 +195,28 @@ export const createNativeMirror = (
    * that had just faded out.
    */
   let activeDeck = 0;
+  // Full level, said once. The host keeps a level of its own for the elements
+  // it stands in for, and the app no longer has one under the system's.
+  controller.transport.setVolume(1).catch(() => undefined);
   /**
-   * The last volume the host was told, so a tick that changed nothing is silent.
-   *
-   * Starts at a value no fader can hold, so the first sync always sends one:
-   * the host defaults to unity and the element may not be there, and a mirror
-   * that only spoke up on a CHANGE would leave that mismatch until the listener
-   * happened to touch the control.
+   * What the spare deck holds, cued to its lead-in, and which deck that is —
+   * see `upcoming` on the state. Claimed the moment a load is asked for, so a
+   * tick that arrives while the file is still opening does not ask twice.
    */
-  let toldVolume = -1;
+  let primed: { deck: number; path: string } | undefined;
+  /**
+   * The fade the last handoff started, until the track it faded into has
+   * played past it.
+   *
+   * The spare deck is the OUTGOING deck for the length of that fade, and a
+   * load into it would cut the fade-out off. Whether the fade is over is read
+   * off the incoming track's own position: the fade began at that track's
+   * lead-in and lasts its duration, and the track's clock runs at the same
+   * rate as the fade's, so once the position is past lead-in plus duration
+   * the fade has ended — a fact of the track's clock, not a guess at the
+   * wall's.
+   */
+  let lastHandoff: { startPositionMs: number; durationMs: number } | undefined;
   /** What the host was last told, so a tick that changed nothing sends nothing. */
   let toldPositionMs = 0;
   /**
@@ -307,7 +327,12 @@ export const createNativeMirror = (
     isPlaying: boolean,
     positionMs: number,
   ): Promise<void> => {
-    if (!(await controller.transport.load(activeDeck, mediaPath))) {
+    // Already decoded on the spare deck (`prime`): that deck becomes the
+    // active one and nothing is loaded — a press on Next lands at once.
+    if (primed?.path === mediaPath) {
+      activeDeck = primed.deck;
+      primed = undefined;
+    } else if (!(await controller.transport.load(activeDeck, mediaPath))) {
       /**
        * A format the native decoder cannot read.
        *
@@ -380,6 +405,33 @@ export const createNativeMirror = (
    * awaited, so a position tick landing mid-handoff sees no track change and
    * leaves it alone. `previousPath` is what to put back if the load fails.
    */
+  /**
+   * Put the next track on the spare deck, decoded and cued to its lead-in,
+   * while the current one plays. Nothing is audible until a handoff or a cue
+   * makes that deck the active one.
+   */
+  const prime = async (
+    path: string,
+    startPositionMs: number,
+  ): Promise<void> => {
+    const deck = activeDeck === 0 ? 1 : 0;
+    primed = { deck, path };
+    if (!(await controller.transport.load(deck, path))) {
+      if (primed?.path === path) {
+        primed = undefined;
+      }
+      return;
+    }
+    // Superseded while the file was opening: the queue moved on, or a handoff
+    // took the deck. What was asked for is no longer what is wanted.
+    if (primed?.path !== path || primed.deck !== deck) {
+      return;
+    }
+    if (startPositionMs > 0) {
+      await controller.transport.seek(deck, startPositionMs / 1_000);
+    }
+  };
+
   const handoff = async (
     incomingPath: string,
     durationMs: number,
@@ -394,7 +446,12 @@ export const createNativeMirror = (
     toldPositionMs = 0;
     toldAt = performance.now();
 
-    if (!(await controller.transport.load(toDeck, incomingPath))) {
+    // Already on that deck, decoded and cued to its lead-in (`prime`): the
+    // fade starts on the cue rather than after a load, which is the whole
+    // point of priming.
+    const isPrimed = primed?.deck === toDeck && primed.path === incomingPath;
+    primed = undefined;
+    if (!isPrimed && !(await controller.transport.load(toDeck, incomingPath))) {
       // A file the native decoder cannot read. Put the claim back rather than
       // leaving the mirror pointing at a deck holding nothing, and let the
       // element fade — which is already running — carry the handoff.
@@ -411,11 +468,15 @@ export const createNativeMirror = (
       // The element applies this after its own play() settles. The host cannot:
       // seeking once the fade is audible empties the incoming read-ahead ring
       // and the refill is the crack heard on Next. Cue it before the crossfade
-      // command, while the outgoing deck is still the only audible one.
-      await controller.transport.seek(toDeck, startPositionMs / 1_000);
+      // command, while the outgoing deck is still the only audible one — or
+      // not at all, when priming already did.
+      if (!isPrimed) {
+        await controller.transport.seek(toDeck, startPositionMs / 1_000);
+      }
       toldPositionMs = startPositionMs;
       toldAt = performance.now();
     }
+    lastHandoff = { startPositionMs, durationMs };
 
     if (curve === 'custom') {
       // Before the fade rather than with it: the host keeps a pending table and
@@ -448,14 +509,7 @@ export const createNativeMirror = (
   };
 
   return {
-    sync: ({ mediaPath, isPlaying, positionMs, volume, transition }) => {
-      // Before the track checks below, because a track change returns early and
-      // the fader must still reach the host on the tick that changed it.
-      if (volume !== toldVolume) {
-        toldVolume = volume;
-        controller.transport.setVolume(volume).catch(() => undefined);
-      }
-
+    sync: ({ mediaPath, isPlaying, positionMs, transition, upcoming }) => {
       if (mediaPath !== loadedPath) {
         const previous = loadedPath;
         loadedPath = mediaPath;
@@ -545,6 +599,26 @@ export const createNativeMirror = (
        * indistinguishable from a drag of the scrubber, and each one cost a
        * seek and the read-ahead ring with it.
        */
+      // The next track onto the spare deck, once the last fade into this one
+      // is over (`lastHandoff`) and while the host is the one playing. The
+      // same file is never asked for twice, and the file playing now is never
+      // primed as its own successor (repeat one).
+      if (
+        lastHandoff !== undefined &&
+        positionMs >= lastHandoff.startPositionMs + lastHandoff.durationMs
+      ) {
+        lastHandoff = undefined;
+      }
+      if (
+        upcoming !== undefined &&
+        hostOwnsTransport &&
+        lastHandoff === undefined &&
+        upcoming.path !== loadedPath &&
+        upcoming.path !== primed?.path
+      ) {
+        prime(upcoming.path, upcoming.startPositionMs).catch(() => undefined);
+      }
+
       const now = performance.now();
       const elapsed = playing && toldAt > 0 ? now - toldAt : 0;
       const lastReading = toldPositionMs;
@@ -613,9 +687,11 @@ export const createNativeMirror = (
        */
       toldPositionMs = target;
       toldAt = performance.now();
-      controller.transport
-        .seek(activeDeck, target / 1000)
-        .catch(() => undefined);
+      return controller.transport.seek(activeDeck, target / 1000).then(
+        (applied) => applied,
+        // A host that is gone took nothing.
+        () => false,
+      );
     },
 
     release: (resume) => {
@@ -630,6 +706,8 @@ export const createNativeMirror = (
       controller.transport.unload(0).catch(() => undefined);
       controller.transport.unload(1).catch(() => undefined);
       activeDeck = 0;
+      primed = undefined;
+      lastHandoff = undefined;
     },
   };
 };

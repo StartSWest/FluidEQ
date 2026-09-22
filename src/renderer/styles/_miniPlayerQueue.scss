@@ -1,0 +1,295 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The queue deck: the Library's play order around the song playing.
+
+// ============================================================ the queue ====
+//
+// The deck the window's growth goes to whenever it is open: the visualizer
+// over it keeps the height its divider gave it (Ivan, 2026-09-21). It opens
+// at `--player-queue-open`, which the measurement reads too.
+.player-queue {
+  --player-queue-open: 200px;
+
+  flex: 1 1 var(--player-queue-open);
+  min-height: 160px;
+}
+
+.player-queue__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// MUSIC DRAGGED IN FROM THE COMPUTER. The deck says it will take it while a
+// drag carrying files is over it, and nothing at any other time: a dashed
+// target drawn permanently on a deck that is usually a list is furniture.
+.player-queue.is-drop-target {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.player-queue__drop {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  inset: 4px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 8px;
+  // Enough of the deck's own floor to read a word on, and little enough that
+  // the list under it still says which queue is being added to.
+  background: color-mix(in srgb, var(--player-deck) 82%, transparent);
+  color: var(--player-ink);
+  font-size: 11px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+  // The drop belongs to the deck underneath; this only says so.
+  pointer-events: none;
+
+  .player-icon {
+    width: 14px;
+    height: 14px;
+    transform: rotate(90deg);
+  }
+}
+
+// The head's two readouts: the deck's own figures (`.player-readout`)
+// WITHOUT THE SLAB the display draws them on. On the display the dark box is
+// the glass the figure is lit behind; on the deck's face beside the eyebrow
+// it read as two dark patches dropped on a coloured panel — plainest under a
+// scene's tint (Ivan, 2026-09-22: "weird bg, fix it in up next"). The
+// figures keep their ink and glow and stand on the face like the eyebrow
+// does. On the middle line rather than the baseline because one of them
+// carries a glyph, and the glyph sits on the line the figure does.
+.player-queue__readout {
+  flex: none;
+  align-items: center;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+// HOW FAR THROUGH THE QUEUE THE PLAYHEAD IS, as a line: the track is the
+// deck's dark well and the lit part is the accent, glowing the way every
+// other lit thing on the deck does. It takes whatever width the head has
+// left, so the head reads as one instrument from its name to its key.
+.player-queue__progress {
+  flex: 1 1 24px;
+  min-width: 16px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba($black, 0.45);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+
+  &::before {
+    display: block;
+    width: calc(var(--queue-progress, 0) * 100%);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    box-shadow: 0 0 5px var(--player-glow);
+    content: '';
+    transition: width 220ms ease;
+  }
+}
+
+.mini-player .button.player-queue__open {
+  gap: 4px;
+  min-height: 24px;
+  margin-left: auto;
+  padding: 0 6px 0 9px;
+  font-size: $text-small;
+
+  .player-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.player-queue__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  @include slim-scrollbar;
+
+  li {
+    display: block;
+  }
+
+  // The same lit line a row draws across its top for "before me", drawn
+  // under the last row for "after everything" (`QueueDeck`'s list drop).
+  &.is-drop-after li:last-child .player-queue__row {
+    box-shadow: inset 0 -2px 0 var(--player-lamp);
+  }
+}
+
+.player-queue__row {
+  display: grid;
+  grid-template-columns: 2.2em 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px 3px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--player-ink) 62%, var(--player-text-soft));
+  font-size: 11px;
+  font-weight: $weight-semibold;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($edge-tint, 0.05);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+
+  &.is-played {
+    opacity: 0.55;
+  }
+
+  // Being dragged to a new place in what is coming up. The row it would land
+  // before takes a lit line along its top edge — the gap it would go into —
+  // rather than a highlight, which would read as "play this one".
+  &.is-dragging {
+    opacity: 0.4;
+  }
+
+  &.is-drop-before {
+    box-shadow: inset 0 2px 0 var(--player-lamp);
+  }
+
+  &[draggable='true'] {
+    cursor: grab;
+  }
+
+  &[draggable='true']:active {
+    cursor: grabbing;
+  }
+
+  &.is-now {
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    box-shadow: inset 2px 0 0 var(--player-lamp);
+    color: var(--player-text);
+  }
+}
+
+.player-queue__number,
+.player-queue__time {
+  color: var(--player-text-dim);
+  font-family: $font-mono;
+}
+
+.player-queue__number {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// Three bars keeping time beside the song that is playing.
+.player-queue__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 10px;
+
+  span {
+    width: 3px;
+    height: 60%;
+    border-radius: 1px;
+    background: var(--player-lamp);
+    box-shadow: 0 0 4px var(--player-glow);
+    animation: player-queue-bars 0.9s ease-in-out infinite alternate;
+  }
+
+  span:nth-child(2) {
+    height: 100%;
+    animation-delay: -0.3s;
+  }
+
+  span:nth-child(3) {
+    height: 40%;
+    animation-delay: -0.6s;
+  }
+}
+
+@keyframes player-queue-bars {
+  to {
+    height: 25%;
+  }
+}
+
+.player-queue__art {
+  width: 26px;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 4px;
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.player-queue__song {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.player-queue__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+}
+
+.player-queue__artist {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--player-text-dim);
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  text-overflow: ellipsis;
+}
+
+.player-queue__empty {
+  display: grid;
+  flex: 1 1 auto;
+  place-content: center;
+  gap: 4px;
+  padding: 18px;
+  color: var(--player-text-soft);
+  font-size: $text-small;
+  text-align: center;
+
+  strong {
+    color: $text-muted;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+}

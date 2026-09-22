@@ -47,11 +47,7 @@ import {
 } from '../../common/karaoke/sessionPersistence';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
-import {
-  commitAppVolume,
-  setAppVolume,
-  useAppVolume,
-} from '../audio/appVolume';
+import { useSystemFader } from '../audio/systemVolume';
 import {
   clearTransportSource,
   setTransportSource,
@@ -318,7 +314,9 @@ const KaraokeWorkspace = ({
   // playback falls back to the audio element's low-rate `timeupdate` events,
   // which keep the bottom transport moving without animating an unseen stage.
   const session = useKaraokeSession(!isHidden);
-  const appVolume = useAppVolume();
+  // The computer's volume, the one fader this app has (`useSystemFader`): the
+  // backing track plays at full level and karaoke's master row moves Windows.
+  const fader = useSystemFader();
   const { song, status, error, warning, seek } = session;
   const songId = song?.id;
   const melodyTone = useKaraokeMelodyTone({
@@ -1750,19 +1748,24 @@ const KaraokeWorkspace = ({
       playheadMs={session.playheadMs}
       durationMs={session.durationMs}
       levels={[
-        {
-          // The app's fader, the same number the library and the Media tab
-          // show. First in the row and the one on the bar by default, because
-          // every other tab's bar opens on the volume and karaoke's opening on
-          // a stem made the same window a different shape. The three below it
-          // are a MIX — how the parts sit against each other — and none of
-          // them answers "how loud is this app".
-          id: 'master',
-          label: t('library.volume'),
-          value: appVolume,
-          onChange: setAppVolume,
-          onCommit: commitAppVolume,
-        },
+        // The computer's volume, the same fader the Library and the Media tab
+        // draw. First in the row and the one on the bar by default, because
+        // every other tab's bar opens on the volume and karaoke's opening on
+        // a stem made the same window a different shape. The three below it
+        // are a MIX — how the parts sit against each other — and none of
+        // them answers "how loud is this". Only once Windows has said what
+        // its level is: with no helper to ask there is no master row, rather
+        // than one that moves nothing.
+        ...(fader.level !== undefined
+          ? [
+              {
+                id: 'master',
+                label: t('library.volume'),
+                value: fader.level,
+                onChange: fader.setLevel,
+              },
+            ]
+          : []),
         {
           id: 'melody',
           label: t('karaoke.pitch.toneVolume'),

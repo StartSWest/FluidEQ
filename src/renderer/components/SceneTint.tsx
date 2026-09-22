@@ -61,6 +61,14 @@ const SceneTint = () => {
   const hasPainted = useRef(false);
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);
+  // THE COLOUR FOLLOWS THE SWITCH, NOT THE PICTURE (Ivan, 2026-09-22: "if the
+  // viz is hidden also show the entire amp ui that color if ambient or tint is
+  // selected"). It was gated on the player's visualizer being open, so closing
+  // that deck put the whole amp back to the theme's cyan while the switch was
+  // still on — and the scene's drifting ambient, which is gated on the switch
+  // alone, kept flying over it in the scene's own colours. One answer for
+  // both: the switch. With it off the amp is the standard cyan, as it always
+  // was.
   // The version the graph draws, in the same form `SceneCanvas` keys it by.
   // Undefined until the lists arrive, or for a scene that is not usable.
   const version = useMemo(() => {

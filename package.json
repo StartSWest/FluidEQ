@@ -303,6 +303,7 @@
           "FluidEQ-Wallpaper.exe",
           "FluidEQ-Meter.exe",
           "FluidEQ-Games.exe",
+          "FluidEQ-Volume.exe",
           "msvcp140.dll",
           "vcruntime140.dll",
           "vcruntime140_1.dll"

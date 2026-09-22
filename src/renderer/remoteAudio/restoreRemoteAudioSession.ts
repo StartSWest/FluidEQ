@@ -4,7 +4,6 @@ import type {
   ILanPairingOption,
   TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
-import { getAppVolume } from '../audio/appVolume';
 import type { TRemoteAudioMeterListener } from './meter';
 import { createPcmMixer, type IPcmMixer } from './pcmMixer';
 import type { TRemoteAudioError, TRemoteAudioRole } from './remoteAudioState';
@@ -59,7 +58,7 @@ const restoreRemoteAudioSession = async ({
         outputSinkId,
         onPlaybackBlocked,
         publishMeter,
-        getAppVolume(),
+        1,
       );
       if (isCancelled() || !isCurrentRole('listener')) {
         await mixer.close().catch(() => undefined);

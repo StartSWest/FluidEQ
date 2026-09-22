@@ -22,7 +22,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * reasons that are invisible afterwards. See each one.
  */
 import { MutableRefObject, useEffect, useRef } from 'react';
-import { readAppVolume } from '../../audio/appVolume';
+
+/** The level every element in this player plays at. See `useSystemFader`. */
+export const FULL_LEVEL = 1;
 
 export interface IPlayerDecks {
   audioElements: readonly [HTMLAudioElement, HTMLAudioElement];
@@ -32,11 +34,9 @@ export interface IPlayerDecks {
    * Kept here because this is what owns the elements it has to reach: the
    * level belongs to the deck, not to the render that moved the slider.
    */
-  volumeRef: MutableRefObject<number>;
 }
 
 export const usePlayerDecks = (
-  volume: number,
   videoElementRef: MutableRefObject<HTMLVideoElement | null>,
 ): IPlayerDecks => {
   // Two stable, hidden decks make a real overlap possible. Replacing one
@@ -46,7 +46,6 @@ export const usePlayerDecks = (
     readonly [HTMLAudioElement, HTMLAudioElement] | undefined
   >(undefined);
   if (!audioElementsRef.current) {
-    const storedVolume = readAppVolume();
     const first = new Audio();
     const second = new Audio();
     [first, second].forEach((element) => {
@@ -66,7 +65,7 @@ export const usePlayerDecks = (
       // element built at unity and turned down afterwards is briefly at unity,
       // and someone who left the fader at 17% would get a burst of full-scale
       // audio on launch — the opposite of what remembering it is for.
-      element.volume = storedVolume;
+      element.volume = FULL_LEVEL;
     });
     audioElementsRef.current = [first, second];
   }
@@ -78,16 +77,17 @@ export const usePlayerDecks = (
    * On the elements rather than in the DSP chain, so the level is right even
    * when the graph has fallen back to direct output.
    */
-  const volumeRef = useRef(volume);
+  // Never under full level, on either deck or on a video: the fader that is
+  // drawn beside this player is the computer's (`useSystemFader`), and a level
+  // of the player's own under it was a second fader for the same sound.
   useEffect(() => {
-    volumeRef.current = volume;
     audioElements.forEach((audio) => {
-      audio.volume = volume;
+      audio.volume = FULL_LEVEL;
     });
     if (videoElementRef.current) {
-      videoElementRef.current.volume = volume;
+      videoElementRef.current.volume = FULL_LEVEL;
     }
-  }, [audioElements, volume, videoElementRef]);
+  }, [audioElements, videoElementRef]);
 
-  return { audioElements, volumeRef };
+  return { audioElements };
 };

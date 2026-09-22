@@ -29,7 +29,6 @@ import {
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
 import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
-import { useAppVolume } from '../audio/appVolume';
 import {
   claimPlayback,
   registerPlayer,
@@ -144,13 +143,10 @@ export const useKaraokeSession = (isActive: boolean) => {
   // a karaoke-only level under its own key, defaulting to 0.8 with no control
   // anywhere in the UI — so a karaoke song played four fifths as loud as the
   // same song in the library and nothing on screen said why.
-  const volume = useAppVolume();
   // Solo listening scales the backing track under the master volume; 1 is
   // normal playback, 0 is voice alone. A ref, because the element must be
   // retuned inside callbacks that never re-render.
   const backingScaleRef = useRef(1);
-  const volumeRef = useRef(volume);
-  volumeRef.current = volume;
   playheadMsRef.current = playheadMs;
   isActiveRef.current = isActive;
 
@@ -343,7 +339,7 @@ export const useKaraokeSession = (isActive: boolean) => {
         setDurationMs(0);
         setStatus('ready');
         audio.src = nextUrl;
-        audio.volume = volume * backingScaleRef.current;
+        audio.volume = backingScaleRef.current;
         audio.load();
         return true;
       } catch {
@@ -352,7 +348,7 @@ export const useKaraokeSession = (isActive: boolean) => {
         return false;
       }
     },
-    [revokeObjectUrl, song, volume],
+    [revokeObjectUrl, song],
   );
 
   const play = useCallback(async () => {
@@ -427,17 +423,9 @@ export const useKaraokeSession = (isActive: boolean) => {
   const setBackingScale = useCallback((scale: number) => {
     backingScaleRef.current = Math.min(1, Math.max(0, scale));
     if (audioRef.current) {
-      audioRef.current.volume = volumeRef.current * backingScaleRef.current;
+      audioRef.current.volume = backingScaleRef.current;
     }
   }, []);
-
-  // The backing track follows the app's fader, wherever it was moved from —
-  // this tab's own bar, or another tab's while karaoke keeps playing behind it.
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume * backingScaleRef.current;
-    }
-  }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;

@@ -45,17 +45,16 @@ import {
   useRef,
   useState,
 } from 'react';
-import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
+import {
+  advanceQueue,
+  currentTrackId,
+  ILibraryQueue,
+} from '../../../common/library/queue';
 import { useDspEngine } from '../../dsp/useDspEngine';
 import { useDspSettings } from '../../dsp/store';
 import { usePlaybackHandoff } from '../../audio/playbackHandoff';
 import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
 import { useLibrary } from '../LibraryContext';
-import {
-  commitAppVolume,
-  setAppVolume,
-  useAppVolume,
-} from '../../audio/appVolume';
 import {
   ILibraryPlayerClock,
   ILibraryPlayerContextValue,
@@ -69,6 +68,7 @@ import { usePlaybackCommands } from './usePlaybackCommands';
 import { usePlayerDecks } from './usePlayerDecks';
 import { usePlayerEngine } from './usePlayerEngine';
 import usePublishedTransport from './usePublishedTransport';
+import { usePublishedLibraryDeck } from '../../player/libraryDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -99,7 +99,7 @@ export const LibraryPlayerProvider = ({
   // only ever carries ids. `LibraryPlayerProvider` has to sit inside
   // `LibraryProvider` for this lookup to resolve, which `App.tsx` already
   // arranges the same way it nests every other library-scoped provider.
-  const { index } = useLibrary();
+  const { index, queueFiles } = useLibrary();
   const trackById = useMemo(
     () => new Map(index.tracks.map((t) => [t.id, t])),
     [index.tracks],
@@ -113,10 +113,9 @@ export const LibraryPlayerProvider = ({
   // storage rather than defaulted and corrected afterwards — the decks below
   // are built at the stored level, and a state that disagreed with them for
   // one render would put a burst of full-scale audio through them.
-  const volume = useAppVolume();
   // Two hidden decks, built once, kept at the listener's level. See
   // `usePlayerDecks` for why they are never rendered.
-  const { audioElements, volumeRef } = usePlayerDecks(volume, videoElementRef);
+  const { audioElements } = usePlayerDecks(videoElementRef);
   const audioElementRef = useRef<HTMLAudioElement | undefined>(
     audioElements[0],
   );
@@ -170,6 +169,29 @@ export const LibraryPlayerProvider = ({
    * while a deck holds a track the position comes from the engine making the
    * sound, and the element is muted, paused and held only as a fallback.
    */
+  /**
+   * The track the queue moves to next, for the host to hold primed on its
+   * spare deck (`upcoming` in `nativeMirror.ts`) so a fade or a press on Next
+   * starts on the cue and not after a load. Nothing when the queue ends or
+   * repeats this track, and nothing for a video or a file that cannot play.
+   */
+  const upcoming = useMemo(() => {
+    if (!queue || !track) {
+      return undefined;
+    }
+    const nextId = currentTrackId(advanceQueue(queue, 1));
+    const next =
+      nextId !== undefined && nextId !== track.id
+        ? trackById.get(nextId)
+        : undefined;
+    if (!next || next.kind !== 'audio' || !next.isPlayable) {
+      return undefined;
+    }
+    return {
+      path: next.path,
+      leadInMs: next.normalization?.edges?.leadInMs ?? 0,
+    };
+  }, [queue, track, trackById]);
   const {
     hostOwnsTransport,
     hostOwnsTransportRef,
@@ -185,7 +207,7 @@ export const LibraryPlayerProvider = ({
     isPlaying,
     positionMs,
     durationMs,
-    volume,
+    upcoming,
   });
   // The element claims fallback playback from its own `play` event. A native
   // deck has no DOM event, so its first non-ended telemetry frame is the real
@@ -217,7 +239,7 @@ export const LibraryPlayerProvider = ({
     finishCrossfadeRef,
     naturalCrossfadeTrackRef,
     fadeFrameRef,
-  } = useDeckAudio({ volumeRef, trackIdRef });
+  } = useDeckAudio({ trackIdRef });
   /**
    * What each deck is currently doing, keyed by the deck itself. See
    * `useDeckBookkeeping` for why element and not track id.
@@ -296,7 +318,6 @@ export const LibraryPlayerProvider = ({
     track,
     videoElementRef,
     audioElementRef,
-    volumeRef,
     bindMediaEvents,
     setIsPlaying,
   });
@@ -331,7 +352,6 @@ export const LibraryPlayerProvider = ({
     naturalCrossfadeTrackRef,
     finishCrossfadeRef,
     fadeFrameRef,
-    volumeRef,
     isDisposedRef,
     analysisJobRef,
     pendingRestore,
@@ -404,7 +424,6 @@ export const LibraryPlayerProvider = ({
     fadeFrameRef,
     seekHost,
     setPositionMs,
-    volumeRef,
     endedTrackRef,
     naturalCrossfadeTrackRef,
     setLoadRequest,
@@ -513,7 +532,41 @@ export const LibraryPlayerProvider = ({
     skip,
     isUnplayable,
     seek,
-    setVolume: setAppVolume,
+  });
+  /**
+   * And what only this player has, for the mini player: its cover and
+   * format, shuffle and repeat, stop, and the queue. See `libraryDeck.ts`.
+   */
+  /**
+   * Music files dragged onto the player's queue from the computer.
+   *
+   * Two steps, in this order and no other: the files join the library first
+   * (main gives each one a provisional row and its id — see
+   * `library-queue-files`), and only then does the queue take those ids. The
+   * other way round the queue would hold ids nothing could resolve yet and
+   * the rows would draw as their own identifiers.
+   */
+  const addFiles = useCallback(
+    async (paths: string[]) => {
+      const trackIds = await queueFiles(paths);
+      if (trackIds.length) {
+        appendToQueue(trackIds);
+      }
+    },
+    [appendToQueue, queueFiles],
+  );
+  usePublishedLibraryDeck({
+    queue,
+    track,
+    trackById,
+    isShuffled: queue?.isShuffled ?? false,
+    repeat: queue?.repeat ?? 'off',
+    stop,
+    setShuffle,
+    cycleRepeat,
+    jumpToQueuePosition,
+    addFiles,
+    moveUpNext,
   });
   // Publish the handoff lease before giving up audible ownership. Otherwise
   // the synchronous owner update can let another tab's paused bar flash for
@@ -539,7 +592,6 @@ export const LibraryPlayerProvider = ({
       queue,
       track,
       isPlaying,
-      volume,
       isShuffled: queue?.isShuffled ?? false,
       repeat: queue?.repeat ?? 'off',
       videoTrackId,
@@ -560,15 +612,12 @@ export const LibraryPlayerProvider = ({
       seek,
       setShuffle,
       cycleRepeat,
-      setVolume: setAppVolume,
-      commitVolume: commitAppVolume,
       registerVideoElement,
     }),
     [
       queue,
       track,
       isPlaying,
-      volume,
       videoTrackId,
       isUnplayable,
       playTracks,

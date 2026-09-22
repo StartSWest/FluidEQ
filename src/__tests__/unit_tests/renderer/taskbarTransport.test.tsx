@@ -165,7 +165,6 @@ it('uses Library queue commands and disables play for an unplayable track', () =
         toggle: () => actions.push('play'),
         skip: (direction) => actions.push(`skip:${direction}`),
         seek: () => undefined,
-        setVolume: () => undefined,
         isUnplayable,
       }),
     { initialProps: { isUnplayable: false } },

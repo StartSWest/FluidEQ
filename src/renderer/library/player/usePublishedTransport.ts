@@ -36,7 +36,6 @@ const usePublishedTransport = (options: {
   skip: (direction: 1 | -1) => void;
   isUnplayable: boolean;
   seek: (positionMs: number) => void;
-  setVolume: (value: number) => void;
 }): void => {
   const {
     track,
@@ -48,7 +47,6 @@ const usePublishedTransport = (options: {
     skip,
     isUnplayable,
     seek,
-    setVolume,
   } = options;
 
   /**
@@ -78,7 +76,6 @@ const usePublishedTransport = (options: {
       previous: () => skip(-1),
       next: () => skip(1),
       seek,
-      setVolume,
       identity: buildSongIdentity(
         'library',
         track.id,
@@ -96,7 +93,6 @@ const usePublishedTransport = (options: {
     skip,
     isUnplayable,
     seek,
-    setVolume,
   ]);
 
   useEffect(() => () => clearTransportSource('library'), []);

@@ -73,7 +73,6 @@ import {
   GRID_SIDE_MARGIN,
   plotTopMargin,
 } from './plotMargins';
-import { ColorEnum } from '../styles/color';
 import { useInternalClipping } from '../audio/internalClipping';
 import {
   useLiveAudioCapture,
@@ -147,6 +146,7 @@ import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
 import LookPicker from './LookPicker';
+import liveTraceCurves from './liveTraceCurves';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
@@ -1524,35 +1524,12 @@ const FrequencyResponseChart = ({
     // Solo removes every one of them, so the reason to dim it goes with them:
     // what was left was the one drawing on screen, drawn at half strength for
     // the benefit of curves that are no longer there.
-    const opacity = isLiveOutputForeground ? 1 : SUPPORTING_CURVE_OPACITY;
-    const isHalfHeight =
-      waveOrientation === 'mirrored' || waveOrientation === 'centred';
-    return [
-      // Hanging from the top, or mirrored below as well. Drawn first so the
-      // upright copy lands over it.
-      ...(isHalfHeight
-        ? [
-            {
-              isFlipped: true,
-              isHalfHeight: true,
-              isFromCentre: waveOrientation === 'centred',
-              heightScale: waveHeight,
-              verticalPosition: wavePosition,
-              colour: ColorEnum.ANALOGOUS2,
-              opacity,
-            },
-          ]
-        : []),
-      {
-        isFlipped: waveOrientation === 'down',
-        isHalfHeight,
-        isFromCentre: waveOrientation === 'centred',
-        heightScale: waveHeight,
-        verticalPosition: wavePosition,
-        colour: ColorEnum.ANALOGOUS2,
-        opacity,
-      },
-    ];
+    return liveTraceCurves({
+      orientation: waveOrientation,
+      height: waveHeight,
+      position: wavePosition,
+      opacity: isLiveOutputForeground ? 1 : SUPPORTING_CURVE_OPACITY,
+    });
   }, [
     isDisplayedWaveHidden,
     isLiveOutputForeground,

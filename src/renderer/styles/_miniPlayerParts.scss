@@ -1,0 +1,431 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The player's parts: the display glass and what is lit on it, the lamps,
+// the keys and the sliders. Every deck is built from these, in the colours
+// of the player's theme (`MiniPlayer.scss`).
+
+// ============================================================ a key, on ====
+//
+// WHAT "SWITCHED ON" LOOKS LIKE ANYWHERE IN THE AMP: the key's own face with
+// the visualizer's colour mixed into it, and an edge at two thirds of that
+// colour. Mixed rather than laid over flat, so it is still a key with light
+// on its top edge — at full accent a row of these read as slabs stuck to the
+// deck, and the app's loud accent button (`.button.small` without `subtle`)
+// is that slab, which is what the Bands/Tone pair used to wear (Ivan,
+// 2026-09-22).
+//
+// One mixin because three places need exactly this and a copy is how two of
+// them come to disagree: a deck key, the caret half of Smart EQ's split key,
+// and the equalizer's two faces.
+@mixin player-key-on {
+  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 30%, var(--player-key)),
+    color-mix(in srgb, var(--accent) 18%, var(--player-key-end))
+  );
+  color: var(--player-text);
+}
+
+// THE ONE KEY FACE ON THE AMP, and every pressable thing wears it (Ivan,
+// 2026-09-22: "make sure all buttons in the amp have the same style and
+// colour"). The transport keys, the lamp keys, the presets picker, the EQ
+// mode and band layout pickers, Clear EQ, the Library key on the queue and
+// the visualizer's picker were five renderings of the same idea: the app's
+// field surface, the app's quiet outline button, and three hand-drawn keys
+// that differed in a percent here and a shadow there. This is the key —
+// its edge, its lit top, its shade — and a key that is on or open wears
+// `player-key-on` over it. Size, radius and type are the caller's, because
+// a transport key is taller than a row key and says nothing in words.
+@mixin player-key-face {
+  // A KEY HAS AN EDGE WHETHER IT IS ON OR NOT (Ivan, 2026-09-22). The plain
+  // `--player-key-edge` measured as white at 14% — on the deck's own dark
+  // face that is nothing, and Smart EQ's split key read as a bare word beside
+  // a boxed caret rather than as one control. The edge carries a little of
+  // the visualizer's colour, so a key off is still a key belonging to this
+  // window.
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, rgba($white, 0.18));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--player-key), $white 7%),
+    var(--player-key-end)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.08),
+    inset 0 -2px 0 rgba($black, 0.25),
+    0 1px 2px rgba($black, 0.6);
+  color: var(--player-text-soft);
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--player-text);
+  }
+
+  &:active:not(:disabled) {
+    box-shadow: inset 0 1px 3px rgba($black, 0.7);
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// ========================================================= display glass ===
+//
+// A well of dark glass with a faint accent bloom, a glare across its top
+// left and scanlines — the one surface in the app that is meant to look lit
+// from behind.
+@mixin player-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--player-well-edge);
+  border-radius: 8px;
+  background:
+    linear-gradient(112deg, rgba($white, 0.05) 0%, rgba($white, 0) 30%),
+    radial-gradient(
+      120% 100% at 25% 0%,
+      color-mix(in srgb, var(--accent) 8%, transparent),
+      transparent 62%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba($black, 0.32) 0 1px,
+      transparent 1px 3px
+    ),
+    var(--player-well);
+  box-shadow:
+    inset 0 2px 12px rgba($black, 0.9),
+    inset 0 0 0 1px rgba($black, 0.5),
+    0 1px 0 rgba($white, 0.05);
+}
+
+.player-screen,
+.player-eq-screen,
+.player-queue__list,
+.player-fold__screen {
+  @include player-glass;
+}
+
+// Text lit on the glass.
+@mixin player-lit-text {
+  color: var(--player-ink);
+  font-family: $font-mono;
+  font-size: 11px;
+  font-weight: $weight-semibold;
+  text-shadow: 0 0 6px var(--player-glow);
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.06em);
+}
+
+// The scrolling title: two copies moving as one band, so the text wraps
+// round without a jump. Only while it is longer than its box.
+.player-marquee {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba($black, 0.35);
+  box-shadow: inset 0 1px 2px rgba($black, 0.7);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    $black 8px,
+    $black calc(100% - 8px),
+    transparent
+  );
+  @include player-lit-text;
+}
+
+.player-marquee__track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: 8px;
+}
+
+.player-marquee__text {
+  flex: none;
+}
+
+.player-marquee.is-running {
+  .player-marquee__track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-inline: 0;
+    animation: player-marquee var(--marquee-seconds, 14s) linear infinite;
+  }
+
+  .player-marquee__text {
+    padding-inline: 8px 36px;
+  }
+}
+
+@keyframes player-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+// The volume while its slider is held, in the title's place and at its
+// height: which volume, a bar of lit segments as long as the level, and the
+// figure.
+.player-volume-readout {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: rgba($black, 0.35);
+  box-shadow: inset 0 1px 2px rgba($black, 0.7);
+  @include player-lit-text;
+}
+
+.player-icon--readout {
+  width: 12px;
+  height: 12px;
+  filter: drop-shadow(0 0 3px var(--player-glow));
+}
+
+.player-volume-readout__name {
+  flex: none;
+  color: var(--player-ink-dim);
+  font-size: 9px;
+}
+
+// Two rows of the same segments, the lit one clipped to the level, so the
+// segments line up whatever the level is.
+.player-volume-readout__bar {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 24px;
+  height: 7px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--player-lcd-ghost) 0 3px,
+    transparent 3px 5px
+  );
+
+  &::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--level, 0) * 100%);
+    background: repeating-linear-gradient(
+      90deg,
+      var(--player-ink) 0 3px,
+      transparent 3px 5px
+    );
+    content: '';
+    filter: drop-shadow(0 0 3px var(--player-glow));
+  }
+}
+
+.player-volume-readout__value {
+  flex: none;
+  min-width: 4ch;
+  text-align: right;
+}
+
+// ============================================================ LED clock ====
+.player-clock-button {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  height: clamp(30px, 10.5cqi, 58px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    border-radius: 4px;
+    @include focus-ring($white);
+  }
+}
+
+.player-clock {
+  display: flex;
+  height: 100%;
+}
+
+.led-clock {
+  width: auto;
+  height: 100%;
+  overflow: visible;
+
+  .is-ghost {
+    fill: var(--player-lcd-ghost);
+  }
+
+  .is-lit {
+    fill: var(--player-ink);
+    filter: drop-shadow(0 0 3px var(--player-glow));
+  }
+}
+
+// Paused part-way, the clock blinks, as a deck's did.
+.player-clock.is-paused .led-clock .is-lit {
+  animation: player-led-blink 1s steps(1) infinite;
+}
+
+@keyframes player-led-blink {
+  50% {
+    fill: var(--player-lcd-ghost);
+    filter: none;
+  }
+}
+
+// ================================================================ the well =
+.player-well {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    border-radius: 4px;
+    @include focus-ring($white);
+  }
+}
+
+// Out of the flow, laid over its box: the box is sized by the display and
+// the canvas only fills it. In the flow, a canvas keeps its bitmap's shape
+// even under `contain: size` — measured in Chromium, its height came out as
+// its width times the bitmap's ratio — so a painter that sizes the bitmap
+// from the box grew the display on every resize (378, 436, 465px...), and
+// the browser reported the loop as an error.
+.player-well__canvas {
+  position: absolute;
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// ============================================================= readouts ====
+.player-readouts {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.player-readouts__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.player-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba($black, 0.4);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+
+  b {
+    color: var(--player-ink);
+    font-family: $font-mono;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    text-shadow: 0 0 5px var(--player-glow);
+  }
+
+  small {
+    color: var(--player-ink-dim);
+    font-family: $font-mono;
+    font-size: 8.5px;
+    font-weight: $weight-semibold;
+  }
+}
+
+// A lamp with its word: lit is on. Also a switch, where it is a button.
+.player-lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 2px;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--player-ink) 30%, transparent);
+  font-family: $font-mono;
+  font-size: 8px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  cursor: default;
+  @include tracking(0.12em);
+
+  &::before {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+  }
+
+  &.is-lit {
+    color: var(--player-lamp);
+    text-shadow: 0 0 5px var(--player-glow);
+
+    &::before {
+      box-shadow: 0 0 6px var(--player-lamp);
+    }
+  }
+}
+
+.player-lamp--warm.is-lit {
+  color: var(--player-lamp-warm);
+
+  &::before {
+    box-shadow: 0 0 6px var(--player-lamp-warm);
+  }
+}
+
+button.player-lamp:not(:disabled) {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--player-ink-bright);
+  }
+}
+
+button.player-lamp:focus-visible {
+  border-radius: 3px;
+  @include focus-ring($white);
+}

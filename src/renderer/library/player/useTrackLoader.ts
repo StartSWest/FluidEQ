@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * `track` or `trackById` were dependencies too.
  */
 import { MutableRefObject, useEffect } from 'react';
+import { FULL_LEVEL } from './usePlayerDecks';
 import { IDspSettings, TCrossfadeCurve } from '../../../common/dsp/chain';
 import {
   DSP_DIAGNOSTIC_CODES,
@@ -74,7 +75,6 @@ export interface ITrackLoaderDeps {
   naturalCrossfadeTrackRef: MutableRefObject<string | undefined>;
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
   fadeFrameRef: MutableRefObject<number>;
-  volumeRef: MutableRefObject<number>;
   isDisposedRef: MutableRefObject<boolean>;
   analysisJobRef: MutableRefObject<
     { trackId: string; controller: AbortController } | undefined
@@ -120,7 +120,6 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
     naturalCrossfadeTrackRef,
     finishCrossfadeRef,
     fadeFrameRef,
-    volumeRef,
     isDisposedRef,
     analysisJobRef,
     pendingRestore,
@@ -418,7 +417,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       // `loadedmetadata` — where the restored position is applied — would
       // never fire.
       audio.preload = 'metadata';
-      audio.volume = volumeRef.current;
+      audio.volume = FULL_LEVEL;
       audio.load();
       setIsPlaying(false);
     } else {

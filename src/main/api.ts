@@ -26,6 +26,7 @@ import type { IMotionPreferenceState } from './ipc/motionPreference';
 import type { TMotionPreference } from './motionPreference';
 import type { IStartWithWindows } from './startWithWindows';
 import type { IStudioNotes } from '../common/studioNotes';
+import type { IWindowState, TWindowMode } from '../common/windowMode';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
 import type { ISystemMediaSnapshot } from './systemMedia';
@@ -238,12 +239,13 @@ const setAppLocale = (locale: string) =>
   ipcRenderer.invoke('window-set-locale', locale) as Promise<void>;
 
 /**
- * Whether the window should show the desktop through a blur. The theme
- * decides — a true-black theme wants an opaque window — and the material is
- * a property of the native window, so it has to cross to main.
+ * The colour the shell's floor is painted in, as `#rrggbb`. The theme decides
+ * it and only the document knows it; what the window shows before the page's
+ * first frame, and inside the strip a resize opens, is the native window's own
+ * background, so it has to cross to main.
  */
-const setWindowBackdrop = (wanted: boolean) =>
-  ipcRenderer.invoke('window-set-backdrop', wanted) as Promise<void>;
+const setWindowFloor = (colour: string) =>
+  ipcRenderer.invoke('window-set-floor', colour) as Promise<void>;
 
 /** Animated or reduced, as chosen in the tools menu; applies from the next start. */
 const motionPreference = () =>
@@ -305,10 +307,25 @@ const isWindowMaximized = () =>
  * meets the window it actually has rather than the one it assumes.
  */
 const getWindowState = () =>
-  ipcRenderer.invoke('window-get-state') as Promise<{
-    isMaximized: boolean;
-    isFullScreen: boolean;
-  }>;
+  ipcRenderer.invoke('window-get-state') as Promise<IWindowState>;
+
+/**
+ * The full app or the player. Answers the mode the window is in afterwards —
+ * the one asked for, except in full screen, where there is no size to change.
+ */
+const setWindowMode = (mode: TWindowMode) =>
+  ipcRenderer.invoke('window-set-mode', mode) as Promise<TWindowMode>;
+
+/** The player's Always on top. */
+const setWindowPinned = (isPinned: boolean) =>
+  ipcRenderer.invoke('window-set-pinned', isPinned) as Promise<void>;
+
+/**
+ * The player's height, in the page's CSS pixels: a deck opening or closing,
+ * or the player folding to one line and back.
+ */
+const resizePlayerWindow = (height: number) =>
+  ipcRenderer.invoke('window-resize-player', height) as Promise<void>;
 
 /** Real fullscreen. The renderer's own Fullscreen API cannot do this. */
 const setWindowFullScreen = (next: boolean) =>
@@ -550,6 +567,17 @@ const addLibraryRoot = () =>
 /** For a dropped folder: main decides what is really a directory. */
 const addLibraryRootPaths = (paths: string[]) =>
   ipcRenderer.invoke('library-root-add-paths', paths) as Promise<ILibraryIndex>;
+
+/**
+ * For music files dropped straight onto the player's queue: the index with
+ * them in it, and their ids in the order they were dropped, so the queue can
+ * be added to in the same gesture. A file already known keeps its id.
+ */
+const queueLibraryFiles = (paths: string[]) =>
+  ipcRenderer.invoke('library-queue-files', paths) as Promise<{
+    index: ILibraryIndex;
+    trackIds: string[];
+  }>;
 
 const removeLibraryRoot = (rootId: string) =>
   ipcRenderer.invoke('library-root-remove', rootId) as Promise<ILibraryIndex>;
@@ -1424,7 +1452,7 @@ export default {
     toggleMaximizeWindow,
     closeWindow,
     setAppLocale,
-    setWindowBackdrop,
+    setWindowFloor,
     motionPreference,
     setMotionPreference,
     startWithWindows,
@@ -1435,6 +1463,9 @@ export default {
     installUpdate,
     isWindowMaximized,
     getWindowState,
+    setWindowMode,
+    setWindowPinned,
+    resizePlayerWindow,
     setWindowFullScreen,
     sendMediaTransport,
     setTaskbarTransport,
@@ -1466,6 +1497,7 @@ export default {
     getLibraryIndex,
     addLibraryRoot,
     addLibraryRootPaths,
+    queueLibraryFiles,
     removeLibraryRoot,
     rescanLibrary,
     forceRescanLibrary,

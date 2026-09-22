@@ -1399,6 +1399,61 @@ select option {
   -webkit-app-region: no-drag;
 }
 
+// ================================================ the instrument capsule ====
+//
+// The engine's chip and the app/player switch, in one housing (Ivan,
+// 2026-09-22). They were two raised boxes of two different shapes and two
+// different heights, beside a third box (Help) and a creature — four shapes
+// across the busiest strip in the window. As one capsule they read as one
+// instrument: what the app is doing, and what the window is.
+//
+// The same housing the DSP page's Game mode and delay share
+// (`EngineStrip.scss`): a field's surface at a pill's radius, with the two
+// halves keeping their own state fills and giving up their own edges, so the
+// pair reads as two targets without a second border being drawn round each.
+.titlebar-instrument {
+  @include field-surface;
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  padding: 2px;
+  border-radius: $radius-pill;
+  -webkit-app-region: no-drag;
+
+  // The chip gives up its raised box and becomes the capsule's left half:
+  // its own edge, lift and rims inside a housing that already has all three
+  // is a card drawn inside a card.
+  > .actions-menu > .workspace-header__tools-trigger {
+    width: 46px;
+    height: 26px;
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    box-shadow: none;
+
+    // The hairline of light along its top belongs to a raised control.
+    &::before {
+      display: none;
+    }
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'] {
+      background: color-mix(in srgb, $secondary-light 12%, transparent);
+    }
+  }
+
+  // And the switch keeps its slider and gives up its well — the capsule is
+  // the well now. Only here: the same switch stands on its own in the
+  // player's strip and in its folded line, where it has no housing to sit in.
+  > .window-mode-switch {
+    width: 56px;
+    height: 26px;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+
 .workspace-header__tools {
   position: relative;
   flex: 0 0 auto;
@@ -1644,17 +1699,20 @@ select option {
   height: 100vh;
   padding-top: $title-bar-height;
   overflow: hidden;
-  // The floor every pane stands on, laid over the blurred desktop Windows
-  // draws behind the window — see `$window-backdrop`. Not opaque, and not
-  // clear either: the gutters between the panes carry a little of what is
-  // behind the app and nothing else does.
+  // The floor every pane stands on, and it is OPAQUE (Ivan, 2026-09-21).
   //
-  // No border and no radius of its own. The window is not see-through any
-  // more, because Windows will not put a backdrop material behind one that
-  // is, so DWM owns the outer corner and rounds it at the system radius. An
-  // 18px radius drawn here would leave a sliver of bare backdrop outside it
-  // at each corner.
-  background: $window-backdrop;
+  // It used to be 90% of this colour over a Windows backdrop material, so the
+  // gutters between the panes carried a tenth of the blurred desktop. Measured
+  // on his window: the right-hand gutter read rgb(31,89,254) over a blue
+  // wallpaper — the desktop, not a hint of it — and it changed colour with
+  // every window dragged behind this one. `windowBackdrop.ts` in main states
+  // the same colour to the native window, so the sizing border and the
+  // corners match it during a resize.
+  //
+  // No border and no radius of its own: Windows clips the window to the
+  // system radius, and the window's edge is drawn once for both window modes
+  // on `body` below.
+  background: $surface-base;
 
   // Soft bloom behind the whole shell: one blurred disc in the middle of the
   // window, weighted to the cyan/teal end of the spectrum palette. It was
@@ -1683,6 +1741,60 @@ select option {
     pointer-events: none;
     content: '';
   }
+}
+
+// ===================================================== the window's edge ====
+//
+// Windows 11 clips a frameless window to the system corner radius itself and
+// keeps doing it through every move, snap and resize, so the SHAPE is right in
+// every case without this document tracking any of them. What the clip does
+// not give is an edge: it cuts the app's floor off square against the desktop,
+// with Windows' own hairline — a flat grey on a dark window — as the only
+// thing marking where the app stops. Measured at all four corners of his
+// window: rounded, and each one a dark block with a grey line round it.
+//
+// This is the edge, drawn inside the clip: one hairline of light at the same
+// radius, lifted along the top where a pane catches light and barely there
+// down the sides, which is what makes a dark surface read as having a rim
+// rather than an outline.
+//
+// ON `body`, and it has to be. The two window modes never share an ancestor
+// below it — the app's root is `display: none` while the window is the player,
+// and the player is portalled beside it, not inside it — so anywhere lower
+// this would be two rules that could disagree about the same window.
+//
+// Inset box-shadows rather than a masked gradient ring, which would give a
+// true gradient along the edge: if `mask-composite` were ever not honoured the
+// mask would fall back to the whole area and paint a white veil over the
+// entire window. A shadow that is not honoured paints nothing.
+body::after {
+  position: fixed;
+  z-index: 6000;
+  inset: 0;
+  border-radius: $window-corner;
+  // The lit top edge over the ring that carries it round the corners. Kept
+  // faint on purpose: Windows draws its own hairline just outside this one,
+  // and anything heavier here reads as a second border rather than as the
+  // light catching the inside of the first.
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.14),
+    inset 0 -1px 0 rgba($white, 0.05),
+    inset 0 0 0 1px rgba($white, 0.06);
+  content: '';
+  // The window's edge is never something to click.
+  pointer-events: none;
+}
+
+// Maximised or full screen, Windows squares the window off against the edges
+// of the screen and there is no edge left to light: a rounded hairline inside
+// a square window leaves four dark notches, and a lit rim along a boundary
+// that is the screen's rather than the window's reads as a misdrawn frame.
+// `is-window-filled` is the main process's own answer, pushed on every
+// maximise, restore and full-screen transition — not a guess from the
+// viewport's size, which cannot tell a maximised window from one dragged to
+// the same size.
+:root.is-window-filled body::after {
+  display: none;
 }
 
 // The now-playing bar is `position: fixed` to the window (see
@@ -1795,7 +1907,12 @@ textarea,
   // The select's own tint over the block it opens on — what
   // `mix($secondary-default, $surface-block, 7%)` came to.
   --surface-menu-face: #1c4a5f;
-  --surface-well: #07111a;
+  // The well is the shell over a card — the floor showing through — so it is
+  // the floor's own colour. It was #07111a, darker than the floor itself, and
+  // every recessed box on this theme (the Dimension scope, the Studio's stage
+  // well and path line, the meter's slot) was a black hole in a slate window;
+  // Ivan went through them one by one on 2026-09-22.
+  --surface-well: #0d2030;
   --track-well: #2e4f63;
   // The edges, a cool white at a whisper: on slate they only have to part
   // one pane from the next.
@@ -2065,9 +2182,18 @@ textarea,
   // optional FluidEQ bar. The old guest-owned fullscreen sat in the browser's
   // top layer and covered this bar instead, which is the clipped top reported
   // when Media entered fullscreen.
-  &.has-top-bar .workspace-tab-panel--video,
   &.has-top-bar .workspace-tab-panel--library {
     padding-top: calc(#{$title-bar-height} + 8px);
+  }
+
+  // The player meets the bar with no seam. It was the Library's padding, and
+  // that measured from the windowed bar's lower edge: in full screen the bar
+  // runs to the window's edges with no gutter above it, so its edge is the
+  // gutter higher, and the player sat 20px under it on a strip of the window's
+  // own floor (Ivan, 2026-09-21: "the player is next to header"). The bar's
+  // own height, from the same number it is drawn at.
+  &.has-top-bar .workspace-tab-panel--video {
+    padding-top: calc(#{$title-bar-height} - var(--shell-gutter, 16px));
   }
 
   // Maker uses fixed positioning in full screen so a remembered scrollTop

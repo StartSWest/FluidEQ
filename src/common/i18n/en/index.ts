@@ -62,6 +62,7 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
+import player from './player';
 
 const en = {
   ...karaoke,
@@ -92,6 +93,7 @@ const en = {
   ...wallpaper,
   ...bugReport,
   ...review,
+  ...player,
 };
 
 export type TranslationKey = keyof typeof en;

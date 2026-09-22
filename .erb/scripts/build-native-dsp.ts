@@ -483,6 +483,12 @@ if (isWindows) {
   if (!existsSync(gameWatchPath)) {
     fail(`the game watcher was not produced at ${gameWatchPath}`);
   }
+  // The compact player's system volume, packaged beside them: without it the
+  // player's slider has nothing to move when another program is playing.
+  const volumeWatchPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Volume.exe');
+  if (!existsSync(volumeWatchPath)) {
+    fail(`the system volume helper was not produced at ${volumeWatchPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

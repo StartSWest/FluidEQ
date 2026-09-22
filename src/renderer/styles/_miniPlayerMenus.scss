@@ -1,0 +1,177 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
+// surface.
+
+// ============================================================ the menus ====
+//
+// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
+// surface.
+.player-menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 16px));
+  gap: 2px;
+  padding: 6px;
+}
+
+.player-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: $text-muted;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  text-align: left;
+  cursor: pointer;
+
+  > .player-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--player-ink);
+  }
+
+  small {
+    margin-left: auto;
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: $hover-lift;
+    color: $text-primary;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    background: $selected-accent;
+    color: $text-primary;
+  }
+}
+
+.player-menu__item--two {
+  align-items: flex-start;
+}
+
+.player-menu__tick {
+  margin-top: 2px;
+  visibility: hidden;
+
+  [aria-checked='true'] > & {
+    visibility: visible;
+  }
+}
+
+.player-menu__two {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  small {
+    margin: 0;
+    color: $text-faint;
+    white-space: normal;
+  }
+}
+
+.player-menu__rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: $border-subtle;
+}
+
+.player-menu__heading {
+  margin: 4px 9px 2px;
+  color: $text-dim;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.14em);
+}
+
+.player-menu__pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 6px 6px;
+}
+
+// The app's own preference row, standing in the player's menu — the theme
+// picker, which reads and writes whichever choice belongs to the window's
+// current mode. That row is `display: contents`, so under this menu's grid
+// its caption and its control came out as two full-width rows: a 38px
+// caption over a 303px box with two 45px options adrift at its left
+// (measured). Laid out here as the row it is everywhere else — the name at
+// one end, the choice at the other.
+.player-menu .menu-preference {
+  display: grid;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 2px 9px 4px;
+}
+
+.player-menu .menu-preference__label {
+  font-size: $text-small;
+}
+
+.player-menu .menu-preference__control {
+  width: auto;
+  justify-self: end;
+}
+
+// THE WORDS ALONE. The picker draws a miniature window beside each theme's
+// name — its ground, a pane down the left, a stroke of the accent — and on
+// the amp's menu, whose surfaces are the same colours the miniature is made
+// of, the ground vanished and what was left read as a bar drawn before each
+// word: "| Light | Dark" (Ivan, 2026-09-22). Two words in a two-way switch
+// need no picture to tell them apart.
+.player-menu .theme-picker__swatch {
+  display: none;
+}
+
+.player-menu .theme-picker__option {
+  gap: 0;
+}
+
+// Each page behind the glyph the tab strip gives it, because this menu stands
+// in for that strip. Sized to the word beside it rather than to a grid, the
+// way every other glyph-and-name pair in the app is (`.dsp-bar-icon`).
+.player-menu__page {
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-split.is-running .player-led__lamp {
+    animation: none;
+  }
+}

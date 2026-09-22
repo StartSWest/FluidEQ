@@ -25,6 +25,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
+import { FULL_LEVEL } from './usePlayerDecks';
 import {
   ILibraryQueue,
   buildQueue,
@@ -72,7 +73,6 @@ export const usePlaybackCommands = (options: {
   /** Rewind the native deck when it, rather than the element, is audible. */
   seekHost: (positionMs: number) => void;
   setPositionMs: Dispatch<SetStateAction<number>>;
-  volumeRef: MutableRefObject<number>;
   /** Lets a stopped restored session begin at zero instead of its saved time. */
   endedTrackRef: MutableRefObject<string | undefined>;
   naturalCrossfadeTrackRef: MutableRefObject<string | undefined>;
@@ -102,7 +102,6 @@ export const usePlaybackCommands = (options: {
     fadeFrameRef,
     seekHost,
     setPositionMs,
-    volumeRef,
     endedTrackRef,
     naturalCrossfadeTrackRef,
     setLoadRequest,
@@ -230,7 +229,7 @@ export const usePlaybackCommands = (options: {
       element.currentTime = 0;
     }
     audioElements.forEach((deck) => {
-      deck.volume = volumeRef.current;
+      deck.volume = FULL_LEVEL;
     });
     pendingRestore.current = undefined;
     endedTrackRef.current = undefined;
@@ -248,7 +247,6 @@ export const usePlaybackCommands = (options: {
     pendingRestore,
     seekHost,
     setPositionMs,
-    volumeRef,
   ]);
 
   const toggle = useCallback(() => {

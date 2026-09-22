@@ -1,0 +1,240 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The equalizer's screen: what is applied along the top, the curve across
+// the middle, the status line along the foot.
+
+// ============================================================ the screen ===
+//
+// What else is applied along the top, what is heard across the middle, what
+// Smart EQ is doing along the bottom.
+// A third of any height the deck is given, the faders two thirds.
+.player-eq-screen {
+  display: grid;
+  flex: 1 0 0;
+  // The applied line takes the height it needs: its layers wrap onto a
+  // second line rather than running off the end of the screen, where the
+  // last of them used to fade out mid-word (Ivan, 2026-09-21). And the last
+  // row is the status strip, and its height is reserved whether or
+  // not it has a word in it: the visualizer's name, a band being held and
+  // Smart EQ's own line all come and go, and a row that collapsed with them
+  // would grow the curve above and shrink it again under the hand of whoever
+  // was reading it (Ivan, 2026-09-22).
+  grid-template-rows: auto minmax(0, 1fr) 17px;
+  min-height: clamp(88px, 24cqi, 120px);
+
+  &.is-off .player-eq-screen__curve {
+    opacity: 0.55;
+  }
+}
+
+// The curve's box, sized by the screen; the canvas lies over it out of the
+// flow, for the reason the analyser's does (`_miniPlayerParts.scss`).
+.player-eq-screen__plot {
+  position: relative;
+  min-height: 0;
+}
+
+// The visualizer under the curve. Held well back: the curve is what this
+// screen is for, and a picture at full strength behind a two-pixel line is a
+// line nobody can follow.
+//
+// A free look's own drawing is clipped to the PLOT, beside the grid it is
+// read against. A PLUS VISUALIZER takes the whole glass instead — the two
+// lines of text included — because it is a picture somebody chose to watch
+// rather than a second reading of the same sound (Ivan, 2026-09-22), and the
+// grid goes with it: lines ruled across a photograph are furniture.
+.player-eq-screen__scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.player-eq-screen {
+  position: relative;
+}
+
+.player-eq-screen__scene--full {
+  z-index: 0;
+  border-radius: inherit;
+}
+
+// Over the picture, whatever it is.
+.player-eq-screen__applied,
+.player-eq-screen__plot,
+.player-eq-screen__status {
+  position: relative;
+  z-index: 1;
+}
+
+.player-eq-screen__applied,
+.player-eq-screen__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 8px;
+  font-family: $font-mono;
+  font-size: 9px;
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.06em);
+}
+
+.player-eq-screen__applied {
+  padding-top: 3px;
+}
+
+// A Plus visualizer says so beside its label, in the badge's own colours —
+// the same two the picker's own "Plus" wears, at this strip's size. Its own
+// rule rather than `.graph-look-badge`, which is built for a picker row and
+// brings a pill twice the height of this line with it.
+.player-eq-screen__plus {
+  margin-inline-start: 5px;
+  padding: 0 4px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 20%, transparent);
+  color: $secondary-light;
+  font-weight: $weight-bold;
+}
+
+.player-eq-screen__menu {
+  display: flex;
+  flex: none;
+}
+
+.player-eq-screen__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+  padding: 0 5px 0 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 4px;
+  background: rgba($black, 0.35);
+  color: color-mix(in srgb, var(--player-ink) 70%, var(--player-text-soft));
+  font: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+
+  .player-icon--caret {
+    width: 8px;
+    height: 8px;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    color: var(--player-ink-bright);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-eq-screen__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 9px;
+  min-width: 0;
+}
+
+// A layer as an indicator: lit is on, dim is off, a press switches it.
+.player-tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--player-ink) 32%, transparent);
+  font: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+
+  // The lamp is the layer's own colour (`--player-tag-lamp`, set by the
+  // screen from the same table the EQ page's chips read), so a glance at the
+  // strip matches a line on the curve above it; the word stays the display's
+  // own ink, which is what tells a layer that is on from one that is off.
+  &::before {
+    flex: none;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--player-tag-lamp, currentColor);
+    content: '';
+    opacity: 0.45;
+  }
+
+  &.is-lit {
+    color: var(--player-ink);
+    text-shadow: 0 0 5px var(--player-glow);
+
+    &::before {
+      box-shadow: 0 0 6px var(--player-tag-lamp, var(--player-lamp));
+      opacity: 1;
+    }
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--player-ink-bright);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    border-radius: 3px;
+    @include focus-ring($white);
+  }
+}
+
+.player-eq-screen__curve {
+  position: absolute;
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.player-eq-screen__status {
+  justify-content: space-between;
+  color: var(--player-ink-dim);
+}
+
+.player-eq-screen__smart {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-eq-screen__corner {
+  flex: none;
+  color: var(--player-ink-bright);
+  text-shadow: 0 0 5px var(--player-glow);
+}
+
+// The layers' chips, in the menu the words open.
+.player-layers-menu {
+  max-width: min(360px, calc(100vw - 16px));
+}
+
+.player-layers-menu__empty {
+  margin: 4px 6px;
+  color: $text-faint;
+  font-size: $text-small;
+}

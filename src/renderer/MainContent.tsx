@@ -63,29 +63,17 @@ import Dropdown from './widgets/Dropdown';
 import Knob from './widgets/Knob';
 import Switch from './widgets/Switch';
 import BandMenu, { BAND_MENU_EVENT } from './components/BandMenu';
-import {
-  FLAT_TONE,
-  fitToneStack,
-  IToneBase,
-  IToneStack,
-  openToneStack,
-  rebaseToneStack,
-  toneRegionOf,
-  TONE_MAX_DB,
-} from '../common/toneStack';
-import { recallTone, rememberTone } from './eq/toneMemory';
+import { TONE_MAX_DB } from '../common/toneStack';
 import useBubblePlacement from './eq/useBubblePlacement';
-import {
-  askToneReapply,
-  takeToneClear,
-  takeToneReapply,
-} from './eq/toneIntent';
+import { askToneReapply } from './eq/toneIntent';
 
 import { labelledFilterOptions } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
-  CONTINUOUS_MODES,
+  SMART_EQ_MODES,
+  SMART_EQ_MODE_NAME,
+  SMART_EQ_MODE_NOTE,
   TSmartEqMode,
   isContinuousMode,
   setSmartEqMode,
@@ -108,63 +96,8 @@ import ConfirmIcon from './icons/ConfirmIcon';
 import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 
-/**
- * How often a group edit is allowed to reach Equalizer APO, in ms.
- *
- * The same figure the individual band sliders throttle to, and for the same
- * reason: a write is an installation check, a retried config rewrite and a
- * preset save, none of which a drag needs sixty times a second. The trailing
- * call always fires, so the value that lands is the one the control ended on.
- */
-const GROUP_EDIT_INTERVAL = 100;
-
-/** In the order the picker offers them. */
-const SMART_EQ_MODES: TSmartEqMode[] = ['smart', ...CONTINUOUS_MODES];
-
-/** Low to high, the order a tone stack is read in. */
-const TONE_CONTROLS: readonly {
-  knob: keyof IToneStack;
-  labelKey: 'eq.tone.bass' | 'eq.tone.mid' | 'eq.tone.treble';
-}[] = [
-  { knob: 'bass', labelKey: 'eq.tone.bass' },
-  { knob: 'mid', labelKey: 'eq.tone.mid' },
-  { knob: 'treble', labelKey: 'eq.tone.treble' },
-];
-
-/**
- * Everything about the rack a fit depends on, as one string.
- *
- * The tone controls hold a snapshot of what the rack was doing before they
- * were touched, and must not read it again out of their own writing — that
- * would feed each turn's rounding into the next and walk the curve away over
- * a long session. This is how they tell their own edit from somebody moving a
- * band, loading a preset or switching a band off underneath them.
- */
-const rackSignature = (bands: readonly IFilter[]): string =>
-  bands
-    .map(
-      (band) =>
-        `${band.id}:${band.type}:${band.frequency}:${band.gain}:${band.quality}:${
-          band.isEnabled === false ? 0 : 1
-        }`,
-    )
-    .join('|');
-
-/**
- * How many bands there are, which is the one thing that rewrites the tone.
- *
- * The band count swapped, a band added, a band deleted: each of those is a
- * rack built fresh, and the three tone values are written onto it so it
- * carries the same tone the last one did — without which the fifteen gains a
- * conversion spreads over thirty-one frequencies leave the gaps at zero and
- * the curve is 6.7 dB away from the tone the dials still claim.
- *
- * Nothing else does. Not a gain, a width, a type or the on/off switch, and
- * deliberately not a preset or a profile landing on the same bands — those
- * are a tuning somebody chose, and writing the tone over the top of one would
- * be this page fighting the picker one panel along.
- */
-const rackSize = (bands: readonly IFilter[]): number => bands.length;
+import GROUP_EDIT_INTERVAL from './eq/groupEdit';
+import useToneStack, { TONE_CONTROLS } from './eq/useToneStack';
 
 const MainContent = () => {
   const {
@@ -251,30 +184,8 @@ const MainContent = () => {
   // this width: see `eq/bubblePlacement.ts`.
   const bubbleRef = useRef<HTMLSpanElement>(null);
   const bubbleSpot = useBubblePlacement(modeMenuHolder, bubbleRef, bubbleText);
-  const modeLabel = (entry: TSmartEqMode) => {
-    if (entry === 'detail') {
-      return t('eq.smart.mode.detail');
-    }
-    if (entry === 'balance') {
-      return t('eq.smart.mode.balance');
-    }
-    if (entry === 'target') {
-      return t('eq.smart.mode.target');
-    }
-    return t('eq.smart');
-  };
-  const modeNote = (entry: TSmartEqMode) => {
-    if (entry === 'detail') {
-      return t('eq.smart.mode.detail.note');
-    }
-    if (entry === 'balance') {
-      return t('eq.smart.mode.balance.note');
-    }
-    if (entry === 'target') {
-      return t('eq.smart.mode.target.note');
-    }
-    return t('eq.smart.mode.once.note');
-  };
+  const modeLabel = (entry: TSmartEqMode) => t(SMART_EQ_MODE_NAME[entry]);
+  const modeNote = (entry: TSmartEqMode) => t(SMART_EQ_MODE_NOTE[entry]);
 
   // Closes on a click elsewhere and on Escape, like every other menu here.
   useEffect(() => {
@@ -743,231 +654,12 @@ const MainContent = () => {
     }
   };
 
-  /**
-   * Bass, Mid and Treble over the whole rack, shown when nothing is selected.
-   *
-   * The three values are read out of the curve rather than stored beside it —
-   * the rack has nowhere to keep them — and the snapshot they are fitted
-   * against is taken once, when the controls appear, so turning a dial back
-   * where it was returns the curve it started from. See `toneStack.ts`.
-   */
-  const [tone, setTone] = useState<IToneStack>(FLAT_TONE);
-  const toneRef = useRef<
-    { base: IToneBase; signature: string; size: number } | undefined
-  >(undefined);
-  const bandSignature = useMemo(
-    () => rackSignature(frequencySortedFilters),
-    [frequencySortedFilters],
-  );
-  const bandCount = rackSize(frequencySortedFilters);
-  const canShapeTone = frequencySortedFilters.some(
-    (filter) =>
-      filter.isEnabled !== false && !NO_GAIN_FILTER_TYPES.includes(filter.type),
-  );
-  /**
-   * The three values are the source, and the curve follows from them.
-   *
-   * They used to be worked out from the curve every time the controls
-   * appeared, by fitting the three shapes to it — lossy in both directions,
-   * because the rack cannot make an ideal shelf and the fit that writes one
-   * is deliberately local and smooth. Treble set to 8 read back as 7.2 with
-   * -0.8 of Bass and -1.5 of Mid beside it; Bass -6 with Mid +3 read as
-   * -8.2 / +3.5 / -2.6. Leaving the page and returning moved every dial, and
-   * changing the band count made a mess of the curve as well, because the
-   * conversion carries fifteen gains onto thirty-one frequencies and leaves
-   * the gaps at zero.
-   *
-   * So the values are kept (`toneMemory.ts`) and written onto whatever rack
-   * is in front of them. The curve is read for them exactly once, when there
-   * is nothing kept — a first run, or storage cleared.
-   */
-  useEffect(() => {
-    if (selectedFilter) {
-      toneRef.current = undefined;
-      return;
-    }
-    const held = toneRef.current;
-    if (held?.signature === bandSignature) {
-      return;
-    }
-    // Clear EQ, and only when the button itself said so. Reading it off the
-    // rack instead — every gain at zero — caught the moment between engines
-    // where the old rack has gone and the new one has not arrived, and the
-    // curve came back with all three dials sitting at 0.0.
-    if (takeToneClear()) {
-      setTone(FLAT_TONE);
-      rememberTone(FLAT_TONE);
-      toneRef.current = {
-        base: rebaseToneStack(frequencySortedFilters, FLAT_TONE),
-        signature: bandSignature,
-        size: bandCount,
-      };
-      return;
-    }
-    if (!held) {
-      const shown = recallTone() ?? openToneStack(frequencySortedFilters).tone;
-      setTone(shown);
-      rememberTone(shown);
-      toneRef.current = {
-        base: rebaseToneStack(frequencySortedFilters, shown),
-        signature: bandSignature,
-        size: bandCount,
-      };
-      return;
-    }
-    if (held.size === bandCount) {
-      // The same rack set differently — our own edit landing, a band slider
-      // dragged. The dials stand; only what they are measured against moves.
-      toneRef.current = {
-        base: rebaseToneStack(frequencySortedFilters, tone),
-        signature: bandSignature,
-        size: bandCount,
-      };
-      return;
-    }
-    /**
-     * A different rack, so the values are written onto it again.
-     *
-     * Whatever tone the conversion happened to carry across comes off first,
-     * which is what keeps this from adding a second copy of the same shelf
-     * every time the band count is changed. What it cannot explain — a dip
-     * somebody put in by hand — is left in place and carried through.
-     *
-     * Three things are not that, and none of them may write anything. A rack
-     * nobody asked to rebuild — a profile loading its own bands changes the
-     * count as surely as the layout menu does, and writing a shelf over
-     * somebody's profile is the one thing this page may not do. Dials at
-     * zero, which have no tone to put anywhere and would instead STRIP what
-     * the conversion carried. And a rack arriving where there was none, which
-     * is the page loading rather than anybody changing anything.
-     */
-    const nothingToWrite =
-      !takeToneReapply() ||
-      held.size === 0 ||
-      (tone.bass === 0 && tone.mid === 0 && tone.treble === 0);
-    if (nothingToWrite) {
-      toneRef.current = {
-        base: rebaseToneStack(frequencySortedFilters, tone),
-        signature: bandSignature,
-        size: bandCount,
-      };
-      return;
-    }
-    const carried = openToneStack(frequencySortedFilters).tone;
-    const base = rebaseToneStack(frequencySortedFilters, carried);
-    const edits = fitToneStack(frequencySortedFilters, base, tone);
-    const moved = new Map(edits.map((edit) => [edit.id, edit.gain]));
-    const next = frequencySortedFilters.map((filter) => {
-      const gain = moved.get(filter.id);
-      return gain === undefined ? filter : { ...filter, gain };
-    });
-    toneRef.current = {
-      base: rebaseToneStack(next, tone),
-      signature: rackSignature(next),
-      size: bandCount,
-    };
-    if (edits.length === 0) {
-      return;
-    }
-    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-    setFilterValues(edits).catch((e) => setGlobalError(e as ErrorDescription));
-  }, [
-    bandCount,
-    bandSignature,
-    dispatchFilter,
+  // Bass, Mid and Treble over the whole rack, shown when nothing is
+  // selected — shared with the compact player's Tone face (`useToneStack`).
+  const { tone, canShapeTone, applyTone, resetToneRegion } = useToneStack(
     frequencySortedFilters,
-    selectedFilter,
-    setGlobalError,
-    tone,
-  ]);
-
-  /**
-   * One dial back to flat, and only the bands it speaks for.
-   *
-   * Absolute, like the band editor's own gain reset: every band in that third
-   * of the spectrum goes to 0 dB. Turning the dial to zero would only take out
-   * the share of the curve the three shapes can account for, which after a
-   * change of band count leaves a top end that reads flat on the dial and is
-   * not — reported as exactly that.
-   *
-   * The dial goes to zero whether or not a band moves with it. A dial reads
-   * the whole curve, so a big lift at one end shows as a small reading at the
-   * other even with every band there already flat: returning early on "no
-   * bands to change" left exactly those dials — the ones that look wrong —
-   * unable to be put right, which is how this was reported.
-   */
-  const resetToneRegion = async (knob: keyof IToneStack) => {
-    const edits: IFilterEdit[] = frequencySortedFilters
-      .filter(
-        (filter) =>
-          filter.gain !== 0 &&
-          !NO_GAIN_FILTER_TYPES.includes(filter.type) &&
-          toneRegionOf(filter.frequency) === knob,
-      )
-      .map((filter) => ({ id: filter.id, gain: 0 }));
-    // This dial to zero and the other two exactly where they are. Reading all
-    // three back out of the flattened curve instead would move them: a curve
-    // that rises at the bottom and is level on top is partly a bass lift and
-    // partly a treble cut, so pressing reset on Treble landed it at -1.8 and
-    // took two decibels off Bass on the way.
-    const flattened = new Map(edits.map((edit) => [edit.id, edit.gain]));
-    const next = frequencySortedFilters.map((filter) => {
-      const gain = flattened.get(filter.id);
-      return gain === undefined ? filter : { ...filter, gain };
-    });
-    const kept: IToneStack = { ...tone, [knob]: 0 };
-    setTone(kept);
-    rememberTone(kept);
-    toneRef.current = {
-      base: rebaseToneStack(next, kept),
-      signature: rackSignature(next),
-      size: bandCount,
-    };
-    if (edits.length === 0) {
-      return;
-    }
-    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-    try {
-      await setFilterValues(edits);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  };
-
-  const applyTone = async (next: IToneStack, knob: keyof IToneStack) => {
-    const held = toneRef.current;
-    if (!held) {
-      return;
-    }
-    setTone(next);
-    rememberTone(next);
-    const edits = fitToneStack(
-      frequencySortedFilters,
-      held.base,
-      next,
-      // Only the bands this dial speaks for, so turning Treble is a treble
-      // move and nothing else.
-      knob,
-    );
-    if (edits.length === 0) {
-      return;
-    }
-    // Claim the rack this edit is about to produce, so the snapshot above
-    // survives the round trip instead of being rebuilt from our own writing.
-    const moved = new Map(edits.map((edit) => [edit.id, edit.gain]));
-    toneRef.current = {
-      base: held.base,
-      signature: rackSignature(
-        frequencySortedFilters.map((filter) => {
-          const gain = moved.get(filter.id);
-          return gain === undefined ? filter : { ...filter, gain };
-        }),
-      ),
-      size: held.size,
-    };
-    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-    await throttledGroupFlush(edits);
-  };
+    !selectedFilter,
+  );
 
   // The one control that sets rather than nudges — a group of Peak bands asked
   // to become Low Shelf all become Low Shelf.

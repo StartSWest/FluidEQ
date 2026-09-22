@@ -416,6 +416,35 @@ uint32_t feq_player_active_deck(const FeqPlayer* player) {
   return player != nullptr ? player->active.load(std::memory_order_acquire) : 0;
 }
 
+uint32_t feq_player_reported_deck(const FeqPlayer* player) {
+  if (player == nullptr) {
+    return 0;
+  }
+  const uint32_t active = player->active.load(std::memory_order_acquire);
+  const uint32_t incoming = player->incoming.load(std::memory_order_acquire);
+  // `fader.active` is written on the control thread at the start of a fade
+  // and cleared on the audio thread at its end; read here without a lock
+  // like the atomics beside it — a frame either side of the flip reports a
+  // deck that is, at that frame, legitimately the transport.
+  return player->fader.active != 0 && incoming != active ? incoming : active;
+}
+
+int feq_player_deck_audible(const FeqPlayer* player, uint32_t deck) {
+  if (player == nullptr || deck >= FEQ_PLAYER_DECKS) {
+    return 0;
+  }
+  if (deck == player->active.load(std::memory_order_acquire)) {
+    return 1;
+  }
+  // The incoming deck of a running fade is mixed in from its first frame;
+  // read as `feq_player_reported_deck` reads it, a frame either side of the
+  // flip being a deck that is, at that frame, legitimately on the path.
+  return player->fader.active != 0 &&
+                 deck == player->incoming.load(std::memory_order_acquire)
+             ? 1
+             : 0;
+}
+
 void feq_player_start_crossfade(FeqPlayer* player,
                                 uint32_t to_deck,
                                 double duration_ms,

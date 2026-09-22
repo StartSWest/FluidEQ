@@ -175,6 +175,7 @@ const app: Partial<Dictionary> = {
   'app.window.restore': '元に戻す',
   'app.window.close': '閉じる',
   'app.tray.open': '{product} を開く',
+  'app.tray.recoverWindow': 'ウィンドウを元に戻す',
   'app.tray.quit': '{product} を終了',
   'app.tray.tooltip': '{product} — 実行中です',
   'app.tray.installUpdate': 'アップデートをインストールして再起動',

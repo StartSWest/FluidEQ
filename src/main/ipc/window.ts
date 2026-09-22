@@ -18,8 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { BrowserWindow, ipcMain } from 'electron';
 import { resolveLocale } from '../../common/i18n';
+import {
+  PLAYER_HEIGHT_LIMIT_CHANNEL,
+  PLAYER_WIDTH_FLOOR_CHANNEL,
+  type IWindowState,
+} from '../../common/windowMode';
 import { setTrayLocale } from '../tray';
-import { setWindowBackdropWanted } from '../windowBackdrop';
+import { setWindowFloor } from '../windowBackdrop';
+import type { TWindowModes } from '../windowMode';
+import onWindowMessage from './windowMessages';
 
 export interface IWindowIpcDeps {
   /** Resolved per call — the window outlives none of these handlers. */
@@ -33,6 +40,10 @@ export interface IWindowIpcDeps {
    * which is not IPC at all.
    */
   sendWindowState: () => void;
+  /** The same state `sendWindowState` pushes, for a page that asks. */
+  getWindowState: () => IWindowState;
+  /** The full app and the player, and the floor each keeps. */
+  windowModes: TWindowModes;
 }
 
 /**
@@ -44,6 +55,8 @@ export interface IWindowIpcDeps {
 export const registerWindowIpc = ({
   getMainWindow,
   sendWindowState,
+  getWindowState,
+  windowModes,
 }: IWindowIpcDeps) => {
   ipcMain.handle('window-minimize', () => {
     getMainWindow()?.minimize();
@@ -96,12 +109,13 @@ export const registerWindowIpc = ({
   });
 
   /**
-   * Whether the theme wants the desktop blurred behind the window. The
-   * renderer owns the theme and says so on startup and on every switch; the
-   * material is a window property only the main process can set.
+   * The colour the shell's floor is painted in, read off the running document.
+   * It is what the window shows before the page's first frame and inside the
+   * strip a resize opens, and the native window's background is a property
+   * only the main process can set. See `windowBackdrop.ts`.
    */
-  ipcMain.handle('window-set-backdrop', (_event, wanted: unknown) => {
-    setWindowBackdropWanted(wanted !== false, getMainWindow());
+  ipcMain.handle('window-set-floor', (_event, colour: unknown) => {
+    setWindowFloor(colour, getMainWindow());
   });
 
   ipcMain.handle(
@@ -109,14 +123,84 @@ export const registerWindowIpc = ({
     () => getMainWindow()?.isMaximized() ?? false,
   );
 
-  // The same two flags `sendWindowState` pushes, on request — for a page that
+  // The same state `sendWindowState` pushes, on request — for a page that
   // mounted after the push and has to ask what window it woke up in.
-  ipcMain.handle('window-get-state', () => {
+  ipcMain.handle('window-get-state', () => getWindowState());
+
+  /**
+   * The switch beside the window buttons: the full app, or the player.
+   *
+   * Answers the mode the window is in afterwards, which is the one asked for
+   * unless the window is in full screen, where there is no size to change —
+   * and answers once the window has that mode's size, so the page draws the
+   * player into a player-sized window and not into the app's.
+   */
+  ipcMain.handle('window-set-mode', (_event, next: unknown) => {
     const mainWindow = getMainWindow();
-    return {
-      isMaximized: mainWindow?.isMaximized() ?? false,
-      isFullScreen: mainWindow?.isFullScreen() ?? false,
-    };
+    if (!mainWindow || (next !== 'app' && next !== 'player')) {
+      return windowModes.mode();
+    }
+    return windowModes.setMode(mainWindow, next);
+  });
+
+  /** The player's Always on top. */
+  ipcMain.handle('window-set-pinned', (_event, next: unknown) => {
+    const mainWindow = getMainWindow();
+    if (mainWindow) {
+      windowModes.setPinned(mainWindow, next === true);
+    }
+  });
+
+  /**
+   * The player's height, in the page's CSS pixels: grown or shrunk by a deck
+   * opening or closing, and folded to one line and back.
+   */
+  ipcMain.handle('window-resize-player', (_event, height: unknown) => {
+    const mainWindow = getMainWindow();
+    if (mainWindow && typeof height === 'number') {
+      windowModes.resizePlayer(mainWindow, height);
+    }
+  });
+
+  /**
+   * The player's height ceiling, in the page's CSS pixels, or none: while
+   * nothing in the player can grow, the window is exactly as tall as its
+   * decks. Sent over the plain message channel, so the page needed no new
+   * bridge for it.
+   */
+  onWindowMessage(PLAYER_HEIGHT_LIMIT_CHANNEL, (event, arg: unknown) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      return;
+    }
+    const [height, floor] = Array.isArray(arg) ? (arg as unknown[]) : [];
+    const asHeight = (value: unknown) =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0
+        ? value
+        : undefined;
+    windowModes.limitPlayerHeight(
+      mainWindow,
+      asHeight(height),
+      asHeight(floor),
+    );
+  });
+
+  /**
+   * The width the player's equalizer needs, in the page's CSS pixels: the
+   * listener's band layout decides how narrow the window may be dragged.
+   */
+  onWindowMessage(PLAYER_WIDTH_FLOOR_CHANNEL, (event, arg: unknown) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      return;
+    }
+    const [width] = Array.isArray(arg) ? (arg as unknown[]) : [];
+    windowModes.floorPlayerWidth(
+      mainWindow,
+      typeof width === 'number' && Number.isFinite(width) && width > 0
+        ? width
+        : undefined,
+    );
   });
 
   /**
@@ -157,7 +241,10 @@ export const registerWindowIpc = ({
     // other route", so it dropped the media surface it had just been given.
     // The window went full screen and the tab laid itself out as though it
     // had not, which is a full-screen press that visibly does nothing.
-    mainWindow.setFullScreen(!!next);
-    return !!next;
+    //
+    // Through the modes rather than straight at the window: the player's
+    // window has limits of its own that have to come off before it grows and
+    // go back on — with the bounds it left from — after it shrinks.
+    return windowModes.setFullScreen(mainWindow, !!next);
   });
 };

@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * moment the registration has to be undone.
  */
 import { MutableRefObject, useCallback, useState } from 'react';
+import { FULL_LEVEL } from './usePlayerDecks';
 import { ILibraryTrack } from '../../../common/library/types';
 
 export interface IVideoElement {
@@ -73,7 +74,6 @@ export const useVideoElement = (options: {
   track: ILibraryTrack | undefined;
   videoElementRef: MutableRefObject<HTMLVideoElement | null>;
   audioElementRef: MutableRefObject<HTMLAudioElement | undefined>;
-  volumeRef: MutableRefObject<number>;
   bindMediaEvents: (element: HTMLMediaElement) => () => void;
   /** Set true to reopen a closed picture — see `reopenVideo`. */
   setIsPlaying: (playing: boolean) => void;
@@ -82,7 +82,6 @@ export const useVideoElement = (options: {
     track,
     videoElementRef,
     audioElementRef,
-    volumeRef,
     bindMediaEvents,
     setIsPlaying,
   } = options;
@@ -152,7 +151,7 @@ export const useVideoElement = (options: {
       if (!element) {
         return () => undefined;
       }
-      element.volume = volumeRef.current;
+      element.volume = FULL_LEVEL;
       const unbind = bindMediaEvents(element);
       return () => {
         unbind();
@@ -177,7 +176,7 @@ export const useVideoElement = (options: {
         }
       };
     },
-    [bindMediaEvents, videoElementRef, volumeRef],
+    [bindMediaEvents, videoElementRef],
   );
 
   return {

@@ -156,6 +156,7 @@ import useEngineTrouble from './audio/useEngineTrouble';
 import eqReachesSound from './utils/eqReachesSound';
 import { sameEndpoint } from './audio/engineTrouble';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
+import useWindowFloor from './utils/windowFloor';
 import MenuIcon from './icons/MenuIcon';
 import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
 import UpdateNotice from './components/UpdateNotice';
@@ -174,6 +175,12 @@ import HelpMenu from './help/HelpMenu';
 import { featureTourFor } from './components/featureTour/slides';
 import AboutDialog from './components/AboutDialog';
 import BrandMark from './icons/BrandMark';
+import MiniPlayer from './player/MiniPlayer';
+import type { TPlayerPage } from './player/PlayerTitleStrip';
+import WindowModeSwitch from './player/WindowModeSwitch';
+import { useIsPlayerQueueOpen, usePlayerVisFull } from './player/playerLayout';
+import { setWindowMode, useWindowMode } from './player/windowModeStore';
+import { applyThemeScope } from './utils/theme';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
   LiveAudioProvider,
@@ -587,7 +594,6 @@ const ConnectedNowPlayingBar = ({
       durationMs={player.durationMs}
       repeat={player.repeat}
       isShuffled={player.isShuffled}
-      volume={player.volume}
       isUnplayable={player.isUnplayable}
       onToggle={player.toggle}
       onSkip={player.skip}
@@ -597,8 +603,6 @@ const ConnectedNowPlayingBar = ({
       onRepeat={player.cycleRepeat}
       isFavorite={track ? isFavorite(track.id) : false}
       onFavorite={track ? () => toggleFavorite(track.id) : undefined}
-      onVolume={player.setVolume}
-      onVolumeCommit={player.commitVolume}
       onReveal={track ? () => onReveal(track) : undefined}
     />
   );
@@ -656,6 +660,50 @@ const AppContent = () => {
       setLastEqTab(activeWorkspaceTab);
     }
   }, [activeWorkspaceTab]);
+
+  // The window as the compact player (`MiniPlayer`), and the way back from
+  // it onto one of the pages: the page is chosen while the app is still put
+  // away, so it comes back already showing it.
+  const { mode: windowMode } = useWindowMode();
+  /**
+   * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
+   * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't
+   * work, the app needs to enable that feature"). The deck lists that player's
+   * queue and hands it the music dropped on it, and with the providers put
+   * away — as they are off-tab once the silent lease runs out, and as they
+   * have never been on a fresh launch — the deck had nothing to list and a
+   * drop went nowhere, silently. So while the window is the amp and its
+   * queue is open, the Library counts as opened and as active below.
+   */
+  const isPlayerQueueOpen = useIsPlayerQueueOpen();
+  const playerWantsLibrary = windowMode === 'player' && isPlayerQueueOpen;
+  /**
+   * THE AMP KEEPS ITS OWN THEME (Ivan, 2026-09-22). The full app can be Dark
+   * while the amp is Light: the two are never on screen at once, so there is
+   * one theme on the window at a time and a choice remembered for each mode.
+   *
+   * Applied from here rather than from the mode store itself, which is where
+   * it belongs by subject and cannot go by construction: that module is
+   * imported by half the player, and importing the theme from it closed a
+   * cycle that took the window down with a TDZ error on `useWindowMode`. App
+   * is the top of the tree and imports both already.
+   */
+  useEffect(() => {
+    applyThemeScope(windowMode === 'player' ? 'player' : 'app');
+  }, [windowMode]);
+  const openPageFromPlayer = useCallback(
+    (page: TPlayerPage) => {
+      if (page === 'eq') {
+        selectTopWorkspaceTab(lastEqTab);
+      } else if (page === 'plus') {
+        selectTopWorkspaceTab('community');
+      } else {
+        selectTopWorkspaceTab(page);
+      }
+      setWindowMode('app').catch(() => undefined);
+    },
+    [lastEqTab, selectTopWorkspaceTab],
+  );
 
   const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
     TWorkspaceGraphVisibility | undefined
@@ -742,8 +790,9 @@ const AppContent = () => {
   const keepLibraryMounted = useIdlePlayerMount({
     // The native DSP engine lives in this provider as well. If it has already
     // been opened, the visible DSP rack is an active consumer even though the
-    // Library shelf itself is not the selected tab.
-    isActive: isLibraryTab || isDspTab,
+    // Library shelf itself is not the selected tab. So is the amp's open
+    // queue deck (`playerWantsLibrary`).
+    isActive: isLibraryTab || isDspTab || playerWantsLibrary,
     hasLoadedSource: transportIdentities.library !== undefined,
     isPlaying:
       playingOwner === 'library' ||
@@ -1163,6 +1212,7 @@ const AppContent = () => {
    * under a stage that should have filled it.
    */
   const isAppFullScreen = isGraphAppFullScreen || isMediaFullScreen;
+  const isPlayerVisFull = usePlayerVisFull();
   /**
    * Whether anything in here is actually claiming the full-screen window.
    *
@@ -1179,7 +1229,10 @@ const AppContent = () => {
    * step — which is the "I have to do it twice" this exists to end.
    */
   const windowFullScreenClaimRef = useRef(false);
-  windowFullScreenClaimRef.current = isAppFullScreen;
+  // The player's visualizer counts as a claim too: its picture on the whole
+  // screen is the window changing, and without this the reconciliation below
+  // would take the window straight back out of the mode it was just put in.
+  windowFullScreenClaimRef.current = isAppFullScreen || isPlayerVisFull;
   const editorHeight = useEditorHeight(activeWorkspaceTab);
 
   // Watched only in full screen, and stopped on the way out — see the store for
@@ -1525,13 +1578,13 @@ const AppContent = () => {
   }, [isVideoTab]);
 
   useEffect(() => {
-    if (!isLibraryTab) {
+    if (!isLibraryTab && !playerWantsLibrary) {
       return undefined;
     }
 
     setHasOpenedLibrary(true);
     return undefined;
-  }, [isLibraryTab]);
+  }, [isLibraryTab, playerWantsLibrary]);
 
   useEffect(() => {
     if (!isKaraokeTab) {
@@ -1608,12 +1661,28 @@ const AppContent = () => {
      * disagreement.
      */
     const reconcileWindowState = (
-      state: { isMaximized?: boolean; isFullScreen?: boolean } | undefined,
+      state:
+        | { isMaximized?: boolean; isFullScreen?: boolean; zoom?: number }
+        | undefined,
     ) => {
       if (!mounted) {
         return;
       }
       setIsWindowMaximized(Boolean(state?.isMaximized));
+      // What the window's own edge is drawn from (`body::after` in App.scss):
+      // whether there is an edge to light at all, and the radius Windows
+      // clips the corner to, which is in the system's pixels while the page
+      // is in the zoom's. On the root element rather than in React state
+      // because the player draws no React tree of the app's at all.
+      const root = document.documentElement;
+      root.classList.toggle(
+        'is-window-filled',
+        state?.isMaximized === true || state?.isFullScreen === true,
+      );
+      const zoom = state?.zoom;
+      if (typeof zoom === 'number' && zoom > 0) {
+        root.style.setProperty('--window-zoom', String(zoom));
+      }
       if (state?.isFullScreen === true) {
         if (!windowFullScreenClaimRef.current) {
           window.electron.ipcRenderer
@@ -1639,7 +1708,8 @@ const AppContent = () => {
       (...args: unknown[]) => {
         reconcileWindowState(
           args[0] as
-            { isMaximized?: boolean; isFullScreen?: boolean } | undefined,
+            | { isMaximized?: boolean; isFullScreen?: boolean; zoom?: number }
+            | undefined,
         );
       },
     );
@@ -2077,6 +2147,9 @@ const AppContent = () => {
     repairEngine,
     troubledSlot,
   );
+  // What the window shows before the page has painted and inside the strip a
+  // resize opens — the app's own floor rather than a pane of bare glass.
+  useWindowFloor();
 
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
@@ -2257,37 +2330,54 @@ const AppContent = () => {
             onAbout={() => setShowAbout(true)}
             forumOpen={isForumTab}
           />
-          <ActionsMenu
-            engineState={engineState}
-            engineName={engineName}
-            engineVersion={
-              runningEngine === 'fluid'
-                ? engineStatus?.fluid.dllVersion
-                : undefined
-            }
-            onFix={() => {
-              // The pill is the only thing left on screen saying something is
-              // wrong once its card has been put away with "Not now", so it
-              // has to be the way back to the card that says why and offers
-              // the repair. It used to re-check the prerequisites only, which
-              // on the commonest trouble — part of the engine failing to
-              // start — did nothing anybody could see.
-              handleAskAboutEngine();
-              setPrereqNonce((n) => n + 1);
-            }}
-            onOpenEngine={handleOpenEngineDialog}
-            onTroubleshoot={() => setShowTroubleshooter(true)}
-            onRestartAudio={handleRestartWindowsAudio}
-            onImportEq={handleImportEq}
-            onImportImpulse={handleImportConvolution}
-            onProcesses={() => setShowProcessesDialog(true)}
-            onSupport={() => setShowSupportDialog(true)}
-            onAccount={
-              isAccountConfigured()
-                ? () => setAccountDialogPage('home')
-                : undefined
-            }
-          />
+          {/* ONE CAPSULE FOR THE TWO INSTRUMENT CONTROLS. The engine's chip
+              and the switch between the app and the player were two separate
+              boxes of two different shapes, standing beside a third (Help)
+              and a creature — four things in four shapes across the busiest
+              strip in the window (Ivan, 2026-09-22). Joined, they read as one
+              instrument: what the app is doing, and what the window is. The
+              same capsule the DSP page's Game mode and delay already share.
+
+              Outside `.window-titlebar__controls` on purpose: those three
+              buttons are Windows' own, and what they do is move the window
+              rather than change what is in it. */}
+          <div
+            className="titlebar-instrument"
+            onDoubleClick={(event) => event.stopPropagation()}
+          >
+            <ActionsMenu
+              engineState={engineState}
+              engineName={engineName}
+              engineVersion={
+                runningEngine === 'fluid'
+                  ? engineStatus?.fluid.dllVersion
+                  : undefined
+              }
+              onFix={() => {
+                // The pill is the only thing left on screen saying something
+                // is wrong once its card has been put away with "Not now", so
+                // it has to be the way back to the card that says why and
+                // offers the repair. It used to re-check the prerequisites
+                // only, which on the commonest trouble — part of the engine
+                // failing to start — did nothing anybody could see.
+                handleAskAboutEngine();
+                setPrereqNonce((n) => n + 1);
+              }}
+              onOpenEngine={handleOpenEngineDialog}
+              onTroubleshoot={() => setShowTroubleshooter(true)}
+              onRestartAudio={handleRestartWindowsAudio}
+              onImportEq={handleImportEq}
+              onImportImpulse={handleImportConvolution}
+              onProcesses={() => setShowProcessesDialog(true)}
+              onSupport={() => setShowSupportDialog(true)}
+              onAccount={
+                isAccountConfigured()
+                  ? () => setAccountDialogPage('home')
+                  : undefined
+              }
+            />
+            <WindowModeSwitch />
+          </div>
           <div
             className="window-titlebar__controls"
             onDoubleClick={(event) => event.stopPropagation()}
@@ -3036,6 +3126,10 @@ const AppContent = () => {
             notice closes on. Front-most is the only place a lock belongs. */}
         <MandatoryUpdateModal />
         <DisclaimerGate />
+        {/* Drawn at the foot of the document, over the app it puts away. */}
+        {windowMode === 'player' && (
+          <MiniPlayer onOpenPage={openPageFromPlayer} />
+        )}
       </main>
     </AudioEngineContext.Provider>
   );

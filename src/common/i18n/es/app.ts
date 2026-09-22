@@ -176,6 +176,7 @@ const app: Partial<Dictionary> = {
   'app.window.restore': 'Restaurar',
   'app.window.close': 'Cerrar',
   'app.tray.open': 'Abrir {product}',
+  'app.tray.recoverWindow': 'Recuperar la ventana',
   'app.tray.quit': 'Salir de {product}',
   'app.tray.tooltip': '{product}: sigue en ejecución',
   'app.tray.installUpdate': 'Instalar actualización y reiniciar',

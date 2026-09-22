@@ -37,7 +37,6 @@ const renderNativeLibrary = () => {
     const audioElementRef = useRef<HTMLAudioElement | undefined>(element);
     const finishCrossfadeRef = useRef<(() => void) | undefined>(undefined);
     const fadeFrameRef = useRef(0);
-    const volumeRef = useRef(1);
     const endedTrackRef = useRef<string | undefined>(undefined);
     const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
@@ -54,7 +53,6 @@ const renderNativeLibrary = () => {
       fadeFrameRef,
       seekHost: () => {},
       setPositionMs,
-      volumeRef,
       endedTrackRef,
       naturalCrossfadeTrackRef,
       setLoadRequest,

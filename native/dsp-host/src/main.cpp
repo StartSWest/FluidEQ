@@ -599,7 +599,10 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
      * track's position frozen on the bar.
      */
     if (state.player != nullptr) {
-      const uint32_t deck = feq_player_active_deck(state.player);
+      // The incoming deck from the moment a fade starts, not the one still
+      // being faded out: the app has already moved on to it, and the outgoing
+      // deck's end mid-fade is not the new track ending (`player.h`).
+      const uint32_t deck = feq_player_reported_deck(state.player);
       frame.active_deck = deck;
       frame.deck_state =
           static_cast<uint32_t>(feq_player_deck_state(state.player, deck));
@@ -1583,17 +1586,22 @@ int main(int argc, char** argv) {
         }
         const auto deck = static_cast<uint32_t>(frame.parameter_index);
         bool loaded = false;
+        bool heard = false;
         {
           const std::lock_guard<std::mutex> held(state.decoder_mutex);
           if (state.player != nullptr) {
+            heard = feq_player_deck_audible(state.player, deck) != 0;
             loaded = feq_player_load(state.player, deck, path.c_str()) != 0;
           }
         }
         if (loaded) {
           state.player_has_source.store(true, std::memory_order_release);
-          // A new source, not an A/B toggle: every delayed sample belongs to
-          // the previous track and would play on under this one's gain.
-          if (state.chain != nullptr) {
+          // A new source on the deck being heard, not an A/B toggle: every
+          // delayed sample belongs to the previous track and would play on
+          // under this one's gain. The spare deck being readied while the
+          // other plays is neither (`feq_player_deck_audible`): the song
+          // playing keeps its tail and its dynamics.
+          if (heard && state.chain != nullptr) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
         }
@@ -1624,17 +1632,19 @@ int main(int argc, char** argv) {
         break;
 
       case FEQ_CMD_SEEK_DECK: {
+        const auto deck = static_cast<uint32_t>(frame.parameter_index);
         bool sought = false;
+        bool heard = false;
         {
           const std::lock_guard<std::mutex> held(state.decoder_mutex);
           if (state.player != nullptr) {
-            sought = feq_player_seek(state.player,
-                                     static_cast<uint32_t>(
-                                         frame.parameter_index),
-                                     frame.value) != 0;
+            heard = feq_player_deck_audible(state.player, deck) != 0;
+            sought = feq_player_seek(state.player, deck, frame.value) != 0;
           }
         }
-        if (sought && state.chain != nullptr) {
+        // Cueing the spare deck to its lead-in while the other plays is not
+        // a jump in what is heard (see LOAD_DECK).
+        if (sought && heard && state.chain != nullptr) {
           feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SEEK);
         }
         send_ack(frame.request_id,
@@ -1645,8 +1655,17 @@ int main(int argc, char** argv) {
 
       case FEQ_CMD_SELECT_DECK:
         if (state.player != nullptr) {
-          feq_player_select(state.player,
-                            static_cast<uint32_t>(frame.parameter_index));
+          const auto deck = static_cast<uint32_t>(frame.parameter_index);
+          // A cut to a deck that was not being heard puts a new source on
+          // the path with no fade — the primed next track on a press of
+          // Next — and every delayed sample in the chain is the previous
+          // one's. Selecting the deck already heard changes nothing.
+          const bool cut = deck < FEQ_PLAYER_DECKS &&
+                           feq_player_deck_audible(state.player, deck) == 0;
+          feq_player_select(state.player, deck);
+          if (cut && state.chain != nullptr) {
+            feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+          }
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
@@ -1654,11 +1673,20 @@ int main(int argc, char** argv) {
 
       case FEQ_CMD_CROSSFADE:
         if (state.player != nullptr) {
+          const auto to_deck = static_cast<uint32_t>(frame.parameter_index);
+          // A fade of no length is a cut (`feq_player_start_crossfade`), and
+          // a cut to a deck not yet heard is a new source: as SELECT_DECK. A
+          // fade of any length is not — the outgoing deck stays on the path
+          // and the chain carries the two of them mixed, which is the fade.
+          const bool cut = frame.value <= 0.0 && to_deck < FEQ_PLAYER_DECKS &&
+                           feq_player_deck_audible(state.player, to_deck) == 0;
           feq_player_start_crossfade(
-              state.player, static_cast<uint32_t>(frame.parameter_index),
-              frame.value,
+              state.player, to_deck, frame.value,
               static_cast<FeqCrossfadeCurve>(
                   static_cast<int>(frame.parameter_id)));
+          if (cut && state.chain != nullptr) {
+            feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+          }
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  frame.value);

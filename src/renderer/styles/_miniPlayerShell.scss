@@ -1,0 +1,500 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The player as a window: its theme, the app put away behind it, the shell,
+// the picture alone on the whole screen, and the frame every deck wears.
+
+// ============================================================ the theme ====
+//
+// THE PLAYER'S THEME. Every colour the player paints is one of these, and
+// each one starts from the app's own theme, so the player follows the look
+// the window is in today. A Plus theme restyles the player by setting these
+// and nothing else: no rule below names a colour of its own.
+//
+// Surfaces, from the floor up: --player-floor behind the decks, --player-deck
+// each deck's face, --player-well the display glass, --player-key the raised
+// keys. Ink: --player-ink for what the display lights, --player-lamp for a lit
+// lamp, --player-lamp-warm for a lamp that means a mode (Game). The canvases
+// read five more when they are sized — --player-lcd-ghost (an unlit segment
+// or LED cell), --player-lcd-grid, --player-lcd-zero, --player-scope and
+// --player-curve-bands — which are registered below so a canvas is handed a
+// colour and not the text of a `color-mix()`. Three more are declared only
+// outside Rainbow mode: --player-spectrum-tint, --player-curve-tint and
+// --player-band-tint draw the analyser, the curve and the faders in one
+// colour, and where they are absent each of those falls back to the band
+// spectrum — which is the rainbow, and belongs to the mode (Ivan,
+// 2026-09-21). A theme may name them too, and then it owns the colour in
+// both modes.
+@property --player-lcd-ghost {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-lcd-grid {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-lcd-zero {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-scope {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-curve-bands {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-curve-smart {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+// On the root and not on the player, because the player's menus are drawn
+// at the foot of the document, outside it, and wear the same colours.
+:root {
+  --player-floor: var(--surface-base);
+  --player-chrome: var(--surface-panel);
+  --player-deck: var(--surface-panel);
+  --player-deck-edge: var(--border-panel);
+  --player-well: var(--surface-well);
+  --player-well-edge: color-mix(in srgb, var(--accent) 14%, rgb(0 0 0 / 60%));
+  --player-key: var(--surface-field);
+  --player-key-end: var(--surface-field-end);
+  --player-key-edge: var(--border-menu);
+  --player-text: #{$text-primary};
+  --player-text-soft: #{$text-faint};
+  --player-text-dim: #{$text-dim};
+  --player-ink: var(--accent);
+  --player-ink-bright: var(--accent-light);
+  --player-ink-dim: color-mix(in srgb, var(--accent) 45%, transparent);
+  --player-lamp: var(--accent);
+  --player-lamp-warm: var(--active);
+  --player-glow: color-mix(in srgb, var(--accent) 55%, transparent);
+  --player-lcd-ghost: color-mix(in srgb, var(--accent) 9%, transparent);
+  --player-lcd-grid: color-mix(in srgb, var(--accent) 10%, transparent);
+  --player-lcd-zero: color-mix(in srgb, var(--accent) 30%, transparent);
+  --player-scope: var(--accent);
+  --player-curve-bands: color-mix(in srgb, #{$text-faint} 42%, transparent);
+  // The Smart EQ correction, in the colour its chip and its lamp wear
+  // (`ColorEnum.SMART`), in every theme and both modes: the line's one job
+  // is to say which layer it is.
+  --player-curve-smart: #3d9bff;
+  --player-radius: 11px;
+  // The shortest the equalizer's faders get: a graphic EQ's travel, at the
+  // size the player's default window gives it. A taller window lengthens
+  // them (`_miniPlayerEq.scss`).
+  --player-band-min: 104px;
+}
+
+// THE SPECTRUM BELONGS TO RAINBOW MODE. With the mode off, the analyser, the
+// curve and the faders are drawn in the accent like everything else the
+// player lights; with it on, these three are absent and each of them falls
+// back to the band spectrum, which is where the rainbow lives (Ivan,
+// 2026-09-21). `is-euphoric` on the root is the mode, and the one answer the
+// rest of the app draws from too.
+:root:not(.is-euphoric) {
+  --player-spectrum-tint: var(--accent);
+  --player-curve-tint: var(--accent);
+  --player-band-tint: var(--accent);
+}
+
+// ===================================================== the app, put away ====
+//
+// While the window is the player the app stays mounted — the Library's deck
+// and the Media page's player keep playing — and none of it is drawn. Its
+// own root goes, and so does everything it draws at the foot of the document:
+// the transport bar, the engine's notices, the Library's backdrop, the
+// scene's pulse and its drifting ambient (which float above every layer, and
+// over the player's keys drifted across the controls). `!important` because
+// the player owns the window in this mode and each of those decides its own
+// display under rules of every weight.
+//
+// Only while the player is actually there. If the app's tree fails, the
+// player goes with it and the recovery screen the root draws in its place has
+// to be seen — put away behind a player that no longer exists, it was a blank
+// window.
+:root[data-window-mode='player']:has(> body > .mini-player-host) {
+  // Nothing scrolls in the player: the window is its layout. The app behind
+  // it is laid out for a window this one is nowhere near, and every deck
+  // opening resized the window under it — so its scrollbar appeared for a
+  // frame and went again, over the player (Ivan, 2026-09-21).
+  overflow: hidden;
+
+  body {
+    overflow: hidden;
+  }
+
+  // The scene's drifting ambient stays: the player wears the scene's colour
+  // and its flying things drift over the decks with it (Ivan, 2026-09-21).
+  #root,
+  .now-playing-bar,
+  .device-apo-notice,
+  .library-stage-art,
+  .scene-pulse {
+    display: none !important;
+  }
+}
+
+// ============================================================ the shell ====
+.mini-player {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  inset: 0;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--player-text);
+  background:
+    radial-gradient(
+      120% 70% at 80% 0%,
+      color-mix(in srgb, var(--accent) 6%, transparent),
+      transparent 70%
+    ),
+    var(--player-floor);
+  font-variant-numeric: tabular-nums;
+  container: player / inline-size;
+
+  &:focus {
+    outline: none;
+  }
+
+  // The layout at its natural height, for the one measurement a deck
+  // opening or closing takes (`MiniPlayer.tsx`); never painted. The
+  // visualizer and the queue stand at the heights they were measured at,
+  // and one that has just opened at the height it opens at.
+  &.is-measuring {
+    bottom: auto;
+
+    .player-body {
+      flex: none;
+      overflow: visible;
+    }
+
+    .player-body > .player-vis {
+      flex: none;
+      height: var(--player-held-vis, var(--player-vis-height));
+    }
+
+    .player-body > .player-queue {
+      flex: none;
+      height: var(--player-held-queue, var(--player-queue-open));
+    }
+  }
+}
+
+// ================================================== the picture, alone ====
+//
+// A double-press on the visualizer takes the screen (Ivan, 2026-09-22). The
+// player keeps every deck mounted — the equalizer is still applying, the
+// queue is still the queue — and puts them out of the way for the duration,
+// so coming back is the picture shrinking rather than the player being built
+// again. Escape and a second double-press give the window back (`VisDeck`).
+.mini-player.is-vis-full {
+  // BLACK, AND NOT THE THEME'S FLOOR (Ivan, 2026-09-22: "FULL SCREEN need to
+  // be black BG"). The amp carries its own dark/light switch, so on a light
+  // amp the picture sat in a near-white surround — and a scene that does not
+  // reach every pixel (one still loading, one letterboxed by its own aspect,
+  // the moment between two looks) showed it. The native window is filled with
+  // the same black for the transition itself (`windowBackdrop.ts`).
+  background: $black;
+
+  .player-title,
+  .player-deck,
+  .player-eq,
+  .player-queue,
+  .player-body > .pane-resizer {
+    display: none;
+  }
+
+  .player-body {
+    padding: 0;
+    gap: 0;
+  }
+
+  // NOTHING AROUND THE PICTURE. The deck's frame — its edge, its corners, the
+  // two rims it lights its own top and bottom with — is what tells a deck
+  // from the floor it stands on, and on a screen where the picture IS the
+  // window there is no floor and nothing to tell it from (Ivan, 2026-09-22).
+  // The stage is clipped by this box, so its corners go with them.
+  .player-vis,
+  .player-vis__stage {
+    flex: 1 1 auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background: $black;
+    box-shadow: none;
+  }
+}
+
+// The one strip of chrome, and the handle the window is dragged by.
+.player-title {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba($black, 0.55);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--player-chrome), $white 5%),
+    var(--player-chrome)
+  );
+  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  -webkit-app-region: drag;
+
+  button {
+    -webkit-app-region: no-drag;
+  }
+}
+
+.player-title__menu {
+  display: flex;
+  flex: none;
+}
+
+// The menu's key: one box around the mark AND its caret (Ivan,
+// 2026-09-21), the shape the window's own switch wears at the other end of
+// the strip — the two ends of the chrome then read as the same kind of
+// control.
+.player-title__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 26px;
+  padding: 0 4px 0 6px;
+  border: 1px solid var(--player-key-edge);
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    180deg,
+    var(--player-well),
+    color-mix(in srgb, var(--player-well), var(--player-key) 40%)
+  );
+  box-shadow:
+    inset 0 1px 3px rgba($black, 0.8),
+    0 1px 0 rgba($white, 0.05);
+  color: var(--player-ink);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+
+  // The mark alone, lit and small (Ivan, 2026-09-21), the way the one at
+  // the end of the transport is drawn: no tile behind it, and nothing
+  // behind it on hover either — it brightens instead, because a rounded
+  // patch of accent under the glyph reads as the tile coming back.
+  //
+  // THE TILE IS THE MARK COMPONENT'S OWN (`.brand-mark` in `App.scss`: a
+  // 44px box with a border and a lit background), not this button's, so it
+  // is undone here. Sizing the glyph alone left the box around it.
+  .brand-mark {
+    display: flex;
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .brand-mark svg {
+    width: 16px;
+    height: 16px;
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, var(--accent) 45%, transparent)
+    );
+    transition: $transition-control;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--player-ink-bright);
+
+    .brand-mark svg {
+      filter: drop-shadow(
+        0 0 8px color-mix(in srgb, var(--accent) 70%, transparent)
+      );
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-icon--caret {
+  width: 10px;
+  height: 10px;
+  opacity: 0.85;
+}
+
+// The name, between two grilles that are the handle's texture.
+.player-title__name {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--player-text-soft);
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.34em);
+
+  &::before,
+  &::after {
+    flex: 1 1 0;
+    min-width: 6px;
+    height: 9px;
+    border-radius: 1px;
+    background: repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 30%, transparent) 0 1px,
+      rgba($black, 0.7) 1px 2px,
+      transparent 2px 4px
+    );
+    content: '';
+    opacity: 0.55;
+  }
+}
+
+.player-title__controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+}
+
+.player-title__button {
+  display: grid;
+  width: 28px;
+  height: 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--player-text-soft);
+  cursor: pointer;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: rgba($edge-tint, 0.08);
+    color: var(--player-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--player-ink);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-title__button--close:hover {
+  background: color-mix(in srgb, $red 72%, $black);
+  color: $white;
+}
+
+// ============================================================ the decks ====
+.player-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 6px;
+  overflow: hidden;
+}
+
+// The deck and the equalizer side by side when there is room for both,
+// one over the other when there is not, each at its own height: the
+// window's height is the visualizer's and the queue's, never theirs (Ivan,
+// 2026-09-21). With neither of those open the window is held to the decks'
+// height (`usePlayerCeiling`).
+// Side by side only where both decks get the width the listener's own band
+// layout needs (`--player-eq-min`, `PlayerBandFloor`): at the flat 340 this
+// was, a player dragged just past twice that put thirty-one bands in half
+// the window with their caps overlapping.
+.player-body__row {
+  display: grid;
+  flex: none;
+  // Never two columns before the window is genuinely wide — 480px a side,
+  // whatever the band layout asks for (Ivan, 2026-09-21): a six-band
+  // equalizer needs little, and splitting the deck the moment twice that
+  // fits gave two cramped halves in a window nobody would call wide.
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(480px, var(--player-eq-min, 480px))), 1fr)
+  );
+  gap: 6px;
+}
+
+// The divider between the visualizer and the queue, closer to both than the
+// body's gap alone would put it.
+.player-body > .pane-resizer {
+  margin-block: -3px;
+}
+
+.player-deck,
+.player-eq,
+.player-vis,
+.player-queue {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--player-deck-edge);
+  border-radius: var(--player-radius);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba($white, 0.012) 0 1px,
+      transparent 1px 3px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--player-deck), $white 3.5%) 0%,
+      var(--player-deck) 38%,
+      color-mix(in srgb, var(--player-deck), $black 22%) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.05),
+    inset 0 -1px 0 rgba($black, 0.45);
+}
+
+.player-eyebrow {
+  flex: none;
+  color: var(--player-text-dim);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.14em);
+}

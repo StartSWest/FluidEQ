@@ -211,3 +211,65 @@
   font-weight: $weight-regular;
   font-variant-numeric: tabular-nums;
 }
+
+// ====================================================== the amp's scale ====
+//
+// This panel is built for a page 1024px wide: three 54px tiles to a row,
+// inside a group padded by 16px, inside a panel padded by 16px, 420px across.
+// The player's window is about 430px, and dropped into it the panel was the
+// window — three groups deep, running off the bottom, with the controls
+// underneath it unreachable (Ivan, 2026-09-22: "we need smaller ui elements
+// ... for amp ui", "the compact eq mode ui").
+//
+// The same controls in the same order at the size the rest of the amp is
+// drawn at: its keys are 26 to 30px tall and its words are 9 to 11px, and a
+// 54px tile with body text in it belongs to a different instrument.
+//
+// Keyed off the ROOT, not off the player: every menu in this app is portalled
+// to the document, so nothing of the player is an ancestor of one. The
+// window's mode is on the root exactly so a portalled surface can read it.
+:root[data-window-mode='player'] {
+  .eq-mode-menu {
+    width: 312px;
+  }
+
+  .eq-mode-menu__content,
+  .eq-mode-menu__group {
+    gap: $spacing-s;
+    padding: $spacing-s;
+  }
+
+  .eq-mode-menu__choices {
+    gap: 3px;
+  }
+
+  .eq-mode-menu__group-title svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .eq-mode-menu__note,
+  .eq-mode-choice__delay {
+    font-size: $text-micro;
+    line-height: 1.4;
+  }
+
+  .eq-mode-menu .button.subtle.eq-mode-choice {
+    gap: 2px;
+    min-height: 38px;
+    padding: 5px 4px;
+    font-size: $text-small;
+
+    > svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .eq-mode-choice__mark {
+    top: 2px;
+    right: 2px;
+    width: 11px;
+    height: 11px;
+  }
+}

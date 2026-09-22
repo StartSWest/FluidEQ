@@ -21,7 +21,6 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import { useFluidEqContext } from '../utils/FluidEqContext';
-import { useAppVolume } from '../audio/appVolume';
 import type { IPcmMixer } from './pcmMixer';
 import { createPcmSender, IPcmSender } from './pcmSender';
 import { measureRemoteAudioChunk } from './meter';
@@ -115,10 +114,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   // A sender's audio follows the app's fader like every other sound this app
   // makes. A mixer built after this ran opens at the same level itself — see
   // `createPcmMixer`'s `initialVolume` — so there is no gap to cover here.
-  const appVolume = useAppVolume();
+  // Full level: the fader beside this player is the computer's own
+  // (`useSystemFader`), and the mixer's gain stage stays at unity.
   useEffect(() => {
-    mixerRef.current?.setVolume(appVolume);
-  }, [appVolume]);
+    mixerRef.current?.setVolume(1);
+  }, []);
   useLiveAudioCapture(
     window.electron.platform !== 'win32' &&
       role === 'sender' &&

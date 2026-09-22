@@ -126,14 +126,24 @@ describe('the knob', () => {
       )
       ?.declarations.get('stop-color');
 
-  it('keeps its slate at rest and is built from the scene’s field under its tint', () => {
-    expect(stopColour('.knob__stop--body-top', false)).toBe('#33637e');
-    expect(stopColour('.knob__stop--body-top', true)).toMatch(
-      /^color-mix\(in oklab, var\(--surface-field\), var\(--accent-light\) \d+%\)$/,
+  // The body and the face are the field rung and the well rung of the
+  // ladder every control uses, and a scene's tint redefines those two
+  // surfaces on the root — so the knob follows a recoloured window through
+  // the variables alone, with no tinted copy of its own. It used to be three
+  // fixed navy blues with a tinted copy beside them, which is what made it
+  // the one blue disc in a green window.
+  it('is built from the theme’s field, so a scene’s tint reaches it by itself', () => {
+    expect(stopColour('.knob__stop--body-top', false)).toBe(
+      'color-mix(in oklab, var(--surface-field), #ffffff 11%)',
     );
-    expect(stopColour('.knob__stop--face-edge', true)).toContain(
+    expect(stopColour('.knob__stop--body-mid', false)).toBe(
       'var(--surface-field)',
     );
+    expect(stopColour('.knob__stop--face-edge', false)).toContain(
+      'var(--surface-field-end)',
+    );
+    // No rule of its own under the tint: the one above is the one that runs.
+    expect(stopColour('.knob__stop--body-top', true)).toBeUndefined();
   });
 });
 

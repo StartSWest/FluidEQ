@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and hands back the operations.
  */
 import { MutableRefObject, useCallback, useEffect, useRef } from 'react';
+import { FULL_LEVEL } from './usePlayerDecks';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import { ICrossfadeShape } from '../../../common/dsp/crossfadeShape';
 import {
@@ -70,14 +71,13 @@ export interface IDeckAudio {
 }
 
 export const useDeckAudio = (options: {
-  volumeRef: MutableRefObject<number>;
   /**
    * Read inside `swapBufferToBlob`'s continuation, where a captured value
    * would be the one from the render that started the read.
    */
   trackIdRef: MutableRefObject<string | undefined>;
 }): IDeckAudio => {
-  const { volumeRef, trackIdRef } = options;
+  const { trackIdRef } = options;
   const fadeInRef = useRef<((element: HTMLMediaElement) => void) | undefined>(
     undefined,
   );
@@ -114,7 +114,7 @@ export const useDeckAudio = (options: {
        * order one quantum can be heard at full level ahead of the ramp.
        */
       if (fadeInDspDeck(element, durationMs)) {
-        element.volume = volumeRef.current;
+        element.volume = FULL_LEVEL;
         return;
       }
       /**
@@ -125,10 +125,10 @@ export const useDeckAudio = (options: {
        * hold the element at zero until the window came back.
        */
       if (document.visibilityState === 'hidden') {
-        element.volume = volumeRef.current;
+        element.volume = FULL_LEVEL;
         return;
       }
-      const target = volumeRef.current;
+      const target = FULL_LEVEL;
       const started = performance.now();
       const step = () => {
         const progress = Math.min(
@@ -149,7 +149,7 @@ export const useDeckAudio = (options: {
       rampingElementRef.current = element;
       fadeFrameRef.current = requestAnimationFrame(step);
     },
-    [volumeRef],
+    [],
   );
   fadeInRef.current = fadeIn;
 
@@ -173,11 +173,11 @@ export const useDeckAudio = (options: {
       cancelAnimationFrame(fadeFrameRef.current);
       fadeFrameRef.current = 0;
       rampingElementRef.current = undefined;
-      element.volume = volumeRef.current;
+      element.volume = FULL_LEVEL;
     };
     document.addEventListener('visibilitychange', land);
     return () => document.removeEventListener('visibilitychange', land);
-  }, [volumeRef]);
+  }, []);
 
   /**
    * Moves the playhead with the level dropped for the jump, and always brings
@@ -202,10 +202,10 @@ export const useDeckAudio = (options: {
       element.volume = 0;
       element.currentTime = seconds;
       if (!element.seeking) {
-        element.volume = volumeRef.current;
+        element.volume = FULL_LEVEL;
       }
     },
-    [volumeRef],
+    [],
   );
 
   /**
@@ -240,7 +240,7 @@ export const useDeckAudio = (options: {
       onFinished?: () => void,
     ) => {
       finishCrossfadeRef.current?.();
-      const target = volumeRef.current;
+      const target = FULL_LEVEL;
       outgoing.volume = target;
       incoming.volume = target;
       const scheduled = scheduleDspDeckCrossfade(
@@ -287,7 +287,7 @@ export const useDeckAudio = (options: {
         Math.max(1, durationMs) + 50,
       );
     },
-    [releaseBlob, volumeRef],
+    [releaseBlob],
   );
 
   /**

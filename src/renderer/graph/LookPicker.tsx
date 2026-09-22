@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import Chevron from '../icons/Chevron';
 import LookIcon from '../icons/LookIcon';
@@ -72,9 +73,37 @@ interface ILookPickerProps {
   value: string;
   disabled: boolean;
   onChoose: (lookId: string) => void;
+  /**
+   * Something else to press, in place of the pill that names the look.
+   *
+   * A slot rather than a mode: the list it opens, how it searches and what
+   * choosing does are the same either way — only what is pressed differs.
+   * The player's narrow layout has no room for a named pill and opens the
+   * same explorer from the mark at the end of its transport (Ivan,
+   * 2026-09-22).
+   */
+  trigger?: ReactNode;
+  triggerClassName?: string;
+  triggerTitle?: string;
+  /**
+   * What a plain press on that trigger does instead of opening the list.
+   *
+   * Given one, the explorer moves to the right-press: stepping through the
+   * looks is what somebody does over and over, and browsing all of them is
+   * the deliberate act (Ivan, 2026-09-22).
+   */
+  onTriggerPress?: (event: ReactMouseEvent) => void;
 }
 
-const LookPicker = ({ value, disabled, onChoose }: ILookPickerProps) => {
+const LookPicker = ({
+  value,
+  disabled,
+  onChoose,
+  trigger,
+  triggerClassName,
+  triggerTitle,
+  onTriggerPress,
+}: ILookPickerProps) => {
   const { t, locale } = useTranslation();
   const customLooks = useCustomLooks();
   const palette = useGraphPalette();
@@ -325,14 +354,24 @@ const LookPicker = ({ value, disabled, onChoose }: ILookPickerProps) => {
       <button
         ref={triggerRef}
         type="button"
-        className="look-picker__trigger"
+        className={triggerClassName ?? 'look-picker__trigger'}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label={t('graph.picker.label')}
+        aria-label={triggerTitle ?? t('graph.picker.label')}
+        title={triggerTitle}
         disabled={disabled}
-        onClick={toggle}
+        onClick={onTriggerPress ?? toggle}
+        onContextMenu={
+          onTriggerPress
+            ? (event) => {
+                event.preventDefault();
+                toggle();
+              }
+            : undefined
+        }
       >
-        {current && (
+        {trigger}
+        {!trigger && current && (
           <span className="graph-look-option">
             {'look' in current ? (
               <LookIcon
@@ -371,7 +410,7 @@ const LookPicker = ({ value, disabled, onChoose }: ILookPickerProps) => {
               )}
           </span>
         )}
-        <Chevron className="arrow" />
+        {!trigger && <Chevron className="arrow" />}
       </button>
       <AnchoredMenu
         anchor={rootRef.current}

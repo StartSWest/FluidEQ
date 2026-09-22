@@ -19,6 +19,7 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { resetEqMode, setEqMode, setEqShape } from '../utils/equalizerApi';
 import AnchoredMenu from '../widgets/AnchoredMenu';
+import MenuIcon from '../icons/MenuIcon';
 import Chevron from '../icons/Chevron';
 import '../styles/EqModeSelect.scss';
 import useCurvePhase from '../utils/useCurvePhase';
@@ -290,6 +291,10 @@ export default function EqModeSelect() {
         disabled={state.isBlockingError}
         onClick={() => setIsOpen((open) => !open)}
       >
+        {/* Named by a glyph as well as by a word, like every other control
+            in these toolbars — and it is the glyph that is left once the row
+            runs out of room for words (Ivan, 2026-09-22). */}
+        <MenuIcon name="settings" className="eq-toolbar__icon" />
         <span>{t('eq.mode')}</span>
         <span className="eq-mode-trigger__summary">{summary}</span>
         <Chevron />

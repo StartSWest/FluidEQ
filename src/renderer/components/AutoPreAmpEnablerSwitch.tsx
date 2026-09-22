@@ -16,12 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ErrorDescription } from 'common/errors';
-import { useCallback, useRef, useState } from 'react';
-import { useCurrentEngine } from '../utils/audioEngineContext';
-import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
+import useAutoPreAmp from './useAutoPreAmp';
 
 // The public UI calls this Auto normalize. The existing component and API
 // names remain for compatibility with saved state and automation selectors.
@@ -33,47 +29,11 @@ interface IAutoPreAmpEnablerSwitchProps {
 export default function AutoPreAmpEnablerSwitch({
   id,
 }: IAutoPreAmpEnablerSwitchProps) {
-  const {
-    isBlockingError,
-    isAutoPreAmpOn,
-    setGlobalError,
-    setAutoPreAmpOn,
-    setPreAmp,
-  } = useFluidEqContext();
-  const engine = useCurrentEngine();
-  const pending = useRef(false);
-  const [busy, setBusy] = useState(false);
-
-  const handleToggle = useCallback(async () => {
-    if (pending.current) {
-      return;
-    }
-    pending.current = true;
-    setBusy(true);
-    const enabled = !isAutoPreAmpOn;
-    setAutoPreAmpOn(enabled);
-    try {
-      const applied = isAutoPreAmpOn
-        ? await disableAutoPreAmp()
-        : await enableAutoPreAmp();
-      if (enabled && engine === 'apo') {
-        setPreAmp(applied);
-      }
-    } catch (e) {
-      setAutoPreAmpOn(isAutoPreAmpOn);
-      setGlobalError(e as ErrorDescription);
-    } finally {
-      pending.current = false;
-      setBusy(false);
-    }
-  }, [engine, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn, setPreAmp]);
+  // The switching itself is shared with the player's own preamp key
+  // (`useAutoPreAmp`): one setting, one order of operations.
+  const { isOn, isDisabled, toggle } = useAutoPreAmp();
 
   return (
-    <Switch
-      id={id}
-      isOn={isAutoPreAmpOn}
-      handleToggle={handleToggle}
-      isDisabled={isBlockingError || busy}
-    />
+    <Switch id={id} isOn={isOn} handleToggle={toggle} isDisabled={isDisabled} />
   );
 }

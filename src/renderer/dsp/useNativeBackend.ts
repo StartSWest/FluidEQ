@@ -375,7 +375,7 @@ export const useNativeMirror = (
   controller: INativeBackendController | undefined,
   elements: readonly HTMLMediaElement[],
   state: INativeMirrorState,
-): ((positionMs: number) => void) => {
+): ((positionMs: number) => Promise<boolean>) => {
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -454,11 +454,14 @@ export const useNativeMirror = (
    * endpoint — every callback that takes it downstream would otherwise be
    * rebuilt with it, on a path where the seek and the rebuild race.
    *
-   * A no-op while there is no mirror rather than an optional: the caller
-   * already knows whether the host owns the transport, from telemetry, and
-   * that is a different question from whether the mirror exists.
+   * Answered "not taken" while there is no mirror rather than an optional:
+   * the caller already knows whether the host owns the transport, from
+   * telemetry, and that is a different question from whether the mirror
+   * exists.
    */
-  return useCallback((positionMs: number) => {
-    mirrorRef.current?.seek(positionMs);
-  }, []);
+  return useCallback(
+    (positionMs: number) =>
+      mirrorRef.current?.seek(positionMs) ?? Promise.resolve(false),
+    [],
+  );
 };

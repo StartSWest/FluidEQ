@@ -305,8 +305,44 @@ export const NO_GAIN_FILTER_TYPES = [
 
 export const WINDOW_HEIGHT = 625;
 export const WINDOW_HEIGHT_EXPANDED = 1036;
-export const WINDOW_MIN_WIDTH = 720;
-export const WINDOW_MIN_HEIGHT = 620;
+/**
+ * The full app's smallest window, in window units.
+ *
+ * It went down to 720×620, and the narrow end of that was the whole app
+ * squeezed into one column with its panels folded behind edge tabs. The small
+ * FluidEQ is the player now, reached by the switch beside the window buttons,
+ * so the app stops short of that squeeze. Ivan tried Full HD, then 800 ("too
+ * small"), and set 1024×800 on 2026-09-21. A screen smaller than this gets
+ * its whole work area instead — see `appMinimumSize`.
+ */
+export const WINDOW_MIN_WIDTH = 1024;
+export const WINDOW_MIN_HEIGHT = 800;
+
+/**
+ * The player's own floor, in CSS pixels: fifteen bands still a finger wide
+ * each, and the transport on one row.
+ *
+ * The equalizer raises it from the page when the listener's band layout
+ * needs more — thirty-one bands ask for about 480 (`playerWidthForBands`,
+ * `PLAYER_WIDTH_FLOOR_CHANNEL`) — so this is the floor of the floor.
+ */
+export const PLAYER_MIN_WIDTH = 360;
+/** One line: the player folded to its strip, in CSS pixels. */
+export const PLAYER_FOLD_HEIGHT = 40;
+/**
+ * Where the player opens the first time, in CSS pixels (Ivan, 2026-09-21).
+ *
+ * The width is the narrowest that reads well, and the listener's own band
+ * layout raises it from the page where it needs more
+ * (`playerWidthForBands`). The height is a tall column that suits a
+ * 1080-pixel screen, which the deck, the equalizer, the visualizer and the
+ * queue fill between them — everything the player opens with
+ * (`DEFAULT_DECKS`), in the middle of the screen (`centreIn`). After that
+ * the window is the listener's, and grows and shrinks with the decks they
+ * open.
+ */
+export const PLAYER_DEFAULT_WIDTH = 480;
+export const PLAYER_DEFAULT_HEIGHT = 1080;
 
 // The index is optional: APO ignores whatever sits between `Filter` and the
 // colon, and exporters differ — AutoEq numbers its lines, OPRA does not.

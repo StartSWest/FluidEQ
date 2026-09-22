@@ -1,0 +1,78 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// ============================================ the rows, as room runs out ===
+//
+// The two rows of the equalizer deck never break in two (Ivan, 2026-09-22);
+// they give up their WORDS instead, in the order a reader can afford to lose
+// them. FIRST the words that NAME a control — "EQ mode", "Clear EQ" — because
+// the glyph beside them already says which control it is. THEN the values,
+// which is the last thing to go and only when there is genuinely nowhere
+// left to put them.
+//
+// WHEN is measured, not guessed: each row carries `data-fit` — 0, 1 or 2 —
+// set by `useRowFit` from whether the row actually overflows, tried in that
+// order. Two container-query breakpoints did this before, and a breakpoint
+// cannot know what the row holds: the preset key carries the preset's name,
+// so the widths chosen for a long one turned every short one into glyphs
+// long before it had to be (Ivan, 2026-09-22: "the breakpoint is making it
+// an icon too soon").
+//
+// EXEMPT AT EVERY STEP: the two faces, Bands and Tone, which are the choice
+// of what the deck IS — a pair of glyphs with no names is a riddle; ON and
+// SMART, the two switches that say whether this app is doing anything at
+// all, whose lamp names nothing on its own; and THE PRESET'S FULL NAME
+// (Ivan, 2026-09-22: "always show the full label on preset") — a preset is
+// the one thing on these rows a listener chose by name.
+
+// Every rule below is qualified by the shell, so it outranks the key face
+// the same controls take in `_miniPlayerEqKeys.scss` (`.mini-player
+// .button.small.subtle` sets a font size, and a lighter rule setting it to
+// zero lost — Clear EQ kept its word through every step, measured 2026-09-22).
+
+// The keys row has one thing to give: the name of Smart EQ's mode, beside
+// the word SMART that stays.
+.mini-player
+  .player-eq__keys[data-fit='1']
+  .player-split__main
+  .player-led__value {
+  display: none;
+}
+
+// The foot: the names first…
+.mini-player .player-eq__foot[data-fit='1'],
+.mini-player .player-eq__foot[data-fit='2'] {
+  // The name of the thing, gone; the figure beside it stays. First OF TYPE,
+  // not first child: the key's first child is its glyph.
+  .eq-mode-trigger > span:first-of-type {
+    display: none;
+  }
+
+  // `font-size: 0` rather than a rule per text node: the key carries a bare
+  // text node beside its glyph, which no selector can reach.
+  .clear-eq-trigger {
+    gap: 0;
+    padding-inline: 7px;
+    font-size: 0;
+    letter-spacing: 0;
+  }
+
+  .clear-eq-trigger .eq-toolbar__icon {
+    font-size: $text-body;
+  }
+}
+
+// …then the values.
+.mini-player .player-eq__foot[data-fit='2'] {
+  .band-designs__current,
+  .eq-mode-trigger__summary {
+    display: none;
+  }
+}

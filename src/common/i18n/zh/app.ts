@@ -168,6 +168,7 @@ const app: Partial<Dictionary> = {
   'app.window.restore': '还原',
   'app.window.close': '关闭',
   'app.tray.open': '打开 {product}',
+  'app.tray.recoverWindow': '恢复窗口',
   'app.tray.quit': '退出 {product}',
   'app.tray.tooltip': '{product} — 仍在运行',
   'app.tray.installUpdate': '安装更新并重启',

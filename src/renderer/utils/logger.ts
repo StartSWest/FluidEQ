@@ -90,6 +90,15 @@ export const installGlobalErrorHandlers = () => {
     if (!event.error && !event.message) {
       return;
     }
+    // Chromium's word that a ResizeObserver resized something it watches and
+    // gets the rest of that frame's sizes on the next one. It arrives here as
+    // an error with no error in it, and nothing has failed: every notification
+    // is still delivered. Counted as a failure, it took a window that was only
+    // being resized into the recovery screen (the compact player, dragged to a
+    // new height, 2026-09-21).
+    if (!event.error && event.message.startsWith('ResizeObserver loop')) {
+      return;
+    }
     reportError(
       `Uncaught error at ${event.filename ?? 'unknown'}:${event.lineno ?? 0}`,
       event.error ?? event.message,

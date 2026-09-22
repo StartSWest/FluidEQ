@@ -80,7 +80,6 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/saturate.cpp
   dsp-core/src/limiter.cpp
   dsp-core/src/compressor.cpp
-  dsp-core/src/output_safety.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
   dsp-core/src/leveling_memory.cpp
@@ -448,6 +447,25 @@ if(WIN32)
       "FEQ_WATCH_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
   set_target_properties(fluideq-foreground-watch PROPERTIES
     OUTPUT_NAME "FluidEQ-Games"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
+# The compact player's system volume: the level and mute of the output Windows
+# plays through, told by Windows itself (volume-watch/src/main.cpp). Runs only
+# while the player shows its slider, and exits when its input closes.
+if(WIN32)
+  add_executable(fluideq-volume-watch
+    volume-watch/src/main.cpp
+    volume-watch/src/volume-watch.rc)
+  target_link_libraries(fluideq-volume-watch PRIVATE feq_strict ole32)
+  set_source_files_properties(volume-watch/src/volume-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_VOLUME_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-volume-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Volume"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"

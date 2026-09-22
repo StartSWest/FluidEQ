@@ -1,0 +1,371 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The equalizer's two faces: the preamp and the bands, or the tone knobs.
+
+// ============================================================ the faders ===
+//
+// A size container, so each fader can be as long as the space the deck
+// gives it (`100cqh`) — at least --player-band-min, longer in a tall window.
+// Its own height comes from the deck, never from the faders inside it.
+.player-bands {
+  // A band is its cap and the gap that keeps it off the next one. Both are
+  // whole pixels and so is every band's width (`.player-band` below), so
+  // the row cannot end up with two pixels of gap beside three — which is
+  // what a fader row split into fractions looked like (Ivan, 2026-09-21).
+  --player-fader-cap: 13px;
+  --player-band-gap: 4px;
+
+  display: grid;
+  flex: 2 0 0;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  gap: 0 4px;
+  align-items: stretch;
+  min-height: calc(var(--player-band-min) + 30px);
+  container-type: size;
+}
+
+.player-bands__scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4px 0 21px;
+  color: var(--player-text-dim);
+  font-family: $font-mono;
+  font-size: 8.5px;
+  font-weight: $weight-semibold;
+  text-align: right;
+
+  span:nth-child(2) {
+    color: var(--player-text-soft);
+  }
+}
+
+.player-bands__rule {
+  width: 1px;
+  margin: 6px 2px 22px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--player-key-edge),
+    transparent
+  );
+}
+
+// From the left, with what is left over after every band has had its whole
+// pixels put in front of the first one as padding (`MiniBands.tsx`): centred
+// by the browser instead, the row starts on a fraction of a pixel and the
+// first gap paints a pixel wider than the rest.
+.player-bands__faders {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--player-band-gap);
+  min-width: 0;
+
+  // Zero, dashed across every fader.
+  &::before {
+    position: absolute;
+    top: calc((100% - 21px) / 2);
+    right: 0;
+    left: 0;
+    border-top: 1px dashed rgba($edge-tint, 0.13);
+    content: '';
+    pointer-events: none;
+  }
+}
+
+// One fader: a well, the lit part between flat and the cap, and the cap.
+//
+// The lit part says how far from flat the band is and which way, which is
+// what a graphic equalizer is read for (Ivan, 2026-09-21) — a fill from the
+// foot of the travel draws a half-height bar for a band doing nothing. Both
+// ends of it are worked out from the cap's own travel: Chromium stands the
+// cap's centre half a cap in from each end of the range, so the fill and the
+// cap agree at every length without measuring anything.
+//
+// The 30px taken off the deck's height are the label row under the fader and
+// the room the cap needs at each end.
+.player-band {
+  --player-band-length: max(var(--player-band-min), calc(100cqh - 30px));
+  --player-fader-top: calc(
+    100% - var(--player-fader-cap) / 2 - var(--player-fader-v) *
+      (100% - var(--player-fader-cap))
+  );
+  --player-fader-flat: calc(
+    100% - var(--player-fader-cap) / 2 - var(--player-fader-zero) *
+      (100% - var(--player-fader-cap))
+  );
+
+  position: relative;
+  display: grid;
+  // A WHOLE NUMBER OF PIXELS, always: the row is measured and shared out
+  // between the bands in whole pixels (`MiniBands.tsx`), so every band is
+  // the same width and every gap is the gap. Shared out by the browser
+  // instead, they land on fractions — two pixels of gap beside three — and
+  // the row reads as bunched (Ivan, 2026-09-21). What the rounding leaves
+  // over sits at the two ends of the centred row.
+  flex: 0 0 var(--player-band-width, var(--player-fader-cap));
+  // ONE COLUMN AS WIDE AS THE BAND, never as wide as its label: an `auto`
+  // column is sized by the widest thing in it, so "12.5k" stretched the
+  // track and the cap under it out of step with its neighbours, and the row
+  // read as bunched wherever the labels were long (Ivan, 2026-09-21). The
+  // label overflows the column, centred on it, which is what it did before
+  // whenever it was wider than its band anyway.
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 21px;
+  justify-items: center;
+  min-width: 0;
+}
+
+// The travel itself, with the well cut down the middle of it.
+.player-band__slot {
+  position: relative;
+  align-self: center;
+  width: 100%;
+  height: var(--player-band-length);
+
+  // THE SAME TRACK THE VOLUME AND SEEK SLIDERS RUN IN (Ivan, 2026-09-22:
+  // "slider bg needs to be the same as the volume and seek slider bg"):
+  // the deck's well, in the range's own pill with the range's own shade
+  // (`.player-range` in `_miniPlayerSliders.scss`). It was a lighter tint of
+  // the well with a black ring round it — a fourth reading of a track on a
+  // deck that already has three sliders drawn one way.
+  &::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    margin-left: -2px;
+    border-radius: $radius-pill;
+    background: var(--track-well);
+    box-shadow:
+      inset 0 1px 2px rgba($black, 0.75),
+      0 1px 0 rgba($white, 0.04);
+    content: '';
+  }
+}
+
+.player-band__fill {
+  position: absolute;
+  top: min(var(--player-fader-top), var(--player-fader-flat));
+  bottom: calc(100% - max(var(--player-fader-top), var(--player-fader-flat)));
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  border-radius: 3px;
+  background: var(--player-fader-colour);
+  box-shadow: 0 0 8px var(--player-fader-colour);
+  pointer-events: none;
+}
+
+// Laid along the travel: a range input turned on its side, as long as the
+// slot is tall.
+.player-band__input {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--player-band-length);
+  height: var(--player-fader-cap);
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: var(--player-fader-cap);
+    background: transparent;
+  }
+
+  // The hand's grip only: what is seen is `.player-band__cap`.
+  &::-webkit-slider-thumb {
+    width: var(--player-fader-cap);
+    height: var(--player-fader-cap);
+    border: 0;
+    background: transparent;
+    appearance: none;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// The cap, on the figure the lit part ends at, so the two cannot disagree.
+.player-band__cap {
+  position: absolute;
+  top: var(--player-fader-top);
+  left: 50%;
+  width: var(--player-fader-cap);
+  height: var(--player-fader-cap);
+  margin-top: calc(var(--player-fader-cap) / -2);
+  margin-left: calc(var(--player-fader-cap) / -2);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    $white 0 18%,
+    var(--player-fader-colour) 42%,
+    color-mix(in srgb, var(--player-fader-colour), $black 35%) 100%
+  );
+  box-shadow:
+    0 0 0 1.5px rgba($black, 0.7),
+    0 0 10px var(--player-fader-colour);
+  pointer-events: none;
+}
+
+.player-band__input:focus-visible + .player-band__cap {
+  box-shadow:
+    0 0 0 1.5px rgba($black, 0.7),
+    0 0 0 3.5px $white,
+    0 0 12px var(--player-fader-colour);
+}
+
+// The preamp's own key, under its fader: lit and reading AUTO while the app
+// sets the preamp, quiet and reading PRE once the listener has it back, and
+// a press moves between the two.
+.player-band__auto {
+  padding: 1px 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &.is-on {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--player-ink-bright);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// Scaled with the faders' row (`cqi` of the size container above), so a
+// narrow deck gets smaller labels rather than labels running into each other.
+.player-band__hz {
+  align-self: end;
+  color: var(--player-text-soft);
+  font-size: clamp(7px, 2.1cqi, 9px);
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  @include tracking(-0.01em);
+}
+
+// The preamp: its own column before the rule, and its word in the accent
+// rather than in a band's colour, because it is not one of the bands.
+.player-bands > .player-band {
+  width: 32px;
+
+  .player-band__hz {
+    color: var(--player-ink);
+    text-transform: uppercase;
+    @include tracking(0.04em);
+  }
+}
+
+// A switched-off band keeps its fader, greyed, as the EQ page draws it.
+.player-band.is-off {
+  --player-fader-colour: #{$text-dim};
+
+  opacity: 0.7;
+
+  .player-band__fill {
+    box-shadow: none;
+  }
+
+  .player-band__cap {
+    box-shadow: 0 0 0 1.5px rgba($black, 0.7);
+  }
+}
+
+// Thirty-one bands in a narrow deck: smaller caps, a tighter gap, every
+// other label. The window's own floor is worked out from these two numbers
+// (`playerWidthForBands`), so a change here is a change there.
+.player-bands.is-dense {
+  --player-fader-cap: 10px;
+  --player-band-gap: 3px;
+
+  .player-band__hz {
+    font-size: 7.5px;
+  }
+
+  .player-bands__faders .player-band:nth-child(even) .player-band__hz {
+    visibility: hidden;
+  }
+}
+
+// ============================================================ the tone =====
+//
+// The other face: the EQ page's three dials, in the space the faders take
+// and with the faders' share of any extra height.
+.player-tone {
+  // As big as the deck's width allows, and never so big that three of them
+  // stop fitting on one line.
+  --tone-knob-size: clamp(52px, 15cqi, 78px);
+
+  display: flex;
+  flex: 2 0 0;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 10px 8px;
+  min-height: calc(var(--player-band-min) + 30px);
+}
+
+// Bands or Tone: two of the app's buttons, joined — the face on screen wears
+// the filled style.
+// The two views of the equaliser — the faders, or the tone dials. Neither is
+// a recommendation, so neither wears the app's loud accent button: the chosen
+// one is a key that is on, like everything else switched on in the amp (Ivan,
+// 2026-09-22). It was the filled accent, the one slab of full-strength colour
+// in a deck of keys.
+.player-eq__faces {
+  display: inline-flex;
+  flex: none;
+
+  .button.small {
+    border-radius: 0;
+  }
+
+  .button.small[aria-pressed='true']:not(:disabled) {
+    @include player-key-on;
+  }
+
+  // The row key's own radius (`_miniPlayerEqKeys.scss`) on the two outer
+  // corners, so the pair reads as one key of the same make as its neighbours.
+  .button.small:first-child {
+    border-radius: 7px 0 0 7px;
+  }
+
+  .button.small:last-child {
+    margin-left: -1px;
+    border-radius: 0 7px 7px 0;
+  }
+}

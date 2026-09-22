@@ -252,21 +252,14 @@ $surface-field-end: var(--surface-field-end);
 // its pane, not enough to make it the subject.
 $surface-block: var(--surface-block);
 
-// How much of the shell's own colour is laid over the blurred desktop
-// Windows draws behind the window. Must agree with
-// `WINDOW_BACKDROP_MATERIAL` in mainWindow.ts: an opaque floor here hides a
-// blur the system is still paying to compose.
-//
-// High enough that the app still reads as a dark application rather than as
-// a pane of glass — the panes are opaque, so this shows in the gutters
-// between them and behind the shell's own edges, which is where a little of
-// the desktop is worth seeing and no more.
-//
-// Raised from 0.82 after the material changed: what shows through is a tint
-// of the wallpaper rather than a live blur, and Windows mutes it further
-// while the window is not focused. A tenth is enough to carry that and not
-// enough to let the muting read as a colour change.
-$window-backdrop: color-mix(in srgb, var(--surface-base) 90%, transparent);
+// The radius Windows 11 clips a frameless window's corners to, and therefore
+// the radius the window's own edge is drawn at (`body::after` in App.scss).
+// The system's number, not a taste: drawn larger the edge's corners fall
+// outside the clip and are cut away, drawn smaller it stands off the corner.
+// Divided by the page's zoom, because Windows clips in its pixels and
+// everything in this document is in the zoom's — `--window-zoom` is the
+// window's own answer, pushed on every zoom step.
+$window-corner: calc(8px / var(--window-zoom, 1));
 // A menu is a pane that floats: the pane colour lifted five values with the
 // same hue and the same saturation, opaque. It was a desaturated slate at
 // 96% over an 18px blur, which came out grey and muddy over whatever it

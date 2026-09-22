@@ -115,7 +115,8 @@ export default function ClearEqButton() {
     <>
       <button
         type="button"
-        className="button small subtle"
+        className="button small subtle clear-eq-trigger"
+        title={t('eq.clear')}
         onClick={() => setOpen(true)}
       >
         <MenuIcon name="reset" className="eq-toolbar__icon" />

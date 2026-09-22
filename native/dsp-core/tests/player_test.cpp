@@ -307,6 +307,96 @@ void test_crossfade_between_decks() {
   feq_player_destroy(player);
 }
 
+/**
+ * The outgoing file runs out before the fade does — a fade that started late,
+ * or a track whose sound runs to its last sample — and the transport must
+ * not report that end as the incoming track's.
+ */
+void test_crossfade_reports_the_incoming_deck() {
+  std::printf("crossfade reports the incoming deck\n");
+  const FeqDecoderOps ops = generating_ops();
+  FeqPlayer* player = feq_player_create(48000.0, 2, 512, 48000, &ops);
+  // Deck 0 has 3000 frames left; the fade asked for lasts 8192.
+  feq_player_load(player, 0, "tone:48000:3000:440");
+  feq_player_load(player, 1, "tone:48000:480000:12000");
+  feq_player_set_playing(player, 1);
+  feq_player_pump(player);
+  check(feq_player_reported_deck(player) == 0,
+        "before a fade the transport is the active deck");
+
+  const uint32_t fade_frames = 8192;
+  feq_player_start_crossfade(player, 1, 1000.0 * fade_frames / 48000.0,
+                             FEQ_CROSSFADE_EQUAL_POWER);
+  check(feq_player_reported_deck(player) == 1,
+        "from the moment a fade starts the transport is the incoming deck");
+
+  Block block(512);
+  bool outgoing_end_reported = false;
+  bool incoming_ever_ended = false;
+  for (uint32_t rendered = 0; rendered < fade_frames + 1024;
+       rendered += 512) {
+    feq_player_pump(player);
+    feq_player_render(player, block.pointers.data(), 512);
+    const uint32_t reported = feq_player_reported_deck(player);
+    const int state = feq_player_deck_state(player, reported);
+    if (reported == 0 && state == FEQ_DECK_ENDED) {
+      outgoing_end_reported = true;
+    }
+    if (reported == 1 && state == FEQ_DECK_ENDED) {
+      incoming_ever_ended = true;
+    }
+  }
+  check(feq_player_deck_state(player, 0) == FEQ_DECK_ENDED,
+        "the outgoing deck did run out during the fade");
+  check(!outgoing_end_reported,
+        "and its end was never reported as the transport's");
+  check(!incoming_ever_ended, "the incoming deck never read as ended");
+  check(feq_player_active_deck(player) == 1 &&
+            feq_player_reported_deck(player) == 1,
+        "after the fade both notions agree on the incoming deck");
+  feq_player_destroy(player);
+}
+
+void test_which_decks_are_heard() {
+  std::printf("which decks are heard\n");
+  const FeqDecoderOps ops = generating_ops();
+  FeqPlayer* player = feq_player_create(48000.0, 2, 512, 48000, &ops);
+  check(feq_player_deck_audible(player, 0) != 0 &&
+            feq_player_deck_audible(player, 1) == 0,
+        "the active deck is heard, empty and stopped, and the spare is not");
+  feq_player_load(player, 0, "tone:48000:480000:440");
+  feq_player_load(player, 1, "tone:48000:480000:880");
+  feq_player_set_playing(player, 1);
+  feq_player_pump(player);
+  check(feq_player_deck_audible(player, 1) == 0,
+        "the spare deck loaded and cued while the other plays is not heard");
+
+  const uint32_t fade_frames = 4096;
+  feq_player_start_crossfade(player, 1, 1000.0 * fade_frames / 48000.0,
+                             FEQ_CROSSFADE_EQUAL_POWER);
+  check(feq_player_deck_audible(player, 0) != 0 &&
+            feq_player_deck_audible(player, 1) != 0,
+        "from the moment a fade starts both decks are heard");
+  Block block(512);
+  for (uint32_t rendered = 0; rendered < fade_frames + 1024;
+       rendered += 512) {
+    feq_player_pump(player);
+    feq_player_render(player, block.pointers.data(), 512);
+  }
+  check(feq_player_deck_audible(player, 1) != 0 &&
+            feq_player_deck_audible(player, 0) == 0,
+        "after the fade only the incoming deck is heard");
+
+  feq_player_select(player, 0);
+  check(feq_player_deck_audible(player, 0) != 0 &&
+            feq_player_deck_audible(player, 1) == 0,
+        "a cut makes the selected deck the one heard");
+  check(feq_player_deck_audible(player, FEQ_PLAYER_DECKS) == 0 &&
+            feq_player_deck_audible(nullptr, 0) == 0,
+        "no such deck, or no player: not heard");
+  feq_player_destroy(player);
+}
+
 void test_end_of_file() {
   std::printf("end of file\n");
   const FeqDecoderOps ops = generating_ops();
@@ -437,6 +527,8 @@ int main() {
   test_plays_what_was_loaded();
   test_seek_drops_what_was_read_ahead();
   test_crossfade_between_decks();
+  test_crossfade_reports_the_incoming_deck();
+  test_which_decks_are_heard();
   test_end_of_file();
   test_rate_conversion_in_the_deck();
   if (g_failures == 0) {

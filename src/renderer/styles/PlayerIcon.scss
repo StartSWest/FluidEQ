@@ -1,0 +1,48 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'theme' as *;
+
+/**
+ * The player's icons: one 24-unit grid, drawn in the colour of the text
+ * around them. The transport glyphs are filled, everything else a 1.8
+ * stroke, so an icon on a lit key takes the key's ink like its label does.
+ */
+.player-icon {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  overflow: visible;
+}
+
+.player-icon__stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+// `.button` paints every path without `fill="none"` in its dark ink
+// (`.button path:not([fill='none'])`), which is right for the filled glyphs
+// on the filled key and wrong for a stroke: an open caret would close into a
+// solid wedge. Qualified enough to outrank that rule wherever it loads.
+.button svg.player-icon path.player-icon__stroke {
+  fill: none;
+}
+
+.player-icon__fill {
+  fill: currentColor;
+  stroke: none;
+}
+
+.player-icon__digit {
+  fill: currentColor;
+  font-family: $font-mono;
+  font-size: 7.5px;
+  font-weight: $weight-bold;
+}

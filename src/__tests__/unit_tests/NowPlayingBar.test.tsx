@@ -47,8 +47,6 @@ const bar = (over: Partial<React.ComponentProps<typeof NowPlayingBar>> = {}) =>
         onSeek={jest.fn()}
         onShuffle={jest.fn()}
         onRepeat={jest.fn()}
-        onVolume={jest.fn()}
-        onVolumeCommit={jest.fn()}
         // The whole point of this helper is letting each test override one
         // or two of the props above without repeating the other ten.
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -111,8 +109,6 @@ describe('the now playing bar', () => {
           onSeek={jest.fn()}
           onShuffle={jest.fn()}
           onRepeat={jest.fn()}
-          onVolume={jest.fn()}
-          onVolumeCommit={jest.fn()}
         />
       </I18nProvider>,
     );
@@ -159,8 +155,6 @@ describe('the now playing bar', () => {
           onSeek={jest.fn()}
           onShuffle={jest.fn()}
           onRepeat={jest.fn()}
-          onVolume={jest.fn()}
-          onVolumeCommit={jest.fn()}
         />
       </I18nProvider>,
     );

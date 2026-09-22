@@ -18,53 +18,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import path from 'path';
-import { BrowserWindow, app, desktopCapturer, ipcMain } from 'electron';
+import { BrowserWindow, app, desktopCapturer, ipcMain, screen } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
+import { RENDERER_READY_EVENT } from '../common/constants';
 import {
-  RENDERER_READY_EVENT,
-  WINDOW_MIN_HEIGHT,
-  WINDOW_MIN_WIDTH,
-} from '../common/constants';
+  appMinimumSize,
+  clampInto,
+  isUsableRect,
+  playerMinimumSize,
+  WINDOW_MODE_PARAM,
+} from '../common/windowMode';
+import type { IRect, TWindowMode } from '../common/windowMode';
+import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath, waitForRenderer } from './util';
 import openExternalIfSafe from './safeExternal';
 import contentSecurityPolicy from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
-import { applyWindowBackdrop } from './windowBackdrop';
+import { applyWindowBackdrop, windowFloorColour } from './windowBackdrop';
 import { installWindowRecovery } from './crashRecovery';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
 
 /**
- * The desktop, blurred, behind the app's own floor.
+ * The window has no backdrop material and is not see-through (Ivan,
+ * 2026-09-21).
  *
- * Windows 11 draws this itself: DWM composites the blur once for the whole
- * window, out of process, so it costs the app nothing per frame. A blur done
- * in the page cannot do this at all — CSS can only sample what is inside the
- * window, and the desktop is not.
+ * It used to carry Windows 11's acrylic — DWM blurring the desktop behind the
+ * whole window, out of process — with the shell laying 90% of its own colour
+ * over it. What it bought was a tint of the wallpaper in the gutters between
+ * the panes; what it cost was a window whose colour changed with whatever was
+ * dragged behind it. `windowBackdrop.ts` holds what replaced it: one opaque
+ * colour, the shell's own floor, which the renderer states from the running
+ * document.
  *
- * It rules out a see-through window, which is the trade. Windows will not put
- * a backdrop material behind a transparent window, so the app cannot draw its
- * own corners over one either: DWM rounds the window at the system radius
- * instead, which is about 8px and not adjustable. The stylesheet follows —
- * `$window-backdrop` there — and the two have to agree, or the shell paints
- * an opaque floor over a blur nobody can see.
- *
- * Acrylic: a live blur of whatever is behind the window, which is the one
- * that actually shows the desktop. Windows switches it off while the window
- * is not focused and leaves a flat grey in its place — the shell over it is
- * opaque enough (see `$window-backdrop`) that what remains is a shade rather
- * than a slab, which is the trade for having the real thing while working.
- *
- * Only Windows 11 has it. Older Windows, macOS and Linux ignore the option
- * and get the opaque floor the stylesheet falls back to.
+ * The corner is DWM's either way. Windows rounds a frameless window at the
+ * system radius, which is about 8px and not adjustable, and keeps doing it
+ * through every move, snap and resize; the page draws its own edge inside
+ * that (`body::after` in App.scss) rather than trying to own the shape.
  */
-// The material itself, and whether the theme wants it, live in
-// `windowBackdrop.ts` — full screen and the theme both decide it, and two
-// callers writing the same property from two files is how they disagree.
 
 /**
  * How long a renderer gets to paint before the window is shown anyway.
@@ -74,6 +69,10 @@ import installTaskbarTransport from './taskbarTransport';
  * bad; never showing it at all is worse.
  */
 const RENDERER_PAINT_GRACE_MS = 1500;
+
+/** A double-click on a window's non-client area, and the caption hit code. */
+const WM_NCLBUTTONDBLCLK = 0x00a3;
+const HTCAPTION = 2;
 
 /**
  * Building the window, and everything that has to be true before it opens.
@@ -106,10 +105,15 @@ export interface IMainWindowDeps {
     x?: number;
     y?: number;
     isMaximized?: boolean;
+    mode?: TWindowMode;
+    player?: IRect;
+    isPinned?: boolean;
   };
   saveWindowState: () => void;
   /** Tells the renderer whether it is maximised, so its chrome can match. */
   sendWindowState: () => void;
+  /** The app and the player, and the floor each keeps. */
+  windowModes: TWindowModes;
   /**
    * Was this launch the app restarting itself to finish an update?
    *
@@ -142,6 +146,7 @@ export const createMainWindowFactory = ({
   startMemoryProbe,
   startsHidden,
   syncDatabasesOnStartup,
+  windowModes,
 }: IMainWindowDeps) => {
   const installExtensions = async () => {
     // Required lazily on purpose, and only in the debug branch that calls this:
@@ -179,13 +184,50 @@ export const createMainWindowFactory = ({
     const restored = loadWindowState();
     const isFirstRun = restored.width === undefined;
     const firstRun = firstRunPlacement();
+    // Closed as the player, it opens as the player — where it was, pulled
+    // back onto a screen if that one has gone.
+    const player =
+      restored.mode === 'player' && isUsableRect(restored.player)
+        ? clampInto(
+            restored.player,
+            screen.getDisplayMatching(restored.player).workArea,
+          )
+        : undefined;
+    windowModes.restore({
+      mode: player ? 'player' : 'app',
+      isPinned: restored.isPinned === true,
+      app: {
+        x: restored.x,
+        y: restored.y,
+        width: restored.width,
+        height: restored.height,
+        isMaximized: restored.isMaximized,
+      },
+      player: restored.player,
+    });
+    // The floor for the mode it opens in. The player's is scaled by the
+    // page's zoom, which is not known until the page has loaded — this is the
+    // unzoomed one, and `did-finish-load` below sets the real one.
+    const floor = player
+      ? playerMinimumSize(1)
+      : appMinimumSize(
+          (isUsableRect(restored)
+            ? screen.getDisplayMatching(restored)
+            : screen.getPrimaryDisplay()
+          ).workArea,
+        );
+    const position =
+      player ??
+      (restored.x !== undefined && restored.y !== undefined
+        ? { x: restored.x, y: restored.y }
+        : undefined);
 
     const created = new BrowserWindow({
       show: false,
-      width: restored.width ?? firstRun.width,
-      minWidth: WINDOW_MIN_WIDTH,
-      height: restored.height ?? firstRun.height,
-      minHeight: WINDOW_MIN_HEIGHT,
+      width: player?.width ?? restored.width ?? firstRun.width,
+      minWidth: floor.width,
+      height: player?.height ?? restored.height ?? firstRun.height,
+      minHeight: floor.height,
       // A saved position if there is one and a screen still covers it —
       // otherwise the middle of the display.
       //
@@ -194,9 +236,7 @@ export const createMainWindowFactory = ({
       // somewhere off-centre and slightly high for no reason anybody could see,
       // and it is the very first impression the app makes. `center` is ignored
       // when x and y are given, so the two cannot fight.
-      ...(restored.x !== undefined && restored.y !== undefined
-        ? { x: restored.x, y: restored.y }
-        : { center: true }),
+      ...(position ? { x: position.x, y: position.y } : { center: true }),
       // .ico carries every size Windows asks for — taskbar, alt-tab and the
       // window corner each want a different one, and scaling a single png for
       // all three is what makes it look soft.
@@ -204,22 +244,22 @@ export const createMainWindowFactory = ({
         process.platform === 'win32' ? 'icon.ico' : 'icon.png',
       ),
       resizable: true,
+      // The player never maximises (`applyLimits`), from its first frame.
+      maximizable: !player,
       frame: false,
-      // Windows 11 rounds a frameless window itself, at the system radius.
-      // Not adjustable, and not negotiable while there is a backdrop
-      // material: see `WINDOW_BACKDROP_MATERIAL`.
+      // Windows 11 rounds a frameless window itself, at the system radius,
+      // and keeps doing it through every move, snap and resize — which is
+      // what makes the shape right in every case without the app tracking
+      // any of them. Squared while the window fills the screen, as every
+      // Windows window is; the page draws its own edge to match
+      // (`is-window-filled` in App.scss).
       roundedCorners: true,
-      // Set after creation by `applyWindowBackdrop`, from the theme.
-      // Chromium paints white until the first frame of the page arrives. On a
-      // frameless dark window that is a full-size white flash, and it happens
-      // before any CSS has loaded, so no stylesheet can prevent it. Matching the
-      // shell's own background means the gap is invisible. This is
-      // `$surface-base` in _theme.scss; the two move together.
-      // Fully transparent, so the backdrop material is what shows through
-      // wherever the page does not paint. It is also what Chromium fills the
-      // window with before the first frame arrives, which used to be a
-      // full-size white flash and is now the blurred desktop.
-      backgroundColor: '#00000000',
+      // The shell's own floor, opaque, from the very first frame: Chromium
+      // paints this until the page's first frame arrives and Windows fills
+      // the strip a resize opens with it, and both used to be a pane of bare
+      // backdrop material — an empty glass window at launch and at every
+      // switch between the app and the player. See `windowBackdrop.ts`.
+      backgroundColor: windowFloorColour(),
       webPreferences: {
         preload: app.isPackaged
           ? path.join(__dirname, 'preload.js')
@@ -249,8 +289,43 @@ export const createMainWindowFactory = ({
       },
     });
     setMainWindow(created);
+    windowModes.applyPin(created);
+    // The floor follows the window. The app's is its screen's (1024×800, or
+    // all of a smaller screen), so it is set again when the window lands on
+    // another screen or the screens change; the player's is scaled by the
+    // page's zoom, which is known once the page has loaded.
+    const keepFloor = () => windowModes.applyLimits(created);
+    // And the height the player holds itself to, which is only ever put
+    // right between drags of the window's edge, never during one — and
+    // where the player is left standing, so it opens there next time.
+    windowModes.followWindow(created);
+    created.on('moved', keepFloor);
+    created.webContents.on('did-finish-load', keepFloor);
+    screen.on('display-metrics-changed', keepFloor);
+    screen.on('display-removed', keepFloor);
+    created.once('closed', () => {
+      screen.off('display-metrics-changed', keepFloor);
+      screen.off('display-removed', keepFloor);
+    });
+    if (process.platform === 'win32') {
+      // The player's strips are the window's drag handle, and Windows keeps
+      // every click on a drag handle to itself: the page is never told of a
+      // double-click there, so the player hears of it from here and folds
+      // to one line or back. Only the caption itself; a double-click on a
+      // resizing edge is Windows' own.
+      created.hookWindowMessage(WM_NCLBUTTONDBLCLK, (wParam) => {
+        if (
+          windowModes.mode() === 'player' &&
+          wParam.readUInt32LE(0) === HTCAPTION
+        ) {
+          created.webContents.send('player-caption-double-click');
+        }
+      });
+    }
     installTaskbarTransport(created, RESOURCES_PATH);
-    // The material the theme last asked for, from the first frame.
+    // The material, from the first frame: it is what Windows rounds the
+    // window's corners around, so a window without it is square from the
+    // moment it opens.
     applyWindowBackdrop(created);
 
     const rendererUrl = resolveHtmlPath('index.html');
@@ -403,7 +478,7 @@ export const createMainWindowFactory = ({
         // update, permanently. So it waits for the tray to open the window and
         // happens then, one frame late and visible as a snap, which is the
         // cost of not flashing a window at somebody who put it away.
-        if (restored.isMaximized) {
+        if (restored.isMaximized && !player) {
           created.once('show', () => created.maximize());
         }
         if (isDebug) {
@@ -418,7 +493,11 @@ export const createMainWindowFactory = ({
         // Maximize before showing, so the window does not appear at its restored
         // size and then visibly snap outward. A first run on a screen below 2K
         // takes the same path, for the same reason.
-        if (restored.isMaximized || (isFirstRun && firstRun.maximize)) {
+        // Never the player: `isMaximized` is the app's, kept for going back.
+        if (
+          !player &&
+          (restored.isMaximized || (isFirstRun && firstRun.maximize))
+        ) {
           created.maximize();
         }
         created.show();
@@ -442,21 +521,15 @@ export const createMainWindowFactory = ({
     ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
     created.on('maximize', sendWindowState);
     created.on('unmaximize', sendWindowState);
+    // The material comes off in full screen and goes back on the way out (see
+    // `windowBackdrop.ts`), and the page squares its own edge off and rounds
+    // it again with it.
     created.on('enter-full-screen', () => {
-      // The backdrop comes off for the duration.
-      //
-      // Windows draws a backdrop material by extending the window frame into
-      // the client area, and that frame keeps its margins through the
-      // full-screen transition: measured on a 2560x1440 display, the window
-      // came to 2544x1424 at 8,8 with a strip of desktop down all four edges.
-      // Full screen has nothing behind it to blur anyway — the window is the
-      // screen — so the material is not being given up for anything.
-      applyWindowBackdrop(created);
+      applyWindowBackdrop(created, true);
       sendWindowState();
     });
-
     created.on('leave-full-screen', () => {
-      applyWindowBackdrop(created);
+      applyWindowBackdrop(created, false);
       sendWindowState();
     });
     // Debounced: dragging a window fires 'resize' continuously, and writing a
@@ -544,7 +617,17 @@ export const createMainWindowFactory = ({
         error,
       );
     });
-    await created.loadURL(rendererUrl).catch((error) => {
+    // Opened as the player, the page is told so in its address and draws the
+    // player from its first frame: asked over IPC, the answer came after the
+    // window was shown, and the full app flashed squeezed into the player's
+    // corner first. The page keeps the address in step with every switch
+    // after this (`windowModeStore.ts`), so a reload opens in the mode the
+    // window is in.
+    const firstUrl = new URL(rendererUrl);
+    if (player) {
+      firstUrl.searchParams.set(WINDOW_MODE_PARAM, 'player');
+    }
+    await created.loadURL(firstUrl.toString()).catch((error) => {
       log.error('Initial window load failed; handing it to recovery', error);
       return recoverWindow();
     });
@@ -563,7 +646,13 @@ export const createMainWindowFactory = ({
       log.warn('Database startup synchronization failed', error);
     });
 
-    const menuBuilder = new MenuBuilder(created);
+    // Zoom moves the player's floor, and it moves the radius the page draws
+    // the window's edge at — everything in the page is measured in the zoom's
+    // pixels and Windows clips the corner in the system's.
+    const menuBuilder = new MenuBuilder(created, () => {
+      keepFloor();
+      sendWindowState();
+    });
     menuBuilder.buildMenu();
 
     setUpAutoUpdates().catch((error) => {

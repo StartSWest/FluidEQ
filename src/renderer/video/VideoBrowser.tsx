@@ -60,12 +60,7 @@ import {
   registerPlayer,
   releasePlayback,
 } from '../audio/playbackOwner';
-import {
-  clampAppVolume,
-  commitAppVolume,
-  setAppVolume,
-  useAppVolume,
-} from '../audio/appVolume';
+import { FULL_LEVEL } from '../library/player/usePlayerDecks';
 import {
   clearTransportSource,
   setTransportSource,
@@ -345,7 +340,6 @@ const VideoBrowser = ({
    * sound. The page is both told this and asked for it: see the volume
    * listener below.
    */
-  const appVolume = useAppVolume();
   /** The last level sent to the page, and how many sends are still in flight —
    * together, the guard that stops the page's echo dragging the fader back.
    * See the volume branch of `handleGuestMessage`. */
@@ -591,8 +585,10 @@ const VideoBrowser = ({
       return;
     }
     guestVolumeArgumentsRef.current = 0;
-    pushGuestVolume(appVolume);
-  }, [appVolume, isGuestReady, pageToken, pushGuestVolume]);
+    // Full level, always: the fader beside this player is the computer's
+    // (`useSystemFader`), and the page's own is held at the top.
+    pushGuestVolume(FULL_LEVEL);
+  }, [isGuestReady, pageToken, pushGuestVolume]);
 
   /**
    * This pane's half of the one-player rule.
@@ -733,7 +729,6 @@ const VideoBrowser = ({
         // The level itself is not published — the bar reads the app's fader,
         // which is the same number every other tab plays at. This only says
         // the page can be set, and does it. See `ITransportSource.setVolume`.
-        setVolume: setAppVolume,
       });
     };
     const stopPlaybackClock = () => {
@@ -1401,10 +1396,9 @@ const VideoBrowser = ({
             ) {
               return reading;
             }
-            const level = clampAppVolume(reading);
+            const level = Math.min(1, Math.max(0, reading));
             if (level === lastPushedVolumeRef.current) {
-              // The page took what it was given. From here its own moves are
-              // the user's, and they are followed.
+              // The page took what it was given.
               guestVolumeArgumentsRef.current = GUEST_VOLUME_ARGUMENT_LIMIT;
               return reading;
             }
@@ -1418,8 +1412,9 @@ const VideoBrowser = ({
               pushGuestVolume(lastPushedVolumeRef.current);
               return reading;
             }
-            setAppVolume(level);
-            commitAppVolume();
+            // The page insisted on a level of its own past every argument.
+            // It keeps it: there is no fader of the app's to carry it into,
+            // and the computer's is not the page's to move.
             return reading;
           })
           .catch(() => undefined);

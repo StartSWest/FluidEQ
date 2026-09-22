@@ -1,0 +1,225 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The player deck: the display, the volume, the deck lamps, the seek line
+// and the transport keys.
+
+// ======================================================= the player deck ===
+.player-screen {
+  display: grid;
+  flex: 1 0 auto;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  min-height: 112px;
+}
+
+.player-screen__left {
+  display: grid;
+  grid-template-rows: auto auto minmax(34px, 1fr);
+  gap: 5px;
+  min-width: 0;
+  padding: 7px 8px 7px 9px;
+  border-right: 1px solid rgba($black, 0.6);
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.player-screen__state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.player-icon--state {
+  width: 10px;
+  height: 10px;
+  color: var(--player-ink);
+  filter: drop-shadow(0 0 3px var(--player-glow));
+}
+
+.player-screen__source {
+  overflow: hidden;
+  color: var(--player-ink-dim);
+  font-family: $font-mono;
+  font-size: 8.5px;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.16em);
+}
+
+// Both rows as tall as they need: in a narrow deck the readouts wrap onto
+// more lines, and the display grows to show them rather than cutting them.
+.player-screen__right {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 9px 7px 8px;
+}
+
+.player-screen__meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The cover at the size the deck's width allows, glassed like the display.
+.player-screen__art {
+  position: relative;
+  width: clamp(40px, 12cqi, 64px);
+  max-width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba($black, 0.7),
+    0 4px 10px rgba($black, 0.6);
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba($white, 0.22), transparent 45%);
+    content: '';
+    pointer-events: none;
+  }
+}
+
+.player-screen__title {
+  height: 18px;
+}
+
+.player-deck__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.player-volume {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.player-deck__leds {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.player-seek {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+
+  &.is-still .player-range {
+    opacity: 0.35;
+  }
+}
+
+.player-seek__time {
+  min-width: 3.4em;
+  color: var(--player-text-soft);
+  font-family: $font-mono;
+  font-size: 10px;
+  font-weight: $weight-semibold;
+  text-align: center;
+}
+
+.player-transport {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.player-transport__gap {
+  flex: 1 1 auto;
+  min-width: 2px;
+}
+
+// An ornament, and the first thing a narrow deck gives up: it shrinks to
+// nothing before any key does. Centred by flex, not grid: measured in the
+// window, a grid gave the mark a 44px track inside this 28px box and drew it
+// in the box's corner, clipped.
+// The glyph alone at the end of the transport, breathing with the kick
+// (`PlayerBeatMark` sets `--player-beat` on it every frame). The app's mark
+// carries a bordered tile everywhere else, and beside five keys that do
+// something it read as a sixth key nobody could name (Ivan, 2026-09-21).
+// A press now — it opens the visualizers — and still no box: the mark is
+// what is lit, not a key around it (Ivan, 2026-09-21, 2026-09-22). The beat
+// is written onto the inner span so the button's own layout never moves;
+// only the glyph inside it swells.
+.player-transport__mark {
+  display: flex;
+  flex: 0 1 28px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    border-radius: 8px;
+    @include focus-ring($white);
+  }
+}
+
+.player-transport__beat {
+  --player-beat: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--player-ink);
+  opacity: calc(0.62 + var(--player-beat) * 0.38);
+  transform: scale(calc(1 + var(--player-beat) * 0.09));
+  filter: drop-shadow(
+    0 0 calc(3px + var(--player-beat) * 9px)
+      color-mix(
+        in srgb,
+        var(--accent) calc(35% + var(--player-beat) * 55%),
+        transparent
+      )
+  );
+
+  // No tile here: the mark is what is lit, not a key around it.
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  svg {
+    flex: none;
+    width: 22px;
+    height: 22px;
+  }
+}

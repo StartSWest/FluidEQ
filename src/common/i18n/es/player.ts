@@ -1,0 +1,66 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+export default {
+  'player.aria': 'Reproductor de FluidEQ',
+  'player.menu': 'Menú del reproductor',
+  'player.menu.fullApp': 'Volver a la app completa',
+  'player.menu.openIn': 'Abrir en la app completa',
+  'player.menu.alwaysOnTop': 'Siempre visible',
+  'player.menu.fold': 'Plegar en una línea',
+  'player.menu.foldHint': 'Doble clic en la barra',
+  'player.unfold': 'Desplegar',
+  'player.switch.name': 'Reproductor compacto',
+  'player.switch.toPlayer': 'Cambiar al reproductor compacto',
+  'player.switch.toApp': 'Volver a la app completa',
+  'player.deck.aria': 'Reproduciendo ahora',
+  'player.deck.eqHint': 'Mostrar u ocultar el ecualizador',
+  'player.deck.vis': 'Visual',
+  'player.deck.visHint': 'Mostrar u ocultar el visualizador',
+  'player.deck.queue': 'Cola',
+  'player.deck.queueHint': 'Mostrar u ocultar lo que suena después',
+  'player.clock.aria': 'Tiempo reproducido o restante',
+  'player.clock.hint':
+    'Haz clic para alternar entre el tiempo reproducido y el restante',
+  'player.well.aria': 'Analizador de espectro',
+  'player.well.hint': 'Haz clic para alternar entre barras y onda',
+  'player.readout.level': 'Nivel de salida',
+  'player.readout.rate': 'Frecuencia de muestreo',
+  'player.readout.channels': 'Distribución de canales de la salida',
+  'player.readout.stereo': 'Estéreo',
+  'player.readout.mono': 'Mono',
+  'player.unit.db': 'dB',
+  'player.unit.ms': 'ms',
+  'player.unit.khz': 'kHz',
+  'player.volume.system': 'Volumen del sistema',
+  'player.seek': 'Posición en la canción',
+  'player.seekNone': 'Esta fuente no permite saltar a otro punto de la canción',
+  'player.eq.aria': 'Ecualizador',
+  'player.eq.on': 'Activo',
+  'player.eq.onHint': 'Activar o desactivar FluidEQ',
+  'player.eq.short': 'EQ',
+  'player.eq.smart': 'Inteligente',
+  'player.eq.song': 'Canción',
+  'player.eq.songSaves': 'Se guardará para esta canción',
+  'player.eq.curve': 'Curva del ecualizador',
+  'player.eq.nothingApplied': 'No se aplica nada más',
+  'player.eq.pre': 'Pre',
+  'player.eq.auto': 'Auto',
+  'player.eq.autoHint': 'Activar la normalización automática',
+  'player.vis.aria': 'Visualizador',
+  'player.vis.resize':
+    'Arrastra para cambiar el tamaño del visualizador y la cola',
+  'player.queue.summary': '{position} de {total}',
+  'player.queue.leftHint': 'Quedan {duration} en la cola',
+  'player.queue.play': 'Reproducir {title}',
+  'player.queue.openLibraryHint': 'Abrir la Biblioteca en la app completa',
+  'player.mark.hint':
+    'Siguiente estilo · Ctrl para el anterior · Clic derecho para verlos todos',
+  'player.queue.drop': 'Suelta música aquí',
+  'player.queue.emptyTitle': 'Nada en cola',
+  'player.queue.emptyNote':
+    'Las canciones que reproduces desde la biblioteca se ponen en cola aquí, o arrastra archivos de música aquí.',
+};

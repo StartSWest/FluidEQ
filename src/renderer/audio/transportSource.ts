@@ -94,21 +94,6 @@ export interface ITransportSource {
   /** Karaoke's matching arrows go to this song's start/end. */
   navigation?: 'boundaries';
   /**
-   * Apply the app's fader to this source. Absent where it cannot be applied.
-   *
-   * The LEVEL is deliberately not here. There used to be a `volume` beside
-   * this and the bar drew `source.volume ?? 1`, so a source that could be set
-   * but not read — the Media tab's page, which was never asked what it was
-   * playing at — showed a hard-coded 100% over a quiet video, and the first
-   * drag of the fader jumped the sound. There is one level in this app and it
-   * is `appVolume`; the bar reads it from there, where it cannot be invented.
-   *
-   * Absent for another program on this machine: Windows publishes what it is
-   * playing and takes play/pause/next, but gives no way to set its level, and
-   * a fader that moved nothing is worse than no fader.
-   */
-  setVolume?: (value: number) => void;
-  /**
    * This context's own controls, drawn inside the bar in place of the plain
    * play button.
    *

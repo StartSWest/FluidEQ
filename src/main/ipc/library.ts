@@ -25,6 +25,7 @@ import {
 } from 'electron';
 import crypto from 'crypto';
 import fs from 'fs';
+import path from 'path';
 // Imported rather than the ambient global: under the jsdom test environment,
 // global `setTimeout` is jsdom's browser-style version, whose return value has
 // no `.unref()`. This process only ever runs under real Node (the Electron
@@ -45,6 +46,11 @@ import {
   saveLibraryIndex,
   trackPathById,
 } from '../library/libraryIndex';
+import { libraryFileKind } from '../../common/library/files';
+import {
+  buildProvisionalTrack,
+  trackIdForPath,
+} from '../library/libraryScanDiscovery';
 import scanLibraryRootOffThread from '../library/scanHost';
 import { isLocalRendererPath } from '../rendererPaths';
 import onWindowMessage from './windowMessages';
@@ -174,6 +180,22 @@ const pendingRescanRootIds = new Set<string>();
 
 /** Read by `handleLibraryMedia` to resolve a `fluideq-media://track/<id>` request. */
 export const libraryIndexSnapshot = (): ILibraryIndex => currentIndex;
+
+/**
+ * Whether `child` is `parent` or lies under it.
+ *
+ * Compared as resolved paths with a separator appended, so `C:\Music2` is not
+ * read as being inside `C:\Music`; case-insensitively, because Windows paths
+ * are.
+ */
+const isInsideDirectory = (parent: string, child: string): boolean => {
+  const from = path.resolve(parent).toLowerCase();
+  const to = path.resolve(child).toLowerCase();
+  return (
+    to === from ||
+    to.startsWith(from.endsWith(path.sep) ? from : from + path.sep)
+  );
+};
 
 const buildRoot = (rootPath: string): ILibraryRoot => ({
   id: crypto.randomUUID(),
@@ -560,6 +582,119 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
       }
     });
     return addRootsAndScan(deps, directories);
+  });
+
+  /**
+   * Music files dropped straight onto the player's queue.
+   *
+   * The Library's own drop takes folders (`library-root-add-paths` above);
+   * this one takes the files themselves and hands back their ids, so the
+   * queue can be added to in the same gesture (Ivan, 2026-09-22). A file
+   * already in the index keeps the id it has, so dropping a song twice does
+   * not make two of it.
+   *
+   * WHAT IT PUTS IN THE INDEX, AND WHY IT IS ENOUGH TO PLAY. A file nobody
+   * has scanned gets the same provisional row phase one of a scan would give
+   * it — real identity, real path, the title from its file name, no tags and
+   * no duration (`buildProvisionalTrack`). That is everything playback needs,
+   * so the song starts at once; the scan started underneath fills the rest in
+   * and the row settles by itself.
+   *
+   * Its FOLDER becomes a library root, which is the same thing dropping that
+   * folder on the Library would have done. A track has to belong to a root or
+   * a rescan has nothing to keep it alive, and a listener who drags music
+   * into FluidEQ has said, as plainly as anyone can, that this is music they
+   * want it to know about.
+   *
+   * A path on another machine is refused before the filesystem is asked
+   * anything, for the reason `library-root-add-paths` gives.
+   */
+  ipcMain.handle('library-queue-files', async (_event, rawPaths: unknown) => {
+    const candidates = Array.isArray(rawPaths)
+      ? rawPaths.filter(isLocalRendererPath)
+      : [];
+    const files = candidates.filter((candidate) => {
+      if (libraryFileKind(path.basename(candidate)) === undefined) {
+        return false;
+      }
+      try {
+        return fs.statSync(candidate).isFile();
+      } catch {
+        return false;
+      }
+    });
+    if (files.length === 0) {
+      return { index: currentIndex, trackIds: [] };
+    }
+
+    const known = new Map(currentIndex.tracks.map((row) => [row.id, row]));
+    // One root per folder the drop touched that no root covers already.
+    const rootFor = new Map<string, string>();
+    const addedRoots: ILibraryRoot[] = [];
+    const rootIdOf = (directory: string): string => {
+      const covering = currentIndex.roots.find((root) =>
+        isInsideDirectory(root.path, directory),
+      );
+      if (covering) {
+        return covering.id;
+      }
+      const already = rootFor.get(directory.toLowerCase());
+      if (already !== undefined) {
+        return already;
+      }
+      const root = buildRoot(directory);
+      rootFor.set(directory.toLowerCase(), root.id);
+      addedRoots.push(root);
+      return root.id;
+    };
+
+    // Built in the order the listener dropped them in, which is the order
+    // they are queued in. `Promise.all` over the whole drop rather than one
+    // await after another: each new file is a single stat, and the roots are
+    // decided before any of them run, so nothing here races anything else.
+    const rows = await Promise.all(
+      files.map(async (filePath) => {
+        const id = trackIdForPath(filePath);
+        if (known.has(id)) {
+          return { id, row: undefined };
+        }
+        const directory = path.dirname(filePath);
+        const name = path.basename(filePath);
+        const row = await buildProvisionalTrack(
+          {
+            filePath,
+            name,
+            kind: libraryFileKind(name) ?? 'audio',
+            dir: directory,
+            // Only the artwork lookup reads this, and a provisional row has
+            // no artwork; the scan lists the folder properly.
+            dirFileNames: [],
+          },
+          rootIdOf(directory),
+        );
+        return { id, row };
+      }),
+    );
+    const addedTracks = rows
+      .map((entry) => entry.row)
+      .filter((row): row is ILibraryTrack => row !== undefined);
+    const trackIds = rows
+      .filter((entry) => entry.row !== undefined || known.has(entry.id))
+      .map((entry) => entry.id);
+
+    if (addedRoots.length || addedTracks.length) {
+      currentIndex = {
+        ...currentIndex,
+        roots: [...currentIndex.roots, ...addedRoots],
+        tracks: [...currentIndex.tracks, ...addedTracks],
+      };
+      saveLibraryIndex(deps.userDataDir, currentIndex);
+      requestScan(
+        deps,
+        addedRoots.map((root) => root.id),
+      );
+    }
+    return { index: currentIndex, trackIds };
   });
 
   ipcMain.handle('library-root-remove', (_event, rawRootId: unknown) => {

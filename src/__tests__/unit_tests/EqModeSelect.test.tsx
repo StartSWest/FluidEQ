@@ -116,7 +116,10 @@ const pick = async (label: string) => {
 it('uses the existing dropdown with Normal, EQ ×2, and Studio choices', async () => {
   render(<EqModeSelect />);
   expect(menu()).toHaveTextContent('Normal');
-  expect(menu().querySelectorAll('svg')).toHaveLength(1);
+  // Its glyph and its chevron, and nothing else drawn in it — the glyph is
+  // what is left of the key once a narrow toolbar takes its words.
+  expect(menu().querySelectorAll('svg')).toHaveLength(2);
+  expect(menu().querySelector('svg.eq-toolbar__icon')).not.toBeNull();
   fireEvent.click(menu());
   expect(
     within(screen.getByRole('group', { name: en['eq.mode.yourEq'] }))
@@ -323,7 +326,7 @@ it.each([
   Object.assign(mockWorld, settings);
   const { rerender } = render(<EqModeSelect />);
   expect(menu()).toHaveTextContent('Custom');
-  expect(menu().querySelectorAll('svg')).toHaveLength(1);
+  expect(menu().querySelectorAll('svg')).toHaveLength(2);
   Object.assign(mockWorld, {
     eqMode: 'normal',
     curveEqMode: 'normal',

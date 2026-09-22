@@ -111,7 +111,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -140,7 +139,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
     expect(element.paused).toBe(true);
@@ -150,7 +148,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/unreadable.xyz',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -195,7 +192,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
     expect(element.paused).toBe(true);
@@ -217,7 +213,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
     expect(element.paused).toBe(true);
@@ -250,7 +245,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -274,7 +268,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 92_000,
-      volume: 1,
     });
     await settle();
 
@@ -298,7 +291,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 92_000,
-      volume: 1,
     });
     await settle();
     calls.length = 0;
@@ -308,7 +300,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/two.wav',
       isPlaying: true,
       positionMs: 92_000,
-      volume: 1,
     });
     await settle();
 
@@ -324,7 +315,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 0,
-        volume: 1,
       });
       await settle();
       spy.calls.length = 0;
@@ -345,13 +335,11 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 250,
-        volume: 1,
       });
       mirror.sync({
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 500,
-        volume: 1,
       });
       await settle();
 
@@ -401,7 +389,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 600,
-        volume: 1,
       });
       await settle();
 
@@ -423,7 +410,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 0,
-        volume: 1,
       });
       calls.length = 0;
 
@@ -432,7 +418,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 0,
-        volume: 1,
       });
       await settle();
 
@@ -461,7 +446,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 0,
-        volume: 1,
       });
       await settle();
 
@@ -477,13 +461,11 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 100,
-        volume: 1,
       });
       mirror.sync({
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 200,
-        volume: 1,
       });
       await settle();
 
@@ -497,7 +479,6 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/two.wav',
         isPlaying: true,
         positionMs: 0,
-        volume: 1,
       });
       await settle();
 
@@ -511,7 +492,6 @@ describe('the native mirror', () => {
         mediaPath: undefined,
         isPlaying: false,
         positionMs: 0,
-        volume: 1,
       });
       await settle();
 
@@ -545,7 +525,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -554,7 +533,6 @@ describe('the native mirror', () => {
       mediaPath: undefined,
       isPlaying: false,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
     calls.length = 0;
@@ -565,7 +543,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/two.wav',
       isPlaying: false,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -574,7 +551,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/two.wav',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -595,7 +571,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: false,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -621,7 +596,6 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/song.mp3',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 

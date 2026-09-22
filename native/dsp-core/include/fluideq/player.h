@@ -136,6 +136,34 @@ int feq_player_is_playing(const FeqPlayer* player);
 /** Make one deck audible at once, with no fade. */
 void feq_player_select(FeqPlayer* player, uint32_t deck);
 uint32_t feq_player_active_deck(const FeqPlayer* player);
+/**
+ * The deck the transport is ABOUT: the incoming deck from the moment a
+ * crossfade is started, the active one otherwise.
+ *
+ * `feq_player_active_deck` is the audio thread's notion — the deck the fader
+ * is still mixing FROM until it finishes — and the telemetry used to report
+ * that one. So for the whole of a fade the host told the app the outgoing
+ * track's position and state under the incoming track's name, and when the
+ * outgoing file ran out before the fade did, its ENDED was read as the new
+ * track's end: the queue advanced a second time and skipped a song (Ivan,
+ * 2026-09-22, "it starts the next song then jumps into the one after"). The
+ * app has already moved on to the incoming track when it asks for the fade;
+ * this is the deck that agrees with it.
+ */
+uint32_t feq_player_reported_deck(const FeqPlayer* player);
+
+/**
+ * Non-zero while `deck` is on the listened path: the active deck, empty or
+ * paused or not, and the incoming one from the moment a fade starts.
+ *
+ * The host resets its chain when the sound in it changes source — a load or
+ * a seek on a deck the listener hears — and must NOT when the spare deck is
+ * being readied while the other plays: the next track is decoded and cued
+ * there mid-song (`prime` in `nativeMirror.ts`), and a reset then emptied
+ * every delay line and every dynamics state under the song that was playing,
+ * twice a track — a hiccup in the middle of it (Ivan, 2026-09-22).
+ */
+int feq_player_deck_audible(const FeqPlayer* player, uint32_t deck);
 
 /**
  * Begin a fade to the other deck.

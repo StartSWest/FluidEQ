@@ -1,0 +1,108 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The sliders: the volume and the seek line, one style for both.
+
+// ============================================================== sliders ====
+//
+// A recessed track filled with the accent up to the thumb (`--fill`, set
+// by the component), and a lit rectangular thumb like a fader cap.
+//
+// ONE STYLE FOR BOTH, and the volume's is the one (Ivan, 2026-09-21). The
+// paint is a scale laid across the WHOLE track with the well covering
+// whatever is past the thumb — not a gradient squeezed into the filled part,
+// which is what the song's line used to do and why the two never matched: at
+// eight seconds into a four-minute song the seek's gradient ran from
+// `--accent-darker` to `--accent` inside 30px and came out a dull stub,
+// while the volume at the same fraction showed the scale's own left-hand
+// colour. Laid over rather than masked: the thumb is drawn inside the track,
+// and a mask would have cut the half of it standing past the fill.
+.player-range {
+  --fill-paint: linear-gradient(90deg, var(--accent-dark), var(--accent));
+
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+
+  &::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: $radius-pill;
+    background:
+      linear-gradient(
+        90deg,
+        transparent var(--fill, 0%),
+        var(--track-well) var(--fill, 0%)
+      ),
+      var(--fill-paint);
+    box-shadow:
+      inset 0 1px 2px rgba($black, 0.75),
+      0 1px 0 rgba($white, 0.04);
+  }
+
+  &::-webkit-slider-thumb {
+    width: 16px;
+    height: 12px;
+    margin-top: -3px;
+    border: 1px solid rgba($black, 0.55);
+    border-radius: 4px;
+    background: linear-gradient(
+      180deg,
+      $white,
+      var(--accent-light) 40%,
+      var(--accent) 100%
+    );
+    box-shadow:
+      0 0 10px var(--player-glow),
+      inset 0 -2px 0 rgba($black, 0.18);
+    appearance: none;
+  }
+
+  &:disabled {
+    cursor: default;
+
+    &::-webkit-slider-thumb {
+      background: color-mix(in srgb, var(--player-text-soft) 45%, transparent);
+      box-shadow: none;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::-webkit-slider-thumb {
+      box-shadow:
+        0 0 0 2px $white,
+        0 0 10px var(--player-glow);
+    }
+  }
+}
+
+// The meter's own scale, in Rainbow mode: outside it the volume is the
+// accent alone, because a bar running through yellow into red is a rainbow
+// and rainbows belong to the mode (Ivan, 2026-09-21).
+:root.is-euphoric .player-range--volume {
+  --fill-paint: linear-gradient(
+    90deg,
+    var(--accent-dark),
+    var(--accent) 55%,
+    #{$neon-yellow} 82%,
+    #{$red}
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-marquee.is-running .player-marquee__track,
+  .player-clock.is-paused .led-clock .is-lit {
+    animation: none;
+  }
+}

@@ -46,6 +46,7 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
+import player from './player';
 
 const es: Partial<Dictionary> = {
   ...karaoke,
@@ -76,6 +77,7 @@ const es: Partial<Dictionary> = {
   ...wallpaper,
   ...bugReport,
   ...review,
+  ...player,
 };
 
 export default es;

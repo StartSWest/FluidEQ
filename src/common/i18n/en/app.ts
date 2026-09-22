@@ -171,6 +171,7 @@ const app = {
   'app.window.restore': 'Restore',
   'app.window.close': 'Close',
   'app.tray.open': 'Open {product}',
+  'app.tray.recoverWindow': 'Recover the window',
   'app.tray.quit': 'Quit {product}',
   'app.tray.tooltip': '{product} — still running',
   'app.tray.installUpdate': 'Install update and restart',

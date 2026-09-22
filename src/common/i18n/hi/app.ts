@@ -174,6 +174,7 @@ const app: Partial<Dictionary> = {
   'app.window.restore': 'पहले जैसा करें',
   'app.window.close': 'बंद करें',
   'app.tray.open': '{product} खोलें',
+  'app.tray.recoverWindow': 'विंडो पुनर्प्राप्त करें',
   'app.tray.quit': '{product} बंद करें',
   'app.tray.tooltip': '{product} — अब भी चल रहा है',
   'app.tray.installUpdate': 'अपडेट इंस्टॉल करें और पुनः प्रारंभ करें',

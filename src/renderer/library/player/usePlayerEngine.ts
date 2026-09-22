@@ -21,10 +21,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * PREVIOUS track had reached played from the middle while the seek bar read
  * zero, because each side was telling the truth about a different player.
  */
-import { MutableRefObject, useCallback, useRef } from 'react';
+import { MutableRefObject, useCallback, useReducer, useRef } from 'react';
 import { IDspSettings } from '../../../common/dsp/chain';
 import { ILibraryTrack } from '../../../common/library/types';
 import { readDspNativeTransport, useDspNativeTransport } from '../../dsp/store';
+import {
+  IPendingSeek,
+  holdSeek,
+  seekAnswered,
+  seekSettled,
+} from './pendingSeek';
 import { MIN_LEAD_IN_TRIM_MS } from './playerContract';
 import {
   useNativeBackend,
@@ -56,7 +62,13 @@ export const usePlayerEngine = (options: {
   /** The element's own clock, used until a deck has something. */
   positionMs: number;
   durationMs: number;
-  volume: number;
+  /**
+   * The track the queue moves to next, for the host to hold primed, with
+   * its measured lead-in — trimmed here by the same rule as the current
+   * track's, so the primed deck is cued exactly where the handoff would cue
+   * it.
+   */
+  upcoming?: { path: string; leadInMs: number };
 }): IPlayerEngine => {
   const {
     dspSettings,
@@ -65,7 +77,7 @@ export const usePlayerEngine = (options: {
     isPlaying,
     positionMs,
     durationMs,
-    volume,
+    upcoming,
   } = options;
 
   /**
@@ -124,28 +136,21 @@ export const usePlayerEngine = (options: {
   const hostTransport = useDspNativeTransport();
   const hostOwnsTransport = hostTransport.hasSource;
   /**
-   * Where the listener just asked to be, until the host's clock agrees.
-   *
-   * A seek is a round trip — renderer to main, down the host's stdin, into the
-   * deck, and back up on the next telemetry frame. The bar reads the host, so
-   * without this it spends that trip showing the position the thumb was
-   * dragged AWAY from: released at 2:30, snaps to 0:45, jumps to 2:30. Held
-   * across a scrub that works, it reads as a scrub that does not.
-   *
-   * Let go the moment the host's clock MOVES, whatever it moved to — not when
-   * it reaches the target. If the seek landed, the next frame is the target. If
-   * the deck refused it, the next frame is the song playing on from where it
-   * was, and the bar tells the truth about that instead of freezing on a
-   * position the audio never went to. Nothing here waits on a duration; it
-   * waits on the next frame from an engine that sends forty a second.
+   * Where the listener just asked to be, until the host's clock can be
+   * believed again: let go on the first reading after the host has answered
+   * the seek, or at once if it refused it — `pendingSeek.ts` says why not on
+   * the first reading that moves. A refusal arrives between renders, so it
+   * asks for one.
    */
-  const pendingSeekRef = useRef<
-    { targetMs: number; fromSeconds: number } | undefined
-  >(undefined);
+  const pendingSeekRef = useRef<IPendingSeek | undefined>(undefined);
+  const [, seekRefused] = useReducer((count: number) => count + 1, 0);
   if (
     pendingSeekRef.current &&
-    (!hostOwnsTransport ||
-      hostTransport.positionSeconds !== pendingSeekRef.current.fromSeconds)
+    seekSettled(
+      pendingSeekRef.current,
+      hostTransport.positionSeconds,
+      hostOwnsTransport,
+    )
   ) {
     pendingSeekRef.current = undefined;
   }
@@ -169,7 +174,14 @@ export const usePlayerEngine = (options: {
     mediaPath: track?.path,
     isPlaying,
     positionMs,
-    volume,
+    upcoming:
+      upcoming === undefined
+        ? undefined
+        : {
+            path: upcoming.path,
+            startPositionMs:
+              upcoming.leadInMs >= MIN_LEAD_IN_TRIM_MS ? upcoming.leadInMs : 0,
+          },
     /**
      * The fade the mirror should use if the track changes under it.
      *
@@ -194,18 +206,32 @@ export const usePlayerEngine = (options: {
    *
    * The position it will read back is claimed here, in the same call that
    * sends the command — before the round trip rather than after it, because
-   * the whole point is to have an answer DURING the trip. Read from the store
-   * rather than from `hostTransport` so the comparison is against the last
-   * frame that actually arrived, not the one this render was built from.
+   * the whole point is to have an answer DURING the trip — and released by
+   * the host's answer, never by a clock tick that beat the answer back.
    */
   const seekHost = useCallback(
     (nextPositionMs: number) => {
-      const targetMs = Math.max(0, nextPositionMs);
-      pendingSeekRef.current = {
-        targetMs,
-        fromSeconds: readDspNativeTransport().positionSeconds,
-      };
-      mirrorSeek(targetMs);
+      const pending = holdSeek(Math.max(0, nextPositionMs));
+      pendingSeekRef.current = pending;
+      mirrorSeek(pending.targetMs)
+        .then((applied) => {
+          // A later seek has the bar; this answer is about an earlier one.
+          if (pendingSeekRef.current !== pending) {
+            return undefined;
+          }
+          // Against the last reading that ARRIVED, read from the store
+          // rather than from a render — the one after it is the truth.
+          pendingSeekRef.current = seekAnswered(
+            pending,
+            applied,
+            readDspNativeTransport().positionSeconds,
+          );
+          if (pendingSeekRef.current === undefined) {
+            seekRefused();
+          }
+          return undefined;
+        })
+        .catch(() => undefined);
     },
     [mirrorSeek],
   );

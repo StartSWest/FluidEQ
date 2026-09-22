@@ -1,0 +1,53 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The tone dial: the disc, its reading, its name — the three of them in a
+// column, which is the shape the player's design gives Bass, Mid and Treble
+// and the one the EQ page's own three wear too.
+//
+// How big the disc is belongs to the surface it stands on: `--tone-knob-size`
+// is set by the player's deck from the room it has, and left at its own size
+// on the EQ page, where the three sit in a row of fixed cells.
+.tone-knob {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.tone-knob__dial.knob {
+  flex: none;
+  width: var(--tone-knob-size, 72px);
+  height: var(--tone-knob-size, 72px);
+}
+
+// The reading, in the accent and in figures that do not shuffle as it turns.
+.tone-knob__value {
+  color: $secondary-default;
+  font-family: $font-mono;
+  font-size: 11px;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.tone-knob__name {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.14em);
+}
+
+.tone-knob--disabled {
+  .tone-knob__value,
+  .tone-knob__name {
+    opacity: 0.5;
+  }
+}

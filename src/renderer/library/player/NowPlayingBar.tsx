@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSystemFader } from '../../audio/systemVolume';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TLibraryRepeat } from '../../../common/library/queue';
 import useTransportStrip from '../../audio/useTransportStrip';
@@ -69,22 +70,10 @@ export interface INowPlayingBarProps {
    * with no playlist provider above it, and a star that quietly does nothing
    * is worse than no star. */
   onFavorite?: () => void;
-  onVolume: (value: number) => void;
-  /**
-   * Called when a volume gesture ends, not while it runs.
-   *
-   * `onVolume` fires on every step of a `0.01` slider and must stay cheap so
-   * the sound tracks the pointer; this is where the value is written down.
-   */
-  onVolumeCommit: () => void;
   /** Show the playing track where it lives — switches to the Library tab and
    * opens the album it belongs to. Optional so the bar can be rendered on its
    * own in a test without one. */
   onReveal?: () => void;
-  /** Real usage always supplies the live level; the bar's own tests never
-   * need a working slider to exercise the behaviours they cover, so this
-   * stays optional rather than forcing every caller to thread it through. */
-  volume?: number;
   /** True for a format Chromium has no demuxer for — see `isLibraryPlayable`
    * and `LibraryPlayerContext`'s `isUnplayable`. */
   isUnplayable?: boolean;
@@ -388,21 +377,14 @@ const NowPlayingBar = ({
   onRepeat,
   isFavorite = false,
   onFavorite,
-  onVolume,
-  onVolumeCommit,
   onReveal,
-  volume = 1,
   isUnplayable = false,
 }: INowPlayingBarProps) => {
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
-
-  // Where the fader was before it was muted, so unmuting is not a guess.
-  // A ref because it is only ever read on the next press.
-  const restoreVolumeRef = useRef(volume > 0 ? volume : 1);
-  if (volume > 0) {
-    restoreVolumeRef.current = volume;
-  }
+  // The computer's volume, which is the only fader this app has — see
+  // `useSystemFader`. Nothing here is a level of the player's own.
+  const fader = useSystemFader();
 
   // The strip of window this bar occupies, reserved and measured — see
   // `useTransportStrip`, which the other tabs' bar shares.
@@ -608,60 +590,44 @@ const NowPlayingBar = ({
           {t(REPEAT_LABEL_KEYS[repeat])}
         </span>
       </button>
-      <div className="now-playing-bar__volume">
-        {/* The icon is the mute switch, the way karaoke's faders are. A fader
-            dragged to zero leaves nothing to say where it was; this puts it
-            back. */}
-        <button
-          type="button"
-          className="now-playing-bar__volume-icon"
-          aria-label={t(volume > 0 ? 'library.mute' : 'library.unmute')}
-          title={t(volume > 0 ? 'library.mute' : 'library.unmute')}
-          aria-pressed={volume === 0}
-          onClick={() => {
-            if (volume > 0) {
-              restoreVolumeRef.current = volume;
-              onVolume(0);
-            } else {
-              onVolume(restoreVolumeRef.current);
+      {/* THE COMPUTER'S VOLUME, drawn only once Windows has said what it is:
+          a fader that moves nothing is worse than none, and on a platform
+          with no helper to ask there is none. The icon is the mute switch,
+          the way karaoke's faders are; Windows itself puts the level back on
+          unmute, so nothing here has to remember it, and nothing is written
+          down on release — the level lives in Windows. */}
+      {fader.level !== undefined && (
+        <div className="now-playing-bar__volume">
+          <button
+            type="button"
+            className="now-playing-bar__volume-icon"
+            aria-label={t(fader.isMuted ? 'library.unmute' : 'library.mute')}
+            title={t(fader.isMuted ? 'library.unmute' : 'library.mute')}
+            aria-pressed={fader.isMuted}
+            onClick={fader.toggleMute}
+          >
+            <TransportIcon name={fader.isMuted ? 'volumeOff' : 'volume'} />
+          </button>
+          <input
+            type="range"
+            className="now-playing-bar__volume-slider"
+            min={0}
+            max={1}
+            step={0.01}
+            value={fader.level}
+            style={
+              {
+                '--now-playing-progress': `${fader.level * 100}%`,
+              } as CSSProperties
             }
-            // A click is a whole gesture on its own, so it commits at once.
-            // Only the slider has a middle to stay out of.
-            onVolumeCommit();
-          }}
-        >
-          <TransportIcon name={volume > 0 ? 'volume' : 'volumeOff'} />
-        </button>
-        <input
-          type="range"
-          className="now-playing-bar__volume-slider"
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          style={
-            {
-              '--now-playing-progress': `${volume * 100}%`,
-            } as CSSProperties
-          }
-          aria-label={t('library.volume')}
-          onChange={(event) => onVolume(Number(event.target.value))}
-          // Written down when the gesture ends, never during it. `onChange`
-          // fires on every 0.01 step, and a synchronous localStorage write per
-          // step is a hundred of them across one drag — the sound has to
-          // follow the pointer, so the saving gets out of its way.
-          //
-          // Three enders because a range input has three: the pointer (which
-          // it captures, so this arrives even if you release outside it), the
-          // arrow keys, and losing focus mid-drag to something else.
-          onPointerUp={onVolumeCommit}
-          onKeyUp={onVolumeCommit}
-          onBlur={onVolumeCommit}
-        />
-        <span className="now-playing-bar__volume-value" aria-hidden="true">
-          {Math.round(volume * 100)}%
-        </span>
-      </div>
+            aria-label={t('library.volume')}
+            onChange={(event) => fader.setLevel(Number(event.target.value))}
+          />
+          <span className="now-playing-bar__volume-value" aria-hidden="true">
+            {Math.round(fader.level * 100)}%
+          </span>
+        </div>
+      )}
     </>
   );
 

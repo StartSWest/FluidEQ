@@ -12,9 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * around itself, and Previous chooses between rewinding and changing track by
  * asking where the playhead is.
  *
- * The fader was here too and is not any more: it is not the library's, it is
- * the app's, and it lives in `appVolume` where karaoke and the Media tab can
- * read the same number. See that module for what having one each cost.
+ * The fader was here too and is not any more: it is not the library's, nor
+ * the app's — it is the computer's (`useSystemFader` in
+ * `renderer/audio/systemVolume`), and every player plays at full level under
+ * it. An app-level fader sat under the taskbar's for a while, so a quiet song
+ * was quiet twice and nobody could say from which; that is what having one
+ * cost, and why there is none.
  */
 import { MutableRefObject, useCallback } from 'react';
 import { ILibraryQueue, advanceQueue } from '../../../common/library/queue';

@@ -89,6 +89,7 @@ let isUpdateReady = false;
 let updateActions: {
   onInstallUpdate?: () => void;
   onCheckForUpdates?: () => void;
+  onRecoverWindow?: () => void;
 } = {};
 
 /**
@@ -226,6 +227,17 @@ export interface ITrayDeps {
    * caller's to log — the menu click has no UI to report back to.
    */
   onCheckForUpdates?: () => void;
+  /**
+   * Put the window back where it can be used: the full app, in the middle of
+   * the screen it is nearest.
+   *
+   * The tray is the only surface that survives a window nobody can reach — a
+   * player dragged off the side of the screen, one left on a display that has
+   * since been unplugged, or one whose own controls cannot be got at. Optional
+   * so a build without the window modes still gets a tray with Open and Quit
+   * (Ivan, 2026-09-22).
+   */
+  onRecoverWindow?: () => void;
 }
 
 const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
@@ -257,7 +269,7 @@ export const revealMainWindow = (getMainWindow: () => BrowserWindow | null) => {
 };
 
 const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
-  const { onInstallUpdate, onCheckForUpdates } = updateActions;
+  const { onInstallUpdate, onCheckForUpdates, onRecoverWindow } = updateActions;
   const template: Electron.MenuItemConstructorOptions[] = [];
 
   // AT THE TOP WHEN THERE IS AN UPDATE TO INSTALL. Position carries the
@@ -285,6 +297,23 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
     icon: menuIcons?.plain,
     click: () => revealWindow(getMainWindow),
   });
+
+  // THE WAY BACK FROM A WINDOW NOBODY CAN REACH. Open brings the window
+  // forward as it is, which is no help when "as it is" is a player three
+  // quarters of the way off the side of the screen, one left on a display
+  // that has since been unplugged, or one whose own controls cannot be got
+  // at. This is the full app, in the middle of the screen, and it is in the
+  // tray because the tray is the only surface left when the window is the
+  // problem (Ivan, 2026-09-22).
+  if (onRecoverWindow) {
+    template.push({
+      label: translate(locale, 'app.tray.recoverWindow'),
+      click: () => {
+        revealWindow(getMainWindow);
+        onRecoverWindow();
+      },
+    });
+  }
 
   if (areUpdatesEnabled && onCheckForUpdates && !isUpdateReady) {
     // Only when there is not one already staged. With "Install update and
@@ -386,8 +415,9 @@ export const setTrayUpdateReady = (
 };
 
 export const setUpTray = (deps: ITrayDeps) => {
-  const { getMainWindow, onInstallUpdate, onCheckForUpdates } = deps;
-  updateActions = { onInstallUpdate, onCheckForUpdates };
+  const { getMainWindow, onInstallUpdate, onCheckForUpdates, onRecoverWindow } =
+    deps;
+  updateActions = { onInstallUpdate, onCheckForUpdates, onRecoverWindow };
   if (tray) {
     return;
   }

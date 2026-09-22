@@ -1,0 +1,198 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The LED keys and the deck keys: the lit buttons the player is driven by.
+
+// ============================================================ LED keys =====
+//
+// The quiet button, as a key on a deck: raised, uppercase, with a lamp that
+// is its state. `button small subtle` underneath, so it hovers, disables and
+// takes focus as every quiet button in the app does.
+.mini-player,
+.player-menu {
+  .button.player-led {
+    gap: 6px;
+    min-height: 24px;
+    padding: 0 9px 0 8px;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    @include tracking(0.1em);
+
+    // The one key face, over the app's button base (`player-key-face`).
+    @include player-key-face;
+
+    // AND ON, THE WHOLE KEY TAKES THE COLOUR, not just its edge — the way
+    // every other thing that is switched on in this app is filled rather
+    // than outlined.
+    &[aria-pressed='true']:not(:disabled) {
+      @include player-key-on;
+    }
+  }
+}
+
+.player-led__lamp {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--player-text-soft) 22%, transparent);
+  box-shadow: inset 0 1px 1px rgba($black, 0.6);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+
+  [aria-pressed='true']:not(:disabled) > & {
+    background: var(--player-lamp);
+    box-shadow:
+      0 0 6px var(--player-lamp),
+      inset 0 0 1px $white;
+  }
+}
+
+// What a key is set to, in the display's colour beside its name.
+.player-led__value {
+  color: var(--player-ink);
+  font-weight: $weight-semibold;
+  @include tracking(0.04em);
+}
+
+// A small meter inside a key: how far the song has been listened to.
+.player-led__meter {
+  position: relative;
+  width: 26px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--track-well);
+
+  span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--player-lamp);
+    box-shadow: 0 0 6px var(--player-lamp);
+  }
+}
+
+// =========================================================== deck keys =====
+//
+// At their size when there is room, narrower when there is not: at the
+// player's narrowest the row of eight keys is wider than the deck, and the
+// last one was cut off at its edge.
+.player-key {
+  @include player-key-face;
+  display: flex;
+  flex: 0 1 34px;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+
+  .player-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow:
+      inset 0 1px 3px rgba($black, 0.7),
+      0 0 8px color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--player-ink);
+  }
+}
+
+.player-key--small {
+  flex-basis: 30px;
+}
+
+// Repeat one: the key carries a small one in its corner.
+.player-key.is-one {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    right: 3px;
+    bottom: 1px;
+    color: var(--player-ink);
+    content: '1';
+    font-size: 8px;
+    font-weight: $weight-bold;
+  }
+}
+
+// Play: the one loud key — the app's filled button at a deck key's size, and
+// nothing of the deck key's own face, which would paint over the fill.
+.mini-player .button.player-play {
+  flex: 0 1 46px;
+  min-width: 32px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 8px;
+
+  .player-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  // Nothing to play yet: the same key with its light turned down, still the
+  // play key. The app's unavailable face — an outline on nothing — read as a
+  // black hole in the middle of the transport.
+  &:disabled {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--accent) 32%, var(--player-key-end));
+    opacity: 0.75;
+  }
+}
+
+.mini-player .button.player-play--mini {
+  flex: none;
+  width: 30px;
+  min-width: 0;
+  height: 26px;
+  border-radius: 7px;
+
+  .player-icon {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.player-icon-button {
+  display: grid;
+  flex: none;
+  width: 26px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--player-text-soft);
+  cursor: pointer;
+
+  .player-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: rgba($edge-tint, 0.08);
+    color: var(--player-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}

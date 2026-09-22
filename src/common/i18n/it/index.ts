@@ -46,6 +46,7 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
+import player from './player';
 
 const it: Partial<Dictionary> = {
   ...karaoke,
@@ -76,6 +77,7 @@ const it: Partial<Dictionary> = {
   ...wallpaper,
   ...bugReport,
   ...review,
+  ...player,
 };
 
 export default it;

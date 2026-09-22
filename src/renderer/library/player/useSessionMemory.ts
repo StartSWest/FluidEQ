@@ -100,14 +100,40 @@ export const useSessionMemory = (options: {
     if (!memory) {
       return;
     }
-    const survivors = memory.trackIds.filter((id) => trackById.has(id));
-    if (survivors.length !== memory.trackIds.length) {
-      // The library moved under it. Rebuilding a partial queue would silently
-      // renumber `order` and put the reader on a different song than the one
-      // they left, which is worse than starting empty.
+    /**
+     * The queue as it was, minus whatever the library no longer has.
+     *
+     * One missing file used to drop the whole thing — a scan that lost a
+     * folder, or a track renamed, and a two-hundred-song queue came back
+     * empty, which the next write then made permanent (Ivan, 2026-09-21:
+     * keep Up Next across a restart). What is left is still the queue the
+     * listener had, in the order they had it, so it is rebuilt from the
+     * survivors: the play order is filtered, the ids renumbered against it
+     * — a queue may hold the same track twice, so they are numbered by
+     * first appearance — and the playhead put back on the song it was on,
+     * or the next one still there.
+     */
+    const playOrder = memory.order.map((index) => memory.trackIds[index]);
+    const keptOrder = playOrder.filter((id) => trackById.has(id));
+    if (keptOrder.length === 0) {
       return;
     }
-    const restoreTrackId = memory.trackIds[memory.order[memory.position]];
+    const trackIds: string[] = [];
+    keptOrder.forEach((id) => {
+      if (!trackIds.includes(id)) {
+        trackIds.push(id);
+      }
+    });
+    const order = keptOrder.map((id) => trackIds.indexOf(id));
+    const wantedId = playOrder[memory.position];
+    const stillThere = trackById.has(wantedId)
+      ? wantedId
+      : playOrder.slice(memory.position).find((id) => trackById.has(id));
+    const position = Math.max(
+      0,
+      stillThere === undefined ? 0 : keptOrder.indexOf(stillThere),
+    );
+    const restoreTrackId = keptOrder[position];
     const restoreMs = restorablePositionMs(
       memory.positionMs,
       trackById.get(restoreTrackId)?.durationMs,
@@ -134,9 +160,9 @@ export const useSessionMemory = (options: {
       setPositionMs(restoreMs);
     }
     setQueue({
-      trackIds: memory.trackIds,
-      order: memory.order,
-      position: memory.position,
+      trackIds,
+      order,
+      position,
       repeat: memory.repeat,
       isShuffled: memory.isShuffled,
     });

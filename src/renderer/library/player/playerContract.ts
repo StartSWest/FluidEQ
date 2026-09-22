@@ -65,7 +65,6 @@ export interface ILibraryPlayerContextValue {
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
-  volume: number;
   isShuffled: boolean;
   repeat: TLibraryRepeat;
   /**
@@ -178,16 +177,6 @@ export interface ILibraryPlayerContextValue {
   seek: (positionMs: number) => void;
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
-  /** Audible at once. Does not persist — see `commitVolume`. */
-  setVolume: (value: number) => void;
-  /**
-   * Persist wherever the fader was left, at the end of a gesture.
-   *
-   * Separate from `setVolume` so dragging stays smooth: the sound follows the
-   * pointer on every change, while the synchronous `localStorage` write
-   * happens once, on release.
-   */
-  commitVolume: () => void;
   /**
    * `LibraryVideoStage`'s own registration hook: hand it the `<video>` it
    * just mounted and get back the cleanup that un-registers it. While

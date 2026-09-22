@@ -1,0 +1,21 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The player's stylesheet, in pieces.
+//
+// IN CASCADE ORDER, AND THE ORDER IS LOAD-BEARING. Sass writes each module's
+// rules out where it is first loaded, so the list below is the order the
+// rules reach the page in, and a rule that ties another on specificity wins
+// by standing later in it. Move a line here and a key can lose its lit face.
+// Each piece `@use`s the parts it borrows mixins from; a module loaded twice
+// is written out once.
+@use 'miniPlayerParts';
+@use 'miniPlayerKeys';
+@use 'miniPlayerSliders';
+@use 'miniPlayerEq';
+@use 'miniPlayerDecks';
+@use 'miniPlayerShell';
+@use 'miniPlayerTransport';

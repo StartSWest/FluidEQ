@@ -161,6 +161,14 @@ import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
+import { createWindowModes } from './windowMode';
+import {
+  appMinimumSize,
+  isUsableRect,
+  type IRect,
+  type IWindowState as IWindowStatePush,
+  type TWindowMode,
+} from '../common/windowMode';
 import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
@@ -218,6 +226,7 @@ import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
+import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
@@ -693,6 +702,12 @@ const setUpAutoUpdates = async () => {
 
 let mainWindow: BrowserWindow | null = null;
 
+/**
+ * The full app and the player it turns into, and the floor each keeps. What
+ * happens after a switch is attached beside `sendWindowState`, below.
+ */
+const windowModes = createWindowModes();
+
 const WINDOW_STATE_FILENAME = 'window-state.json';
 
 /**
@@ -703,12 +718,25 @@ const WINDOW_STATE_FILENAME = 'window-state.json';
  * have started.
  */
 interface IWindowState {
+  /** The full app's normal bounds, whichever mode the window was left in. */
   width?: number;
   height?: number;
   x?: number;
   y?: number;
   isMaximized?: boolean;
+  /** The app or the player; missing in every file written before the player. */
+  mode?: TWindowMode;
+  /** The player's bounds. */
+  player?: IRect;
+  /** The player's Always on top. */
+  isPinned?: boolean;
 }
+
+/** The screen a saved rectangle belongs to, or the primary one. */
+const workAreaFor = (rect: Partial<IRect>) =>
+  isUsableRect(rect)
+    ? screen.getDisplayMatching(rect).workArea
+    : screen.getPrimaryDisplay().workArea;
 
 /**
  * Where and how big the window was last time.
@@ -731,10 +759,24 @@ const loadWindowState = (): IWindowState => {
 
     const state: IWindowState = {
       isMaximized: parsed.isMaximized === true,
+      mode: parsed.mode === 'player' ? 'player' : 'app',
+      isPinned: parsed.isPinned === true,
     };
+    if (isUsableRect(parsed.player)) {
+      state.player = {
+        x: parsed.player.x,
+        y: parsed.player.y,
+        width: parsed.player.width,
+        height: parsed.player.height,
+      };
+    }
     if (isSize(parsed.width) && isSize(parsed.height)) {
-      state.width = Math.max(parsed.width, WINDOW_MIN_WIDTH);
-      state.height = Math.max(parsed.height, WINDOW_MIN_HEIGHT);
+      // Up to the app's floor on the screen it was left on. A window saved
+      // smaller by a version that allowed it comes back at the floor — or
+      // as large as that screen is, on a smaller one.
+      const floor = appMinimumSize(workAreaFor(parsed));
+      state.width = Math.max(parsed.width, floor.width);
+      state.height = Math.max(parsed.height, floor.height);
     }
 
     // A saved position is only usable if a display still covers it. Unplugging
@@ -774,22 +816,32 @@ const saveWindowState = () => {
     return;
   }
   try {
-    const bounds = mainWindow.getNormalBounds();
+    const modes = windowModes.memory();
+    const isPlayer = modes.mode === 'player';
+    // The full app's bounds are the window's own while it is the app. While
+    // it is the player they are the ones the switch put aside, to go back to.
+    const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
+    const player = isPlayer ? mainWindow.getBounds() : modes.player;
+    // A window that is off screen right now cannot report the state the user
+    // chose. Normally that never happens: the close handler saves before it
+    // hides, so the window is still visible at that moment. It does happen
+    // after an unattended update, which builds the window and never shows
+    // it — `isMaximized()` answers false, and writing that answer down would
+    // un-maximise FluidEQ for good, one update at a time. Keep what was
+    // already recorded instead.
+    const isAppMaximized = mainWindow.isVisible()
+      ? mainWindow.isMaximized()
+      : loadWindowState().isMaximized === true;
     const state: IWindowState = {
       width: bounds.width,
       height: bounds.height,
       x: bounds.x,
       y: bounds.y,
-      // A window that is off screen right now cannot report the state the user
-      // chose. Normally that never happens: the close handler saves before it
-      // hides, so the window is still visible at that moment. It does happen
-      // after an unattended update, which builds the window and never shows
-      // it — `isMaximized()` answers false, and writing that answer down would
-      // un-maximise FluidEQ for good, one update at a time. Keep what was
-      // already recorded instead.
-      isMaximized: mainWindow.isVisible()
-        ? mainWindow.isMaximized()
-        : loadWindowState().isMaximized === true,
+      // The player is never maximised; what it keeps is the app's own.
+      isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
+      mode: modes.mode,
+      ...(isUsableRect(player) ? { player } : {}),
+      isPinned: modes.isPinned,
     };
     fs.writeFileSync(
       path.join(userDataDir, WINDOW_STATE_FILENAME),
@@ -879,16 +931,14 @@ const MAXIMIZE_BELOW_HEIGHT = 1440;
 const firstRunPlacement = () => {
   const display = screen.getPrimaryDisplay();
   const { width, height } = display.workAreaSize;
+  const floor = appMinimumSize(display.workArea);
   return {
     maximize:
       display.bounds.width < MAXIMIZE_BELOW_WIDTH ||
       display.bounds.height < MAXIMIZE_BELOW_HEIGHT,
-    width: Math.max(
-      WINDOW_MIN_WIDTH,
-      Math.round(width * FIRST_RUN_SCREEN_FRACTION),
-    ),
+    width: Math.max(floor.width, Math.round(width * FIRST_RUN_SCREEN_FRACTION)),
     height: Math.max(
-      WINDOW_MIN_HEIGHT,
+      floor.height,
       Math.round(height * FIRST_RUN_SCREEN_FRACTION),
     ),
   };
@@ -3002,15 +3052,36 @@ ipcMain.handle(
 // somebody finds in Task Manager with this app's name on it.
 app.on('will-quit', stopWatchingSystemMedia);
 
+/** What the page is told about its window, pushed and asked for alike. */
+const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
+  const modes = windowModes.memory();
+  const isLive = window !== null && !window.isDestroyed();
+  return {
+    isMaximized: isLive ? window.isMaximized() : false,
+    isFullScreen: isLive ? window.isFullScreen() : false,
+    mode: modes.mode,
+    isPinned: modes.isPinned,
+    zoom: isLive ? window.webContents.getZoomFactor() : 1,
+  };
+};
+
 const sendWindowState = () => {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
-  mainWindow.webContents.send('window-state-changed', {
-    isMaximized: mainWindow.isMaximized(),
-    isFullScreen: mainWindow.isFullScreen(),
-  });
+  mainWindow.webContents.send(
+    'window-state-changed',
+    windowStateOf(mainWindow),
+  );
 };
+
+// Every switch between the app and the player is written down at once — a
+// window closed straight after one must open in the mode it was left in — and
+// the page is told, because what it draws is the mode.
+windowModes.listen(() => {
+  saveWindowState();
+  sendWindowState();
+});
 
 // Handlers that own a subject rather than a slice of this file's scope.
 //
@@ -3021,6 +3092,8 @@ const sendWindowState = () => {
 registerWindowIpc({
   getMainWindow: () => mainWindow,
   sendWindowState,
+  getWindowState: () => windowStateOf(mainWindow),
+  windowModes,
 });
 
 const stopRemoteAudioLan = registerRemoteAudioIpc({
@@ -3040,6 +3113,11 @@ registerGamesIpc({
   // matters.
   onPlaying: (playing) => wallpaperIpc.setGameInFront(playing),
 });
+
+// The system volume, for the compact player's slider when what is playing is
+// another program's. The helper behind it runs only while the window shows
+// that slider — see `systemVolume.ts`.
+registerSystemVolumeIpc(() => mainWindow);
 
 // Registers the channels and reads whatever session is already on disk; it
 // contacts nothing. A build with no backend configured resolves to a store that
@@ -3535,6 +3613,7 @@ const createMainWindow = createMainWindowFactory({
   loadWindowState,
   saveWindowState,
   sendWindowState,
+  windowModes,
   setActiveAutoUpdater: (next) => {
     activeAutoUpdater = next;
   },
@@ -3872,6 +3951,20 @@ const onAppReady = async () => {
     // happen in the milliseconds before this runs.
     setUpTray({
       getMainWindow: () => mainWindow,
+      // The full app, in the middle of the screen. Both halves matter: a
+      // player that cannot be reached cannot be switched back from its own
+      // titlebar, and a window put back in the middle as a player is still a
+      // player somebody may not be able to use.
+      onRecoverWindow: () => {
+        if (!mainWindow || mainWindow.isDestroyed()) {
+          return;
+        }
+        const window = mainWindow;
+        windowModes
+          .setMode(window, 'app')
+          .catch((error) => log.warn('Tray recovery could not switch', error))
+          .finally(() => windowModes.recentre(window));
+      },
       // Same code path as the notification click and the in-window
       // banner — installActiveUpdate is the one place that decides
       // whether we have a downloaded, verified installer to run.

@@ -43,6 +43,31 @@ export const CONTINUOUS_MODES: TSmartEqMode[] = ['detail', 'balance', 'target'];
 
 export const isContinuousMode = (mode: TSmartEqMode) => mode !== 'smart';
 
+/** Every mode, in the order the menus list them: the one-off first. */
+export const SMART_EQ_MODES: readonly TSmartEqMode[] = [
+  'smart',
+  ...CONTINUOUS_MODES,
+];
+
+/**
+ * Each mode's name and the line under it in a menu, in the words the EQ
+ * page's button uses — one table for every place a mode is named, so the
+ * mini player's key and the EQ page's cannot call one mode two things.
+ */
+export const SMART_EQ_MODE_NAME = {
+  smart: 'eq.smart',
+  detail: 'eq.smart.mode.detail',
+  balance: 'eq.smart.mode.balance',
+  target: 'eq.smart.mode.target',
+} as const satisfies Record<TSmartEqMode, string>;
+
+export const SMART_EQ_MODE_NOTE = {
+  smart: 'eq.smart.mode.once.note',
+  detail: 'eq.smart.mode.detail.note',
+  balance: 'eq.smart.mode.balance.note',
+  target: 'eq.smart.mode.target.note',
+} as const satisfies Record<TSmartEqMode, string>;
+
 const STORAGE_KEY = 'fluideq.smartEqMode';
 
 const read = (): TSmartEqMode => {

@@ -100,7 +100,6 @@ const handoffTo = async (
     mediaPath,
     isPlaying: true,
     positionMs: 0,
-    volume: 1,
     transition: { durationMs, curve, shape, startPositionMs },
   });
   await settle();
@@ -115,7 +114,6 @@ const withTrackCued = async (overrides: Record<string, unknown> = {}) => {
     mediaPath: 'C:/a.mp3',
     isPlaying: true,
     positionMs: 0,
-    volume: 1,
   });
   await settle();
   calls.length = 0;
@@ -184,7 +182,6 @@ describe('the mirrored crossfade', () => {
       mediaPath: 'C:/b.mp3',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
       transition: {
         durationMs: 4000,
         curve: 'equalPower',
@@ -197,7 +194,6 @@ describe('the mirrored crossfade', () => {
       mediaPath: 'C:/b.mp3',
       isPlaying: true,
       positionMs: 120,
-      volume: 1,
       transition: {
         durationMs: 4000,
         curve: 'equalPower',
@@ -226,7 +222,6 @@ describe('the mirrored crossfade', () => {
       mediaPath: 'C:/b.mp3',
       isPlaying: true,
       positionMs: 0,
-      volume: 1,
     });
     await settle();
 
@@ -393,76 +388,149 @@ describe('the mirrored crossfade', () => {
  * subtlety: the whole feature was missing on the engine that is now the
  * default.
  */
-describe('the mirrored volume', () => {
-  it('tells the host the fader position on the first sync', async () => {
-    const { controller, calls } = controllerSpy();
-    const mirror = createNativeMirror(controller, [fakeElement()]);
+describe('the next track, primed on the spare deck', () => {
+  const FADE = { durationMs: 2_000, curve: 'equalPower' as TCrossfadeCurve };
 
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 0,
-      volume: 0.4,
-    });
-    await settle();
-
-    expect(calls).toContain('setVolume(0.4)');
-  });
-
-  it('sends it again when it moves', async () => {
+  it('is loaded and cued to its lead-in while the current track plays', async () => {
     const { mirror, calls } = await withTrackCued();
 
     mirror.sync({
       mediaPath: 'C:/a.mp3',
       isPlaying: true,
-      positionMs: 10,
-      volume: 0.25,
+      positionMs: 5_000,
+      upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
     });
     await settle();
 
-    expect(calls).toContain('setVolume(0.25)');
-  });
-
-  /**
-   * And stays quiet when it has not, because this runs on every position tick —
-   * four times a second, for the life of the track.
-   */
-  it('says nothing on a tick where the fader did not move', async () => {
-    const { mirror, calls } = await withTrackCued();
-
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 10,
-      volume: 1,
-    });
-    await settle();
+    expect(calls).toEqual(['load(1)', 'seek(1,0.3)']);
+    // Said once: the next tick asks for nothing.
     calls.length = 0;
     mirror.sync({
       mediaPath: 'C:/a.mp3',
       isPlaying: true,
-      positionMs: 20,
-      volume: 1,
+      positionMs: 5_250,
+      upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
     });
     await settle();
-
-    expect(calls.filter((call) => call.startsWith('setVolume'))).toHaveLength(
-      0,
-    );
+    expect(calls).toEqual([]);
   });
 
-  /** A track change must not swallow a fader move made in the same tick. */
-  it('sends the fader even on the tick that changes track', async () => {
+  it('fades to the primed deck without loading or cueing it again', async () => {
     const { mirror, calls } = await withTrackCued();
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 5_000,
+      upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
+    });
+    await settle();
+    calls.length = 0;
 
+    await handoffTo(
+      mirror,
+      'C:/b.mp3',
+      FADE.durationMs,
+      FADE.curve,
+      undefined,
+      300,
+    );
+
+    expect(calls).toEqual(['crossfade(1)']);
+  });
+
+  it('lands a press on Next on the primed deck at once', async () => {
+    const { mirror, calls } = await withTrackCued();
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 5_000,
+      upcoming: { path: 'C:/b.mp3', startPositionMs: 0 },
+    });
+    await settle();
+    calls.length = 0;
+
+    // A cut, not a fade: the new track arrives with no transition.
+    mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 0 });
+    await settle();
+
+    expect(calls).toEqual(['select(1)', 'play']);
+  });
+
+  it('leaves the deck still fading out alone until that fade is over', async () => {
+    const { mirror, calls } = await withTrackCued();
+    await handoffTo(
+      mirror,
+      'C:/b.mp3',
+      FADE.durationMs,
+      FADE.curve,
+      undefined,
+      300,
+    );
+    calls.length = 0;
+
+    // Deck 0 is fading out for two seconds from b's lead-in. A tick inside
+    // that window must not load c into it.
     mirror.sync({
       mediaPath: 'C:/b.mp3',
       isPlaying: true,
-      positionMs: 0,
-      volume: 0.6,
+      positionMs: 1_500,
+      upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
+    });
+    await settle();
+    expect(calls).toEqual([]);
+
+    // Past lead-in plus the fade's length, the deck is free.
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 2_300,
+      upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
+    });
+    await settle();
+    expect(calls).toEqual(['load(0)']);
+  });
+
+  it('forgets what was primed when the queue moves on to something else', async () => {
+    const { mirror, calls } = await withTrackCued();
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 5_000,
+      upcoming: { path: 'C:/b.mp3', startPositionMs: 0 },
+    });
+    await settle();
+    calls.length = 0;
+
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 5_250,
+      upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
     });
     await settle();
 
-    expect(calls).toContain('setVolume(0.6)');
+    expect(calls).toEqual(['load(1)']);
+  });
+});
+
+describe('the level the host plays at', () => {
+  it('is full, said once when the mirror is built, and never moved after', async () => {
+    const { controller, calls } = controllerSpy();
+    const mirror = createNativeMirror(controller, [fakeElement()]);
+    await settle();
+    expect(calls).toEqual(['setVolume(1)']);
+
+    calls.length = 0;
+    mirror.sync({ mediaPath: 'C:/a.mp3', isPlaying: true, positionMs: 0 });
+    await settle();
+    mirror.sync({ mediaPath: 'C:/a.mp3', isPlaying: true, positionMs: 10 });
+    await settle();
+    mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 0 });
+    await settle();
+    // The fader beside the player is the computer's (`useSystemFader`); the
+    // host has nothing of its own to be moved.
+    expect(calls.filter((call) => call.startsWith('setVolume'))).toHaveLength(
+      0,
+    );
   });
 });

@@ -17,11 +17,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * layout already publishes `--now-playing-bar-height` and reserves the same
  * space with it, so this agrees with the padding by construction instead of
  * being a second number to keep in step. Zero when nothing is playing, since
- * the class that carries them is not on the root then.
+ * the class that carries them is not on the root then — and zero while the
+ * window is the player, which puts the app and its bar away and keeps the
+ * class: the player's menus were stopping a bar's height short of an empty
+ * window edge.
  */
 const bottomInset = (): number => {
   const root = document.getElementById('root');
-  if (!root?.classList.contains('has-now-playing')) {
+  if (
+    document.documentElement.dataset.windowMode === 'player' ||
+    !root?.classList.contains('has-now-playing')
+  ) {
     return 0;
   }
   const shell = getComputedStyle(root);

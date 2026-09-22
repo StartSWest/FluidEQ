@@ -146,7 +146,6 @@ describe('the player saying it is the sound', () => {
     mediaPath: 'C:/music/track.flac',
     isPlaying,
     positionMs: 0,
-    volume: 1,
   });
 
   it('while it plays through its own engine, and not after', async () => {

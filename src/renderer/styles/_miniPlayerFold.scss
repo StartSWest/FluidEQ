@@ -1,0 +1,181 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The player folded to one line.
+
+// ======================================================= one line, folded ==
+//
+// Two groups: what the line is about, which wraps its seek line and its EQ
+// switch onto a second row the strip hides when it runs out of room, and the
+// window's own buttons, which never move. The whole line is the drag handle.
+.player-fold {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-height: 0;
+  padding: 0 6px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--player-chrome), $white 5%),
+    var(--player-chrome)
+  );
+  -webkit-app-region: drag;
+
+  button,
+  input {
+    -webkit-app-region: no-drag;
+  }
+}
+
+// One line, and everything on it. It used to wrap what did not fit onto a
+// second row the strip then hid, so a narrow player's seek line and its EQ
+// key simply vanished and left a hole where they had been (Ivan,
+// 2026-09-21): now the title gives up its width first, the seek line
+// shortens with it, and the EQ key steps out only when even that is not
+// enough.
+.player-fold__lead {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 28px;
+}
+
+.player-fold__tail {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+}
+
+// THE MARK ON ITS KEY, AND THE NAME BESIDE IT — the same two things that
+// open the unfolded player's strip (`PlayerMarkMenu`, `.player-title__mark`
+// in `_miniPlayerShell.scss`), so the folded line is still FluidEQ at a glance
+// (Ivan, 2026-09-22: "the fold line needs the FluidEQ logo with its
+// background", "show the name FluidEQ always"). The name is set as the title
+// strip sets it, without the grilles either side — one line has no width to
+// give a texture.
+.player-fold__name {
+  flex: none;
+  color: var(--player-text-soft);
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include tracking(0.24em);
+}
+
+// The transport on one line: previous, play, next, stop, at the height of
+// the strip's other keys. The gap between them is the deck's own.
+.player-fold__transport {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+}
+
+// A deck key at the folded line's height: as tall as the play key beside it
+// (`.player-play--mini`), and no wider than its glyph needs.
+.player-key--fold {
+  flex: none;
+  width: 28px;
+  min-width: 0;
+  height: 26px;
+  border-radius: 7px;
+
+  .player-icon {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.player-fold__screen {
+  display: flex;
+  flex: 1 1 120px;
+  align-items: center;
+  gap: 6px;
+  min-width: 64px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+
+  .player-marquee {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    background: none;
+    box-shadow: none;
+  }
+
+  // Smaller than the deck's clock: on one line the song's name is what the
+  // strip is for, and a full-size readout left it two letters (Ivan,
+  // 2026-09-21).
+  .player-clock-button {
+    flex: none;
+    height: 13px;
+  }
+}
+
+// WHAT GIVES WAY AS THE LINE NARROWS, in the order a listener can afford to
+// lose it. The EQ key first: the deck below has the same switch, one press
+// away. Then the seek line, then Stop — Play still stops the sound, and
+// Previous starts the song again — and last the window's Minimise, which
+// the taskbar does too. The name and the rest of the transport stay at every
+// width: at the player's floor of 360 the strip is the mark, the name, three
+// keys, the clock, and unfold and close, and nothing is clipped — 341 of the
+// 360, from the pieces as they measure in the window (mark 40, name 58,
+// keys 28/30/28, screen 64, two window buttons 59, gaps and padding 28),
+// with the title's marquee at nothing.
+@container player (max-width: 520px) {
+  .player-fold__eq {
+    display: none;
+  }
+}
+
+@container player (max-width: 470px) {
+  .player-fold__seek {
+    display: none;
+  }
+}
+
+@container player (max-width: 430px) {
+  .player-fold__stop {
+    display: none;
+  }
+}
+
+@container player (max-width: 390px) {
+  .player-fold__minimize {
+    display: none;
+  }
+}
+
+.player-fold__seek {
+  flex: 0 1 84px;
+  min-width: 44px;
+  height: 14px;
+
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+  }
+
+  &::-webkit-slider-thumb {
+    width: 10px;
+    height: 8px;
+    margin-top: -2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-queue__bars span {
+    animation: none;
+  }
+}

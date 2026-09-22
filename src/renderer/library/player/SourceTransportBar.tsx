@@ -19,11 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { CSSProperties, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
-import {
-  commitAppVolume,
-  setAppVolume,
-  useAppVolume,
-} from '../../audio/appVolume';
+import { useSystemFader } from '../../audio/systemVolume';
 import { setTransportSlot } from '../../audio/transportSlot';
 import useTransportStrip from '../../audio/useTransportStrip';
 import SongEqBadge from '../../components/SongEqBadge';
@@ -102,16 +98,10 @@ const SourceTransportBar = ({
 
   const barRef = useRef<HTMLDivElement | null>(null);
 
-  // The app's fader, read from the one place that holds it. Never from the
-  // source: a source that could be set but not read used to draw a made-up
-  // 100% here — see `ITransportSource.setVolume`.
-  const volume = useAppVolume();
-
-  // Where the fader was before it was muted — see `NowPlayingBar`.
-  const restoreVolumeRef = useRef(volume || 1);
-  if (volume > 0) {
-    restoreVolumeRef.current = volume;
-  }
+  // The computer's volume — the only fader this app has (`useSystemFader`).
+  // Every source plays at full level, so there is nothing of a source's own
+  // to read here and nothing a source could set.
+  const fader = useSystemFader();
 
   // The same strip of window the library's bar reserves, reserved the
   // same way — this is the same bar in the same place, on another tab.
@@ -348,28 +338,23 @@ const SourceTransportBar = ({
 
           <div className="now-playing-bar__aside">
             <div className="now-playing-bar__secondary">
-              {source.setVolume !== undefined && (
+              {/* The computer's volume, once Windows has said what it is —
+                  see `NowPlayingBar` for why nothing else is drawn here. */}
+              {fader.level !== undefined && (
                 <div className="now-playing-bar__volume">
-                  {/* The icon mutes, as it does on every other bar. */}
                   <button
                     type="button"
                     className="now-playing-bar__volume-icon"
                     aria-label={t(
-                      volume > 0 ? 'library.mute' : 'library.unmute',
+                      fader.isMuted ? 'library.unmute' : 'library.mute',
                     )}
-                    title={t(volume > 0 ? 'library.mute' : 'library.unmute')}
-                    aria-pressed={volume === 0}
-                    onClick={() => {
-                      if (volume > 0) {
-                        restoreVolumeRef.current = volume;
-                        setAppVolume(0);
-                      } else {
-                        setAppVolume(restoreVolumeRef.current);
-                      }
-                      commitAppVolume();
-                    }}
+                    title={t(fader.isMuted ? 'library.unmute' : 'library.mute')}
+                    aria-pressed={fader.isMuted}
+                    onClick={fader.toggleMute}
                   >
-                    <TransportIcon name={volume > 0 ? 'volume' : 'volumeOff'} />
+                    <TransportIcon
+                      name={fader.isMuted ? 'volumeOff' : 'volume'}
+                    />
                   </button>
                   <input
                     type="range"
@@ -377,26 +362,22 @@ const SourceTransportBar = ({
                     min={0}
                     max={1}
                     step={0.01}
-                    value={volume}
+                    value={fader.level}
                     style={
                       {
-                        '--now-playing-progress': `${volume * 100}%`,
+                        '--now-playing-progress': `${fader.level * 100}%`,
                       } as CSSProperties
                     }
                     aria-label={t('library.volume')}
                     onChange={(event) =>
-                      setAppVolume(Number(event.target.value))
+                      fader.setLevel(Number(event.target.value))
                     }
-                    onPointerUp={commitAppVolume}
-                    onPointerCancel={commitAppVolume}
-                    onKeyUp={commitAppVolume}
-                    onBlur={commitAppVolume}
                   />
                   <span
                     className="now-playing-bar__volume-value"
                     aria-hidden="true"
                   >
-                    {Math.round(volume * 100)}%
+                    {Math.round(fader.level * 100)}%
                   </span>
                 </div>
               )}

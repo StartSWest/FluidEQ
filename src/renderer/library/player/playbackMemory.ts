@@ -33,11 +33,12 @@ const STORAGE_KEY = 'fluideq.library.playback';
 /**
  * The fader used to live here, under `fluideq.library.volume`.
  *
- * It is `renderer/audio/appVolume` now, because it was never the library's:
- * karaoke kept a second one and the Media tab invented a third, so the same
- * app played at three different levels depending on the open tab. The old key
- * is still read once, there, so nobody's remembered level was lost to the
- * move.
+ * It is nowhere now: the only fader is the computer's (`useSystemFader` in
+ * `renderer/audio/systemVolume`) and every player plays at full level under
+ * it. Karaoke once kept a second level and the Media tab invented a third, so
+ * the same app played at three different levels depending on the open tab;
+ * then one shared level of the app's own sat under the taskbar's, which was
+ * still one too many. Neither key is read any more.
  */
 
 const CONTINUATION_KEY = 'fluideq.library.keepPlaying';
