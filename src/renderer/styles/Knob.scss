@@ -26,15 +26,19 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow: visible;
   }
 
+  // The gauge outside the body: a hairline of unlit panel, then a thin ring
+  // in the accent as far as the value goes and a ghost of it the rest of the
+  // way round. Thin on purpose — a thick arc is a meter, and the thing being
+  // read here is the disc.
   &__track,
   &__value {
     fill: none;
-    stroke-width: 6;
+    stroke-width: 3;
     stroke-linecap: round;
   }
 
   &__track {
-    stroke: rgba($edge-tint, 0.14);
+    stroke: rgba($edge-tint, 0.1);
   }
 
   &__value {
@@ -43,59 +47,47 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // The body's and the face's gradients (`Knob.tsx`), by class rather than by
-  // attribute so a scene's tint can reach them. At rest they are the slate
-  // they were chosen as, one rung over the field; under a Plus scene's tint
-  // (`data-scene-tint` on the root, `sceneTintStore.ts`) the same rungs are
-  // built from the scene's field and lit with its light accent, so the knob is
-  // not the one blue disc left in a window the scene has recoloured.
+  // attribute so a scene's tint can reach them: they are the field rung and
+  // the well rung of the ladder every control uses, and a Plus scene's tint
+  // (`data-scene-tint` on the root, `sceneTintStore.ts`) redefines those two
+  // surfaces, so the knob follows a recoloured window without a rule of its
+  // own. They were three fixed navy blues with a tinted copy beside them,
+  // which is what made this the one blue disc in a green window.
   &__stop--body-top {
-    stop-color: #33637e;
+    stop-color: color-mix(in oklab, $surface-field, $white 11%);
   }
 
-  &__stop--body-mid,
-  &__stop--face-top {
-    stop-color: #27526b;
+  &__stop--body-mid {
+    stop-color: $surface-field;
   }
 
   &__stop--body-edge {
-    stop-color: #224a61;
+    stop-color: $surface-field-end;
+  }
+
+  &__stop--face-top {
+    stop-color: color-mix(in oklab, $surface-field-end, $black 22%);
   }
 
   &__stop--face-edge {
-    stop-color: #21475d;
+    stop-color: color-mix(in oklab, $surface-field-end, $black 38%);
   }
 
   &__stop--mist {
-    stop-color: #d6e9f7;
+    stop-color: $edge-tint;
   }
 
-  :root[data-scene-tint] & {
-    &__stop--body-top {
-      stop-color: color-mix(in oklab, $surface-field, $secondary-light 22%);
-    }
-
-    &__stop--body-mid,
-    &__stop--face-top {
-      stop-color: color-mix(in oklab, $surface-field, $secondary-light 13%);
-    }
-
-    &__stop--body-edge {
-      stop-color: color-mix(in oklab, $surface-field, $secondary-light 8%);
-    }
-
-    &__stop--face-edge {
-      stop-color: color-mix(in oklab, $surface-field, $secondary-light 6%);
-    }
-
-    &__stop--mist {
-      stop-color: color-mix(in oklab, $secondary-light, $white 45%);
-    }
+  &__stop--cast {
+    stop-color: rgba($black, 0.42);
   }
 
-  // What the body casts onto the panel. Offset downward only — one light, from
-  // above, which is the same light the body's own gradient is lit by.
-  &__shadow {
-    fill: rgba($black, 0.3);
+  // The shade the body sits in, and the hairline that cuts it out of the
+  // panel: without the line the dark body and the dark card behind it are
+  // one shape at a glance.
+  &__rim {
+    fill: none;
+    stroke: rgba($black, 0.66);
+    stroke-width: 1.2;
   }
 
   &__bevel {
@@ -118,10 +110,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &__notch {
     stroke: $secondary-light;
-    stroke-width: 3.6;
+    stroke-width: 3.4;
     stroke-linecap: round;
     filter: drop-shadow(
-      0 0 5px color-mix(in srgb, $secondary-default 95%, transparent)
+      0 0 6px color-mix(in srgb, $secondary-default 95%, transparent)
     );
   }
 
