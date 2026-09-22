@@ -44,6 +44,18 @@ export const QUICK_DSP_PRESETS: readonly string[] = [
 ];
 
 /**
+ * The None chain: every stage off, the Normalizer included, and no curve
+ * (`presetRecipes.ts`). It stands first in both pickers, above the starred
+ * ones, and takes no star, being the absence of a choice (Ivan, 2026-09-22:
+ * "none is on top of all even fav"). Not `none`, which is the pick that takes
+ * a preset away — and which lands here, with the rack off.
+ */
+export const NONE_CHAIN_ID = 'empty';
+
+/** What the rack's Reset puts on: the chain the picker calls Default. */
+export const DEFAULT_CHAIN_ID = 'balanced';
+
+/**
  * A factory chain's name. A Room copy is named as the chain it copies plus
  * what tells it apart — "Gaming · Room", "Gaming · Competitive" — so the
  * copies read as that chain's in every language without a second set of names
@@ -101,7 +113,14 @@ export const resolveDspPreset = (
   current: IDspSettings,
 ): IDspSettings | undefined => {
   if (id === 'none') {
-    return { ...current, enabled: false, gameMode: false };
+    // Taking a preset away puts None on the rack, and the rack off. The DSP
+    // page's picker then says None rather than naming the chain that was
+    // taken away, and switching the rack back on plays nothing rather than
+    // bringing that chain back unasked (Ivan, 2026-09-22: "when I select
+    // none in main eq it set none in DSP too"). Off, not on: an empty rack
+    // still holds the sound back by its limiters' look-ahead.
+    const none = dspPresetSettings(NONE_CHAIN_ID, current);
+    return none && { ...none, enabled: false, gameMode: false };
   }
   const saved = findUserDspPreset(id);
   return saved
@@ -178,9 +197,11 @@ export const useDspPresetCatalog = (t: Translate) => {
     };
   }, []);
   const catalog = dspPresetCatalog(t);
+  // None stands above the starred ones already; a star it was given before
+  // it did is not a second place for it.
   const favorites = readFavouriteDspPresets().flatMap((id) => {
     const preset = catalog.find((one) => one.id === id);
-    return preset ? [preset] : [];
+    return preset && id !== NONE_CHAIN_ID ? [preset] : [];
   });
   return { catalog, favorites };
 };

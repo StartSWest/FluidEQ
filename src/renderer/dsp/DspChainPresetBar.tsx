@@ -5,20 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
-import {
-  DSP_DEFAULTS,
-  IDspSettings,
-  clampDspSettings,
-} from '../../common/dsp/chain';
+import { IDspSettings } from '../../common/dsp/chain';
 import {
   fromDspChainPresetFile,
   toDspChainPresetFile,
 } from '../../common/dsp/dspChainPresetFile';
-import {
-  DSP_PRESETS,
-  DSP_PRESET_GROUPS,
-  chainRoom,
-} from '../../common/dsp/presets';
+import { DSP_PRESETS, DSP_PRESET_GROUPS } from '../../common/dsp/presets';
 import { dspVoicingCurve } from '../../common/dsp/presetVoicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
@@ -36,6 +28,8 @@ import {
 import { SAVED_GROUP, eqPresetGroupLabel } from './presetPickEntries';
 import { useDspPresetSelection } from './useDspPresetSelection';
 import {
+  DEFAULT_CHAIN_ID,
+  NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
   dspPresetHint as chainHint,
   dspPresetName,
@@ -57,7 +51,10 @@ interface IDspChainPresetBarProps {
   onCommit: () => void;
 }
 
-/** Where the starred presets file: above the listener's own, above all. */
+/** None's own place, first and without a heading. */
+const NONE_GROUP = '';
+
+/** Where the starred presets file: above the listener's own, under None. */
 const FAVOURITE_GROUP = 'favourites';
 
 /**
@@ -123,12 +120,20 @@ const DspChainPresetBar = ({
       const entry = filed.find((one) => one.id === id);
       return entry ? [{ ...entry, group }] : [];
     });
-  const usual = QUICK_DSP_PRESETS.filter((id) => !favourites.includes(id));
+  // None above all of them, the starred ones included, with no heading and no
+  // star, as on the equaliser's picker: it is the absence of a choice, and
+  // a star it was given before it stood here is not a second place for it.
+  const starred = favourites.filter((id) => id !== NONE_CHAIN_ID);
+  const usual = QUICK_DSP_PRESETS.filter((id) => !starred.includes(id));
   const entries: IRichPickEntry[] = [
-    ...lifted(favourites, FAVOURITE_GROUP),
+    ...lifted([NONE_CHAIN_ID], NONE_GROUP),
+    ...lifted(starred, FAVOURITE_GROUP),
     ...lifted(usual, QUICK_GROUP),
     ...filed.filter(
-      (entry) => !favourites.includes(entry.id) && !usual.includes(entry.id),
+      (entry) =>
+        entry.id !== NONE_CHAIN_ID &&
+        !starred.includes(entry.id) &&
+        !usual.includes(entry.id),
     ),
   ];
   const ordered = entries.map((entry) => entry.id);
@@ -168,26 +173,13 @@ const DspChainPresetBar = ({
     applyPreset(id);
   };
 
-  const reset = () => {
-    setNotice('');
-    onChange(
-      clampDspSettings({
-        ...DSP_DEFAULTS,
-        enabled: settings.enabled,
-        crossfade: settings.crossfade,
-        // Kept beside the rack's own switch above, and for the same reason:
-        // this is which channels of this output the rack runs on, not a
-        // setting of the sound the factory rack starts from.
-        surround: settings.surround,
-        gameMode: settings.gameMode,
-        // The factory rack has no Room in it, so Reset switches it off like
-        // every other stage — and leaves the room that was shaped, and the
-        // listener's head, for when it is switched on again.
-        room: chainRoom(settings.room, DSP_DEFAULTS.room),
-      }),
-    );
-    onCommit();
-  };
+  // Reset is the Default chain, picked: its rack and its curve, the way the
+  // list puts it on (Ivan, 2026-09-22: "reset set default profile"). It was
+  // the bare defaults — no stage on, no curve, the last preset's tone left
+  // playing in the main EQ — which is no preset at all, and since None
+  // arrived it sounded like None. A pick keeps what is the listener's and
+  // not the sound's: the crossfade, the surround switch, the head.
+  const reset = () => applyPreset(DEFAULT_CHAIN_ID);
 
   // A chain is saved and shared as it is heard: the rack, and the tone the
   // Preset layer is playing in the main EQ (`presetCurve.ts`).
@@ -273,6 +265,9 @@ const DspChainPresetBar = ({
           menuClassName="dsp-chain-preset-menu"
           entries={entries}
           groupLabel={(group) => {
+            if (group === NONE_GROUP) {
+              return '';
+            }
             if (group === FAVOURITE_GROUP) {
               return t('library.playlist.favorites');
             }
@@ -286,6 +281,7 @@ const DspChainPresetBar = ({
               setFavourites(toggleFavouriteDspPreset(id, ordered)),
             addLabel: t('library.playlist.addToFavorites'),
             removeLabel: t('library.playlist.removeFromFavorites'),
+            exclude: [NONE_CHAIN_ID],
           }}
           activeId={settings.presetId}
           onPick={applyPreset}

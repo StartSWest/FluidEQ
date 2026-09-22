@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 import {
+  NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
   activeDspPresetId,
   dspPresetHint,
@@ -26,7 +27,11 @@ const VoicingQuickPick = () => {
   const { isEnabled, isBlockingError, voicing } = useFluidEqContext();
   const { status } = useAudioEngineStatus();
   const isApo = status?.engine === 'apo';
-  const activeId = activeDspPresetId(settings, voicing) ?? 'none';
+  // One None for two states: nothing chosen at all, and the None chain the
+  // DSP page may have put on a running rack. Picked here, it is the first.
+  const chosen = activeDspPresetId(settings, voicing);
+  const activeId =
+    chosen === undefined || chosen === NONE_CHAIN_ID ? 'none' : chosen;
   const { apply, selecting } = useDspPresetSelection(
     settings,
     applyDspSettings,

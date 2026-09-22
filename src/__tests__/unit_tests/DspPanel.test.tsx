@@ -667,11 +667,40 @@ describe('DspPanel', () => {
     expect(chosen.surround).toEqual({ allChannels: false });
 
     onChange.mockClear();
-    fireEvent.click(rack.getByRole('button', { name: 'Reset' }));
+    await act(async () => {
+      fireEvent.click(rack.getByRole('button', { name: 'Reset' }));
+    });
     const reset = onChange.mock.calls[0][0] as IDspSettings;
     expect(reset.surround).toEqual({ allChannels: false });
-    // POSITIVE CONTROL: Reset did its job on everything that IS the sound.
-    expect(reset.eq.enabled).toBe(DSP_DEFAULTS.eq.enabled);
+    // POSITIVE CONTROL: Reset did its job on everything that IS the sound —
+    // it is the Default chain, picked (Ivan, 2026-09-22: "reset set default
+    // profile"), where it was the bare defaults, which sounded like None.
+    expect(reset.presetId).toBe('balanced');
+    expect(reset.enabled).toBe(true);
+  });
+
+  /*
+   * None stands above everything in the rack's picker, the starred ones
+   * included, as it does on the equaliser's page, and takes no star (Ivan,
+   * 2026-09-22: "none is on top of all even fav").
+   */
+  it('lists None first, above the Favourites, and without a star', () => {
+    const { container } = renderPanel();
+    const rack = within(container.querySelector('.dsp-presets') as HTMLElement);
+    fireEvent.click(rack.getByRole('button', { name: 'Presets' }));
+    const rows = screen
+      .getAllByRole('menuitemradio')
+      .map((row) => row.textContent ?? '');
+    expect(rows[0]).toMatch(/^None/);
+    // POSITIVE CONTROL: the starred ones are there, straight under it.
+    expect(screen.getByText('Favourites')).toBeInTheDocument();
+    expect(rows[1]).toMatch(/^Default/);
+    expect(
+      screen.queryByRole('button', { name: /Favourites: None$/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('menuitemradio', { name: /^None/ }),
+    ).toHaveLength(1);
   });
 
   it('keeps the filter preset at the left of its header', () => {

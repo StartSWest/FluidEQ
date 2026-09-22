@@ -165,22 +165,50 @@ it('keeps classics and worldwide genres available with no favorites', () => {
   expect(screen.queryByText(/No favorites yet/)).not.toBeInTheDocument();
 });
 
-it('None disables the entire quick preset and Game mode without erasing its settings', async () => {
-  const gaming = dspPresetSettings('gaming', DSP_DEFAULTS);
-  if (!gaming) {
-    throw new Error('Gaming missing');
+/*
+ * None here is None on the DSP page too (Ivan, 2026-09-22): the None chain
+ * on the rack, so that page's picker names it rather than the chain that was
+ * taken away, and the rack off, because an empty rack still delays the sound.
+ * It used to switch the rack off and leave Gaming on it, named on the DSP
+ * page and back the moment the rack was switched on again.
+ */
+it('None puts None on the DSP page too, with the rack and Game mode off', async () => {
+  const music = dspPresetSettings('music', DSP_DEFAULTS);
+  const none = dspPresetSettings('empty', DSP_DEFAULTS);
+  if (!music || !none) {
+    throw new Error('Music or None missing');
   }
-  applyDspSettings(gaming);
+  applyDspSettings({
+    ...music,
+    gameMode: true,
+    surround: { allChannels: false },
+  });
   show();
   fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
   await act(async () => {
     fireEvent.click(screen.getByRole('menuitemradio', { name: /^None/ }));
   });
   expect(readDspSettings()).toEqual({
-    ...gaming,
+    ...none,
     enabled: false,
     gameMode: false,
+    // The listener's own, which a pick never takes.
+    surround: { allChannels: false },
   });
+  // POSITIVE CONTROL: Music's stages were on, there to be taken away.
+  expect(music.dimension.enabled && music.maximizer.enabled).toBe(true);
+});
+
+it('reads None on a running rack as its own None', () => {
+  const none = dspPresetSettings('empty', DSP_DEFAULTS);
+  if (!none) {
+    throw new Error('None missing');
+  }
+  applyDspSettings(none);
+  show();
+  expect(screen.getByRole('button', { name: 'Presets' })).toHaveTextContent(
+    'None',
+  );
 });
 
 it('applies an APO tonal curve and keeps DSP and Game mode off for a quick Gaming pick', async () => {
