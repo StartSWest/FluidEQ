@@ -131,34 +131,72 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ================================================= Smart EQ's split key ====
 //
-// One key in two halves: the switch, and the caret that chooses how it
-// listens. Joined, so they read as one control.
-.player-split {
+// ONE KEY, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
+// separated things"). The switch and the caret that chooses how it listens
+// each wore the whole key face — the edge, four rounded corners and the drop
+// shadow — because the face is given to every quiet button on this deck
+// (`.mini-player .button.small.subtle` above), and that rule outranked the
+// squared inner corners written for this key. So the two halves stood side
+// by side as two keys with a seam of shadow between them.
+//
+// The housing wears the face now, once, the way the titlebar's capsule
+// does; the halves give it up — edge, corners, fill and shadow, in every
+// state the face has — and are divided by the same hairline that capsule
+// uses. On, the whole key lights; it lit two thirds of its width before.
+.mini-player .player-split {
+  @include player-key-face;
   display: inline-flex;
   flex: none;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 7px;
+  // The housing is not a control; its halves are.
+  cursor: default;
 
-  .button.player-split__main {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+  > .button.player-split__main,
+  > .button.player-split__caret {
+    &,
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      min-height: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      // The housing goes down under the press, as a key does; a half that
+      // went down inside it as well would sink twice.
+      transform: none;
+    }
+
+    // Which half the pointer is on, without drawing a second key.
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
   }
 
-  .button.player-split__caret {
+  > .button.player-split__caret {
+    // The seam below hangs from it; the app's button is not positioned.
+    position: relative;
     min-width: 0;
-    min-height: 24px;
-    padding: 0 6px;
-    border-left-width: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    padding: 0 7px;
+
+    // The seam: the hairline the titlebar's capsule draws between its
+    // halves, short of the key's edges.
+    &::after {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 0;
+      width: 1px;
+      background: color-mix(in srgb, $secondary-light 18%, transparent);
+      content: '';
+      pointer-events: none;
+    }
   }
 
-  // The caret wears whatever the switch beside it wears — it is the same
-  // key. It was a plain quiet button while its other half was a deck key,
-  // so the two halves had different edges and different corners (Ivan,
-  // 2026-09-21); and it took only the edge while the switch took the fill,
-  // so a key that is on was coloured down two thirds of its width and grey
-  // for the rest (Ivan, 2026-09-22). One key, one face.
-  .button.player-split__main[aria-pressed='true']:not(:disabled)
-    + .button.player-split__caret:not(:disabled) {
+  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
     @include player-key-on;
   }
 
