@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { FilterTypeEnum } from '../../common/constants';
 import { IDimensionSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
+import { readSurfaceAlpha } from '../utils/theme';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 import {
   readDspCorrelation,
@@ -170,9 +171,18 @@ const DspDimensionGraph = ({
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
-      // Fade rather than clear, which is what leaves the trail.
+      // Fade rather than clear, which is what leaves the trail. Toward the
+      // card's own colour, read from the theme, which is what the field's
+      // box wears as well (`.dsp-dimension-field`; Ivan, 2026-09-22: "match
+      // the card"). It was a fixed near-black, so on the Ocean theme the
+      // trail faded into a black square inside a slate card whatever the
+      // stylesheet painted behind it.
       context.globalCompositeOperation = 'source-over';
-      context.fillStyle = `rgba(9, 12, 18, ${1 - FIELD_FADE})`;
+      context.fillStyle = readSurfaceAlpha(
+        '--surface-block',
+        1 - FIELD_FADE,
+        `rgba(30, 66, 87, ${1 - FIELD_FADE})`,
+      );
       context.fillRect(0, 0, width, height);
 
       const centreX = width / 2;

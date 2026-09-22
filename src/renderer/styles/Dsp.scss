@@ -3200,7 +3200,10 @@ $dsp-pane-columns: 6;
   padding: 8px 12px 4px;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
-  background: $surface-plot;
+  // The card's own colour, with only the hairline to say where the block
+  // is (Ivan, 2026-09-22: "match the card"). It was the plot surface, one
+  // step darker, and the scope inside faded toward a third colour again.
+  background: $block-lift;
 }
 
 // The block’s caption and its three mode glyphs share one line, so the icons
@@ -4114,11 +4117,16 @@ $dsp-pane-columns: 6;
   align-items: stretch;
 }
 
+// THE CARD'S OWN COLOUR, not a well sunk into it (Ivan, 2026-09-22: "both
+// phase meters' background to match the card, in EQ and Dimension"). It was
+// the well's near-black, a dark square dropped into a slate card on the Ocean
+// theme; the scope fades its trail toward the same colour
+// (`DspDimensionGraph.tsx`), so the box and the drawing agree.
 .dsp-dimension-field {
   width: 220px;
   height: 220px;
   border-radius: $radius-s;
-  background: $surface-well;
+  background: $block-lift;
   border: 1px solid $border-subtle;
 }
 

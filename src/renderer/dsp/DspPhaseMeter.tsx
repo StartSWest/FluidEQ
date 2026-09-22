@@ -155,14 +155,14 @@ const SCOPE_FADE = 0.16;
 const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
   // Painted over rather than cleared, which is where the tail comes from.
   //
-  // The plot colour, like every other drawing in the app. It was a near-black
-  // violet from before the palette existed, so the one card on this page that
-  // shows a scope was a black rectangle dropped into a window that has no
-  // black in it.
+  // The card's own colour, which its block now wears too (`.dsp-eq-phase`):
+  // Ivan, 2026-09-22, "match the card". It was a near-black violet from
+  // before the palette existed, then the plot colour, a step darker than
+  // the card around it — either way a rectangle of another colour.
   context.fillStyle = readSurfaceAlpha(
-    '--surface-panel',
+    '--surface-block',
     SCOPE_FADE,
-    `rgba(26, 58, 78, ${SCOPE_FADE})`,
+    `rgba(30, 66, 87, ${SCOPE_FADE})`,
   );
   context.fillRect(0, 0, box.width, box.height);
 
