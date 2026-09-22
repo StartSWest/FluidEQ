@@ -77,6 +77,21 @@ typedef struct FeqLimiterOptions {
   /** The processing rate, which the linked form needs for its slew. */
   double sample_rate;
   double maximum_gain;
+  /**
+   * How fast the platform under the linked form's reduction deepens and how
+   * fast it rises, as per-sample coefficients (0-1, nearer 1 is slower). Zero
+   * leaves the platform out, which every limiter but the rack's Maximizer
+   * does. Only the look-ahead form has one; the slewed form ignores both.
+   *
+   * The platform is a slow follower of the reduction, and the reduction that
+   * is applied never releases above it. On dense material it settles at the
+   * reduction the music keeps asking for, and the gain holds there instead
+   * of swinging back towards unity between every two beats — which is what
+   * pumping is. A lone peak moves it only a little: at the Maximizer's
+   * speeds, 0.8 dB after one that needed six, gone within two seconds.
+   */
+  double platform_attack_coefficient;
+  double platform_release_coefficient;
 } FeqLimiterOptions;
 
 /**
@@ -121,6 +136,11 @@ typedef struct FeqLinkedLimiter {
   int64_t release_hold_remaining;
   /** Loudest reconstructed input peak seen in the most recent block. */
   double block_peak;
+  /**
+   * The platform under the reduction, in dB, 0 or below — see
+   * `platform_attack_coefficient`. Zero while the options leave it out.
+   */
+  double platform_db;
 } FeqLinkedLimiter;
 
 void feq_linked_limiter_init(FeqLinkedLimiter* state,

@@ -63,6 +63,23 @@ constexpr double kMaximizerSoftKneeDb = 1.5;
 constexpr double kMaximizerMaxLookAheadMs = 20.0;
 /** Completes even the slowest 1 s release inside four seconds. */
 constexpr double kMaximizerReleaseSnapRatio = 0.02;
+/**
+ * How fast the Maximizer's platform deepens and rises (`limiter.h`).
+ *
+ * Ivan, 2026-09-22: "the rack maximiser sucks, too much pumping". Its gain
+ * released towards unity between every two beats and was pulled down again
+ * by the next, so on a dense record the level swung at the tempo. Measured
+ * on a dance record, 60 s from its densest part, as the RMS of the applied
+ * gain between 0.5 and 10 Hz: Default 0.83 dB, Streaming 1.08, Loud 1.23,
+ * Club 1.56. The platform takes those to 0.55, 0.66, 0.77 and 0.90, and at
+ * the same loudness it pumps a fifth to two fifths less than simply less
+ * drive would. Why these two: a platform that rises nearly as fast as it
+ * deepens sits too shallow to hold anything (500/800 and 1200/3000 pumped
+ * more), and one that rises slower still keeps the level down for seconds
+ * after a dense passage, which is breathing of its own.
+ */
+constexpr double kMaximizerPlatformAttackMs = 500.0;
+constexpr double kMaximizerPlatformReleaseMs = 1500.0;
 
 /** Per-domain buffers and single-channel filter state. */
 struct ChainEqSlot {

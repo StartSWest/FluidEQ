@@ -176,6 +176,7 @@ void feq_linked_limiter_init(FeqLinkedLimiter* state,
   state->gain = 1.0;
   state->release_hold_remaining = 0;
   state->block_peak = 0.0;
+  state->platform_db = 0.0;
   for (uint32_t channel = 0; channel < channels; ++channel) {
     feq_true_peak_init(&detectors[channel], true_peak_factor);
     for (uint32_t at = 0; at < capacity; ++at) {
@@ -203,6 +204,7 @@ void feq_linked_limiter_reset_control(FeqLinkedLimiter* state) {
   state->detector_gain = 1.0;
   state->gain = 1.0;
   state->release_hold_remaining = 0;
+  state->platform_db = 0.0;
   for (uint32_t at = 0; at < state->capacity; ++at) {
     state->gain_reduction_db[at] = 0.0f;
   }
@@ -240,6 +242,8 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
           : 0;
   const double snap_ratio =
       options->release_snap_ratio > 0.0 ? options->release_snap_ratio : 0.0;
+  const bool uses_platform = options->platform_attack_coefficient > 0.0 &&
+                             options->platform_release_coefficient > 0.0;
 
   for (uint32_t at = 0; at < frames; ++at) {
     const int64_t position = state->position;
@@ -329,10 +333,24 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
         }
       }
 
-      const double reduction_db =
+      double reduction_db =
           state->detector_gain > 0.0
               ? 20.0 * std::log10(state->detector_gain)
               : -120.0;
+      if (uses_platform) {
+        // The platform follows the detector's own reduction — deepening at
+        // one speed, rising at another — and what is applied is the deeper
+        // of the two. The detector still catches every peak on its own and
+        // still releases at the profile's speed; it releases onto the
+        // platform rather than towards unity.
+        const double follow = reduction_db < state->platform_db
+                                  ? options->platform_attack_coefficient
+                                  : options->platform_release_coefficient;
+        state->platform_db += (reduction_db - state->platform_db) * (1.0 - follow);
+        if (state->platform_db < reduction_db) {
+          reduction_db = state->platform_db;
+        }
+      }
       const int64_t control_position = position - detector_latency;
       state->gain_reduction_db[slot(control_position, capacity)] =
           static_cast<float>(reduction_db);

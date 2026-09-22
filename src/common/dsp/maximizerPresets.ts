@@ -100,7 +100,14 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'transparent',
     labelKey: 'dsp.maximizerPreset.transparent',
     group: 'basic',
-    settings: profile(1.5, -1.5, 14, 400),
+    // At -1 dBTP since 2026-09-22, for the reason the genre profiles are (the
+    // note above this table). At -1.5 it was half a decibel of attenuation
+    // that the chains playing it (Warm, Car, Punch) won back with drive, which
+    // is more limiting for the same level: at -1 the three measured 0.4 dB
+    // louder at the same drive and pumped less, and Warm came back inside the
+    // level gate's window once the Maximizer's platform (`limiter.h`) had
+    // taken 0.2 dB from it.
+    settings: profile(1.5, -1, 14, 400),
   },
   streaming: {
     id: 'streaming',

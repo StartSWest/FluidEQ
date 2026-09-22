@@ -657,7 +657,7 @@ bool render_limiter(const Fixture& fixture, std::vector<float>& actual) {
    */
   const auto requested = static_cast<uint32_t>(fixture.params[0]);
   const uint32_t capacity = (requested < 1 ? 1 : requested) + 1;
-  FeqLimiterOptions options;
+  FeqLimiterOptions options{};
   options.ceiling = fixture.params[1];
   options.release_coefficient = fixture.params[2];
   options.limiting_release_coefficient = fixture.params[3];
@@ -690,7 +690,7 @@ bool render_linked_limiter(const Fixture& fixture, std::vector<float>& actual) {
   const auto requested = static_cast<uint32_t>(fixture.params[0]);
   const uint32_t capacity = (requested < 1 ? 1 : requested) + 1;
 
-  FeqLimiterOptions options;
+  FeqLimiterOptions options{};
   options.ceiling = fixture.params[1];
   options.release_coefficient = fixture.params[2];
   options.limiting_release_coefficient = fixture.params[3];

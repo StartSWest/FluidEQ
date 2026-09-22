@@ -364,6 +364,16 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
          : 0.0;
   options.attack_slew_db_per_second = 0.0;
   options.sample_rate = chain->sample_rate;
+  // The platform under the reduction, which is what keeps a dense record
+  // from pumping: see `kMaximizerPlatformAttackMs`.
+  options.platform_attack_coefficient =
+      on ? std::exp(-1.0 / ((kMaximizerPlatformAttackMs / 1000.0) *
+                            chain->sample_rate))
+         : 0.0;
+  options.platform_release_coefficient =
+      on ? std::exp(-1.0 / ((kMaximizerPlatformReleaseMs / 1000.0) *
+                            chain->sample_rate))
+         : 0.0;
   feq_linked_limiter_process(&chain->maximizer, channels, frames, &options);
 
   // The deepest point of the block rather than its mean: a meter that averaged

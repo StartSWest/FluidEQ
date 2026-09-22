@@ -16,9 +16,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/bass_punch.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/linear_phase.h"
+#include "fluideq/limiter.h"
 #include "fluideq/dsp.h"
 #include "fluideq/parameters.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -557,10 +559,149 @@ void test_maximizer_look_ahead_drag() {
   feq_chain_destroy(chain);
 }
 
+/**
+ * The Maximizer's gain on a record, block by block: a kick every half second
+ * over a bed, driven so each kick needs about 6 dB, or one kick alone. Returned
+ * with the output's highest sample, so a platform can be checked for what it
+ * must never cost as well as for what it is for.
+ */
+struct LimitedRun {
+  std::vector<double> gain_db;
+  double peak = 0.0;
+};
+
+LimitedRun limit_programme(bool platform, bool dense) {
+  const double rate = 48000.0;
+  const size_t frames = static_cast<size_t>(rate * 8);
+  const size_t half = frames / 2;
+  const size_t period = static_cast<size_t>(rate / 2);
+  const size_t kick_length = static_cast<size_t>(rate * 0.09);
+  const std::vector<float> bed = noise(frames, 7);
+  const double pi = 3.14159265358979323846;
+  std::vector<float> left(frames, 0.0f);
+  std::vector<float> right(frames, 0.0f);
+  for (size_t at = 0; at < frames; ++at) {
+    // The bed, around -24 dBFS: what is heard swelling when a limiter pumps.
+    double value = 0.06 * static_cast<double>(bed[at]);
+    const bool in_kick = dense ? at % period < kick_length
+                               : at >= half && at - half < kick_length;
+    if (in_kick) {
+      // A 60 Hz kick of 90 ms that peaks near +6 dBFS.
+      const size_t since = dense ? at % period : at - half;
+      const double t = static_cast<double>(since) / rate;
+      value += 2.0 * std::exp(-t / 0.03) * std::sin(2.0 * pi * 60.0 * t);
+    }
+    left[at] = static_cast<float>(value);
+    right[at] = static_cast<float>(value);
+  }
+
+  const uint32_t capacity = static_cast<uint32_t>(rate * 0.020) + 1;
+  std::vector<FeqTruePeak> detectors(2);
+  std::vector<std::vector<float>> lines(2, std::vector<float>(capacity));
+  float* pointers[2] = {lines[0].data(), lines[1].data()};
+  std::vector<float> reduction(capacity);
+  FeqLinkedLimiter state{};
+  feq_linked_limiter_init(&state, detectors.data(), pointers, reduction.data(),
+                          2, capacity, FEQ_TRUE_PEAK_FACTOR);
+  feq_linked_limiter_set_look_ahead(&state,
+                                    static_cast<uint32_t>(rate * 0.005));
+
+  // The Maximizer's own options (`chain_process_maximizer`) for the Default
+  // profile: -1 dBTP, 100 ms, a 10 ms hold, a 1.5 dB knee.
+  const auto per_sample = [rate](double ms) {
+    return std::exp(-1.0 / ((ms / 1000.0) * rate));
+  };
+  FeqLimiterOptions options{};
+  options.ceiling = std::pow(10.0, -1.0 / 20.0);
+  options.activation_threshold = options.ceiling;
+  options.release_coefficient = per_sample(100.0);
+  options.limiting_release_coefficient = options.release_coefficient;
+  options.knee_db = 1.5;
+  options.release_snap_ratio = 0.02;
+  options.release_hold_samples = std::floor(rate * 0.010 + 0.5);
+  options.sample_rate = rate;
+  if (platform) {
+    // `kMaximizerPlatformAttackMs` and `kMaximizerPlatformReleaseMs`.
+    options.platform_attack_coefficient = per_sample(500.0);
+    options.platform_release_coefficient = per_sample(1500.0);
+  }
+
+  LimitedRun run;
+  const uint32_t block = 16;
+  for (size_t at = 0; at + block <= frames; at += block) {
+    float* planes[2] = {left.data() + at, right.data() + at};
+    feq_linked_limiter_process(&state, planes, block, &options);
+    run.gain_db.push_back(20.0 * std::log10(state.gain));
+    for (uint32_t k = 0; k < block; ++k) {
+      run.peak = std::fmax(run.peak,
+                           std::fabs(static_cast<double>(left[at + k])));
+    }
+  }
+  return run;
+}
+
+/** How far the gain swings about its own mean over the last four seconds. */
+double swing_db(const std::vector<double>& gain_db) {
+  const size_t from = gain_db.size() / 2;
+  const double count = static_cast<double>(gain_db.size() - from);
+  double mean = 0.0;
+  for (size_t at = from; at < gain_db.size(); ++at) {
+    mean += gain_db[at];
+  }
+  mean /= count;
+  double sum = 0.0;
+  for (size_t at = from; at < gain_db.size(); ++at) {
+    sum += (gain_db[at] - mean) * (gain_db[at] - mean);
+  }
+  return std::sqrt(sum / count);
+}
+
+/**
+ * The Maximizer holds a steady gain on dense music instead of pumping, and
+ * still releases a lone peak at the profile's own speed.
+ *
+ * Ivan, 2026-09-22: "the rack maximiser sucks, too much pumping". Its gain
+ * sprang back towards unity between every two kicks and was pulled down by
+ * the next; the platform under the reduction is what stops that.
+ */
+void test_maximizer_platform() {
+  std::printf("the maximizer's platform\n");
+  const LimitedRun pumping = limit_programme(false, true);
+  const LimitedRun steady = limit_programme(true, true);
+  // POSITIVE CONTROL: without the platform this programme pumps, or a small
+  // swing below would prove nothing.
+  check(swing_db(pumping.gain_db) > 1.5,
+        "without it, the gain swings with every kick");
+  check(swing_db(steady.gain_db) < 0.7 * swing_db(pumping.gain_db),
+        "with it, the swing is under 70% of that");
+  const double ceiling = std::pow(10.0, -1.0 / 20.0);
+  check(steady.peak <= ceiling * 1.001 && pumping.peak <= ceiling * 1.001,
+        "and the ceiling holds either way");
+
+  // One kick halfway through a record of bed, needing 6 dB. The platform
+  // takes a little of it and gives it back slowly: measured, 0.78 dB down
+  // 300 ms after it where the profile's own release is back to 0.27, and 0.25
+  // two seconds after. A shallow dip after a big hit is the price of a steady
+  // gain under dense music; a deep or lasting one would be a hole.
+  const LimitedRun alone = limit_programme(false, false);
+  const LimitedRun alone_platform = limit_programme(true, false);
+  const auto at = [](double seconds) {
+    return static_cast<size_t>((4.0 + seconds) * 48000.0 / 16.0);
+  };
+  check(alone_platform.gain_db[at(0.3)] - alone.gain_db[at(0.3)] > -0.6,
+        "a lone peak leaves only a shallow dip behind it");
+  check(alone_platform.gain_db[at(2.0)] > -0.35,
+        "and the dip is almost gone two seconds later");
+  // POSITIVE CONTROL: the kick did need limiting, or there is no dip to find.
+  check(*std::min_element(alone.gain_db.begin(), alone.gain_db.end()) < -5.0,
+        "the lone kick is limited by 5 dB or more");
+}
+
 int main() {
   std::printf("fluideq dsp-core, version %s, ABI %u\n", feq_core_version(),
               feq_core_abi_version());
   test_maximizer_look_ahead_drag();
+  test_maximizer_platform();
   test_linear_phase_engages();
   test_kernel_handoff_survives_a_drag();
   test_identity();
