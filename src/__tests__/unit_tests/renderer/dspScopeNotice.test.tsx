@@ -9,22 +9,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * It said "Library only", in amber, for the frames before main had answered
  * which engine was running — under a rack that was running on every output.
- * Then under the FluidEQ Engine it opened on the unnamed pill and swapped the
- * speaker's name in a moment later, on every visit. Both were the line
- * guessing instead of waiting for the answer.
- *
- * The cases are in one file on purpose and in this order: the output's name
- * is kept for the session, so the case about a later visit depends on an
- * earlier read.
+ * Under the FluidEQ Engine it named the output in a pill, which Ivan took out
+ * on 2026-09-22: with the rack running there the line says nothing, and it
+ * does not read the device list to say it.
  */
 
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import type { IAudioEngineStatus } from '../../../common/audioEngine';
-import type { IAudioDevice } from '../../../common/constants';
 import en from '../../../common/i18n/en';
 import DspScopeNotice from '../../../renderer/dsp/DspScopeNotice';
+import type { TRackSuspension } from '../../../renderer/dsp/rackPlacement';
 import { getAudioDevices } from '../../../renderer/utils/equalizerApi';
 import { FluidEqProviderWrapper } from '../../../renderer/utils/FluidEqContext';
 
@@ -41,17 +37,12 @@ const status = (engine: IAudioEngineStatus['engine']): IAudioEngineStatus => ({
   fluidUpdateReady: false,
 });
 
-const SPEAKERS: IAudioDevice = {
-  id: 'a',
-  name: 'Speakers (Realtek)',
-  guid: '{A}',
-  isDefault: true,
-  isActive: true,
-};
-
-const notice = (shown: IAudioEngineStatus | undefined) => (
+const notice = (
+  shown: IAudioEngineStatus | undefined,
+  suspension?: TRackSuspension,
+) => (
   <FluidEqProviderWrapper value={{ ...defaultFluidEqContext, isEnabled: true }}>
-    <DspScopeNotice status={shown} suspension={undefined} isRackEngaged />
+    <DspScopeNotice status={shown} suspension={suspension} isRackEngaged />
   </FluidEqProviderWrapper>
 );
 
@@ -67,42 +58,22 @@ describe('the DSP scope line', () => {
     // POSITIVE CONTROL: the same line, once the answer is Equalizer APO.
     rerender(notice(status('apo')));
     expect(libraryOnly()).toBeInTheDocument();
+  });
+
+  it('says nothing while the rack runs under the FluidEQ Engine', () => {
+    const { container } = render(notice(status('fluid')));
+    expect(container).toBeEmptyDOMElement();
+    // No pill naming the output, and no read of the outputs to name one with.
+    expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
     expect(getAudioDevices).not.toHaveBeenCalled();
   });
 
-  it('names the output from the first frame of every visit after the first', async () => {
-    let devicesAnswer: (devices: IAudioDevice[]) => void = () => undefined;
-    jest.mocked(getAudioDevices).mockImplementationOnce(
-      () =>
-        new Promise<IAudioDevice[]>((resolve) => {
-          devicesAnswer = resolve;
-        }),
+  it('still says why the rack is off under the FluidEQ Engine', () => {
+    // POSITIVE CONTROL for the case above: the same engine, the rack
+    // suspended, and the line is there with its reason.
+    render(notice(status('fluid'), 'engine-off'));
+    expect(screen.getByRole('status')).toHaveTextContent(
+      en['dspOff.engineOff'],
     );
-    const named = en['dsp.scope.system'].replace('{output}', SPEAKERS.name);
-
-    const first = render(notice(status('fluid')));
-    // The first visit waits for the name rather than showing a pill that
-    // changes under the reader a moment later.
-    expect(first.container).toBeEmptyDOMElement();
-    expect(libraryOnly()).not.toBeInTheDocument();
-    await act(async () => {
-      devicesAnswer([SPEAKERS]);
-    });
-    expect(screen.getByText(named)).toBeInTheDocument();
-    first.unmount();
-
-    // A later visit reads the output again, and shows what it had meanwhile:
-    // this read is never answered.
-    jest.mocked(getAudioDevices).mockImplementationOnce(
-      () =>
-        new Promise<IAudioDevice[]>((resolve) => {
-          devicesAnswer = resolve;
-        }),
-    );
-    render(notice(status('fluid')));
-    expect(screen.getByText(named)).toBeInTheDocument();
-    expect(
-      screen.queryByText(en['dsp.scope.systemAll']),
-    ).not.toBeInTheDocument();
   });
 });

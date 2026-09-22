@@ -150,9 +150,7 @@ const DspPanel = ({
     // and a reattach is also how this window finds out the engine itself
     // changed — main can switch engines while this tab is open, and nothing
     // else here would notice. Re-fetching is what lets `isSystemWide` above
-    // flip and republish the rack; `DspScopeNotice` answers the same event to
-    // re-read the device name, which is a different question about the same
-    // moment.
+    // flip and republish the rack.
     const onOutputChanged = () => {
       refreshAudioEngineStatus();
     };

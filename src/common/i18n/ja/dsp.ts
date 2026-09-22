@@ -111,8 +111,6 @@ const dsp = {
     'DSP はライブラリから再生する音声トラックのみを処理します。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
   'dsp.idle':
     'DSP を使用するには、ライブラリから音声トラックを再生してください。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
-  'dsp.scope.system': 'システム全体 · {output}',
-  'dsp.scope.systemAll': 'システム全体',
   'dsp.latency.label': '処理遅延',
   'dsp.latency.gameMode': 'ゲームモード',
   'dsp.latency.ms': '{ms} ms',

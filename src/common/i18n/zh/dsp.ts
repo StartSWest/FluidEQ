@@ -111,8 +111,6 @@ const dsp = {
     'DSP 仅处理从媒体库播放的音轨，不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
   'dsp.idle':
     '请从媒体库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',
-  'dsp.scope.system': '全系统 · {output}',
-  'dsp.scope.systemAll': '全系统',
   'dsp.latency.label': '处理延迟',
   'dsp.latency.gameMode': '游戏模式',
   'dsp.latency.ms': '{ms} 毫秒',

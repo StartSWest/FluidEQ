@@ -111,8 +111,6 @@ const dsp = {
     'DSP verarbeitet nur Audiotitel aus der Bibliothek. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
   'dsp.idle':
     'Spielen Sie einen Audiotitel aus der Bibliothek ab, um DSP zu nutzen. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
-  'dsp.scope.system': 'Systemweit · {output}',
-  'dsp.scope.systemAll': 'Systemweit',
   'dsp.latency.label': 'Verarbeitungsverzögerung',
   'dsp.latency.gameMode': 'Spielmodus',
   'dsp.latency.ms': '{ms} ms',

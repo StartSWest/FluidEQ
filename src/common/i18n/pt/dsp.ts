@@ -111,8 +111,6 @@ const dsp = {
     'O DSP processa apenas faixas de áudio reproduzidas da Biblioteca. Áudio compartilhado recebido, karaokê, vídeos e outros aplicativos não são processados.',
   'dsp.idle':
     'Reproduza uma faixa de áudio da Biblioteca para usar o DSP. Áudio compartilhado recebido, karaokê, vídeos e outros aplicativos não são processados.',
-  'dsp.scope.system': 'Em todo o sistema · {output}',
-  'dsp.scope.systemAll': 'Em todo o sistema',
   'dsp.latency.label': 'Atraso de processamento',
   'dsp.latency.gameMode': 'Modo jogo',
   'dsp.latency.ms': '{ms} ms',

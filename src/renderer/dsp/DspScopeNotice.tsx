@@ -5,27 +5,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the rack is actually processing, said at the top of the page.
+ * What the rack is actually processing, said at the top of the page — when
+ * there is something to say.
  *
- * The load-bearing line on this page, and now it has two entirely different
- * things to say. Under Equalizer APO the rack runs inside the Library player
- * and nothing else on the machine is touched — a user who assumes otherwise
- * reports the feature as broken rather than as misunderstood, which is why
- * that sentence has always been body text here rather than a tooltip. Under
- * FluidEQ Engine the same rack runs inside audiodg.exe on every attached
- * output, so the sentence would be a lie and the pill says so instead. And
- * while FluidEQ is switched off or the engine is not running, the rack runs
- * nowhere under the FluidEQ Engine, and the line says that and why.
+ * Under Equalizer APO the rack runs inside the Library player and nothing
+ * else on the machine is touched — a user who assumes otherwise reports the
+ * feature as broken rather than as misunderstood, which is why that sentence
+ * has always been body text here rather than a tooltip. And while FluidEQ is
+ * switched off or the engine is not running, the rack runs nowhere under the
+ * FluidEQ Engine, and the line says that and why.
+ *
+ * With the rack running under the FluidEQ Engine it says nothing. It used to
+ * name the output in a pill, "System-wide · Speakers (…)": the same good news
+ * on every visit, in a line of the page that is shortest of room. Ivan took
+ * it out on 2026-09-22 ("remove the speaker thing from the UI, no need"); the
+ * output is named in the sound panel, where it is chosen.
  *
  * Its own file rather than more of `DspPanel.tsx`, which is already past the
  * project's 500-line limit.
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import type { IAudioDevice } from '../../common/constants';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
-import { getAudioDevices } from '../utils/equalizerApi';
-import { reportError } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
 import type { TRackSuspension } from './rackPlacement';
@@ -44,17 +44,6 @@ interface IDspScopeNoticeProps {
   onOpenEngineDialog?: () => void;
 }
 
-/**
- * The output this page last named, kept for the next time it opens.
- *
- * `undefined` until a read has answered. The page used to open on the unnamed
- * pill and swap the device name in a moment later, when the read it started
- * on mount came back — the line under the title changing on every visit. It
- * now opens with the name it last had, and on the first visit of a session
- * shows the pill once the name is known rather than twice.
- */
-let lastOutputName: string | undefined;
-
 const DspScopeNotice = ({
   status,
   suspension,
@@ -63,44 +52,6 @@ const DspScopeNotice = ({
 }: IDspScopeNoticeProps) => {
   const { t } = useTranslation();
   const power = useEqualizerPower();
-  const isSystemWide = status?.engine === 'fluid';
-  const [output, setOutput] = useState(lastOutputName);
-
-  const readOutput = useCallback(async () => {
-    try {
-      const devices: IAudioDevice[] = await getAudioDevices();
-      // The same device the EQ page calls the active output: whichever one
-      // Windows is currently sending everything to.
-      lastOutputName = devices.find((device) => device.isDefault)?.name ?? '';
-      setOutput(lastOutputName);
-    } catch (error) {
-      // The pill drops to its unnamed form rather than disappearing: the
-      // scope is still system-wide whether or not the output can be named.
-      lastOutputName ??= '';
-      setOutput((shown) => shown ?? '');
-      reportError(
-        'the active output could not be read for the DSP page',
-        error,
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isSystemWide) {
-      return undefined;
-    }
-    readOutput();
-    // `DeviceProfiles` raises this whenever Windows moves the default output
-    // — a headphone plugged in, a monitor woken up. Waiting on the event is
-    // what keeps this name current without anything polling for it.
-    const onOutputChanged = () => {
-      readOutput();
-    };
-    window.addEventListener('fluideq-output-changed', onOutputChanged);
-    return () => {
-      window.removeEventListener('fluideq-output-changed', onOutputChanged);
-    };
-  }, [isSystemWide, readOutput]);
 
   if (suspension !== undefined) {
     const suspensionLabel = {
@@ -129,31 +80,13 @@ const DspScopeNotice = ({
     );
   }
 
-  if (status === undefined) {
-    // Nothing until main has said which engine runs. Falling through to the
-    // sentence below meant "Library only", in amber, under the title of a
-    // page whose rack was running on every output — for as long as main took
-    // to answer, which is a helper run and a hash of the engine files.
+  // Nothing until main has said which engine runs, and nothing once it has
+  // said the FluidEQ Engine (see the top of this file). Falling through to the
+  // sentence below meant "Library only", in amber, under the title of a page
+  // whose rack was running on every output — for as long as main took to
+  // answer, which is a helper run and a hash of the engine files.
+  if (status === undefined || status.engine === 'fluid') {
     return null;
-  }
-
-  if (isSystemWide) {
-    if (output === undefined) {
-      // The output has never been read this session; see `lastOutputName`.
-      return null;
-    }
-    return (
-      <div className="dsp-scope-row">
-        <span className="dsp-scope-pill">
-          {output
-            ? t('dsp.scope.system', { output })
-            : t('dsp.scope.systemAll')}
-        </span>
-        {/* The delay moved into the game-mode capsule in the header, where
-            the switch that moves it is: apart, the two read as unrelated
-            things rather than as a cause and its number. */}
-      </div>
-    );
   }
 
   return (

@@ -120,8 +120,6 @@ const dsp = {
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',
   'dsp.idle':
     'Play an audio track from Library to use DSP. Received shared audio, karaoke, videos and other apps are not processed.',
-  'dsp.scope.system': 'System-wide · {output}',
-  'dsp.scope.systemAll': 'System-wide',
   'dsp.latency.label': 'Processing delay',
   'dsp.latency.gameMode': 'Game mode',
   'dsp.latency.ms': '{ms} ms',

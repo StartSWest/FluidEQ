@@ -766,8 +766,8 @@ export const EQ_PHASE_MODES: readonly TEqPhase[] = ['minimum', 'linear'];
  * the centre tap and everything comes out that many frames later. 171 ms at
  * 48 kHz, which is inaudible inside the Library player — the whole graph is
  * delayed together — and very audible system-wide, where it puts the picture
- * ahead of the sound. That is why the DSP page prints it beside the
- * system-wide scope pill rather than leaving the user to discover it.
+ * ahead of the sound. That is why the DSP page prints it in its header, in
+ * the game-mode capsule, rather than leaving the user to discover it.
  */
 export const LINEAR_PHASE_LATENCY_FRAMES = 8192;
 

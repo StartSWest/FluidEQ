@@ -111,8 +111,6 @@ const dsp = {
     'Il DSP elabora solo le tracce audio riprodotte dalla Libreria. Audio condiviso ricevuto, karaoke, video e altre app non vengono elaborati.',
   'dsp.idle':
     'Riproduci una traccia audio dalla Libreria per usare il DSP. Audio condiviso ricevuto, karaoke, video e altre app non vengono elaborati.',
-  'dsp.scope.system': 'Su tutto il sistema · {output}',
-  'dsp.scope.systemAll': 'Su tutto il sistema',
   'dsp.latency.label': 'Ritardo di elaborazione',
   'dsp.latency.gameMode': 'Modalità gioco',
   'dsp.latency.ms': '{ms} ms',

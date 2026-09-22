@@ -111,8 +111,6 @@ const dsp = {
     'Le DSP traite uniquement les pistes audio lues depuis la Bibliothèque. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',
   'dsp.idle':
     'Lisez une piste audio depuis la Bibliothèque pour utiliser le DSP. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',
-  'dsp.scope.system': 'Tout le système · {output}',
-  'dsp.scope.systemAll': 'Tout le système',
   'dsp.latency.label': 'Délai de traitement',
   'dsp.latency.gameMode': 'Mode jeu',
   'dsp.latency.ms': '{ms} ms',

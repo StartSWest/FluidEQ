@@ -286,18 +286,20 @@ describe('what the DSP page says its scope is', () => {
     expect(chainsSent).toHaveLength(0);
   });
 
-  it('says system-wide, and names the output, under FluidEQ Engine', async () => {
+  it('says nothing about where the rack runs under FluidEQ Engine', async () => {
     renderPanel();
-    expect(
-      await screen.findByText(/System-wide · Speakers \(Realtek\)/),
-    ).toBeInTheDocument();
-    // The Library-only sentence is not merely joined by the pill — it would
-    // contradict it.
+    // The rack reaching the engine is what says the status has landed as the
+    // FluidEQ Engine, or the checks below would pass on a page still waiting.
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    // No pill naming the output — Ivan took it out on 2026-09-22 — and no
+    // sentence in its place: the Library-only notice would contradict a rack
+    // running on every output, and the "play a track to use DSP" prompt would
+    // wait for something the rack does not need.
+    expect(document.querySelector('.dsp-scope')).toBeNull();
+    expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
     expect(
       screen.queryByText(/played from Library only/i),
     ).not.toBeInTheDocument();
-    // And neither is the "play a track to use DSP" prompt: the rack applies
-    // to everything, so there is nothing to wait for.
     expect(
       screen.queryByText(/Play an audio track from Library/i),
     ).not.toBeInTheDocument();
@@ -305,7 +307,7 @@ describe('what the DSP page says its scope is', () => {
 
   it('does not invent a fixed delay from the selected phase without running-engine telemetry', async () => {
     renderPanel();
-    expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
     expect(screen.queryByText(/171 ms delay/)).not.toBeInTheDocument();
 
     renderPanel({
@@ -325,7 +327,6 @@ describe('what the DSP page says its scope is', () => {
     expect(
       screen.getByRole('button', { name: 'Use FluidEQ Engine' }),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
   });
 
   it('keeps only neural Voice Library-only under the system engine', async () => {
@@ -333,7 +334,7 @@ describe('what the DSP page says its scope is', () => {
       ...DSP_DEFAULTS,
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true },
     });
-    expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
     fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
     expect(
       screen.getByText(/Neural Voice is available for Library playback only/),
@@ -363,7 +364,7 @@ describe('the surround switch', () => {
         />
       </FluidEqProviderWrapper>,
     );
-    expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
     const toggle = screen.getByRole('checkbox', { name: 'Surround' });
     expect(document.querySelector('.dsp-header')).toContainElement(toggle);
     expect(toggle).toBeChecked();
@@ -385,17 +386,16 @@ describe('the surround switch', () => {
 
 describe('the rack under the engine with nothing playing at all', () => {
   it('is live, because the engine runs it independent of the Library deck', async () => {
-    // The exact situation the pill promises and the controls used to deny:
-    // FluidEQ Engine chosen, and nothing whatsoever playing through the
-    // Library deck — the ordinary state of a window used purely to process
-    // system audio.
+    // The exact situation the controls used to deny: FluidEQ Engine chosen,
+    // and nothing whatsoever playing through the Library deck — the ordinary
+    // state of a window used purely to process system audio.
     act(() => {
       stopAllPlayback();
       setDspNativeState('idle');
     });
     renderPanel();
 
-    expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
     // "Bypassed" is what an unavailable rack says. The default settings
     // leave the master switch on and the engine is already running the
     // chain, so the readout has to say so rather than wait for a Library
@@ -576,8 +576,6 @@ describe('the DSP page while the rack runs nowhere', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(
       en['dspOff.switchedOff'],
     );
-    // In place of the scope, not beside it: the rack has none while off.
-    expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Equaliser/i })).toBeDisabled();
   });
@@ -652,7 +650,7 @@ describe('the Library player’s own engine failing', () => {
     act(() => setDspNativeState('failed'));
     renderPanel();
     // The engine status has landed, or the check below proves nothing.
-    await screen.findByText(/System-wide · Speakers \(Realtek\)/);
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
     expect(screen.queryByText(en['dsp.engineDown'])).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeDisabled();
   });
