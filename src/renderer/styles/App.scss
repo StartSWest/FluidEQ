@@ -694,6 +694,13 @@ select option {
   width: min(31vw, 420px);
   min-width: 0;
   flex: 0 1 auto;
+  // And it is what the strip's readouts are measured against: the pane is
+  // squeezed by this grid as well as by the window, so only its own width
+  // can say when its three labels stop fitting (`WaveformVisualizer.scss`,
+  // `Euphoria.scss`). Safe here and nowhere else: a size container whose
+  // width came from its contents would collapse to nothing, and this one's
+  // is the line above.
+  container: wave-meter / inline-size;
 }
 
 // No height override here any more. The pane was cut to 56px to fit inside a

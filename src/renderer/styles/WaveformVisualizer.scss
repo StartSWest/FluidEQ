@@ -328,6 +328,46 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// THE TOP STRIP GIVES ITS READOUTS UP BY THE METER'S OWN WIDTH, NOT THE
+// WINDOW'S.
+//
+// Three things share that strip: the signal light with LIVE OUTPUT (78px
+// from the left edge), the held peak (34 at the right), and the centred
+// "RAINBOW MODE" pill (109). With the pane's 28px of inline padding they
+// need 265px between them, and the pane is not sized by the window alone —
+// the titlebar's grid squeezes it when the blocks either side grow, so a
+// window query cannot say when they stop fitting. The container can: the
+// shell carries a definite width (`App.scss`), which is what makes it a
+// size container without collapsing.
+//
+// Measured in the harness, 2026-09-22, which is where each number below
+// comes from — the width at which that pair first touches, and not a pixel
+// earlier: the strip keeps everything it can still draw clear.
+//
+//   325  LIVE OUTPUT and its light (84 from the left edge) come within the
+//        strip's own 8px of the pill; they touch outright at 309. Below
+//        1920 of window the label is already gone (`App.scss`), so this is
+//        for a wide window whose titlebar grid has squeezed the pane.
+//   222  the held peak — which sits at the LEFT once the label is gone,
+//        because the row is `space-between` and it is then the only thing
+//        in it — comes within the same 8px of the pill.
+//   136  the pill no longer fits the pane at all.
+//
+// What goes, goes in that order: the label repeats what the trace says, the
+// number is the next most replaceable, and the pill last — its mode is
+// named nowhere else on screen, though Ctrl+E still turns it on.
+@container wave-meter (max-width: 325px) {
+  .waveform-visualizer__signal {
+    display: none;
+  }
+}
+
+@container wave-meter (max-width: 222px) {
+  .waveform-visualizer__peak {
+    display: none;
+  }
+}
+
 @media (max-width: 760px) {
   .waveform-visualizer__meta {
     gap: 4px;

@@ -509,6 +509,16 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
+// The last thing to go from the meter's top strip, and only once the pane
+// cannot hold the pill at all: 109px of label and the pane's 28px of inline
+// padding. The readouts that share the strip give way before it — see the
+// note in `WaveformVisualizer.scss`.
+@container wave-meter (max-width: 136px) {
+  .waveform-visualizer__euphoria {
+    display: none;
+  }
+}
+
 // Centred over the top of the meter, clear of the readouts at either end.
 .waveform-visualizer__euphoria {
   position: absolute;
