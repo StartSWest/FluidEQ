@@ -12,6 +12,7 @@ const help: Record<keyof typeof en, string> = {
   'help.searchHint': 'Experimente motor, graves, visualizador…',
   'help.contents': 'Neste guia',
   'help.results': '{count} capítulos',
+  'help.resultsOne': '{count} capítulo',
   'help.empty':
     'Nenhum capítulo encontrado. Tente uma frase menor ou limpe a busca.',
   'help.clear': 'Limpar busca',
@@ -39,6 +40,8 @@ const help: Record<keyof typeof en, string> = {
     'Instale o FluidEQ e mantenha o Motor FluidEQ selecionado quando a instalação perguntar como processar seu som. O Windows pede permissão uma vez, sem reiniciar.\nEscolha seu dispositivo de escuta em Dispositivo de saída. Ative EQ do sistema e deixe Normalizar automaticamente ligado.\nReproduza uma música, abra EQ → Bandas, faça uma pequena mudança e compare com o EQ do sistema desligado e ligado.',
   'help.start.tip':
     'O EQ em todo o sistema precisa do Windows e de um motor de áudio: o Motor FluidEQ ou o Equalizer APO. No macOS e no Linux, o app mostra saídas de demonstração, então um gráfico em movimento ali não prova que algo esteja sendo processado.',
+  'help.start.keywords':
+    'instalar, instalador, setup, configurar, primeiros passos, começar, como usar, tutorial, passo a passo, iniciante, introdução, básico, início rápido, guia rápido, manual',
 
   'help.window.title': 'Conheça a janela',
   'help.window.intro':
@@ -47,6 +50,8 @@ const help: Record<keyof typeof en, string> = {
     'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Plus depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo arco-íris para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
   'help.window.tip':
     'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows e Processos, que mostra o que cada parte do FluidEQ está usando.',
+  'help.window.keywords':
+    'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp',
   'help.window.headerLeftCaption': 'O cabeçalho, até o sinal',
   'help.window.headerRightCaption': 'O cabeçalho, depois do sinal',
   'help.window.railCaption': 'O painel da esquerda',
@@ -91,6 +96,8 @@ const help: Record<keyof typeof en, string> = {
     'Veja qual Windows você tem: Windows 10 versão 1803 ou posterior, ou Windows 11, de 64 bits, 4 GB de memória e cerca de 600 MB de disco. Processar tudo o que o PC toca precisa do Motor FluidEQ ou do Equalizer APO, e o Windows pede permissão uma vez durante a instalação.\nAbra um visualizador: qualquer placa de vídeo ou vídeo integrado de 2013 em diante. Em 1080p o vídeo integrado basta; para 4K, ou um plano de fundo em várias telas ao mesmo tempo, uma placa dedicada é melhor. Com a placa ocupada, o FluidEQ desenha a cena menor e solta as que você não está vendo.\nExperimente o karaokê com IA: separar a voz baixa um modelo de 713 MB na primeira vez, o da afinação acrescenta cerca de 180 MB e o de remover ruído, 11 MB. Com uma placa de vídeo com DirectX 12, uma música de quatro minutos é separada em meio minuto; só com o processador leva cerca de quatro minutos. Deixe 2 GB de memória livres enquanto ele trabalha.\nMire nisto se puder: Windows 11, 8 GB de memória, vídeo de 2018 em diante e 3 GB de disco livres se você usar os recursos com IA.',
   'help.requirements.tip':
     'Tudo, menos os modelos de IA, vem no instalador, e eles só são baixados quando você usa o recurso pela primeira vez. Processos, no menu de ações, mostra o que cada parte do FluidEQ está usando na sua máquina agora.',
+  'help.requirements.keywords':
+    'requisitos mínimos, configuração mínima, recomendado, especificações, hardware, notebook, laptop, GPU, CPU, RAM, armazenamento, espaço em disco, desempenho, performance, lento, travando, lag, PC fraco, consumo, compatibilidade, compatível, Mac, macOS, Linux',
 
   'help.engine.title': 'O Motor FluidEQ',
   'help.engine.intro':
@@ -99,6 +106,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra o menu de ações (o botão de pulso no canto superior direito) e clique no cartão do motor, no topo.\nEscolha Motor FluidEQ e pressione Aplicar. O Windows pede permissão, e o áudio pausa por alguns segundos enquanto reinicia.\nSe uma saída mostrar DESLIG., pressione Ativar no aviso dela. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.',
   'help.engine.tip':
     'O Equalizer APO continua disponível para comandos personalizados do APO, Peace e plugins VST. Quando uma atualização traz um motor mais novo, um aviso oferece Atualizar o motor. Sair do FluidEQ pela bandeja do sistema desliga o EQ em todas as saídas.',
+  'help.engine.keywords':
+    'engine, driver, global, todos os programas, todos os aplicativos, Spotify, Discord, navegador, habilitar, administrador, instalar motor',
   'help.engine.fluid':
     'Recomendado. Os efeitos da sua placa de som continuam funcionando, e o EQ e o rack DSP chegam a todos os apps.',
   'help.engine.apo':
@@ -113,6 +122,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra EQ → Bandas. Sem nada selecionado, gire Graves, Médios ou Agudos para uma mudança rápida de tom.\nClique na frequência de uma banda, ou no ponto dela no gráfico, para selecioná-la. Gire os controles Frequência, Ganho e Fator Q, escolha um Filtro ou desligue-a com Ativa.\nClique com o botão direito em uma banda para redefini-la, desativá-la ou adicionar uma banda ao lado. Pressione Limpar EQ para definir todos os ganhos em 0 dB mantendo suas bandas. Ele pergunta antes.',
   'help.eq.tip':
     'Em Também aplicado aparece o que molda esta saída além das suas bandas, cada camada com sua própria intensidade e o ×. O Modo jogo reduz o atraso que o FluidEQ acrescenta, para jogos e chamadas; os presets de jogo o ativam.',
+  'help.eq.keywords':
+    'equalizador, equalização, paramétrico, predefinição, predefinições, bass boost, peaking, low cut, high cut, HPF, LPF, zerar, resetar, timbre, som abafado, estridente',
   'help.eq.bandsCaption': 'A página Bandas, sem nada selecionado',
   'help.eq.bandCaption': 'Uma banda selecionada',
   'help.eq.gameMode':
@@ -160,6 +171,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
     'Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
+  'help.eqmode.keywords':
+    'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava',
   'help.eqmode.modeCaption': 'Modo EQ',
   'help.eqmode.strength':
     'Normal, Estúdio ×1.5 ou ×2, para seu EQ e suas curvas separadamente.',
@@ -180,6 +193,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra EQ → Presets de jogo e pressione Adicionar um jogo. Escolha um jogo dos seus lançadores, um programa aberto agora, ou escolha você mesmo o programa dele.\nNo seletor da linha dele, escolha o som que ele deve receber: um preset de jogo ou qualquer outro.\nInicie o jogo. Um cartão na tela diz para qual som o FluidEQ mudou, e outro diz qual som voltou quando você o fecha.',
   'help.games.tip':
     'Enquanto um jogo estiver no comando do som, a barra na parte de baixo da janela mostra o nome dele. Se você escolher outro som enquanto joga, ele é mantido: o FluidEQ só desfaz o que ele mesmo aplicou. Os presets de jogo também ativam o Modo jogo.',
+  'help.games.keywords':
+    'games, gaming, perfil de jogo, por aplicativo, troca automática, launcher, FPS, jogo de tiro, passos dos inimigos, competitivo, latência',
   'help.games.tab': 'Seus jogos e o som que cada um recebe.',
   'help.games.add':
     'Adiciona um jogo de Steam, Epic, EA, GOG, Ubisoft, Battle.net ou Xbox, ou qualquer programa aberto agora.',
@@ -198,6 +213,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra EQ → Presets EQ, procure o modelo dos seus fones, revise as medições disponíveis e escolha a correspondente.\nPara texto de EQ de outra ferramenta, use Importar configurações de EQ no menu de ações. Confira as bandas e a curva interpretadas antes de aplicar.\nPara o Squiglink, cole a exportação dele no painel de importação. Aplicar como EQ substitui suas bandas; Aplicar como curva a adiciona como uma correção de fones com intensidade própria.',
   'help.headphones.tip':
     'Uma prévia marcada como Não aplicada não muda o som. Evite duas correções completas para o mesmo fone por acidente; compare desligando a camada de fones.',
+  'help.headphones.keywords':
+    'AutoEq, Harman, curva alvo, fones de ouvido, headphone, headset, IEM, in-ear, earbuds, TWS, Crinacle, oratory1990, resposta de frequência, calibração',
 
   'help.convolution.title': 'Use uma resposta ao impulso',
   'help.convolution.intro':
@@ -206,6 +223,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra EQ → Convolução e procure por modelo ou autor da medição.\nConfira a origem e use Baixar e aplicar; o download acompanha a taxa da sua saída. Use Importar um WAV para um arquivo que você já tem.\nOuça com a camada de convolução ligada e desligada em Também aplicado.',
   'help.convolution.tip':
     'O Motor FluidEQ converte sozinho qualquer taxa do impulso. O Equalizer APO precisa de um WAV importado na taxa da própria saída. Os downloads do catálogo precisam de conexão; o guia não.',
+  'help.convolution.keywords':
+    'IR, resposta impulsiva, convolver, FIR, correção de sala, REW, arquivo de correção, taxa de amostragem',
 
   'help.profiles.title': 'Dispositivos, perfis e segunda saída',
   'help.profiles.intro':
@@ -214,6 +233,8 @@ const help: Record<keyof typeof en, string> = {
     'Confira o Dispositivo de saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
   'help.profiles.tip':
     'Cada saída espelhada usa seu próprio perfil, com qualquer um dos motores. O espelhamento funciona enquanto o FluidEQ está aberto; trocar a saída principal encerra os espelhamentos antigos. A latência do dispositivo ainda afeta a sincronização.',
+  'help.profiles.keywords':
+    'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC',
   'help.profiles.list':
     'Os sons que você salvou. ATV indica o perfil que esta saída usa; pressione outro para trocar.',
   'help.profiles.update': 'Salva suas mudanças no perfil em que você está.',
@@ -238,6 +259,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra EQ → Config, selecione a saída e confira estado e camadas.\nUse Exportar cadeia para salvar um arquivo .fluideq.\nPara recuperá-lo, selecione primeiro a saída desejada, use Importar cadeia e confira o resultado.',
   'help.config.tip':
     'Os arquivos de camadas gerados são reescritos quando os ajustes deles mudam; coloque linhas manuais permanentes no arquivo personalizado de cada saída. O Motor FluidEQ lê as linhas Filter, Preamp, GraphicEQ e Convolution desse arquivo; outros comandos do APO e plugins precisam do Equalizer APO.',
+  'help.config.keywords':
+    'backup, cópia de segurança, restaurar backup, exportar configurações, config.txt, arquivo de texto, include, avançado, migrar',
 
   'help.dsp.title': 'Explore o rack DSP',
   'help.dsp.intro':
@@ -246,6 +269,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.',
   'help.dsp.tip':
     'Mais alto costuma soar melhor só por ser mais alto, então compare em níveis equivalentes. Ctrl+clique em um controle giratório para voltar ao valor padrão.',
+  'help.dsp.keywords':
+    'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless',
   'help.dsp.normalizer':
     'Uniformiza a sonoridade. No áudio ao vivo, nivela música por música.',
   'help.dsp.denoise':
@@ -274,6 +299,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra DSP, escolha Sala na barra e ligue-a. O estéreo vira dois alto-falantes à sua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolha uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou gire Tamanho, Paredes e Distância você mesmo e arraste um alto-falante pelo anel. Os alto-falantes que o fluxo em reprodução não alcança são desenhados adormecidos.\nPressione Começar o teste de escuta e responda a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à sua frente. Pequena, Média e Grande também podem ser escolhidas à mão.\nSalve uma sala de que você goste com um nome; uma sala salva volta com um toque e nunca muda a sua cabeça.',
   'help.room.tip':
     'Jogos e filmes só enviam os canais surround para uma saída que o Windows acredita ter esse número de alto-falantes: quando o driver aceita, o painel de saída oferece um toque para 7.1.',
+  'help.room.keywords':
+    'surround virtual, áudio espacial, 3D, binaural, HRTF, virtualizador, reverb, reverberação, eco, palco sonoro, soundstage, crossfeed, home theater, imersivo',
   'help.room.picker':
     'As salas de partida, agrupadas como os perfis de todos os outros estágios; Personalizado assim que você molda uma.',
   'help.room.picture':
@@ -300,6 +327,8 @@ const help: Record<keyof typeof en, string> = {
     'Toque algo com o ruído que você quer reduzir e selecione Redução de ruído em DSP.\nLigue Chiado, Zumbido ou Estalos com um ajuste leve e ouça os trechos quietos e os detalhes musicais.\nAumente a redução aos poucos e depois desative o estágio para conferir se a melhora compensa alguma perda de detalhe.',
   'help.denoise.tip':
     'Preste atenção a detalhes suavizados e a texturas aguadas ou com bombeamento. Isto não é uma limpeza de microfone. Se não ouvir nenhuma mudança, confirme que o rack e o estágio estão ligados.',
+  'help.denoise.keywords':
+    'barulho, remover ruído, tirar ruído, ruído de fundo, estática, vinil, restauração, limpar áudio, denoise, noise',
 
   'help.graph.title': 'O gráfico e seus controles',
   'help.graph.intro':
@@ -308,6 +337,8 @@ const help: Record<keyof typeof en, string> = {
     'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia. Um clique simples oculta ou mostra a barra.',
   'help.graph.tip':
     'Tudo aqui muda só o desenho, nunca o seu som. O Modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Esc sai das visualizações expandida e em tela cheia.',
+  'help.graph.keywords':
+    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder',
   'help.graph.stripCaption': 'Com um estilo padrão',
   'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
   'help.graph.previous': 'Volta ao visual anterior.',
@@ -358,6 +389,8 @@ const help: Record<keyof typeof en, string> = {
     'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
   'help.looks.tip':
     'Um visualizador Plus traz as próprias cores: ajuste o ataque e a liberação dele em Visualização. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
+  'help.looks.keywords':
+    'skin, aparência, temas, animação, animações, customizar, visualizer',
   'help.looks.searchName': 'Pesquisar',
   'help.looks.search':
     'Encontra estilos e visualizadores por nome, criador ou categoria.',
@@ -377,6 +410,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nPressione Passar ao Plus, leia os termos, marque que concorda e pague no Buy Me a Coffee, no seu navegador, com o mesmo email.\nAbra a aba Plus. A barra lateral dela leva à Classificação, aos Visualizadores, ao Estúdio e à Iluminação dinâmica.',
   'help.plus.tip':
     'O app nunca vê seu cartão; Gerenciar assinatura permite alterá-la ou cancelá-la. O teste gratuito não pede cartão e não cobra nada ao terminar. Uma conta fica conectada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
+  'help.plus.keywords':
+    'login, cadastro, cadastrar, registrar, premium, assinar, planos, preço, custo, comprar, pagamento, cartão de crédito, mensalidade, trial, cancelar, upgrade, código de verificação',
   'help.plus.leaderboard':
     'Quem ouve mais, entre os membros Plus que participam.',
   'help.plus.visualizers':
@@ -393,6 +428,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena, pressione Adicionar aos meus visuais e depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta as cenas dos membros com o coração e denuncie uma que não deveria estar lá.',
   'help.gallery.tip':
     'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que um moderador a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
+  'help.gallery.keywords':
+    'baixar visualizadores, cenas da comunidade, likes, populares, denunciar, moderação',
   'help.gallery.search': 'Encontra cenas e criadores.',
   'help.gallery.sortName': 'Ordenar',
   'help.gallery.sort': 'Mais curtidas, curtidas nesta semana ou mais novas.',
@@ -420,6 +457,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de usuário e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
   'help.leaderboard.tip':
     'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu nome de usuário e seu nome visível podem ser mudados depois em Conta → Mudar nome; a Classificação e suas cenas publicadas acompanham.',
+  'help.leaderboard.keywords':
+    'ranking, leaderboard, pontuação, estatísticas, tempo de escuta, top ouvintes, competição, apelido, privacidade',
   'help.leaderboard.periodName': 'Desde sempre ou Este mês',
   'help.leaderboard.period': 'Todo o histórico, ou só este mês.',
   'help.leaderboard.standing':
@@ -434,6 +473,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
     'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
+  'help.studio.keywords':
+    'criar visualizador, editor de cenas, shader, GLSL, WebGL, programação, ChatGPT, Claude, Gemini',
   'help.studio.project':
     'Seus projetos e as cenas do FluidEQ para ver por dentro.',
   'help.studio.stageName': 'Palco',
@@ -456,6 +497,8 @@ const help: Record<keyof typeof en, string> = {
     'Coloque um visualizador Plus no gráfico e pressione o botão de monitor ao lado do nome dele, ou escolha Visualização → Definir como fundo da área de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Plus → Visualizadores e use Gerenciar ou Parar no topo.',
   'help.desktop.tip':
     'Ele fica em pausa enquanto as janelas cobrem o monitor, com o PC bloqueado e, se você quiser, na bateria, e volta quando o FluidEQ inicia. Sair do FluidEQ o interrompe. Só no Windows.',
+  'help.desktop.keywords':
+    'papel de parede, papel de parede animado, wallpaper, plano de fundo, fundo de tela, dois monitores, vários monitores, segundo monitor, desktop',
   'help.desktop.monitors':
     'Seus monitores como o Windows os organiza. Pressione os que quer usar.',
   'help.desktop.music': 'Move-se com o que estiver tocando.',
@@ -471,6 +514,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Plus → Iluminação dinâmica e ative-a, ou pressione o botão de iluminação ao lado de um visualizador Plus no gráfico.\nEscolha o estilo de iluminação deste visualizador (Cena, Onda de cor, Espectro ou Onda rítmica) e ajuste o brilho e a que ele responde.\nClique em um dispositivo em Seus dispositivos para ajustá-lo separadamente; Todos os dispositivos volta a ajustar todos.',
   'help.lighting.tip':
     'Se o Windows reservar um dispositivo para outro app, a página diz qual configuração mudar e a abre para você. Dispositivos Razer precisam do Razer Synapse aberto, com o Chroma Apps permitido.',
+  'help.lighting.keywords':
+    'RGB, LED, luzes, periféricos, sincronizar luzes, iluminação reativa',
   'help.lighting.switch':
     'Ilumina seus dispositivos enquanto um visualizador Plus toca.',
   'help.lighting.browse': 'Abre a galeria para escolher um visualizador.',
@@ -490,6 +535,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Mídia online, escolha um site e inicie a reprodução na página.\nVá à EQ para ajustar ouvindo; volte à página para os controles próprios.\nAtive Um reprodutor de cada vez para evitar sobreposição com outros players.',
   'help.online.tip':
     'Com o Motor FluidEQ, a Mídia online passa pelo seu EQ e pelo rack DSP como qualquer outro app. Com o Equalizer APO, o rack fica com as faixas da Biblioteca.',
+  'help.online.keywords':
+    'YouTube, YouTube Music, Bandcamp, Twitch, Suno, streaming, web, internet, navegador',
 
   'help.library.title': 'Monte sua biblioteca local',
   'help.library.intro':
@@ -498,6 +545,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Biblioteca e adicione a pasta com suas mídias. Deixe a leitura terminar antes de avaliar o que está faltando.\nEscolha um artista ou álbum, ou busque uma música. Inicie uma faixa nos resultados.\nUse a barra na parte de baixo da janela para pausar, mudar a posição e pular. O volume dela é um nível único para todos os players.',
   'help.library.tip':
     'Passe o mouse sobre o botão do FluidEQ na barra de tarefas do Windows para ter Anterior, Reproduzir e Próximo, mesmo com ele minimizado. A Biblioteca precisa dos arquivos originais: reconecte uma unidade ou adicione de novo uma pasta que foi movida.',
+  'help.library.keywords':
+    'reprodutor de música, tocador, adicionar músicas, escanear, metadados, MP3, FLAC, AAC, WAV',
 
   'help.queue.title': 'Álbuns e fila de reprodução',
   'help.queue.intro':
@@ -506,6 +555,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra um álbum para ver as faixas dele e inicie a que você quer ouvir.\nClique com o botão direito em uma música para Adicionar à fila, Adicionar aos Favoritos ou Adicionar a uma playlist.\nAbra A seguir para ver o que toca depois e ative Continuar tocando para seguir com mais do mesmo gênero.',
   'help.queue.tip':
     'Iniciar a reprodução da Biblioteca assume o lugar dos outros players do FluidEQ. Use a faixa atual mostrada na barra para confirmar qual fonte está com a reprodução.',
+  'help.queue.keywords':
+    'próxima música, tocar em seguida, aleatório, shuffle, repetir, autoplay, reprodução automática, lista de reprodução',
 
   'help.karaoke.title': 'Cante com Karaokê',
   'help.karaoke.intro':
@@ -514,6 +565,7 @@ const help: Record<keyof typeof en, string> = {
     'Abra Karaokê e use Adicionar arquivos ou Adicionar pasta para áudio e letras correspondentes.\nSelecione uma música, reproduza e confira o pareamento.\nConfigure o microfone, ajuste o tamanho das letras e use a tela cheia do palco.',
   'help.karaoke.tip':
     'Um arquivo só de letras não tem notas-alvo. O Karaokê segue o Volume do app; os níveis da melodia, da base e da voz guia ficam em Configurações de mistura.',
+  'help.karaoke.keywords': 'cantar, videokê, pontuação, pitch, LRC, UltraStar',
 
   'help.maker.title': 'Crie no Criador de karaokê',
   'help.maker.intro':
@@ -571,6 +623,8 @@ const help: Record<keyof typeof en, string> = {
     'Salva o karaokê pronto como projeto FluidEQ, UltraStar TXT, LRC ou LRC aprimorado.',
   'help.maker.tip':
     'Modelos exigem conexão e espaço. O tempo depende do computador e da música. Use áudio autorizado e revise antes de compartilhar.',
+  'help.maker.keywords':
+    'remover voz, isolar voz, instrumental, playback, acapella, a capela, stems, sincronizar letra, transcrever, timing, editor de karaokê',
 
   'help.share.title': 'Compartilhe áudio entre computadores',
   'help.share.intro':
@@ -579,6 +633,8 @@ const help: Record<keyof typeof en, string> = {
     'No computador de escuta, abra Compartilhar áudio, escolha Reproduzir áudio neste computador e pressione Criar código de conexão. Comece com volume baixo.\nEm cada computador de origem, escolha Enviar o áudio deste computador, cole o código da sua rede e pressione Conectar e enviar.\nAcompanhe o monitor de conexão. Pressione Parar de enviar ou Parar de ouvir ao terminar; Criar novo código desconecta todos os pareamentos salvos.',
   'help.share.tip':
     'Mantenha o código de conexão privado: ele autoriza o pareamento. Vários emissores se misturam e elevam o nível, e o Volume do receptor o ajusta. Com o Motor FluidEQ, o áudio recebido também passa pelo rack DSP.',
+  'help.share.keywords':
+    'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto',
 
   'help.trouble.title': 'Quando o som está errado',
   'help.trouble.intro':
@@ -587,6 +643,8 @@ const help: Record<keyof typeof en, string> = {
     'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado e que a saída não mostra o selo DESLIG. Se mostrar, pressione Ativar. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.\nEstá tudo certo e o EQ continua sem fazer nada: o Windows pode estar tocando a música por fora do motor. O aviso diz isso e oferece, com um toque, mover o motor para onde o Windows o use; custa uma permissão e um segundo de silêncio.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
   'help.trouble.tip':
     'F1 abre este guia. Esc fecha uma captura ampliada e depois o guia. Se a interface estiver grande demais, Ctrl + 0 restaura o zoom. Processos, no menu de ações, mostra o que cada parte do FluidEQ está fazendo.',
+  'help.trouble.keywords':
+    'mudo, erro, bug, picotando, falhando, engasgando, pipocando, cortando, distorcido, estourado, clipping, som baixo, consertar, resolver, suporte, atalhos de teclado, teclas de atalho, resetar zoom, travou, crash, reportar',
 
   'help.forum.title': 'Pergunte no Fórum',
   'help.forum.intro':
@@ -595,6 +653,8 @@ const help: Record<keyof typeof en, string> = {
     'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
   'help.forum.tip':
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre.',
+  'help.forum.keywords':
+    'comunidade, dúvidas, suporte, sugestão, sugestões, feedback, pedido de recurso, contato, desenvolvedor, discussões, enquete',
 };
 
 export default help;

@@ -12,6 +12,7 @@ const help: Record<keyof typeof en, string> = {
   'help.searchHint': '试试：引擎、低音、可视化…',
   'help.contents': '指南目录',
   'help.results': '{count} 个章节',
+  'help.resultsOne': '{count} 个章节',
   'help.empty': '没有找到章节。请缩短关键词或清除搜索。',
   'help.clear': '清除搜索',
   'help.close': '关闭指南',
@@ -38,6 +39,8 @@ const help: Record<keyof typeof en, string> = {
     '安装 FluidEQ，当安装程序询问如何处理你的声音时，保持选中“FluidEQ 引擎”。Windows 只会请求一次授权，无需重启电脑。\n在“输出设备”中选择你的聆听设备。开启“系统均衡”，并保持“自动归一化”开启。\n播放一首歌曲，打开“均衡器 → 频段”，做一点小调整，再对比“系统均衡”关闭与开启时的声音。',
   'help.start.tip':
     '系统级 EQ 需要 Windows 和一个音频引擎：FluidEQ 引擎或 Equalizer APO。在 macOS 和 Linux 上，应用显示的是演示输出设备，因此那里的图表在动并不能证明有任何声音被处理。',
+  'help.start.keywords':
+    '新手教程, 使用教程, 安装教程, 快速入门, 快速上手, 怎么用, 怎么使用, 如何使用, 使用方法, 使用说明, 第一次使用, 初次使用, 开始使用, 初始设置, 基础教程, 小白',
 
   'help.window.title': '窗口导览',
   'help.window.intro':
@@ -46,6 +49,8 @@ const help: Record<keyof typeof en, string> = {
     '在标题栏中点击要去的页面：音频信号之前是“在线媒体”“共享音频”和“均衡器”，之后是“DSP”“媒体库”“卡拉OK”和“Plus”。\n在左侧栏开启“系统均衡”，并保持“自动归一化”开启，这样任何提升都不会削波。\n点击音频信号或电平表可更改其绘制方式；按“彩虹模式”则会让曲线和电平表以屏幕的完整刷新率绘制。',
   'help.window.tip':
     '“帮助”菜单可打开本指南、“更新说明”、音频排障工具和“报告问题”。旁边的脉冲按钮里则有引擎卡片、导入均衡设置或脉冲响应、重启 Windows 音频，以及“进程”——它会显示 FluidEQ 的每个部分正在占用什么。',
+  'help.window.keywords':
+    '主界面, 界面介绍, UI, 导航, 标签页, 选项卡, 工具栏, 侧边栏, 顶栏, 底栏, 播放栏, 音量表',
   'help.window.headerLeftCaption': '标题栏，到音频信号为止',
   'help.window.headerRightCaption': '标题栏，音频信号之后',
   'help.window.railCaption': '左侧栏',
@@ -81,6 +86,8 @@ const help: Record<keyof typeof en, string> = {
     '先看看你的 Windows：64 位的 Windows 10 1803 版或更高，或 Windows 11，4 GB 内存，约 600 MB 磁盘空间。要处理电脑播放的所有声音，需要 FluidEQ 引擎或 Equalizer APO，安装时 Windows 会请求一次权限。\n打开一个可视化效果：2013 年以后的任何显卡或核显。1080p 用核显就够；4K，或同时在多块屏幕上做桌面背景，独立显卡更合适。显卡繁忙时，FluidEQ 会把场景画得更小，并放开你看不到的场景。\n试一次 AI 卡拉OK：分离人声第一次会下载 713 MB 的模型，音高模型再加约 180 MB，降噪模型 11 MB。有支持 DirectX 12 的显卡时，四分钟的歌大约半分钟就能分离；只用处理器则约需四分钟。处理期间请留出 2 GB 内存。\n条件允许就照这个来：Windows 11、8 GB 内存、2018 年以后的显卡；如果使用 AI 功能，再留出 3 GB 磁盘空间。',
   'help.requirements.tip':
     '除了 AI 模型，其余都在安装程序里；模型只在你第一次使用该功能时下载。操作菜单中的“进程”会显示 FluidEQ 的每个部分此刻在你电脑上占用了什么。',
+  'help.requirements.keywords':
+    '系统要求, 配置要求, 硬件要求, 电脑配置, 最低配置, 推荐配置, GPU, 独显, 集显, 集成显卡, 显存, CPU, RAM, 硬盘, 存储空间, 笔记本, 性能, 卡顿, 兼容性, 资源占用, Win10, Win11, Win7, Mac, Linux',
 
   'help.engine.title': 'FluidEQ 引擎',
   'help.engine.intro':
@@ -89,6 +96,8 @@ const help: Record<keyof typeof en, string> = {
     '打开操作菜单（右上角的脉冲按钮），点击最上方的引擎卡片。\n选择“FluidEQ 引擎”并按“应用”。Windows 会请求授权，音频会在重启时暂停几秒钟。\n如果某个输出显示“已关闭”，请在它的提示中按“启用”。如果提示说引擎没有运行，请按“重启 Windows 音频”。',
   'help.engine.tip':
     'Equalizer APO 仍可用于 APO 自定义命令、Peace 和 VST 插件。更新带来新版引擎时，会出现提示并提供“更新引擎”。从托盘退出 FluidEQ 会关闭所有输出上的 EQ。',
+  'help.engine.keywords':
+    '音频引擎, Audio Processing Engine, EqualizerAPO, 驱动, 系统级, 全局, 全局音效, 所有应用, 所有软件, 系统声音, 管理员权限, 网易云音乐, QQ音乐, Spotify, 浏览器',
   'help.engine.fluid': '推荐。声卡音效继续可用，EQ 和 DSP 机架作用于每个应用。',
   'help.engine.apo':
     '可运行 APO 自定义命令、Peace 和 VST 插件。DSP 机架只作用于媒体库播放。',
@@ -101,6 +110,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“均衡器 → 频段”。未选中任何频段时，转动“低音”“中音”或“高音”，即可快速改变音色。\n点击频段的频率或它在图表上的控制点，即可选中它。转动它的“频率”“增益”和“品质因数 (Q)”旋钮，选择“滤波器”类型，或用“启用”开关关闭它。\n右键点击频段可以重置、停用它，或在它旁边添加频段。按“清空均衡”可将所有增益设为 0 dB，同时保留你的频段。执行前会先请你确认。',
   'help.eq.tip':
     '“同时生效”列出除你的频段之外还在影响这个输出的内容，每一项都有自己的强度和 ×。“游戏模式”会减少 FluidEQ 带来的延迟，适合游戏和通话；“游戏”预设会开启它。',
+  'help.eq.keywords':
+    '调音, 参数均衡, 参量均衡, PEQ, 图示均衡, 低音增强, 高音增强, 高低音, 重低音, Q值, 频点, 带宽, 低切, 高切, 低架, 高架, 峰值滤波, 分贝, 赫兹, 均衡器',
   'help.eq.bandsCaption': '“频段”页面，未选中任何频段',
   'help.eq.bandCaption': '选中一个频段时',
   'help.eq.gameMode':
@@ -139,6 +150,8 @@ const help: Record<keyof typeof en, string> = {
     '在“频段”工具栏上打开“EQ 模式”。在音乐播放时试试“强度”“频段 Q”或“曲线平滑”中的选项；面板会保持打开。\n使用 FluidEQ 引擎时，可将“相位”设为“最小”或“线性”。按“重置”可将一切恢复为“普通”。\n打开“添加频段”旁边的布局按钮。选择 6、10、15、20 或 31 个频段，或按“保存布局…”为当前布局命名。',
   'help.eqmode.tip':
     '布局只保存频率和 Q：载入布局后，每个频段都从 0 dB 开始。线性相位会增加延迟，并可能在尖锐的瞬态之前产生振铃。',
+  'help.eqmode.keywords':
+    '均衡模式, EQ模式, 最小相位, 前振铃, 预振铃, 图示均衡, 段数, 10段, 31段, 恒定Q, 比例Q, 频段模板',
   'help.eqmode.modeCaption': 'EQ 模式',
   'help.eqmode.strength':
     '“普通”“录音室 ×1.5”或“×2”，你的 EQ 和曲线可分别设置。',
@@ -158,6 +171,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“均衡器 → 游戏预设”，按“添加游戏”。从你的启动器中选一个，或选一个当前打开的程序，也可以自己选择它的程序。\n在它那一行的选择器中，选好它该用的音效：某个“游戏”预设，或其他任何预设。\n启动游戏。桌面上会出现一张卡片，说明 FluidEQ 切换到了什么；关闭游戏时，另一张卡片会说明换回了什么。',
   'help.games.tip':
     '游戏掌控音效期间，窗口底部的播放栏会显示它的名字。游戏中另选的音效会保留：FluidEQ 只会撤回自己设置的那一个。“游戏”预设还会开启“游戏模式”。',
+  'help.games.keywords':
+    '游戏音效, 游戏配置, 电竞, 竞技, FPS, 射击游戏, 吃鸡, 脚步声, 听声辨位, 自动切换, 按程序, 按应用, 切屏, 低延迟, 暴雪',
   'help.games.tab': '你的游戏，以及每个游戏各自的音效。',
   'help.games.add':
     '从 Steam、Epic、EA、GOG、育碧、战网或 Xbox 添加游戏，或添加任何当前打开的程序。',
@@ -176,6 +191,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“均衡器 → EQ 预设”，搜索你的耳机型号。查看可用的测量数据，并选择匹配的条目。\n对于来自其他工具的 EQ 文本，请使用操作菜单中的“导入均衡设置”。应用前先检查解析出的频段和曲线。\n对于 Squiglink，把它的导出内容粘贴到导入面板。“作为 EQ 应用”会替换你的频段；“作为曲线应用”会把它添加为耳机校正，并带有独立的强度。',
   'help.headphones.tip':
     '标记为“未应用”的预览不会改变声音。避免意外叠加同一耳机的两套完整校正。',
+  'help.headphones.keywords':
+    'AutoEq, 耳机均衡, 耳机EQ, 耳机补偿, 耳机预设, 哈曼曲线, Harman, 目标曲线, 频响曲线, IEM, 入耳式, 耳塞, Crinacle, oratory1990, 导入EQ',
 
   'help.convolution.title': '使用脉冲响应',
   'help.convolution.intro':
@@ -184,6 +201,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“均衡器 → 卷积”，按型号或测量作者搜索。\n核对来源，然后使用“下载并应用”；下载的文件会匹配你的输出采样率。已有文件时，请使用“导入 WAV”。\n在“同时生效”中开启和关闭卷积层，对比聆听。',
   'help.convolution.tip':
     'FluidEQ 引擎会自行转换任何脉冲采样率。Equalizer APO 需要导入与输出采样率相同的 WAV。目录下载需要联网，指南本身不需要。',
+  'help.convolution.keywords':
+    'IR, IR文件, 冲激响应, 卷积器, FIR, REW, 校正文件',
 
   'help.profiles.title': '设备、配置与第二路输出',
   'help.profiles.intro':
@@ -192,6 +211,8 @@ const help: Record<keyof typeof en, string> = {
     '编辑前先确认“输出设备”。想保留的声音用“新建配置”保存；“更新”会把修改保存到该命名配置，“还原”则载回它已保存的设置。\n打开“第二路输出”，启用一个可连接的设备并设置音量。在它正下方直接选择该设备已保存的均衡器配置。\n“游戏/视频”使用较小的初始缓冲，“音乐”保留更多余量。请在你的设备上对比同步效果。',
   'help.profiles.tip':
     '无论使用哪个引擎，每个镜像输出都使用自己的配置。镜像需要 FluidEQ 保持打开；切换主输出会停止旧镜像。设备延迟也会影响同步。',
+  'help.profiles.keywords':
+    '扬声器, 音箱, 声卡, DAC, 蓝牙, 切换设备, 切换输出, 默认设备, 播放设备, 音频设备, 自动切换, 保存设置, 第二输出, 双输出, 多设备, 同时输出, 延时',
   'help.profiles.list':
     '你保存的声音。“在用”标出这个输出正在使用的那一个；点击另一个即可切换。',
   'help.profiles.update': '把你的修改保存到当前所在的配置。',
@@ -215,6 +236,8 @@ const help: Record<keyof typeof en, string> = {
     '打开均衡器 → Config，选择输出并查看状态和活动层。\n使用导出链路保存 .fluideq 文件。\n恢复时先选择目标输出，再导入链路并检查结果。',
   'help.config.tip':
     '生成的层文件会在其设置改变时被重写；需要长期保留的手动配置行，请写入每个输出各自的自定义文件。FluidEQ 引擎会读取其中的 Filter、Preamp、GraphicEQ 和 Convolution 行；其他 APO 命令和插件需要 Equalizer APO。',
+  'help.config.keywords':
+    '配置文件, config.txt, APO配置, 文本文件, 导入导出, 还原, 换电脑, 重装系统, 高级设置, include',
 
   'help.dsp.title': '探索 DSP 机架',
   'help.dsp.intro':
@@ -223,6 +246,8 @@ const help: Record<keyof typeof en, string> = {
     '打开 DSP。在“预设”中选一条处理链，或在侧栏中选择一个环节并将其切换为“开启”。\n每次只改一个控件，并在相近音量下与旁路该环节时对比。“独听”让你只听到某个环节添加的内容。\n保存你喜欢的机架，并用“导出”和“导入”分享它。',
   'help.dsp.tip':
     '更响的声音往往只是因为更响才显得更好，所以请在音量一致时比较。按住 Ctrl 点击旋钮，可将其恢复为默认值。',
+  'help.dsp.keywords':
+    '效果器, 音频效果, 效果链, 效果插件, 音效插件, FX, DSP机架, 限制器, 限幅器, limiter, 响度均衡, 音量均衡, 自动音量, 增强器, 音效增强, 立体声扩展, 声场扩展, 重低音, 次谐波, 瞬态, 淡入淡出, 无缝播放',
   'help.dsp.normalizer': '统一响度。处理实时音频时，它会逐首歌曲调整电平。',
   'help.dsp.denoise':
     '修复嘶声、哼声和爆音。神经网络人声清理器用于媒体库曲目。',
@@ -245,6 +270,8 @@ const help: Record<keyof typeof en, string> = {
     '打开 DSP，在侧栏选择“房间”并开启。立体声变成你面前的两只音箱；5.1 电影是五只加低音炮；7.1 游戏是整个环绕圈。开关旁的标记会说明当前是哪一种。\n在顶部选一个房间——录音室、客厅、影院、音乐厅等——或自己转动“大小”“墙面”“距离”，并在环上拖动音箱。播放中的音频流到达不了的音箱会以休眠状态绘制。\n按“开始听音测试”，回答五组短暂的听感对比：房间会采用把声音放到你面前的那个头部模型。也可以手动选择小、中、大。\n把喜欢的房间以名称保存；已保存的房间一按即回，且从不更改你的头部设置。',
   'help.room.tip':
     '游戏和影片只会把环绕声道送到 Windows 认为具备相应扬声器数量的输出：若驱动接受，输出面板会提供一键切换到 7.1。',
+  'help.room.keywords':
+    '虚拟环绕, 耳机环绕, 空间音频, 空间音效, 3D音效, 沉浸式, 双耳, HRTF, 声场, 混响, 家庭影院, 看电影, 头部大小, 音箱模拟, 7.1声道, 5.1声道, 多声道, crossfeed',
   'help.room.picker':
     '起点房间，像其他处理级的配置一样分组；一经修改即为“自定义”。',
   'help.room.picture':
@@ -269,6 +296,8 @@ const help: Record<keyof typeof en, string> = {
     '播放带有待处理噪声的内容，并在 DSP 中选择“降噪”。\n以较轻的设置开启“嘶声”“哼声”或“爆音”，聆听安静的段落和音乐细节。\n逐步加大降噪量，然后旁路该环节，确认改善是否值得损失一些细节。',
   'help.denoise.tip':
     '留意细节是否变得模糊，以及是否出现水声感或抽吸感。它不是用来清理麦克风声音的。如果听不出变化，请确认机架和该环节都已开启。',
+  'help.denoise.keywords':
+    '去噪, 杂音, 电流声, 嗡嗡声, 滋滋声, 沙沙声, 嘶嘶声, 咔哒声, 噼啪声, 背景噪音, 消除噪音, 黑胶, 老录音, 音频修复, AI降噪',
 
   'help.graph.title': '图表及其控件',
   'help.graph.intro':
@@ -277,6 +306,8 @@ const help: Record<keyof typeof en, string> = {
     '点击外观名称，选择样式或可视化效果。名称旁的箭头、空格键和 Ctrl+空格键可以逐个切换。\n打开“视图”，可设置图表的大小、显示内容，以及波形的高度和位置。 帧率也在那里：显示器能提供的每一帧，或 60、30，使用电池时为 60。\nPlus 可视化效果会在「视图」中加入自带控件——作者留给你调整的部分——而「使用它自带的波形」会把波形恢复到该作者所选的高度与位置。\n双击绘图区可全屏。单击则隐藏或显示工具条。',
   'help.graph.tip':
     '这里的一切只改变画面，从不改变你的声音。彩虹模式（在“帮助 → 更新说明”中开启）会让标准样式、电平表和波形以屏幕的完整刷新率绘制，而不是每秒 30 帧。按 Esc 可退出展开视图和全屏视图。',
+  'help.graph.keywords':
+    '频谱分析仪, 频谱分析器, 频谱图, 实时频谱, 波形图, 曲线图, 帧数, FPS, 高刷',
   'help.graph.stripCaption': '使用标准样式时',
   'help.graph.live': '显示或隐藏实时波形。',
   'help.graph.previous': '切换到上一个外观。',
@@ -323,6 +354,8 @@ const help: Record<keyof typeof en, string> = {
     '点击图表上的外观名称。可以搜索，或按“线条”“填充”“柱条”“点”或“场景”筛选样式。\n在右侧选择一个 Plus 可视化效果。没有 Plus 时它处于锁定状态，选择它会告诉你如何获得。\n在标准样式上按“新建外观”，修改它的颜色、律动和峰值，然后保存；它会出现在“你的”下面。',
   'help.looks.tip':
     'Plus 可视化效果自带颜色：可以在“视图”中设置它的起音和释放。如果某个场景无法在这台电脑上运行，图表会改为绘制一种免费样式，而不是留下空白。',
+  'help.looks.keywords':
+    '皮肤, 换肤, 主题, 风格, 视觉效果, 音乐可视化, 特效, 动画, 色彩, 自定义外观, 柱状',
   'help.looks.searchName': '搜索',
   'help.looks.search': '按名称、作者或分类查找样式和可视化效果。',
   'help.looks.styles': '由 FluidEQ 绘制的免费样式，以及你保存的外观。',
@@ -339,6 +372,8 @@ const help: Record<keyof typeof en, string> = {
     '在操作菜单中打开“账户”。登录，或创建账户并输入发送到你邮箱的六位验证码。\n按“升级到 Plus”，阅读条款，勾选同意，然后在浏览器中用同一个邮箱在 Buy Me a Coffee 上付款。\n打开 Plus 标签页。它的侧栏通往“排行榜”“可视化”“工作室”和“动态灯效”。',
   'help.plus.tip':
     '应用永远不会看到你的银行卡；可以通过“管理订阅”更改或取消订阅。免费体验不需要银行卡，结束时也不会扣费。一个账户最多可在五台电脑上保持登录，离线时 Plus 也能继续使用一段时间。',
+  'help.plus.keywords':
+    '账号, 注册, 登陆, 退出登录, 密码, VIP, 开通, 付费, 收费, 价格, 多少钱, 购买, 支付, 信用卡, 免费试用, 退订, 续费, 月费, 年费, 高级版, 专业版, 解锁, Plus会员',
   'help.plus.leaderboard': '在加入的 Plus 会员中，谁听得最多。',
   'help.plus.visualizers': 'FluidEQ 和会员创作的场景，随你的音乐律动。',
   'help.plus.studio': '用你的 AI 创作自己的场景。',
@@ -352,6 +387,7 @@ const help: Record<keyof typeof en, string> = {
     '打开“Plus → 可视化”。可以搜索，按“最多赞”“本周”或“最新”排序，或选择一个分类。\n打开一个场景，按“添加到我的外观”，再按“在图表上播放”。用箭头按钮或 ← 和 → 在场景之间切换。\n用爱心为会员的场景点赞，并举报不该出现在这里的场景。',
   'help.gallery.tip':
     '你外观中的场景会自动更新，场景页面会说明每个版本的变化。你发布的场景，会在审核员批准后出现。“在工作室中打开”可以查看 FluidEQ 自己的场景是怎么做的。',
+  'help.gallery.keywords': '画廊, 场景库, 下载场景, 下载可视化, 社区场景, 热门',
   'help.gallery.search': '查找场景和作者。',
   'help.gallery.sortName': '排序',
   'help.gallery.sort': '最多赞、本周获赞最多，或最新。',
@@ -375,6 +411,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“账户”，按“加入排行榜”。\n打开“Plus → 排行榜”。选择排行榜上显示的用户名和显示名，然后在“全部时间”和“本月”之间切换。\n想停止时，按“退出排行榜”。“删除我的全部数据”会删除你发送过的所有内容。',
   'help.leaderboard.tip':
     '每天只有一个数字离开你的电脑——播放音乐的分钟数——绝不会包含你播放的内容。每个数字都会在服务器上核查。 昵称和名字以后可在“账户 → 更改名字”里修改；排行榜和你发布的场景会一起更新。',
+  'help.leaderboard.keywords':
+    '榜单, 统计, 听歌时长, 听歌排行, 分数, 比赛, 隐私',
   'help.leaderboard.periodName': '全部时间或本月',
   'help.leaderboard.period': '全部历史记录，或仅限本月。',
   'help.leaderboard.standing': '你的名次和积分，以及距离下一个名次还差多少分。',
@@ -388,6 +426,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“Plus → 工作室”，按“新建项目…”。给它起个名字；FluidEQ 会创建它的文件夹，里面已有一个会动的场景。\n描述你的想法，在你的 AI 助手中打开这个文件夹，然后粘贴用“复制 AI 提示词”复制的提示词。\n保存文件时观察舞台，并试试测试信号。然后选择“添加到我的外观”“发布…”或“导出…”。',
   'help.studio.tip':
     '双击舞台可全屏。“查看 FluidEQ 场景的内部…”会打开 FluidEQ 自己的某个场景供你学习；它不能被发布。闪烁过于强烈或运行过重的场景会被拦下。你发布的场景会先由审核员阅读，获得批准的场景可以换来一个月的 Plus。',
+  'help.studio.keywords':
+    '着色器, shader, GLSL, 编程, ChatGPT, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿',
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',
   'help.studio.stageName': '舞台',
   'help.studio.stage': '随你的音乐播放的场景。双击可全屏。',
@@ -404,6 +444,8 @@ const help: Record<keyof typeof en, string> = {
     '在图表上显示一个 Plus 可视化效果，按下其名称旁的显示器按钮，或选择“视图 → 设为桌面背景”。\n在排布图上点选显示器，选择“随音乐”或“平静”，然后按“设置背景”。\n要更改或停止它，请打开“Plus → 可视化”，使用顶部的“管理”或“停止”。',
   'help.desktop.tip':
     '窗口盖住显示器、电脑锁定，以及（如果你选择）使用电池时，它会暂停；FluidEQ 启动时它会恢复。退出 FluidEQ 会停止它。仅限 Windows。',
+  'help.desktop.keywords':
+    '动态壁纸, 桌面壁纸, 桌面美化, 多屏, 双屏, 副屏, 多显示器, Wallpaper Engine',
   'help.desktop.monitors':
     '你的显示器，按 Windows 中的排列方式显示。点选要使用的显示器。',
   'help.desktop.music': '随正在播放的内容而动。',
@@ -418,6 +460,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“Plus → 动态灯效”并开启它，或按图表上 Plus 可视化效果旁边的灯效按钮。\n为这个可视化效果选择灯光风格（“场景”“色彩波浪”“频谱”或“节拍涟漪”），并设置它的亮度和“响应频段”。\n点击“你的设备”下的某台设备可单独调整它；“所有设备”则回到调整全部设备。',
   'help.lighting.tip':
     '如果 Windows 把某台设备留给了另一个应用，页面会指出需要更改的设置，并为你打开它。Razer 设备需要运行 Razer Synapse，并允许 Chroma Apps。',
+  'help.lighting.keywords':
+    'RGB, 雷蛇, 雷云, 幻彩, 动态照明, 光效, 背光, 键盘灯, 氛围灯, 灯光同步, 外设, LED, 罗技, 华硕',
   'help.lighting.switch': '在 Plus 可视化效果播放时点亮你的设备。',
   'help.lighting.browse': '打开图库选择可视化效果。',
   'help.lighting.previewName': '桌面实时预览',
@@ -434,6 +478,8 @@ const help: Record<keyof typeof en, string> = {
     '打开在线媒体，选择网站并在页面中播放内容。\n切换到均衡器边听边调，需要网站自身控件时再返回。\n启用“同时只播放一处”，避免与其他播放器重叠发声。',
   'help.online.tip':
     '使用 FluidEQ 引擎时，在线媒体会像其他应用一样经过你的 EQ 和 DSP 机架。使用 Equalizer APO 时，机架仍只作用于媒体库曲目。',
+  'help.online.keywords':
+    'YouTube Music, Bandcamp, Twitch, Suno, 油管, 流媒体, 直播, 网页, 浏览器, 在线播放, 视频网站, 在线音乐',
 
   'help.library.title': '建立本地媒体库',
   'help.library.intro':
@@ -442,6 +488,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“媒体库”并添加存放媒体的文件夹。等扫描完成后，再判断缺了什么。\n选择歌手或专辑，或搜索歌曲，然后从结果中开始播放。\n用窗口底部的播放栏暂停、定位和切歌。它的音量是所有播放器共用的同一个音量。',
   'help.library.tip':
     '将鼠标悬停在 Windows 任务栏上的 FluidEQ 按钮上，即使窗口已最小化，也能使用“上一首”“播放”和“下一首”。媒体库需要原始文件：请重新连接磁盘，或重新添加移动过的文件夹。',
+  'help.library.keywords':
+    '音乐播放器, 本地音乐, 音乐库, 曲库, MP3, FLAC, WAV, AAC, 无损, 艺术家, 专辑封面, 导入音乐, 歌单',
 
   'help.queue.title': '专辑与播放队列',
   'help.queue.intro':
@@ -450,6 +498,8 @@ const help: Record<keyof typeof en, string> = {
     '打开专辑查看其中的曲目，播放你想听的那一首。\n右键点击歌曲，选择“加入播放队列”“加入收藏”或“加入播放列表”。\n打开“接下来播放”查看之后要播放的内容，并开启“继续播放”，以同一流派的更多音乐接着播放。',
   'help.queue.tip':
     '启动媒体库播放会接管 FluidEQ 的其他播放器。可以通过播放栏中显示的当前曲目，确认是哪个来源在播放。',
+  'help.queue.keywords':
+    '随机播放, 列表循环, 单曲循环, 循环播放, 顺序播放, 播放顺序, 下一首, 自动播放, 连续播放, 歌单, 待播',
 
   'help.karaoke.title': '用卡拉OK 歌唱',
   'help.karaoke.intro':
@@ -458,6 +508,8 @@ const help: Record<keyof typeof en, string> = {
     '打开卡拉OK，添加包含匹配音频和歌词的文件或文件夹。\n选择歌曲播放，检查歌词与伴奏是否对应。\n配置麦克风，调整歌词大小，并使用舞台的全屏控制。',
   'help.karaoke.tip':
     '只有歌词的文件不包含目标音符。卡拉OK 跟随应用的“音量”；旋律、伴奏和引导人声的电平在“混音设置”中。',
+  'help.karaoke.keywords':
+    'K歌, KTV, 唱K, 唱歌, 跟唱, 练歌, 音准, 跑调, 话筒, LRC, UltraStar, 滚动歌词, 吉他和弦',
 
   'help.maker.title': '在卡拉OK 制作器中制作',
   'help.maker.intro':
@@ -506,6 +558,8 @@ const help: Record<keyof typeof en, string> = {
     '把做好的卡拉OK导出为 FluidEQ 项目、UltraStar TXT、LRC 或增强 LRC。',
   'help.maker.tip':
     '下载模型需要联网与磁盘空间，处理时间取决于硬件和歌曲长度。使用你有权处理的音频，分享前检查导出结果。',
+  'help.maker.keywords':
+    '去人声, 消音, 人声分离, 提取人声, 提取伴奏, 干声, 清唱, 音轨分离, 歌词同步, 打轴, 扒谱, 制作卡拉OK, 歌词编辑, 歌词识别',
 
   'help.share.title': '在电脑之间共享音频',
   'help.share.intro':
@@ -514,6 +568,8 @@ const help: Record<keyof typeof en, string> = {
     '在聆听的电脑上打开“共享音频”，选择“在此电脑上播放音频”并按“创建连接码”。先从低音量开始。\n在每台音源电脑上选择“发送此电脑的音频”，粘贴对应你网络的连接码，然后按“连接并发送”。\n留意连接监视器。用完后按“停止发送”或“停止接收”；“创建新连接码”会断开所有已保存的配对。',
   'help.share.tip':
     '连接码授权配对，请保密。多个发送端会混在一起并提高电平，由接收端的“音量”来控制。使用 FluidEQ 引擎时，接收到的音频也会经过 DSP 机架。',
+  'help.share.keywords':
+    '局域网, 内网, LAN, WiFi, 串流, 音频传输, 声音共享, 远程, 另一台电脑, 两台电脑, 防火墙',
 
   'help.trouble.title': '声音不对时怎么办',
   'help.trouble.intro':
@@ -522,6 +578,8 @@ const help: Record<keyof typeof en, string> = {
     '没有声音：确认正在播放、选中了预期的输出、音量已调高，并且设备已连接。检查“同时只播放一处”是否暂停了另一个来源。\nEQ 没变化：确认“系统均衡”已开启，并且输出没有显示“已关闭”标记；如果有，请按“启用”。如果提示说引擎没有运行，请按“重启 Windows 音频”。\n一切看起来都正常，均衡器却仍然没有作用：Windows 可能绕过引擎在播放音乐。提示会说明这一点，并提供一键把引擎移到 Windows 会使用的位置；这需要一次权限确认和一秒钟的静音。\n失真或低音过多：保持“自动归一化”开启，减小提升量，并逐层旁路。如果问题仍然存在，请使用“报告问题”，并在发送前检查报告内容。',
   'help.trouble.tip':
     'F1 打开本指南。Esc 先关闭放大的截图，再关闭指南。如果界面太大，按 Ctrl + 0 可重置缩放。操作菜单中的“进程”会显示 FluidEQ 各部分正在做什么。',
+  'help.trouble.keywords':
+    '没声音, 无声, 没效果, 没有效果, 不起作用, 无效, 异常, 故障, 爆音, 破音, 杂音, 声音卡顿, 断断续续, 削波, 声音小, 声音太小, 声音太大, 重启音频, 快捷键, bug, 报错, 闪退, 崩溃, 没反应, 问题反馈',
 
   'help.forum.title': '在论坛提问',
   'help.forum.intro':
@@ -530,6 +588,8 @@ const help: Record<keyof typeof en, string> = {
     '打开“帮助 → 论坛”，选择一个版块：“公告”“综合”“想法”“投票”“Q&A”或“作品展示”。\n搜索论坛，或打开一个话题阅读回复。\n按“使用 GitHub 登录”，在浏览器中完成，然后发布“新话题”或回复。',
   'help.forum.tip':
     '发布的所有内容都会以你的 GitHub 名字在 GitHub 上公开。在 Q&A 中，请把有用的回答标记出来，方便后来的人找到。',
+  'help.forum.keywords':
+    '社区, 交流, 讨论, 反馈, 功能建议, 求助, 联系开发者, 留言, 帖子, 意见, 问答',
 };
 
 export default help;

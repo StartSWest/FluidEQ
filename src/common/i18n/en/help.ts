@@ -17,6 +17,7 @@ const help = {
   'help.searchHint': 'Try engine, bass, visualizer…',
   'help.contents': 'In this guide',
   'help.results': '{count} chapters',
+  'help.resultsOne': '{count} chapter',
   'help.empty': 'No chapters found. Try a shorter phrase or clear the search.',
   'help.clear': 'Clear search',
   'help.close': 'Close guide',
@@ -43,6 +44,8 @@ const help = {
     'Install FluidEQ and keep the FluidEQ Engine selected when setup asks how to process your sound. Windows asks for permission once, with no restart.\nChoose your listening device under Output device. Turn on System EQ and leave Auto normalize on.\nPlay a song, open EQ → Bands, make a small change, and compare with System EQ off and on.',
   'help.start.tip':
     'System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.',
+  'help.start.keywords':
+    'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
 
   'help.window.title': 'Around the window',
   'help.window.intro':
@@ -51,6 +54,8 @@ const help = {
     'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
   'help.window.tip':
     'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, and Processes, which shows what each part of FluidEQ is using.',
+  'help.window.keywords':
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -94,6 +99,8 @@ const help = {
     'Check your Windows: Windows 10 version 1803 or later, or Windows 11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing everything the PC plays needs the FluidEQ Engine or Equalizer APO, and Windows asks for permission once while it installs.\nLook at a visualizer: any graphics card or built-in graphics from 2013 onwards. At 1080p built-in graphics are enough; 4K, or a desktop background on several screens at once, is happier with a dedicated card. On a busy card FluidEQ draws the scene smaller and lets go of the ones you cannot see.\nTry the karaoke AI: separating a voice downloads a 713 MB model the first time, the pitch model adds about 180 MB, and noise removal 11 MB. With a DirectX 12 graphics card a four-minute song separates in around half a minute; on the processor alone it takes about four minutes. Keep 2 GB of memory free while it works.\nAim for this if you can: Windows 11, 8 GB of memory, graphics from 2018 onwards, and 3 GB of disk free if you use the AI features.',
   'help.requirements.tip':
     'Everything but the AI models is in the installer, and those download only when you first use the feature. Processes, in the actions menu, shows what each part of FluidEQ is using on your machine right now.',
+  'help.requirements.keywords':
+    'system requirements, requirements, specs, hardware, laptop, gpu, graphics card, video card, cpu, processor, ram, memory, disk space, storage, windows 10, windows 11, minimum, recommended, performance, slow, lag, compatibility, mac, macos, linux',
 
   'help.engine.title': 'The FluidEQ Engine',
   'help.engine.intro':
@@ -102,6 +109,8 @@ const help = {
     'Open the actions menu — the pulse button at the top right — and press the engine card at the top of it.\nChoose FluidEQ Engine and press Apply. Windows asks for permission, and audio pauses for a few seconds while it restarts.\nIf an output shows OFF, press Enable on its notice. If a notice says the engine is not running, press Restart Windows audio.',
   'help.engine.tip':
     'Equalizer APO remains available for custom APO commands, Peace and VST plugins. When an update brings a newer engine, a notice offers Update engine. Quitting FluidEQ from the tray turns the EQ off on every output.',
+  'help.engine.keywords':
+    'audio engine, apo, driver, system-wide, all apps, every app, spotify, browser, discord, enable, activate, turn on, windows audio, permission, administrator, update engine, switch engine',
   'help.engine.fluid':
     "Recommended. Your sound card's effects keep working, and the EQ and DSP rack reach every app.",
   'help.engine.apo':
@@ -116,6 +125,8 @@ const help = {
     'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain to 0 dB while keeping your bands. It asks first.',
   'help.eq.tip':
     'Also applied lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.',
+  'help.eq.keywords':
+    'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency',
   'help.eq.bandsCaption': 'The Bands page, nothing selected',
   'help.eq.bandCaption': 'A band selected',
   'help.eq.gameMode':
@@ -156,6 +167,8 @@ const help = {
     'Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.\nUnder the FluidEQ Engine, choose Minimum or Linear phase. Press Reset to return everything to Normal.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
     'A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.',
+  'help.eqmode.keywords':
+    'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q',
   'help.eqmode.modeCaption': 'EQ mode',
   'help.eqmode.strength':
     'Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.',
@@ -176,6 +189,8 @@ const help = {
     'Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.\nPick the sound it should get in the picker on its row: a Gaming preset, or any other.\nStart the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.',
   'help.games.tip':
     'While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode.',
+  'help.games.keywords':
+    'gaming, game profile, per game, per-game, per app, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode',
   'help.games.tab': 'Your games and the sound each one gets.',
   'help.games.add':
     'Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.',
@@ -194,6 +209,8 @@ const help = {
     'Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, paste its export into the import panel. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength.',
   'help.headphones.tip':
     'A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.',
+  'help.headphones.keywords':
+    'autoeq, headphone eq, headphone correction, headphone profile, harman, target curve, iem, iems, earphones, earbuds, in-ear, squiglink, crinacle, oratory1990, import eq, measurements, frequency response',
 
   'help.convolution.title': 'Use an impulse response',
   'help.convolution.intro':
@@ -202,6 +219,8 @@ const help = {
     'Open EQ → Convolution. Search by model or measurement author.\nCheck the source, then use Download & apply; the download matches your output’s rate. Use Import a WAV for a file you already have.\nListen with the convolution layer on and off in Also applied.',
   'help.convolution.tip':
     'The FluidEQ Engine converts any impulse rate itself. Equalizer APO needs an imported WAV at the output’s own rate. Catalogue downloads need a connection; the guide does not.',
+  'help.convolution.keywords':
+    'impulse response, ir, wav, convolver, fir, room correction, rew, autoeq catalogue, correction file',
 
   'help.profiles.title': 'Devices, profiles & second output',
   'help.profiles.intro':
@@ -210,6 +229,8 @@ const help = {
     'Confirm Output device before editing. Use New profile for a sound you want to keep; Update saves changes to that named profile, and Restore brings its saved settings back.\nOpen Second output, enable a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nUse Game/Video for a smaller starting buffer or Music for more reserve. Compare synchronization on your devices.',
   'help.profiles.tip':
     'Each mirrored output uses its own profile under either engine. Mirroring runs while FluidEQ is open; switching the main output stops the old mirrors. Device latency still affects synchronization.',
+  'help.profiles.keywords':
+    'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device',
   'help.profiles.list':
     'Sounds you saved. ON marks the one this output uses; press another to switch.',
   'help.profiles.update': 'Saves your changes into the profile you are on.',
@@ -233,6 +254,8 @@ const help = {
     'Open EQ → Config and choose the output you want to inspect. Read its status and active layers.\nUse Export chain to save a .fluideq file. Keep a copy somewhere you can find again.\nTo bring a chain back, select the intended output first, then use Import chain and review the result.',
   'help.config.tip':
     'Generated layer files are rewritten when their settings change; put lasting manual lines in the per-output custom file. The FluidEQ Engine reads its Filter, Preamp, GraphicEQ and Convolution lines; other APO commands and plugins need Equalizer APO.',
+  'help.config.keywords':
+    'backup, restore, export, import, config, config file, apo config, text file, fluideq file, chain file, include, custom lines, advanced',
 
   'help.dsp.title': 'Explore the DSP rack',
   'help.dsp.intro':
@@ -241,6 +264,8 @@ const help = {
     'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
+  'help.dsp.keywords':
+    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless',
   'help.dsp.normalizer':
     'Evens out loudness. On live audio it levels song by song.',
   'help.dsp.denoise':
@@ -269,6 +294,8 @@ const help = {
     'Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.\nPick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.\nPress Start the listening test and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.\nSave a room you like under a name; a saved room comes back with a press and never changes your head.',
   'help.room.tip':
     'Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.',
+  'help.room.keywords':
+    'surround, virtual surround, surround sound, spatial audio, spatial, 3d audio, 3d, 7.1, 5.1, binaural, hrtf, virtualizer, speakers on headphones, reverb, cinema, movies, films, head size, listening test, soundstage, crossfeed',
   'help.room.picker':
     "The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.",
   'help.room.picture':
@@ -294,6 +321,8 @@ const help = {
     'Play something with the noise you want to reduce and select Denoise in DSP.\nSwitch on Hiss, Hum or Clicks with a light setting, and listen to quiet passages and to musical detail.\nIncrease reduction gradually, then bypass the stage to check that the improvement is worth any loss of detail.',
   'help.denoise.tip':
     'Listen for softened detail and watery or pumping textures. This is not a microphone cleanup. If you hear no change, confirm the rack and the stage are both on.',
+  'help.denoise.keywords':
+    'noise, noise reduction, noise removal, remove noise, hiss, hum, buzz, clicks, crackle, static, clean up, cleanup, restoration, repair, background noise, vinyl',
 
   'help.graph.title': 'The graph and its controls',
   'help.graph.intro':
@@ -302,6 +331,8 @@ const help = {
     'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen. A single click hides or shows the strip.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound. Rainbow mode — Help → What’s new turns it on — draws the standard styles, the meters and the wave at your screen’s full refresh rate instead of 30 frames a second. Esc leaves the expanded and full-screen views.',
+  'help.graph.keywords':
+    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view',
   'help.graph.stripCaption': 'With a standard style',
   'help.graph.live': 'Shows or hides the live wave.',
   'help.graph.previous': 'Steps back to the previous look.',
@@ -350,6 +381,8 @@ const help = {
     'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
   'help.looks.tip':
     'A Plus visualizer brings its own colours: set its attack and release in View. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
+  'help.looks.keywords':
+    'styles, style, skins, skin, appearance, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation',
   'help.looks.searchName': 'Search',
   'help.looks.search':
     'Finds styles and visualizers by name, maker or category.',
@@ -368,6 +401,8 @@ const help = {
     'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nPress Upgrade to Plus, read the terms, tick that you agree, and pay on Buy Me a Coffee in your browser with the same email.\nOpen the Plus tab. Its rail leads to the Leaderboard, Visualizers, the Studio and Dynamic lighting.',
   'help.plus.tip':
     'The app never sees your card; Manage subscription changes or cancels it. The free trial asks for no card and charges nothing when it ends. An account stays signed in on up to five computers, and Plus keeps working offline for a while.',
+  'help.plus.keywords':
+    'account, sign in, login, log in, sign up, register, subscription, subscribe, premium, pro, paid, price, pricing, cost, buy, payment, pay, free trial, trial, cancel, upgrade, membership, member, email code',
   'help.plus.leaderboard': 'Who listens most, among Plus members who join.',
   'help.plus.visualizers':
     'Scenes by FluidEQ and members, ready for your music.',
@@ -382,6 +417,8 @@ const help = {
     'Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike members’ scenes with the heart, and report one that should not be there.',
   'help.gallery.tip':
     'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once a moderator has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
+  'help.gallery.keywords':
+    'scenes, scene, visualizers, download visualizers, browse, community scenes, likes, like, report, samples',
   'help.gallery.search': 'Finds scenes and makers.',
   'help.gallery.sortName': 'Sort',
   'help.gallery.sort': 'Most liked, liked this week, or newest.',
@@ -408,6 +445,8 @@ const help = {
     'Open Account and press Join the leaderboard.\nOpen Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.\nTo stop, press Leave the leaderboard. Remove all my data deletes everything you sent.',
   'help.leaderboard.tip':
     'One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.',
+  'help.leaderboard.keywords':
+    'ranking, ranks, rank, points, score, top listeners, stats, statistics, listening time, competition, board',
   'help.leaderboard.periodName': 'All time or This month',
   'help.leaderboard.period': 'The whole history, or this month only.',
   'help.leaderboard.standing':
@@ -422,6 +461,8 @@ const help = {
     'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by a moderator first, and one that is approved earns you a month of Plus.',
+  'help.studio.keywords':
+    'create visualizer, make visualizer, make a scene, shader, glsl, code, ai, chatgpt, claude, prompt, publish, export scene, scene editor, creator',
   'help.studio.project': 'Your projects, and FluidEQ scenes to look inside.',
   'help.studio.stageName': 'Stage',
   'help.studio.stage':
@@ -441,6 +482,8 @@ const help = {
     'Put a Plus visualizer on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Plus → Visualizers and use Manage or Stop at the top.',
   'help.desktop.tip':
     'It pauses while windows cover the monitor, while the PC is locked and, if you choose, on battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.',
+  'help.desktop.keywords':
+    'wallpaper, live wallpaper, animated wallpaper, desktop background, background, multiple monitors, second monitor, screens',
   'help.desktop.monitors':
     'Your monitors as Windows arranges them. Press the ones to use.',
   'help.desktop.music': 'Moves to whatever is playing.',
@@ -455,6 +498,8 @@ const help = {
     'Open Plus → Dynamic lighting and switch it on, or press the lighting button beside a Plus visualizer on the graph.\nChoose this visualizer’s lighting style — Scene, Colour wave, Spectrum or Beat ripple — and set its brightness and what it responds to.\nClick a device under Your devices to tune it alone; All devices goes back to every device.',
   'help.lighting.tip':
     'If Windows keeps a device for another app, the page names the setting to change and opens it for you. Razer devices need Razer Synapse running, with Chroma Apps allowed.',
+  'help.lighting.keywords':
+    'rgb, razer, chroma, synapse, keyboard lights, keyboard, mouse, headset, led, leds, ambient lighting, lights, windows dynamic lighting',
   'help.lighting.switch': 'Lights your devices while a Plus visualizer plays.',
   'help.lighting.browse': 'Opens the gallery to choose a visualizer.',
   'help.lighting.previewName': 'Live desk preview',
@@ -471,6 +516,8 @@ const help = {
     'Open Online Media and choose a supported site. Find and start something on that page.\nSwitch to EQ to tune while listening, then return to the page when you need its own controls.\nUse One player at a time if you want FluidEQ and other players to pause one another instead of overlapping.',
   'help.online.tip':
     'Under the FluidEQ Engine, Online Media goes through your EQ and the DSP rack like every other app. Under Equalizer APO the rack stays with Library tracks.',
+  'help.online.keywords':
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, stream, web, website, browser, online',
 
   'help.library.title': 'Build your local library',
   'help.library.intro':
@@ -479,6 +526,8 @@ const help = {
     'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is one level for every player.',
   'help.library.tip':
     'Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.',
+  'help.library.keywords':
+    'music player, player, local files, local music, mp3, flac, wav, aac, folders, albums, artists, genres, playlist, video, videos, scan, tags, cover art, album art',
 
   'help.queue.title': 'Albums & your play queue',
   'help.queue.intro':
@@ -487,6 +536,8 @@ const help = {
     'Open an album to inspect its tracks. Start the one you want to hear.\nRight-click a song for Add to up next, Add to Favourites or Add to playlist.\nOpen Up next to see what plays after, and turn on Keep playing to continue with more of the same genre.',
   'help.queue.tip':
     'Starting Library playback takes over from FluidEQ’s other players. Use the current track shown in the bar to confirm which source owns playback.',
+  'help.queue.keywords':
+    'queue, up next, next song, shuffle, repeat, favourites, favorites, playlist, keep playing, autoplay, play order',
 
   'help.karaoke.title': 'Sing with Karaoke',
   'help.karaoke.intro':
@@ -495,6 +546,8 @@ const help = {
     'Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.\nChoose a song and start playback. Check that the correct lyrics and backing track are paired.\nConfigure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.',
   'help.karaoke.tip':
     'A lyric-only file does not contain target notes. Karaoke follows the app’s Volume; the melody, backing and guide vocal levels are under Mix settings.',
+  'help.karaoke.keywords':
+    'sing, singing, sing along, lyrics, microphone, mic, pitch, lrc, ultrastar, songs',
 
   'help.maker.title': 'Create in Karaoke Maker',
   'help.maker.intro':
@@ -549,6 +602,8 @@ const help = {
     'Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.',
   'help.maker.tip':
     'Model downloads need a connection and free disk space. Processing time depends on your hardware and song length. Use audio you are permitted to work with and review exports before sharing.',
+  'help.maker.keywords':
+    'vocals, vocal, remove vocals, vocal remover, voice removal, instrumental, acapella, a cappella, stems, stem separation, separate, isolate vocals, lyrics sync, timing, melody, notes, ultrastar, lrc, make karaoke, create karaoke, transcribe',
 
   'help.share.title': 'Share audio between computers',
   'help.share.intro':
@@ -557,6 +612,8 @@ const help = {
     'On the listening computer, open Share Audio, choose Play audio on this computer and press Create connection code. Start at a low volume.\nOn each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.\nWatch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.',
   'help.share.tip':
     'Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, and the receiver’s Volume sets it. Under the FluidEQ Engine, received audio also goes through the DSP rack.',
+  'help.share.keywords':
+    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':
@@ -565,6 +622,8 @@ const help = {
     'No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.\nNo EQ change: confirm System EQ is on and the output shows no OFF badge; press Enable if it does. If a notice says the engine is not running, press Restart Windows audio.\nEverything looks right and the EQ still does nothing: Windows may be playing the music past the engine. The notice says so and offers one press to move the engine somewhere Windows will use; it costs a permission prompt and a second of silence.\nDistortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.',
   'help.trouble.tip':
     'F1 opens this guide. Esc closes an enlarged capture, then the guide. If the interface is too large, Ctrl + 0 resets zoom. Processes in the actions menu shows what each part of FluidEQ is doing.',
+  'help.trouble.keywords':
+    "no sound, not working, doesn't work, silent, silence, problem, issue, bug, broken, crackling, crackle, popping, distortion, distorted, clipping, too loud, too quiet, quiet, fix, troubleshoot, troubleshooting, report a problem, support, shortcuts, keyboard shortcuts, hotkeys, f1, zoom, reset zoom",
 
   'help.forum.title': 'Ask in the Forum',
   'help.forum.intro':
@@ -573,6 +632,8 @@ const help = {
     'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
     'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
+  'help.forum.keywords':
+    'community, questions, support, discussions, github, feedback, feature request, ideas, suggestions, ask, help, contact, announcements',
 };
 
 export default help;

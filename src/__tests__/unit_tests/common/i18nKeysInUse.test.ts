@@ -114,6 +114,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'help.*.tip',
     'help.group.*',
   ],
+  'src/renderer/help/helpSearch.ts': ['help.*.keywords'],
   'src/renderer/karaoke/KaraokeMakerSpeechMemoryPanel.tsx': [
     'karaoke.maker.memoryPolicy.*',
   ],

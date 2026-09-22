@@ -1,12 +1,17 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { HELP_CAPTURE_MAX_VIEWPORT, type IHelpFigure } from 'common/helpGuide';
 import { planHelpCallouts } from 'common/helpCallouts';
 import { useTranslation } from '../utils/I18nContext';
+import { HelpColumnContext } from './HelpColumn';
+import { Marked, useHelpFound } from './HelpMarks';
+import { helpAnchor, helpMarkKey } from './helpSearch';
 
 interface IHelpFigureProps {
   figure: IHelpFigure;
+  /** Where the article draws this capture; its caption and controls hang off it. */
+  anchor: string;
   /** The capture's bundled address. */
   src: string;
   /** What the capture is called: its caption, or else the chapter's title. */
@@ -14,76 +19,68 @@ interface IHelpFigureProps {
   onEnlarge: () => void;
 }
 
-interface IRoom {
-  width: number;
-  height: number;
-}
-
 /**
  * One capture, with a numbered call-out on every control it explains and the
  * numbered list of them under it — laid out like a printed manual.
  *
- * The call-outs are placed for the width the column actually has, measured
- * here and measured again whenever it changes, so the circles stay one
- * readable size and never overlap; the numbers themselves never move, because
- * they follow the capture in reading order (`helpCallouts.ts`). Pointing at a
- * line of the list, or at a circle, rings its control on the capture and
- * lights its line.
+ * The call-outs are placed for the width the column actually has — measured
+ * once for the whole guide (`HelpColumn.ts`) and again whenever it changes —
+ * so the circles stay one readable size and never overlap; the numbers
+ * themselves never move, because they follow the capture in reading order
+ * (`helpCallouts.ts`). Pointing at a line of the list, or at a circle, rings
+ * its control on the capture and lights its line. A search does the same for
+ * the control it went to, until something is pointed at, and lights every
+ * line whose name it found.
  */
 export default function HelpFigure({
   figure,
+  anchor,
   src,
   title,
   onEnlarge,
 }: IHelpFigureProps) {
   const { t } = useTranslation();
-  const hostRef = useRef<HTMLDivElement>(null);
-  const [room, setRoom] = useState<IRoom>();
+  const { marks, targets } = useHelpFound();
+  const column = useContext(HelpColumnContext);
   const [pointed, setPointed] = useState<number>();
   const controls = figure.controls ?? [];
-
-  // Before the first paint, so the capture never appears at one size and
-  // jumps to another. A resize of the window alone can change the height a
-  // capture may take without changing the column's width, which is the one
-  // thing the observer watches, so both are listened to.
-  useLayoutEffect(() => {
-    const host = hostRef.current;
-    if (!host) {
-      return undefined;
-    }
-    const measure = () =>
-      setRoom((last) =>
-        last?.width === host.clientWidth && last.height === window.innerHeight
-          ? last
-          : { width: host.clientWidth, height: window.innerHeight },
-      );
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(host);
-    window.addEventListener('resize', measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, []);
+  const controlAt = (index: number) => helpAnchor.control(anchor, index);
+  const isTarget = (index: number) => targets.has(controlAt(index));
+  // A control is lit when the search went to it or found its name. A word
+  // found only in its line is marked there and no more: "band" is in the
+  // lines of six of the Bands page's nine controls, and six lit cards say
+  // nothing about which one was meant.
+  const isFound = (index: number) =>
+    isTarget(index) || marks.has(helpMarkKey(controlAt(index), 'controlName'));
 
   const plan = useMemo(
     () =>
-      room &&
+      column &&
       planHelpCallouts(figure, {
-        width: room.width,
-        maxImageHeight: room.height * HELP_CAPTURE_MAX_VIEWPORT,
+        width: column.width,
+        maxImageHeight: column.height * HELP_CAPTURE_MAX_VIEWPORT,
       }),
-    [figure, room],
+    [figure, column],
   );
-  const lit = plan?.callouts.find((callout) => callout.index === pointed);
+  const isLit = (index: number) =>
+    pointed === undefined ? isTarget(index) : index === pointed;
+  const ringed = plan?.callouts.filter((callout) => isLit(callout.index)) ?? [];
 
   return (
     <figure className="help-figure">
       {figure.caption && (
-        <h3 className="help-figure__caption">{t(figure.caption)}</h3>
+        <h3
+          className="help-figure__caption"
+          data-help-anchor={helpAnchor.caption(anchor)}
+        >
+          <Marked
+            text={t(figure.caption)}
+            anchor={helpAnchor.caption(anchor)}
+            kind="caption"
+          />
+        </h3>
       )}
-      <div className="help-figure__host" ref={hostRef}>
+      <div className="help-figure__host">
         {plan && (
           <div
             className="help-figure__frame"
@@ -120,7 +117,7 @@ export default function HelpFigure({
                   <g
                     key={callout.index}
                     className={`help-callouts__lead${
-                      callout.index === pointed ? ' is-lit' : ''
+                      isLit(callout.index) ? ' is-lit' : ''
                     }`}
                   >
                     <line
@@ -138,23 +135,24 @@ export default function HelpFigure({
                 ))}
               </svg>
             )}
-            {lit && (
+            {ringed.map((callout) => (
               <span
+                key={callout.index}
                 className="help-figure__ring"
                 aria-hidden="true"
                 style={{
-                  left: lit.box.left,
-                  top: lit.box.top,
-                  width: lit.box.width,
-                  height: lit.box.height,
+                  left: callout.box.left,
+                  top: callout.box.top,
+                  width: callout.box.width,
+                  height: callout.box.height,
                 }}
               />
-            )}
+            ))}
             {plan.callouts.map((callout) => (
               <span
                 key={callout.index}
                 className={`help-callout${
-                  callout.index === pointed ? ' is-lit' : ''
+                  isLit(callout.index) ? ' is-lit' : ''
                 }`}
                 style={{ left: callout.badge.x, top: callout.badge.y }}
                 aria-hidden="true"
@@ -180,7 +178,10 @@ export default function HelpFigure({
             return (
               <li
                 key={control.text}
-                className={`help-control${index === pointed ? ' is-lit' : ''}`}
+                className={`help-control${index === pointed ? ' is-lit' : ''}${
+                  isFound(index) ? ' is-found' : ''
+                }`}
+                data-help-anchor={controlAt(index)}
                 onPointerEnter={() => setPointed(index)}
                 onPointerLeave={() => setPointed(undefined)}
               >
@@ -189,10 +190,22 @@ export default function HelpFigure({
                 </span>
                 <span className="help-control__body">
                   <span className="help-control__name">
-                    <strong>{t(control.name)}</strong>
+                    <strong>
+                      <Marked
+                        text={t(control.name)}
+                        anchor={controlAt(index)}
+                        kind="controlName"
+                      />
+                    </strong>
                     {control.keys && <kbd>{control.keys}</kbd>}
                   </span>
-                  <span className="help-control__text">{t(control.text)}</span>
+                  <span className="help-control__text">
+                    <Marked
+                      text={t(control.text)}
+                      anchor={controlAt(index)}
+                      kind="controlText"
+                    />
+                  </span>
                 </span>
               </li>
             );

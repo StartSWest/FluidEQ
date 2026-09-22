@@ -181,6 +181,53 @@ it('filters chapters, clears an empty result, and marks only the current chapter
   expect(screen.getByRole('searchbox')).toHaveFocus();
 });
 
+it('puts the chapter that answers first, and quotes where it answers', () => {
+  openGuide();
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'no sound' },
+  });
+  const contents = screen.getByRole('navigation', { name: 'In this guide' });
+  const entries = within(contents).getAllByRole('button');
+  expect(entries[0]).toHaveAccessibleName('When something sounds wrong');
+  // The line under the title is the passage the words were found in, with
+  // the words themselves marked.
+  expect(entries[0]).toHaveAccessibleDescription(/sound/i);
+  expect(
+    within(entries[0])
+      .getAllByText((_, element) => element?.tagName === 'MARK')
+      .some((mark) => /sound/i.test(mark.textContent ?? '')),
+  ).toBe(true);
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'between computers' },
+  });
+  expect(screen.getByText('1 chapter')).toBeInTheDocument();
+});
+
+it('marks the words in the guide and walks them with Enter and Shift+Enter', () => {
+  const guide = openGuide();
+  const search = screen.getByRole('searchbox');
+  fireEvent.change(search, { target: { value: 'surround' } });
+  const marks = Array.from(
+    guide.querySelectorAll<HTMLElement>('.help-guide__article mark.help-mark'),
+  );
+  // The positive control: the word is marked at least twice in the guide,
+  // so there is somewhere for Enter to go.
+  expect(marks.length).toBeGreaterThan(1);
+  marks.forEach((mark) => expect(mark.textContent).toMatch(/surround/i));
+  const current = () =>
+    marks.findIndex((mark) => mark.classList.contains('is-current'));
+  // The search lands on the best passage and makes its first mark current.
+  const landed = current();
+  expect(landed).toBeGreaterThanOrEqual(0);
+  fireEvent.keyDown(search, { key: 'Enter' });
+  expect(current()).toBe((landed + 1) % marks.length);
+  fireEvent.keyDown(search, { key: 'Enter', shiftKey: true });
+  expect(current()).toBe(landed);
+  expect(
+    marks.filter((mark) => mark.classList.contains('is-current')),
+  ).toHaveLength(1);
+});
+
 it('closes an enlarged capture without closing the guide underneath', () => {
   openGuide();
   fireEvent.click(

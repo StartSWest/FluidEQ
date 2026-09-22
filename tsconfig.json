@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "commonjs",
-    "lib": ["dom", "es2021"],
+    // es2022.intl is Intl.Segmenter, which the Help search breaks words with
+    // (Chinese and Japanese have no spaces to split on). Every Chromium and
+    // Node this ships on has it; only its typings had to be asked for.
+    "lib": ["dom", "es2021", "es2022.intl"],
     "types": ["node", "jest"],
     "declaration": true,
     "declarationMap": true,
