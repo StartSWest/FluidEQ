@@ -2322,14 +2322,6 @@ const AppContent = () => {
               obvious from looking at them. `TitlebarMediaTransport` and the
               `sendMediaTransport` channel behind it are still there for
               whatever wants them next. */}
-          <HelpMenu
-            onTour={() => setShowFeatureTour(true)}
-            onTroubleshoot={() => setShowTroubleshooter(true)}
-            onReport={() => setShowBugReport(true)}
-            onForum={() => selectTopWorkspaceTab('forum')}
-            onAbout={() => setShowAbout(true)}
-            forumOpen={isForumTab}
-          />
           {/* ONE CAPSULE FOR THE TWO INSTRUMENT CONTROLS. The engine's chip
               and the switch between the app and the player were two separate
               boxes of two different shapes, standing beside a third (Help)
@@ -2375,6 +2367,19 @@ const AppContent = () => {
                   ? () => setAccountDialogPage('home')
                   : undefined
               }
+            />
+            {/* Help, as one more glyph in the capsule beside the engine's
+                (Ivan, 2026-09-22: "put the help menu as icon next to the
+                other menu icon inside the pill"). It stood outside as a word
+                of its own, which was one of the four shapes across this
+                strip. */}
+            <HelpMenu
+              onTour={() => setShowFeatureTour(true)}
+              onTroubleshoot={() => setShowTroubleshooter(true)}
+              onReport={() => setShowBugReport(true)}
+              onForum={() => selectTopWorkspaceTab('forum')}
+              onAbout={() => setShowAbout(true)}
+              forumOpen={isForumTab}
             />
             <WindowModeSwitch />
           </div>

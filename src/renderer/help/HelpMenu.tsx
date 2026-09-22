@@ -97,6 +97,8 @@ export default function HelpMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? 'help-menu' : undefined}
+        aria-label={t('help.menu')}
+        title={t('help.menu')}
         onClick={() => setOpen((current) => !current)}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -105,7 +107,12 @@ export default function HelpMenu({
           }
         }}
       >
-        {t('help.menu')}
+        {/* A glyph, not the word: this menu is one of the three things in the
+            titlebar's instrument capsule now, beside the engine's own menu
+            (Ivan, 2026-09-22: "put the help menu as icon next to the other
+            menu icon inside the pill"). Its name is on the label and the
+            tooltip, as every other glyph in this strip's is. */}
+        <MenuIcon name="guide" />
       </button>
       {open && (
         <div

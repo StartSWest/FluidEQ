@@ -1071,12 +1071,16 @@ select option {
     opacity: 1;
     visibility: visible;
   }
+}
 
-  // The creature goes too, and it is the right end that had to give: the meter
-  // is sized from the WIDER of the two ends, and with the tabs down to glyphs
-  // that is the right one. She is 40px plus her gap of it, and the one thing up
-  // here that is company rather than information. Support is still one item down
-  // in the tools menu beside her, and the full-screen chrome keeps its own copy.
+// THE CREATURE GOES FIRST, AND EARLIER THAN SHE USED TO (Ivan, 2026-09-22:
+// "remove the pet and help on low narrow width"). She went at 940, which is
+// the width at which the tabs are already glyphs; the strip is crowded long
+// before that, and she is the one thing up here that is company rather than
+// information. Help does not go with her any more — it is a glyph inside the
+// capsule now, which costs 32px — and Support is still one item down in the
+// menu beside her, with the full-screen chrome keeping its own copy.
+@media (max-width: $bp-xl) {
   .window-titlebar .support-pet {
     display: none;
   }
@@ -1449,15 +1453,69 @@ select option {
     }
   }
 
+  // Help, between them: one glyph of the same make as the engine's, and
+  // narrower, because it carries a picture and no status dot (Ivan,
+  // 2026-09-22 — "put the help menu as icon next to the other menu icon
+  // inside the pill"). It was a word of its own standing outside the
+  // capsule, which is what put four shapes across this strip.
+  > .help-menu > .help-menu__trigger {
+    width: 32px;
+    // The word's own floor (`HelpGuide.scss`), which a glyph does not need.
+    min-width: 0;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    box-shadow: none;
+
+    &::before {
+      display: none;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'],
+    &.is-active {
+      background: color-mix(in srgb, $secondary-light 12%, transparent);
+    }
+  }
+
   // And the switch keeps its slider and gives up its well — the capsule is
   // the well now. Only here: the same switch stands on its own in the
   // player's strip and in its folded line, where it has no housing to sit in.
+  //
+  // The rule before it divides what the capsule holds in two (Ivan,
+  // 2026-09-22): two menus about what the app is doing, and then the one
+  // control that says which window it is. Drawn on the capsule rather than
+  // on the switch, whose own `::before` is the slider it moves.
   > .window-mode-switch {
+    position: relative;
     width: 56px;
     height: 26px;
+    margin-left: 7px;
     border: 0;
     background: none;
     box-shadow: none;
+  }
+
+  // The same seam the tab strip draws between its glyphs, so the titlebar
+  // has one kind of divider: a hairline in the accent, short of the edges.
+  // On the Help wrapper, which is already positioned, and not on the switch,
+  // whose `::before` is the slider it moves.
+  > .help-menu::after {
+    position: absolute;
+    top: 6px;
+    right: -4px;
+    bottom: 6px;
+    width: 1px;
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
+    content: '';
+    pointer-events: none;
   }
 }
 
