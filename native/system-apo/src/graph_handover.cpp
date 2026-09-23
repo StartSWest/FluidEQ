@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
+#include "curve_stage.h"
 #include "eq_phase.h"
 #include "iir_cascade.h"
 #include "output_guard.h"
@@ -55,6 +56,10 @@ void carry_stage(std::unique_ptr<Stage>& current, std::unique_ptr<Stage>& before
 }
 
 }  // namespace
+
+const std::vector<float>* Graph::curve_identity() const noexcept {
+  return curves_ ? curves_->identity().get() : nullptr;
+}
 
 double Graph::current_preamp() const noexcept {
   if (preamp_fade_left_ == 0 || preamp_fade_total_ == 0) {
@@ -92,7 +97,7 @@ void Graph::adopt_state(Graph* previous) noexcept {
     output_guard_.swap(previous->output_guard_);
     output_guard_->set_curve_level(curve_level_db_);
     if (auto_preamp_ && (!same_bands || !same_eq_phase || preamp_linear_ != previous->preamp_linear_ ||
-        graphic_identity_ != previous->graphic_identity_ ||
+        curve_identity() != previous->curve_identity() ||
         impulse_identity_ != previous->impulse_identity_ || impulse_.size() != previous->impulse_.size())) {
       output_guard_->reassess(std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20);
     }
@@ -102,14 +107,7 @@ void Graph::adopt_state(Graph* previous) noexcept {
     impulse_kernel_.swap(previous->impulse_kernel_);
     impulse_.swap(previous->impulse_);
   }
-  if (graphic_identity_ != nullptr && graphic_identity_ == previous->graphic_identity_) {
-    graphic_kernel_.swap(previous->graphic_kernel_);
-    graphic_.swap(previous->graphic_);
-  } else if (graphic_.size() == previous->graphic_.size()) {
-    for (size_t channel = 0; channel < graphic_.size(); ++channel) {
-      feq_convolver_transfer(graphic_[channel].get(), previous->graphic_[channel].get(), sample_rate_ / 20);
-    }
-  }
+  if (curves_ && previous->curves_) curves_->adopt(*previous->curves_);
   if (rack_ != nullptr && previous->rack_ != nullptr && rack_ != previous->rack_) {
     feq_chain_transfer_state(rack_.get(), previous->rack_.get());
   }

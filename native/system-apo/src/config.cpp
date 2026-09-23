@@ -241,6 +241,19 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
         phase->find_first_not_of(" \t\r\n", first + 1) == std::string::npos);
   }
 
+  // Only the exact word turns Classic on: a file that is missing, empty or
+  // unreadable leaves the matched design the app asked for.
+  const auto says_classic = [&](const wchar_t* name) {
+    const auto text = read(config_dir + L"\\" + name);
+    if (!text) return false;
+    const size_t first = text->find_first_not_of(" \t\r\n");
+    const size_t last = text->find_last_not_of(" \t\r\n");
+    return first != std::string::npos &&
+           text->compare(first, last - first + 1, "classic") == 0;
+  };
+  chain.classic_eq_treble = says_classic(L"fluideq-eq-treble.txt");
+  chain.classic_curve_treble = says_classic(L"fluideq-curve-treble.txt");
+
   // Before the config tree, and outside it. `SET_SYSTEM_DSP_CHAIN` writes
   // this file whether or not the user has ever configured the EQ, and the
   // rack has no `Device:` guard to be excluded by — so an endpoint with no
@@ -395,7 +408,10 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
         chain.bands.push_back(*band);
         chain.bands.back().user_eq = stack.back().eq_layer;
         chain.bands.back().curve_layer = stack.back().curve_layer;
-        chain.bands.back().matched = stack.back().matched_design;
+        chain.bands.back().matched =
+            stack.back().matched_design &&
+            !(stack.back().eq_layer ? chain.classic_eq_treble
+                                    : chain.classic_curve_treble);
         chain.matched = true;
       }
       continue;

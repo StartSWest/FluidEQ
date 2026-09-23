@@ -53,6 +53,19 @@ const eq: Partial<Dictionary> = {
     'Aktualisieren Sie die FluidEQ-Engine, um die Phase zu ändern.',
   'eq.mode.eqPhaseHint':
     'Minimal ist der Standard. Linear behält Verstärkung und Q bei, fügt aber Verzögerung und mögliches Vorschwingen hinzu.',
+  'eq.mode.treble': 'Höhen',
+  'eq.mode.precise': 'Präzise',
+  'eq.mode.classic': 'Klassisch',
+  'eq.mode.trebleEqPrecise':
+    'Präzise: Ihre Höhenbänder klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
+  'eq.mode.trebleEqClassic':
+    'Klassisch: so, wie Equalizer APO sie wiedergibt. Höhenbänder fallen schmaler und schwächer aus als eingestellt, am stärksten nahe 20\u00a0kHz.',
+  'eq.mode.trebleCurvesPrecise':
+    'Präzise: Preset, Treibertyp, Smart-EQ und Ihre Kopfhörerkorrektur klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
+  'eq.mode.trebleCurvesClassic':
+    'Klassisch: so, wie Equalizer APO sie wiedergibt und wie AutoEQ Kopfhörerkorrekturen abstimmt. Höhenbänder fallen schmaler und schwächer aus als eingestellt, am stärksten nahe 20\u00a0kHz.',
+  'eq.mode.trebleUpdate':
+    'Aktualisieren Sie die FluidEQ-Engine, um die Wiedergabe der Höhen zu wählen.',
   'eq.mode.reset': 'Zurücksetzen',
   'eq.mode.customized': 'Individuell',
   'eq.mode.strength': 'Stärke',

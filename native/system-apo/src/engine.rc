@@ -43,6 +43,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   1.13 builds a layer's bands analog-matched where the file says
  *        `# FluidEQFilterDesign: MATCHED`, and the graph draws that shape
  *        only from here on; an older engine reads the line as a comment.
+ *   1.14 reads fluideq-eq-treble.txt and fluideq-curve-treble.txt: "classic"
+ *        keeps that group on the cookbook (the EQ menu's Treble choice).
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -54,8 +56,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 13, 0, 0
-PRODUCTVERSION 1, 13, 0, 0
+FILEVERSION 1, 14, 0, 0
+PRODUCTVERSION 1, 14, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

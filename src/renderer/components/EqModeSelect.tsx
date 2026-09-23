@@ -25,12 +25,37 @@ import '../styles/EqModeSelect.scss';
 import useCurvePhase from '../utils/useCurvePhase';
 import { useListenedOutput } from '../utils/useListenedOutput';
 import { linearPhaseAddedMs } from '../../common/linearPhaseDelay';
+import {
+  DEFAULT_TREBLE_DESIGN,
+  engineTakesTrebleChoice,
+  groupPlaysMatched,
+  TREBLE_DESIGNS,
+  TTrebleDesign,
+} from '../../common/filterDesign';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import {
+  selectTrebleDesign,
+  useTrebleDesigns,
+} from '../utils/useTrebleDesigns';
 
 const MODES: TEqMode[] = ['normal', 'studio', 'double'];
 const SCOPES: TEqModeScope[] = ['eq', 'curves'];
 const qName = (value: TBandQ) => (value === 'off' ? 'constant' : value);
-type ChoiceKind = 'strength' | 'q' | 'smoothing' | 'phase' | 'reset';
-type ChoiceValue = TEqMode | TBandQ | TCurveSmoothing | TCurveComparison;
+type ChoiceKind = 'strength' | 'q' | 'smoothing' | 'phase' | 'treble' | 'reset';
+type ChoiceValue =
+  TEqMode | TBandQ | TCurveSmoothing | TCurveComparison | TTrebleDesign;
+
+/** What a Treble choice does to a group, said under the row and on hover. */
+const trebleNote = (scope: TEqModeScope, value: TTrebleDesign) => {
+  if (scope === 'eq') {
+    return value === 'precise'
+      ? 'eq.mode.trebleEqPrecise'
+      : 'eq.mode.trebleEqClassic';
+  }
+  return value === 'precise'
+    ? 'eq.mode.trebleCurvesPrecise'
+    : 'eq.mode.trebleCurvesClassic';
+};
 interface IPendingChoice {
   scope: TEqModeScope;
   value: ChoiceValue;
@@ -41,6 +66,23 @@ export default function EqModeSelect() {
   const { t } = useTranslation();
   const state = useFluidEqContext();
   const phase = useCurvePhase();
+  const engineStatus = useKnownAudioEngineStatus();
+  const treble = useTrebleDesigns();
+  // The FluidEQ Engine's row: Equalizer APO has only the cookbook.
+  const trebleShown =
+    engineStatus?.engine === 'fluid' && engineStatus.fluid.installed;
+  const engineVersion = engineStatus?.fluid.dllVersion;
+  const trebleSupported = trebleShown && engineTakesTrebleChoice(engineVersion);
+  // What a group plays: its choice, on an engine that reads one; on an older
+  // engine what that engine always plays, shown as it is rather than chosen.
+  const trebleOf = (scope: TEqModeScope): TTrebleDesign => {
+    if (trebleSupported) {
+      return treble?.[scope] ?? DEFAULT_TREBLE_DESIGN;
+    }
+    return groupPlaysMatched(engineVersion, DEFAULT_TREBLE_DESIGN)
+      ? 'precise'
+      : 'classic';
+  };
   const listened = useListenedOutput(Boolean(phase.status?.active));
   const phaseRate = listened.output?.latency?.rate ?? 48000;
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +101,9 @@ export default function EqModeSelect() {
     (state.curveSmoothing !== undefined && state.curveSmoothing !== 'off') ||
     (phase.status?.active &&
       (phase.status.variant !== DEFAULT_CURVE_COMPARISON ||
-        phase.status.eqVariant !== DEFAULT_CURVE_COMPARISON));
+        phase.status.eqVariant !== DEFAULT_CURVE_COMPARISON)) ||
+    (trebleSupported &&
+      SCOPES.some((scope) => trebleOf(scope) !== DEFAULT_TREBLE_DESIGN));
   const summary = t(customized ? 'eq.mode.customized' : 'eq.mode.normal');
   const disabled = state.isBlockingError;
   const label = (mode: TEqMode) => {
@@ -115,6 +159,9 @@ export default function EqModeSelect() {
     if (kind === 'phase') {
       return scope === 'eq' ? phase.status?.eqVariant : phase.status?.variant;
     }
+    if (kind === 'treble') {
+      return trebleOf(scope);
+    }
     return state.curveSmoothing ?? 'off';
   };
 
@@ -153,8 +200,18 @@ export default function EqModeSelect() {
           if (phase.status?.active && phase.status.eqSupported) {
             await phase.select(DEFAULT_CURVE_COMPARISON, 'eq');
           }
+          // One after the other: each answer reads both files back, and a
+          // read that overtook the other write would show it undone.
+          if (trebleSupported && trebleOf('eq') !== DEFAULT_TREBLE_DESIGN) {
+            await selectTrebleDesign(DEFAULT_TREBLE_DESIGN, 'eq');
+          }
+          if (trebleSupported && trebleOf('curves') !== DEFAULT_TREBLE_DESIGN) {
+            await selectTrebleDesign(DEFAULT_TREBLE_DESIGN, 'curves');
+          }
         } else if (choice.kind === 'phase') {
           await phase.select(choice.value as TCurveComparison, choice.scope);
+        } else if (choice.kind === 'treble') {
+          await selectTrebleDesign(choice.value as TTrebleDesign, choice.scope);
         } else if (choice.kind === 'strength') {
           await setEqMode(choice.value as TEqMode, choice.scope);
         } else {
@@ -185,6 +242,7 @@ export default function EqModeSelect() {
       q: ['off', 'proportional', 'asymmetric'] as const,
       smoothing: ['off', 'twelfth', 'third'] as const,
       phase: ['B', 'A'] as const,
+      treble: TREBLE_DESIGNS,
     }[kind];
     const current = currentChoice(scope, kind);
     const phaseSupported =
@@ -196,7 +254,7 @@ export default function EqModeSelect() {
       <div className="eq-mode-menu__row">
         <span className="eq-mode-menu__row-label">{t(`eq.mode.${kind}`)}</span>
         <div
-          className={`eq-mode-menu__choices${kind === 'phase' ? ' eq-mode-menu__choices--phase' : ''}`}
+          className={`eq-mode-menu__choices${kind === 'phase' || kind === 'treble' ? ' eq-mode-menu__choices--pair' : ''}`}
           role="group"
           aria-label={
             kind === 'strength'
@@ -215,6 +273,11 @@ export default function EqModeSelect() {
                 value === 'B' ? 'eq.mode.minimumPhase' : 'eq.mode.linearPhase',
               );
               hint = t(phaseHint);
+            } else if (kind === 'treble') {
+              text = t(
+                value === 'precise' ? 'eq.mode.precise' : 'eq.mode.classic',
+              );
+              hint = t(trebleNote(scope, value as TTrebleDesign));
             } else if (kind === 'q') {
               icon = qName(value as TBandQ);
               text = t(`eq.mode.${qName(value as TBandQ)}`);
@@ -231,7 +294,11 @@ export default function EqModeSelect() {
                 className="button small subtle eq-mode-choice"
                 aria-pressed={current === value}
                 aria-busy={isPending}
-                disabled={disabled || (kind === 'phase' && !phaseSupported)}
+                disabled={
+                  disabled ||
+                  (kind === 'phase' && !phaseSupported) ||
+                  (kind === 'treble' && !trebleSupported)
+                }
                 onClick={() => select(scope, value, kind)}
                 title={hint}
               >
@@ -274,6 +341,15 @@ export default function EqModeSelect() {
         </div>
         {kind === 'phase' && (
           <p className="eq-mode-menu__note">{t(phaseHint)}</p>
+        )}
+        {kind === 'treble' && (
+          <p className="eq-mode-menu__note">
+            {t(
+              trebleSupported
+                ? trebleNote(scope, trebleOf(scope))
+                : 'eq.mode.trebleUpdate',
+            )}
+          </p>
         )}
       </div>
     );
@@ -330,6 +406,7 @@ export default function EqModeSelect() {
               {choices(scope, 'q')}
               {scope === 'curves' && choices(scope, 'smoothing')}
               {phase.status?.active && choices(scope, 'phase')}
+              {trebleShown && choices(scope, 'treble')}
             </section>
           ))}
           <p className="eq-mode-menu__note">{t('eq.mode.shapeHint')}</p>

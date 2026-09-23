@@ -46,6 +46,19 @@ const eq = {
   'eq.mode.phaseUpdate': 'Update the FluidEQ Engine to change phase.',
   'eq.mode.eqPhaseHint':
     'Minimum is the default. Linear keeps gains and Q, but adds delay and can ring before sharp hits.',
+  'eq.mode.treble': 'Treble',
+  'eq.mode.precise': 'Precise',
+  'eq.mode.classic': 'Classic',
+  'eq.mode.trebleEqPrecise':
+    'Precise: your treble bands play exactly as drawn, up to 20\u00a0kHz.',
+  'eq.mode.trebleEqClassic':
+    'Classic: the way Equalizer APO plays them. Treble bands come out narrower and lower than you set them, most of all near 20\u00a0kHz.',
+  'eq.mode.trebleCurvesPrecise':
+    'Precise: Preset, Driver type, Smart EQ and your headphone correction play exactly as drawn, up to 20\u00a0kHz.',
+  'eq.mode.trebleCurvesClassic':
+    'Classic: the way Equalizer APO plays them, and the way AutoEQ tunes headphone corrections. Treble bands come out narrower and lower than set, most of all near 20\u00a0kHz.',
+  'eq.mode.trebleUpdate':
+    'Update the FluidEQ Engine to choose how treble plays.',
   'eq.mode.reset': 'Reset',
   'eq.mode.customized': 'Custom',
   'eq.mode.strength': 'Strength',

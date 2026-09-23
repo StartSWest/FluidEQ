@@ -50,6 +50,19 @@ const eq: Partial<Dictionary> = {
   'eq.mode.phaseUpdate': 'Aggiorna il motore FluidEQ per cambiare fase.',
   'eq.mode.eqPhaseHint':
     'Minima è l’impostazione predefinita. Lineare mantiene guadagno e Q, ma aggiunge ritardo e può risuonare prima dei transienti.',
+  'eq.mode.treble': 'Alti',
+  'eq.mode.precise': 'Preciso',
+  'eq.mode.classic': 'Classico',
+  'eq.mode.trebleEqPrecise':
+    'Preciso: le tue bande degli alti suonano esattamente come sono disegnate, fino a 20\u00a0kHz.',
+  'eq.mode.trebleEqClassic':
+    'Classico: come le riproduce Equalizer APO. Le bande degli alti risultano più strette e più basse di come le imposti, soprattutto vicino a 20\u00a0kHz.',
+  'eq.mode.trebleCurvesPrecise':
+    'Preciso: Preset, Tipo di driver, EQ intelligente e la tua correzione delle cuffie suonano esattamente come sono disegnati, fino a 20\u00a0kHz.',
+  'eq.mode.trebleCurvesClassic':
+    'Classico: come li riproduce Equalizer APO e come AutoEQ tara le correzioni delle cuffie. Le bande degli alti risultano più strette e più basse dell’impostazione, soprattutto vicino a 20\u00a0kHz.',
+  'eq.mode.trebleUpdate':
+    'Aggiorna il motore FluidEQ per scegliere come suonano gli alti.',
   'eq.mode.reset': 'Ripristina',
   'eq.mode.customized': 'Personalizzato',
   'eq.mode.strength': 'Intensità',

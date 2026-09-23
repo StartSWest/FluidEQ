@@ -50,6 +50,19 @@ const eq: Partial<Dictionary> = {
   'eq.mode.phaseUpdate': 'Atualize o Motor FluidEQ para alterar a fase.',
   'eq.mode.eqPhaseHint':
     'Mínima é a opção padrão. Linear mantém ganho e Q, mas acrescenta atraso e pode ressoar antes de ataques rápidos.',
+  'eq.mode.treble': 'Agudos',
+  'eq.mode.precise': 'Preciso',
+  'eq.mode.classic': 'Clássico',
+  'eq.mode.trebleEqPrecise':
+    'Preciso: suas bandas de agudos soam exatamente como estão desenhadas, até 20\u00a0kHz.',
+  'eq.mode.trebleEqClassic':
+    'Clássico: como o Equalizer APO as reproduz. As bandas de agudos saem mais estreitas e mais baixas do que você ajustou, principalmente perto de 20\u00a0kHz.',
+  'eq.mode.trebleCurvesPrecise':
+    'Preciso: Preset, Tipo de driver, EQ inteligente e a sua correção de fones soam exatamente como estão desenhados, até 20\u00a0kHz.',
+  'eq.mode.trebleCurvesClassic':
+    'Clássico: como o Equalizer APO os reproduz e como o AutoEQ ajusta as correções de fones. As bandas de agudos saem mais estreitas e mais baixas do que o ajustado, principalmente perto de 20\u00a0kHz.',
+  'eq.mode.trebleUpdate':
+    'Atualize o Motor FluidEQ para escolher como os agudos soam.',
   'eq.mode.reset': 'Redefinir',
   'eq.mode.customized': 'Personalizado',
   'eq.mode.strength': 'Intensidade',

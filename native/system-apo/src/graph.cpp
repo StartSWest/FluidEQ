@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
+#include "curve_stage.h"
 #include "dsp_chain.h"
 #include "eq_phase.h"
 #include "graph_stages.h"
@@ -210,26 +211,24 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
       (chain.stable_graphic && !low_latency_)) {
     GraphicDesign design =
         design_graphic(chain, sample_rate_, warnings_, low_latency_);
-    std::vector<float>& kernel = design.samples;
-    if (!kernel.empty()) {
-      graphic_kernel_.reset(feq_convolver_kernel_create(
-          kernel.data(), static_cast<uint32_t>(kernel.size())));
-      if (graphic_kernel_ &&
-          build_convolvers(graphic_kernel_.get(), channels_, graphic_)) {
-        // The linear design's half length when some curve is linear phase,
-        // nothing when every curve is minimum phase (`design_graphic`).
-        //
-        // The impulse-response stage above adds no such term on purpose: an
-        // IR is causal, and whatever delay it carries is the room it is
-        // reproducing rather than a filter's phase response.
-        latency_frames_ += feq_convolver_latency() +
-                           design.delay_frames;
-        parts_.curves = feq_convolver_latency() + design.delay_frames;
-        if (!chain.graphic_curves.empty()) active_stages_.emplace_back("curves");
-        graphic_identity_ = kernel_identity(std::move(kernel));
-      } else {
-        warnings_.push_back("Graphic EQ could not be prepared; skipped.");
-      }
+    // With no curve the stage is a delay of the same length (`CurveStage`),
+    // so the design's kernel — one tap standing in for a copy — is not built.
+    static const std::vector<float> kNoCurve;
+    curves_ = std::make_unique<CurveStage>(
+        chain.graphic_curves.empty() ? kNoCurve : design.samples,
+        design.delay_frames, sample_rate_, channels_, max_frames_);
+    if (curves_->failed()) {
+      warnings_.push_back("Graphic EQ could not be prepared; skipped.");
+      curves_.reset();
+    } else {
+      // The convolver's partition, plus the linear design's half length when
+      // some curve is linear phase (`design_graphic`). The impulse-response
+      // stage above adds no such term on purpose: an IR is causal, and
+      // whatever delay it carries is the room it is reproducing rather than
+      // a filter's phase response.
+      latency_frames_ += curves_->latency();
+      parts_.curves = curves_->latency();
+      if (!chain.graphic_curves.empty()) active_stages_.emplace_back("curves");
     }
   }
 
@@ -239,14 +238,14 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   if (!chain.convolution_path.empty() && impulse_.empty()) {
     problems_.push_back("convolution");
   }
-  if (!chain.graphic_curves.empty() && graphic_.empty()) {
+  if (!chain.graphic_curves.empty() && !curves_) {
     problems_.push_back("graphic-eq");
   }
 
   passthrough_ = output_guard_ == nullptr && rack_ == nullptr &&
                  plain_->empty() && eq_phase_->empty() &&
                  curve_phase_->empty() && impulse_.empty() &&
-                 graphic_.empty() && preamp_linear_ == 1.0;
+                 !curves_ && preamp_linear_ == 1.0;
 }
 
 // Every owning member is a `unique_ptr` (the kernels) or a vector of them
@@ -310,10 +309,8 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     for (size_t stage = channel; stage < impulse_.size(); stage += channels_) {
       feq_convolve(impulse_[stage].get(), buffer, frames);
     }
-    if (!graphic_.empty()) {
-      feq_convolve(graphic_[channel].get(), buffer, frames);
-    }
   }
+  if (curves_) curves_->process(planar, frames);
   if (plain_) plain_->process(planar, frames);
 
   if (preamp_fade_left_ > 0) {

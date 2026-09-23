@@ -61,6 +61,7 @@ struct ChainDeleter {
 
 }  // namespace detail
 
+class CurveStage;
 class EqPhaseStage;
 class IirCascade;
 
@@ -320,6 +321,8 @@ class Graph {
 
   /** The preamp at the current point of its ramp. */
   double current_preamp() const noexcept;
+  /** The curves stage's kernel; null for none, or for the delay. */
+  const std::vector<float>* curve_identity() const noexcept;
 
   // Bands no layer claims — a hand-written config's plain `Filter:` lines.
   // Always built, even empty, like the two phase stages: an empty stage is a
@@ -341,14 +344,11 @@ class Graph {
   // first.
   std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
       impulse_kernel_;
-  std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
-      graphic_kernel_;
   std::shared_ptr<const std::vector<float>> impulse_identity_;
-  std::shared_ptr<const std::vector<float>> graphic_identity_;
   std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
       impulse_;
-  std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
-      graphic_;
+  // The EQ page's graphic curves, or the delay they amount to with none.
+  std::unique_ptr<CurveStage> curves_;
 
   /**
    * The DSP rack, when `Chain::dsp_values` decoded into one.

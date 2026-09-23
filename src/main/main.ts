@@ -188,6 +188,7 @@ import { createEngineLoadRepair } from './engineLoadRepair';
 import { createEngineOutputRepair } from './engineOutputRepair';
 import { createAutomaticSetup } from './automaticSetup';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
+import { registerTrebleDesignIpc } from './ipc/trebleDesign';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
 import {
@@ -2429,6 +2430,11 @@ registerCurveComparisonIpc({
   getStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
   getConfigPath: () => getConfigPath('fluid'),
   isSwitching: () => session.engineSwitching,
+});
+
+registerTrebleDesignIpc({
+  getEngine: () => session.audioEngine,
+  getConfigPath: () => getConfigPath('fluid'),
 });
 
 registerAudioEngineIpc({

@@ -33,10 +33,7 @@ import {
   stateToApoFiles,
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
-import {
-  MATCHED_DESIGN_DIRECTIVE,
-  usesMatchedDesign,
-} from '../common/filterDesign';
+import { MATCHED_DESIGN_DIRECTIVE } from '../common/filterDesign';
 import {
   forgetPath,
   scheduleWrite,
@@ -424,7 +421,7 @@ const chainToFiles = (
       [
         `# ${feature}: ${subject}`,
         feature === 'eq' ? '# FluidEQEqLayer: ON' : '# FluidEQCurveLayer: ON',
-        ...(usesMatchedDesign(feature) ? [MATCHED_DESIGN_DIRECTIVE] : []),
+        MATCHED_DESIGN_DIRECTIVE,
         ...lines,
       ].join(CRLF),
     ],

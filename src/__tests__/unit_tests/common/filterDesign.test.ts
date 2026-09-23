@@ -9,10 +9,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Which layers the FluidEQ Engine builds analog-matched, and from which
  * engine on the graph may draw them that way.
  *
- * The two answers have to agree with what plays: a headphone correction
- * drawn matched would show a curve AutoEQ never fitted, and a graph drawing
- * matched ahead of an engine that still plays the cookbook would show treble
- * bands up to 3 dB fuller than they are heard.
+ * The two answers have to agree with what plays: a layer drawn by another
+ * group's choice would show one shape while the other plays, and a graph
+ * drawing matched ahead of an engine that still plays the cookbook would show
+ * treble bands up to 3 dB fuller than they are heard.
  */
 
 import { APO_FEATURES } from '../../../common/constants';
@@ -20,20 +20,19 @@ import {
   ENGINE_MATCHED_DESIGN_SINCE,
   enginePlaysMatched,
   MATCHED_DESIGN_DIRECTIVE,
-  usesMatchedDesign,
+  trebleScopeOf,
 } from '../../../common/filterDesign';
 
-describe('usesMatchedDesign', () => {
-  it('keeps a headphone correction on the cookbook it was fitted with', () => {
-    expect(usesMatchedDesign('headphone')).toBe(false);
-  });
-
-  it('builds every layer FluidEQ shapes itself analog-matched', () => {
-    const own = APO_FEATURES.filter((feature) => feature !== 'headphone');
+describe('trebleScopeOf', () => {
+  it('puts every layer but the EQ under the Curves row, the correction too', () => {
+    const curves = APO_FEATURES.filter((feature) => feature !== 'eq');
     // POSITIVE CONTROL: the list is not empty, so `every` below proves
     // something about each layer rather than about none.
-    expect(own).toEqual(['driver', 'eq', 'voicing', 'smart']);
-    expect(own.every(usesMatchedDesign)).toBe(true);
+    expect(curves).toEqual(['driver', 'headphone', 'voicing', 'smart']);
+    expect(curves.every((feature) => trebleScopeOf(feature) === 'curves')).toBe(
+      true,
+    );
+    expect(trebleScopeOf('eq')).toBe('eq');
   });
 });
 

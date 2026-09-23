@@ -35,23 +35,35 @@
   }
 }
 
+// ================================================================ scale ====
+//
+// Drawn at the amp's scale on the page as well. The panel was built for a
+// page 1024px wide: 420px across, three 54px tiles to a row, a group padded by
+// 16px inside a panel padded by 16px. Dropped into the player's window, about
+// 430px wide, it was the window — three groups deep and running off the
+// bottom (Ivan, 2026-09-22: "we need smaller ui elements ... for amp ui",
+// "the compact eq mode ui"), so the amp got its keys at 38px and its words at
+// 9 to 11px. The Treble rows then made the page's panel 925px tall, and Ivan
+// asked for the page's to match the amp's ("make that ui smaller similar to
+// waht we did on the amp player", 2026-09-22). One scale, so the two cannot
+// drift apart again.
 .eq-mode-menu {
   @include menu-surface;
   z-index: 1000;
-  width: 420px;
+  width: 312px;
   max-width: calc(100vw - 16px);
   overflow-y: auto;
 
   &__content {
     display: grid;
-    gap: $spacing-m;
-    padding: $spacing-m;
+    gap: $spacing-s;
+    padding: $spacing-s;
   }
 
   &__group {
     display: grid;
-    gap: $spacing-m;
-    padding: $spacing-m;
+    gap: $spacing-s;
+    padding: $spacing-s;
     border: 1px solid $border-subtle;
     border-radius: $radius-s;
 
@@ -63,9 +75,10 @@
   &__choices {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: $spacing-xs;
+    gap: 3px;
 
-    &--phase {
+    // Phase and Treble: two choices, each half the row.
+    &--pair {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -101,8 +114,8 @@
   align-items: center;
   gap: $spacing-s;
   svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     color: $secondary-default;
   }
 }
@@ -117,8 +130,8 @@
 .eq-mode-menu__note {
   margin: 0;
   color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.5;
+  font-size: $text-micro;
+  line-height: 1.4;
 }
 .eq-mode-menu .button.subtle.eq-mode-choice {
   &[aria-pressed],
@@ -136,16 +149,17 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: $spacing-xs;
+  gap: 2px;
   min-width: 0;
-  min-height: 54px;
-  padding: $spacing-s $spacing-xs;
+  min-height: 38px;
+  padding: 5px 4px;
+  font-size: $text-small;
   white-space: normal;
   overflow-wrap: anywhere;
   line-height: 1.3;
   > svg {
-    width: 16px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
   }
   &[aria-pressed='false']:hover {
     background: $surface-field;
@@ -177,10 +191,10 @@
 }
 .eq-mode-choice__mark {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 14px;
-  height: 14px;
+  top: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
   svg {
     width: 100%;
     height: 100%;
@@ -207,69 +221,8 @@
 }
 
 .eq-mode-choice__delay {
-  font-size: $text-small;
+  font-size: $text-micro;
+  line-height: 1.4;
   font-weight: $weight-regular;
   font-variant-numeric: tabular-nums;
-}
-
-// ====================================================== the amp's scale ====
-//
-// This panel is built for a page 1024px wide: three 54px tiles to a row,
-// inside a group padded by 16px, inside a panel padded by 16px, 420px across.
-// The player's window is about 430px, and dropped into it the panel was the
-// window — three groups deep, running off the bottom, with the controls
-// underneath it unreachable (Ivan, 2026-09-22: "we need smaller ui elements
-// ... for amp ui", "the compact eq mode ui").
-//
-// The same controls in the same order at the size the rest of the amp is
-// drawn at: its keys are 26 to 30px tall and its words are 9 to 11px, and a
-// 54px tile with body text in it belongs to a different instrument.
-//
-// Keyed off the ROOT, not off the player: every menu in this app is portalled
-// to the document, so nothing of the player is an ancestor of one. The
-// window's mode is on the root exactly so a portalled surface can read it.
-:root[data-window-mode='player'] {
-  .eq-mode-menu {
-    width: 312px;
-  }
-
-  .eq-mode-menu__content,
-  .eq-mode-menu__group {
-    gap: $spacing-s;
-    padding: $spacing-s;
-  }
-
-  .eq-mode-menu__choices {
-    gap: 3px;
-  }
-
-  .eq-mode-menu__group-title svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .eq-mode-menu__note,
-  .eq-mode-choice__delay {
-    font-size: $text-micro;
-    line-height: 1.4;
-  }
-
-  .eq-mode-menu .button.subtle.eq-mode-choice {
-    gap: 2px;
-    min-height: 38px;
-    padding: 5px 4px;
-    font-size: $text-small;
-
-    > svg {
-      width: 13px;
-      height: 13px;
-    }
-  }
-
-  .eq-mode-choice__mark {
-    top: 2px;
-    right: 2px;
-    width: 11px;
-    height: 11px;
-  }
 }

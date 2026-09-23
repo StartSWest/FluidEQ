@@ -12,6 +12,10 @@ const PATHS: Record<string, string> = {
   third: 'M2 12c5 0 5-5 10-5s5 10 10 10',
   minimumPhase: 'M2 17h3V5l3 15 3-10 3 7 3-3 3 3h2',
   linearPhase: 'M2 16h4l2-4 2 8 2-16 2 16 2-8 2 4h4',
+  // A treble bell under the level it was set to: Precise reaches it, Classic
+  // falls short of it, narrower on the side towards 20 kHz.
+  precise: 'M2 18h6c3.5 0 3-13 6.5-13s3 13 6.5 13M11 3h7',
+  classic: 'M2 18h8c3 0 2.5-8 4.5-8c1.5 0 1.5 8 3 8h4.5M11 3h7',
 };
 
 export default function EqModeIcon({ kind }: { kind: string }) {

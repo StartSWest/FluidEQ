@@ -163,7 +163,7 @@ describe('the chart built for the engine and rate playing', () => {
       hasConvolution: false,
       hasPreAmp: false,
       isEqQuiet: false,
-      matchedDesign: false,
+      matchedDesign: { eq: false, curves: false },
       preAmp: 0,
       t: ((key: string) => key) as unknown as IBuildChartDataParams['t'],
       ...refs,
@@ -184,30 +184,91 @@ describe('the chart built for the engine and rate playing', () => {
     expect(at(first, 20000) - at(second, 20000)).toBeGreaterThan(1);
   });
 
-  it('draws the EQ matched and the correction on the cookbook for the FluidEQ Engine', () => {
+  it('draws each group by its own Treble choice', () => {
     const refs = caches();
     const built = buildChartData(
       params(
         {
-          matchedDesign: true,
+          // Your EQ on Precise, the curves on Classic.
+          matchedDesign: { eq: true, curves: false },
           sampleRate: 48000,
-          headphone: { filters: { treble: filter() }, intensity: 1 },
+          voicing: {
+            profileId: 'edited',
+            intensity: 1,
+            apoOverride: { filters: { treble: filter({ id: 'treble' }) } },
+          },
         },
         refs,
       ),
     );
-    const correction =
-      built.chartData.find((curve) => curve.id === 'Headphone Correction')?.line
-        .points ?? [];
-    // POSITIVE CONTROL: both curves exist and carry the same band.
-    expect(correction.length).toBeGreaterThan(0);
-    expect(at(eqCurve(built), 20000)).toBeCloseTo(
-      at(getDesignedFilterLineData(filter(), true, 48000), 20000),
-      6,
-    );
-    expect(at(correction, 20000)).toBeCloseTo(
-      at(getFilterLineData(filter(), 48000), 20000),
-      6,
-    );
+    const preset =
+      built.chartData.find((curve) => curve.id === 'Voicing')?.line.points ??
+      [];
+    const matched = at(getDesignedFilterLineData(filter(), true, 48000), 20000);
+    const cookbook = at(getFilterLineData(filter(), 48000), 20000);
+    // POSITIVE CONTROL: the two designs of this band differ where it counts.
+    expect(matched - cookbook).toBeGreaterThan(1);
+    expect(at(eqCurve(built), 20000)).toBeCloseTo(matched, 6);
+    expect(at(preset, 20000)).toBeCloseTo(cookbook, 6);
   });
+
+  it('redraws the EQ when its Treble choice changes', () => {
+    const refs = caches();
+    const precise = eqCurve(
+      buildChartData(
+        params(
+          { matchedDesign: { eq: true, curves: true }, sampleRate: 48000 },
+          refs,
+        ),
+      ),
+    );
+    const classic = eqCurve(
+      buildChartData(
+        params(
+          { matchedDesign: { eq: false, curves: true }, sampleRate: 48000 },
+          refs,
+        ),
+      ),
+    );
+    // Same band, same rate: a line reused from the cache would not move.
+    expect(at(precise, 20000) - at(classic, 20000)).toBeGreaterThan(1);
+  });
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])(
+    'draws the headphone correction by the Curves choice (matched: %s)',
+    (curves, matched) => {
+      const refs = caches();
+      const built = buildChartData(
+        params(
+          {
+            matchedDesign: { eq: true, curves },
+            sampleRate: 48000,
+            headphone: { filters: { treble: filter() }, intensity: 1 },
+          },
+          refs,
+        ),
+      );
+      const correction =
+        built.chartData.find((curve) => curve.id === 'Headphone Correction')
+          ?.line.points ?? [];
+      // POSITIVE CONTROL: the curve exists and the two designs of its band
+      // differ where it counts, so the match below is not a coincidence.
+      expect(correction.length).toBeGreaterThan(0);
+      const designed = at(
+        getDesignedFilterLineData(filter(), true, 48000),
+        20000,
+      );
+      const cookbook = at(getFilterLineData(filter(), 48000), 20000);
+      expect(designed - cookbook).toBeGreaterThan(1);
+      expect(at(correction, 20000)).toBeCloseTo(
+        matched ? designed : cookbook,
+        6,
+      );
+      // Your EQ keeps its own choice whatever the curves do.
+      expect(at(eqCurve(built), 20000)).toBeCloseTo(designed, 6);
+    },
+  );
 });

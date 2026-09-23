@@ -28,7 +28,10 @@ import {
 } from 'common/curveComparison';
 import {
   ENGINE_MATCHED_DESIGN_SINCE,
+  ENGINE_TREBLE_CHOICE_SINCE,
   enginePlaysMatched,
+  engineTakesTrebleChoice,
+  groupPlaysMatched,
 } from 'common/filterDesign';
 
 const ENGINE_RC = path.join(
@@ -64,6 +67,21 @@ describe('engineReportsStatus', () => {
     ['one.one', false],
   ])('%s → %s', (version, expected) => {
     expect(engineReportsStatus(version)).toBe(expected);
+  });
+});
+
+describe('groupPlaysMatched', () => {
+  it.each([
+    ['1.14.0.0', 'precise', true],
+    ['1.14.0.0', 'classic', false],
+    // An engine that reads no choice plays what it always did: matched on
+    // 1.13, the cookbook before it, whatever the file says.
+    ['1.13.0.0', 'classic', true],
+    ['1.13.0.0', 'precise', true],
+    ['1.12.0.0', 'precise', false],
+    [undefined, 'precise', false],
+  ] as const)('%s, %s → %s', (version, choice, expected) => {
+    expect(groupPlaysMatched(version, choice)).toBe(expected);
   });
 });
 
@@ -112,6 +130,15 @@ describe('the engine this tree builds', () => {
     expect(enginePlaysMatched(binaryVersion('FILEVERSION'))).toBe(true);
     const [major, minor] = ENGINE_MATCHED_DESIGN_SINCE;
     expect(enginePlaysMatched(`${major}.${minor - 1}.0.0`)).toBe(false);
+  });
+
+  it('reads the Treble choice, which an engine a version older ignores', () => {
+    // The menu offers the choice and the graph draws Classic only from this
+    // version on; an engine.rc left behind the gate would have the menu
+    // offering a switch the engine never reads.
+    expect(engineTakesTrebleChoice(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_TREBLE_CHOICE_SINCE;
+    expect(engineTakesTrebleChoice(`${major}.${minor - 1}.0.0`)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

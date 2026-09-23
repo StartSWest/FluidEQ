@@ -51,6 +51,19 @@ const eq: Partial<Dictionary> = {
     'Mettez à jour le moteur FluidEQ pour changer la phase.',
   'eq.mode.eqPhaseHint':
     'Minimale est le réglage par défaut. Linéaire conserve gain et Q, mais ajoute du retard et peut résonner avant les attaques.',
+  'eq.mode.treble': 'Aigus',
+  'eq.mode.precise': 'Précis',
+  'eq.mode.classic': 'Classique',
+  'eq.mode.trebleEqPrecise':
+    'Précis : vos bandes d’aigus sonnent exactement comme elles sont tracées, jusqu’à 20\u00a0kHz.',
+  'eq.mode.trebleEqClassic':
+    'Classique : comme Equalizer APO les restitue. Les bandes d’aigus sortent plus étroites et plus faibles que vous ne les avez réglées, surtout près de 20\u00a0kHz.',
+  'eq.mode.trebleCurvesPrecise':
+    'Précis : Préréglage, Type de transducteur, Égalisation auto et votre correction du casque sonnent exactement comme ils sont tracés, jusqu’à 20\u00a0kHz.',
+  'eq.mode.trebleCurvesClassic':
+    'Classique : comme Equalizer APO les restitue et comme AutoEQ règle les corrections de casque. Les bandes d’aigus sortent plus étroites et plus faibles que réglé, surtout près de 20\u00a0kHz.',
+  'eq.mode.trebleUpdate':
+    'Mettez à jour le moteur FluidEQ pour choisir le rendu des aigus.',
   'eq.mode.reset': 'Réinitialiser',
   'eq.mode.customized': 'Personnalisé',
   'eq.mode.strength': 'Intensité',

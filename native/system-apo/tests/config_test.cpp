@@ -407,6 +407,44 @@ void filter_design_scopes_follow_includes_without_leaking() {
   CHECK(!chain.bands[5].matched);  // the parent, after the include returned
 }
 
+// Classic, per group: the EQ layer's bands on one file, every other layer
+// FluidEQ writes on the other, the headphone correction never matched at all.
+void treble_choice_keeps_a_group_on_the_cookbook() {
+  std::printf("the treble choice keeps a group on the cookbook\n");
+  const auto resolve = [](const char* eq_choice, const char* curve_choice) {
+    Files files;
+    files[L"C:\\cfg\\config.txt"] =
+        "Include: eq.txt\r\nInclude: preset.txt\r\nInclude: headphone.txt\r\n";
+    files[L"C:\\cfg\\eq.txt"] =
+        "# FluidEQEqLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON PK Fc 16000 Hz Gain 6 dB Q 2\r\n";
+    files[L"C:\\cfg\\preset.txt"] =
+        "# FluidEQCurveLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON PK Fc 10000 Hz Gain 3 dB Q 1\r\n";
+    files[L"C:\\cfg\\headphone.txt"] =
+        "# FluidEQCurveLayer: ON\r\nFilter 1: ON PK Fc 8474 Hz Gain -7 dB Q 1\r\n";
+    if (eq_choice != nullptr) files[L"C:\\cfg\\fluideq-eq-treble.txt"] = eq_choice;
+    if (curve_choice != nullptr) files[L"C:\\cfg\\fluideq-curve-treble.txt"] = curve_choice;
+    return resolve_chain(L"C:\\cfg", Endpoint{L"{X}", L"Test"}, provider(files));
+  };
+  const auto matched = [](const Chain& chain) {
+    std::vector<bool> out;
+    for (const Band& band : chain.bands) out.push_back(band.matched);
+    return out;
+  };
+  // POSITIVE CONTROL: with no choice written, the layers that ask for it
+  // play matched, so every false below is the choice's doing.
+  CHECK(matched(resolve(nullptr, nullptr)) == std::vector<bool>{true, true, false});
+  CHECK(matched(resolve("classic\r\n", nullptr)) == std::vector<bool>{false, true, false});
+  CHECK(matched(resolve(nullptr, "classic")) == std::vector<bool>{true, false, false});
+  CHECK(matched(resolve("classic", "classic")) == std::vector<bool>{false, false, false});
+  CHECK(matched(resolve("precise", "precise")) == std::vector<bool>{true, true, false});
+  // Anything but the exact word leaves Precise.
+  CHECK(matched(resolve("Classical", "classic please")) == std::vector<bool>{true, true, false});
+  const Chain chosen = resolve("classic", nullptr);
+  CHECK(chosen.classic_eq_treble && !chosen.classic_curve_treble);
+}
+
 int main() {
   std::printf("fluideq engine config\n");
   follows_includes_and_device_guards();
@@ -427,6 +465,7 @@ int main() {
   phase_scopes_follow_includes_without_leaking();
   official_phase_files_are_independent_and_default_to_minimum();
   filter_design_scopes_follow_includes_without_leaking();
+  treble_choice_keeps_a_group_on_the_cookbook();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

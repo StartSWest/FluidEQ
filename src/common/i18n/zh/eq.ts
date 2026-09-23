@@ -48,6 +48,18 @@ const eq: Partial<Dictionary> = {
   'eq.mode.phaseUpdate': '请更新 FluidEQ 引擎以更改相位。',
   'eq.mode.eqPhaseHint':
     '默认为最小相位。线性相位保留增益和 Q，但会增加延迟，并可能在瞬态前产生振铃。',
+  'eq.mode.treble': '高音',
+  'eq.mode.precise': '精确',
+  'eq.mode.classic': '经典',
+  'eq.mode.trebleEqPrecise':
+    '精确：你的高音频段完全按绘制的样子发声，直到 20\u00a0kHz。',
+  'eq.mode.trebleEqClassic':
+    '经典：与 Equalizer APO 的播放方式相同。高音频段会比你的设置更窄、更低，越接近 20\u00a0kHz 越明显。',
+  'eq.mode.trebleCurvesPrecise':
+    '精确：预设、单元类型、智能均衡和你的耳机校正完全按绘制的样子发声，直到 20\u00a0kHz。',
+  'eq.mode.trebleCurvesClassic':
+    '经典：与 Equalizer APO 的播放方式相同，也是 AutoEQ 调校耳机校正时所用的方式。高音频段会比设置更窄、更低，越接近 20\u00a0kHz 越明显。',
+  'eq.mode.trebleUpdate': '请更新 FluidEQ 引擎以选择高音的播放方式。',
   'eq.mode.reset': '重置',
   'eq.mode.customized': '自定义',
   'eq.mode.strength': '强度',

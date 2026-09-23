@@ -51,6 +51,19 @@ const eq: Partial<Dictionary> = {
   'eq.mode.phaseUpdate': 'फेज़ बदलने के लिए FluidEQ इंजन अपडेट करें।',
   'eq.mode.eqPhaseHint':
     'मिनिमम डिफ़ॉल्ट है। लीनियर में गेन और Q बने रहते हैं, लेकिन देरी और तेज़ ध्वनि से पहले रिंगिंग हो सकती है।',
+  'eq.mode.treble': 'ट्रेबल',
+  'eq.mode.precise': 'सटीक',
+  'eq.mode.classic': 'क्लासिक',
+  'eq.mode.trebleEqPrecise':
+    'सटीक: आपके ट्रेबल बैंड ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
+  'eq.mode.trebleEqClassic':
+    'क्लासिक: जैसे Equalizer APO उन्हें बजाता है। ट्रेबल बैंड आपकी सेटिंग से संकरे और धीमे निकलते हैं, 20\u00a0kHz के पास सबसे ज़्यादा।',
+  'eq.mode.trebleCurvesPrecise':
+    'सटीक: प्रीसेट, ड्राइवर प्रकार, स्मार्ट EQ और आपका हेडफ़ोन सुधार ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
+  'eq.mode.trebleCurvesClassic':
+    'क्लासिक: जैसे Equalizer APO इन्हें बजाता है और जैसे AutoEQ हेडफ़ोन सुधार ट्यून करता है। ट्रेबल बैंड सेटिंग से संकरे और धीमे निकलते हैं, 20\u00a0kHz के पास सबसे ज़्यादा।',
+  'eq.mode.trebleUpdate':
+    'ट्रेबल कैसे बजे, यह चुनने के लिए FluidEQ इंजन अपडेट करें।',
   'eq.mode.reset': 'रीसेट',
   'eq.mode.customized': 'कस्टम',
   'eq.mode.strength': 'तीव्रता',

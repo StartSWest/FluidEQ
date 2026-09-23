@@ -63,7 +63,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/components/EqModeSelect.tsx': [
     // The menu's rows, its band shapes and its smoothing steps.
     [
-      'eq.mode.{phase,q,strength,smoothing,constant,proportional,asymmetric,off,twelfth,third}',
+      'eq.mode.{phase,q,strength,smoothing,treble,constant,proportional,asymmetric,off,twelfth,third}',
       'eq.mode.*',
     ],
     ['eq.mode.{constant,proportional,asymmetric}Hint', 'eq.mode.*Hint'],

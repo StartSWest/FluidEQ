@@ -86,6 +86,12 @@ const mockDisplayedPreAmps: number[] = [];
 /** Automatic values must never be persisted through the manual-preamp API. */
 const mockSetMainPreAmp = jest.fn(() => Promise.resolve());
 
+// The Treble choice, as a window with no choice written reads it: without
+// this the menu and the graph ask a bridge jsdom does not have.
+jest.mock('renderer/utils/trebleDesignApi', () => ({
+  getTrebleDesigns: async () => ({ eq: 'precise', curves: 'precise' }),
+  setTrebleDesign: jest.fn(),
+}));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({

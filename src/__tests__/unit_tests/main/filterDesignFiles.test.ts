@@ -5,13 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Every layer file FluidEQ shapes itself asks the FluidEQ Engine for the
- * analog-matched design; the headphone correction's never does.
+ * Every layer file asks the FluidEQ Engine for the analog-matched design,
+ * which the engine then builds or not as the layer's group of the Treble
+ * choice says — the headphone correction under the Curves row like the rest.
  *
  * The engine reads the directive file by file and an include inherits it, so
- * the line has to sit in each layer's own file: written once in the device
- * file it would reach the correction too, and a correction built matched
- * plays 0.89 dB from what AutoEQ fitted where the cookbook plays 0.14.
+ * the line sits in each layer's own file and never in the device file, where
+ * it would reach the custom file too: that one names no layer, and no row of
+ * the menu speaks for it.
  */
 
 import fs from 'fs';
@@ -78,7 +79,7 @@ describe('the filter design each layer file asks for', () => {
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
-  it('asks for the matched design in FluidEQ’s own layers and never in the correction', () => {
+  it('asks for the matched design in every layer file, the correction’s too', () => {
     const settings = getDefaultDeviceProfileSettings();
     settings.assignments.endpoint = {
       deviceId: 'endpoint',
@@ -100,7 +101,7 @@ describe('the filter design each layer file asks for', () => {
       'headphone',
       'preset',
     ]);
-    ['driver', 'eq', 'preset'].forEach((word) => {
+    ['driver', 'eq', 'headphone', 'preset'].forEach((word) => {
       const lines = (layers.get(word) ?? '').split(/\r?\n/);
       expect(lines).toContain(MATCHED_DESIGN_DIRECTIVE);
       // Above the filters it governs: the engine applies it to the lines
@@ -110,7 +111,6 @@ describe('the filter design each layer file asks for', () => {
       );
     });
     expect(layers.get('headphone')).toContain('Fc 8474 Hz');
-    expect(layers.get('headphone')).not.toContain(MATCHED_DESIGN_DIRECTIVE);
     expect(device).not.toContain(MATCHED_DESIGN_DIRECTIVE);
   });
 });

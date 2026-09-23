@@ -455,18 +455,22 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
-- **FluidEQ's own layers play the treble as drawn; a headphone correction
-  never does.** The cookbook (what Equalizer APO builds every band from)
+- **The treble plays as drawn unless the layer's Treble row says Classic.**
+  The cookbook (what Equalizer APO builds every band from)
   squeezes a band toward Nyquist: Ivan's five treble bands played 1.5 dB
   short at 8 kHz and 3.8 dB at 20 kHz on a 48 kHz output, invisible on a
-  graph drawn at 96 kHz. Every layer file except `headphone` carries
+  graph drawn at 96 kHz. Every layer file carries
   `# FluidEQFilterDesign: MATCHED` (`filterDesign.ts`), scoped like the phase
   directives — its file and what that file includes — and the engine builds
   those bands analog-matched (`biquad_matched.cpp`: bells and pass filters,
   Butterworth shelves; everything else, and anything unstable, stays
-  cookbook; a cut is the exact reciprocal of its boost). A correction stays
-  cookbook because AutoEQ fits with it: 0.14 dB from its fit that way,
-  0.89 dB matched. `playsAnalogMatched` in the graph's `utils.ts` mirrors the
+  cookbook; a cut is the exact reciprocal of its boost). The custom file
+  carries none: it names no layer and no row speaks for it. A headphone
+  correction first stayed on the cookbook whatever the choice, because
+  AutoEQ fits with it (0.14 dB from its fit that way, 0.89 dB matched); Ivan
+  wanted the Curves row to move his correction, in the sound and on the
+  graph, so it follows that row, and the row's note says Classic is how
+  AutoEQ tunes one. `playsAnalogMatched` in the graph's `utils.ts` mirrors the
   engine's rule — change both together. The graph draws matched only over
   an engine that plays it (`useMatchedDesign`, `ENGINE_MATCHED_DESIGN_SINCE`
   1.13, read from the status the window already holds, never a new ask on
@@ -474,8 +478,17 @@ Everything worth knowing about them is available through commands:
   (`useOutputRate`), holding the Nyquist value above Nyquist. Ivan heard the
   result as "APO has better bass"; measured on his files the bass was APO's
   to 0.002 dB and only the treble differed. He chose to keep it ("we need to
-  be unique"), and asked for a Classic choice beside it — open as of
-  2026-09-22.
+  be unique"), and asked for both ("I want both mode some how"): the EQ mode
+  menu's Treble row, Precise or Classic for Your EQ and for the curves, kept
+  in `fluideq-eq-treble.txt` and `fluideq-curve-treble.txt` beside the phase
+  files and read by the engine from 1.14 (`ENGINE_TREBLE_CHOICE_SINCE`);
+  Classic keeps that group on the cookbook. Only the exact word `classic`
+  counts, on both sides (`config.cpp`, `main/ipc/trebleDesign.ts`), or the
+  menu shows one design while the other plays. The graph
+  follows each group (`groupPlaysMatched`), and the window holds one copy of
+  the choice (`useTrebleDesigns`) so the menu and every graph agree. Main
+  reads the files only while the FluidEQ Engine is chosen: asking for that
+  engine's folder creates it.
 - **Every change the engine hears fades, and every band keeps its history.**
   A graph is rebuilt on each config write, and the previous one is freed two
   blocks after the swap, so the fade lives in the new graph: `IirCascade`
@@ -496,7 +509,14 @@ Everything worth knowing about them is available through commands:
   55 ms with `# FluidEQCurveStage: ON`, curve or not; the minimum-phase
   kernel (16384 taps at 48 kHz, APO's resolution) leaves one partition,
   12.7 ms on his chain. Decided by the phase settings alone, never by which
-  curves are present, or adding a curve would move the delay mid-song. A
+  curves are present, or adding a curve would move the delay mid-song. With
+  no curve at all the stage is a ring of that length, not a convolver
+  (`CurveStage`): the 16384-tap kernel with one tap in it was two thirds of
+  the engine's work on his chain, 0.13 ms of every 10 ms block against 0.05.
+  The ring is fed in both states; a first curve plays the delay until its
+  convolvers are warm and then fades in over 20 ms, a last one fades out to
+  the delay, and a curve of another length keeps playing until its
+  successor is warm (`curve_stage_test.cpp`). A
   linear-phase stage starts on its FIR, which is what stopped it replaying
   the first 0.7 s of every stream. `APOProcess` turns denormals off for its
   call and restores them (`denormals.h`): silence from a paused player cost

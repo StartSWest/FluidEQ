@@ -142,6 +142,8 @@ enum ChannelEnum {
   SET_EQ_MODE = 'setEqMode',
   GET_CURVE_COMPARISON = 'getCurveComparison',
   SET_CURVE_COMPARISON = 'setCurveComparison',
+  GET_TREBLE_DESIGN = 'getTrebleDesign',
+  SET_TREBLE_DESIGN = 'setTrebleDesign',
   SET_EQ_SHAPE = 'setEqShape',
   RESET_EQ_MODE = 'resetEqMode',
   // Clearing a reference clears the bands it wrote, because applying one wrote

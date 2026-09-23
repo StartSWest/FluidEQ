@@ -22,10 +22,20 @@ import {
   resetAudioEngineStatus,
   useAudioEngineStatus,
 } from '../../../renderer/utils/useAudioEngineStatus';
-import useMatchedDesign from '../../../renderer/graph/useMatchedDesign';
+import useMatchedDesign, {
+  TMatchedDesign,
+} from '../../../renderer/graph/useMatchedDesign';
+import { resetTrebleDesigns } from '../../../renderer/utils/useTrebleDesigns';
+import type { ITrebleDesigns } from '../../../common/filterDesign';
 
 jest.mock('../../../renderer/utils/audioEngineApi', () => ({
   getAudioEngineStatus: jest.fn(),
+}));
+
+let mockTreble: ITrebleDesigns;
+jest.mock('../../../renderer/utils/trebleDesignApi', () => ({
+  getTrebleDesigns: async () => ({ ...mockTreble }),
+  setTrebleDesign: jest.fn(),
 }));
 
 jest.mock('../../../renderer/dsp/systemChain', () => ({
@@ -54,6 +64,12 @@ const Shell = () => {
 
 /** The graph's question, and every answer it rendered with. */
 const Graph = ({ seen }: { seen: boolean[] }) => {
+  seen.push(useMatchedDesign().eq);
+  return null;
+};
+
+/** Both groups' answers, for the Treble choice. */
+const Groups = ({ seen }: { seen: TMatchedDesign[] }) => {
   seen.push(useMatchedDesign());
   return null;
 };
@@ -66,6 +82,8 @@ const land = async (next: IAudioEngineStatus) => {
 
 beforeEach(() => {
   resetAudioEngineStatus();
+  resetTrebleDesigns();
+  mockTreble = { eq: 'precise', curves: 'precise' };
   answers = [];
   jest.mocked(getAudioEngineStatus).mockImplementation(
     () =>
@@ -102,6 +120,30 @@ describe('useMatchedDesign', () => {
     });
     await land(status('apo', '1.13.0.0'));
     expect(seen[seen.length - 1]).toBe(false);
+  });
+
+  it('draws a group set to Classic on the cookbook, only on an engine that reads the choice', async () => {
+    mockTreble = { eq: 'classic', curves: 'precise' };
+    const seen: TMatchedDesign[] = [];
+    render(
+      <>
+        <Shell />
+        <Groups seen={seen} />
+      </>,
+    );
+    await land(status('fluid', '1.14.0.0'));
+    // The choice itself arrives from main after the engine does.
+    await act(async () => {});
+    expect(seen[seen.length - 1]).toEqual({ eq: false, curves: true });
+
+    act(() => {
+      refreshAudioEngineStatus();
+    });
+    await land(status('fluid', '1.13.0.0'));
+    await act(async () => {});
+    // POSITIVE CONTROL: the same file under an engine that reads no choice
+    // is drawn as that engine plays it, matched in both groups.
+    expect(seen[seen.length - 1]).toEqual({ eq: true, curves: true });
   });
 
   it('reads what the window knows without asking main again', async () => {

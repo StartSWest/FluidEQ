@@ -83,6 +83,15 @@ struct Chain {
   std::vector<std::vector<GraphicPoint>> eq_graphic_curves;
   bool minimum_curve_phase = true;
   bool minimum_eq_phase = true;
+  /**
+   * The treble choice beside the phase ones: Classic keeps that group's
+   * bands on the cookbook even where their layer asks for the matched design
+   * — the way Equalizer APO plays them, narrower near the top. Read from
+   * `fluideq-eq-treble.txt` and `fluideq-curve-treble.txt`; absent means
+   * Precise.
+   */
+  bool classic_eq_treble = false;
+  bool classic_curve_treble = false;
   std::vector<Band> bands;
   double preamp_db = 0.0;
   bool auto_preamp = false;

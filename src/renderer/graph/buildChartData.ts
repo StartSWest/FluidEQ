@@ -65,7 +65,8 @@ import {
 } from '../../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
-import { usesMatchedDesign } from '../../common/filterDesign';
+import { trebleScopeOf } from '../../common/filterDesign';
+import type { TMatchedDesign } from './useMatchedDesign';
 
 /** Supporting curves sit behind the one in focus rather than competing with it. */
 export const SUPPORTING_CURVE_OPACITY = 0.5;
@@ -122,11 +123,12 @@ export interface IBuildChartDataParams extends Pick<
   hasPreAmp: boolean;
   isEqQuiet: boolean;
   /**
-   * Whether the FluidEQ Engine is the one playing. It builds FluidEQ's own
-   * layers analog-matched (`usesMatchedDesign`), so they are drawn with the
-   * analog shape they play; Equalizer APO plays every band from the cookbook.
+   * Per group, whether the engine playing builds the group's layers
+   * analog-matched, so they are drawn with the analog shape they play: the
+   * FluidEQ Engine does, unless the group's Treble choice is Classic;
+   * Equalizer APO plays every band from the cookbook.
    */
-  matchedDesign: boolean;
+  matchedDesign: TMatchedDesign;
   /**
    * The rate the output runs at, which is the rate either engine builds every
    * band at: the lower it is, the more the cookbook narrows a treble band.
@@ -223,7 +225,7 @@ export const buildChartData = ({
   // playing builds that way. The custom file names no layer, so its bands
   // stay on the cookbook in the engine and here.
   const matchedFor = (feature?: TApoFeature) =>
-    matchedDesign && feature !== undefined && usesMatchedDesign(feature);
+    feature !== undefined && matchedDesign[trebleScopeOf(feature)];
   const eqMatched = matchedFor('eq');
   const appliedFilterLine = (filter: IFilter, feature?: TApoFeature) => {
     const effective =

@@ -40,6 +40,7 @@ import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import type { ICurveComparisonStatus } from 'common/curveComparison';
+import type { ITrebleDesigns } from 'common/filterDesign';
 import type { IBandDesign } from 'common/bandDesigns';
 import type {
   IAudioEngineStatus,
@@ -285,6 +286,7 @@ export const buildResponseHandler = <
     | ISongEqEntry
     | IAudioEngineStatus
     | ICurveComparisonStatus
+    | ITrebleDesigns
     | IBandDesign
     | IBandDesign[]
     | IAudioRestartOutcome

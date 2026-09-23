@@ -53,6 +53,19 @@ const eq: Partial<Dictionary> = {
     '位相を変更するにはFluidEQエンジンを更新してください。',
   'eq.mode.eqPhaseHint':
     '最小が既定です。リニアはゲインとQを保ちますが、遅延や鋭い音の前に響きが生じることがあります。',
+  'eq.mode.treble': '高音',
+  'eq.mode.precise': '精密',
+  'eq.mode.classic': 'クラシック',
+  'eq.mode.trebleEqPrecise':
+    '精密：高音域のバンドは描いたとおりに、20\u00a0kHz まで鳴ります。',
+  'eq.mode.trebleEqClassic':
+    'クラシック：Equalizer APO と同じ鳴り方です。高音域のバンドは設定より狭く小さくなり、20\u00a0kHz に近いほど差が大きくなります。',
+  'eq.mode.trebleCurvesPrecise':
+    '精密：プリセット、ドライバー種別、スマート EQ、ヘッドホン補正を描いたとおりに、20\u00a0kHz まで鳴らします。',
+  'eq.mode.trebleCurvesClassic':
+    'クラシック：Equalizer APO と同じ鳴り方で、AutoEQ がヘッドホン補正を調整するときの方式です。高音域のバンドは設定より狭く小さくなり、20\u00a0kHz に近いほど差が大きくなります。',
+  'eq.mode.trebleUpdate':
+    '高音の鳴らし方を選ぶにはFluidEQエンジンを更新してください。',
   'eq.mode.reset': 'リセット',
   'eq.mode.customized': 'カスタム',
   'eq.mode.strength': '強度',
