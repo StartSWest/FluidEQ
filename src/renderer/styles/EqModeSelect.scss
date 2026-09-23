@@ -80,9 +80,16 @@
   // scoped past `.segmented`'s own `display: flex` whichever stylesheet
   // loads first.
   .segmented.eq-mode-menu__choices {
+    // On the app's recessed block, as the Now Playing volume and the player
+    // deck beside it sit, rather than on a slider's groove colour: that
+    // lighter slate is right for a 5px line and, filling a whole row, read as
+    // a grey from no palette (Ivan, 2026-09-22: "use the one that sliders in
+    // volume use").
+    @include inset-surface;
     display: grid;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
+    border-radius: $radius-xs;
   }
 }
 .eq-mode-menu__heading {
