@@ -289,4 +289,7 @@ const useDialGesture = ({
   };
 };
 
+/** What a dial's gesture hands the dial that draws it (`KnobView`). */
+export type TDialView = ReturnType<typeof useDialGesture>;
+
 export default useDialGesture;
