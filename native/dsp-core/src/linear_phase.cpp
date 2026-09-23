@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/linear_phase.h"
 #include "fluideq/convolver.h"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -73,6 +74,38 @@ std::vector<float> impulse_response(const FeqLinearPhaseRack* rack,
   return buffer;
 }
 
+/** The magnitude of an impulse response's spectrum, bin by bin. */
+std::vector<double> magnitude_of(const std::vector<float>& impulse) {
+  std::vector<double> real(kSize, 0.0);
+  std::vector<double> imaginary(kSize, 0.0);
+  for (uint32_t at = 0; at < kSize; ++at) {
+    real[at] = static_cast<double>(impulse[at]);
+  }
+  feq_fft_in_place(real.data(), imaginary.data(), kSize, 0);
+  for (uint32_t bin = 0; bin < kSize; ++bin) {
+    real[bin] = std::hypot(real[bin], imaginary[bin]);
+  }
+  return real;
+}
+
+/**
+ * A real spectrum back to a causal kernel.
+ *
+ * Real and symmetric going in, so what the inverse returns is real and
+ * symmetric too. The inverse leaves the 1/N to the caller, and its impulse is
+ * centred on sample zero with the second half wrapped to the end. Rotating by
+ * half puts the centre in the middle, which is what makes the filter causal
+ * and where every sample of the latency comes from.
+ */
+void kernel_from_spectrum(std::vector<double>& real, float* kernel) {
+  std::vector<double> imaginary(kSize, 0.0);
+  feq_fft_in_place(real.data(), imaginary.data(), kSize, 1);
+  const uint32_t half = kSize / 2;
+  for (uint32_t at = 0; at < kSize; ++at) {
+    kernel[at] = static_cast<float>(real[(at + half) % kSize] / kSize);
+  }
+}
+
 }  // namespace
 
 extern "C" {
@@ -87,32 +120,44 @@ void feq_build_linear_phase_kernel(const FeqLinearPhaseRack* rack,
   if (rack == nullptr || kernel == nullptr) {
     return;
   }
-  const std::vector<float> impulse = impulse_response(rack, sample_rate);
-  std::vector<double> real(kSize, 0.0);
-  std::vector<double> imaginary(kSize, 0.0);
-  for (uint32_t at = 0; at < kSize; ++at) {
-    real[at] = static_cast<double>(impulse[at]);
+  // Throw the phase away and keep the magnitude.
+  std::vector<double> magnitude =
+      magnitude_of(impulse_response(rack, sample_rate));
+  kernel_from_spectrum(magnitude, kernel);
+}
+
+void feq_build_linear_phase_change_kernel(const FeqLinearPhaseRack* rack,
+                                          uint32_t band,
+                                          double sample_rate,
+                                          float* kernel) {
+  if (rack == nullptr || kernel == nullptr) {
+    return;
   }
+  std::fill(kernel, kernel + kSize, 0.0f);
+  if (band >= rack->band_count || rack->bands[band].enabled == 0) {
+    return;
+  }
+  const FeqLinearPhaseBand& chosen = rack->bands[band];
+  // Modelled exactly as the rack's own bands are, so the band sounds the same
+  // whether it is static inside the rack's kernel or dynamic beside it.
+  const FeqBiquadCoefficients coefficients = feq_biquad_coefficients_modelled(
+      chosen.type, chosen.frequency, chosen.gain_db, chosen.quality,
+      sample_rate, rack->model, rack->model_amount);
+  std::vector<float> alone(kSize, 0.0f);
+  alone[0] = 1.0f;
+  FeqBiquadState state;
+  feq_biquad_reset(&state);
+  feq_biquad_process(&state, alone.data(), kSize, &coefficients);
 
-  feq_fft_in_place(real.data(), imaginary.data(), kSize, 0);
-
-  // Throw the phase away and keep the magnitude. Real and symmetric going in,
-  // so what the inverse returns is real and symmetric too.
+  // On top of the static rack rather than beside it: the band hears what the
+  // rack's other bands have already done, as it did running after the kernel.
+  std::vector<double> change =
+      magnitude_of(impulse_response(rack, sample_rate));
+  const std::vector<double> own = magnitude_of(alone);
   for (uint32_t bin = 0; bin < kSize; ++bin) {
-    real[bin] = std::hypot(real[bin], imaginary[bin]);
-    imaginary[bin] = 0.0;
+    change[bin] *= own[bin] - 1.0;
   }
-
-  feq_fft_in_place(real.data(), imaginary.data(), kSize, 1);
-
-  // The inverse leaves the 1/N to the caller, and its impulse is centred on
-  // sample zero with the second half wrapped to the end. Rotating by half puts
-  // the centre in the middle, which is what makes the filter causal and where
-  // every sample of the latency comes from.
-  const uint32_t half = kSize / 2;
-  for (uint32_t at = 0; at < kSize; ++at) {
-    kernel[at] = static_cast<float>(real[(at + half) % kSize] / kSize);
-  }
+  kernel_from_spectrum(change, kernel);
 }
 
 }  // extern "C"

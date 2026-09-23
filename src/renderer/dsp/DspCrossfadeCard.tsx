@@ -145,7 +145,9 @@ const DspCrossfadeCard = ({
           subtree is reachable by tab and invisible to a screen reader.
         */}
         <section
-          className={`dsp-crossfade-preview${isCustom ? ' is-editable' : ''}`}
+          className={`dsp-crossfade-preview${isCustom ? ' is-editable' : ''}${
+            crossfade.enabled ? '' : ' is-off'
+          }`}
           role="group"
           aria-label={t('dsp.crossfade.title')}
         >

@@ -353,7 +353,7 @@ const dsp = {
   'dsp.eq.isolate': 'Isola',
   'dsp.eq.isolateHint': 'Ascolta solo ciò che modifica l’EQ.',
   'dsp.eq.isolateOn':
-    'Il segnale dry è rimosso: si sentono solo le modifiche dell’EQ.',
+    'Il segnale dry è rimosso: si sente solo ciò che modifica l’EQ, ciò che un aumento aggiunge e ciò che un taglio toglie.',
   'dsp.eqPreset.imported': 'Caricati {count} filtri.',
   'dsp.eqPreset.importSkipped': 'Caricati {count} filtri, {skipped} ignorati.',
   'dsp.eqPreset.importEmpty': 'Questo equalizzatore non ha letto alcun filtro.',
@@ -414,6 +414,7 @@ const dsp = {
   'dsp.eq.threshold': 'Soglia',
   'dsp.eq.legend.curve': 'Curva',
   'dsp.eq.legend.spectrum': 'Uscita',
+  'dsp.eq.legend.isolated': 'Aggiunto / tolto',
   'dsp.eq.legend.atRest': 'A riposo',
   'dsp.eq.legend.threshold': 'Soglia',
   'dsp.eq.legend.subsonic': 'Subsonico',
@@ -574,7 +575,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'Integrato',
   'dsp.master.graph.targetLine': 'Obiettivo {target} LUFS',
   'dsp.master.graph.integratedLine': 'Integrato {value} LUFS',
-  'dsp.master.graph.reductionShort': 'RG',
   'dsp.master.graph.peakWarning':
     'Avviso · uscita a {peak} dBTP oltre il tetto',
   'dsp.master.graph.peakFixed': 'Picco controllato · {gain} dB di riduzione',
@@ -797,7 +797,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'Pareggia guadagno · {gain} dB tolti',
   'dsp.masterPreset.label': 'Destinazione',
   'dsp.masterPreset.streaming': 'Streaming',

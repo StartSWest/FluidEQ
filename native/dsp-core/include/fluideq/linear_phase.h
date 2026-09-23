@@ -41,7 +41,9 @@ typedef struct FeqLinearPhaseBand {
    * after. A band that changes what it does from what it hears cannot be
    * expressed by one — baking it in at full strength would leave a band that
    * is permanently engaged, which is a static band with extra steps and the
-   * opposite of what was asked for.
+   * opposite of what was asked for. What it changes at full strength IS
+   * fixed, though, and the Isolate monitor hears it through a kernel of its
+   * own: `feq_build_linear_phase_change_kernel`.
    */
   int dynamic;
   FeqFilterType type;
@@ -71,6 +73,32 @@ uint32_t feq_linear_phase_latency(void);
 void feq_build_linear_phase_kernel(const FeqLinearPhaseRack* rack,
                                    double sample_rate,
                                    float* kernel);
+
+/**
+ * What one band changes at full strength, as a linear-phase kernel.
+ *
+ * The rack's static magnitude times the band's own magnitude less one, laid
+ * out and centred exactly as `feq_build_linear_phase_kernel` lays out the
+ * rack, so the two outputs land on the same sample. Added to the rack's
+ * output, it is the band switched fully on; scaled by a dynamic band's
+ * amount, it is the band doing what its detector says, in linear phase.
+ *
+ * Magnitude only, like the rack's kernel, and that is the point. A
+ * minimum-phase band run after the kernel changes phase either side of its
+ * passband as well as level, and a monitor that subtracts the dry signal —
+ * Isolate — plays that phase change as if it were sound: measured on pink
+ * noise, a +5.4 dB band at 4.3 kHz and Q 9.1 let the octave either side
+ * through 14 dB louder, and everything under 2 kHz 25 dB louder, than the
+ * same band made static.
+ *
+ * `band` indexes `rack->bands`; a disabled band changes nothing and gets a
+ * silent kernel. Not real-time safe: it allocates and runs three 16k
+ * transforms.
+ */
+void feq_build_linear_phase_change_kernel(const FeqLinearPhaseRack* rack,
+                                          uint32_t band,
+                                          double sample_rate,
+                                          float* kernel);
 
 #ifdef __cplusplus
 }

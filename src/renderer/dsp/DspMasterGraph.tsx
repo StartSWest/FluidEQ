@@ -118,16 +118,17 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
   /**
    * The readouts, which DO go through React.
    *
-   * Five numbers a fifth of a second apart, in the DOM rather than on the
+   * Four numbers a fifth of a second apart, in the DOM rather than on the
    * canvas: a person reads an exact LUFS value off a label and watches a shape
-   * on a plot, and a screen reader can only reach one of the two.
+   * on a plot, and a screen reader can only reach one of the two. The true
+   * peak is not among them: the status chip above the plot reports it, and a
+   * second chip under it said the same number again.
    */
   const [readout, setReadout] = useState({
     momentaryLufs: SILENCE_LUFS,
     shortTermLufs: SILENCE_LUFS,
     integratedLufs: SILENCE_LUFS,
     rangeLu: 0,
-    truePeakDb: -120,
   });
 
   const maximizeActive = master.enabled && master.loudnessMaximize;
@@ -209,7 +210,6 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
   const targetLabel = t('dsp.master.graph.targetLine', {
     target: master.loudnessTargetLufs.toFixed(1),
   });
-  const reductionLabel = t('dsp.master.graph.reductionShort');
 
   useEffect(() => {
     /**
@@ -281,7 +281,6 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
           shortTermLufs: live.shortTermLufs,
           integratedLufs: live.integratedLufs,
           rangeLu: live.rangeLu,
-          truePeakDb: meterRef.current.inputTruePeakDb,
         });
       }
 
@@ -293,14 +292,12 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
         filled: filledRef.current,
         integratedLufs: live.integratedLufs,
         targetLufs: master.loudnessTargetLufs,
-        liveReductionDb: nowReduction,
         targetActive: maximizeActive,
         overCeiling: overCeiling && !autoReducing,
         targetLabel,
         integratedLabel: t('dsp.master.graph.integratedLine', {
           value: displayLufs(live.integratedLufs),
         }),
-        reductionLabel,
       };
       paintMasterLoudness(context, width, height, plot);
     };
@@ -338,7 +335,6 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
     maximizeActive,
     master.loudnessTargetLufs,
     overCeiling,
-    reductionLabel,
     t,
     targetLabel,
   ]);
@@ -358,7 +354,11 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
   });
 
   return (
-    <div className="dsp-eq-plot dsp-master-display">
+    <div
+      className={`dsp-eq-plot dsp-master-display${
+        master.enabled ? '' : ' is-off'
+      }`}
+    >
       <canvas
         ref={canvasRef}
         className="dsp-eq-graph dsp-master-canvas"
@@ -397,6 +397,7 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
             }}
           />
           {t('dsp.master.graph.momentary')}
+          <span className="dsp-eq-legend-scale">LUFS</span>
         </li>
         <li className="dsp-eq-legend-item">
           <span
@@ -404,6 +405,7 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
             style={{ color: BASE_CURVE_CSS }}
           />
           {t('dsp.master.graph.shortTerm')}
+          <span className="dsp-eq-legend-scale">LUFS</span>
         </li>
         <li className="dsp-eq-legend-item">
           <span
@@ -418,6 +420,18 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
             style={{ color: 'rgba(226,236,255,0.8)' }}
           />
           {t('dsp.master.graph.integrated')}
+        </li>
+        {/* Named here rather than on the axis: the reduction hangs from the
+            top of the plot, and a "GR" printed in the corner stood on top of
+            the loudness scale's first number. The Maximizer's word for the
+            same thing, because it is the same thing: a limiter holding the
+            peaks down. */}
+        <li className="dsp-eq-legend-item">
+          <span
+            className="dsp-eq-legend-mark is-filled"
+            style={{ color: 'rgba(255,176,89,0.85)' }}
+          />
+          {t('dsp.maximizer.graph.held')}
         </li>
       </ul>
       <div className="dsp-master-loudness" aria-live="polite">
@@ -436,12 +450,6 @@ const DspMasterGraph = ({ master, loudnessGainDb }: IDspMasterGraphProps) => {
         <span>
           <em>{t('dsp.master.loudness.range')}</em>
           {readout.rangeLu > 0 ? `${readout.rangeLu.toFixed(1)} LU` : '—'}
-        </span>
-        <span className={overCeiling ? 'is-warning' : undefined}>
-          <em>{t('dsp.master.loudness.truePeak')}</em>
-          {readout.truePeakDb <= -119.5
-            ? '—'
-            : `${readout.truePeakDb.toFixed(1)} dBTP`}
         </span>
       </div>
     </div>

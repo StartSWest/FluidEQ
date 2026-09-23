@@ -349,7 +349,7 @@ const dsp = {
   'dsp.eq.isolate': 'Изолировать',
   'dsp.eq.isolateHint': 'Слушать только то, что изменяет эквалайзер.',
   'dsp.eq.isolateOn':
-    'Сухой сигнал убран — слышны только изменения эквалайзера.',
+    'Сухой сигнал убран — слышно только то, что изменяет эквалайзер: что добавляет усиление и что убирает ослабление.',
   'dsp.eqPreset.imported': 'Загружено фильтров: {count}.',
   'dsp.eqPreset.importSkipped':
     'Загружено фильтров: {count}, пропущено: {skipped}.',
@@ -412,6 +412,7 @@ const dsp = {
   'dsp.eq.threshold': 'Порог',
   'dsp.eq.legend.curve': 'Кривая',
   'dsp.eq.legend.spectrum': 'Выход',
+  'dsp.eq.legend.isolated': 'Добавлено / убрано',
   'dsp.eq.legend.atRest': 'В покое',
   'dsp.eq.legend.threshold': 'Порог',
   'dsp.eq.legend.subsonic': 'Инфраниз',
@@ -572,7 +573,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'Интегральная',
   'dsp.master.graph.targetLine': 'Цель {target} LUFS',
   'dsp.master.graph.integratedLine': 'Интегральная {value} LUFS',
-  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
     'Предупреждение · выход {peak} дБTP выше потолка',
   'dsp.master.graph.peakFixed': 'Пик ограничен · ослабление {gain} дБ',
@@ -794,7 +794,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'Уровень выровнен · {gain} дБ снято',
   'dsp.masterPreset.label': 'Назначение',
   'dsp.masterPreset.streaming': 'Стриминг',

@@ -7,6 +7,7 @@ namespace {
 
 bool same_kernel(const FeqChain& prepared, const FeqChain& previous) noexcept {
   if (prepared.kernel_wanted != previous.kernel_wanted ||
+      prepared.kernel_changes != previous.kernel_changes ||
       prepared.kernel_band_count != previous.kernel_band_count ||
       prepared.kernel_engine != previous.kernel_engine ||
       prepared.kernel_model != previous.kernel_model ||
@@ -56,7 +57,7 @@ void transfer_convolvers(FeqChain& prepared, FeqChain& previous) noexcept {
       swap(prepared.kernel_next, previous.kernel);
       swap(prepared.convolvers_next, previous.convolvers);
       prepared.convolver_warmup = static_cast<int64_t>(
-          feq_convolver_kernel_warmup(prepared.kernel_next));
+          feq_convolver_kernel_warmup(prepared.kernel_next->convolution));
     }
   }
 }
@@ -70,7 +71,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
     prepared.band_dynamics[index].envelope = previous.band_dynamics[index].envelope;
     prepared.band_dynamics[index].amount = previous.band_dynamics[index].amount;
   }
-  swap(prepared.dynamic_states, previous.dynamic_states);
   swap(prepared.side_highpass, previous.side_highpass);
 
   swap(prepared.maximizer, previous.maximizer);

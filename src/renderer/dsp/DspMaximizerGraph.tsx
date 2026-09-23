@@ -61,9 +61,6 @@ const FLOOR_DB = -30;
  */
 const TOP_DB = 6;
 
-/** Full deflection of the reduction meter, matching the old bar's scale. */
-const GR_FULL_SCALE_DB = 12;
-
 /** Decay toward rest, so a short reduction stays visible long enough to read. */
 const RELEASE_PER_FRAME = 0.82;
 
@@ -71,8 +68,13 @@ const RELEASE_PER_FRAME = 0.82;
 const PEAK_HOLD_FALL_DB = 0.035;
 
 const PAD_L = 38;
-/** Room for the reduction meter and its scale, which live in this margin. */
-const PAD_R = 62;
+/**
+ * No margin meter any more. A bar of the live reduction on a grey track stood
+ * here, repeating the Reduction and Peak hold readouts above the plot and the
+ * amber the plot already draws — one more thing to read, and a band of
+ * another colour down the side of a graph that should be one surface.
+ */
+const PAD_R = 16;
 /**
  * The legend and the status chips own two fixed rows above the plot, at the
  * heights the stylesheet puts them. Drawing the wave under either one made the
@@ -82,13 +84,11 @@ const PAD_T = 64;
 const PAD_B = 22;
 
 const GRID_DB = [0, -6, -12, -24];
-const GR_TICKS_DB = [0, 3, 6, 12];
 
 const GRAPH_FONT =
   '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
 
 const HELD_INK = '255, 176, 89';
-const IDLE_INK = '255, 255, 255';
 
 const amplitudeDb = (value: number): number =>
   value > 1e-6 ? 20 * Math.log10(value) : -120;
@@ -237,6 +237,8 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         context.stroke();
         context.fillText(`-${second}s`, x, height - PAD_B / 2);
       }
+      // Against the plot's own right edge, now that nothing stands beyond it.
+      context.textAlign = 'right';
       context.fillText(
         t('dsp.maximizer.graph.now'),
         width - PAD_R,
@@ -297,8 +299,10 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       }
 
       // The wave itself, mirrored about the axis. One path for both halves:
-      // out along the top and back along the bottom.
-      const ink = enabled ? baseCurveInk() : IDLE_INK;
+      // out along the top and back along the bottom. In its own colours
+      // whether or not the stage runs: a switched-off stage dims the whole
+      // picture (`.is-off`), as every DSP graph does.
+      const ink = baseCurveInk();
       context.beginPath();
       for (let index = 0; index < HISTORY; index += 1) {
         const at = (writeAt.current + index) % HISTORY;
@@ -315,12 +319,12 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         0,
         PAD_T + plotHeight,
       );
-      body.addColorStop(0, `rgba(${ink},${enabled ? 0.3 : 0.14})`);
-      body.addColorStop(0.5, `rgba(${ink},${enabled ? 0.16 : 0.08})`);
-      body.addColorStop(1, `rgba(${ink},${enabled ? 0.3 : 0.14})`);
+      body.addColorStop(0, `rgba(${ink},0.3)`);
+      body.addColorStop(0.5, `rgba(${ink},0.16)`);
+      body.addColorStop(1, `rgba(${ink},0.3)`);
       context.fillStyle = body;
       context.fill();
-      context.strokeStyle = `rgba(${ink},${enabled ? 0.9 : 0.34})`;
+      context.strokeStyle = `rgba(${ink},0.9)`;
       context.lineWidth = 1.4;
       context.stroke();
 
@@ -328,9 +332,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       // other layer is drawn to be read against.
       context.save();
       context.setLineDash([4, 5]);
-      context.strokeStyle = enabled
-        ? `rgba(${HELD_INK},0.86)`
-        : 'rgba(255,255,255,0.24)';
+      context.strokeStyle = `rgba(${HELD_INK},0.86)`;
       context.lineWidth = 1.4;
       [centreY - ceilingReach, centreY + ceilingReach].forEach((y) => {
         context.beginPath();
@@ -340,9 +342,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       });
       context.restore();
       context.textAlign = 'left';
-      context.fillStyle = enabled
-        ? `rgba(${HELD_INK},0.9)`
-        : 'rgba(255,255,255,0.32)';
+      context.fillStyle = `rgba(${HELD_INK},0.9)`;
       // Under its own line rather than over it: the ceiling sits high in the
       // plot by design, and a label above it would be printed on the status
       // chips or clipped away entirely.
@@ -351,45 +351,6 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         PAD_L + 6,
         centreY - ceilingReach + 10,
       );
-
-      /**
-       * The reduction meter, in the margin and hanging from the top.
-       *
-       * A depth, not a level: it grows downward from zero because what it
-       * measures is how far the limiter is pulling the signal down. Drawn as
-       * part of the same canvas so it shares the plot's own vertical space and
-       * cannot drift out of step with the amber band beside it.
-       */
-      const meterX = width - PAD_R + 14;
-      const meterWidth = 16;
-      context.fillStyle = 'rgba(255,255,255,0.06)';
-      context.fillRect(meterX, PAD_T, meterWidth, plotHeight);
-      const depthHeight =
-        Math.min(1, heldDepth.current / GR_FULL_SCALE_DB) * plotHeight;
-      if (depthHeight > 0.5) {
-        const meterInk = context.createLinearGradient(
-          0,
-          PAD_T,
-          0,
-          PAD_T + plotHeight,
-        );
-        meterInk.addColorStop(0, `rgba(${baseCurveInk()},0.85)`);
-        meterInk.addColorStop(1, `rgba(${HELD_INK},0.95)`);
-        context.fillStyle = meterInk;
-        context.fillRect(meterX, PAD_T, meterWidth, depthHeight);
-      }
-      if (peakHold.current > 0.05) {
-        const holdY =
-          PAD_T + Math.min(1, peakHold.current / GR_FULL_SCALE_DB) * plotHeight;
-        context.fillStyle = `rgba(${HELD_INK},0.95)`;
-        context.fillRect(meterX, Math.round(holdY), meterWidth, 2);
-      }
-      context.textAlign = 'left';
-      context.fillStyle = textInk;
-      GR_TICKS_DB.forEach((db) => {
-        const y = PAD_T + (db / GR_FULL_SCALE_DB) * plotHeight;
-        context.fillText(db === 0 ? '0' : `-${db}`, meterX + meterWidth + 5, y);
-      });
     };
 
     const loop = startGraphLoop(paint, {
@@ -431,7 +392,9 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
   });
 
   return (
-    <div className="dsp-eq-plot dsp-maximizer-display">
+    <div
+      className={`dsp-eq-plot dsp-maximizer-display${enabled ? '' : ' is-off'}`}
+    >
       <canvas
         ref={canvasRef}
         className="dsp-eq-graph dsp-maximizer-canvas"

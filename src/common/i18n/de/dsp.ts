@@ -357,7 +357,7 @@ const dsp = {
   'dsp.eq.isolate': 'Isolieren',
   'dsp.eq.isolateHint': 'Nur hören, was der EQ verändert.',
   'dsp.eq.isolateOn':
-    'Das trockene Signal ist entfernt — nur die Änderungen des EQ sind hörbar.',
+    'Das trockene Signal ist entfernt — Sie hören nur, was der EQ verändert: was eine Anhebung hinzufügt und was eine Absenkung entfernt.',
   'dsp.eqPreset.imported': '{count} Filter geladen.',
   'dsp.eqPreset.importSkipped':
     '{count} Filter geladen, {skipped} übersprungen.',
@@ -420,6 +420,7 @@ const dsp = {
   'dsp.eq.threshold': 'Schwelle',
   'dsp.eq.legend.curve': 'Kurve',
   'dsp.eq.legend.spectrum': 'Ausgang',
+  'dsp.eq.legend.isolated': 'Hinzugefügt / entfernt',
   'dsp.eq.legend.atRest': 'In Ruhe',
   'dsp.eq.legend.threshold': 'Schwelle',
   'dsp.eq.legend.subsonic': 'Subsonic',
@@ -580,7 +581,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'Integriert',
   'dsp.master.graph.targetLine': 'Ziel {target} LUFS',
   'dsp.master.graph.integratedLine': 'Integriert {value} LUFS',
-  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
     'Warnung · Ausgang {peak} dBTP über der Obergrenze',
   'dsp.master.graph.peakFixed':
@@ -802,7 +802,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'Pegelabgleich · {gain} dB zurückgenommen',
   'dsp.masterPreset.label': 'Ziel',
   'dsp.masterPreset.streaming': 'Streaming',

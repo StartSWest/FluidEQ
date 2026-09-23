@@ -346,7 +346,7 @@ const dsp = {
   'dsp.eq.isolate': 'アイソレート',
   'dsp.eq.isolateHint': 'EQ が変化させた成分だけを聴きます。',
   'dsp.eq.isolateOn':
-    'ドライ信号を除去 — EQ が変化させた成分だけが聞こえます。',
+    'ドライ信号を除去 — EQ が変化させた成分だけが聞こえます。ブーストが加えた分と、カットが取り除いた分です。',
   'dsp.eqPreset.imported': '{count} 個のフィルターを読み込みました。',
   'dsp.eqPreset.importSkipped':
     '{count} 個のフィルターを読み込み、{skipped} 個をスキップしました。',
@@ -409,6 +409,7 @@ const dsp = {
   'dsp.eq.threshold': 'スレッショルド',
   'dsp.eq.legend.curve': 'カーブ',
   'dsp.eq.legend.spectrum': '出力',
+  'dsp.eq.legend.isolated': '追加 / 除去',
   'dsp.eq.legend.atRest': '待機時',
   'dsp.eq.legend.threshold': 'しきい値',
   'dsp.eq.legend.subsonic': '超低域',
@@ -566,7 +567,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'インテグレーテッド',
   'dsp.master.graph.targetLine': 'ターゲット {target} LUFS',
   'dsp.master.graph.integratedLine': 'インテグレーテッド {value} LUFS',
-  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning': '警告 · 出力{peak} dBTP、上限超過',
   'dsp.master.graph.peakFixed': 'ピーク制御 · {gain} dBゲインリダクション',
   'dsp.master.graph.peakSafe': 'トゥルーピークは上限内',
@@ -783,7 +783,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'ゲインマッチ · {gain} dB を差し引き',
   'dsp.masterPreset.label': '配信先',
   'dsp.masterPreset.streaming': 'ストリーミング',

@@ -111,6 +111,8 @@ void feq_convolve(FeqConvolver* state, float* buffer, uint32_t frames);
  * Both kernels now share that input history and crossfade sample by sample;
  * an interrupted fade starts from its current response. No previous pointer
  * survives this call, so retiring the previous graph cannot free live state.
+ * Refused for a convolver carrying changes: the fade covers the main output
+ * alone, and a change left on its old response would outlive it.
  */
 int feq_convolver_transfer(FeqConvolver* state, const FeqConvolver* previous,
                            uint32_t transition_frames);
@@ -121,7 +123,9 @@ int feq_convolver_transfer(FeqConvolver* state, const FeqConvolver* previous,
  * Swapping a convolver outright would step the impulse response mid-tail,
  * which is heard as a click on every curve change. Both are run over the same
  * block and blended sample by sample; `blend` is carried across blocks and the
- * new value is returned.
+ * new value is returned. `difference`, when not null, receives the next
+ * kernel's output less the active one's, sample by sample: whatever runs after
+ * the fade and belongs to one kernel's share alone needs that share back.
  */
 double feq_convolve_blend(FeqConvolver* active,
                           FeqConvolver* next,
@@ -129,7 +133,46 @@ double feq_convolve_blend(FeqConvolver* active,
                           float* scratch,
                           uint32_t frames,
                           double blend,
-                          double step);
+                          double step,
+                          float* difference);
+
+/**
+ * A CHANGE: a second, sparse kernel that reads its kernel's input history.
+ *
+ * A linear-phase equaliser is one fixed kernel, and a dynamic band is not
+ * fixed — it adds its change only while its passband is loud. What the band
+ * changes at full strength IS fixed, though: a narrow kernel centred where
+ * the main one is, so its output lands on the same sample as the main
+ * output. Scaled by the band's moment-to-moment amount, that output is the
+ * dynamic band in linear phase.
+ *
+ * Only the partitions that carry the change are kept — a narrow band's is a
+ * few milliseconds either side of the centre, not the kernel's whole length
+ * — and they multiply the input spectra the main kernel already transformed,
+ * so a change costs a multiply-add per kept partition and one inverse
+ * transform per partition of audio, never a second input history.
+ *
+ * Attached before any convolver is created from the kernel, because a
+ * convolver sizes its outputs from the kernel it is given. `taps` is laid out
+ * like the main kernel's and no longer than it. Allocates; never on the audio
+ * thread. Returns the change's index, which is how it is read back, or -1
+ * when it could not be made.
+ */
+int feq_convolver_kernel_add_change(FeqConvolverKernel* kernel,
+                                    const float* taps,
+                                    uint32_t length);
+
+/**
+ * What one change produced for the samples `feq_convolve` last returned.
+ *
+ * The last `frames` of them, which may be no more than
+ * `feq_convolver_latency()`: the output ring keeps that much behind its read
+ * head whatever the host's block size, and not much more.
+ */
+void feq_convolver_read_change(const FeqConvolver* state,
+                               uint32_t change,
+                               float* out,
+                               uint32_t frames);
 
 #ifdef __cplusplus
 }

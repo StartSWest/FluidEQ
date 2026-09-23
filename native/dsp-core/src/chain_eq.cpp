@@ -36,38 +36,6 @@ uint32_t live_band_count(const FeqChain* chain) {
   return static_cast<uint32_t>(chain->active->bands.size());
 }
 
-uint32_t dynamic_band_count(const FeqChain* chain) {
-  return static_cast<uint32_t>(chain->active->dynamic.size());
-}
-
-/** Copy the dynamic bands' shared state into the contiguous scratch. */
-void gather_dynamic(FeqChain* chain) {
-  const uint32_t count = dynamic_band_count(chain);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
-    for (uint32_t index = 0; index < count; ++index) {
-      const size_t from = static_cast<size_t>(channel) * FeqChain::kBandStride +
-                          chain->active->dynamic_slots[index];
-      const size_t to = static_cast<size_t>(channel) * count + index;
-      chain->dynamic_states[to] = chain->band_states[from];
-      chain->dynamic_dynamics[to] = chain->band_dynamics[from];
-    }
-  }
-}
-
-/** And back, so a phase change resumes the envelope rather than restarting it. */
-void scatter_dynamic(FeqChain* chain) {
-  const uint32_t count = dynamic_band_count(chain);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
-    for (uint32_t index = 0; index < count; ++index) {
-      const size_t to = static_cast<size_t>(channel) * FeqChain::kBandStride +
-                        chain->active->dynamic_slots[index];
-      const size_t from = static_cast<size_t>(channel) * count + index;
-      chain->band_states[to] = chain->dynamic_states[from];
-      chain->band_dynamics[to] = chain->dynamic_dynamics[from];
-    }
-  }
-}
-
 /** Capture this EQ domain's isolate references at exact unity input. */
 bool prepare_eq_channel(FeqChain* chain,
                         float* target,
@@ -152,22 +120,12 @@ void process_eq_channel(FeqChain* chain,
   }
   ChainEqSlot& slot = chain->slots[slot_index];
   const uint32_t live = live_band_count(chain);
-  const uint32_t dynamic = dynamic_band_count(chain);
   const size_t base =
       static_cast<size_t>(slot_index) * FeqChain::kBandStride;
 
   if (chain_linear_running(chain) != 0) {
-    chain_process_eq_convolver_channel(chain, target, frames, slot_index);
-    if (dynamic > 0) {
-      gather_dynamic(chain);
-      const size_t dynamic_base = static_cast<size_t>(slot_index) * dynamic;
-      feq_eq_process_bands(chain->dynamic_states.data() + dynamic_base,
-                           chain->active->dynamic.data(), dynamic, target,
-                           frames, eq.engine, chain->eq_dry.data(),
-                           chain->eq_wet.data(),
-                           chain->dynamic_dynamics.data() + dynamic_base);
-      scatter_dynamic(chain);
-    }
+    float* const targets[1] = {target};
+    chain_process_eq_linear(chain, targets, &slot_index, 1, frames, false);
   } else {
     if (chain->active->has_subsonic != 0) {
       feq_biquad_process(&slot.subsonic, target, frames,
@@ -214,25 +172,14 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
     return;
   }
   const uint32_t live = live_band_count(chain);
-  const uint32_t dynamic = dynamic_band_count(chain);
 
   if (chain_linear_running(chain) != 0) {
+    uint32_t slots[FEQ_CHAIN_MAX_CHANNELS] = {};
     for (uint32_t channel = 0; channel < channel_count; ++channel) {
-      chain_process_eq_convolver_channel(chain, channels[channel], frames, channel);
+      slots[channel] = channel;
     }
-    if (dynamic > 0) {
-      gather_dynamic(chain);
-      for (uint32_t channel = 0; channel < channel_count; ++channel) {
-        chain->pointers_a[channel] = chain->linked_dry[channel].data();
-        chain->pointers_b[channel] = chain->linked_wet[channel].data();
-      }
-      feq_eq_process_bands_linked(
-          chain->dynamic_states.data(), dynamic, chain->active->dynamic.data(),
-          dynamic, channels, channel_count, frames, eq.engine,
-          chain->pointers_a, chain->pointers_b,
-          chain->dynamic_dynamics.data());
-      scatter_dynamic(chain);
-    }
+    chain_process_eq_linear(chain, channels, slots, channel_count, frames,
+                            true);
   } else {
     if (chain->active->has_subsonic != 0) {
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
@@ -334,23 +281,25 @@ void chain_refresh_eq(FeqChain* chain) {
   }
 
   built.bands.clear();
-  built.dynamic_slots.clear();
   built.dynamic.clear();
+  std::fill(built.live_of, built.live_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
+  std::fill(built.dynamic_of, built.dynamic_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
   std::vector<const FeqChainEqBand*> live;
-  for (uint32_t index = 0; index < eq.band_count; ++index) {
+  const uint32_t settings_count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
+                                      ? FEQ_CHAIN_MAX_EQ_BANDS
+                                      : eq.band_count;
+  for (uint32_t index = 0; index < settings_count; ++index) {
     const FeqChainEqBand& band = eq.bands[index];
     if (band.enabled == 0) {
       continue;
     }
+    built.live_of[index] = static_cast<int32_t>(live.size());
     live.push_back(&band);
     built.bands.push_back(feq_biquad_coefficients_modelled(
         band.type, band.frequency, band.gain_db, band.quality, design_rate,
         eq.model, eq.model_amount));
-  }
-  for (uint32_t index = 0; index < live.size(); ++index) {
-    if (live[index]->dynamic != 0) {
-      built.dynamic_slots.push_back(index);
-      const FeqChainEqBand& band = *live[index];
+    if (band.dynamic != 0) {
+      built.dynamic_of[index] = static_cast<int32_t>(built.dynamic.size());
       // Built at the base rate, not the design rate: these run after the
       // convolution, which is base rate, and never inside the oversampler.
       built.dynamic.push_back(feq_biquad_coefficients_modelled(

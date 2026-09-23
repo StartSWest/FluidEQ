@@ -351,13 +351,15 @@ FeqChain* feq_chain_create(double sample_rate,
   // Sized with the rack, so publishing activity allocates nothing per block.
   chain->band_amount_scratch.assign(histories, 1.0);
   chain->band_level_scratch.assign(histories, 0.0);
-  chain->dynamic_states.resize(histories);
-  chain->dynamic_dynamics.resize(histories);
   for (size_t index = 0; index < histories; ++index) {
     feq_biquad_reset(&chain->band_states[index]);
-    feq_biquad_reset(&chain->dynamic_states[index]);
     feq_band_dynamics_init(&chain->band_dynamics[index]);
-    feq_band_dynamics_init(&chain->dynamic_dynamics[index]);
+  }
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    chain->change_active[channel].assign(feq_convolver_latency(), 0.0f);
+    chain->change_next[channel].assign(feq_convolver_latency(), 0.0f);
+    chain->kernel_difference[channel].assign(feq_convolver_latency(), 0.0f);
+    chain->share_input[channel].assign(feq_convolver_latency(), 0.0f);
   }
   // Skipped rather than fatal if it cannot allocate. A rack that refuses to
   // make any sound because one processor could not get memory is worse than a
@@ -391,17 +393,17 @@ void feq_chain_destroy(FeqChain* chain) {
     feq_convolver_destroy(convolver);
     convolver = nullptr;
   }
-  feq_convolver_kernel_destroy(chain->kernel);
-  feq_convolver_kernel_destroy(chain->kernel_next);
+  chain_kernel_destroy(chain->kernel);
+  chain_kernel_destroy(chain->kernel_next);
   for (auto* convolver : chain->queued_convolvers) {
     feq_convolver_destroy(convolver);
   }
-  feq_convolver_kernel_destroy(chain->queued_kernel);
+  chain_kernel_destroy(chain->queued_kernel);
   for (uint32_t retired = 0; retired < chain->retired_count; ++retired) {
     for (auto* convolver : chain->retired_convolvers[retired]) {
       feq_convolver_destroy(convolver);
     }
-    feq_convolver_kernel_destroy(chain->retired_kernels[retired]);
+    chain_kernel_destroy(chain->retired_kernels[retired]);
   }
   // Anything still in transit has no thread left to reach it, and it holds the
   // largest allocation in the chain.
@@ -616,9 +618,6 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     std::fill(slot.isolate_line.begin(), slot.isolate_line.end(), 0.0f);
   }
   for (auto& state : chain->band_states) {
-    feq_biquad_reset(&state);
-  }
-  for (auto& state : chain->dynamic_states) {
     feq_biquad_reset(&state);
   }
   feq_denoise_reset(chain->denoise);

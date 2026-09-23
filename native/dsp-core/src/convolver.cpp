@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <cstring>
 #include <new>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -17,12 +18,37 @@ namespace {
 constexpr uint32_t kPartition = 512;
 constexpr uint32_t kFftSize = kPartition * 2;
 
+/**
+ * How much of a change's energy its dropped partitions may hold between them.
+ *
+ * -140 dB: below what a float sample can carry, so what is dropped cannot
+ * be heard or measured in the output, and a narrow band's change comes down
+ * from the kernel's 32 partitions to the handful around its centre.
+ */
+constexpr double kChangeTailEnergy = 1e-14;
+
+/** A change's kept partitions, and where they sit in the main kernel. */
+struct FeqConvolverChange {
+  /** The main kernel's partition index of the first kept one. */
+  uint32_t first = 0;
+  std::vector<std::vector<double>> real;
+  std::vector<std::vector<double>> imaginary;
+};
+
+/** One change's output, laid out exactly as the main output is. */
+struct FeqConvolverChangeState {
+  std::vector<double> overlap;
+  std::vector<double> ready;
+};
+
 }  // namespace
 
 struct FeqConvolverKernel {
   /** One spectrum per partition, each `kFftSize` long. */
   std::vector<std::vector<double>> real;
   std::vector<std::vector<double>> imaginary;
+  /** `feq_convolver_kernel_add_change`, in the order they were added. */
+  std::vector<FeqConvolverChange> changes;
 };
 
 struct FeqConvolver {
@@ -50,219 +76,11 @@ struct FeqConvolver {
   std::vector<double> work_imaginary;
   std::vector<double> accumulator_real;
   std::vector<double> accumulator_imaginary;
+  /** One per change on the kernel, written at the same ring positions. */
+  std::vector<FeqConvolverChangeState> changes;
 };
 
 extern "C" {
-
-void feq_fft_in_place(double* real,
-                      double* imaginary,
-                      uint32_t size,
-                      int inverse) {
-  /*
-   * A POWER OF TWO, and this guard is not a formality.
-   *
-   * Radix-2 decimation in time assumes it. Handed 960 — the window DPDFNet
-   * needs at 48 kHz — the butterfly stage at length 512 starts a block at 512,
-   * runs k up to 255 and reads `real[512 + 255 + 256]`: index 1023 of a
-   * 960-element buffer. Sixty-four doubles past the end, on every call.
-   *
-   * It does not fail where it happens. It smashes the header of whatever the
-   * allocator placed next, so the process dies later inside an unrelated
-   * allocation or hangs in the heap manager. The voice module presented as
-   * "the model does nothing" and cost a night spent looking at ONNX Runtime,
-   * which it never reached.
-   *
-   * Refusing would be the wrong answer for a caller that genuinely needs an
-   * arbitrary size — `FeqDft` below builds one out of this. It is the right
-   * answer here, because the only other option this function has is silent
-   * corruption.
-   */
-  if (real == nullptr || imaginary == nullptr || size == 0 ||
-      (size & (size - 1)) != 0) {
-    return;
-  }
-  // Bit-reversal permutation, so the butterflies below can run in place.
-  for (uint32_t i = 1, j = 0; i < size; ++i) {
-    uint32_t bit = size >> 1;
-    for (; (j & bit) != 0; bit >>= 1) {
-      j ^= bit;
-    }
-    j ^= bit;
-    if (i < j) {
-      const double tr = real[i];
-      real[i] = real[j];
-      real[j] = tr;
-      const double ti = imaginary[i];
-      imaginary[i] = imaginary[j];
-      imaginary[j] = ti;
-    }
-  }
-  for (uint32_t length = 2; length <= size; length <<= 1) {
-    const double angle =
-        ((inverse != 0 ? 2.0 : -2.0) * 3.14159265358979323846) /
-        static_cast<double>(length);
-    const double step_real = std::cos(angle);
-    const double step_imaginary = std::sin(angle);
-    const uint32_t half = length / 2;
-    for (uint32_t start = 0; start < size; start += length) {
-      double twiddle_real = 1.0;
-      double twiddle_imaginary = 0.0;
-      for (uint32_t k = 0; k < half; ++k) {
-        const double top_real = real[start + k];
-        const double top_imaginary = imaginary[start + k];
-        const double bottom_real = real[start + k + half] * twiddle_real -
-                                   imaginary[start + k + half] *
-                                       twiddle_imaginary;
-        const double bottom_imaginary =
-            real[start + k + half] * twiddle_imaginary +
-            imaginary[start + k + half] * twiddle_real;
-        real[start + k] = top_real + bottom_real;
-        imaginary[start + k] = top_imaginary + bottom_imaginary;
-        real[start + k + half] = top_real - bottom_real;
-        imaginary[start + k + half] = top_imaginary - bottom_imaginary;
-        // The twiddle is advanced by repeated multiplication rather than
-        // recomputed with a transcendental per bin. The reference does the
-        // same, so the accumulated drift is part of what is being matched.
-        const double next_real =
-            twiddle_real * step_real - twiddle_imaginary * step_imaginary;
-        twiddle_imaginary =
-            twiddle_real * step_imaginary + twiddle_imaginary * step_real;
-        twiddle_real = next_real;
-      }
-    }
-  }
-}
-
-/**
- * Bluestein's algorithm: a transform of any size, out of the one above.
- *
- * Writing nk as (n^2 + k^2 - (k-n)^2)/2 turns the DFT kernel into two chirps
- * around a convolution:
- *
- *   X[k] = w[k] * SUM_n (x[n] w[n]) * conj(w[k-n]),   w[n] = exp(-i*pi*n^2/N)
- *
- * and that sum is a circular convolution of length M, the first power of two
- * at or above 2N-1 — which the radix-2 transform can do. For the 960 points
- * DPDFNet needs, M is 2048 and a call costs two of them.
- */
-struct FeqDft {
-  uint32_t n = 0;
-  uint32_t m = 0;
-  std::vector<double> chirp_real;
-  std::vector<double> chirp_imaginary;
-  std::vector<double> kernel_real;
-  std::vector<double> kernel_imaginary;
-  std::vector<double> work_real;
-  std::vector<double> work_imaginary;
-};
-
-FeqDft* feq_dft_create(uint32_t size) {
-  if (size == 0) {
-    return nullptr;
-  }
-  auto* plan = new (std::nothrow) FeqDft();
-  if (plan == nullptr) {
-    return nullptr;
-  }
-  plan->n = size;
-  uint32_t m = 1;
-  while (m < size * 2 - 1) {
-    m *= 2;
-  }
-  plan->m = m;
-
-  plan->chirp_real.assign(size, 0.0);
-  plan->chirp_imaginary.assign(size, 0.0);
-  for (uint32_t i = 0; i < size; i += 1) {
-    /*
-     * The square is reduced modulo 2N before the angle is formed.
-     *
-     * k^2 at k near a thousand is nearly a million, and only its fractional
-     * part against 2N carries any information. Handing the raw value to cos
-     * and sin throws away most of the mantissa to argument reduction and the
-     * transform loses accuracy exactly at the top of its range.
-     */
-    const uint64_t squared =
-        (static_cast<uint64_t>(i) * static_cast<uint64_t>(i)) %
-        (2ull * static_cast<uint64_t>(size));
-    const double angle = -3.14159265358979323846 *
-                         static_cast<double>(squared) /
-                         static_cast<double>(size);
-    plan->chirp_real[i] = std::cos(angle);
-    plan->chirp_imaginary[i] = std::sin(angle);
-  }
-
-  // The kernel is the conjugate chirp, made symmetric about M so that the
-  // CIRCULAR convolution of length M reproduces the linear one this needs.
-  plan->kernel_real.assign(m, 0.0);
-  plan->kernel_imaginary.assign(m, 0.0);
-  for (uint32_t i = 0; i < size; i += 1) {
-    plan->kernel_real[i] = plan->chirp_real[i];
-    plan->kernel_imaginary[i] = -plan->chirp_imaginary[i];
-    if (i > 0) {
-      plan->kernel_real[m - i] = plan->chirp_real[i];
-      plan->kernel_imaginary[m - i] = -plan->chirp_imaginary[i];
-    }
-  }
-  feq_fft_in_place(plan->kernel_real.data(), plan->kernel_imaginary.data(), m,
-                   0);
-
-  plan->work_real.assign(m, 0.0);
-  plan->work_imaginary.assign(m, 0.0);
-  return plan;
-}
-
-void feq_dft_destroy(FeqDft* plan) { delete plan; }
-
-void feq_dft_in_place(FeqDft* plan,
-                      double* real,
-                      double* imaginary,
-                      int inverse) {
-  if (plan == nullptr || real == nullptr || imaginary == nullptr) {
-    return;
-  }
-  const uint32_t n = plan->n;
-  const uint32_t m = plan->m;
-  /*
-   * The inverse is the forward transform of the conjugate, conjugated, so one
-   * code path serves both. Unnormalised either way, matching the radix-2
-   * transform: the caller divides by N.
-   */
-  const double sign = inverse != 0 ? -1.0 : 1.0;
-
-  std::fill(plan->work_real.begin(), plan->work_real.end(), 0.0);
-  std::fill(plan->work_imaginary.begin(), plan->work_imaginary.end(), 0.0);
-  for (uint32_t i = 0; i < n; i += 1) {
-    const double xr = real[i];
-    const double xi = sign * imaginary[i];
-    plan->work_real[i] =
-        xr * plan->chirp_real[i] - xi * plan->chirp_imaginary[i];
-    plan->work_imaginary[i] =
-        xr * plan->chirp_imaginary[i] + xi * plan->chirp_real[i];
-  }
-
-  feq_fft_in_place(plan->work_real.data(), plan->work_imaginary.data(), m, 0);
-  for (uint32_t i = 0; i < m; i += 1) {
-    const double ar = plan->work_real[i];
-    const double ai = plan->work_imaginary[i];
-    plan->work_real[i] =
-        ar * plan->kernel_real[i] - ai * plan->kernel_imaginary[i];
-    plan->work_imaginary[i] =
-        ar * plan->kernel_imaginary[i] + ai * plan->kernel_real[i];
-  }
-  feq_fft_in_place(plan->work_real.data(), plan->work_imaginary.data(), m, 1);
-
-  // That inverse is unnormalised too, so the 1/M belongs here — it is the
-  // convolution's own scaling and nothing to do with the caller's 1/N.
-  const double scale = 1.0 / static_cast<double>(m);
-  for (uint32_t i = 0; i < n; i += 1) {
-    const double cr = plan->work_real[i] * scale;
-    const double ci = plan->work_imaginary[i] * scale;
-    real[i] = cr * plan->chirp_real[i] - ci * plan->chirp_imaginary[i];
-    imaginary[i] =
-        sign * (cr * plan->chirp_imaginary[i] + ci * plan->chirp_real[i]);
-  }
-}
 
 uint32_t feq_convolver_latency(void) { return kPartition; }
 uint32_t feq_convolver_warmup(void) { return kPartition; }
@@ -336,6 +154,66 @@ FeqConvolverKernel* feq_convolver_kernel_create(const float* kernel,
   return out;
 }
 
+int feq_convolver_kernel_add_change(FeqConvolverKernel* kernel,
+                                    const float* taps,
+                                    uint32_t length) {
+  if (kernel == nullptr || taps == nullptr) {
+    return -1;
+  }
+  const auto partitions = static_cast<uint32_t>(kernel->real.size());
+  // Laid out like the main kernel and never past it: a kept partition is
+  // matched to the main kernel's input spectra by index, and the history
+  // holds only as many of those as the main kernel has partitions.
+  if (length == 0 || length > partitions * kPartition) {
+    return -1;
+  }
+  const uint32_t used = (length + kPartition - 1) / kPartition;
+  std::vector<double> energy(used, 0.0);
+  double total = 0.0;
+  for (uint32_t at = 0; at < length; ++at) {
+    const double tap = static_cast<double>(taps[at]);
+    energy[at / kPartition] += tap * tap;
+    total += tap * tap;
+  }
+  // Half the allowance from each end, so a change symmetric about the centre
+  // keeps a range symmetric about it too.
+  const double allowance = total * kChangeTailEnergy * 0.5;
+  uint32_t first = 0;
+  double dropped = 0.0;
+  while (first < used && dropped + energy[first] <= allowance) {
+    dropped += energy[first];
+    ++first;
+  }
+  uint32_t last = used;
+  dropped = 0.0;
+  while (last > first && dropped + energy[last - 1] <= allowance) {
+    dropped += energy[last - 1];
+    --last;
+  }
+
+  FeqConvolverChange change;
+  change.first = first;
+  // A change with nothing in it keeps no partitions and renders silence, but
+  // it still exists: the caller holds its index and will read it back.
+  change.real.resize(last - first);
+  change.imaginary.resize(last - first);
+  for (uint32_t index = first; index < last; ++index) {
+    std::vector<double>& real = change.real[index - first];
+    std::vector<double>& imaginary = change.imaginary[index - first];
+    real.assign(kFftSize, 0.0);
+    imaginary.assign(kFftSize, 0.0);
+    const uint32_t from = index * kPartition;
+    const uint32_t count =
+        kPartition < length - from ? kPartition : length - from;
+    for (uint32_t at = 0; at < count; ++at) {
+      real[at] = static_cast<double>(taps[from + at]);
+    }
+    feq_fft_in_place(real.data(), imaginary.data(), kFftSize, 0);
+  }
+  kernel->changes.push_back(std::move(change));
+  return static_cast<int>(kernel->changes.size() - 1);
+}
+
 void feq_convolver_kernel_destroy(FeqConvolverKernel* kernel) {
   delete kernel;
 }
@@ -366,6 +244,11 @@ FeqConvolver* feq_convolver_create(const FeqConvolverKernel* kernel) {
   state->work_imaginary.assign(kFftSize, 0.0);
   state->accumulator_real.assign(kFftSize, 0.0);
   state->accumulator_imaginary.assign(kFftSize, 0.0);
+  state->changes.resize(kernel->changes.size());
+  for (FeqConvolverChangeState& change : state->changes) {
+    change.overlap.assign(kPartition, 0.0);
+    change.ready.assign(state->ready.size(), 0.0);
+  }
   state->read = 0;
   // Primed with a partition of silence. That priming IS the buffering delay:
   // without it the first blocks would read samples that have not been computed
@@ -383,6 +266,10 @@ void feq_convolver_reset(FeqConvolver* state) {
   for (auto* buffer : {&state->pending, &state->overlap, &state->ready,
                        &state->transition_overlap, &state->transition_output}) {
     std::fill(buffer->begin(), buffer->end(), 0.0);
+  }
+  for (FeqConvolverChangeState& change : state->changes) {
+    std::fill(change.overlap.begin(), change.overlap.end(), 0.0);
+    std::fill(change.ready.begin(), change.ready.end(), 0.0);
   }
   state->cursor = 0;
   state->filled = 0;
@@ -406,6 +293,26 @@ void render_history(FeqConvolver* state, const FeqConvolverKernel* kernel) {
       const double imaginary = state->history_imaginary[at][bin];
       state->accumulator_real[bin] += real * kernel->real[index][bin] - imaginary * kernel->imaginary[index][bin];
       state->accumulator_imaginary[bin] += real * kernel->imaginary[index][bin] + imaginary * kernel->real[index][bin];
+    }
+  }
+  feq_fft_in_place(state->accumulator_real.data(), state->accumulator_imaginary.data(), kFftSize, 1);
+}
+
+/** `render_history` over one change's kept partitions, at their real indices. */
+void render_change(FeqConvolver* state, const FeqConvolverChange& change) {
+  const auto partitions = static_cast<int64_t>(state->kernel->real.size());
+  std::fill(state->accumulator_real.begin(), state->accumulator_real.end(), 0.0);
+  std::fill(state->accumulator_imaginary.begin(), state->accumulator_imaginary.end(), 0.0);
+  for (size_t kept = 0; kept < change.real.size(); ++kept) {
+    const int64_t index = static_cast<int64_t>(change.first + kept);
+    const auto at = static_cast<size_t>((state->cursor - index + partitions * 2) % partitions);
+    const double* kernel_real = change.real[kept].data();
+    const double* kernel_imaginary = change.imaginary[kept].data();
+    for (uint32_t bin = 0; bin < kFftSize; ++bin) {
+      const double real = state->history_real[at][bin];
+      const double imaginary = state->history_imaginary[at][bin];
+      state->accumulator_real[bin] += real * kernel_real[bin] - imaginary * kernel_imaginary[bin];
+      state->accumulator_imaginary[bin] += real * kernel_imaginary[bin] + imaginary * kernel_real[bin];
     }
   }
   feq_fft_in_place(state->accumulator_real.data(), state->accumulator_imaginary.data(), kFftSize, 1);
@@ -437,6 +344,8 @@ void flush(FeqConvolver* state) {
   double* accumulator_real = state->accumulator_real.data();
 
   const auto ready_size = static_cast<uint32_t>(state->ready.size());
+  // Where this partition of output lands, which is where every change's lands.
+  const uint32_t start = state->write;
   for (uint32_t at = 0; at < kPartition; ++at) {
     double output = accumulator_real[at] / kFftSize + state->overlap[at];
     if (transitioning) {
@@ -450,6 +359,19 @@ void flush(FeqConvolver* state) {
     state->write = (state->write + 1) % ready_size;
     state->overlap[at] = accumulator_real[kPartition + at] / kFftSize;
   }
+  // After the main output, whose accumulator the loop above has finished with.
+  // No transition here: a convolver carrying changes is never handed one
+  // (`feq_convolver_transfer` refuses it), and a change follows its kernel.
+  for (size_t index = 0; index < state->changes.size(); ++index) {
+    FeqConvolverChangeState& change = state->changes[index];
+    render_change(state, state->kernel->changes[index]);
+    uint32_t write = start;
+    for (uint32_t at = 0; at < kPartition; ++at) {
+      change.ready[write] = accumulator_real[at] / kFftSize + change.overlap[at];
+      write = (write + 1) % ready_size;
+      change.overlap[at] = accumulator_real[kPartition + at] / kFftSize;
+    }
+  }
   state->filled = 0;
 }
 
@@ -460,7 +382,8 @@ extern "C" {
 int feq_convolver_transfer(FeqConvolver* state, const FeqConvolver* previous,
                            uint32_t transition_frames) {
   if (state == nullptr || previous == nullptr || state == previous ||
-      state->kernel->real.size() != previous->kernel->real.size()) return 0;
+      state->kernel->real.size() != previous->kernel->real.size() ||
+      !state->changes.empty() || !previous->changes.empty()) return 0;
   const double blend = 1.0 - static_cast<double>(previous->transition_remaining) / previous->transition_total;
   for (size_t index = 0; index < state->kernel->real.size(); ++index) {
     std::copy(previous->history_real[index].begin(), previous->history_real[index].end(), state->history_real[index].begin());
@@ -513,7 +436,8 @@ double feq_convolve_blend(FeqConvolver* active,
                           float* scratch,
                           uint32_t frames,
                           double blend,
-                          double step) {
+                          double step,
+                          float* difference) {
   if (active == nullptr || next == nullptr || buffer == nullptr ||
       scratch == nullptr) {
     return blend;
@@ -527,12 +451,39 @@ double feq_convolve_blend(FeqConvolver* active,
   double mix = blend;
   for (uint32_t at = 0; at < frames; ++at) {
     mix = mix + step < 1.0 ? mix + step : 1.0;
-    const double difference =
+    const double apart =
         static_cast<double>(scratch[at]) - static_cast<double>(buffer[at]);
+    if (difference != nullptr) {
+      difference[at] = static_cast<float>(apart);
+    }
     buffer[at] =
-        static_cast<float>(static_cast<double>(buffer[at]) + difference * mix);
+        static_cast<float>(static_cast<double>(buffer[at]) + apart * mix);
   }
   return mix;
+}
+
+void feq_convolver_read_change(const FeqConvolver* state,
+                               uint32_t change,
+                               float* out,
+                               uint32_t frames) {
+  if (out == nullptr) {
+    return;
+  }
+  if (state == nullptr || change >= state->changes.size() ||
+      frames > kPartition) {
+    std::fill(out, out + frames, 0.0f);
+    return;
+  }
+  // The read head sits one past the last sample handed back, and the write
+  // head is never more than a partition ahead of it, so the partition behind
+  // the read head is always intact — whatever block sizes led here.
+  const std::vector<double>& ready = state->changes[change].ready;
+  const auto ready_size = static_cast<uint32_t>(ready.size());
+  uint32_t at = (state->read + ready_size - frames) % ready_size;
+  for (uint32_t index = 0; index < frames; ++index) {
+    out[index] = static_cast<float>(ready[at]);
+    at = (at + 1) % ready_size;
+  }
 }
 
 }  // extern "C"

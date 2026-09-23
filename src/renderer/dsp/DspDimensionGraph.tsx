@@ -488,7 +488,7 @@ const DspDimensionGraph = ({
   });
 
   return (
-    <div className="dsp-dimension-graph">
+    <div className={`dsp-dimension-graph${dimension.enabled ? '' : ' is-off'}`}>
       <canvas
         className="dsp-dimension-field"
         ref={fieldRef}

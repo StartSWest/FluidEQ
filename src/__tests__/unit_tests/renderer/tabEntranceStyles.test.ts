@@ -129,4 +129,38 @@ describe('the DSP page arriving', () => {
     expect(stage).not.toBe('none');
     expect(endsOnItsOwnValue(dsp, stage)).toBe(true);
   });
+
+  it('brings a switched-off stage graph in dimmed, never through its On look', () => {
+    // Every block of a processor card rises in, the graph among them, and a
+    // graph whose stage is off rests dimmed. An entrance ending on
+    // `opacity: 1` played it up to the On look and dropped it to Off as the
+    // animation let go, on every opening of the page (Ivan, 2026-09-22).
+    const rise = animationName(
+      baseValue(dsp, '.dsp-card-body > *', 'animation'),
+    );
+    expect(rise).not.toBe('none');
+    expect(endsOnItsOwnValue(dsp, rise)).toBe(true);
+    // The same for the other entrances in the vocabulary a dimmed element
+    // could be given.
+    ['slide-in-right', 'pop-in', 'fade-to-rest'].forEach((name) =>
+      expect(endsOnItsOwnValue(dsp, name)).toBe(true),
+    );
+  });
+
+  it('POSITIVE CONTROL: an entrance that names its end state is caught', () => {
+    expect(endsOnItsOwnValue(dsp, 'fade-in')).toBe(false);
+  });
+
+  it('dims the graph of every switched-off stage as the page dims what is unavailable', () => {
+    const unavailable = baseValue(dsp, '.dsp-stage.is-disabled', 'opacity');
+    expect(unavailable).toBeDefined();
+    [
+      '.dsp-eq-plot.is-off',
+      '.dsp-denoise-graph.is-off',
+      '.dsp-dimension-graph.is-off',
+      '.dsp-crossfade-preview.is-off',
+    ].forEach((selector) =>
+      expect(baseValue(dsp, selector, 'opacity')).toBe(unavailable),
+    );
+  });
 });

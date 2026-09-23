@@ -83,15 +83,16 @@ $motion-slow: 300ms;
 
 // The plain arrival: a small rise and a fade. For content that replaces other
 // content in place, such as a workspace tab panel.
+//
+// No `to`, here and in the two entrances below: each ends on the element's own
+// opacity, as `fade-to-rest` does. Every DSP page brings its graph in with this
+// one, and a stage that is switched off rests its graph at the disabled
+// opacity — a `to { opacity: 1 }` played the graph up to the On look and then
+// dropped it to Off as the animation let go, on every opening of the page.
 @keyframes rise-in {
   from {
     opacity: 0;
     translate: 0 8px;
-  }
-
-  to {
-    opacity: 1;
-    translate: 0 0;
   }
 }
 
@@ -101,11 +102,6 @@ $motion-slow: 300ms;
     opacity: 0;
     translate: 16px 0;
   }
-
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
 }
 
 // A small overshoot on the way in. Only for things that appear one at a time
@@ -114,11 +110,6 @@ $motion-slow: 300ms;
   from {
     opacity: 0;
     scale: 0.88;
-  }
-
-  to {
-    opacity: 1;
-    scale: 1;
   }
 }
 

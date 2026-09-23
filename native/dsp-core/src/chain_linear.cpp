@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <new>
+#include <utility>
 #include <vector>
 
 int chain_linear_running(const FeqChain* chain) {
@@ -35,7 +36,8 @@ void chain_process_eq_convolver_channel(FeqChain* chain,
   if (next != nullptr && chain->convolver_warmup <= 0) {
     chain->convolver_blend[slot_index] = feq_convolve_blend(
         active, next, target, chain->convolver_scratch.data(), frames,
-        chain->convolver_blend[slot_index], 1.0 / 1024.0);
+        chain->convolver_blend[slot_index], kConvolverBlendStep,
+        chain->kernel_difference[slot_index].data());
     return;
   }
   if (next != nullptr) {
@@ -92,7 +94,7 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
   if (chain->defer_convolver_retirement) {
     chain->retired_kernels[chain->retired_count++] = chain->kernel;
   } else {
-    feq_convolver_kernel_destroy(chain->kernel);
+    chain_kernel_destroy(chain->kernel);
   }
   chain->kernel = chain->kernel_next;
   chain->kernel_next = nullptr;
@@ -105,8 +107,16 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
       chain->convolver_blend[channel] = 0.0;
     }
     chain->convolver_warmup = static_cast<int64_t>(
-        feq_convolver_kernel_warmup(chain->kernel_next));
+        feq_convolver_kernel_warmup(chain->kernel_next->convolution));
   }
+}
+
+void chain_kernel_destroy(ChainEqKernel* kernel) {
+  if (kernel == nullptr) {
+    return;
+  }
+  feq_convolver_kernel_destroy(kernel->convolution);
+  delete kernel;
 }
 
 namespace {
@@ -143,6 +153,34 @@ int kernel_wanted_by(const FeqChainEqSettings& eq) {
              : 0;
 }
 
+/**
+ * Whether the kernel carries its dynamic bands' changes: under Isolate, and
+ * only where there is a dynamic band to carry.
+ *
+ * Isolate alone, because only the monitor needs them. Listening, a dynamic
+ * band runs as its own filter after the kernel, exactly as it always has:
+ * overlapping dynamic bands multiply there, as the serial engine promises,
+ * and a change per band would add them instead; and a change costs an
+ * inverse transform per partition per channel, which a rack of dynamic bands
+ * would pay on every block for a difference in phase alone. The monitor
+ * subtracts the dry signal, and there that phase is everything between the
+ * band and the rest of the record.
+ */
+int kernel_changes_wanted_by(const FeqChainEqSettings& eq) {
+  if (kernel_wanted_by(eq) == 0 || eq.isolate == 0) {
+    return 0;
+  }
+  const uint32_t count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
+                             ? FEQ_CHAIN_MAX_EQ_BANDS
+                             : eq.band_count;
+  for (uint32_t index = 0; index < count; ++index) {
+    if (eq.bands[index].enabled != 0 && eq.bands[index].dynamic != 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 bool same_band(const FeqLinearPhaseBand& left, const FeqLinearPhaseBand& right) {
   return left.enabled == right.enabled && left.dynamic == right.dynamic &&
          left.type == right.type && left.frequency == right.frequency &&
@@ -157,7 +195,7 @@ void discard_handoff(FeqChain::KernelHandoff* handoff) {
   for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     feq_convolver_destroy(handoff->convolvers[channel]);
   }
-  feq_convolver_kernel_destroy(handoff->kernel);
+  chain_kernel_destroy(handoff->kernel);
   delete handoff;
 }
 
@@ -172,6 +210,92 @@ void discard_handoff(FeqChain::KernelHandoff* handoff) {
 void publish_handoff(FeqChain* chain, FeqChain::KernelHandoff* fresh) {
   discard_handoff(
       chain->kernel_handoff.exchange(fresh, std::memory_order_acq_rel));
+}
+
+/** One dynamic band's linear-phase change, and the band it belongs to. */
+struct KernelChange {
+  uint32_t band = 0;
+  std::vector<float> taps;
+};
+
+/**
+ * Write down the bands a kernel leaves out as dynamic, as the settings it is
+ * built from describe them.
+ *
+ * The same rule `impulse_response` bakes by — enabled and not dynamic goes
+ * in, enabled and dynamic stays out — and the same filter at the base rate
+ * `chain_refresh_eq` builds for the cascade, so while this kernel plays, a
+ * band it left out is run after it exactly as the rack it was made for ran
+ * it.
+ */
+void describe_dynamic_bands(const FeqChain* chain, ChainEqKernel* kernel) {
+  const FeqChainEqSettings& eq = chain->settings.eq;
+  kernel->dynamic_count = 0;
+  const uint32_t count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
+                             ? FEQ_CHAIN_MAX_EQ_BANDS
+                             : eq.band_count;
+  for (uint32_t index = 0; index < count; ++index) {
+    const FeqChainEqBand& band = eq.bands[index];
+    if (band.enabled == 0 || band.dynamic == 0) {
+      continue;
+    }
+    ChainKernelBand& entry = kernel->dynamic[kernel->dynamic_count];
+    entry.band = index;
+    entry.filter = feq_biquad_coefficients_modelled(
+        band.type, band.frequency, band.gain_db, band.quality,
+        chain->sample_rate, eq.model, eq.model_amount);
+    feq_band_dynamics_init(&entry.detector);
+    feq_band_dynamics_refresh(&entry.detector, eq.enabled, band.enabled,
+                              band.dynamic, band.gain_db, band.threshold_db,
+                              chain->sample_rate);
+    entry.change = -1;
+    kernel->dynamic_of[index] = static_cast<int32_t>(kernel->dynamic_count);
+    kernel->dynamic_count += 1;
+  }
+}
+
+/**
+ * Prepare a kernel, its changes and a convolver per channel, and hand them
+ * over. CONTROL thread. The changes go onto the kernel before any convolver
+ * is made from it, because a convolver sizes its change outputs from the
+ * kernel it is given. Nothing is published if anything could not be made:
+ * the kernel playing now keeps playing.
+ */
+void publish_kernel(FeqChain* chain, const float* taps, uint32_t length,
+                    const std::vector<KernelChange>& changes) {
+  auto* prepared = new (std::nothrow) ChainEqKernel();
+  if (prepared == nullptr) {
+    return;
+  }
+  prepared->convolution = feq_convolver_kernel_create(taps, length);
+  if (prepared->convolution == nullptr) {
+    chain_kernel_destroy(prepared);
+    return;
+  }
+  describe_dynamic_bands(chain, prepared);
+  for (const KernelChange& change : changes) {
+    const int32_t entry = prepared->dynamic_of[change.band];
+    const int index = feq_convolver_kernel_add_change(
+        prepared->convolution, change.taps.data(),
+        static_cast<uint32_t>(change.taps.size()));
+    if (entry < 0 || index < 0) {
+      chain_kernel_destroy(prepared);
+      return;
+    }
+    prepared->dynamic[entry].change = index;
+  }
+  auto* fresh = new (std::nothrow) FeqChain::KernelHandoff();
+  if (fresh == nullptr) {
+    chain_kernel_destroy(prepared);
+    return;
+  }
+  fresh->kernel = prepared;
+  // One per channel the chain has, and no more: a partitioned convolver is
+  // the largest thing in the chain, and six idle ones would be six spares.
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    fresh->convolvers[channel] = feq_convolver_create(prepared->convolution);
+  }
+  publish_handoff(chain, fresh);
 }
 
 }  // namespace
@@ -192,8 +316,8 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
       chain->convolvers_next[channel] = nullptr;
       chain->convolver_blend[channel] = 0.0;
     }
-    feq_convolver_kernel_destroy(chain->kernel);
-    feq_convolver_kernel_destroy(chain->kernel_next);
+    chain_kernel_destroy(chain->kernel);
+    chain_kernel_destroy(chain->kernel_next);
     chain->kernel = nullptr;
     chain->kernel_next = nullptr;
     chain->convolver_priming = 0;
@@ -203,7 +327,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
   }
   if (chain->convolvers[0] == nullptr) {
     // Nothing playing through one yet, so there is nothing to fade from.
-    feq_convolver_kernel_destroy(chain->kernel);
+    chain_kernel_destroy(chain->kernel);
     chain->kernel = taken->kernel;
     for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
       chain->convolvers[channel] = taken->convolvers[channel];
@@ -214,7 +338,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
   }
   // A replacement was already on its way and has now been overtaken. It never
   // reached the blend, so it is dropped rather than faded away from.
-  feq_convolver_kernel_destroy(chain->kernel_next);
+  chain_kernel_destroy(chain->kernel_next);
   for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     feq_convolver_destroy(chain->convolvers_next[channel]);
     chain->convolvers_next[channel] = taken->convolvers[channel];
@@ -222,7 +346,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
   }
   chain->kernel_next = taken->kernel;
   chain->convolver_warmup = static_cast<int64_t>(
-      feq_convolver_kernel_warmup(chain->kernel_next));
+      feq_convolver_kernel_warmup(chain->kernel_next->convolution));
   delete taken;
 }
 
@@ -231,8 +355,10 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
   FeqLinearPhaseBand bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
   const uint32_t count = kernel_bands_of(eq, bands);
   const int wanted = kernel_wanted_by(eq);
+  const int with_changes = kernel_changes_wanted_by(eq);
 
   bool moved = wanted != chain->kernel_wanted ||
+               with_changes != chain->kernel_changes ||
                count != chain->kernel_band_count ||
                eq.engine != chain->kernel_engine ||
                eq.model != chain->kernel_model ||
@@ -246,6 +372,7 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
   }
 
   chain->kernel_wanted = wanted;
+  chain->kernel_changes = with_changes;
   chain->kernel_band_count = count;
   chain->kernel_engine = eq.engine;
   chain->kernel_model = eq.model;
@@ -270,7 +397,22 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
 
   std::vector<float> kernel(FEQ_LINEAR_PHASE_KERNEL_SIZE, 0.0f);
   feq_build_linear_phase_kernel(&rack, chain->sample_rate, kernel.data());
-  feq_chain_set_eq_kernel(chain, kernel.data(), FEQ_LINEAR_PHASE_KERNEL_SIZE);
+  // Under Isolate every dynamic band gets its change beside the kernel,
+  // whether or not its detector could ever open: one that cannot (a band with
+  // no gain to swing) is monitored in full, as the cascade applies it in full.
+  std::vector<KernelChange> changes;
+  for (uint32_t index = 0; index < count && with_changes != 0; ++index) {
+    if (bands[index].enabled == 0 || bands[index].dynamic == 0) {
+      continue;
+    }
+    KernelChange change;
+    change.band = index;
+    change.taps.assign(FEQ_LINEAR_PHASE_KERNEL_SIZE, 0.0f);
+    feq_build_linear_phase_change_kernel(&rack, index, chain->sample_rate,
+                                         change.taps.data());
+    changes.push_back(std::move(change));
+  }
+  publish_kernel(chain, kernel.data(), FEQ_LINEAR_PHASE_KERNEL_SIZE, changes);
 }
 
 void chain_release_kernel_handoff(FeqChain* chain) {
@@ -290,23 +432,7 @@ void feq_chain_set_eq_kernel(FeqChain* chain,
     publish_handoff(chain, new (std::nothrow) FeqChain::KernelHandoff());
     return;
   }
-
-  FeqConvolverKernel* prepared = feq_convolver_kernel_create(kernel, length);
-  if (prepared == nullptr) {
-    return;
-  }
-  auto* fresh = new (std::nothrow) FeqChain::KernelHandoff();
-  if (fresh == nullptr) {
-    feq_convolver_kernel_destroy(prepared);
-    return;
-  }
-  fresh->kernel = prepared;
-  // One per channel the chain has, and no more: a partitioned convolver is
-  // the largest thing in the chain, and six idle ones would be six spares.
-  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    fresh->convolvers[channel] = feq_convolver_create(prepared);
-  }
-  publish_handoff(chain, fresh);
+  publish_kernel(chain, kernel, length, {});
 }
 
 }  // extern "C"

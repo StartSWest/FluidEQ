@@ -354,7 +354,7 @@ const dsp = {
   'dsp.eq.isolate': 'Isoler',
   'dsp.eq.isolateHint': 'Écouter uniquement ce que l’égaliseur modifie.',
   'dsp.eq.isolateOn':
-    'Le signal direct est retiré — seules les modifications de l’égaliseur sont audibles.',
+    'Le signal direct est retiré — vous n’entendez que ce que l’égaliseur modifie : ce qu’une amplification ajoute et ce qu’une atténuation retire.',
   'dsp.eqPreset.imported': '{count} filtres chargés.',
   'dsp.eqPreset.importSkipped': '{count} filtres chargés, {skipped} ignorés.',
   'dsp.eqPreset.importEmpty': 'Cet égaliseur n’a pu lire aucun filtre.',
@@ -415,6 +415,7 @@ const dsp = {
   'dsp.eq.threshold': 'Seuil',
   'dsp.eq.legend.curve': 'Courbe',
   'dsp.eq.legend.spectrum': 'Sortie',
+  'dsp.eq.legend.isolated': 'Ajouté / retiré',
   'dsp.eq.legend.atRest': 'Au repos',
   'dsp.eq.legend.threshold': 'Seuil',
   'dsp.eq.legend.subsonic': 'Subsonique',
@@ -576,7 +577,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'Intégré',
   'dsp.master.graph.targetLine': 'Cible {target} LUFS',
   'dsp.master.graph.integratedLine': 'Intégré {value} LUFS',
-  'dsp.master.graph.reductionShort': 'RG',
   'dsp.master.graph.peakWarning':
     'Alerte · sortie à {peak} dBTP au-dessus du plafond',
   'dsp.master.graph.peakFixed': 'Crête contrôlée · {gain} dB de réduction',
@@ -798,7 +798,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'Compensation de gain · {gain} dB retirés',
   'dsp.masterPreset.label': 'Destination',
   'dsp.masterPreset.streaming': 'Streaming',

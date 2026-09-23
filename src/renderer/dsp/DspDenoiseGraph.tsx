@@ -550,7 +550,7 @@ const DspDenoiseGraph = ({
   });
 
   return (
-    <div className="dsp-denoise-graph">
+    <div className={`dsp-denoise-graph${isEnabled ? '' : ' is-off'}`}>
       {/* Hidden from assistive technology, as the other graphs are: everything
           it draws is also on the card as text, and a canvas has nothing a
           screen reader can do with it. */}

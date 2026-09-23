@@ -167,7 +167,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           that are on screen right there, and a row beneath the graph put the
           answer a glance away from the question. It does not take the
           pointer — the plot under it is dragged to move bands. */}
-      <div className="dsp-eq-plot">
+      <div className={`dsp-eq-plot${eq.enabled ? '' : ' is-off'}`}>
         <DspEqGraph
           eq={eq}
           sampleRate={sampleRate}
@@ -182,6 +182,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           )}
           showsThreshold={band.dynamic && band.enabled}
           showsSubsonic={eq.subsonicHz > 0}
+          isIsolating={eq.enabled && eq.isolate}
         />
       </div>
 

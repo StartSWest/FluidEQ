@@ -64,7 +64,7 @@ const BELOW_TARGET_LU = 24;
 /** Where the grid sits, in LU from the target. */
 const GRID_FROM_TARGET = [6, 0, -6, -12, -18, -24];
 
-/** Full deflection of the reduction meter, matching the Maximizer's scale. */
+/** Full depth of the reduction lane, matching the Maximizer's scale. */
 const GR_FULL_SCALE_DB = 12;
 
 /**
@@ -73,13 +73,18 @@ const GR_FULL_SCALE_DB = 12;
  * Hung into the loudness plot it read as a second signal drawn upside down —
  * amber spikes floating in the empty upper half with no baseline to belong to.
  * It is not a loudness and does not share the axis; what it shares is the
- * seconds. A lane of its own with a floor under it says both.
+ * seconds. The lane is space, not a band: it once had a shade of its own and
+ * a floor line, and a graph striped into two tones read as two graphs. Its
+ * only mark is the line it hangs from.
  */
 const GR_LANE_HEIGHT = 30;
 
 const PAD_L = 44;
-/** Room for the reduction meter and its scale, which live in this margin. */
-const PAD_R = 62;
+/**
+ * No margin meter. A bar of the live reduction on a grey track stood here,
+ * repeating the lane's own newest column one plot-width away from it.
+ */
+const PAD_R = 16;
 /**
  * The legend and the status chips own two fixed rows above the plot, at the
  * heights the stylesheet puts them. Drawing under either one made the readings
@@ -104,13 +109,11 @@ export interface IMasterLoudnessPlot {
   filled: number;
   integratedLufs: number;
   targetLufs: number;
-  liveReductionDb: number;
   /** Whether the target line means anything yet. */
   targetActive: boolean;
   overCeiling: boolean;
   targetLabel: string;
   integratedLabel: string;
-  reductionLabel: string;
 }
 
 const tealFill = () => readAccent(0.14, 'rgba(0,229,207,0.14)');
@@ -164,10 +167,9 @@ export const paintMasterLoudness = (
     context.textAlign = 'right';
     context.fillText(`${Math.round(lufs)}`, PAD_L - 7, y);
   });
-  // The unit, once, where a stray number on the axis could be read as dB.
-  context.fillStyle = textInk;
-  context.textAlign = 'right';
-  context.fillText('LUFS', PAD_L - 7, plotTop - 12);
+  // The unit is the legend's to say (`LUFS` beside each loudness entry): on
+  // the axis it stood on top of the first number and under the lane's label,
+  // three words stacked in the corner.
 
   const visible = Math.min(plot.filled, LOUDNESS_HISTORY);
 
@@ -177,10 +179,16 @@ export const paintMasterLoudness = (
    * It is not a loudness and has no business on that axis, but it belongs on
    * the same seconds: the question this page answers is whether the short-term
    * line reached the target by mastering or by being held down, and that is
-   * only readable when the two are drawn over the same time.
+   * only readable when the two are drawn over the same time. The legend names
+   * it; the line it hangs from is no reduction at all.
    */
-  context.fillStyle = 'rgba(255,255,255,0.03)';
-  context.fillRect(PAD_L, laneTop, plotWidth, GR_LANE_HEIGHT);
+  const laneLine = Math.round(laneTop) + 0.5;
+  context.strokeStyle = 'rgba(255,255,255,0.07)';
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(PAD_L, laneLine);
+  context.lineTo(width - PAD_R, laneLine);
+  context.stroke();
   if (visible > 1) {
     context.beginPath();
     context.moveTo(columnX(visible - 1), laneTop);
@@ -215,14 +223,6 @@ export const paintMasterLoudness = (
     context.lineWidth = 1.2;
     context.stroke();
   }
-  context.strokeStyle = 'rgba(255,255,255,0.1)';
-  context.beginPath();
-  context.moveTo(PAD_L, laneBottom + 0.5);
-  context.lineTo(width - PAD_R, laneBottom + 0.5);
-  context.stroke();
-  context.fillStyle = 'rgb(255,196,126)';
-  context.textAlign = 'right';
-  context.fillText(plot.reductionLabel, PAD_L - 7, laneTop + 9);
 
   if (visible > 1) {
     const floorY = height - PAD_B;
@@ -297,36 +297,9 @@ export const paintMasterLoudness = (
     context.textBaseline = 'middle';
   }
 
-  /**
-   * The live reduction as a bar in the right margin, falling from the top.
-   *
-   * Duplicating the band above on purpose: the band says what the limiter has
-   * been doing over half a minute and this says what it is doing now, and the
-   * second question is the one asked while a dial is being moved.
-   */
-  const meterX = width - PAD_R + 16;
-  const meterWidth = 12;
-  const meterTop = laneTop;
-  const meterHeight = height - PAD_B - meterTop;
-  context.fillStyle = 'rgba(255,255,255,0.06)';
-  context.fillRect(meterX, meterTop, meterWidth, meterHeight);
-  const depth = Math.min(1, Math.abs(plot.liveReductionDb) / GR_FULL_SCALE_DB);
-  if (depth > 0) {
-    context.fillStyle = AMBER;
-    context.fillRect(meterX, meterTop, meterWidth, depth * meterHeight);
-  }
-  context.textAlign = 'left';
-  context.fillStyle = textInk;
-  context.fillText('0', meterX + meterWidth + 5, meterTop + 5);
-  context.fillText(
-    `-${GR_FULL_SCALE_DB}`,
-    meterX + meterWidth + 5,
-    meterTop + meterHeight - 5,
-  );
-
   // Seconds, so the width of the picture is a duration rather than a guess.
-  // The newest column is right-aligned against the plot's own edge: centred,
-  // its label ran into the reduction meter's scale in the margin beyond it.
+  // The newest column is right-aligned against the plot's own edge, which is
+  // where the picture ends.
   context.fillStyle = textInk;
   for (let seconds = 0; seconds <= LOUDNESS_WINDOW_MS / 1000; seconds += 10) {
     const age = (seconds * 1000) / LOUDNESS_SAMPLE_MS;

@@ -354,7 +354,7 @@ const dsp = {
   'dsp.eq.isolate': 'Aislar',
   'dsp.eq.isolateHint': 'Escucha solo lo que cambia el EQ.',
   'dsp.eq.isolateOn':
-    'Se eliminó la señal seca; solo se oyen los cambios del EQ.',
+    'Se eliminó la señal seca: solo oyes lo que cambia el EQ, lo que añade un realce y lo que quita un recorte.',
   'dsp.eqPreset.imported': 'Se cargaron {count} filtros.',
   'dsp.eqPreset.importSkipped':
     'Se cargaron {count} filtros, {skipped} omitidos.',
@@ -416,6 +416,7 @@ const dsp = {
   'dsp.eq.threshold': 'Umbral',
   'dsp.eq.legend.curve': 'Curva',
   'dsp.eq.legend.spectrum': 'Salida',
+  'dsp.eq.legend.isolated': 'Añadido / quitado',
   'dsp.eq.legend.atRest': 'En reposo',
   'dsp.eq.legend.threshold': 'Umbral',
   'dsp.eq.legend.subsonic': 'Subgraves',
@@ -574,7 +575,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'Integrado',
   'dsp.master.graph.targetLine': 'Objetivo {target} LUFS',
   'dsp.master.graph.integratedLine': 'Integrado {value} LUFS',
-  'dsp.master.graph.reductionShort': 'RG',
   'dsp.master.graph.peakWarning': 'Aviso · salida a {peak} dBTP sobre el techo',
   'dsp.master.graph.peakFixed': 'Pico controlado · {gain} dB de reducción',
   'dsp.master.graph.peakSafe': 'Pico verdadero dentro del techo',
@@ -795,7 +795,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'Ganancia igualada · {gain} dB descontados',
   'dsp.masterPreset.label': 'Destino',
   'dsp.masterPreset.streaming': 'Streaming',

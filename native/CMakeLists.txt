@@ -90,6 +90,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/organic.cpp
   dsp-core/src/organic_stage.cpp
   dsp-core/src/exciter.cpp
+  dsp-core/src/fft.cpp
   dsp-core/src/convolver.cpp
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
@@ -116,6 +117,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_eq_linear.cpp
   dsp-core/src/chain_exciter.cpp
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
@@ -232,6 +234,23 @@ add_test(NAME chain-surround COMMAND fluideq-chain-surround-test)
 add_executable(fluideq-chain-latency-test dsp-core/tests/chain_latency_test.cpp)
 target_link_libraries(fluideq-chain-latency-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-latency COMMAND fluideq-chain-latency-test)
+
+# A band's Dynamic switch moved while the EQ runs through its linear-phase
+# kernel: a sine at the band, held fully open, must not move at all — by one
+# chain reconfigured, and by the system engine's new chain per change.
+add_executable(fluideq-eq-dynamic-handover-test
+  dsp-core/tests/eq_dynamic_handover_test.cpp)
+target_link_libraries(fluideq-eq-dynamic-handover-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME eq-dynamic-handover COMMAND fluideq-eq-dynamic-handover-test)
+
+# Isolate on a dynamic band: the band's own change and nothing beside it —
+# the minimum-phase step it used to run as leaked the record around it.
+add_executable(fluideq-eq-isolate-dynamic-test
+  dsp-core/tests/eq_isolate_dynamic_test.cpp)
+target_link_libraries(fluideq-eq-isolate-dynamic-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME eq-isolate-dynamic COMMAND fluideq-eq-isolate-dynamic-test)
 
 # The room through a synthetic head whose delays are known frame counts.
 add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)

@@ -37,7 +37,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/primitives.h"
 #include "fluideq/saturate.h"
 
+#include <algorithm>
 #include <atomic>
+#include <iterator>
 #include <vector>
 
 /** One exciter path per channel (own histories each), plus Mid and Side. */
@@ -46,6 +48,14 @@ constexpr uint32_t kExciterPaths = FEQ_CHAIN_MAX_CHANNELS + 2;
 constexpr uint32_t kExciterMidPath = FEQ_CHAIN_MAX_CHANNELS;
 constexpr double kExciterSmoothingMs = 18.0;
 constexpr double kEqIsolateSmoothingMs = 18.0;
+/**
+ * How far a linear-phase handover moves towards the new kernel per sample.
+ *
+ * One constant because two things walk it: the kernel's own output, and each
+ * dynamic band's change riding on it. Walked at different rates, the two
+ * would disagree mid-handover about which kernel is playing.
+ */
+constexpr double kConvolverBlendStep = 1.0 / 1024.0;
 /** Background analysis settles Normalizer and Master LUFS together over 2 s. */
 constexpr double kTrackLevelTransitionMs = 2000.0;
 constexpr double kMaximizerReleaseHoldMs = 10.0;
@@ -123,6 +133,40 @@ struct ChainExciterPath {
   std::vector<float> organic_guard;
 };
 
+/** One band that was dynamic when a linear-phase kernel was built. */
+struct ChainKernelBand {
+  /** Its place in the settings, which is how the rack finds it again. */
+  uint32_t band = 0;
+  /** Its filter at the base rate and its detector's settings, as they were. */
+  FeqBiquadCoefficients filter{};
+  FeqBandDynamics detector{};
+  /** Its change on the convolution, or -1: a kernel for listening has none. */
+  int change = -1;
+};
+
+/**
+ * A linear-phase kernel, and the dynamic bands it was built around.
+ *
+ * A kernel bakes in every static band and leaves the dynamic ones to run
+ * after it, so which bands are dynamic is part of what the kernel IS. It was
+ * kept only in the coefficient set, which switches at once, while the kernel
+ * behind it hands over only after a warm-up of its own: toggling a band's
+ * Dynamic doubled it for a third of a second (baked into the old kernel and
+ * running after it) or dropped it (in neither). Carried here, each kernel's
+ * share of the output runs the dynamic bands that kernel was made for.
+ */
+struct ChainEqKernel {
+  FeqConvolverKernel* convolution = nullptr;
+  uint32_t dynamic_count = 0;
+  ChainKernelBand dynamic[FEQ_CHAIN_MAX_EQ_BANDS];
+  /** Per band of the settings, its place in `dynamic`, or -1. */
+  int32_t dynamic_of[FEQ_CHAIN_MAX_EQ_BANDS];
+
+  ChainEqKernel() {
+    std::fill(std::begin(dynamic_of), std::end(dynamic_of), -1);
+  }
+};
+
 struct FeqChain {
   double sample_rate = 48000.0;
   uint32_t channels = 2;
@@ -192,13 +236,26 @@ struct FeqChain {
    */
   struct ChainCoefficients {
     std::vector<FeqBiquadCoefficients> bands;
+    /** The dynamic bands' filters at the base rate, in settings order. */
     std::vector<FeqBiquadCoefficients> dynamic;
-    /** Positions within the live-band arrays of the bands marked dynamic. */
-    std::vector<uint32_t> dynamic_slots;
+    /**
+     * Per band of the settings: its place among the live bands, and its place
+     * in `dynamic`, or -1. A linear-phase kernel names its bands by their
+     * place in the settings, because it may still be the previous rack's
+     * while this one's warms.
+     */
+    int32_t live_of[FEQ_CHAIN_MAX_EQ_BANDS];
+    int32_t dynamic_of[FEQ_CHAIN_MAX_EQ_BANDS];
     FeqBiquadCoefficients subsonic{};
     int has_subsonic = 0;
     FeqBiquadCoefficients mono_below{};
     int has_mono_below = 0;
+
+    /** No band live and none dynamic, until `chain_refresh_eq` says so. */
+    ChainCoefficients() {
+      std::fill(std::begin(live_of), std::end(live_of), -1);
+      std::fill(std::begin(dynamic_of), std::end(dynamic_of), -1);
+    }
   };
   ChainCoefficients coefficient_sets[2];
   std::atomic<uint32_t> published_coefficients{0};
@@ -251,16 +308,22 @@ struct FeqChain {
    */
   static constexpr uint32_t kBandStride = FEQ_CHAIN_MAX_EQ_BANDS;
   /**
-   * The dynamic bands gathered contiguously, for the path after a convolution.
-   *
-   * The reference builds this as an array of references into the arrays above,
-   * so the state is genuinely shared; C++ has no such thing across a scattered
-   * subset, hence a gather before the call and a scatter after. It is a few
-   * doubles per dynamic band per block, and the alternative is two envelopes
-   * for one band that diverge the moment the phase mode changes.
+   * One dynamic band's linear-phase change, per channel, from the kernel
+   * playing now and from the one fading in, while the EQ runs through its
+   * kernel under Isolate. A partition long, because the convolver hands back
+   * no more than that of a change at a time.
    */
-  std::vector<FeqBiquadState> dynamic_states;
-  std::vector<FeqBandDynamics> dynamic_dynamics;
+  std::vector<float> change_active[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> change_next[FEQ_CHAIN_MAX_CHANNELS];
+  /**
+   * While one kernel fades into another: the incoming kernel's output less
+   * the outgoing one's, per slot, and what a band that only one of the two
+   * leaves out is given to filter — that kernel's own output, with the
+   * earlier bands' steps on it, rather than the blend of both, which carries
+   * the band baked in by the other. A partition long, like the pieces.
+   */
+  std::vector<float> kernel_difference[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> share_input[FEQ_CHAIN_MAX_CHANNELS];
 
   FeqBiquadState side_highpass{};
 
@@ -280,8 +343,8 @@ struct FeqChain {
   std::vector<float> fuzz_middle;
 
   /* ------------------------------------------------------ linear phase -- */
-  FeqConvolverKernel* kernel = nullptr;
-  FeqConvolverKernel* kernel_next = nullptr;
+  ChainEqKernel* kernel = nullptr;
+  ChainEqKernel* kernel_next = nullptr;
   FeqConvolver* convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
   FeqConvolver* convolvers_next[FEQ_CHAIN_MAX_CHANNELS] = {};
   std::vector<float> convolver_scratch;
@@ -289,9 +352,9 @@ struct FeqChain {
   int64_t convolver_warmup = 0;
   int64_t convolver_priming = 0;
   bool defer_convolver_retirement = false;
-  FeqConvolverKernel* queued_kernel = nullptr;
+  ChainEqKernel* queued_kernel = nullptr;
   FeqConvolver* queued_convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
-  FeqConvolverKernel* retired_kernels[2] = {nullptr, nullptr};
+  ChainEqKernel* retired_kernels[2] = {nullptr, nullptr};
   FeqConvolver* retired_convolvers[2][FEQ_CHAIN_MAX_CHANNELS] = {};
   uint32_t retired_count = 0;
 
@@ -317,7 +380,7 @@ struct FeqChain {
    * does.
    */
   struct KernelHandoff {
-    FeqConvolverKernel* kernel = nullptr;
+    ChainEqKernel* kernel = nullptr;
     FeqConvolver* convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
   };
   std::atomic<KernelHandoff*> kernel_handoff{nullptr};
@@ -326,12 +389,14 @@ struct FeqChain {
    * What the last published handoff was built from. Control thread only.
    *
    * Without it every settings message rebuilds a 16k kernel: two transforms and
-   * half a megabyte of partitions for a curve that did not move. The renderer's
-   * `kernelKeyOf` in `graph.ts` is the same guard against the same waste, and
-   * carries the same fields — which is not a coincidence to be tidied away, the
-   * two have to agree about what a kernel depends on.
+   * half a megabyte of partitions for a curve that did not move. A threshold
+   * is not among them: it moves no filter, and a kernel's own record of its
+   * dynamic bands' detectors is read only for a band the current rack no
+   * longer runs as dynamic, on its way out.
    */
   int kernel_wanted = 0;
+  /** Whether it carries its dynamic bands' changes: `kernel_changes_wanted_by`. */
+  int kernel_changes = 0;
   uint32_t kernel_band_count = 0;
   FeqEqEngine kernel_engine = FEQ_EQ_SERIAL;
   FeqEqModel kernel_model = FEQ_EQ_MODEL_CLEAN;
@@ -492,7 +557,11 @@ void chain_decode_mid_side(float* const* channels, uint32_t frames);
 
 /* --- chain_linear.cpp: the convolver, its handover and its kernel --------- */
 
-/** One already-prepared channel through the convolver that is running now. */
+/**
+ * One already-prepared channel through the convolver that is running now, at
+ * most a partition of it: while a replacement fades in, the two kernels'
+ * difference is kept in `kernel_difference`, which holds that much.
+ */
 void chain_process_eq_convolver_channel(FeqChain* chain, float* target,
                                         uint32_t frames, uint32_t slot_index);
 
@@ -521,6 +590,9 @@ void chain_refresh_eq_kernel(FeqChain* chain);
 /** Free anything still in transit, once no thread can be looking. */
 void chain_release_kernel_handoff(FeqChain* chain);
 
+/** Free a kernel with its convolution. Null is allowed. */
+void chain_kernel_destroy(ChainEqKernel* kernel);
+
 /** Whether a convolver is actually in the path, which is what needs matching. */
 
 int chain_linear_running(const FeqChain* chain);
@@ -531,6 +603,15 @@ void chain_refresh_eq(FeqChain* chain);
 /** The EQ stage, mid/side wrapping included. */
 void chain_process_eq(FeqChain* chain, float* const* channels,
                       uint32_t frames);
+
+/**
+ * The EQ through its linear-phase kernel, dynamic bands included, over
+ * `count` channels in place (`chain_eq_linear.cpp`). `linked` gives every
+ * channel the first slot's detector, as the cascade's linked path does.
+ */
+void chain_process_eq_linear(FeqChain* chain, float* const* targets,
+                             const uint32_t* slots, uint32_t count,
+                             uint32_t frames, bool linked);
 
 /** The exciter stage, mid/side wrapping included. */
 void chain_process_exciter(FeqChain* chain, float* const* channels,

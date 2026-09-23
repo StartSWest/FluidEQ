@@ -16,6 +16,8 @@ interface IDspEqLegendProps {
   showsThreshold: boolean;
   /** The subsonic filter is on, so its skirt is drawn. */
   showsSubsonic: boolean;
+  /** Isolate is on, so the spectrum is what the EQ changes, not its output. */
+  isIsolating: boolean;
 }
 
 interface ILegendEntry {
@@ -39,11 +41,17 @@ interface ILegendEntry {
  *
  * Only what is actually on screen. A legend listing things that are not being
  * drawn is a second puzzle rather than the answer to the first.
+ *
+ * Under Isolate the spectrum is tapped where it always is, after the EQ, and
+ * what leaves the EQ then is only what it changes — so a cut draws a hill
+ * under its own notch: the part of the record it takes away. Named "Output"
+ * that read as the EQ doing the opposite of its curve, and was asked about.
  */
 const DspEqLegend = ({
   hasDynamic,
   showsThreshold,
   showsSubsonic,
+  isIsolating,
 }: IDspEqLegendProps) => {
   const { t } = useTranslation();
 
@@ -55,7 +63,7 @@ const DspEqLegend = ({
       scale: 'gain',
     },
     {
-      key: 'dsp.eq.legend.spectrum',
+      key: isIsolating ? 'dsp.eq.legend.isolated' : 'dsp.eq.legend.spectrum',
       colour: `color-mix(in srgb, ${SPECTRUM_CSS} 50%, transparent)`,
       isDashed: false,
       isFilled: true,

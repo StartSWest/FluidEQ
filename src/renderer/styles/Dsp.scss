@@ -1560,44 +1560,25 @@ $dsp-rail-offset: 110ms;
 }
 
 // Full width above the bands, because it reports on all of them at once.
+//
+// The EQ's frame (`dsp-eq-plot`, `dsp-eq-graph`): the canvas is the one plot
+// surface and the legend sits over its top. This box used to carry a plot
+// ground of its own around the canvas, with the legend in a row under it, so
+// the graph stood on two grounds at once.
 .dsp-exciter-display {
-  display: flex;
   flex: 1 1 100%;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px 6px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  width: 100%;
+  min-width: 0;
 }
 
 // A DEFINITE height, never `auto` — the same rule the EQ graph and the phase
 // meter carry, for the same reason. The paint sizes the backing store from the
 // measured box and the backing store is the element's intrinsic size, so an
-// automatic height is a loop that walks down the page.
-.dsp-exciter-canvas {
-  display: block;
-  width: 100%;
-  height: 132px;
-  touch-action: none;
+// automatic height is a loop that walks down the page. The height the old
+// frame took with its legend row, so the page below does not move.
+.dsp-eq-graph.dsp-exciter-canvas {
+  height: 168px;
   user-select: none;
-}
-
-.dsp-exciter-legend {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: 0;
-  grid-template-columns: repeat(4, 1fr);
-  list-style: none;
-
-  li {
-    color: $text-faint;
-    font-size: $text-micro;
-    @include tracking(0.06em);
-    text-align: center;
-    text-transform: uppercase;
-  }
 }
 
 // Every knob on a processor page is `--dsp-knob` across.
@@ -2155,6 +2136,23 @@ $dsp-pane-columns: 6;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
+}
+
+// A stage switched off shows its picture dimmed, on every page — the way
+// Bass Forge's always did, and the Equaliser, Master, Exciter, Denoise and
+// Dimension never had: their graphs looked exactly the same on and off.
+// What is drawn stays what the settings would do; the dim says none of it
+// is running. Each graph also stops drawing live readings of an off stage,
+// so a flat trace is never mistaken for a stage hearing silence.
+.dsp-eq-plot,
+.dsp-denoise-graph,
+.dsp-dimension-graph,
+.dsp-crossfade-preview {
+  transition: opacity $motion-base $ease-out;
+
+  &.is-off {
+    opacity: $disabled-opacity;
+  }
 }
 
 .dsp-eq-legend {
@@ -4101,15 +4099,6 @@ $dsp-pane-columns: 6;
   min-width: 0;
 }
 
-// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
-// Dimension's guard bar. The plot draws no measurement at all while the stage
-// is bypassed — the native side resets it every block, so both runs sit at the
-// -120 floor, and two flat lines along the bottom of a live-looking plot read
-// as a meter hearing silence rather than as a stage that is not running.
-.dsp-bass-forge-display.is-off {
-  opacity: $disabled-opacity;
-}
-
 // Definite for the same reason as every DSP canvas: its backing store follows
 // this box, so an intrinsic height would feed the measurement into itself.
 .dsp-bass-forge-canvas {
@@ -4146,17 +4135,6 @@ $dsp-pane-columns: 6;
   flex: 1 1 100%;
   width: 100%;
   min-width: 0;
-}
-
-// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
-// Forge and Dimension's guard bar. The strip draws no measurement at all while
-// the stage is bypassed, and here that matters more than anywhere else in the
-// rack: all three gains genuinely rest at 0 dB, so three flat traces along the
-// middle of a live-looking plot would read as a stage that is running and
-// choosing to change nothing — which is precisely what a centred Attack dial
-// means, and therefore the one reading an off stage must never borrow.
-.dsp-bass-punch-display.is-off {
-  opacity: $disabled-opacity;
 }
 
 // Definite for the same reason as every DSP canvas: its backing store follows

@@ -348,7 +348,7 @@ const dsp = {
   'dsp.eq.isolate': 'अलग करें',
   'dsp.eq.isolateHint': 'केवल EQ द्वारा किए गए बदलाव सुनें।',
   'dsp.eq.isolateOn':
-    'ड्राई सिग्नल हटा दिया गया है — केवल EQ के बदलाव सुनाई दे रहे हैं।',
+    'ड्राई सिग्नल हटा दिया गया है — केवल EQ के बदलाव सुनाई देते हैं: बूस्ट जो जोड़ता है और कट जो हटाता है।',
   'dsp.eqPreset.imported': '{count} फ़िल्टर लोड किए गए।',
   'dsp.eqPreset.importSkipped':
     '{count} फ़िल्टर लोड किए गए, {skipped} छोड़े गए।',
@@ -411,6 +411,7 @@ const dsp = {
   'dsp.eq.threshold': 'थ्रेशोल्ड',
   'dsp.eq.legend.curve': 'कर्व',
   'dsp.eq.legend.spectrum': 'आउटपुट',
+  'dsp.eq.legend.isolated': 'जोड़ा / हटाया',
   'dsp.eq.legend.atRest': 'निष्क्रिय',
   'dsp.eq.legend.threshold': 'थ्रेशोल्ड',
   'dsp.eq.legend.subsonic': 'सबसोनिक',
@@ -569,7 +570,6 @@ const dsp = {
   'dsp.master.graph.integrated': 'समेकित',
   'dsp.master.graph.targetLine': 'लक्ष्य {target} LUFS',
   'dsp.master.graph.integratedLine': 'समेकित {value} LUFS',
-  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning': 'चेतावनी · आउटपुट {peak} dBTP सीमा से ऊपर',
   'dsp.master.graph.peakFixed': 'पीक नियंत्रित · {gain} dB गेन रिडक्शन',
   'dsp.master.graph.peakSafe': 'ट्रू पीक सीमा के भीतर',
@@ -789,7 +789,6 @@ const dsp = {
   'dsp.master.loudness.shortTerm': 'S',
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
-  'dsp.master.loudness.truePeak': 'TP',
   'dsp.master.graph.matchedActive': 'गेन मिलान · {gain} dB वापस हटाया',
   'dsp.masterPreset.label': 'गंतव्य',
   'dsp.masterPreset.streaming': 'स्ट्रीमिंग',
