@@ -120,6 +120,24 @@ export const DIAGNOSTIC_SIGNALS = {
 
 export type THostCommand = (typeof HOST_COMMANDS)[keyof typeof HOST_COMMANDS];
 
+/**
+ * `loadDeck` with the deck left to the host (`FEQ_DECK_HANDOFF` and
+ * `FEQ_DECK_SPARE` in wire.h), `value` being the position to cue it at, in
+ * seconds.
+ *
+ * `handoff` is the track about to be faded or cut to, and the ack's
+ * `sanitizedValue` is the deck the host put it on: the free one, or inside a
+ * running fade the quieter one, which only the host can know. `spare` names
+ * the next track, which the host readies on whichever deck is free once one
+ * is, and acknowledges with -1.
+ */
+export const HOST_DECKS = {
+  handoff: 2,
+  spare: 3,
+} as const;
+
+export type THostDeckPurpose = keyof typeof HOST_DECKS;
+
 export const HOST_STATUS = {
   applied: 0,
   rejected: 1,

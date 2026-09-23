@@ -18,7 +18,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  *  - the audio callback calls `feq_player_render` and nothing else;
  *  - one decoder thread calls `load`, `seek`, `unload` and `pump`;
- *  - any thread may read the position and state.
+ *  - any thread may read the position and state, and ask for a cut or a
+ *    fade (`select`, `start_crossfade`).
+ *
+ * Which deck is heard belongs to the audio thread. A cut or a fade is asked
+ * for, and made at the top of the next block, the newest request replacing
+ * one not yet taken; a load is carried out there too, so what is left of the
+ * file it replaced leaves under an 80 ms ramp rather than on the sample it
+ * had reached. Every question asked from another thread is answered as if
+ * the change asked for had already been made.
  *
  * `render` allocates nothing, takes no lock and makes no OS call. `pump` does
  * all three and must never run on the audio thread.
@@ -106,8 +114,16 @@ void feq_player_destroy(FeqPlayer* player);
 
 /* ------------------------------------------------------ decoder thread -- */
 
-/** Non-zero on success. Replaces whatever the deck held. */
+/**
+ * Non-zero on success. Replaces whatever the deck held.
+ *
+ * Onto a deck that is one half of a running fade, the new file becomes what
+ * the fade goes to, from silence and over the whole fade again, and the other
+ * deck fades out from the level it had reached. That is a skip taken inside
+ * a fade, and it is why the track chosen last is the one that plays.
+ */
 int feq_player_load(FeqPlayer* player, uint32_t deck, const char* path);
+/** Empties the deck. What it was still playing leaves under a short ramp. */
 void feq_player_unload(FeqPlayer* player, uint32_t deck);
 
 /**
@@ -133,7 +149,10 @@ uint32_t feq_player_pump(FeqPlayer* player);
 void feq_player_set_playing(FeqPlayer* player, int playing);
 int feq_player_is_playing(const FeqPlayer* player);
 
-/** Make one deck audible at once, with no fade. */
+/**
+ * Make one deck audible at the next block, with no fade. What is taken off
+ * the path leaves under a short ramp and the deck comes in under one.
+ */
 void feq_player_select(FeqPlayer* player, uint32_t deck);
 uint32_t feq_player_active_deck(const FeqPlayer* player);
 /**
@@ -165,12 +184,37 @@ uint32_t feq_player_reported_deck(const FeqPlayer* player);
  */
 int feq_player_deck_audible(const FeqPlayer* player, uint32_t deck);
 
+/** Non-zero while a fade is running: both decks are in use and neither is
+ *  free to be loaded without cutting into what is heard. */
+int feq_player_fading(const FeqPlayer* player);
+
 /**
- * Begin a fade to the other deck.
+ * Where the track the transport moves to next belongs: the deck that is not
+ * active when no fade runs, and the QUIETER of the two while one does.
  *
- * A duration of zero is an immediate cut. Starting one while another is
+ * Answered here because only the player knows whether its fade is still
+ * running. The app used to alternate the decks itself, one per handoff — but
+ * the active deck is the one a fade leaves until the fade ends, so a second
+ * Next inside one overlap loaded the new track over the deck still fading out
+ * and then asked for a fade to it, which was refused as a fade to itself. The
+ * running fade finished on the track skipped past, and that is what played
+ * while the player showed the one chosen (Ivan, 2026-09-23: "I click 1, 2, 3,
+ * 2 is the one that plays"). The quieter deck is the one whose loss is heard
+ * least; loaded there, the new track fades in from silence and the louder one
+ * fades out from where it was (`feq_player_load`). A fade asked for and not
+ * yet begun gives up its own deck: its track has not been heard at all.
+ */
+uint32_t feq_player_handoff_deck(const FeqPlayer* player);
+
+/**
+ * Ask for a fade to the other deck, made at the top of the next block.
+ *
+ * A duration of zero is an immediate cut. Asking again for the fade already
  * running keeps its place on the curve rather than stepping the outgoing deck
- * back to full level.
+ * back to full level. Asked for while nothing plays, it is only the incoming
+ * deck coming in: what was paused is not started again to be faded away
+ * (Ivan, 2026-09-23: "if crossfade is on and we don't have a source ... we
+ * just fade in the target").
  */
 void feq_player_start_crossfade(FeqPlayer* player,
                                 uint32_t to_deck,

@@ -499,6 +499,45 @@ export const registerDspHostIpc = ({
     },
   );
 
+  /**
+   * A file onto the deck the host chooses (`HOST_DECKS`): the track about to
+   * be faded or cut to, answered with its deck, or the next track, which the
+   * host readies when a deck is free. Null when there is no deck to name.
+   */
+  ipcMain.handle(
+    'dsp-host-load-for',
+    async (
+      _event,
+      purpose: unknown,
+      mediaPath: unknown,
+      startSeconds: unknown,
+    ): Promise<number | null> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return null;
+      }
+      if (
+        (purpose !== 'handoff' && purpose !== 'spare') ||
+        typeof mediaPath !== 'string' ||
+        !mediaPath
+      ) {
+        return null;
+      }
+      const start =
+        typeof startSeconds === 'number' &&
+        Number.isFinite(startSeconds) &&
+        startSeconds > 0
+          ? startSeconds
+          : 0;
+      try {
+        const deck = await supervisor.loadDeckFor(purpose, mediaPath, start);
+        // Held to the two decks there are, whatever the host said.
+        return deck === 0 || deck === 1 ? deck : null;
+      } catch {
+        return null;
+      }
+    },
+  );
+
   ipcMain.handle(
     'dsp-host-parameter',
     async (

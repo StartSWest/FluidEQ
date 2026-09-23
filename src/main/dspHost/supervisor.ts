@@ -34,6 +34,8 @@ import {
 import { FrameReader } from './transport';
 import {
   HOST_COMMANDS,
+  HOST_DECKS,
+  THostDeckPurpose,
   encodeChainPayload,
   encodeNoiseProfilePayload,
   encodeCrossfadeTablePayload,
@@ -510,6 +512,33 @@ export class DspHostSupervisor {
       payload,
     });
     return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * A file onto the deck the host chooses, cued at `startSeconds`, and that
+   * deck back — or undefined for the next track, whose deck is decided when
+   * one is free, and for a file the host could not open.
+   *
+   * The renderer used to name the deck, alternating one per handoff, and
+   * could only guess whether the host's fade had finished: a third track
+   * clicked inside a fade went onto the deck still fading out, and the one
+   * skipped past is what played (Ivan, 2026-09-23).
+   */
+  async loadDeckFor(
+    purpose: THostDeckPurpose,
+    path: string,
+    startSeconds: number,
+  ): Promise<number | undefined> {
+    const payload = Buffer.from(path, 'utf8');
+    const ack = await this.send(HOST_COMMANDS.loadDeck, {
+      parameterIndex: HOST_DECKS[purpose],
+      parameterId: payload.byteLength,
+      value: startSeconds,
+      payload,
+    });
+    return ack.status === HOST_STATUS.applied && ack.sanitizedValue >= 0
+      ? ack.sanitizedValue
+      : undefined;
   }
 
   /**

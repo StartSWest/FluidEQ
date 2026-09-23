@@ -97,6 +97,12 @@ class PlanarRing {
     return write_.load(std::memory_order_acquire);
   }
 
+  /** Where the reader has reached. Exact on the reader's side; from any other
+   *  thread, a value the reader has already passed or is about to. */
+  uint64_t read_cursor() const {
+    return read_.load(std::memory_order_acquire);
+  }
+
   /**
    * Reader side only: throw away everything up to `cursor`.
    *

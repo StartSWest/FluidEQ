@@ -50,6 +50,8 @@ const sleep = (ms: number) =>
 
 const RATE = 48_000;
 const LOW_HZ = 300;
+/** A third tone for a third track, as far from both as they are apart. */
+const MID_HZ = 1_300;
 const HIGH_HZ = 6_000;
 const FADE_MS = 2_000;
 
@@ -218,6 +220,86 @@ const runFade = async (
   };
 };
 
+interface ISkipResult {
+  decks: [number | undefined, number | undefined, number | undefined];
+  lowBefore: number;
+  midBefore: number;
+  lowAfterSkip: number;
+  midAfterSkip: number;
+  lowLate: number;
+  midLate: number;
+  highLate: number;
+}
+
+/**
+ * Songs 1, 2 and 3 clicked in a row, the third while the fade to the second is
+ * still running — driven the way the renderer drives it now: every track
+ * handed to the host to choose its deck (`loadDeckFor`), and the fade asked
+ * for on the deck it answered.
+ *
+ * Reported as "2 is the one that plays, 3 is ignored" (Ivan, 2026-09-23): the
+ * third track went onto the deck still fading out and its fade was refused.
+ * The end of the render has to be the third track alone.
+ */
+const runSkip = async (
+  executablePath: string,
+  files: { low: string; mid: string; high: string },
+  scratch: string,
+): Promise<ISkipResult | undefined> => {
+  const host = new DspHostSupervisor({
+    executablePath,
+    expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
+  });
+  if (!(await host.start())) {
+    return undefined;
+  }
+  await host.applyChain(
+    encodeChainSettings({
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: false },
+      master: { ...DSP_DEFAULTS.master, enabled: false },
+    }),
+  );
+  const first = await host.loadDeckFor('handoff', files.low, 0);
+  if (first === undefined) {
+    await host.stop();
+    return undefined;
+  }
+  await host.selectDeck(first);
+  await host.setPlaying(true);
+  await sleep(600);
+  const second = await host.loadDeckFor('handoff', files.mid, 0);
+  // Decoded before the fade, so the fade is running when the third arrives
+  // rather than still waiting for the second track's first frames.
+  await sleep(600);
+  await host.crossfade(second ?? 0, FADE_MS, 0);
+  const before = path.join(scratch, 'skip-before.wav');
+  const intoFade = await host.renderToFile(Math.floor(RATE * 0.7), before);
+  const third = await host.loadDeckFor('handoff', files.high, 0);
+  await host.crossfade(third ?? 0, FADE_MS, 0);
+  const after = path.join(scratch, 'skip-after.wav');
+  const renderedAfter = await host.renderToFile(RATE * 8, after);
+  await host.stop();
+  if (!intoFade || !renderedAfter) {
+    return undefined;
+  }
+
+  const window = Math.floor(RATE * 0.25);
+  const lead = readWavLeft(before);
+  const tail = readWavLeft(after);
+  const lateAt = Math.floor(RATE * 7.5);
+  return {
+    decks: [first, second, third],
+    lowBefore: amountOf(lead, Math.floor(RATE * 0.4), window, LOW_HZ),
+    midBefore: amountOf(lead, Math.floor(RATE * 0.4), window, MID_HZ),
+    lowAfterSkip: amountOf(tail, Math.floor(RATE * 0.1), window, LOW_HZ),
+    midAfterSkip: amountOf(tail, Math.floor(RATE * 0.1), window, MID_HZ),
+    lowLate: amountOf(tail, lateAt, window, LOW_HZ),
+    midLate: amountOf(tail, lateAt, window, MID_HZ),
+    highLate: amountOf(tail, lateAt, window, HIGH_HZ),
+  };
+};
+
 const report = (label: string, result: IFadeResult, level: number) => {
   const asFraction = (value: number) => (value / level).toFixed(2);
   console.log(
@@ -238,10 +320,15 @@ const main = async (): Promise<void> => {
 
   const scratch = mkdtempSync(path.join(tmpdir(), 'fluideq-crossfade-'));
   const lowFile = path.join(scratch, 'low.wav');
+  const midFile = path.join(scratch, 'mid.wav');
   const highFile = path.join(scratch, 'high.wav');
   const rendered = path.join(scratch, 'out.wav');
 
-  if (!writeTone(lowFile, LOW_HZ, 12) || !writeTone(highFile, HIGH_HZ, 12)) {
+  if (
+    !writeTone(lowFile, LOW_HZ, 12) ||
+    !writeTone(midFile, MID_HZ, 12) ||
+    !writeTone(highFile, HIGH_HZ, 12)
+  ) {
     console.log('crossfade smoke: no ffmpeg to build the tones, skipped');
     rmSync(scratch, { recursive: true, force: true });
     process.exit(0);
@@ -342,6 +429,53 @@ const main = async (): Promise<void> => {
     check(
       immediate.highLate > level * 0.3,
       'and the incoming track does arrive',
+    );
+  }
+
+  console.log('a third track, clicked inside the fade to the second');
+  const skip = await runSkip(
+    executablePath,
+    { low: lowFile, mid: midFile, high: highFile },
+    scratch,
+  );
+  check(skip !== undefined, 'the host takes every track and renders');
+  if (skip) {
+    const [first, second, third] = skip.decks;
+    console.log(
+      `       decks ${first}/${second}/${third}  before the skip ${(
+        skip.lowBefore / level
+      ).toFixed(2)}/${(skip.midBefore / level).toFixed(2)}  after it ${(
+        skip.lowAfterSkip / level
+      ).toFixed(2)}/${(skip.midAfterSkip / level).toFixed(2)}  end ${(
+        skip.lowLate / level
+      ).toFixed(2)}/${(skip.midLate / level).toFixed(2)}/${(
+        skip.highLate / level
+      ).toFixed(2)}`,
+    );
+    check(
+      second !== undefined && second !== first,
+      'the second track goes to the deck that is free',
+    );
+    check(
+      skip.lowBefore > level * 0.1 && skip.midBefore > level * 0.1,
+      'and the fade to it is running when the third is clicked',
+    );
+    check(
+      third === second,
+      'the third takes the deck the fade was heading for, the quieter one',
+    );
+    check(
+      skip.lowAfterSkip > level * 0.3,
+      'the first track goes on out from where it was, not cut',
+    );
+    check(
+      skip.midAfterSkip < level * 0.1,
+      'the track skipped past is gone as soon as the third is clicked',
+    );
+    check(skip.highLate > level * 0.5, 'the end is the third track');
+    check(
+      skip.lowLate < skip.highLate * 0.1 && skip.midLate < skip.highLate * 0.1,
+      'alone',
     );
   }
 

@@ -122,6 +122,19 @@ const loadDspHostDeck = (deck: number, mediaPath: string): Promise<boolean> =>
   ipcRenderer.invoke('dsp-host-load', deck, mediaPath);
 
 /**
+ * A media file onto the deck the host chooses, cued at `startSeconds`: the
+ * track about to be faded or cut to (`handoff`), answered with its deck, or
+ * the next track (`spare`), readied by the host once a deck is free. Null
+ * when there is no deck to name, or the host could not open the file.
+ */
+const loadDspHostDeckFor = (
+  purpose: 'handoff' | 'spare',
+  mediaPath: string,
+  startSeconds: number,
+): Promise<number | null> =>
+  ipcRenderer.invoke('dsp-host-load-for', purpose, mediaPath, startSeconds);
+
+/**
  * The transport, as one call with a verb.
  *
  * `value` and `extra` mean different things per verb — seconds for a seek,
@@ -316,6 +329,7 @@ export const dspHostBridge = {
   setDspHostParameter,
   applyDspHostChain,
   loadDspHostDeck,
+  loadDspHostDeckFor,
   playDspHost,
   pauseDspHost,
   selectDspHostDeck,

@@ -58,6 +58,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #define FEQ_WIRE_PROTOCOL_VERSION 8
 
+/**
+ * `FEQ_CMD_LOAD_DECK` with the deck left to the host.
+ *
+ * HANDOFF is the track about to be faded or cut to: the free deck, or while a
+ * fade is still running the quieter of the two, where the new track fades in
+ * from silence and the other goes out from where it was
+ * (`feq_player_handoff_deck`). A track already readied as the next one is
+ * taken as it is. SPARE names the next track, which the host readies on the
+ * free deck as soon as there is one — now, or when the running fade ends —
+ * and acknowledges without a deck.
+ *
+ * The app used to name the deck itself and could only guess whether the
+ * host's fade was over; the guess is what played the wrong track.
+ */
+#define FEQ_DECK_HANDOFF 2u
+#define FEQ_DECK_SPARE 3u
+
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
 #define FEQ_MAGIC_COMMAND 0x43514546u   /* FEQC */
@@ -112,6 +129,11 @@ enum FeqWireCommand {
    * A length and bytes rather than a fixed field: a path is not bounded by
    * anything useful, and truncating one produces a file-not-found for a file
    * that exists.
+   *
+   * `parameter_index` may instead ask the host to choose the deck —
+   * `FEQ_DECK_HANDOFF` or `FEQ_DECK_SPARE` below — and then `value` is the
+   * position to cue it at, in seconds, and the ack's `sanitized_value` is the
+   * deck it chose, or -1 when there is none to name yet.
    */
   FEQ_CMD_LOAD_DECK = 10,
   FEQ_CMD_UNLOAD_DECK = 11,

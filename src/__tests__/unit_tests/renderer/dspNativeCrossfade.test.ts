@@ -20,7 +20,7 @@ import {
   ICrossfadeShape,
 } from '../../../common/dsp/crossfadeShape';
 import { INativeBackendController } from '../../../renderer/dsp/nativeBackend';
-import { createNativeMirror } from '../../../renderer/dsp/nativeMirror';
+import createNativeMirror from '../../../renderer/dsp/nativeMirror';
 
 /** Records the deck each transport call was addressed to, which is the point. */
 const controllerSpy = (overrides: Record<string, unknown> = {}) => {
@@ -38,6 +38,12 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
     update: () => Promise.resolve(true),
     transport: {
       load: ok('load'),
+      // Deck 1 for a track about to be heard, as a host with a track on deck
+      // 0 would answer; no deck for the next track, readied when one is free.
+      loadFor: (purpose: string, _path: string, startSeconds: number) => {
+        calls.push(`loadFor(${purpose},${startSeconds})`);
+        return Promise.resolve(purpose === 'handoff' ? 1 : undefined);
+      },
       unload: ok('unload'),
       play: () => {
         calls.push('play');
@@ -121,17 +127,15 @@ const withTrackCued = async (overrides: Record<string, unknown> = {}) => {
 };
 
 describe('the mirrored crossfade', () => {
-  it('fades to the other deck rather than reloading the one in use', async () => {
+  it('fades to the deck the host put the track on', async () => {
     const { mirror, calls } = await withTrackCued();
 
     await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
 
-    // Deck one, because deck zero is the one currently audible.
-    expect(calls).toContain('load(1)');
-    expect(calls).toContain('crossfade(1)');
+    expect(calls).toEqual(['loadFor(handoff,0)', 'crossfade(1)']);
   });
 
-  it('cues the incoming lead-in before making that deck audible', async () => {
+  it('cues the incoming lead-in in the load, before that deck is heard', async () => {
     const { mirror, calls } = await withTrackCued();
 
     await handoffTo(
@@ -143,22 +147,21 @@ describe('the mirrored crossfade', () => {
       750,
     );
 
-    const seekAt = calls.indexOf('seek(1,0.75)');
-    const fadeAt = calls.indexOf('crossfade(1)');
-    expect(seekAt).toBeGreaterThanOrEqual(0);
-    expect(fadeAt).toBeGreaterThan(seekAt);
+    expect(calls).toEqual(['loadFor(handoff,0.75)', 'crossfade(1)']);
   });
 
-  /** And back again, so a third track does not land on the deck still playing. */
-  it('alternates decks across successive handoffs', async () => {
-    const { mirror, calls } = await withTrackCued();
+  /**
+   * Whichever deck that is. Only the host knows whether its fade is over, so
+   * the mirror no longer alternates: it goes where it is told.
+   */
+  it('follows the deck the host answers, not one of its own', async () => {
+    const { mirror, calls } = await withTrackCued({
+      loadFor: () => Promise.resolve(0),
+    });
 
     await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
-    calls.length = 0;
-    await handoffTo(mirror, 'C:/c.mp3', 4000, 'equalPower');
 
-    expect(calls).toContain('load(0)');
-    expect(calls).toContain('crossfade(0)');
+    expect(calls).toEqual(['crossfade(0)']);
   });
 
   /**
@@ -202,9 +205,9 @@ describe('the mirrored crossfade', () => {
     });
     await settle();
 
-    // Reloading the outgoing deck is the whole bug.
-    expect(calls).not.toContain('load(0)');
-    expect(calls).not.toContain('select(0)');
+    // One load and one fade: the tick is the same track, not a second change,
+    // and certainly not a cut over the top of the fade.
+    expect(calls).toEqual(['loadFor(handoff,0)', 'crossfade(1)']);
   });
 
   /**
@@ -225,7 +228,7 @@ describe('the mirrored crossfade', () => {
     });
     await settle();
 
-    expect(calls).toContain('load(0)');
+    expect(calls).toEqual(['loadFor(handoff,0)', 'select(1)', 'play']);
   });
 
   /** The curve reaches the host as the index the wire is defined in terms of. */
@@ -326,9 +329,9 @@ describe('the mirrored crossfade', () => {
    */
   it('gives the elements their sound back when the incoming file will not load', async () => {
     let first = true;
-    const { mirror, element } = await withTrackCued({
-      load: () => {
-        const answer = first;
+    const { mirror, calls, element } = await withTrackCued({
+      loadFor: () => {
+        const answer = first ? 1 : undefined;
         first = false;
         return Promise.resolve(answer);
       },
@@ -337,6 +340,9 @@ describe('the mirrored crossfade', () => {
 
     await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     expect(element.muted).toBe(false);
+    // And the host is left silent, the track being left included, rather
+    // than playing under the elements' copy of the new one.
+    expect(calls).toEqual(['unload(0)', 'unload(1)']);
   });
 
   /** Fading to what is already playing is not a fade. */
@@ -388,41 +394,40 @@ describe('the mirrored crossfade', () => {
  * subtlety: the whole feature was missing on the engine that is now the
  * default.
  */
-describe('the next track, primed on the spare deck', () => {
+/**
+ * The next track, named to the host, which readies it on its free deck.
+ *
+ * The mirror used to load it itself, and had to guess from a clock when the
+ * deck still fading out was free; the host knows, so it is told once and
+ * waits for itself.
+ */
+describe('the next track, readied by the host', () => {
   const FADE = { durationMs: 2_000, curve: 'equalPower' as TCrossfadeCurve };
-
-  it('is loaded and cued to its lead-in while the current track plays', async () => {
-    const { mirror, calls } = await withTrackCued();
-
+  const upcomingTick = (mirror: ReturnType<typeof createNativeMirror>) =>
     mirror.sync({
       mediaPath: 'C:/a.mp3',
       isPlaying: true,
       positionMs: 5_000,
       upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
     });
-    await settle();
 
-    expect(calls).toEqual(['load(1)', 'seek(1,0.3)']);
+  it('is named once, with its lead-in, while the current track plays', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    upcomingTick(mirror);
+    await settle();
+    expect(calls).toEqual(['loadFor(spare,0.3)']);
+
     // Said once: the next tick asks for nothing.
     calls.length = 0;
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 5_250,
-      upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
-    });
+    upcomingTick(mirror);
     await settle();
     expect(calls).toEqual([]);
   });
 
-  it('fades to the primed deck without loading or cueing it again', async () => {
+  it('fades to it through the same load, which the host answers as readied', async () => {
     const { mirror, calls } = await withTrackCued();
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 5_000,
-      upcoming: { path: 'C:/b.mp3', startPositionMs: 300 },
-    });
+    upcomingTick(mirror);
     await settle();
     calls.length = 0;
 
@@ -435,28 +440,24 @@ describe('the next track, primed on the spare deck', () => {
       300,
     );
 
-    expect(calls).toEqual(['crossfade(1)']);
+    expect(calls).toEqual(['loadFor(handoff,0.3)', 'crossfade(1)']);
   });
 
-  it('lands a press on Next on the primed deck at once', async () => {
+  it('cuts to it from its lead-in on a press of Next', async () => {
     const { mirror, calls } = await withTrackCued();
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 5_000,
-      upcoming: { path: 'C:/b.mp3', startPositionMs: 0 },
-    });
+    upcomingTick(mirror);
     await settle();
     calls.length = 0;
 
-    // A cut, not a fade: the new track arrives with no transition.
+    // A cut, not a fade: the new track arrives with no transition, and starts
+    // where it was readied rather than in its leading silence.
     mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 0 });
     await settle();
 
-    expect(calls).toEqual(['select(1)', 'play']);
+    expect(calls).toEqual(['loadFor(handoff,0.3)', 'select(1)', 'play']);
   });
 
-  it('leaves the deck still fading out alone until that fade is over', async () => {
+  it('is named during a fade too, the waiting being the host’s', async () => {
     const { mirror, calls } = await withTrackCued();
     await handoffTo(
       mirror,
@@ -468,36 +469,23 @@ describe('the next track, primed on the spare deck', () => {
     );
     calls.length = 0;
 
-    // Deck 0 is fading out for two seconds from b's lead-in. A tick inside
-    // that window must not load c into it.
-    mirror.sync({
-      mediaPath: 'C:/b.mp3',
-      isPlaying: true,
-      positionMs: 1_500,
-      upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
-    });
-    await settle();
-    expect(calls).toEqual([]);
-
-    // Past lead-in plus the fade's length, the deck is free.
-    mirror.sync({
-      mediaPath: 'C:/b.mp3',
-      isPlaying: true,
-      positionMs: 2_300,
-      upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
-    });
-    await settle();
-    expect(calls).toEqual(['load(0)']);
+    const ticks = [800, 1_500, 2_300];
+    for (let tick = 0; tick < ticks.length; tick += 1) {
+      mirror.sync({
+        mediaPath: 'C:/b.mp3',
+        isPlaying: true,
+        positionMs: ticks[tick],
+        upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
+      });
+      // eslint-disable-next-line no-await-in-loop -- one tick at a time.
+      await settle();
+    }
+    expect(calls).toEqual(['loadFor(spare,0)']);
   });
 
-  it('forgets what was primed when the queue moves on to something else', async () => {
+  it('names the new one when the queue moves on to something else', async () => {
     const { mirror, calls } = await withTrackCued();
-    mirror.sync({
-      mediaPath: 'C:/a.mp3',
-      isPlaying: true,
-      positionMs: 5_000,
-      upcoming: { path: 'C:/b.mp3', startPositionMs: 0 },
-    });
+    upcomingTick(mirror);
     await settle();
     calls.length = 0;
 
@@ -509,7 +497,7 @@ describe('the next track, primed on the spare deck', () => {
     });
     await settle();
 
-    expect(calls).toEqual(['load(1)']);
+    expect(calls).toEqual(['loadFor(spare,0)']);
   });
 });
 
@@ -531,6 +519,262 @@ describe('the level the host plays at', () => {
     // host has nothing of its own to be moved.
     expect(calls.filter((call) => call.startsWith('setVolume'))).toHaveLength(
       0,
+    );
+  });
+});
+
+/**
+ * The host's two decks as `player.cpp` and the host run them.
+ *
+ * The spy above records what was asked; this answers the way the host would,
+ * which is what a skip inside an overlap needs to be tested at all. A load for
+ * a handoff lands where the HOST decides — the free deck, or inside a fade the
+ * deck it is heading for, the quieter early on — and a load onto a deck in a
+ * running fade points the fade at the new track, the other deck becoming the
+ * one faded out of (`retarget`). A fade asked for again to the deck it is
+ * already heading for keeps going; one back to the deck being left is
+ * ignored. The next track is only named, and goes onto the free deck when
+ * there is one — which, while a fade runs, is when it ends.
+ */
+const hostModel = () => {
+  const decks: (string | undefined)[] = [undefined, undefined];
+  const calls: string[] = [];
+  let active = 0;
+  let incoming = 0;
+  let fading = false;
+  let spare: string | undefined;
+  const other = (deck: number) => (deck === 0 ? 1 : 0);
+  const ok = (call: string) => {
+    calls.push(call);
+    return Promise.resolve(true);
+  };
+  const readySpare = () => {
+    if (spare !== undefined && !fading) {
+      decks[other(active)] = spare;
+      calls.push(`readied(${other(active)},${spare})`);
+      spare = undefined;
+    }
+  };
+  const controller = {
+    engage: () => Promise.resolve(true),
+    disengage: () => Promise.resolve(),
+    update: () => Promise.resolve(true),
+    transport: {
+      load: (deck: number, path: string) => {
+        decks[deck] = path;
+        return ok(`load(${deck},${path})`);
+      },
+      loadFor: (purpose: 'handoff' | 'spare', path: string) => {
+        calls.push(`loadFor(${purpose},${path})`);
+        if (purpose === 'spare') {
+          spare = path;
+          readySpare();
+          return Promise.resolve(undefined);
+        }
+        const deck = fading ? incoming : other(active);
+        decks[deck] = path;
+        if (fading) {
+          incoming = deck;
+          active = other(deck);
+        }
+        return Promise.resolve(deck);
+      },
+      unload: (deck: number) => {
+        decks[deck] = undefined;
+        spare = undefined;
+        return ok(`unload(${deck})`);
+      },
+      play: () => ok('play'),
+      pause: () => ok('pause'),
+      seek: (deck: number, seconds: number) => ok(`seek(${deck},${seconds})`),
+      select: (deck: number) => {
+        active = deck;
+        incoming = deck;
+        fading = false;
+        readySpare();
+        return ok(`select(${deck})`);
+      },
+      crossfade: (to: number, durationMs: number) => {
+        calls.push(`crossfade(${to})`);
+        if (!fading && to !== active) {
+          incoming = to;
+          fading = durationMs > 0;
+          if (!fading) {
+            active = to;
+          }
+        }
+        return Promise.resolve(true);
+      },
+      setCrossfadeTable: () => ok('table'),
+      setTrackGains: () => ok('gains'),
+      setNoiseProfile: () => ok('noise'),
+      setVolume: () => ok('volume'),
+    },
+  } as unknown as INativeBackendController;
+  return {
+    controller,
+    calls,
+    decks,
+    /** The running fade reaches its end, which is when the host promotes. */
+    finishFade: () => {
+      if (fading) {
+        active = incoming;
+        fading = false;
+      }
+      readySpare();
+    },
+    /** The track the listener is left with once any fade has run out. */
+    heard: () => decks[fading ? incoming : active],
+  };
+};
+
+/** Every continuation the mirror has queued, however long the chain is. */
+const drain = async (): Promise<void> => {
+  for (let turn = 0; turn < 64; turn += 1) {
+    // eslint-disable-next-line no-await-in-loop -- draining is sequential.
+    await Promise.resolve();
+  }
+};
+
+const FADE = {
+  durationMs: 4_000,
+  curve: 'equalPower' as TCrossfadeCurve,
+  shape: DSP_DEFAULTS.crossfade.shape,
+};
+
+/**
+ * Next pressed again before the fade from the last press has finished.
+ *
+ * Ivan, 2026-09-23: "crossfading still when switching too fast gets lost with
+ * the file that it needs to play". The mirror took the deck for each handoff
+ * by alternating, but the host's active deck is the one it fades OUT of until
+ * the fade ends: a second skip inside the overlap loaded the new track over
+ * the deck still fading out and asked for a fade to it, which the host refuses
+ * as a fade to itself — so the fade in flight finished on the track skipped
+ * past, and that is what played while the player showed the one chosen.
+ */
+describe('skipping again inside an overlap', () => {
+  const playing = async (host: ReturnType<typeof hostModel>) => {
+    const mirror = createNativeMirror(host.controller, [fakeElement()]);
+    mirror.sync({ mediaPath: 'C:/a.mp3', isPlaying: true, positionMs: 0 });
+    await drain();
+    return mirror;
+  };
+  const skipTo = (
+    mirror: ReturnType<typeof createNativeMirror>,
+    mediaPath: string,
+  ) =>
+    mirror.sync({
+      mediaPath,
+      isPlaying: true,
+      positionMs: 0,
+      transition: { ...FADE, startPositionMs: 0 },
+    });
+
+  it('lands on the track chosen last, not the one skipped past', async () => {
+    const host = hostModel();
+    const mirror = await playing(host);
+
+    skipTo(mirror, 'C:/b.mp3');
+    await drain();
+    skipTo(mirror, 'C:/c.mp3');
+    await drain();
+    host.finishFade();
+
+    expect(host.heard()).toBe('C:/c.mp3');
+  });
+
+  it('keeps the track it is leaving on its own deck, fading out', async () => {
+    const host = hostModel();
+    const mirror = await playing(host);
+
+    skipTo(mirror, 'C:/b.mp3');
+    await drain();
+    skipTo(mirror, 'C:/c.mp3');
+    await drain();
+
+    // The fade out of a is still running on its deck; only the track it was
+    // fading INTO has changed.
+    expect([...host.decks].sort()).toEqual(['C:/a.mp3', 'C:/c.mp3']);
+  });
+
+  it('lands a burst of presses on the last one', async () => {
+    const host = hostModel();
+    const mirror = await playing(host);
+
+    // No turn of the event loop between them: each press arrives while the
+    // one before it is still talking to the host.
+    skipTo(mirror, 'C:/b.mp3');
+    skipTo(mirror, 'C:/c.mp3');
+    skipTo(mirror, 'C:/d.mp3');
+    await drain();
+    host.finishFade();
+
+    expect(host.heard()).toBe('C:/d.mp3');
+    // And the tracks skipped past before the host got to them never cost a
+    // file open at all.
+    expect(host.calls.some((call) => call.includes('c.mp3'))).toBe(false);
+  });
+
+  it('lands a skip after the fade has finished as a fade from the new track', async () => {
+    const host = hostModel();
+    const mirror = await playing(host);
+
+    skipTo(mirror, 'C:/b.mp3');
+    await drain();
+    host.finishFade();
+    skipTo(mirror, 'C:/c.mp3');
+    await drain();
+
+    // Out of b, which is now the active deck, into the one a left free.
+    expect([...host.decks].sort()).toEqual(['C:/b.mp3', 'C:/c.mp3']);
+    host.finishFade();
+    expect(host.heard()).toBe('C:/c.mp3');
+  });
+
+  it('never readies the next track onto a deck still fading out', async () => {
+    const host = hostModel();
+    const mirror = await playing(host);
+
+    skipTo(mirror, 'C:/b.mp3');
+    await drain();
+    // Ticks through the overlap, each naming the track after b.
+    for (let positionMs = 250; positionMs <= 1_000; positionMs += 250) {
+      mirror.sync({
+        mediaPath: 'C:/b.mp3',
+        isPlaying: true,
+        positionMs,
+        transition: { ...FADE, startPositionMs: 0 },
+        upcoming: { path: 'C:/c.mp3', startPositionMs: 0 },
+      });
+      // eslint-disable-next-line no-await-in-loop -- one tick at a time.
+      await drain();
+    }
+
+    expect([...host.decks].sort()).toEqual(['C:/a.mp3', 'C:/b.mp3']);
+    host.finishFade();
+    expect(host.heard()).toBe('C:/b.mp3');
+    // And once the fade is over it is there, on the deck the fade left.
+    expect([...host.decks].sort()).toEqual(['C:/b.mp3', 'C:/c.mp3']);
+  });
+
+  /**
+   * Picked with the player paused and crossfade on: the host is started only
+   * after the fade is asked for, so the fade is asked for while nothing is
+   * heard — and the host makes that one the new track coming in alone.
+   */
+  it('asks for the fade before starting a stopped host', async () => {
+    const host = hostModel();
+    const mirror = createNativeMirror(host.controller, [fakeElement()]);
+    mirror.sync({ mediaPath: 'C:/a.mp3', isPlaying: false, positionMs: 0 });
+    await drain();
+    host.calls.length = 0;
+
+    skipTo(mirror, 'C:/b.mp3');
+    await drain();
+
+    expect(host.calls.map((call) => call.replace(/\(\d\)$/, '(deck)'))).toEqual(
+      ['loadFor(handoff,C:/b.mp3)', 'crossfade(deck)', 'play'],
     );
   });
 });

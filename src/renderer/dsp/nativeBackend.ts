@@ -36,6 +36,11 @@ export interface INativeBackendBridge {
   closeDspHostDevice: () => Promise<boolean>;
   applyDspHostChain: (values: readonly number[]) => Promise<boolean>;
   loadDspHostDeck: (deck: number, mediaPath: string) => Promise<boolean>;
+  loadDspHostDeckFor: (
+    purpose: THostDeckPurpose,
+    mediaPath: string,
+    startSeconds: number,
+  ) => Promise<number | null>;
   playDspHost: () => Promise<boolean>;
   pauseDspHost: () => Promise<boolean>;
   seekDspHostDeck: (deck: number, seconds: number) => Promise<boolean>;
@@ -82,9 +87,28 @@ export interface INativeBackendController {
   readonly transport: INativeTransport;
 }
 
+/**
+ * Why a file goes to the host with the deck left to it: the track about to be
+ * faded or cut to, or the next one, to be readied once a deck is free.
+ */
+export type THostDeckPurpose = 'handoff' | 'spare';
+
 /** What the library player calls once the native backend is the audible one. */
 export interface INativeTransport {
   load: (deck: number, mediaPath: string) => Promise<boolean>;
+  /**
+   * A file onto the deck the host chooses, cued at `startSeconds`.
+   *
+   * Answers the deck for a `handoff` — the free one, or inside a running fade
+   * the quieter one, which only the host can know — and undefined for a
+   * `spare`, whose deck is chosen when one is free, or for a file the host
+   * could not open.
+   */
+  loadFor: (
+    purpose: THostDeckPurpose,
+    mediaPath: string,
+    startSeconds: number,
+  ) => Promise<number | undefined>;
   unload: (deck: number) => Promise<boolean>;
   play: () => Promise<boolean>;
   pause: () => Promise<boolean>;
@@ -296,6 +320,9 @@ export const createNativeBackendController = (
 
     transport: {
       load: (deck, mediaPath) => bridge.loadDspHostDeck(deck, mediaPath),
+      loadFor: async (purpose, mediaPath, startSeconds) =>
+        (await bridge.loadDspHostDeckFor(purpose, mediaPath, startSeconds)) ??
+        undefined,
       unload: (deck) => bridge.unloadDspHostDeck(deck),
       play: () => bridge.playDspHost(),
       pause: () => bridge.pauseDspHost(),

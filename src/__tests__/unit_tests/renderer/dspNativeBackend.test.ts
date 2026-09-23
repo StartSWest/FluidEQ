@@ -31,6 +31,7 @@ const recordingBridge = (overrides: Partial<INativeBackendBridge> = {}) => {
     closeDspHostDevice: record('close', true),
     applyDspHostChain: record('chain', true),
     loadDspHostDeck: record('load', true),
+    loadDspHostDeckFor: record('loadFor', 1),
     playDspHost: record('play', true),
     pauseDspHost: record('pause', true),
     seekDspHostDeck: record('seek', true),

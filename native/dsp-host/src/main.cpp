@@ -199,9 +199,38 @@ struct HostState {
    * the same decoder handle, so both take this. The AUDIO thread never does —
    * it only reads the rings, which are lock-free by construction, and a
    * callback waiting on a mutex the decoder thread holds is a dropout with no
-   * bug in it.
+   * bug in it. The deck bookkeeping below is under it too.
    */
   std::mutex decoder_mutex;
+  /** What a deck holds as far as loading goes: the file, and where it was cued. */
+  struct DeckNote {
+    std::string path;
+    double cue_seconds = 0.0;
+    /** Readied as the next track and not heard since, so a handoff can take it
+     *  as it is instead of loading the file again. */
+    bool fresh = false;
+  };
+  DeckNote deck_notes[FEQ_PLAYER_DECKS];
+  /**
+   * The track the queue moves to next, which the renderer names at any time
+   * and this side readies on the free deck the moment there is one.
+   *
+   * The renderer used to load it itself, and could not know when that moment
+   * was: during a fade both decks are heard, only the player knows when the
+   * fade ends, and a guess made off a clock loaded the next track onto the
+   * deck still fading out. Named here, it waits for `ready_spare` to find a
+   * deck free — at the fade's end, on the decoder thread's next pass.
+   */
+  std::string spare_path;
+  double spare_seconds = 0.0;
+  bool spare_wanted = false;
+  /**
+   * A deck a handoff has loaded, waiting for the fade or cut that makes it
+   * heard. The next track may not be readied onto it in between: the load
+   * and the fade are two commands, and the decoder thread can run between
+   * them.
+   */
+  uint32_t reserved_deck = FEQ_PLAYER_DECKS;
   /**
    * Serialises anything that opens, closes or rebuilds the device path, plus
    * the voice-model state copied into every rebuilt chain.
@@ -763,6 +792,53 @@ void pump_decks(HostState& state) {
 }
 
 /**
+ * The next track onto the free deck, once there is one. `decoder_mutex` held.
+ *
+ * Never while a fade runs — both decks are heard then — and never onto a deck
+ * a handoff has loaded and not yet given its fade or cut. Tried once per
+ * naming: a file that will not open is not asked for again every pass.
+ */
+void ready_spare(HostState& state) {
+  if (!state.spare_wanted || state.player == nullptr ||
+      feq_player_fading(state.player) != 0 ||
+      state.reserved_deck < FEQ_PLAYER_DECKS) {
+    return;
+  }
+  state.spare_wanted = false;
+  const uint32_t deck = feq_player_handoff_deck(state.player);
+  HostState::DeckNote& note = state.deck_notes[deck];
+  if (note.fresh && note.path == state.spare_path &&
+      std::fabs(note.cue_seconds - state.spare_seconds) < 1e-3) {
+    return;
+  }
+  const bool loaded =
+      feq_player_load(state.player, deck, state.spare_path.c_str()) != 0;
+  if (loaded && state.spare_seconds > 0.0) {
+    feq_player_seek(state.player, deck, state.spare_seconds);
+  }
+  note.path = loaded ? state.spare_path : std::string();
+  note.cue_seconds = state.spare_seconds;
+  note.fresh = loaded;
+  if (loaded) {
+    state.player_has_source.store(true, std::memory_order_release);
+  }
+}
+
+/**
+ * A deck asked to be heard, by a cut or a fade: whatever a handoff reserved
+ * it for has arrived, and it is no longer a next track waiting to be used.
+ * A cut leaves the other deck free, so the next track can go there now.
+ */
+void took_the_path(HostState& state, uint32_t deck) {
+  const std::lock_guard<std::mutex> held(state.decoder_mutex);
+  state.reserved_deck = FEQ_PLAYER_DECKS;
+  if (deck < FEQ_PLAYER_DECKS) {
+    state.deck_notes[deck].fresh = false;
+  }
+  ready_spare(state);
+}
+
+/**
  * A 32-bit float WAV, written by hand.
  *
  * Float rather than 16-bit because the point of this file is comparison: the
@@ -940,12 +1016,22 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
   FeqChain* old_chain = state.chain;
   FeqPlayer* old_player = state.player;
   state.chain = chain;
-  state.player = player;
+  {
+    // The decoder thread pumps whatever player is here, and readies the next
+    // track onto it; neither may see the old one halfway through going.
+    const std::lock_guard<std::mutex> held(state.decoder_mutex);
+    state.player = player;
+    for (auto& note : state.deck_notes) {
+      note = HostState::DeckNote{};
+    }
+    state.spare_wanted = false;
+    state.reserved_deck = FEQ_PLAYER_DECKS;
+    feq_player_destroy(old_player);
+  }
   // Anything a deck held is gone with the old player, so the generator takes
   // over again until something is loaded into the new one.
   state.player_has_source.store(false, std::memory_order_release);
   feq_chain_destroy(old_chain);
-  feq_player_destroy(old_player);
   return true;
 }
 
@@ -1243,6 +1329,9 @@ int main(int argc, char** argv) {
       {
         const std::lock_guard<std::mutex> held(state.decoder_mutex);
         if (state.player != nullptr) {
+          // A fade ending is what frees a deck for the next track, and this
+          // pass is the first to see it.
+          ready_spare(state);
           produced = feq_player_pump(state.player);
         }
       }
@@ -1586,17 +1675,61 @@ int main(int argc, char** argv) {
           running = false;
           break;
         }
-        const auto deck = static_cast<uint32_t>(frame.parameter_index);
+        const auto asked = static_cast<uint32_t>(frame.parameter_index);
+        const double cue = frame.value > 0.0 ? frame.value : 0.0;
+        uint32_t deck = asked;
         bool loaded = false;
         bool heard = false;
         {
           const std::lock_guard<std::mutex> held(state.decoder_mutex);
-          if (state.player != nullptr) {
+          if (state.player != nullptr && asked == FEQ_DECK_SPARE) {
+            // Named, and readied as soon as a deck is free (`ready_spare`),
+            // which may be now or at the end of the fade that is running.
+            state.spare_path = path;
+            state.spare_seconds = cue;
+            state.spare_wanted = true;
+            ready_spare(state);
+            loaded = true;
+            deck = FEQ_PLAYER_DECKS;
+          } else if (state.player != nullptr && asked == FEQ_DECK_HANDOFF) {
+            deck = feq_player_handoff_deck(state.player);
+            HostState::DeckNote& note = state.deck_notes[deck];
+            if (feq_player_fading(state.player) == 0 && note.fresh &&
+                note.path == path) {
+              // Readied as the next track: decoded and cued already, so the
+              // fade or the cut starts on the cue instead of after a load.
+              loaded = std::fabs(note.cue_seconds - cue) < 1e-3 ||
+                       feq_player_seek(state.player, deck, cue) != 0;
+            } else {
+              loaded = feq_player_load(state.player, deck, path.c_str()) != 0;
+              // Cued in the same command, before the deck can be heard: a
+              // seek sent after it would land on a deck already fading in,
+              // and empty its read-ahead as it did.
+              if (loaded && cue > 0.0) {
+                feq_player_seek(state.player, deck, cue);
+              }
+            }
+            note.path = loaded ? path : std::string();
+            note.cue_seconds = cue;
+            note.fresh = false;
+            state.reserved_deck = loaded ? deck : FEQ_PLAYER_DECKS;
+            if (state.spare_wanted && state.spare_path == path) {
+              state.spare_wanted = false;
+            }
+            // Never a chain reset here. The deck goes on the path through
+            // the fade or the cut that follows, and the cut resets for
+            // itself (SELECT_DECK); a fade is two tracks mixed on purpose,
+            // and a reset would empty the delay lines under the one going.
+          } else if (state.player != nullptr && asked < FEQ_PLAYER_DECKS) {
             heard = feq_player_deck_audible(state.player, deck) != 0;
             loaded = feq_player_load(state.player, deck, path.c_str()) != 0;
+            HostState::DeckNote& note = state.deck_notes[deck];
+            note.path = loaded ? path : std::string();
+            note.cue_seconds = 0.0;
+            note.fresh = false;
           }
         }
-        if (loaded) {
+        if (loaded && deck < FEQ_PLAYER_DECKS) {
           state.player_has_source.store(true, std::memory_order_release);
           // A new source on the deck being heard, not an A/B toggle: every
           // delayed sample belongs to the previous track and would play on
@@ -1607,17 +1740,29 @@ int main(int argc, char** argv) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
         }
+        // The deck it landed on, which the app has to address from here on;
+        // no deck for the next track, whose deck is decided when it is free.
         send_ack(frame.request_id,
                  loaded ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
-                 frame.settings_revision, 0, 0.0);
+                 frame.settings_revision, 0,
+                 loaded && deck < FEQ_PLAYER_DECKS ? static_cast<double>(deck)
+                                                   : -1.0);
         break;
       }
 
       case FEQ_CMD_UNLOAD_DECK: {
         const std::lock_guard<std::mutex> held(state.decoder_mutex);
-        if (state.player != nullptr) {
-          feq_player_unload(state.player,
-                            static_cast<uint32_t>(frame.parameter_index));
+        const auto deck = static_cast<uint32_t>(frame.parameter_index);
+        if (state.player != nullptr && deck < FEQ_PLAYER_DECKS) {
+          feq_player_unload(state.player, deck);
+          state.deck_notes[deck] = HostState::DeckNote{};
+          if (state.reserved_deck == deck) {
+            state.reserved_deck = FEQ_PLAYER_DECKS;
+          }
+          // Emptying a deck is the app letting go — of a queue that ran out,
+          // or of the engine altogether — and a next track readied after it
+          // would be decoded for nobody.
+          state.spare_wanted = false;
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
@@ -1668,6 +1813,7 @@ int main(int argc, char** argv) {
           if (cut && state.chain != nullptr) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
+          took_the_path(state, deck);
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
@@ -1689,6 +1835,7 @@ int main(int argc, char** argv) {
           if (cut && state.chain != nullptr) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
+          took_the_path(state, to_deck);
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  frame.value);

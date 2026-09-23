@@ -38,6 +38,7 @@ const installHost = () => {
       return Promise.resolve(true);
     },
     loadDspHostDeck: yes,
+    loadDspHostDeckFor: () => Promise.resolve(1),
     playDspHost: yes,
     pauseDspHost: yes,
     seekDspHostDeck: yes,
@@ -113,16 +114,18 @@ describe('the player’s copy of the rack', () => {
 });
 
 describe('the player saying it is the sound', () => {
+  // The host puts a track on the deck it chooses and answers which, or
+  // nothing when it cannot open the file.
   const hostThatOpens = (opens: boolean) =>
     ({
       transport: {
         ...controller.transport,
-        load: () => Promise.resolve(opens),
+        loadFor: () => Promise.resolve(opens ? 0 : undefined),
       },
     }) as unknown as INativeBackendController;
   const controller = {
     transport: {
-      load: () => Promise.resolve(true),
+      loadFor: () => Promise.resolve(0),
       unload: () => Promise.resolve(true),
       play: () => Promise.resolve(true),
       pause: () => Promise.resolve(true),
@@ -164,9 +167,9 @@ describe('the player saying it is the sound', () => {
     const refusing = {
       transport: {
         ...hostThatOpens(false).transport,
-        load: () => {
+        loadFor: () => {
           loads.push(false);
-          return Promise.resolve(false);
+          return Promise.resolve(undefined);
         },
       },
     } as unknown as INativeBackendController;

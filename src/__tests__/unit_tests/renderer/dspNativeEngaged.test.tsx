@@ -39,6 +39,7 @@ const bridgeWith = (
     closeDspHostDevice: yes,
     applyDspHostChain: yes,
     loadDspHostDeck: yes,
+    loadDspHostDeckFor: () => Promise.resolve(1),
     playDspHost: yes,
     pauseDspHost: yes,
     seekDspHostDeck: yes,

@@ -26,11 +26,8 @@ import {
   INativeBackendController,
   createNativeBackendController,
 } from './nativeBackend';
-import {
-  INativeMirror,
-  INativeMirrorState,
-  createNativeMirror,
-} from './nativeMirror';
+import createNativeMirror from './nativeMirror';
+import { INativeMirror, INativeMirrorState } from './nativeMirrorTypes';
 import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
 import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
 import {

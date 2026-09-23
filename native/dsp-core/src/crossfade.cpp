@@ -90,6 +90,7 @@ void feq_crossfader_init(FeqCrossfader* state) {
   state->duration_frames = 0;
   state->elapsed_frames = 0;
   state->active = 0;
+  state->outgoing_scale = 1.0;
   /**
    * Equal power, so a Custom fade that somehow starts before a shape has
    * arrived is a normal-sounding fade rather than silence on both decks.
@@ -141,11 +142,31 @@ void feq_crossfader_start(FeqCrossfader* state,
     // it for the whole length of a fade, and a restart mid-fade keeps its
     // place on the curve it is already running.
     copy_table(&state->table, &state->pending);
+    // A fade out of a track at full level. A running fade keeps the level it
+    // started its outgoing side from, which is part of its place.
+    state->outgoing_scale = 1.0;
   }
   state->curve = curve;
   state->duration_frames = duration_frames;
   state->elapsed_frames =
       static_cast<uint64_t>(carried * static_cast<double>(duration_frames));
+  state->active = duration_frames > 0 ? 1 : 0;
+}
+
+void feq_crossfader_restart(FeqCrossfader* state,
+                            FeqCrossfadeCurve curve,
+                            uint64_t duration_frames,
+                            double outgoing_scale) {
+  if (state == nullptr) {
+    return;
+  }
+  copy_table(&state->table, &state->pending);
+  state->curve = curve;
+  state->duration_frames = duration_frames;
+  state->elapsed_frames = 0;
+  // Written as a failed comparison so a NaN lands on silence rather than
+  // travelling into every sample of the outgoing side.
+  state->outgoing_scale = outgoing_scale > 0.0 ? outgoing_scale : 0.0;
   state->active = duration_frames > 0 ? 1 : 0;
 }
 
@@ -200,8 +221,9 @@ void feq_crossfader_mix(FeqCrossfader* state,
     const double progress = static_cast<double>(elapsed) / duration;
     const int custom = state->curve == FEQ_CROSSFADE_CUSTOM ? 1 : 0;
     const double out_gain =
-        custom != 0 ? feq_crossfade_table_gain(&state->table, progress, 0)
-                    : feq_crossfade_gain(state->curve, progress, 0);
+        state->outgoing_scale *
+        (custom != 0 ? feq_crossfade_table_gain(&state->table, progress, 0)
+                     : feq_crossfade_gain(state->curve, progress, 0));
     const double in_gain =
         custom != 0 ? feq_crossfade_table_gain(&state->table, progress, 1)
                     : feq_crossfade_gain(state->curve, progress, 1);
@@ -234,6 +256,21 @@ double feq_crossfader_progress(const FeqCrossfader* state) {
   const double progress = static_cast<double>(state->elapsed_frames) /
                           static_cast<double>(state->duration_frames);
   return progress > 1.0 ? 1.0 : progress;
+}
+
+double feq_crossfader_gain(const FeqCrossfader* state, int incoming) {
+  if (state == nullptr || state->duration_frames == 0) {
+    return incoming != 0 ? 0.0 : 1.0;
+  }
+  // The same position `mix` reads for its next sample, including a finished
+  // fade, which it keeps mixing at pure incoming.
+  const double progress = static_cast<double>(state->elapsed_frames) /
+                          static_cast<double>(state->duration_frames);
+  const double gain =
+      state->curve == FEQ_CROSSFADE_CUSTOM
+          ? feq_crossfade_table_gain(&state->table, progress, incoming)
+          : feq_crossfade_gain(state->curve, progress, incoming);
+  return incoming != 0 ? gain : gain * state->outgoing_scale;
 }
 
 }  // extern "C"

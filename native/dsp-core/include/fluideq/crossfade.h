@@ -82,6 +82,16 @@ typedef struct FeqCrossfader {
   uint64_t duration_frames;
   uint64_t elapsed_frames;
   int active;
+  /**
+   * The level the outgoing side starts the fade from, as a factor on its
+   * curve: one for a fade out of a track playing at full level.
+   *
+   * Less than one when a fade is started out of the middle of another — the
+   * track being left was already part way down its own curve, and starting it
+   * back at unity would be a step up to full level — and zero when nothing
+   * was heard at all, where the fade is only the incoming side coming in.
+   */
+  double outgoing_scale;
 } FeqCrossfader;
 
 void feq_crossfader_init(FeqCrossfader* state);
@@ -111,6 +121,20 @@ void feq_crossfader_start(FeqCrossfader* state,
                           uint64_t duration_frames);
 
 /**
+ * Begin a fresh fade from its first frame, whatever was running: the incoming
+ * side from silence, the outgoing side from `outgoing_scale` of its curve.
+ *
+ * `feq_crossfader_start` is for the same fade asked for again, and keeps its
+ * place; this is for a fade to somewhere new, which the listener expects to
+ * hear arrive from nothing (Ivan, 2026-09-23: "just start 3 fading in"). The
+ * pending table is promoted here, as it is at any other fade's start.
+ */
+void feq_crossfader_restart(FeqCrossfader* state,
+                            FeqCrossfadeCurve curve,
+                            uint64_t duration_frames,
+                            double outgoing_scale);
+
+/**
  * Mix one block. Planar, `channels` pointers each, `out` may alias `outgoing`.
  *
  * Real-time safe: arithmetic and a counter. When no fade is running the
@@ -126,6 +150,15 @@ void feq_crossfader_mix(FeqCrossfader* state,
 
 /** 0 to 1. Reports 1 when nothing is running, which is a completed fade. */
 double feq_crossfader_progress(const FeqCrossfader* state);
+
+/**
+ * The gain the mixer applies to one side at the position the fade has
+ * reached: what `feq_crossfader_mix` would multiply that side by on its next
+ * sample, `outgoing_scale` included. Unity for the outgoing side and nothing
+ * for the incoming one before any fade has been configured, which is how
+ * `mix` copies the outgoing through.
+ */
+double feq_crossfader_gain(const FeqCrossfader* state, int incoming);
 
 #ifdef __cplusplus
 }

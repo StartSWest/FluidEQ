@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { INativeBackendController } from '../../../renderer/dsp/nativeBackend';
-import { createNativeMirror } from '../../../renderer/dsp/nativeMirror';
+import createNativeMirror from '../../../renderer/dsp/nativeMirror';
 
 const controllerSpy = (overrides: Record<string, unknown> = {}) => {
   const calls: string[] = [];
@@ -22,6 +22,12 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
     update: () => Promise.resolve(true),
     transport: {
       load: ok('load'),
+      // The host puts a track to be cut to on its free deck, deck 0 here, and
+      // names no deck for the next track, which it readies when one is free.
+      loadFor: (purpose: string, _path: string, startSeconds: number) => {
+        calls.push(`loadFor(${purpose},${startSeconds})`);
+        return Promise.resolve(purpose === 'handoff' ? 0 : undefined);
+      },
       unload: ok('unload'),
       play: () => {
         calls.push('play');
@@ -129,7 +135,7 @@ describe('the native mirror', () => {
      */
     let readable = true;
     const { controller } = controllerSpy({
-      load: () => Promise.resolve(readable),
+      loadFor: () => Promise.resolve(readable ? 0 : undefined),
     });
     const element = fakeElement();
     const mirror = createNativeMirror(controller, [element]);
@@ -250,9 +256,10 @@ describe('the native mirror', () => {
 
     // The fader is sent first and is not part of the ordering under test; what
     // matters is that the deck is loaded before it is selected and only then
-    // played, because a select or a play against an empty deck is silence.
+    // played, because a select or a play against an empty deck is silence —
+    // and that the deck selected is the one the host answered with.
     expect(calls.filter((call) => !call.startsWith('setVolume'))).toEqual([
-      'load(0)',
+      'loadFor(handoff,0)',
       'select(0)',
       'play',
     ]);
@@ -271,7 +278,8 @@ describe('the native mirror', () => {
     });
     await settle();
 
-    expect(calls).toContain('seek(92)');
+    // Cued in the load itself, before the deck is heard.
+    expect(calls).toContain('loadFor(handoff,92)');
   });
 
   it('starts a new track at its beginning, not where the last one was', async () => {
@@ -303,7 +311,7 @@ describe('the native mirror', () => {
     });
     await settle();
 
-    expect(calls).toContain('load(0)');
+    expect(calls).toContain('loadFor(handoff,0)');
     expect(calls.filter((call) => call.startsWith('seek'))).toEqual([]);
   });
 
@@ -482,10 +490,10 @@ describe('the native mirror', () => {
       });
       await settle();
 
-      expect(calls).toEqual(['load(0)', 'select(0)', 'play']);
+      expect(calls).toEqual(['loadFor(handoff,0)', 'select(0)', 'play']);
     });
 
-    it('unloads when the queue empties', async () => {
+    it('unloads both decks when the queue empties', async () => {
       const { calls, mirror } = await running();
 
       mirror.sync({
@@ -495,7 +503,8 @@ describe('the native mirror', () => {
       });
       await settle();
 
-      expect(calls).toEqual(['unload(0)']);
+      // Both, because a fade leaves the previous track on the other deck.
+      expect(calls).toEqual(['unload(0)', 'unload(1)']);
     });
   });
 
@@ -587,7 +596,7 @@ describe('the native mirror', () => {
    */
   it('unmutes the element when the host refuses the file', async () => {
     const { controller } = controllerSpy({
-      load: () => Promise.resolve(false),
+      loadFor: () => Promise.resolve(undefined),
     });
     const element = fakeElement();
     const mirror = createNativeMirror(controller, [element]);
