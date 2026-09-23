@@ -341,9 +341,15 @@ const MainContent = () => {
       // portalled to the body, so a press on "Reset 5 bands" arrived here
       // first, emptied the selection, and the click that followed found a
       // menu that now covered one band.
+      //
+      // Nor is the selected band's filter list. `Dropdown` portals it to the
+      // body as well, so picking Notch arrived here first, emptied the
+      // selection, and the editor — the dropdown with it — was gone before
+      // the click could land: the pane closed and the type never changed
+      // (Ivan, 2026-09-22). The karaoke workspace asks the same question.
       if (
         target?.closest?.(
-          '.bands-rail, .eq-flat-editor, .graph-wrapper, .eq-toolbar, .main-content-title, [role="dialog"]',
+          '.bands-rail, .eq-flat-editor, .graph-wrapper, .eq-toolbar, .main-content-title, [role="dialog"], .dropdown-menu-layer',
         ) ||
         isInsideAnchoredMenu(target)
       ) {
