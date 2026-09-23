@@ -226,11 +226,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'O Modo EQ muda como suas bandas e suas curvas de correção são aplicadas, sem editá-las. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
-    'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
+    'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
     'Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
   'help.eqmode.keywords':
-    'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava',
+    'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava, agudos, preciso, clássico',
   'help.eqmode.modeCaption': 'Modo EQ',
   'help.eqmode.strength':
     'Normal, Estúdio ×1.5 ou ×2, para seu EQ e suas curvas separadamente.',
@@ -238,6 +238,8 @@ const help: Record<keyof typeof en, string> = {
     'Constante mantém cada Q; Proporcional e Assimétrico estreitam as bandas conforme elas crescem.',
   'help.eqmode.smoothing': 'Suaviza curvas de correção amostradas.',
   'help.eqmode.phase': 'Mínima ou Linear. Só com o Motor FluidEQ.',
+  'help.eqmode.treble':
+    'Preciso soa como desenhado; Clássico, como no Equalizer APO. Só com o Motor FluidEQ.',
   'help.eqmode.reset': 'Tudo de volta ao Normal.',
   'help.eqmode.designsCaption': 'Designs de bandas',
   'help.eqmode.builtIn': 'Layouts padrão de 6, 10, 15, 20 ou 31 bandas.',

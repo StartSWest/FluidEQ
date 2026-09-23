@@ -222,11 +222,11 @@ const help = {
   'help.eqmode.intro':
     'EQ mode changes how your bands and your correction curves are applied, without editing them. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
-    'Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.\nUnder the FluidEQ Engine, choose Minimum or Linear phase. Press Reset to return everything to Normal.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
+    'Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.\nUnder the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble. Press Reset to return everything to Normal.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
     'A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.',
   'help.eqmode.keywords':
-    'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q',
+    'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q, treble, precise, classic',
   'help.eqmode.modeCaption': 'EQ mode',
   'help.eqmode.strength':
     'Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.',
@@ -234,6 +234,8 @@ const help = {
     'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.',
   'help.eqmode.smoothing': 'Softens sampled correction curves.',
   'help.eqmode.phase': 'Minimum or Linear. With the FluidEQ Engine only.',
+  'help.eqmode.treble':
+    'Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.',
   'help.eqmode.reset': 'Everything back to Normal.',
   'help.eqmode.designsCaption': 'Band designs',
   'help.eqmode.builtIn': 'Standard layouts of 6, 10, 15, 20 or 31 bands.',

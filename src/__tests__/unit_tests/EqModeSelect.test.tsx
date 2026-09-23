@@ -234,16 +234,19 @@ it('keeps both groups open and sends only the selected scope', async () => {
   fireEvent.pointerDown(document.body);
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
-it('shows a persistent selection check and pending state without confusing hover with selection', async () => {
+it('shows a persistent selection and pending state without confusing hover with selection', async () => {
   render(<EqModeSelect />);
   fireEvent.click(menu());
   const group = screen.getByRole('group', { name: 'Your EQ · Band Q' });
   const constant = within(group).getByRole('button', { name: 'Constant' });
   const asymmetric = within(group).getByRole('button', { name: 'Asymmetric' });
   expect(constant).toHaveAttribute('aria-pressed', 'true');
-  expect(constant.querySelector('.eq-mode-choice__mark svg')).not.toBeNull();
+  // The chosen segment is the lit one of its track, and only it.
+  expect(constant).toHaveClass('is-selected');
+  expect(asymmetric).not.toHaveClass('is-selected');
   fireEvent.mouseOver(asymmetric);
   expect(asymmetric).toHaveAttribute('aria-pressed', 'false');
+  expect(asymmetric).not.toHaveClass('is-selected');
   let finish: () => void = () => undefined;
   mockSetShape.mockReturnValueOnce(
     new Promise<void>((resolve) => {

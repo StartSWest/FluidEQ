@@ -167,33 +167,41 @@ const SOUND_CHAPTERS = [
     group: 'sound',
     figures: [
       {
+        // The menu on its segmented tracks, at the amp's scale it is drawn at
+        // on the page too, under the FluidEQ Engine with every choice at its
+        // default (`.claude/harness-eqmode`, 2026-09-22).
         image: '18-eq-mode.png',
-        width: 420,
-        height: 927,
+        width: 312,
+        height: 826,
         caption: 'help.eqmode.modeCaption',
         controls: [
           {
-            box: [34, 119, 352, 72],
+            box: [18, 87, 276, 50],
             name: 'eq.mode.strength',
             text: 'help.eqmode.strength',
           },
           {
-            box: [34, 207, 352, 72],
+            box: [18, 145, 276, 50],
             name: 'eq.mode.q',
             text: 'help.eqmode.q',
           },
           {
-            box: [34, 666, 352, 72],
-            name: 'eq.mode.smoothing',
-            text: 'help.eqmode.smoothing',
-          },
-          {
-            box: [34, 295, 352, 108],
+            box: [18, 203, 276, 88],
             name: 'eq.mode.phase',
             text: 'help.eqmode.phase',
           },
           {
-            box: [338, 17, 65, 32],
+            box: [18, 299, 276, 67],
+            name: 'eq.mode.treble',
+            text: 'help.eqmode.treble',
+          },
+          {
+            box: [18, 538, 276, 50],
+            name: 'eq.mode.smoothing',
+            text: 'help.eqmode.smoothing',
+          },
+          {
+            box: [238, 9, 65, 32],
             name: 'eq.mode.reset',
             text: 'help.eqmode.reset',
           },

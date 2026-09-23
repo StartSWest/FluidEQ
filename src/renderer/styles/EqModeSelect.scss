@@ -72,21 +72,17 @@
     }
   }
 
-  &__choices {
+  // Every row is the app's segmented track (`.segmented`, Dsp.scss): a
+  // closed set of choices, all showing, the chosen one lit. Each row used to
+  // be a grid of tiles with the chosen tile filled solid, and a panel of nine
+  // solid tiles gave the eye nothing to find (Ivan, 2026-09-22: "improve this
+  // ui"). Equal widths, so a row reads as one control whatever its words;
+  // scoped past `.segmented`'s own `display: flex` whichever stylesheet
+  // loads first.
+  .segmented.eq-mode-menu__choices {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 3px;
-
-    // Phase and Treble: two choices, each half the row.
-    &--pair {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    [aria-pressed='true'] {
-      color: $surface-base;
-      background: $secondary-default;
-      border-color: $secondary-default;
-    }
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
   }
 }
 .eq-mode-menu__heading {
@@ -123,9 +119,15 @@
   display: grid;
   gap: $spacing-xs;
 }
+// The EQ page's own field caption (`.eq-flat-editor__control > span`), so the
+// menu names its rows the way the band editor under it names its fields.
 .eq-mode-menu__row-label {
-  color: $text-faint;
-  font-size: $text-small;
+  color: $text-muted;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  line-height: 14px;
+  text-transform: uppercase;
 }
 .eq-mode-menu__note {
   margin: 0;
@@ -133,77 +135,72 @@
   font-size: $text-micro;
   line-height: 1.4;
 }
-.eq-mode-menu .button.subtle.eq-mode-choice {
-  &[aria-pressed],
-  &[aria-pressed]:hover,
-  &[aria-pressed]:active {
-    transform: none;
-    filter: none;
-    cursor: pointer;
-  }
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
-  position: relative;
+// One segment: the word, and under it the delay Linear adds. Words wrap
+// rather than clip or run into the next segment, and break inside a word
+// only when that word alone is wider than its segment: a Russian
+// "Proportional" ("Пропорциональная") is, and ran into "Asymmetric" beside
+// it; the English one fits whole.
+.eq-mode-menu .segmented__option.eq-mode-choice {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
   min-width: 0;
-  min-height: 38px;
-  padding: 5px 4px;
+  min-height: 26px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: calc(#{$radius-xs} - 2px);
   font-size: $text-small;
+  font-weight: $weight-semibold;
+  line-height: 1.15;
+  text-align: center;
   white-space: normal;
   overflow-wrap: anywhere;
-  line-height: 1.3;
-  > svg {
-    width: 13px;
-    height: 13px;
+  hyphens: auto;
+
+  &:focus-visible {
+    @include focus-ring;
   }
-  &[aria-pressed='false']:hover {
-    background: $surface-field;
-    color: $text-primary;
+
+  // Lit, not filled: the one chosen segment of each row carries the accent,
+  // as a key lit from inside, and the rest of the panel stays quiet.
+  &.is-selected {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-default 30%, transparent),
+      color-mix(in srgb, $secondary-default 18%, transparent)
+    );
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, $secondary-default 55%, transparent),
+      inset 0 1px 0 rgba($white, 0.12),
+      0 0 10px color-mix(in srgb, $secondary-default 22%, transparent);
   }
-  &[aria-pressed='true'],
-  &[aria-pressed='true']:hover,
-  &[aria-pressed='true']:active,
-  &[aria-pressed='true']:disabled {
-    background: $secondary-default;
-    color: $surface-base;
-    border-color: $secondary-default;
-    box-shadow: inset 0 0 0 1px $secondary-default;
+
+  // The seam between two unlit neighbours, as the DSP cards draw it; beside
+  // the lit one its edge is the seam.
+  & + .eq-mode-choice::before {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 0;
+    width: 1px;
+    background: rgba($white, 0.09);
+    content: '';
   }
-  &:disabled {
-    opacity: 1;
-    cursor: wait;
-  }
-  &[aria-pressed='false']:disabled {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-light 24%, transparent);
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
-    box-shadow: none;
-  }
-  &[aria-pressed='false']:disabled:hover {
-    color: $text-primary;
-    background: $surface-field;
+
+  &.is-selected::before,
+  &.is-selected + .eq-mode-choice::before {
+    display: none;
   }
 }
-.eq-mode-choice__mark {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 11px;
-  height: 11px;
-  svg {
-    width: 100%;
-    height: 100%;
-  }
+.eq-mode-choice__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .eq-mode-choice__pending {
-  display: block;
-  width: 10px;
-  height: 10px;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -225,4 +222,5 @@
   line-height: 1.4;
   font-weight: $weight-regular;
   font-variant-numeric: tabular-nums;
+  opacity: 0.75;
 }

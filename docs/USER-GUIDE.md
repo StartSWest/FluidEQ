@@ -297,7 +297,8 @@ EQ mode changes how your bands and your correction curves are applied, without e
 2. **Strength** — Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.
 3. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.
 4. **Phase** — Minimum or Linear. With the FluidEQ Engine only.
-5. **Curve smoothing** — Softens sampled correction curves.
+5. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
+6. **Curve smoothing** — Softens sampled correction curves.
 
 ### Band designs
 
@@ -309,7 +310,7 @@ EQ mode changes how your bands and your correction curves are applied, without e
 ### Try it
 
 1. Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.
-2. Under the FluidEQ Engine, choose Minimum or Linear phase. Press Reset to return everything to Normal.
+2. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble. Press Reset to return everything to Normal.
 3. Open the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.
 
 > **Good to know:** A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.

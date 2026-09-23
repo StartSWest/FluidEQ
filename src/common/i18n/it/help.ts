@@ -229,11 +229,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Modalità EQ cambia il modo in cui vengono applicate le tue bande e le curve di correzione, senza modificarle. Le disposizioni delle bande salvano frequenze e Q di un assetto che ti piace, pronto per qualsiasi uscita.',
   'help.eqmode.steps':
-    'Apri Modalità EQ nella barra di Bande. Prova un’opzione di Intensità, Q delle bande o Levigatura curve mentre suona la musica; il pannello resta aperto.\nCon il motore FluidEQ, scegli la fase Minima o Lineare. Premi Ripristina per riportare tutto a Normale.\nPremi il pulsante delle disposizioni accanto ad Aggiungi banda. Scegli 6, 10, 15, 20 o 31 bande, oppure premi Salva disposizione… per dare un nome alla disposizione attuale.',
+    'Apri Modalità EQ nella barra di Bande. Prova un’opzione di Intensità, Q delle bande o Levigatura curve mentre suona la musica; il pannello resta aperto.\nCon il motore FluidEQ, scegli la fase Minima o Lineare, e Preciso o Classico per gli alti. Premi Ripristina per riportare tutto a Normale.\nPremi il pulsante delle disposizioni accanto ad Aggiungi banda. Scegli 6, 10, 15, 20 o 31 bande, oppure premi Salva disposizione… per dare un nome alla disposizione attuale.',
   'help.eqmode.tip':
     'Una disposizione salva solo frequenze e Q: caricarne una fa partire ogni banda da 0 dB. La fase lineare aggiunge ritardo e può risuonare prima dei transienti.',
   'help.eqmode.keywords':
-    'numero di bande, quante bande, layout bande, equalizzatore grafico, smoothing, linear phase',
+    'numero di bande, quante bande, layout bande, equalizzatore grafico, smoothing, linear phase, alti, preciso, classico',
   'help.eqmode.modeCaption': 'Modalità EQ',
   'help.eqmode.strength':
     'Normale, Studio ×1.5 o ×2, per il tuo EQ e per le curve separatamente.',
@@ -241,6 +241,8 @@ const help: Record<keyof typeof en, string> = {
     'Costante mantiene ogni Q; Proporzionale e Asimmetrico stringono le bande man mano che crescono.',
   'help.eqmode.smoothing': 'Ammorbidisce le curve di correzione campionate.',
   'help.eqmode.phase': 'Minima o Lineare. Solo con il motore FluidEQ.',
+  'help.eqmode.treble':
+    'Preciso suona come disegnato, Classico come in Equalizer APO. Solo con il motore FluidEQ.',
   'help.eqmode.reset': 'Riporta tutto a Normale.',
   'help.eqmode.designsCaption': 'Disposizioni delle bande',
   'help.eqmode.builtIn': 'Disposizioni standard da 6, 10, 15, 20 o 31 bande.',

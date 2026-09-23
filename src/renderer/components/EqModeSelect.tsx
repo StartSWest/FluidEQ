@@ -5,7 +5,6 @@ import {
   TCurveComparison,
 } from '../../common/curveComparison';
 import EqModeIcon from '../icons/EqModeIcon';
-import ConfirmIcon from '../icons/ConfirmIcon';
 import ProfileActionIcon from '../icons/ProfileActionIcon';
 import {
   getEqMode,
@@ -21,6 +20,8 @@ import { resetEqMode, setEqMode, setEqShape } from '../utils/equalizerApi';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import Chevron from '../icons/Chevron';
+// The segmented track every closed set of choices in the app is drawn on.
+import '../styles/Dsp.scss';
 import '../styles/EqModeSelect.scss';
 import useCurvePhase from '../utils/useCurvePhase';
 import { useListenedOutput } from '../utils/useListenedOutput';
@@ -254,7 +255,7 @@ export default function EqModeSelect() {
       <div className="eq-mode-menu__row">
         <span className="eq-mode-menu__row-label">{t(`eq.mode.${kind}`)}</span>
         <div
-          className={`eq-mode-menu__choices${kind === 'phase' || kind === 'treble' ? ' eq-mode-menu__choices--pair' : ''}`}
+          className="segmented eq-mode-menu__choices"
           role="group"
           aria-label={
             kind === 'strength'
@@ -264,11 +265,9 @@ export default function EqModeSelect() {
         >
           {values.map((value) => {
             const isPending = pending === `${scope}-${kind}-${value}`;
-            let icon: string = value;
             let text: string;
             let hint: string | undefined;
             if (kind === 'phase') {
-              icon = value === 'B' ? 'minimumPhase' : 'linearPhase';
               text = t(
                 value === 'B' ? 'eq.mode.minimumPhase' : 'eq.mode.linearPhase',
               );
@@ -279,7 +278,6 @@ export default function EqModeSelect() {
               );
               hint = t(trebleNote(scope, value as TTrebleDesign));
             } else if (kind === 'q') {
-              icon = qName(value as TBandQ);
               text = t(`eq.mode.${qName(value as TBandQ)}`);
               hint = t(`eq.mode.${qName(value as TBandQ)}Hint`);
             } else if (kind === 'strength') {
@@ -291,7 +289,9 @@ export default function EqModeSelect() {
               <button
                 type="button"
                 key={value}
-                className="button small subtle eq-mode-choice"
+                className={`segmented__option eq-mode-choice${
+                  current === value ? ' is-selected' : ''
+                }`}
                 aria-pressed={current === value}
                 aria-busy={isPending}
                 disabled={
@@ -302,8 +302,12 @@ export default function EqModeSelect() {
                 onClick={() => select(scope, value, kind)}
                 title={hint}
               >
-                <EqModeIcon kind={icon} />
-                <span>{text}</span>
+                <span className="eq-mode-choice__label">
+                  {isPending && (
+                    <span className="eq-mode-choice__pending" aria-hidden />
+                  )}
+                  {text}
+                </span>
                 {kind === 'phase' &&
                   value === 'A' &&
                   phaseSupported &&
@@ -329,12 +333,6 @@ export default function EqModeSelect() {
                           )}
                     </small>
                   )}
-                <span className="eq-mode-choice__mark" aria-hidden="true">
-                  {isPending && <span className="eq-mode-choice__pending" />}
-                  {!isPending && current === value && (
-                    <ConfirmIcon variant="accept" />
-                  )}
-                </span>
               </button>
             );
           })}

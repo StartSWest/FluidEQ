@@ -1,24 +1,13 @@
-const PATHS: Record<string, string> = {
+import type { TEqModeScope } from '../../common/eqMode';
+
+// The EQ mode menu's two groups. Its choices are words on a segmented track;
+// the glyphs each tile once carried went with the tiles.
+const PATHS: Record<TEqModeScope, string> = {
   eq: 'M5 3v18M12 3v18M19 3v18M2 8h6M9 16h6M16 10h6',
   curves: 'M2 17C6 17 5 5 10 5S14 19 18 19s3-7 4-7',
-  normal: 'M3 16h5V8h8v8h5',
-  studio: 'M3 18h4v-6h4V6h4v6h4v6h2',
-  double: 'M3 17h5V7h8v10h5M3 21h18',
-  constant: 'M2 18C8 18 7 6 12 6s4 12 10 12',
-  proportional: 'M2 18h5c3 0 3-14 5-14s2 14 5 14h5',
-  asymmetric: 'M2 14c4 0 3-8 7-8s3 8 6 8c2 0 1 7 3 7s1-7 4-7',
-  off: 'M2 12h5l2-7 3 14 3-12 2 5h5',
-  twelfth: 'M2 12h4c2 0 2-7 5-7s2 14 5 14 2-7 6-7',
-  third: 'M2 12c5 0 5-5 10-5s5 10 10 10',
-  minimumPhase: 'M2 17h3V5l3 15 3-10 3 7 3-3 3 3h2',
-  linearPhase: 'M2 16h4l2-4 2 8 2-16 2 16 2-8 2 4h4',
-  // A treble bell under the level it was set to: Precise reaches it, Classic
-  // falls short of it, narrower on the side towards 20 kHz.
-  precise: 'M2 18h6c3.5 0 3-13 6.5-13s3 13 6.5 13M11 3h7',
-  classic: 'M2 18h8c3 0 2.5-8 4.5-8c1.5 0 1.5 8 3 8h4.5M11 3h7',
 };
 
-export default function EqModeIcon({ kind }: { kind: string }) {
+export default function EqModeIcon({ kind }: { kind: TEqModeScope }) {
   return (
     <svg
       viewBox="0 0 24 24"

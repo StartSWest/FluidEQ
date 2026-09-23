@@ -232,11 +232,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Der EQ-Modus ändert, wie Ihre Bänder und Ihre Korrekturkurven angewendet werden, ohne sie zu bearbeiten. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
-    'Öffnen Sie in der Leiste der Seite Bänder den EQ-Modus. Probieren Sie bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWählen Sie unter der FluidEQ-Engine die Phase Minimal oder Linear. Drücken Sie Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
+    'Öffnen Sie in der Leiste der Seite Bänder den EQ-Modus. Probieren Sie bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWählen Sie unter der FluidEQ-Engine die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch. Drücken Sie Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
     'Ein Design speichert nur Frequenzen und Q: Wird eines geladen, beginnt jedes Band bei 0 dB. Lineare Phase fügt Verzögerung hinzu und kann vor harten Schlägen vorschwingen.',
   'help.eqmode.keywords':
-    'bandanzahl, bandlayout, 10-band-EQ, 31-band-EQ, grafischer EQ, intensität, linearphasig, minimalphasig, konstantes Q, proportionales Q, pre-ringing',
+    'bandanzahl, bandlayout, 10-band-EQ, 31-band-EQ, grafischer EQ, intensität, linearphasig, minimalphasig, konstantes Q, proportionales Q, pre-ringing, Höhen, präzise, klassisch',
   'help.eqmode.modeCaption': 'EQ-Modus',
   'help.eqmode.strength':
     'Normal, Studio ×1.5 oder ×2, getrennt für Ihren EQ und Ihre Kurven.',
@@ -244,6 +244,8 @@ const help: Record<keyof typeof en, string> = {
     'Konstant behält jedes Q; Proportional und Asymmetrisch machen Bänder schmaler, je stärker sie werden.',
   'help.eqmode.smoothing': 'Glättet abgetastete Korrekturkurven.',
   'help.eqmode.phase': 'Minimal oder Linear. Nur mit der FluidEQ-Engine.',
+  'help.eqmode.treble':
+    'Präzise klingt wie gezeichnet, Klassisch wie in Equalizer APO. Nur mit der FluidEQ-Engine.',
   'help.eqmode.reset': 'Alles zurück auf Normal.',
   'help.eqmode.designsCaption': 'Band-Designs',
   'help.eqmode.builtIn': 'Standard-Layouts mit 6, 10, 15, 20 oder 31 Bändern.',
