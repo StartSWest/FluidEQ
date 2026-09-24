@@ -18,9 +18,8 @@ import ScenePreview from '../plus/ScenePreview';
 import {
   cycleGraphLook,
   setGraphLook,
-  useGraphWaveHeight,
-  useGraphWavePosition,
   useSelectedLookId,
+  useWatchedGraphWave,
   useWaveOrientation,
 } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
@@ -47,8 +46,11 @@ const VisDeck = ({ height }: { height: number }) => {
   const selectedLookId = useSelectedLookId();
   const scene = useGraphScenePack();
   const orientation = useWaveOrientation();
-  const waveHeight = useGraphWaveHeight();
-  const wavePosition = useGraphWavePosition();
+  // The wave as it is set for watching — full screen's. The graph keeps one
+  // per view mode and the player is none of them: it is a picture to watch,
+  // like a desktop background, and the pane's measuring height is about a
+  // card this window does not have.
+  const { height: waveHeight, position: wavePosition } = useWatchedGraphWave();
   const stageRef = useRef<HTMLDivElement>(null);
   const isFull = usePlayerVisFull();
   /**

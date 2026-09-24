@@ -191,7 +191,7 @@ describe('GraphViewMenu curve toggles', () => {
     fireEvent.click(trigger);
 
     expect(screen.getByRole('menu')).toHaveStyle({
-      maxHeight: '158px',
+      maxHeight: '154px',
       overflowY: 'auto',
     });
 

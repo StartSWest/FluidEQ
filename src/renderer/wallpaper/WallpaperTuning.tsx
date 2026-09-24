@@ -4,7 +4,7 @@ import { useWatchedGraphWave } from '../utils/graphViewSettings';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useAllListenerParams } from '../utils/sceneParamStore';
 import { useAllListenerResponses } from '../utils/sceneResponseStore';
-import { useAllListenerWaves } from '../utils/sceneWaveStore';
+import { useWatchedListenerWaves } from '../utils/sceneWaveStore';
 import { useUsableScenes } from '../utils/scenePacks';
 import { sendSceneTuning } from './wallpaperStore';
 
@@ -27,7 +27,7 @@ export default function WallpaperTuning() {
   const members = useUsableMemberScenes();
   const params = useAllListenerParams();
   const responses = useAllListenerResponses();
-  const waves = useAllListenerWaves();
+  const waves = useWatchedListenerWaves();
   const graphWave = useWatchedGraphWave();
   const tuning = useMemo(() => {
     const record: Record<string, IWallpaperTuning> = {};

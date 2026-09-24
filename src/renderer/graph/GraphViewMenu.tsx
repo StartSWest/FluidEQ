@@ -158,17 +158,6 @@ interface IPlacement {
 }
 
 /**
- * How close to the window edge the list may come before it stops growing.
- *
- * There used to be an ESTIMATED height here — 260 pixels, guessed once and
- * never revisited — and the menu outgrew it. A guess that is too small means
- * the list believes it fits below when it does not, so it never flips and the
- * last rows are simply cut off by the window. Which is what happened.
- *
- * It measures itself now, so nothing has to be kept in step with how many rows
- * the menu has. This is only the margin left around it.
- */
-/**
  * The wave height slider snaps to the quarter marks.
  *
  * A half-height wave is a thing people set on purpose — it leaves the top
@@ -195,8 +184,55 @@ export const snapPercent = (percent: number): number => {
   return near ?? percent;
 };
 
-const MENU_EDGE_GAP = 12;
+/**
+ * How close to an edge the list may come before it stops growing — the
+ * window's chrome, and whatever it is standing in. The app's own gutter, so a
+ * menu that has grown as tall as it can sits off the edge by the same breath
+ * as everything else rather than appearing to touch it.
+ *
+ * There used to be an ESTIMATED height beside it — 260 pixels, guessed once
+ * and never revisited — and the menu outgrew it. A guess that is too small
+ * means the list believes it fits below when it does not, so it never flips
+ * and the last rows are simply cut off. It measures itself now, so nothing has
+ * to be kept in step with how many rows the menu has; this is only the margin
+ * left around it.
+ */
+const MENU_EDGE_GAP = 16;
 const MENU_ESTIMATED_WIDTH = 210;
+
+/**
+ * Where whatever the menu is inside would cut it off.
+ *
+ * The workspace column is `overflow: hidden` — it has to be, the cards in it
+ * are rounded and its panes scroll — and it starts below the titlebar, so a
+ * menu that measured itself against the window alone fitted the window and had
+ * its first rows eaten by the column (Ivan, 2026-09-23). Every ancestor that
+ * clips is asked, rather than one named class: the same menu opens from the
+ * graph in a pane, over the workspace, in full screen and in the Studio, and a
+ * rule that names the pane's wrapper would be right in one of them.
+ *
+ * `overflow` on either axis counts. A box that clips horizontally and not
+ * vertically is still a scroll container, and the browser clips it both ways.
+ */
+const clipBounds = (from: Element) => {
+  let top = 0;
+  let bottom = window.innerHeight;
+  let element = from.parentElement;
+  while (element) {
+    const style = getComputedStyle(element);
+    if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+      const box = element.getBoundingClientRect();
+      // A box with no size clips nothing that can be seen anyway, and taking
+      // it as an edge would leave the menu with no room at all.
+      if (box.height > 0 && box.width > 0) {
+        top = Math.max(top, box.top);
+        bottom = Math.min(bottom, box.bottom);
+      }
+    }
+    element = element.parentElement;
+  }
+  return { top, bottom };
+};
 
 const Icon = ({ children }: { children: ReactNode }) => (
   <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
@@ -356,10 +392,11 @@ const GraphViewMenu = ({
     if (!isOpen) {
       return;
     }
-    const trigger = rootRef.current?.getBoundingClientRect();
-    if (!trigger) {
+    const root = rootRef.current;
+    if (!root) {
       return;
     }
+    const trigger = root.getBoundingClientRect();
     /*
      * MEASURED, THEN PLACED, THEN CAPPED.
      *
@@ -388,9 +425,15 @@ const GraphViewMenu = ({
       .querySelector('.now-playing-bar')
       ?.getBoundingClientRect();
     const chromeBottom = transport ? window.innerHeight - transport.top : 0;
-    const below =
-      window.innerHeight - chromeBottom - trigger.bottom - MENU_EDGE_GAP;
-    const above = trigger.top - chromeTop - MENU_EDGE_GAP;
+    // And the room is no bigger than what the menu is standing in. The list
+    // fitted the window and was still cut across the top, because the
+    // workspace column it lives in is `overflow: hidden` and ends well below
+    // the titlebar (Ivan: "the top part is getting eat by the wrapper").
+    const clip = clipBounds(root);
+    const ceiling = Math.max(chromeTop, clip.top);
+    const floor = Math.min(window.innerHeight - chromeBottom, clip.bottom);
+    const below = floor - trigger.bottom - MENU_EDGE_GAP;
+    const above = trigger.top - ceiling - MENU_EDGE_GAP;
     const isAbove = wanted > below && above > below;
     const room = isAbove ? above : below;
     setPlacement({

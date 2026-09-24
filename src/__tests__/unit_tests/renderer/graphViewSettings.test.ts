@@ -167,35 +167,41 @@ describe('one set of view settings per mode', () => {
   });
 
   /**
-   * Wave height describes the wave, not the frame around it: the two big
-   * modes share one value, so what is set in one is what the other draws.
-   * The pane is a measurement that uses the whole plot, offers no control,
-   * and reads full height whatever the big modes are set to.
+   * One wave height per mode, like everything else in this file. The two big
+   * modes used to share a value; on screen the pane is a band across a card
+   * and full screen is the whole glass, so a wave set to fill one of them is
+   * a smear in the other (Ivan, 2026-09-23).
    */
-  it('shares one wave height between every mode, the pane included', () => {
+  it('keeps a wave height of its own for each mode', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
     style.setGraphWaveHeight(0.65);
+    // Only the mode it was set in is written, so the others keep theirs.
+    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.65');
+    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBeNull();
+    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBeNull();
+
     style.setGraphView('fullscreen');
+    expect(style.getGraphWaveHeight()).toBe(0.75);
+    style.setGraphWaveHeight(0.5);
+    style.setGraphView('expanded');
     expect(style.getGraphWaveHeight()).toBe(0.65);
 
-    style.setGraphWaveHeight(0.5);
-    // Written for both, so each survives a restart on its own key.
-    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.5');
-    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
-    style.setGraphView('expanded');
-    expect(style.getGraphWaveHeight()).toBe(0.5);
-
-    // The pane gets it too, and that is the point: the menu offers these rows
-    // in the pane while a visualizer is on the plot, and they used to write a
-    // value this getter refused to hand back — so the thumb sprang home on
-    // release and the picture never moved. Whether a bare pane draws with it
-    // is `FrequencyResponseChart`'s call, because that is where it is known
+    // The pane has one too, and that is the point: the menu offers these rows
+    // there while a visualizer is on the plot, and they used to write a value
+    // the getter refused to hand back — so the thumb sprang home on release
+    // and the picture never moved. Whether a bare pane draws with it is
+    // `FrequencyResponseChart`'s call, because that is where it is known
     // whether a scene is on the plot at all.
     style.setGraphView('normal');
-    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBe('0.5');
-    expect(style.getGraphWaveHeight()).toBe(0.5);
+    expect(style.getGraphWaveHeight()).toBe(1);
+    style.setGraphWaveHeight(0.4);
+    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBe('0.4');
+
+    // A desktop background is watched the way full screen is, so it takes
+    // full screen's whichever mode the graph itself is in.
+    expect(style.getWatchedGraphWave().height).toBe(0.5);
   });
 
   it('starts the watching views at three quarters and the pane at full', () => {
@@ -666,9 +672,8 @@ describe('carrying an older install across', () => {
     // restart would look identical to a value that was remembered, which is
     // exactly the bug this test exists to catch.
     expect(second.getGraphGridHidden()).toBe(false);
-    // The wave height is the one value both big modes share, so full screen
-    // reopens at what was set in expanded rather than at its starting three
-    // quarters — while the grid above stays each mode's own.
-    expect(second.getGraphWaveHeight()).toBe(0.4);
+    // And the wave height is each mode's own as well: full screen reopens at
+    // its own starting three quarters rather than at what was set in expanded.
+    expect(second.getGraphWaveHeight()).toBe(0.75);
   });
 });

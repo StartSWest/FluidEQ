@@ -11,6 +11,7 @@ import {
   type ISceneWave,
 } from 'common/sceneWave';
 import { readStored, removeStored, writeStored } from './graphStorage';
+import { GRAPH_VIEWS, type TGraphView } from './graphViewSettings';
 
 /**
  * The wave a listener set for one Plus visualizer, over the one its author
@@ -30,17 +31,53 @@ import { readStored, removeStored, writeStored } from './graphStorage';
  * no wave is not stored here at all — there is nothing to override, and the
  * graph's own setting draws it, as it always did.
  *
+ * AND PER VIEW MODE. The same scene is a band across a card in the pane, a
+ * picture over the workspace expanded, and the whole glass in full screen, so
+ * one wave for the three of them is a wave that is right in one and wrong in
+ * the other two (Ivan, 2026-09-23). The graph's own wave is kept the same way
+ * — `createPerViewSetting` in `graphViewSettings.ts` — and the author's wave
+ * is what any mode nobody has moved is drawn with.
+ *
  * On this computer, by look id. The graph's own wave is untouched by any of
  * this: it is what everything that is not a Plus scene is drawn with.
  */
 
 const STORAGE_KEY = 'fluideq.sceneWaves';
 
+/** What a listener set for one visualizer: a wave per mode, where they set one. */
+type TSceneWaves = Partial<Record<TGraphView, ISceneWave>>;
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const readChoices = (): Map<string, ISceneWave> => {
-  const choices = new Map<string, ISceneWave>();
+/**
+ * One visualizer's entry, in either shape it can be in storage.
+ *
+ * A wave written before the modes had their own was set with no notion of
+ * them, so it is equally true of all three — the same reasoning, and the same
+ * answer, as the per-view settings' own migration. It is rewritten in the new
+ * shape as soon as anything is saved.
+ */
+const readModes = (raw: unknown): TSceneWaves | undefined => {
+  const flat = readSceneWave(raw);
+  if (flat) {
+    return { normal: flat, expanded: flat, fullscreen: flat };
+  }
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+  const modes: TSceneWaves = {};
+  GRAPH_VIEWS.forEach((mode) => {
+    const wave = readSceneWave(raw[mode]);
+    if (wave) {
+      modes[mode] = wave;
+    }
+  });
+  return Object.keys(modes).length > 0 ? modes : undefined;
+};
+
+const readChoices = (): Map<string, TSceneWaves> => {
+  const choices = new Map<string, TSceneWaves>();
   const stored = readStored(STORAGE_KEY);
   if (stored === null) {
     return choices;
@@ -55,16 +92,16 @@ const readChoices = (): Map<string, ISceneWave> => {
   }
   if (isRecord(parsed)) {
     Object.entries(parsed).forEach(([lookId, raw]) => {
-      const wave = readSceneWave(raw);
-      if (wave) {
-        choices.set(lookId, wave);
+      const modes = readModes(raw);
+      if (modes) {
+        choices.set(lookId, modes);
       }
     });
   }
   return choices;
 };
 
-let choices: Map<string, ISceneWave> | undefined;
+let choices: Map<string, TSceneWaves> | undefined;
 const listeners = new Set<() => void>();
 /** Counts changes, for a reader that wants the whole record. */
 let revision = 0;
@@ -92,60 +129,111 @@ const subscribe = (listener: () => void) => {
   };
 };
 
+/** A stable empty map, because a server snapshot must not change identity. */
+const NO_WAVES: ReadonlyMap<string, ISceneWave> = new Map();
+
+let watched: ReadonlyMap<string, ISceneWave> = NO_WAVES;
+/** Which change `watched` was built from; -1 so the first read builds it. */
+let watchedAt = -1;
+
 /**
- * Every visualizer's wave at once, for whoever has to send the lot somewhere
- * — the desktop's monitors, which have no store of their own. The map is the
- * store's own and is written in place, so the count of changes is what a
- * reader subscribes to.
+ * Every visualizer's wave as it is watched, for whoever has to send the lot
+ * somewhere — the desktop's monitors, which have no store of their own. Full
+ * screen's, because a desktop background is watched the way full screen is
+ * (`getWatchedGraphWave`); a scene nobody has moved there is left out, and the
+ * sender falls back to its author's.
+ *
+ * Built once per change rather than per read: the sender hands this to a
+ * `useMemo`, and a fresh map every render would rebuild the tuning and send it
+ * again on every render.
  */
-export const useAllListenerWaves = (): ReadonlyMap<string, ISceneWave> => {
-  useSyncExternalStore(
-    subscribe,
-    () => revision,
-    () => 0,
-  );
-  return allChoices();
+const readWatched = (): ReadonlyMap<string, ISceneWave> => {
+  if (watchedAt !== revision) {
+    const next = new Map<string, ISceneWave>();
+    allChoices().forEach((modes, lookId) => {
+      const wave = modes.fullscreen;
+      if (wave) {
+        next.set(lookId, wave);
+      }
+    });
+    watched = next;
+    watchedAt = revision;
+  }
+  return watched;
 };
 
-/** What the listener set for `lookId`, or nothing while they have not. */
-export const useListenerWave = (lookId: string | undefined) =>
+export const useWatchedListenerWaves = (): ReadonlyMap<string, ISceneWave> =>
+  useSyncExternalStore(subscribe, readWatched, () => NO_WAVES);
+
+/** What the listener set for `lookId` in `view`, or nothing while they have not. */
+export const useListenerWave = (lookId: string | undefined, view: TGraphView) =>
   useSyncExternalStore(
     subscribe,
-    () => (lookId === undefined ? undefined : allChoices().get(lookId)),
+    () => (lookId === undefined ? undefined : allChoices().get(lookId)?.[view]),
     () => undefined,
   );
 
+/** The entry with one mode taken out, or nothing left to keep. */
+const without = (
+  modes: TSceneWaves | undefined,
+  view: TGraphView,
+): TSceneWaves | undefined => {
+  const rest = { ...modes };
+  delete rest[view];
+  return Object.keys(rest).length > 0 ? rest : undefined;
+};
+
 /**
- * Sets the wave for `lookId`. The author's own is passed so a slider brought
- * back onto it forgets the choice rather than pinning a copy of today's
- * value — the same reasoning as the scene's controls, and what makes Restore
- * and dragging back to the mark mean the same thing.
+ * Sets the wave for `lookId` in `view`. The author's own is passed so a slider
+ * brought back onto it forgets the choice rather than pinning a copy of
+ * today's value — the same reasoning as the scene's controls, and what makes
+ * Restore and dragging back to the mark mean the same thing.
  */
 export const setListenerWave = (
   lookId: string,
+  view: TGraphView,
   wave: ISceneWave,
   authored: ISceneWave,
 ) => {
   const all = allChoices();
-  const known = all.get(lookId);
+  const modes = all.get(lookId);
+  const known = modes?.[view];
   if (sameSceneWave(wave, authored)) {
     if (known === undefined) {
       return;
     }
-    all.delete(lookId);
+    const rest = without(modes, view);
+    if (rest) {
+      all.set(lookId, rest);
+    } else {
+      all.delete(lookId);
+    }
     save();
     return;
   }
   if (known && sameSceneWave(known, wave)) {
     return;
   }
-  all.set(lookId, wave);
+  all.set(lookId, { ...modes, [view]: wave });
   save();
 };
 
-/** Back to the wave `lookId` came with. */
-export const clearListenerWave = (lookId: string) => {
-  if (allChoices().delete(lookId)) {
-    save();
+/**
+ * Back to the wave `lookId` came with, in the mode being looked at. The other
+ * two modes keep what they were set to: Restore puts back the picture in front
+ * of whoever pressed it, not three of them.
+ */
+export const clearListenerWave = (lookId: string, view: TGraphView) => {
+  const all = allChoices();
+  const modes = all.get(lookId);
+  if (!modes?.[view]) {
+    return;
   }
+  const rest = without(modes, view);
+  if (rest) {
+    all.set(lookId, rest);
+  } else {
+    all.delete(lookId);
+  }
+  save();
 };

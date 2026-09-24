@@ -76,7 +76,13 @@ import {
  */
 export type TGraphView = 'normal' | 'expanded' | 'fullscreen';
 
-const GRAPH_VIEWS: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+/**
+ * Exported for the scene wave store, which keeps a listener's wave for one
+ * visualizer per mode as well and has to read the three of them out of
+ * storage. The modes are this file's list; a second copy of them somewhere
+ * else is a fourth mode waiting to be missed.
+ */
+export const GRAPH_VIEWS: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
 
 let view: TGraphView =
   GRAPH_VIEWS.find((entry) => entry === readStored(VIEW_KEYS.view)) ?? 'normal';
@@ -108,8 +114,6 @@ export interface IPerViewSetting<T> {
   getFor: (mode: TGraphView) => T;
   /** Sets it for the current mode only; the other two are left alone. */
   set: (next: T) => void;
-  /** Sets it for all three modes at once — see `shareAcrossViews`. */
-  setEvery: (next: T) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
@@ -208,16 +212,6 @@ export const createPerViewSetting = <T>(
       }
       values[view] = next;
       writeStored(keyFor(view), serialize(next));
-      emit();
-    },
-    setEvery: (next: T) => {
-      if (GRAPH_VIEWS.every((mode) => values[mode] === next)) {
-        return;
-      }
-      GRAPH_VIEWS.forEach((mode) => {
-        values[mode] = next;
-        writeStored(keyFor(mode), serialize(next));
-      });
       emit();
     },
     subscribe: (listener: () => void) => {
@@ -761,6 +755,8 @@ export const GRAPH_CURVES = [
   'headphone',
   'smart',
   'custom',
+  // The Tone panel's three dials, a layer of their own (`tone.ts`).
+  'tone',
   'total',
 ] as const;
 
@@ -1279,43 +1275,35 @@ migrateLegacyWaveSize();
  * quarters leaves the scenes their sky and the curves their room.
  */
 /**
- * One value for every mode: what is set in one is what the others draw with.
+ * ONE VALUE PER MODE, like every other setting in this file.
  *
- * Wave height and position describe the wave itself, not the frame around it,
- * so the two big modes share a single value and the controls appear in both.
+ * The two big modes used to share a single value — wave height and position
+ * describe the wave itself rather than the frame around it, so one answer
+ * looked like it ought to serve both. On screen they are not one answer: the
+ * pane is a band across a card, the expanded view has the workspace column and
+ * full screen has the glass, and a wave set to fill one of them is a smear in
+ * the next. Ivan, 2026-09-23: "make sure plus visualiser have different wave
+ * height and position settings for the 3 standard, expanded and fullscreen
+ * mode". A scene's own wave is kept the same way, per mode, in
+ * `sceneWaveStore.ts`.
  *
- * The pane is the one that has to be decided rather than stored. The graph
- * there shares its card with the response curves, the band handles and the
- * legends — it is a measurement, it uses the whole plot, and a control for
- * making it shorter is a control for making the reading worse — but with a
- * Plus visualizer on it the plot is a picture rather than a reading, and where
- * its band stands is the thing being looked at, so the rows ARE offered there.
- *
- * This layer cannot tell those two panes apart: knowing whether a scene is on
- * the plot means reading the graph's look, which is the layer above this one.
- * So the pane's rule lives with the facts, in `FrequencyResponseChart` — and
- * it has to live somewhere: it used to be a constant returned from here, which
- * meant the sliders the menu deliberately offers in the pane wrote a value
- * this getter then refused to hand back. The thumb sprang home on release and
- * the picture never moved.
- *
- * Written through the per-view store rather than beside it, so the storage
- * format and its migrations stay in one place.
+ * The pane's other rule is still not here. The graph there shares its card
+ * with the response curves, the band handles and the legends — it is a
+ * measurement, it uses the whole plot — but with a Plus visualizer on it the
+ * plot is a picture rather than a reading, and where its band stands is the
+ * thing being looked at, so the rows ARE offered there. Knowing whether a
+ * scene is on the plot means reading the graph's look, which is the layer
+ * above this one, so that rule lives with the facts in
+ * `FrequencyResponseChart` — and it has to live somewhere: it used to be a
+ * constant returned from here, which meant the sliders the menu deliberately
+ * offers in the pane wrote a value this getter then refused to hand back. The
+ * thumb sprang home on release and the picture never moved.
  */
-const shareAcrossBigViews = <T>(
-  setting: IPerViewSetting<T>,
-): IPerViewSetting<T> => ({
-  ...setting,
-  set: setting.setEvery,
-});
-
-const waveHeightSetting = shareAcrossBigViews(
-  createPerViewSetting(
-    VIEW_KEYS.waveHeight,
-    { normal: 1, expanded: 0.75, fullscreen: 0.75 },
-    parseWaveHeight,
-    serializeWaveControl,
-  ),
+const waveHeightSetting = createPerViewSetting(
+  VIEW_KEYS.waveHeight,
+  { normal: 1, expanded: 0.75, fullscreen: 0.75 },
+  parseWaveHeight,
+  serializeWaveControl,
 );
 
 export const setGraphWaveHeight = (next: number) => {
@@ -1337,13 +1325,11 @@ export const useGraphWaveHeight = () =>
  * exactly bottom-to-centre; the inverted and mirrored forms make the symmetric
  * move from their own edges.
  */
-const wavePositionSetting = shareAcrossBigViews(
-  createPerViewSetting(
-    VIEW_KEYS.wavePosition,
-    0,
-    parseWavePosition,
-    serializeWaveControl,
-  ),
+const wavePositionSetting = createPerViewSetting(
+  VIEW_KEYS.wavePosition,
+  0,
+  parseWavePosition,
+  serializeWaveControl,
 );
 
 export const setGraphWavePosition = (next: number) => {
@@ -1353,10 +1339,10 @@ export const setGraphWavePosition = (next: number) => {
 export const getGraphWavePosition = () => wavePositionSetting.get();
 
 /**
- * The wave's height and position as somebody set them for watching — the
- * value the big modes share — whichever view the graph is in now. A desktop
- * background is watched the way full screen is, and takes these; the pane's
- * fixed measuring height is nobody's choice.
+ * The wave's height and position as somebody set them for watching — full
+ * screen's, whichever view the graph is in now. A desktop background is
+ * watched the way full screen is and takes those; the pane's measuring height
+ * is about a card it does not have.
  */
 export const getWatchedGraphWave = () => ({
   height: waveHeightSetting.getFor('fullscreen'),

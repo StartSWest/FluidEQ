@@ -648,7 +648,13 @@ const FrequencyResponseChart = ({
    */
   const sceneLookId = drawnScene?.lookId;
   const authoredWave = drawnScene?.wave;
-  const listenerWave = useListenerWave(authoredWave ? sceneLookId : undefined);
+  // Per mode, like the graph's own wave: the same scene is a band across a
+  // card here and the whole glass in full screen, and one setting for both is
+  // one that is wrong in one of them.
+  const listenerWave = useListenerWave(
+    authoredWave ? sceneLookId : undefined,
+    graphView,
+  );
   // The pane with nothing on it is a measurement and uses the whole plot,
   // whatever the big modes were left at — which is why the menu offers these
   // two rows there only while a visualizer is on the graph. The rule is here
@@ -665,14 +671,24 @@ const FrequencyResponseChart = ({
   const wavePosition = wave.position;
   const setWaveHeight = (height: number) => {
     if (authoredWave && sceneLookId) {
-      setListenerWave(sceneLookId, { ...wave, height }, authoredWave);
+      setListenerWave(
+        sceneLookId,
+        graphView,
+        { ...wave, height },
+        authoredWave,
+      );
       return;
     }
     setGraphWaveHeight(height);
   };
   const setWavePosition = (position: number) => {
     if (authoredWave && sceneLookId) {
-      setListenerWave(sceneLookId, { ...wave, position }, authoredWave);
+      setListenerWave(
+        sceneLookId,
+        graphView,
+        { ...wave, position },
+        authoredWave,
+      );
       return;
     }
     setGraphWavePosition(position);
@@ -1972,7 +1988,7 @@ const FrequencyResponseChart = ({
               onChangeWavePosition={setWavePosition}
               onRestoreWave={
                 listenerWave && sceneLookId
-                  ? () => clearListenerWave(sceneLookId)
+                  ? () => clearListenerWave(sceneLookId, graphView)
                   : undefined
               }
               waveOrientation={waveOrientation}

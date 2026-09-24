@@ -28,8 +28,7 @@ import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import liveTraceCurves from '../graph/liveTraceCurves';
 import {
   useGraphLook,
-  useGraphWaveHeight,
-  useGraphWavePosition,
+  useWatchedGraphWave,
   useWaveOrientation,
 } from '../utils/graphStyle';
 import { useCurrentEngine } from '../utils/audioEngineContext';
@@ -85,8 +84,9 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
   // the same trace the visualizer deck falls back to, from the same settings.
   const look = useGraphLook();
   const orientation = useWaveOrientation();
-  const waveHeight = useGraphWaveHeight();
-  const wavePosition = useGraphWavePosition();
+  // Full screen's, exactly as the visualizer deck beside it: this window is a
+  // picture to watch, not one of the graph's three view modes.
+  const { height: waveHeight, position: wavePosition } = useWatchedGraphWave();
   const [sceneBox, setSceneBox] = useState({ width: 0, height: 0 });
   /** Exactly as the visualizer deck draws it: the graph's own settings. */
   const traceCurves = useMemo(
