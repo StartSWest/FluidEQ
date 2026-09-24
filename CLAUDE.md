@@ -643,7 +643,13 @@ Everything worth knowing about them is available through commands:
   still there carries its filter state over (same type, frequency and Q; then
   type and frequency; then type at the same index). The preamp ramps over the
   same 20 ms. A bass +6 → −6 click fell from -68 to -91 dBFS, adding an
-  unrelated band from -49 to -104 dBFS.
+  unrelated band from -49 to -104 dBFS. An edit landing mid-fade (a drag)
+  keeps fading from the sound before it and switches its incoming side at
+  once, so a matched band at 0 dB is unity on its own poles, never a
+  pole-less identity that jumps from the band's output to the input in one
+  sample: +6 → −6 → 0 leaves -90 dBFS (`graph_test.cpp`,
+  `an_edit_landing_mid_fade_on_zero_does_not_click`). The rack's EQ fades
+  the same way (`chain_eq_fade.cpp`).
 - **Auto normalize starts at the curve's own level and climbs back.** The
   app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
   directive so a Preamp in the custom file stays a fixed gain); after 5 s of
