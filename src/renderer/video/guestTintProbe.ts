@@ -246,6 +246,19 @@ export const guestTintProbe = (
     }
   }
 
+  // A grey no rule reads yet, whose own name says it is a text colour, is
+  // taken at its word. A tooltip's or a chat mention's rules arrive with the
+  // element, after the page was asked, and Twitch's tooltip text is its page
+  // grey: over the visualizer it went clear. Left alone, the worst is a patch
+  // of the site's own grey; changed, it was a label nobody could read.
+  const TEXT_NAME = /(^|-)(text|foreground|fg|icon|glyph)(-|$)/i;
+  for (const entry of result) {
+    const paint = entry[1];
+    if (!paint[0] && !paint[1] && TEXT_NAME.test(entry[0].slice(2))) {
+      entry[1] = [true, false];
+    }
+  }
+
   // Where a grey that is both is the colour of text. Not on a rule that covers
   // most of the window: keeping the grey there would take the glass with it.
   const area = innerWidth * innerHeight;
