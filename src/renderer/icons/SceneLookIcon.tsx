@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { sceneIconSwatch } from '../utils/sceneTint';
 import { useRememberedSceneSky } from '../utils/sceneTintStore';
 
@@ -42,9 +43,13 @@ export default function SceneLookIcon({
       stopColor={colour}
     />
   ));
-  // One gradient per instance. The picker draws dozens of rows, and two rows
-  // sharing an SVG id would paint the second with the first's colours.
-  const gradientId = `scene-look-${colours.join('').replace(/#/g, '')}`;
+  // One gradient per INSTANCE, not per set of colours. It was keyed on the
+  // colours, so every icon of the same scene shared one id and each painted
+  // from whichever copy came first in the document — and in the player that
+  // is the full app's graph picker, inside the app's root, which the player
+  // hides. A gradient in a hidden subtree paints nothing, so the scene's icon
+  // on the player's picker was an empty square (Ivan, 2026-09-24).
+  const gradientId = `scene-look-${useId().replace(/[^\w-]/g, '')}`;
 
   return (
     <svg
