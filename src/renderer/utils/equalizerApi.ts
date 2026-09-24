@@ -37,6 +37,7 @@ import {
   ISmartEqSettings,
   TApoLayer,
   clampGain,
+  clampPreAmp,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
@@ -647,7 +648,7 @@ export const disableGraphView = (): Promise<void> => {
 /**
  * Get the current main preamplification gain value
  * @deprecated - Removing with the context refactor
- * @returns { Promise<number> } gain - current system gain value in the range [-20, 20]
+ * @returns { Promise<number> } gain - current system gain value, [-60, 20]
  */
 export const getMainPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.GET_PREAMP;
@@ -656,7 +657,7 @@ export const getMainPreAmp = (): Promise<number> => {
 
 /**
  * Adjusts the main preamplification gain value
- * @param {number} gain - new gain value, brought into [-20, 20]
+ * @param {number} gain - new gain value, brought into [-60, 20]
  *
  * Clamped rather than rejected, and it used to throw.
  *
@@ -670,14 +671,19 @@ export const getMainPreAmp = (): Promise<number> => {
  * screen and returned on every restart, because the chain that caused it is on
  * disk. The user could not even reach the sliders to undo it.
  *
- * The boundary is the honest answer in both cases. A chain asking for 24 dB of
- * headroom gets the 20 the format has, which is the closest thing to what it
- * asked for that Equalizer APO can hold, and the peaks that clip are audible and
- * fixable. Nothing here is silently wrong: the value written is the value shown.
+ * The boundary is the honest answer in both cases, and it is the PREAMP's, not
+ * a band's: `clampPreAmp` reaches -60 dB, where `clampGain` stopped at -20 and
+ * so cancelled nothing deeper than one fully boosted band. A headphone
+ * correction plays as published now, past ±20 dB, and the level that cancels
+ * it has to be able to follow it down — otherwise the reserve is smaller than
+ * what is being reserved against and the output clips by construction (Ivan,
+ * 2026-09-23: "manual yes -60"). Auto normalize already reached -60; this is
+ * the hand-set one catching up. Nothing here is silently wrong: the value
+ * written is the value shown.
  */
 export const setMainPreAmp = (gain: number) => {
   const channel = ChannelEnum.SET_PREAMP;
-  return sendRequest(channel, [clampGain(gain)], setterResponseHandler);
+  return sendRequest(channel, [clampPreAmp(gain)], setterResponseHandler);
 };
 
 /**

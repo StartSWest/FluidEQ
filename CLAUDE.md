@@ -612,8 +612,21 @@ Everything worth knowing about them is available through commands:
   graph and adoption of an edited file all use `layerGainLimit`. The library
   used to hold bands to ±12 dB (±8 below 25 Hz and above 14 kHz), which
   changed 822 of its 12,594 curves; its largest band is -21 dB and its widest
-  chain 30.7 dB. Auto normalize reaches -60 dB; the manual preamp still stops
-  at -20, so a correction past +20 dB with Auto normalize off can clip.
+  chain 30.7 dB.
+- **The hand-set preamp reaches -60 dB too, like Auto normalize** (Ivan,
+  2026-09-23: "manual yes -60"). It is the sum of every layer that has to be
+  cancelled, so the preamp's floor is `clampPreAmp`'s and never a band's
+  `clampGain`: the send (`setMainPreAmp`), main's gate (`SET_PREAMP`) and
+  every path that stores or reads one (`flush.ts`'s live state, the saved
+  state file and both preset formats) used the band clamp, so a level deep
+  enough to hold a published correction was cut to -20 on its way to disk and
+  again on its way back. The side panel's dial and its field take the full
+  range, and so does the player's Pre fader — held to ±20 it could not even
+  show a level set deeper elsewhere, and the first touch wrote -20 over it.
+  Unity therefore sits three quarters up both controls, where a level fader's
+  does, and the player's printed scale moved to stand beside the bands it
+  describes rather than at the head of the row, where it read as the preamp's
+  as well.
 - **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
   on the left never stretches (`gainScale`); the analyser gets 80 dB below the
   programme's peak on the right (`liveGraphBand.ts`, `graphLevelTickFormat`),

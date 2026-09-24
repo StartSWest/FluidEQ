@@ -340,6 +340,31 @@ describe('flush', () => {
         fetchSettings(TEST_DATA_WRITE_DIR).smartHeadroomProgramme,
       ).toBeUndefined();
     });
+
+    /*
+     * A HAND-SET PREAMP HAS TO SURVIVE THE DISK.
+     *
+     * The state was written whole and read back through the BAND clamp, so a
+     * level deep enough to hold a published headphone correction came off the
+     * disk at -20 dB whatever had been set — silently, one restart later, with
+     * the correction still at full strength in front of it.
+     */
+    it('reads back a preamp deeper than a band may go', async () => {
+      const deep: IState = { ...mockSettings, preAmp: -45 };
+      await save(deep, TEST_DATA_WRITE_DIR);
+
+      expect(fetchSettings(TEST_DATA_WRITE_DIR).preAmp).toBe(-45);
+      // Restore the fixture the other cases in this file read.
+      await save(mockSettings, TEST_DATA_WRITE_DIR);
+    });
+
+    it('still holds a preamp past the floor at the floor', async () => {
+      const past: IState = { ...mockSettings, preAmp: PREAMP_MIN_GAIN - 20 };
+      await save(past, TEST_DATA_WRITE_DIR);
+
+      expect(fetchSettings(TEST_DATA_WRITE_DIR).preAmp).toBe(PREAMP_MIN_GAIN);
+      await save(mockSettings, TEST_DATA_WRITE_DIR);
+    });
   });
 
   describe('fetchPreset', () => {
@@ -410,6 +435,28 @@ describe('flush', () => {
       expect(doesPresetExist(presetName, TEST_DATA_WRITE_DIR)).toBe(true);
       await deletePreset(presetName, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(presetName, TEST_DATA_WRITE_DIR)).toBe(false);
+    });
+
+    // A saved profile carries its preamp, and the profile a correction was
+    // saved with is exactly the one that needs the deep level back.
+    it('keeps a profile’s preamp below a band’s floor', async () => {
+      const presetName = 'deepPreamp';
+      const preset: IPresetV2 = {
+        preAmp: -45,
+        filters: {
+          '123': {
+            id: '123',
+            frequency: 2,
+            gain: -4,
+            quality: 6,
+            type: FilterTypeEnum.PK,
+          },
+        },
+      };
+      await savePreset(presetName, preset, TEST_DATA_WRITE_DIR);
+
+      expect(fetchPreset(presetName, TEST_DATA_WRITE_DIR)?.preAmp).toBe(-45);
+      await deletePreset(presetName, TEST_DATA_WRITE_DIR);
     });
   });
 

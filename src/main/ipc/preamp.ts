@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IState, MAX_GAIN, MIN_GAIN } from '../../common/constants';
+import { IState, MAX_GAIN, PREAMP_MIN_GAIN } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { getResolvedPreAmp } from '../flush';
@@ -170,12 +170,14 @@ export const registerPreampIpc = ({
     const channel = ChannelEnum.SET_PREAMP;
     const gain = parseFloat(arg[0]) || 0;
 
-    if (gain < MIN_GAIN || gain > MAX_GAIN) {
+    // The preamp's own floor, never a band's: it cancels the SUM of every
+    // layer, and a headphone correction plays as published past ±20 dB.
+    if (gain < PREAMP_MIN_GAIN || gain > MAX_GAIN) {
       handleError(
         event,
         channel,
         ErrorCode.INVALID_PARAMETER,
-        `The preamp goes from ${MIN_GAIN} dB to ${MAX_GAIN} dB.`,
+        `The preamp goes from ${PREAMP_MIN_GAIN} dB to ${MAX_GAIN} dB.`,
         'The preamp was left where it was.',
       );
       return;

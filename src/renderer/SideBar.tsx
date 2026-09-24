@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ErrorDescription } from 'common/errors';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MAX_GAIN, PREAMP_MIN_GAIN } from 'common/constants';
 import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import SideBarEngine from './components/SideBarEngine';
@@ -119,13 +119,26 @@ const SideBar = ({
               sweep is the position, the number in the middle is the value.
               It is the same `Knob` the band inspector uses for Q, and it
               reads this range as an even one because a decibel scale that
-              crosses zero has no ratio to be logarithmic about. */}
+              crosses zero has no ratio to be logarithmic about.
+
+              Its floor is the PREAMP's, -60 dB, not a band's ±20: this
+              number cancels the sum of every layer, and a headphone
+              correction plays as published past ±20 dB (Ivan, 2026-09-23:
+              "manual yes -60"). Unity therefore sits three quarters of the
+              way round rather than at the top of the sweep, the way a
+              level control is read; the field under it is where an exact
+              value is typed, and it takes the same range. */}
           <div className="side-bar__preamp">
             <h4>{t('sidebar.preamp')}</h4>
             <Knob
               name={t('sidebar.preampAria')}
-              min={MIN_GAIN}
+              min={PREAMP_MIN_GAIN}
               max={MAX_GAIN}
+              // Unity is three quarters round now, not the middle, so the arc
+              // has to be told where the dial rests: read off the two ends it
+              // would grow from the floor and sit three quarters lit while
+              // doing nothing.
+              arcFrom={0}
               value={displayedPreamp}
               step={0.01}
               unit="dB"
@@ -147,7 +160,7 @@ const SideBar = ({
             <NumberInput
               name={t('sidebar.preampAria')}
               value={displayedPreamp}
-              min={MIN_GAIN}
+              min={PREAMP_MIN_GAIN}
               max={MAX_GAIN}
               floatPrecision={2}
               isDisabled={isAutoPreAmpOn}

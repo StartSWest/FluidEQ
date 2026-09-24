@@ -10,6 +10,7 @@ import {
   MAX_GAIN,
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
+  PREAMP_MIN_GAIN,
   isBandEnabled,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
@@ -209,13 +210,6 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
 
   return (
     <div className={`player-bands${isDenseBands(count) ? ' is-dense' : ''}`}>
-      {/* The travel's ends, from the same limits the faders are given, so
-          the scale cannot say one thing and the caps another. */}
-      <div className="player-bands__scale" aria-hidden="true">
-        <span>{`+${MAX_GAIN}`}</span>
-        <span>0</span>
-        <span>{`−${Math.abs(MIN_GAIN)}`}</span>
-      </div>
       {/* The preamp stands apart from the bands, before the rule: its own
           grid column, which is what `.player-bands > .player-band` styles. */}
       <PlayerFader
@@ -242,7 +236,13 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
         }
         title={isAutoPreAmpOn ? t('sidebar.preampAuto') : t('sidebar.preamp')}
         value={shownPreamp}
-        min={MIN_GAIN}
+        // The preamp's own floor, not a band's: it cancels the sum of every
+        // layer, and a headphone correction plays as published past ±20 dB.
+        // Held to ±20 here the fader could not even SHOW a level set deeper
+        // in the side panel — it pinned at the bottom, and the first touch
+        // wrote -20 over it. Unity sits three quarters up, where a level
+        // fader's is.
+        min={PREAMP_MIN_GAIN}
         max={MAX_GAIN}
         step={0.1}
         zero={0}
@@ -254,6 +254,19 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
         }}
       />
       <span className="player-bands__rule" aria-hidden="true" />
+      {/* The bands' travel, printed beside the bands. It used to stand at the
+          head of the row, where it read as the preamp's as well — and once the
+          preamp reached -60 dB that was a scale saying one thing while the
+          fader beside it did another. The preamp keeps no printed scale: it is
+          a level, not a band gain, it carries its own AUTO/PRE label and its
+          value in its tooltip, and the side panel is where an exact one is
+          typed. A second column of digits for one fader costs this row more
+          than it gives. */}
+      <div className="player-bands__scale" aria-hidden="true">
+        <span>{`+${MAX_GAIN}`}</span>
+        <span>0</span>
+        <span>{`−${Math.abs(MIN_GAIN)}`}</span>
+      </div>
       <div className="player-bands__faders" ref={fadersRef}>
         {bands.map((band, i) => (
           <MiniBand

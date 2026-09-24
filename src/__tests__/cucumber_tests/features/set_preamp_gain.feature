@@ -7,7 +7,7 @@ Feature: Set preamplification gain
       And FluidEQ is running
       And FluidEQ equalizer state is enabled
     When I set gain of the preamp slider to the bottom
-    Then FluidEQ config should show a preamp gain of -20dB
+    Then FluidEQ config should show a preamp gain of -60dB
   
   Scenario: Set preamp gain using the arrows
     Given EqualizerAPO is installed

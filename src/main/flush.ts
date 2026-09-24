@@ -35,6 +35,7 @@ import {
   APO_LAYERS,
   TApoLayer,
   clampGain,
+  clampPreAmp,
   clampQuality,
   IFilter,
   getDefaultState,
@@ -365,7 +366,13 @@ export const fetchSettings = (settingsDir: string) => {
       isCaseSensitiveFs: false,
       preAmp: (() => {
         const preAmp = toFiniteNumber(input.preAmp);
-        return preAmp === undefined ? fallbackState.preAmp : clampGain(preAmp);
+        // The preamp's own floor (-60 dB), never a band's: read back through
+        // `clampGain` it came off the disk at -20 whatever had been set, so a
+        // level deep enough to cancel a published correction survived the
+        // session and not the restart.
+        return preAmp === undefined
+          ? fallbackState.preAmp
+          : clampPreAmp(preAmp);
       })(),
       filters,
       ...(isValidEqFormat(input.eqFormat) ? { eqFormat: input.eqFormat } : {}),
@@ -424,7 +431,7 @@ export const fetchSettings = (settingsDir: string) => {
       ...persisted,
       ...(eqCuts ? { eqCuts } : {}),
       ...(tone ? { tone } : {}),
-      preAmp: clampGain(input.preAmp),
+      preAmp: clampPreAmp(input.preAmp),
       filters: normalizeFilters(input.filters),
       ...(Array.isArray(input.graphicEq)
         ? { graphicEq: normalizeGraphicEq(input.graphicEq) }
@@ -467,7 +474,7 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     if (validatePresetV1(json)) {
       const oldFormat = json as IPresetV1;
       const newFormat: IPresetV2 = {
-        preAmp: clampGain(oldFormat.preAmp),
+        preAmp: clampPreAmp(oldFormat.preAmp),
         filters: {},
       };
       oldFormat.filters.forEach((filter) => {
@@ -494,7 +501,7 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     const bypassed = normalizeBypassed(preset.bypassed);
     return {
       ...preset,
-      preAmp: clampGain(preset.preAmp),
+      preAmp: clampPreAmp(preset.preAmp),
       filters: normalizeFilters(preset.filters),
       ...(graphicEq ? { graphicEq } : {}),
       ...('bypassed' in preset ? { bypassed } : {}),
@@ -597,7 +604,7 @@ export const fetchPresetBaseline = (
     const graphicEq = normalizeGraphicEq(preset.graphicEq);
     return {
       ...preset,
-      preAmp: clampGain(preset.preAmp),
+      preAmp: clampPreAmp(preset.preAmp),
       filters: normalizeFilters(preset.filters),
       ...(graphicEq ? { graphicEq } : {}),
     };

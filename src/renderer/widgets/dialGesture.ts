@@ -32,6 +32,17 @@ export interface IDialGesture {
   unit: string;
   /** Where Ctrl+click puts the dial back to; omitted disables the gesture. */
   defaultValue?: number;
+  /**
+   * The value the lit arc grows FROM, where the range cannot say it.
+   *
+   * Read off the range wherever it can be (`arcOrigin` below), and named here
+   * only by a dial whose rest position is neither of its ends nor its middle:
+   * the side bar's preamp, which runs from -60 dB to +20 and rests at 0.
+   * Deliberately not `defaultValue`, which eighty dials already pass and which
+   * means where Ctrl+click goes — growing every one of their arcs from it
+   * would redraw half the DSP page.
+   */
+  arcFrom?: number;
   /** What Ctrl+click does where going home is not writing `defaultValue`. */
   onReset?: () => void;
   handleChange: (newValue: number) => Promise<void> | void;
@@ -56,6 +67,7 @@ const useDialGesture = ({
   isDisabled,
   unit,
   defaultValue,
+  arcFrom,
   onReset,
   handleChange,
 }: IDialGesture) => {
@@ -101,28 +113,41 @@ const useDialGesture = ({
    * straight up, which is what "doing nothing" looks like.
    *
    * Anything satisfying that gets the centre, including whatever is added
-   * next; as this is written it catches three — Bass Punch's Attack and
-   * Sustain (-1 to +1), the EQ's band gain (-24 to +24 dB) and the side bar's
-   * preamp, which is the -20 to +20 dB dial the paragraph above already names.
+   * next; as this is written it catches two — Bass Punch's Attack and Sustain
+   * (-1 to +1) and the EQ's band gain (-24 to +24 dB).
    *
    * A range that merely happens to include negatives is not this: the Master's
    * -24 to +6 dB trim, the Normalizer's -12 to -0.1 target and the Denoise
    * -6 to +12 makeup all have a low end that IS their floor.
+   *
+   * And a range can rest somewhere the two numbers cannot show: the side bar's
+   * preamp used to be -20 to +20 and be caught by the test above, and now runs
+   * to -60 dB while still resting at 0. It says so with `arcFrom`, which wins
+   * where it is given — the symptom otherwise is a dial three quarters lit
+   * while it is doing nothing, which is the exact thing this predicate exists
+   * to prevent.
    */
   const isBipolar = min < 0 && max === -min;
-  const arcOrigin = isBipolar ? 50 : 0;
+  const restsInside = arcFrom !== undefined || isBipolar;
+  const readOffTheRange = isBipolar ? 50 : 0;
+  const arcOrigin =
+    arcFrom === undefined
+      ? readOffTheRange
+      : Math.min(100, Math.max(0, toPosition(arcFrom) * 100));
   const arcStart = Math.min(arcOrigin, clampedProgress);
   const arcLength = Math.abs(clampedProgress - arcOrigin);
   /**
-   * A bipolar dial at rest draws nothing; every other one keeps what it had.
+   * A dial that rests inside its sweep draws nothing there; every other one
+   * keeps what it had.
    *
    * The stroke has round caps, so a zero-length dash paints a dot. At the low
    * end of an amount that dot is the cap of an arc about to grow and has been
-   * on screen for the life of this widget. At the CENTRE of a bipolar range it
-   * would be a mark saying "a little" on the one setting that means none —
-   * and the notch already points straight up there, which says it better.
+   * on screen for the life of this widget. At a rest position PART WAY ROUND —
+   * the centre of a bipolar range, or wherever `arcFrom` puts it — it would be
+   * a mark saying "a little" on the one setting that means none, and the notch
+   * pointing at it already says it better.
    */
-  const showsArc = arcLength > 0 || !isBipolar;
+  const showsArc = arcLength > 0 || !restsInside;
   /**
    * Decimals this dial can actually reach, read off its own step.
    *

@@ -34,6 +34,13 @@ interface IKnobProps {
    */
   defaultValue?: number;
   /**
+   * The value the lit arc grows from, where the range cannot say it.
+   *
+   * Only the side bar's preamp needs it: -60 dB to +20 with its rest at 0.
+   * Everything else is read off the two ends (`dialGesture`).
+   */
+  arcFrom?: number;
+  /**
    * What Ctrl+click does, where going home is not the same as setting this
    * value.
    *
@@ -67,6 +74,7 @@ const Knob = ({
   isDisabled,
   unit,
   defaultValue,
+  arcFrom,
   onReset,
   handleChange,
 }: IKnobProps) => {
@@ -80,6 +88,7 @@ const Knob = ({
     isDisabled,
     unit,
     defaultValue,
+    arcFrom,
     onReset,
     handleChange,
   });
