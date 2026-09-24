@@ -11,81 +11,67 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace {
 
 constexpr double kDelaySmoothingMs = 20.0;
-constexpr double kLowCornerHz = 150.0;
-constexpr double kHighCornerHz = 1200.0;
+/**
+ * Under this many samples of delay a section is the identity. Its coefficient
+ * reaches one as its delay reaches zero, which puts the pole on the unit
+ * circle: a filter that is exactly the identity there, and one rounding error
+ * from ringing at Nyquist for ever.
+ */
+constexpr double kIdentityDelay = 1e-4;
 
 /**
- * One sample through a fractional delay, linearly interpolated.
+ * One sample through a first-order all-pass, H(z) = (c + z^-1) / (1 + c z^-1).
  *
- * Linear rather than a higher-order interpolator on purpose: the delay is
- * being *moved* while it runs, and every interpolator above first order rings
- * when its coefficients change. A little high-frequency loss on a band that is
- * below 1.2 kHz by construction costs nothing audible.
+ * Its delay at the bottom of the range is (1 - c) / (1 + c) samples, so the
+ * coefficient follows from the delay asked for, and the delay falls away above
+ * fs / (pi * delay) — 159 Hz for the low section's two milliseconds, 637 Hz
+ * for the mid section's half, at any rate. The level is one at every
+ * frequency whatever c is, which is the point of building Timing this way.
  */
-double delay_sample(FeqVariableDelay* line, double sample, double delay) {
-  line->buffer[line->write] = static_cast<float>(sample);
-  double read = static_cast<double>(line->write) - delay;
-  if (read < 0.0) {
-    read += static_cast<double>(line->capacity);
+double all_pass(FeqAllPassSection* section, double x) {
+  if (section->delay < kIdentityDelay) {
+    // The history the identity would have, so the section can come back in
+    // from the signal rather than from whatever it last heard.
+    section->x1 = x;
+    section->y1 = x;
+    return x;
   }
-  const auto before = static_cast<uint32_t>(std::floor(read));
-  const uint32_t after = (before + 1) % line->capacity;
-  const double fraction = read - std::floor(read);
-  const double output =
-      static_cast<double>(line->buffer[before]) * (1.0 - fraction) +
-      static_cast<double>(line->buffer[after]) * fraction;
-  line->write = (line->write + 1) % line->capacity;
-  return output;
+  const double c = (1.0 - section->delay) / (1.0 + section->delay);
+  const double y = c * x + section->x1 - c * section->y1;
+  section->x1 = x;
+  section->y1 = y;
+  return y;
 }
 
-uint32_t capacity_for(double milliseconds, double sample_rate) {
-  return static_cast<uint32_t>(
-             std::ceil((milliseconds / 1000.0) * sample_rate)) +
-         2;
+void reset(FeqAllPassSection* section) {
+  section->x1 = 0.0;
+  section->y1 = 0.0;
+  section->delay = 0.0;
+}
+
+/** A section that was the identity takes up the signal it is joining. */
+void prime(FeqAllPassSection* section, double x) {
+  section->x1 = x;
+  section->y1 = x;
 }
 
 }  // namespace
 
 extern "C" {
 
-uint32_t feq_phase_align_low_capacity(double sample_rate) {
-  return capacity_for(FEQ_PHASE_ALIGN_LOW_MS, sample_rate);
-}
-
-uint32_t feq_phase_align_mid_capacity(double sample_rate) {
-  return capacity_for(FEQ_PHASE_ALIGN_MID_MS, sample_rate);
-}
-
-void feq_phase_align_init(FeqPhaseAlign* state,
-                          float* low,
-                          float* mid,
-                          float* high,
-                          float* low_line,
-                          uint32_t low_capacity,
-                          float* mid_line,
-                          uint32_t mid_capacity) {
+void feq_phase_align_init(FeqPhaseAlign* state) {
   if (state == nullptr) {
     return;
   }
-  feq_crossover_reset(&state->crossover);
-  state->low = low;
-  state->mid = mid;
-  state->high = high;
-  state->low_line.buffer = low_line;
-  state->low_line.capacity = low_capacity;
-  state->low_line.write = 0;
-  state->mid_line.buffer = mid_line;
-  state->mid_line.capacity = mid_capacity;
-  state->mid_line.write = 0;
-  state->low_delay = 0.0;
-  state->mid_delay = 0.0;
-  state->stage_mix = 0.0;
-  for (uint32_t at = 0; at < low_capacity; ++at) {
-    low_line[at] = 0.0f;
-  }
-  for (uint32_t at = 0; at < mid_capacity; ++at) {
-    mid_line[at] = 0.0f;
-  }
+  reset(&state->low);
+  reset(&state->mid);
+}
+
+int feq_phase_align_is_active(const FeqPhaseAlign* state) {
+  return state != nullptr && (state->low.delay >= kIdentityDelay ||
+                              state->mid.delay >= kIdentityDelay)
+             ? 1
+             : 0;
 }
 
 void feq_phase_align_process(FeqPhaseAlign* state,
@@ -102,41 +88,26 @@ void feq_phase_align_process(FeqPhaseAlign* state,
   const double target_mid =
       (FEQ_PHASE_ALIGN_MID_MS / 1000.0) * sample_rate * safe_amount;
 
-  // Fully off AND fully settled: the delays are still glided to zero, so
-  // returning early while they are non-zero would step the signal instead.
-  // The same goes for the fade that brings the split in and out — the split
-  // turns the phase of everything through it, and that turn has to arrive and
-  // leave gradually or switching the stage is a click (`FEQ_SPLIT_FADE_MS`).
-  if (target_low == 0.0 && state->low_delay < 0.0001 &&
-      state->mid_delay < 0.0001 && state->stage_mix <= 0.0) {
-    state->low_delay = 0.0;
-    state->mid_delay = 0.0;
+  const bool was_active = feq_phase_align_is_active(state) != 0;
+  if (target_low == 0.0 && !was_active) {
+    state->low.delay = 0.0;
+    state->mid.delay = 0.0;
     return;
   }
-  const double fade_step = feq_split_fade_step(sample_rate);
-  const double fade_target = safe_amount > 0.0 ? 1.0 : 0.0;
-
-  feq_crossover_split(&state->crossover, target, state->low, state->mid,
-                      state->high, frames, kLowCornerHz, kHighCornerHz,
-                      sample_rate);
+  if (!was_active) {
+    // Nothing ran while it was off, so the history is whatever it heard
+    // then: without this the first delayed sample would be built from it.
+    prime(&state->low, static_cast<double>(target[0]));
+    prime(&state->mid, static_cast<double>(target[0]));
+  }
 
   const double smooth =
       1.0 - std::exp(-1.0 / ((kDelaySmoothingMs / 1000.0) * sample_rate));
   for (uint32_t at = 0; at < frames; ++at) {
-    state->low_delay += (target_low - state->low_delay) * smooth;
-    state->mid_delay += (target_mid - state->mid_delay) * smooth;
-    const double low = delay_sample(&state->low_line,
-                                    static_cast<double>(state->low[at]),
-                                    state->low_delay);
-    const double mid = delay_sample(&state->mid_line,
-                                    static_cast<double>(state->mid[at]),
-                                    state->mid_delay);
-    state->stage_mix = fade_target > state->stage_mix
-                           ? std::fmin(1.0, state->stage_mix + fade_step)
-                           : std::fmax(0.0, state->stage_mix - fade_step);
-    const double dry = static_cast<double>(target[at]);
-    const double wet = low + mid + static_cast<double>(state->high[at]);
-    target[at] = static_cast<float>(dry + (wet - dry) * state->stage_mix);
+    state->low.delay += (target_low - state->low.delay) * smooth;
+    state->mid.delay += (target_mid - state->mid.delay) * smooth;
+    const double low = all_pass(&state->low, static_cast<double>(target[at]));
+    target[at] = static_cast<float>(all_pass(&state->mid, low));
   }
 }
 

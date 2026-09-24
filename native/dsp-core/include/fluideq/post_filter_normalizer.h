@@ -125,6 +125,17 @@ typedef struct FeqPostFilterNormalizerOptions {
   double following_gain_db;
   double release_ms;
   double sample_rate;
+  /**
+   * The platform under the reduction (`limiter.h`): how fast its follower
+   * deepens and rises, in ms. Zero leaves it out, which Auto Headroom does.
+   *
+   * The live Normalizer's peak protection sets it. On a record mastered over
+   * that ceiling every beat is a peak, and without a platform the protection
+   * dipped on each one and let go over the next, in front of every stage of
+   * the rack.
+   */
+  double platform_attack_ms;
+  double platform_release_ms;
 } FeqPostFilterNormalizerOptions;
 
 /** The look-ahead this stage uses at a given rate, in samples. */

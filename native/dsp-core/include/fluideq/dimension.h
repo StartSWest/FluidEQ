@@ -24,16 +24,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * approximately, exactly, at every frequency, whatever the dials are set to.
  * That is why the crossover splits the SIDE only.
  *
- * The mid is not filtered, but it does not escape untouched either: the split
- * turns the side's phase (see `primitives.h` — the bands have to share one
- * phase or the widths fight each other where they meet), and the mid is put
- * through that identical turn so the two halves still line up. A phase turn
- * both halves take together is a phase turn the whole record takes, which is
- * what every crossover in every speaker does and is not audible; a turn only
- * one half takes would move a panned guitar into the other channel around the
- * corner frequency. So `(L+R)/2` comes out at exactly the level it went in,
- * band for band, and the test for that is an equality against the same turn
- * rather than a tolerance.
+ * The mid is not touched at all — not filtered and not turned — and neither is
+ * the side's phase, where the widths agree. The side is split by two
+ * first-order low-passes into bands that add back to exactly the side, so at
+ * unity the stage returns its input sample for sample, and where two bands'
+ * widths differ the width at the corner is a blend of the two that never goes
+ * past either, turning the side there by a few tens of degrees at most.
+ *
+ * It used to split the side with the rack's steep crossover and put the mid
+ * through the same phase turn to keep a panned source in its channel. That
+ * turn is inaudible as a tone and is not harmless: turning the whole record's
+ * phase re-creates the peaks the record's own limiter had taken off, and on a
+ * loud master it lifted them from -1 to +6.3 dBTP with every width at unity —
+ * which the Maximizer after it then had to take back down, on every beat,
+ * and that was most of the pumping every preset with Dimension had. So
+ * `(L+R)/2` now comes out as exactly what went in, and the test for that is an
+ * equality with the input rather than with a turned copy of it.
  *
  * Width alone still only scales what the mix already had, so the side also gets
  * an all-pass network. That decorrelates it from the mid — the image widens
@@ -50,8 +56,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FLUIDEQ_DIMENSION_H
 
 #include <stdint.h>
-
-#include "fluideq/primitives.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,10 +99,12 @@ typedef struct FeqDimensionSettings {
 } FeqDimensionSettings;
 
 typedef struct FeqDimension {
-  /** Splits the SIDE only. The mid is never filtered. */
-  FeqCrossover side_crossover;
-  /** The split's own phase, on the mid, so the two halves stay together. */
-  FeqCrossoverPhase centre_phase;
+  /**
+   * The two first-order low-passes that split the SIDE, one at each corner
+   * (their integrators' state). The mid is never filtered.
+   */
+  double low_split;
+  double high_split;
   FeqDimensionAllPass allpasses[FEQ_DIMENSION_ALLPASSES];
   /** Each `frames` long, all caller-owned. */
   float* side;

@@ -17,8 +17,8 @@ constexpr uint32_t kWide = 4;
 bool path_is_active(const FeqChain* chain, uint32_t path) {
   const ChainExciterPath& state = chain->paths[path];
   return feq_exciter_channel_is_active(&state.exciter) != 0 ||
-         state.organic_mix > 0.0001 || state.aligner.low_delay > 0.0001 ||
-         state.aligner.mid_delay > 0.0001 || state.aligner.stage_mix > 0.0;
+         state.organic_mix > 0.0001 ||
+         feq_phase_align_is_active(&state.aligner) != 0;
 }
 
 FeqExciterSettings exciter_setup(const FeqChainExciterSettings& source) {
@@ -137,19 +137,7 @@ void chain_prepare_exciter_path(FeqChain* chain, uint32_t path) {
                            state.wide_dry.data(), state.middle.data(),
                            state.dry.data(), state.guard_scratch.data());
 
-  const uint32_t low_capacity =
-      feq_phase_align_low_capacity(chain->sample_rate);
-  const uint32_t mid_capacity =
-      feq_phase_align_mid_capacity(chain->sample_rate);
-  state.align_low.assign(frames, 0.0f);
-  state.align_mid.assign(frames, 0.0f);
-  state.align_high.assign(frames, 0.0f);
-  state.align_low_line.assign(low_capacity, 0.0f);
-  state.align_mid_line.assign(mid_capacity, 0.0f);
-  feq_phase_align_init(&state.aligner, state.align_low.data(),
-                       state.align_mid.data(), state.align_high.data(),
-                       state.align_low_line.data(), low_capacity,
-                       state.align_mid_line.data(), mid_capacity);
+  feq_phase_align_init(&state.aligner);
 
   state.organic_band.assign(frames, 0.0f);
   state.organic_foundation.assign(frames, 0.0f);

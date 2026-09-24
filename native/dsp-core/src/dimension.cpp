@@ -8,8 +8,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 
+#include "fluideq/primitives.h"
+
 namespace {
 
+constexpr double kPi = 3.14159265358979323846;
 constexpr double kParameterSmoothingMs = 18.0;
 
 /**
@@ -94,6 +97,25 @@ double blend_correction(double amount) {
   return energy > 1e-6 ? 1.0 / std::sqrt(energy) : 1.0;
 }
 
+/**
+ * One sample through a first-order low-pass, in the trapezoidal
+ * (zero-delay-feedback) form: the corner lands where it was asked at any rate,
+ * and a corner moved mid-stream moves without a step. `gain` is
+ * `split_gain`'s answer for the corner.
+ */
+double low_pass(double* state, double sample, double gain) {
+  const double step = (sample - *state) * gain;
+  const double out = step + *state;
+  *state = out + step;
+  return out;
+}
+
+double split_gain(double hz, double sample_rate) {
+  const double corner = clamp(hz, 10.0, sample_rate * 0.45);
+  const double g = std::tan(kPi * corner / sample_rate);
+  return g / (1.0 + g);
+}
+
 /** One Schroeder all-pass: flat magnitude, and all of the phase. */
 double all_pass_sample(FeqDimensionAllPass* state, double sample) {
   if (state->buffer == nullptr || state->delay == 0) {
@@ -126,8 +148,8 @@ void feq_dimension_init(FeqDimension* state, float* side, float* centre,
   if (state == nullptr) {
     return;
   }
-  feq_crossover_reset(&state->side_crossover);
-  feq_crossover_phase_reset(&state->centre_phase);
+  state->low_split = 0.0;
+  state->high_split = 0.0;
   state->side = side;
   state->centre = centre;
   state->low = low;
@@ -157,8 +179,8 @@ void feq_dimension_reset(FeqDimension* state) {
   if (state == nullptr) {
     return;
   }
-  feq_crossover_reset(&state->side_crossover);
-  feq_crossover_phase_reset(&state->centre_phase);
+  state->low_split = 0.0;
+  state->high_split = 0.0;
   for (auto& all_pass : state->allpasses) {
     all_pass.cursor = 0;
     if (all_pass.buffer != nullptr) {
@@ -210,10 +232,9 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
       smoothing(kCorrelationTimeMs, sample_rate);
 
   /**
-   * Both halves are taken once, in a pass of their own.
-   *
-   * The crossover below needs the whole block of side before any of it goes
-   * back out, and the output loop overwrites `left` and `right` in place.
+   * Both halves are taken once, in a pass of their own: the correlation below
+   * reads the whole block as it came in, and the output loop overwrites
+   * `left` and `right` in place.
    */
   for (uint32_t at = 0; at < frames; ++at) {
     const double l = static_cast<double>(left[at]);
@@ -251,19 +272,22 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
                 (kGuardOpenCorrelation - kGuardShutCorrelation),
             0.0, 1.0);
 
-  feq_crossover_split(&state->side_crossover, state->side, state->low,
-                      state->mid_band, state->high, frames, settings->low_hz,
-                      settings->high_hz, sample_rate);
   /**
-   * The mid takes the same turn the side's bands took.
-   *
-   * Not a filter on the centre: the level of every frequency in it is
-   * untouched, and this is the one operation that keeps a panned source in its
-   * channel after the split — see the header.
+   * The side in three bands that add back to exactly the side: under the low
+   * corner, over the high one, and what is left between them. Where the
+   * widths agree nothing is turned, so the mid needs no turn to stay with it
+   * — see the header for what that turn used to cost.
    */
-  feq_crossover_phase_process(&state->centre_phase, state->centre, frames,
-                              settings->low_hz, settings->high_hz,
-                              sample_rate);
+  const double low_gain = split_gain(settings->low_hz, sample_rate);
+  const double high_gain = split_gain(settings->high_hz, sample_rate);
+  for (uint32_t at = 0; at < frames; ++at) {
+    const double side = static_cast<double>(state->side[at]);
+    const double under_low = low_pass(&state->low_split, side, low_gain);
+    const double under_high = low_pass(&state->high_split, side, high_gain);
+    state->low[at] = static_cast<float>(under_low);
+    state->mid_band[at] = static_cast<float>(under_high - under_low);
+    state->high[at] = static_cast<float>(side - under_high);
+  }
 
   // Bass is narrowed or left alone, never widened — see the header.
   const double target_low =
@@ -312,10 +336,11 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
         blend_correction(state->decorrelation);
 
     /**
-     * The stage arrives and leaves over a fade, because the split turns the
-     * phase of everything through it (`FEQ_SPLIT_FADE_MS`). `left` and
-     * `right` are still the signal that came in until this line writes over
-     * them, so the dry side of the crossfade costs nothing.
+     * The stage arrives and leaves over a fade (`FEQ_SPLIT_FADE_MS`): a
+     * width of 1.4 switched in between two samples steps the side by forty
+     * per cent, which is a click. `left` and `right` are still the signal
+     * that came in until this line writes over them, so the dry side of the
+     * crossfade costs nothing.
      */
     state->stage_mix = leaving ? std::fmax(0.0, state->stage_mix - fade_step)
                                : std::fmin(1.0, state->stage_mix + fade_step);

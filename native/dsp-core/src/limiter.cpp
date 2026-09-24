@@ -9,14 +9,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <limits>
 
+#include "limiter_internal.h"
+
 namespace {
 
-/** Positive modulo over a capacity, for the ring indices. */
-inline int64_t slot(int64_t value, uint32_t capacity) {
-  const int64_t span = static_cast<int64_t>(capacity);
-  const int64_t rest = value % span;
-  return rest < 0 ? rest + span : rest;
-}
+using feq_limiter::slot;
 
 }  // namespace
 
@@ -69,6 +66,22 @@ double feq_limiter_required_gain(double peak, double ceiling, double knee_db) {
   const double knee_position = relative_db + half_knee;
   const double reduction_db = -(knee_position * knee_position) / (2.0 * knee);
   return std::pow(10.0, reduction_db / 20.0);
+}
+
+double feq_limiter_peak_for_reduction(double reduction_db,
+                                      double ceiling,
+                                      double knee_db) {
+  const double knee = knee_db > 0.0 ? knee_db : 0.0;
+  const double half_knee = knee * 0.5;
+  const double depth = reduction_db < 0.0 ? -reduction_db : 0.0;
+  // The two branches of `feq_limiter_required_gain` read backwards: inside
+  // the knee a reduction of `(x + h)^2 / 2k` belongs to a peak `x` dB over
+  // the ceiling, and above it every decibel over is a decibel of reduction.
+  // They meet at the knee's upper edge, where both give `h`.
+  const double relative_db = depth < half_knee
+                                 ? std::sqrt(2.0 * knee * depth) - half_knee
+                                 : depth;
+  return ceiling * std::pow(10.0, relative_db / 20.0);
 }
 
 void feq_limiter_process(FeqLimiter* state,
@@ -354,21 +367,8 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
       const int64_t control_position = position - detector_latency;
       state->gain_reduction_db[slot(control_position, capacity)] =
           static_cast<float>(reduction_db);
-
-      // Back-fill a linear-in-dB fade that reaches the exact reduction at the
-      // peak. A deeper existing ramp wins, so overlapping peaks stay covered.
-      if (attack_samples > 0 && reduction_db < 0.0) {
-        const double step_db = -reduction_db / static_cast<double>(attack_samples);
-        double ramp_db = reduction_db + step_db;
-        for (int64_t back = 1; back <= attack_samples; ++back) {
-          const int64_t index = slot(control_position - back, capacity);
-          if (static_cast<double>(state->gain_reduction_db[index]) <= ramp_db) {
-            break;
-          }
-          state->gain_reduction_db[index] = static_cast<float>(ramp_db);
-          ramp_db += step_db;
-        }
-      }
+      feq_limiter::back_fill(state->gain_reduction_db, capacity,
+                             control_position, attack_samples, reduction_db);
 
       state->gain = std::pow(
           10.0, static_cast<double>(state->gain_reduction_db[read_at]) / 20.0);

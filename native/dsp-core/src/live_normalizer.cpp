@@ -47,6 +47,15 @@ struct FeqLiveNormalizer {
 
 namespace {
 constexpr double kUnknown = -120;
+// The peak protection's platform (`limiter.h`), at the Maximizer's speeds and
+// for the Maximizer's reason. A record mastered over the ceiling is over it on
+// every beat, and without a platform the protection dipped on each one and
+// let go over the next, in front of every stage of the rack. Measured
+// 2026-09-22 on five loud masters through every chain, as the 0.5-10 Hz
+// movement of the mid's 300 Hz - 5 kHz level: 0.30 dB to 0.22 on average,
+// at the same loudness.
+constexpr double kPeakPlatformAttackMs = 500;
+constexpr double kPeakPlatformReleaseMs = 1500;
 // The short-term window. No decision is made from a window still filling.
 constexpr double kWindowSeconds = 3;
 // Digital silence this long ends a programme that has no song identity. A
@@ -394,6 +403,8 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   options.output_ceiling_db = bounded(settings->ceiling_db, -1, -12, -0.1);
   options.sample_rate = state->rate;
   options.release_ms = 250;
+  options.platform_attack_ms = kPeakPlatformAttackMs;
+  options.platform_release_ms = kPeakPlatformReleaseMs;
   feq_post_filter_normalizer_process(&state->safety, channels, frames, &options);
   const auto safety = feq_post_filter_normalizer_take_telemetry(&state->safety);
   reading.applied_gain_db = song.gain_db + safety.gain_reduction_db;

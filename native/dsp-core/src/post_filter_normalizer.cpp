@@ -66,6 +66,16 @@ void feq_post_filter_normalizer_process(
     // Preserve the current gain and remove only the hold, so the continuously
     // running look-ahead path can return to unity without a level step.
     state->limiter.release_hold_remaining = 0;
+    // The platform is folded into the gain it was holding rather than
+    // dropped: dropping it would step the level up by whatever it held, and
+    // a stale one would pin the level down the moment the stage came back.
+    if (state->limiter.platform_db < 0.0) {
+      const double held = std::pow(10.0, state->limiter.platform_db / 20.0);
+      if (held < state->limiter.detector_gain) {
+        state->limiter.detector_gain = held;
+      }
+      state->limiter.platform_db = 0.0;
+    }
   }
 
   // Judge the peak at the FINAL output, not at this earlier tap.
@@ -137,6 +147,14 @@ void feq_post_filter_normalizer_process(
   limiter.attack_slew_db_per_second = 0.0;
   limiter.release_snap_ratio = FEQ_AUTO_HEADROOM_RELEASE_SNAP_RATIO;
   limiter.sample_rate = options->sample_rate;
+  if (enabled && options->platform_attack_ms > 0.0 &&
+      options->platform_release_ms > 0.0) {
+    limiter.platform_attack_coefficient = std::exp(
+        -1.0 / ((options->platform_attack_ms / 1000.0) * options->sample_rate));
+    limiter.platform_release_coefficient = std::exp(
+        -1.0 /
+        ((options->platform_release_ms / 1000.0) * options->sample_rate));
+  }
 
   feq_linked_limiter_process(&state->limiter, channels, frames, &limiter);
 

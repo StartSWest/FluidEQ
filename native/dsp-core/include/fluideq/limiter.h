@@ -200,6 +200,15 @@ void feq_limiter_init(FeqLimiter* state,
 double feq_limiter_required_gain(double peak, double ceiling, double knee_db);
 
 /**
+ * The inverse of `feq_limiter_required_gain`: the peak the curve answers with
+ * `reduction_db` (0 or below). At zero it is the knee's lower edge — the
+ * loudest peak the curve leaves alone.
+ */
+double feq_limiter_peak_for_reduction(double reduction_db,
+                                      double ceiling,
+                                      double knee_db);
+
+/**
  * Limit `input` into `output`, delayed by the look-ahead. They may alias.
  *
  * Two things this gets wrong written the obvious way, both costing a measured

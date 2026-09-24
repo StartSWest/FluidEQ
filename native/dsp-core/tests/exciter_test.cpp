@@ -26,8 +26,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cmath>
+#include <complex>
 #include <cstdio>
 #include <vector>
+
+#include "fluideq/biquad.h"
+#include "fluideq/phase_align.h"
 
 namespace {
 
@@ -346,6 +350,112 @@ void test_release() {
   check(relative_db(peak, 0.5) < -60.0, "the band goes quiet with the note");
 }
 
+/** `samples` at `hz` as amplitude and phase, over whole cycles from `from`. */
+std::complex<double> projection(const std::vector<float>& samples, double hz,
+                                uint32_t from) {
+  const uint32_t available = static_cast<uint32_t>(samples.size()) - from;
+  const auto cycles = static_cast<uint32_t>((available * hz) / kRate);
+  const auto width = static_cast<uint32_t>((cycles * kRate) / hz);
+  std::complex<double> sum(0.0, 0.0);
+  for (uint32_t at = 0; at < width; ++at) {
+    const double phase = (2.0 * kPi * hz * at) / kRate;
+    sum += static_cast<double>(samples[from + at]) *
+           std::complex<double>(std::cos(phase), -std::sin(phase));
+  }
+  return sum * (2.0 / width);
+}
+
+/** How a sine at `hz` comes out of a processor, against how it went in. */
+template <typename Process>
+std::complex<double> transfer_at(double hz, Process process) {
+  std::vector<float> in;
+  std::vector<float> out;
+  in.reserve(static_cast<size_t>(kBlock) * kBlocks);
+  out.reserve(static_cast<size_t>(kBlock) * kBlocks);
+  std::vector<float> block(kBlock);
+  double phase = 0.0;
+  for (uint32_t index = 0; index < kBlocks; ++index) {
+    for (uint32_t at = 0; at < kBlock; ++at) {
+      block[at] = static_cast<float>(0.5 * std::sin(phase));
+      phase += 2.0 * kPi * hz / kRate;
+      if (phase > 2.0 * kPi) {
+        phase -= 2.0 * kPi;
+      }
+    }
+    in.insert(in.end(), block.begin(), block.end());
+    process(block.data(), kBlock);
+    out.insert(out.end(), block.begin(), block.end());
+  }
+  // A second in: the delays have glided to where they are going by then.
+  const auto from = static_cast<uint32_t>(kRate);
+  return projection(out, hz, from) / projection(in, hz, from);
+}
+
+/** Timing at full amount, fresh for every tone. */
+std::complex<double> timing_at(double hz) {
+  FeqPhaseAlign state;
+  feq_phase_align_init(&state);
+  return transfer_at(hz, [&state](float* block, uint32_t frames) {
+    feq_phase_align_process(&state, block, frames, 1.0, kRate);
+  });
+}
+
+/** Arrival time at `hz`, from the phase two percent either side of it. */
+double group_delay_ms(double hz) {
+  const double below = hz * 0.98;
+  const double above = hz * 1.02;
+  double turn = std::arg(timing_at(above)) - std::arg(timing_at(below));
+  while (turn > kPi) {
+    turn -= 2.0 * kPi;
+  }
+  while (turn < -kPi) {
+    turn += 2.0 * kPi;
+  }
+  return (-turn / (2.0 * kPi * (above - below))) * 1000.0;
+}
+
+/**
+ * Timing moves when the lows arrive, and no level anywhere.
+ *
+ * It used to split the programme at 150 Hz and 1.2 kHz and delay the lower
+ * bands, and two bands delayed against each other cancel where they overlap:
+ * 4.6 dB out of 1.2 kHz at Timing's own setting, on every profile with Timing
+ * on. It is two all-pass sections now, and this is what holds that: the level
+ * of a sine at every octave, and the arrival of the lows and of the top.
+ */
+void test_timing() {
+  std::printf("\nexciter: Timing moves the lows and no level anywhere\n");
+  const double tones[] = {30.0,   60.0,   120.0,  150.0,  250.0,  500.0,
+                          800.0,  1200.0, 2000.0, 4000.0, 8000.0, 16000.0};
+  double worst = 0.0;
+  for (const double hz : tones) {
+    const double gain = 20.0 * std::log10(std::abs(timing_at(hz)));
+    worst = std::max(worst, std::fabs(gain));
+    std::printf("       %5.0f Hz  %+.3f dB\n", hz, gain);
+  }
+  check(worst < 0.05, "Timing is level within 0.05 dB from 30 Hz to 16 kHz");
+
+  const double low_ms = group_delay_ms(60.0);
+  const double top_ms = group_delay_ms(8000.0);
+  std::printf("       arrival: %.2f ms at 60 Hz, %.3f ms at 8 kHz\n", low_ms,
+              top_ms);
+  check(low_ms > 1.8 && low_ms < 2.6, "the lows arrive about 2.5 ms late");
+  check(std::fabs(top_ms) < 0.05, "the top arrives on time");
+
+  // Positive control: the reading that found Timing level has to see a hole
+  // where there is one. The old one's, as a bell: 4.6 dB out of 1.2 kHz.
+  FeqBiquadState bell{};
+  const FeqBiquadCoefficients hole =
+      feq_biquad_coefficients(FEQ_FILTER_PK, 1200.0, -4.6, 1.0, kRate);
+  const double control = 20.0 * std::log10(std::abs(transfer_at(
+      1200.0, [&bell, &hole](float* block, uint32_t frames) {
+        feq_biquad_process(&bell, block, frames, &hole);
+      })));
+  std::printf("       POSITIVE CONTROL: a 4.6 dB bell reads %+.2f dB\n",
+              control);
+  check(control < -4.0, "the same reading finds the hole Timing used to make");
+}
+
 }  // namespace
 
 int main() {
@@ -354,6 +464,7 @@ int main() {
   test_level_independence();
   test_band_character();
   test_release();
+  test_timing();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

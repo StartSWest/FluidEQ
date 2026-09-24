@@ -20,7 +20,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "fluideq/dimension.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -120,51 +119,23 @@ Run run(const FeqDimensionSettings& settings, double spread,
 }
 
 /**
- * The input, turned by the phase the stage's split turns and nothing else.
+ * From the first sample, the fade in included.
  *
- * Every claim below about what the stage leaves alone is made against this
- * rather than against the raw input: the side's bands share one phase so that
- * the widths cannot fight where they meet, and the mid is carried along with
- * them. A frequency response is unchanged by it; a sample is not.
+ * The stage arrives over a crossfade (`FEQ_SPLIT_FADE_MS`), and both sides of
+ * it carry the same mid — the stage's own output and the input it fades from
+ * — so the mono sum has nothing to blend and no block to be excused.
  */
-std::vector<float> phase_turned(const std::vector<float>& source,
-                                const FeqDimensionSettings& settings) {
-  std::vector<float> out = source;
-  FeqCrossoverPhase phase{};
-  feq_crossover_phase_reset(&phase);
-  for (size_t at = 0; at < out.size(); at += kFrames) {
-    feq_crossover_phase_process(
-        &phase, out.data() + at,
-        static_cast<uint32_t>(std::min<size_t>(kFrames, out.size() - at)),
-        settings.low_hz, settings.high_hz, kRate);
-  }
-  return out;
-}
-
-/**
- * From the third block, because the stage fades itself in.
- *
- * The split turns the phase of everything through it, so the stage crossfades
- * its own output against its input when it starts (FEQ_SPLIT_FADE_MS) rather
- * than switching the turn on between two samples. For those twelve
- * milliseconds the mono sum is a blend of the mid and the turned mid, and the
- * claim below is about the stage running rather than about it arriving.
- */
-double worst_mono_error(const Run& result,
-                        const FeqDimensionSettings& settings) {
-  std::vector<float> before(result.source_left.size());
-  for (size_t at = 0; at < before.size(); ++at) {
-    before[at] = static_cast<float>((static_cast<double>(result.source_left[at]) +
-                                     static_cast<double>(result.source_right[at])) *
-                                    0.5);
-  }
-  const std::vector<float> expected = phase_turned(before, settings);
+double worst_mono_error(const Run& result) {
   double worst = 0.0;
-  for (size_t at = kFrames * 2; at < result.left.size(); ++at) {
+  for (size_t at = 0; at < result.left.size(); ++at) {
+    const double before =
+        (static_cast<double>(result.source_left[at]) +
+         static_cast<double>(result.source_right[at])) *
+        0.5;
     const double after = (static_cast<double>(result.left[at]) +
                           static_cast<double>(result.right[at])) *
                          0.5;
-    const double error = std::fabs(after - static_cast<double>(expected[at]));
+    const double error = std::fabs(after - before);
     if (error > worst) {
       worst = error;
     }
@@ -194,32 +165,18 @@ double worst_difference(const Run& result, size_t from) {
   return worst;
 }
 
-/** The same, against what the input looks like after the shared phase turn. */
-double worst_difference_from_turned(const Run& result,
-                                    const FeqDimensionSettings& settings,
-                                    size_t from) {
-  const std::vector<float> left = phase_turned(result.source_left, settings);
-  const std::vector<float> right = phase_turned(result.source_right, settings);
-  double worst = 0.0;
-  for (size_t at = from; at < result.left.size(); ++at) {
-    worst = std::fmax(worst, std::fabs(static_cast<double>(result.left[at]) -
-                                       static_cast<double>(left[at])));
-    worst = std::fmax(worst, std::fabs(static_cast<double>(result.right[at]) -
-                                       static_cast<double>(right[at])));
-  }
-  return worst;
-}
-
 /**
  * THE property. Everything else in this stage is a tuning decision; this is
  * the one that decides whether it is safe to put on a master at all.
  *
  * The stage touches the side and nothing else, so `(L+R)/2` must come out at
- * any setting of any dial as the mid it went in as, carrying only the phase
- * turn the side's split carries — not close to it, equal to it, to float
- * rounding. A level change of any kind there, at any frequency, is a mono
- * listener hearing the width dial. A Haas widener, which is what most
- * processors of this kind actually do, fails this by design.
+ * any setting of any dial as exactly the mid it went in as — not close to it,
+ * equal to it, to float rounding, and not a phase-turned copy of it either.
+ * A level change of any kind there, at any frequency, is a mono listener
+ * hearing the width dial; a turn of the whole record's phase is the peaks a
+ * master's limiter took off coming back, which the Maximizer after this stage
+ * then has to take off again on every beat. A Haas widener, which is what
+ * most processors of this kind actually do, fails this by design.
  */
 void test_mono_is_untouched() {
   std::printf("dimension: what a mono listener hears does not move\n");
@@ -229,61 +186,42 @@ void test_mono_is_untouched() {
   wide.mid_width = 1.7;
   wide.high_width = 2.0;
   wide.decorrelation = 1.0;
-  const double error = worst_mono_error(run(wide, 0.5), wide);
+  const double error = worst_mono_error(run(wide, 0.5));
   std::printf("       worst mono error at full width: %.3e\n", error);
-  check(error < 1e-6, "the mono sum is unchanged at the widest setting");
+  check(error < 1e-6, "the mono sum is the input's at the widest setting");
 
   FeqDimensionSettings narrow = defaults();
   narrow.low_width = 0.0;
   narrow.mid_width = 0.0;
   narrow.high_width = 0.0;
-  check(worst_mono_error(run(narrow, 0.5), narrow) < 1e-6,
-        "and unchanged with the image collapsed to mono");
+  check(worst_mono_error(run(narrow, 0.5)) < 1e-6,
+        "and the input's with the image collapsed to mono");
 
   FeqDimensionSettings tilted = defaults();
   tilted.mid_width = 0.3;
   tilted.high_width = 1.9;
   tilted.decorrelation = 0.6;
-  check(worst_mono_error(run(tilted, 0.9), tilted) < 1e-6,
-        "and unchanged on near-anti-phase material");
+  check(worst_mono_error(run(tilted, 0.9)) < 1e-6,
+        "and the input's on near-anti-phase material");
 }
 
 /**
  * Unity in, unity out, which is what makes the check above mean something.
  *
  * A stage that returned its input untouched would pass every mono assertion
- * perfectly. It would also fail this one only if the crossover did NOT sum back
- * exactly — so this is two controls at once: the bypass is real, and the three
- * bands of the side reassemble into the side.
+ * perfectly. It would also fail this one only if the side's three bands did
+ * NOT add back to the side exactly — so this is two controls at once: the
+ * bypass is real, and the split reassembles into what it split. From the
+ * first sample, because the bands come from first-order low-passes whose
+ * differences sum back to the side from their very first output.
  */
 void test_unity_is_transparent() {
-  std::printf("\ndimension: unity width changes nothing but the shared turn\n");
-  const FeqDimensionSettings settings = defaults();
-  const Run result = run(settings, 0.5);
-  // From the second block: the crossover's filters start with empty history.
-  const double worst =
-      worst_difference_from_turned(result, settings, kFrames * 2);
+  std::printf("\ndimension: unity width changes nothing\n");
+  const Run result = run(defaults(), 0.5);
+  const double worst = worst_difference(result, 0);
   std::printf("       worst sample difference at unity: %.3e\n", worst);
-  check(worst < 1e-5,
-        "the three side bands recombine into the side they came from");
-
-  // And the turn it is measured against is genuinely nothing but phase: the
-  // reference above would also pass if the stage and the check were wrong the
-  // same way, so the reference itself is held to the level it was given.
-  double energy_in = 0.0;
-  double energy_out = 0.0;
-  const std::vector<float> turned = phase_turned(result.source_left, settings);
-  // One whole second, which is a whole number of cycles of both tones in the
-  // programme: a window cut anywhere else measures its own edges.
-  const size_t until = kFrames * 2 + 48000;
-  for (size_t at = kFrames * 2; at < until && at < turned.size(); ++at) {
-    energy_in += static_cast<double>(result.source_left[at]) *
-                 static_cast<double>(result.source_left[at]);
-    energy_out += static_cast<double>(turned[at]) * static_cast<double>(turned[at]);
-  }
-  const double ratio = energy_in > 0.0 ? energy_out / energy_in : 0.0;
-  std::printf("       the turn's own level: %.4f of what it was given\n", ratio);
-  check(ratio > 0.999 && ratio < 1.001, "and the turn itself is level-flat");
+  check(worst < 1e-6,
+        "every sample comes out as it went in, to float rounding");
 }
 
 /** The positive control: the stage does something when asked. */

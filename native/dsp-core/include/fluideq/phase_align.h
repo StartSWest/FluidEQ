@@ -5,63 +5,54 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Exciter's Timing control, ported from `phaseAlign.ts`.
+ * The Exciter's Timing control: the lows made to arrive later than the top.
  *
- * Three bands, and the lower two are delayed relative to the top: 2.5 ms for
- * the lows, half a millisecond for the mids. That is the arrival-time
- * relationship a driver imposes on its own output, and reproducing it makes an
- * excited top sit behind the transient rather than in front of it.
+ * At full amount the bottom of the range arrives 2.5 ms late, the mids about
+ * half a millisecond, the top on time. That is the arrival-time relationship
+ * a driver imposes on its own output, and reproducing it makes an excited top
+ * sit behind the transient rather than in front of it.
  *
- * The delays are fractional and smoothed, so moving the dial glides rather
- * than stepping — a delay line whose length jumps produces a click on every
- * pixel of a drag.
+ * Two first-order all-pass sections in series, one for the lows and one for
+ * the mids, so the level is the same at every frequency and only the arrival
+ * moves — which is how the hardware this follows does it. It was three bands
+ * with the lower two delayed, and two bands delayed against each other arrive
+ * out of step where they overlap and partly cancel: at Timing's own setting
+ * that took 4.6 dB out of 1.2 kHz and a decibel out of 150 Hz, on every
+ * exciter profile that used it (`exciter_test.cpp` holds it flat now).
+ *
+ * The delays glide, so moving the dial never steps the sound. A section whose
+ * delay has glided to nothing is the identity rather than a filter left
+ * running, because its pole would then sit on the unit circle.
  */
 #ifndef FLUIDEQ_PHASE_ALIGN_H
 #define FLUIDEQ_PHASE_ALIGN_H
 
 #include <stdint.h>
 
-#include "fluideq/primitives.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FEQ_PHASE_ALIGN_LOW_MS 2.5
+/** Each section's delay at the bottom of the range, at full amount. */
+#define FEQ_PHASE_ALIGN_LOW_MS 2.0
 #define FEQ_PHASE_ALIGN_MID_MS 0.5
 
-typedef struct FeqVariableDelay {
-  float* buffer;
-  uint32_t capacity;
-  uint32_t write;
-} FeqVariableDelay;
+typedef struct FeqAllPassSection {
+  double x1;
+  double y1;
+  /** Delay at the bottom of the range, in samples, gliding to its target. */
+  double delay;
+} FeqAllPassSection;
 
 typedef struct FeqPhaseAlign {
-  FeqCrossover crossover;
-  /** Band scratch, `frames` each. Caller-owned. */
-  float* low;
-  float* mid;
-  float* high;
-  FeqVariableDelay low_line;
-  FeqVariableDelay mid_line;
-  double low_delay;
-  double mid_delay;
-  /** How far the split is in: see FEQ_SPLIT_FADE_MS in primitives.h. */
-  double stage_mix;
+  FeqAllPassSection low;
+  FeqAllPassSection mid;
 } FeqPhaseAlign;
 
-/** The delay-line capacity each band needs at this rate, in samples. */
-uint32_t feq_phase_align_low_capacity(double sample_rate);
-uint32_t feq_phase_align_mid_capacity(double sample_rate);
+void feq_phase_align_init(FeqPhaseAlign* state);
 
-void feq_phase_align_init(FeqPhaseAlign* state,
-                          float* low,
-                          float* mid,
-                          float* high,
-                          float* low_line,
-                          uint32_t low_capacity,
-                          float* mid_line,
-                          uint32_t mid_capacity);
+/** True while either section still holds a delay, gliding to none included. */
+int feq_phase_align_is_active(const FeqPhaseAlign* state);
 
 void feq_phase_align_process(FeqPhaseAlign* state,
                              float* target,
