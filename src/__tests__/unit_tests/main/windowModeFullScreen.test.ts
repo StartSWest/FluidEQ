@@ -88,7 +88,8 @@ const NO_CEILING = 32_767;
 
 /** A player held to its decks' height, followed by the module. */
 const playerAt = () => {
-  const modes = createWindowModes();
+  // Windows' order of events, whichever system runs the suite.
+  const modes = createWindowModes('win32');
   const fake = fakeWindow();
   modes.restore({
     mode: 'player',
@@ -169,5 +170,39 @@ describe('the player and full screen', () => {
     const { modes, win } = playerAt();
     modes.setFullScreen(win, true);
     await expect(modes.setMode(win, 'app')).resolves.toBe('player');
+  });
+});
+
+describe('whose full screen it is', () => {
+  it('is the page’s when the page asked for it', () => {
+    const { modes, win } = playerAt();
+    modes.setFullScreen(win, true);
+    expect(win.isFullScreen()).toBe(true);
+    expect(modes.isSystemFullScreen()).toBe(false);
+    expect(modes.setFullScreen(win, false)).toBe(false);
+    expect(win.isFullScreen()).toBe(false);
+  });
+
+  it('is the listener’s when it began without the page asking, and stays', () => {
+    const { modes, win } = playerAt();
+    // F11, or a Mac's green button: straight at the window.
+    win.setFullScreen(true);
+    expect(modes.isSystemFullScreen()).toBe(true);
+    // The page letting go of a full screen of its own must not end it.
+    expect(modes.setFullScreen(win, false)).toBe(true);
+    expect(win.isFullScreen()).toBe(true);
+    // Asking for it again changes nothing about whose it is.
+    expect(modes.setFullScreen(win, true)).toBe(true);
+    expect(modes.isSystemFullScreen()).toBe(true);
+    win.setFullScreen(false);
+    expect(modes.isSystemFullScreen()).toBe(false);
+  });
+
+  it('forgets the listener’s once it has ended', () => {
+    const { modes, win } = playerAt();
+    win.setFullScreen(true);
+    win.setFullScreen(false);
+    modes.setFullScreen(win, true);
+    expect(modes.isSystemFullScreen()).toBe(false);
   });
 });

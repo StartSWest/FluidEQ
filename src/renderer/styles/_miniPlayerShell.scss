@@ -267,6 +267,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// A Mac's traffic lights at the head of the strip (`TrafficLightSlot`), and
+// of the folded line too: in from the window's edge about as far as the
+// strip's middle is down from its top, which is how a Mac sets them in its
+// own title bars, and a breath clear of the mark after them.
+.player-title > .traffic-light-slot,
+.player-fold > .traffic-light-slot {
+  margin-inline: 3px 4px;
+}
+
 .player-title__menu {
   display: flex;
   flex: none;

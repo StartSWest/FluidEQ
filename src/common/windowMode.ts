@@ -44,10 +44,34 @@ export const PLAYER_HEIGHT_LIMIT_CHANNEL = 'window-player-height-limit';
  */
 export const PLAYER_WIDTH_FLOOR_CHANNEL = 'window-player-width-floor';
 
+/**
+ * The page's word for where a Mac's traffic lights belong:
+ * `[left, centreY, stripBottom]` in CSS pixels, measured off the strip that
+ * is on screen (`TrafficLightSlot`). Main turns it into the system's points
+ * at the page's zoom.
+ */
+export const TRAFFIC_LIGHTS_CHANNEL = 'window-traffic-lights';
+
+/**
+ * A double-click on a part of the titlebar that is not a drag handle, on a
+ * Mac: main does what the listener chose in System Settings for a
+ * double-click on a title bar (`titlebarDoubleClickAction`).
+ */
+export const TITLEBAR_DOUBLE_CLICK_CHANNEL = 'window-titlebar-double-click';
+
 /** What main tells the page about its window, pushed and asked for alike. */
 export interface IWindowState {
   isMaximized: boolean;
   isFullScreen: boolean;
+  /**
+   * Full screen that the listener asked the system for rather than the page:
+   * a Mac's green button or its View menu, a development build's F11. The
+   * whole app goes full screen then, windowed layout and all, the way every
+   * Mac app does — and the page must not read it as a full screen it asked
+   * for and forgot, which it takes straight back out. Absent from a main
+   * started before it was said.
+   */
+  isSystemFullScreen?: boolean;
   mode: TWindowMode;
   /** The player's Always on top, whichever mode the window is in. */
   isPinned: boolean;

@@ -5,8 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PRODUCT_NAME } from 'common/branding';
+import TrafficLightSlot from '../components/TrafficLightSlot';
 import BrandMark from '../icons/BrandMark';
 import { useTranslation } from '../utils/I18nContext';
+import runsOnMac from '../utils/platform';
 import useEqualizerPower from '../utils/useEqualizerPower';
 import LedClock from './LedClock';
 import Marquee from './Marquee';
@@ -38,6 +40,10 @@ import usePlayerSource from './usePlayerSource';
  * A narrow strip gives things up in the order a listener can afford to lose
  * them (`_miniPlayerFold.scss`): the EQ key, the seek line, Stop, then
  * Minimise. The name and the transport stay at every width.
+ *
+ * On a Mac the window's own traffic lights open the line, and of the three
+ * buttons at its end only unfold is drawn: minimise and close are two of the
+ * lights.
  */
 const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
   const { t } = useTranslation();
@@ -55,9 +61,11 @@ const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
     source?.owner === 'library' && library !== undefined
       ? library.stop
       : source?.stop;
+  const isMac = runsOnMac();
 
   return (
-    <div className="player-fold">
+    <div className="player-fold" data-window-strip>
+      <TrafficLightSlot />
       <div className="player-fold__lead">
         <button
           type="button"
@@ -164,17 +172,21 @@ const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
         </button>
       </div>
       <div className="player-fold__tail">
-        <button
-          type="button"
-          className="player-title__button player-fold__minimize"
-          aria-label={t('app.window.minimizeApp')}
-          title={t('app.window.minimize')}
-          onClick={() => {
-            window.electron.ipcRenderer.minimizeWindow().catch(() => undefined);
-          }}
-        >
-          <PlayerIcon name="minimize" />
-        </button>
+        {!isMac && (
+          <button
+            type="button"
+            className="player-title__button player-fold__minimize"
+            aria-label={t('app.window.minimizeApp')}
+            title={t('app.window.minimize')}
+            onClick={() => {
+              window.electron.ipcRenderer
+                .minimizeWindow()
+                .catch(() => undefined);
+            }}
+          >
+            <PlayerIcon name="minimize" />
+          </button>
+        )}
         <button
           type="button"
           className="player-title__button"
@@ -184,17 +196,19 @@ const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
         >
           <PlayerIcon name="unfold" />
         </button>
-        <button
-          type="button"
-          className="player-title__button player-title__button--close"
-          aria-label={t('app.window.closeApp')}
-          title={t('app.window.close')}
-          onClick={() => {
-            window.electron.ipcRenderer.closeWindow().catch(() => undefined);
-          }}
-        >
-          <PlayerIcon name="close" />
-        </button>
+        {!isMac && (
+          <button
+            type="button"
+            className="player-title__button player-title__button--close"
+            aria-label={t('app.window.closeApp')}
+            title={t('app.window.close')}
+            onClick={() => {
+              window.electron.ipcRenderer.closeWindow().catch(() => undefined);
+            }}
+          >
+            <PlayerIcon name="close" />
+          </button>
+        )}
       </div>
     </div>
   );

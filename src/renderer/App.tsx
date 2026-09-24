@@ -32,6 +32,10 @@ import type { IEngineSetupResult } from 'main/engineSetup';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { isAccountConfigured } from 'common/accountConfig';
 import {
+  TITLEBAR_DOUBLE_CLICK_CHANNEL,
+  type IWindowState,
+} from 'common/windowMode';
+import {
   featureTourDismissal,
   shouldShowFeatureTour,
 } from 'common/featureTour';
@@ -81,6 +85,7 @@ import AudioTroubleshooter from './components/AudioTroubleshooter';
 import SideBar from './SideBar';
 import {
   exitGraphFullScreen,
+  getGraphView,
   onWindowFullScreenChange,
   toggleGraphExpanded,
   toggleGraphFullScreen,
@@ -182,7 +187,13 @@ import BrandMark from './icons/BrandMark';
 import MiniPlayer from './player/MiniPlayer';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import WindowModeSwitch from './player/WindowModeSwitch';
-import { useIsPlayerQueueOpen, usePlayerVisFull } from './player/playerLayout';
+import TrafficLightSlot from './components/TrafficLightSlot';
+import runsOnMac from './utils/platform';
+import {
+  setPlayerVisFull,
+  useIsPlayerQueueOpen,
+  usePlayerVisFull,
+} from './player/playerLayout';
 import { setWindowMode, useWindowMode } from './player/windowModeStore';
 import { applyThemeScope } from './utils/theme';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
@@ -1715,12 +1726,21 @@ const AppContent = () => {
      *
      *  - Not full screen: nothing may still own a full-screen surface. That
      *    covers the window being taken out of it by any route we did not ask
-     *    about, F11 and the system menu among them.
+     *    about, F11 and the system menu among them — and on a Mac the green
+     *    button, which is on screen over every full-screen window there. A
+     *    window that WAS full screen and left it while something in here still
+     *    claimed it was taken out from under that claim, and every claim goes:
+     *    the graph's largest view and the player's visualizer as well as the
+     *    media surface, or they would draw their full-screen layout in a
+     *    window.
      *
      *  - Full screen with nothing in here claiming it: the two have come
      *    apart, and the window is the half that is wrong — no tab is drawing
      *    a full-screen layout, so it is showing a windowed one with the
-     *    titlebar gone. Put it back.
+     *    titlebar gone. Put it back. Unless it is the listener's own full
+     *    screen (`isSystemFullScreen`): a Mac's green button takes the whole
+     *    app full screen, windowed layout and all, and that is the mode they
+     *    asked for, not a disagreement.
      *
      * Fed from two places, because the window outlives the page. Every state
      * change the window announces comes through the listener below; the read
@@ -1731,11 +1751,9 @@ const AppContent = () => {
      * windowed layout in it, and a double-click that only repaired the
      * disagreement.
      */
-    const reconcileWindowState = (
-      state:
-        | { isMaximized?: boolean; isFullScreen?: boolean; zoom?: number }
-        | undefined,
-    ) => {
+    /** The last announcement's answer, to tell leaving from never having been. */
+    let wasFullScreen = false;
+    const reconcileWindowState = (state: Partial<IWindowState> | undefined) => {
       if (!mounted) {
         return;
       }
@@ -1755,13 +1773,28 @@ const AppContent = () => {
         root.style.setProperty('--window-zoom', String(zoom));
       }
       if (state?.isFullScreen === true) {
-        if (!windowFullScreenClaimRef.current) {
+        wasFullScreen = true;
+        if (
+          !windowFullScreenClaimRef.current &&
+          state.isSystemFullScreen !== true
+        ) {
           window.electron.ipcRenderer
             .setWindowFullScreen(false)
             .catch(() => undefined);
         }
         return;
       }
+      // Only on the way out, never merely while windowed: a claim written a
+      // moment before the window has gone full screen for it is the page
+      // entering the mode, and the announcement it is racing says nothing
+      // about the claim.
+      if (wasFullScreen && windowFullScreenClaimRef.current) {
+        if (getGraphView() === 'fullscreen') {
+          exitGraphFullScreen();
+        }
+        setPlayerVisFull(false);
+      }
+      wasFullScreen = false;
       mediaFullScreenRequestedRef.current = false;
       setMediaFullScreenOwner(undefined);
     };
@@ -1777,11 +1810,7 @@ const AppContent = () => {
     const unsubscribe = window.electron.ipcRenderer.on(
       'window-state-changed',
       (...args: unknown[]) => {
-        reconcileWindowState(
-          args[0] as
-            | { isMaximized?: boolean; isFullScreen?: boolean; zoom?: number }
-            | undefined,
-        );
+        reconcileWindowState(args[0] as Partial<IWindowState> | undefined);
       },
     );
 
@@ -2267,10 +2296,22 @@ const AppContent = () => {
    * which is nearly all of it. This covers what is left: the identity block
    * on the left is `no-drag` so the name can be hovered, and a double-click
    * there should still maximise like a double-click an inch to its right.
+   *
+   * A Mac answers it on the drag region too, but with whatever the listener
+   * chose in System Settings — zoom, minimise or nothing — so what is left
+   * goes to main, which reads the same setting, rather than maximising here
+   * whatever it says.
    */
   const handleTitlebarDoubleClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+    if (runsOnMac()) {
+      window.electron.ipcRenderer.sendMessage(
+        TITLEBAR_DOUBLE_CLICK_CHANNEL,
+        [],
+      );
       return;
     }
     handleToggleMaximizeWindow().catch(() => undefined);
@@ -2311,6 +2352,7 @@ const AppContent = () => {
       <header
         ref={titlebarRef}
         className="workspace-header window-titlebar"
+        data-window-strip
         onDoubleClick={handleTitlebarDoubleClick}
       >
         {/* The three direct grid children are what centre the waveform, and
@@ -2320,6 +2362,9 @@ const AppContent = () => {
             it. Identity and two places on the left; three places, the pet, the
             actions button and the window controls on the right. */}
         <div className="window-titlebar__left" ref={titlebarLeftRef}>
+          {/* A Mac's traffic lights, first in the card, where every Mac
+              window has them. Nothing on Windows or Linux. */}
+          <TrafficLightSlot />
           <div className="workspace-header__identity">
             <BrandMark />
             {/* Named, because a narrow window hides this and leaves the mark
@@ -2454,68 +2499,72 @@ const AppContent = () => {
             />
             <WindowModeSwitch />
           </div>
-          <div
-            className="window-titlebar__controls"
-            onDoubleClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="window-control"
-              aria-label={t('app.window.minimizeApp')}
-              title={t('app.window.minimize')}
-              onClick={handleMinimizeWindow}
+          {/* Windows' three, drawn by the page because the window has no
+              frame. A Mac has its own at the other end of the card. */}
+          {!runsOnMac() && (
+            <div
+              className="window-titlebar__controls"
+              onDoubleClick={(event) => event.stopPropagation()}
             >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M2 6h8" />
-              </svg>
-            </button>
-            {/* Full screen counts as filled, because the window really is:
+              <button
+                type="button"
+                className="window-control"
+                aria-label={t('app.window.minimizeApp')}
+                title={t('app.window.minimize')}
+                onClick={handleMinimizeWindow}
+              >
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M2 6h8" />
+                </svg>
+              </button>
+              {/* Full screen counts as filled, because the window really is:
                 the graph's largest view takes the screen for real, taskbar
                 and all. A button offering to maximise a window that has the
                 whole screen describes a state the window is not in, and
                 pressing it did nothing — a full-screen window cannot be
                 maximised. It reads and answers both states. */}
-            <button
-              type="button"
-              className="window-control"
-              aria-label={
-                isWindowFilled
-                  ? t('app.window.restoreApp')
-                  : t('app.window.maximizeApp')
-              }
-              title={
-                isWindowFilled
-                  ? t('app.window.restore')
-                  : t('app.window.maximize')
-              }
-              onClick={() => {
-                if (isAppFullScreen) {
-                  leaveFullScreen();
-                  return;
+              <button
+                type="button"
+                className="window-control"
+                aria-label={
+                  isWindowFilled
+                    ? t('app.window.restoreApp')
+                    : t('app.window.maximizeApp')
                 }
-                handleToggleMaximizeWindow().catch(() => undefined);
-              }}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                {isWindowFilled ? (
-                  <path d="M4 3h6v6M2 5v5h6V4" />
-                ) : (
-                  <path d="M2 2h8v8H2z" />
-                )}
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="window-control window-control--close"
-              aria-label={t('app.window.closeApp')}
-              title={t('app.window.close')}
-              onClick={handleCloseWindow}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
-          </div>
+                title={
+                  isWindowFilled
+                    ? t('app.window.restore')
+                    : t('app.window.maximize')
+                }
+                onClick={() => {
+                  if (isAppFullScreen) {
+                    leaveFullScreen();
+                    return;
+                  }
+                  handleToggleMaximizeWindow().catch(() => undefined);
+                }}
+              >
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  {isWindowFilled ? (
+                    <path d="M4 3h6v6M2 5v5h6V4" />
+                  ) : (
+                    <path d="M2 2h8v8H2z" />
+                  )}
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="window-control window-control--close"
+                aria-label={t('app.window.closeApp')}
+                title={t('app.window.close')}
+                onClick={handleCloseWindow}
+              >
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M3 3l6 6M9 3l-6 6" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </header>
       <main

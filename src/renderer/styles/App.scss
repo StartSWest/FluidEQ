@@ -1858,6 +1858,52 @@ body::after {
   display: none;
 }
 
+// ============================================================ on a Mac ====
+//
+// A Mac's window keeps a title bar, hidden, and AppKit rounds a titled window
+// and draws its rim itself — at the radius that release of macOS uses (10pt
+// through macOS 15, larger from 26), and lit the way every other window on
+// that desktop is. An edge of the page's own, at Windows' 8px, would stand
+// off that corner or be cut by it; the Mac's is the edge. `data-platform` is
+// set before anything renders (`index.tsx`).
+:root[data-platform='darwin'] body::after {
+  display: none;
+}
+
+// Light text on a dark surface drawn without CoreText's font smoothing, which
+// thickens every stem: on light-on-dark that reads as a heavier weight than
+// the `$weight-*` step asked for, so a Mac would have drawn this interface a
+// step bolder than Windows does. Only a Mac honours the property; the
+// platform scope says so rather than leaving it to be found out.
+:root[data-platform='darwin'] body {
+  -webkit-font-smoothing: antialiased;
+}
+
+// Where the traffic lights stand (`TrafficLightSlot`): the first thing in the
+// titlebar's card and in the player's strips, as tall as the strip so its
+// middle is the line the three buttons are centred on. Its width is the
+// system's measure of the buttons and their margin either side
+// (`titlebar-area-x`), less that margin twice — the slot's own distance from
+// the window's left edge, which is what it asked for. The variable is gone
+// in full screen, where a Mac hides the buttons, and the slot closes with
+// them.
+.traffic-light-slot {
+  flex: none;
+  align-self: stretch;
+  width: max(0px, env(titlebar-area-x, 0px) - 2 * var(--traffic-lights-x, 0px));
+}
+
+// The window between the app and the player (`windowModeStore`): the page is
+// held empty while the window changes size, and what shows then is the canvas
+// behind it. Left alone that is Chromium's dark canvas grey, not the floor
+// Windows paints the rest of the window in, so a window changing size showed a
+// rectangle the old view's size in another shade of dark (Ivan, 2026-09-22: "a
+// mini player frame on the left for a sec with dark tone"). The floor, for the
+// length of the switch, is one colour everywhere.
+:root[data-window-switching] {
+  background: $surface-base;
+}
+
 // The now-playing bar is `position: fixed` to the window (see
 // `NowPlayingBar.scss`), which takes it out of `.app-workspace`'s grid
 // entirely — nothing in that grid shrinks on its own just because the bar

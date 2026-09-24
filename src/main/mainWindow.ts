@@ -39,6 +39,7 @@ import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
 import { applyWindowBackdrop, windowFloorColour } from './windowBackdrop';
 import { installWindowRecovery } from './crashRecovery';
+import { macWindowOptions } from './macWindowChrome';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
@@ -59,6 +60,11 @@ import installTaskbarTransport from './taskbarTransport';
  * system radius, which is about 8px and not adjustable, and keeps doing it
  * through every move, snap and resize; the page draws its own edge inside
  * that (`body::after` in App.scss) rather than trying to own the shape.
+ *
+ * A Mac's window keeps a title bar, hidden (`macWindowOptions`): that is what
+ * gives it AppKit's traffic lights, and AppKit rounds and rims a titled
+ * window itself, at whatever radius that release of macOS draws, so the page
+ * draws no edge of its own there.
  */
 
 /**
@@ -254,6 +260,9 @@ export const createMainWindowFactory = ({
       // Windows window is; the page draws its own edge to match
       // (`is-window-filled` in App.scss).
       roundedCorners: true,
+      // A Mac's own traffic lights, and a green button that only the full
+      // app can use. Nothing anywhere else.
+      ...macWindowOptions(process.platform, player !== undefined),
       // The shell's own floor, opaque, from the very first frame: Chromium
       // paints this until the page's first frame arrives and Windows fills
       // the strip a resize opens with it, and both used to be a pane of bare

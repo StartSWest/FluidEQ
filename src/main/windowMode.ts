@@ -15,6 +15,7 @@ import {
   playerMinimumSize,
 } from '../common/windowMode';
 import type { IRect, TWindowMode } from '../common/windowMode';
+import { createFullScreenOwner } from './fullScreenOwner';
 
 /** Where the full app was, as the window-state file keeps it. */
 export interface IAppPlacement extends Partial<IRect> {
@@ -58,8 +59,11 @@ const NO_CEILING = 32_767;
  * screen to screen; the player's is its own layout's, which is in CSS pixels
  * and so moves with the page's zoom.
  */
-export const createWindowModes = () => {
+export const createWindowModes = (
+  platform: NodeJS.Platform = process.platform,
+) => {
   const memory: IWindowModeMemory = { mode: 'app', isPinned: false, app: {} };
+  const fullScreen = createFullScreenOwner();
   // Set once by main, beside the function that tells the page (`listen`).
   let onChange: () => void = () => undefined;
   /**
@@ -162,6 +166,13 @@ export const createWindowModes = () => {
       return;
     }
     const isPlayer = memory.mode === 'player';
+    // A Mac's green button: full screen for the app, disabled on the player
+    // (`macWindowOptions`) — except while the page is taking the screen for
+    // the player's visualizer, which AppKit refuses a window that cannot go
+    // full screen.
+    if (platform === 'darwin') {
+      win.setFullScreenable(!isPlayer || isFullScreen);
+    }
     const floor = isPlayer
       ? playerMinimumSize(zoomOf(win))
       : appMinimumSize(workAreaOf(win.getBounds()));
@@ -217,6 +228,21 @@ export const createWindowModes = () => {
         clampInto({ ...bounds, width, height }, workAreaOf(bounds)),
       );
     }
+  };
+
+  /**
+   * Out of full screen: the mode's limits back on, and the player back at the
+   * bounds it went up from, to the pixel (`setFullScreen`).
+   */
+  const settleAfterFullScreen = (win: BrowserWindow) => {
+    if (win.isDestroyed()) {
+      return;
+    }
+    applyLimits(win, false);
+    if (memory.mode === 'player' && isUsableRect(memory.player)) {
+      win.setBounds(clampInto(memory.player, workAreaOf(memory.player)));
+    }
+    onChange();
   };
 
   /** Always on top belongs to the player; the full app never stays over others. */
@@ -390,7 +416,12 @@ export const createWindowModes = () => {
      * The order below is Windows': `setFullScreen` moves the window inside
      * the call, and the window's own `enter-full-screen` / `leave-full-screen`
      * events are raised BEFORE it does — so nothing that has to happen after
-     * the move can be done from them.
+     * the move can be done from them. A Mac is the other way round: it
+     * animates out on its own time and refuses new bounds until it has
+     * finished, which its `leave-full-screen` says (`followWindow`).
+     *
+     * A full screen the listener chose from the system is not the page's to
+     * end (`fullScreenOwner.ts`): asked to leave it, the window stays.
      */
     setFullScreen: (win: BrowserWindow, next: boolean): boolean => {
       if (win.isDestroyed()) {
@@ -404,17 +435,22 @@ export const createWindowModes = () => {
           memory.player = win.getBounds();
         }
         applyLimits(win, true);
+        fullScreen.asked();
         win.setFullScreen(true);
         return true;
       }
-      win.setFullScreen(false);
-      applyLimits(win, false);
-      if (memory.mode === 'player' && isUsableRect(memory.player)) {
-        win.setBounds(clampInto(memory.player, workAreaOf(memory.player)));
+      if (fullScreen.isSystem()) {
+        return true;
       }
-      onChange();
+      win.setFullScreen(false);
+      if (platform !== 'darwin') {
+        settleAfterFullScreen(win);
+      }
       return false;
     },
+
+    /** Whether the listener chose the full screen the window is in. */
+    isSystemFullScreen: () => fullScreen.isSystem(),
 
     /**
      * The window, back in the middle of the screen it is nearest.
@@ -544,7 +580,22 @@ export const createWindowModes = () => {
       // height the player's decks hold the window to. Coming back down needs
       // nothing here: the page says its layout again the moment it is a
       // player layout, and that puts the limits back (`limitPlayerHeight`).
-      win.on('enter-full-screen', () => applyLimits(win, true));
+      //
+      // Before main's own listeners, which tell the page, so what they tell
+      // it already says whose full screen this is.
+      win.on('enter-full-screen', () => {
+        fullScreen.entered();
+        applyLimits(win, true);
+      });
+      win.on('leave-full-screen', () => {
+        fullScreen.left();
+        // A Mac has finished animating out by now, whoever asked — the page,
+        // or the green button over a full screen the page took — and only
+        // now takes the player's bounds back (`setFullScreen`).
+        if (platform === 'darwin') {
+          settleAfterFullScreen(win);
+        }
+      });
     },
 
     /**

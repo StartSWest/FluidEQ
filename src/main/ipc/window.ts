@@ -16,13 +16,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BrowserWindow, ipcMain } from 'electron';
+import { release } from 'os';
+import { BrowserWindow, ipcMain, systemPreferences } from 'electron';
 import { resolveLocale } from '../../common/i18n';
 import {
   PLAYER_HEIGHT_LIMIT_CHANNEL,
   PLAYER_WIDTH_FLOOR_CHANNEL,
+  TITLEBAR_DOUBLE_CLICK_CHANNEL,
+  TRAFFIC_LIGHTS_CHANNEL,
   type IWindowState,
 } from '../../common/windowMode';
+import {
+  titlebarDoubleClickAction,
+  trafficLightBandOf,
+  trafficLightHeight,
+  trafficLightPlacement,
+} from '../macWindowChrome';
 import { setTrayLocale } from '../tray';
 import { setWindowFloor } from '../windowBackdrop';
 import type { TWindowModes } from '../windowMode';
@@ -201,6 +210,62 @@ export const registerWindowIpc = ({
         ? width
         : undefined,
     );
+  });
+
+  /**
+   * A Mac's traffic lights, put where the page draws the strip they belong
+   * in (`macWindowChrome.ts`), and a sheet dropped from the foot of it rather
+   * than over it. Measured once per page zoom and per strip, so this is not
+   * a stream.
+   */
+  const buttonHeight = trafficLightHeight(release());
+  onWindowMessage(TRAFFIC_LIGHTS_CHANNEL, (event, arg: unknown) => {
+    const mainWindow = getMainWindow();
+    if (
+      process.platform !== 'darwin' ||
+      !mainWindow ||
+      event.sender !== mainWindow.webContents
+    ) {
+      return;
+    }
+    const band = trafficLightBandOf(arg);
+    if (!band) {
+      return;
+    }
+    const { position, sheetOffset } = trafficLightPlacement(
+      band,
+      mainWindow.webContents.getZoomFactor(),
+      buttonHeight,
+    );
+    mainWindow.setWindowButtonPosition(position);
+    mainWindow.setSheetOffset(sheetOffset);
+  });
+
+  /**
+   * A double-click on the titlebar where it is not a drag handle, such as the
+   * product's name on a narrow window. A Mac answers one on the drag handle
+   * itself, by the listener's own setting; this gives the rest of the bar the
+   * same answer, where the page's own maximised whatever the setting said.
+   */
+  onWindowMessage(TITLEBAR_DOUBLE_CLICK_CHANNEL, (event) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      return;
+    }
+    const action = titlebarDoubleClickAction(
+      process.platform === 'darwin'
+        ? systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+        : undefined,
+    );
+    if (action === 'minimize') {
+      mainWindow.minimize();
+    } else if (action === 'zoom') {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
   });
 
   /**

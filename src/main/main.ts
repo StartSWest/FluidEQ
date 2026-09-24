@@ -3077,6 +3077,7 @@ const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
   return {
     isMaximized: isLive ? window.isMaximized() : false,
     isFullScreen: isLive ? window.isFullScreen() : false,
+    isSystemFullScreen: isLive ? windowModes.isSystemFullScreen() : false,
     mode: modes.mode,
     isPinned: modes.isPinned,
     zoom: isLive ? window.webContents.getZoomFactor() : 1,

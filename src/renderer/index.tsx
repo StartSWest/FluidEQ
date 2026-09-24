@@ -31,6 +31,11 @@ import { installGlobalErrorHandlers } from './utils/logger';
 // changed one and not the other would break the loopback capture quietly.
 document.title = PRODUCT_NAME;
 
+// Which system draws the window's corner, its rim and its buttons — a Mac
+// does all three itself (`App.scss`, "on a Mac"). Before the first render, so
+// no frame is ever drawn in the other system's clothes.
+document.documentElement.dataset.platform = window.electron?.platform ?? '';
+
 // Before anything renders, so a throw while building the first tree is caught
 // as well. The boundary below only sees failures inside React's own render;
 // these two cover the timers, the frame loops and the promises that make up
