@@ -78,9 +78,12 @@ void Graph::adopt_state(Graph* previous) noexcept {
     return;
   }
   const bool same_bands = same_stage(plain_, previous->plain_);
-  const bool same_eq_phase = same_stage(eq_phase_, previous->eq_phase_) &&
+  const bool same_eq_phase =
+      same_stage(linear_phase_, previous->linear_phase_) &&
+      same_stage(eq_phase_, previous->eq_phase_) &&
       same_stage(curve_phase_, previous->curve_phase_);
   carry_stage(plain_, previous->plain_);
+  carry_stage(linear_phase_, previous->linear_phase_);
   carry_stage(eq_phase_, previous->eq_phase_);
   carry_stage(curve_phase_, previous->curve_phase_);
 
@@ -95,11 +98,25 @@ void Graph::adopt_state(Graph* previous) noexcept {
 
   if (output_guard_ && previous->output_guard_) {
     output_guard_.swap(previous->output_guard_);
-    output_guard_->set_curve_level(curve_level_db_);
-    if (auto_preamp_ && (!same_bands || !same_eq_phase || preamp_linear_ != previous->preamp_linear_ ||
-        curve_identity() != previous->curve_identity() ||
-        impulse_identity_ != previous->impulse_identity_ || impulse_.size() != previous->impulse_.size())) {
-      output_guard_->reassess(std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20);
+    const bool sound_changed =
+        auto_preamp_ &&
+        (!same_bands || !same_eq_phase ||
+         preamp_linear_ != previous->preamp_linear_ ||
+         curve_identity() != previous->curve_identity() ||
+         impulse_identity_ != previous->impulse_identity_ ||
+         impulse_.size() != previous->impulse_.size());
+    const uint32_t settling =
+        std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20;
+    if (sound_changed && level_basis_ != nullptr && level_basis_ == previous) {
+      // The level this EQ needs on the music just heard, at once.
+      output_guard_->shift_level(level_shift_db_, curve_level_db_, settling);
+    } else {
+      // Nothing heard to judge by: down by the curve's worst case, then back
+      // up as the music shows how much of it was needed.
+      output_guard_->set_curve_level(curve_level_db_);
+      if (sound_changed) {
+        output_guard_->reassess(settling);
+      }
     }
   }
   if (impulse_identity_ != nullptr && impulse_identity_ == previous->impulse_identity_ &&

@@ -504,6 +504,25 @@ Everything worth knowing about them is available through commands:
   touch my auto normalizer", "recover to 0 dB"); 0.3 dB/s after 3 s made a
   jazz track 10 dB dirtier in its worst second, which is how the rate was
   chosen on five songs.
+- **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
+  2026-09-23: "jump straight to it and then the auto normalize just
+  finetune"). The engine keeps the last 10 s of music as it leaves the rack
+  (`input_history.h`, 8 MiB per output at most) and, before publishing an
+  edit's graph, replays that music through the new EQ and moves the level
+  once at the handover by how much louder or quieter its loudest true peak
+  comes out than the chain playing (`level_prediction.h`, `shift_level`).
+  The chain playing is judged by the peaks the guard measured on it when it
+  has played through the whole window in minimum phase, and replayed
+  otherwise — within a drag, by the previous step's replay (the shadow), so
+  the steps telescope instead of counting the earlier ones again. Replays are
+  always minimum phase (linear costs 8x and shifts peaks up to 1.8 dB) and
+  judge 4 s instead of 10 when a curve or impulse is convolved. No music
+  heard, Auto normalize off on either side, or a handover from a graph other
+  than the one predicted against: the old drop by the worst case and climb.
+  On his five songs, 25 edits: the level still moving 2.14 dB in the ten
+  seconds after an edit became 0.51; 35–60 ms per edit on the watcher thread.
+  What happens after the handover — overloads, the 0.15 dB/s give-back — is
+  untouched.
 - **With every curve in minimum phase the curves stage adds no delay.** It
   used to keep a linear design's half length in front of every output —
   55 ms with `# FluidEQCurveStage: ON`, curve or not; the minimum-phase
@@ -521,6 +540,15 @@ Everything worth knowing about them is available through commands:
   the first 0.7 s of every stream. `APOProcess` turns denormals off for its
   call and restores them (`denormals.h`): silence from a paused player cost
   13x the EQ's work without it.
+- **Every Linear group shares one filter and one delay** (engine 1.15,
+  `ENGINE_SHARED_LINEAR_SINCE`). The bands of each group set to Linear go into
+  one `EqPhaseStage` (`linear_phase_`, run first), minimum-phase groups after
+  it, so Your EQ and the curves both on Linear cost 352 ms at 48 kHz rather
+  than 704 (Ivan: "adding layers wont make it crazy"). The delay is counted
+  once, a group leaving Linear hands the stage over without a jump
+  (`a_layer_leaving_linear_keeps_the_shared_delay`), and the menu says
+  "shared" only over an engine that does it. The sampled-curve stage still
+  adds its own 53 ms in Linear; folding it in is open.
 - **`status-{GUID}.json` is the engine telling the app what it is doing.**
   The DLL writes one per output into its root (`status_file.h`) inside
   `LockForProcess` — before any audio passes — and again on every change and

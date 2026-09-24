@@ -37,6 +37,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 
 namespace fluideq_engine {
+class InputHistory;
 class OutputGuard;
 struct RoomHead;
 
@@ -126,6 +127,26 @@ class Graph {
 
   /** Watcher thread, before publication. Reset graphs leave this disabled. */
   void request_state_transfer() noexcept { transfer_state_ = true; }
+
+  /**
+   * Watcher thread, before publication: where `process` records the music as
+   * it leaves the rack, for Auto normalize to replay (`input_history.h`).
+   * The history outlives every graph; null records nothing.
+   */
+  void set_history(InputHistory* history) noexcept { history_ = history; }
+
+  /**
+   * Watcher thread, before publication: this edit's level, worked out on the
+   * music just heard (`level_prediction.h`), taken at the handover in place
+   * of the curve's worst case — if, and only if, the graph handed over from
+   * is `basis`, the one the prediction was made against. Any other handover
+   * (a graph published after `basis` that never played) does what it always
+   * did.
+   */
+  void plan_level_shift(double db, const Graph* basis) noexcept {
+    level_shift_db_ = db;
+    level_basis_ = basis;
+  }
 
   /**
    * Audio thread, between blocks, while the previous histories are idle.
@@ -265,9 +286,12 @@ class Graph {
      * a layer asks for linear phase.
      */
     uint32_t curves = 0;
-    /** The EQ's bands under linear phase. */
+    /**
+     * The one FIR every layer in linear phase shares (`linear_phase_`),
+     * counted once: here while Your EQ is in it, under `curve_phase` while
+     * only the curves are.
+     */
     uint32_t eq_phase = 0;
-    /** The curve layer's bands under linear phase. */
     uint32_t curve_phase = 0;
     /** An impulse response the configuration convolves with. */
     uint32_t convolution = 0;
@@ -295,6 +319,10 @@ class Graph {
   std::atomic<bool>* meter_activity_ = nullptr;
   std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;
+  InputHistory* history_ = nullptr;
+  double level_shift_db_ = 0.0;
+  // Only ever compared, never followed: the graph it names may be gone.
+  const Graph* level_basis_ = nullptr;
   bool auto_preamp_ = false;
   std::unique_ptr<OutputGuard> output_guard_;
   std::atomic<float>* output_gain_ = nullptr;
@@ -329,6 +357,9 @@ class Graph {
   // straight copy, and it is what lets bands that appear or disappear in an
   // edit fade in or out.
   std::unique_ptr<IirCascade> plain_;
+  // Every band of a layer in linear phase, Your EQ's and the curves' alike,
+  // as one FIR with one delay; then each layer in minimum phase as biquads.
+  std::unique_ptr<EqPhaseStage> linear_phase_;
   std::unique_ptr<EqPhaseStage> eq_phase_;
   std::unique_ptr<EqPhaseStage> curve_phase_;
 

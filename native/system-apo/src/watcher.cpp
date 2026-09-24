@@ -147,6 +147,7 @@ void Watcher::load_initial() {
   } catch (...) {
     log_.write("song leveling memory unavailable; leveling relearns per stream");
   }
+  open_level_prediction();
   if (endpoint_.guid.empty()) {
     // Windows handed this instance no device collection, so there is no way
     // to tell which `Device:` blocks apply. Everything unguarded still does.
@@ -534,6 +535,10 @@ void Watcher::reload() {
       return;
     }
     graph->request_state_transfer();
+    predict_level(chain, *graph);
+    if (stop_requested()) {
+      return;
+    }
     // Said once, as the graph that did it is replaced: a count that only
     // ever lived on the audio thread, where nothing may write a log line.
     if (const Graph* previous = slot_.active()) {
@@ -556,6 +561,7 @@ void Watcher::reload() {
     // would be describing the configuration, not the sound.
     game_mode_ = processing && graph->low_latency();
     publish(std::move(graph));
+    accept_level(chain);
     signature_.swap(next);
     have_signature_ = true;
     last_processing_ = processing;
@@ -577,11 +583,13 @@ void Watcher::reload() {
 void Watcher::publish(std::unique_ptr<Graph> graph) {
   if (analysis_) graph->set_meters(analysis_->meters(), analysis_->activity());
   if (analysis_) graph->set_output_meters(&analysis_->output_gain, &analysis_->output_enabled, &analysis_->output_active);
+  graph->set_history(history_.get());
   // Ownership is recorded before the graph becomes reachable: if this
   // allocation throws, the unique_ptr still holds the only reference and
   // frees it, and the audio thread never saw it.
   owned_.push_back(Retired{graph.get(), 0});
   Graph* const raw = graph.release();
+  last_published_ = raw;
 
   slot_.set_latency(raw->latency_frames());
   Graph* const unconsumed = slot_.publish(raw);

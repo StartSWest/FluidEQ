@@ -17,6 +17,11 @@ class OutputGuard {
   void process(float* const* planar, uint32_t frames, bool enabled) noexcept;
   uint32_t latency() const noexcept { return latency_; }
   double gain_db() const noexcept;
+  /**
+   * The loudest true peak the last `process` call was handed, before any gain:
+   * what the EQ made of that block (`InputHistory::record_peak`).
+   */
+  double last_input_peak() const noexcept { return last_input_peak_; }
   void reassess(uint32_t settling_frames) noexcept;
   /**
    * The curve's own level, 0 dB or below: where Auto normalize starts, and
@@ -29,8 +34,20 @@ class OutputGuard {
    * the ceiling; a higher one is left to the recovery.
    */
   void set_curve_level(double db) noexcept;
+  /**
+   * An edit whose level was worked out before it was heard
+   * (`level_prediction.h`): the level moves by `db` at once, and none of the
+   * after-edit catching up that `set_curve_level` and `reassess` do is left to
+   * run, because what it would have measured is already known. The curve's
+   * level is recorded all the same, for a guard switched off and on again.
+   * Before the guard's first enabled block the level is left to start at the
+   * curve's level, as it always does.
+   */
+  void shift_level(double db, double curve_level_db,
+                   uint32_t settling_frames) noexcept;
  private:
   double curve_level_db_ = 0;
+  double last_input_peak_ = 0;
   /** The next enabled block starts from the curve's level. */
   bool armed_ = true;
   uint32_t rate_;

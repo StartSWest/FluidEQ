@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "eq_phase.h"
 #include "graph_stages.h"
 #include "iir_cascade.h"
+#include "input_history.h"
 #include "output_guard.h"
 
 namespace fluideq_engine {
@@ -124,6 +125,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     }
     plain_ = std::make_unique<IirCascade>(std::vector<IirBand>{}, sample_rate_,
                                           channels_, max_frames_);
+    linear_phase_ = std::make_unique<EqPhaseStage>(std::vector<IirBand>{},
+        true, sample_rate_, channels_, max_frames_);
     eq_phase_ = std::make_unique<EqPhaseStage>(std::vector<IirBand>{}, false,
         sample_rate_, channels_, max_frames_);
     curve_phase_ = std::make_unique<EqPhaseStage>(std::vector<IirBand>{}, false,
@@ -161,23 +164,52 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   if (chain.preamp_db != 0.0) active_stages_.emplace_back("preamp");
   // Game mode runs every band minimum phase: linear phase is a kernel's half
   // length of delay — up to 181 ms — spent on a property nobody aims by.
-  eq_phase_ = std::make_unique<EqPhaseStage>(std::move(eq_bands),
-      !chain.minimum_eq_phase && !low_latency_,
-      sample_rate_, channels_, max_frames_);
-  if (!eq_phase_->empty()) {
-    latency_frames_ += eq_phase_->latency();
-    parts_.eq_phase = eq_phase_->latency();
-    if (!eq_phase_->failed()) active_stages_.emplace_back("eqPhase");
-    if (eq_phase_->failed()) problems_.push_back("eq-phase");
+  const bool eq_linear = !chain.minimum_eq_phase && !low_latency_;
+  const bool curve_linear = !chain.minimum_curve_phase && !low_latency_;
+  const bool has_eq_bands = !eq_bands.empty();
+  const bool has_curve_bands = !curve_bands.empty();
+  // Every band of a layer in linear phase goes into ONE FIR, whichever layer
+  // it came from. Your EQ and the curves in linear phase used to be a FIR
+  // each, in series, each its whole half length of delay: 704 ms at 48 kHz
+  // with both linear, and a 32767-tap convolution per layer (Ivan,
+  // 2026-09-23: "if using linear on both curves and EQ need to add up or can
+  // use same lag ms"). One kernel holds the product of their magnitudes as
+  // well, with one delay and one convolution, however many layers are in it.
+  //
+  // The layers left in minimum phase run as biquads after it, so the FIR
+  // always hears the stream itself: a layer switching phase changes the
+  // kernel, handed over like any edit (`feq_convolver_transfer`), and never
+  // moves the FIR in the chain — which would have skipped the music forward
+  // by the delay and then replayed it.
+  std::vector<IirBand> linear_bands;
+  if (eq_linear) {
+    linear_bands.insert(linear_bands.end(), eq_bands.begin(), eq_bands.end());
+    eq_bands.clear();
   }
-  curve_phase_ = std::make_unique<EqPhaseStage>(std::move(curve_bands),
-      !chain.minimum_curve_phase && !low_latency_,
+  if (curve_linear) {
+    linear_bands.insert(linear_bands.end(), curve_bands.begin(),
+                        curve_bands.end());
+    curve_bands.clear();
+  }
+  linear_phase_ = std::make_unique<EqPhaseStage>(std::move(linear_bands), true,
       sample_rate_, channels_, max_frames_);
-  if (!curve_phase_->empty()) {
-    latency_frames_ += curve_phase_->latency();
-    parts_.curve_phase = curve_phase_->latency();
-    if (!curve_phase_->failed()) active_stages_.emplace_back("curvePhase");
-    if (curve_phase_->failed()) problems_.push_back("eq-phase");
+  eq_phase_ = std::make_unique<EqPhaseStage>(std::move(eq_bands), false,
+      sample_rate_, channels_, max_frames_);
+  curve_phase_ = std::make_unique<EqPhaseStage>(std::move(curve_bands), false,
+      sample_rate_, channels_, max_frames_);
+  const bool linear_failed = linear_phase_->failed();
+  if (!linear_phase_->empty()) {
+    latency_frames_ += linear_phase_->latency();
+    // Said once, under the first layer in it: the delay is shared.
+    (eq_linear && has_eq_bands ? parts_.eq_phase : parts_.curve_phase) =
+        linear_phase_->latency();
+    if (linear_failed) problems_.push_back("eq-phase");
+  }
+  if (has_eq_bands && !(eq_linear && linear_failed)) {
+    active_stages_.emplace_back("eqPhase");
+  }
+  if (has_curve_bands && !(curve_linear && linear_failed)) {
+    active_stages_.emplace_back("curvePhase");
   }
 
   if (!chain.convolution_path.empty()) {
@@ -243,9 +275,9 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
 
   passthrough_ = output_guard_ == nullptr && rack_ == nullptr &&
-                 plain_->empty() && eq_phase_->empty() &&
-                 curve_phase_->empty() && impulse_.empty() &&
-                 !curves_ && preamp_linear_ == 1.0;
+                 plain_->empty() && linear_phase_->empty() &&
+                 eq_phase_->empty() && curve_phase_->empty() &&
+                 impulse_.empty() && !curves_ && preamp_linear_ == 1.0;
 }
 
 // Every owning member is a `unique_ptr` (the kernels) or a vector of them
@@ -298,6 +330,13 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     }
   }
 
+  // The music as it reaches the EQ, for Auto normalize to replay through the
+  // next edit's EQ before that EQ is heard (`level_prediction.h`).
+  if (history_ != nullptr) history_->record(planar, frames);
+
+  // The shared linear FIR first, on the stream itself; the layers in minimum
+  // phase after it.
+  if (linear_phase_) linear_phase_->process(planar, frames);
   if (eq_phase_) eq_phase_->process(planar, frames);
   if (curve_phase_) curve_phase_->process(planar, frames);
 
@@ -348,6 +387,9 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
   }
 
   if (output_guard_) output_guard_->process(planar, frames, auto_preamp_);
+  if (output_guard_ && history_ != nullptr) {
+    history_->record_peak(static_cast<float>(output_guard_->last_input_peak()));
+  }
   if (output_gain_) output_gain_->store(static_cast<float>(auto_preamp_gain_db()), std::memory_order_relaxed);
   if (output_enabled_) output_enabled_->store(auto_preamp_, std::memory_order_relaxed);
 
@@ -369,6 +411,7 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     }
     if (plain_) plain_->reset();
     silenced_blocks_.fetch_add(1, std::memory_order_relaxed);
+    if (linear_phase_) linear_phase_->reset();
     if (eq_phase_) eq_phase_->reset();
     if (curve_phase_) curve_phase_->reset();
   }

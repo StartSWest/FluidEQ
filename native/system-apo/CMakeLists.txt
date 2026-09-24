@@ -26,7 +26,8 @@ add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
   src/graph_handover.cpp src/iir_cascade.cpp src/curve_stage.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
-  src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp)
+  src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp
+  src/input_history.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -71,6 +72,16 @@ add_executable(fluideq-engine-output-guard-test tests/output_guard_test.cpp)
 target_link_libraries(fluideq-engine-output-guard-test PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-output-guard COMMAND fluideq-engine-output-guard-test)
 
+# Auto normalize's level for an edit, worked out before the edit is heard: the
+# history the audio thread keeps, the two replays, and the handover taking it.
+add_executable(fluideq-engine-level-prediction-test
+  tests/level_prediction_test.cpp src/level_prediction.cpp
+  src/chain_signature.cpp src/paths.cpp src/log.cpp)
+target_link_libraries(fluideq-engine-level-prediction-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-level-prediction
+  COMMAND fluideq-engine-level-prediction-test)
+
 add_executable(fluideq-engine-graph-slot-test tests/graph_slot_test.cpp)
 target_link_libraries(fluideq-engine-graph-slot-test
   PRIVATE fluideq-engine-dsp feq_strict)
@@ -114,7 +125,8 @@ add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
-  src/watcher.cpp src/watcher_log.cpp src/owner_link.cpp src/config_file.cpp
+  src/watcher.cpp src/watcher_log.cpp src/watcher_level.cpp
+  src/level_prediction.cpp src/owner_link.cpp src/config_file.cpp
   src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose

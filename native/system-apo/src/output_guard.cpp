@@ -59,6 +59,7 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     target_db_ = curve_level_db_;
     armed_ = false;
   }
+  last_input_peak_ = 0;
   for (uint32_t offset = 0; offset < frames;) {
     const uint32_t count = std::min(frames - offset, window_frames_ - measured_frames_);
     for (uint32_t channel = 0; channel < delay_.size(); ++channel) {
@@ -67,6 +68,7 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     options.maximum_gain = std::pow(10.0, target_db_ / 20.0);
     feq_linked_limiter_process(&state_.limiter, processing_planes_.data(), count, &options);
     window_peak_ = std::max(window_peak_, state_.limiter.block_peak);
+    last_input_peak_ = std::max(last_input_peak_, state_.limiter.block_peak);
     offset += count;
     measured_frames_ += count;
     if (measured_frames_ == window_frames_) {
@@ -121,6 +123,26 @@ void OutputGuard::reassess(uint32_t settling_frames) noexcept {
 }
 double OutputGuard::gain_db() const noexcept {
   return 20.0 * std::log10(std::max(1e-12, state_.limiter.gain));
+}
+
+void OutputGuard::shift_level(double db, double curve_level_db,
+                              uint32_t settling_frames) noexcept {
+  curve_level_db_ = std::min(0.0, curve_level_db);
+  if (armed_) {
+    return;
+  }
+  target_db_ = std::min(0.0, target_db_ + db);
+  // The window being measured holds the old EQ's peaks, and the next few
+  // milliseconds still carry them through the stages' delay and the bands'
+  // crossfade: judged against the new level, they would read as room or as
+  // an overload that neither EQ made.
+  settling_frames_ = settling_frames;
+  reassess_frames_ = 0;
+  reassess_peak_ = 0;
+  edit_recovery_ = false;
+  measured_frames_ = 0;
+  window_peak_ = 0;
+  quiet_seconds_ = 0;
 }
 
 void OutputGuard::set_curve_level(double db) noexcept {

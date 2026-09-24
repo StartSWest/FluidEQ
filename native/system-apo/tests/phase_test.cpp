@@ -96,8 +96,10 @@ void parametric_phase_preserves_tuning() {
       selected.minimum_eq_phase = (mode & 1) == 0;
       selected.minimum_curve_phase = (mode & 2) == 0;
       const auto response = measure(selected, rate);
-      const uint32_t per_group = (rate > 48000 ? 32767u : 16383u) + feq_convolver_latency();
-      CHECK(response.latency == per_group * (mode == 3 ? 2u : 1u));
+      // One FIR for every layer in linear phase: both layers linear cost
+      // the delay of one, not two in series.
+      const uint32_t shared = (rate > 48000 ? 32767u : 16383u) + feq_convolver_latency();
+      CHECK(response.latency == shared);
       for (uint32_t bin = 1; bin < kFftSize / 2; ++bin) {
         const double frequency = static_cast<double>(bin) * rate / kFftSize;
         if (frequency < 20 || frequency > 20000) continue;
@@ -257,6 +259,52 @@ void switching_latency_explains_the_repeat_without_a_permanent_minimum_delay() {
   CHECK(std::abs(samples[0].back()) < 1e-6f);
 }
 
+/**
+ * The curves leaving linear phase while Your EQ stays in it: the delay they
+ * shared stays, and a click already inside the FIR when the switch lands
+ * comes out once, at that delay — not early, which is what moving the FIR
+ * in the chain would have done, and not twice.
+ */
+void a_layer_leaving_linear_keeps_the_shared_delay() {
+  auto chain = correction();
+  chain.minimum_eq_phase = false;
+  chain.minimum_curve_phase = false;
+  auto both = std::make_unique<Graph>(chain, kRate, 1, kBlock);
+  chain.minimum_curve_phase = true;
+  auto eq_only = std::make_unique<Graph>(chain, kRate, 1, kBlock);
+  const uint32_t delay = both->latency_frames();
+  CHECK(delay > kRate / 3);
+  CHECK(eq_only->latency_frames() == delay);
+  const uint32_t click_at = kRate;
+  const uint32_t switch_at = click_at + 20 * kBlock;
+  std::vector<float> out(click_at + delay + kRate / 2);
+  std::vector<float> block(kBlock);
+  float* planes[] = {block.data()};
+  Graph* current = both.get();
+  for (uint32_t frame = 0; frame + kBlock <= out.size(); frame += kBlock) {
+    if (frame == switch_at) {
+      eq_only->request_state_transfer();
+      eq_only->adopt_state(both.get());
+      current = eq_only.get();
+    }
+    std::fill(block.begin(), block.end(), 0.0f);
+    if (frame <= click_at && click_at < frame + kBlock) block[click_at - frame] = 0.1f;
+    current->process(planes, kBlock);
+    std::copy(block.begin(), block.end(), out.begin() + frame);
+  }
+  const auto energy = [&](uint32_t from, uint32_t to) {
+    double sum = 0;
+    for (uint32_t at = from; at < to; ++at) sum += static_cast<double>(out[at]) * out[at];
+    return sum;
+  };
+  const double early = energy(click_at - kRate / 10, click_at + kRate / 5);
+  const double on_time = energy(click_at + delay - kRate / 10, click_at + delay + kRate / 10);
+  std::printf("shared delay: %u frames; click energy early %.3g, on time %.3g\n",
+              delay, early, on_time);
+  CHECK(on_time > 1e-4);
+  CHECK(early < on_time * 1e-4);
+}
+
 void impossible_linear_design_falls_back_and_reports_it() {
   Chain chain;
   chain.matched = true;
@@ -304,6 +352,7 @@ int main() {
   sampled_curves_keep_magnitude_but_change_phase();
   switching_never_drops_a_noise_block();
   switching_latency_explains_the_repeat_without_a_permanent_minimum_delay();
+  a_layer_leaving_linear_keeps_the_shared_delay();
   impossible_linear_design_falls_back_and_reports_it();
   nonfinite_history_recovers_on_clean_audio();
   return report();

@@ -45,6 +45,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        only from here on; an older engine reads the line as a comment.
  *   1.14 reads fluideq-eq-treble.txt and fluideq-curve-treble.txt: "classic"
  *        keeps that group on the cookbook (the EQ menu's Treble choice).
+ *   1.15 builds every layer in linear phase into one FIR with one delay, so
+ *        Your EQ and the curves both linear cost one delay, not two.
+ *   1.16 moves Auto normalize's level for an edit once, by what the new EQ
+ *        does to the last ten seconds of music, instead of dropping by the
+ *        curve's worst case and climbing back (`level_prediction.h`). Nothing
+ *        in the app waits on it: the number is here so a report says which
+ *        engine it came from.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -56,8 +63,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 14, 0, 0
-PRODUCTVERSION 1, 14, 0, 0
+FILEVERSION 1, 16, 0, 0
+PRODUCTVERSION 1, 16, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

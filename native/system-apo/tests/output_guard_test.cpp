@@ -104,6 +104,31 @@ void switching_it_back_on_starts_from_the_curve_again() {
   CHECK(std::abs(guard.gain_db() + 8) < 0.05);
 }
 
+// An edit whose level was predicted on the music just heard: taken at once,
+// up or down, with none of the old way's drop and climb.
+void a_predicted_level_is_taken_at_once() {
+  OutputGuard guard(kRate, 2);
+  guard.set_curve_level(-6);
+  std::vector<std::vector<float>> audio(2, tone(1000, 0.05, kRate, 0));
+  run(guard, audio);
+  CHECK(std::abs(guard.gain_db() + 6) < 0.05);
+  // The new curve's worst case says 3 dB down; the music says 2.5 dB up.
+  guard.shift_level(+2.5, -9, kRate / 20);
+  std::vector<std::vector<float>> after(2, tone(1000, 0.05, kRate, kRate));
+  run(guard, after);
+  CHECK(std::abs(guard.gain_db() + 3.5) < 0.1);
+  // And it stays there: no after-edit climb towards the next two seconds.
+  std::vector<std::vector<float>> steady(2, tone(1000, 0.05, kRate * 3, kRate * 2));
+  run(guard, steady);
+  CHECK(std::abs(guard.gain_db() + 3.5) < 0.1);
+  // Before the first enabled block the curve's own level is still the start.
+  OutputGuard fresh(kRate, 2);
+  fresh.shift_level(-4, -8, 0);
+  std::vector<std::vector<float>> first(2, tone(1000, 0.05, kRate / 2, 0));
+  run(fresh, first);
+  CHECK(std::abs(fresh.gain_db() + 8) < 0.05);
+}
+
 void safe_audio_is_only_delayed() {
   OutputGuard guard(kRate, 2);
   std::vector<std::vector<float>> audio(2, tone(1000, 0.2, kRate, 0));
@@ -157,6 +182,7 @@ int main() {
   true_peaks_and_stereo_are_protected();
   starts_at_the_curve_level_and_recovers();
   a_louder_curve_comes_down_at_once();
+  a_predicted_level_is_taken_at_once();
   switching_it_back_on_starts_from_the_curve_again();
   return report();
 }

@@ -69,6 +69,9 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph,
                           : std::to_string(chain.dsp_values.size()) +
                                 " values");
   line += " latency=" + std::to_string(graph.latency_frames()) + " frames";
+  if (!level_note_.empty()) {
+    line += " level=" + level_note_;
+  }
   log_.write(line);
 
   for (const std::string& warning : graph.warnings()) {

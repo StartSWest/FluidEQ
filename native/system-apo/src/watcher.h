@@ -38,6 +38,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "owner_link.h"
 #include "status_file.h"
 #include "analysis_link.h"
+#include "input_history.h"
+#include "level_prediction.h"
 #include "leveling_board.h"
 
 namespace fluideq_engine {
@@ -249,6 +251,15 @@ class Watcher {
    */
   bool stop_requested() const noexcept;
   void publish(std::unique_ptr<Graph> graph);
+  /**
+   * The level `graph` should take when it takes over, worked out on the music
+   * just heard (`level_prediction.h`), and the chain it was worked out for
+   * once published. A prediction that fails is logged and left out: the edit
+   * is then heard with its level found the old way, never held back.
+   */
+  void open_level_prediction();
+  void predict_level(const Chain& chain, Graph& graph);
+  void accept_level(const Chain& chain);
   void reclaim();
   void log_chain(const Chain& chain, const Graph& graph, bool owner_present);
   /** No link means the link could not run: then FluidEQ counts as present. */
@@ -284,6 +295,16 @@ class Watcher {
   // locks (`leveling_board.h`). Null only if it could not be allocated, and
   // then leveling forgets with each chain, as it always used to.
   std::shared_ptr<Leveling> leveling_;
+  // The music as it reaches the EQ, and what replays it through each new EQ
+  // before that EQ is heard. Null if either could not be allocated: every
+  // edit's level is then found the old way.
+  std::unique_ptr<InputHistory> history_;
+  std::unique_ptr<LevelPredictor> predictor_;
+  // The graph last published: what the next prediction is made against.
+  // Compared, never followed.
+  const Graph* last_published_ = nullptr;
+  // What the last prediction came to, for the chain's log line.
+  std::string level_note_;
 
   // Watcher-thread state (plus `load_initial`, which runs before the thread
   // exists — never both at once).
