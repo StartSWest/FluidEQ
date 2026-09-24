@@ -132,7 +132,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['remoteAudio.{listen,send}.kicker', 'remoteAudio.*.kicker'],
   ],
   'src/renderer/remoteAudio/RemoteAudioPanel.tsx': ['remoteAudio.error.*'],
-  'src/renderer/studio/StudioBench.tsx': ['studio.problem.*'],
+  'src/renderer/studio/StudioProblems.tsx': ['studio.problem.*'],
   'src/renderer/studio/StudioTestCard.tsx': [
     'studio.signal.*',
     'studio.signalHint.*',

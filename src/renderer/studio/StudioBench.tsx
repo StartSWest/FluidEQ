@@ -1,40 +1,38 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import type {
-  IMemberSceneProblem,
-  TMemberSceneFile,
-} from 'common/memberScenes';
 import { resolveSceneName } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import Glyph from '../community/Glyph';
-import PaneResizer from '../components/PaneResizer';
 import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
 import StudioCode, { problemLinesOf } from './StudioCode';
 import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
+import StudioProblems from './StudioProblems';
 import StudioProjects from './StudioProjects';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
 import StudioShipLocked from './StudioShipLocked';
+import StudioShipSection from './StudioShipSection';
 import StudioTestCard from './StudioTestCard';
-import useStudioStageRatio from './useStudioStageRatio';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
+import StudioStageArea from './StudioStageArea';
+import StudioStageStart from './StudioStageStart';
+import StudioVersion from './StudioVersion';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
 import useStudioBaseline from './useStudioBaseline';
 import useStudioKeep from './useStudioKeep';
 import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
+import useStudioReading from './useStudioReading';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import useStudioPreviewFile from './useStudioPreviewFile';
 import useStudioTint from './useStudioTint';
-import { createStudioReadingSettler } from './studioReading';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import StudioStage, {
@@ -44,50 +42,6 @@ import StudioStage, {
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
 import { linkStudioFolder, type IStudioView } from './studioStore';
-
-const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
-  'pack.json': 'studio.file.pack',
-  source: 'studio.file.source',
-  artwork: 'studio.file.artwork',
-};
-
-/** The first driver error line, which is the one worth reading. */
-const firstError = (log: string) =>
-  log
-    .split('\n')
-    .map((line) => line.trim())
-    .find((line) => /error/i.test(line)) ?? log.trim();
-
-/**
- * A problem with the scene's picture is one the member fixes here, with a
- * photo of their own, rather than by asking their AI again.
- */
-const isPictureProblem = (problem: IMemberSceneProblem) =>
-  problem.file === 'artwork' &&
-  (problem.code === 'missing-file' ||
-    problem.code === 'bad-artwork' ||
-    problem.code === 'file-too-large');
-
-const Problem = ({ problem }: { problem: IMemberSceneProblem }) => {
-  const { t } = useTranslation();
-  const what: TranslationKey =
-    problem.file === 'artwork' && problem.code === 'missing-file'
-      ? 'studio.picture.missing'
-      : (`studio.problem.${problem.code}` as TranslationKey);
-  return (
-    <li className="studio-problem">
-      <span className="studio-problem__where">
-        {problem.line
-          ? t('studio.problem.line', {
-              file: t(FILE_KEYS[problem.file]),
-              line: problem.line,
-            })
-          : t(FILE_KEYS[problem.file])}
-      </span>
-      <span className="studio-problem__what">{t(what)}</span>
-    </li>
-  );
-};
 
 interface IStudioBenchProps {
   view: IStudioView;
@@ -140,57 +94,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setNotice(undefined);
   }, [serial, state.activeId]);
 
-  /** Names the card of actions at the foot of the column, for its region. */
-  const shipTitleId = useId();
-
-  // What the frames cost, under the cost line: the GPU's own time for a
-  // frame, the rate they are drawn at, and the size the controller has the
-  // scene at — what Automatic is doing, which nothing else on the stage
-  // says. Written to the element straight from the frame callback, never
-  // through React, and settled first (`studioReading.ts`) so the figures can
-  // be read instead of blurring.
-  const readingRef = useRef<HTMLSpanElement>(null);
-  // The same figures in the corner of the stage, where the author is already
-  // looking. Its own element rather than one moved about, because the card
-  // keeps its reading whether the stage is showing one or not.
-  const stageReadingRef = useRef<HTMLSpanElement>(null);
-  const settler = useRef(createStudioReadingSettler());
-  const onDrawn = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent, heard, report) => {
-      feed.current?.(frame, drawnScale, accent, heard, report);
-      // The clock is read here, at the frame, so the rate on the card is the
-      // rate frames are arriving at rather than the runner's own estimate of
-      // the display's beat.
-      const settled = settler.current.frame({
-        ...report,
-        atMs: performance.now(),
-      });
-      const fps = String(settled.fps);
-      const size = String(settled.size);
-      const reading =
-        settled.costMs === undefined
-          ? t('studio.cost.readingRate', { fps, size })
-          : t('studio.cost.reading', {
-              ms: settled.costMs.toFixed(1),
-              fps,
-              size,
-            });
-      // Each element against its OWN text, not against one remembered figure:
-      // the stage's corner comes and goes with the stage, and a single
-      // remembered value left a corner that had just appeared blank until the
-      // reading happened to change — over a scene that was plainly playing.
-      [readingRef.current, stageReadingRef.current].forEach((node) => {
-        if (node && node.textContent !== reading) {
-          node.textContent = reading;
-        }
-      });
-    },
-    [t],
-  );
+  const { readingRef, stageReadingRef, onDrawn } = useStudioReading(feed);
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
-  const stageArea = useRef<HTMLDivElement>(null);
-  const stageShape = useStudioStageRatio(stageArea);
   const folderName = project?.folderName;
   const name = pack ? resolveSceneName(pack, locale) : (folderName ?? '');
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
@@ -226,21 +132,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     status = 'studio.status.live';
   }
 
-  // Which version is on the bench, and whether it is the one listeners have.
-  // The number decides what a publication is called and what an installed
-  // copy compares itself against, and until now it was only readable on the
-  // gallery's own page — so the author tuning a scene could not tell an
-  // unpublished version from the released one without leaving the Studio.
   const version = pack?.version;
-  const published = tuner.publishedVersion;
-  const isAhead =
-    version !== undefined && published !== undefined && published < version;
-  let versionHint: TranslationKey = 'studio.version.unpublished';
-  if (isAhead) {
-    versionHint = 'studio.version.ahead';
-  } else if (published !== undefined) {
-    versionHint = 'studio.version.live';
-  }
 
   let cost: TranslationKey | undefined;
   if (trouble?.kind === 'heavy') {
@@ -273,7 +165,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
   // inside says what it is for instead; without Plus the same actions are
   // shown locked. Three insides, chosen here, rather than one with two flags;
-  // the folding card around them is the same for all three.
+  // the card around them (`StudioShipSection`) is the same for all three.
   let shipCard = <StudioShipLocked />;
   if (project?.official) {
     shipCard = <StudioShipInspect />;
@@ -309,31 +201,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     );
   } else if (!project) {
     stage = (
-      <div className="studio-stage__well studio-stage__well--start">
-        <span className="studio-stage__start-mark" aria-hidden="true">
-          <Glyph name="studio" />
-        </span>
-        <span className="studio-stage__start-title">
-          {t('studio.stage.startTitle')}
-        </span>
-        <span className="studio-stage__start-body">
-          {t('studio.stage.startBody')}
-        </span>
-        <span className="studio-stage__start-actions">
-          <button type="button" className="button small" onClick={newProject}>
-            <Glyph name="studio" />
-            {t('studio.project.new')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={linkFolder}
-          >
-            <Glyph name="folder" />
-            {t('studio.project.add')}
-          </button>
-        </span>
-      </div>
+      <StudioStageStart onNewProject={newProject} onLinkFolder={linkFolder} />
     );
   } else if (pack && playing && pausedForPublish) {
     stage = <div className="studio-stage__well studio-stage__well--empty" />;
@@ -375,22 +243,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         />
         {/* Beside the scene it belongs to and ahead of the status sentence:
             the number is a property of the scene, and after a sentence it
-            read as a trailing afterthought. Short enough to sit in the bar in
-            every language; what it stands for is on the element itself, for a
-            pointer and for a reader alike. */}
+            read as a trailing afterthought. */}
         {project && version !== undefined && (
-          <span
-            className={`studio-bench__version${
-              isAhead ? ' studio-bench__version--ahead' : ''
-            }`}
-            title={t(versionHint, { version, published: published ?? version })}
-            aria-label={t(versionHint, {
-              version,
-              published: published ?? version,
-            })}
-          >
-            {t('studio.version.label', { version })}
-          </span>
+          <StudioVersion version={version} published={tuner.publishedVersion} />
         )}
         {project && <span className="studio-bench__status">{t(status)}</span>}
         {/* In the pinned bar, so what an action says is in view wherever the
@@ -410,67 +265,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         {/* The stage's pane, scrolled apart from the side column so tuning
             down that column keeps the scene in view. */}
         <div className="studio-bench__main">
-          <div
-            ref={stageArea}
-            className="studio-bench__stage"
-            style={stageShape.style}
+          <StudioStageArea
+            stage={stage}
+            resizable={project !== undefined && size === 'graph'}
           >
-            {stage}
-            {/* The graph's divider, to try the scene on a taller or shorter
-                graph. Only at the graph's size: the others are fixed panels. */}
-            {project && size === 'graph' && (
-              <PaneResizer
-                ariaLabel={t('studio.stage.resize')}
-                valuePercent={stageShape.resizer.valuePercent}
-                onStart={stageShape.resizer.onStart}
-                onDrag={stageShape.resizer.onDrag}
-                onEnd={stageShape.resizer.onEnd}
-              />
-            )}
-            {(problems ||
-              trouble?.kind === 'compile' ||
-              trouble?.kind === 'heavy') && (
-              <div className="studio-problems" role="alert">
-                {problems && (
-                  <>
-                    <span className="studio-problems__title">
-                      {t('studio.problem.heading')}
-                    </span>
-                    <ul className="studio-problems__list">
-                      {problems.map((problem) => (
-                        <Problem
-                          key={`${problem.code}:${problem.file}:${problem.line ?? 0}`}
-                          problem={problem}
-                        />
-                      ))}
-                    </ul>
-                    {problems.some(isPictureProblem) && (
-                      <span className="studio-problems__hint">
-                        {t('studio.picture.hint')}
-                      </span>
-                    )}
-                  </>
-                )}
-                {trouble?.kind === 'compile' && (
-                  <>
-                    <span className="studio-problems__title">
-                      {t('studio.compile.heading')}
-                    </span>
-                    <code className="studio-problems__log">
-                      {firstError(trouble.log)}
-                    </code>
-                    <span className="studio-problems__hint">
-                      {t('studio.compile.hint')}
-                    </span>
-                  </>
-                )}
-                {trouble?.kind === 'heavy' && (
-                  <span className="studio-problems__hint">
-                    {t('studio.heavy.body')}
-                  </span>
-                )}
-              </div>
-            )}
+            <StudioProblems problems={problems} trouble={trouble} />
             {project && (
               <StudioPictures
                 pictures={picture.pictures}
@@ -492,7 +291,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
                 )}
               />
             )}
-          </div>
+          </StudioStageArea>
 
           <div className="studio-bench__maker">
             <StudioMaker key={project?.id ?? 'draft'} project={project} />
@@ -538,19 +337,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               />
             }
           />
-          {/* Pinned to the foot of the column and never folded: these are
-              the actions a scene ends at, and one of the two folds in the
-              column was a way of hiding them. What folds is a group of
-              settings inside the card above (`StudioCardGroup.tsx`). */}
-          <section
-            className="studio-card studio-ship-card"
-            aria-labelledby={shipTitleId}
-          >
-            <span className="studio-card__eyebrow" id={shipTitleId}>
-              {t('studio.ship.title')}
-            </span>
-            {shipCard}
-          </section>
+          <StudioShipSection>{shipCard}</StudioShipSection>
         </div>
       </div>
 
