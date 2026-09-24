@@ -29,6 +29,8 @@ import {
   eqSettingsForPreset,
   isCompleteEqPreset,
 } from '../../common/dsp/eqPresets';
+import { rackTrebleNeedsEngineUpdate } from '../../common/dsp/rackTreble';
+import { TREBLE_DESIGNS, TTrebleDesign } from '../../common/filterDesign';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
@@ -40,6 +42,7 @@ import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
 import DspPresetImportDialog from './DspPresetImportDialog';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
+import useRackTreble from './useRackTreble';
 import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
 import { exportEqPreset } from '../utils/equalizerApi';
 import {
@@ -78,6 +81,8 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const [isRackMenuOpen, setIsRackMenuOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const rackMenuHolder = useRef<HTMLSpanElement>(null);
+  /** The engine running the rack cannot play the Treble choice. */
+  const trebleNeedsEngine = rackTrebleNeedsEngineUpdate(useRackTreble());
   /**
    * The saved list, held in state so saving one shows it at once.
    *
@@ -159,6 +164,10 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     onChange({
       ...preset.eq,
       enabled: enable ? true : eq.enabled,
+      // The listener's, like the factory curves leave it
+      // (`eqSettingsForPreset`); a preset saved before the choice existed
+      // has none of its own to bring.
+      treble: eq.treble,
       presetId: preset.id,
     });
     onCommit();
@@ -547,6 +556,37 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             }))}
             onChange={(next: string) => {
               onChange(eqEdited(eq, { oversample: Number(next) }));
+              onCommit();
+            }}
+          />
+        </div>
+
+        {/* Beside oversampling, which answers the same squeeze near Nyquist by
+          running faster; this answers it with a band designed to meet the
+          drawn shape, at no cost. The listener's rather than the curve's, as
+          the main EQ's Treble row is, so it leaves the preset's name alone
+          and no preset changes it. Live in linear phase too: the kernel is
+          built from these bands. */}
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('eq.mode.treble')}</span>
+          <SegmentedControl
+            name={t('eq.mode.treble')}
+            value={eq.treble}
+            isDisabled={trebleNeedsEngine}
+            options={TREBLE_DESIGNS.map((design) => ({
+              value: design,
+              label: t(
+                design === 'precise' ? 'eq.mode.precise' : 'eq.mode.classic',
+              ),
+              title: t(
+                (trebleNeedsEngine && 'eq.mode.trebleUpdate') ||
+                  (design === 'precise'
+                    ? 'dsp.eqTreble.preciseHint'
+                    : 'eq.mode.trebleEqClassic'),
+              ),
+            }))}
+            onChange={(next: string) => {
+              onChange({ ...eq, treble: next as TTrebleDesign });
               onCommit();
             }}
           />

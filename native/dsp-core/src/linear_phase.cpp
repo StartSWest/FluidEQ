@@ -28,9 +28,9 @@ std::vector<float> impulse_response(const FeqLinearPhaseRack* rack,
     if (band.enabled == 0 || band.dynamic != 0) {
       continue;
     }
-    const FeqBiquadCoefficients coefficients = feq_biquad_coefficients_modelled(
+    const FeqBiquadCoefficients coefficients = feq_biquad_coefficients_designed(
         band.type, band.frequency, band.gain_db, band.quality, sample_rate,
-        rack->model, rack->model_amount);
+        rack->model, rack->model_amount, rack->matched);
 
     FeqBiquadState state;
     feq_biquad_reset(&state);
@@ -138,11 +138,11 @@ void feq_build_linear_phase_change_kernel(const FeqLinearPhaseRack* rack,
     return;
   }
   const FeqLinearPhaseBand& chosen = rack->bands[band];
-  // Modelled exactly as the rack's own bands are, so the band sounds the same
+  // Designed exactly as the rack's own bands are, so the band sounds the same
   // whether it is static inside the rack's kernel or dynamic beside it.
-  const FeqBiquadCoefficients coefficients = feq_biquad_coefficients_modelled(
+  const FeqBiquadCoefficients coefficients = feq_biquad_coefficients_designed(
       chosen.type, chosen.frequency, chosen.gain_db, chosen.quality,
-      sample_rate, rack->model, rack->model_amount);
+      sample_rate, rack->model, rack->model_amount, rack->matched);
   std::vector<float> alone(kSize, 0.0f);
   alone[0] = 1.0f;
   FeqBiquadState state;

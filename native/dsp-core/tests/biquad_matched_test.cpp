@@ -120,10 +120,26 @@ void test_matched_filters() {
   }
   check(undone < 1e-6, "a cut undoes the same boost exactly");
 
-  const auto flat = feq_biquad_coefficients_matched(FEQ_FILTER_PK, 1000, 0, 1, rate);
-  check(flat.b0 == 1.0 && flat.b1 == 0.0 && flat.b2 == 0.0 && flat.a1 == 0.0 &&
-            flat.a2 == 0.0,
-        "no gain is no filter");
+  // No gain is unity on the poles the band has a hair either side of it, so a
+  // history carried into it rings out rather than spilling into one sample.
+  const auto unity_beside = [rate](FeqFilterType type, double frequency,
+                                   double quality) {
+    const auto flat =
+        feq_biquad_coefficients_matched(type, frequency, 0, quality, rate);
+    bool beside = flat.b0 == 1.0 && flat.b1 == flat.a1 && flat.b2 == flat.a2;
+    for (const double hair : {-0.01, 0.01}) {
+      const auto near =
+          feq_biquad_coefficients_matched(type, frequency, hair, quality, rate);
+      beside = beside && std::fabs(flat.a1 - near.a1) < 1e-3 &&
+               std::fabs(flat.a2 - near.a2) < 1e-3;
+    }
+    return beside;
+  };
+  check(unity_beside(FEQ_FILTER_PK, 1000, 1), "no gain is unity on a bell's poles");
+  check(unity_beside(FEQ_FILTER_HSC, 8000, 0.7071),
+        "no gain is unity on a high shelf's poles");
+  check(unity_beside(FEQ_FILTER_LSC, 100, 0.7071),
+        "no gain is unity on a low shelf's poles");
 
   // Shapes without a matched design that measured better keep the cookbook.
   const auto wide = feq_biquad_coefficients_matched(FEQ_FILTER_HSC, 8000, 4, 1.0, rate);
@@ -168,10 +184,70 @@ void test_matched_filters() {
         "a band asked for past Nyquist is still stable");
 }
 
+/**
+ * The rack EQ's bands: the character model's Q, then the Treble choice's
+ * design (`feq_biquad_coefficients_designed`). The model only ever moves the
+ * Q, so the matched design must be built at the Q the model gave, and the
+ * cookbook choice must be exactly what the rack played before the choice
+ * existed.
+ */
+void test_designed_filters() {
+  std::printf("the rack EQ's designed bands\n");
+  const double rate = 48000.0;
+  const auto same = [](const FeqBiquadCoefficients& a,
+                       const FeqBiquadCoefficients& b) {
+    return std::memcmp(&a, &b, sizeof a) == 0;
+  };
+  // Classic is the modelled cookbook, to the bit.
+  const FeqEqModel models[] = {FEQ_EQ_MODEL_CLEAN, FEQ_EQ_MODEL_PROPORTIONAL,
+                               FEQ_EQ_MODEL_WIDE, FEQ_EQ_MODEL_ASYMMETRIC};
+  bool classic_is_cookbook = true;
+  for (const FeqEqModel model : models) {
+    for (const double gain : {-9.0, 4.0}) {
+      classic_is_cookbook =
+          classic_is_cookbook &&
+          same(feq_biquad_coefficients_designed(FEQ_FILTER_PK, 3000, gain, 1.4,
+                                                rate, model, 0.8, 0),
+               feq_biquad_coefficients_modelled(FEQ_FILTER_PK, 3000, gain, 1.4,
+                                                rate, model, 0.8));
+    }
+  }
+  check(classic_is_cookbook, "Classic is the modelled cookbook, bit for bit");
+
+  // Precise is the matched design at the model's Q: with the clean model,
+  // the matched design itself.
+  check(same(feq_biquad_coefficients_designed(FEQ_FILTER_PK, 16000, 6, 2, rate,
+                                              FEQ_EQ_MODEL_CLEAN, 1.0, 1),
+             feq_biquad_coefficients_matched(FEQ_FILTER_PK, 16000, 6, 2, rate)),
+        "Precise with the clean model is the matched band");
+  // The Focused model narrows a boost by sqrt(1 + gain / 12) at full amount;
+  // Precise builds the matched band at that narrowed Q.
+  const double narrowed = 2.0 * std::sqrt(1.0 + 6.0 / 12.0);
+  check(same(feq_biquad_coefficients_designed(FEQ_FILTER_PK, 16000, 6, 2, rate,
+                                              FEQ_EQ_MODEL_PROPORTIONAL, 1.0, 1),
+             feq_biquad_coefficients_matched(FEQ_FILTER_PK, 16000, 6, narrowed,
+                                             rate)),
+        "Precise builds the matched band at the model's Q");
+  // POSITIVE CONTROL: the two choices are different filters where it counts.
+  check(!same(feq_biquad_coefficients_designed(FEQ_FILTER_PK, 16000, 6, 2, rate,
+                                               FEQ_EQ_MODEL_CLEAN, 1.0, 1),
+              feq_biquad_coefficients_designed(FEQ_FILTER_PK, 16000, 6, 2, rate,
+                                               FEQ_EQ_MODEL_CLEAN, 1.0, 0)),
+        "Precise and Classic differ on a treble bell");
+  // Wide broadens a Butterworth shelf off Butterworth, which the matched
+  // rule leaves on the cookbook, knowingly, under Precise too.
+  check(same(feq_biquad_coefficients_designed(FEQ_FILTER_HSC, 10000, 4, 0.7071,
+                                              rate, FEQ_EQ_MODEL_WIDE, 1.0, 1),
+             feq_biquad_coefficients_modelled(FEQ_FILTER_HSC, 10000, 4, 0.7071,
+                                              rate, FEQ_EQ_MODEL_WIDE, 1.0)),
+        "a shelf Wide takes off Butterworth stays on the cookbook");
+}
+
 }  // namespace
 
 int main() {
   test_matched_filters();
+  test_designed_filters();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

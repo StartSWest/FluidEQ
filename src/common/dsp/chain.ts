@@ -22,6 +22,11 @@ import {
   ICrossfadeShape,
 } from './crossfadeShape';
 import { qualityForRack } from '../bandQuality';
+import {
+  DEFAULT_TREBLE_DESIGN,
+  isTrebleDesign,
+  TTrebleDesign,
+} from '../filterDesign';
 import { NOISE_HUM_MAX_HARMONICS } from './noiseProfile';
 import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
 
@@ -863,6 +868,20 @@ export interface IEqSettings {
    */
   fuzzAmount: number;
   /**
+   * How the bands play near the top, the main EQ's Treble choice
+   * (`filterDesign.ts`) given to the rack's own EQ.
+   *
+   * Precise builds every band that has a matched design analog-matched —
+   * bells, the pass filters and Butterworth shelves (`biquadMatched.ts`,
+   * `feq_biquad_coefficients_designed`) — so a treble band plays as drawn:
+   * the cookbook leaves a +6 dB, Q 2 bell at 16 kHz 3 dB short on a 48 kHz
+   * stream, and more at 44.1. Classic keeps the cookbook, the way Equalizer
+   * APO plays a band. Orthogonal to oversampling, which buys the same
+   * distance from Nyquist by running the cascade faster, at twice the cost
+   * and a filter's delay each way; matched costs nothing per sample.
+   */
+  treble: TTrebleDesign;
+  /**
    * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
    * to `EQ_MAX_BAND_COUNT`.
    */
@@ -1485,6 +1504,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     oversample: 1,
     subsonicHz: 0,
     fuzzAmount: 0,
+    treble: DEFAULT_TREBLE_DESIGN,
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
@@ -2056,6 +2076,9 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           ? Math.min(40, Math.max(10, eq.subsonicHz))
           : 0,
       fuzzAmount: clampNumber(eq.fuzzAmount, { min: 0, max: 1 }, 0),
+      // A rack stored before the choice existed plays Precise, as the main
+      // EQ's layers did when theirs arrived.
+      treble: isTrebleDesign(eq.treble) ? eq.treble : DSP_DEFAULTS.eq.treble,
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen

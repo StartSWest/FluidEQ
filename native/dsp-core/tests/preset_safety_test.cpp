@@ -17,6 +17,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * -0.1 dBTP was removed on 2026-09-22 (`chain_transparency_test.cpp`), and
  * what such a rack does with a record already at full scale is the record's
  * and the listener's, as it is under Equalizer APO.
+ *
+ * A chain is measured where it is heard: after its preset's curve, which the
+ * main EQ plays behind the rack and the rack is told on the wire
+ * (`generate-preset-fixtures.ts`), so its limiter holds the ceiling for the
+ * curve to come. Measured at the rack's own output, a curve's boosts were
+ * never seen, and on loud records they had put chains 3-5 dB over.
  */
 #include "fluideq/chain.h"
 #include "fluideq/primitives.h"
@@ -109,6 +115,29 @@ Audio programme(double rate) {
   return result;
 }
 
+/**
+ * The preset's curve after the rack, as the main EQ plays it: the bands the
+ * rack was told, designed as the Preset layer asks. No preamp in front of
+ * it, which is the harder case: the rack's limiter alone keeps the result
+ * under its ceiling.
+ */
+void play_tone(const FeqChainToneSettings& tone, Audio& audio, double rate) {
+  for (auto& channel : audio) {
+    for (uint32_t band = 0; band < tone.band_count; ++band) {
+      const FeqChainToneBand& one = tone.bands[band];
+      const FeqBiquadCoefficients coefficients =
+          tone.matched != 0
+              ? feq_biquad_coefficients_matched(one.type, one.frequency,
+                                                one.gain_db, one.quality, rate)
+              : feq_biquad_coefficients(one.type, one.frequency, one.gain_db,
+                                        one.quality, rate);
+      FeqBiquadState state{};
+      feq_biquad_process(&state, channel.data(),
+                         static_cast<uint32_t>(channel.size()), &coefficients);
+    }
+  }
+}
+
 Audio render(const FeqChainSettings& settings, const Audio& source,
              double rate, double makeup = 0.0) {
   Chain chain(feq_chain_create(rate, 2, kBlock), feq_chain_destroy);
@@ -124,6 +153,7 @@ Audio render(const FeqChainSettings& settings, const Audio& source,
         std::min(static_cast<size_t>(kBlock), output[0].size() - at));
     feq_chain_process(chain.get(), planes, span);
   }
+  play_tone(settings.tone, output, rate);
   return output;
 }
 
@@ -284,6 +314,14 @@ int main(int argc, char** argv) {
    */
   check(chains.size() == 106 && locals.size() > 150,
         "the complete shipped catalogue is present");
+  // Positive control for measuring after the curve: the chains' curves came
+  // on the wire — all but None, Reference and Expansive, which have none.
+  const auto toned = std::count_if(chains.begin(), chains.end(),
+                                   [](const Preset& chain) {
+                                     return chain.settings.tone.band_count > 0;
+                                   });
+  check(toned == static_cast<std::ptrdiff_t>(chains.size()) - 3,
+        "every chain with a tone carries its curve to be played after it");
   if (partition == "all" || partition == "individual") {
     check_air(presets);
     for (double rate : {32000.0, 44100.0, 48000.0, 88200.0, 96000.0,

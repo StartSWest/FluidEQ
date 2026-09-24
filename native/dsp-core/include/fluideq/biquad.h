@@ -128,6 +128,27 @@ FeqBiquadCoefficients feq_biquad_coefficients_matched(FeqFilterType type,
                                                       double quality,
                                                       double sample_rate);
 
+/**
+ * A band as the rack's EQ builds it: the character model's Q, then the
+ * design its Treble choice asks for — analog-matched when `matched` is
+ * non-zero (Precise), the cookbook otherwise (Classic).
+ *
+ * The model runs first because it only ever moves the Q, and the matched
+ * design keeps whatever Q it is given. A model that takes a shelf off
+ * Butterworth — Wide broadens every shelf — therefore leaves that shelf on
+ * the cookbook under Precise too, knowingly: a shelf is the one shape the
+ * cookbook barely squeezes (+6 dB at 16 kHz still reaches 5.92 dB at 20 kHz
+ * on a 44.1 kHz stream), and the graph follows the same rule.
+ */
+FeqBiquadCoefficients feq_biquad_coefficients_designed(FeqFilterType type,
+                                                       double frequency,
+                                                       double gain_db,
+                                                       double quality,
+                                                       double sample_rate,
+                                                       FeqEqModel model,
+                                                       double amount,
+                                                       int matched);
+
 void feq_biquad_reset(FeqBiquadState* state);
 
 /** In place, over a planar channel. Real-time safe: arithmetic only. */

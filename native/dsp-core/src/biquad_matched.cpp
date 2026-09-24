@@ -91,9 +91,25 @@ bool is_finite(const FeqBiquadCoefficients& k) {
          std::isfinite(k.a1) && std::isfinite(k.a2) && k.b0 != 0.0;
 }
 
-FeqBiquadCoefficients identity() {
+/**
+ * A band at 0 dB: unity, on the poles the design has beside it.
+ *
+ * A filter with no poles at all is the same response in another shape, and
+ * a band keeps its history across a change (`iir_cascade.cpp`, the rack's
+ * `chain_eq_fade.cpp`). Carried into that shape, the history of the band a
+ * step before came out as one sample of spike: in the middle of a rack EQ
+ * fade a drag onto the gain dial's zero, which holds, left -57 dBFS and a
+ * 6 dB step onto it -37, where the same steps now leave -104 and -88
+ * (`eq_fade_test.cpp`). With its poles kept the history rings out through
+ * them like any other step's.
+ */
+FeqBiquadCoefficients unity_on(double a1, double a2) {
   FeqBiquadCoefficients k{};
   k.b0 = 1.0;
+  k.b1 = a1;
+  k.b2 = a2;
+  k.a1 = a1;
+  k.a2 = a2;
   return k;
 }
 
@@ -105,7 +121,9 @@ FeqBiquadCoefficients identity() {
  */
 FeqBiquadCoefficients bell(double w0, double gain_db, double quality) {
   if (gain_db == 0.0) {
-    return identity();
+    // Both the boost's poles and the cut's meet here.
+    const Denominator d = matched_poles(w0, 1.0 / (2.0 * quality));
+    return unity_on(d.a1, d.a2);
   }
   const bool cut = gain_db < 0.0;
   const double g = std::pow(10.0, std::fabs(gain_db) / 20.0);
@@ -276,9 +294,6 @@ FeqBiquadCoefficients feq_biquad_coefficients_matched(FeqFilterType type,
       if (std::fabs(quality - kButterworthQ) > kButterworthTolerance) {
         return cookbook;
       }
-      if (gain_db == 0.0) {
-        return identity();
-      }
       // The shelf's own frequency, not the bell's bound: the design is
       // stated for a corner above Nyquist too. Twice the rate is past any
       // shelf a config means and keeps the fourth powers below finite.
@@ -286,6 +301,10 @@ FeqBiquadCoefficients feq_biquad_coefficients_matched(FeqFilterType type,
                       std::fmin(frequency, 2.0 * sample_rate) /
                           (sample_rate / 2.0),
                       gain_db);
+      if (gain_db == 0.0) {
+        // `shelf` designs a hair of gain here; its poles are the limit's.
+        matched = unity_on(matched.a1, matched.a2);
+      }
       break;
     case FEQ_FILTER_NO:
       return cookbook;

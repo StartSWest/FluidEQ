@@ -8,6 +8,10 @@ import { PointerEvent, useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { FilterTypeEnum } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
+import {
+  createGraphSliceReader,
+  IGraphSliceReader,
+} from '../graph/liveGraphBand';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 import {
   readDspAnalyser,
@@ -151,6 +155,11 @@ const toSpec = (band: IEqBandSettings) => ({
 interface IDspEqGraphProps {
   eq: IEqSettings;
   sampleRate: number;
+  /**
+   * The bands play analog-matched (`rackPlaysMatched`): the Treble choice
+   * where whatever runs the rack reads it, so the curve is the one heard.
+   */
+  matched: boolean;
   selected: number;
   onSelect: (index: number) => void;
   /** Live, while a handle is dragged. */
@@ -184,6 +193,7 @@ interface IDspEqGraphProps {
 const DspEqGraph = ({
   eq,
   sampleRate,
+  matched,
   selected,
   onSelect,
   onChange,
@@ -204,16 +214,18 @@ const DspEqGraph = ({
   const view = useRef<{
     eq: IEqSettings;
     sampleRate: number;
+    matched: boolean;
     selected: number;
     /** The one string the canvas draws. Through the ref like everything else,
      * so switching language repaints without rebuilding the observer. */
     t: (key: 'dsp.eq.thresholdMark', values: Record<string, string>) => string;
     redraw?: () => void;
-  }>({ eq, sampleRate, selected, t });
+  }>({ eq, sampleRate, matched, selected, t });
   // Assigned field by field: replacing the object would drop `redraw`, which
   // the paint effect installs once and every later render depends on.
   view.current.eq = eq;
   view.current.sampleRate = sampleRate;
+  view.current.matched = matched;
   view.current.selected = selected;
   view.current.t = t;
 
@@ -221,6 +233,10 @@ const DspEqGraph = ({
   const boxRef = useRef({ width: 0, height: HEIGHT });
   /** Reused across frames: a new array per paint would be 60 a second. */
   const binsRef = useRef(new Float32Array(0));
+  /** The slices the bins are read into, remade only when the rate or size moves. */
+  const slicesRef = useRef<{ reader: IGraphSliceReader; bins: number } | null>(
+    null,
+  );
 
   const toX = (hz: number) => hzToX(hz, boxRef.current.width);
   const toHz = (x: number) => xToHz(x, boxRef.current.width);
@@ -294,6 +310,7 @@ const DspEqGraph = ({
       const {
         eq: liveEq,
         sampleRate: rate,
+        matched: playsMatched,
         selected: pick,
         t: translate,
       } = view.current;
@@ -351,10 +368,15 @@ const DspEqGraph = ({
        * and the shape under the curve drops with it. That is the whole reason
        * an EQ shows a spectrum at all — otherwise you are aiming at a guess.
        *
-       * Mapped from bin to log-frequency by picking the loudest bin that falls
-       * in each pixel column. Averaging would smear the peaks that matter; the
-       * bottom octaves have fewer bins than columns and repeat, which is
-       * honest — the resolution genuinely is not there.
+       * Read the way the main graph reads its own (`liveGraphBand.ts`): each
+       * point the power in a twelfth of an octave around it, or three bins
+       * where a twelfth is narrower, levelled so a tone reads its own dBFS.
+       * It was the loudest single bin under each pixel column, which draws
+       * the grain of one transform — a few decibels from bin to bin — as
+       * peaks the record does not have, and leaves broadband music twenty to
+       * thirty decibels under its real level, well below the dashed threshold
+       * of a dynamic band it was meant to be read against. The bottom octaves
+       * are as coarse as the transform, and say so by being smooth there.
        */
       const live = readDspAnalyser('eq');
       if (live) {
@@ -363,44 +385,40 @@ const DspEqGraph = ({
         }
         const bins = binsRef.current;
         live.getFloatFrequencyData(bins);
-        const nyquist = rate / 2;
+        let slices = slicesRef.current;
+        if (
+          slices === null ||
+          slices.reader.sampleRate !== rate ||
+          slices.bins !== bins.length
+        ) {
+          slices = {
+            reader: createGraphSliceReader(rate, bins.length * 2),
+            bins: bins.length,
+          };
+          slicesRef.current = slices;
+        }
+        const { axis } = slices.reader;
+        const levels = slices.reader.read(bins);
         const floorY = PAD_T + plotH(H);
 
         context.beginPath();
-        context.moveTo(PAD_L, floorY);
-        let started = false;
-        for (let x = 0; x <= plotW(W); x += 1) {
-          const hzFrom = xToHz(PAD_L + x, W);
-          const hzTo = xToHz(PAD_L + x + 1, W);
-          const first = Math.floor((hzFrom / nyquist) * bins.length);
-          const last = Math.max(
-            first,
-            Math.min(
-              bins.length - 1,
-              Math.ceil((hzTo / nyquist) * bins.length),
-            ),
-          );
-          let peak = -Infinity;
-          for (let bin = first; bin <= last; bin += 1) {
-            if (bins[bin] > peak) {
-              peak = bins[bin];
-            }
-          }
-          if (!Number.isFinite(peak)) {
-            peak = SPECTRUM_FLOOR_DB;
-          }
-          const level =
-            (Math.max(SPECTRUM_FLOOR_DB, peak) - SPECTRUM_FLOOR_DB) /
-            (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
-          const y = floorY - level * plotH(H);
-          if (started) {
-            context.lineTo(PAD_L + x, y);
-          } else {
-            context.lineTo(PAD_L + x, y);
-            started = true;
+        context.moveTo(X(MIN_HZ), floorY);
+        let lastHz = MIN_HZ;
+        for (let point = 0; point < axis.length; point += 1) {
+          const hz = axis[point];
+          if (hz >= MIN_HZ && hz <= MAX_HZ) {
+            const reading = Number.isFinite(levels[point])
+              ? levels[point]
+              : SPECTRUM_FLOOR_DB;
+            const level =
+              (Math.min(SPECTRUM_TOP_DB, Math.max(SPECTRUM_FLOOR_DB, reading)) -
+                SPECTRUM_FLOOR_DB) /
+              (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
+            context.lineTo(X(hz), floorY - level * plotH(H));
+            lastHz = hz;
           }
         }
-        context.lineTo(PAD_L + plotW(W), floorY);
+        context.lineTo(X(lastHz), floorY);
         context.closePath();
         const spectrum = spectrumInk();
         context.fillStyle = `rgba(${spectrum}, 0.1)`;
@@ -434,6 +452,7 @@ const DspEqGraph = ({
               designRate,
               liveEq.model,
               liveEq.modelAmount,
+              playsMatched,
             )
           : undefined,
       );
@@ -652,16 +671,17 @@ const DspEqGraph = ({
       const picked = liveEq.bands[pick];
       if (picked?.dynamic && picked.enabled) {
         /**
-         * Both of these are true dBFS, and the spectrum behind them is not.
+         * Both of these are what the band hears, and the spectrum behind them
+         * is a narrower slice of it.
          *
-         * The threshold and the detector both measure the signal itself,
-         * where 1.0 is full scale. The spectrum measures one FFT bin out of a
-         * thousand, and broadband music spread across all of them leaves every
-         * bin twenty to thirty decibels under the level of the whole — which
-         * is why the output meters can sit at 0 while nothing on this display
-         * comes near it. So the threshold is drawn with the band’s OWN level
-         * beside it and the two are read against each other; the spectrum is
-         * the shape behind them, not the thing they are compared to.
+         * The threshold and the detector both measure the band's whole
+         * passband, where 1.0 is full scale. The spectrum is the power in a
+         * twelfth of an octave, and a band's passband is several of those —
+         * an octave and more at the Qs these bands use — so the band hears
+         * more than any one point of the spectrum under it shows. So the
+         * threshold is drawn with the band's OWN level beside it and the two
+         * are read against each other; the spectrum is the shape behind
+         * them, not the thing they are compared to.
          */
         const toY = (dbfs: number) => dbfsToY(dbfs, H);
         const y = toY(picked.thresholdDb);

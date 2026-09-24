@@ -47,11 +47,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        keeps that group on the cookbook (the EQ menu's Treble choice).
  *   1.15 builds every layer in linear phase into one FIR with one delay, so
  *        Your EQ and the curves both linear cost one delay, not two.
- *   1.16 moves Auto normalize's level for an edit once, by what the new EQ
- *        does to the last ten seconds of music, instead of dropping by the
- *        curve's worst case and climbing back (`level_prediction.h`). Nothing
- *        in the app waits on it: the number is here so a report says which
- *        engine it came from.
+ *   1.16 reads the preset's curve after the rack's line (the TONE trailer)
+ *        and limits through it, so a preset lands on the ceiling after its
+ *        curve has played. An older engine refuses a line longer than it
+ *        knows and bypasses the whole rack, so the app sends it none. It
+ *        also plays the rack EQ's Treble choice, from a slot every engine
+ *        decodes and none before read (the page offers it from here on,
+ *        `ENGINE_RACK_TREBLE_SINCE`), and fades every change of the rack's
+ *        EQ with each band keeping its history. And it moves Auto
+ *        normalize's level for an edit once, by what the new EQ does to the
+ *        last ten seconds of music, instead of dropping by the curve's
+ *        worst case and climbing back (`level_prediction.h`). Nothing in
+ *        the app waits on that last one: the number is here so a report
+ *        says which engine it came from.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */

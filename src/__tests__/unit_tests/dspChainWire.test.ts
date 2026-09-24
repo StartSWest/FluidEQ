@@ -126,9 +126,10 @@ describe('the chain wire layout', () => {
       [1, 1, 90, 0, 0, 0, 0.8, 0.7, 1, 0, 120, 0.65, -0.3, 0, 80, 0.4, 1.75],
     );
     // The room in the decoder's order: switch, preset, five dials, head,
-    // the headphone switch, seven angles, seven levels, bass management and
-    // its crossover, the music upmix and its amount, each speaker's own
-    // distance, and the eight mutes with the sub's last.
+    // the retired headphone switch's slot (the EQ's Treble choice since
+    // 1.16), seven angles, seven levels, bass management and its crossover,
+    // the music upmix and its amount, each speaker's own distance, and the
+    // eight mutes with the sub's last.
     expect(encoded.slice(CHAIN_PARAM_LEAD - 45, CHAIN_PARAM_LEAD - 3)).toEqual([
       0, 1, 4.2, 0.55, 1.8, 0, 0, 1, 1, -30, 30, 0, -100, 100, -140, 140, 0, 0,
       0, 0, 0, 0, 0, 1, 80, 0, 0.6, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 0, 0, 0,
@@ -140,6 +141,30 @@ describe('the chain wire layout', () => {
     // follows is one slot out.
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(DSP_DEFAULTS.eq.bands.length);
     expect(isChainWirePayload(encoded)).toBe(true);
+  });
+
+  /**
+   * The EQ's Treble choice rides the Room's retired headphone slot, the one
+   * after the head, which every engine decodes and none before 1.16 read: an
+   * older engine plays the cookbook whatever it says, and no scalar after it
+   * moves (`FeqChainEqSettings::matched`).
+   */
+  it('carries the EQ’s Treble choice in the slot after the Room’s head', () => {
+    const slot = CHAIN_PARAM_LEAD - 45 + 8;
+    const precise = encodeChainSettings(DSP_DEFAULTS);
+    const classic = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, treble: 'classic' },
+    });
+    expect(DSP_DEFAULTS.eq.treble).toBe('precise');
+    expect(precise[slot]).toBe(1);
+    expect(classic[slot]).toBe(0);
+    // Only that slot differs: nothing is found one place out.
+    const differing = precise
+      .map((value, index) => (value === classic[index] ? -1 : index))
+      .filter((index) => index >= 0);
+    expect(differing).toEqual([slot]);
+    expect(isChainWirePayload(classic)).toBe(true);
   });
 
   it('carries the maximum rack the app allows', () => {

@@ -56,6 +56,26 @@ uint32_t maximizer_look_ahead_samples(const FeqChain* chain) {
   return samples < 1.0 ? 1u : static_cast<uint32_t>(samples);
 }
 
+/** The low band's ring, one more than its longest look-ahead. */
+uint32_t maximizer_low_capacity(double sample_rate) {
+  const double samples =
+      std::floor((kMaximizerLowLookAheadMs / 1000.0) * sample_rate + 0.5);
+  return (samples < 1.0 ? 1u : static_cast<uint32_t>(samples)) + 1;
+}
+
+/**
+ * The low band's look-ahead: its own, or the limiter's when that is shorter.
+ *
+ * Never longer than the limiter's, so a profile that asks for a short one —
+ * the Punch profile's 1.5 ms is its whole character — gets a short one in
+ * both, and game mode's zero is zero here too.
+ */
+uint32_t maximizer_low_look_ahead_samples(const FeqChain* chain) {
+  const uint32_t own = maximizer_low_capacity(chain->sample_rate) - 1;
+  const uint32_t limiter = maximizer_look_ahead_samples(chain);
+  return own < limiter ? own : limiter;
+}
+
 /**
  * Build the Maximizer's limiter once, at the largest look-ahead the dial has.
  *
@@ -86,6 +106,27 @@ void allocate_maximizer(FeqChain* chain) {
   chain->maximizer_look_ahead = maximizer_look_ahead_samples(chain);
   feq_linked_limiter_set_look_ahead(&chain->maximizer,
                                     chain->maximizer_look_ahead);
+
+  const uint32_t low_capacity = maximizer_low_capacity(chain->sample_rate);
+  chain->maximizer_low_gain.assign(low_capacity, 0.0f);
+  chain->maximizer_low_input_pointers.assign(chain->channels, nullptr);
+  chain->maximizer_low_band_pointers.assign(chain->channels, nullptr);
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    chain->maximizer_low_input[channel].assign(low_capacity, 0.0f);
+    chain->maximizer_low_band[channel].assign(low_capacity, 0.0f);
+    chain->maximizer_low_input_pointers[channel] =
+        chain->maximizer_low_input[channel].data();
+    chain->maximizer_low_band_pointers[channel] =
+        chain->maximizer_low_band[channel].data();
+  }
+  feq_bass_limiter_init(&chain->maximizer_low,
+                        chain->maximizer_low_input_pointers.data(),
+                        chain->maximizer_low_band_pointers.data(),
+                        chain->maximizer_low_gain.data(), chain->channels,
+                        low_capacity);
+  chain->maximizer_low_look_ahead = maximizer_low_look_ahead_samples(chain);
+  feq_bass_limiter_set_look_ahead(&chain->maximizer_low,
+                                  chain->maximizer_low_look_ahead);
 }
 
 /**
@@ -101,11 +142,15 @@ void apply_maximizer_look_ahead(FeqChain* chain) {
     return;
   }
   const uint32_t look_ahead = maximizer_look_ahead_samples(chain);
-  if (look_ahead == chain->maximizer_look_ahead) {
-    return;
+  if (look_ahead != chain->maximizer_look_ahead) {
+    chain->maximizer_look_ahead = look_ahead;
+    feq_linked_limiter_set_look_ahead(&chain->maximizer, look_ahead);
   }
-  chain->maximizer_look_ahead = look_ahead;
-  feq_linked_limiter_set_look_ahead(&chain->maximizer, look_ahead);
+  const uint32_t low_look_ahead = maximizer_low_look_ahead_samples(chain);
+  if (low_look_ahead != chain->maximizer_low_look_ahead) {
+    chain->maximizer_low_look_ahead = low_look_ahead;
+    feq_bass_limiter_set_look_ahead(&chain->maximizer_low, low_look_ahead);
+  }
 }
 
 void chain_encode_mid_side_impl(float* const* channels, uint32_t frames) {
@@ -153,7 +198,6 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->room.walls = room.walls;
   settings->room.distance_m = room.distance_m;
   settings->room.head = 1;
-  settings->room.correct_headphones = 1;
   settings->room.bass_management = room.bass_management;
   settings->room.crossover_hz = room.crossover_hz;
   settings->room.music_upmix = room.music_upmix;
@@ -178,6 +222,9 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   feq_denoise_settings_defaults(&settings->denoise);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
+  // The cookbook, which is what every test and fixture was built against;
+  // the app says Precise on the wire (`FeqChainEqSettings::matched`).
+  settings->eq.matched = 0;
   // Both bass stages off, and every generator at rest under that. A decoder
   // that failed halfway leaves these, so the resting values have to be the
   // bit-exact bypass rather than a pleasant-sounding starting point.
@@ -355,6 +402,14 @@ FeqChain* feq_chain_create(double sample_rate,
     feq_biquad_reset(&chain->band_states[index]);
     feq_band_dynamics_init(&chain->band_dynamics[index]);
   }
+  // The rack an edit crosses from, sized the same way and for the same
+  // reason: a fade starts on the audio thread and may only copy.
+  chain_eq_fade_allocate(chain);
+  // `assign` value-initialises, and a zeroed biquad history is a reset one.
+  const size_t tone_histories =
+      static_cast<size_t>(FeqChain::kToneSlots) * FEQ_CHAIN_MAX_CHANNELS;
+  chain->tone_states.assign(tone_histories, FeqBiquadState{});
+  chain->tone_inverse_states.assign(tone_histories, FeqBiquadState{});
   for (uint32_t channel = 0; channel < channels; ++channel) {
     chain->change_active[channel].assign(feq_convolver_latency(), 0.0f);
     chain->change_next[channel].assign(feq_convolver_latency(), 0.0f);
@@ -600,6 +655,8 @@ void feq_chain_reset_room(FeqChain* chain) {
       std::fill(line->begin(), line->end(), 0.0f);
     }
   }
+  // The Maximizer's low band holds the same audio a little earlier.
+  feq_bass_limiter_reset(&chain->maximizer_low);
   const FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
   feq_meters_publish_room(chain->meters, &inactive);
 }
@@ -620,10 +677,13 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   for (auto& state : chain->band_states) {
     feq_biquad_reset(&state);
   }
+  // Nothing of the previous passage is crossed from.
+  chain_eq_fade_stop(chain);
   feq_denoise_reset(chain->denoise);
   feq_live_normalizer_reset(chain->live_normalizer);
   feq_biquad_reset(&chain->side_highpass);
   feq_linked_limiter_reset_control(&chain->maximizer);
+  feq_bass_limiter_reset_control(&chain->maximizer_low);
   // A seek or a new source must not arrive with the previous passage's bloom
   // tail still decaying under it, which is what these two hold that no filter
   // history above does.
@@ -672,7 +732,11 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
       std::fill(chain->punch_align_line[channel].begin(),
                 chain->punch_align_line[channel].end(), 0.0f);
     }
+    feq_bass_limiter_reset(&chain->maximizer_low);
     feq_post_filter_normalizer_rebase(&chain->post_normalizer);
+    // The Maximizer's ring is empty now, so the curve around it starts over
+    // from silence rather than gliding from the last song's.
+    chain_tone_restart(chain);
   }
 }
 
@@ -705,7 +769,9 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
   // from the limiters themselves, so the number is whatever they were last
   // set to, game mode's zero included.
   out->maximizer =
-      chain->maximizer.delay != nullptr ? chain->maximizer.look_ahead : 0u;
+      chain->maximizer.delay != nullptr
+          ? chain->maximizer.look_ahead + chain->maximizer_low.look_ahead
+          : 0u;
   out->headroom = chain->post_normalizer.limiter.look_ahead;
 }
 
@@ -774,6 +840,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain->active =
       &chain->coefficient_sets[chain->published_coefficients.load(
           std::memory_order_acquire)];
+  // A new EQ rack is crossed to rather than jumped to, with every band's
+  // history following the band (`chain_eq_fade.cpp`); here, before any of
+  // the block has run, for the reason the set is chosen here.
+  chain_eq_adopt(chain);
 
   // The kernel arrives the same way and for the same reason, and is taken at
   // the same point: this is the one moment in a block where swapping a filter
@@ -954,6 +1024,11 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                      &headroom);
 
   chain_process_master_output(chain, channels, frames);
+  // The preset's curve comes off here, after the Master as well as the
+  // Maximizer: a chain that ends in the Master's Auto Headroom (Default, the
+  // voices) held its peaks to the ceiling BEFORE the curve and went over once
+  // it had played, as the Maximizer's did before it was told the curve.
+  chain_tone_inverse(chain, channels, frames);
 
   /**
    * There is nothing after the Master's gain: no final limiter, no DC filter.

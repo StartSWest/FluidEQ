@@ -58,6 +58,12 @@ typedef struct FeqLinearPhaseRack {
   FeqEqEngine engine;
   FeqEqModel model;
   double model_amount;
+  /**
+   * The EQ's Treble choice (`FeqChainEqSettings::matched`). The kernel keeps
+   * the magnitude of whatever it is built from, so Precise builds it from the
+   * analog-matched bands: the shape as drawn, without the phase.
+   */
+  int matched;
   /** Zero disables the subsonic high-pass. */
   double subsonic_hz;
 } FeqLinearPhaseRack;

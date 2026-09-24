@@ -108,6 +108,42 @@ typedef struct FeqChainExciterSettings {
   FeqChainExciterBand bands[FEQ_CHAIN_EXCITER_BANDS];
 } FeqChainExciterSettings;
 
+/**
+ * How many of a preset's curve bands the rack can limit through: the
+ * fifteen of a genre curve twice over (an EQ played in double mode repeats
+ * every band), with room to spare.
+ */
+#define FEQ_CHAIN_MAX_TONE_BANDS 48
+
+/** A band of the curve after the rack: `FEQ_FILTER_PK`, `LSC` or `HSC`. */
+typedef struct FeqChainToneBand {
+  FeqFilterType type;
+  double frequency;
+  double gain_db;
+  double quality;
+} FeqChainToneBand;
+
+/**
+ * The preset's curve, which the Maximizer and the Master limit through.
+ *
+ * A preset's tone plays after the rack, as a layer of the main EQ, and an EQ
+ * after a limiter puts back peaks the limiter took off: its bass bells turn
+ * the phase of a limited master's bottom against its top, and the sum of the
+ * two climbed 3-5 dB over the ceiling on loud records. Told the curve, the
+ * rack plays it in front of the Maximizer, limits, and takes it off again
+ * with its exact inverse behind the Master, so when the layer then plays,
+ * the preset lands on the ceiling rather than over it. A new curve glides in
+ * over 20 ms, the old one out (`chain_tone.cpp`). Bells and shelves, which
+ * have an inverse; `matched` builds them as the engine builds the layer
+ * (`feq_biquad_coefficients_matched`), since a copy designed differently
+ * would not cancel.
+ */
+typedef struct FeqChainToneSettings {
+  uint32_t band_count;
+  int matched;
+  FeqChainToneBand bands[FEQ_CHAIN_MAX_TONE_BANDS];
+} FeqChainToneSettings;
+
 typedef struct FeqChainEqSettings {
   int enabled;
   int isolate;
@@ -121,6 +157,21 @@ typedef struct FeqChainEqSettings {
   uint32_t oversample;
   double subsonic_hz;
   double fuzz_amount;
+  /**
+   * The Treble choice: non-zero builds the bands analog-matched (Precise),
+   * zero keeps the cookbook (Classic) — `feq_biquad_coefficients_designed`,
+   * for the cascade, the oversampled cascade, the dynamic bands and the
+   * linear-phase kernel alike, so the four agree.
+   *
+   * Carried in the Room's retired headphone slot rather than in a new
+   * scalar (see `room` below): every engine before 1.16 decodes that slot
+   * and reads nothing from it, so it keeps the cookbook whatever the app
+   * asks, as it always did, and no layout moves. Zero in the defaults, so a
+   * chain built without the app's settings — every test, and the parity
+   * fixtures frozen from the cookbook — keeps what it had; the app sends
+   * Precise unless told otherwise.
+   */
+  int matched;
   uint32_t band_count;
   FeqChainEqBand bands[FEQ_CHAIN_MAX_EQ_BANDS];
 } FeqChainEqSettings;
@@ -159,11 +210,12 @@ typedef struct FeqChainSettings {
    * to it. `preset` is the app's, carried here so the whole rack is one
    * line on the wire.
    *
-   * `correct_headphones` is a retired switch's slot. It was decoded here
-   * from the day it shipped and read by nothing — it is not among the
-   * fields copied into `FeqRoomSettings` below, so moving it never changed
-   * a sample — and the app took its control off the Room's page on
-   * 2026-09-20 and pins the slot to 1. The slot stays because every scalar
+   * The slot after `head` is not the Room's any more. It was the Room's
+   * "Correct the headphones" switch, decoded from the day it shipped and
+   * read by nothing — never copied into `FeqRoomSettings` below, so moving
+   * it never changed a sample — until the app took the control off the
+   * Room's page on 2026-09-20. Since 1.16 it carries the EQ's Treble
+   * choice (`eq.matched`); the slot stays where it is because every scalar
    * after it is found by position.
    */
   struct {
@@ -175,7 +227,6 @@ typedef struct FeqChainSettings {
     double centre_db;
     double sub_db;
     int head;
-    int correct_headphones;
     /* Versioned Room rendering; absent wire trailer means legacy defaults. */
     int renderer_version;
     double early_reflection_db;
@@ -242,6 +293,8 @@ typedef struct FeqChainSettings {
     double look_ahead_ms;
     double release_ms;
   } maximizer;
+  /** The curve the rack limits through; no bands, none. */
+  FeqChainToneSettings tone;
   struct {
     int enabled;
     double output_trim_db;
@@ -338,8 +391,22 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_ROOM_SCHEMA 1
 #define FEQ_CHAIN_ROOM_FIELDS 8
 #define FEQ_CHAIN_ROOM_TRAILER 11
-/** Normalizer (3), explicit low latency (1), tagged Room (11). */
-#define FEQ_CHAIN_MAX_TRAILER 15
+/**
+ * TONE tag, schema version, band count and design, then each band's type,
+ * frequency, gain and Q. Last on the line, after the low-latency word and
+ * the Room's trailer when there is one: `appendPresetTone` in `chainWire.ts`.
+ */
+#define FEQ_CHAIN_TONE_TAG 1414483525
+#define FEQ_CHAIN_TONE_SCHEMA 1
+#define FEQ_CHAIN_TONE_HEADER 4
+#define FEQ_CHAIN_TONE_BAND_PARAMS 4
+/**
+ * Normalizer (3), explicit low latency (1), tagged Room (11), and the tone
+ * at its longest.
+ */
+#define FEQ_CHAIN_MAX_TRAILER                                        \
+  (15 + FEQ_CHAIN_TONE_HEADER +                                      \
+   FEQ_CHAIN_MAX_TONE_BANDS * FEQ_CHAIN_TONE_BAND_PARAMS)
 #define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

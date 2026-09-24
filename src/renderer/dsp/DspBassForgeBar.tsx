@@ -6,12 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IBassForgeSettings } from '../../common/dsp/chain';
 import {
-  BASS_FORGE_PRESETS,
   BASS_FORGE_PRESET_GROUPS,
   IBassForgePreset,
-  bassForgePresetSettings,
-  isBassForgePresetId,
 } from '../../common/dsp/bassForgePresets';
+import { BASS_FORGE_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -68,8 +66,9 @@ const DspBassForgeBar = ({
 }: IDspBassForgeBarProps) => {
   const { t } = useTranslation();
   const entries: IRichPickEntry[] = BASS_FORGE_PRESET_GROUPS.flatMap((group) =>
-    BASS_FORGE_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
+    BASS_FORGE_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
         hint: profileHint(preset),
@@ -77,16 +76,19 @@ const DspBassForgeBar = ({
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
         ),
-      }),
-    ),
+      })),
   );
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
-    if (!isBassForgePresetId(id)) {
+    const next = BASS_FORGE_CATALOGUE.settings(
+      id,
+      enable ? true : bassForge.enabled,
+    );
+    if (next === undefined) {
       return;
     }
-    onChange(bassForgePresetSettings(id, enable ? true : bassForge.enabled));
+    onChange(next);
     onCommit();
   };
 

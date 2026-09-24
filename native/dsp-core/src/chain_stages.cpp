@@ -310,9 +310,23 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   if (chain->maximizer.delay == nullptr) {
     return;
   }
+  /**
+   * The preset's curve, in front of the limiters and taken off again behind
+   * the Master (`FeqChainToneSettings`, `chain_tone_inverse` in
+   * `feq_chain_process`): the Maximizer and the Master's Auto Headroom hear
+   * the programme as the listener will once the layer after the rack has
+   * played, and hold THAT to the ceiling.
+   *
+   * Whether the stage is on or not. The look-ahead ring runs either way, and
+   * it has to hold audio in one domain: a curve switched on and off with the
+   * stage would take the inverse off samples it never put on, for as long as
+   * the ring is. A new curve glides in (`chain_tone.cpp`).
+   */
+  chain_tone_forward(chain, channels, frames);
   const bool on = chain->settings.maximizer.enabled != 0;
   if (!on) {
     feq_linked_limiter_reset_control(&chain->maximizer);
+    feq_bass_limiter_reset_control(&chain->maximizer_low);
     chain->maximizer_reduction_db = 0.0;
   }
 
@@ -374,6 +388,26 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
       on ? std::exp(-1.0 / ((kMaximizerPlatformReleaseMs / 1000.0) *
                             chain->sample_rate))
          : 0.0;
+
+  // The low band first (`bass_limiter.h`): a peak the bass put over the
+  // ceiling comes out of the bass before the limiter hears it. Read against
+  // the platform the limiter is holding now, so the steady reduction a driven
+  // record asks for stays the limiter's, on everything alike.
+  FeqBassLimiterOptions low{};
+  low.ceiling = on ? options.ceiling : HUGE_VAL;
+  low.knee_db = options.knee_db;
+  low.platform_db = chain->maximizer.platform_db;
+  low.floor_gain = std::pow(10.0, kMaximizerLowFloorDb / 20.0);
+  low.split_hz = kMaximizerLowSplitHz;
+  low.release_coefficient =
+      on ? std::exp(-1.0 / ((kMaximizerLowReleaseMs / 1000.0) *
+                            chain->sample_rate))
+         : 0.0;
+  low.release_hold_samples = options.release_hold_samples;
+  low.release_snap_ratio = options.release_snap_ratio;
+  low.sample_rate = chain->sample_rate;
+  feq_bass_limiter_process(&chain->maximizer_low, channels, frames, &low);
+
   feq_linked_limiter_process(&chain->maximizer, channels, frames, &options);
 
   // The deepest point of the block rather than its mean: a meter that averaged

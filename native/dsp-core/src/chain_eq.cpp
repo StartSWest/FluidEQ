@@ -116,6 +116,12 @@ void process_eq_channel(FeqChain* chain,
                         uint32_t slot_index) {
   const FeqChainEqSettings& eq = chain->settings.eq;
   if (!prepare_eq_channel(chain, target, frames, slot_index)) {
+    if (eq.enabled == 0) {
+      // Switched off with the rack still crossing: it plays out into the
+      // sound as it arrives, which is what the EQ now leaves alone.
+      chain_eq_fade_capture(chain, slot_index, target, frames);
+      chain_eq_fade_mix(chain, slot_index, target, frames);
+    }
     return;
   }
   ChainEqSlot& slot = chain->slots[slot_index];
@@ -127,6 +133,7 @@ void process_eq_channel(FeqChain* chain,
     float* const targets[1] = {target};
     chain_process_eq_linear(chain, targets, &slot_index, 1, frames, false);
   } else {
+    chain_eq_fade_capture(chain, slot_index, target, frames);
     if (chain->active->has_subsonic != 0) {
       feq_biquad_process(&slot.subsonic, target, frames,
                          &chain->active->subsonic);
@@ -145,6 +152,7 @@ void process_eq_channel(FeqChain* chain,
           chain->eq_wet.data(),
           live == 0 ? nullptr : chain->band_dynamics.data() + base);
     }
+    chain_eq_fade_mix(chain, slot_index, target, frames);
   }
   finish_eq_channel(chain, target, frames, slot_index);
 }
@@ -161,6 +169,14 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
   const FeqChainEqSettings& eq = chain->settings.eq;
   const uint32_t channel_count = chain->channels;
   if (eq.enabled == 0 || channel_count < 2) {
+    if (eq.enabled == 0) {
+      // Switched off with the rack still crossing: it plays out into the
+      // sound as it arrives, as in the per-domain path.
+      for (uint32_t channel = 0; channel < channel_count; ++channel) {
+        chain_eq_fade_capture(chain, channel, channels[channel], frames);
+        chain_eq_fade_mix(chain, channel, channels[channel], frames);
+      }
+    }
     return;
   }
   bool ready = true;
@@ -181,6 +197,11 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
     chain_process_eq_linear(chain, channels, slots, channel_count, frames,
                             true);
   } else {
+    // Every channel's outgoing sound first: the new rack runs on all of
+    // them at once, in place.
+    for (uint32_t channel = 0; channel < channel_count; ++channel) {
+      chain_eq_fade_capture(chain, channel, channels[channel], frames);
+    }
     if (chain->active->has_subsonic != 0) {
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         feq_biquad_process(&chain->slots[channel].subsonic, channels[channel],
@@ -219,6 +240,9 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
           channel_count, frames, eq.engine, chain->pointers_a,
           chain->pointers_b,
           live == 0 ? nullptr : chain->band_dynamics.data());
+    }
+    for (uint32_t channel = 0; channel < channel_count; ++channel) {
+      chain_eq_fade_mix(chain, channel, channels[channel], frames);
     }
   }
 
@@ -282,6 +306,7 @@ void chain_refresh_eq(FeqChain* chain) {
 
   built.bands.clear();
   built.dynamic.clear();
+  built.identity.clear();
   std::fill(built.live_of, built.live_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
   std::fill(built.dynamic_of, built.dynamic_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
   std::vector<const FeqChainEqBand*> live;
@@ -295,18 +320,40 @@ void chain_refresh_eq(FeqChain* chain) {
     }
     built.live_of[index] = static_cast<int32_t>(live.size());
     live.push_back(&band);
-    built.bands.push_back(feq_biquad_coefficients_modelled(
+    built.bands.push_back(feq_biquad_coefficients_designed(
         band.type, band.frequency, band.gain_db, band.quality, design_rate,
-        eq.model, eq.model_amount));
+        eq.model, eq.model_amount, eq.matched));
+    ChainBandIdentity identity;
+    identity.type = band.type;
+    identity.frequency = band.frequency;
+    identity.quality = band.quality;
+    identity.dynamic = band.dynamic != 0 ? 1 : 0;
+    built.identity.push_back(identity);
     if (band.dynamic != 0) {
       built.dynamic_of[index] = static_cast<int32_t>(built.dynamic.size());
       // Built at the base rate, not the design rate: these run after the
       // convolution, which is base rate, and never inside the oversampler.
-      built.dynamic.push_back(feq_biquad_coefficients_modelled(
+      built.dynamic.push_back(feq_biquad_coefficients_designed(
           band.type, band.frequency, band.gain_db, band.quality,
-          chain->sample_rate, eq.model, eq.model_amount));
+          chain->sample_rate, eq.model, eq.model_amount, eq.matched));
     }
   }
+  // How the cascade runs this set, for the fade from the one before it
+  // (`chain_eq_fade.cpp`); numbered like the tone, so the audio thread sees
+  // it came.
+  built.eq_enabled = eq.enabled != 0 ? 1 : 0;
+  built.eq_running = eq.enabled != 0 && eq.phase == FEQ_PHASE_MINIMUM &&
+                             eq.isolate == 0
+                         ? 1
+                         : 0;
+  built.engine = eq.engine;
+  built.oversample = eq.oversample;
+  built.stereo = eq.stereo;
+  built.eq_generation = ++chain->eq_built;
+  // The curve the Maximizer limits through, as the target the one playing
+  // glides to (`chain_tone.cpp`); numbered, so the audio thread sees it came.
+  built.tone = chain->settings.tone;
+  built.tone_generation = ++chain->tone_built;
 
   /**
    * The detectors are refreshed in place, and that is safe where the
@@ -411,6 +458,8 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
       slot.dry_mix = dry_mix;
     }
   }
+  // Every domain this block was mixed at the same point of the crossing.
+  chain_eq_fade_advance(chain, frames);
 
   chain_settle_convolvers(chain, frames);
 

@@ -33,6 +33,10 @@ import {
   engineTakesTrebleChoice,
   groupPlaysMatched,
 } from 'common/filterDesign';
+import {
+  ENGINE_RACK_TREBLE_SINCE,
+  engineTakesRackTreble,
+} from 'common/dsp/rackTreble';
 
 const ENGINE_RC = path.join(
   __dirname,
@@ -139,6 +143,15 @@ describe('the engine this tree builds', () => {
     expect(engineTakesTrebleChoice(binaryVersion('FILEVERSION'))).toBe(true);
     const [major, minor] = ENGINE_TREBLE_CHOICE_SINCE;
     expect(engineTakesTrebleChoice(`${major}.${minor - 1}.0.0`)).toBe(false);
+  });
+
+  it('plays the rack EQ’s Treble choice, which an engine a version older ignores', () => {
+    // The DSP EQ page offers the choice, and its graph draws Precise, only
+    // from this version on; an engine.rc left behind the gate would draw a
+    // shape the rack in the engine does not play.
+    expect(engineTakesRackTreble(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_RACK_TREBLE_SINCE;
+    expect(engineTakesRackTreble(`${major}.${minor - 1}.0.0`)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

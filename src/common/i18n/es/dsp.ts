@@ -303,6 +303,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'Domar retumbe',
   'dsp.eqPreset.tape': 'Cinta',
   'dsp.eqPreset.vinyl': 'Vinilo',
+  'dsp.eqPreset.tapeRestore': 'Reparar cinta',
+  'dsp.eqPreset.vinylRestore': 'Reparar vinilo',
   'dsp.eqPreset.liveVocal': 'Voz en directo',
   'dsp.eqPreset.orchestra': 'Orquesta',
   'dsp.eqPreset.metal': 'Metal',
@@ -380,6 +382,8 @@ const dsp = {
   'dsp.eqOversample.label': 'Sobremuestreo',
   'dsp.eqOversample.off': 'No',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    'Preciso: cada banda de este EQ suena exactamente como está dibujada, hasta 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importar una curva de EQ',
   'dsp.eqImport.hint':
     'Pega una curva de Squiglink, AutoEq o Equalizer APO, o elige el archivo que la contiene.',
@@ -478,7 +482,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'Seco',
   'dsp.bassForgePreset.wet': 'Húmedo',
   'dsp.bassForgePreset.phantom': 'Fantasma',
-  'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Pegada de graves',
   'dsp.bassPunch.isolate': 'Aislar',
@@ -508,7 +511,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'Seco',
   'dsp.bassPunchPreset.wet': 'Húmedo',
   'dsp.bassPunchPreset.soft': 'Suave',
-  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.dimension.historyLabel': 'Lateral y central en el tiempo',
   'dsp.dimension.legendCorrelation': 'Correlación',

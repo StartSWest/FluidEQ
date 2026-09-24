@@ -2,6 +2,7 @@
 import { FilterTypeEnum, IFiltersMap, IVoicingSettings } from '../constants';
 import { getVoicingFilters } from '../voicing';
 import { DSP_DEFAULTS, clampDspSettings, IEqSettings } from './chain';
+import modelledQuality from './eqModel';
 
 /** What a Preset layer's id starts with; the preset's own id follows. */
 export const DSP_VOICING_PREFIX = 'dsp:';
@@ -12,6 +13,11 @@ export const DSP_VOICING_PREFIX = 'dsp:';
  * The same filters on both engines, written where each applies its layers —
  * after the rack under the FluidEQ Engine, and alone under Equalizer APO,
  * which has no rack. See `presetCurve.ts` for why the tone lives here.
+ *
+ * Each band at the Q its curve's model builds it with (`eqModel.ts`): the
+ * main EQ has no model of its own, and a curve's gains were fitted through
+ * its model's bands, so a Wide curve written with its dial Q was a row of
+ * narrow bumps where a broad tilt had been drawn.
  */
 export const dspPresetVoicing = (
   id: string,
@@ -26,12 +32,17 @@ export const dspPresetVoicing = (
       .filter((band) => band.enabled && !band.dynamic)
       .forEach((band, index) => {
         const key = String(index);
+        const type = band.type as FilterTypeEnum;
         filters[key] = {
           id: key,
-          type: band.type as FilterTypeEnum,
+          type,
           frequency: band.frequency,
           gain: band.gainDb,
-          quality: band.quality,
+          quality: modelledQuality(
+            { type, gainDb: band.gainDb, quality: band.quality },
+            clamped.model,
+            clamped.modelAmount,
+          ),
         };
       });
     if (clamped.subsonicHz > 0) {

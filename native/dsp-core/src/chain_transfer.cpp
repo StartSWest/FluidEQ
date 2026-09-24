@@ -12,6 +12,7 @@ bool same_kernel(const FeqChain& prepared, const FeqChain& previous) noexcept {
       prepared.kernel_engine != previous.kernel_engine ||
       prepared.kernel_model != previous.kernel_model ||
       prepared.kernel_model_amount != previous.kernel_model_amount ||
+      prepared.kernel_matched != previous.kernel_matched ||
       prepared.kernel_subsonic_hz != previous.kernel_subsonic_hz) {
     return false;
   }
@@ -71,7 +72,14 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
     prepared.band_dynamics[index].envelope = previous.band_dynamics[index].envelope;
     prepared.band_dynamics[index].amount = previous.band_dynamics[index].amount;
   }
+  // The histories above are in the order the previous rack played its
+  // bands; with what it played, the new chain's first block finds each band
+  // its own and crosses from the old rack to its own.
+  chain_eq_fade_transfer(prepared, previous);
   swap(prepared.side_highpass, previous.side_highpass);
+  // With the Maximizer's ring below: the ring holds audio the curve was
+  // played on, and the inverse that follows it has to pick up where it was.
+  chain_tone_transfer(prepared, previous);
 
   swap(prepared.maximizer, previous.maximizer);
   swap(prepared.maximizer_detectors, previous.maximizer_detectors);
@@ -81,6 +89,16 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.maximizer_reduction_db, previous.maximizer_reduction_db);
   feq_linked_limiter_set_look_ahead(&prepared.maximizer,
                                     prepared.maximizer_look_ahead);
+  swap(prepared.maximizer_low, previous.maximizer_low);
+  swap(prepared.maximizer_low_input, previous.maximizer_low_input);
+  swap(prepared.maximizer_low_band, previous.maximizer_low_band);
+  swap(prepared.maximizer_low_input_pointers,
+       previous.maximizer_low_input_pointers);
+  swap(prepared.maximizer_low_band_pointers,
+       previous.maximizer_low_band_pointers);
+  swap(prepared.maximizer_low_gain, previous.maximizer_low_gain);
+  feq_bass_limiter_set_look_ahead(&prepared.maximizer_low,
+                                  prepared.maximizer_low_look_ahead);
 
   swap(prepared.bass_forge, previous.bass_forge);
   swap(prepared.bass_forge_low, previous.bass_forge_low);

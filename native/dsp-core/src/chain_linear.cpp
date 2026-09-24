@@ -241,9 +241,9 @@ void describe_dynamic_bands(const FeqChain* chain, ChainEqKernel* kernel) {
     }
     ChainKernelBand& entry = kernel->dynamic[kernel->dynamic_count];
     entry.band = index;
-    entry.filter = feq_biquad_coefficients_modelled(
+    entry.filter = feq_biquad_coefficients_designed(
         band.type, band.frequency, band.gain_db, band.quality,
-        chain->sample_rate, eq.model, eq.model_amount);
+        chain->sample_rate, eq.model, eq.model_amount, eq.matched);
     feq_band_dynamics_init(&entry.detector);
     feq_band_dynamics_refresh(&entry.detector, eq.enabled, band.enabled,
                               band.dynamic, band.gain_db, band.threshold_db,
@@ -363,6 +363,7 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
                eq.engine != chain->kernel_engine ||
                eq.model != chain->kernel_model ||
                eq.model_amount != chain->kernel_model_amount ||
+               eq.matched != chain->kernel_matched ||
                eq.subsonic_hz != chain->kernel_subsonic_hz;
   for (uint32_t index = 0; index < count && !moved; ++index) {
     moved = !same_band(bands[index], chain->kernel_bands[index]);
@@ -377,6 +378,7 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
   chain->kernel_engine = eq.engine;
   chain->kernel_model = eq.model;
   chain->kernel_model_amount = eq.model_amount;
+  chain->kernel_matched = eq.matched;
   chain->kernel_subsonic_hz = eq.subsonic_hz;
   for (uint32_t index = 0; index < count; ++index) {
     chain->kernel_bands[index] = bands[index];
@@ -393,6 +395,7 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
   rack.engine = eq.engine;
   rack.model = eq.model;
   rack.model_amount = eq.model_amount;
+  rack.matched = eq.matched;
   rack.subsonic_hz = eq.subsonic_hz;
 
   std::vector<float> kernel(FEQ_LINEAR_PHASE_KERNEL_SIZE, 0.0f);

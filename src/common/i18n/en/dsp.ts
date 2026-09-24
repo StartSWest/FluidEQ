@@ -310,6 +310,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'Tame boom',
   'dsp.eqPreset.tape': 'Tape',
   'dsp.eqPreset.vinyl': 'Vinyl',
+  'dsp.eqPreset.tapeRestore': 'Repair tape',
+  'dsp.eqPreset.vinylRestore': 'Repair vinyl',
   'dsp.eqPreset.liveVocal': 'Live vocal',
   'dsp.eqPreset.orchestra': 'Orchestra',
   'dsp.eqPreset.metal': 'Metal',
@@ -386,6 +388,8 @@ const dsp = {
   'dsp.eqOversample.label': 'Oversampling',
   'dsp.eqOversample.off': 'Off',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    'Precise: every band of this EQ plays exactly as drawn, up to 20\u00a0kHz.',
   'dsp.eqImport.title': 'Import an EQ curve',
   'dsp.eqImport.hint':
     'Paste a curve from Squiglink, AutoEq or Equalizer APO — or choose the file it is in.',
@@ -488,7 +492,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'Dry',
   'dsp.bassForgePreset.wet': 'Wet',
   'dsp.bassForgePreset.phantom': 'Phantom',
-  'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Bass Punch',
   'dsp.bassPunch.isolate': 'Isolate',
@@ -517,7 +520,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'Dry',
   'dsp.bassPunchPreset.wet': 'Wet',
   'dsp.bassPunchPreset.soft': 'Soft',
-  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.dimension.historyLabel': 'Side and mid over time',
   'dsp.dimension.legendCorrelation': 'Correlation',

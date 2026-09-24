@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
 import { setPlayerProcessingLatency } from './processingLatency';
+import { usePresetTone } from './presetToneStore';
 import {
   playerRunsRack,
   rackFor,
@@ -91,11 +92,16 @@ export const useNativeBackend = (
     () => rackFor(settings, playerRunsRack(gate)),
     [settings, gate],
   );
+  // The curve the Preset layer plays after this copy of the rack, for its
+  // Maximizer to limit through (`presetTone.ts`).
+  const tone = usePresetTone();
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
   const settingsRef = useRef(hostSettings);
+  const toneRef = useRef(tone);
   // Assigned at render rather than in an effect: an effect below may read it
   // in the same commit, and child effects run before a parent's.
   settingsRef.current = hostSettings;
+  toneRef.current = tone;
 
   useEffect(() => {
     if (!hasLibraryAudioTrack) {
@@ -129,7 +135,7 @@ export const useNativeBackend = (
     let isCurrent = true;
     controllerRef.current = controller;
     controller
-      .engage(settingsRef.current)
+      .engage(settingsRef.current, toneRef.current)
       .then(async (ready) => {
         if (!isCurrent) {
           // The player paused or unmounted while the host was negotiating its
@@ -172,8 +178,8 @@ export const useNativeBackend = (
   }, [hasLibraryAudioTrack]);
 
   useEffect(() => {
-    controllerRef.current?.update(hostSettings).catch(() => undefined);
-  }, [hostSettings]);
+    controllerRef.current?.update(hostSettings, tone).catch(() => undefined);
+  }, [hostSettings, tone]);
 
   /**
    * The track-level gains, routed to the host for as long as it is audible.

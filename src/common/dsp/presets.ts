@@ -17,12 +17,10 @@ import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
 import { exciterPresetSettings } from './exciterPresets';
-import { GENRE_CHAIN_STAGES } from './genreChains';
+import { IGenreRack, TGenreStage, inGenreChain } from './genreRack';
+import { GENRE_RACKS, genreChainId, genreLabelKey } from './genres';
 import { TMasterPresetId, masterPresetSettings } from './masterPresets';
-import {
-  TMaximizerPresetId,
-  maximizerPresetSettings,
-} from './maximizerPresets';
+import { maximizerPresetSettings } from './maximizerPresets';
 import {
   DSP_PRESET_GROUPS,
   DSP_PRESET_RECIPES,
@@ -32,6 +30,14 @@ import {
 import { presetCurve, presetSupport } from './presetCurve';
 import { roomPresetSettings } from './roomPresets';
 import { withRoomTone } from './roomTone';
+import {
+  BASS_FORGE_CATALOGUE,
+  BASS_PUNCH_CATALOGUE,
+  DIMENSION_CATALOGUE,
+  EXCITER_CATALOGUE,
+  IStageCatalogue,
+  MAXIMIZER_CATALOGUE,
+} from './stageCatalogues';
 import { VOICING_PROFILES } from '../voicing';
 import orderRelatedStyles from './presetOrder';
 
@@ -71,27 +77,13 @@ const eqProfile = (id: string) => {
   return eqSettingsForPreset({ ...DSP_DEFAULTS.eq, enabled: true }, preset);
 };
 
-const masterProfile = (
-  id: TMasterPresetId,
-  gainMatch = false,
-  outputTrimDb = 0,
-) => ({
+const masterProfile = (id: TMasterPresetId, gainMatch = false) => ({
   ...masterPresetSettings(id, DSP_DEFAULTS.master),
   enabled: true,
   loudnessMaximize: true,
-  outputTrimDb,
+  outputTrimDb: 0,
   matchedBypass: gainMatch,
 });
-
-const maximizerProfile = (id: TMaximizerPresetId, driveDb?: number) => {
-  const settings = maximizerPresetSettings(id, true);
-  if (driveDb === undefined || driveDb === settings.driveDb) {
-    return settings;
-  }
-  // A calibrated rack still owns its named preset, but this individual stage
-  // must not claim to match a catalogue profile whose drive it no longer uses.
-  return { ...settings, driveDb, presetId: '' };
-};
 
 /**
  * A whole-rack pick owns every stage, including the bypassed ones.
@@ -156,15 +148,13 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     dimension: recipe.dimension
       ? dimensionPresetSettings(recipe.dimension, true)
       : DSP_DEFAULTS.dimension,
+    // Every chain's Maximizer is a named profile, so no preset opens that
+    // stage's picker on Custom (`maximizerPresets.ts`).
     maximizer: recipe.maximizer
-      ? maximizerProfile(recipe.maximizer, recipe.maximizerDriveDb)
+      ? maximizerPresetSettings(recipe.maximizer, true)
       : DSP_DEFAULTS.maximizer,
     master: recipe.master
-      ? masterProfile(
-          recipe.master,
-          recipe.masterGainMatch,
-          recipe.masterOutputTrimDb,
-        )
+      ? masterProfile(recipe.master, recipe.masterGainMatch)
       : DSP_DEFAULTS.master,
     room: recipe.room
       ? { ...roomPresetSettings(DSP_DEFAULTS.room, recipe.room), enabled: true }
@@ -212,45 +202,104 @@ export const chainRoom = (
   };
 };
 
-// Every EQ genre is also a complete DSP chain. Detailed recipes above win;
-// the remaining genres are their own EQ plus the stages `genreChains.ts`
-// gives that style, and the curve alone where it names none.
-const recipes: readonly IDspPresetRecipe[] = [
-  ...DSP_PRESET_RECIPES,
-  ...EQ_PRESETS.filter(
-    (eq) =>
-      eq.group === 'genre' &&
-      !DSP_PRESET_RECIPES.some(
-        (recipe) => recipe.group === 'genre' && recipe.eq === eq.id,
-      ),
-  ).map((eq): IDspPresetRecipe => {
-    const stages = GENRE_CHAIN_STAGES[eq.id];
-    return {
-      id: eq.id,
-      labelKey: eq.labelKey,
-      group: 'genre',
-      eq: eq.id,
-      ...stages,
-    };
+/**
+ * A stage of a genre's chain: the genre's own profile when its row switches
+ * the stage on, and the stage's defaults — off — when it does not.
+ *
+ * Looked up in the stage's catalogue rather than built from the row, so the
+ * chain holds exactly what the stage's picker applies for the same name.
+ */
+const genreStage = <S>(
+  rack: IGenreRack,
+  stage: TGenreStage,
+  stageCatalogue: IStageCatalogue<{ id: string }, S>,
+  off: S,
+): S =>
+  inGenreChain(rack, stage)
+    ? (stageCatalogue.settings(rack.id, true) ?? off)
+    : off;
+
+/**
+ * A genre's chain: its curve, played in the main EQ, and every stage its row
+ * sets, each at the genre's own profile.
+ *
+ * The Normalizer is off because the Maximizer ends every one of these chains
+ * and holds the ceiling itself. With both on, a record mastered over full
+ * scale was limited twice, at the input and again at the end, and measured
+ * on twelve records the chain played 0.15-0.25 dB quieter and pumped more for
+ * the first pass than it did with only the last (2026-09-23).
+ */
+const materializeGenre = (rack: IGenreRack): IDspSettings =>
+  clampDspSettings({
+    ...DSP_DEFAULTS,
+    enabled: true,
+    presetId: genreChainId(rack),
+    normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+    eq: presetSupport(eqProfile(rack.id)),
+    exciter: genreStage(
+      rack,
+      'exciter',
+      EXCITER_CATALOGUE,
+      DSP_DEFAULTS.exciter,
+    ),
+    bassForge: genreStage(
+      rack,
+      'bassForge',
+      BASS_FORGE_CATALOGUE,
+      DSP_DEFAULTS.bassForge,
+    ),
+    bassPunch: genreStage(
+      rack,
+      'bassPunch',
+      BASS_PUNCH_CATALOGUE,
+      DSP_DEFAULTS.bassPunch,
+    ),
+    dimension: genreStage(
+      rack,
+      'dimension',
+      DIMENSION_CATALOGUE,
+      DSP_DEFAULTS.dimension,
+    ),
+    maximizer: genreStage(
+      rack,
+      'maximizer',
+      MAXIMIZER_CATALOGUE,
+      DSP_DEFAULTS.maximizer,
+    ),
+  });
+
+const recipeEntries: readonly IDspPreset[] = DSP_PRESET_RECIPES.map(
+  (recipe) => ({
+    id: recipe.id,
+    labelKey: recipe.labelKey,
+    group: recipe.group,
+    settings: materialize(recipe),
+    curve: presetCurve(recipeEq(recipe)),
+    copyLabelKey:
+      recipe.room === undefined
+        ? undefined
+        : (recipe.copyLabelKey ?? 'dsp.room.title'),
   }),
-];
+);
+
+// Every EQ genre is also a complete chain, and every one of them is a row of
+// the genre racks: a curve with no rack would ship as a chain that borrowed
+// nothing and did nothing but tone, which is what these rows replaced.
+const genreEntries: readonly IDspPreset[] = GENRE_RACKS.map((rack) => ({
+  id: genreChainId(rack),
+  labelKey: genreLabelKey(rack),
+  group: 'genre',
+  settings: materializeGenre(rack),
+  curve: presetCurve(eqProfile(rack.id)),
+  copyLabelKey: undefined,
+}));
 
 /** Complete chains in the order the picker shows them. */
 export const DSP_PRESETS: readonly IDspPreset[] = orderRelatedStyles(
   DSP_PRESET_GROUPS.flatMap((group) =>
-    recipes
-      .filter((recipe) => recipe.group === group)
-      .map((recipe) => ({
-        id: recipe.id,
-        labelKey: recipe.labelKey,
-        group: recipe.group,
-        settings: materialize(recipe),
-        curve: presetCurve(recipeEq(recipe)),
-        copyLabelKey:
-          recipe.room === undefined
-            ? undefined
-            : (recipe.copyLabelKey ?? 'dsp.room.title'),
-      })),
+    [...recipeEntries, ...genreEntries].filter(
+      (entry) => entry.group === group,
+    ),
   ),
 );
 
@@ -284,6 +333,13 @@ export const dspPresetSettings = (
     // had all six channels back the moment they auditioned a preset — with
     // nothing on the page saying so.
     surround: current?.surround ?? preset.settings.surround,
+    // The EQ's Treble choice is the listener's for the same reason: how every
+    // band plays near the top, as the main EQ's Treble row is, and no
+    // chain's to take away (`eqSettingsForPreset`).
+    eq: {
+      ...preset.settings.eq,
+      treble: current?.eq.treble ?? preset.settings.eq.treble,
+    },
     // The Room's switch and shape are the chain's, the head and the rest of
     // the listener's own are not: see `chainRoom`. (For a day the whole Room
     // was carried over instead, after presets built from the defaults were

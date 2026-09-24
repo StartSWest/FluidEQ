@@ -302,6 +302,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'Dompter le boum',
   'dsp.eqPreset.tape': 'Bande',
   'dsp.eqPreset.vinyl': 'Vinyle',
+  'dsp.eqPreset.tapeRestore': 'Réparer la bande',
+  'dsp.eqPreset.vinylRestore': 'Réparer le vinyle',
   'dsp.eqPreset.liveVocal': 'Voix live',
   'dsp.eqPreset.orchestra': 'Orchestre',
   'dsp.eqPreset.metal': 'Metal',
@@ -379,6 +381,8 @@ const dsp = {
   'dsp.eqOversample.label': 'Suréchantillonnage',
   'dsp.eqOversample.off': 'Non',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    'Précis : chaque bande de cet égaliseur sonne exactement comme elle est tracée, jusqu’à 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importer une courbe d’égalisation',
   'dsp.eqImport.hint':
     'Collez une courbe de Squiglink, AutoEq ou Equalizer APO — ou choisissez le fichier qui la contient.',
@@ -480,7 +484,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'Sec',
   'dsp.bassForgePreset.wet': 'Humide',
   'dsp.bassForgePreset.phantom': 'Fantôme',
-  'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Punch des basses',
   'dsp.bassPunch.isolate': 'Isoler',
@@ -510,7 +513,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'Sec',
   'dsp.bassPunchPreset.wet': 'Humide',
   'dsp.bassPunchPreset.soft': 'Doux',
-  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.dimension.historyLabel': 'Côtés et centre dans le temps',
   'dsp.dimension.legendCorrelation': 'Corrélation',

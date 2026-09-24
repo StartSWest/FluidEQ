@@ -139,64 +139,6 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     settings: profile(110, -0.6, 0.2, 0.3, 140, 0.1),
   },
 
-  hiphop: {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    // Retain body without a long generated tail covering the next kick.
-    settings: profile(110, 0.65, 0.15, 0.15, 100, 0.45),
-  },
-  rock: {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    settings: profile(100, 0.6, -0.15, 0.15, 90, 0.3),
-  },
-  metal: {
-    id: 'metal',
-    labelKey: 'dsp.eqPreset.metal',
-    group: 'genre',
-    /**
-     * Sixteenth notes on two kick drums, each one heard as its own hit.
-     *
-     * At 200 BPM a double-kick run leaves 75 ms between hits, less than the
-     * 90 ms bloom `rock` gives each one, so the run blurs into one low rumble
-     * under the guitars. This is `slam`'s leading edge with no bloom and a
-     * shorter tail, and the split lowered from its 130 Hz so the detector
-     * hears more of the kick and less of the palm-muted guitars above it.
-     */
-    settings: profile(100, 0.85, -0.65, 0, 50, 0),
-  },
-  electronic: {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    // Keep successive programmed kicks separate; bloom remains a small accent.
-    settings: profile(120, 0.75, -0.2, 0.1, 90, 0.5),
-  },
-  dnb: {
-    id: 'dnb',
-    labelKey: 'dsp.bassPunchPreset.dnb',
-    group: 'genre',
-    // Breaks move fast; a long bloom would smear one hit into the next, so
-    // it is nearly off while attack and duck do the work of cutting through.
-    settings: profile(120, 0.75, -0.5, 0.025, 50, 0.55),
-  },
-  pop: {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    settings: profile(110, 0.35, 0.1, 0.2, 110, 0.2),
-  },
-  acoustic: {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    // A natural body resonance is already in the instrument. This only dries
-    // its tail slightly and leaves both the leading edge and the mids intact.
-    settings: profile(90, -0.1, -0.25, 0.05, 80, 0.05),
-  },
-
   lateNight: {
     id: 'lateNight',
     labelKey: 'dsp.eqPreset.lateNight',
@@ -240,9 +182,12 @@ export const BASS_PUNCH_PRESETS: readonly IBassPunchPreset[] = Object.values(
 export const isBassPunchPresetId = (id: string): id is TBassPunchPresetId =>
   Object.prototype.hasOwnProperty.call(BASS_PUNCH_PRESET_BY_ID, id);
 
-/** Build a fresh live processor state; bypass is the caller's to decide. */
-export const bassPunchPresetSettings = (
-  id: TBassPunchPresetId,
+/**
+ * A fresh live processor state from any profile, this table's or a genre's;
+ * bypass is the caller's to decide.
+ */
+export const bassPunchSettingsOf = (
+  preset: IBassPunchPreset,
   enabled: boolean,
 ): IBassPunchSettings => ({
   enabled,
@@ -250,6 +195,13 @@ export const bassPunchPresetSettings = (
   // profile never turns the monitor on -- it would be a preset that plays
   // something other than what it is named after.
   isolate: false,
-  presetId: id,
-  ...BASS_PUNCH_PRESET_BY_ID[id].settings,
+  presetId: preset.id,
+  ...preset.settings,
 });
+
+/** Build a fresh live processor state; bypass is the caller's to decide. */
+export const bassPunchPresetSettings = (
+  id: TBassPunchPresetId,
+  enabled: boolean,
+): IBassPunchSettings =>
+  bassPunchSettingsOf(BASS_PUNCH_PRESET_BY_ID[id], enabled);

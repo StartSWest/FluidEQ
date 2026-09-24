@@ -12,6 +12,7 @@ export const MAXIMIZER_PRESET_GROUPS = [
   'voice',
   'scene',
   'character',
+  'repair',
 ] as const;
 
 export type TMaximizerPresetGroup = (typeof MAXIMIZER_PRESET_GROUPS)[number];
@@ -43,14 +44,14 @@ export interface IMaximizerPreset {
  * decides how much louder the track gets; look-ahead against release decides
  * whether that loudness is heard as level or as the limiter working.
  *
- * The GENRE profiles barely drive at all, and that is the point of them: a
- * record of any of those genres arrives already limited, so a second pass
- * buys distortion rather than density — what a genre wants from this stage is
- * its timing and a ceiling. The drive lives in the profiles named for a
- * destination or a loudness instead (`loud`, `broadcast`, `club`, `punch`),
- * where somebody asking for it has said so.
+ * The genres' own profiles live in their racks (`genreRack.ts`) and barely
+ * drive, and that is the point of them: a record of any genre arrives already
+ * limited, so a second pass buys distortion rather than density — what a
+ * genre wants from this stage is its timing and a ceiling. The drive lives in
+ * the profiles named for a destination or a loudness instead (`loud`,
+ * `broadcast`, `club`), where somebody asking for it has said so.
  *
- * Which is also why their ceilings sit at -1 dBTP and not lower. A ceiling
+ * Which is also why the ceilings sit at -1 dBTP and not lower. A ceiling
  * below that is headroom for a MASTER being delivered; in a playback chain it
  * is attenuation, because a modern record already peaks near full scale, so
  * every decibel of ceiling under -1 comes straight off everything that plays
@@ -65,9 +66,10 @@ export interface IMaximizerPreset {
  * lets the very front of a transient through and recovers inside the note,
  * which is what "punch" and what pumping both are, depending on the material.
  *
- * `broadcast`, `loud` and `default` carry the exact figures the chain presets
- * of the same name shipped with. They are referenced by id from `presets.ts`
- * rather than copied, so a chain and this picker cannot drift apart.
+ * `broadcast` and `loud` carry the exact figures the chain presets of the
+ * same name shipped with, and `default` is the Default chain's own. Every
+ * chain references its profile by id from `presets.ts` rather than copying
+ * it, so a chain and this picker cannot drift apart.
  */
 const profile = (
   driveDb: number,
@@ -94,7 +96,13 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'default',
     labelKey: 'dsp.eqPreset.default',
     group: 'basic',
-    settings: profile(3, -1, 5, 100),
+    // The Default chain's, which until 2026-09-23 had none and a streaming
+    // Master instead: a -14 LUFS target that turned every loud record down
+    // to it, 1.8 LU under DSP Off on the song corpus and 5 LU on the
+    // loudest, so Default was the one preset quieter than no preset. A
+    // decibel over this timing puts it 0.6 LU over DSP Off with the limiter
+    // holding 0.7 dB on average; the three it carried before held 1.9.
+    settings: profile(1, -1, 5, 100),
   },
   transparent: {
     id: 'transparent',
@@ -102,7 +110,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     group: 'basic',
     // At -1 dBTP since 2026-09-22, for the reason the genre profiles are (the
     // note above this table). At -1.5 it was half a decibel of attenuation
-    // that the chains playing it (Warm, Car, Punch) won back with drive, which
+    // that the chains playing it then (Warm, Car, Punch) won back with drive, which
     // is more limiting for the same level: at -1 the three measured 0.4 dB
     // louder at the same drive and pumped less, and Warm came back inside the
     // level gate's window once the Maximizer's platform (`limiter.h`) had
@@ -131,98 +139,6 @@ export const MAXIMIZER_PRESET_BY_ID = {
     settings: profile(6, -0.5, 8, 60),
   },
 
-  rock: {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    settings: profile(0.5, -1, 4, 90),
-  },
-  metal: {
-    id: 'metal',
-    labelKey: 'dsp.eqPreset.metal',
-    group: 'genre',
-    // The densest timing in the genre group — 2.5 ms in front of a wall of
-    // guitar, recovered inside the note — and the drive kept small, because
-    // a metal master is the most limited record anybody owns already.
-    settings: profile(0.4, -0.8, 2.5, 60),
-  },
-  pop: {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    settings: profile(0.3, -1, 5, 110),
-  },
-  electronic: {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    // Synthesised material has no acoustic transient to protect, so the short
-    // look-ahead that would flatten a snare costs nothing here.
-    // The release and look-ahead supply the electronic density. Seven
-    // decibels of drive made the matching whole chain audibly louder before
-    // those timing choices could be heard.
-    settings: profile(0.3, -0.8, 2, 50),
-  },
-  hiphop: {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    settings: profile(0.5, -1, 2.5, 55),
-  },
-  jazz: {
-    id: 'jazz',
-    labelKey: 'dsp.eqPreset.jazz',
-    group: 'genre',
-    settings: profile(0, -1, 12, 420),
-  },
-  classical: {
-    id: 'classical',
-    labelKey: 'dsp.eqPreset.classical',
-    group: 'genre',
-    /**
-     * A ceiling and nothing else, because an orchestral crescendo IS the
-     * music and a limiter that holds it down has removed the piece.
-     *
-     * The drive was 0.9 dB, chosen as "the quietest in the catalogue". That
-     * reading was wrong about where classical peaks sit: a fortissimo on a
-     * modern transfer is already at the top of the scale even though the
-     * piece averages fifteen decibels below a pop master, so nine tenths of
-     * a decibel is not a small amount of loudness — it is nine tenths of a
-     * decibel of gain reduction landing on the climaxes and nowhere else.
-     * Zero leaves the long look-ahead and the slow release to catch the
-     * isolated peak an EQ curve makes, which is all this stage is for here.
-     */
-    settings: profile(0, -1, 16, 650),
-  },
-  acoustic: {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    settings: profile(0, -1, 10, 300),
-  },
-  reggae: {
-    id: 'reggae',
-    labelKey: 'dsp.eqPreset.reggae',
-    group: 'genre',
-    // 1.7 dB of drive since 2026-09-22, when the glue compressor whose
-    // makeup carried that much of the Reggae chain's level went out of the
-    // rack: the gate measured the chain 1.8 dB under DSP Off without it. In
-    // the profile rather than as the chain's own calibration, so the card
-    // still names the profile it plays.
-    settings: profile(1.7, -1, 6, 140),
-  },
-  ambient: {
-    id: 'ambient',
-    labelKey: 'dsp.eqPreset.ambient',
-    group: 'genre',
-    // Long look-ahead and a slow release, and now barely any drive: two
-    // decibels made this the hardest-driven genre profile in the catalogue,
-    // on the one genre whose records are deliberately quiet and slow to
-    // arrive. What it is for is catching the peak of a swell, not raising
-    // the bed underneath it.
-    settings: profile(0.8, -1.5, 14, 450),
-  },
-
   vocal: {
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
@@ -249,7 +165,44 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    settings: profile(3, -1, 4, 120),
+    // The Gaming chains' ceiling, in game mode: a millisecond of look-ahead
+    // is all the delay it adds (look-ahead 1 and 2 ms measured the same), and
+    // a release quick enough that a step after an explosion is heard at the
+    // step's level. Without it the curve put a game's loud moments 7 dB over
+    // full scale and Auto normalize turned the whole game down for tens of
+    // seconds after each one; with it the chain sits 0.7 LU over DSP Off,
+    // nothing over the ceiling, and it pumps no more than it did (2026-09-23).
+    settings: profile(1, -1, 1, 60),
+  },
+  headphones: {
+    id: 'headphones',
+    labelKey: 'dsp.dimensionPreset.headphones',
+    group: 'scene',
+    // The chains of this group have their own, so none of them opens its
+    // picker on Custom. Each drive was measured with the Maximizer told the
+    // chain's curve (`presetTone.ts`) over the song corpus, for the chain to
+    // sit about half a decibel over DSP Off (2026-09-23).
+    settings: profile(1.5, -1, 5, 100),
+  },
+  speakers: {
+    id: 'speakers',
+    labelKey: 'dsp.dimensionPreset.speakers',
+    group: 'scene',
+    settings: profile(0.8, -1, 5, 100),
+  },
+  laptop: {
+    id: 'laptop',
+    labelKey: 'dsp.eqPreset.laptop',
+    group: 'scene',
+    settings: profile(1.5, -1, 5, 100),
+  },
+  car: {
+    id: 'car',
+    labelKey: 'dsp.eqPreset.car',
+    group: 'scene',
+    // The transparent timing, so the road's steady noise floor is not what
+    // the limiter pumps against.
+    settings: profile(2.3, -1, 14, 400),
   },
   movie: {
     id: 'movie',
@@ -284,8 +237,61 @@ export const MAXIMIZER_PRESET_BY_ID = {
     group: 'character',
     // The one profile that is deliberately NOT transparent: 1.5 ms is shorter
     // than a kick's own attack, so its first cycle passes before the limiter
-    // has finished moving. That is the whole character.
-    settings: profile(4, -1, 1.5, 70),
+    // has finished moving. That is the whole character, and it is the Punch
+    // chain's too. Its drive was 4 dB, which on loud records held the limiter
+    // 2.7 dB down on average; at 1.5 the Punch chain sits 0.7 LU over DSP Off
+    // with half the reduction, where the transparent timing it used before
+    // left it 0.6 under (2026-09-23).
+    settings: profile(1.5, -1, 1.5, 70),
+  },
+  warm: {
+    id: 'warm',
+    labelKey: 'dsp.eqPreset.warm',
+    group: 'character',
+    // The Warm and Air chains' own, measured like the scene group's above:
+    // Warm on the transparent timing, which keeps its broad low-mid lift
+    // from being modulated, Air on the default's.
+    settings: profile(1.7, -1, 14, 400),
+  },
+  clarity: {
+    id: 'clarity',
+    labelKey: 'dsp.eqPreset.air',
+    group: 'character',
+    settings: profile(1, -1, 5, 100),
+  },
+
+  vinyl: {
+    id: 'vinyl',
+    labelKey: 'dsp.eqPreset.vinyl',
+    group: 'repair',
+    // The Vinyl repair chain's. It borrowed the Master's Vinyl profile,
+    // which is a cutting lathe's delivery target — -3 dBTP so a hot peak
+    // cannot throw the cutting head — and nothing to do with playing a rip
+    // back: it held the repaired record 2.6 LU under DSP Off. The default's
+    // timing measured less pumping than the transparent one at the same
+    // level, the restoration's gating included (2026-09-23).
+    settings: profile(1.5, -1, 5, 100),
+  },
+  tape: {
+    id: 'tape',
+    labelKey: 'dsp.eqPreset.tape',
+    group: 'repair',
+    // The Tape repair chain's. It had the Master's Reference, a tool that
+    // brings two records to -18 LUFS for comparing them, and so played
+    // every transfer louder than -18 quieter than it came: 7 LU under DSP
+    // Off on the corpus. A decibel here puts it 0.5 LU over.
+    settings: profile(1, -1, 5, 100),
+  },
+  lossy: {
+    id: 'lossy',
+    labelKey: 'dsp.preset.lossyRepair',
+    group: 'repair',
+    // The compressed-file repair's. It had the bare ceiling (`safety`),
+    // which is all its rebuilt top needs to stay clean, and left the chain
+    // level with DSP Off; half a decibel puts it 0.46 LU over with the
+    // limiter holding 0.75 dB on average, beside the other repairs
+    // (2026-09-23, with its own curve, `lossyRestore`).
+    settings: profile(0.5, -1, 5, 100),
   },
 } satisfies Record<string, IMaximizerPreset>;
 
@@ -298,12 +304,22 @@ export const MAXIMIZER_PRESETS: readonly IMaximizerPreset[] = Object.values(
 export const isMaximizerPresetId = (id: string): id is TMaximizerPresetId =>
   Object.prototype.hasOwnProperty.call(MAXIMIZER_PRESET_BY_ID, id);
 
+/**
+ * A fresh live processor state from any profile, this table's or a genre's;
+ * bypass is the caller's to decide.
+ */
+export const maximizerSettingsOf = (
+  preset: IMaximizerPreset,
+  enabled: boolean,
+): IMaximizerSettings => ({
+  enabled,
+  presetId: preset.id,
+  ...preset.settings,
+});
+
 /** Build a fresh live processor state; bypass is the caller's to decide. */
 export const maximizerPresetSettings = (
   id: TMaximizerPresetId,
   enabled: boolean,
-): IMaximizerSettings => ({
-  enabled,
-  presetId: id,
-  ...MAXIMIZER_PRESET_BY_ID[id].settings,
-});
+): IMaximizerSettings =>
+  maximizerSettingsOf(MAXIMIZER_PRESET_BY_ID[id], enabled);

@@ -27,6 +27,12 @@ import {
   bassPunchPresetSettings,
   isBassPunchPresetId,
 } from '../../../common/dsp/bassPunchPresets';
+import { GENRE_RACKS } from '../../../common/dsp/genres';
+import { inGenreChain } from '../../../common/dsp/genreRack';
+import {
+  BASS_FORGE_CATALOGUE,
+  BASS_PUNCH_CATALOGUE,
+} from '../../../common/dsp/stageCatalogues';
 
 describe('bass forge profiles', () => {
   it('every one survives the engine clamp unchanged', () => {
@@ -57,6 +63,46 @@ describe('bass forge profiles', () => {
   });
 
   /**
+   * A cabin lifts the note itself, so an octave below it lands in that lift,
+   * and the grit Drive added came with no reason given for it: what carries
+   * the bass over road noise is its harmonics, and that is all this makes.
+   */
+  it('car builds the harmonics and neither an octave below nor grit', () => {
+    const car = BASS_FORGE_PRESET_BY_ID.car.settings;
+    expect(car.subAmount).toBe(0);
+    expect(car.driveDb).toBe(0);
+    expect(car.presenceAmount).toBeGreaterThan(0.5);
+  });
+
+  /**
+   * Forge's octave divider leaves the note's fifth beside the octave, and its
+   * presence is a harmonic generator: 13 to 16% of a 60 Hz note in the ten
+   * genres that played it (2026-09-23), whose research says their records
+   * carry their own sub and saturation. So a genre chain plays Forge only
+   * where its research asks for generated bass — Trap's overtones for small
+   * speakers — and makes no octave even there; every other genre offers its
+   * profile under its name and leaves it off.
+   */
+  it('plays Forge in no genre chain but Trap, and no octave there', () => {
+    const playing = GENRE_RACKS.filter((rack) =>
+      inGenreChain(rack, 'bassForge'),
+    );
+    expect(playing.map((rack) => rack.id)).toEqual(['trap']);
+    playing.forEach((rack) => {
+      expect({ id: rack.id, octave: rack.bassForge?.subAmount }).toEqual({
+        id: rack.id,
+        octave: 0,
+      });
+    });
+    // Positive control: the profiles left off are still offered.
+    const offered = GENRE_RACKS.filter(
+      (rack) =>
+        rack.bassForge !== undefined && !inGenreChain(rack, 'bassForge'),
+    );
+    expect(offered.length).toBeGreaterThanOrEqual(10);
+  });
+
+  /**
    * No profile may be quiet enough to be indistinguishable from bypass.
    *
    * Both amounts are multiplied by `mix` before they reach the band, so depth
@@ -83,20 +129,38 @@ describe('bass forge profiles', () => {
   });
 
   /**
-   * The two ordering claims the profile comments make in prose.
+   * The ordering claims the profiles make, over everything the picker lists.
    *
-   * `laptop` says it pushes presence hardest of anything in the catalogue and
-   * `dub` says it carries the most real sub; both are the reason those two
-   * profiles exist, and both are one careless edit from becoming false while
-   * the comment still asserts them.
+   * `laptop` says it pushes presence hardest of anything in the catalogue,
+   * which is the reason it exists and one careless edit from becoming false
+   * while its comment still asserts it. And no genre's own profile carries
+   * more real sub than the stage's deepest table profile: the genre research
+   * advises against synthesising sub under records that already have their
+   * own (`genres/*.ts`), so the deepest octave is somebody's deliberate pick,
+   * never a genre's default. Dub's profile made that claim once, from the
+   * table; it is Dub's rack's now, and no deeper than the table's.
    */
-  it('keeps laptop the deepest phantom and dub the deepest real sub', () => {
+  it('keeps laptop the deepest phantom and no genre deeper than the table', () => {
+    const { profiles } = BASS_FORGE_CATALOGUE;
     const highest = (pick: (of: IBassForgePresetSettings) => number) =>
-      BASS_FORGE_PRESETS.reduce((best, preset) =>
+      profiles.reduce((best, preset) =>
         pick(preset.settings) > pick(best.settings) ? preset : best,
       ).id;
     expect(highest((of) => of.presenceAmount)).toBe('laptop');
-    expect(highest((of) => of.subAmount)).toBe('dub');
+    const deepestTable = Math.max(
+      ...BASS_FORGE_PRESETS.map((preset) => preset.settings.subAmount),
+    );
+    const genres = profiles.filter(
+      (preset) => !BASS_FORGE_PRESETS.includes(preset),
+    );
+    // Positive control: the genres are in the list this reads.
+    expect(genres.length).toBeGreaterThan(0);
+    genres.forEach((preset) => {
+      expect({
+        id: preset.id,
+        deeper: preset.settings.subAmount > deepestTable,
+      }).toEqual({ id: preset.id, deeper: false });
+    });
   });
 
   /**
@@ -118,8 +182,15 @@ describe('bass punch profiles', () => {
   it.each([0, 0.5, 1, 1.5, 2])(
     'preserves Mix %s for every shipped profile',
     (mix) => {
-      expect(BASS_PUNCH_PRESETS).toHaveLength(19);
-      BASS_PUNCH_PRESETS.forEach((preset) => {
+      // The table's own twelve, and one per genre rack with a Punch profile
+      // of its own: every profile the picker lists.
+      const genreProfiles = GENRE_RACKS.filter(
+        (rack) => rack.bassPunch !== undefined,
+      ).length;
+      expect(BASS_PUNCH_PRESETS).toHaveLength(12);
+      expect(genreProfiles).toBeGreaterThan(0);
+      expect(BASS_PUNCH_CATALOGUE.profiles).toHaveLength(12 + genreProfiles);
+      BASS_PUNCH_CATALOGUE.profiles.forEach((preset) => {
         expect(preset.settings.mix).toBe(1);
         const bassPunch = {
           ...DSP_DEFAULTS.bassPunch,
@@ -155,11 +226,15 @@ describe('bass punch profiles', () => {
       expect(profile.sustain).toBeLessThan(0);
       expect(profile.bloomAmount).toBe(0);
     });
-    (['hiphop', 'club'] as const).forEach((id) => {
-      const profile = BASS_PUNCH_PRESET_BY_ID[id].settings;
-      expect(profile.bloomAmount).toBeGreaterThan(0);
-      expect(profile.bloomAmount).toBeLessThanOrEqual(0.15);
-      expect(profile.bloomDecayMs).toBeLessThanOrEqual(100);
+    // Hip Hop's is a genre's own profile now (`genres/urban.ts`), listed
+    // in the picker with the table's.
+    ['hiphop', 'club'].forEach((id) => {
+      const profile = BASS_PUNCH_CATALOGUE.profiles.find(
+        (one) => one.id === id,
+      )?.settings;
+      expect(profile?.bloomAmount).toBeGreaterThan(0);
+      expect(profile?.bloomAmount).toBeLessThanOrEqual(0.15);
+      expect(profile?.bloomDecayMs).toBeLessThanOrEqual(100);
     });
   });
 

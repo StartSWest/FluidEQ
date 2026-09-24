@@ -16,7 +16,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * lifecycle; this has the command ordering that matters.
  */
 import { IDspSettings } from '../../common/dsp/chain';
-import { encodeChainSettings } from '../../common/dsp/chainWire';
+import {
+  appendPresetTone,
+  encodeChainSettings,
+  IPresetTone,
+} from '../../common/dsp/chainWire';
 import {
   encodeNoiseProfile,
   INoiseProfile,
@@ -70,8 +74,11 @@ export interface INativeBackendController {
    * against the settings the panel is showing rather than against defaults,
    * and a device opened first is a device that has already produced a block by
    * the time the chain arrives.
+   *
+   * `tone` is the curve the Preset layer plays after the rack, for the
+   * Maximizer to limit through (`presetTone.ts`).
    */
-  engage: (settings: IDspSettings) => Promise<boolean>;
+  engage: (settings: IDspSettings, tone?: IPresetTone) => Promise<boolean>;
   /** Release the endpoint, decoder decks, and native process. */
   disengage: () => Promise<void>;
   /**
@@ -83,7 +90,7 @@ export interface INativeBackendController {
    * carried these settings or newer ones — true means the host now holds a
    * chain at least as new as the one asked for.
    */
-  update: (settings: IDspSettings) => Promise<boolean>;
+  update: (settings: IDspSettings, tone?: IPresetTone) => Promise<boolean>;
   readonly transport: INativeTransport;
 }
 
@@ -187,6 +194,7 @@ const serialize = <T>(work: () => Promise<T>): Promise<T> => {
 /** The newest settings asked for, and everyone waiting to hear about them. */
 interface IPendingPush {
   settings: IDspSettings;
+  tone: IPresetTone | undefined;
   resolve: Array<(applied: boolean) => void>;
   reject: Array<(reason: unknown) => void>;
 }
@@ -219,9 +227,15 @@ export const createNativeBackendController = (
   // The host's copy only. This used to send the same array to the FluidEQ
   // Engine as well, and the engine then ran it a second time on everything
   // the host played; the store is now the one sender, and it knows when the
-  // engine's copy has to stand aside (`rackPlacement.ts`).
-  const pushChain = (settings: IDspSettings) =>
-    bridge.applyDspHostChain(encodeChainSettings(settings));
+  // engine's copy has to stand aside (`rackPlacement.ts`). A rack switched off
+  // at the root carries no curve, as the engine's copy does not: nothing
+  // limits through it.
+  const pushChain = (settings: IDspSettings, tone: IPresetTone | undefined) =>
+    bridge.applyDspHostChain(
+      settings.enabled
+        ? appendPresetTone(encodeChainSettings(settings), tone)
+        : encodeChainSettings(settings),
+    );
 
   /**
    * Engage and disengage are barriers: an update asked for after one must
@@ -234,7 +248,7 @@ export const createNativeBackendController = (
   };
 
   return {
-    engage: (settings) => {
+    engage: (settings, tone) => {
       barrier();
       return serialize(async () => {
         const status = await bridge.startDspHost();
@@ -248,7 +262,7 @@ export const createNativeBackendController = (
            */
           return false;
         }
-        if (!(await pushChain(settings))) {
+        if (!(await pushChain(settings, tone))) {
           await settle(bridge.stopDspHost);
           return false;
         }
@@ -287,16 +301,18 @@ export const createNativeBackendController = (
       });
     },
 
-    update: (settings) =>
+    update: (settings, tone) =>
       new Promise<boolean>((resolve, reject) => {
         if (waiting !== undefined) {
           waiting.settings = settings;
+          waiting.tone = tone;
           waiting.resolve.push(resolve);
           waiting.reject.push(reject);
           return;
         }
         const push: IPendingPush = {
           settings,
+          tone,
           resolve: [resolve],
           reject: [reject],
         };
@@ -311,7 +327,7 @@ export const createNativeBackendController = (
             // the Library has not successfully engaged.
             return false;
           }
-          return pushChain(push.settings);
+          return pushChain(push.settings, push.tone);
         }).then(
           (applied) => push.resolve.forEach((settle_) => settle_(applied)),
           (reason) => push.reject.forEach((settle_) => settle_(reason)),

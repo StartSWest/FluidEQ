@@ -298,6 +298,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'गूँज काबू',
   'dsp.eqPreset.tape': 'टेप',
   'dsp.eqPreset.vinyl': 'विनाइल',
+  'dsp.eqPreset.tapeRestore': 'टेप को सुधारें',
+  'dsp.eqPreset.vinylRestore': 'विनाइल को सुधारें',
   'dsp.eqPreset.liveVocal': 'लाइव वोकल',
   'dsp.eqPreset.orchestra': 'ऑर्केस्ट्रा',
   'dsp.eqPreset.metal': 'मेटल',
@@ -375,6 +377,8 @@ const dsp = {
   'dsp.eqOversample.label': 'ओवरसैंपलिंग',
   'dsp.eqOversample.off': 'बंद',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    'सटीक: इस EQ का हर बैंड ठीक वैसे ही बजता है जैसा बनाया गया है, 20\u00a0kHz तक।',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',
@@ -474,7 +478,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'सूखा',
   'dsp.bassForgePreset.wet': 'गीला',
   'dsp.bassForgePreset.phantom': 'फैंटम',
-  'dsp.bassForgePreset.dub': 'डब',
 
   'dsp.bassPunch.title': 'बास पंच',
   'dsp.bassPunch.isolate': 'अलग करें',
@@ -503,7 +506,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'सूखा',
   'dsp.bassPunchPreset.wet': 'गीला',
   'dsp.bassPunchPreset.soft': 'मुलायम',
-  'dsp.bassPunchPreset.dnb': 'ड्रम एंड बेस',
 
   'dsp.dimension.historyLabel': 'समय के साथ साइड और मिड',
   'dsp.dimension.legendCorrelation': 'सहसंबंध',

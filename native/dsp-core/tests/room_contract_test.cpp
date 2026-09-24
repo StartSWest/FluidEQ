@@ -68,7 +68,21 @@ int main() {
   max.insert(max.begin() + static_cast<std::ptrdiff_t>(base),
              (FEQ_CHAIN_MAX_EQ_BANDS - settings.eq.band_count) * FEQ_CHAIN_BAND_PARAMS, 0);
   max[FEQ_CHAIN_PARAM_LEAD - 1] = FEQ_CHAIN_MAX_EQ_BANDS;
-  check(max.size() == FEQ_CHAIN_MAX_PARAMS && decode(max, &settings),
-        "maximum 64-band Room payload fits shared host/APO bound");
+  // And the preset's curve at its longest after the Room's trailer, which is
+  // the longest line there is.
+  max.push_back(FEQ_CHAIN_TONE_TAG);
+  max.push_back(FEQ_CHAIN_TONE_SCHEMA);
+  max.push_back(FEQ_CHAIN_MAX_TONE_BANDS);
+  max.push_back(1);
+  for (int band = 0; band < FEQ_CHAIN_MAX_TONE_BANDS; ++band) {
+    max.push_back(FEQ_FILTER_PK);
+    max.push_back(1000);
+    max.push_back(2);
+    max.push_back(1);
+  }
+  check(max.size() == FEQ_CHAIN_MAX_PARAMS && decode(max, &settings) &&
+            settings.tone.band_count == FEQ_CHAIN_MAX_TONE_BANDS,
+        "the longest payload, 64 bands, the Room and a whole curve, fits the "
+        "shared host/APO bound");
   return feq_test::finish();
 }

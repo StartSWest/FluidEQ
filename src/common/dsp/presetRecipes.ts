@@ -37,13 +37,9 @@ export interface IDspPresetRecipe {
   bassPunch?: TBassPunchPresetId;
   dimension?: TDimensionPresetId;
   maximizer?: TMaximizerPresetId;
-  /** Keep a limiter profile's timing while calibrating full-rack drive. */
-  maximizerDriveDb?: number;
   master?: TMasterPresetId;
   /** Compare the processed chain at its incoming level, without LUFS makeup. */
   masterGainMatch?: boolean;
-  /** Final calibration for a complete chain that uses Master. */
-  masterOutputTrimDb?: number;
   /** The Normalizer's mode, where a chain needs other than the default. */
   normalizer?: TNormalizerMode;
   /** Game mode: see `IDspSettings.gameMode`. Only the Gaming chains. */
@@ -64,10 +60,12 @@ export interface IDspPresetRecipe {
 }
 
 /**
- * Complete chains. No recipe stacks Maximizer with Master, Denoise
- * appears only for a named source problem — cleanup on already-clean music
- * is damage rather than polish — and the Room is only ever in a copy of a
- * chain that also exists without it, because it is for headphones alone.
+ * Complete chains, the genres apart: each genre is a row of its own in the
+ * genre racks (`genres/*.ts`), which set every stage under the genre's name.
+ * No recipe stacks Maximizer with Master, Denoise appears only for a named
+ * source problem — cleanup on already-clean music is damage rather than
+ * polish — and the Room is only ever in a copy of a chain that also exists
+ * without it, because it is for headphones alone.
  */
 export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
   {
@@ -92,7 +90,11 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // standalone Exciter preset remains available when that colour is wanted.
     eq: 'balanced',
     dimension: 'default',
-    master: 'streaming',
+    // A ceiling and a decibel, like every music chain, and no loudness
+    // target: a target is a level somebody chose (Reference, Podcast,
+    // Audiobook, Speech say so by name), and Default's streaming one turned
+    // every loud record down to it — the one preset quieter than none.
+    maximizer: 'default',
   },
   {
     id: 'reference',
@@ -149,26 +151,27 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // into audible grit. Keep the chain clean and let its curve own the name.
     eq: 'warm',
     dimension: 'intimate',
-    maximizer: 'transparent',
-    // The level its gentle compressor's makeup carried until the compressor
-    // went (2026-09-22): the gate measured the chain 2.3 dB under DSP Off
-    // without it.
-    maximizerDriveDb: 2.2,
+    // Its own profile, the transparent timing with the drive that sets the
+    // chain half a decibel over DSP Off once its curve is limited through
+    // (`maximizerPresets.ts`).
+    maximizer: 'warm',
   },
   {
     id: 'clarity',
     labelKey: 'dsp.eqPreset.air',
     group: 'basic',
     eq: 'air',
-    // Timing, and no harmonics: this chain's curve already lifts the top, and
-    // exciting it as well is how clarity turns into sibilance. What the
-    // Exciter's Timing profile does instead is put the bottom of the record
-    // back in step with the top — the half of a hardware "maximizer" that was
-    // never about brightness — which costs no level and no air.
-    exciter: 'timing',
-    dimension: 'speakers',
-    maximizer: 'default',
-    maximizerDriveDb: 0.5,
+    // No Exciter. Harmonics were never here — the curve already lifts the
+    // top, and exciting it as well is how clarity turns into sibilance — and
+    // the Timing that stood here instead cost level after all: turning the
+    // bottom's phase against the top re-creates the peaks a mastering limiter
+    // took off, and the Maximizer took them back from everything. On five
+    // loud masters the chain pumped nearly twice as much with it and played
+    // 0.8 dB quieter (2026-09-22).
+    // Its own width, the top opened where the curve lifts: the Speakers
+    // profile it borrowed widens the middle for two boxes across a room.
+    dimension: 'air',
+    maximizer: 'clarity',
   },
   {
     id: 'punch',
@@ -188,9 +191,10 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // lift under it.
     eq: 'punch',
     bassPunch: 'punch',
-    maximizer: 'transparent',
-    // Punch already raises the bass hit; avoid pushing it harder into limiting.
-    maximizerDriveDb: 0,
+    // The Punch profile's own timing lets each hit's front through and lets
+    // go before the next, where the transparent timing held the whole bar
+    // down after every kick: louder with less reduction on average.
+    maximizer: 'punch',
   },
   {
     id: 'expansive',
@@ -198,9 +202,17 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'basic',
     // Width plus space, without exciting and re-limiting the widened side
     // channel. Those extra stages made the diffuse top sound distorted even
-    // while the final sample peaks remained numerically safe.
-    eq: 'ambient',
+    // while the final sample peaks remained numerically safe. No curve: it
+    // borrowed Ambient's, which made it Ambient made wider, and a chain whose
+    // whole point is space should not also change the tone.
     dimension: 'expansive',
+    // A ceiling and nothing more, for the peaks the widening itself makes:
+    // without one the widened side put the chain 3.7 dB over full scale and
+    // Auto normalize held everything down under it, 0.6 LU under DSP Off.
+    // With it, 0.4 LU over and the limiter touching half a decibel on
+    // average (2026-09-23); the harshness the old chain had came from
+    // exciting the side and driving a limiter with it, and neither is here.
+    maximizer: 'safety',
   },
   {
     id: 'late-night',
@@ -222,135 +234,13 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     maximizer: 'lateNight',
   },
   {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    eq: 'pop',
-    // The two stages a pop master is made of that a curve cannot imitate: the
-    // sparkle on top, and a kick that arrives. Both stay light, and they do
-    // not meet — the Exciter's profile is top-band only, so Punch owns the
-    // bottom by itself.
-    exciter: 'pop',
-    bassPunch: 'pop',
-    dimension: 'pop',
-    maximizer: 'pop',
-  },
-  {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    eq: 'rock',
-    // No Exciter, deliberately: the guitars are already generating harmonics
-    // and more of them land in the fizz band. What a rock record wants is the
-    // kick out from under them.
-    bassPunch: 'rock',
-    dimension: 'rock',
-    maximizer: 'rock',
-  },
-  {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    eq: 'hiphop',
-    bassForge: 'hiphop',
-    // The 808 and the voice are the record, and both belong in the middle.
-    dimension: 'hiphop',
-    maximizer: 'hiphop',
-  },
-  {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    eq: 'electronic',
-    exciter: 'electronic',
-    // Wide up top and mono at the bottom, which is how the genre is mixed
-    // and what the club system it is made for does to the bottom anyway.
-    dimension: 'electronic',
-    maximizer: 'electronic',
-  },
-  {
-    id: 'jazz',
-    labelKey: 'dsp.eqPreset.jazz',
-    group: 'genre',
-    eq: 'jazz',
-    dimension: 'jazz',
-    maximizer: 'jazz',
-  },
-  {
-    id: 'classical',
-    labelKey: 'dsp.eqPreset.classical',
-    group: 'genre',
-    eq: 'classical',
-    // The low band stays at unity here where the other genres narrow it: a
-    // hall's bass arrives from every direction, and narrowing it moves the
-    // room rather than an instrument.
-    dimension: 'classical',
-    maximizer: 'classical',
-  },
-  {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    eq: 'acoustic',
-    // Wood and string: body from the Organic generator and a little air, the
-    // one place in this catalogue where an Exciter is asked for low-mids.
-    exciter: 'acoustic',
-    dimension: 'intimate',
-    maximizer: 'acoustic',
-  },
-  {
-    id: 'metal',
-    labelKey: 'dsp.eqPreset.metal',
-    group: 'genre',
-    eq: 'metal',
-    // The one profile with no bloom at all: at these tempos a generated tail
-    // arrives on top of the next kick.
-    bassPunch: 'metal',
-    dimension: 'rock',
-    maximizer: 'metal',
-  },
-  {
-    id: 'reggae',
-    labelKey: 'dsp.eqPreset.reggae',
-    group: 'genre',
-    eq: 'reggae',
-    bassForge: 'dub',
-    // A sound system's picture: the bass line mono, the top only modestly
-    // wide, because the room supplies more spread than a record can.
-    dimension: 'club',
-    maximizer: 'reggae',
-  },
-  {
-    id: 'drum-bass',
-    labelKey: 'dsp.eqPreset.drumBass',
-    group: 'genre',
-    eq: 'drumBass',
-    // D&B has its own short-bloom transient profile. The former Electronic
-    // Bass Forge substitution ignored it and softened the breaks the preset
-    // is named for.
-    bassPunch: 'dnb',
-    // Mono at the bottom: a break's sub carries no image worth keeping, and
-    // any stereo information down there collapses on a club rig.
-    dimension: 'electronic',
-    maximizer: 'default',
-    // Retain a little level compensation for this chain; zero drive made the
-    // complete preset 2.5 dB quieter in the music audit.
-    maximizerDriveDb: 1.3,
-  },
-  {
     id: 'headphones',
     labelKey: 'dsp.dimensionPreset.headphones',
     group: 'scene',
     eq: 'openBack',
     bassForge: 'headphones',
     dimension: 'headphones',
-    maximizer: 'default',
-    // 2.3 rather than 1: the loudness gate measured this chain 1.8 to 2 dB
-    // under DSP Off, outside its -1.5 dB floor, with its tone inside the rack
-    // and after it alike. Not the curve's doing — the open-back curve is near
-    // flat — but the bass and width stages', so the chain's own level control
-    // answers it; a decibel of drive buys about half of one here.
-    maximizerDriveDb: 2.3,
+    maximizer: 'headphones',
   },
   {
     id: 'speakers',
@@ -358,8 +248,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     eq: 'speakers',
     dimension: 'speakers',
-    maximizer: 'default',
-    maximizerDriveDb: 1.4,
+    maximizer: 'speakers',
   },
   {
     id: 'laptop',
@@ -379,8 +268,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
      */
     bassForge: 'laptop',
     dimension: 'laptop',
-    maximizer: 'default',
-    maximizerDriveDb: 0.4,
+    maximizer: 'laptop',
   },
   {
     id: 'car',
@@ -389,10 +277,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     eq: 'car',
     bassForge: 'car',
     dimension: 'monoSafe',
-    maximizer: 'transparent',
-    // 2.5 rather than 1 since its glue compressor went (2026-09-22): the
-    // gate measured the chain 1.6 dB under DSP Off without it.
-    maximizerDriveDb: 2.5,
+    maximizer: 'car',
   },
   {
     // GAME MODE. Choosing this is the whole of it: the chain gives up every
@@ -404,16 +289,20 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // And it is tuned for hearing a game rather than for its impact, which
     // is what it was before: Bass Punch and Dimension made the explosions
     // bigger and the image wider, and a wider image is a vaguer direction.
-    // Now the curve alone puts the cues forward, with no limiter and its
-    // look-ahead in the way. For the same reason the Normalizer's peak
-    // guard at the input is off: a limiter in front of the game, and 2 ms
-    // of the delay the chain still held.
+    // Now the curve puts the cues forward, and a ceiling a millisecond long
+    // holds what the curve would put over it (`maximizerPresets.ts`'s
+    // `gaming`): with no ceiling at all, the loud moments went 7 dB over
+    // full scale and Auto normalize turned the game down for tens of seconds
+    // after each, the footsteps after an explosion with it. The Normalizer's
+    // peak guard at the input stays off: a limiter in front of the game, and
+    // 2 ms of delay.
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
     gameMode: true,
+    maximizer: 'gaming',
   },
   {
     // Gaming on headphones: the same chain in the Room's Game World, so a
@@ -433,9 +322,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // WITH the ceiling, as Music's Room copy has it: a full-scale stereo
     // record leaves a room up to 3 dB over full scale, and since the rack's
     // final guard went (2026-09-22) nothing after the Room catches that but
-    // a stage of the chain's own. `safety` adds no level, and in game mode
-    // it is the one delay this chain still carries.
-    maximizer: 'safety',
+    // a stage of the chain's own. Gaming's own, a millisecond long.
+    maximizer: 'gaming',
   },
   {
     // Gaming on headphones for a match rather than a world: the same chain in
@@ -451,7 +339,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     gameMode: true,
     room: 'competitiveV2',
     // The same ceiling, for the same reason as Gaming's other Room copy.
-    maximizer: 'safety',
+    maximizer: 'gaming',
   },
   {
     id: 'movie',
@@ -478,37 +366,42 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'lossy-repair',
     labelKey: 'dsp.preset.lossyRepair',
     group: 'repair',
-    eq: 'air',
+    // Its own repair curve, not the Character group's Air, which lifts the
+    // octave where an encoder leaves its swirl (`lossyRestore`).
+    eq: 'lossyRestore',
     exciter: 'lossy-repair',
-    // The repair Exciter can reconstruct a peak above unity. This adds no
-    // loudness; it is only the clean final ceiling the repair requires.
-    maximizer: 'safety',
+    // The repair Exciter can reconstruct a peak above unity; its own
+    // ceiling holds it, with the gentle drive every repair has.
+    maximizer: 'lossy',
   },
   {
+    // Every stage its own repair profile: the EQ's repair curve rather than
+    // the Character group's Vinyl, and the Maximizer's Vinyl rather than the
+    // Master's, which is a cutting lathe's target and held the rip 2.6 LU
+    // under DSP Off.
     id: 'vinyl-restore',
     labelKey: 'dsp.eqPreset.vinyl',
     group: 'repair',
     denoise: 'vinyl',
-    eq: 'vinyl',
+    eq: 'vinylRestore',
     dimension: 'monoSafe',
-    master: 'vinyl',
-    masterOutputTrimDb: -0.5,
+    maximizer: 'vinyl',
   },
   {
     id: 'tape-restore',
     labelKey: 'dsp.eqPreset.tape',
     group: 'repair',
     denoise: 'tape',
-    eq: 'tape',
+    eq: 'tapeRestore',
     // The top a cassette lost, generated from the band under it rather than
     // boosted out of a band that no longer holds it. It works here because
     // of where it sits: after the restoration, so it builds on de-hissed
     // audio — in front of it, the same profile would be a hiss enhancer.
     exciter: 'tape',
-    master: 'reference',
-    // Tape EQ restores lost body and the cached loudness makeup otherwise
-    // adds another four decibels. Calibrate the complete result, not the EQ.
-    masterOutputTrimDb: -1.8,
+    // Its own ceiling, where the Master's Reference stood: a -18 LUFS
+    // comparison target that played every transfer louder than that quieter
+    // than it came.
+    maximizer: 'tape',
   },
   {
     id: 'podcast',

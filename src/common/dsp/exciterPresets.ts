@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IExciterSettings } from './chain';
-import { EXCITER_GENRE_PRESETS } from './exciterGenrePresets';
 import { IExciterPreset, exciterProfile } from './exciterProfile';
 
 export { EXCITER_PRESET_GROUPS, exciterProfile } from './exciterProfile';
@@ -18,10 +17,11 @@ export type {
 /**
  * Processor-local profiles, keyed by the stable id a chain preset references.
  *
- * Matching an EQ id is intentional: `rock` means the same musical target in
- * both catalogs without coupling their parameters. Amounts stay moderate
- * because these are designed to be combined with EQ, compression and a limiter;
- * no profile relies on being the only processor producing the final sound.
+ * The genres are not here: each genre's profile belongs to its rack
+ * (`genreRack.ts`), under the genre's name, and `stageCatalogues.ts` lists
+ * them after these. Amounts stay moderate because these are designed to be
+ * combined with EQ and a limiter; no profile relies on being the only
+ * processor producing the final sound.
  *
  * Every Amount here was re-measured when the harmonic generator landed, and
  * they all moved up. They used to scale a return that was a whole copy of its
@@ -76,7 +76,14 @@ export const EXCITER_PRESET_BY_ID = {
      * Rendered against DSP Off, the difference signal it leaves sits 2.3 dB
      * under the programme itself: a phase rotation changes nearly every
      * sample, which is worth knowing before reading any level meter for what
-     * this does. What it changes in LEVEL is nothing at all.
+     * this does. What it changes in average level is nothing at all; what it
+     * changes in PEAKS is not nothing. A record already limited has had its
+     * peaks taken off in step, and turning the bottom's phase against the top
+     * puts them back: on five loud masters the Clarity chain that ran this
+     * lifted them into the Maximizer, which took 0.8 dB of level from
+     * everything to hold its ceiling and pumped nearly twice as much
+     * (2026-09-22). No chain runs it now; it is here for a record with room
+     * above its peaks.
      */
     settings: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
@@ -84,7 +91,6 @@ export const EXCITER_PRESET_BY_ID = {
       { enabled: true, amount: 0.5 },
     ),
   },
-  ...EXCITER_GENRE_PRESETS,
   vocal: {
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
@@ -310,19 +316,25 @@ export const EXCITER_PRESETS: readonly IExciterPreset[] =
 export const isExciterPresetId = (id: string): id is TExciterPresetId =>
   Object.prototype.hasOwnProperty.call(EXCITER_PRESET_BY_ID, id);
 
+/**
+ * A fresh live processor state from any profile — this table's or a
+ * genre's — without sharing its nested data.
+ */
+export const exciterSettingsOf = (
+  preset: IExciterPreset,
+  enabled: boolean,
+): IExciterSettings => ({
+  enabled,
+  presetId: preset.id,
+  stereo: preset.settings.stereo,
+  bands: preset.settings.bands.map((band) => ({ ...band })),
+  organic: { ...preset.settings.organic },
+  align: { ...preset.settings.align },
+  isolate: false,
+});
+
 /** Build a fresh live processor state without sharing a preset's nested data. */
 export const exciterPresetSettings = (
   id: TExciterPresetId,
   enabled: boolean,
-): IExciterSettings => {
-  const preset = EXCITER_PRESET_BY_ID[id];
-  return {
-    enabled,
-    presetId: id,
-    stereo: preset.settings.stereo,
-    bands: preset.settings.bands.map((band) => ({ ...band })),
-    organic: { ...preset.settings.organic },
-    align: { ...preset.settings.align },
-    isolate: false,
-  };
-};
+): IExciterSettings => exciterSettingsOf(EXCITER_PRESET_BY_ID[id], enabled);

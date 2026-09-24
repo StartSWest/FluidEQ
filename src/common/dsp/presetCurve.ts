@@ -24,9 +24,15 @@ import { DSP_DEFAULTS, IEqBandSettings, IEqSettings } from './chain';
  *
  * What stays in the rack's EQ is what supports another stage or cannot be a
  * curve at all: dynamic bands (a de-esser, the late-night bass guard), bass
- * mono, harmonic colour, and the compensation a Room copy puts in front of
- * its Room. Everything else of the rack's EQ is left to the listener's own
- * corrections.
+ * mono, harmonic colour, the subsonic filter, and the compensation a Room
+ * copy puts in front of its Room. Everything else of the rack's EQ is left to
+ * the listener's own corrections.
+ *
+ * Playing after the rack means playing after its Maximizer, and an EQ after a
+ * limiter puts back peaks the limiter took off. The Maximizer is told the
+ * curve it is followed by (`presetTone.ts`) and limits as if the curve were
+ * already applied, so the preset reaches the ceiling once the layer has
+ * played rather than before.
  */
 
 /**
@@ -44,11 +50,12 @@ const passing = (band: IEqBandSettings): IEqBandSettings => ({
 });
 
 /**
- * The tone of a chain's EQ: every static band, and the subsonic filter. None
- * when the EQ shapes nothing.
+ * The tone of a chain's EQ: every static band. None when the EQ shapes
+ * nothing.
  *
  * A dynamic band is not part of it. It acts only while its own passband is
- * over its threshold, which no curve can do, so it stays in the rack.
+ * over its threshold, which no curve can do, so it stays in the rack. Nor is
+ * the subsonic filter: see `presetSupport`.
  */
 export const presetCurve = (eq: IEqSettings): IEqSettings | undefined => {
   const bands = eq.enabled
@@ -59,18 +66,26 @@ export const presetCurve = (eq: IEqSettings): IEqSettings | undefined => {
   }
   return {
     ...eq,
+    subsonicHz: 0,
     bands,
     sourceBands: bands.map((band) => ({ ...band })),
   };
 };
 
 /**
- * What of a chain's EQ stays in the rack: its dynamic bands, bass mono and
- * harmonic colour, switched off when it has none of them.
+ * What of a chain's EQ stays in the rack: its dynamic bands, bass mono,
+ * harmonic colour and the subsonic filter, switched off when it has none of
+ * them.
  *
- * The subsonic filter goes with the curve, never here too: one high pass,
- * not two. Oversampling goes as well — it was there for the top of the tone,
- * and what is left is either flat or dynamic.
+ * The subsonic filter stays here, in front of the Maximizer, because a high
+ * pass played after it puts back the peaks it took off: it turns the phase of
+ * everything under a hundred hertz, and a limited master's peaks are its bass
+ * and its top arriving in step. It went with the curve until 2026-09-23, and
+ * on loud masters the 20-25 Hz high pass alone lifted the peaks leaving the
+ * rack at -1 dBTP to +1.5 to +2.4 — which Auto normalize then answered by
+ * turning the whole chain down. One high pass, not two, as before; only its
+ * place moved. Oversampling goes — it was there for the top of the tone, and
+ * what is left is flat, dynamic or a high pass at the bottom.
  */
 export const presetSupport = (eq: IEqSettings): IEqSettings => {
   const bands = eq.bands.map((band) => (band.dynamic ? band : passing(band)));
@@ -78,12 +93,12 @@ export const presetSupport = (eq: IEqSettings): IEqSettings => {
     eq.enabled &&
     (eq.bands.some((band) => band.enabled && band.dynamic) ||
       eq.monoBelowHz > 0 ||
-      eq.fuzzAmount > 0);
+      eq.fuzzAmount > 0 ||
+      eq.subsonicHz > 0);
   return {
     ...eq,
     enabled: isNeeded,
     presetId: '',
-    subsonicHz: 0,
     oversample: DSP_DEFAULTS.eq.oversample,
     bands,
     sourceBands: bands.map((band) => ({ ...band })),

@@ -6,12 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IBassPunchSettings } from '../../common/dsp/chain';
 import {
-  BASS_PUNCH_PRESETS,
   BASS_PUNCH_PRESET_GROUPS,
   IBassPunchPreset,
-  bassPunchPresetSettings,
-  isBassPunchPresetId,
 } from '../../common/dsp/bassPunchPresets';
+import { BASS_PUNCH_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -77,8 +75,9 @@ const DspBassPunchBar = ({
 }: IDspBassPunchBarProps) => {
   const { t } = useTranslation();
   const entries: IRichPickEntry[] = BASS_PUNCH_PRESET_GROUPS.flatMap((group) =>
-    BASS_PUNCH_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
+    BASS_PUNCH_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
         hint: profileHint(preset),
@@ -86,16 +85,19 @@ const DspBassPunchBar = ({
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
         ),
-      }),
-    ),
+      })),
   );
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
-    if (!isBassPunchPresetId(id)) {
+    const next = BASS_PUNCH_CATALOGUE.settings(
+      id,
+      enable ? true : bassPunch.enabled,
+    );
+    if (next === undefined) {
       return;
     }
-    onChange(bassPunchPresetSettings(id, enable ? true : bassPunch.enabled));
+    onChange(next);
     onCommit();
   };
 

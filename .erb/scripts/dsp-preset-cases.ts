@@ -4,39 +4,27 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  BASS_FORGE_PRESET_BY_ID,
-  bassForgePresetSettings,
-} from '../../src/common/dsp/bassForgePresets';
-import {
-  BASS_PUNCH_PRESET_BY_ID,
-  bassPunchPresetSettings,
-} from '../../src/common/dsp/bassPunchPresets';
 import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
 import {
   DENOISE_PRESET_BY_ID,
   denoisePresetSettings,
 } from '../../src/common/dsp/denoisePresets';
 import {
-  DIMENSION_PRESET_BY_ID,
-  dimensionPresetSettings,
-} from '../../src/common/dsp/dimensionPresets';
-import {
   EQ_PRESETS,
   eqSettingsForPreset,
 } from '../../src/common/dsp/eqPresets';
-import {
-  EXCITER_PRESET_BY_ID,
-  exciterPresetSettings,
-} from '../../src/common/dsp/exciterPresets';
 import {
   MASTER_PRESET_BY_ID,
   masterPresetSettings,
 } from '../../src/common/dsp/masterPresets';
 import {
-  MAXIMIZER_PRESET_BY_ID,
-  maximizerPresetSettings,
-} from '../../src/common/dsp/maximizerPresets';
+  BASS_FORGE_CATALOGUE,
+  BASS_PUNCH_CATALOGUE,
+  DIMENSION_CATALOGUE,
+  EXCITER_CATALOGUE,
+  IStageCatalogue,
+  MAXIMIZER_CATALOGUE,
+} from '../../src/common/dsp/stageCatalogues';
 
 export interface IFilterPresetCase {
   family: string;
@@ -50,10 +38,24 @@ export interface IFilterPresetCase {
  * Full chains catch interactions; these cases catch a profile that is broken
  * even before another stage touches it. Normalizer has modes rather than a
  * preset catalogue, and Crossfade is playback behaviour, so neither belongs
- * in this profile matrix.
+ * in this profile matrix. A stage's picker lists its own profiles and every
+ * genre's (`stageCatalogues.ts`), so the genres' are cases here too.
  */
 const presetIds = <T extends object>(catalogue: T): (keyof T & string)[] =>
   Object.keys(catalogue) as (keyof T & string)[];
+
+/** A catalogue's profiles, each as the stage it sets in an otherwise default rack. */
+const stageCases = <S>(
+  family: string,
+  stageCatalogue: IStageCatalogue<{ id: string }, S>,
+  place: (stage: S) => Partial<IDspSettings>,
+): IFilterPresetCase[] =>
+  stageCatalogue.profiles.flatMap(({ id }) => {
+    const stage = stageCatalogue.settings(id, true);
+    return stage === undefined
+      ? []
+      : [{ family, id, settings: { ...DSP_DEFAULTS, ...place(stage) } }];
+  });
 
 export const filterPresetCases = (): readonly IFilterPresetCase[] => [
   ...presetIds(DENOISE_PRESET_BY_ID).map((id) => ({
@@ -72,45 +74,18 @@ export const filterPresetCases = (): readonly IFilterPresetCase[] => [
       eq: eqSettingsForPreset({ ...DSP_DEFAULTS.eq, enabled: true }, preset),
     },
   })),
-  ...presetIds(EXCITER_PRESET_BY_ID).map((id) => ({
-    family: 'exciter',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      exciter: exciterPresetSettings(id, true),
-    },
+  ...stageCases('exciter', EXCITER_CATALOGUE, (exciter) => ({ exciter })),
+  ...stageCases('bass-forge', BASS_FORGE_CATALOGUE, (bassForge) => ({
+    bassForge,
   })),
-  ...presetIds(BASS_FORGE_PRESET_BY_ID).map((id) => ({
-    family: 'bass-forge',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      bassForge: bassForgePresetSettings(id, true),
-    },
+  ...stageCases('bass-punch', BASS_PUNCH_CATALOGUE, (bassPunch) => ({
+    bassPunch,
   })),
-  ...presetIds(BASS_PUNCH_PRESET_BY_ID).map((id) => ({
-    family: 'bass-punch',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      bassPunch: bassPunchPresetSettings(id, true),
-    },
+  ...stageCases('dimension', DIMENSION_CATALOGUE, (dimension) => ({
+    dimension,
   })),
-  ...presetIds(DIMENSION_PRESET_BY_ID).map((id) => ({
-    family: 'dimension',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      dimension: dimensionPresetSettings(id, true),
-    },
-  })),
-  ...presetIds(MAXIMIZER_PRESET_BY_ID).map((id) => ({
-    family: 'maximizer',
-    id,
-    settings: {
-      ...DSP_DEFAULTS,
-      maximizer: maximizerPresetSettings(id, true),
-    },
+  ...stageCases('maximizer', MAXIMIZER_CATALOGUE, (maximizer) => ({
+    maximizer,
   })),
   ...presetIds(MASTER_PRESET_BY_ID).map((id) => ({
     family: 'master',

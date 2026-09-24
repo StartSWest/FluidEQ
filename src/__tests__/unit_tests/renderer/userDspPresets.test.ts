@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { DSP_DEFAULTS } from 'common/dsp/chain';
 import { DSP_PRESETS } from 'common/dsp/presets';
+import { resolveDspPreset } from 'renderer/dsp/dspPresetCatalog';
 import {
   readUserDspPresets,
   saveUserDspPreset,
@@ -60,4 +61,20 @@ it('reads a chain saved before chains kept a tone, and passes over a broken one'
   const read = readUserDspPresets();
   expect(read.map((preset) => preset.name)).toEqual(['Old', 'Odd']);
   expect(read.map((preset) => preset.curve)).toEqual([undefined, undefined]);
+});
+
+it('keeps the listener’s Treble choice when a saved chain is picked', () => {
+  // Saved with Precise, picked by a listener who has chosen Classic: the
+  // choice is the listener's, as it is for every factory chain.
+  const saved = saveUserDspPreset('Saved precise', {
+    ...DSP_DEFAULTS,
+    enabled: true,
+  });
+  const current = {
+    ...DSP_DEFAULTS,
+    eq: { ...DSP_DEFAULTS.eq, treble: 'classic' as const },
+  };
+  expect(resolveDspPreset(saved.id, current)?.eq.treble).toBe('classic');
+  // POSITIVE CONTROL: the same pick over a Precise rack stays Precise.
+  expect(resolveDspPreset(saved.id, DSP_DEFAULTS)?.eq.treble).toBe('precise');
 });

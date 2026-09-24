@@ -14,6 +14,7 @@ import {
   eqEdited,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
+import { rackPlaysMatched } from '../../common/dsp/rackTreble';
 import LabelledKnob from '../components/LabelledKnob';
 import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import { useTranslation } from '../utils/I18nContext';
@@ -23,6 +24,7 @@ import DspEqLegend from './DspEqLegend';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
 import DspDynamicReadout from './DspDynamicReadout';
+import useRackTreble from './useRackTreble';
 
 /** This card's order; the names are the ones the Bands page uses too. */
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
@@ -60,6 +62,7 @@ interface IDspEqCardProps {
  */
 const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const { t } = useTranslation();
+  const matched = rackPlaysMatched(eq.treble, useRackTreble());
   const [selected, setSelected] = useState(0);
   /** Survives a deselection, so the strip has something to show. */
   const lastPicked = useRef(0);
@@ -171,6 +174,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
         <DspEqGraph
           eq={eq}
           sampleRate={sampleRate}
+          matched={matched}
           selected={active}
           onSelect={setSelected}
           onChange={patchBand}

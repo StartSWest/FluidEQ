@@ -288,6 +288,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': '抑制轰鸣',
   'dsp.eqPreset.tape': '磁带',
   'dsp.eqPreset.vinyl': '黑胶',
+  'dsp.eqPreset.tapeRestore': '修复磁带',
+  'dsp.eqPreset.vinylRestore': '修复黑胶',
   'dsp.eqPreset.liveVocal': '现场人声',
   'dsp.eqPreset.orchestra': '管弦乐',
   'dsp.eqPreset.metal': '金属',
@@ -360,6 +362,8 @@ const dsp = {
   'dsp.eqOversample.label': '过采样',
   'dsp.eqOversample.off': '关',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    '精确：此均衡器的每个频段都完全按绘制的样子发声，直到 20\u00a0kHz。',
   'dsp.eqImport.title': '导入均衡曲线',
   'dsp.eqImport.hint':
     '粘贴来自 Squiglink、AutoEq 或 Equalizer APO 的曲线，或选择包含它的文件。',
@@ -456,7 +460,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': '干',
   'dsp.bassForgePreset.wet': '湿',
   'dsp.bassForgePreset.phantom': '幻影',
-  'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': '低音冲击',
   'dsp.bassPunch.isolate': '独听',
@@ -485,7 +488,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': '干',
   'dsp.bassPunchPreset.wet': '湿',
   'dsp.bassPunchPreset.soft': '柔和',
-  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.dimension.historyLabel': '侧信号与中置随时间变化',
   'dsp.dimension.legendCorrelation': '相关性',

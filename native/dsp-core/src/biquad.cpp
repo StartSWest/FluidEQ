@@ -19,6 +19,67 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 
+namespace {
+
+/**
+ * The Q a character model gives a band; the band's own Q when there is
+ * nothing to model.
+ *
+ * Every model only ever moves the Q, which is why the cookbook and the
+ * matched design can share it (`feq_biquad_coefficients_designed`).
+ */
+double modelled_quality(FeqFilterType type,
+                        double gain_db,
+                        double quality,
+                        FeqEqModel model,
+                        double amount) {
+  /**
+   * Nothing to model when there is no gain to shape.
+   *
+   * Every design collapses to the same filter at zero gain, and a notch has no
+   * gain to correct in the first place — the types listed here are the ones
+   * whose gain term is unused.
+   */
+  const bool no_gain = type == FEQ_FILTER_BP || type == FEQ_FILTER_LPQ ||
+                       type == FEQ_FILTER_HPQ || type == FEQ_FILTER_NO;
+  if (model == FEQ_EQ_MODEL_CLEAN || amount <= 0.0 || gain_db == 0.0 ||
+      no_gain) {
+    return quality;
+  }
+
+  /**
+   * How far a band narrows at a given gain, and it is the app's own law
+   * (`shapeEqFilters` in `eqShape.ts`, mirrored in `common/dsp/eqModel.ts`)
+   * rather than a second one. Two pages offering the same character under the
+   * same name have to mean the same thing by it; these differed by half again
+   * at 12 dB until 2026-09-20.
+   */
+  const double driven = std::fabs(gain_db) < 20.0 ? std::fabs(gain_db) : 20.0;
+  const double narrowing = std::sqrt(1.0 + driven / 12.0);
+  const double factor = 1.0 + amount * (narrowing - 1.0);
+
+  if (model == FEQ_EQ_MODEL_PROPORTIONAL) {
+    const double narrowed = quality * factor;
+    return narrowed < 18.0 ? narrowed : 18.0;
+  }
+
+  if (model == FEQ_EQ_MODEL_ASYMMETRIC) {
+    // A cut is aimed at something and should take as little else with it as
+    // it can; a boost is a tone move and should be broad enough not to read
+    // as a resonance. Opposite treatments of the same dial, which is why this
+    // is its own model rather than proportional with a sign flipped.
+    const double shaped = gain_db > 0.0 ? quality / factor : quality * factor;
+    return shaped < 0.25 ? 0.25 : (shaped > 18.0 ? 18.0 : shaped);
+  }
+
+  const bool is_shelf = type == FEQ_FILTER_LSC || type == FEQ_FILTER_HSC;
+  const double full = is_shelf ? 0.4 : 0.45;
+  const double broadened = quality * (1.0 - amount * (1.0 - full));
+  return broadened > 0.25 ? broadened : 0.25;
+}
+
+}  // namespace
+
 extern "C" {
 
 FeqBiquadCoefficients feq_biquad_coefficients(FeqFilterType type,
@@ -131,56 +192,25 @@ FeqBiquadCoefficients feq_biquad_coefficients_modelled(FeqFilterType type,
                                                        double sample_rate,
                                                        FeqEqModel model,
                                                        double amount) {
-  /**
-   * Nothing to model when there is no gain to shape.
-   *
-   * Every design collapses to the same filter at zero gain, and a notch has no
-   * gain to correct in the first place — the types listed here are the ones
-   * whose gain term is unused.
-   */
-  const bool no_gain = type == FEQ_FILTER_BP || type == FEQ_FILTER_LPQ ||
-                       type == FEQ_FILTER_HPQ || type == FEQ_FILTER_NO;
-  if (model == FEQ_EQ_MODEL_CLEAN || amount <= 0.0 || gain_db == 0.0 ||
-      no_gain) {
-    return feq_biquad_coefficients(type, frequency, gain_db, quality,
-                                   sample_rate);
-  }
+  return feq_biquad_coefficients(
+      type, frequency, gain_db,
+      modelled_quality(type, gain_db, quality, model, amount), sample_rate);
+}
 
-  /**
-   * How far a band narrows at a given gain, and it is the app's own law
-   * (`shapeEqFilters` in `eqShape.ts`, mirrored in `renderer/dsp/biquad.ts`)
-   * rather than a second one. Two pages offering the same character under the
-   * same name have to mean the same thing by it; these differed by half again
-   * at 12 dB until 2026-09-20.
-   */
-  const double driven = std::fabs(gain_db) < 20.0 ? std::fabs(gain_db) : 20.0;
-  const double narrowing = std::sqrt(1.0 + driven / 12.0);
-  const double factor = 1.0 + amount * (narrowing - 1.0);
-
-  if (model == FEQ_EQ_MODEL_PROPORTIONAL) {
-    const double narrowed = quality * factor;
-    return feq_biquad_coefficients(type, frequency, gain_db,
-                                   narrowed < 18.0 ? narrowed : 18.0,
-                                   sample_rate);
-  }
-
-  if (model == FEQ_EQ_MODEL_ASYMMETRIC) {
-    // A cut is aimed at something and should take as little else with it as
-    // it can; a boost is a tone move and should be broad enough not to read
-    // as a resonance. Opposite treatments of the same dial, which is why this
-    // is its own model rather than proportional with a sign flipped.
-    const double shaped = gain_db > 0.0 ? quality / factor : quality * factor;
-    return feq_biquad_coefficients(
-        type, frequency, gain_db,
-        shaped < 0.25 ? 0.25 : (shaped > 18.0 ? 18.0 : shaped), sample_rate);
-  }
-
-  const bool is_shelf = type == FEQ_FILTER_LSC || type == FEQ_FILTER_HSC;
-  const double full = is_shelf ? 0.4 : 0.45;
-  const double broadened = quality * (1.0 - amount * (1.0 - full));
-  return feq_biquad_coefficients(type, frequency, gain_db,
-                                 broadened > 0.25 ? broadened : 0.25,
-                                 sample_rate);
+FeqBiquadCoefficients feq_biquad_coefficients_designed(FeqFilterType type,
+                                                       double frequency,
+                                                       double gain_db,
+                                                       double quality,
+                                                       double sample_rate,
+                                                       FeqEqModel model,
+                                                       double amount,
+                                                       int matched) {
+  const double shaped = modelled_quality(type, gain_db, quality, model, amount);
+  return matched != 0
+             ? feq_biquad_coefficients_matched(type, frequency, gain_db, shaped,
+                                               sample_rate)
+             : feq_biquad_coefficients(type, frequency, gain_db, shaped,
+                                       sample_rate);
 }
 
 void feq_biquad_reset(FeqBiquadState* state) {

@@ -56,24 +56,36 @@ const eqOf = (
 });
 
 describe('a preset’s tone and its rack’s support, split', () => {
-  it('leaves no tone and no second high pass in any rack', () => {
+  it('leaves no tone in any rack, and one high pass, in front of the Maximizer', () => {
     DSP_PRESETS.forEach((preset) => {
       const { eq } = preset.settings;
       const roomBands = preset.settings.room.enabled ? 5 : 0;
       const own = eq.bands.slice(0, eq.bands.length - roomBands);
+      // The subsonic high pass stays in the rack: played after it, with the
+      // curve, it turned the bottom's phase against the top and put back the
+      // peaks the limiter had taken off (`presetSupport`). So the curve has
+      // none, and there is never a second.
       expect({
         id: preset.id,
         tone: own.filter((one) => !one.dynamic && !isFlatBell(one)),
-        subsonicHz: eq.subsonicHz,
-      }).toEqual({ id: preset.id, tone: [], subsonicHz: 0 });
+        curveSubsonicHz: preset.curve?.subsonicHz ?? 0,
+      }).toEqual({ id: preset.id, tone: [], curveSubsonicHz: 0 });
     });
+    // POSITIVE CONTROL: the high passes are still there, in the racks.
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.eq.subsonicHz > 0).length,
+    ).toBeGreaterThan(DSP_PRESETS.length / 2);
   });
 
   it('gives every preset that shapes the tone a curve, and the curve is all of it', () => {
-    // Reference is a Master alone, and None is nothing at all: neither has
-    // a tone to carry.
+    // Reference is a Master alone, None is nothing at all, and Expansive is
+    // width alone (it borrowed Ambient's curve once): none has a tone to
+    // carry.
     const shaped = DSP_PRESETS.filter(
-      (preset) => preset.id !== 'reference' && preset.id !== 'empty',
+      (preset) =>
+        preset.id !== 'reference' &&
+        preset.id !== 'empty' &&
+        preset.id !== 'expansive',
     );
     shaped.forEach((preset) => {
       const curve = preset.curve as IEqSettings;
@@ -106,7 +118,7 @@ describe('a preset’s tone and its rack’s support, split', () => {
       metal?.curve?.bands.find((one) => one.frequency === hz)?.gainDb ?? 0;
     expect(at(5000)).toBeGreaterThan(2);
     expect(at(315)).toBeLessThan(-2);
-    expect(metal?.curve?.subsonicHz).toBeGreaterThan(0);
+    expect(metal?.settings.eq.subsonicHz).toBeGreaterThan(0);
   });
 
   it('keeps the rack’s EQ on only for what supports the rest of the rack', () => {
@@ -121,14 +133,25 @@ describe('a preset’s tone and its rack’s support, split', () => {
       }).toEqual({ id, dynamic: true });
       expect(rackEq(id)?.enabled).toBe(true);
     });
-    // Bass mono and harmonic colour are processing, not tone.
+    // Bass mono is processing, not tone.
     expect(rackEq('pop')?.monoBelowHz).toBeGreaterThan(0);
     expect(rackEq('pop')?.enabled).toBe(true);
-    expect(rackEq('tape-restore')?.fuzzAmount).toBeGreaterThan(0);
+    // Harmonic colour would be too (`splitting one EQ` below holds that),
+    // but no factory chain adds any since 2026-09-23: every record already
+    // carries its own, and the last two — Lo-fi's and the tape repair's —
+    // were distortion laid over grit the record had.
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.eq.fuzzAmount > 0).map(
+        (preset) => preset.id,
+      ),
+    ).toEqual([]);
     // A preset with none of them has its rack's EQ off, free for the
-    // listener's own corrections.
+    // listener's own corrections; one whose only support is its subsonic
+    // high pass keeps the EQ on for that alone, every band flat.
     expect(rackEq('music')?.enabled).toBe(false);
-    expect(rackEq('indiePop')?.enabled).toBe(false);
+    expect(rackEq('indiePop')?.enabled).toBe(true);
+    expect(rackEq('indiePop')?.subsonicHz).toBeGreaterThan(0);
+    expect(rackEq('indiePop')?.bands.every(isFlatBell)).toBe(true);
     // And a Room copy keeps what stands in front of its Room.
     const copy = DSP_PRESETS.find((preset) => preset.id === 'music-room');
     const room = copy?.settings.room.presetId ?? '';
@@ -153,19 +176,19 @@ describe('splitting one EQ', () => {
     { subsonicHz: 25, monoBelowHz: 60, oversample: 2 },
   );
 
-  it('takes every static band and the subsonic filter into the curve', () => {
+  it('takes every static band into the curve, and leaves the subsonic filter', () => {
     const curve = presetCurve(eq);
     expect(curve?.bands.map((one) => [one.frequency, one.gainDb])).toEqual([
       [80, 3],
       [120, 0],
     ]);
-    expect(curve?.subsonicHz).toBe(25);
+    expect(curve?.subsonicHz).toBe(0);
   });
 
-  it('leaves the dynamic band, a flat stand-in for each other, and mono', () => {
+  it('leaves the dynamic band, a flat stand-in for each other, mono and the high pass', () => {
     const support = presetSupport(eq);
     expect(support.enabled).toBe(true);
-    expect(support.subsonicHz).toBe(0);
+    expect(support.subsonicHz).toBe(25);
     expect(support.monoBelowHz).toBe(60);
     expect(support.oversample).toBe(DSP_DEFAULTS.eq.oversample);
     expect(

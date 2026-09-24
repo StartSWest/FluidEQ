@@ -104,67 +104,6 @@ export const DIMENSION_PRESET_BY_ID = {
     group: 'basic',
     settings: profile(0.6, 0.85, 0.9, 220, 3_500, 0),
   },
-  /**
-   * The genres, told apart by where each keeps its centre.
-   *
-   * What separates them is mostly the bottom and the middle, not how wide the
-   * top goes. The ones built on a kick and a bass line under a voice — pop,
-   * rock, hip-hop, electronic — pull the low band toward mono (a club system
-   * or a phone sums it anyway, and a centred kick is where the punch lives)
-   * and spend the width above it: on doubled guitars in rock's mids, on the
-   * pads and effects in electronic's top. The ones recorded in a room — jazz,
-   * classical, acoustic — keep their low band near unity, because a hall's
-   * bass arrives from everywhere and narrowing it moves the room, not a part.
-   * None of them decorrelates as far as `expansive`: a genre profile has to
-   * hold up on every record of its genre, not just on the airy ones.
-   */
-  pop: {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    settings: profile(0.7, 1.1, 1.4, 180, 3_000, 0.3),
-  },
-  rock: {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    // Doubled guitars are panned apart in the mix already; widening the mids
-    // is what makes that wall of them read, while the kick stays centred.
-    settings: profile(0.7, 1.2, 1.3, 170, 2_800, 0.2),
-  },
-  hiphop: {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    // The voice and the 808 are the record, and both belong in the middle.
-    settings: profile(0.55, 1, 1.3, 200, 3_500, 0.15),
-  },
-  electronic: {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    settings: profile(0.5, 1.25, 1.6, 150, 2_500, 0.4),
-  },
-  jazz: {
-    id: 'jazz',
-    labelKey: 'dsp.eqPreset.jazz',
-    group: 'genre',
-    settings: profile(0.95, 1.1, 1.2, 150, 3_000, 0.15),
-  },
-  classical: {
-    id: 'classical',
-    labelKey: 'dsp.eqPreset.classical',
-    group: 'genre',
-    // The widest of the room profiles: a hall, not a club.
-    settings: profile(1, 1.15, 1.35, 150, 3_500, 0.2),
-  },
-  acoustic: {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    // One voice and one guitar: barely wider than the record, and only up top.
-    settings: profile(0.9, 1.05, 1.2, 180, 3_500, 0.1),
-  },
   headphones: {
     id: 'headphones',
     labelKey: 'dsp.dimensionPreset.headphones',
@@ -215,6 +154,17 @@ export const DIMENSION_PRESET_BY_ID = {
     // with only the air left wide.
     settings: profile(0.8, 0.75, 1.15, 200, 3_600, 0.2),
   },
+  air: {
+    id: 'air',
+    labelKey: 'dsp.eqPreset.air',
+    group: 'character',
+    // The Air chain's own: only the top octaves opened, above 4 kHz where
+    // the chain's curve lifts, the voice and the body left as mixed. It
+    // borrowed the Speakers profile until 2026-09-23, which is built for two
+    // boxes a metre apart and widens the middle too, pulling the voice
+    // outward on headphones.
+    settings: profile(1, 1, 1.3, 200, 4_000, 0.2),
+  },
   expansive: {
     id: 'expansive',
     labelKey: 'dsp.dimensionPreset.expansive',
@@ -261,13 +211,23 @@ export const DIMENSION_PRESETS: readonly IDimensionPreset[] = Object.values(
 export const isDimensionPresetId = (id: string): id is TDimensionPresetId =>
   Object.prototype.hasOwnProperty.call(DIMENSION_PRESET_BY_ID, id);
 
+/**
+ * A fresh live state from any profile, this table's or a genre's, without
+ * sharing its data.
+ */
+export const dimensionSettingsOf = (
+  preset: IDimensionPreset,
+  enabled: boolean,
+): IDimensionSettings => ({
+  ...DSP_DEFAULTS.dimension,
+  ...preset.settings,
+  enabled,
+  presetId: preset.id,
+});
+
 /** A fresh live state, without sharing a profile's nested data. */
 export const dimensionPresetSettings = (
   id: TDimensionPresetId,
   enabled: boolean,
-): IDimensionSettings => ({
-  ...DSP_DEFAULTS.dimension,
-  ...DIMENSION_PRESET_BY_ID[id].settings,
-  enabled,
-  presetId: id,
-});
+): IDimensionSettings =>
+  dimensionSettingsOf(DIMENSION_PRESET_BY_ID[id], enabled);

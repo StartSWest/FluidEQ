@@ -80,6 +80,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/primitives.cpp
   dsp-core/src/saturate.cpp
   dsp-core/src/limiter.cpp
+  dsp-core/src/bass_limiter.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
   dsp-core/src/leveling_memory.cpp
@@ -117,11 +118,13 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_eq_fade.cpp
   dsp-core/src/chain_eq_linear.cpp
   dsp-core/src/chain_exciter.cpp
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
   dsp-core/src/chain_transfer.cpp
+  dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
@@ -263,6 +266,14 @@ add_test(NAME room COMMAND fluideq-room-test)
 add_executable(fluideq-room-contract-test dsp-core/tests/room_contract_test.cpp)
 target_link_libraries(fluideq-room-contract-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room-contract COMMAND fluideq-room-contract-test)
+
+add_executable(fluideq-maximizer-tone-test dsp-core/tests/maximizer_tone_test.cpp)
+target_link_libraries(fluideq-maximizer-tone-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME maximizer-tone COMMAND fluideq-maximizer-tone-test)
+
+add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
+target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME eq-fade COMMAND fluideq-eq-fade-test)
 
 add_executable(fluideq-room-interpolation-test
   dsp-core/tests/room_interpolation_test.cpp system-apo/src/room_head.cpp)

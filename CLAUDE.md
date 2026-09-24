@@ -455,6 +455,91 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
+- **A preset's curve rides the rack's line, so the rack limits through it.**
+  The rack's line (`fluideq-dsp.txt`, and the Library host's) ends with a TONE
+  trailer — the Preset layer's bands exactly as the writer builds them
+  (`presetTone.ts`: its group's strength, band shape and Double's second pass,
+  matched as that group's Treble plays) — and the rack puts that curve on in
+  front of the Maximizer and takes it off with its exact inverse behind the
+  Master (`chain_tone.cpp`). A preset then lands on the ceiling once its curve
+  has played, where it used to go 2-5 dB over and Auto normalize turned
+  everything down: measured over the catalogue, 0.85 LU louder than not told,
+  no overs, no more pumping. A new curve glides in over 20 ms and the old one
+  out (a hard switch clicked at -49 dBFS; now under -104). The trailer stands
+  after the game word and the Room trailer; an engine older than 1.16 refuses a
+  longer line and bypasses the whole rack, so main strips it for one
+  (`ENGINE_PRESET_TONE_SINCE`), and a switched-off rack carries none. Only bells
+  and shelves travel; a preset curve's subsonic high pass is in the rack, in
+  front of the Maximizer. Change how the Preset layer is written and
+  `presetToneOf` changes with it, or the rack limits a curve nobody hears.
+- **The Preset layer writes each band at its curve's model Q** (`eqModel.ts`,
+  `presetVoicing.ts`): the main EQ has no Wide or Proportional model, and the
+  genre curves were fitted through theirs. From 09-21 to 09-23 every Wide
+  curve played bands at the dial's Q — narrow bumps where a tilt was drawn.
+- **Every chain's stage profiles are its own, and a loudness target only
+  where the name says level.** Default carried the Master's streaming target
+  (-14 LUFS) and played loud records up to 5 LU under DSP Off; the two
+  restorations borrowed the Master's lathe profile (Vinyl, -3 dBTP) and its
+  comparison tool (Reference, -18 LUFS), and the Character group's Tape and
+  Vinyl EQ curves — so picking those Character entries gave a repair curve,
+  and the repairs added the characters' fuzz. Now Default has the
+  Maximizer's `default` (1 dB), the restorations the EQ's `tapeRestore` and
+  `vinylRestore` (repair group, no harmonics) and the Maximizer's `tape` and
+  `vinyl`, and Character Tape and Vinyl are their 2026-08-22 curves again:
+  +0.6, +0.5 and +0.4 LU over DSP Off on the corpus, nothing past -0.86 dBTP
+  after the curve. Repair compressed shared the Character group's Air curve
+  (+4 dB at 16 kHz, into the octave where an encoder leaves its swirl) and
+  now has `lossyRestore` and the Maximizer's `lossy` (+0.46 LU); Air had the
+  Speakers width, built for two boxes across a room, and now has its own
+  (`air`, only the top opened). A Master target stays in Reference, Speech,
+  Podcast and Audiobook. A new chain gets profiles of its own, never another
+  purpose's that happens to share a name.
+- **Bass Forge is a harmonic generator, so a genre that takes no exciter
+  takes no Forge.** Its Presence dial makes harmonics, its Drive saturates
+  and its octave divider makes a subharmonic, and it ran in ten genres whose
+  research forbids exciter or saturation — hip-hop, rap, reggae, dub,
+  dancehall, reggaeton, corridos, Afrobeats, Amapiano, downtempo — putting
+  13-16% of generated content on a 60 Hz note (`genre/thd_probe.cpp`, four
+  tones through the rack and then the curve). Each of those offers its
+  profile under its own name and leaves it off (`offered`), and the bass
+  support is the curve's, which generates nothing. It cost no loudness: all
+  ten came out the same or up to 0.04 LU louder, because the stage is
+  level-neutral by design — what it added was only the distortion. Trap
+  keeps it for the research's own exception (the 80/120/160 Hz overtones of
+  an 808 a phone cannot play) with `subAmount` 0, and Car keeps the
+  harmonics alone, no octave and no Drive: a cabin already lifts the note.
+  The audit's "no exciter" rule fails on Forge too now.
+- **The rack's EQ has the main EQ's Treble choice** (`IEqSettings.treble`,
+  Precise by default). Precise builds every band that has a matched design
+  analog-matched — the character model's Q first, then
+  `feq_biquad_coefficients_designed` — in the cascade, the oversampled
+  cascade, the dynamic bands and the linear-phase kernel alike. It is the
+  listener's, like the surround switch: factory, saved and chain picks all
+  keep it, and changing it leaves the preset's name alone. It rides the
+  Room's retired headphone slot on the wire, which every engine decodes and
+  none before 1.16 read, so an older engine plays the cookbook and no layout
+  moved; natively it defaults to the cookbook, which the parity fixtures
+  were frozen from. The page draws Precise only where it is heard
+  (`rackPlaysMatched`, `ENGINE_RACK_TREBLE_SINCE`) from `biquadMatched.ts`,
+  the native design transcribed (`dspBiquadMatched.test.ts` holds it to the
+  engine's own coefficients, 9 decimals) — change the two together, and
+  `playsAnalogMatched`'s rule with them.
+- **Every change to the rack's EQ fades too, and every band keeps its
+  history** (`chain_eq_fade.cpp`). The histories were kept by a band's place
+  among the live bands, so switching one on or off, or adding one, clicked
+  at -37 dBFS; a ±6 dB flip at 700 Hz clicked at -73 and the Treble choice
+  at -66. It is the main EQ's rule now: a history found again by type,
+  frequency and Q (then type and frequency, then type in place), the old
+  rack playing beside the new for 20 ms on an equal-gain raised cosine, a
+  fade already crossing carrying on, the EQ switched on fading in from the
+  sound as it arrives and switched off playing out into it — every case at
+  the steady floor, in the engine's handover and the Library host's
+  configure alike. A fresh chain takes its first rack as it is. Not faded,
+  as before: a change of phase mode, oversampling factor or stereo
+  arrangement, and anything in the linear kernel, whose kernels fade
+  themselves. The DSP EQ page's spectrum reads the main graph's twelfth-
+  octave slices (`createGraphSliceReader`) on its own fixed dBFS scale,
+  because its thresholds are dBFS.
 - **The treble plays as drawn unless the layer's Treble row says Classic.**
   The cookbook (what Equalizer APO builds every band from)
   squeezes a band toward Nyquist: Ivan's five treble bands played 1.5 dB

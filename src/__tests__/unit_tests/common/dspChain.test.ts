@@ -12,10 +12,13 @@ import {
   buildEqRack,
   clampDspSettings,
 } from '../../../common/dsp/chain';
-import { GENRE_CHAIN_STAGES } from '../../../common/dsp/genreChains';
+import { GENRE_STAGES, inGenreChain } from '../../../common/dsp/genreRack';
+import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
 import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
 import { roomPresetSettings } from '../../../common/dsp/roomPresets';
+import { EQ_PRESETS } from '../../../common/dsp/eqPresets';
+import { MAXIMIZER_CATALOGUE } from '../../../common/dsp/stageCatalogues';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
@@ -119,31 +122,36 @@ describe('dsp chain settings', () => {
   });
 
   /**
-   * A style's stages are looked up by a plain string, and a misspelled one
-   * fails the quiet way: that style keeps shipping as its curve alone — a
-   * chain that sounds thinner than every one beside it, with nothing
-   * anywhere saying why. The profile ids inside each row are typed and
-   * cannot rot; the key is what needs watching.
+   * A genre's rack is looked up by its id, and a misspelled one fails the
+   * quiet way: that genre keeps shipping as its curve alone — a chain that
+   * sounds thinner than every one beside it, with nothing anywhere saying
+   * why.
    */
-  it('names a real style in every row of the genre stage table', () => {
-    const chains = new Set(DSP_PRESETS.map((preset) => preset.id));
-    const unknown = Object.keys(GENRE_CHAIN_STAGES).filter(
-      (style) => !chains.has(style),
-    );
-    expect(unknown).toEqual([]);
-    Object.entries(GENRE_CHAIN_STAGES).forEach(([style, stages]) => {
+  it('builds a genre chain from every row of the genre racks', () => {
+    GENRE_RACKS.forEach((rack) => {
+      const style = genreChainId(rack);
       const chain = DSP_PRESETS.find((preset) => preset.id === style);
       expect({ style, group: chain?.group }).toEqual({
         style,
         group: 'genre',
       });
-      // And the row reached the rack: whatever it names is switched on.
-      expect({ style, on: chain?.settings.dimension.enabled ?? false }).toEqual(
-        { style, on: stages?.dimension !== undefined },
-      );
-      expect({ style, on: chain?.settings.maximizer.enabled ?? false }).toEqual(
-        { style, on: stages?.maximizer !== undefined },
-      );
+      // And the row reached the rack: what it plays is on, under the
+      // genre's own profile, and what it only offers is off.
+      GENRE_STAGES.forEach((stage) => {
+        const on = inGenreChain(rack, stage);
+        const settings = chain?.settings[stage];
+        expect({
+          style,
+          stage,
+          on: settings?.enabled ?? false,
+          profile: settings?.presetId,
+        }).toEqual({
+          style,
+          stage,
+          on,
+          profile: on ? rack.id : DSP_DEFAULTS[stage].presetId,
+        });
+      });
     });
   });
 
@@ -280,11 +288,84 @@ describe('dsp chain settings', () => {
     );
     expect(punch?.settings.bassForge.enabled).toBe(false);
     expect(punch?.settings.bassPunch.presetId).toBe('punch');
-    expect(punch?.settings.maximizer).toEqual({
-      ...maximizerPresetSettings('transparent', true),
-      presetId: '',
-      driveDb: 0,
+    // Its own limiter, whose 1.5 ms look-ahead lets a kick's first cycle
+    // through: the one profile that is deliberately not transparent.
+    expect(punch?.settings.maximizer).toEqual(
+      maximizerPresetSettings('punch', true),
+    );
+  });
+
+  /**
+   * A repair repairs: no stage of it is borrowed from another purpose.
+   *
+   * Until 2026-09-23 the vinyl and tape repairs played the Character
+   * group's Vinyl and Tape curves, fuzz and all, with a cutting lathe's and a
+   * comparison tool's Master; the compressed-file repair played the Air
+   * curve, lifting the octave where an encoder leaves its swirl. Each has
+   * its own curve and limiter now, and the Character curves are
+   * characters again.
+   */
+  it('builds every repair chain from repair and voice profiles alone', () => {
+    const groupOfCurve = (id: string | undefined) =>
+      EQ_PRESETS.find((preset) => preset.id === id)?.group;
+    const repairs = DSP_PRESETS.filter((preset) => preset.group === 'repair');
+    // POSITIVE CONTROL: the three instrument repairs and the two voices.
+    expect(repairs.map((preset) => preset.id).sort()).toEqual(
+      [
+        'audiobook',
+        'lossy-repair',
+        'podcast',
+        'tape-restore',
+        'vinyl-restore',
+      ].sort(),
+    );
+    repairs.forEach((preset) => {
+      expect({
+        id: preset.id,
+        curve: ['repair', 'voice'].includes(
+          groupOfCurve(preset.curve?.presetId) ?? '',
+        ),
+        maximizer:
+          !preset.settings.maximizer.enabled ||
+          MAXIMIZER_CATALOGUE.profiles.find(
+            (profile) => profile.id === preset.settings.maximizer.presetId,
+          )?.group === 'repair',
+        fuzz: preset.settings.eq.fuzzAmount,
+      }).toEqual({ id: preset.id, curve: true, maximizer: true, fuzz: 0 });
     });
+    // And the Character curves they used to share keep their character.
+    ['tape', 'vinyl'].forEach((id) => {
+      const character = EQ_PRESETS.find((preset) => preset.id === id);
+      expect(character?.group).toBe('character');
+      expect(character?.setup?.fuzzAmount).toBeGreaterThan(0);
+      expect(
+        DSP_PRESETS.filter((preset) => preset.curve?.presetId === id),
+      ).toEqual([]);
+    });
+  });
+
+  /**
+   * Default is a clean everyday chain, louder than DSP Off like every music
+   * chain, and never a level target: its streaming target turned every loud
+   * record down to -14 LUFS, as much as 5 LU under DSP Off.
+   */
+  it('gives Default its own gentle limiter and no loudness target', () => {
+    const balanced = DSP_PRESETS.find((preset) => preset.id === 'balanced');
+    expect(balanced?.settings.master.enabled).toBe(false);
+    expect(balanced?.settings.maximizer).toEqual(
+      maximizerPresetSettings('default', true),
+    );
+    expect(balanced?.settings.maximizer.driveDb).toBeLessThanOrEqual(1);
+    expect(balanced?.curve?.presetId).toBe('balanced');
+  });
+
+  it('gives Air its own width, not the Speakers profile', () => {
+    const air = DSP_PRESETS.find((preset) => preset.id === 'clarity');
+    expect(air?.settings.dimension.presetId).toBe('air');
+    // Only the top opened: the voice and the body stay as mixed.
+    expect(air?.settings.dimension.lowWidth).toBe(1);
+    expect(air?.settings.dimension.midWidth).toBe(1);
+    expect(air?.settings.dimension.highWidth).toBeGreaterThan(1);
   });
 
   it('keeps Warm tonal instead of stacking harmonic generators', () => {
@@ -295,13 +376,17 @@ describe('dsp chain settings', () => {
     expect(warm?.settings.bassForge.enabled).toBe(false);
   });
 
-  it('keeps Expansive to clean EQ and one controlled width stage', () => {
+  it('keeps Expansive to one controlled width stage and a bare ceiling', () => {
     const expansive = DSP_PRESETS.find((preset) => preset.id === 'expansive');
-    expect(expansive?.curve?.presetId).toBe('ambient');
+    // No curve: it borrowed Ambient's, which made it Ambient made wider.
+    expect(expansive?.curve).toBeUndefined();
     expect(expansive?.settings.exciter.enabled).toBe(false);
     expect(expansive?.settings.dimension.presetId).toBe('expansive');
     expect(expansive?.settings.dimension.decorrelation).toBeLessThan(0.5);
-    expect(expansive?.settings.maximizer.enabled).toBe(false);
+    // The ceiling the widened side needs, adding no level of its own.
+    expect(expansive?.settings.maximizer).toEqual(
+      maximizerPresetSettings('safety', true),
+    );
   });
 
   it('uses Master only where a delivery target owns the final level', () => {
@@ -309,18 +394,16 @@ describe('dsp chain settings', () => {
       (preset) => preset.settings.master.enabled,
     );
     /**
-     * The spoken-word three joined the list on 2026-09-20, and they belong:
-     * a podcast, an audiobook and whatever else is being listened to for the
-     * words arrive at a different level from every other one, and the
-     * listener cannot ride the volume through a car journey. A limiter
-     * cannot fix that — only a target can.
+     * Only where the name says the level is the point: Reference brings two
+     * records to one level to compare them, and the spoken-word three put
+     * every show at the level of every other, which a listener in a car
+     * cannot ride by hand. Default and the two restorations carried targets
+     * too until 2026-09-23 — a streaming target, a cutting lathe's, and
+     * Reference's own — and played loud records 2 to 7 LU under DSP Off.
      */
     expect(mastered.map((preset) => preset.id)).toEqual([
-      'balanced',
       'reference',
       'speech',
-      'vinyl-restore',
-      'tape-restore',
       'podcast',
       'audiobook',
     ]);
@@ -328,22 +411,17 @@ describe('dsp chain settings', () => {
       expect(preset.settings.maximizer.enabled).toBe(false);
     });
     /**
-     * Everything else ends in a ceiling, and the handful that do not are
-     * named here rather than counted.
-     *
-     * A chain with no final stage at all can be pushed past full scale by its
-     * own curve, and nothing is left to catch it. These five are deliberate:
-     * None is nothing at all, Expansive and Lo-fi add no level to catch,
-     * World is the plainest row in the catalogue, and Gaming gives up every
-     * millisecond a look-ahead would cost. Its two Room copies do not: a
-     * room leaves a full-scale record over full scale, so they carry the
-     * `safety` ceiling as Music's Room copy does.
+     * Everything else ends in a ceiling: a chain with no final stage can be
+     * pushed past full scale by its own curve, and then Auto normalize turns
+     * the whole thing down. None is the one exception, being nothing at all.
+     * Expansive, Lo-fi, World and Gaming were open until 2026-09-23, and
+     * Gaming's curve put a game's loud moments 7 dB over full scale.
      */
     const open = DSP_PRESETS.filter(
       (preset) =>
         !preset.settings.maximizer.enabled && !preset.settings.master.enabled,
     ).map((preset) => preset.id);
-    expect(open).toEqual(['empty', 'expansive', 'lofi', 'world', 'gaming']);
+    expect(open).toEqual(['empty']);
   });
 
   it('does not replace a named final profile with a generic Maximizer', () => {
@@ -370,37 +448,38 @@ describe('dsp chain settings', () => {
   });
 
   /**
-   * A chain that calibrates a shared limiter keeps its timing and its ceiling
-   * and only ever drives it LESS.
+   * Every chain's limiter is a profile the picker lists, exactly as listed.
    *
-   * The drive itself is a measured number — every chain in the catalogue is
-   * levelled against DSP Off — so it is not written down twice; what is held
-   * here is that calibrating a level cannot quietly change the limiter's
-   * character, and cannot turn a shared profile into a louder one.
+   * Chains used to calibrate a shared profile's drive in place, which opened
+   * the Maximizer's picker on Custom for every one of them and hid which
+   * limiter a chain was actually playing. Each measured drive now lives in a
+   * named profile of the chain's own purpose — a genre's in its rack, a
+   * scene's, a repair's — so nothing is a borrowed profile tuned by a hidden
+   * number (`maximizerPresets.ts`, `genres/*.ts`).
    */
-  it.each([
-    ['punch', 'transparent'],
-    ['drum-bass', 'default'],
-  ] as const)(
-    '%s preserves limiter timing and ceiling with reduced drive',
-    (id, profile) => {
-      const chain = DSP_PRESETS.find((preset) => preset.id === id);
-      const named = maximizerPresetSettings(profile, true);
-      expect(chain?.settings.maximizer).toEqual({
-        ...named,
-        presetId: '',
-        driveDb: chain?.settings.maximizer.driveDb,
+  it('plays every limiter exactly as a named profile of the picker', () => {
+    const limited = DSP_PRESETS.filter(
+      (preset) => preset.settings.maximizer.enabled,
+    );
+    // POSITIVE CONTROL: this reads the chains that have one.
+    expect(limited.length).toBeGreaterThan(DSP_PRESETS.length / 2);
+    limited.forEach((preset) => {
+      const { maximizer } = preset.settings;
+      expect({
+        id: preset.id,
+        maximizer,
+      }).toEqual({
+        id: preset.id,
+        maximizer: MAXIMIZER_CATALOGUE.settings(maximizer.presetId, true),
       });
-      expect(chain?.settings.maximizer.driveDb).toBeLessThanOrEqual(
-        named.driveDb,
-      );
-    },
-  );
+    });
+  });
 
   it('uses the purpose-built D&B transient profile', () => {
     const drumBass = DSP_PRESETS.find((preset) => preset.id === 'drum-bass');
     expect(drumBass?.settings.bassForge.enabled).toBe(false);
-    expect(drumBass?.settings.bassPunch.presetId).toBe('dnb');
+    // Its rack's own, with the D&B tempo's short release (`genres/`).
+    expect(drumBass?.settings.bassPunch.presetId).toBe('drumBass');
   });
 
   it('gain-matches Reference, and no other whole-chain preset', () => {
@@ -452,6 +531,34 @@ describe('dsp chain settings', () => {
   });
 
   /**
+   * The EQ's Treble choice is the listener's, like the main EQ's Treble row:
+   * how every band plays near the top, and no chain's to take away. Every
+   * recipe is built from the defaults, which say Precise.
+   */
+  it('keeps the EQ’s Treble choice when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, treble: 'classic' },
+    };
+    expect(dspPresetSettings('rock', current)?.eq.treble).toBe('classic');
+    expect(dspPresetSettings('podcast', current)?.eq.treble).toBe('classic');
+    // POSITIVE CONTROL: with no current settings a chain brings the default.
+    expect(dspPresetSettings('rock')?.eq.treble).toBe('precise');
+  });
+
+  it('reads a stored EQ without a Treble choice, or a wrong one, as Precise', () => {
+    const { treble: _treble, ...older } = DSP_DEFAULTS.eq;
+    expect(clampDspSettings({ eq: older }).eq.treble).toBe('precise');
+    expect(
+      clampDspSettings({ eq: { ...older, treble: 'CLASSIC' } }).eq.treble,
+    ).toBe('precise');
+    // POSITIVE CONTROL: Classic, stored, stays Classic.
+    expect(
+      clampDspSettings({ eq: { ...older, treble: 'classic' } }).eq.treble,
+    ).toBe('classic');
+  });
+
+  /**
    * GAME MODE IS THE GAMING CHAINS', AND NOBODY ELSE'S. Choosing one is the
    * whole switch — no limiter or input peak guard in the way, the engine told
    * to give up its comfort delays — and choosing anything else gives it back.
@@ -466,7 +573,10 @@ describe('dsp chain settings', () => {
       });
     });
     const gaming = DSP_PRESETS.find((preset) => preset.id === 'gaming');
-    expect(gaming?.settings.maximizer.enabled).toBe(false);
+    // A ceiling in game mode: a millisecond of look-ahead is all the delay
+    // it adds, and without it the curve put loud moments over full scale.
+    expect(gaming?.settings.maximizer.presetId).toBe('gaming');
+    expect(gaming?.settings.maximizer.lookAheadMs).toBeLessThanOrEqual(1);
     expect(gaming?.settings.normalizer.mode).toBe('off');
     expect(dspPresetSettings('rock', gaming?.settings)?.gameMode).toBe(false);
   });

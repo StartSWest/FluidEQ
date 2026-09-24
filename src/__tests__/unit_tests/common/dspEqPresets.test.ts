@@ -54,6 +54,29 @@ const contaminatedEq = (): IEqSettings => ({
 });
 
 describe('complete EQ factory presets', () => {
+  /**
+   * Every value but one: the Treble choice is how every band plays near the
+   * top, the listener's like the main EQ's Treble row, and no curve's to
+   * change (`eqSettingsForPreset`).
+   */
+  it('leaves the listener’s Treble choice as it was, for every preset', () => {
+    EQ_PRESETS.forEach((preset) => {
+      const classic = eqSettingsForPreset(
+        { ...contaminatedEq(), treble: 'classic' },
+        preset,
+      );
+      const precise = eqSettingsForPreset(
+        { ...contaminatedEq(), treble: 'precise' },
+        preset,
+      );
+      expect({
+        id: preset.id,
+        classic: classic.treble,
+        precise: precise.treble,
+      }).toEqual({ id: preset.id, classic: 'classic', precise: 'precise' });
+    });
+  });
+
   it('assigns every global sound value for every preset', () => {
     EQ_PRESETS.forEach((preset) => {
       const result = eqSettingsForPreset(contaminatedEq(), preset);

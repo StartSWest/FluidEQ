@@ -73,15 +73,17 @@ export interface IEqPreset {
   /**
    * One gain in dB per band, low to high. Always `EQ_BAND_COUNT` long.
    *
-   * A curve is a TILT, and the level it happens to add is not part of it: the
-   * whole chain a curve belongs to is rendered through the engine against DSP
-   * Off, and a curve that lands the chain more than about a decibel over it
-   * is shifted down until it does. Shifting rather than reshaping, so the
-   * tone is untouched and only the volume moves. This matters more than it
-   * sounds: louder wins every comparison it is in, so a hot curve reads as
-   * "better" while the listener has not heard what it did to the tone yet.
-   * Six of these were between two and four decibels hot before anyone
-   * measured them, and each one felt like the best preset in its section.
+   * A curve is a TILT, and the level it happens to add is not part of it:
+   * every curve a chain plays is set as a whole so that it adds no loudness
+   * to that chain — K-weighted, heard against the chain's rack alone —
+   * shifted rather than reshaped, so the tone is untouched and only the
+   * volume moves. This matters more than it sounds: louder wins every
+   * comparison it is in, so a hot curve reads as "better" while the listener
+   * has not heard what it did to the tone yet. Six of these were between two
+   * and four decibels hot before anyone measured them, and each one felt like
+   * the best preset in its section. Where a chain then lands against DSP Off
+   * is its rack's business: its Maximizer takes a loud master down by its
+   * overs and a quiet one not at all, which no fixed curve could follow.
    */
   gains: readonly number[];
   /**
@@ -160,6 +162,14 @@ const PROTECTED: IEqPresetSetup = { subsonicHz: 20, monoBelowHz: 40 };
  *    the ear's sensitivity dips below 200 Hz and above 6 kHz and is most
  *    acute around 3 kHz, so a curve that is gentle at 3 kHz and generous at
  *    12 kHz is doing the same perceived work.
+ *  - **A genre curve does not add what the genre's records already carry.**
+ *    Held against published genre research on 2026-09-23, which found the
+ *    sub of trap, drum & bass, hip-hop and electronic lifted, lo-fi and blues
+ *    records that are dark already darkened by 5 to 9 dB more, a mid scoop on
+ *    jazz and orchestra, acoustic's boom and 4-6 kHz brittleness left in and
+ *    classical coloured. Each changed row kept the loudness it had, measured
+ *    through its model's bands — which is how the Preset layer plays them now
+ *    (`presetVoicing.ts`).
  */
 /*        32   50   80  125  200  315  500  800  1k2  2k   3k1  5k   8k  12k5 16k */
 const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
@@ -194,48 +204,53 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
   },
   ...WORLD_GENRE_EQ_PRESETS,
   {
-    // Guitars live at 800-2k and cymbals at 8k+. The 315 dip is where a wall
-    // of distorted guitar turns to mud.
+    // The kick and the bass guitar at 80, the guitars' bite at 1-3k, the
+    // cymbals left as they are. The 315-500 dip is where a wall of distorted
+    // guitar turns to mud.
     id: 'rock',
     labelKey: 'dsp.eqPreset.rock',
     group: 'genre',
     gains: [
-      1.4, 1.4, 1.4, 0.3, -0.7, -2, -1.3, -0.1, 0.9, 0.8, 0.9, 0.3, 0.4, -0.4,
-      -1.3,
+      0.5, 0.5, 1.6, 0.9, -1.2, -2.9, -2.2, -0.3, 0.4, 0.8, 1.1, 0.6, 0.1, -0.1,
+      -0.3,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
-    // Vocal-forward: the 2-4k lift is presence, the 250 cut is the boxiness
-    // that hides a lead voice.
+    // Vocal-forward over a punchy low end: the 3-8k lift is presence and
+    // sheen, the 250-500 cut is the boxiness that hides a lead voice.
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
     gains: [
-      1.3, 1.3, 0.1, 0.3, -0.7, -2, -1, 0, 0.4, 0.7, 0.5, 0.9, 0.5, 0.3, -0.2,
+      2.1, 1.2, 1.5, 0.6, -1.3, -2.9, -2.4, -0.9, -0.4, 0.3, 1.3, 1.6, 1.5, 1,
+      0.3,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
-    // Nearly flat by design. Upright bass at 80, brushed cymbals at 10k, and
-    // the midrange left alone because that is where the playing is.
+    // The upright's warmth at 125-200 and the ride cymbal's air above 8k,
+    // with the 1-2k honk eased rather than lifted: the playing is in the
+    // mids, and what it wants there is room, not help.
     id: 'jazz',
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
     gains: [
-      1.4, 1.4, -0.2, 0.6, 0, -0.3, -0.1, 0.2, 0.6, 0.1, 0.8, 0.8, 1.3, 1.7,
-      1.2,
+      -1.8, -0.7, 0.9, 1.9, 1.3, -0.8, -1, -0.7, -0.9, -0.9, -0.7, -0.3, 1.2,
+      1.6, 1.7,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
-    // The flattest curve here, and deliberately: a concert recording is
-    // already balanced. Only a touch of hall at the bottom and air at the top.
+    // Among the gentlest curves here, and deliberately: a concert recording
+    // is already balanced. A touch of hall at the bottom and air at the top,
+    // paid for by a decibel out of the middle rather than added on.
     id: 'classical',
     labelKey: 'dsp.eqPreset.classical',
     group: 'genre',
     gains: [
-      2.6, 2.6, 1.3, 1.2, 0.7, 0.6, 0.7, 0.7, 1.6, 1, 1.2, 2.3, 2.9, 3.9, 3.9,
+      0.3, 0.5, 1, 0.9, 0.4, -0.5, -1, -1.2, -1.1, -0.8, -0.1, 1.1, 1.1, 1.3,
+      1.1,
     ],
     // No mono-below: the hall IS the recording, and summing its bottom end
     // throws away the space it was captured in.
@@ -248,34 +263,38 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.electronic',
     group: 'genre',
     gains: [
-      2.3, 1.9, 0.1, 1.1, -0.4, -1.5, -1.4, -0.4, 2.1, 1.2, -0.1, 0.9, 0.7, 0.8,
-      0.4,
+      2, 1.5, 1.2, -0.2, -1.8, -2.2, -2, -1.3, -0.4, 0, 0.3, 1.1, 1.7, 1.3, 0.5,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
   {
-    // 50-80 is where an 808 lives. The 3k lift keeps the vocal on top of it.
+    // 30-80 is where the kick and the 808 live, the 3k lift keeps the vocal
+    // on top of them, and the top is left dusty, the way a beat built from
+    // sampled records sounds.
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
-    // The bottom three bands are held a little under what the curve alone
-    // would take, because this chain also runs Bass Forge: the two together
-    // measured +6.5 dB below 60 Hz, past the +6 the catalogue keeps to.
+    // The sub is held where the catalogue's +6 dB below 60 Hz allows once
+    // Bass Forge's own octave is counted: this chain runs both, and the two
+    // measured together once reached +6.5.
     gains: [
-      1.8, 2, 2, -0.1, -1.2, -0.9, -0.4, 0.4, 0, 0.7, 1.1, 1, 0.3, -0.1, -0.4,
+      1.9, 1.1, 1.1, 1.1, -0.5, -2.4, -2.2, -0.9, -0.6, 0.3, 1.2, 0.4, -1, -1.7,
+      -2.2,
     ],
     // Sub-bass this heavy is where cancellation actually costs something,
     // so the mono corner sits above the fundamental rather than under it.
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
   {
-    // Body at 125-250 for the guitar's soundboard, and string detail up top.
+    // The boom under 50 eased and the soundboard's body at 125 kept, the
+    // 300-500 boxiness a close microphone adds taken out, the pick at 2-3k,
+    // the 4-6k brittleness of a steel string tamed, and air from 12k.
     id: 'acoustic',
     labelKey: 'dsp.eqPreset.acoustic',
     group: 'genre',
     gains: [
-      -0.7, -0.2, -1.7, 1.3, 0.5, 0.6, -0.1, -0.5, 0, 0.6, 1.7, 0.1, 0.7, 0.5,
-      0.3,
+      -1.1, -0.4, 0.6, 1.1, -0.3, -0.7, -0.7, -0.3, 0.2, 0.9, 1.1, -1.9, -0.2,
+      1.6, 1.6,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -356,13 +375,15 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 70 },
   },
   {
-    // The opposite: bass cut hard so it does not travel through a wall, and
-    // presence lifted so quiet dialogue still lands.
+    // The opposite: bass cut hard so it does not travel through a wall, the
+    // 500-2k middle where speech sits lifted a decibel so quiet dialogue
+    // still lands, and the top eased so nothing sharp carries either.
     id: 'lateNight',
     labelKey: 'dsp.eqPreset.lateNight',
     group: 'scene',
     gains: [
-      -9, -8, -5, -1.5, 0.3, 1, 1.3, 1.6, 1.8, 1.2, 0.5, -1, -1, -1.5, -2,
+      -9, -8, -5, -2.2, -0.4, 0.3, 0.6, 0.9, 1.1, 0.5, -0.2, -1.7, -1.7, -2.2,
+      -2.7,
     ],
     // What travels through a wall is the loud bass, not all of it. Static, the
     // bass is gone all evening; waiting for a threshold means a quiet passage
@@ -406,7 +427,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.car',
     group: 'device',
     gains: [
-      1.2, 0.6, -0.9, -1, -0.7, -0.3, 0.1, 0.3, 1, 1, 1.2, 1.3, 1.7, 1.4, 0.8,
+      0.9, 0.3, -1.2, -1.3, -1, -0.6, -0.2, 0, 0.7, 0.7, 0.9, 1, 1.4, 1.1, 0.5,
     ],
     setup: { model: 'wide', subsonicHz: 30, monoBelowHz: 100 },
   },
@@ -415,15 +436,20 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
      * Footsteps and reloads sit at 2-6k, and what buries them is the 200-500
      * an explosion fills the room with, not the explosion's own bottom.
      *
-     * So the cut moved down and got deeper (-3 at 200 and 315 against the -1
-     * it was), the lift moved to where the cues are, and the sub lift came
-     * back a decibel. All of it measured on the fair programme rather than
-     * the mono-safe one, which is what made the old curve look reasonable.
+     * So the cut moved down and got deeper (-3.7 at 200 and 315 now, against
+     * the -1 it was), the lift moved to where the cues are, and the sub lift
+     * came back. All of it measured on the fair programme rather than the
+     * mono-safe one, which is what made the old curve look reasonable — and
+     * the whole of it then set 0.7 dB lower, where it adds no loudness: a
+     * gaming preset that is simply louder wins for the wrong reason.
      */
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    gains: [2, 1.8, 0.8, -1, -3, -3, -1.5, 0.5, 1.5, 3, 3.5, 3, 2, 1.5, 1],
+    gains: [
+      1.3, 1.1, 0.1, -1.7, -3.7, -3.7, -2.2, -0.2, 0.8, 2.3, 2.8, 2.3, 1.3, 0.8,
+      0.3,
+    ],
     setup: {
       ...PROTECTED,
       model: 'proportional',
@@ -436,7 +462,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
     gains: [
-      1.1, 0.9, 0, -1.3, -1.4, -0.6, 0.2, 1, 1.7, 1.6, 1.5, 0.5, 0, 0, -0.3,
+      0.7, 0.5, -0.4, -1.7, -1.8, -1, -0.2, 0.6, 1.3, 1.2, 1.1, 0.1, -0.4, -0.4,
+      -0.7,
     ],
     setup: {
       model: 'wide',
@@ -459,7 +486,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.balanced',
     group: 'basic',
     gains: [
-      1.7, 1.7, -0.6, 0.8, 0.5, -1.4, -0.4, 0.6, 0.5, 0, -0.2, 0.8, 1, 1.2, 1.2,
+      1.4, 1.4, -0.9, 0.5, 0.2, -1.7, -0.7, 0.3, 0.2, -0.3, -0.5, 0.5, 0.7, 0.9,
+      0.9,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -475,8 +503,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.dimensionPreset.speakers',
     group: 'device',
     gains: [
-      1.4, 1.4, 0, 0.1, -0.5, -1.5, -1.1, -0.2, 0.2, -0.2, -0.2, 0.5, 0.3, 0.2,
-      -0.1,
+      1.5, 1.5, 0.1, 0.2, -0.4, -1.4, -1, -0.1, 0.3, -0.1, -0.1, 0.6, 0.4, 0.3,
+      0,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -494,7 +522,10 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'punch',
     labelKey: 'dsp.maximizerPreset.punch',
     group: 'character',
-    gains: [0, 0.5, 1.2, 0.8, -0.5, -2, -1.5, 0, 0.5, 1, 2, 2, 1, 0.5, 0],
+    gains: [
+      -0.3, 0.2, 0.9, 0.5, -0.8, -2.3, -1.8, -0.3, 0.2, 0.7, 1.7, 1.7, 0.7, 0.2,
+      -0.3,
+    ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
@@ -504,20 +535,26 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.warm',
     group: 'character',
     gains: [
-      0.8, 1.2, 0.6, 0.9, 0.6, 1.2, -0.3, -0.8, 0.5, -0.5, -1, -0.5, -0.2, -0.2,
-      -0.2,
+      0.5, 0.9, 0.3, 0.6, 0.3, 0.9, -0.6, -1.1, 0.2, -0.8, -1.3, -0.8, -0.5,
+      -0.5, -0.5,
     ],
     // Warm is a broad tilt, not saturation. Fuzz here was compounded by any
     // later character stage and was the grit reported from the full chain.
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
-    // The top two octaves only. What a lossy file lost, insofar as an EQ can
-    // lift what survived — it cannot put back what the encoder discarded.
+    // The top two octaves opened up, and nothing else: air as a character,
+    // for a record that is whole but closed-in. It was the lossy repair's
+    // curve as well until 2026-09-23, and a lossy file is the one record
+    // where lifting 12-16 kHz this far brings up what the encoder left
+    // there — its swirl — rather than any air (`lossyRestore`).
     id: 'air',
     labelKey: 'dsp.eqPreset.air',
     group: 'character',
-    gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1.5, 3, 4, 4.5],
+    gains: [
+      -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, 0.2, 1.2, 2.7,
+      3.7, 4.2,
+    ],
     setup: { ...PROTECTED, model: 'proportional', oversample: 2 },
   },
   {
@@ -575,26 +612,81 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
+    // A cassette or a reel transfer put back, not made to sound like one:
+    // the rumble and the head bump's excess taken out below 60 Hz, and what
+    // survived of the top lifted gently from 2 kHz — the rest of the top is
+    // the Tape repair chain's Exciter's, regenerated after the hiss is gone.
+    // No harmonics of its own. Tape already put its saturation on the
+    // recording, and a repair that adds more is adding distortion. It was
+    // the Character group's Tape until 2026-09-23, which made picking that
+    // one a repair and gave this chain the character's grit.
+    id: 'tapeRestore',
+    labelKey: 'dsp.eqPreset.tapeRestore',
+    group: 'repair',
+    gains: [
+      -4.4, -1.9, 0.4, 0.2, 0, -0.1, -0.1, 0.1, 0.4, 0.6, 0.8, 1.1, 1.1, 0.6,
+      0.1,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // A record's rip put back: rumble out below the groove, the bottom summed
+    // as the lathe cut it (bass that differs between the walls of the groove
+    // is the stylus riding rumble and warp, not music), the bass the rumble
+    // filter spared lifted, and a worn top end helped a little. Split from
+    // the Character group's Vinyl for the reason Tape repair was, and without
+    // its harmonics.
+    id: 'vinylRestore',
+    labelKey: 'dsp.eqPreset.vinylRestore',
+    group: 'repair',
+    gains: [
+      -4.6, -4.2, 3.6, 0.2, -0.2, -0.5, -0.5, -0.1, 0.2, 0.5, -0.3, 0.4, 1, 1.4,
+      0.3,
+    ],
+    setup: { model: 'wide', subsonicHz: 30, monoBelowHz: 150 },
+  },
+  {
+    // A lossy file's top put back as far as an EQ honestly can. An encoder
+    // cuts everything above its band — about 16 kHz at 128 kbps — and leaves
+    // its artifacts, the swirl, in the octave under the cut. So what
+    // survived of the top is lifted from 3 kHz, most around 8-12 kHz where
+    // the dullness is heard, and eased again at 16 kHz rather than pushed
+    // into the swirl; above the cut the chain's Exciter makes the missing
+    // harmonics from the band under it, which is what the restoration tools
+    // do (spectral recovery, a codec's own band replication) and which no
+    // boost can, there being nothing up there to boost.
+    id: 'lossyRestore',
+    labelKey: 'dsp.preset.lossyRepair',
+    group: 'repair',
+    gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3, 1, 1.8, 2, 1],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
     // Low mids up, top rolled off, and the one thing filters cannot do added
     // on the end. The tilt is what tape does to a spectrum; the harmonics are
-    // what it does that no arrangement of bands could.
+    // what it does that no arrangement of bands could. The curve it shipped
+    // with on 2026-08-22, back from the repair the Tape repair chain had
+    // made of it.
     id: 'tape',
     labelKey: 'dsp.eqPreset.tape',
     group: 'character',
     gains: [
-      -4, -1.5, 0.8, 0.6, 0.4, 0.3, 0.3, 0.5, 0.8, 1, 1.2, 1.5, 1.5, 1, 0.5,
+      0.8, 1.2, 1.8, 2.2, 1.8, 0.9, 0, -0.4, -0.8, -1.2, -1.6, -2, -2.6, -3.2,
+      -3.8,
     ],
     setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.35 },
   },
   {
     // What a record player does to a record, minus the wear: nothing below the
     // groove, the bottom summed the way a cutting lathe demands it, and a top
-    // end that gives up gently rather than at a wall.
+    // end that gives up gently rather than at a wall. Its 2026-08-22 curve,
+    // back from the repair, like Tape's.
     id: 'vinyl',
     labelKey: 'dsp.eqPreset.vinyl',
     group: 'character',
     gains: [
-      -4, -3.6, 4.2, 0.8, 0.4, 0.1, 0.1, 0.5, 0.8, 1.1, 0.3, 1, 1.6, 2, 0.9,
+      0, 0.4, 0.9, 1.3, 0.9, 0.4, 0, 0, -0.4, -0.9, -1.3, -1.8, -2.4, -3.2,
+      -4.2,
     ],
     setup: {
       model: 'wide',
@@ -637,145 +729,157 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
   },
   {
     // A hall recorded from the audience, which is what most orchestral
-    // recordings are. The 200-400 lift is the cellos and the room they are
-    // in, and the reason it is small is that a concert recording is already
-    // balanced — the mistake here is always doing too much.
+    // recordings are: the basses, the timpani and the room they sit in
+    // lifted up to 200, the 500-1k25 a full hall already fills eased back,
+    // and a little air. A concert recording is already balanced, so none of
+    // it goes past a couple of decibels.
     id: 'orchestra',
     labelKey: 'dsp.eqPreset.orchestra',
     group: 'genre',
-    gains: [1, 1.2, 1.4, 1.6, 1.4, 0.8, 0.3, 0, 0, 0.3, 0.8, 1.2, 1.6, 2, 2],
+    gains: [
+      0.5, 0.5, 0.7, 0.7, 0.9, -0.2, -0.8, -1, -0.8, -0.4, -0.2, -0.1, 0.7, 1.1,
+      1.1,
+    ],
     setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
   },
   {
-    // The 315 scoop is where a wall of distorted guitar turns to mud, and
-    // the 3-5k lift is pick attack — the thing that makes a riff readable
-    // rather than merely loud. Kick and snare keep their fundamentals.
+    // The 315-500 scoop is where a wall of distorted guitar turns to mud, and
+    // the 2-5k lift is pick attack — the thing that makes a riff readable
+    // rather than merely loud. The kick keeps its 80 Hz; the rumble under it
+    // comes out, so the low end stays tight at speed.
     id: 'metal',
     labelKey: 'dsp.eqPreset.metal',
     group: 'genre',
     gains: [
-      -0.9, -0.9, -0.1, 0.6, -0.8, -3.6, -2.4, -0.6, 1.4, 2.4, 2.9, 3.3, 1.7, 0,
-      -0.5,
+      -1.7, -0.1, 2, 0.6, -2.3, -4.4, -3.8, -1.5, 0.3, 1.8, 3, 2.6, 0.7, -0.2,
+      -0.8,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
     // Recorded fast and mixed faster. Everything it needs is between 100 and
-    // 4k, so the ends come down rather than the middle going up.
+    // 2k — the bass guitar's body and the guitars' raw mids — so the ends
+    // come down, and the 315 dip keeps the wall of guitars out of the mud.
     id: 'punk',
     labelKey: 'dsp.eqPreset.punk',
     group: 'genre',
     gains: [
-      0.3, 0.8, 1.3, 1.3, -0.2, -1.7, -1.2, -0.2, 0.8, 1.3, 1.3, 0.3, -0.7,
-      -1.7, -2.7,
+      -2.8, -0.9, 1.3, 0.7, -1.1, -2.2, -1.5, 0.5, 2, 2, 0.1, -2.5, -2.5, -1.5,
+      -0.7,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
     // The bass IS the arrangement, and it is a fundamental rather than a
-    // click: 50-80 rather than the 100+ a modern mix leans on. The 315 dip
-    // keeps the skank guitar from crowding it.
+    // click: 30-125 lifted, the most at 80. The 315-800 dip keeps the skank
+    // guitar from crowding it, and the top stays warm, the way roots records
+    // were cut.
     id: 'reggae',
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
     gains: [
-      0.5, 0.7, 1.6, 1.5, 0.4, -1.2, -0.3, 1, -0.6, -0.4, 0.1, -0.5, -0.7, -0.6,
-      -0.9,
+      1.9, 1.3, 1.9, 1.8, -0.2, -1.7, -2.1, -1.5, -1.4, -0.7, -0.3, -0.6, -1.3,
+      -1.7, -2.2,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
   {
-    // Acoustic guitar body at 125-200, vocal presence at 2-3k, and the
-    // string and brush detail that lives above 8k. Nothing scooped: this is
-    // music that is mixed to be heard whole.
+    // Acoustic guitar body at 125, the voice and the twang at 2-4k, and the
+    // string and brush detail above 8k kept. The 500-800 is eased a little
+    // to let the voice through, not scooped: this is music mixed to be
+    // heard whole.
     id: 'country',
     labelKey: 'dsp.eqPreset.country',
     group: 'genre',
-    gains: [0, 0.3, 0.9, 1, 0.3, -0.5, -0.3, 0, 0.6, 1, 1, 0.9, 1, 1, 0.6],
+    gains: [
+      -0.5, -0.3, 0.2, 0.6, 0.2, -1.2, -2, -1.6, -0.1, 1.7, 2.1, 0.7, 0.1, 0,
+      -0.2,
+    ],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
-    // Valve amplifiers and a voice. The 800-1k25 lift is the honk that makes
-    // a cranked amp sound cranked, and taking it out is what makes most
-    // blues playback sound polite.
+    // Valve amplifiers and a voice. The mids from 125 to 1k25 are carried
+    // above everything else — the honk that makes a cranked amp sound
+    // cranked, and taking it out is what makes most blues playback sound
+    // polite — with the boom under 50 out and everything from 2k up a
+    // decibel down, where a guitar speaker gives up.
     id: 'blues',
     labelKey: 'dsp.eqPreset.blues',
     group: 'genre',
     gains: [
-      0.7, 1.2, 1.2, 0.7, -0.3, -0.8, 0, 1, 1.2, 0.7, 0.1, 0, 0, -0.3, -0.8,
+      -2.2, -1.1, 0.3, 0.8, 0.7, 0.3, 0.4, 0.6, 0.2, -0.8, -0.7, -1.1, -1.1,
+      -0.9, -0.7,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
     // Deliberately narrowed: the ends give up early and the middle carries
     // everything, which is what a sampled record through a cheap chain does.
-    // The fuzz is the part no filter could produce.
+    // No fuzz since 2026-09-23: a lo-fi record already carries its tape and
+    // sampler grit, the genre's research says to add no harmonics to it (its
+    // Exciter is offered and left off for the same reason), and this was the
+    // last curve in the catalogue adding distortion of its own.
     id: 'lofi',
     labelKey: 'dsp.eqPreset.lofi',
     group: 'genre',
-    // Drawn 0.3 dB up on 2026-09-22, when the gentle compressor whose makeup
-    // carried part of this chain's level went out of the rack: the gate then
-    // measured it 1.8 dB under DSP Off. The middle it leans on is where
-    // music keeps its energy, so a level move of the whole curve moves the
-    // chain by about three times itself — which is why the step is small.
     gains: [
-      -1.6, -0.6, 0.9, 2.4, 2.4, 1.6, 0.9, 0.9, 0.9, 0.4, -0.6, -2.1, -3.6,
-      -5.1, -6.6,
+      -2.4, -1.3, 0.5, 1.6, 1.6, 1, 0.3, -0.2, -0.8, -1.3, -1.8, -1, -1.5, -1.8,
+      -1.8,
     ],
-    setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
+    setup: { ...PROTECTED, model: 'wide' },
   },
   {
     // Nothing here is a transient, so nothing needs presence. Sub and air,
-    // and the midrange left exactly alone so the pads keep their shape.
+    // paid for with a broad, shallow dip through the mids rather than any
+    // one band, so the pads keep their shape.
     id: 'ambient',
     labelKey: 'dsp.eqPreset.ambient',
     group: 'genre',
     gains: [
-      2.6, 2.6, 0.3, 1.2, 0.3, -0.2, 0, 0.1, -0.1, -0.1, 0.4, 0.4, 1.4, 2.2,
-      2.7,
+      1.8, 1.6, 1.3, 0.2, -0.5, -1.3, -1.4, -1, -1, -1, -1.2, -0.1, 1.6, 1.8,
+      1.6,
     ],
     setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
   },
   {
     // An 808 is a sine wave with a long tail, and it lives below where most
-    // speakers stop. The 250-500 cut is the room the hi-hats need.
+    // speakers stop. The 200-500 cut clears the space between it and the
+    // voice, and the hi-hats get their 8-12k.
     id: 'trap',
     labelKey: 'dsp.eqPreset.trap',
     group: 'genre',
-    // The bottom two bands come down from 3.6 and 3.2, because this is the
-    // one chain where the curve is not the only thing making sub: Bass Forge
-    // generates a real octave under the 808 as well, and the two together
-    // measured +7.8 dB below 60 Hz — past the +6 the catalogue holds itself
-    // to, which is a small speaker's excursion and everything above it
-    // losing headroom.
+    // The sub is held where the catalogue's +6 dB below 60 Hz allows once
+    // Bass Forge's own octave under the 808 is counted: the two together
+    // once measured +7.8 — a small speaker's excursion, and everything above
+    // it losing headroom.
     gains: [
-      1.7, 1.6, 1.5, 0.9, -0.8, -1.8, -1.3, -0.3, 0.5, 1.2, 1.6, 1.6, 1.9, 1.6,
-      0.9,
+      0.7, 0.7, 1.4, 0.1, -1.5, -2.4, -1.9, -0.8, -0.2, -0.1, 0.4, 1.5, 1.2,
+      1.2, 2,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
   {
     // Two things at once: a sub that has to be felt and a break that has to
-    // be heard. The 2-5k lift is the break, the 315 cut is what stops the
+    // be heard. The 3-5k lift is the break, the 315-500 cut is what stops the
     // two fighting.
     id: 'drumBass',
     labelKey: 'dsp.eqPreset.drumBass',
     group: 'genre',
     gains: [
-      2.7, 2.3, -1, 1.2, -0.7, -3.3, -2, -0.6, 0.6, 0.5, 0.3, 1.2, 0.3, -0.2,
-      -0.5,
+      0.9, 0.9, 1.1, 0.3, -1.1, -2.4, -2.7, -1.6, 0, 0.7, 1.3, 2, 0.9, -0.2,
+      -1.2,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
   {
     // A piano covers nearly the whole band, so this is mostly restraint. The
-    // 250-400 dip is the soundboard boom a close mic always picks up, and
-    // the 8k lift is hammer felt rather than brightness.
+    // 315-500 dip is the soundboard boom a close mic always picks up, and
+    // the 3-8k lift is the hammers rather than brightness.
     id: 'piano',
     labelKey: 'dsp.eqPreset.piano',
     group: 'genre',
     gains: [
-      1.4, 1.6, 1.8, 1.4, -0.1, -0.6, 0.4, 0.9, 1.4, 1.6, 1.8, 2, 2.4, 2.2, 1.6,
+      -0.2, -0.1, 0.8, 1.3, 0, -2.4, -1.7, 0, -0.6, -0.3, 1.1, 1.9, 1.4, 0.6, 0,
     ],
     setup: { ...PROTECTED, model: 'clean' },
   },
@@ -785,7 +889,10 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'strings',
     labelKey: 'dsp.eqPreset.strings',
     group: 'genre',
-    gains: [0, 0.5, 1, 1.5, 1, 0.3, 0, 0, -0.5, -1.3, -1.5, 0, 1, 1.7, 2],
+    gains: [
+      -0.8, -0.5, -0.2, 0.6, 1.3, 1.1, 0.5, -0.5, -1.8, -2.3, -1.9, -0.4, 1.4,
+      1.9, 1.9,
+    ],
     setup: { ...PROTECTED, model: 'wide' },
   },
   {
@@ -886,13 +993,13 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
     group: 'device',
-    // Drawn 1.2 dB lower than it measured, for the same reason as `lofi`: the
-    // lift sits where the energy is, so a curve averaging flat played 2.5 dB
-    // louder than DSP Off. The shape is untouched — the bottom stays as far
-    // below the lift as it was.
+    // Set as a whole like every curve here (see `gains`), and the one that
+    // shows why: the lift sits where the energy is, so this curve averaging
+    // flat once played 2.5 dB louder than DSP Off. The shape is untouched —
+    // the bottom stays as far below the lift as it was.
     gains: [
-      -8.4, -7.4, -4.6, -2.4, 1.1, 1, 0.3, 0.2, 0.7, 1, 1.3, 0.6, 0.2, -1.3,
-      -2.2,
+      -8.2, -7.2, -4.4, -2.2, 1.3, 1.2, 0.5, 0.4, 0.9, 1.2, 1.5, 0.8, 0.4, -1.1,
+      -2,
     ],
     setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 200 },
   },
@@ -904,8 +1011,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.openBack',
     group: 'device',
     gains: [
-      1.9, 1.5, 0.8, 0.4, -0.3, -0.4, -0.6, -0.4, 0.1, -0.2, -0.2, 0.2, 0.5,
-      0.6, 0.1,
+      1.7, 1.3, 0.6, 0.2, -0.5, -0.6, -0.8, -0.6, -0.1, -0.4, -0.4, 0, 0.3, 0.4,
+      -0.1,
     ],
     setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
   },
@@ -917,8 +1024,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.audiobook',
     group: 'voice',
     gains: [
-      -8.5, -6.5, -4.6, 0.7, 1.5, 2.8, 2.6, 2, 2.2, 1.5, 0.5, -9.5, -9.2, -5.6,
-      -5.6,
+      -9.4, -7.4, -5.5, -0.2, 0.6, 1.9, 1.7, 1.1, 1.3, 0.6, -0.4, -9.5, -9.2,
+      -6.5, -6.5,
     ],
     dynamic: [
       null,
@@ -1000,7 +1107,8 @@ export const isCompleteEqPreset = (preset: IEqPreset): boolean =>
  * Qs, enabled flags and dynamic state, so the same preset could sound different
  * depending on the edit made immediately before it. A preset is deterministic:
  * every audible value is assigned here, while only the processor's power state
- * remains the user's decision.
+ * and its Treble choice remain the user's decision — the Treble is how every
+ * band plays near the top, not a part of any one curve, as the main EQ's is.
  */
 export const eqSettingsForPreset = (
   current: IEqSettings,
@@ -1015,6 +1123,7 @@ export const eqSettingsForPreset = (
       ...DSP_DEFAULTS.eq,
       enabled: current.enabled,
       isolate: false,
+      treble: current.treble,
       presetId: preset.id,
       bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band })),
     };
@@ -1036,6 +1145,7 @@ export const eqSettingsForPreset = (
     ...setup,
     enabled: current.enabled,
     isolate: false,
+    treble: current.treble,
     presetId: preset.id,
     bands,
     sourceBands: bands.map((band) => ({ ...band })),

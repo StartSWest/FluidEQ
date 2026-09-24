@@ -46,38 +46,80 @@ int feq_chain_settings_decode(const double* values,
   // read a Q as a threshold and still sound plausible.
   const uint32_t legacy_count = FEQ_CHAIN_PARAM_LEAD +
                    static_cast<uint32_t>(band_count) * FEQ_CHAIN_BAND_PARAMS;
-  // A trailer leaves every existing band offset intact. Older saved snapshots
-  // still decode with the normalizer off instead of shifting their EQ bands.
-  // And after the normalizer's three, game mode's one — written only when it
-  // is on, so a rack that does not ask for it is the line it always was.
-  const bool extended_room = count == legacy_count + FEQ_CHAIN_MAX_TRAILER;
-  if (count != legacy_count && count != legacy_count + 3 &&
-      count != legacy_count + 4 && !extended_room) {
-    return 0;
-  }
-  if (count == legacy_count + 4 || extended_room) {
-    const double low_latency = values[legacy_count + 3];
-    if (low_latency != 0.0 && low_latency != 1.0) return 0;
-  }
-  if (count >= legacy_count + 3) {
-    const double mode = values[legacy_count];
-    const double ceiling = values[legacy_count + 1];
-    const double target = values[legacy_count + 2];
-    if (!std::isfinite(mode) || mode < 0 || mode > 2 || std::floor(mode) != mode ||
-        !std::isfinite(ceiling) || ceiling < -12 || ceiling > -0.1 ||
-        !std::isfinite(target) || target < -24 || target > -5) return 0;
-  }
-
   // Validate before writing out: a refused snapshot leaves the live rack alone.
   for (uint32_t index = 0; index < count; ++index) {
     if (!std::isfinite(values[index])) return 0;
   }
+
+  // A trailer leaves every existing band offset intact. Older saved snapshots
+  // still decode with the normalizer off instead of shifting their EQ bands.
+  // After the normalizer's three comes game mode's one — written only when it
+  // is on, or when a tagged trailer follows it — then the Room's trailer and
+  // the tone's, each recognised by its tag and each only where the one before
+  // it may stand. Anything else is a line this engine does not know.
+  const uint32_t tail = count - legacy_count;
+  if (count < legacy_count || tail == 1 || tail == 2) {
+    return 0;
+  }
+  const bool has_normalizer = tail >= 3;
+  const bool has_low_latency = tail >= 4;
+  uint32_t trailer_at = legacy_count + 4;
+  const bool extended_room =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_ROOM_TAG;
+  if (extended_room) {
+    if (count < trailer_at + FEQ_CHAIN_ROOM_TRAILER) return 0;
+    trailer_at += FEQ_CHAIN_ROOM_TRAILER;
+  }
+  const bool has_tone = has_low_latency && count > trailer_at;
+  uint32_t tone_bands = 0;
+  if (has_tone) {
+    const double* tone = values + trailer_at;
+    if (count < trailer_at + FEQ_CHAIN_TONE_HEADER ||
+        tone[0] != FEQ_CHAIN_TONE_TAG || tone[1] != FEQ_CHAIN_TONE_SCHEMA ||
+        tone[2] < 1 || tone[2] > FEQ_CHAIN_MAX_TONE_BANDS ||
+        std::floor(tone[2]) != tone[2] || (tone[3] != 0 && tone[3] != 1)) {
+      return 0;
+    }
+    tone_bands = static_cast<uint32_t>(tone[2]);
+    if (count != trailer_at + FEQ_CHAIN_TONE_HEADER +
+                     tone_bands * FEQ_CHAIN_TONE_BAND_PARAMS) {
+      return 0;
+    }
+    // Bells and shelves only, the bands with an inverse, at values a curve
+    // can hold.
+    for (uint32_t band = 0; band < tone_bands; ++band) {
+      const double* read =
+          tone + FEQ_CHAIN_TONE_HEADER + band * FEQ_CHAIN_TONE_BAND_PARAMS;
+      const bool bell_or_shelf =
+          read[0] == static_cast<double>(FEQ_FILTER_PK) ||
+          read[0] == static_cast<double>(FEQ_FILTER_LSC) ||
+          read[0] == static_cast<double>(FEQ_FILTER_HSC);
+      if (!bell_or_shelf || read[1] < 10 || read[1] > 40000 ||
+          read[2] < -30 || read[2] > 30 || read[3] < 0.05 || read[3] > 40) {
+        return 0;
+      }
+    }
+  }
+  if (has_low_latency) {
+    const double low_latency = values[legacy_count + 3];
+    if (low_latency != 0.0 && low_latency != 1.0) return 0;
+  }
+  if (has_normalizer) {
+    const double mode = values[legacy_count];
+    const double ceiling = values[legacy_count + 1];
+    const double target = values[legacy_count + 2];
+    if (mode < 0 || mode > 2 || std::floor(mode) != mode ||
+        ceiling < -12 || ceiling > -0.1 || target < -24 || target > -5) {
+      return 0;
+    }
+  }
   if (extended_room) {
     const double* room = values + legacy_count + 4;
-    if (room[0] != FEQ_CHAIN_ROOM_TAG || room[1] != FEQ_CHAIN_ROOM_SCHEMA ||
-        room[2] != FEQ_CHAIN_ROOM_FIELDS || (room[3] != 1 && room[3] != 2) ||
-        room[4] < -60 || room[4] > 0 || room[5] < 0 || room[5] > 1 ||
-        room[6] < 0.1 || room[6] > 1.8 || room[7] < 1000 || room[7] > 12000) {
+    if (room[1] != FEQ_CHAIN_ROOM_SCHEMA || room[2] != FEQ_CHAIN_ROOM_FIELDS ||
+        (room[3] != 1 && room[3] != 2) || room[4] < -60 || room[4] > 0 ||
+        room[5] < 0 || room[5] > 1 || room[6] < 0.1 || room[6] > 1.8 ||
+        room[7] < 1000 || room[7] > 12000) {
       return 0;
     }
     for (uint32_t index = 8; index < FEQ_CHAIN_ROOM_TRAILER; ++index) {
@@ -208,7 +250,9 @@ int feq_chain_settings_decode(const double* values,
   out->room.centre_db = next();
   out->room.sub_db = next();
   out->room.head = static_cast<int>(next());
-  out->room.correct_headphones = flag();
+  // The Room's retired headphone slot, which carries the EQ's Treble choice
+  // since 1.16 (`FeqChainEqSettings::matched`).
+  out->eq.matched = flag();
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     out->room.angle_deg[speaker] = next();
   }
@@ -253,7 +297,7 @@ int feq_chain_settings_decode(const double* values,
     out->eq.bands[band].dynamic = flag();
     out->eq.bands[band].threshold_db = next();
   }
-  if (count >= legacy_count + 3) {
+  if (has_normalizer) {
     const double mode = next();
     const double ceiling = next();
     const double target = next();
@@ -261,7 +305,7 @@ int feq_chain_settings_decode(const double* values,
     out->normalizer.ceiling_db = ceiling;
     out->normalizer.target_lufs = target;
   }
-  if (count == legacy_count + 4 || extended_room) {
+  if (has_low_latency) {
     out->low_latency = flag();
   }
   if (extended_room) {
@@ -274,6 +318,18 @@ int feq_chain_settings_decode(const double* values,
     out->room.preserve_position = flag();
     out->room.compare_original = flag();
     out->room.source_already_spatial = flag();
+  }
+  if (has_tone) {
+    at += 3; // validated tag, schema and band count
+    out->tone.band_count = tone_bands;
+    out->tone.matched = flag();
+    for (uint32_t band = 0; band < tone_bands; ++band) {
+      out->tone.bands[band].type =
+          static_cast<FeqFilterType>(static_cast<int>(next()));
+      out->tone.bands[band].frequency = next();
+      out->tone.bands[band].gain_db = next();
+      out->tone.bands[band].quality = next();
+    }
   }
   return at == count ? 1 : 0;
 }

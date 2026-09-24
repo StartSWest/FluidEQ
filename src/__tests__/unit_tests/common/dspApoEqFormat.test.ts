@@ -25,6 +25,7 @@ const withBands = (
   oversample: 1,
   subsonicHz: 0,
   fuzzAmount: 0,
+  treble: 'precise',
   presetId: '',
   sourceBands: [],
   bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({

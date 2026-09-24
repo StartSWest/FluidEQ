@@ -153,6 +153,9 @@ const ALIASES: Record<string, string> = {
   blues: 'jazz',
   trap: 'hiphop',
   vinyl: 'hiphop',
+  // The EQ's repair curves, drawn as what they repair.
+  vinylRestore: 'hiphop',
+  tapeRestore: 'tape',
   orchestra: 'classical',
   lofi: 'tape',
   soul: 'jazz',
@@ -268,8 +271,11 @@ const ALIASES: Record<string, string> = {
   openAir: 'air',
   frontStage: 'stage',
   livingRoom: 'smallSpeakers',
-  // The Exciter profile that rebuilds the octave an encoder threw away.
+  // The Exciter profile that rebuilds the octave an encoder threw away, and
+  // the EQ curve and ceiling of the same repair.
   'lossy-repair': 'air',
+  lossyRestore: 'air',
+  lossy: 'air',
   // Repairs, all of them a notch.
   deEss: 'notch',
   sibilance: 'notch',

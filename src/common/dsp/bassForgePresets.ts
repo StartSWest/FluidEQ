@@ -168,48 +168,6 @@ export const BASS_FORGE_PRESET_BY_ID = {
     settings: profile(90, 0.5, 0, 1.6, 1, 0.5),
   },
 
-  hiphop: {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    settings: profile(100, 1.5, 0.7, 0.6, 0.75, 0.35),
-  },
-  electronic: {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    // Synthesised low end has no acoustic transient to protect, the same
-    // reasoning the Exciter and Maximizer catalogues use for this genre.
-    settings: profile(100, 4, 0.85, 0.8, 0.6, 0.65),
-  },
-  rock: {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    settings: profile(90, 2.5, 0.85, 0.8, 0.7, 0.4),
-  },
-  dub: {
-    id: 'dub',
-    labelKey: 'dsp.bassForgePreset.dub',
-    group: 'genre',
-    // The highest subAmount in the catalogue, against a narrow split: dub's
-    // low end is a handful of very low notes, not a wide bassline, and the
-    // genre wants the deepest of them made real rather than merely implied.
-    settings: profile(80, 0.5, 1.2, 0.5, 0.95, 0.35),
-  },
-  pop: {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
-    group: 'genre',
-    settings: profile(90, 1, 0.9, 0.9, 0.8, 0.3),
-  },
-  trap: {
-    id: 'trap',
-    labelKey: 'dsp.eqPreset.trap',
-    group: 'genre',
-    settings: profile(75, 3.5, 1.15, 0.85, 0.8, 0.65),
-  },
-
   laptop: {
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
@@ -254,7 +212,19 @@ export const BASS_FORGE_PRESET_BY_ID = {
     id: 'car',
     labelKey: 'dsp.eqPreset.car',
     group: 'scene',
-    settings: profile(100, 2.5, 0.75, 0.65, 0.75, 0.55),
+    /**
+     * The harmonics of the bass and nothing else, because a cabin supplies
+     * the rest.
+     *
+     * Road noise is loudest exactly where the bass is, so the octave above a
+     * note is what carries it over the tyres; the note itself a closed cabin
+     * already lifts, rising at up to 12 dB per octave below its first mode —
+     * the reason the Car curve cuts the boom. So no octave below (it would
+     * land in that lift) and no Drive, whose grit this profile had with neither
+     * a reason nor a word for it: a 60 Hz note came back with 30 and 90 Hz
+     * beside it 15 dB under it (2026-09-23).
+     */
+    settings: profile(100, 0, 0, 0.65, 0.75, 0.55),
   },
   club: {
     id: 'club',
@@ -300,9 +270,12 @@ export const BASS_FORGE_PRESETS: readonly IBassForgePreset[] = Object.values(
 export const isBassForgePresetId = (id: string): id is TBassForgePresetId =>
   Object.prototype.hasOwnProperty.call(BASS_FORGE_PRESET_BY_ID, id);
 
-/** Build a fresh live processor state; bypass is the caller's to decide. */
-export const bassForgePresetSettings = (
-  id: TBassForgePresetId,
+/**
+ * A fresh live processor state from any profile, this table's or a genre's;
+ * bypass is the caller's to decide.
+ */
+export const bassForgeSettingsOf = (
+  preset: IBassForgePreset,
   enabled: boolean,
 ): IBassForgeSettings => ({
   enabled,
@@ -310,6 +283,13 @@ export const bassForgePresetSettings = (
   // profile never turns the monitor on -- it would be a preset that plays
   // something other than what it is named after.
   isolate: false,
-  presetId: id,
-  ...BASS_FORGE_PRESET_BY_ID[id].settings,
+  presetId: preset.id,
+  ...preset.settings,
 });
+
+/** Build a fresh live processor state; bypass is the caller's to decide. */
+export const bassForgePresetSettings = (
+  id: TBassForgePresetId,
+  enabled: boolean,
+): IBassForgeSettings =>
+  bassForgeSettingsOf(BASS_FORGE_PRESET_BY_ID[id], enabled);

@@ -301,6 +301,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'Убрать гул',
   'dsp.eqPreset.tape': 'Плёнка',
   'dsp.eqPreset.vinyl': 'Винил',
+  'dsp.eqPreset.tapeRestore': 'Восстановить плёнку',
+  'dsp.eqPreset.vinylRestore': 'Восстановить винил',
   'dsp.eqPreset.liveVocal': 'Живой вокал',
   'dsp.eqPreset.orchestra': 'Оркестр',
   'dsp.eqPreset.metal': 'Метал',
@@ -376,6 +378,8 @@ const dsp = {
   'dsp.eqOversample.label': 'Передискр.',
   'dsp.eqOversample.off': 'Выкл',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    'Точный: каждая полоса этого эквалайзера звучит ровно так, как нарисована, вплоть до 20\u00a0кГц.',
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',
   'dsp.eqImport.hint':
     'Вставьте кривую из Squiglink, AutoEq или Equalizer APO — либо выберите файл с ней.',
@@ -477,7 +481,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'Сухой',
   'dsp.bassForgePreset.wet': 'Влажный',
   'dsp.bassForgePreset.phantom': 'Фантом',
-  'dsp.bassForgePreset.dub': 'Даб',
 
   'dsp.bassPunch.title': 'Бас-панч',
   'dsp.bassPunch.isolate': 'Изолировать',
@@ -506,7 +509,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'Сухой',
   'dsp.bassPunchPreset.wet': 'Влажный',
   'dsp.bassPunchPreset.soft': 'Мягкий',
-  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.dimension.historyLabel': 'Боковой и средний во времени',
   'dsp.dimension.legendCorrelation': 'Корреляция',

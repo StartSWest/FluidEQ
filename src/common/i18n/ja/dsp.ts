@@ -296,6 +296,8 @@ const dsp = {
   'dsp.eqPreset.tameBoom': 'ブーミー除去',
   'dsp.eqPreset.tape': 'テープ',
   'dsp.eqPreset.vinyl': 'レコード',
+  'dsp.eqPreset.tapeRestore': 'テープを補修',
+  'dsp.eqPreset.vinylRestore': 'レコードを補修',
   'dsp.eqPreset.liveVocal': 'ライブボーカル',
   'dsp.eqPreset.orchestra': 'オーケストラ',
   'dsp.eqPreset.metal': 'メタル',
@@ -373,6 +375,8 @@ const dsp = {
   'dsp.eqOversample.label': 'オーバーサンプリング',
   'dsp.eqOversample.off': 'オフ',
   'dsp.eqOversample.on': '2x',
+  'dsp.eqTreble.preciseHint':
+    '精密：この EQ のすべてのバンドを描いたとおりに、20\u00a0kHz まで鳴らします。',
   'dsp.eqImport.title': 'EQ カーブを読み込む',
   'dsp.eqImport.hint':
     'Squiglink、AutoEq、Equalizer APO のカーブを貼り付けるか、そのファイルを選んでください。',
@@ -471,7 +475,6 @@ const dsp = {
   'dsp.bassForgePreset.dry': 'ドライ',
   'dsp.bassForgePreset.wet': 'ウェット',
   'dsp.bassForgePreset.phantom': 'ファントム',
-  'dsp.bassForgePreset.dub': 'ダブ',
 
   'dsp.bassPunch.title': 'ベースパンチ',
   'dsp.bassPunch.isolate': 'アイソレート',
@@ -500,7 +503,6 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'ドライ',
   'dsp.bassPunchPreset.wet': 'ウェット',
   'dsp.bassPunchPreset.soft': 'ソフト',
-  'dsp.bassPunchPreset.dnb': 'ドラムンベース',
 
   'dsp.dimension.historyLabel': 'サイドとミッドの推移',
   'dsp.dimension.legendCorrelation': '相関',

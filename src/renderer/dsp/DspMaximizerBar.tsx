@@ -7,11 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { IMaximizerSettings } from '../../common/dsp/chain';
 import {
   IMaximizerPreset,
-  MAXIMIZER_PRESETS,
   MAXIMIZER_PRESET_GROUPS,
-  isMaximizerPresetId,
-  maximizerPresetSettings,
 } from '../../common/dsp/maximizerPresets';
+import { MAXIMIZER_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -56,8 +54,9 @@ const DspMaximizerBar = ({
 }: IDspMaximizerBarProps) => {
   const { t } = useTranslation();
   const entries: IRichPickEntry[] = MAXIMIZER_PRESET_GROUPS.flatMap((group) =>
-    MAXIMIZER_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
+    MAXIMIZER_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
         hint: profileHint(preset),
@@ -65,16 +64,19 @@ const DspMaximizerBar = ({
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
         ),
-      }),
-    ),
+      })),
   );
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
-    if (!isMaximizerPresetId(id)) {
+    const next = MAXIMIZER_CATALOGUE.settings(
+      id,
+      enable ? true : maximizer.enabled,
+    );
+    if (next === undefined) {
       return;
     }
-    onChange(maximizerPresetSettings(id, enable ? true : maximizer.enabled));
+    onChange(next);
     onCommit();
   };
 

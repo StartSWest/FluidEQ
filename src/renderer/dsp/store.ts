@@ -15,7 +15,12 @@ import {
   ANALYSIS_BASS_FORGE_BANDS,
   IHostAnalysisLoudness,
 } from '../../common/dsp/analysisWire';
-import { encodeChainSettings } from '../../common/dsp/chainWire';
+import {
+  appendPresetTone,
+  encodeChainSettings,
+  IPresetTone,
+} from '../../common/dsp/chainWire';
+import { readPresetTone, updatePresetTone } from './presetToneStore';
 import { sendSystemDspChain } from './systemChain';
 import {
   IRackGate,
@@ -150,11 +155,24 @@ const subscribe = (listener: () => void) => {
  * The send is de-duplicated inside `systemChain.ts`.
  */
 const pushSystemChain = (): void => {
+  const rack = rackFor(readDspSettings(), engineRunsRack(readRackGate()));
+  // A rack switched off at the root carries no curve: nothing limits through
+  // it, and the engine reloads every output on each write it sees.
+  const line = encodeChainSettings(rack);
   sendSystemDspChain(
-    encodeChainSettings(
-      rackFor(readDspSettings(), engineRunsRack(readRackGate())),
-    ),
+    rack.enabled ? appendPresetTone(line, readPresetTone()) : line,
   );
+};
+
+/**
+ * The curve the Preset layer plays after the rack (`presetToneStore.ts`),
+ * and the engine's copy of the rack sent again with it. The player's copy
+ * follows through `usePresetTone`.
+ */
+export const setDspPresetTone = (next: IPresetTone | undefined): void => {
+  if (updatePresetTone(next)) {
+    pushSystemChain();
+  }
 };
 
 /**

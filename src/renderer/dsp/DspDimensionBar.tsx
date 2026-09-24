@@ -6,12 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IDimensionSettings } from '../../common/dsp/chain';
 import {
-  DIMENSION_PRESETS,
   DIMENSION_PRESET_GROUPS,
   IDimensionPreset,
-  dimensionPresetSettings,
-  isDimensionPresetId,
 } from '../../common/dsp/dimensionPresets';
+import { DIMENSION_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -56,8 +54,9 @@ const DspDimensionBar = ({
 }: IDspDimensionBarProps) => {
   const { t } = useTranslation();
   const entries: IRichPickEntry[] = DIMENSION_PRESET_GROUPS.flatMap((group) =>
-    DIMENSION_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
+    DIMENSION_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
         hint: profileHint(preset),
@@ -65,16 +64,19 @@ const DspDimensionBar = ({
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
         ),
-      }),
-    ),
+      })),
   );
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
-    if (!isDimensionPresetId(id)) {
+    const next = DIMENSION_CATALOGUE.settings(
+      id,
+      enable ? true : dimension.enabled,
+    );
+    if (next === undefined) {
       return;
     }
-    onChange(dimensionPresetSettings(id, enable ? true : dimension.enabled));
+    onChange(next);
     onCommit();
   };
 

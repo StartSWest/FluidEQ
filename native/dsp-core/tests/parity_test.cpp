@@ -262,9 +262,12 @@ constexpr Superseded kSuperseded[] = {
      "the Gaming compressor). Held now by crossover_test.cpp, on the response "
      "of the bands put back together"},
     {kPhaseAlign, {},
-     "the exciter's Timing delays those same bands, so it inherited the hole: "
-     "six exciter profiles measured a 2-4 dB scoop through 250-1000 Hz that "
-     "nothing in their settings asked for. Same split, same date"},
+     "the exciter's Timing delayed those same bands, so it inherited the "
+     "hole: six exciter profiles measured a 2-4 dB scoop through 250-1000 Hz "
+     "that nothing in their settings asked for. Same split, same date. Since "
+     "2026-09-22 it is two all-pass sections and splits nothing, which is the "
+     "only way bands delayed against each other stop cancelling where they "
+     "meet; exciter_test.cpp holds it flat"},
     {kLinearPhase, kFocusedKernels,
      "the Focused character narrows by the equaliser page's own law since "
      "2026-09-20, and the linear-phase kernels are built from the same "
@@ -816,20 +819,11 @@ bool render_phase_align(const Fixture& fixture, std::vector<float>& actual) {
     return false;
   }
   const double rate = static_cast<double>(fixture.sample_rate);
-  const uint32_t low_capacity = feq_phase_align_low_capacity(rate);
-  const uint32_t mid_capacity = feq_phase_align_mid_capacity(rate);
 
   actual = fixture.input;
   for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
-    std::vector<float> low(fixture.frames);
-    std::vector<float> mid(fixture.frames);
-    std::vector<float> high(fixture.frames);
-    std::vector<float> low_line(low_capacity);
-    std::vector<float> mid_line(mid_capacity);
     FeqPhaseAlign state;
-    feq_phase_align_init(&state, low.data(), mid.data(), high.data(),
-                         low_line.data(), low_capacity, mid_line.data(),
-                         mid_capacity);
+    feq_phase_align_init(&state);
     feq_phase_align_process(&state, channel_at(actual, channel, fixture.frames),
                             fixture.frames, fixture.params[0], rate);
   }
@@ -1038,6 +1032,8 @@ bool render_linear_phase(const Fixture& fixture, std::vector<float>& actual) {
       static_cast<FeqEqEngine>(static_cast<int>(fixture.params[0]));
   rack.model = static_cast<FeqEqModel>(static_cast<int>(fixture.params[1]));
   rack.model_amount = fixture.params[2];
+  // Frozen from the TypeScript rack, which had only the cookbook.
+  rack.matched = 0;
   rack.subsonic_hz = fixture.params[3];
 
   actual.assign(FEQ_LINEAR_PHASE_KERNEL_SIZE, 0.0f);

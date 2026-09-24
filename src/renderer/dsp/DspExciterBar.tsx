@@ -5,11 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  EXCITER_PRESETS,
   EXCITER_PRESET_GROUPS,
-  exciterPresetSettings,
-  isExciterPresetId,
+  IExciterPreset,
 } from '../../common/dsp/exciterPresets';
+import { EXCITER_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import {
   EQ_STEREO_MODES,
   IExciterSettings,
@@ -35,7 +34,7 @@ const BAND_LABELS: readonly TranslationKey[] = [
 
 /** A preset's audible sections, derived from the settings that are applied. */
 const profileHint = (
-  preset: (typeof EXCITER_PRESETS)[number],
+  preset: IExciterPreset,
   t: ReturnType<typeof useTranslation>['t'],
 ): string => {
   if (preset.id === 'none') {
@@ -72,8 +71,9 @@ const DspExciterBar = ({
 }: IDspExciterBarProps) => {
   const { t } = useTranslation();
   const entries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap((group) =>
-    EXCITER_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
+    EXCITER_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
         hint: profileHint(preset, t),
@@ -81,16 +81,16 @@ const DspExciterBar = ({
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
         ),
-      }),
-    ),
+      })),
   );
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string) => {
-    if (!isExciterPresetId(id)) {
+    const next = EXCITER_CATALOGUE.settings(id, true);
+    if (next === undefined) {
       return;
     }
-    onChange(exciterPresetSettings(id, true));
+    onChange(next);
     onCommit();
   };
 

@@ -4,8 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { FilterTypeEnum, NO_GAIN_FILTER_TYPES } from '../../common/constants';
+import { FilterTypeEnum } from '../../common/constants';
 import { TEqModel } from '../../common/dsp/chain';
+import modelledQuality from '../../common/dsp/eqModel';
+import matchedCoefficients from './biquadMatched';
 
 export interface IBiquadCoefficients {
   b0: number;
@@ -119,113 +121,34 @@ const cookbook = (
 };
 
 /**
- * How much the Q tightens as a band is driven harder.
+ * Analog matching is a Treble choice here, not a fourth character, and that
+ * is worth recording.
  *
- * At full boost the band ends up about twice as narrow as its dial says. That
- * is the behaviour of the classic wide-and-punchy console equalisers: a small
- * move is broad and gentle, a large one focuses on the frequency it was aimed
- * at instead of dragging its neighbours with it. It is the same curve at 1 dB
- * and a different instrument at 12.
+ * It was first built as a model and removed: measured at 44.1 kHz, a 16 kHz
+ * shelf asked for +6 dB already delivers 5.92 at 20 kHz and a full 6 at
+ * Nyquist, so for shelves the correction moved hundredths of a decibel. What
+ * the cookbook genuinely squeezes is a bell near Nyquist — a +6 dB, Q 2 bell
+ * at 16 kHz on a 48 kHz stream falls 3 dB short — and that is not a colour
+ * but the band failing to be what was drawn. So it came back as the main
+ * EQ's Precise, and the rack's EQ takes the same choice (`biquadMatched.ts`).
  */
-/**
- * How far a band narrows at a given gain, and it is the main equaliser's own
- * law (`shapeEqFilters` in `eqShape.ts`) rather than a second one.
- *
- * Both pages offer the same character under the same name, so they have to
- * mean the same thing by it: the two used to differ by half again at 12 dB —
- * ×1.8 here against ×1.41 there — which is a band sounding one way on the EQ
- * page and another in the rack with both dials reading the same.
- */
-const narrowing = (gainDb: number): number =>
-  Math.sqrt(1 + Math.min(20, Math.abs(gainDb)) / 12);
-
-const proportionalQuality = (
-  { gainDb, quality }: IBandSpec,
-  amount: number,
-): number => Math.min(18, quality * (1 + amount * (narrowing(gainDb) - 1)));
 
 /**
- * Cuts narrow, boosts widen — the mastering engineer's habit, as a character.
- *
- * A cut is usually aimed at something specific and wants to take as little
- * else with it as it can; a boost is usually a tone move and wants to be
- * broad enough not to read as a resonance. Which is exactly the opposite
- * treatment for the same dial, and why this cannot be proportional with a
- * sign flipped in the amount.
+ * A band as the rack builds it: its model's Q (`eqModel.ts`), then
+ * analog-matched when `matched` (Treble: Precise) and the shape has a
+ * matched design, on the cookbook otherwise.
  */
-const asymmetricQuality = (
-  { gainDb, quality }: IBandSpec,
-  amount: number,
-): number => {
-  const factor = 1 + amount * (narrowing(gainDb) - 1);
-  return gainDb > 0
-    ? Math.max(0.25, quality / factor)
-    : Math.min(18, quality * factor);
-};
-
-/**
- * Broad and overlapping, the way a passive tone stack behaves.
- *
- * The opposite character to proportional: instead of focusing as it is driven,
- * a band here always reaches well past its own centre, so neighbouring bands
- * blend into one another and the result is a tilt rather than a set of bumps.
- * It is the gentler, rounder sound, and it is the one that flatters a whole
- * mix where a narrow band would sound like a repair.
- *
- * Shelves get it worse than bells on purpose: a shallow shelf is most of what
- * makes that style of equaliser sound like itself.
- */
-const wideQuality = ({ type, quality }: IBandSpec, amount: number): number => {
-  const isShelf = type === FilterTypeEnum.LSC || type === FilterTypeEnum.HSC;
-  const full = isShelf ? 0.4 : 0.45;
-  // Interpolated from 1 (untouched) toward the character's own factor, so the
-  // amount dial reaches the cookbook at zero rather than an arbitrary middle.
-  return Math.max(0.25, quality * (1 - amount * (1 - full)));
-};
-
-/**
- * A fourth model was built here and removed, which is worth recording.
- *
- * "Analog matched" was to undo the bilinear transform's cramping near Nyquist.
- * Measured at 44.1 kHz, a 16 kHz shelf asked for +6 dB already delivers 5.92 at
- * 20 kHz and a full 6 at Nyquist, so the correction moved it by hundredths of a
- * decibel. The roadmap's claim that it "delivers 3-6 dB" was reading the
- * shelf's own corner — half gain at the corner is what a shelf IS — as a
- * shortfall. What the cookbook genuinely does squeeze is a bell's upper skirt
- * near Nyquist, and that is a refinement rather than a character.
- */
-
 export const biquadCoefficients = (
   spec: IBandSpec,
   sampleRate: number,
   model: TEqModel = 'clean',
   /** 0 collapses every character to the cookbook, which is the off position. */
   amount = 1,
+  matched = false,
 ): IBiquadCoefficients => {
-  if (
-    model === 'clean' ||
-    amount <= 0 ||
-    spec.gainDb === 0 ||
-    NO_GAIN_FILTER_TYPES.includes(spec.type as never)
-  ) {
-    // Nothing to model when there is no gain to shape: every design collapses
-    // to the same filter, and a notch has no gain to correct in the first
-    // place.
-    return cookbook(spec, sampleRate);
-  }
-  if (model === 'proportional') {
-    return cookbook(
-      { ...spec, quality: proportionalQuality(spec, amount) },
-      sampleRate,
-    );
-  }
-  if (model === 'asymmetric') {
-    return cookbook(
-      { ...spec, quality: asymmetricQuality(spec, amount) },
-      sampleRate,
-    );
-  }
-  return cookbook({ ...spec, quality: wideQuality(spec, amount) }, sampleRate);
+  const shaped = { ...spec, quality: modelledQuality(spec, model, amount) };
+  const plain = cookbook(shaped, sampleRate);
+  return matched ? matchedCoefficients(shaped, sampleRate, plain) : plain;
 };
 
 /**
