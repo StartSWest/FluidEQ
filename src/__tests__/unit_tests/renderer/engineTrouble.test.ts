@@ -542,4 +542,36 @@ describe('whether the engine is reaching the output being listened to', () => {
     expect(asked({ devices: [], fluidEndpoints: [] })).toBeUndefined();
     expect(asked({ engine: 'apo' })).toBeUndefined();
   });
+
+  /*
+   * The helper lists every output the machine had WHEN IT RAN. A headset
+   * switched to after that is simply absent, and read as "not attached" the
+   * panel said NOT ON THIS OUTPUT, in red, over an engine that was processing
+   * it (Ivan, 2026-09-24, his Bluetooth headset: "it was working just the
+   * indicator was wrong").
+   */
+  it('says nothing about an output the helper has not been asked about yet', () => {
+    const headset: IAudioDevice = {
+      ...speakers,
+      id: 'headset',
+      name: 'Headset',
+      guid: '{CCCC}',
+    };
+    // The list predates the headset: it names the speakers and headphones only.
+    expect(
+      asked({ devices: [{ ...speakers, isDefault: false }, headset] }),
+    ).toBeUndefined();
+    // The positive control: the same headset, once the helper has looked at
+    // it, says what the helper found — either way.
+    const listed = (attached: boolean) =>
+      asked({
+        devices: [{ ...speakers, isDefault: false }, headset],
+        fluidEndpoints: [
+          { guid: '{AAAA}', attached: true, backupExists: true },
+          { guid: '{CCCC}', attached, backupExists: attached },
+        ],
+      });
+    expect(listed(true)).toBe(true);
+    expect(listed(false)).toBe(false);
+  });
 });

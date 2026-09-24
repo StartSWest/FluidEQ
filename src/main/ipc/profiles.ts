@@ -555,6 +555,9 @@ export const registerProfilesIpc = ({
             deviceProfileSettings,
             activeDevice.id,
             presetDirForDevice,
+            // The preset keeps playing across the switch: it is the machine's
+            // choice, like the rack it comes with. See `voicingForDevice`.
+            { voicing: state.voicing },
           ),
         );
         // Every output keeps at least one named profile, so there is always
@@ -715,6 +718,9 @@ export const registerProfilesIpc = ({
         deviceProfileSettings,
         arg[0] as string,
         presetDirForDevice,
+        // The preset keeps playing across the switch: it is the machine's
+        // choice, like the rack it comes with. See `voicingForDevice`.
+        { voicing: state.voicing },
       );
       session.activeAudioDeviceId = arg[0] as string;
       clearCurrentLayoutSettings();

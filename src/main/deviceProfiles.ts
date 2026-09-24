@@ -20,12 +20,14 @@ import {
   IEqCuts,
   IPresetV2,
   IState,
+  IVoicingSettings,
   TApoFeature,
   apoFeatureFileWord,
   getDefaultState,
 } from '../common/constants';
 import { EQ_CUTS_FILENAME, eqCutsFileText, hasEqCut } from '../common/eqCuts';
 import { toTone } from '../common/tone';
+import { dspVoicingPresetId } from '../common/dsp/presetVoicing';
 import {
   addFileToPath,
   FLUIDEQ_CONFIG_FILENAME,
@@ -740,10 +742,46 @@ export const deviceProfilesToFiles = (
  * Every optional field is therefore listed explicitly, undefined included, so
  * assigning this over the live state clears what the new device does not have.
  */
+/**
+ * A PRESET'S CURVE IS THE MACHINE'S CHOICE, NOT THE OUTPUT'S.
+ *
+ * The rack is one choice for the whole machine, and a preset is the rack and
+ * its curve together — so the curve cannot be per output, or the two disagree
+ * the moment an output is switched: the picker still said Pop Rock while the
+ * chip beside it said the preset the headset's profile happened to be saved
+ * with (Ivan, 2026-09-24: "it says a different preset than selected so we
+ * dont save presets on the output switch we replay current preset always").
+ *
+ * So a Preset layer that is playing survives the switch, and one that is not
+ * is not brought back from a profile — a preset cleared by its chip's cross
+ * stays cleared. Everything that is not a preset's curve is the output's as
+ * it always was: somebody's own voicing belongs to the output they tuned it
+ * on.
+ *
+ * `playing` absent means there is no live answer to prefer — the launch,
+ * where the profile IS where the curve comes back from.
+ */
+const voicingForDevice = (
+  saved: IVoicingSettings | undefined,
+  playing: { voicing: IVoicingSettings | undefined } | undefined,
+): IVoicingSettings | undefined => {
+  if (!playing) {
+    return saved;
+  }
+  const isPreset = (one: IVoicingSettings | undefined) =>
+    dspVoicingPresetId(one) !== undefined;
+  return isPreset(playing.voicing) || isPreset(saved) ? playing.voicing : saved;
+};
+
 export const getStateForAudioDevice = (
   settings: IDeviceProfileSettings,
   deviceId: string,
   presetDirForDevice: TPresetDirForDevice,
+  /**
+   * What the machine is playing right now, where the output is being switched
+   * while the app runs. See `voicingForDevice`.
+   */
+  playing?: { voicing: IVoicingSettings | undefined },
 ): IState => {
   const defaultState = getDefaultState();
   const assignment = settings.assignments[deviceId];
@@ -778,7 +816,7 @@ export const getStateForAudioDevice = (
     // The profile's own tone, or none: a tone left from the output before
     // would follow somebody from the headphones to the speakers.
     tone: toTone(preset?.tone),
-    voicing: preset?.voicing,
+    voicing: voicingForDevice(preset?.voicing, playing),
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was
     // missing from the saved profile: an output that never asked for the

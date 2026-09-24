@@ -204,9 +204,25 @@ export const engineOnOutput = (
   if (device.canHostEffects === false || device.effectsEnabled === false) {
     return false;
   }
-  return fluidEndpoints.some(
-    (endpoint) => endpoint.attached && sameEndpoint(endpoint.guid, device.guid),
+  /*
+   * AN OUTPUT WITH NO ENTRY IS ONE NOBODY HAS ASKED ABOUT, NOT ONE THAT IS OFF.
+   *
+   * The setup helper enumerates every render endpoint the machine has AT THE
+   * MOMENT IT RUNS, so its answer only speaks for the outputs that existed
+   * then. Switch to a headset that was not connected at the last run and it
+   * has no entry at all — and read as "no entry, so not attached" that said
+   * NOT ON THIS OUTPUT, in red, over an engine that was processing the
+   * headset perfectly (Ivan, 2026-09-24: "it was working just the indicator
+   * was wrong"; pressing the card's button only looked like a repair because
+   * running the helper is what re-read the list).
+   *
+   * Absence of evidence is not a fault — the same rule the empty list above
+   * already follows, applied per output.
+   */
+  const entry = fluidEndpoints.find((endpoint) =>
+    sameEndpoint(endpoint.guid, device.guid),
   );
+  return entry?.attached;
 };
 
 export const engineTrouble = ({

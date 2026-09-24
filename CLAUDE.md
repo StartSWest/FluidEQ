@@ -455,6 +455,16 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
+- **A preset's curve is the machine's, like its rack, never the output's.**
+  Switching output while the app runs keeps the Preset layer that is
+  playing (`voicingForDevice` in `deviceProfiles.ts`, given `playing` by
+  both switch paths in `ipc/profiles.ts`): it used to come back as whatever
+  preset the new output's profile was saved with, so the picker named one
+  preset and the chip beside it another (Ivan, 2026-09-24: "we dont save
+  presets on the output switch we replay current preset always"). A preset
+  cleared by its chip stays cleared; somebody's own voicing is still the
+  output's; the launch, with nothing playing yet, restores the profile's.
+  `presetFollowsMachine.test.ts` holds all three.
 - **A preset's curve rides the rack's line, so the rack limits through it.**
   The rack's line (`fluideq-dsp.txt`, and the Library host's) ends with a TONE
   trailer — the Preset layer's bands exactly as the writer builds them
@@ -778,6 +788,16 @@ Out-String` (or any other capture) is what actually waits for it and shows
   would hang the wait. Only the last failure reaches the window, so the
   switch and status requests carry no deadline. Ivan chose this over a fixed
   pause on 2026-09-13; do not add one.
+- **The helper's per-output answer is a snapshot, and an output missing
+  from it is unknown, not off.** `status` lists every render endpoint the
+  machine had when it ran, so a headset connected since is simply absent —
+  and read as "not attached" the side panel said NOT ON THIS OUTPUT, in red,
+  over an engine processing it perfectly; pressing the card's button only
+  looked like a repair because running the helper re-read the list (Ivan's
+  Bluetooth headset, 2026-09-24). `engineOnOutput` answers `undefined` for
+  an output with no entry, and `useEngineTrouble` asks the helper again on
+  every `fluideq-output-changed` — never on mount, where the status store
+  already asks.
 - **Under the FluidEQ Engine the app never restarts Windows audio by
   itself, and never enables an output by itself.** The engine on the output
   being listened to but not running, which a restart fixes, gets the trouble

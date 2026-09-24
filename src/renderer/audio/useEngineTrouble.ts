@@ -18,6 +18,7 @@ import {
   type IEngineHealth,
 } from 'common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
+import { refreshAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { reportError } from '../utils/logger';
 import {
   engineOnOutput,
@@ -143,11 +144,29 @@ const useEngineTrouble = (
         ),
       );
     };
+    /*
+     * The helper's answer goes stale the moment the output changes, and
+     * nothing else asks it again.
+     *
+     * It reports one entry per render endpoint the machine had when it ran,
+     * so a headset connected since then is simply absent from it — and the
+     * window cannot say whether the engine is on an output it has never been
+     * told about. Every other reader of that answer re-reads it when it
+     * changes something itself; this is the one place where something else
+     * changes and the answer has to be fetched rather than pushed.
+     *
+     * Not on the first pass: the status store already asks on mount, and
+     * asking again there is a second helper run at every launch.
+     */
+    const onOutputChanged = () => {
+      refreshAudioEngineStatus();
+      refresh();
+    };
     refresh();
-    window.addEventListener('fluideq-output-changed', refresh);
+    window.addEventListener('fluideq-output-changed', onOutputChanged);
     return () => {
       isLive = false;
-      window.removeEventListener('fluideq-output-changed', refresh);
+      window.removeEventListener('fluideq-output-changed', onOutputChanged);
     };
   }, [isFluid]);
 

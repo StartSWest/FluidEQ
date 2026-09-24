@@ -23,9 +23,13 @@ import {
 } from 'renderer/audio/outputSignal';
 import useEngineTrouble from 'renderer/audio/useEngineTrouble';
 import { getAudioDevices } from 'renderer/utils/equalizerApi';
+import { refreshAudioEngineStatus } from 'renderer/utils/useAudioEngineStatus';
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   getAudioDevices: jest.fn(),
+}));
+jest.mock('renderer/utils/useAudioEngineStatus', () => ({
+  refreshAudioEngineStatus: jest.fn(),
 }));
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioControl: jest.fn(),
@@ -327,5 +331,33 @@ describe('useEngineTrouble', () => {
     expect(reads).toBe(0);
     expect(getAudioDevices).not.toHaveBeenCalled();
     expect(result.current.trouble).toBeUndefined();
+    // Not on a change of output either: there is no helper answer to renew.
+    act(() => {
+      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+    });
+    expect(refreshAudioEngineStatus).not.toHaveBeenCalled();
+  });
+
+  /*
+   * The helper's answer names only the outputs the machine had when it ran,
+   * so a switch to a headset connected since then leaves the window knowing
+   * nothing about it until the helper is asked again — and nothing else asks.
+   */
+  it('asks the helper again when the output changes, and not before', async () => {
+    // No capture, so the only list taken is the one the output change asks
+    // for: a running capture lists the outputs once more to find its own.
+    withCapture(undefined);
+    renderHook(() => useEngineTrouble('fluid', fluid, false));
+    await waitFor(() => expect(getAudioDevices).toHaveBeenCalledTimes(1));
+    // The status store asks on mount already; a second ask here would be a
+    // second helper run at every launch.
+    expect(refreshAudioEngineStatus).not.toHaveBeenCalled();
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+    });
+
+    expect(refreshAudioEngineStatus).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(getAudioDevices).toHaveBeenCalledTimes(2));
   });
 });
