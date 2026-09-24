@@ -28,6 +28,7 @@ const dsp = {
   'dsp.eqPreset.progressiveRock': '前卫摇滚',
   'dsp.eqPreset.hardRock': '硬摇滚',
   'dsp.eqPreset.popPunk': '流行朋克',
+  'dsp.eqPreset.popRock': '流行摇滚',
   'dsp.eqPreset.grunge': '垃圾摇滚',
   'dsp.eqPreset.indiePop': '独立流行',
   'dsp.eqPreset.synthPop': '合成器流行',

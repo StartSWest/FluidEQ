@@ -28,6 +28,7 @@ const dsp = {
   'dsp.eqPreset.progressiveRock': 'Прогрессивный рок',
   'dsp.eqPreset.hardRock': 'Хард-рок',
   'dsp.eqPreset.popPunk': 'Поп-панк',
+  'dsp.eqPreset.popRock': 'Поп-рок',
   'dsp.eqPreset.grunge': 'Гранж',
   'dsp.eqPreset.indiePop': 'Инди-поп',
   'dsp.eqPreset.synthPop': 'Синти-поп',

@@ -177,6 +177,7 @@ const ALIASES: Record<string, string> = {
   kPop: 'pop',
   jPop: 'pop',
   cPop: 'pop',
+  popRock: 'rock',
   classicRock: 'rock',
   alternativeRock: 'rock',
   indieRock: 'rock',

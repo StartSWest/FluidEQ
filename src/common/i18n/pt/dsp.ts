@@ -28,6 +28,7 @@ const dsp = {
   'dsp.eqPreset.progressiveRock': 'Rock progressivo',
   'dsp.eqPreset.hardRock': 'Hard Rock',
   'dsp.eqPreset.popPunk': 'Pop Punk',
+  'dsp.eqPreset.popRock': 'Pop Rock',
   'dsp.eqPreset.grunge': 'Grunge',
   'dsp.eqPreset.indiePop': 'Indie Pop',
   'dsp.eqPreset.synthPop': 'Synth-pop',

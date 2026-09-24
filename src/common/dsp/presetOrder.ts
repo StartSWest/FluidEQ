@@ -7,6 +7,7 @@ const STYLE_FAMILIES = [
   ['pop', 'indiePop', 'synthPop', 'newWave', 'kPop', 'jPop', 'cPop'],
   [
     'rock',
+    'popRock',
     'classicRock',
     'alternativeRock',
     'indieRock',

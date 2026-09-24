@@ -28,6 +28,7 @@ const dsp = {
   'dsp.eqPreset.progressiveRock': 'プログレッシブロック',
   'dsp.eqPreset.hardRock': 'ハードロック',
   'dsp.eqPreset.popPunk': 'ポップパンク',
+  'dsp.eqPreset.popRock': 'ポップロック',
   'dsp.eqPreset.grunge': 'グランジ',
   'dsp.eqPreset.indiePop': 'インディーポップ',
   'dsp.eqPreset.synthPop': 'シンセポップ',

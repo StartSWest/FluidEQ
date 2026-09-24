@@ -17,8 +17,16 @@ import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
 import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
 import { roomPresetSettings } from '../../../common/dsp/roomPresets';
-import { EQ_PRESETS } from '../../../common/dsp/eqPresets';
+import {
+  EQ_PRESETS,
+  eqPresetSetup,
+  eqSettingsForPreset,
+} from '../../../common/dsp/eqPresets';
 import { MAXIMIZER_CATALOGUE } from '../../../common/dsp/stageCatalogues';
+import {
+  biquadCoefficients,
+  biquadMagnitudeDb,
+} from '../../../renderer/dsp/biquad';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
@@ -102,7 +110,7 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(106);
+    expect(DSP_PRESETS).toHaveLength(107);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
@@ -827,6 +835,72 @@ it('orders the basic presets None, Default, Reference, Music before the remainin
       .slice(0, 4)
       .map((preset) => preset.id),
   ).toEqual(['empty', 'balanced', 'reference', 'music']);
+});
+
+/**
+ * Pop Rock's research, held: records mastered as finished as pop's (DR 4-7)
+ * and bright already, a vocal that is bright and guitars that make their own
+ * harmonics, doubled hard left and right. So no stage that adds harmonics,
+ * nothing wider than the mix, a ceiling that only catches — and a curve that
+ * is neither of its parents: the voice further forward than Rock's, the sub
+ * well under Pop's 808, and a gentler low-mid clean-up than Rock's, because
+ * piano and clean guitars do not turn to mud the way a wall of distortion
+ * does.
+ */
+it('keeps Pop Rock clean, unwidened and between its parents', () => {
+  const chain = DSP_PRESETS.find((preset) => preset.id === 'popRock');
+  expect(chain?.group).toBe('genre');
+  const settings = chain?.settings;
+  expect({
+    exciter: settings?.exciter.enabled,
+    bassForge: settings?.bassForge.enabled,
+    midWidth: settings?.dimension.midWidth,
+    highWidth: settings?.dimension.highWidth,
+  }).toEqual({ exciter: false, bassForge: false, midWidth: 1, highWidth: 1 });
+  expect(settings?.maximizer.driveDb).toBeLessThanOrEqual(1.25);
+
+  // Each curve as the Preset layer plays it: its bands through its model.
+  const heardAt = (id: string, hz: number): number => {
+    const preset = EQ_PRESETS.find((one) => one.id === id);
+    if (preset === undefined) {
+      throw new Error(`no curve ${id}`);
+    }
+    const setup = eqPresetSetup(preset);
+    return eqSettingsForPreset(DSP_DEFAULTS.eq, preset).bands.reduce(
+      (total, band) =>
+        band.enabled
+          ? total +
+            biquadMagnitudeDb(
+              biquadCoefficients(
+                {
+                  type: band.type as never,
+                  frequency: band.frequency,
+                  gainDb: band.gainDb,
+                  quality: band.quality,
+                },
+                48_000,
+                setup.model,
+                setup.modelAmount,
+              ),
+              hz,
+              48_000,
+            )
+          : total,
+      0,
+    );
+  };
+  const centres = [32, 50, 80, 125, 200, 315, 500, 800, 1_250, 2_000, 3_150];
+  const widestGap = (a: string, b: string) =>
+    Math.max(...centres.map((hz) => Math.abs(heardAt(a, hz) - heardAt(b, hz))));
+
+  expect(heardAt('popRock', 3_150)).toBeGreaterThan(heardAt('rock', 3_150));
+  expect(heardAt('popRock', 32)).toBeLessThan(heardAt('pop', 32) - 1);
+  expect(heardAt('popRock', 315)).toBeGreaterThan(heardAt('rock', 315) + 1);
+  // Audibly its own curve, not either parent's; and the measure can say
+  // "the same", or a gap that is always large would pass this too.
+  expect(widestGap('popRock', 'rock')).toBeGreaterThan(1.2);
+  expect(widestGap('popRock', 'pop')).toBeGreaterThan(1.2);
+  expect(widestGap('popRock', 'popRock')).toBe(0);
 });
 
 it('keeps traditional Country and modern pop-rock Country as distinct DSP curves', () => {

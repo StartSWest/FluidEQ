@@ -10,7 +10,14 @@ it.each([
     .map((preset) => preset.labelKey.replace('dsp.eqPreset.', ''));
   [
     ['country', 'modernCountry'],
-    ['rock', 'classicRock', 'alternativeRock', 'indieRock', 'progressiveRock'],
+    [
+      'rock',
+      'popRock',
+      'classicRock',
+      'alternativeRock',
+      'indieRock',
+      'progressiveRock',
+    ],
     ['pop', 'indiePop', 'synthPop'],
     ['hiphop', 'rap', 'trap'],
     ['jazz', 'smoothJazz', 'fusion'],

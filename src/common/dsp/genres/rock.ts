@@ -50,6 +50,21 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     offered: ['exciter', 'bassForge'],
   },
   {
+    // Rock's band with the voice in front: a live kit and a bass guitar under
+    // piano, acoustic and clean-to-crunch electric guitars, at 100-140 BPM.
+    // Its masters are as finished as pop's (DR 4-7 on the CDs of Coldplay,
+    // The Killers, Maroon 5 and Imagine Dragons) and bright already, so no
+    // stage adds harmonics: not over a bright vocal, and not over guitars
+    // that make their own. The guitars are doubled hard left and right, so
+    // nothing widens them. The kick keeps its hit with a tail as short as
+    // pop's under a bass line that moves, the bottom goes mono as pop masters
+    // are made, and the ceiling only catches.
+    id: 'popRock',
+    bassPunch: punch(105, 0.25, -0.35, 0, 60, 0),
+    dimension: width(0.6, 1, 1, 150, 3_000, 0.05),
+    maximizer: ceiling(0.75, -1, 4, sixteenthMs(120)),
+  },
+  {
     // Played without a click and mastered with room to breathe: -18 to -13
     // LUFS on the original CDs. Tape warmth is the sound, so a little body
     // is welcome; the 60s mixes panned hard, and a shade of narrowing is what
