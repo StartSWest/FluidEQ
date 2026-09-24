@@ -117,6 +117,7 @@ import { useSystemMediaSource } from './audio/useSystemMediaSource';
 import { useSongEqSessionHost } from './audio/songEqSession';
 import {
   readRememberedTransportOwner,
+  useLastPlayingOwner,
   useLastTransportOwner,
   useTransportIdentitySources,
   useTransportSources,
@@ -134,6 +135,7 @@ import {
   commitPaneSizes,
   getEditorHeight,
   setEditorHeight,
+  shortWindowPaneKey,
   useEditorHeight,
 } from './utils/paneSizes';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
@@ -355,6 +357,13 @@ const EQ_GROUP_LABEL_KEYS = {
  * says which media tab only while there is room to say it.
  */
 const MEDIA_TAB_ONE_WORD_QUERY = '(max-width: 1280px)';
+
+/**
+ * A laptop's height: `$bp-laptop-height` in `_constant.scss`, where the shell
+ * puts its chrome away. Here it is where a page other than the EQ's keeps its
+ * own split, with the graph starting as a strip (`shortWindowPaneKey`).
+ */
+const SHORT_WINDOW_QUERY = '(max-height: 900px)';
 
 const isEqGroupTab = (tab: TWorkspaceTab): boolean =>
   EQ_GROUP_TABS.includes(tab);
@@ -778,12 +787,86 @@ const AppContent = () => {
   const isForumTab = activeWorkspaceTab === 'forum';
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
+
+  // The graph mode is read above with the titlebar navigation because those
+  // controls now participate in leaving full screen.
+  // Each workspace owns this choice. Karaoke starts without the response graph
+  // because its stage and pitch lane need the height; Library starts without
+  // it because the tab is a surface for looking at album art, not at a
+  // spectrum; every other workspace inherits the legacy graph preference until
+  // the user chooses differently.
+  // Library and Karaoke both start closed and stay togglable. Forcing Library
+  // closed outright was tried and taken back out: it did remove the graph's
+  // toolbar from a tab that has no use for it by default, but it also removed
+  // the choice, and the switch in the sidebar then did nothing on that one tab
+  // — a control that visibly does nothing being worse than the row it saved.
+  const showsGraph =
+    (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
+    (graphVisibilityByTab?.[activeWorkspaceTab] ??
+      (activeWorkspaceTab === 'karaoke' ||
+      activeWorkspaceTab === 'library' ||
+      activeWorkspaceTab === 'share' ||
+      // A forum is read top to bottom; a spectrum under the thread takes the
+      // height the conversation needs. Still one switch away.
+      activeWorkspaceTab === 'forum'
+        ? false
+        : isGraphViewOn));
+
+  /**
+   * FULL SCREEN IS FULL SCREEN, ON EVERY TAB INCLUDING THE MAKER.
+   *
+   * This briefly refused to go full screen at all while the editor was open,
+   * which is the wrong half of the choice: the graph stayed docked under the
+   * Maker as a half-empty pane taking a third of the window, which is worse
+   * than either answer. What is special about the editor is not whether the
+   * graph may fill the screen — it is whether the graph is drawn *through*,
+   * with the surface behind it left visible.
+   *
+   * That overlay belongs to the two picture-led tabs, the Karaoke player and
+   * Media, where a translucent graph over a video or a lyric stage is a second
+   * view of the same thing. Over an editor it is two interfaces fighting for
+   * the same pixels. So the overlay is scoped in GraphTheme.scss to exclude a
+   * Maker, and full screen here stays exactly what it is everywhere else.
+   */
+  // The picture behind an expanded graph follows the thing making the sound,
+  // never the tab selected above it. This lets a Karaoke song stay a Karaoke
+  // stage while Library or Media is selected, and lets a web player stay live
+  // under the graph while EQ is open. `system` never claims this store, so an
+  // external browser, Spotify or another application deliberately gets the
+  // quiet graph-only surface.
+  const isGraphBackdropMode = isGraphFullScreen && showsGraph;
+  // A Plus visualizer fills the graph edge to edge, so laid over a video it
+  // only hides the picture. With one on the graph, the graph's full screen is
+  // the visualizer alone and the video gets its own (see the double-click on
+  // the video below); the standard visualizers still draw over a playing
+  // video, see-through and all (Ivan, 2026-09-21). Karaoke keeps its stage
+  // under the graph: that is its lyrics, and it has no other full screen.
+  const isSceneOnGraph = useSceneLook() !== null;
+  // The song the transport holds, paused or not: the one playing, else the one
+  // that played last and still describes the same song. Keyed to playing
+  // alone, every pause took the picture away and left a black card. Worse on
+  // Karaoke, where a lyric press pauses for its count-in: the stage stopped
+  // being the backdrop, went hidden, hiding cancelled the count-in, and the
+  // song never came back (Ivan, 2026-09-23: "it stops and get black").
+  const lastPlayingOwner = useLastPlayingOwner();
+  const heldOwner = playingOwner ?? lastPlayingOwner;
+  const graphBackdropOwner =
+    isGraphBackdropMode && (!isSceneOnGraph || heldOwner === 'karaoke')
+      ? heldOwner
+      : undefined;
+  const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
+  const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
+  const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
+
   // A loaded silent player keeps only its controller/media shell for five
   // seconds after leaving the tab. That prevents the fast empty-bar glitch,
   // but the lease is bounded: once it expires, unmounting disposes the guest,
   // media elements, observers and native DSP host. Playing audio has no timer.
+  // Nor does the picture under an expanded graph: a paused song there is on
+  // screen, not behind another tab, and unmounting it five seconds into the
+  // pause blacked the card out.
   const keepVideoMounted = useIdlePlayerMount({
-    isActive: isVideoTab,
+    isActive: isVideoTab || showsMediaGraphBackdrop,
     hasLoadedSource: transportIdentities.media !== undefined,
     isPlaying:
       playingOwner === 'media' || transportIdentities.media?.isPlaying === true,
@@ -793,14 +876,18 @@ const AppContent = () => {
     // been opened, the visible DSP rack is an active consumer even though the
     // Library shelf itself is not the selected tab. So is the amp's open
     // queue deck (`playerWantsLibrary`).
-    isActive: isLibraryTab || isDspTab || playerWantsLibrary,
+    isActive:
+      isLibraryTab ||
+      isDspTab ||
+      playerWantsLibrary ||
+      showsLibraryGraphBackdrop,
     hasLoadedSource: transportIdentities.library !== undefined,
     isPlaying:
       playingOwner === 'library' ||
       transportIdentities.library?.isPlaying === true,
   });
   const keepKaraokeMounted = useIdlePlayerMount({
-    isActive: isKaraokeTab,
+    isActive: isKaraokeTab || showsKaraokeGraphBackdrop,
     hasLoadedSource: transportIdentities.karaoke !== undefined,
     isPlaying:
       playingOwner === 'karaoke' ||
@@ -1091,29 +1178,9 @@ const AppContent = () => {
   const titlebarRightRef = useRef<HTMLDivElement | null>(null);
   useTitlebarRoom(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
-  // The graph mode is read above with the titlebar navigation because those
-  // controls now participate in leaving full screen.
-  // Each workspace owns this choice. Karaoke starts without the response graph
-  // because its stage and pitch lane need the height; Library starts without
-  // it because the tab is a surface for looking at album art, not at a
-  // spectrum; every other workspace inherits the legacy graph preference until
-  // the user chooses differently.
-  // Library and Karaoke both start closed and stay togglable. Forcing Library
-  // closed outright was tried and taken back out: it did remove the graph's
-  // toolbar from a tab that has no use for it by default, but it also removed
-  // the choice, and the switch in the sidebar then did nothing on that one tab
-  // — a control that visibly does nothing being worse than the row it saved.
-  const showsGraph =
-    (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
-    (graphVisibilityByTab?.[activeWorkspaceTab] ??
-      (activeWorkspaceTab === 'karaoke' ||
-      activeWorkspaceTab === 'library' ||
-      activeWorkspaceTab === 'share' ||
-      // A forum is read top to bottom; a spectrum under the thread takes the
-      // height the conversation needs. Still one switch away.
-      activeWorkspaceTab === 'forum'
-        ? false
-        : isGraphViewOn));
+  // `showsGraph` and the backdrop it decides are worked out beside the players'
+  // mount leases above, which have to know whether a paused player is on
+  // screen under the graph.
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
       setGraphVisibilityByTab((current) => ({
@@ -1150,43 +1217,6 @@ const AppContent = () => {
       exitGraphFullScreen();
     }
   }, [graphView, showsGraph]);
-  /**
-   * FULL SCREEN IS FULL SCREEN, ON EVERY TAB INCLUDING THE MAKER.
-   *
-   * This briefly refused to go full screen at all while the editor was open,
-   * which is the wrong half of the choice: the graph stayed docked under the
-   * Maker as a half-empty pane taking a third of the window, which is worse
-   * than either answer. What is special about the editor is not whether the
-   * graph may fill the screen — it is whether the graph is drawn *through*,
-   * with the surface behind it left visible.
-   *
-   * That overlay belongs to the two picture-led tabs, the Karaoke player and
-   * Media, where a translucent graph over a video or a lyric stage is a second
-   * view of the same thing. Over an editor it is two interfaces fighting for
-   * the same pixels. So the overlay is scoped in GraphTheme.scss to exclude a
-   * Maker, and full screen here stays exactly what it is everywhere else.
-   */
-  // The picture behind an expanded graph follows the thing making the sound,
-  // never the tab selected above it. This lets a Karaoke song stay a Karaoke
-  // stage while Library or Media is selected, and lets a web player stay live
-  // under the graph while EQ is open. `system` never claims this store, so an
-  // external browser, Spotify or another application deliberately gets the
-  // quiet graph-only surface.
-  const isGraphBackdropMode = isGraphFullScreen && showsGraph;
-  // A Plus visualizer fills the graph edge to edge, so laid over a video it
-  // only hides the picture. With one on the graph, the graph's full screen is
-  // the visualizer alone and the video gets its own (see the double-click on
-  // the video below); the standard visualizers still draw over a playing
-  // video, see-through and all (Ivan, 2026-09-21). Karaoke keeps its stage
-  // under the graph: that is its lyrics, and it has no other full screen.
-  const isSceneOnGraph = useSceneLook() !== null;
-  const graphBackdropOwner =
-    isGraphBackdropMode && (!isSceneOnGraph || playingOwner === 'karaoke')
-      ? playingOwner
-      : undefined;
-  const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
-  const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
-  const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
 
   // Karaoke has one fullscreen layout. Entering it from the graph changes only
   // whether the graph is drawn over that layout; it does not create a second
@@ -1244,7 +1274,14 @@ const AppContent = () => {
   // screen is the window changing, and without this the reconciliation below
   // would take the window straight back out of the mode it was just put in.
   windowFullScreenClaimRef.current = isAppFullScreen || isPlayerVisFull;
-  const editorHeight = useEditorHeight(activeWorkspaceTab);
+  // Which split the divider moves: the tab's own, or on a short window and a
+  // page other than the EQ's, that window's (`shortWindowPaneKey`).
+  const isShortWindow = useMediaQuery(SHORT_WINDOW_QUERY);
+  const paneKey =
+    isShortWindow && !isEqGroupTab(activeWorkspaceTab)
+      ? shortWindowPaneKey(activeWorkspaceTab)
+      : activeWorkspaceTab;
+  const editorHeight = useEditorHeight(paneKey);
 
   // Watched only in full screen, and stopped on the way out — see the store for
   // why leaving it running would strand a faded workspace.
@@ -1542,9 +1579,9 @@ const AppContent = () => {
   const [isResizingPanes, setIsResizingPanes] = useState(false);
 
   const handleGraphResizeStart = useCallback(() => {
-    graphDragStart.current = getEditorHeight(activeWorkspaceTab);
+    graphDragStart.current = getEditorHeight(paneKey);
     setIsResizingPanes(true);
-  }, [activeWorkspaceTab]);
+  }, [paneKey]);
 
   /**
    * Move the divider.
@@ -1556,12 +1593,9 @@ const AppContent = () => {
    */
   const handleGraphResizeDrag = useCallback(
     (deltaY: number) => {
-      setEditorHeight(
-        clampToWindow(graphDragStart.current + deltaY),
-        activeWorkspaceTab,
-      );
+      setEditorHeight(clampToWindow(graphDragStart.current + deltaY), paneKey);
     },
-    [activeWorkspaceTab],
+    [paneKey],
   );
 
   const handleGraphResizeEnd = useCallback(() => {
@@ -2552,10 +2586,12 @@ const AppContent = () => {
             ) {
               return;
             }
-            // Library and Karaoke deliberately let pointer events pass through
-            // the graph to their live surface. Catch the gesture at their
-            // shared ancestor so the usual graph double-click still restores
-            // the window without making the player underneath unclickable.
+            // Anywhere on the screen, not only on the drawing. Full screen is
+            // watched like a video, and a double-click anywhere on a video
+            // comes back from it — the plot's margins and the strip above it
+            // too, where the plot's own double-click does not reach. Caught
+            // here on the way down and stopped, so the plot's handler cannot
+            // toggle the mode a second time.
             event.preventDefault();
             event.stopPropagation();
             exitGraphFullScreen();

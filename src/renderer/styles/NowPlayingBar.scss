@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -1144,4 +1145,72 @@ $now-playing-bar-height: 64px;
   width: 16px;
   height: 16px;
   stroke: currentcolor;
+}
+
+// *** Short windows ***********************************************************
+//
+// 52 rather than 64 under a laptop's height (`$bp-laptop-height`, the shell's
+// own tier in `App.scss`), and every row still inside it with room above and
+// below. What sets the height is the deck: 34px keys and a 44px Play in a
+// padded pill come to 44, which is the 64 bar's whole content box. Here the
+// keys are 30 and Play 38, so the deck is 38 — the height the three lines
+// beside the cover already measure — and 6 of padding either side of it.
+//
+// Karaoke draws its own keys into this bar (`.now-playing-bar__adopted`), so
+// they come down with the library's, or the bar would be a different height
+// depending on which tab is playing — the thing `$now-playing-bar-height`
+// exists to prevent. Its fader pill is 38 as drawn.
+@media (max-height: $bp-laptop-height) {
+  .now-playing-bar,
+  .now-playing-bar.is-compact {
+    height: 52px;
+    padding-block: 6px;
+  }
+
+  .now-playing-bar__control,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__control {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+  }
+
+  .now-playing-bar__play,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__play {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+
+  .now-playing-bar__play .now-playing-bar__icon,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__play
+    .karaoke-button__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  // The groups shrink with the keys, so the row keeps its spacing instead of
+  // gathering the smaller keys in the middle of a pill cut for the larger
+  // ones: three keys and two gaps are 98, and the two flanks either side of
+  // Play and its gaps 244. The flanks stay equal, which is what keeps Play on
+  // the window's centre line.
+  .now-playing-bar__flank,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__flank {
+    width: 98px;
+    flex-basis: 98px;
+  }
+
+  .now-playing-bar__buttons,
+  .now-playing-bar__adopted .karaoke-transport__buttons {
+    width: 244px;
+  }
 }

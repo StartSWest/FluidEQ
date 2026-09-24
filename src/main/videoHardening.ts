@@ -99,6 +99,25 @@ export const hardenPlayer = (contents: WebContents) => {
   forwardConsole(contents, 'page');
 
   /**
+   * The page draws at the interface's own zoom, whatever its site was left at.
+   *
+   * Chromium keeps a zoom level per site, per session, and on disk. Measured in
+   * Ivan's window on 2026-09-23: the interface at 100% and YouTube inside it at
+   * 91% — level -0.5, which is exactly one press of the interface's own zoom
+   * (`menu.ts`). Electron moves a webview's level with its window's, so the
+   * site was handed that press and kept it after the interface had gone back.
+   * Set again on every page the player lands on, so a level left behind by
+   * anything never outlives a load; the player has no zoom of its own to lose.
+   */
+  const followInterfaceZoom = () => {
+    const host = contents.hostWebContents;
+    if (host && !host.isDestroyed()) {
+      contents.setZoomLevel(host.getZoomLevel());
+    }
+  };
+  contents.on('did-navigate', followInterfaceZoom);
+
+  /**
    * And a page that never arrived.
    *
    * Distinct from a refusal: this is the network or the site failing, which

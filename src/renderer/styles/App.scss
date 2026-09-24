@@ -494,9 +494,9 @@ select option {
     );
   align-items: center;
   gap: 16px;
-  // The strip less the gutter it stands off the top edge by, which leaves the
-  // 74px the bar has always been at the shell's own inset.
-  height: calc(#{$title-bar-height} - var(--shell-gutter, 16px));
+  // The card itself; the strip above is this plus the gutter it stands off the
+  // top edge by.
+  height: var(--title-bar-card);
   // 2px rather than 7 above and below, so the meter reads as something sitting
   // in the bar rather than as the bar itself.
   //
@@ -608,8 +608,9 @@ select option {
     //
     // 65 rather than 64 since the pane grew a bottom border: one more pixel
     // of box for one more pixel of edge, so the 63px of pane inside it is
-    // what it always was. See `WaveformVisualizer.scss`.
-    height: 65px;
+    // what it always was. See `WaveformVisualizer.scss`. 65 is the default of
+    // `--title-bar-meter`, which a short window takes down with its card.
+    height: var(--title-bar-meter);
     // Carved out of the drag handle, because it is a button: a press on it
     // cycles the meter's look. A system drag region cannot pass a press
     // through to what is under it, so the two cannot both be true here — and
@@ -2150,6 +2151,14 @@ textarea,
   // Spent twice: once as the gap between the last card and the transport bar,
   // once as the gap between that bar and the foot of the window.
   --shell-gutter-bottom: 12px;
+  // The titlebar card, and the strip it reserves (`$title-bar-height`): the
+  // card plus the gutter above it, so a gutter that changes moves the strip and
+  // never the card. Resolved here, where every tier sets the gutter.
+  --title-bar-card: 74px;
+  --title-bar-height: calc(var(--title-bar-card) + var(--shell-gutter));
+  // The meter set into that card, rainbow mode or not (`Euphoria.scss`): the
+  // card less its padding and border, and a pixel and a half either side.
+  --title-bar-meter: 65px;
 }
 
 .app-workspace {
@@ -4074,6 +4083,45 @@ button.graph-legend {
   // from the panel edge and squeezing its padding. It is in the titlebar now
   // and gives ground on the wrapper's terms; see the two queries under
   // `.titlebar-nav`.
+}
+
+// *** Short windows *************************************************************
+//
+// A laptop's height, and a Mac's view of this window at 200% — measured at
+// 1440x852, where the titlebar, the transport and five gutters took 174 of
+// the 852 before any page had a pixel (Ivan, 2026-09-23). The shell's own
+// chrome gives the room back, and only the chrome: the titlebar card 74 -> 56
+// with its meter 65 -> 47, the transport 64 -> 52 (`NowPlayingBar.scss`),
+// and the gutters 12 -> 8 — the gap between the columns with them, because
+// equal all round is what makes the shell read as one grid. Every control
+// keeps its size and its place; what goes is air.
+//
+// After the width tiers, so a window both short and narrow takes this gutter
+// and not the 10 of `760px` above: of two tiers that both apply, the tighter.
+@media (max-height: $bp-laptop-height) {
+  :root {
+    --shell-gutter: 8px;
+    --shell-gutter-bottom: 8px;
+    --title-bar-card: 56px;
+    --title-bar-meter: 47px;
+  }
+
+  .app-workspace {
+    gap: var(--shell-gutter);
+  }
+
+  // The mark comes down with the card, so it keeps air above and below it: at
+  // its 44px it stood 3px off the edges of a 50px row, the one thing in the bar
+  // that looked jammed into it.
+  .window-titlebar .brand-mark {
+    width: 38px;
+    height: 38px;
+
+    svg {
+      width: 26px;
+      height: 26px;
+    }
+  }
 }
 
 // Short windows used to cap the graph at 240px so the even split could not

@@ -1257,6 +1257,22 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     repeat(3, minmax(64px, max-content)) minmax(56px, max-content)
     minmax(104px, max-content);
   align-items: stretch;
+  // THE TALLER OF THE TWO ROWS, WHICHEVER IS SHOWING.
+  //
+  // With nothing selected this place carries the Tone row, whose dials are
+  // deliberately bigger (see below) — 100px against this row's 78 on a window
+  // over 1100px tall. The bands above take the room the row leaves, so with
+  // one height for each state every track grew by 22px the moment a band was
+  // selected, under the very pointer that selected it. Both states stand in a
+  // box the taller one's size; what the shorter one does not use is air at the
+  // foot of the card, where every other tab leaves its spare room.
+  //
+  // `align-content` centres the row's own two lines in that box, so the band
+  // editor is not a short control pinned to the top of a tall island. Both
+  // are undone at the tier below, where the two rows are already one box and
+  // the lines stretch to fill it as they always did.
+  min-height: 100px;
+  align-content: center;
   justify-self: center;
   gap: 8px;
   // The same block as the face the bands stand on.
@@ -1328,6 +1344,17 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // Height rather than width, because this is not about the row running out of
 // room sideways: it never does. It is about what else is on screen.
 @media (max-height: 1100px) {
+  // Nothing to reserve at this tier: the Tone row below is brought back to
+  // the band editor's own height, so the two are already one box, and its
+  // lines fill that box rather than sitting centred in a taller one.
+  // `auto`, not zero: a floor of zero let the row squash below its own
+  // controls on a window too short for the page — 22px of editor at 1280x720,
+  // where it should keep its height and let the panel scroll.
+  .eq-flat-editor {
+    min-height: auto;
+    align-content: normal;
+  }
+
   .eq-flat-editor.eq-flat-editor--tone {
     // The band editor's own, restated because the rule above overrides them:
     // the two rows stand in the same place and one replaces the other, so at

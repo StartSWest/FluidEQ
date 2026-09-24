@@ -21,6 +21,8 @@ import { act, render } from '@testing-library/react';
 import KaraokePitchLane from '../../renderer/karaoke/KaraokePitchLane';
 import { IKaraokeLivePitch } from '../../renderer/karaoke/useKaraokeMicrophone';
 import {
+  PITCH_LABEL_CLEARANCE_PX,
+  pitchLaneLayout,
   PLOT_LEFT,
   PLOT_RIGHT,
 } from '../../renderer/karaoke/karaokePitchGeometry';
@@ -128,6 +130,7 @@ const ultraStarTarget = {
  */
 const drawOneFrame = (
   element: Parameters<typeof render>[0],
+  canvasHeight: number = CANVAS_HEIGHT,
 ): readonly IDrawOp[] => {
   const context = createRecordingContext();
   let drawFrame: (() => void) | undefined;
@@ -155,9 +158,9 @@ const drawOneFrame = (
       left: 0,
       top: 0,
       right: CANVAS_WIDTH,
-      bottom: CANVAS_HEIGHT,
+      bottom: canvasHeight,
       width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
+      height: canvasHeight,
       toJSON: () => ({}),
     });
   const frameSpy = jest
@@ -271,9 +274,96 @@ describe('KaraokePitchLane drawing', () => {
     // counting out a track that was never opened.
     expect(circleXsAtRadius(ops, PLAYHEAD_DOT_RADIUS)).toHaveLength(0);
     expect(ops.some((entry) => entry.op === 'fillText')).toBe(true);
+    // Under the plot and inside it is where the seconds are written; the
+    // semitone names are beside the plot, in the left gutter, and one of them
+    // sits at its foot. Asking for the whole bottom band instead read the
+    // lowest semitone name as a clock the moment a song with no target notes
+    // was given the room the word lanes no longer need (`pitchLaneLayout`).
+    const { plotTop, plotBottom } = pitchLaneLayout(CANVAS_HEIGHT, false);
+    const underThePlot = CANVAS_HEIGHT - plotBottom;
+    expect(underThePlot).toBeGreaterThan(plotTop);
     const timeLabels = ops.filter(
-      (entry) => entry.op === 'fillText' && entry.args[1] > CANVAS_HEIGHT - 60,
+      (entry) =>
+        entry.op === 'fillText' &&
+        entry.args[1] > underThePlot &&
+        entry.args[0] >= PLOT_LEFT,
     );
     expect(timeLabels).toHaveLength(0);
+  });
+
+  it('POSITIVE CONTROL: the same band holds the seconds once a song is open', () => {
+    const ops = drawOneFrame(
+      <KaraokePitchLane
+        isActive
+        analysisStatus="ready"
+        microphoneStatus="live"
+        pitch={pitch}
+        playheadMs={4_000}
+        durationMs={200_000}
+      />,
+    );
+
+    const { plotBottom } = pitchLaneLayout(CANVAS_HEIGHT, false);
+    const timeLabels = ops.filter(
+      (entry) =>
+        entry.op === 'fillText' &&
+        entry.args[1] > CANVAS_HEIGHT - plotBottom &&
+        entry.args[0] >= PLOT_LEFT,
+    );
+    expect(timeLabels.length).toBeGreaterThan(1);
+  });
+
+  /**
+   * The lane is as short as 71px on a laptop-height window with the response
+   * graph docked under it, and every semitone name was printed whatever the
+   * room: five of them landed inside fourteen pixels, one on top of another,
+   * with the plot itself a pixel tall (measured at 1440x852, 2026-09-23).
+   */
+  it('thins the semitone names rather than stacking them in a short lane', () => {
+    const ops = drawOneFrame(
+      <KaraokePitchLane
+        isActive
+        analysisStatus="ready"
+        microphoneStatus="live"
+        pitch={pitch}
+        playheadMs={4_000}
+        durationMs={200_000}
+      />,
+      71,
+    );
+
+    // The names stand in the gutter to the left of the plot; everything else
+    // this lane writes is inside it.
+    const nameYs = ops
+      .filter((entry) => entry.op === 'fillText' && entry.args[0] < PLOT_LEFT)
+      .map((entry) => entry.args[1])
+      .sort((left, right) => left - right);
+    expect(nameYs.length).toBeGreaterThan(0);
+    const closest = nameYs
+      .slice(1)
+      .reduce(
+        (nearest, y, index) => Math.min(nearest, y - nameYs[index]),
+        Number.POSITIVE_INFINITY,
+      );
+    expect(closest).toBeGreaterThanOrEqual(PITCH_LABEL_CLEARANCE_PX);
+  });
+
+  it('POSITIVE CONTROL: a tall lane still names every octave it crosses', () => {
+    const ops = drawOneFrame(
+      <KaraokePitchLane
+        isActive
+        analysisStatus="ready"
+        microphoneStatus="live"
+        pitch={pitch}
+        playheadMs={4_000}
+        durationMs={200_000}
+      />,
+      420,
+    );
+
+    const names = ops.filter(
+      (entry) => entry.op === 'fillText' && entry.args[0] < PLOT_LEFT,
+    );
+    expect(names.length).toBeGreaterThan(3);
   });
 });

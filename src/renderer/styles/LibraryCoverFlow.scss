@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -668,5 +669,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-coverflow__stage,
   .library-coverflow__panel {
     transition: none;
+  }
+}
+
+// *** Short windows *************************************************************
+//
+// A laptop's height (`$bp-laptop-height`): the row over an open album becomes a
+// strip. At 34% of the column it stood 211px on a 1440x852 window — a Mac's
+// view of the PC at 200% — and the album under it showed two songs (Ivan,
+// 2026-09-23). Here it is 172, and its sleeves keep their usual seven tenths
+// of the stage, 120, which is under the carousel's 140px floor: so the floor
+// comes down too. A sleeve in the strip is for steering by, and the carousel
+// on its own is never short enough on such a window to reach the new floor.
+// 172 rather than a rounder 160 because the title and artist hang under the
+// sleeve at a fixed 33px: at 160 they ran 3px over the seam into the album.
+// The block's own floor follows, the strip plus the drill-in's 360.
+//
+// Only the basis again, and a length now rather than a share, which still
+// eases from the collapsed 100% — see the base rule for why nothing else may
+// differ between the two states.
+@media (max-height: $bp-laptop-height) {
+  .library-coverflow__cover {
+    --cover-flow-size: clamp(120px, min(70cqh, 17.5cqw), 380px);
+  }
+
+  .library-coverflow.is-expanded {
+    min-height: 532px;
+
+    .library-coverflow__stage {
+      min-height: 172px;
+      flex-basis: 172px;
+    }
   }
 }

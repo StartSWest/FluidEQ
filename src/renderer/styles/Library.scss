@@ -1933,6 +1933,27 @@ $library-row-height: 46px;
   gap: $spacing-l;
 }
 
+// A laptop's height (`$bp-laptop-height`): the cover at the size of the
+// sleeves in the Cover Flow strip above it, 112 rather than 160. The titles
+// and the buttons beside it are shorter than that, so the whole header comes
+// down with it, and its 48px are the fourth song on a 1440x852 window, a Mac's
+// view of the PC at 200% (Ivan, 2026-09-23).
+@media (max-height: $bp-laptop-height) {
+  .library-detail__header {
+    > .library-cover-art--cover,
+    > .library-folder-art--cover {
+      // The lettering on a folder's sheet is sized off this.
+      --cover-flow-size: 112px;
+      width: 112px;
+      height: 112px;
+    }
+
+    > .library-cover-art--cover .library-cover-art__tile {
+      font-size: 1.7rem;
+    }
+  }
+}
+
 .library-detail__info {
   display: grid;
   min-width: 0;

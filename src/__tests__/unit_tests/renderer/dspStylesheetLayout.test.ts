@@ -33,8 +33,13 @@ const compiled = compile(path.join(STYLES_DIR, 'Dsp.scss'), {
 
 /** Tailwind's scale, which carries the classic 768, 1024 and 1280. */
 const STANDARD_WIDTHS = [640, 768, 1024, 1280, 1536];
-/** Full HD's height: the one density tier the page has. */
-const STANDARD_HEIGHTS = [1080];
+/**
+ * The two density tiers, both named in `_constant.scss`: Full HD's height
+ * (`$bp-full-hd-height`) and a laptop's (`$bp-laptop-height`, the 900 of a
+ * 1440x900 screen and of a Mac's 200% view of this window). Each may change
+ * how dense a page is; neither may change how it is arranged.
+ */
+const STANDARD_HEIGHTS = [900, 1080];
 
 /** A property that decides where things go rather than how dense they are. */
 const ARRANGEMENT = new Set([

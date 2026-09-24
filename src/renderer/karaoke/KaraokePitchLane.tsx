@@ -49,11 +49,12 @@ import {
   MATCH_TOLERANCE_SEMITONES,
   PERFORMANCE_BUCKET_MS,
   PERFORMANCE_ISSUE_REFRESH_MS,
-  PITCH_WORD_LANES,
-  PLOT_BOTTOM,
+  MIN_NOTE_NAME_PLOT_PX,
+  PITCH_LABEL_CLEARANCE_PX,
+  PITCH_WORD_LANE_SPACING,
+  PITCH_WORD_LANE_TOP,
   PLOT_LEFT,
   PLOT_RIGHT,
-  PLOT_TOP,
   TRACE_HISTORY_MS,
   VIEWPORT_PADDING_SEMITONES,
   WINDOW_FUTURE_MS,
@@ -71,6 +72,7 @@ import {
   karaokePitchWordProgress,
   karaokeTraceBehindPlayhead,
   karaokeTraceSampleX,
+  pitchLaneLayout,
   roundedRectPath,
   singerTargetAtTime,
   targetAtTime,
@@ -230,7 +232,11 @@ const KaraokePitchLane = ({
       context.fillRect(0, 0, width, height);
 
       const plotWidth = Math.max(1, width - PLOT_LEFT - PLOT_RIGHT);
-      const plotHeight = Math.max(1, height - PLOT_TOP - PLOT_BOTTOM);
+      const { plotTop, plotBottom, wordLanes, showsReview } = pitchLaneLayout(
+        height,
+        hasTargets,
+      );
+      const plotHeight = Math.max(1, height - plotTop - plotBottom);
       const now = performance.now();
       const directPlayheadMs = readPlayheadMs?.();
       const synchronizedPlayheadMs = Number.isFinite(directPlayheadMs)
@@ -273,7 +279,7 @@ const KaraokePitchLane = ({
       const topMidi = centerMidi + semitoneSpan / 2;
       const semitoneHeight = plotHeight / semitoneSpan;
       const yForMidi = (midi: number) =>
-        PLOT_TOP + (topMidi - midi) * semitoneHeight;
+        plotTop + (topMidi - midi) * semitoneHeight;
       const xForSongTime = (timeMs: number) =>
         karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
@@ -282,12 +288,17 @@ const KaraokePitchLane = ({
       // neighboring words enter or leave the visible time window.
       const allWords =
         target?.kind === 'notes' ? groupKaraokePitchWords(target.notes) : [];
-      const visibleWords = allWords
-        .map((word, wordIndex) => ({ word, wordIndex }))
-        .filter(
-          ({ word }) =>
-            word.endMs >= windowStartMs && word.startMs <= windowEndMs,
-        );
+      // None at all when the lane is too short to give them a row; the lyrics
+      // above the lane are showing the same words.
+      const visibleWords =
+        wordLanes > 0
+          ? allWords
+              .map((word, wordIndex) => ({ word, wordIndex }))
+              .filter(
+                ({ word }) =>
+                  word.endMs >= windowStartMs && word.startMs <= windowEndMs,
+              )
+          : [];
       const wordLayout = visibleWords.map(({ word, wordIndex }) => {
         const noteLeft = Math.max(PLOT_LEFT, xForSongTime(word.startMs));
         const noteRight = Math.min(
@@ -295,8 +306,8 @@ const KaraokePitchLane = ({
           xForSongTime(word.endMs),
         );
         const centerMs = (word.startMs + word.endMs) / 2;
-        const previousLaneWord = allWords[wordIndex - PITCH_WORD_LANES];
-        const nextLaneWord = allWords[wordIndex + PITCH_WORD_LANES];
+        const previousLaneWord = allWords[wordIndex - wordLanes];
+        const nextLaneWord = allWords[wordIndex + wordLanes];
         const slotStartMs = previousLaneWord
           ? ((previousLaneWord.startMs + previousLaneWord.endMs) / 2 +
               centerMs) /
@@ -307,7 +318,7 @@ const KaraokePitchLane = ({
           : windowEndMs;
         return {
           word,
-          lane: wordIndex % PITCH_WORD_LANES,
+          lane: wordIndex % wordLanes,
           noteLeft,
           noteRight,
           center: xForSongTime(centerMs),
@@ -330,7 +341,7 @@ const KaraokePitchLane = ({
         );
         context.save();
         context.beginPath();
-        context.rect(PLOT_LEFT, 0, plotWidth, PLOT_TOP - 3);
+        context.rect(PLOT_LEFT, 0, plotWidth, plotTop - 3);
         context.clip();
         let labelFontSize = isCurrent ? 14 : 12.5;
         const labelWeight = isCurrent ? 700 : 600;
@@ -352,7 +363,7 @@ const KaraokePitchLane = ({
           PLOT_LEFT + textWidth / 2 + 3,
           PLOT_LEFT + plotWidth - textWidth / 2 - 3,
         );
-        const labelY = 10 + lane * 13;
+        const labelY = PITCH_WORD_LANE_TOP + lane * PITCH_WORD_LANE_SPACING;
         const textLeft = labelX - textWidth / 2;
         context.fillStyle = isComplete
           ? readAccentLight(0.88, 'rgba(151, 247, 238, .88)')
@@ -382,8 +393,8 @@ const KaraokePitchLane = ({
         context.lineWidth = 1.4;
         context.lineCap = 'round';
         context.beginPath();
-        context.moveTo(noteLeft, PLOT_TOP - 6);
-        context.lineTo(Math.max(noteLeft + 1, noteRight), PLOT_TOP - 6);
+        context.moveTo(noteLeft, plotTop - 6);
+        context.lineTo(Math.max(noteLeft + 1, noteRight), plotTop - 6);
         context.stroke();
         if (wordProgress > 0) {
           const progressRight =
@@ -398,8 +409,8 @@ const KaraokePitchLane = ({
             : 'transparent';
           context.shadowBlur = isCurrent ? 7 : 0;
           context.beginPath();
-          context.moveTo(noteLeft, PLOT_TOP - 6);
-          context.lineTo(Math.max(noteLeft + 1, progressRight), PLOT_TOP - 6);
+          context.moveTo(noteLeft, plotTop - 6);
+          context.lineTo(Math.max(noteLeft + 1, progressRight), plotTop - 6);
           context.stroke();
           context.restore();
         }
@@ -410,14 +421,33 @@ const KaraokePitchLane = ({
       context.textAlign = 'right';
       const bottomMidi = centerMidi - semitoneSpan / 2;
       const tickStep = semitoneSpan > 48 ? 12 : 6;
-      const firstPitchTick = Math.ceil(bottomMidi / tickStep) * tickStep;
+      // Labels step up an octave at a time until they clear each other, so a
+      // lane squeezed by a short window names fewer notes instead of printing
+      // five on one line. The zero is what the singer is measured against and
+      // is always a multiple of the step, so it always keeps its label. A line
+      // packed tighter than its own width is taken away with its label.
+      let labelStep = tickStep;
+      while (
+        labelStep * semitoneHeight < PITCH_LABEL_CLEARANCE_PX &&
+        labelStep < semitoneSpan
+      ) {
+        labelStep *= 2;
+      }
+      const lineStep = tickStep * semitoneHeight >= 4 ? tickStep : labelStep;
+      // Counted from the zero rather than from MIDI 0. The two agree for 6 and
+      // 12, the zero being a C; a 24-semitone step from MIDI 0 would miss it.
+      const firstPitchTick =
+        KARAOKE_CANONICAL_CENTER_MIDI +
+        Math.ceil((bottomMidi - KARAOKE_CANONICAL_CENTER_MIDI) / lineStep) *
+          lineStep;
       const topPitchTick = centerMidi + semitoneSpan / 2;
       for (
         let tickMidi = firstPitchTick;
         tickMidi <= topPitchTick;
-        tickMidi += tickStep
+        tickMidi += lineStep
       ) {
         const semitone = tickMidi - KARAOKE_CANONICAL_CENTER_MIDI;
+        const isLabelled = semitone % labelStep === 0;
         const y = yForMidi(tickMidi);
         let labelColor = 'rgba(242, 208, 79, 0.78)';
         if (semitone > 0) {
@@ -425,14 +455,16 @@ const KaraokePitchLane = ({
         } else if (semitone < 0) {
           labelColor = 'rgba(255, 101, 93, 0.78)';
         }
-        context.fillStyle = labelColor;
-        context.fillText(
-          `${midiToNoteName(tickMidi, targetHasAbsoluteOctaves)} ${
-            semitone > 0 ? '+' : ''
-          }${semitone}`,
-          PLOT_LEFT - 8,
-          y,
-        );
+        if (isLabelled) {
+          context.fillStyle = labelColor;
+          context.fillText(
+            `${midiToNoteName(tickMidi, targetHasAbsoluteOctaves)} ${
+              semitone > 0 ? '+' : ''
+            }${semitone}`,
+            PLOT_LEFT - 8,
+            y,
+          );
+        }
         context.strokeStyle =
           semitone === 0
             ? 'rgba(242, 208, 79, 0.2)'
@@ -455,14 +487,14 @@ const KaraokePitchLane = ({
           const x = xForSongTime(tickMs);
           context.strokeStyle = 'rgba(225, 231, 244, 0.055)';
           context.beginPath();
-          context.moveTo(x, PLOT_TOP);
-          context.lineTo(x, PLOT_TOP + plotHeight);
+          context.moveTo(x, plotTop);
+          context.lineTo(x, plotTop + plotHeight);
           context.stroke();
           context.fillStyle = textInk;
           context.fillText(
             formatKaraokeTime(tickMs),
             x,
-            PLOT_TOP + plotHeight + 15,
+            plotTop + plotHeight + 15,
           );
         }
       }
@@ -644,8 +676,15 @@ const KaraokePitchLane = ({
         const previousLabelRight =
           floatingLabelRightByPitch.get(pitchRow) ?? -Infinity;
         const labelLeft = labelX - labelWidth / 2;
-        if (labelLeft > previousLabelRight + 5) {
-          const labelAbove = noteY - 4 >= PLOT_TOP + 9;
+        // A name needs a line of room above or below its block. In a lane too
+        // short for either — 14px of canvas under a docked graph on a 720-tall
+        // window — it was printed half outside the plot, cut off by the card's
+        // own edge. The blocks are what that lane is for; the names go.
+        if (
+          plotHeight >= MIN_NOTE_NAME_PLOT_PX &&
+          labelLeft > previousLabelRight + 5
+        ) {
+          const labelAbove = noteY - 4 >= plotTop + 9;
           context.textAlign = 'center';
           context.textBaseline = labelAbove ? 'bottom' : 'top';
           context.fillStyle = isPitchMatch
@@ -761,12 +800,12 @@ const KaraokePitchLane = ({
         context.shadowColor = 'rgba(48, 145, 255, 0.45)';
         context.shadowBlur = 8;
         context.beginPath();
-        context.moveTo(playheadX, PLOT_TOP - 3);
-        context.lineTo(playheadX, PLOT_TOP + plotHeight);
+        context.moveTo(playheadX, plotTop - 3);
+        context.lineTo(playheadX, plotTop + plotHeight);
         context.stroke();
         context.fillStyle = '#3091ff';
         context.beginPath();
-        context.arc(playheadX, PLOT_TOP, 3.5, 0, Math.PI * 2);
+        context.arc(playheadX, plotTop, 3.5, 0, Math.PI * 2);
         context.fill();
         context.shadowBlur = 0;
       }
@@ -856,7 +895,7 @@ const KaraokePitchLane = ({
         // gutter. Held to the plot rectangle it simply leaves at the edge.
         context.save();
         context.beginPath();
-        context.rect(PLOT_LEFT, PLOT_TOP - 6, plotWidth, plotHeight + 12);
+        context.rect(PLOT_LEFT, plotTop - 6, plotWidth, plotHeight + 12);
         context.clip();
 
         // The microphone is one continuous pitch curve over the song blocks.
@@ -919,7 +958,7 @@ const KaraokePitchLane = ({
         context.restore();
       }
 
-      if (target?.kind === 'notes') {
+      if (target?.kind === 'notes' && showsReview) {
         const performanceDurationMs = target.notes.reduce(
           (duration, note) =>
             isTimedTarget(note) ? Math.max(duration, note.endMs) : duration,
@@ -1123,7 +1162,7 @@ const KaraokePitchLane = ({
         const legendWidth = 132;
         const legendHeight = 72;
         const legendX = PLOT_LEFT + plotWidth - legendWidth - 11;
-        const legendY = PLOT_TOP + plotHeight - legendHeight - 10;
+        const legendY = plotTop + plotHeight - legendHeight - 10;
         const legendSurface = context.createLinearGradient(
           legendX,
           legendY,

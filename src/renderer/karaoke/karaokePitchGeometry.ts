@@ -96,8 +96,113 @@ export const VIEWPORT_PADDING_SEMITONES = 4;
 export const PLOT_LEFT = 46;
 export const PLOT_RIGHT = 14;
 export const PITCH_WORD_LANES = 3;
-export const PLOT_TOP = 52;
+// The target words' lanes, above the plot: the first is centred this far down
+// the canvas and each next one this much lower.
+export const PITCH_WORD_LANE_TOP = 10;
+export const PITCH_WORD_LANE_SPACING = 13;
+// From the last lane down to the plot: the lane's own text and, under it, the
+// word's progress line.
+const WORD_BAND_TAIL = 16;
+const wordBandHeight = (lanes: number): number =>
+  PITCH_WORD_LANE_TOP + PITCH_WORD_LANE_SPACING * (lanes - 1) + WORD_BAND_TAIL;
+// At full height: every word lane above the plot, and below it the seconds
+// ruler with the performance review under that.
+export const PLOT_TOP = wordBandHeight(PITCH_WORD_LANES);
 export const PLOT_BOTTOM = 52;
+// The ruler alone below the plot, and above it the room its top label and the
+// playhead's dot need — which is everything a song without target notes draws
+// around its plot.
+export const PLOT_TOP_BARE = 12;
+export const PLOT_BOTTOM_BARE = 22;
+// The shortest plot a note block and the name beside it still fit in.
+const MIN_TARGET_PLOT_PX = 36;
+/** Under this, a note's name has no line of room above or below its block. */
+export const MIN_NOTE_NAME_PLOT_PX = 32;
+// How far apart two semitone labels have to be to read as two: the 11px
+// labels are about 13px tall.
+export const PITCH_LABEL_CLEARANCE_PX = 14;
+
+export interface IPitchLaneLayout {
+  plotTop: number;
+  plotBottom: number;
+  /** How many lanes the target words are spread over. */
+  wordLanes: number;
+  /** Whether the performance review strip is drawn under the ruler. */
+  showsReview: boolean;
+}
+
+const targetLayout = (
+  wordLanes: number,
+  showsReview: boolean,
+): IPitchLaneLayout => ({
+  plotTop: wordLanes > 0 ? wordBandHeight(wordLanes) : PLOT_TOP_BARE,
+  plotBottom: showsReview ? PLOT_BOTTOM : PLOT_BOTTOM_BARE,
+  wordLanes,
+  showsReview,
+});
+
+// Most to least: words spread over fewer lanes before anything is taken
+// away, then the review — the one place a part to practise can be picked with
+// the pointer, so it outlasts all but the last lane — then that lane, whose
+// words the lyrics above the lane are already showing.
+const TARGET_LAYOUTS: readonly IPitchLaneLayout[] = [
+  targetLayout(PITCH_WORD_LANES, true),
+  targetLayout(2, true),
+  targetLayout(1, true),
+  targetLayout(1, false),
+  targetLayout(0, false),
+];
+
+const BARE_LAYOUT: IPitchLaneLayout = {
+  plotTop: PLOT_TOP_BARE,
+  plotBottom: PLOT_BOTTOM_BARE,
+  wordLanes: 0,
+  showsReview: false,
+};
+
+/**
+ * How the pitch lane's canvas is shared out at a given height.
+ *
+ * At full height the bands around the plot take 104px, and a lane squeezed by
+ * a short window was shorter than that (1440×852 with the graph docked, where
+ * the canvas is 71px): the plot collapsed to a pixel, and the semitone labels,
+ * the ruler, the notes' names and the review strip printed over each other
+ * (2026-09-23). The plot keeps its minimum now, and what is around it gives
+ * way in the order of `TARGET_LAYOUTS`; below the last of those, the plot is
+ * what gives. The ruler is never taken.
+ *
+ * A song without target notes has no words and no review to draw, so its
+ * plot takes everything but the ruler and the playhead's dot.
+ */
+export const pitchLaneLayout = (
+  height: number,
+  hasTargets: boolean,
+): IPitchLaneLayout => {
+  const chosen = hasTargets
+    ? (TARGET_LAYOUTS.find(
+        ({ plotTop, plotBottom }) =>
+          height - plotTop - plotBottom >= MIN_TARGET_PLOT_PX,
+      ) ?? TARGET_LAYOUTS[TARGET_LAYOUTS.length - 1])
+    : BARE_LAYOUT;
+  // Under a docked graph on a 720-tall window the page hands this lane 14px,
+  // and the bands alone want 34 of them: the plot came out one pixel and the
+  // notes with it. The bands give up their share in proportion there — the
+  // ruler goes first, since a scale nobody can read a value off is the least
+  // of what is left — and the notes keep two thirds of whatever there is.
+  const bands = chosen.plotTop + chosen.plotBottom;
+  if (height - bands >= MIN_TARGET_PLOT_PX || height <= 0) {
+    return chosen;
+  }
+  const forBands = Math.max(0, Math.floor(height / 3));
+  const plotTop = Math.min(chosen.plotTop, Math.round(forBands * 0.4));
+  return {
+    ...chosen,
+    plotTop,
+    plotBottom: Math.min(chosen.plotBottom, forBands - plotTop),
+    wordLanes: 0,
+    showsReview: false,
+  };
+};
 
 export const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));

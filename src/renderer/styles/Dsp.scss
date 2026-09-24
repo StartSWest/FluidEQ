@@ -4048,9 +4048,18 @@ $dsp-pane-columns: 6;
 // The field beside the curve: what the effect is doing, and how it is set.
 // Square on the left because a goniometer that is not square lies about the
 // angle, and the angle is the whole reading.
+//
+// Its side is one number, read by the track it stands in and by the field
+// itself, so the two cannot drift apart — and so a shorter window can bring
+// it down by setting a size rather than by restating the template. A height
+// query may change how dense this page is and never how it is arranged
+// (`dspStylesheetLayout.test.ts`), and a second `grid-template-columns` is
+// the latter even when it keeps the same two tracks.
 .dsp-dimension-graph {
+  --dsp-goniometer-size: 220px;
+
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: var(--dsp-goniometer-size) minmax(0, 1fr);
   gap: 12px;
   width: 100%;
   align-items: stretch;
@@ -4062,8 +4071,8 @@ $dsp-pane-columns: 6;
 // theme; the scope fades its trail toward the same colour
 // (`DspDimensionGraph.tsx`), so the box and the drawing agree.
 .dsp-dimension-field {
-  width: 220px;
-  height: 220px;
+  width: var(--dsp-goniometer-size);
+  height: var(--dsp-goniometer-size);
   border-radius: $radius-s;
   background: $block-lift;
   border: 1px solid $border-subtle;
@@ -4158,4 +4167,48 @@ $dsp-pane-columns: 6;
 
 .dsp-bass-punch-controls .dsp-band-dials {
   justify-content: center;
+}
+
+// *** Short windows ************************************************************
+//
+// A laptop's height (`$bp-laptop-height`): each stage's picture comes down so
+// the stage's own controls start on screen. Measured at 1440x852, a Mac's view
+// of the PC at 200% (Ivan, 2026-09-23): the Equaliser's graph stood 256px tall
+// and its band controls began at the foot of the tab, the rest a scroll away.
+//
+// Every picture keeps the same room to draw in, about 150px, rather than the
+// same box. The curves carry one legend line inside them and take 170; the
+// time plots — Maximizer, Master, Bass Punch — also carry a row of readings
+// inside, and at 170 the Maximizer's plot was 70px with its three level labels
+// printed over each other, so they take 240. The Exciter's spectrum goes to
+// the 150px floor the Denoiser's graph already stands at, and its two rows of
+// bands close up by the gap between them: it was the one stage still 20px too
+// long. With those, all ten stages fit that window whole, the Room apart, whose
+// page is its six bands. Last in the file because the rules it overrides are
+// spread through it.
+@media (max-height: $bp-laptop-height) {
+  .dsp-eq-graph.dsp-exciter-canvas {
+    height: 150px;
+  }
+
+  #dsp-exciter .dsp-exciter-controls {
+    gap: 6px;
+  }
+
+  .dsp-eq .dsp-eq-graph,
+  .dsp-bass-forge-canvas,
+  .dsp-dimension-canvas {
+    height: 170px;
+  }
+
+  // The goniometer stays square beside a curve of the same height.
+  .dsp-dimension-graph {
+    --dsp-goniometer-size: 170px;
+  }
+
+  .dsp-master-canvas,
+  .dsp-maximizer-canvas,
+  .dsp-bass-punch-canvas {
+    height: 240px;
+  }
 }

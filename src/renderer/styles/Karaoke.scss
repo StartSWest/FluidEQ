@@ -1225,6 +1225,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       minmax(104px, min(var(--karaoke-pitch-size, 34%), calc(100% - 220px)));
   }
 
+  // A song with target notes draws its words above the plot and its review
+  // under it, and the floor above left its canvas 44px for all three: at
+  // 1440×852 with the graph docked the lane was 143px tall and the plot one
+  // pixel (2026-09-23). 220 is the lane's header and footer, measured at 73px
+  // in Segoe UI, round a canvas that holds every band and a 36px plot
+  // (`pitchLaneLayout`), with a few pixels for a system font that sets the
+  // header taller — as long as the stage can spare it; below that the old
+  // floor holds and the drawing gives way instead.
+  //
+  // `:where()` keeps this at the specificity of the rule above, which it
+  // follows, and of the short-window rules further down, which follow it and
+  // set their own floors.
+  &.has-song.has-stage-pitch:where(:has(> .karaoke-pitch.has-targets)) {
+    grid-template-rows:
+      auto minmax(52px, 1fr) 12px
+      minmax(
+        max(104px, min(220px, calc(100% - 220px))),
+        min(var(--karaoke-pitch-size, 34%), calc(100% - 220px))
+      );
+  }
+
   > .karaoke-pane-splitter.is-horizontal {
     align-self: center;
   }

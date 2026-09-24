@@ -24,6 +24,36 @@ import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import '../styles/LibraryStageArt.scss';
 
 /**
+ * Where layout put the column, not where an entrance is carrying it this frame.
+ *
+ * `getBoundingClientRect` counts transforms, and the column rises 8px into
+ * place every time it appears (`rise-in`) — which includes every return from
+ * the amp, since the player takes `#root` out of the page and putting it back
+ * restarts the entrance. Measured mid-rise, the record was published 8px low;
+ * the rise then ends without the column changing size, so nothing measured it
+ * again, and the record stood out under the bottom of the graph's card (Ivan,
+ * 2026-09-23). Offsets are layout's own numbers and carry no transform.
+ */
+const layoutBox = (element: HTMLElement) => {
+  // Document coordinates first, then the window's own scroll taken off, which
+  // is what makes them the viewport's like the rectangle they replace.
+  let top = element.offsetTop - window.scrollY;
+  let left = element.offsetLeft - window.scrollX;
+  let parent = element.offsetParent;
+  while (parent instanceof HTMLElement) {
+    top += parent.offsetTop + parent.clientTop;
+    left += parent.offsetLeft + parent.clientLeft;
+    parent = parent.offsetParent;
+  }
+  return {
+    top,
+    left,
+    width: element.offsetWidth,
+    bottom: top + element.offsetHeight,
+  };
+};
+
+/**
  * The box the picture stands in, measured and published to the stylesheet.
  *
  * The graph has two of these modes, not one: expanded keeps the sidebars and
@@ -46,12 +76,12 @@ const useStageBox = () => {
     // expanded mode while the card sat correctly in the column.
     const host = document.documentElement;
     const column = document.querySelector('.center-workspace');
-    if (!column) {
+    if (!(column instanceof HTMLElement)) {
       return undefined;
     }
 
     const publish = () => {
-      const rect = column.getBoundingClientRect();
+      const rect = layoutBox(column);
       const top = Math.max(rect.top, 0);
       const bottom = Math.min(rect.bottom, window.innerHeight);
       host.style.setProperty('--stage-art-left', `${Math.round(rect.left)}px`);

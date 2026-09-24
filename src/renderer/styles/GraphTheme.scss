@@ -1914,6 +1914,28 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The Karaoke page under the graph keeps its layout and loses its top row.
+//
+// That row is the page's title and its buttons — Add files, Make, full screen
+// — and the graph's own strip of controls stands over the same corner and
+// takes every press there: buttons nobody could reach, drawn under another
+// toolbar, with the page's title under the +20 dB label (Ivan, 2026-09-23:
+// "we don't show karaoke options bar on those cases ... mouse and focus are
+// in the visualizer").
+//
+// `visibility` rather than `display`, and it matters here. Taken out of the
+// flow, the row gave its height to the stage, which rose into the same band
+// and put the playlist, the song title and the chord box under that toolbar
+// and that label instead — text over text again, one row lower. Kept, the
+// page stays exactly where it stood before the graph came over it, the lyrics
+// are not laid out again on the way in or out, and the band the row leaves
+// is the one the graph's controls float in, over nothing.
+.center-workspace.is-graph-full
+  .workspace-tab-panel--karaoke.is-graph-overlay
+  .karaoke-workspace__header {
+  visibility: hidden;
+}
+
 // The creature, in the corner the titlebar used to occupy.
 //
 // Above the card, because the card covers the whole screen in this mode and
@@ -2151,12 +2173,12 @@ it under the terms of the GNU General Public License version 3 or later.
 //
 // The frame is what makes the graph a panel among panels, and there are no
 // other panels here — the mode is a video with a spectrum over it, and a
-// border, a radius and a shadow around that is a window drawn over a picture.
-// The surface itself stays, because that is what the see-through slider is for.
+// border or a radius around that is a window drawn over a picture. (Nor a
+// shadow, which the card has in neither mode — see the expanded card.) The
+// surface itself stays, because that is what the see-through slider is for.
 .app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
   border: none;
   background: none;
-  box-shadow: none;
 
   // Square, all the way down. The radius is on the card, on the surface layer
   // behind it and on the plot that clips to it — three places, because each
@@ -2421,45 +2443,17 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
-  // LIBRARY AND KARAOKE UNDERNEATH STAY CLICKABLE.
+  // NOTHING UNDER THE CARD TAKES A CLICK, ON ANY TAB.
   //
-  // In Library and Karaoke the graph is scenery over controls that remain part
-  // of FluidEQ, so the plot taking those clicks makes the visible player feel
-  // dead.
-  //
-  // Online Media is deliberately NOT in this list. A double-click passed
-  // through the graph reaches YouTube's player and requests HTML fullscreen at
-  // the same time FluidEQ is already in graph fullscreen. Those two owners are
-  // the stuck/double-fullscreen defect. Media keeps the graph as the input
-  // surface; leave graph mode before interacting with the guest page.
-  //
-  // THE WRAPPER, NOT JUST THE PLOT. Making only `.graph-plot` transparent was
-  // measured and did nothing: the card around it covers the same screen and was
-  // still taking every click itself. The whole graph goes through-clickable,
-  // and the toolbar inside it comes back on its own. The Karaoke Maker is not
-  // in this selector, so its editing surface remains protected by the graph.
-  &:has(
-    .workspace-tab-panel--library:not(.is-hidden),
-    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
-  ) {
-    > .graph-wrapper {
-      pointer-events: none;
-    }
-
-    // Same exception as everywhere else, and it stops at idle: a strip that
-    // has faded out over a video must not be reachable either.
-    > .graph-wrapper .live-output-controls:not(.is-idle) > * {
-      pointer-events: auto;
-    }
-
-    // SVG band handles opt themselves back into hit testing with presentation
-    // attributes. Disable the plot explicitly so those handles cannot catch a
-    // press after the wrapper has been made transparent to it.
-    > .graph-wrapper > .graph-plot,
-    > .graph-wrapper > .graph-plot * {
-      pointer-events: none;
-    }
-  }
+  // Library and Karaoke used to be clickable through the graph, on the reasoning
+  // that a player under scenery should not feel dead. It made the graph the
+  // thing that felt dead instead — its bands could not be dragged over a song —
+  // and a press meant for the plot landed on a lyric, which moved the song
+  // under a graph nobody was looking past. Ivan, 2026-09-23: "remove all click
+  // through for expanded or fullscreen graph view", "I do want to click the
+  // graph while karaoke is playing and show the karaoke behind". The picture
+  // stays; the card takes every press, as it always did over Online Media. The
+  // transport bar is how the song is moved from here.
 
   // And with them gone, the player is the panel.
   //
@@ -2520,7 +2514,18 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-xl;
     background: none;
     opacity: 1;
-    box-shadow: 0 30px 80px rgba($black, 0.6);
+    // No drop shadow, because it could only ever show in the corners.
+    //
+    // The card is flush with the column and the column clips at its own
+    // edge, so of a shadow lifting the card off what is around it all that
+    // reached the screen was the four wedges between the card's rounded
+    // border and the column's square corner — measured 7 values darker than
+    // the floor beside them at the bottom, where the shadow's 30px drop put
+    // most of it. A rounded card sitting on four dark square corners is what
+    // was reported as the picture behind the graph having sharp corners
+    // (Ivan, 2026-09-23). This holds in full screen and for a clean card too,
+    // which is why neither of their own rules says anything about it.
+    box-shadow: none;
 
     // The blur belongs on the card, not on the surface layer below.
     //
@@ -2592,7 +2597,6 @@ it under the terms of the GNU General Public License version 3 or later.
   // completely unobscured in those modes too.
   > .graph-wrapper.is-clean {
     border-color: transparent;
-    box-shadow: none;
 
     &::before {
       background: none;

@@ -36,7 +36,14 @@ import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/prefer-default-export -- a hook, not a
 // component; the other files in this directory export the same way.
 const useMediaQuery = (query: string): boolean => {
-  const [matches, setMatches] = useState(false);
+  // The answer on the first render too, rather than `false` until the effect
+  // below has run: a layout chosen by the query was drawn the other way for
+  // one frame and then jumped — the graph's split on a short window, first.
+  const [matches, setMatches] = useState(
+    () =>
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(query).matches,
+  );
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') {
       return undefined;

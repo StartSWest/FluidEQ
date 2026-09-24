@@ -12,7 +12,6 @@ import GridLine from '../graph/GridLine';
 import {
   FREQUENCY_MAJOR_TICKS,
   FREQUENCY_MINOR_TICKS,
-  GAIN_AXIS_TICKS,
   GAIN_GRID_TICKS,
   levelTickFormat,
   MINOR_RULE_INK,
@@ -81,7 +80,7 @@ export default function StudioGraphPaper({ paper }: { paper: IStudioPaper }) {
         type="left"
         scale={gain}
         transform={`translate(${padding.left}, 0)`}
-        tickValues={GAIN_AXIS_TICKS}
+        tickValues={paper.gainTicks}
         tickFormat={gainTickFormat}
         disableAnimation
       />

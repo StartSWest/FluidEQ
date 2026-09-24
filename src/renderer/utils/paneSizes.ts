@@ -99,6 +99,62 @@ const LEGACY_EDITOR_HEIGHT_KEY = 'fluideq.editorHeight';
  */
 const EDITOR_DEFAULT_SHARE = 0.7;
 
+interface ISplittable {
+  /** What the two panes have between them right now. */
+  room: number;
+  /**
+   * What the share is a share of: the room plus the transport's strip, which
+   * the graph gives up on its own (`measureTransportStrip`).
+   */
+  base: number;
+}
+
+/**
+ * The strip the transport bar reserves at the foot of the window, while it
+ * reserves one: `#root`'s padding there, which is exactly what the column
+ * lost to it (`App.scss`, `.has-now-playing`).
+ *
+ * Not the split's to divide. The bar comes and goes with the music — it
+ * arrives a moment after launch, once the system's player has been read, and
+ * leaves when that player closes — and the editor above is what is being
+ * worked on, so the graph gives the strip up and the bands hold still. That
+ * was already what happened at launch, by accident of timing: the column was
+ * measured before the bar arrived and not again until the window was resized,
+ * when the editor suddenly gave up seven tenths of the strip. Which of the two
+ * splits a window showed depended on whether it had been resized since
+ * launch, and in the harness, which answers at once, on which of the two came
+ * first.
+ */
+const measureTransportStrip = () => {
+  const root = document.getElementById('root');
+  return root ? parseFloat(getComputedStyle(root).paddingBottom) || 0 : 0;
+};
+
+/**
+ * What the divider takes out of the column: itself, the two gaps either side
+ * of it, and its own margins, which are negative and give those gaps back
+ * (`App.scss`: the seam is the column's gap and no deeper).
+ *
+ * The margins were left out, so the seam was counted as 36 when it is 12. The
+ * share was worked out against a column 24px shorter than the real one, and
+ * the ceiling held the graph 24px over its own floor: a graph dragged as low
+ * as it would go stood at 174, never at `PANE_MIN_HEIGHT`.
+ */
+const measureSeam = (column: HTMLElement) => {
+  const gap = parseFloat(getComputedStyle(column).rowGap) || 0;
+  const divider = column.querySelector(':scope > .pane-resizer');
+  if (!(divider instanceof HTMLElement)) {
+    return gap * 2;
+  }
+  const { marginTop, marginBottom } = getComputedStyle(divider);
+  return (
+    gap * 2 +
+    divider.offsetHeight +
+    (parseFloat(marginTop) || 0) +
+    (parseFloat(marginBottom) || 0)
+  );
+};
+
 /**
  * The height the two panes actually divide between them.
  *
@@ -113,21 +169,17 @@ const EDITOR_DEFAULT_SHARE = 0.7;
  * that clips. That is the graph disappearing when the divider is dragged
  * down.
  *
- * The divider and the two gaps around it are not part of the split either,
- * so they come off the top.
+ * The divider's seam is not part of the split either, so it comes off the top.
  */
-const measureSplittableHeight = () => {
+const measureSplittableHeight = (): ISplittable => {
   if (typeof document !== 'undefined') {
     const column = document.querySelector('.center-workspace');
     if (column instanceof HTMLElement && column.clientHeight > 0) {
-      const divider = column.querySelector(':scope > .pane-resizer');
-      const gap = parseFloat(getComputedStyle(column).rowGap) || 0;
-      const dividerHeight =
-        divider instanceof HTMLElement ? divider.offsetHeight : 0;
-      return Math.max(
+      const room = Math.max(
         PANE_MIN_HEIGHT * 2,
-        column.clientHeight - dividerHeight - gap * 2,
+        column.clientHeight - measureSeam(column),
       );
+      return { room, base: room + measureTransportStrip() };
     }
   }
   const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
@@ -135,7 +187,8 @@ const measureSplittableHeight = () => {
   // first layout. The window less an allowance for the chrome around the
   // column is the best guess available. The first subscription refreshes it
   // after the workspace has committed to the DOM.
-  return viewport > 0 ? viewport - CHROME_ALLOWANCE : 614;
+  const guess = viewport > 0 ? viewport - CHROME_ALLOWANCE : 614;
+  return { room: guess, base: guess };
 };
 
 /**
@@ -144,10 +197,12 @@ const measureSplittableHeight = () => {
  * `useSyncExternalStore` may call its getter several times for one render and
  * again after the commit. Letting those reads reach the DOM made every host
  * telemetry update synchronously lay out the whole workspace. Once the store
- * has seen the mounted column, only a resize can change this number; divider
- * drags only change the share.
+ * has seen the mounted column, only the column changing size can change these
+ * numbers — the window resized, the transport bar arriving or leaving, the
+ * short-window tier putting the shell's chrome away — and divider drags only
+ * change the share.
  */
-let cachedSplittableHeight = measureSplittableHeight();
+let cachedSplittable = measureSplittableHeight();
 
 /**
  * The tallest a lone pane may be: the space to divide, less what the pane below
@@ -156,9 +211,11 @@ let cachedSplittableHeight = measureSplittableHeight();
  * Derived rather than declared, so it follows the window instead of a number
  * somebody picked on a different monitor. On a very short window it collapses
  * to the minimum, which is the honest answer — there is no room to give.
+ * Measured against the room there is, strip and all: the graph gives the
+ * transport its strip only down to its own floor.
  */
 const ceilingForSinglePane = () =>
-  Math.max(PANE_MIN_HEIGHT, cachedSplittableHeight - PANE_MIN_HEIGHT);
+  Math.max(PANE_MIN_HEIGHT, cachedSplittable.room - PANE_MIN_HEIGHT);
 
 /** Floor only. Used where a second pane is absorbing the difference. */
 export const clampToMinimum = (value: number) =>
@@ -182,7 +239,7 @@ const readStoredDefaultShare = (): number => {
     );
     if (Number.isFinite(legacy) && legacy > 0) {
       window.localStorage.removeItem(LEGACY_EDITOR_HEIGHT_KEY);
-      const migrated = clampShare(legacy / cachedSplittableHeight);
+      const migrated = clampShare(legacy / cachedSplittable.base);
       window.localStorage.setItem(LEGACY_EDITOR_SHARE_KEY, String(migrated));
       return migrated;
     }
@@ -214,22 +271,47 @@ const readStoredSharesByTab = (): Record<string, number> => {
 const defaultEditorShare = readStoredDefaultShare();
 let editorSharesByTab = readStoredSharesByTab();
 
+const SHORT_WINDOW_SUFFIX = '@short';
+
+/**
+ * A page's split on a short window, remembered apart from its split anywhere
+ * else, and starting with the graph as a strip.
+ *
+ * On a laptop's height (`$bp-laptop-height`) a page that is not the EQ — Online
+ * Media, Share Audio, the Library — has its own content to show, and a graph
+ * held at the share it was given on a tall monitor took a third of what was
+ * left: Share Audio's two role cards were cut in half under a graph of 266px
+ * (Ivan's window, 1440x852, 2026-09-23). There the graph starts at its floor,
+ * `PANE_MIN_HEIGHT` — its legend and a low curve — and the divider pulls it up
+ * as it always does. Wherever it is pulled to is this window's decision, kept
+ * under this key, and it leaves the tall window's split alone.
+ */
+export const shortWindowPaneKey = (tab: string) =>
+  `${tab}${SHORT_WINDOW_SUFFIX}`;
+
+/** More than the ceiling allows, so the ceiling is what holds it: the floor. */
+const GRAPH_STRIP_SHARE = 1;
+
 const editorShareForTab = (tab: string) =>
-  editorSharesByTab[tab] ?? defaultEditorShare;
+  editorSharesByTab[tab] ??
+  (tab.endsWith(SHORT_WINDOW_SUFFIX) ? GRAPH_STRIP_SHARE : defaultEditorShare);
 
 const editorListeners = new Set<() => void>();
 const cachedEditorHeights = new Map<string, number>();
 
 const calculateEditorHeight = (tab: string) =>
-  clampToWindow(Math.round(cachedSplittableHeight * editorShareForTab(tab)));
+  clampToWindow(Math.round(cachedSplittable.base * editorShareForTab(tab)));
 
 const refreshEditorHeightCache = () => {
   const measured = measureSplittableHeight();
-  if (measured === cachedSplittableHeight) {
+  if (
+    measured.room === cachedSplittable.room &&
+    measured.base === cachedSplittable.base
+  ) {
     return false;
   }
 
-  cachedSplittableHeight = measured;
+  cachedSplittable = measured;
   cachedEditorHeights.forEach((_height, tab) => {
     cachedEditorHeights.set(tab, calculateEditorHeight(tab));
   });
@@ -270,7 +352,7 @@ export const setEditorHeight = (next: number, tab = 'default') => {
   }
   editorSharesByTab = {
     ...editorSharesByTab,
-    [tab]: clampShare(value / cachedSplittableHeight),
+    [tab]: clampShare(value / cachedSplittable.base),
   };
   cachedEditorHeights.set(tab, calculateEditorHeight(tab));
   editorListeners.forEach((listener) => listener());
@@ -295,6 +377,40 @@ export const commitPaneSizes = () => {
 
 let hasMeasuredMountedWorkspace = false;
 
+/**
+ * The column, watched for as long as anything reads the split.
+ *
+ * A window resize is only one of the ways it changes size, and the only one
+ * this store used to hear. The transport bar arriving takes a strip off its
+ * foot, and a window crossing the short-window tier gives it the chrome the
+ * shell puts away (`App.scss`) — the window's size is the same before and
+ * after the first, so the split went on dividing a column that was no longer
+ * there. The column's own size is the signal that says so.
+ *
+ * `ResizeObserver` is absent from the jsdom the tests run under; there the
+ * window's resize stays the only boundary, as it always was.
+ */
+let watchedColumn: Element | undefined;
+let columnObserver: ResizeObserver | undefined;
+
+const watchColumn = () => {
+  if (typeof ResizeObserver === 'undefined') {
+    return;
+  }
+  const column = document.querySelector('.center-workspace');
+  if (!column || column === watchedColumn) {
+    return;
+  }
+  columnObserver?.disconnect();
+  watchedColumn = column;
+  columnObserver = new ResizeObserver(() => {
+    if (refreshEditorHeightCache()) {
+      editorListeners.forEach((listener) => listener());
+    }
+  });
+  columnObserver.observe(column);
+};
+
 const subscribeEditor = (listener: () => void) => {
   editorListeners.add(listener);
   if (!hasMeasuredMountedWorkspace) {
@@ -303,6 +419,7 @@ const subscribeEditor = (listener: () => void) => {
       listener();
     }
   }
+  watchColumn();
   return () => {
     editorListeners.delete(listener);
   };

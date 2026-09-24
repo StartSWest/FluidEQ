@@ -337,9 +337,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // and it is the way out this whole file is currently being read for.
   // 65 rather than 64 since the pane grew a bottom border, and the same in
   // App.scss: the extra pixel is the edge, not the drawing. See
-  // `WaveformVisualizer.scss`.
+  // `WaveformVisualizer.scss`. The figure is App.scss's `--title-bar-meter`,
+  // read here rather than written twice: a short window's shorter card takes
+  // the meter down with it, and a copy of 65 here would grow the pane out of
+  // that card the moment rainbow mode came on.
   .waveform-visualizer {
-    height: 65px;
+    height: var(--title-bar-meter);
   }
 
   // The band colours are NOT touched here, and that is the fix.

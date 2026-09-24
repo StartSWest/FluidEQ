@@ -18,24 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $preset-bar-width: 340px;
 $sidebar-width: 164px;
-// The arithmetic, top to bottom: 2 of the bar's own padding, 4 of the
-// wrapper's margin so the bar shows either side of its outline, 1 of border,
-// 2 inside it so the spectrum does not sit hard against that outline, and a
-// 56px pane — twice over, plus the pane, is 74.
+// The strip the titlebar reserves at the top of the window, not the bar
+// itself: the card (`--title-bar-card`, 74px) plus the gutter it stands off
+// the top edge by. Everything in the app that positions itself under the
+// titlebar measures from here, so it has to be where the card's bottom edge
+// lands rather than how tall the card is.
 //
-// It was 86 for a moment, on a 64px pane. The wrapper needs room the bare
-// meter never did, and paying for it by growing the bar spent the window's
-// height on chrome; taking it out of the pane instead leaves the bar where it
-// has always been. Everything positioned under it derives from this number.
-// The strip the bar reserves, not the bar itself.
-//
-// The titlebar is a card now, the way the transport at the foot of the window
-// is: inset from the top and both sides by the shell gutter, rounded, on the
-// same surface. So this number is the 74 above plus the gutter it stands off
-// the top edge by, and the bar takes its own height back out of it. Everything
-// in the app that positions itself under the titlebar measures from here, so it
-// has to be where the card's bottom edge lands rather than how tall the card is.
-$title-bar-height: 86px;
+// A custom property rather than a figure, declared on `:root` in `App.scss`,
+// because it is not one number any more: a short window takes a shorter card
+// and a narrower gutter (`$bp-laptop-height`), and every one of the places
+// under the bar has to move with it. It was 86 written out, and that already
+// disagreed with itself below 760px wide, where the gutter was 10: the card
+// took back the difference and stood 76 tall.
+$title-bar-height: var(--title-bar-height);
 
 // Widths at which the workspace shell changes shape. The Electron window
 // cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only
@@ -75,6 +70,14 @@ $bp-xl: 1280px;
 // Full HD's height. What a maximised 1080p window has to fit a page into,
 // against a 1440p one: the density tier, never an arrangement.
 $bp-full-hd-height: 1080px;
+
+// A laptop's height, the next step down the same scale: the 900 of a 1440x900
+// or 1600x900 screen, and what a Mac makes of this window when it reaches the
+// PC at 200% — measured at 1440x852 (Ivan, 2026-09-23). Chrome and gaps
+// spent at 1440p sizes left a page 690 of the 852. Under this the shell spends
+// less on its own bars and gutters, and the pages that stand a graph over
+// their controls give the graph less, so the controls start on screen.
+$bp-laptop-height: 900px;
 
 // The left column's width, docked and floating alike.
 //
