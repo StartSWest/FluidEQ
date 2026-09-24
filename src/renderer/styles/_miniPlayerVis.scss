@@ -212,6 +212,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .look-picker__trigger .graph-look-option__icon--scene rect {
     fill: none;
   }
+
+  // The heart on a member's scene carries a number, so it takes the plate as
+  // well (the graph's row, carried here on 2026-09-24). Lit, it keeps the
+  // leaderboard's pink it wears on the graph, over the key rather than the
+  // graph's wash.
+  .graph-like {
+    @include player-key-face;
+    min-height: 26px;
+    padding: 0 8px;
+    border-radius: 7px;
+
+    &.is-on,
+    &.is-on:hover:not(:disabled) {
+      border-color: color-mix(in srgb, $analogous-1 70%, transparent);
+      color: $white;
+    }
+  }
 }
 
 .player-vis__looks {

@@ -151,6 +151,57 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
 }
 
+// The desktop background, at the far end of the line (`DesktopKey`): the
+// "Also applied" key's own face at its height, square, so the line reads as
+// one strip with a control at each end. Lit like a layer that is on while the
+// scene is on a monitor.
+.player-eq-screen__desktop {
+  display: inline-grid;
+  flex: none;
+  width: 18px;
+  height: 16px;
+  margin-inline-start: auto;
+  padding: 0;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 4px;
+  background: rgba($black, 0.35);
+  color: color-mix(in srgb, var(--player-ink) 70%, var(--player-text-soft));
+  cursor: pointer;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    color: var(--player-ink-bright);
+  }
+
+  // On a monitor: lit like a lamp, the key filled with the accent and its
+  // glyph glowing, so the difference reads across the room and not only up
+  // close.
+  &[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--accent) 75%, transparent);
+    background: color-mix(in srgb, var(--accent) 24%, rgba($black, 0.35));
+    color: var(--player-ink-bright);
+    box-shadow: 0 0 6px var(--player-glow);
+
+    svg {
+      filter: drop-shadow(0 0 3px var(--player-glow));
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
 // A layer as an indicator: lit is on, dim is off, a press switches it.
 .player-tag {
   display: inline-flex;

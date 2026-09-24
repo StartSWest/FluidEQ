@@ -23,6 +23,8 @@ const isMember = (scene: TDrawableScene) =>
 export interface IGraphScenePack {
   /** The scene and its version: a new one starts the player from the top. */
   identity: string;
+  /** The graph's look id for it: what the desktop background is asked for. */
+  lookId: string;
   pack: IScenePack;
   madeBy: TSceneMaker;
   label: string;
@@ -124,6 +126,7 @@ const useGraphScenePack = (): TGraphScene => {
   return {
     state: 'ready',
     identity: loadKey,
+    lookId,
     pack: loaded.pack,
     madeBy,
     label: resolveSceneName(loaded.pack, locale),

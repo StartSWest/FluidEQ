@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { isMemberLookId } from 'common/memberScenes';
 import { isLockedLookId } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
 import {
@@ -14,9 +15,12 @@ import {
   graphFrequencyRange,
 } from '../graph/ChartController';
 import GraphAutoCycle from '../graph/GraphAutoCycle';
+import GraphWallpaperToggle from '../graph/GraphWallpaperToggle';
+import LightingToggle from '../graph/LightingToggle';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import LookPicker from '../graph/LookPicker';
 import liveTraceCurves from '../graph/liveTraceCurves';
+import SceneLikeButton from '../graph/SceneLikeButton';
 import SceneTintToggle from '../graph/SceneTintToggle';
 import ScenePreview from '../plus/ScenePreview';
 import {
@@ -27,6 +31,7 @@ import {
   useWaveOrientation,
 } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
+import { useUsableMemberScenes } from '../utils/memberScenes';
 import useGraphScenePack from './useGraphScenePack';
 import {
   PLAYER_VIS_MIN,
@@ -49,6 +54,7 @@ const VisDeck = ({ height }: { height: number }) => {
   const { t } = useTranslation();
   const selectedLookId = useSelectedLookId();
   const scene = useGraphScenePack();
+  const memberScenes = useUsableMemberScenes();
   const orientation = useWaveOrientation();
   // The wave as it is set for watching — full screen's. The graph keeps one
   // per view mode and the player is none of them: it is a picture to watch,
@@ -145,6 +151,10 @@ const VisDeck = ({ height }: { height: number }) => {
 
   const isScene = scene.state === 'ready' && scene.identity !== troubled;
   const hasBox = box.width > 0 && box.height > 0;
+  // A member's scene, which has an author to thank as it does on the graph.
+  const memberScene = isMemberLookId(selectedLookId)
+    ? memberScenes.find((candidate) => candidate.lookId === selectedLookId)
+    : undefined;
 
   return (
     <section
@@ -228,16 +238,30 @@ const VisDeck = ({ height }: { height: number }) => {
               </svg>
             </button>
           </span>
-          {/* What a Plus visualizer does to the window — nothing, its colours,
-              or its colours beating with it — the graph's own switch, in the
-              player too (Ivan, 2026-09-21). Only on a scene: a free look has
-              no colours of its own to lend. */}
-          {isScene && <SceneTintToggle />}
+          {/* THE GRAPH'S OWN ROW, in the graph's order (Ivan, 2026-09-24:
+              "similar to what we have in full app"): automatic switching,
+              then on a scene what it does to the window, the heart on a
+              member's scene, the desk lights and the desktop background.
+              Each is the graph's own control and hides itself where it can do
+              nothing. Not the grid switch or the View menu: this picture has
+              no grid, and the View menu's modes are the graph's panes, so both
+              would be presses that change nothing here. */}
           <GraphAutoCycle
             selectedLookId={selectedLookId}
             isWaveHidden={false}
             isEditing={false}
           />
+          {/* What a Plus visualizer does to the window — nothing, its colours,
+              or its colours beating with it (Ivan, 2026-09-21). Only on a
+              scene: a free look has no colours of its own to lend. */}
+          {isScene && <SceneTintToggle />}
+          {isScene && memberScene && (
+            <SceneLikeButton key={memberScene.lookId} scene={memberScene} />
+          )}
+          {isScene && <LightingToggle />}
+          {isScene && scene.state === 'ready' && (
+            <GraphWallpaperToggle lookId={scene.lookId} />
+          )}
         </div>
       </div>
     </section>
