@@ -57,21 +57,23 @@ afterAll(() => {
 });
 
 describe('the picker after the review', () => {
-  it('retires Warp speed to the line and keeps the scenes on their own ramps', () => {
-    expect(canonicalGraphStyle('starfield')).toBe('line');
-    expect(SELECTABLE_GRAPH_STYLES).not.toContain('starfield');
-    expect(canonicalGraphStyle('stalactites')).toBe('area');
-    expect(SELECTABLE_GRAPH_STYLES).not.toContain('stalactites');
-    expect(canonicalGraphStyle('racer')).toBe('area');
-    expect(SELECTABLE_GRAPH_STYLES).not.toContain('racer');
-    expect(canonicalGraphStyle('rain')).toBe('area');
-    expect(SELECTABLE_GRAPH_STYLES).not.toContain('rain');
-    expect(SELECTABLE_GRAPH_STYLES).toContain('arches');
+  it('sends every retired form to a measuring view and still draws it', () => {
+    // The forms this review dropped went to the line and the area; the
+    // September cull took those two as well, so they land on the Analyzer
+    // now. What has not changed is that each one still DRAWS — a look
+    // somebody saved on one keeps its figure — and stays out of the picker.
+    (['starfield', 'stalactites', 'racer', 'rain', 'canyon'] as const).forEach(
+      (style) => {
+        expect(canonicalGraphStyle(style)).toBe('analyzer');
+        expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);
+      },
+    );
+    (['arches', 'flames', 'fence'] as const).forEach((style) => {
+      expect(canonicalGraphStyle(style)).toBe('rta');
+      expect(resolveGraphPalette(style, 'auto')).toBe('level');
+    });
     expect(GRAPH_STYLE_LABELS.flames).toBe('Dancing flames');
-    expect(resolveGraphPalette('arches', 'auto')).toBe('level');
-    expect(resolveGraphPalette('flames', 'auto')).toBe('level');
     expect(resolveGraphPalette('rain', 'auto')).toBe('level');
-    expect(resolveGraphPalette('fence', 'auto')).toBe('level');
   });
 });
 

@@ -59,6 +59,13 @@ export interface IStyleRow {
   family: TGraphStyleFamily;
   /** A look the member built in the designer. */
   yours: boolean;
+  /**
+   * This row is a saved variation of the row above it, so the list draws it
+   * as a child. Read off the ORDER rather than stored on the look, because
+   * the order is what `getSelectableLooks` already decides and two places
+   * deciding the same thing is how they come to disagree.
+   */
+  nested: boolean;
   /** Everything the search box matches it by, folded. */
   search: string;
 }
@@ -83,6 +90,7 @@ export interface IPlusRow {
 }
 
 export const FAMILY_KEYS: Record<TGraphStyleFamily, TranslationKey> = {
+  analysis: 'graph.family.analysis',
   lines: 'graph.family.lines',
   fills: 'graph.family.fills',
   bars: 'graph.family.bars',
@@ -115,8 +123,12 @@ export const buildStyleRows = (
 ): IStyleRow[] =>
   looks
     .filter((look) => !isPremiumLookId(look.id) && !isMemberLookId(look.id))
-    .map((look) => {
+    .map((look, index, rows) => {
       const family = graphStyleFamily(look.style);
+      const above = rows[index - 1];
+      const nested = Boolean(
+        look.isCustom && above && above.style === look.style,
+      );
       const name = look.isCustom
         ? look.label
         : t(`graph.styleName.${look.style}` as TranslationKey);
@@ -126,6 +138,7 @@ export const buildStyleRows = (
         look,
         family,
         yours: look.isCustom,
+        nested,
         search: foldForSearch(
           [
             name,
@@ -284,9 +297,19 @@ export const matchesSearch = (search: string, query: string) =>
     .filter(Boolean)
     .every((word) => search.includes(word));
 
+/**
+ * Only the families something is filed under.
+ *
+ * A chip that empties the column is a dead end — the same rule `plusFilters`
+ * has always had, and one this list needed the moment the twenty plain forms
+ * went: Lines, Fills, Bars and Points were still offered with nothing left
+ * to show under any of them.
+ */
 export const styleFilters = (rows: readonly IStyleRow[]): TStyleFilter[] => [
   'all',
-  ...GRAPH_STYLE_FAMILIES,
+  ...GRAPH_STYLE_FAMILIES.filter((family) =>
+    rows.some((row) => row.family === family),
+  ),
   ...(rows.some((row) => row.yours) ? (['yours'] as const) : []),
 ];
 

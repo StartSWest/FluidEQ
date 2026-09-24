@@ -33,6 +33,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export type GraphStyle =
+  // The measuring views. Drawn by `renderer/graph/analysis`, not from this
+  // file's geometry — see `common/graphAnalysis.ts` for what they are.
+  | 'analyzer'
+  | 'compare'
+  | 'spectrogram'
+  | 'rta'
+  | 'average'
+  | 'waterfall'
+  | 'loudness'
+  | 'scope'
+  | 'midside'
+  | 'notes'
+  | 'energy'
+  | 'phase'
   | 'line'
   | 'area'
   | 'bars'
@@ -93,6 +107,27 @@ export type GraphStyle =
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
+  /**
+   * The measuring views lead, and the twenty plain forms behind them were
+   * retired on 2026-09-23 (Ivan: "we have lot of crappy and non useful
+   * visualizers, we want to kind of start from zero"). The cycle order is
+   * normally append-only because people learn their favourite by counting
+   * clicks; that argument dies with the forms those clicks landed on.
+   */
+  'analyzer',
+  'compare',
+  'spectrogram',
+  'rta',
+  'average',
+  'waterfall',
+  'loudness',
+  // The second batch: four quick ones and the mastering pair, each reading
+  // an axis none of the seven above does.
+  'scope',
+  'midside',
+  'notes',
+  'energy',
+  'phase',
   'line',
   'area',
   'bars',
@@ -160,85 +195,83 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'wave-lattice',
 ];
 
-// Keep retired forms loadable for saved custom looks. Built-in selections
-// migrate to a retained alternative so retired entries stay out of the picker.
-export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
-  if (
-    style === 'weave' ||
-    style === 'bezier' ||
-    style === 'feather' ||
-    style === 'zipper' ||
-    // Warp speed: retired after its hyperspace rebuild was turned down.
-    style === 'starfield'
-  ) {
-    return 'line';
-  }
-  // Stalactites: the cave stays loadable for saved looks and is out of the
-  // picker; Ivan dropped it from the 2D set.
-  if (style === 'stalactites') {
-    return 'area';
-  }
-  // Road trip: likewise dropped from the 2D set; the night road stays
-  // loadable for saved looks.
-  if (style === 'racer') {
-    return 'area';
-  }
-  // Rainfall: the storm, dropped the same day.
-  if (style === 'rain') {
-    return 'area';
-  }
-  // Canyon: the overhanging rock, dropped after its gorge was built for it.
-  if (style === 'canyon') {
-    return 'area';
-  }
-  if (style === 'caps' || style === 'crown' || style === 'diamonds') {
-    return 'dots';
-  }
-  if (style === 'ridge' || style === 'ribbon') {
-    return 'area';
-  }
-  if (style === 'pillars' || style === 'candles' || style === 'barcode') {
-    return 'bars';
-  }
-  if (style === 'honeycomb' || style === 'matrix') {
-    return 'blocks';
-  }
-  /**
-   * The ten wave forms, retired together: every one of them had a free form
-   * already drawing the same figure, and the picker was carrying both.
-   *
-   * Each goes to the one it doubled, so a saved custom look lands on the
-   * drawing it was choosing rather than on the first form in the list. None
-   * of this touches the titlebar's wave, which keeps its own ten styles and
-   * its own picker.
-   */
-  if (style === 'wave-line' || style === 'wave-outline') {
-    return 'line';
-  }
-  if (style === 'wave-filled' || style === 'wave-ribbon') {
-    return 'area';
-  }
-  if (style === 'wave-bars') {
-    return 'bars';
-  }
-  if (style === 'wave-dots') {
-    return 'dots';
-  }
-  if (style === 'wave-spikes') {
-    return 'spikes';
-  }
-  if (style === 'wave-blocks') {
-    return 'blocks';
-  }
-  if (style === 'wave-lattice') {
-    return 'hatch';
-  }
+/**
+ * What the picker offers instead, for a form that is no longer in it.
+ *
+ * Every retired form still DRAWS — a look somebody saved on one keeps its
+ * figure for good, and nothing here is deleted geometry. This table only
+ * decides two things: which entries the picker lists, and where a built-in
+ * selection lands when the form it named has gone.
+ *
+ * The plain forms went on 2026-09-23, all twenty of them, when the measuring
+ * views took their place: Ivan asked to "remove all other standard
+ * vizualuser and start building all these new". What stayed is the eight
+ * scenes he designed one at a time — Terrace, Skyline, Truss, Slope field,
+ * Echo, Bubbles, Pulse, Invaders — because those are pictures rather than
+ * readings and the new views replace readings.
+ *
+ * Each lands on the view that answers the question it was being used to ask:
+ * a trace or a body on the Analyzer, a row of pieces on the RTA.
+ */
+const RETIRED: Partial<Record<GraphStyle, GraphStyle>> = {
+  // Traces and bodies: the filled spectrum with its peak hold.
+  line: 'analyzer',
+  area: 'analyzer',
+  ridge: 'analyzer',
+  ribbon: 'analyzer',
+  contour: 'analyzer',
+  hatch: 'analyzer',
+  weave: 'analyzer',
+  bezier: 'analyzer',
+  feather: 'analyzer',
+  zipper: 'analyzer',
+  braid: 'analyzer',
+  stitch: 'analyzer',
+  sawtooth: 'analyzer',
+  fluid: 'analyzer',
+  'wave-line': 'analyzer',
+  'wave-outline': 'analyzer',
+  'wave-filled': 'analyzer',
+  'wave-ribbon': 'analyzer',
+  'wave-lattice': 'analyzer',
   // The mirrored wave: the graph mirrors any form on its own, from the menu.
-  if (style === 'wave-mirror') {
-    return 'line';
-  }
-  return style;
+  'wave-mirror': 'analyzer',
+  // Rows of pieces across the axis: the third-octave analyser.
+  bars: 'rta',
+  dots: 'rta',
+  steps: 'rta',
+  blocks: 'rta',
+  spikes: 'rta',
+  stems: 'rta',
+  dashes: 'rta',
+  scatter: 'rta',
+  caps: 'rta',
+  crown: 'rta',
+  diamonds: 'rta',
+  ribs: 'rta',
+  pillars: 'rta',
+  candles: 'rta',
+  barcode: 'rta',
+  matrix: 'rta',
+  honeycomb: 'rta',
+  fence: 'rta',
+  arches: 'rta',
+  flames: 'rta',
+  'wave-bars': 'rta',
+  'wave-dots': 'rta',
+  'wave-spikes': 'rta',
+  'wave-blocks': 'rta',
+  // Scenes dropped before this round, each for its own reason at the time:
+  // the cave, the night road, the storm, the gorge and hyperspace.
+  stalactites: 'analyzer',
+  racer: 'analyzer',
+  rain: 'analyzer',
+  canyon: 'analyzer',
+  starfield: 'analyzer',
 };
+
+export const canonicalGraphStyle = (style: GraphStyle): GraphStyle =>
+  RETIRED[style] ?? style;
 export const SELECTABLE_GRAPH_STYLES = GRAPH_STYLES.filter(
   (style) => canonicalGraphStyle(style) === style,
 );
@@ -251,6 +284,18 @@ export const SELECTABLE_GRAPH_STYLES = GRAPH_STYLES.filter(
  * label is what somebody searches.
  */
 export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
+  analyzer: 'Analyzer',
+  compare: 'Before & after',
+  spectrogram: 'Spectrogram',
+  rta: 'Third-octave RTA',
+  average: 'Peak & average',
+  waterfall: 'Waterfall',
+  loudness: 'Stereo & loudness',
+  scope: 'Oscilloscope',
+  midside: 'Mid & side',
+  notes: 'Note spectrum',
+  energy: 'Energy bands',
+  phase: 'Phase history',
   line: 'Line',
   area: 'Area',
   bars: 'Bars',
@@ -429,6 +474,33 @@ export type ResolvedGraphPalette = Exclude<GraphPalette, 'auto'>;
  * than derived, because this is taste and taste is not a rule.
  */
 const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
+  /**
+   * The measuring views. A reading is coloured by what it is reading: the
+   * spectrum views run the level ramp up the axis, so height and colour say
+   * the same thing twice and a peak is unmistakable; the spectrogram and the
+   * waterfall are rasters whose whole content IS the ramp; and the stereo
+   * meters are instruments, one colour, because a moving needle that also
+   * changes hue is two readings fighting.
+   */
+  analyzer: 'level',
+  compare: 'level',
+  spectrogram: 'level',
+  rta: 'level',
+  average: 'level',
+  waterfall: 'level',
+  loudness: 'signal',
+  /**
+   * The second batch. A scope is a beam and a beam is one colour; the note
+   * spectrum and the energy bands are read by WHERE a piece sits, so they
+   * take the ramp across the axis; mid and side are two spectra and take the
+   * level ramp like the rest of them; the phase history is a raster whose
+   * whole content is the ramp.
+   */
+  scope: 'signal',
+  notes: 'rainbow',
+  energy: 'rainbow',
+  midside: 'level',
+  phase: 'level',
   // Traces and silhouettes: one colour.
   line: 'signal',
   ridge: 'signal',
@@ -580,12 +652,12 @@ export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
 /**
  * What a machine that has never been told otherwise draws.
  *
- * The fluid, because it is the only form here that reads BOTH inputs — the
- * spectrum as bars and the output envelope as the curve over them — so it is
- * the one that shows a new user what this pane is for without them touching a
- * setting. It is also the drawing the titlebar already runs, which makes the
- * two halves of the window agree on first launch rather than introducing the
- * product with two unrelated pictures of the same audio.
+ * The Analyzer, because it is the one drawing on this pane that a person can
+ * act on without being told anything: the spectrum of what is playing,
+ * tipped so a balanced record reads level, with a peak hold above it. It is
+ * also the picture the EQ curve is meant to be read against, so the two
+ * halves of the plot say one thing on first launch rather than introducing
+ * the product with an ornament over a measurement.
  *
  * Named rather than positional. This was `GRAPH_LOOKS[0]` in five places,
  * which is not a choice — it is whichever form happens to be written first in
@@ -594,7 +666,7 @@ export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
  * Under the auto colouring, so that the two-minute cycle a fresh install
  * runs shows every form in its own colours rather than all of them flat.
  */
-export const DEFAULT_GRAPH_LOOK_ID = graphLookId('fluid', 'auto');
+export const DEFAULT_GRAPH_LOOK_ID = graphLookId('analyzer', 'auto');
 
 export const DEFAULT_GRAPH_LOOK: IGraphLook =
   GRAPH_LOOKS.find((look) => look.id === DEFAULT_GRAPH_LOOK_ID) ??
@@ -628,6 +700,54 @@ export interface IGraphBallistics {
 const DEFAULT_BALLISTICS: IGraphBallistics = { attackMs: 10, releaseMs: 90 };
 
 const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
+  /**
+   * The measuring views keep an instrument's manners: catch the transient,
+   * let go slowly enough to read. A spectrum analyser that falls as fast as
+   * it rises shows a peak to nobody — the eye is still arriving.
+   *
+   * The spectrogram is the exception and has to be: every row it prints is a
+   * moment, and smoothing the reading before printing it would smear the
+   * picture in the one direction the picture is about.
+   */
+  /**
+   * A spectrum analyser follows peaks up and lets them down slowly: the
+   * attack is as near instant as this graph can be, and the release is the
+   * part everybody tunes. A studio analyser's display falls at about twenty
+   * decibels a second, which on this eighty-decibel plot is a half-life near
+   * eight hundred milliseconds — the first numbers here were a third of
+   * that, which looks lively and is not what these views are for.
+   *
+   * The third-octave analyser is slower again, because an RTA is read as a
+   * steady state rather than watched: it is the display somebody sets a room
+   * curve by, and a band that is still moving cannot be matched to a target.
+   */
+  analyzer: { attackMs: 3, releaseMs: 360 },
+  compare: { attackMs: 5, releaseMs: 360 },
+  rta: { attackMs: 1, releaseMs: 400 },
+  average: { attackMs: 3, releaseMs: 300 },
+  /**
+   * The two that print history keep the quick numbers, and have to: every
+   * row of the spectrogram and every slice of the waterfall is a MOMENT, and
+   * smoothing a reading before printing it smears the picture in the one
+   * direction the picture is about.
+   */
+  spectrogram: { attackMs: 2, releaseMs: 40 },
+  waterfall: { attackMs: 4, releaseMs: 120 },
+  loudness: { attackMs: 1, releaseMs: 160 },
+  /**
+   * The quick ones. The first seven are studio-slow on purpose; these are
+   * what Ivan asked for beside them ("some of them more fast"), and each is
+   * quick for a reason rather than for effect: a scope draws the samples
+   * themselves, a note has to appear the instant it is played, a band meter
+   * is read like every other meter, and a phase history prints a moment per
+   * row. Mid & side is the exception and keeps the Analyzer's manners,
+   * because it is read against it.
+   */
+  scope: { attackMs: 1, releaseMs: 60 },
+  notes: { attackMs: 2, releaseMs: 150 },
+  energy: { attackMs: 1, releaseMs: 200 },
+  phase: { attackMs: 2, releaseMs: 80 },
+  midside: { attackMs: 4, releaseMs: 360 },
   line: { attackMs: 12, releaseMs: 150 },
   // Snap up, hang, drop away — a meter's manners.
   bars: { attackMs: 1, releaseMs: 250 },
@@ -791,6 +911,29 @@ const COLUMN_COUNT = 64;
  * the ornate forms are given fewer, larger columns and the sparse ones more.
  */
 const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
+  /**
+   * Third-octave, which is what the view is called: the plot spans 10 Hz to
+   * 25 kHz, eleven and a third octaves, so thirty-four bands land on the
+   * standard centres. Turning Pieces down walks it toward whole octaves and
+   * up toward sixth- and twelfth-octave, which is the same ladder every RTA
+   * offers — one control, no new row in the panel.
+   */
+  rta: 34,
+  /**
+   * Twelve to the octave across the plot's eleven and a third, which is one
+   * bar per semitone — the whole point of the view. Pieces walks it from one
+   * bar an octave up to quarter-tones.
+   */
+  notes: 136,
+  /** Bass, low mid, mid, high mid, treble: the five a listener names. */
+  energy: 5,
+  /**
+   * How many points survive into each slice of the waterfall. The history is
+   * fifty-six slices deep, so this is ninety-six times fifty-six figures a
+   * frame: fine enough to keep a narrow peak, coarse enough to stay inside
+   * the frame budget on the slowest display this ships to.
+   */
+  waterfall: 96,
   dots: 48,
   blocks: 40,
   stems: 48,
@@ -892,6 +1035,23 @@ export const getGraphColumnCount = (style: GraphStyle): number =>
  */
 const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   /**
+   * The measuring views are read against the EQ curve drawn over them, so
+   * they stop short of solid — except the spectrogram, which IS the picture
+   * and has nothing behind it to show through.
+   */
+  analyzer: 0.85,
+  compare: 0.7,
+  spectrogram: 1,
+  rta: 0.9,
+  average: 0.8,
+  waterfall: 0.72,
+  loudness: 0.9,
+  scope: 0.9,
+  midside: 0.8,
+  notes: 0.85,
+  energy: 0.92,
+  phase: 1,
+  /**
    * Brighter than the shared default and dimmer than solid.
    *
    * At the designer's 0.55 these were noticeably fainter than the titlebar's,
@@ -942,6 +1102,11 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
  * contour — and reads zero, which it then ignores.
  */
 const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
+  // Wide enough that each third-octave band is a band rather than a wall,
+  // narrow enough that the row still reads as one spectrum.
+  rta: 0.22,
+  notes: 0.25,
+  energy: 0.16,
   fluid: 0,
   bars: 0.26,
   blocks: 0.26,
@@ -1033,7 +1198,17 @@ export const canGraphFill = (style: GraphStyle): boolean =>
  * nothing to do with the cells, and the halo round it read as a cheap trick
  * laid over the blocks. The Glow control is disabled for these.
  */
-const GLOWLESS_STYLES = new Set<GraphStyle>(['blocks']);
+const GLOWLESS_STYLES = new Set<GraphStyle>([
+  'blocks',
+  // Rasters, both of them: the spectrogram has no silhouette at all, and the
+  // waterfall has fifty-six, so a halo round "the figure" would be a halo
+  // round whichever one the code happened to pick.
+  'spectrogram',
+  'waterfall',
+  // The phase history is a raster too, and the scope's halo is its own: the
+  // beam already carries one, drawn along the trace rather than round it.
+  'phase',
+]);
 
 export const canGraphGlow = (style: GraphStyle): boolean =>
   !GLOWLESS_STYLES.has(style);
@@ -1065,6 +1240,13 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
    * weaving.
    */
   'weave',
+  // The third-octave analyser's bands, and how many points survive into a
+  // waterfall slice. Both are genuinely "how many pieces is this made of".
+  'rta',
+  'waterfall',
+  // One bar per note, and one per band.
+  'notes',
+  'energy',
   'fluid',
   'wave-bars',
   'wave-mirror',
@@ -1128,7 +1310,15 @@ export const isDiscreteGraphStyle = (style: GraphStyle): boolean =>
  * Both are wider than any built-in form uses, because the point of the setting
  * is to go somewhere the built-ins do not.
  */
-export const MIN_GRAPH_COLUMNS = 8;
+/**
+ * Four, not eight.
+ *
+ * Eight was the floor while every form was a spectrum, where fewer pieces
+ * stop reading as one. The energy bands are not: they are five named meters
+ * — sub, bass, mid, presence, air — and five has to be a number the slider
+ * can reach, or the view ships at a setting nobody can put back.
+ */
+export const MIN_GRAPH_COLUMNS = 4;
 export const MAX_GRAPH_COLUMNS = 160;
 
 /**

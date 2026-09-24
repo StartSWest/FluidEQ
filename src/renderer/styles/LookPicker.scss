@@ -176,6 +176,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+/**
+ * A saved variation, drawn under the view it was made from.
+ *
+ * A spur rather than a plain indent: the list is a flat scroller with no
+ * other nesting in it, so an indent alone reads as a row that has slipped
+ * rather than as one that belongs to the row above. The spur is drawn on
+ * the row itself and stops short of its own middle, which is what makes a
+ * run of several variations read as a bracket down the side.
+ */
+.look-picker__style--child {
+  position: relative;
+  padding-left: 26px;
+
+  &::before {
+    position: absolute;
+    top: -3px;
+    bottom: 50%;
+    left: 13px;
+    width: 8px;
+    border-bottom: 1px solid color-mix(in srgb, $white 18%, transparent);
+    border-left: 1px solid color-mix(in srgb, $white 18%, transparent);
+    border-bottom-left-radius: 5px;
+    content: '';
+    pointer-events: none;
+  }
+}
+
 .look-picker__name {
   @include truncate;
   flex: 1 1 auto;

@@ -4,7 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import Chevron from '../icons/Chevron';
@@ -273,35 +281,64 @@ const LookPicker = ({
     styleRows.find((row) => row.id === value) ??
     plusRows.find((row) => row.id === value);
 
-  const renderStyle = (row: IStyleRow) => {
+  /**
+   * The measuring views over their own heading, the scenes over theirs.
+   *
+   * A flat list put a goniometer next to a bridge over water with no line
+   * between them, and they are not the same kind of thing (Ivan,
+   * 2026-09-23: "separate real meters from the rest of viz like terra and
+   * sky line with a group"). Headed only when more than one family is
+   * showing — under a family chip, or a search, a heading over the whole
+   * list says nothing.
+   */
+  const manyFamilies = new Set(shownStyles.map((row) => row.family)).size > 1;
+
+  const renderStyle = (row: IStyleRow, index: number) => {
     const selected = row.id === value;
+    const heads =
+      manyFamilies &&
+      (index === 0 || shownStyles[index - 1].family !== row.family);
+    /**
+     * Indented only while the view it varies is on screen too. Searching, or
+     * under the Yours chip, a variation can be the only thing showing — and
+     * a row indented under nothing reads as a mistake rather than as a tree.
+     */
+    const child =
+      row.nested &&
+      shownStyles.some(
+        (other) => !other.yours && other.look.style === row.look.style,
+      );
     return (
-      <button
-        key={row.id}
-        type="button"
-        className={`look-picker__pick look-picker__style${
-          selected ? ' is-selected' : ''
-        }`}
-        aria-pressed={selected}
-        tabIndex={row.id === styleStop ? 0 : -1}
-        title={row.name}
-        onClick={() => choose(row.id)}
-      >
-        <span className="look-picker__glyph">
-          <LookIcon
-            style={row.look.style}
-            palette={row.look.palette}
-            colours={row.look.colours}
-          />
-        </span>
-        <span
-          className={`look-picker__name${
-            row.yours ? ' graph-look-name--custom' : ''
-          }`}
+      <Fragment key={row.id}>
+        {heads && (
+          <p className="look-picker__group">{t(FAMILY_KEYS[row.family])}</p>
+        )}
+        <button
+          type="button"
+          className={`look-picker__pick look-picker__style${
+            child ? ' look-picker__style--child' : ''
+          }${selected ? ' is-selected' : ''}`}
+          aria-pressed={selected}
+          tabIndex={row.id === styleStop ? 0 : -1}
+          title={row.name}
+          onClick={() => choose(row.id)}
         >
-          {row.name}
-        </span>
-      </button>
+          <span className="look-picker__glyph">
+            <LookIcon
+              style={row.look.style}
+              palette={row.look.palette}
+              colours={row.look.colours}
+            />
+          </span>
+          <span
+            className={`look-picker__name${
+              row.yours ? ' graph-look-name--custom' : ''
+            }`}
+          >
+            {row.name}
+          </span>
+        </button>
+      </Fragment>
     );
   };
 

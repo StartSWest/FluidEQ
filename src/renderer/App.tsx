@@ -101,6 +101,7 @@ import VideoBrowser from './video/VideoBrowser';
 import { albumKey } from '../common/library/grouping';
 import { ILibraryTrack } from '../common/library/types';
 import LibraryStageArt from './library/LibraryStageArt';
+import SystemStageArt from './library/SystemStageArt';
 import LibraryWorkspace from './library/LibraryWorkspace';
 import { LibraryProvider } from './library/LibraryContext';
 import { PlaylistProvider, usePlaylists } from './library/PlaylistContext';
@@ -850,13 +851,38 @@ const AppContent = () => {
   // song never came back (Ivan, 2026-09-23: "it stops and get black").
   const lastPlayingOwner = useLastPlayingOwner();
   const heldOwner = playingOwner ?? lastPlayingOwner;
+  /**
+   * The machine's own player, when it is the one making the sound.
+   *
+   * It wins the backdrop over whatever of ours played LAST — a Library song
+   * paused an hour ago is not the song Spotify is playing now — but never over
+   * one of ours that is playing, and never over Karaoke's stage, which is its
+   * lyrics and whose count-in dies if the stage is hidden (see above).
+   */
+  const systemTransport = useTransportSources().system;
+  const isSystemSounding =
+    playingOwner === undefined && systemTransport?.isPlaying === true;
   const graphBackdropOwner =
-    isGraphBackdropMode && (!isSceneOnGraph || heldOwner === 'karaoke')
+    isGraphBackdropMode &&
+    (!isSceneOnGraph || heldOwner === 'karaoke') &&
+    (!isSystemSounding || heldOwner === 'karaoke')
       ? heldOwner
       : undefined;
   const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
   const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
   const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
+  // The same picture for the machine's own song, when none of ours holds the
+  // backdrop and the machine has a song to show (Ivan, 2026-09-23: "when doing
+  // expanded mode or fullscreen on system audio we can show the covert art to
+  // same as we do for libarery"). A Plus scene fills the graph edge to edge,
+  // so it takes this picture's place just as it takes the Library's.
+  const showsSystemGraphBackdrop =
+    isGraphBackdropMode &&
+    !isSceneOnGraph &&
+    !showsMediaGraphBackdrop &&
+    !showsLibraryGraphBackdrop &&
+    !showsKaraokeGraphBackdrop &&
+    Boolean(systemTransport?.title);
 
   // A loaded silent player keeps only its controller/media shell for five
   // seconds after leaving the tab. That prevents the fast empty-bar glitch,
@@ -2801,6 +2827,11 @@ const AppContent = () => {
                 </PlaylistProvider>
               </LibraryProvider>
             )}
+            {/* Outside the Library's providers: the machine's own song needs
+                none of them, and inside they are mounted only once the Library
+                has been opened, so after a launch that never visited it an
+                expanded graph showed Spotify's song with no picture. */}
+            {showsSystemGraphBackdrop && <SystemStageArt />}
             {/* Loaded Karaoke keeps only its audio element and exact shared
                 transport during the silent lease. It then unmounts completely
                 unless playback resumed. */}

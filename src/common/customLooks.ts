@@ -38,6 +38,13 @@ import {
   getDefaultAccentStyle,
   hasGraphAccent,
 } from './graphShapes';
+import {
+  type TFillTexture,
+  isFillTexture,
+  isTextureImage,
+} from './graphTextures';
+import { type TGraphChannels, isGraphChannels } from './graphChannels';
+import { MAX_GRAPH_TILT, MIN_GRAPH_TILT, getGraphTilt } from './graphAnalysis';
 import { PRODUCT_NAME } from './branding';
 
 /**
@@ -129,6 +136,32 @@ export interface ILookTuning {
   border: boolean;
   /** How heavy that frame is, in pixels. */
   borderWidth: number;
+  /**
+   * The pattern printed inside a filled figure.
+   *
+   * A material rather than a second colour: it separates one fill from the
+   * fill behind it — an input from an output, a peak from an average — while
+   * both stay in the look's own palette.
+   */
+  texture: TFillTexture;
+  /**
+   * A picture somebody dropped on the editor, as a small square tile.
+   *
+   * Held only while `texture` is the picture one, and only ever as a data URI
+   * this app wrote: the editor redraws whatever is chosen at a fixed tile size
+   * before encoding it, so a look cannot carry a photograph into storage that
+   * every other look then has to share space with.
+   */
+  textureImage?: string;
+  /** One figure for both channels, or one for each. */
+  channels: TGraphChannels;
+  /**
+   * How far the spectrum views tip up toward the treble, in dB per octave.
+   *
+   * A display slope, never a filter: it moves the drawing and nothing else.
+   * See `graphAnalysis.ts` for why a measuring view has one at all.
+   */
+  tilt: number;
 }
 
 export interface ICustomLook {
@@ -394,6 +427,11 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     // window rather than the drawing, and a frame nobody chose is furniture.
     border: false,
     borderWidth: DEFAULT_BORDER_WIDTH,
+    // Plain unless asked for, like the frame: a pattern nobody chose is
+    // noise inside a reading.
+    texture: 'none',
+    channels: 'joined',
+    tilt: getGraphTilt(),
   };
 };
 
@@ -477,6 +515,23 @@ export const normalizeTuning = (
       MIN_BORDER_WIDTH,
       MAX_BORDER_WIDTH,
       defaults.borderWidth,
+    ),
+    texture: isFillTexture(source.texture) ? source.texture : defaults.texture,
+    // Dropped separately from the choice, so a look saved with a picture and
+    // then switched back to a plain pattern still has its picture when it is
+    // switched again — and a stored string that is not one this app wrote
+    // never reaches an `Image`.
+    textureImage: isTextureImage(source.textureImage)
+      ? source.textureImage
+      : undefined,
+    channels: isGraphChannels(source.channels)
+      ? source.channels
+      : defaults.channels,
+    tilt: readNumber(
+      source.tilt,
+      MIN_GRAPH_TILT,
+      MAX_GRAPH_TILT,
+      defaults.tilt,
     ),
   };
 };

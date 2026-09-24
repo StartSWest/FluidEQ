@@ -27,6 +27,7 @@ import {
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
+import { MAX_GRAPH_TILT, MIN_GRAPH_TILT } from 'common/graphAnalysis';
 import {
   CUSTOM_LOOK_PREFIX,
   DEFAULT_ACCENT_WIDTH,
@@ -150,6 +151,10 @@ describe('normalizeTuning', () => {
       glow: 0.5,
       border: false,
       borderWidth: DEFAULT_BORDER_WIDTH,
+      texture: 'none',
+      textureImage: undefined,
+      channels: 'joined',
+      tilt: 0,
     });
   });
 
@@ -339,6 +344,54 @@ describe('the stored list', () => {
     expect(parseCustomLooks('{"looks":[]}')).toEqual([]);
     expect(parseCustomLooks('')).toEqual([]);
     expect(parseCustomLooks(null)).toEqual([]);
+  });
+
+  it('keeps a look saved before a setting existed', () => {
+    /**
+     * THE GUARD AGAINST LOSING SOMEBODY'S WORK TO A NEW SLIDER.
+     *
+     * Every setting added to the tuning is a field a look saved yesterday
+     * does not have, and the cheapest possible mistake is a validator that
+     * treats "absent" as "invalid" and drops the whole look — silently, on
+     * launch, with no way back. This is a look written before the texture,
+     * the channels and the slope rows existed: it has to come back whole,
+     * with the new fields at their defaults and everything the person
+     * actually chose untouched.
+     */
+    const old = JSON.stringify([
+      {
+        // A real stored id: the prefix is what marks a look as the user's.
+        id: 'custom:older-build-1',
+        name: 'From an older build',
+        style: 'analyzer',
+        palette: 'level',
+        colours: ['#112233', '#445566'],
+        tuning: {
+          columns: 40,
+          attackMs: 6,
+          releaseMs: 200,
+          filled: true,
+          strokeWidth: 3,
+          fillOpacity: 0.4,
+          gap: 0.2,
+          accents: false,
+          glow: 0.5,
+        },
+      },
+    ]);
+    const [look] = parseCustomLooks(old);
+    expect(look).toBeDefined();
+    expect(look.name).toBe('From an older build');
+    expect(look.style).toBe('analyzer');
+    expect(look.colours).toEqual(['#112233', '#445566']);
+    expect(look.tuning.columns).toBe(40);
+    expect(look.tuning.releaseMs).toBe(200);
+    expect(look.tuning.fillOpacity).toBe(0.4);
+    // The rows it never saw, at the values a fresh look starts with.
+    expect(look.tuning.texture).toBe('none');
+    expect(look.tuning.textureImage).toBeUndefined();
+    expect(look.tuning.channels).toBe('joined');
+    expect(look.tuning.tilt).toBe(0);
   });
 
   it('round-trips', () => {
@@ -654,6 +707,62 @@ describe('every stored setting is validated', () => {
     ).toBe(true);
   });
 
+  it('refuses a fill pattern it does not have', () => {
+    expect(normalizeTuning({ texture: 'scales' }, 'bars').texture).toBe(
+      'scales',
+    );
+    expect(normalizeTuning({ texture: 'plaid' }, 'bars').texture).toBe('none');
+    expect(normalizeTuning({ texture: 4 }, 'bars').texture).toBe('none');
+  });
+
+  it('keeps only a picture this app wrote', () => {
+    // The stored string reaches an `Image` element, so anything that is not
+    // one of our own data URIs is dropped rather than loaded: a look file is
+    // shareable, and a look somebody was sent must not be able to name a
+    // remote address for the app to fetch.
+    const tile = `data:image/webp;base64,${'A'.repeat(64)}`;
+    expect(normalizeTuning({ textureImage: tile }, 'bars').textureImage).toBe(
+      tile,
+    );
+    expect(
+      normalizeTuning({ textureImage: 'https://example.com/a.png' }, 'bars')
+        .textureImage,
+    ).toBeUndefined();
+    expect(
+      normalizeTuning({ textureImage: 'data:text/html;base64,AAAA' }, 'bars')
+        .textureImage,
+    ).toBeUndefined();
+    // Longer than a look may carry: the browser store holds every look in it.
+    expect(
+      normalizeTuning(
+        { textureImage: `data:image/png;base64,${'A'.repeat(200000)}` },
+        'bars',
+      ).textureImage,
+    ).toBeUndefined();
+  });
+
+  it('draws one figure unless two were asked for', () => {
+    expect(normalizeTuning({}, 'bars').channels).toBe('joined');
+    expect(normalizeTuning({ channels: 'split' }, 'bars').channels).toBe(
+      'split',
+    );
+    expect(normalizeTuning({ channels: 'quad' }, 'bars').channels).toBe(
+      'joined',
+    );
+  });
+
+  it('takes only a slope the panel offers', () => {
+    // The row is a set of pills, so a stored value outside the range is a
+    // hand edit or a downgrade, and the display would tip off the plot.
+    expect(normalizeTuning({ tilt: 4.5 }, 'analyzer').tilt).toBe(4.5);
+    expect(normalizeTuning({ tilt: 99 }, 'analyzer').tilt).toBe(MAX_GRAPH_TILT);
+    expect(normalizeTuning({ tilt: -3 }, 'analyzer').tilt).toBe(MIN_GRAPH_TILT);
+    expect(normalizeTuning({ tilt: 'lots' }, 'analyzer').tilt).toBe(0);
+    // Off unless asked for: this app is not a mastering tool and the
+    // untilted picture is the one a listener expects to see.
+    expect(getDefaultTuning('analyzer').tilt).toBe(0);
+  });
+
   it('covers every field of the tuning', () => {
     // The guard against adding a setting and forgetting to validate it: the
     // rules above plus the booleans have to account for the whole shape.
@@ -668,6 +777,14 @@ describe('every stored setting is validated', () => {
       // Neither a number nor a boolean: one of a fixed list of behaviours,
       // checked by the test below rather than by the tables above.
       'accentStyle',
+      // Likewise fixed lists, with their own tests below: the pattern inside
+      // a fill, the picture behind the pattern, and one figure or two.
+      'texture',
+      'textureImage',
+      'channels',
+      // A number, but not one of the sliders: the measuring views' display
+      // slope, offered as a row of fixed choices and checked below.
+      'tilt',
     ]);
     Object.keys(getDefaultTuning('bars')).forEach((key) => {
       expect(covered.has(key)).toBe(true);

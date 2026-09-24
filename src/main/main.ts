@@ -263,6 +263,7 @@ import {
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
 import {
+  getSystemMediaCover,
   pauseOtherSystemPlayers,
   sendSystemMediaCommand,
   stopWatchingSystemMedia,
@@ -2984,6 +2985,17 @@ const songProgramme = createSongProgramme({
       : undefined,
   watchEngine: () => engineHealth.read(),
 });
+
+/**
+ * The picture for the cover id a reading carried, or nothing once the song
+ * has moved on. The id is checked by shape before it is used as a key, since
+ * it came back from the window.
+ */
+ipcMain.handle('system-media-cover', (_event, id: unknown) =>
+  typeof id === 'string' && /^[0-9a-f]{16}$/.test(id)
+    ? getSystemMediaCover(id)
+    : undefined,
+);
 
 ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
   if (enabled !== true) {

@@ -188,6 +188,21 @@ export const useSystemMediaSource = (): void => {
   const game = useSoundingGame();
   const gameRef = useRef(game);
   gameRef.current = game;
+  /**
+   * The song's cover, by the id the watcher gave it.
+   *
+   * Fetched once per cover rather than carried on every reading: a reading
+   * arrives every second the song plays, and a picture is tens or hundreds of
+   * kilobytes that do not change for the length of the song. Keyed by id so a
+   * cover that arrives after the next song has started is recognised as stale
+   * and dropped rather than hung on the wrong title.
+   */
+  const coverRef = useRef<{ id: string; url: string } | undefined>(undefined);
+  /**
+   * The cover id last asked for, so the readings that arrive while it is on
+   * its way do not each ask for the same picture again.
+   */
+  const coverAskedRef = useRef('');
 
   /** The one place that decides what the bar says for this machine. */
   const show = useCallback(
@@ -201,7 +216,13 @@ export const useSystemMediaSource = (): void => {
         return;
       }
       if (shown === 'session' && snapshot) {
-        setTransportSource(sessionSource(snapshot));
+        const cover = coverRef.current;
+        setTransportSource(
+          sessionSource(
+            snapshot,
+            cover && cover.id === snapshot.coverId ? cover.url : undefined,
+          ),
+        );
         return;
       }
       clearTransportSource('system');
@@ -221,6 +242,37 @@ export const useSystemMediaSource = (): void => {
 
     const unsubscribe = bridge.onSystemMedia((snapshot) => {
       lastSnapshotRef.current = snapshot;
+      // A cover this window has not seen yet: ask main for the picture it
+      // already holds under that id (the watcher sends the picture before the
+      // reading that names it). Drawn on arrival only if the song is still the
+      // one it belongs to.
+      const coverId = snapshot?.coverId;
+      // Main answering nothing means the cover is no longer its current one,
+      // and asking again would get the same answer, so an id is asked for
+      // once; only a failed ask is asked again, on the next reading.
+      if (
+        coverId &&
+        coverRef.current?.id !== coverId &&
+        coverAskedRef.current !== coverId &&
+        bridge.getSystemMediaCover
+      ) {
+        coverAskedRef.current = coverId;
+        bridge
+          .getSystemMediaCover(coverId)
+          .then((url) => {
+            const still = lastSnapshotRef.current;
+            if (url && still?.coverId === coverId) {
+              coverRef.current = { id: coverId, url };
+              show(still, gameRef.current);
+            }
+            return undefined;
+          })
+          .catch(() => {
+            if (coverAskedRef.current === coverId) {
+              coverAskedRef.current = '';
+            }
+          });
+      }
       // Who is playing out there, and who of them has just started. Both
       // questions are asked of the whole machine rather than of the one
       // session on the bar — see `startedOverOthers`.
@@ -292,11 +344,19 @@ export const useSystemMediaSource = (): void => {
   }, [playingOwner]);
 };
 
-/** The machine's own player, as the bar drives it. */
-const sessionSource = (snapshot: ISystemMediaSnapshot): ITransportSource => ({
+/**
+ * The machine's own player, as the bar drives it — with its cover when the
+ * player published one and it has arrived, which is what the bar's thumbnail
+ * and the picture behind an expanded graph both draw.
+ */
+const sessionSource = (
+  snapshot: ISystemMediaSnapshot,
+  coverUrl: string | undefined,
+): ITransportSource => ({
   owner: 'system',
   title: snapshot.title,
   subtitle: subtitleFor(snapshot),
+  ...(coverUrl ? { artworkUrl: coverUrl } : {}),
   identity: buildSongIdentity(
     'system',
     snapshot.app,

@@ -20,6 +20,7 @@ import type { GraphStyle } from './graphStyles';
  * look somebody saved on one still has to belong somewhere.
  */
 export const GRAPH_STYLE_FAMILIES = [
+  'analysis',
   'lines',
   'fills',
   'bars',
@@ -35,6 +36,20 @@ export type TGraphStyleFamily = (typeof GRAPH_STYLE_FAMILIES)[number];
  * added without a family does not compile.
  */
 const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
+  // The measuring views. Filed together whatever each one draws, because
+  // what they have in common is the question they answer, not the shape.
+  analyzer: 'analysis',
+  compare: 'analysis',
+  spectrogram: 'analysis',
+  rta: 'analysis',
+  average: 'analysis',
+  waterfall: 'analysis',
+  loudness: 'analysis',
+  scope: 'analysis',
+  midside: 'analysis',
+  notes: 'analysis',
+  energy: 'analysis',
+  phase: 'analysis',
   line: 'lines',
   area: 'fills',
   bars: 'bars',
@@ -44,7 +59,12 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   spikes: 'bars',
   ridge: 'fills',
   stems: 'bars',
-  terrace: 'fills',
+  // A scene, whatever it draws with. The eight Ivan designed one at a time
+  // are the whole of what is left beside the measuring views, and the picker
+  // heads them as one group — filed by what they draw they came out under
+  // five headings with one or two rows each (Ivan, 2026-09-23: "separate
+  // real meters from the rest of viz like terra and sky line with a group").
+  terrace: 'scenes',
   dashes: 'bars',
   scatter: 'points',
   caps: 'points',
@@ -61,13 +81,13 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   feather: 'lines',
   truss: 'scenes',
   zipper: 'lines',
-  slope: 'lines',
+  slope: 'scenes',
   stalactites: 'scenes',
-  bubbles: 'points',
+  bubbles: 'scenes',
   diamonds: 'points',
   sawtooth: 'lines',
-  ecg: 'lines',
-  echo: 'lines',
+  ecg: 'scenes',
+  echo: 'scenes',
   racer: 'scenes',
   invaders: 'scenes',
   starfield: 'scenes',

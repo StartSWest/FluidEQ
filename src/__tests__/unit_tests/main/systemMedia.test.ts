@@ -30,6 +30,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { EventEmitter } from 'events';
 import { spawn } from 'child_process';
 import {
+  getSystemMediaCover,
+  isSystemMediaCoverLine,
+  parseSystemMediaCover,
   parseSystemMediaLine,
   stopWatchingSystemMedia,
   watchSystemMedia,
@@ -72,6 +75,8 @@ describe('what the machine is playing', () => {
       canSeek: true,
       // Nothing said about who else is playing is nobody else playing.
       playing: [],
+      // Nor any picture: a watcher that sent none has none to fetch.
+      coverId: '',
     });
   });
 
@@ -119,6 +124,7 @@ describe('what the machine is playing', () => {
       canPrevious: false,
       canSeek: false,
       playing: [],
+      coverId: '',
     });
   });
 
@@ -287,5 +293,120 @@ describe('who else is playing', () => {
         '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":[1,"",null,"Chrome"]}',
       )?.playing,
     ).toEqual(['Chrome']);
+  });
+});
+
+/**
+ * The cover a player publishes for its song, which the stage shows behind the
+ * graph in the expanded and fullscreen views. The watcher sends it once per
+ * song on a line of its own, and every reading after carries only its id.
+ */
+describe("the player's cover", () => {
+  const COVER_ID = '0123456789abcdef';
+  // The eight bytes every PNG starts with, which is all a parser can check.
+  const PNG_BYTES = 'iVBORw0KGgo=';
+  const coverLine = (cover: Record<string, unknown>) =>
+    JSON.stringify({ cover });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    stopWatchingSystemMedia();
+  });
+
+  afterEach(() => stopWatchingSystemMedia());
+
+  it('reads a cover the way the watcher prints it', () => {
+    expect(
+      parseSystemMediaCover(
+        coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES }),
+      ),
+    ).toEqual({ id: COVER_ID, url: `data:image/png;base64,${PNG_BYTES}` });
+  });
+
+  it('refuses a cover with any part it does not recognise', () => {
+    const good = { id: COVER_ID, type: 'image/png', data: PNG_BYTES };
+    [
+      // Not an id the window could ask for.
+      { ...good, id: 'ABCDEF0123456789' },
+      { ...good, id: '0123' },
+      // A type the watcher never sniffs, which an image would be asked to
+      // guess at.
+      { ...good, type: 'image/svg+xml' },
+      { ...good, type: 'text/html' },
+      // Anything but base64, which would end the data URL early.
+      { ...good, data: 'abc"onerror' },
+      { ...good, data: '' },
+      { ...good, data: 42 },
+    ].forEach((cover) => {
+      expect(parseSystemMediaCover(coverLine(cover))).toBeUndefined();
+    });
+    expect(parseSystemMediaCover('{"cover":null}')).toBeUndefined();
+    expect(parseSystemMediaCover('{"cover":')).toBeUndefined();
+    // A reading is not a cover, however it is shaped.
+    expect(parseSystemMediaCover(PLAYING_LINE)).toBeUndefined();
+  });
+
+  it('tells a cover line from a reading', () => {
+    expect(isSystemMediaCoverLine(coverLine({ id: COVER_ID }))).toBe(true);
+    expect(isSystemMediaCoverLine(PLAYING_LINE)).toBe(false);
+    expect(isSystemMediaCoverLine('null')).toBe(false);
+  });
+
+  it('takes the id a reading names, and nothing that is not one', () => {
+    const withCover = (coverId: unknown) =>
+      parseSystemMediaLine(
+        JSON.stringify({ ...JSON.parse(PLAYING_LINE), coverId }),
+      )?.coverId;
+
+    expect(withCover(COVER_ID)).toBe(COVER_ID);
+    expect(withCover('../../etc')).toBe('');
+    expect(withCover(7)).toBe('');
+  });
+
+  it('keeps the cover for the window without passing it on as a reading', () => {
+    const { stdout } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener);
+    listener.mockClear();
+
+    stdout.emit(
+      'data',
+      Buffer.from(
+        `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n`,
+        'utf8',
+      ),
+    );
+
+    // Read as a reading it would be "nothing playing", and the bar would go
+    // blank in the middle of a song.
+    expect(listener).not.toHaveBeenCalled();
+    expect(getSystemMediaCover(COVER_ID)).toBe(
+      `data:image/png;base64,${PNG_BYTES}`,
+    );
+    // Only the current cover is answered: an id from the song before is the
+    // window's cue not to draw it.
+    expect(getSystemMediaCover('fedcba9876543210')).toBeUndefined();
+  });
+
+  it('keeps the last good cover when a bad one arrives, and none past a stop', () => {
+    const { stdout } = fakeChild();
+    watchSystemMedia(jest.fn());
+    stdout.emit(
+      'data',
+      Buffer.from(
+        `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n${coverLine({ id: 'nope' })}\n`,
+        'utf8',
+      ),
+    );
+
+    expect(getSystemMediaCover(COVER_ID)).toBe(
+      `data:image/png;base64,${PNG_BYTES}`,
+    );
+
+    stopWatchingSystemMedia();
+
+    // A cover kept past the watcher would be handed to the next window as
+    // though it were the song playing now.
+    expect(getSystemMediaCover(COVER_ID)).toBeUndefined();
   });
 });

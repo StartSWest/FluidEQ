@@ -30,7 +30,8 @@ import {
   resolveGraphPalette,
   ResolvedGraphPalette,
 } from 'common/graphStyles';
-import { ACCENT_STYLES, canConnectGraphMarks } from 'common/graphShapes';
+import { GRAPH_CHANNELS } from 'common/graphChannels';
+import { GRAPH_TILTS, hasGraphTilt } from 'common/graphAnalysis';
 import {
   DEFAULT_LEVEL_COLOURS,
   DEFAULT_SIGNAL_COLOUR,
@@ -48,8 +49,6 @@ import {
   MAX_BORDER_WIDTH,
   MIN_BAR_GAP,
   MAX_BAR_GAP,
-  MIN_ACCENT_WIDTH,
-  MAX_ACCENT_WIDTH,
   MIN_FILL_OPACITY,
   MIN_GLOW,
   MIN_LOOK_COLOURS,
@@ -65,6 +64,7 @@ import {
   rebaseDraftLook,
   recolourDraftLook,
 } from 'common/customLooks';
+import LookTextureRow from './LookTextureRow';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
@@ -941,6 +941,86 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           </SettingRow>
         )}
 
+        {/* Only where there is an inside to print on. A stroked figure has
+            none, and the row would be a dead one — the same reason the
+            filled/stroked pair above is hidden rather than greyed. */}
+        {isFilled ? (
+          <LookTextureRow
+            texture={tuning.texture}
+            image={tuning.textureImage}
+            onChange={({ texture, textureImage }) =>
+              tune({ texture, textureImage })
+            }
+          />
+        ) : null}
+
+        {/* The display slope. Only on the measuring views, because it tips a
+            frequency display and the others do not draw one — offered on a
+            scene it would be a control that visibly does nothing. */}
+        {hasGraphTilt(style) ? (
+          <div className="look-designer__row">
+            <span className="look-designer__caption">
+              <span>{t('look.tilt')}</span>
+              <small>{t('look.tiltHint')}</small>
+            </span>
+            <div
+              className="look-designer__choice"
+              role="group"
+              aria-label={t('look.tilt')}
+            >
+              {GRAPH_TILTS.map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={`look-designer__pill${
+                    tuning.tilt === choice ? ' is-on' : ''
+                  }`}
+                  aria-pressed={tuning.tilt === choice}
+                  // Five pills each carrying "dB/oct" overflowed the panel
+                  // and cut the last one in half, so the unit is said once
+                  // in the hint and spelled out for a reader here.
+                  aria-label={
+                    choice === 0
+                      ? t('look.off')
+                      : t('look.tiltValue', { value: choice })
+                  }
+                  onClick={() => tune({ tilt: choice })}
+                >
+                  {choice === 0 ? t('look.off') : String(choice)}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* One figure or two. Left above the line and right below it, which
+            is the only way a hard-panned mix or a channel that has dropped
+            out can be seen at all. */}
+        <div className="look-designer__row">
+          <span className="look-designer__caption">
+            <span>{t('look.channels')}</span>
+          </span>
+          <div
+            className="look-designer__choice"
+            role="group"
+            aria-label={t('look.channels')}
+          >
+            {GRAPH_CHANNELS.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                className={`look-designer__pill${
+                  tuning.channels === choice ? ' is-on' : ''
+                }`}
+                aria-pressed={tuning.channels === choice}
+                onClick={() => tune({ channels: choice })}
+              >
+                {t(`look.channels.${choice}` as TranslationKey)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* The glow: the figure's own light, in any mode. It lived under the
             rainbow heading and was disabled outside the mode, which made it a
             dead slider on every ordinary look; the halo is the figure's own
@@ -1019,29 +1099,15 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           />
         </SettingRow>
 
-        {canConnectGraphMarks(style) && (
-          <div className="look-designer__row look-designer__row--switch">
-            <div className="look-designer__caption">
-              <label htmlFor="look-designer-connecting-line">
-                {t('look.connectingLine')}
-              </label>
-              <Switch
-                id="look-designer-connecting-line"
-                ariaLabel={t('look.connectingLine')}
-                isOn={tuning.connectingLine}
-                isDisabled={false}
-                handleToggle={() =>
-                  tune({ connectingLine: !tuning.connectingLine })
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Offered on every form. It used to be greyed out on all but one,
-            which withheld a mark on somebody else's judgement about taste —
-            and taste is the whole reason there is a switch. The forms it
-            says nothing on simply arrive with it off. */}
+        {/* One switch, where there used to be five rows.
+            "Lit peaks", "Fill peaks", "Peak position", "Mark" — eighteen
+            marks to choose between — and "Lit peak weight" were a panel of
+            decoration inside a measuring instrument, and Ivan cut them
+            (2026-09-23): "no need all that crap, only what makes sense".
+            A peak hold is the one that does make sense, so it stays as a
+            yes or no and wears the form's own mark. The fields behind the
+            other four remain in the tuning so every saved look still
+            loads and still draws exactly as it did. */}
         <div className="look-designer__row look-designer__row--switch">
           <div className="look-designer__caption">
             <label htmlFor="look-designer-accents">{t('look.litPeaks')}</label>
@@ -1054,90 +1120,6 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             />
           </div>
         </div>
-
-        <div className="look-designer__row look-designer__row--switch">
-          <div className="look-designer__caption">
-            <label htmlFor="look-designer-peak-filled">
-              {t('look.peakFill')}
-            </label>
-            <Switch
-              id="look-designer-peak-filled"
-              ariaLabel={t('look.peakFill')}
-              isOn={tuning.accentFilled}
-              isDisabled={!tuning.accents}
-              handleToggle={() => tune({ accentFilled: !tuning.accentFilled })}
-            />
-          </div>
-        </div>
-
-        <SettingRow
-          id="look-designer-peak-layer"
-          label={t('look.peakLayer')}
-          value={t(tuning.accentBehind ? 'look.peakBehind' : 'look.peakFront')}
-          isDisabled={!tuning.accents}
-        >
-          <div className="look-designer__choice">
-            {[false, true].map((behind) => (
-              <button
-                key={String(behind)}
-                type="button"
-                className={`look-designer__pill${tuning.accentBehind === behind ? ' is-on' : ''}`}
-                aria-pressed={tuning.accentBehind === behind}
-                disabled={!tuning.accents}
-                onClick={() => tune({ accentBehind: behind })}
-              >
-                {t(behind ? 'look.peakBehind' : 'look.peakFront')}
-              </button>
-            ))}
-          </div>
-        </SettingRow>
-
-        {/* How heavy the mark is. Only once there is a mark to make heavy —
-            greyed rather than hidden, like the mode's own settings above, so
-            the question is "why is this disabled" and the row above answers
-            it rather than "where did that setting go". */}
-        {/* Which mark, under the switch that turns it on and above the one
-            that sizes it — the three are one decision read top to bottom.
-            Greyed together with them, for the same reason. */}
-        <SettingRow
-          id="look-designer-peak-style"
-          label={t('look.peakStyle')}
-          value={t(`look.peak.${tuning.accentStyle}` as TranslationKey)}
-          isDisabled={!tuning.accents}
-        >
-          <div className="look-designer__choice look-designer__choice--wrap">
-            {ACCENT_STYLES.map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                className={`look-designer__pill${
-                  tuning.accentStyle === choice ? ' is-on' : ''
-                }`}
-                aria-pressed={tuning.accentStyle === choice}
-                disabled={!tuning.accents}
-                onClick={() => tune({ accentStyle: choice })}
-              >
-                {t(`look.peak.${choice}` as TranslationKey)}
-              </button>
-            ))}
-          </div>
-        </SettingRow>
-
-        <SettingRow
-          id="look-designer-accent-width"
-          label={t('look.litPeakWeight')}
-          value={`${Math.round(tuning.accentWidth * 100)}%`}
-          isDisabled={!tuning.accents}
-        >
-          <SettingSlider
-            id="look-designer-accent-width"
-            min={MIN_ACCENT_WIDTH}
-            max={MAX_ACCENT_WIDTH}
-            step={0.1}
-            value={tuning.accentWidth}
-            onChange={(accentWidth) => tune({ accentWidth })}
-          />
-        </SettingRow>
 
         {/* The label is the row, so the field it names is inside it. */}
         <label className="look-designer__row" htmlFor="look-designer-name">

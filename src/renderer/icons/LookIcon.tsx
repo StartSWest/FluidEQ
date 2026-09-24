@@ -361,6 +361,76 @@ const GLYPHS = {
     d: 'M1 9.6L5.5 6L10.5 8L15 6.8L15 9.6L10.5 10.8L5.5 8.8L1 12.4ZM2.4 9.2v0.6h1.4v-0.6ZM7.3 8.1v0.6h1.4v-0.6ZM12.3 8.4v0.6h1.4v-0.6ZM2.9 3.8h5.2v2h-5.2ZM4.3 2.4h2.6v1.4h-2.6ZM3.5 5.8h1.4v1.2h-1.4ZM6.3 5.8h1.4v1.2h-1.4Z',
     isFilled: true,
   },
+  /**
+   * The measuring views. Each glyph draws the one thing that view has and the
+   * other six do not — a hold line over a body, a filled wedge between two
+   * readings, rows of a raster, capped bars, two traces at two speeds, ridges
+   * receding, a phase scope over its needle — because these seven sit next to
+   * each other at the top of the picker and are the only place in this file
+   * where telling one from its neighbour is the whole job.
+   */
+  // A filled spectrum with its peak hold hanging above it.
+  analyzer: {
+    d: 'M1 14V9L3 6L5 8.5L7 4L9 7.5L11 6L13 10L15 8V14ZM1 8.1L3 5.1L5 7.6L7 3.1L9 6.6L11 5.1L13 9.1L15 7.1V6.2L13 8.2L11 4.2L9 5.7L7 2.2L5 6.7L3 4.2L1 7.2Z',
+    isFilled: true,
+  },
+  // Two readings with the difference between them painted in.
+  compare: {
+    d: 'M1 10L4 6.5L8 8.5L12 4.5L15 7L15 10.5L12 9L8 11L4 10L1 12.5Z',
+    isFilled: true,
+  },
+  // Rows of a raster, each a moment, the newest along the bottom.
+  raster: {
+    d: 'M1 2.4h4.2v2H1ZM6.4 2.4h8.6v2H6.4ZM1 6h9.8v2H1ZM12 6h3v2h-3ZM1 9.6h2.6v2H1ZM4.8 9.6h10.2v2H4.8ZM1 13.2h12v2H1Z',
+    isFilled: true,
+  },
+  // Bars with the floating caps that make an analyser an RTA.
+  capped: {
+    d: 'M1 10h2.2v4H1ZM1 7.6h2.2v0.9H1ZM4 7h2.2v7H4ZM4 4.4h2.2v0.9H4ZM7 4.5h2.2v9.5H7ZM7 2.2h2.2v0.9H7ZM10 8.5h2.2v5.5H10ZM10 6h2.2v0.9H10ZM13 11h2v3h-2ZM13 8.6h2v0.9h-2Z',
+    isFilled: true,
+  },
+  // The same spectrum at two speeds, one over the other.
+  twoSpeeds: {
+    d: 'M1 8.4L4 4.8L8 7.2L12 3.4L15 5.8V6.9L12 4.5L8 8.3L4 5.9L1 9.5ZM1 12L4 9.4L8 11L12 8.6L15 10.4V11.3L12 9.5L8 11.9L4 10.3L1 12.9Z',
+    isFilled: true,
+  },
+  // Ridges receding: the same reading at three moments, into the distance.
+  waterfall: {
+    d: 'M1 13.4L4 10.4L7 12.4L10 8.4L13 11.4L15 10.4M2.2 10.6L4.8 8.2L7.4 9.9L9.9 6.6L12.4 9L14 8.2M3.4 8L5.6 6.1L7.8 7.5L9.9 4.9L12 6.9L13.4 6.2',
+    isFilled: false,
+  },
+  // A waveform either side of a centre rule: the oscilloscope.
+  beam: {
+    d: 'M1 8H15M1 8C2 8 2.2 3 3.6 3C5 3 5 13 6.6 13C8.2 13 8 4.6 9.4 4.6C10.8 4.6 10.8 11 12.2 11C13.4 11 13.8 8 15 8',
+    isFilled: false,
+  },
+  // Two bodies over one another: what the channels share, and what only one
+  // of them has.
+  midSide: {
+    d: 'M1 14V8.5L4 5L7.5 7.5L11 3.6L15 6.4V14ZM1 11.6L4 9.6L7.5 11L11 8.8L15 10.6V11.6L11 9.9L7.5 12.1L4 10.7L1 12.6Z',
+    isFilled: true,
+  },
+  // Bars on a keyboard: the spectrum cut into semitones.
+  notes: {
+    d: 'M1 9h1.4v5H1ZM3 5.6h1.4V14H3ZM5 10.4h1.4V14H5ZM7 3.4h1.4V14H7ZM9 8h1.4v6H9ZM11 6.4h1.4V14H11ZM13 11h1.4v3H13ZM1 1.6h0.9v1.2H1ZM7 1.6h0.9v1.2H7ZM13 1.6h0.9v1.2H13Z',
+    isFilled: true,
+  },
+  // A handful of wide columns with caps: the five band meters.
+  bands: {
+    d: 'M1 6h3v8H1ZM1 3.6h3v1.4H1ZM5.6 9h3v5h-3ZM5.6 6.8h3v1.4h-3ZM10.2 4.4h3.8v9.6h-3.8ZM10.2 2h3.8v1.4h-3.8Z',
+    isFilled: true,
+  },
+  // A line wandering either side of a rule, with a band under it: the
+  // image written down over time.
+  history: {
+    d: 'M1 8H15M1 5.4L3.4 4.2L5.8 7.4L8.2 5L10.6 10.4L13 6.6L15 7.4M1 5.4L3.4 4.2L5.8 7.4L8.2 5L10.6 10.4L13 6.6L15 7.4V9.8L13 9L10.6 12.8L8.2 7.4L5.8 9.8L3.4 6.6L1 7.8Z',
+    isFilled: false,
+  },
+  // The phase scope over its correlation bar.
+  scope: {
+    d: 'M13 6.5A5 5 0 1 1 3 6.5A5 5 0 1 1 13 6.5M7.2 2.4L8.8 5L7 7.6L9 10.4M2 13.6H14M9.2 12.4V14.8',
+    isFilled: false,
+  },
 } satisfies Record<string, ILookGlyph>;
 
 type TLookGlyphId = keyof typeof GLYPHS;
@@ -404,6 +474,18 @@ type TLookGlyphId = keyof typeof GLYPHS;
  *    no trace to hang either off.
  */
 const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
+  analyzer: 'analyzer',
+  compare: 'compare',
+  spectrogram: 'raster',
+  rta: 'capped',
+  average: 'twoSpeeds',
+  waterfall: 'waterfall',
+  loudness: 'scope',
+  scope: 'beam',
+  midside: 'midSide',
+  notes: 'notes',
+  energy: 'bands',
+  phase: 'history',
   line: 'line',
   area: 'area',
   bars: 'bars',

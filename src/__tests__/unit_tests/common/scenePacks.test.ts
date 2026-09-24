@@ -63,7 +63,10 @@ describe('normalising a scene pack', () => {
       id: 'aurora',
       version: 3,
       names: { en: 'Aurora', es: 'Aurora boreal' },
-      fallbackStyle: 'area',
+      // The fixture asks for the area, which the September cull retired to
+      // the Analyzer: a pack names a form and the app answers with the one
+      // it would actually draw.
+      fallbackStyle: 'analyzer',
       swatch: ['#00e5cf', '#9cfff4', '#ff3cac'],
     });
     expect(result?.params).toHaveLength(1);
@@ -104,7 +107,7 @@ describe('normalising a scene pack', () => {
   it('canonicalises a retired fallback form', () => {
     expect(
       normalizeScenePack(pack({ fallbackStyle: 'ribbon' }))?.fallbackStyle,
-    ).toBe('area');
+    ).toBe('analyzer');
   });
 
   /**

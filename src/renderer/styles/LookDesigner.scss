@@ -207,6 +207,13 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-eyebrow;
   line-height: 1.35;
+
+  // A picture that could not be read or would not fit. Said in the row it
+  // happened in rather than as a toast: the press that caused it is right
+  // there, and the next press is the fix.
+  &.is-warning {
+    color: $amber;
+  }
 }
 
 .look-designer__slider {
@@ -286,6 +293,50 @@ it under the terms of the GNU General Public License version 3 or later.
     border-color: $secondary-light;
     background: color-mix(in srgb, $secondary-light 18%, transparent);
   }
+}
+
+// A pattern shown behind its own name.
+//
+// The tile is the button's ground rather than a swatch beside the word: a
+// swatch wide enough to read the pattern in doubles the width of every pill,
+// and twelve of those take the row to three lines in German and Russian.
+// Behind the label it costs nothing and each button IS its pattern.
+.look-designer__pill--texture {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  .look-designer__pillLabel {
+    position: relative;
+    z-index: 1;
+  }
+
+  &.is-on .look-designer__tile {
+    opacity: 0.5;
+  }
+}
+
+// Deliberately not `__swatch`: that is the colour stop, and it is positioned.
+.look-designer__tile {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-repeat: repeat;
+  background-size: 16px 16px;
+  // Faint enough that the name stays the thing being read. The pattern only
+  // has to say which of twelve this is, not how it will look at full size.
+  opacity: 0.28;
+}
+
+.look-designer__pill--quiet {
+  color: $text-faint;
+}
+
+// The picture chooser. Opened by the pills themselves, never shown: a bare
+// file input in a styled panel is the one control that cannot be made to
+// match anything around it.
+.look-designer__file {
+  display: none;
 }
 
 // The colour stops, in the order they are painted.

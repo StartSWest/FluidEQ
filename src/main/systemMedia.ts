@@ -128,7 +128,44 @@ export interface ISystemMediaSnapshot {
    * to be the one that was already going.
    */
   playing: string[];
+  /**
+   * Which picture the player published for this song, or empty for none yet.
+   *
+   * An id and not the picture: a reading goes out every second a song plays,
+   * the picture is tens or hundreds of kilobytes that do not change for the
+   * length of it, and the window fetches it once by this id
+   * (`getSystemMediaCover`).
+   */
+  coverId: string;
 }
+
+/** What the watcher's cover line holds, as main keeps it. */
+interface ISystemMediaCover {
+  id: string;
+  /** A `data:` URL, which the window's policy already admits for pictures. */
+  url: string;
+}
+
+/** A cover's id: the first eight bytes of its MD5, in hex. */
+const COVER_ID = /^[0-9a-f]{16}$/;
+
+/**
+ * The formats a cover may arrive in, which are the four the watcher sniffs.
+ * Anything else is refused rather than guessed at: the picture comes from
+ * another program's media session, and an `<img>` given a type it was not
+ * built for is a question nobody needs to ask.
+ */
+const COVER_TYPES: ReadonlySet<string> = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+
+const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+/** How a cover line starts, so a malformed one is never read as a reading. */
+const COVER_LINE = '{"cover":';
 
 /**
  * What the bar can ask another program's player to do.
@@ -170,12 +207,59 @@ function Await($op, $type) {
 
 $managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]
 $propsType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]
+$streamType = [Windows.Storage.Streams.IRandomAccessStreamWithContentType, Windows.Storage.Streams, ContentType = WindowsRuntime]
+$inputType = [Windows.Storage.Streams.IInputStream, Windows.Storage.Streams, ContentType = WindowsRuntime]
 $manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
 if (-not $manager) { exit 1 }
+
+# The cover is read through reflection because the stream comes back from
+# AsTask as a bare COM object that PowerShell's own binder refuses to hand to a
+# method taking IInputStream ("cannot convert System.__ComObject"), measured
+# against Spotify; reflection's invoke makes the interface cast the binder
+# will not. Its content type does not survive the same trip, so the format is
+# read from the picture's own first bytes.
+$asStream = [System.IO.WindowsRuntimeStreamExtensions].GetMethod('AsStreamForRead', [type[]]@($inputType))
+$md5 = [System.Security.Cryptography.MD5]::Create()
+
+function Read-Cover($props) {
+  if (-not $props.Thumbnail) { return $null }
+  $stream = Await ($props.Thumbnail.OpenReadAsync()) $streamType
+  if (-not $stream) { return $null }
+  try {
+    $net = $asStream.Invoke($null, @($stream))
+    $mem = New-Object System.IO.MemoryStream
+    $net.CopyTo($mem)
+    $bytes = $mem.ToArray()
+    $net.Dispose()
+    $mem.Dispose()
+  } finally {
+    try {
+      [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($stream)
+    } catch {
+      # Not a COM object after all, so there is nothing to release.
+    }
+  }
+  if ($bytes.Length -lt 64 -or $bytes.Length -gt 3MB) { return $null }
+  $type = ''
+  if ($bytes[0] -eq 0xFF -and $bytes[1] -eq 0xD8) { $type = 'image/jpeg' }
+  elseif ($bytes[0] -eq 0x89 -and $bytes[1] -eq 0x50 -and $bytes[2] -eq 0x4E -and $bytes[3] -eq 0x47) { $type = 'image/png' }
+  elseif ($bytes[0] -eq 0x52 -and $bytes[1] -eq 0x49 -and $bytes[8] -eq 0x57 -and $bytes[9] -eq 0x45) { $type = 'image/webp' }
+  elseif ($bytes[0] -eq 0x47 -and $bytes[1] -eq 0x49 -and $bytes[2] -eq 0x46) { $type = 'image/gif' }
+  if (-not $type) { return $null }
+  $id = -join ($md5.ComputeHash($bytes)[0..7] | ForEach-Object { $_.ToString('x2') })
+  return @{ id = $id; type = $type; data = [Convert]::ToBase64String($bytes) }
+}
 
 ${SELF_SKIP}
 
 $last = ''
+# The cover follows the song it was read for, and is looked for again on the
+# next rounds while it has not turned up: a player publishes the title a
+# moment before the picture, so the first read of a new song is often empty.
+$coverSong = ''
+$cover = $null
+$coverTries = 0
+$lastCover = ''
 while ($true) {
   $line = 'null'
   try {
@@ -192,6 +276,16 @@ while ($true) {
       $props = Await ($session.TryGetMediaPropertiesAsync()) $propsType
       $timeline = $session.GetTimelineProperties()
       $controls = $info.Controls
+      $songKey = "$($session.SourceAppUserModelId)|$($props.Title)|$($props.Artist)"
+      if ($songKey -ne $coverSong) {
+        $coverSong = $songKey
+        $cover = $null
+        $coverTries = 0
+      }
+      if (-not $cover -and $coverTries -lt 8) {
+        $coverTries += 1
+        try { $cover = Read-Cover $props } catch { $cover = $null }
+      }
       $payload = [pscustomobject]@{
         app = [string]$session.SourceAppUserModelId
         title = [string]$props.Title
@@ -203,6 +297,7 @@ while ($true) {
         canPrevious = [bool]$controls.IsPreviousEnabled
         canSeek = [bool]$controls.IsPlaybackPositionEnabled
         playing = $playing
+        coverId = $(if ($cover) { [string]$cover.id } else { '' })
       }
       $line = $payload | ConvertTo-Json -Compress
     }
@@ -218,10 +313,20 @@ while ($true) {
     # The list of who is playing is part of the shape, or a second program
     # starting behind the one on the bar would change nothing this loop
     # prints, and the rule that stops it would never be told.
-    $shape = "$($parsed.app)|$($parsed.title)|$($parsed.artist)|$($parsed.isPlaying)|$([int]($parsed.positionMs / 1000))|$($parsed.durationMs)|$($parsed.canNext)$($parsed.canPrevious)$($parsed.canSeek)|$(@($parsed.playing) -join ',')"
+    $shape = "$($parsed.app)|$($parsed.title)|$($parsed.artist)|$($parsed.isPlaying)|$([int]($parsed.positionMs / 1000))|$($parsed.durationMs)|$($parsed.canNext)$($parsed.canPrevious)$($parsed.canSeek)|$(@($parsed.playing) -join ',')|$($parsed.coverId)"
   }
   if ($shape -ne $last) {
     $last = $shape
+    # The picture goes out on a line of its own, once per cover, and BEFORE the
+    # reading that names it: the window asks main for a cover by the id the
+    # reading carries, so main has to be holding it by then. Written out by
+    # hand because every part of it is already safe inside a JSON string — a
+    # hex id, one of four fixed types, base64 — and ConvertTo-Json over a few
+    # hundred kilobytes is the slow part of this loop for nothing.
+    if ($line -ne 'null' -and $cover -and $cover.id -ne $lastCover) {
+      $lastCover = $cover.id
+      [Console]::Out.WriteLine('{"cover":{"id":"' + $cover.id + '","type":"' + $cover.type + '","data":"' + $cover.data + '"}}')
+    }
     [Console]::Out.WriteLine($line)
     [Console]::Out.Flush()
   }
@@ -253,6 +358,12 @@ let child: ChildProcess | undefined;
  */
 let notify: ((snapshot: ISystemMediaSnapshot | undefined) => void) | undefined;
 let lastSnapshot: ISystemMediaSnapshot | undefined;
+/**
+ * The last cover the watcher sent, which is the only one anybody can be asking
+ * for: the window asks by the id on the reading it has just been handed, and
+ * the watcher sends a song's cover before that song's first reading.
+ */
+let lastCover: ISystemMediaCover | undefined;
 
 /** The playing list as it survives PowerShell's JSON: a list, a bare string
  * where there was one of them, or missing from an older watcher. */
@@ -314,7 +425,53 @@ export const parseSystemMediaLine = (
       // program is playing — which is every ordinary moment before a second
       // one starts.
       playing: playingApps(record.playing),
+      // Absent from an older watcher, and anything that is not an id is no
+      // cover at all rather than a key the window would ask main for in vain.
+      coverId:
+        typeof record.coverId === 'string' && COVER_ID.test(record.coverId)
+          ? record.coverId
+          : '',
     };
+  } catch {
+    return undefined;
+  }
+};
+
+/** Whether a line of the watcher's is a cover rather than a reading. */
+export const isSystemMediaCoverLine = (line: string): boolean =>
+  line.trimStart().startsWith(COVER_LINE);
+
+/**
+ * Read one cover line, or nothing if any part of it is not what the watcher
+ * writes. Every part is checked, because the bytes are another program's.
+ */
+export const parseSystemMediaCover = (
+  line: string,
+): ISystemMediaCover | undefined => {
+  if (!isSystemMediaCoverLine(line)) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(line.trim());
+    if (typeof parsed !== 'object' || parsed === null) {
+      return undefined;
+    }
+    const { cover } = parsed as Record<string, unknown>;
+    if (typeof cover !== 'object' || cover === null) {
+      return undefined;
+    }
+    const { id, type, data } = cover as Record<string, unknown>;
+    if (
+      typeof id !== 'string' ||
+      !COVER_ID.test(id) ||
+      typeof type !== 'string' ||
+      !COVER_TYPES.has(type) ||
+      typeof data !== 'string' ||
+      !BASE64.test(data)
+    ) {
+      return undefined;
+    }
+    return { id, url: `data:${type};base64,${data}` };
   } catch {
     return undefined;
   }
@@ -365,6 +522,13 @@ export const watchSystemMedia = (
       if (!line.trim()) {
         return;
       }
+      // A cover is kept, never forwarded as a reading. One that fails its
+      // checks is dropped here too: read as a reading it would parse as
+      // "nothing playing" and blank the bar in the middle of a song.
+      if (isSystemMediaCoverLine(line)) {
+        lastCover = parseSystemMediaCover(line) ?? lastCover;
+        return;
+      }
       lastSnapshot = parseSystemMediaLine(line);
       // `notify` rather than `onSnapshot`: this child outlives the window that
       // started it, and the reading must go to whoever is listening NOW.
@@ -390,9 +554,18 @@ export const watchSystemMedia = (
     }
     child = undefined;
     lastSnapshot = undefined;
+    lastCover = undefined;
     notify?.(undefined);
   });
 };
+
+/**
+ * The picture for a cover id the window was just handed, or nothing when that
+ * cover is no longer the current one — a song that changed between the
+ * reading and the ask, which is the window's cue not to draw it.
+ */
+export const getSystemMediaCover = (id: string): string | undefined =>
+  lastCover?.id === id ? lastCover.url : undefined;
 
 /** Stop reporting. The bar has an owner of its own again, or the window has
  * gone. */
@@ -403,6 +576,7 @@ export const stopWatchingSystemMedia = (): void => {
   // handed to the next subscriber as though it were current, and it would name
   // whatever was playing whenever this was last switched off.
   lastSnapshot = undefined;
+  lastCover = undefined;
   notify = undefined;
 };
 

@@ -316,12 +316,17 @@ describe('peak animation', () => {
 
 describe('curated forms and settings', () => {
   it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
-    // The September review also retired Warp speed, Stalactites, Road trip,
-    // Rainfall and Canyon, and then all ten wave forms at once: each of
-    // those was a second copy of a free form already in the list.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(28);
-    expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
-    expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
+    // The September review retired Warp speed, Stalactites, Road trip,
+    // Rainfall and Canyon, then all ten wave forms at once, and finally the
+    // twenty plain forms behind them when the measuring views took their
+    // place: seven of those and the eight scenes Ivan designed are what the
+    // picker offers now.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(20);
+    expect(SELECTABLE_GRAPH_STYLES).toContain('analyzer');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('rta');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('scope');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('notes');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('terrace');
     (
       [
         'ridge',
@@ -343,6 +348,11 @@ describe('curated forms and settings', () => {
         'stalactites',
         'racer',
         'rain',
+        'bars',
+        'blocks',
+        'line',
+        'area',
+        'fluid',
       ] as const
     ).forEach((style) => {
       expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);

@@ -35,6 +35,7 @@ const snapshot = (
   canPrevious: true,
   canSeek: true,
   playing: ['Spotify.exe'],
+  coverId: '',
   ...fields,
 });
 

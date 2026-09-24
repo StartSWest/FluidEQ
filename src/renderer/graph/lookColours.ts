@@ -36,6 +36,19 @@ const sampleRamp = (ramp: readonly Rgb[], level: number): Rgb => {
   ];
 };
 
+/**
+ * A look's stops sampled at `level`, 0 to 1, as channel values.
+ *
+ * The same ramp `heatColour` reads, handed back unpainted so a caller that
+ * needs an alpha of its own — a gradient stop, a raster pixel — does not have
+ * to parse the string this file just built.
+ */
+export const rampAt = (colours: readonly string[], level: number): Rgb =>
+  sampleRamp(
+    (colours.length ? colours : DEFAULT_LEVEL_COLOURS).map(readHex),
+    level,
+  );
+
 export const heatColour = (
   colours: readonly string[],
   level: number,

@@ -68,7 +68,23 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ],
     ['eq.mode.{constant,proportional,asymmetric}Hint', 'eq.mode.*Hint'],
   ],
-  'src/renderer/components/LookDesigner.tsx': ['look.peak.*'],
+  // The eighteen peak marks went with the rows that chose them (2026-09-23).
+  'src/renderer/components/LookDesigner.tsx': [
+    ['look.channels.{joined,split}', 'look.channels.*'],
+  ],
+  // The measuring views' own key, and what a split names its two figures.
+  'src/renderer/graph/LiveTraceCanvas.tsx': [
+    [
+      'graph.legend.{live,peak,average,max,before,after,phase,width}',
+      'graph.legend.*',
+    ],
+  ],
+  'src/renderer/components/LookTextureRow.tsx': [
+    [
+      'look.texture.{none,hatch,crosshatch,rules,pinstripe,dots,grid,weave,scales,chevron,static,image,tooBig,unreadable}',
+      'look.texture.*',
+    ],
+  ],
   'src/renderer/components/ProcessesDialog.tsx': ['app.processes.place.*'],
   'src/renderer/components/RhythmGame.tsx': [
     ['support.game.{perfect,great,good,miss}', 'support.game.*'],

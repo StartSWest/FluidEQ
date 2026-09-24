@@ -1842,23 +1842,32 @@ it under the terms of the GNU General Public License version 3 or later.
     visibility: hidden;
   }
 
-  // And the card's surface goes with them, all the way to clear.
-  //
-  // With nothing behind it but the workspace, a panel drawn on top of a panel
-  // is a second sheet of the same colour: it flattens the graph and adds an
-  // edge where the eye expects none. It used to go clear here and float the
-  // drawing on the app's own background; that background is a theme colour
-  // — navy on Ocean — and every scene was designed against black. So the
-  // surface stays, solid, and black: a stage, not a panel.
-  > .graph-wrapper::before {
-    background: $black;
-    opacity: 1;
-  }
+  // Another program's song is the one picture drawn through here: its cover
+  // (`SystemStageArt`) stands behind the graph with no pane of ours under it,
+  // and `has-stage-art` on the root is the only sign of it. The pane above
+  // still goes — the column is lifted over the cover, pane and all — but the
+  // card stays as clear as the see-through slider says, and keeps the slider.
+  // Solid black here hid the cover entirely.
+  #root:not(.has-stage-art) & {
+    // And the card's surface goes with them, all the way to clear.
+    //
+    // With nothing behind it but the workspace, a panel drawn on top of a
+    // panel is a second sheet of the same colour: it flattens the graph and
+    // adds an edge where the eye expects none. It used to go clear here and
+    // float the drawing on the app's own background; that background is a
+    // theme colour — navy on Ocean — and every scene was designed against
+    // black. So the surface stays, solid, and black: a stage, not a panel.
+    > .graph-wrapper::before {
+      background: $black;
+      opacity: 1;
+    }
 
-  // Only the overlay controls are irrelevant over the workspace. Hiding every
-  // slider also hid wave height and position when the wave was still visible.
-  .graph-view-menu__slider--overlay {
-    display: none;
+    // Only the overlay controls are irrelevant over the workspace. Hiding
+    // every slider also hid wave height and position when the wave was still
+    // visible.
+    .graph-view-menu__slider--overlay {
+      display: none;
+    }
   }
 }
 

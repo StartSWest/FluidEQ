@@ -38,7 +38,9 @@ describe('a row of the public catalogue', () => {
       id: 'aurora',
       version: 1,
       names: { en: 'Aurora', es: 'Aurora boreal' },
-      fallbackStyle: 'area',
+      // The catalogue still names the plain area, which is retired: the row
+      // is painted as the view that took its place.
+      fallbackStyle: 'analyzer',
       swatch: ['#0b1f2c', '#00e5cf'],
     });
   });

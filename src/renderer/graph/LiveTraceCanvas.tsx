@@ -87,6 +87,12 @@ import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import createGraphSawtooth from 'common/graphSawtooth';
 import { invaderUnit } from 'common/graphInvaders';
 import {
+  analysisNeeds,
+  isAnalysisStyle,
+  legendWords,
+} from 'common/graphAnalysis';
+import type { TranslationKey } from 'common/i18n';
+import {
   advanceRoadTrip,
   createRoadTrip,
   createRoadTripPaths,
@@ -131,6 +137,11 @@ import {
   paintGraphAccent,
 } from './graphAccents';
 import { createFluidBarPaint, heatColour } from './lookColours';
+import {
+  PICTURE_ALPHA,
+  TEXTURE_ALPHA,
+  fillTexturePattern,
+} from './fillTextures';
 import createDotPaths from './dotPaths';
 import createBubblePaths from './bubblePaths';
 import {
@@ -268,7 +279,15 @@ import {
   smoothSlopeColumns,
 } from './slopeField';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
-import { SILENT_POINTS } from './liveSpectrumFrames';
+import {
+  createAnalysisState,
+  rampRgba,
+  type IAnalysisBand,
+} from './analysis/analysisFrame';
+import drawAnalysisView from './analysis/drawAnalysisView';
+import useAnalysisChannels from './analysis/useAnalysisChannels';
+import { GRAPH_SILENT_POINTS } from './liveGraphBand';
+import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
   IEuphoriaPaint,
@@ -415,6 +434,14 @@ interface ILiveTraceCanvasProps {
   offsetTop: number;
   /** Whether this is the subject of the graph rather than a supporting layer. */
   isForeground: boolean;
+  /**
+   * The EQ's total response in decibels, for Before & after.
+   *
+   * What is captured is the OUTPUT — everything here has already been through
+   * the chain — so the only way to show the music before the EQ is to take
+   * this back out of the reading, point by point. No other view reads it.
+   */
+  eqResponse?: IChartPointData[];
 }
 
 /**
@@ -486,10 +513,13 @@ const LiveTraceCanvas = ({
   offsetLeft,
   offsetTop,
   isForeground,
+  eqResponse,
 }: ILiveTraceCanvasProps) => {
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
-  const { points: livePoints, waveform } = useLiveAudioFrame();
+  // The graph's own points, the plot's whole width with its bottom octaves
+  // resolved (`liveGraphBand.ts`), so the cuts can be seen doing their work.
+  const { graphPoints: livePoints, waveform } = useLiveAudioFrame();
   const { isPaused, readFrame } = useLiveAudioControl();
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
@@ -571,7 +601,35 @@ const LiveTraceCanvas = ({
 
   // Only the live trace has a look; every other curve on this chart is the
   // user's own tuning and has one right way to be drawn.
+  const { t } = useTranslation();
   const look = useGraphLook();
+  /**
+   * Left and right measured apart, and only while something is drawing them.
+   *
+   * Two more long windows on the capture is real work, so the analysers are
+   * built when a measuring view is showing with Left & right chosen and taken
+   * down the moment either stops being true.
+   */
+  const channels = useAnalysisChannels(
+    analysisNeeds(look.style, look.tuning.channels === 'split'),
+  );
+  const analysisRef = useRef(createAnalysisState());
+  /**
+   * What the legend calls each channel, on a ref: the drawing runs on its own
+   * frames and a language change must not rebuild the whole loop.
+   */
+  const channelLabelsRef = useRef<readonly [string, string]>(['L', 'R']);
+  channelLabelsRef.current = [
+    t('graph.channel.left'),
+    t('graph.channel.right'),
+  ];
+  /** The words a measuring view's key uses, on a ref for the same reason. */
+  const legendRef = useRef(legendWords(() => ''));
+  legendRef.current = legendWords((key) =>
+    t(`graph.legend.${key}` as TranslationKey),
+  );
+  const eqResponseRef = useRef(eqResponse);
+  eqResponseRef.current = eqResponse;
   const ambient = hasGraphAmbientMotion(look.style);
   playingRef.current = ambient || !isPaused;
   const isRainbow = useIsRootEuphoric();
@@ -613,7 +671,7 @@ const LiveTraceCanvas = ({
     if (previewPoints.length > 0) {
       return previewPoints.map(({ x }) => ({ x, y: MIN_GAIN }));
     }
-    return SILENT_POINTS;
+    return GRAPH_SILENT_POINTS;
   }, [ambient, isPaused, previewPoints]);
   const displayedWaveform = useMemo(
     () => resolveLookWaveform(points, livePoints, waveform),
@@ -671,9 +729,13 @@ const LiveTraceCanvas = ({
       // it is not the same axis, and the eased buffers are sized to `points`.
       const fresh = isLiveRef.current ? readFrameRef.current() : undefined;
       const data =
-        fresh && fresh.points.length === points.length ? fresh.points : points;
+        fresh && fresh.graphPoints.length === points.length
+          ? fresh.graphPoints
+          : points;
       const frameWaveform =
-        fresh && data === fresh.points ? fresh.waveform : waveformRef.current;
+        fresh && data === fresh.graphPoints
+          ? fresh.waveform
+          : waveformRef.current;
       const eased = easedRef.current;
       if (data.length < 2 || eased.length !== data.length) {
         return false;
@@ -849,6 +911,106 @@ const LiveTraceCanvas = ({
       })();
 
       const chosen = lookRef.current.style;
+
+      /**
+       * The measuring views draw themselves and leave.
+       *
+       * None of them is one path, so none of them can be expressed as a
+       * figure the rest of this loop knows how to paint: the spectrogram is a
+       * raster, the waterfall is fifty-six figures in perspective, and the
+       * stereo view is three instruments in a box. They are handed the frame
+       * and the plot and take it from there (`analysis/`), which is also what
+       * lets them read left and right separately without every scene below
+       * having to learn what a second channel is.
+       */
+      if (isAnalysisStyle(chosen)) {
+        const needs = analysisNeeds(chosen, tuning.channels === 'split');
+        const isEuphoric =
+          document.documentElement.classList.contains('is-euphoric');
+        const euphoria: IEuphoriaPaint = {
+          isOn: isEuphoric,
+          hue:
+            isEuphoric && computedRef.current
+              ? readEuphoriaHue(computedRef.current)
+              : 0,
+        };
+        const viewPalette = resolveGraphPalette(
+          chosen,
+          lookRef.current.palette,
+        );
+        const viewColours = resolveLookColours(
+          viewPalette,
+          lookRef.current.colours,
+        );
+        /**
+         * The edge is the READING on these views — the analyser's own curve,
+         * the ridge of a waterfall slice — so it exists whether or not the
+         * look asked for a border, which is why the resolver is told the
+         * figure is stroked. What the resolver is for here is the one thing
+         * it decides that this code should not: which colour wins while the
+         * rainbow border is on.
+         */
+        const edgePaint =
+          resolveFigureStroke(
+            rampRgba(viewColours, 1, 1),
+            false,
+            tuning.border,
+            isSelfColouredLook(viewPalette, viewColours),
+            euphoria,
+          ) ?? rampRgba(viewColours, 1, 1);
+        const bands: IAnalysisBand[] = curves.map((curve) => {
+          const wave = getWaveTransform(curve, baseline, plot.top);
+          const restY = plot.bottom * wave.scaleY + wave.translateY;
+          const fullY = plot.top * wave.scaleY + wave.translateY;
+          const flipped = fullY > restY;
+          return {
+            top: flipped ? restY : fullY,
+            bottom: flipped ? fullY : restY,
+            flipped,
+            opacity: curve.opacity,
+          };
+        });
+        const moved = drawAnalysisView({
+          style: chosen,
+          context,
+          ratio,
+          plot,
+          bands,
+          deltaMs: motionDeltaMs,
+          playing: playingRef.current,
+          tuning,
+          colours: viewColours,
+          palette: viewPalette,
+          edge: {
+            colour: toCanvasPaint(context, edgePaint),
+            width: Math.max(1, tuning.strokeWidth),
+            isEuphoria: isEuphoriaFigureStroke(tuning.border, euphoria),
+          },
+          glow: isEuphoric && canGraphGlow(chosen) ? tuning.glow : 0,
+          channelLabels: channelLabelsRef.current,
+          legend: legendRef.current,
+          points: eased,
+          live: data,
+          columns: projected,
+          /**
+           * The pair this view draws, when it draws one. Mid & side reads a
+           * different pair from the Channels row's, and three views read the
+           * samples rather than a spectrum; `analysisNeeds` is the one place
+           * that decides which, so the reader and the drawing cannot
+           * disagree about what was measured.
+           */
+          channels:
+            chosen === 'midside'
+              ? channels.readMidSide()
+              : (tuning.channels === 'split' && channels.read()) || undefined,
+          scope: needs.scope ? channels.scope() : undefined,
+          eqResponse: eqResponseRef.current,
+          state: analysisRef.current,
+        });
+        const settling = transitionRef.current.paint(context, now);
+        return settling || moved || moving;
+      }
+
       /**
        * The fluid is painted rather than pathed, exactly as the titlebar
        * paints it — a bar every eleven pixels, each with its own hue and its
@@ -3629,6 +3791,47 @@ const LiveTraceCanvas = ({
           context.fillStyle = canvasPaint;
           context.fill(curveFigure);
         }
+        /**
+         * The pattern inside the fill, printed on the glass.
+         *
+         * Clipped to the figure in the figure's own space and then filled in
+         * the window's, so a tile stays square whatever the height slider is
+         * doing — the same lesson the ECG paper taught, where ruling inside
+         * the curve's transform turned every cell into a rectangle and made
+         * the horizontal strokes heavier than the vertical ones.
+         *
+         * `overlay` is what lets one tile serve every colour: it darkens and
+         * lightens the fill beneath it rather than laying a colour of its
+         * own over it. A dropped picture goes on flat, because somebody who
+         * chose a picture chose its colours too.
+         */
+        if (isFilled && tuning.texture !== 'none') {
+          const pattern = fillTexturePattern(context, {
+            texture: tuning.texture,
+            image: tuning.textureImage,
+            scale: ratio,
+          });
+          if (pattern) {
+            context.save();
+            context.clip(curveFigure);
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            context.globalCompositeOperation =
+              tuning.texture === 'image' ? 'source-atop' : 'overlay';
+            setAlpha(
+              context,
+              opacity *
+                (tuning.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA),
+            );
+            context.fillStyle = pattern;
+            context.fillRect(
+              plot.left,
+              plot.top,
+              plot.right - plot.left,
+              plot.bottom - plot.top,
+            );
+            context.restore();
+          }
+        }
         if (bubblePaths) {
           // The glassy body, faint so what is behind still shows through.
           context.fillStyle = canvasPaint;
@@ -4432,7 +4635,10 @@ const LiveTraceCanvas = ({
         (isEuphoric && tuning.border)
       );
     },
-    [curves, height, points, width, xScale, yScale],
+    // `channels` is the per-channel reader, whose identity never changes —
+    // named here because the loop reads it and a dependency list that lies
+    // about what a callback reads is worse than one that is slightly long.
+    [channels, curves, height, points, width, xScale, yScale],
   );
 
   const kickFrames = useSmoothFrames(drawFrame, {

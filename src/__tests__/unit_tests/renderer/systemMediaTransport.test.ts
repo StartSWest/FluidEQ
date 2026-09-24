@@ -85,6 +85,14 @@ describe('the transport for another Windows player', () => {
     ((snapshot: ISystemMediaSnapshot | undefined) => void) | undefined;
   const sendSystemMediaCommand = jest.fn(() => Promise.resolve());
   const pauseOtherSystemPlayers = jest.fn(() => Promise.resolve());
+  /** Each asked-for cover, answered when a test says so. */
+  const coverAnswers = new Map<string, (url: string | undefined) => void>();
+  const getSystemMediaCover = jest.fn(
+    (id: string) =>
+      new Promise<string | undefined>((resolve) => {
+        coverAnswers.set(id, resolve);
+      }),
+  );
 
   beforeEach(() => {
     resetPlaybackOwner();
@@ -92,6 +100,8 @@ describe('the transport for another Windows player', () => {
     publishSnapshot = undefined;
     sendSystemMediaCommand.mockClear();
     pauseOtherSystemPlayers.mockClear();
+    getSystemMediaCover.mockClear();
+    coverAnswers.clear();
     setSinglePlayer(true);
     window.electron = {
       ipcRenderer: {
@@ -104,6 +114,7 @@ describe('the transport for another Windows player', () => {
         },
         sendSystemMediaCommand,
         pauseOtherSystemPlayers,
+        getSystemMediaCover,
         sendMediaTransport: () => Promise.resolve(),
       },
     } as unknown as typeof window.electron;
@@ -134,6 +145,7 @@ describe('the transport for another Windows player', () => {
       canPrevious: true,
       canSeek: true,
       playing: ['Spotify.exe'],
+      coverId: '',
     };
 
     act(() => publishSnapshot?.(snapshot));
@@ -160,6 +172,7 @@ describe('the transport for another Windows player', () => {
       canPrevious: false,
       canSeek: false,
       playing,
+      coverId: '',
     });
 
     act(() => publishSnapshot?.(reading('Spotify.exe', ['Spotify.exe'])));
@@ -196,6 +209,7 @@ describe('the transport for another Windows player', () => {
       canPrevious: false,
       canSeek: false,
       playing,
+      coverId: '',
     });
 
     act(() => {
@@ -232,6 +246,7 @@ describe('the transport for another Windows player', () => {
         canPrevious: false,
         canSeek: false,
         playing: ['Spotify.exe'],
+        coverId: '',
       }),
     );
     act(() =>
@@ -246,9 +261,88 @@ describe('the transport for another Windows player', () => {
         canPrevious: false,
         canSeek: false,
         playing: ['Spotify.exe', 'Chrome'],
+        coverId: '',
       }),
     );
     expect(pauseOtherSystemPlayers).not.toHaveBeenCalled();
+    hook.unmount();
+  });
+
+  /**
+   * The cover is what the bar's thumbnail and the stage behind an expanded or
+   * fullscreen graph draw for another program's song. A reading names it by
+   * id and the window asks for the picture once.
+   */
+  const songWithCover = (title: string, coverId: string) => ({
+    app: 'Spotify.exe',
+    title,
+    artist: 'Coldplay',
+    isPlaying: true,
+    positionMs: 0,
+    durationMs: 200_000,
+    canNext: true,
+    canPrevious: true,
+    canSeek: true,
+    playing: ['Spotify.exe'],
+    coverId,
+  });
+
+  it('shows the cover the player published for the song', async () => {
+    const hook = renderHook(
+      () => {
+        useSystemMediaSource();
+        return useTransportSources().system;
+      },
+      { wrapper: withApp },
+    );
+
+    act(() =>
+      publishSnapshot?.(songWithCover('Violet Hill', 'aaaaaaaaaaaaaaaa')),
+    );
+    // The next reading of the same song does not ask again.
+    act(() =>
+      publishSnapshot?.(songWithCover('Violet Hill', 'aaaaaaaaaaaaaaaa')),
+    );
+    expect(getSystemMediaCover).toHaveBeenCalledTimes(1);
+    expect(hook.result.current?.artworkUrl).toBeUndefined();
+
+    await act(async () => {
+      coverAnswers.get('aaaaaaaaaaaaaaaa')?.('data:image/png;base64,AAAA');
+    });
+
+    expect(hook.result.current).toMatchObject({
+      title: 'Violet Hill',
+      artworkUrl: 'data:image/png;base64,AAAA',
+    });
+    hook.unmount();
+  });
+
+  it('never hangs a late cover on the next song', async () => {
+    const hook = renderHook(
+      () => {
+        useSystemMediaSource();
+        return useTransportSources().system;
+      },
+      { wrapper: withApp },
+    );
+
+    act(() =>
+      publishSnapshot?.(songWithCover('Violet Hill', 'aaaaaaaaaaaaaaaa')),
+    );
+    act(() => publishSnapshot?.(songWithCover('Yellow', 'bbbbbbbbbbbbbbbb')));
+    // The first song's picture arrives after the second has started.
+    await act(async () => {
+      coverAnswers.get('aaaaaaaaaaaaaaaa')?.('data:image/png;base64,AAAA');
+    });
+
+    expect(hook.result.current?.title).toBe('Yellow');
+    expect(hook.result.current?.artworkUrl).toBeUndefined();
+
+    await act(async () => {
+      coverAnswers.get('bbbbbbbbbbbbbbbb')?.('data:image/png;base64,BBBB');
+    });
+
+    expect(hook.result.current?.artworkUrl).toBe('data:image/png;base64,BBBB');
     hook.unmount();
   });
 });

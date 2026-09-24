@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
 import { MIN_GAIN } from 'common/constants';
+import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
@@ -42,6 +43,7 @@ import {
   setGraphView,
   useGraphCoverageHidden,
   useGraphGridHidden,
+  useGraphLook,
   useSceneLook,
 } from '../utils/graphStyle';
 import viewAfterPlotDoubleClick from './plotDoubleClick';
@@ -949,6 +951,9 @@ const Chart = ({
 
   const scene = useSceneLook();
   const hasScene = Boolean(scene);
+  // Only to decide whether the level scale describes what is drawn; the
+  // trace subscribes to the look itself and is not re-rendered from here.
+  const look = useGraphLook();
   const liveLevelScale = useMemo(
     () =>
       liveLevelScaleFor({
@@ -1138,6 +1143,12 @@ const Chart = ({
             offsetLeft={margins.left}
             offsetTop={margins.top}
             isForeground={isLiveOutputForeground}
+            // Before & after shows the music as it reached the EQ by taking
+            // this back out of the reading; nothing else on the canvas uses
+            // it, and no other curve on this chart is the whole chain.
+            eqResponse={
+              data.find((curve) => curve.id === OUTPUT_CURVE_ID)?.line.points
+            }
           />
         ))}
       <svg
@@ -1358,15 +1369,24 @@ const Chart = ({
           />
           {/* Same transformed pixels as the live wave it describes, and the
             same depth: a scene draws the shared forty decibels, the graph's
-            own analyser eighty (`liveGraphBand.ts`). */}
-          <Axis
-            type="right"
-            scale={liveLevelScale}
-            transform={`translate(${padding.left + plotWidth}, 0)`}
-            tickValues={liveLevelTickValues}
-            tickFormat={hasScene ? levelTickFormat : graphLevelTickFormat}
-            disableAnimation
-          />
+            own analyser eighty (`liveGraphBand.ts`).
+
+            Absent on the two views whose vertical axis is not a level at all.
+            The spectrogram runs TIME up the plot and says loudness in colour,
+            and the stereo meters are their own instruments — a decibel scale
+            beside either is a ruler measuring the wrong thing, which is
+            exactly how it was read (Ivan, 2026-09-23: "why the espectrograma
+            is bottom up ... matching those?"). */}
+          {levelAxisSuitsLook(look.style) ? (
+            <Axis
+              type="right"
+              scale={liveLevelScale}
+              transform={`translate(${padding.left + plotWidth}, 0)`}
+              tickValues={liveLevelTickValues}
+              tickFormat={hasScene ? levelTickFormat : graphLevelTickFormat}
+              disableAnimation
+            />
+          ) : null}
           <Axis
             type="bottom"
             scale={xScaleFreq}

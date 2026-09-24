@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { isAnalysisStyle } from 'common/graphAnalysis';
 import {
   DEFAULT_GRAPH_LOOK,
   GRAPH_LOOKS,
@@ -246,10 +247,21 @@ describe('readable LED columns', () => {
   });
 });
 
+/**
+ * The forms this file's geometry actually draws.
+ *
+ * The measuring views are in the catalogue — they are looks, they are
+ * picked, tuned and cycled like any other — but none of them is one path, so
+ * none is built by `createGraphShape`: a raster, a stack of fifty-six
+ * figures and a box of instruments have nothing to hand back. They are drawn
+ * by `renderer/graph/analysis` and tested there.
+ */
+const DRAWN_HERE = GRAPH_STYLES.filter((style) => !isAnalysisStyle(style));
+
 describe('the graph style cycle', () => {
-  it('offers fifty-seven distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(57);
-    expect(new Set(GRAPH_STYLES).size).toBe(57);
+  it('offers sixty-nine distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(69);
+    expect(new Set(GRAPH_STYLES).size).toBe(69);
   });
 
   it('gives every form a name of its own', () => {
@@ -283,7 +295,7 @@ describe('the graph style cycle', () => {
     // preference naming a form this build does not have lands on the same
     // drawing a fresh install starts with.
     expect(getGraphLook('nonsense')).toBe(DEFAULT_GRAPH_LOOK);
-    expect(DEFAULT_GRAPH_LOOK.style).toBe('fluid');
+    expect(DEFAULT_GRAPH_LOOK.style).toBe('analyzer');
     expect(DEFAULT_GRAPH_LOOK.palette).toBe('auto');
   });
 
@@ -303,17 +315,17 @@ describe('the graph style cycle', () => {
 });
 
 describe('every graph style', () => {
-  it.each(GRAPH_STYLES)('draws something for %s', (style) => {
+  it.each(DRAWN_HERE)('draws something for %s', (style) => {
     expect(shapeOf(style).length).toBeGreaterThan(0);
   });
 
-  it.each(GRAPH_STYLES)('emits no NaN for %s', (style) => {
+  it.each(DRAWN_HERE)('emits no NaN for %s', (style) => {
     // A single NaN blanks the whole path, which looks exactly like the live
     // output having stopped rather than like a drawing bug.
     expect(shapeOf(style)).not.toMatch(/NaN|Infinity|undefined/);
   });
 
-  it.each(GRAPH_STYLES.filter(isFilledGraphStyle))(
+  it.each(DRAWN_HERE.filter(isFilledGraphStyle))(
     'closes its figure for %s, because it is painted',
     (style) => {
       // A painted style that is not closed leaves the fill to be guessed by
@@ -334,7 +346,7 @@ describe('every graph style', () => {
     },
   );
 
-  it.each(GRAPH_STYLES.filter((style) => !isFilledGraphStyle(style)))(
+  it.each(DRAWN_HERE.filter((style) => !isFilledGraphStyle(style)))(
     'is stroked rather than painted for %s',
     (style) => {
       expect(isFilledGraphStyle(style)).toBe(false);
@@ -460,7 +472,7 @@ describe('createGraphShape', () => {
     // The bridge is the one exception: its deck is a line over open water
     // in both variants, and Filled makes its towers and piers solid — the
     // renderer paints those, not the shape.
-    GRAPH_STYLES.filter(canGraphFill)
+    DRAWN_HERE.filter(canGraphFill)
       .filter((style) => style !== 'truss')
       .forEach((style) => {
         expect(
@@ -617,7 +629,7 @@ describe('the lit peaks', () => {
   });
 
   it('emits no NaN for any form', () => {
-    GRAPH_STYLES.forEach((style) => {
+    DRAWN_HERE.forEach((style) => {
       expect(createGraphAccent(humps, style, BASELINE)).not.toMatch(
         /NaN|Infinity|undefined/,
       );
@@ -627,7 +639,7 @@ describe('the lit peaks', () => {
 
 describe('graph ballistics', () => {
   it('gives every form a cadence', () => {
-    GRAPH_STYLES.forEach((style) => {
+    DRAWN_HERE.forEach((style) => {
       const { attackMs, releaseMs } = getGraphBallistics(style);
       expect(attackMs).toBeGreaterThan(0);
       expect(releaseMs).toBeGreaterThan(0);
@@ -638,7 +650,7 @@ describe('graph ballistics', () => {
     // Asymmetry is the point of meter ballistics: catch the transient, then
     // let go of it slowly enough to be seen. A form that released faster than
     // it attacked would flicker rather than pump.
-    GRAPH_STYLES.forEach((style) => {
+    DRAWN_HERE.forEach((style) => {
       const { attackMs, releaseMs } = getGraphBallistics(style);
       expect(releaseMs).toBeGreaterThanOrEqual(attackMs);
     });
@@ -673,7 +685,7 @@ describe('a form drawn at a density it did not ship with', () => {
   // every form survives every count rather than only the one it was drawn at.
   const densities = [MIN_GRAPH_COLUMNS, 24, 64, 120, MAX_GRAPH_COLUMNS];
 
-  it.each(GRAPH_STYLES)('emits no NaN for %s at any density', (style) => {
+  it.each(DRAWN_HERE)('emits no NaN for %s at any density', (style) => {
     densities.forEach((columns) => {
       const shape = createGraphShape(points, style, BASELINE, columns);
       expect(shape).not.toMatch(/NaN|Infinity|undefined/);
@@ -681,7 +693,7 @@ describe('a form drawn at a density it did not ship with', () => {
     });
   });
 
-  it.each(GRAPH_STYLES.filter(isDiscreteGraphStyle))(
+  it.each(DRAWN_HERE.filter(isDiscreteGraphStyle))(
     'actually cuts %s into the number of pieces asked for',
     (style) => {
       // A density slider that changes the label and not the picture is worse
@@ -693,7 +705,7 @@ describe('a form drawn at a density it did not ship with', () => {
     },
   );
 
-  it.each(GRAPH_STYLES.filter((style) => !isDiscreteGraphStyle(style)))(
+  it.each(DRAWN_HERE.filter((style) => !isDiscreteGraphStyle(style)))(
     'ignores the density for %s, which is one continuous figure',
     (style) => {
       // Nothing to cut up, so the panel greys the slider out — and the drawing
@@ -707,7 +719,7 @@ describe('a form drawn at a density it did not ship with', () => {
   it('draws the form as it ships when no density is given', () => {
     // The built-in looks go through the same call with the argument left off,
     // so this is what guarantees they are untouched by any of it.
-    GRAPH_STYLES.forEach((style) => {
+    DRAWN_HERE.forEach((style) => {
       expect(createGraphShape(points, style, BASELINE)).toBe(
         createGraphShape(points, style, BASELINE, getGraphColumnCount(style)),
       );

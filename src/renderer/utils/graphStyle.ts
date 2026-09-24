@@ -240,6 +240,35 @@ const persistSelection = () => {
  * would leave the component's memo depending on a value it never mentions,
  * which is a stale list waiting to happen and a lint error besides.
  */
+/**
+ * Every saved variation directly under the view it was made from.
+ *
+ * A look somebody tunes and saves is a version of one of these drawings, and
+ * filed by its own name it ends up at the bottom of the list nowhere near the
+ * thing it varies (Ivan, 2026-09-23: "I want to show all preset modifed for a
+ * viz under it so tghey are grouped even if differnt name is same viz").
+ *
+ * THIS IS THE CYCLE ORDER TOO, which is the half that matters: the picker
+ * reads this list and so do the next and previous arrows, so stepping past a
+ * view now walks its own variations before moving on rather than leaving them
+ * twenty presses away.
+ *
+ * A variation of a form that is no longer offered keeps its place at the end:
+ * it still draws, and it has no root to sit under.
+ */
+const nestCustomLooks = (
+  forms: readonly IResolvedLook[],
+  custom: readonly IResolvedLook[],
+): IResolvedLook[] => {
+  const placed = new Set<string>();
+  const nested = forms.flatMap((form) => {
+    const mine = custom.filter((look) => look.style === form.style);
+    mine.forEach((look) => placed.add(look.id));
+    return [form, ...mine];
+  });
+  return [...nested, ...custom.filter((look) => !placed.has(look.id))];
+};
+
 export const getSelectableLooks = (
   customLooks: readonly ICustomLook[] = getCustomLooks(),
   /**
@@ -271,17 +300,19 @@ export const getSelectableLooks = (
     // rather than rows per palette, so the list is forty-odd entries rather
     // than two hundred — and the click-on-the-plot cycle walks forms rather
     // than repainting the same form five times before reaching the next.
-    ...GRAPH_FORM_LOOKS.map((form) =>
-      resolveBuiltInLook(
-        getGraphLook(
-          graphLookId(
-            form.style,
-            form.style === selected ? palette : getFormPalette(form.style),
+    ...nestCustomLooks(
+      GRAPH_FORM_LOOKS.map((form) =>
+        resolveBuiltInLook(
+          getGraphLook(
+            graphLookId(
+              form.style,
+              form.style === selected ? palette : getFormPalette(form.style),
+            ),
           ),
         ),
       ),
+      customLooks.map(resolveCustomLook),
     ),
-    ...customLooks.map(resolveCustomLook),
     ...scenes.map(resolveSceneRow),
     ...memberScenes.map(resolveSceneRow),
   ];

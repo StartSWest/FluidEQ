@@ -406,6 +406,14 @@ const sendSystemMediaCommand = (
 const pauseOtherSystemPlayers = (exceptApp?: string) =>
   ipcRenderer.invoke('system-media-pause-others', exceptApp) as Promise<void>;
 
+/**
+ * The picture for the cover id a reading of the machine's player carried, or
+ * nothing when that song has already moved on. Asked once per cover; the
+ * readings themselves carry only the id.
+ */
+const getSystemMediaCover = (id: string) =>
+  ipcRenderer.invoke('system-media-cover', id) as Promise<string | undefined>;
+
 /** Whatever the machine is playing now, or nothing. */
 const onSystemMedia = (
   listener: (snapshot: ISystemMediaSnapshot | undefined) => void,
@@ -1471,6 +1479,7 @@ export default {
     setTaskbarTransport,
     onTaskbarTransport,
     watchSystemMedia,
+    getSystemMediaCover,
     sendSystemMediaCommand,
     pauseOtherSystemPlayers,
     onSystemMedia,
