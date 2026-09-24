@@ -15,8 +15,26 @@ const originalWorker = global.Worker;
 // jsdom has no OffscreenCanvas; the page's side of the hand-over is all this
 // file can see, and all it needs to.
 const transfer = jest.fn(() => offscreen);
+/**
+ * The frames the page paints, run by hand so their order against the worker
+ * ending is exact rather than whatever a real clock happens to give.
+ */
+let frames: FrameRequestCallback[] = [];
+const paintFrame = () => {
+  const due = frames;
+  frames = [];
+  due.forEach((callback) => callback(0));
+};
+let paints: jest.SpyInstance | undefined;
 beforeEach(() => {
   jest.clearAllMocks();
+  frames = [];
+  paints = jest
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
   global.Worker = jest.fn(() => worker) as unknown as typeof Worker;
   Object.defineProperty(
     HTMLCanvasElement.prototype,
@@ -28,6 +46,7 @@ beforeEach(() => {
   );
 });
 afterEach(() => {
+  paints?.mockRestore();
   global.Worker = originalWorker;
   delete (HTMLCanvasElement.prototype as Partial<HTMLCanvasElement>)
     .transferControlToOffscreen;
@@ -110,7 +129,7 @@ it('loads in the worker and keeps one drawing in flight until it is committed', 
   expect(client?.canDraw()).toBe(true);
 });
 
-it('takes its canvas away with the worker, so the backdrop shows and not white', () => {
+it('takes its canvas away before the worker goes, so the backdrop shows and never white', () => {
   const { host, client } = start();
   const shown = jest.fn();
   client?.draw(
@@ -123,11 +142,35 @@ it('takes its canvas away with the worker, so the backdrop shows and not white',
     shown,
   );
   client?.dispose();
-  expect(worker.terminate).toHaveBeenCalledTimes(1);
+  // The canvas leaves at once. The worker, and the picture it holds, only
+  // once a frame without that canvas has been painted: freed in the same
+  // moment, the screen still showed the canvas for a frame with nothing in
+  // it — the whole stage white, on the monitor, 52ms after leaving a scene.
   expect(host.querySelector('canvas')).toBeNull();
+  expect(worker.terminate).not.toHaveBeenCalled();
+  paintFrame();
+  expect(worker.terminate).not.toHaveBeenCalled();
+  paintFrame();
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
   // A reply already on its way when it was disposed reaches nobody.
   reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
   expect(shown).not.toHaveBeenCalled();
+});
+
+it('ends it at once in a hidden page, which paints no frame to wait for', () => {
+  // And where a frame never comes: waiting on one would have kept an unseen
+  // scene's worker, and its GPU memory, alive until the window was looked at.
+  Object.defineProperty(document, 'hidden', {
+    configurable: true,
+    get: () => true,
+  });
+  try {
+    const { client } = start();
+    client?.dispose();
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+  } finally {
+    delete (document as Partial<Document> & { hidden?: boolean }).hidden;
+  }
 });
 
 it('hides the canvas while its context is lost and shows it once restored', () => {
@@ -196,16 +239,22 @@ it('lets a load still linking finish before its worker goes', async () => {
   expect(worker.terminate).not.toHaveBeenCalled();
   expect(host.querySelector('canvas')).toBeNull();
   reply({ kind: 'retired' });
+  // A link that finished within a frame of the canvas going is still let
+  // go only after that frame is painted.
+  paintFrame();
+  paintFrame();
   expect(worker.terminate).toHaveBeenCalledTimes(1);
 });
 
-it('ends a worker at once when nothing it was sent is still linking', async () => {
+it('does not wait on a link when nothing it was sent is still linking', async () => {
   const { client } = start();
   const loading = client?.load(packOf('aurora'), true);
   await settle();
   reply({ kind: 'loaded', id: 1, result: { kind: 'ready', rebuilt: true } });
   await loading;
   client?.dispose();
+  paintFrame();
+  paintFrame();
   expect(worker.terminate).toHaveBeenCalledTimes(1);
   expect(worker.postMessage).not.toHaveBeenCalledWith({ kind: 'retire' });
 });

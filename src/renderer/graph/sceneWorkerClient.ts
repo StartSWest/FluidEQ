@@ -257,6 +257,32 @@ export const createSceneWorkerClient = (
       canvas.style.visibility = 'hidden';
     }
   };
+  /**
+   * Ends the worker once a frame without its canvas is on the screen.
+   *
+   * Taking the canvas out is not enough on its own, because the two happen at
+   * different times: the removal is only painted with the next frame, and
+   * `terminate()` frees the worker's picture there and then. For the frame in
+   * between, the screen still showed the canvas and its picture was gone —
+   * solid white over the whole stage. Recorded from outside the app, on
+   * Ivan's monitor, 52ms after leaving a scene's page; the page's own frame
+   * capture never saw it, because the canvas reaches the screen past it.
+   *
+   * Two animation frames: the first is the frame the removal is painted in,
+   * and by the second that frame has gone to the screen. A hidden page paints
+   * nothing, so there is nothing to wait for there — and rAF does not run in
+   * one, which would have kept an unseen scene's worker, and its GPU memory,
+   * alive until somebody looked again.
+   */
+  const terminateOnceUnseen = () => {
+    if (document.hidden) {
+      worker.terminate();
+      return;
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => worker.terminate());
+    });
+  };
   const fail = (log: string) => {
     if (disposed) {
       return;
@@ -282,7 +308,9 @@ export const createSceneWorkerClient = (
   worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
     if (data.kind === 'retired') {
       letTurnsGo();
-      worker.terminate();
+      // A link that finished inside a frame of the canvas going would free
+      // the picture before its removal was painted, like `dispose` below.
+      terminateOnceUnseen();
       return;
     }
     if (disposed) {
@@ -400,7 +428,7 @@ export const createSceneWorkerClient = (
         return;
       }
       letTurnsGo();
-      worker.terminate();
+      terminateOnceUnseen();
     },
   };
 };
