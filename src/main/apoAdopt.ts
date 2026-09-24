@@ -37,6 +37,7 @@ import {
 } from '../common/apoFeatureSync';
 import { parseCustomFx } from '../common/customFx';
 import { hasSmartEqLayer, smartEqFromFilters } from '../common/smartEq';
+import { hasTone } from '../common/tone';
 import { save, stateToApoFiles, stateToString } from './flush';
 import { getCustomFileNameForDevice } from './deviceProfiles';
 import { readApoDeviceChain } from './apoConfigReader';
@@ -304,7 +305,8 @@ export const createApoAdoption = ({
         !features &&
         (!!state.voicing?.profileId ||
           !!state.driver?.profileId ||
-          hasSmartEqLayer(state.smartEq));
+          hasSmartEqLayer(state.smartEq) ||
+          hasTone(state.tone));
 
       if (!hasBands || hasIndistinguishableLayers) {
         return true;

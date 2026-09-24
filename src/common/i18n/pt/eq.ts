@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms com EQ ativo',
   'eq.mode.linearDelay': '≈ +{ms} ms de atraso',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, compartilhado',
   'eq.mode.gameMinimum': 'Modo jogo: mínima',
   'eq.layouts.builtIn': 'Layouts incluídos',
   'eq.layouts.saved': 'Meus designs',
@@ -36,7 +37,7 @@ const eq: Partial<Dictionary> = {
     'Não foi possível atualizar seus designs. Tente novamente.',
   'eq.layouts.clearTitle': 'Limpar EQ?',
   'eq.layouts.clearWarning':
-    'Definir o ganho de cada banda em 0 dB. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificação atuais.',
+    'Definir o ganho de cada banda e os controles Graves, Médios e Agudos em 0 dB. Manter a quantidade de bandas, frequências, Q, cortes, modo EQ e pré-amplificação atuais.',
   'eq.layouts.deleteNamed': 'Excluir “{name}”',
   'eq.layouts.deleteWarning':
     'Excluir “{name}” dos designs salvos? Seu EQ atual permanece igual.',
@@ -54,11 +55,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Preciso',
   'eq.mode.classic': 'Clássico',
   'eq.mode.trebleEqPrecise':
-    'Preciso: suas bandas de agudos soam exatamente como estão desenhadas, até 20\u00a0kHz.',
+    'Preciso: suas bandas, Tom, Preset, Tipo de driver e EQ inteligente soam exatamente como estão desenhados, até 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Clássico: como o Equalizer APO as reproduz. As bandas de agudos saem mais estreitas e mais baixas do que você ajustou, principalmente perto de 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Preciso: Preset, Tipo de driver, EQ inteligente e a sua correção de fones soam exatamente como estão desenhados, até 20\u00a0kHz.',
+    'Preciso: a sua correção de fones soa exatamente como está desenhada, até 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Clássico: como o Equalizer APO os reproduz e como o AutoEQ ajusta as correções de fones. As bandas de agudos saem mais estreitas e mais baixas do que o ajustado, principalmente perto de 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -87,7 +88,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Estúdio',
   'eq.mode.yourEq': 'Seu EQ',
-  'eq.mode.curves': 'Curvas',
+  'eq.mode.curves': 'Correções',
   'graph.resize': 'Arraste para redimensionar o gráfico',
   'graph.view.title': 'Quanto espaço da tela o gráfico ocupa',
   'graph.view.normal': 'Visualização',
@@ -242,6 +243,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'EQ inteligente',
   'graph.curve.custom': 'FX personalizados',
+  'graph.curve.tone': 'Tom',
   'graph.curve.total': 'Saída final',
   'graph.design.showWave': 'Mostre a onda antes de criar um visual',
   'graph.design.closeHint': 'Fechar o editor visual (Esc)',
@@ -547,6 +549,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'EQ inteligente',
   'eq.layers.remove': 'Remover a camada de {layer}',
   'eq.layers.clearBands': 'Redefinir todas as bandas para 0 dB',
+  'eq.layers.clearTone': 'Redefinir Graves, Médios e Agudos para 0 dB',
   'eq.layers.clearReference': 'Remover a correção de fones',
   'eq.layers.clearSmart':
     'Remover a correção medida. Suas bandas e a referência permanecem.',
@@ -559,6 +562,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Banda selecionada',
   'eq.selectedCount': '{count} bandas',
   'eq.tone': 'Tom',
+  'eq.tone.lowCut': 'Corte graves',
+  'eq.tone.highCut': 'Corte agudos',
+  'eq.tone.lowCutHint':
+    'Corte de graves em 20 Hz. Em 0 fica desligado; aumente para um corte mais íngreme, de 12 ou 24 dB por oitava.',
+  'eq.tone.highCutHint':
+    'Corte de agudos em 20 kHz. Em 0 fica desligado; aumente para um corte mais íngreme, de 12 ou 24 dB por oitava.',
   'eq.tone.bass': 'Graves',
   'eq.tone.mid': 'Médios',
   'eq.tone.treble': 'Agudos',

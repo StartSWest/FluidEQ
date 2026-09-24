@@ -175,9 +175,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Modele seu som com EQ',
   'help.eq.intro':
-    'Frequência define onde a banda atua; Ganho, o reforço ou corte; Q, a largura: Q maior é mais estreito. Sem nenhuma banda selecionada, Graves, Médios e Agudos movem a curva inteira de uma vez. Comece com mudanças pequenas e amplas e compare sempre.',
+    'Frequência define onde a banda atua; Ganho, o reforço ou corte; Q, a largura: Q maior é mais estreito. Sem nenhuma banda selecionada, os controles de Tom — Graves, Médios e Agudos, com Corte graves e Corte agudos nas laterais — moldam o som como uma curva própria e deixam suas bandas como estão. Comece com mudanças pequenas e amplas e compare sempre.',
   'help.eq.steps':
-    'Abra EQ → Bandas. Sem nada selecionado, gire Graves, Médios ou Agudos para uma mudança rápida de tom.\nClique na frequência de uma banda, ou no ponto dela no gráfico, para selecioná-la. Gire os controles Frequência, Ganho e Fator Q, escolha um Filtro ou desligue-a com Ativa.\nClique com o botão direito em uma banda para redefini-la, desativá-la ou adicionar uma banda ao lado. Pressione Limpar EQ para definir todos os ganhos em 0 dB mantendo suas bandas. Ele pergunta antes.',
+    'Abra EQ → Bandas. Sem nada selecionado, gire Graves, Médios ou Agudos para uma mudança rápida de tom, e Corte graves ou Corte agudos para aparar os extremos. Eles desenham a própria linha de Tom no gráfico.\nClique na frequência de uma banda, ou no ponto dela no gráfico, para selecioná-la. Gire os controles Frequência, Ganho e Fator Q, escolha um Filtro ou desligue-a com Ativa.\nClique com o botão direito em uma banda para redefini-la, desativá-la ou adicionar uma banda ao lado. Pressione Limpar EQ para definir todos os ganhos, e também Graves, Médios e Agudos, em 0 dB mantendo suas bandas. Ele pergunta antes.',
   'help.eq.tip':
     'Em Também aplicado aparece o que molda esta saída além das suas bandas, cada camada com sua própria intensidade e o ×. O Modo jogo reduz o atraso que o FluidEQ acrescenta, para jogos e chamadas; os presets de jogo o ativam.',
   'help.eq.keywords':
@@ -224,7 +224,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modo EQ e designs de bandas',
   'help.eqmode.intro':
-    'O Modo EQ muda como suas bandas e suas curvas de correção são aplicadas, sem editá-las. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
+    'O Modo EQ muda como o seu som é moldado, sem editar nada. Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e o EQ inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
     'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
@@ -233,7 +233,7 @@ const help: Record<keyof typeof en, string> = {
     'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava, agudos, preciso, clássico',
   'help.eqmode.modeCaption': 'Modo EQ',
   'help.eqmode.strength':
-    'Normal, Estúdio ×1.5 ou ×2, para seu EQ e suas curvas separadamente.',
+    'Normal, Estúdio ×1.5 ou ×2, para Seu EQ e suas Correções separadamente.',
   'help.eqmode.q':
     'Constante mantém cada Q; Proporcional e Assimétrico estreitam as bandas conforme elas crescem.',
   'help.eqmode.smoothing': 'Suaviza curvas de correção amostradas.',

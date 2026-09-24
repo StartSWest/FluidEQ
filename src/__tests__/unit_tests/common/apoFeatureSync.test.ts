@@ -189,3 +189,77 @@ describe('live Equalizer APO feature-file adoption', () => {
     expect(state.driver).toBe(before);
   });
 });
+
+describe('a hand edit of the Tone’s file', () => {
+  const toneText = (state: IState) =>
+    stateToApoFiles(state)
+      ?.features.find((feature) => feature.feature === 'tone')
+      ?.lines.join('\n') ?? '';
+  const withTone = (): IState => ({
+    ...getDefaultState(),
+    tone: { bass: 4, mid: 0, treble: -2 },
+  });
+
+  it('turns the dials where it is still the three dials', () => {
+    const state = withTone();
+    // POSITIVE CONTROL: the writer's own text, as the engine reads it.
+    const written = toneText(state);
+    expect(written).toContain('LSC');
+    const edited = written.replace('Gain 4 dB', 'Gain 7.5 dB');
+    expect(edited).not.toBe(written);
+
+    expect(adoptApoFeatureText(state, 'tone', edited, written)).toEqual({
+      changed: true,
+      unsupported: 0,
+    });
+    expect(state.tone).toEqual({ bass: 7.5, mid: 0, treble: -2 });
+  });
+
+  it('takes the tone off when every line is deleted', () => {
+    const state = withTone();
+    adoptApoFeatureText(state, 'tone', '# nothing left', toneText(state));
+    expect(state.tone).toBeUndefined();
+  });
+
+  it.each([
+    [
+      'a shelf moved off its corner',
+      'Filter 1: ON LSC Fc 180 Hz Gain 3 dB Q 0.71',
+    ],
+    [
+      'a bell narrower than the Mid',
+      'Filter 1: ON PK Fc 1000 Hz Gain 3 dB Q 2',
+    ],
+    ['a dial past its travel', 'Filter 1: ON LSC Fc 100 Hz Gain 18 dB Q 0.71'],
+    [
+      'two filters on one dial',
+      [
+        'Filter 1: ON LSC Fc 100 Hz Gain 3 dB Q 0.71',
+        'Filter 2: ON LSC Fc 100 Hz Gain 2 dB Q 0.71',
+      ].join('\n'),
+    ],
+    ['a sampled curve', 'GraphicEQ: 20 -1.5; 1000 2.5; 20000 -0.5'],
+  ])('leaves %s as written, the tone untouched', (_, text) => {
+    const state = withTone();
+    const before = state.tone;
+    const adopted = adoptApoFeatureText(state, 'tone', text, toneText(state));
+    expect(adopted.changed).toBe(false);
+    expect(adopted.unsupported).toBeGreaterThan(0);
+    expect(state.tone).toBe(before);
+  });
+
+  it('is refused while Your EQ’s row reshapes what the file says', () => {
+    const state: IState = { ...withTone(), eqMode: 'studio' };
+    const written = toneText(state);
+    const before = state.tone;
+    expect(
+      adoptApoFeatureText(
+        state,
+        'tone',
+        written.replace(/Gain [-\d.]+ dB/, 'Gain 1 dB'),
+        written,
+      ).changed,
+    ).toBe(false);
+    expect(state.tone).toBe(before);
+  });
+});

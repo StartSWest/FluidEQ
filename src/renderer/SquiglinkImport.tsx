@@ -36,7 +36,6 @@ import {
   readStoredEqText,
   persistEqText,
 } from './utils/squiglinkImport';
-import { askToneClear } from './eq/toneIntent';
 import { ColorEnum } from './styles/color';
 import './styles/SquiglinkImport.scss';
 
@@ -273,8 +272,6 @@ const SquiglinkImport = () => {
       if (headphone?.eqImport) {
         await setHeadphone(undefined);
       } else {
-        // The bands go, and the EQ's three tone dials go with them.
-        askToneClear();
         await clearGains();
       }
       setText('');

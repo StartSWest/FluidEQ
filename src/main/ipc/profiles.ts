@@ -31,6 +31,7 @@ import {
 } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
+import { toTone } from '../../common/tone';
 import { isRestrictedPresetName } from '../../common/utils';
 import {
   deletePreset,
@@ -236,6 +237,7 @@ export const registerProfilesIpc = ({
       state.curveSmoothing = presetSettings.curveSmoothing;
       state.eqBandDesign = normalizeBandDesign(presetSettings.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
+      state.tone = toTone(presetSettings.tone);
       state.voicing = presetSettings.voicing;
       state.driver = presetSettings.driver;
       state.smartEq = presetSettings.smartEq;
@@ -289,6 +291,7 @@ export const registerProfilesIpc = ({
       state.curveSmoothing = baseline.curveSmoothing;
       state.eqBandDesign = normalizeBandDesign(baseline.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
+      state.tone = toTone(baseline.tone);
       state.voicing = baseline.voicing;
       state.driver = baseline.driver;
       state.smartEq = baseline.smartEq;
@@ -598,6 +601,8 @@ export const registerProfilesIpc = ({
               session.configPath,
               undefined,
               state.isEnabled,
+              undefined,
+              state.eqCuts,
             );
           });
         } catch (error) {

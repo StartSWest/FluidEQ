@@ -84,9 +84,9 @@ const tour: Partial<Dictionary> = {
     'Ein Wechsel ändert den Charakter, nicht die Lautstärke.',
   'tour.tone.kicker': 'KLANGREGELUNG',
   'tour.tone.title': 'Bass, Mitten und Höhen wie am Verstärker',
-  'tour.tone.subtitle': 'Drei Regler über alle Bänder',
+  'tour.tone.subtitle': 'Drei Regler mit eigener Kurve',
   'tour.tone.lead':
-    'Ist kein Band ausgewählt, heben oder senken drei Regler ihr Drittel des Klangs über alle Bänder zugleich: der schnellste Weg, einen Song wärmer oder heller zu machen, ohne ein einziges Band anzufassen.',
+    'Ist kein Band ausgewählt, formen Bass, Mitten und Höhen den Klang als eigene Kurve, mit Tiefen- und Höhensperre zu beiden Seiten: der schnellste Weg, einen Song wärmer oder heller zu machen, und jedes Band bleibt so, wie Sie es eingestellt haben.',
   'tour.tone.point1':
     'Der Equalizer öffnet mit allen Bändern im Blick, ohne Auswahl.',
   'tour.tone.point2':

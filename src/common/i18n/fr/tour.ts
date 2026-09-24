@@ -84,9 +84,9 @@ const tour: Partial<Dictionary> = {
     'Passer de l’une à l’autre change le caractère, pas le volume.',
   'tour.tone.kicker': 'RÉGLAGES DE TONALITÉ',
   'tour.tone.title': 'Graves, Médiums et Aigus, comme sur un ampli',
-  'tour.tone.subtitle': 'Trois boutons pour tout l’égaliseur',
+  'tour.tone.subtitle': 'Trois boutons, une courbe à part',
   'tour.tone.lead':
-    'Sans bande sélectionnée, trois boutons déplacent chacun leur tiers du spectre sur tout l’égaliseur à la fois : le moyen le plus rapide de réchauffer un morceau ou de le rendre plus brillant, sans toucher à une seule bande.',
+    'Sans bande sélectionnée, Graves, Médiums et Aigus façonnent le son comme une courbe à part, avec un coupe-bas et un coupe-haut de part et d’autre : le moyen le plus rapide de réchauffer un morceau ou de le rendre plus brillant, et chaque bande reste telle que vous l’avez réglée.',
   'tour.tone.point1':
     'L’égaliseur s’ouvre sur toutes ses bandes, sans aucune sélection.',
   'tour.tone.point2':

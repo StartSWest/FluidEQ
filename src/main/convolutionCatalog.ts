@@ -21,7 +21,6 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { app } from 'electron';
 import {
-  clampReferenceGain,
   clampQuality,
   FilterTypeEnum,
   FILTER_REGEX,
@@ -31,6 +30,7 @@ import {
   MAX_NUM_FILTERS,
 } from '../common/constants';
 import { IConvolutionCatalogEntry } from '../common/convolution';
+import { clampCorrectionGain } from '../common/correctionRange';
 import { analyzeConvolutionBuffer } from './convolutionAnalysis';
 
 const AUTOEQ_INDEX_URL =
@@ -278,7 +278,9 @@ const fetchGraphFilters = async (downloadUrl: string): Promise<IFiltersMap> => {
         filter.type = FilterTypeEnum.HSC;
       }
       filter.frequency = Number(match[2]);
-      filter.gain = clampReferenceGain(Number(match[3]), filter.frequency);
+      // The fit published beside the impulse, as published: a correction's
+      // range, like every headphone correction (`correctionRange.ts`).
+      filter.gain = clampCorrectionGain(Number(match[3]));
       filter.quality = clampQuality(Number(match[4]));
       filters[filter.id] = filter;
     });

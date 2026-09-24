@@ -73,8 +73,10 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
     eqBandQ,
     curveBandQ,
     curveSmoothing,
+    eqCuts,
     preAmp,
     smartEq,
+    tone,
     voicing,
   } = useFluidEqContext();
   const isAutomaticAudible = useEnginePreampAudible();
@@ -104,6 +106,7 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
       eqBandQ,
       curveBandQ,
       curveSmoothing,
+      eqCuts,
       isEqQuiet: false,
       hasPreAmp,
       matchedDesign,
@@ -113,6 +116,7 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
       sampleRate: outputRate,
       smartEq,
       t,
+      tone,
       voicing,
     });
     const bands = chartData.find((curve) => curve.id === EQ_CURVE_ID)?.line
@@ -143,8 +147,10 @@ const usePlayerCurves = (isAutomatic: boolean): IPlayerCurves => {
     eqBandQ,
     curveBandQ,
     curveSmoothing,
+    eqCuts,
     smartEq,
     t,
+    tone,
     voicing,
   ]);
 };

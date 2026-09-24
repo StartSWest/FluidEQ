@@ -34,16 +34,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import { MIN_GAIN } from 'common/constants';
-import { IChartPointData } from 'renderer/graph/ChartController';
+import {
+  GRAPH_END,
+  GRAPH_START,
+  IChartPointData,
+} from 'renderer/graph/ChartController';
 import {
   MAX_FREQUENCY,
   MIN_FREQUENCY,
   POINT_COUNT,
   SILENT_POINTS,
 } from 'renderer/graph/liveSpectrumFrames';
+import { GRAPH_SILENT_POINTS } from 'renderer/graph/liveGraphBand';
 
-const mockFrame: { points: IChartPointData[]; waveform: number[] } = {
+const mockFrame: {
+  points: IChartPointData[];
+  graphPoints: IChartPointData[];
+  waveform: number[];
+} = {
   points: [],
+  graphPoints: [],
   waveform: [],
 };
 
@@ -81,6 +91,7 @@ const draw = (lookId: string) => {
 describe('the visualizer with nothing playing', () => {
   beforeEach(() => {
     mockFrame.points = [];
+    mockFrame.graphPoints = [];
     mockFrame.waveform = [];
   });
 
@@ -108,6 +119,19 @@ describe('the visualizer with nothing playing', () => {
     expect(SILENT_POINTS[0].x).toBeCloseTo(MIN_FREQUENCY, 6);
     expect(SILENT_POINTS[SILENT_POINTS.length - 1].x).toBeCloseTo(
       MAX_FREQUENCY,
+      6,
+    );
+  });
+
+  it('rests the graphs on the floor across their whole width', () => {
+    // What the graphs draw instead: the same floor, edge to edge of the plot.
+    expect(GRAPH_SILENT_POINTS).toHaveLength(POINT_COUNT);
+    GRAPH_SILENT_POINTS.forEach((point) => {
+      expect(point.y).toBe(MIN_GAIN);
+    });
+    expect(GRAPH_SILENT_POINTS[0].x).toBeCloseTo(GRAPH_START, 6);
+    expect(GRAPH_SILENT_POINTS[GRAPH_SILENT_POINTS.length - 1].x).toBeCloseTo(
+      GRAPH_END,
       6,
     );
   });

@@ -44,6 +44,8 @@ import {
   serializeChainBundle,
 } from '../../common/chainBundle';
 import { parseEqText } from '../../common/apoText';
+import { toTone } from '../../common/tone';
+import { MAX_CORRECTION_GAIN } from '../../common/correctionRange';
 import { fromPresetFile } from '../../common/dsp/presetFile';
 import { fromDspChainPresetFile } from '../../common/dsp/dspChainPresetFile';
 import { fetchPreset, savePreset, savePresetBaseline } from '../flush';
@@ -95,8 +97,11 @@ export interface ITransferIpcDeps {
   clearCurrentLayoutSettings: () => void;
   resetEqToDefaults: () => void;
   hydrateActiveConvolution: () => void;
-  /** Bounds an imported reference so a bad measurement cannot silence output. */
-  shieldReferenceBands: (filters: IFiltersMap) => IFiltersMap;
+  /**
+   * Bounds an imported reference so a bad measurement cannot silence output:
+   * the chain within `limit`, a slider's ±20 dB unless it says otherwise.
+   */
+  shieldReferenceBands: (filters: IFiltersMap, limit?: number) => IFiltersMap;
   applyingLayer: (layer: TApoLayer) => void;
 
   handleError: (
@@ -342,7 +347,12 @@ export const registerTransferIpc = ({
         throw new Error('That EQ export is too large to import.');
       }
 
-      const parsed = parseEqText(text);
+      // A correction's range for text headed for the correction layer, so it
+      // plays as it was exported (`correctionRange.ts`); a slider's for bands.
+      const parsed = parseEqText(
+        text,
+        destination === 'curve' ? { gainLimit: MAX_CORRECTION_GAIN } : {},
+      );
       if (parsed.isEmpty) {
         throw new Error(
           'No Equalizer APO filters were found. Copy the exported ParametricEQ or GraphicEQ text from Squiglink.',
@@ -380,7 +390,7 @@ export const registerTransferIpc = ({
         // Use OPRA's correction layer so band edits, resets and Smart EQ cannot
         // overwrite the import. Its attribution belongs to that layer too.
         state.headphone = {
-          filters: shieldReferenceBands(parsed.filters),
+          filters: shieldReferenceBands(parsed.filters, MAX_CORRECTION_GAIN),
           graphicEq: parsed.graphicEq,
           intensity: 1,
           eqImport: reference,
@@ -677,6 +687,7 @@ export const registerTransferIpc = ({
       state.curveSmoothing = bundle.preset.curveSmoothing;
       state.eqBandDesign = normalizeBandDesign(bundle.preset.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
+      state.tone = toTone(bundle.preset.tone);
       state.voicing = bundle.preset.voicing;
       state.driver = bundle.preset.driver;
       state.smartEq = bundle.preset.smartEq;

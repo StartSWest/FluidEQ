@@ -15,7 +15,6 @@ import {
   saveBandDesign,
 } from '../utils/bandDesignApi';
 import { setFixedBand } from '../utils/equalizerApi';
-import { askToneReapply } from '../eq/toneIntent';
 import { reportError } from '../utils/logger';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
@@ -200,10 +199,6 @@ export default function BandLayoutMenu() {
                   disabled={busy}
                   onClick={() => {
                     if (!selected) {
-                      // The rack is about to be rebuilt at a new size, and
-                      // the EQ's three tone dials are written onto whatever
-                      // it becomes. See `toneIntent.ts`.
-                      askToneReapply();
                       perform(() => setFixedBand(size), true);
                     }
                   }}
@@ -230,12 +225,9 @@ export default function BandLayoutMenu() {
                   className={`button small band-designs__row${design.id === eqBandDesign?.id ? '' : ' subtle'}`}
                   aria-pressed={design.id === eqBandDesign?.id}
                   disabled={busy}
-                  onClick={() => {
-                    // A saved layout is a rack rebuilt too, so the tone dials
-                    // are written onto it the same way.
-                    askToneReapply();
-                    perform(() => applyBandDesign(design.id), true);
-                  }}
+                  onClick={() =>
+                    perform(() => applyBandDesign(design.id), true)
+                  }
                 >
                   <MenuIcon name="layout" className="eq-toolbar__icon" />
                   <span>

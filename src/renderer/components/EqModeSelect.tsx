@@ -25,7 +25,10 @@ import '../styles/Dsp.scss';
 import '../styles/EqModeSelect.scss';
 import useCurvePhase from '../utils/useCurvePhase';
 import { useListenedOutput } from '../utils/useListenedOutput';
-import { linearPhaseAddedMs } from '../../common/linearPhaseDelay';
+import {
+  engineSharesLinearDelay,
+  linearPhaseAddedMs,
+} from '../../common/linearPhaseDelay';
 import {
   DEFAULT_TREBLE_DESIGN,
   engineTakesTrebleChoice,
@@ -86,6 +89,41 @@ export default function EqModeSelect() {
   };
   const listened = useListenedOutput(Boolean(phase.status?.active));
   const phaseRate = listened.output?.latency?.rate ?? 48000;
+  // What Linear costs a group, under the word. On an engine that builds every
+  // layer in linear phase into one FIR, a group joining the other's linear
+  // bands costs nothing more: the delay is shared.
+  const linearDelayLabel = (
+    scope: TEqModeScope,
+    scopes: Readonly<Record<TEqModeScope, boolean>>,
+  ) => {
+    if (listened.output?.gameMode) {
+      return t('eq.mode.gameMinimum');
+    }
+    const other: TEqModeScope = scope === 'eq' ? 'curves' : 'eq';
+    const otherVariant =
+      other === 'eq' ? phase.status?.eqVariant : phase.status?.variant;
+    if (
+      engineSharesLinearDelay(engineVersion) &&
+      otherVariant === 'A' &&
+      scopes[other]
+    ) {
+      return t('eq.mode.linearDelayShared', {
+        ms: String(Math.round(linearPhaseAddedMs(phaseRate, true))),
+      });
+    }
+    return t(
+      scope === 'eq' && !scopes.eq
+        ? 'eq.mode.linearDelayInactive'
+        : 'eq.mode.linearDelay',
+      {
+        ms: String(
+          Math.round(
+            linearPhaseAddedMs(phaseRate, scope === 'eq' || scopes[scope]),
+          ),
+        ),
+      },
+    );
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const saving = useRef(false);
@@ -313,24 +351,7 @@ export default function EqModeSelect() {
                   phaseSupported &&
                   phase.status?.bandPhaseScopes && (
                     <small className="eq-mode-choice__delay">
-                      {listened.output?.gameMode
-                        ? t('eq.mode.gameMinimum')
-                        : t(
-                            scope === 'eq' && !phase.status.bandPhaseScopes.eq
-                              ? 'eq.mode.linearDelayInactive'
-                              : 'eq.mode.linearDelay',
-                            {
-                              ms: String(
-                                Math.round(
-                                  linearPhaseAddedMs(
-                                    phaseRate,
-                                    scope === 'eq' ||
-                                      phase.status.bandPhaseScopes[scope],
-                                  ),
-                                ),
-                              ),
-                            },
-                          )}
+                      {linearDelayLabel(scope, phase.status.bandPhaseScopes)}
                     </small>
                   )}
               </button>

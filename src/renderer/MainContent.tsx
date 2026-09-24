@@ -63,9 +63,8 @@ import Dropdown from './widgets/Dropdown';
 import Knob from './widgets/Knob';
 import Switch from './widgets/Switch';
 import BandMenu, { BAND_MENU_EVENT } from './components/BandMenu';
-import { TONE_MAX_DB } from '../common/toneStack';
+import { TONE_MAX_DB } from '../common/tone';
 import useBubblePlacement from './eq/useBubblePlacement';
-import { askToneReapply } from './eq/toneIntent';
 
 import { labelledFilterOptions } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
@@ -89,6 +88,7 @@ import ListenedLatency from './components/ListenedLatency';
 import OutputRate from './components/OutputRate';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
+import EqCutKnob from './eq/EqCutKnob';
 import BandLayoutMenu from './components/BandLayoutMenu';
 import ClearEqButton from './components/ClearEqButton';
 import MenuIcon from './icons/MenuIcon';
@@ -98,7 +98,7 @@ import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 
 import GROUP_EDIT_INTERVAL from './eq/groupEdit';
-import useToneStack, { TONE_CONTROLS } from './eq/useToneStack';
+import useTone, { TONE_CONTROLS } from './eq/useTone';
 
 const MainContent = () => {
   const {
@@ -618,9 +618,6 @@ const MainContent = () => {
     if (deletable.length === 0) {
       return;
     }
-    // A rack with a band taken out of it is a new rack, and the tone the
-    // three dials hold is written onto it again.
-    askToneReapply();
     try {
       // Sequential on purpose: the main process rewrites the config on each
       // removal, and firing them together is the flood this whole path exists
@@ -661,12 +658,9 @@ const MainContent = () => {
     }
   };
 
-  // Bass, Mid and Treble over the whole rack, shown when nothing is
-  // selected — shared with the compact player's Tone face (`useToneStack`).
-  const { tone, canShapeTone, applyTone, resetToneRegion } = useToneStack(
-    frequencySortedFilters,
-    !selectedFilter,
-  );
+  // Bass, Mid and Treble, a layer of their own laid over the bands, shown
+  // when nothing is selected — shared with the compact player's Tone face.
+  const { tone, isDisabled: isToneDisabled, turnTone, resetTone } = useTone();
 
   // The one control that sets rather than nudges — a group of Peak bands asked
   // to become Low Shelf all become Low Shelf.
@@ -689,8 +683,6 @@ const MainContent = () => {
     if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
       return;
     }
-    // As with a band deleted: the tone follows the rack it is written on.
-    askToneReapply();
 
     const explicitSelectedFilter = selectedFilterIds
       .map((id) => filters[id])
@@ -1446,12 +1438,18 @@ const MainContent = () => {
             with what — asked of everything instead of one thing. */}
         {!selectedFilter && (
           <div className="eq-flat-editor eq-flat-editor--tone">
+            {/* The row's name where a band's frequency stands, with nothing
+                over it: the band count it used to carry said the dials were
+                spread across the bands, and they are a curve of their own
+                now (`tone.ts`). */}
             <div className="eq-flat-editor__identity">
-              <span>{t('eq.tone')}</span>
-              <strong>
-                {t('eq.bandCount', { count: frequencySortedFilters.length })}
-              </strong>
+              <span aria-hidden="true" />
+              <strong>{t('eq.tone')}</strong>
             </div>
+            {/* The two cuts either side of the three tone dials, the low one
+                on the left and the high one on the right, as they sit on
+                the graph. */}
+            <EqCutKnob cut="low" />
             {TONE_CONTROLS.map(({ knob, labelKey }) => (
               <div
                 key={knob}
@@ -1463,17 +1461,16 @@ const MainContent = () => {
                   value={tone[knob]}
                   min={-TONE_MAX_DB}
                   max={TONE_MAX_DB}
-                  isDisabled={isBlockingError || !canShapeTone}
+                  isDisabled={isToneDisabled}
                   step={0.1}
                   unit="dB"
                   defaultValue={0}
-                  onReset={() => resetToneRegion(knob)}
-                  handleChange={(newValue) =>
-                    applyTone({ ...tone, [knob]: newValue }, knob)
-                  }
+                  onReset={() => resetTone(knob)}
+                  handleChange={(newValue) => turnTone(knob, newValue)}
                 />
               </div>
             ))}
+            <EqCutKnob cut="high" />
           </div>
         )}
       </div>

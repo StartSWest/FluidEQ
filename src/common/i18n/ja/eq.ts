@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': 'EQ有効時 約+{ms} ms',
   'eq.mode.linearDelay': '遅延 約+{ms} ms',
+  'eq.mode.linearDelayShared': '約{ms} ms（共有）',
   'eq.mode.gameMinimum': 'ゲームモード：最小位相',
   'eq.layouts.builtIn': '標準レイアウト',
   'eq.layouts.saved': 'マイレイアウト',
@@ -37,7 +38,7 @@ const eq: Partial<Dictionary> = {
     'レイアウトを更新できませんでした。もう一度お試しください。',
   'eq.layouts.clearTitle': 'EQをクリアしますか？',
   'eq.layouts.clearWarning':
-    '各バンドのゲインを0 dBにします。現在のバンド数、周波数、Q、EQモード、プリアンプは維持されます。',
+    '各バンドのゲインと、低音・中音・高音のノブを0 dBにします。現在のバンド数、周波数、Q、カット、EQモード、プリアンプは維持されます。',
   'eq.layouts.deleteNamed': '「{name}」を削除',
   'eq.layouts.deleteWarning':
     '保存済みレイアウトから「{name}」を削除しますか？現在のEQは変わりません。',
@@ -57,11 +58,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': '精密',
   'eq.mode.classic': 'クラシック',
   'eq.mode.trebleEqPrecise':
-    '精密：高音域のバンドは描いたとおりに、20\u00a0kHz まで鳴ります。',
+    '精密：バンド、トーン、プリセット、ドライバー種別、スマート EQ を描いたとおりに、20\u00a0kHz まで鳴らします。',
   'eq.mode.trebleEqClassic':
     'クラシック：Equalizer APO と同じ鳴り方です。高音域のバンドは設定より狭く小さくなり、20\u00a0kHz に近いほど差が大きくなります。',
   'eq.mode.trebleCurvesPrecise':
-    '精密：プリセット、ドライバー種別、スマート EQ、ヘッドホン補正を描いたとおりに、20\u00a0kHz まで鳴らします。',
+    '精密：ヘッドホン補正を描いたとおりに、20\u00a0kHz まで鳴らします。',
   'eq.mode.trebleCurvesClassic':
     'クラシック：Equalizer APO と同じ鳴り方で、AutoEQ がヘッドホン補正を調整するときの方式です。高音域のバンドは設定より狭く小さくなり、20\u00a0kHz に近いほど差が大きくなります。',
   'eq.mode.trebleUpdate':
@@ -89,7 +90,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': '通常',
   'eq.mode.studio': 'スタジオ',
   'eq.mode.yourEq': 'ユーザーEQ',
-  'eq.mode.curves': 'カーブ',
+  'eq.mode.curves': '補正',
   'graph.resize': 'ドラッグしてグラフの大きさを変更',
   'graph.view.title': 'グラフが使用する画面領域',
   'graph.view.normal': '表示',
@@ -243,6 +244,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'プリセット',
   'graph.curve.smart': 'スマート EQ',
   'graph.curve.custom': 'カスタム FX',
+  'graph.curve.tone': 'トーン',
   'graph.curve.total': '最終出力',
   'graph.design.showWave': '外観を作るには、先に波形を表示してください',
   'graph.design.closeHint': '表示エディターを閉じる（Esc）',
@@ -542,6 +544,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'スマート EQ',
   'eq.layers.remove': '{layer} のレイヤーを外す',
   'eq.layers.clearBands': 'すべてのバンドを 0 dB に戻す',
+  'eq.layers.clearTone': '低音・中音・高音を 0 dB に戻す',
   'eq.layers.clearReference': 'ヘッドホン補正を外す',
   'eq.layers.clearSmart':
     '測定した補正を外します。バンドとリファレンス機種はそのまま残ります。',
@@ -554,6 +557,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': '選択中のバンド',
   'eq.selectedCount': '{count} バンド',
   'eq.tone': 'トーン',
+  'eq.tone.lowCut': 'ローカット',
+  'eq.tone.highCut': 'ハイカット',
+  'eq.tone.lowCutHint':
+    '20 Hz のローカット。0 でオフ。上げるほど急になり、12 または 24 dB/オクターブ。',
+  'eq.tone.highCutHint':
+    '20 kHz のハイカット。0 でオフ。上げるほど急になり、12 または 24 dB/オクターブ。',
   'eq.tone.bass': '低音',
   'eq.tone.mid': '中音',
   'eq.tone.treble': '高音',

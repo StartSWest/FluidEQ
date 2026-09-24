@@ -69,7 +69,7 @@ beforeEach(() => {
 
 it('defaults both groups to Minimum even with smoothing off and no sampled curves', () => {
   open();
-  ['Your EQ', 'Curves'].forEach((scope) => {
+  ['Your EQ', 'Corrections'].forEach((scope) => {
     expect(
       group(scope).getByRole('button', { name: 'Minimum' }),
     ).toHaveAttribute('aria-pressed', 'true');
@@ -85,9 +85,9 @@ it('writes only the chosen phase scope and keeps the popup open', async () => {
   await pick('Your EQ', 'Linear');
   expect(mockSelect).toHaveBeenLastCalledWith('A', 'eq');
   expect(
-    group('Curves').getByRole('button', { name: 'Minimum' }),
+    group('Corrections').getByRole('button', { name: 'Minimum' }),
   ).toHaveAttribute('aria-pressed', 'true');
-  await pick('Curves', 'Linear');
+  await pick('Corrections', 'Linear');
   expect(mockSelect).toHaveBeenLastCalledWith('A', 'curves');
   expect(mockRefresh).toHaveBeenCalledTimes(2);
   expect(screen.getByRole('dialog')).toBeVisible();
@@ -105,9 +105,11 @@ it('serializes rapid choices, keeping the latest phase per group', async () => {
   await pick('Your EQ', 'Linear');
   await pick('Your EQ', 'Minimum');
   await pick('Your EQ', 'Linear');
-  await pick('Curves', 'Linear');
+  await pick('Corrections', 'Linear');
   expect(mockSelect.mock.calls).toEqual([['A', 'eq']]);
-  expect(group('Curves').getByRole('button', { name: 'Linear' })).toBeEnabled();
+  expect(
+    group('Corrections').getByRole('button', { name: 'Linear' }),
+  ).toBeEnabled();
   await act(async () => finish());
   expect(mockSelect.mock.calls).toEqual([
     ['A', 'eq'],
@@ -154,7 +156,7 @@ it('gates old engines while leaving supported engines usable', () => {
     group('Your EQ').getByRole('button', { name: 'Linear' }),
   ).toBeDisabled();
   expect(
-    group('Curves').getByRole('button', { name: 'Linear' }),
+    group('Corrections').getByRole('button', { name: 'Linear' }),
   ).toBeDisabled();
   expect(
     screen.getAllByText('Update the FluidEQ Engine to change phase.'),
@@ -168,7 +170,7 @@ it('does not offer FluidEQ phase controls under Equalizer APO', async () => {
     screen.queryByRole('group', { name: 'Your EQ · Phase' }),
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('group', { name: 'Curves · Phase' }),
+    screen.queryByRole('group', { name: 'Corrections · Phase' }),
   ).not.toBeInTheDocument();
   await act(async () =>
     fireEvent.click(screen.getByRole('button', { name: 'Reset' })),
@@ -183,7 +185,7 @@ it('forecasts the real FIR delay even before the first EQ band is changed', () =
     group('Your EQ').getByRole('button', { name: /Linear/ }),
   ).toHaveTextContent('≈ +352 ms with active EQ');
   expect(
-    group('Curves').getByRole('button', { name: /Linear/ }),
+    group('Corrections').getByRole('button', { name: /Linear/ }),
   ).toHaveTextContent('≈ +0 ms delay');
 });
 
@@ -195,7 +197,7 @@ it.each([
   mockRate = rate;
   mockStatus.bandPhaseScopes = { eq: true, curves: true };
   open();
-  ['Your EQ', 'Curves'].forEach((scope) => {
+  ['Your EQ', 'Corrections'].forEach((scope) => {
     expect(
       group(scope).getByRole('button', { name: /Linear/ }),
     ).toHaveTextContent(`≈ +${delay} ms delay`);

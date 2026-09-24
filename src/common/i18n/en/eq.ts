@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const eq = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms with active EQ',
   'eq.mode.linearDelay': '≈ +{ms} ms delay',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, shared',
   'eq.mode.gameMinimum': 'Game mode: Minimum',
   'eq.layouts.builtIn': 'Built-in layouts',
   'eq.layouts.saved': 'My designs',
@@ -32,7 +33,7 @@ const eq = {
   'eq.layouts.error': 'Could not update your designs. Please try again.',
   'eq.layouts.clearTitle': 'Empty EQ?',
   'eq.layouts.clearWarning':
-    'Set every band gain to 0 dB. Keep the current band count, frequencies, Q, EQ mode and preamp.',
+    'Set every band gain and the Bass, Mid and Treble dials to 0 dB. Keep the current band count, frequencies, Q, cuts, EQ mode and preamp.',
   'eq.layouts.deleteNamed': 'Delete “{name}”',
   'eq.layouts.deleteWarning':
     'Delete “{name}” from your saved designs? Your current EQ stays unchanged.',
@@ -50,11 +51,11 @@ const eq = {
   'eq.mode.precise': 'Precise',
   'eq.mode.classic': 'Classic',
   'eq.mode.trebleEqPrecise':
-    'Precise: your treble bands play exactly as drawn, up to 20\u00a0kHz.',
+    'Precise: your bands, Tone, Preset, Driver type and Smart EQ play exactly as drawn, up to 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Classic: the way Equalizer APO plays them. Treble bands come out narrower and lower than you set them, most of all near 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Precise: Preset, Driver type, Smart EQ and your headphone correction play exactly as drawn, up to 20\u00a0kHz.',
+    'Precise: your headphone correction plays exactly as drawn, up to 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Classic: the way Equalizer APO plays them, and the way AutoEQ tunes headphone corrections. Treble bands come out narrower and lower than set, most of all near 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -83,7 +84,7 @@ const eq = {
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Studio',
   'eq.mode.yourEq': 'Your EQ',
-  'eq.mode.curves': 'Curves',
+  'eq.mode.curves': 'Corrections',
   'graph.resize': 'Drag to resize the graph',
   'graph.view.title': 'How much of the screen the graph gets',
   'graph.view.normal': 'View',
@@ -246,6 +247,7 @@ const eq = {
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'Smart EQ',
   'graph.curve.custom': 'Custom FX',
+  'graph.curve.tone': 'Tone',
   'graph.curve.total': 'Final output',
   'graph.design.showWave':
     'Show the wave first — there is nothing to design against',
@@ -550,6 +552,7 @@ const eq = {
   'eq.layers.smart': 'Smart EQ',
   'eq.layers.remove': 'Remove the {layer} layer',
   'eq.layers.clearBands': 'Reset every band to 0 dB',
+  'eq.layers.clearTone': 'Reset Bass, Mid and Treble to 0 dB',
   'eq.layers.clearReference': 'Remove the headphone correction',
   'eq.layers.clearSmart':
     'Remove the measured correction. Your bands and the reference stay.',
@@ -562,6 +565,12 @@ const eq = {
   'eq.selected': 'Selected band',
   'eq.selectedCount': '{count} bands',
   'eq.tone': 'Tone',
+  'eq.tone.lowCut': 'Low cut',
+  'eq.tone.highCut': 'High cut',
+  'eq.tone.lowCutHint':
+    'Low cut at 20 Hz. At 0 it is off; turn it up for a steeper cut, 12 or 24 dB per octave.',
+  'eq.tone.highCutHint':
+    'High cut at 20 kHz. At 0 it is off; turn it up for a steeper cut, 12 or 24 dB per octave.',
   'eq.tone.bass': 'Bass',
   'eq.tone.mid': 'Mid',
   'eq.tone.treble': 'Treble',

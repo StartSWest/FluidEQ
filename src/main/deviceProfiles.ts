@@ -17,12 +17,15 @@ import {
   ICustomFxSettings,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
+  IEqCuts,
   IPresetV2,
   IState,
   TApoFeature,
   apoFeatureFileWord,
   getDefaultState,
 } from '../common/constants';
+import { EQ_CUTS_FILENAME, eqCutsFileText, hasEqCut } from '../common/eqCuts';
+import { toTone } from '../common/tone';
 import {
   addFileToPath,
   FLUIDEQ_CONFIG_FILENAME,
@@ -33,7 +36,7 @@ import {
   stateToApoFiles,
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
-import { MATCHED_DESIGN_DIRECTIVE } from '../common/filterDesign';
+import { layerGroupOf, MATCHED_DESIGN_DIRECTIVE } from '../common/filterDesign';
 import {
   forgetPath,
   scheduleWrite,
@@ -413,6 +416,7 @@ const chainToFiles = (
   subject: string,
   devicePattern: string,
   deviceKey: string,
+  includesCuts: boolean,
 ): IDeviceFiles => {
   const slug = deviceSlug(deviceKey);
   const files: Array<[string, string]> = chain.features.map(
@@ -420,7 +424,11 @@ const chainToFiles = (
       featureFileName(slug, feature),
       [
         `# ${feature}: ${subject}`,
-        feature === 'eq' ? '# FluidEQEqLayer: ON' : '# FluidEQCurveLayer: ON',
+        // Which row of the EQ mode menu the engine plays this file by: Your
+        // EQ's for everything but a headphone correction (`layerGroupOf`).
+        layerGroupOf(feature) === 'eq'
+          ? '# FluidEQEqLayer: ON'
+          : '# FluidEQCurveLayer: ON',
         MATCHED_DESIGN_DIRECTIVE,
         ...lines,
       ].join(CRLF),
@@ -441,6 +449,12 @@ const chainToFiles = (
       // cannot be decided until they have all had their say.
       chain.preAmp,
       ...(chain.engineDirectives ?? []),
+      // The cuts, after the preamp because they are not part of what it is
+      // sized for: they only take away (`eqCuts.ts`). One file for every
+      // output, so a cut switched on or off is one write. It is not a layer
+      // and not in this device file, so reading the config back never takes
+      // its lines for bands (`readApoDeviceChain`).
+      ...(includesCuts ? [`Include: ${EQ_CUTS_FILENAME}`] : []),
       // And the user's own file after even that.
       //
       // Everything above is generated and rewritten on the next edit, so it is
@@ -499,12 +513,19 @@ export const deviceProfilesToFiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
+  cuts: IEqCuts | undefined = undefined,
 ): TApoConfigFiles => {
   const files: TApoConfigFiles = new Map();
 
   if (!isEnabled) {
     files.set(FLUIDEQ_CONFIG_FILENAME, DISABLED_ROOT_TEXT);
     return files;
+  }
+
+  // First, because every device file below includes it.
+  const includesCuts = hasEqCut(cuts);
+  if (includesCuts && cuts) {
+    files.set(EQ_CUTS_FILENAME, eqCutsFileText(cuts));
   }
 
   const blocks: string[] = [];
@@ -517,7 +538,13 @@ export const deviceProfilesToFiles = (
     if (!chain) {
       return;
     }
-    const device = chainToFiles(chain, subject, devicePattern, deviceKey);
+    const device = chainToFiles(
+      chain,
+      subject,
+      devicePattern,
+      deviceKey,
+      includesCuts,
+    );
     device.files.forEach(([name, contents]) => files.set(name, contents));
     blocks.push(device.block);
   };
@@ -678,6 +705,11 @@ export const deviceProfilesToFiles = (
     );
   }
 
+  // Nothing includes the cuts without an output to carry them.
+  if (blocks.length === 0) {
+    files.delete(EQ_CUTS_FILENAME);
+  }
+
   // Last, so the file that names every other one is written after them.
   files.set(
     FLUIDEQ_CONFIG_FILENAME,
@@ -743,6 +775,9 @@ export const getStateForAudioDevice = (
     curveSmoothing: (preset ?? {}).curveSmoothing,
     eqBandDesign: normalizeBandDesign(preset?.eqBandDesign),
     isEqDoubleOn: getEqMode(preset ?? {}) === 'double',
+    // The profile's own tone, or none: a tone left from the output before
+    // would follow somebody from the headphones to the speakers.
+    tone: toTone(preset?.tone),
     voicing: preset?.voicing,
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was
@@ -841,7 +876,7 @@ const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/;
  * to somebody who is not us.
  */
 export const isGeneratedConfigFile = (fileName: string) =>
-  GENERATED_FILE.test(fileName);
+  fileName === EQ_CUTS_FILENAME || GENERATED_FILE.test(fileName);
 
 /**
  * Delete the files of outputs and features that no longer exist — except the
@@ -881,7 +916,7 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
   fileNames
     .filter(
       (fileName) =>
-        GENERATED_FILE.test(fileName) &&
+        isGeneratedConfigFile(fileName) &&
         !CUSTOM_FILE.test(fileName) &&
         !keep.has(fileName),
     )
@@ -933,6 +968,7 @@ export const flushDeviceProfiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
+  cuts: IEqCuts | undefined = undefined,
 ): Promise<void> => {
   const files = deviceProfilesToFiles(
     settings,
@@ -941,6 +977,7 @@ export const flushDeviceProfiles = (
     activeOverride,
     isEnabled,
     sessionHeadroom,
+    cuts,
   );
 
   // Every output that still has a chain, by the digest its files are named

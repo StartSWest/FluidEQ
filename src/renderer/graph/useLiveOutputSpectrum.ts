@@ -73,6 +73,7 @@ import {
   type ILiveFrame,
   type ILiveFrameReader,
 } from './liveFrameReader';
+import { createLiveGraphBand } from './liveGraphBand';
 import {
   ILevelFollower,
   IOutputLevel,
@@ -205,6 +206,8 @@ const useLiveOutputSpectrum = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState('');
   const [points, setPoints] = useState<IChartPointData[]>([]);
+  // The same frames across a graph's whole width (`liveGraphBand.ts`).
+  const [graphPoints, setGraphPoints] = useState<IChartPointData[]>([]);
   const [waveform, setWaveform] = useState<number[]>([]);
   const [isClipping, setIsClipping] = useState(false);
   /**
@@ -735,6 +738,8 @@ const useLiveOutputSpectrum = () => {
       );
       const levelBuffer = new Float64Array(axis.length);
       const buffers = createFrameBuffers();
+      // The graphs' own points, taken from the drawing's reader below.
+      const graphBuffers = createFrameBuffers();
       let bufferSlot = 0;
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
       // Shared with the drawing's reader, which may see a new peak first.
@@ -747,6 +752,7 @@ const useLiveOutputSpectrum = () => {
         channelAnalysers: meterAnalysers,
         axis,
         cells,
+        graph: createLiveGraphBand(activeAudioContext, source, FFT_SIZE),
         trackReference,
         // The display pump skips hidden windows unless a measurement needs
         // it. Wallpaper reads still need a reference that follows quieter music.
@@ -842,6 +848,7 @@ const useLiveOutputSpectrum = () => {
             if (pointsRef.current.length > 0) {
               pointsRef.current = NO_POINTS;
               setPoints(pointsRef.current);
+              setGraphPoints(NO_POINTS);
             }
           } else {
             pointsRef.current = writeFrequencyPoints(
@@ -851,6 +858,25 @@ const useLiveOutputSpectrum = () => {
               reference,
             );
             setPoints(pointsRef.current);
+            // The drawing's own reading of this block, copied because the
+            // reader reuses its frame. It used to be measured here a second
+            // time, with a long window of its own: two 16384-point transforms
+            // per block for one graph. The reader does its work once per
+            // block of audio however many ask (`liveFrameReader.ts`), and the
+            // picture the canvas falls back on between fresh reads is then
+            // the one it drew.
+            const drawn =
+              frameReaderRef.current?.read().graphPoints ?? NO_POINTS;
+            if (drawn.length === 0) {
+              setGraphPoints(NO_POINTS);
+            } else {
+              const target = graphBuffers.points[bufferSlot];
+              drawn.forEach(({ x, y }, index) => {
+                target[index].x = x;
+                target[index].y = y;
+              });
+              setGraphPoints(target);
+            }
           }
           /*
            * The meter, in real decibels below full scale.
@@ -1324,6 +1350,7 @@ const useLiveOutputSpectrum = () => {
   const frame = useMemo(
     () => ({
       balanceProgress,
+      graphPoints,
       isClipping,
       outputLevels,
       points,
@@ -1333,6 +1360,7 @@ const useLiveOutputSpectrum = () => {
     }),
     [
       balanceProgress,
+      graphPoints,
       isClipping,
       outputLevels,
       points,

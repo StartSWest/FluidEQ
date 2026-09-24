@@ -180,9 +180,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Formen Sie Ihren Klang mit EQ',
   'help.eq.intro':
-    'Frequenz bestimmt, wo ein Band wirkt, Verstärkung die Anhebung oder Absenkung und Q seine Breite: höheres Q bedeutet schmaler. Ist kein Band ausgewählt, verändern Bass, Mitten und Höhen die ganze Kurve auf einmal. Beginnen Sie mit kleinen, breiten Änderungen und vergleichen Sie oft.',
+    'Frequenz bestimmt, wo ein Band wirkt, Verstärkung die Anhebung oder Absenkung und Q seine Breite: höheres Q bedeutet schmaler. Ist kein Band ausgewählt, formen die Klang-Regler — Bass, Mitten und Höhen, mit Tiefensperre und Höhensperre zu beiden Seiten — den Klang als eigene Kurve und lassen Ihre Bänder unverändert. Beginnen Sie mit kleinen, breiten Änderungen und vergleichen Sie oft.',
   'help.eq.steps':
-    'Öffnen Sie EQ → Bänder. Ist nichts ausgewählt, drehen Sie an Bass, Mitten oder Höhen, um den Klang schnell zu verändern.\nKlicken Sie auf die Frequenz eines Bands oder auf seinen Punkt im Diagramm, um es auszuwählen. Drehen Sie an seinen Drehreglern Frequenz, Verstärkung und Güte (Q), wählen Sie einen Filter oder schalten Sie es mit Aktiv aus.\nKlicken Sie mit der rechten Maustaste auf ein Band, um es zurückzusetzen, auszuschalten oder daneben ein Band hinzuzufügen. Drücken Sie EQ zurücksetzen, um jede Verstärkung auf 0 dB zu setzen, ohne Ihre Bänder zu verlieren. Vorher wird nachgefragt.',
+    'Öffnen Sie EQ → Bänder. Ist nichts ausgewählt, drehen Sie an Bass, Mitten oder Höhen, um den Klang schnell zu verändern, und an Tiefensperre oder Höhensperre, um die Enden zu beschneiden. Sie zeichnen ihre eigene Klang-Linie ins Diagramm.\nKlicken Sie auf die Frequenz eines Bands oder auf seinen Punkt im Diagramm, um es auszuwählen. Drehen Sie an seinen Drehreglern Frequenz, Verstärkung und Güte (Q), wählen Sie einen Filter oder schalten Sie es mit Aktiv aus.\nKlicken Sie mit der rechten Maustaste auf ein Band, um es zurückzusetzen, auszuschalten oder daneben ein Band hinzuzufügen. Drücken Sie EQ zurücksetzen, um jede Verstärkung sowie Bass, Mitten und Höhen auf 0 dB zu setzen, ohne Ihre Bänder zu verlieren. Vorher wird nachgefragt.',
   'help.eq.tip':
     'Unter Ebenfalls aktiv steht, was diesen Ausgang außer Ihren Bändern noch formt, jeweils mit eigener Stärke und ×. Der Spielmodus verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ; Gaming-Presets schalten ihn ein.',
   'help.eq.keywords':
@@ -230,7 +230,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'EQ-Modus und Band-Designs',
   'help.eqmode.intro':
-    'Der EQ-Modus ändert, wie Ihre Bänder und Ihre Korrekturkurven angewendet werden, ohne sie zu bearbeiten. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
+    'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und Smart-EQ; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
     'Öffnen Sie in der Leiste der Seite Bänder den EQ-Modus. Probieren Sie bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWählen Sie unter der FluidEQ-Engine die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch. Drücken Sie Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
@@ -239,7 +239,7 @@ const help: Record<keyof typeof en, string> = {
     'bandanzahl, bandlayout, 10-band-EQ, 31-band-EQ, grafischer EQ, intensität, linearphasig, minimalphasig, konstantes Q, proportionales Q, pre-ringing, Höhen, präzise, klassisch',
   'help.eqmode.modeCaption': 'EQ-Modus',
   'help.eqmode.strength':
-    'Normal, Studio ×1.5 oder ×2, getrennt für Ihren EQ und Ihre Kurven.',
+    'Normal, Studio ×1.5 oder ×2, getrennt für Ihren EQ und Ihre Korrekturen.',
   'help.eqmode.q':
     'Konstant behält jedes Q; Proportional und Asymmetrisch machen Bänder schmaler, je stärker sie werden.',
   'help.eqmode.smoothing': 'Glättet abgetastete Korrekturkurven.',

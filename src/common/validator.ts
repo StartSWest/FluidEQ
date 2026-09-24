@@ -129,6 +129,13 @@ const IStateSchema = {
       type: 'string',
     },
     curveSmoothing: { enum: ['off', 'twelfth', 'third'], type: 'string' },
+    // Any object: the loader reads it into slopes the dials offer
+    // (`toEqCuts`). A state file that fails here is rebuilt from the fields
+    // the recovery names, and the headphone correction is not one of them, so
+    // a cut setting from an older build must never be what fails it.
+    eqCuts: { type: 'object' },
+    // Any object, for the same reason: the loader bounds it (`toTone`).
+    tone: { type: 'object' },
     isEnabled: {
       type: 'boolean',
     },

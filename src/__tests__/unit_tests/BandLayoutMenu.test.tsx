@@ -10,7 +10,7 @@ import {
   getBandDesigns,
   saveBandDesign,
 } from 'renderer/utils/bandDesignApi';
-import { clearGains, setFixedBand } from 'renderer/utils/equalizerApi';
+import { clearGains, setFixedBand, setTone } from 'renderer/utils/equalizerApi';
 
 jest.mock('renderer/utils/bandDesignApi', () => ({
   getBandDesigns: jest.fn(),
@@ -21,6 +21,7 @@ jest.mock('renderer/utils/bandDesignApi', () => ({
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearGains: jest.fn(),
   setFixedBand: jest.fn(),
+  setTone: jest.fn(),
 }));
 jest.mock('renderer/utils/logger', () => ({ reportError: jest.fn() }));
 
@@ -168,6 +169,9 @@ describe('Empty EQ confirmation', () => {
       fireEvent.click(button);
     });
     expect(clearGains).toHaveBeenCalledTimes(1);
+    // Clear EQ takes the Tone's dials back to zero with the bands.
+    expect(setTone).toHaveBeenCalledTimes(1);
+    expect(setTone).toHaveBeenCalledWith(null);
     expect(refreshState).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(applyBandDesign).not.toHaveBeenCalled();

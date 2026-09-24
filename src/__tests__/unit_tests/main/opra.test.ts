@@ -141,7 +141,7 @@ describe('opra', () => {
       expect(frequencies).not.toContain(8);
     });
 
-    it('bounds a measured gain that is larger than a measurement should claim', () => {
+    it('plays a published gain as published, past a slider’s ±20 dB too', () => {
       const preset = getOpraPreset(
         'testbrand::model_one',
         'testbrand:model_one::edge_cases',
@@ -152,11 +152,11 @@ describe('opra', () => {
           (band) => band.frequency === frequency,
         );
 
-      // -20 dB at 9 Hz is the rig, not the headphone: outside the trusted band
-      // the limit is 8 dB.
-      expect(byFrequency(9)?.gain).toBe(-8);
-      // +18 dB at 500 Hz is inside it, where 12 dB is the limit.
-      expect(byFrequency(500)?.gain).toBe(12);
+      // These used to be held to 8 dB at the edges of the band and 12 inside
+      // it, which changed 822 of the library's curves; a correction is a
+      // published fit, and it plays as one (`correctionRange.ts`).
+      expect(byFrequency(9)?.gain).toBe(-20);
+      expect(byFrequency(500)?.gain).toBe(18);
     });
 
     it('falls back to a neutral Q when a band omits one', () => {

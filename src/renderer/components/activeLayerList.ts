@@ -31,13 +31,19 @@ import {
   setDriver as setDriverApi,
   setHeadphone as setHeadphoneApi,
   setSmartEq as setSmartEqApi,
+  setTone as setToneApi,
   setVoicing as setVoicingApi,
   writeApoConfigFile,
 } from '../utils/equalizerApi';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
+import { hasTone } from '../../common/tone';
 import switchPresetRackOff from '../dsp/presetRackOff';
 import type { MenuIconName } from '../icons/MenuIcon';
-import { askToneClear } from '../eq/toneIntent';
+import { TONE_CONTROLS } from '../eq/useTone';
+
+/** A dial's value as its chip names it: signed, to the tenth it steps by. */
+const signedDb = (value: number): string =>
+  `${value > 0 ? '+' : ''}${value.toFixed(1)}`;
 
 /** One thing shaping the sound besides the bands on screen. */
 export interface IActiveLayer {
@@ -113,6 +119,8 @@ export type TLayerListInputs = Pick<
   | 'setVoicing'
   | 'smartEq'
   | 'setSmartEq'
+  | 'tone'
+  | 'setTone'
   | 'customFx'
   | 'refreshState'
 > & {
@@ -167,6 +175,8 @@ export const collectLayers = ({
   setVoicingStrength,
   smartEq,
   setSmartEq,
+  tone,
+  setTone,
   modeName,
   setLayerStrength,
   isContinuousOn,
@@ -330,9 +340,6 @@ export const collectLayers = ({
        */
       clearHint: t('eq.layers.clearBands'),
       onClear: async () => {
-        // The same as Clear EQ, so the EQ's three tone dials go back to zero
-        // with the bands. See `eq/toneIntent.ts`.
-        askToneClear();
         await clearGains();
         await refreshState();
       },
@@ -348,6 +355,34 @@ export const collectLayers = ({
       // flattens the gains this condition tests, so a switched-off EQ is still
       // a shaped one and the chip stays of its own accord.
       feature: 'eq',
+    });
+  }
+
+  /*
+   * The Tone panel's Bass, Mid and Treble, right after the bands they sit
+   * over, as they are written.
+   *
+   * A layer of their own now (`tone.ts`), so a chip of their own: switched off
+   * and on like every other, and its × puts the three dials back to zero
+   * without touching a band — which is also why the EQ chip's × above no
+   * longer takes the tone with it. Named by the dials that are away from zero,
+   * in the words the dials themselves carry.
+   */
+  if (tone && hasTone(tone)) {
+    layers.push({
+      key: 'tone',
+      icon: 'configure',
+      label: t('eq.tone'),
+      name: TONE_CONTROLS.filter(({ knob }) => tone[knob] !== 0)
+        .map(({ knob, labelKey }) => `${t(labelKey)} ${signedDb(tone[knob])}`)
+        .join(' · '),
+      clearHint: t('eq.layers.clearTone'),
+      onClear: async () => {
+        setTone(undefined);
+        await setToneApi(null);
+        await refreshState();
+      },
+      feature: 'tone',
     });
   }
 

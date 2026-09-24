@@ -28,6 +28,27 @@ import {
   IChartPointData,
 } from './ChartController';
 
+/** How far in from the plot's edge a handle is held: its largest halo. */
+const HANDLE_EDGE_INSET = 12;
+
+/**
+ * A band past the plot's edge keeps its handle at the edge, whole and in
+ * reach: the 16.3 kHz band of a 15-band layout lies past the plot trimmed to
+ * 16 kHz with the grid off (`graphFrequencyRange`), and a band may sit below
+ * the 10 Hz edge. A drag moves a band by how far the pointer travels, so it
+ * works from there. Widening the trimmed range to hold the band instead
+ * would move the scale under a band being dragged outward, and the drag
+ * would chase it.
+ */
+export const handleXInPlot = (
+  x: number,
+  [start, end]: readonly number[],
+): number => {
+  const left = Math.min(start, end) + HANDLE_EDGE_INSET;
+  const right = Math.max(start, end) - HANDLE_EDGE_INSET;
+  return left < right ? Math.min(right, Math.max(left, x)) : x;
+};
+
 /**
  * What a handle has to say about itself to something outside React.
  *
@@ -141,7 +162,10 @@ const EditablePoint = ({
     };
   }, []);
 
-  const scaledX = useMemo(() => Number(xScale(data.x)) || 0, [data.x, xScale]);
+  const scaledX = useMemo(
+    () => handleXInPlot(Number(xScale(data.x)) || 0, xScale.range()),
+    [data.x, xScale],
+  );
   const scaledY = useMemo(() => Number(yScale(data.y)) || 0, [data.y, yScale]);
 
   const getPointFromEvent = useCallback(

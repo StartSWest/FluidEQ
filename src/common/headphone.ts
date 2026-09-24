@@ -21,8 +21,8 @@ import {
   IGraphicEqPoint,
   IHeadphoneSettings,
   NO_GAIN_FILTER_TYPES,
-  clampGain,
 } from './constants';
+import { clampCorrectionGain } from './correctionRange';
 
 /**
  * The strength this correction is applied at, as a fraction.
@@ -78,8 +78,9 @@ export const getHeadphoneGraphicEq = (
       frequency,
       // Rounded like the filters are, and for the same reason: a tenth is what
       // APO reads and what anybody hears, and a halved curve otherwise writes
-      // out a file full of 2.8499999.
-      gain: clampGain(
+      // out a file full of 2.8499999. Bounded by a correction's range, not a
+      // slider's (`correctionRange.ts`): it plays as it was published.
+      gain: clampCorrectionGain(
         Math.round(gain * intensity * gainPrecision) / gainPrecision,
       ),
     }));
@@ -130,8 +131,9 @@ export const getHeadphoneFilters = (
       frequency,
       // Rounded to a tenth, which is all Equalizer APO reads and all anybody
       // can hear. Without it, halving a correction writes gains like 2.8499999
-      // into a file somebody may well open and read.
-      gain: clampGain(
+      // into a file somebody may well open and read. A correction's range, as
+      // for the curve above.
+      gain: clampCorrectionGain(
         Math.round(gain * intensity * gainPrecision) / gainPrecision,
       ),
       quality,

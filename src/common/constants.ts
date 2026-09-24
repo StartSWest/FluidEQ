@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { uid } from 'uid';
 import type { IBandDesign } from './bandDesigns';
 import { DEFAULT_BAND_QUALITY, qualitiesForRack } from './bandQuality';
+import type { ITone } from './tone';
 
 export const MAX_GAIN = 20;
 export const MIN_GAIN = -20;
@@ -100,54 +101,6 @@ export const clampFrequency = (frequency: number) =>
   Number.isFinite(frequency)
     ? Math.round(Math.min(MAX_FREQUENCY, Math.max(MIN_FREQUENCY, frequency)))
     : MIN_FREQUENCY;
-
-/**
- * The most a measured reference is allowed to ask for.
- *
- * ±20 dB is the limit of what the editor can express and what APO will build.
- * It is far more than a headphone correction should ever need, and published
- * measurements regularly exceed it at the edges of the audible band — where a
- * rig is measuring its own coupling error rather than the headphone. Applying
- * those verbatim produced graphs with +16 dB spikes at 30 Hz that nobody
- * asked for and that mostly just eat headroom.
- */
-export const MAX_REFERENCE_GAIN = 12;
-
-/**
- * Below and above these, a measurement is mostly measuring the rig.
- *
- * Set wide on purpose. The first attempt used 40 Hz and clamped a 6.3 dB
- * correction at 31 Hz — which a test caught, and rightly: bass shelves of that
- * size are ordinary and entirely believable. The untrustworthy region is the
- * bottom octave, where few rigs are calibrated, and the top, where coupling
- * resonances and ear geometry dominate.
- */
-const REFERENCE_TRUSTED_LOW = 25;
-const REFERENCE_TRUSTED_HIGH = 14000;
-/** What is allowed out there, where the numbers are least believable. */
-const MAX_REFERENCE_GAIN_AT_EDGES = 8;
-
-/**
- * Bound a gain that came from a measurement rather than from the user.
- *
- * Deliberately not applied to bands the user moves themselves: if someone
- * wants +18 dB at 30 Hz that is their business, and the editor should not
- * argue. This is only for curves FluidEQ generates or imports on their behalf,
- * where the number is a claim about a measurement and an implausible claim
- * should not become an implausible sound.
- */
-export const clampReferenceGain = (gain: number, frequency: number) => {
-  if (!Number.isFinite(gain)) {
-    return 0;
-  }
-  const limit =
-    Number.isFinite(frequency) &&
-    frequency >= REFERENCE_TRUSTED_LOW &&
-    frequency <= REFERENCE_TRUSTED_HIGH
-      ? MAX_REFERENCE_GAIN
-      : MAX_REFERENCE_GAIN_AT_EDGES;
-  return Math.min(limit, Math.max(-limit, gain));
-};
 
 // Equalizer APO does not impose AQUA's old 20-band UI limit. 128 keeps the
 // editor responsive while allowing large imported and hand-built profiles.
@@ -423,6 +376,17 @@ export interface IEqImportReference {
   text?: string;
 }
 
+/**
+ * The two cuts at the edges of the whole EQ, each its slope in dB per
+ * octave, 0 for none (`eqCuts.ts`).
+ */
+export interface IEqCuts {
+  /** Below 20 Hz. */
+  low: number;
+  /** Above 20 kHz. */
+  high: number;
+}
+
 export interface IState {
   eqBandDesign?: IBandDesign;
   isEnabled: boolean;
@@ -433,6 +397,12 @@ export interface IState {
   eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
+  /**
+   * The cuts, for every output at once. FluidEQ's own setting, like
+   * `isEnabled`: never saved into a profile, and kept when the output
+   * changes (`applyDeviceState`). Absent means both off.
+   */
+  eqCuts?: IEqCuts;
   /**
    * What the music itself measures, per frequency region. SESSION ONLY.
    *
@@ -455,6 +425,11 @@ export interface IState {
   /** Full GraphicEQ points; kept separately from editable filter projections. */
   graphicEq?: IGraphicEqPoint[];
   convolution?: IConvolutionProfile;
+  /**
+   * The Tone panel's Bass, Mid and Treble, a layer of its own after the bands
+   * and never written into them (`tone.ts`). Absent means all three at zero.
+   */
+  tone?: ITone;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */
@@ -526,6 +501,8 @@ export interface IState {
  *    were correcting the voicing.
  *  - `eq` is the user's own bands, or the GraphicEQ curve that stands in for
  *    them.
+ *  - `tone` is the Tone panel's Bass, Mid and Treble: the user's too, laid
+ *    over the bands without being written into them (`tone.ts`).
  *  - `voicing` is the target curve they picked.
  *  - `smart` is last of all, because it is a correction of everything above it:
  *    the capture that produced it heard the bands, the voicing and the driver
@@ -545,6 +522,7 @@ export const APO_FEATURES = [
   'driver',
   'headphone',
   'eq',
+  'tone',
   'voicing',
   'smart',
 ] as const;
@@ -565,6 +543,7 @@ const APO_FEATURE_FILE_WORDS: Readonly<Record<TApoFeature, string>> = {
   driver: 'driver',
   headphone: 'headphone',
   eq: 'eq',
+  tone: 'tone',
   voicing: 'preset',
   smart: 'smart',
 };
@@ -788,6 +767,7 @@ export interface IPresetV2 {
    * different headphones want different driver compensation, and a Smart EQ
    * correction measured on one output says nothing about another.
    */
+  tone?: ITone;
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;

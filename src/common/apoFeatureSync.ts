@@ -15,11 +15,21 @@ import {
   IApoLayerOverride,
   IFiltersMap,
   IState,
+  IGraphicEqPoint,
+  MAX_GAIN,
   TApoFeature,
-  clampGain,
   clampQuality,
   clampFrequency,
 } from './constants';
+import { clampGainWithin, layerGainLimit } from './correctionRange';
+import {
+  FLAT_TONE,
+  ITone,
+  TONE_KNOBS,
+  TONE_MAX_DB,
+  TONE_SHAPES,
+  toTone,
+} from './tone';
 
 const overrideFromParsed = (
   parsed: ReturnType<typeof parseEqText>,
@@ -79,7 +89,15 @@ export const describeApoFeatureText = (contents: string): string => {
     .join('|');
 };
 
-export const parseApoEqForAdoption = (contents: string) => {
+/**
+ * A feature file as its layer would take it, and how much of it would not fit.
+ * A gain past `gainLimit` counts against it: a slider's range by default, a
+ * correction's for the correction layer (`layerGainLimit`).
+ */
+export const parseApoEqForAdoption = (
+  contents: string,
+  gainLimit = MAX_GAIN,
+) => {
   const parsed = parseEqText(contents, { preserveValues: true });
   const lines = contents
     .split(/\r?\n/)
@@ -97,11 +115,11 @@ export const parseApoEqForAdoption = (contents: string) => {
     Object.values(parsed.filters).filter(
       (filter) =>
         filter.frequency !== clampFrequency(filter.frequency) ||
-        filter.gain !== clampGain(filter.gain) ||
+        filter.gain !== clampGainWithin(filter.gain, gainLimit) ||
         filter.quality !== clampQuality(filter.quality),
     ).length +
     (parsed.graphicEq ?? []).filter(
-      (point) => point.gain !== clampGain(point.gain),
+      (point) => point.gain !== clampGainWithin(point.gain, gainLimit),
     ).length;
   return {
     ...parsed,
@@ -117,6 +135,53 @@ export interface IApoFeatureAdoption {
   changed: boolean;
   unsupported: number;
 }
+
+/**
+ * How far a written Q may sit from its dial's own and still be that dial: the
+ * file carries two places (a Butterworth 0.7071 is written 0.71), and the
+ * engine takes a shelf this close as Butterworth.
+ */
+const TONE_QUALITY_TOLERANCE = 0.02;
+
+/**
+ * A hand edit of the Tone's file, taken back where it is still the three
+ * dials: each filter one of `TONE_SHAPES` at its own type, frequency and
+ * width, with only its gain moved and within the dials' travel. Anything
+ * else has no dial to land on and is left as written, the way a filter the
+ * editor cannot hold is — reading it back as something it is not would lose
+ * it at the next write. Deleting every line takes the tone off.
+ */
+const adoptToneFilters = (
+  state: IState,
+  filters: IFiltersMap,
+  graphicEq: IGraphicEqPoint[] | undefined,
+): IApoFeatureAdoption => {
+  const tone: ITone = { ...FLAT_TONE };
+  const taken = new Set<keyof ITone>();
+  let unsupported = graphicEq?.length ? 1 : 0;
+  Object.values(filters).forEach((filter) => {
+    const knob = TONE_KNOBS.find((candidate) => {
+      const shape = TONE_SHAPES[candidate];
+      return (
+        !taken.has(candidate) &&
+        shape.type === filter.type &&
+        Math.abs(shape.frequency - filter.frequency) < 1 &&
+        Math.abs(shape.quality - filter.quality) <= TONE_QUALITY_TOLERANCE
+      );
+    });
+    if (knob === undefined || Math.abs(filter.gain) > TONE_MAX_DB) {
+      unsupported += 1;
+      return;
+    }
+    taken.add(knob);
+    tone[knob] = filter.gain;
+  });
+  if (unsupported > 0) {
+    return { changed: false, unsupported };
+  }
+  state.tone = toTone(tone);
+  return { changed: true, unsupported: 0 };
+};
 
 const hasOverrideContent = (override: IApoLayerOverride) =>
   Object.keys(override.filters).length > 0 ||
@@ -147,12 +212,15 @@ export const adoptApoFeatureText = (
   ) {
     return { changed: false, unsupported: 0 };
   }
-  const parsed = parseApoEqForAdoption(contents);
+  const parsed = parseApoEqForAdoption(contents, layerGainLimit(feature));
   if (!canAdoptEqModeChange(state, feature)) {
     return { changed: false, unsupported: 1 };
   }
   if (parsed.unsupported > 0) {
     return { changed: false, unsupported: parsed.unsupported };
+  }
+  if (feature === 'tone') {
+    return adoptToneFilters(state, parsed.filters, parsed.graphicEq);
   }
   const override = overrideFromParsed(parsed);
   const hasContent = hasOverrideContent(override);

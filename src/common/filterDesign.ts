@@ -43,9 +43,9 @@ export const enginePlaysMatched = (dllVersion: string | undefined): boolean =>
  * cookbook, the way Equalizer APO plays them, narrower and weaker near the
  * top.
  *
- * A headphone correction is a curve like the others and follows the Curves
- * row (Ivan, 2026-09-22: "make sure precise and classic work for curves and
- * I see the changes visually in the curve too"). Classic is also how AutoEQ
+ * A headphone correction follows the Corrections row (Ivan, 2026-09-22:
+ * "make sure precise and classic work for curves and I see the changes
+ * visually in the curve too"; `layerGroupOf`). Classic is also how AutoEQ
  * fits one, with the cookbook at 44.1 kHz, so it plays a correction closest
  * to its fit: measured on a BlackShark V2 Pro correction at 48 kHz, 0.14 dB
  * from the fit that way and 0.89 dB matched. Precise plays the shape its
@@ -56,9 +56,10 @@ export type TTrebleDesign = (typeof TREBLE_DESIGNS)[number];
 export const DEFAULT_TREBLE_DESIGN: TTrebleDesign = 'precise';
 
 /**
- * The two groups the choice is made for, as the engine tells them apart: the
- * layer written with `# FluidEQEqLayer: ON` is Your EQ, and every other layer
- * of FluidEQ's own is a curve (`deviceProfiles.ts`).
+ * The two groups of the EQ mode menu, as the engine tells them apart: a layer
+ * written with `# FluidEQEqLayer: ON` is in Your EQ's, one written with
+ * `# FluidEQCurveLayer: ON` in the Corrections row's (`deviceProfiles.ts`,
+ * `layerGroupOf`).
  */
 export const TREBLE_SCOPES = ['eq', 'curves'] as const;
 export type TTrebleScope = (typeof TREBLE_SCOPES)[number];
@@ -98,12 +99,19 @@ export const engineTakesTrebleChoice = (
 ): boolean => engineAtLeast(dllVersion, ENGINE_TREBLE_CHOICE_SINCE);
 
 /**
- * Which group's choice decides how a layer's bands are built: Your EQ's for
- * the EQ layer, the Curves row's for every other one, the headphone
- * correction's included.
+ * Which group of the EQ mode menu a layer answers to, for everything the menu
+ * sets per group: strength, band shape, smoothing, phase and Treble.
+ *
+ * Your EQ's row speaks for what shapes the sound to taste — the user's bands,
+ * the Tone panel, a Preset, the Driver type and Smart EQ. The Corrections row
+ * speaks for a headphone correction alone, together with the user's custom
+ * file and an imported impulse, which have no layer of their own (Ivan,
+ * 2026-09-23: "only headset corrections jump into that category ... not smart
+ * eq or voicing preset or driver type, those should fall into eq"). Until then
+ * every layer but the bands followed the Curves row.
  */
-export const trebleScopeOf = (feature: TApoFeature): TTrebleScope =>
-  feature === 'eq' ? 'eq' : 'curves';
+export const layerGroupOf = (feature: TApoFeature): TTrebleScope =>
+  feature === 'headphone' ? 'curves' : 'eq';
 
 /**
  * Whether a group's bands play analog-matched on a FluidEQ Engine of this

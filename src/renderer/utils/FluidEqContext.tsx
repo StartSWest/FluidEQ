@@ -46,6 +46,7 @@ import {
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
 import { ISmartEqSettings } from '../../common/smartEq';
+import type { ITone } from '../../common/tone';
 import {
   ErrorDescription,
   isBlockingError as isBlockingErrorCode,
@@ -207,6 +208,8 @@ export interface IFluidEqContext extends IState {
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
   setSmartEq: (newValue?: ISmartEqSettings) => void;
+  /** The Tone panel's three dials as main last wrote them (`tone.ts`). */
+  setTone: (newValue?: ITone) => void;
   /** The published headphone correction, as its own layer. */
   headphone?: IHeadphoneSettings;
   setHeadphone: (newValue?: IHeadphoneSettings) => void;
@@ -420,6 +423,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [curveBandQ, setCurveBandQ] = useState<IState['curveBandQ']>();
   const [curveSmoothing, setCurveSmoothing] =
     useState<IState['curveSmoothing']>();
+  const [eqCuts, setEqCuts] = useState<IState['eqCuts']>();
   const [isAutoPreAmpOn, setAutoPreAmpOn] = useState<boolean>(
     DEFAULT_STATE.isAutoPreAmpOn,
   );
@@ -451,6 +455,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [smartEq, setSmartEq] = useState<ISmartEqSettings | undefined>(
     DEFAULT_STATE.smartEq,
   );
+  const [tone, setTone] = useState<ITone | undefined>(DEFAULT_STATE.tone);
   const [headphone, setHeadphone] = useState<IHeadphoneSettings | undefined>(
     DEFAULT_STATE.headphone,
   );
@@ -611,6 +616,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setEqBandQ(state.eqBandQ);
         setCurveBandQ(state.curveBandQ);
         setCurveSmoothing(state.curveSmoothing);
+        setEqCuts(state.eqCuts);
         setGraphViewOn(state.isGraphViewOn);
         setPreAmp(state.preAmp);
         setIsFlat(state.isFlat);
@@ -621,6 +627,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setVoicing(state.voicing ?? DEFAULT_VOICING);
         setDriver(state.driver ?? DEFAULT_DRIVER);
         setSmartEq(state.smartEq);
+        setTone(state.tone);
         setHeadphone(state.headphone);
         setCustomFx(state.customFx);
         setBypassed(state.bypassed ?? []);
@@ -798,6 +805,8 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         voicing,
         driver,
         smartEq,
+        tone,
+        setTone,
         headphone,
         customFx,
         setHeadphone,
@@ -809,6 +818,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         eqBandQ,
         curveBandQ,
         curveSmoothing,
+        eqCuts,
         setDriver,
         setVoicing,
         setSmartEq,

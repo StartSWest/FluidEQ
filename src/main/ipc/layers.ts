@@ -24,7 +24,14 @@ import { getVoicingProfile } from '../../common/voicing';
 import { clampDspSettings } from '../../common/dsp/chain';
 import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
 import { getDriverProfile } from '../../common/driver';
+import {
+  DEFAULT_EQ_CUTS,
+  hasEqCut,
+  isEqCut,
+  isEqCutSlope,
+} from '../../common/eqCuts';
 import { sanitizeSmartEqSettings } from '../../common/smartEq';
+import { isToneValues, toTone } from '../../common/tone';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -80,6 +87,35 @@ export const registerLayersIpc = ({
     state.curveBandQ = 'off';
     state.curveSmoothing = 'off';
     await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
+  });
+
+  // A cut's slope, from its dial on the Tone panel. FluidEQ's own setting
+  // rather than the profile's, so written for every output but saved into
+  // none: the profile write below is skipped.
+  onWindowMessage(ChannelEnum.SET_EQ_CUT, async (event, arg) => {
+    const channel = ChannelEnum.SET_EQ_CUT;
+    const [cut, slope] = Array.isArray(arg) ? arg : [];
+    if (!isEqCut(cut) || !isEqCutSlope(slope)) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    const next = { ...(state.eqCuts ?? DEFAULT_EQ_CUTS), [cut]: slope };
+    state.eqCuts = hasEqCut(next) ? next : undefined;
+    await handleUpdate(event, channel);
+  });
+
+  // The Tone panel's three dials, a layer of the profile's own (`tone.ts`).
+  // Null takes the tone off, which is what the chip's × does.
+  onWindowMessage(ChannelEnum.SET_TONE, async (event, arg) => {
+    const channel = ChannelEnum.SET_TONE;
+    const values: unknown = arg?.[0];
+    if (values !== null && !isToneValues(values)) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    applyingLayer('tone');
+    state.tone = toTone(values);
+    await handleUpdate(event, channel, false, true);
   });
 
   onWindowMessage(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {

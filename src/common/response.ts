@@ -17,12 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  clampGain,
   FilterTypeEnum,
   IFilter,
   IFiltersMap,
   IGraphicEqPoint,
 } from './constants';
+import { clampGainWithin } from './correctionRange';
 
 /**
  * Biquad magnitude response, shared by the graph and the config writer.
@@ -340,10 +340,12 @@ export const compressChainToLimit = (
   }
   const scale = low;
 
+  // Each band within the same limit as the chain: a slider's range for the
+  // user's bands, a correction's for a correction (`correctionRange.ts`).
   return Object.fromEntries(
     bands.map((band) => [
       band.id,
-      { ...band, gain: clampGain(band.gain * scale) },
+      { ...band, gain: clampGainWithin(band.gain * scale, limit) },
     ]),
   );
 };

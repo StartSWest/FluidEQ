@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms bei aktivem EQ',
   'eq.mode.linearDelay': '≈ +{ms} ms Verzögerung',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, geteilt',
   'eq.mode.gameMinimum': 'Spielmodus: Minimal',
   'eq.layouts.builtIn': 'Vorgegebene Layouts',
   'eq.layouts.saved': 'Meine Designs',
@@ -37,7 +38,7 @@ const eq: Partial<Dictionary> = {
     'Ihre Designs konnten nicht aktualisiert werden. Versuchen Sie es erneut.',
   'eq.layouts.clearTitle': 'EQ leeren?',
   'eq.layouts.clearWarning':
-    'Jede Bandverstärkung auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärkung bleiben erhalten.',
+    'Jede Bandverstärkung und die Regler Bass, Mitten und Höhen auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, Sperren, EQ-Modus und Vorverstärkung bleiben erhalten.',
   'eq.layouts.deleteNamed': '„{name}“ löschen',
   'eq.layouts.deleteWarning':
     '„{name}“ aus Ihren gespeicherten Designs löschen? Ihr aktueller EQ bleibt unverändert.',
@@ -57,11 +58,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Präzise',
   'eq.mode.classic': 'Klassisch',
   'eq.mode.trebleEqPrecise':
-    'Präzise: Ihre Höhenbänder klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
+    'Präzise: Ihre Bänder, Klang, Preset, Treibertyp und Smart-EQ klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Klassisch: so, wie Equalizer APO sie wiedergibt. Höhenbänder fallen schmaler und schwächer aus als eingestellt, am stärksten nahe 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Präzise: Preset, Treibertyp, Smart-EQ und Ihre Kopfhörerkorrektur klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
+    'Präzise: Ihre Kopfhörerkorrektur klingt genau so, wie sie gezeichnet ist, bis 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Klassisch: so, wie Equalizer APO sie wiedergibt und wie AutoEQ Kopfhörerkorrekturen abstimmt. Höhenbänder fallen schmaler und schwächer aus als eingestellt, am stärksten nahe 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -90,7 +91,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Studio',
   'eq.mode.yourEq': 'Ihr EQ',
-  'eq.mode.curves': 'Kurven',
+  'eq.mode.curves': 'Korrekturen',
   'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',
   'graph.view.title': 'Wie viel Bildschirmfläche das Diagramm erhält',
   'graph.view.normal': 'Ansicht',
@@ -245,6 +246,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'Smart-EQ',
   'graph.curve.custom': 'Benutzerdefinierte FX',
+  'graph.curve.tone': 'Klang',
   'graph.curve.total': 'Endausgabe',
   'graph.design.showWave': 'Zuerst die Welle anzeigen, um sie zu gestalten',
   'graph.design.closeHint': 'Darstellungseditor schließen (Esc)',
@@ -552,6 +554,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'Smart-EQ',
   'eq.layers.remove': 'Ebene {layer} entfernen',
   'eq.layers.clearBands': 'Alle Bänder auf 0 dB zurücksetzen',
+  'eq.layers.clearTone': 'Bass, Mitten und Höhen auf 0 dB zurücksetzen',
   'eq.layers.clearReference': 'Kopfhörerkorrektur entfernen',
   'eq.layers.clearSmart':
     'Gemessene Korrektur entfernen. Ihre Bänder und die Referenz bleiben.',
@@ -564,6 +567,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Gewähltes Band',
   'eq.selectedCount': '{count} Bänder',
   'eq.tone': 'Klang',
+  'eq.tone.lowCut': 'Tiefensperre',
+  'eq.tone.highCut': 'Höhensperre',
+  'eq.tone.lowCutHint':
+    'Tiefensperre bei 20 Hz. Bei 0 ist sie aus; weiter aufgedreht schneidet sie steiler, 12 oder 24 dB pro Oktave.',
+  'eq.tone.highCutHint':
+    'Höhensperre bei 20 kHz. Bei 0 ist sie aus; weiter aufgedreht schneidet sie steiler, 12 oder 24 dB pro Oktave.',
   'eq.tone.bass': 'Bass',
   'eq.tone.mid': 'Mitten',
   'eq.tone.treble': 'Höhen',

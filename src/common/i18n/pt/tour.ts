@@ -82,9 +82,9 @@ const tour: Partial<Dictionary> = {
   'tour.presets.levelNote': 'Trocar muda o caráter, não o volume.',
   'tour.tone.kicker': 'CONTROLES DE TOM',
   'tour.tone.title': 'Graves, Médios e Agudos, como em um amplificador',
-  'tour.tone.subtitle': 'Três botões para todo o rack',
+  'tour.tone.subtitle': 'Três botões com curva própria',
   'tour.tone.lead':
-    'Sem nenhuma banda selecionada, três botões movem, cada um, o seu terço do som em todo o rack de uma vez: o jeito mais rápido de deixar uma música mais quente ou mais brilhante, sem mexer em nenhuma banda.',
+    'Sem nenhuma banda selecionada, Graves, Médios e Agudos moldam o som como uma curva própria, com um corte de graves e um de agudos nas laterais: o jeito mais rápido de deixar uma música mais quente ou mais brilhante, e cada banda fica do jeito que você deixou.',
   'tour.tone.point1':
     'O equalizador abre no rack inteiro, sem nada selecionado.',
   'tour.tone.point2':

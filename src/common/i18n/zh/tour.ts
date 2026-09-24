@@ -81,9 +81,9 @@ const tour: Partial<Dictionary> = {
   'tour.presets.levelNote': '切换改变的是声音性格，而不是音量。',
   'tour.tone.kicker': '音色控制',
   'tour.tone.title': '低音、中音和高音，像功放一样',
-  'tour.tone.subtitle': '三个旋钮，作用于全部频段',
+  'tour.tone.subtitle': '三个旋钮，自成一条曲线',
   'tour.tone.lead':
-    '未选中任何频段时，三个旋钮各管声音的三分之一，一次带动全部频段：想让一首歌更温暖或更明亮，这是最快的办法，一个频段都不用碰。',
+    '未选中任何频段时，“低音”“中音”“高音”会作为一条独立的曲线塑造声音，两侧还有低切和高切：想让一首歌更温暖或更明亮，这是最快的办法，你的每个频段都保持原样。',
   'tour.tone.point1': '均衡器一打开就是全部频段，不选中任何一个。',
   'tour.tone.point2': '新增二十段布局，所有布局都采用标准频率。',
   'tour.tone.point3':

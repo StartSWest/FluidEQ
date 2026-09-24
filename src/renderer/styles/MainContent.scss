@@ -1139,30 +1139,49 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // a height — a dense layout does not need a stubbier slider, and giving it one
 // only made the drag less precise exactly where the bands are hardest to hit.
 //
-// MEASURED AGAINST THE PANE, NOT THE WINDOW. `--editor-height` is what the
-// divider writes on `.middle-content`, so it is the only number on the page
-// that knows how much of the column the EQ has been given. `100vh` did not:
-// dragging the handle down bought the bands three hundred more pixels and
-// every track stayed exactly as short, while a window height the bands do not
-// own decided their length by itself. Measured in the live window at 1392px
-// tall: the pane was 1042px, its content ran out 491px above its own bottom
-// edge, and the tracks were still stopped at 132px — which is the contraction
-// this is fixing.
+// MEASURED, NOT ESTIMATED — the same rule the graph-hidden case below has.
 //
-// 440px is everything inside that pane which is not track, taken off the same
-// measurement: the tab strip, the panel's padding, the three heading rows, the
-// selected-band editor below the bands, the caption, arrows and gain readout
-// each band carries around its own track, and a little air so the editor does
-// not end up against the divider. A wrapped toolbar adds a row to the heading
-// and pushes past it, at which point the panel scrolls — which is what it does
-// everywhere else.
+// The length used to be the pane's height (`--editor-height`, what the divider
+// writes on `.middle-content`) less 440px for everything in the pane that is
+// not track: the tab strip, the panel's padding, the heading rows, the row
+// under the bands and the caption, arrows and readout each band carries.
 //
-// The ceiling is the one the graph-hidden case below already settled on, for
-// the reason given there: past 264px a longer track is not a finer drag, it is
-// a longer reach for the same gesture. Whatever is left over on a tall pane
-// stays at the foot of the card rather than being poured into the tracks.
+// A constant cannot be right for a row whose height changes. The row under the
+// bands is the selected band's editor OR, with nothing selected, the Tone row,
+// and that one is deliberately taller — 100px against 78 above a 1100px-tall
+// window, where its dials are bigger than a band's. So on a 1545x1105 window
+// the page fitted with a band selected and scrolled by twelve pixels the
+// moment the selection was dropped: the same page, a scrollbar appearing
+// because nothing was selected (Ivan, 2026-09-23: "the tone pane ... is bigger
+// than the band setting pane"). Narrow windows do it worse — under 940px the
+// Tone row takes a second line and the band editor wraps to 262px — and no
+// constant covers both.
+//
+// So the bands take the room that is left instead of a number: `.main-content`
+// grows to the panel (`flex: 1 0 0`), its first row gets what the heading and
+// that row leave — between one floor-length band and one ceiling-length band —
+// and the rail inside it is a size container, so every track is the row's own
+// height less the 114px of caption, arrows and readout around it. Whatever the
+// row below turns out to be, the bands give way and the page does not scroll.
+//
+// The floor and the ceiling are the ones this rule has always had. Past 264px
+// a longer track is not a finer drag, it is a longer reach for the same
+// gesture; whatever is left on a tall pane stays at the foot of the card,
+// where every other tab leaves it.
+.workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
+  min-height: 0;
+  flex: 1 0 0;
+  align-content: start;
+  // 114px around a track: 186 is a floor-length band, 378 a ceiling-length one.
+  grid-template-rows: minmax(186px, 378px) auto;
+}
+
+.main-content > .bands-rail {
+  container: eq-bands / size;
+}
+
 .bandWrapper .range {
-  --range-length: clamp(72px, calc(var(--editor-height, 100vh) - 440px), 264px);
+  --range-length: clamp(72px, calc(100cqh - 114px), 264px);
 }
 
 // The reference picker used to sit above the bands and folding it stretched the
@@ -1170,43 +1189,32 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // panel is bands and nothing else and there is no fold to react to.
 
 // With the response graph hidden (App.tsx marks the root `minimized`) the EQ
-// owns the whole workspace column, so the tracks are longer than they are while
-// the graph is sharing it.
+// owns the whole workspace column, and the tracks take the height the column
+// has left for them — the same measured arrangement as above, with room for a
+// much longer fader.
 //
-// BOTH NUMBERS IN THIS CLAMP WERE WRONG, in the same direction, and together
-// they are what "the EQ goes crazy on small screens" was.
+// They used to be worked out from the window instead: `100vh` less an
+// estimate of everything on screen that is not track, capped at 264px. The
+// estimate cannot be right for every layout — the toolbar wraps in a narrow
+// window and in a long language, the applied-layer row comes and goes, the
+// Tone row takes a second line below 940px — so the cap was kept low and the
+// room left over sat empty at the foot of the card: 135px of it under the Tone
+// dials on a 1022px window (Ivan, 2026-09-23: "fix eq bands bit taller on this
+// screen").
 //
-// The subtracted term stands for everything on screen that is not track: the
-// titlebar and the workspace padding, the tab strip, the panel's own padding,
-// the three-row heading above the bands, the selected-band editor below them,
-// and the 114px of caption, arrows and gain readout that every band carries
-// around its own track. Added up that is a little over five hundred pixels. It
-// said 330 — so on any window shorter than about nine hundred the bands asked
-// for a couple of hundred pixels the card did not have, and the panel scrolled
-// the down arrows off its bottom edge while the frequency labels bunched up
-// against the top. The taller the window, the better it looked, which is why it
-// survived this long: it is very nearly right on the machine it was written on.
-//
-// The ceiling was 420px, which no ordinary window ever reached without
-// overflowing first. It is the survivor of two — there was a taller one again
-// for "no graph and no reference picker either", and with the picker gone from
-// this tab that is simply what no graph means — so it was the largest number
-// two rounds of merging could produce and nobody had since asked what a track
-// is actually for. 264px is what it is worth, and it is now the ceiling on both
-// sides of the graph switch: past that a longer track is not a finer drag — it
-// is a longer reach for the same gesture, and precision goes through the number
-// field either way. What differs between the two rules is which box is measured
-// — the pane above, the window here, since with no graph there is no split to
-// read — and the floor, because a column with nothing else in it always has
-// room for a full-length track.
-//
-// Whatever is left over on a tall window stays at the foot of the card, where
-// every other tab leaves its spare room. Pouring it into the tracks is the bug
-// being fixed here; pouring it into the row instead would centre the bands in a
-// taller face while the dB scale beside them kept its own padding, which is two
-// scales that no longer line up in exchange for a gap nobody minded.
-#root.minimized .bandWrapper .range {
-  --range-length: clamp(132px, calc(100vh - 560px), 264px);
+// The floor is the one both rules have always had. The ceiling is twice the
+// other one: long enough to use a 1080 window's room, and short of a fader so
+// long that a full sweep is a reach across the screen.
+// Only the two numbers differ from the docked case above, which already grows
+// the grid to the panel and makes the rail a size container.
+#root.minimized {
+  .workspace-tab-panel__scroll > .main-content {
+    grid-template-rows: minmax(246px, 634px) auto;
+  }
+
+  .bandWrapper .range {
+    --range-length: clamp(132px, calc(100cqh - 114px), 520px);
+  }
 }
 
 .bands__selection-box {
@@ -1282,9 +1290,10 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // size to the band row's 50px — measured in the window as exactly that, three
 // dials claiming to be bigger and rendering identical.
 .eq-flat-editor.eq-flat-editor--tone {
+  // Five dials: the three tone dials with a cut either side (`EqCutKnob`).
   grid-template-columns:
     minmax(104px, max-content)
-    repeat(3, minmax(88px, max-content));
+    repeat(5, minmax(88px, max-content));
   gap: 14px;
   padding: 12px 16px;
 
@@ -1754,17 +1763,18 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     padding: 12px;
   }
 
-  // Three, because everything on the tone row except its name IS a dial, and
-  // a fourth column here would be a hole the width of one. Its name takes the
-  // line above, the way the band's does — with the eyebrow beside the value
-  // rather than over it, which is what the shared rule below already does and
-  // what the two-row cell would otherwise fight.
+  // Five, because everything on the tone row except its name IS a dial — the
+  // three tone dials and a cut either side — and they read low to high on one
+  // line, as they sit on the graph. Its name takes the line above, the way the
+  // band's does — with the eyebrow beside the value rather than over it, which
+  // is what the shared rule below already does and what the two-row cell would
+  // otherwise fight.
   // Spelled out rather than leaning on the band row's version of the same
   // idea: the tone row's own rules are more specific than that one, so half
   // of it applied and half did not, and the name came out stacked over its
   // value in a cell still holding a 56px line for a dial that is not there.
   .eq-flat-editor.eq-flat-editor--tone {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 
     .eq-flat-editor__identity {
       grid-column: 1 / -1;

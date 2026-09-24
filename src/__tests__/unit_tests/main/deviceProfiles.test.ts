@@ -119,6 +119,19 @@ describe('device profile configuration', () => {
         },
         voicing: { profileId: 'music', intensity: 1 },
         driver: { profileId: 'balanced-armature-iem', intensity: 1 },
+        headphone: {
+          intensity: 1,
+          filters: {
+            dip: {
+              id: 'dip',
+              frequency: 3000,
+              gain: -4,
+              quality: 2,
+              type: FilterTypeEnum.PK,
+            },
+          },
+        },
+        tone: { bass: 4, mid: 0, treble: 0 },
       }),
     );
     const settings = getDefaultDeviceProfileSettings();
@@ -138,24 +151,28 @@ describe('device profile configuration', () => {
     // The custom file rides last, after the generated preamp. Its measurable
     // EQ subset is read back for headroom, while arbitrary APO commands remain
     // outside the calculation.
-    expect(includes).toHaveLength(4);
+    expect(includes).toHaveLength(6);
     expect(includes.map((line) => line.split('-').pop())).toEqual([
       'driver.txt',
+      'headphone.txt',
       'eq.txt',
+      'tone.txt',
       'preset.txt',
       'custom.txt',
     ]);
 
     // Each feature file holds that feature's lines and nothing else, and each
-    // numbers from one — the index is a label APO never refers back to.
+    // numbers from one — the index is a label APO never refers back to. Each
+    // is tagged with the row of the EQ mode menu it plays by: Your EQ's for
+    // all but the headphone correction (`layerGroupOf`).
     includes
       .filter((line) => !line.endsWith('custom.txt'))
       .forEach((line) => {
         const contents = files.get(line.replace('Include: ', '')) ?? '';
         expect(contents).toContain(
-          line.endsWith('eq.txt')
-            ? '# FluidEQEqLayer: ON'
-            : '# FluidEQCurveLayer: ON',
+          line.endsWith('headphone.txt')
+            ? '# FluidEQCurveLayer: ON'
+            : '# FluidEQEqLayer: ON',
         );
         expect(contents).toContain('Filter 1:');
         expect(contents).not.toContain('Preamp:');
@@ -169,6 +186,14 @@ describe('device profile configuration', () => {
     );
     expect(eq).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
     expect(eq).not.toContain('Fc 3000 Hz');
+    // The Tone's dial is a file of its own, never fitted into the bands.
+    expect(eq).not.toContain('LSC');
+    const tone = files.get(
+      includes
+        .find((line) => line.endsWith('tone.txt'))
+        ?.replace('Include: ', '') ?? '',
+    );
+    expect(tone).toContain('ON LSC Fc 100 Hz Gain 4 dB Q 0.71');
     expect(deviceFile).not.toContain('FluidEQEqLayer');
     expect(deviceFile).not.toContain('FluidEQCurveLayer');
   });

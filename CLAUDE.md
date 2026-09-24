@@ -489,6 +489,68 @@ Everything worth knowing about them is available through commands:
   the choice (`useTrebleDesigns`) so the menu and every graph agree. Main
   reads the files only while the FluidEQ Engine is chosen: asking for that
   engine's folder creates it.
+- **The Tone panel's two cuts are a file of their own, and 24 dB/oct is the
+  steepest.** Low cut at 20 Hz, high cut at 20 kHz, each a Butterworth of 0,
+  12 or 24 dB/oct (`eqCuts.ts`); 36 and 48 were offered and Ivan found them
+  "too aggressive" (a Q 2.56 section ringing at the corner). They are
+  `fluideq-cuts.txt`, included by every device file after the preamp and its
+  directives: no layer, no MATCHED directive, so both engines build them on the
+  cookbook, and they are in neither the preamp nor Auto normalize's input.
+  `toEqCuts` reads a stored slope the dials no longer offer as the steepest
+  left, and the saved-state schema takes any `eqCuts` object — a state file
+  that fails validation is rebuilt by a recovery that drops the headphone
+  layer, and a cut setting must never be what triggers it. The graph draws
+  them on the final output alone, floored at the plot's bottom
+  (`eqCutLine.ts`): the cyan EQ line is the bands and nothing else, as the
+  Tone beside it is a line of its own (Ivan, 2026-09-23).
+- **The Tone is a layer of its own, in Your EQ's group.** Bass, Mid and
+  Treble are three filters written as `fluideq-<slug>-tone.txt` (`tone.ts`),
+  never fitted into the bands: turning Treble used to rewrite a tuning made
+  by hand. Saved with the profile (`getCurrentPreset`, and restored by
+  `getStateForAudioDevice`), drawn as its own chartreuse line at full
+  strength, with a chip in Also applied whose × clears it alone; Clear EQ
+  clears it with the bands, the EQ chip's × does not. The shapes are
+  Butterworth shelves at 100 Hz and 10 kHz and a 1 kHz bell at Q 0.7 —
+  Butterworth because that is the only shelf the engine builds
+  analog-matched, so Your EQ's Precise/Classic moves all three dials (a Q of
+  0.5 left the shelves on the cookbook whatever the choice). The EQ mode
+  menu's groups are `layerGroupOf`: the headphone correction alone follows
+  the Corrections row (the custom file and an impulse too, having no layer);
+  the bands, the Tone, a preset, the driver and Smart EQ follow Your EQ's —
+  strength, Band Q, phase and Treble, in the file's tag and on the graph.
+- **A headphone correction plays as published, past a slider's ±20 dB.**
+  The editor's range is a taste limit; a correction is somebody's fit
+  (Ivan: "we just need to be able to do more than that if those eq curves do
+  it"). `correctionRange.ts` bounds only the headphone layer, at the preamp's
+  own reach (`-PREAMP_MIN_GAIN`, 60 dB): OPRA picks, a Squiglink paste to the
+  correction layer, the correction's shield, its file, Studio's 1.5x, the
+  graph and adoption of an edited file all use `layerGainLimit`. The library
+  used to hold bands to ±12 dB (±8 below 25 Hz and above 14 kHz), which
+  changed 822 of its 12,594 curves; its largest band is -21 dB and its widest
+  chain 30.7 dB. Auto normalize reaches -60 dB; the manual preamp still stops
+  at -20, so a correction past +20 dB with Auto normalize off can clip.
+- **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
+  on the left never stretches (`gainScale`); the analyser gets 80 dB below the
+  programme's peak on the right (`liveGraphBand.ts`, `graphLevelTickFormat`),
+  as professional equalisers draw it, because the top octave of most records
+  lies more than 40 dB down and a high cut drew nothing there. The graphs draw
+  `graphPoints`, not the shared `points`: the plot's whole width (10 Hz to
+  Nyquist), each point the power in a twelfth of an octave (three bins of the
+  long window at least), divided by Blackman's noise bandwidth so a tone reads
+  its own level whichever window reads it. Below the hand-over (~1.2 kHz at
+  48 kHz) the shape comes from a 16384-point window and the loudness from the
+  fast one over an octave, so a kick lands ~100 ms sooner than the long window
+  alone. Reading each point as the bin under it made the two windows disagree
+  by up to 9 dB on dense sound, drawn as a cliff at 40-80 Hz ("why these
+  peaks?"); keep every window on one quantity. The pump takes its graph
+  points from the drawing's reader, so one long transform runs per block of
+  audio. The shared `points`
+  stay 20 Hz to 20 kHz on the old 40 dB mapping, because the Studio scenes
+  stretch them across their texels by position and Smart EQ's presence marks
+  read them — change those only with the scenes' calibration. The plot spans
+  10 Hz to 25 kHz with the grid on and 20 Hz to 16 kHz with it off (and in
+  the player's gridless decks), `graphFrequencyRange`, labelled on the 1-2-5
+  series.
 - **Every change the engine hears fades, and every band keeps its history.**
   A graph is rebuilt on each config write, and the previous one is freed two
   blocks after the swap, so the fade lives in the new graph: `IirCascade`

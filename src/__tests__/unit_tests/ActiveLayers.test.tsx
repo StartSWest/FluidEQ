@@ -18,6 +18,7 @@ const mockWriteApoConfigFile = jest.fn();
 const mockClearGains = jest.fn();
 const mockRefreshState = jest.fn();
 const mockSetVoicing = jest.fn();
+const mockSetTone = jest.fn();
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearConvolution: jest.fn(),
@@ -26,6 +27,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setHeadphone: jest.fn(),
   setLayerBypass: jest.fn(),
   setSmartEq: jest.fn(),
+  setTone: (...args: unknown[]) => mockSetTone(...args),
   setVoicing: (...args: unknown[]) => mockSetVoicing(...args),
   writeApoConfigFile: (...args: unknown[]) => mockWriteApoConfigFile(...args),
 }));
@@ -94,6 +96,50 @@ describe('Custom FX active layer', () => {
     expect(mockClearGains).toHaveBeenCalledTimes(1);
     expect(mockWriteApoConfigFile).not.toHaveBeenCalled();
     expect(mockRefreshState).toHaveBeenCalled();
+  });
+
+  /*
+   * The Tone is a layer of its own, so a chip of its own, named by the dials
+   * away from zero. Its × resets the dials and leaves the bands; the EQ
+   * chip's × resets the bands and leaves the dials.
+   */
+  it('gives the Tone a chip of its own, cleared apart from the bands', async () => {
+    const filter = { ...getDefaultFilterWithId(), gain: 4 };
+    const context: IFluidEqContext = {
+      ...defaultFluidEqContext,
+      isFlat: false,
+      filters: { [filter.id]: filter },
+      tone: { bass: 3, mid: 0, treble: -2 },
+      refreshState: mockRefreshState,
+    };
+    mockSetTone.mockResolvedValue(undefined);
+
+    render(
+      <FluidEqProviderWrapper value={context}>
+        <ActiveLayers />
+      </FluidEqProviderWrapper>,
+    );
+    expect(screen.getByText(/Bass \+3.*Treble -2/)).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Reset every band to 0 dB' }),
+      );
+      await Promise.resolve();
+    });
+    expect(mockClearGains).toHaveBeenCalledTimes(1);
+    expect(mockSetTone).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Reset Bass, Mid and Treble to 0 dB',
+        }),
+      );
+      await Promise.resolve();
+    });
+    expect(mockSetTone).toHaveBeenCalledWith(null);
+    expect(mockClearGains).toHaveBeenCalledTimes(1);
   });
 
   /*

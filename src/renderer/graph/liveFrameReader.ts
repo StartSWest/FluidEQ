@@ -20,6 +20,12 @@ import {
   writeChannelWaveformPoints,
   writeFrequencyPoints,
 } from './liveSpectrumFrames';
+import {
+  type ILiveGraphBand,
+  followGraphReference,
+  readGraphLevels,
+  writeGraphPoints,
+} from './liveGraphBand';
 import { readPeakAmplitude } from './outputLevel';
 
 /**
@@ -46,6 +52,12 @@ import { readPeakAmplitude } from './outputLevel';
  */
 export interface ILiveFrame {
   points: IChartPointData[];
+  /**
+   * The same moment across a graph's whole width, its bottom octaves read
+   * over a longer window (`liveGraphBand.ts`). What the graphs draw; `points`
+   * stays the 20 Hz to 20 kHz everything else is tuned to.
+   */
+  graphPoints: IChartPointData[];
   waveform: number[];
   /**
    * Each real channel's loudest sample in the window, as a linear amplitude:
@@ -70,6 +82,8 @@ export interface ILiveFrameReaderOptions {
   channelAnalysers: readonly AnalyserNode[];
   axis: number[];
   cells: IAxisCell[];
+  /** The graphs' own band, with its own long-window analyser. */
+  graph: ILiveGraphBand;
   /**
    * The pump's track reference, shared. A louder frame seen here first raises
    * it, exactly as the pump would. A background reader lets it fall while
@@ -117,6 +131,7 @@ export const createLiveFrameReader = ({
   channelAnalysers,
   axis,
   cells,
+  graph,
   trackReference,
   audioTimeMs = () => analyser.context.currentTime * 1000,
   releaseReference = () => false,
@@ -124,11 +139,13 @@ export const createLiveFrameReader = ({
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
   const levels = new Float64Array(axis.length);
   const buffers = createFrameBuffers();
+  const graphBuffers = createFrameBuffers();
   const channelSamples = channelAnalysers.map(
     (channel) => new Float32Array(channel.fftSize),
   );
   const frame: ILiveFrame = {
     points: NO_POINTS,
+    graphPoints: NO_POINTS,
     waveform: buffers.waveform[0],
     channelPeaks: channelAnalysers.map(() => 0),
   };
@@ -165,6 +182,7 @@ export const createLiveFrameReader = ({
       const peak = getPeakLevel(frequencyData);
       if (peak === undefined) {
         frame.points = NO_POINTS;
+        frame.graphPoints = NO_POINTS;
         return frame;
       }
       trackReference.current =
@@ -184,6 +202,20 @@ export const createLiveFrameReader = ({
         levels,
         trackReference.current,
       );
+      // The graphs' own scale: slices of an octave read higher than single
+      // bins wherever the sound is dense, so they are measured against the
+      // loudest slice rather than the loudest bin (`liveGraphBand.ts`).
+      const graphLevels = readGraphLevels(graph, frequencyData);
+      const graphReference = followGraphReference(graph, elapsedMs);
+      frame.graphPoints =
+        graphReference === undefined
+          ? NO_POINTS
+          : writeGraphPoints(
+              graphBuffers.points[0],
+              graph.axis,
+              graphLevels,
+              graphReference,
+            );
       return frame;
     },
   };

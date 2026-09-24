@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': 'EQ生效时约增加 {ms} ms',
   'eq.mode.linearDelay': '约增加 {ms} ms 延迟',
+  'eq.mode.linearDelayShared': '约 {ms} ms（共用）',
   'eq.mode.gameMinimum': '游戏模式：最小相位',
   'eq.layouts.builtIn': '内置布局',
   'eq.layouts.saved': '我的布局',
@@ -34,7 +35,7 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.error': '无法更新布局，请重试。',
   'eq.layouts.clearTitle': '清空 EQ？',
   'eq.layouts.clearWarning':
-    '将每个频段的增益设为 0 dB。保留当前的频段数、频率、Q 值、EQ 模式和前级增益。',
+    '将每个频段的增益以及低音、中音、高音旋钮设为 0 dB。保留当前的频段数、频率、Q 值、低切与高切、EQ 模式和前级增益。',
   'eq.layouts.deleteNamed': '删除“{name}”',
   'eq.layouts.deleteWarning':
     '从已保存的布局中删除“{name}”？当前的 EQ 不会改变。',
@@ -52,11 +53,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': '精确',
   'eq.mode.classic': '经典',
   'eq.mode.trebleEqPrecise':
-    '精确：你的高音频段完全按绘制的样子发声，直到 20\u00a0kHz。',
+    '精确：你的频段、音色、预设、单元类型和智能均衡完全按绘制的样子发声，直到 20\u00a0kHz。',
   'eq.mode.trebleEqClassic':
     '经典：与 Equalizer APO 的播放方式相同。高音频段会比你的设置更窄、更低，越接近 20\u00a0kHz 越明显。',
   'eq.mode.trebleCurvesPrecise':
-    '精确：预设、单元类型、智能均衡和你的耳机校正完全按绘制的样子发声，直到 20\u00a0kHz。',
+    '精确：你的耳机校正完全按绘制的样子发声，直到 20\u00a0kHz。',
   'eq.mode.trebleCurvesClassic':
     '经典：与 Equalizer APO 的播放方式相同，也是 AutoEQ 调校耳机校正时所用的方式。高音频段会比设置更窄、更低，越接近 20\u00a0kHz 越明显。',
   'eq.mode.trebleUpdate': '请更新 FluidEQ 引擎以选择高音的播放方式。',
@@ -82,7 +83,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': '普通',
   'eq.mode.studio': '录音室',
   'eq.mode.yourEq': '自定义 EQ',
-  'eq.mode.curves': '曲线',
+  'eq.mode.curves': '校正',
   'graph.resize': '拖动可调整频响图大小',
   'graph.view.title': '图表占用的屏幕空间',
   'graph.view.normal': '视图',
@@ -227,6 +228,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': '预设',
   'graph.curve.smart': '智能均衡',
   'graph.curve.custom': '自定义效果',
+  'graph.curve.tone': '音色',
   'graph.curve.total': '最终输出',
   'graph.design.showWave': '请先显示波形，再设计外观',
   'graph.design.closeHint': '关闭外观编辑器（Esc）',
@@ -515,6 +517,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': '智能均衡',
   'eq.layers.remove': '移除{layer}层',
   'eq.layers.clearBands': '将所有频段重置为 0 dB',
+  'eq.layers.clearTone': '将低音、中音、高音重置为 0 dB',
   'eq.layers.clearReference': '移除耳机校正',
   'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
   'eq.layers.clearCustom': '清除自定义效果的滤波器和文本',
@@ -526,6 +529,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': '选中的频段',
   'eq.selectedCount': '{count} 个频段',
   'eq.tone': '音色',
+  'eq.tone.lowCut': '低切',
+  'eq.tone.highCut': '高切',
+  'eq.tone.lowCutHint':
+    '20 Hz 低切。0 为关闭；调高则切得更陡，每倍频程 12 或 24 dB。',
+  'eq.tone.highCutHint':
+    '20 kHz 高切。0 为关闭；调高则切得更陡，每倍频程 12 或 24 dB。',
   'eq.tone.bass': '低音',
   'eq.tone.mid': '中音',
   'eq.tone.treble': '高音',

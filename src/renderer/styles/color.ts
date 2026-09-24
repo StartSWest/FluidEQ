@@ -79,6 +79,17 @@ export enum ColorEnum {
   TOTAL = '#dbe7ff',
   /** The user's own custom APO commands. */
   CUSTOM = '#ff7a45',
+  /**
+   * The Tone panel's Bass, Mid and Treble, as the curve of their own they
+   * became (`tone.ts`).
+   *
+   * Chartreuse, found by walking the wheel rather than by eye, for the reason
+   * the headphone note gives: composited at half opacity on the plot's
+   * ground, it is 36.7 CIELAB units from its nearest neighbours — the live
+   * trace's green and the driver's amber, equally — which is the widest gap
+   * the wheel had left, and wider than any pair the palette already held.
+   */
+  TONE = '#ddff1a',
 }
 
 export enum GrayScaleEnum {
@@ -131,6 +142,7 @@ export const LAYER_SWATCH: Record<string, string> = {
   // is. Keyed by `TApoLayer`, so every layer that can be written needs a row.
   headphone: ColorEnum.HEADPHONE,
   eq: SecondaryColorEnum.DEFAULT,
+  tone: ColorEnum.TONE,
   voicing: ColorEnum.TRIADIC1,
   smart: ColorEnum.SMART,
   custom: ColorEnum.CUSTOM,

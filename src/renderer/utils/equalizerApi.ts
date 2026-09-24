@@ -48,6 +48,7 @@ import { IChainImport } from 'common/chainBundle';
 // pure implementation by accident.
 import type { ISongEqEntry } from 'common/songEq';
 import type { ISongIdentity } from 'common/songIdentity';
+import type { ITone } from 'common/tone';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 
 import {
@@ -966,6 +967,31 @@ export const setEqMode = (
 ): Promise<void> => {
   const channel = ChannelEnum.SET_EQ_MODE;
   return sendRequest(channel, [mode, scope], setterResponseHandler);
+};
+
+/**
+ * One of the cuts at the edges of the whole EQ, as its slope in dB per
+ * octave, 0 for none (`eqCuts.ts`).
+ */
+export const setEqCut = (
+  cut: keyof NonNullable<IState['eqCuts']>,
+  slope: number,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_EQ_CUT;
+  return sendRequest(channel, [cut, slope], setterResponseHandler);
+};
+
+/**
+ * The Tone panel's three dials, written as their own layer (`tone.ts`).
+ *
+ * Deliberately not routed through the bands: the tone is laid over them and
+ * never written into them, which is the whole point of it being a layer.
+ * @param { ITone | null } tone - the three values, or null for all at zero
+ * @returns { Promise<void> } exception if the values are not three numbers
+ */
+export const setTone = (tone: ITone | null): Promise<void> => {
+  const channel = ChannelEnum.SET_TONE;
+  return sendRequest(channel, [tone], setterResponseHandler);
 };
 
 /**

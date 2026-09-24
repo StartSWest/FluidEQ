@@ -48,6 +48,8 @@ import {
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { PRODUCT_NAME } from '../common/branding';
+import { toEqCuts } from '../common/eqCuts';
+import { toTone } from '../common/tone';
 import { sanitizeSmartEqSettings } from '../common/smartEq';
 import {
   validatePresetV1,
@@ -311,6 +313,8 @@ export const fetchSettings = (settingsDir: string) => {
     const voicing = normalizeLayerSelection(input.voicing);
     const driver = normalizeLayerSelection(input.driver);
     const smartEq = sanitizeSmartEqSettings(input.smartEq);
+    const eqCuts = toEqCuts(input.eqCuts);
+    const tone = toTone(input.tone);
 
     return {
       ...fallbackState,
@@ -348,6 +352,7 @@ export const fetchSettings = (settingsDir: string) => {
       input.curveSmoothing === 'third'
         ? { curveSmoothing: input.curveSmoothing }
         : {}),
+      ...(eqCuts ? { eqCuts } : {}),
       ...(input.eqMode === 'normal' ||
       input.eqMode === 'double' ||
       input.eqMode === 'studio'
@@ -369,6 +374,7 @@ export const fetchSettings = (settingsDir: string) => {
         : {}),
       ...(typeof input.isFlat === 'boolean' ? { isFlat: input.isFlat } : {}),
       ...(convolution ? { convolution } : {}),
+      ...(tone ? { tone } : {}),
       ...(voicing ? { voicing } : {}),
       ...(driver ? { driver } : {}),
       ...(smartEq ? { smartEq } : {}),
@@ -401,10 +407,23 @@ export const fetchSettings = (settingsDir: string) => {
     // one straight back into a session that has heard nothing. Left out of the
     // object rather than set to undefined: an absent key and a present empty
     // one are the same state, and only one of them says so.
-    const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } = input;
+    const {
+      smartHeadroomProgramme,
+      smartHeadroomTrimDb,
+      eqCuts: storedCuts,
+      tone: storedTone,
+      ...persisted
+    } = input;
+    // In slopes the dials offer, whatever an older build saved: a cut at a
+    // slope since taken off loads at the steepest one left.
+    const eqCuts = toEqCuts(storedCuts);
+    // Within the dials' travel, whatever the file says.
+    const tone = toTone(storedTone);
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled
     return {
       ...persisted,
+      ...(eqCuts ? { eqCuts } : {}),
+      ...(tone ? { tone } : {}),
       preAmp: clampGain(input.preAmp),
       filters: normalizeFilters(input.filters),
       ...(Array.isArray(input.graphicEq)

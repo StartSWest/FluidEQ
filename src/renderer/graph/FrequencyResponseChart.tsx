@@ -151,6 +151,8 @@ import liveTraceCurves from './liveTraceCurves';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
+import { hasEqCut } from '../../common/eqCuts';
+import { hasTone } from '../../common/tone';
 import {
   buildChartData,
   IGraphData,
@@ -318,6 +320,7 @@ const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
   'Headphone Correction': 'headphone',
   'Smart EQ': 'smart',
   'Custom FX': 'custom',
+  Tone: 'tone',
   'Total Response': 'total',
 };
 
@@ -725,6 +728,7 @@ const FrequencyResponseChart = ({
     eqBandQ,
     curveBandQ,
     curveSmoothing,
+    eqCuts,
 
     convolution,
     preAmp: configuredPreAmp,
@@ -742,6 +746,7 @@ const FrequencyResponseChart = ({
     driver,
     headphone,
     smartEq,
+    tone,
     bypassed,
     customFx,
   } = useFluidEqContext();
@@ -833,6 +838,10 @@ const FrequencyResponseChart = ({
     if (!isBypassed('eq')) {
       curveChips.push({ curve: 'eq', label: t('graph.curve.eq') });
     }
+    // Beside the bands, which is where the Tone is written (`tone.ts`).
+    if (hasTone(tone) && !isBypassed('tone')) {
+      curveChips.push({ curve: 'tone', label: t('graph.curve.tone') });
+    }
     if (voicing?.profileId && !isBypassed('voicing')) {
       curveChips.push({ curve: 'voicing', label: t('graph.curve.voicing') });
     }
@@ -859,7 +868,10 @@ const FrequencyResponseChart = ({
       driver?.profileId ||
       hasHeadphoneLayer(headphone) ||
       hasSmartEqLayer(smartEq) ||
-      hasCustomFxCurve(customFx)
+      hasTone(tone) ||
+      hasCustomFxCurve(customFx) ||
+      // The output curve is the one that carries the cuts (`hasExtraLayers`).
+      hasEqCut(eqCuts)
     ) {
       curveChips.push({ curve: 'total', label: t('graph.curve.total') });
     }
@@ -1139,6 +1151,7 @@ const FrequencyResponseChart = ({
         eqBandQ,
         curveBandQ,
         curveSmoothing,
+        eqCuts,
 
         isEqQuiet,
         hasPreAmp,
@@ -1149,6 +1162,7 @@ const FrequencyResponseChart = ({
         sampleRate: outputRate,
         smartEq,
         t,
+        tone,
         voicing,
       }),
     [
@@ -1169,6 +1183,7 @@ const FrequencyResponseChart = ({
       eqBandQ,
       curveBandQ,
       curveSmoothing,
+      eqCuts,
       matchedDesign,
       outputRate,
 
@@ -1176,6 +1191,7 @@ const FrequencyResponseChart = ({
       preAmp,
       smartEq,
       t,
+      tone,
       voicing,
     ],
   );

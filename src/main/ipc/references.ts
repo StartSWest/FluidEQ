@@ -30,6 +30,7 @@ import {
 } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
+import { MAX_CORRECTION_GAIN } from '../../common/correctionRange';
 import { getOpraLabel, getOpraPreset, getOpraProductList } from '../opra';
 import { checkOpraUpdate, updateOpraDatabase } from '../opraUpdater';
 import {
@@ -62,8 +63,11 @@ export interface IReferencesIpcDeps {
     activeAudioDevice?: IAudioDevice;
   };
 
-  /** Bounds a published curve so a bad measurement cannot silence the output. */
-  shieldReferenceBands: (filters: IFiltersMap) => IFiltersMap;
+  /**
+   * Bounds a published curve so a bad measurement cannot silence the output:
+   * the chain within `limit`, a slider's ±20 dB unless it says otherwise.
+   */
+  shieldReferenceBands: (filters: IFiltersMap, limit?: number) => IFiltersMap;
   applyingLayer: (layer: TApoLayer) => void;
 
   handleError: (
@@ -151,7 +155,12 @@ export const registerReferencesIpc = ({
        * not to correct, and the bands stay whatever the person made them.
        */
       state.headphone = {
-        filters: shieldReferenceBands(presetSettings.filters),
+        // A correction's range (`correctionRange.ts`), so the curve plays as
+        // the library publishes the curve.
+        filters: shieldReferenceBands(
+          presetSettings.filters,
+          MAX_CORRECTION_GAIN,
+        ),
         /*
          * No published curve here is a list of points.
          *

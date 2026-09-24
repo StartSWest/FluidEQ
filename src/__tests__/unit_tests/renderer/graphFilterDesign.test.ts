@@ -189,27 +189,33 @@ describe('the chart built for the engine and rate playing', () => {
     const built = buildChartData(
       params(
         {
-          // Your EQ on Precise, the curves on Classic.
+          // Your EQ on Precise, the corrections on Classic.
           matchedDesign: { eq: true, curves: false },
           sampleRate: 48000,
+          // A preset is in Your EQ's group; a headphone correction is the
+          // corrections' (`layerGroupOf`).
           voicing: {
             profileId: 'edited',
             intensity: 1,
             apoOverride: { filters: { treble: filter({ id: 'treble' }) } },
           },
+          headphone: {
+            filters: { treble: filter({ id: 'treble' }) },
+            intensity: 1,
+          },
         },
         refs,
       ),
     );
-    const preset =
-      built.chartData.find((curve) => curve.id === 'Voicing')?.line.points ??
-      [];
+    const line = (id: string) =>
+      built.chartData.find((curve) => curve.id === id)?.line.points ?? [];
     const matched = at(getDesignedFilterLineData(filter(), true, 48000), 20000);
     const cookbook = at(getFilterLineData(filter(), 48000), 20000);
     // POSITIVE CONTROL: the two designs of this band differ where it counts.
     expect(matched - cookbook).toBeGreaterThan(1);
     expect(at(eqCurve(built), 20000)).toBeCloseTo(matched, 6);
-    expect(at(preset, 20000)).toBeCloseTo(cookbook, 6);
+    expect(at(line('Voicing'), 20000)).toBeCloseTo(matched, 6);
+    expect(at(line('Headphone Correction'), 20000)).toBeCloseTo(cookbook, 6);
   });
 
   it('redraws the EQ when its Treble choice changes', () => {

@@ -83,9 +83,9 @@ const tour: Partial<Dictionary> = {
     'Passare da un preset all’altro cambia il carattere, non il volume.',
   'tour.tone.kicker': 'CONTROLLI DI TONO',
   'tour.tone.title': 'Bassi, Medi e Alti, come su un amplificatore',
-  'tour.tone.subtitle': 'Tre manopole per tutte le bande',
+  'tour.tone.subtitle': 'Tre manopole con una curva propria',
   'tour.tone.lead':
-    'Senza bande selezionate, tre manopole muovono ciascuna il proprio terzo del suono su tutta la curva in un colpo solo: il modo più rapido per scaldare un brano o renderlo più brillante, senza toccare una sola banda.',
+    'Senza bande selezionate, Bassi, Medi e Alti modellano il suono come una curva a sé, con un taglio dei bassi e uno degli alti ai lati: il modo più rapido per scaldare un brano o renderlo più brillante, e ogni banda resta come l’hai regolata.',
   'tour.tone.point1':
     'L’equalizzatore si apre su tutte le bande, senza nessuna selezionata.',
   'tour.tone.point2':

@@ -19,20 +19,22 @@ import { APO_FEATURES } from '../../../common/constants';
 import {
   ENGINE_MATCHED_DESIGN_SINCE,
   enginePlaysMatched,
+  layerGroupOf,
   MATCHED_DESIGN_DIRECTIVE,
-  trebleScopeOf,
 } from '../../../common/filterDesign';
 
-describe('trebleScopeOf', () => {
-  it('puts every layer but the EQ under the Curves row, the correction too', () => {
-    const curves = APO_FEATURES.filter((feature) => feature !== 'eq');
-    // POSITIVE CONTROL: the list is not empty, so `every` below proves
-    // something about each layer rather than about none.
-    expect(curves).toEqual(['driver', 'headphone', 'voicing', 'smart']);
-    expect(curves.every((feature) => trebleScopeOf(feature) === 'curves')).toBe(
-      true,
-    );
-    expect(trebleScopeOf('eq')).toBe('eq');
+describe('layerGroupOf', () => {
+  it('puts the headphone correction alone under the Corrections row', () => {
+    expect(layerGroupOf('headphone')).toBe('curves');
+  });
+
+  it("puts everything that shapes the sound to taste under Your EQ's row", () => {
+    const taste = APO_FEATURES.filter((feature) => feature !== 'headphone');
+    // POSITIVE CONTROL: the list is every other layer by name, so `every`
+    // below proves something about each of them rather than about none, and
+    // a layer added later has to be placed here on purpose.
+    expect(taste).toEqual(['driver', 'eq', 'tone', 'voicing', 'smart']);
+    expect(taste.every((feature) => layerGroupOf(feature) === 'eq')).toBe(true);
   });
 });
 

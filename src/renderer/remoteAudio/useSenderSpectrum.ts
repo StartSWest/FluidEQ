@@ -11,6 +11,12 @@ import {
   writeFrequencyPoints,
 } from '../graph/liveSpectrumFrames';
 import {
+  createGraphSliceReader,
+  followGraphReference,
+  type IGraphSliceReader,
+  writeGraphPoints,
+} from '../graph/liveGraphBand';
+import {
   advanceLevel,
   amplitudeToDb,
   createLevelFollower,
@@ -23,6 +29,12 @@ import { SENDER_SPECTRUM_SIZE, type ISenderSpectrum } from './senderSpectrum';
 
 export interface ISenderFrame {
   points: IChartPointData[];
+  /**
+   * Across a graph's whole width, as the local capture's are; from the one
+   * transform the sender makes, so without the local capture's longer window
+   * for the bottom octaves (`liveGraphBand.ts`).
+   */
+  graphPoints: IChartPointData[];
   waveform: number[];
   outputLevels: IOutputLevel[];
   isClipping: boolean;
@@ -69,6 +81,7 @@ const useSenderSpectrum = (
     let requestedAt = 0;
     let previousFrameAt = performance.now();
     let reference: number | undefined;
+    let graphSlices: IGraphSliceReader | undefined;
     let followers: ReturnType<typeof createLevelFollower>[] = [];
     const finishPendingRead = (nextFrame: ISenderFrame | undefined) => {
       const pending = pendingRead;
@@ -114,6 +127,16 @@ const useSenderSpectrum = (
         createAxisCells(axis, data.sampleRate, SENDER_SPECTRUM_SIZE),
         levels,
       );
+      // Slices of an octave, as the local graphs read, against the loudest
+      // slice (`liveGraphBand.ts`); rebuilt only when the rate changes.
+      if (graphSlices?.sampleRate !== data.sampleRate) {
+        graphSlices = createGraphSliceReader(
+          data.sampleRate,
+          SENDER_SPECTRUM_SIZE,
+        );
+      }
+      const graphLevels = graphSlices.read(data.frequency);
+      const graphReference = followGraphReference(graphSlices, delta);
       const peak = getPeakLevel(data.frequency);
       reference =
         peak === undefined
@@ -135,6 +158,15 @@ const useSenderSpectrum = (
                 axis,
                 levels,
                 reference,
+              ),
+        graphPoints:
+          reference === undefined || graphReference === undefined
+            ? []
+            : writeGraphPoints(
+                graphSlices.axis.map(() => ({ x: 0, y: 0 })),
+                graphSlices.axis,
+                graphLevels,
+                graphReference,
               ),
         waveform: data.waveform,
         outputLevels,

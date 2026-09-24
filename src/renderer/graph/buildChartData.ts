@@ -1,8 +1,3 @@
-import {
-  shapeEqFilters,
-  smoothEqCurve,
-  filterSmoothingCorrection,
-} from 'common/eqShape';
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
@@ -22,12 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { MutableRefObject } from 'react';
+import { shapeEqFilters, smoothEqCurve } from 'common/eqShape';
 import {
-  getEqMode,
-  getBandQ,
   convolutionResponse,
-  getCurveEqMode,
   eqModeGainScale,
   getStudioEqFilters,
   getStudioEqGraphic,
@@ -35,28 +27,20 @@ import {
 import {
   AutoEqFormat,
   IFilter,
-  IFiltersMap,
-  IGraphicEqPoint,
   isBandEnabled,
   IState,
-  TApoFeature,
   TApoLayer,
 } from 'common/constants';
-import {
-  GRAPH_END,
-  GRAPH_START,
+import type {
   IChartCurveData,
   IChartLineDataPointsById,
-  OUTPUT_CURVE_ID,
 } from './ChartController';
 import {
   getCombinedLineData,
   getDesignedFilterLineData,
   getGraphicEqLineData,
 } from './utils';
-import { ColorEnum } from '../styles/color';
-import { getBandColor } from '../utils/bandColors';
-import { useTranslation } from '../utils/I18nContext';
+import type { useTranslation } from '../utils/I18nContext';
 import { getVoicingFilters, getVoicingGraphicEq } from '../../common/voicing';
 import { getDriverFilters, getDriverGraphicEq } from '../../common/driver';
 import {
@@ -65,11 +49,15 @@ import {
 } from '../../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
-import { trebleScopeOf } from '../../common/filterDesign';
+import { hasEqCut } from '../../common/eqCuts';
+import { getToneFilters, hasTone } from '../../common/tone';
 import type { TMatchedDesign } from './useMatchedDesign';
+import withEqCuts from './eqCutLine';
+import { createLayerLines, layerLines } from './layerLines';
+import { drawBandLines, IBandLineCache } from './bandLines';
+import chartCurves, { eqGradientStops } from './chartCurves';
 
-/** Supporting curves sit behind the one in focus rather than competing with it. */
-export const SUPPORTING_CURVE_OPACITY = 0.5;
+export { SUPPORTING_CURVE_OPACITY } from './chartCurves';
 
 export interface IGraphData {
   chartData: IChartCurveData[];
@@ -84,26 +72,31 @@ export interface IGraphData {
  * below because they are not state: two the component derives, the translator
  * the layer names are read through, and the two render-spanning caches.
  */
-export interface IBuildChartDataParams extends Pick<
-  IState,
-  | 'convolution'
-  | 'customFx'
-  | 'driver'
-  | 'eqFormat'
-  | 'filters'
-  | 'graphicEq'
-  | 'headphone'
-  | 'isAutoPreAmpOn'
-  | 'isEqDoubleOn'
-  | 'eqMode'
-  | 'curveEqMode'
-  | 'eqBandQ'
-  | 'curveBandQ'
-  | 'curveSmoothing'
-  | 'preAmp'
-  | 'smartEq'
-  | 'voicing'
-> {
+export interface IBuildChartDataParams
+  extends
+    Pick<
+      IState,
+      | 'convolution'
+      | 'customFx'
+      | 'driver'
+      | 'eqFormat'
+      | 'filters'
+      | 'graphicEq'
+      | 'headphone'
+      | 'isAutoPreAmpOn'
+      | 'isEqDoubleOn'
+      | 'eqMode'
+      | 'curveEqMode'
+      | 'eqBandQ'
+      | 'curveBandQ'
+      | 'curveSmoothing'
+      | 'eqCuts'
+      | 'preAmp'
+      | 'smartEq'
+      | 'tone'
+      | 'voicing'
+    >,
+    IBandLineCache {
   /**
    * Not from `IState`, where it is optional.
    *
@@ -136,58 +129,23 @@ export interface IBuildChartDataParams extends Pick<
    */
   sampleRate?: number;
   t: ReturnType<typeof useTranslation>['t'];
-  /**
-   * Last render's bands and the lines drawn for them, kept across renders.
-   *
-   * A band's line is expensive and most renders change one band, so the rest
-   * are reused rather than recomputed. That makes this a cache with a lifetime,
-   * which is why it arrives as refs the component owns instead of living here:
-   * module state would be one cache shared by every chart on screen, and two
-   * charts showing different tunings would answer each other's questions.
-   */
-  prevFilters: MutableRefObject<IFiltersMap>;
-  prevFilterLines: MutableRefObject<IChartLineDataPointsById>;
 }
 
-/**
- * Cheaper than redrawing a band's line to find out it did not move.
- *
- * A missing band on either side counts as unequal rather than throwing: the
- * previous render's map is a cache, and a band that has just been added is
- * absent from it by definition.
- */
-const isFilterEqual = (f1: IFilter, f2: IFilter) => {
-  if (!f1 || !f2) {
-    return false;
-  }
-
-  return (
-    f1.frequency === f2.frequency &&
-    f1.gain === f2.gain &&
-    f1.quality === f2.quality &&
-    f1.type === f2.type &&
-    isBandEnabled(f1) === isBandEnabled(f2)
-  );
-};
-
-/**
- * Which design and rate each chart's cached band lines were drawn with, keyed
- * by that chart's own cache so two charts never answer for each other.
- */
-const drawnDesign = new WeakMap<MutableRefObject<IFiltersMap>, string>();
+/** A curve's points, or nothing where none of its lines are drawn. */
+const curveOf = (lines: IChartLineDataPointsById) =>
+  Object.keys(lines).length > 0 ? getCombinedLineData(0, lines) : undefined;
 
 /**
  * Every curve the graph draws, built in one pass.
  *
- * Six hundred lines inside a component, almost all of it a function of the
- * tuning and nothing else. The exception is the two caches, which is why they
- * are parameters: everything else here can be read off the arguments, and
- * saying so in the signature is the point of moving it out.
+ * Almost all of it a function of the tuning and nothing else. The exception
+ * is the band-line cache, which is why it is a parameter: everything else
+ * here can be read off the arguments, and saying so in the signature is the
+ * point of keeping it out of the component.
  *
- * One pass rather than a builder per layer, because the layers are not
- * independent: the final chain is their sum, and the automatic preamp is
- * measured from that sum. Computing each in isolation would mean walking the
- * whole set again to add them up.
+ * One pass rather than a builder per curve, because the layers are not
+ * independent: the final chain is their sum, and a builder each would mean
+ * walking the whole set again to add them up.
  */
 export const buildChartData = ({
   bypassed,
@@ -207,6 +165,7 @@ export const buildChartData = ({
   eqBandQ,
   curveBandQ,
   curveSmoothing,
+  eqCuts,
   matchedDesign,
   preAmp,
   prevFilterLines,
@@ -214,241 +173,82 @@ export const buildChartData = ({
   sampleRate,
   smartEq,
   t,
+  tone,
   voicing,
 }: IBuildChartDataParams): IGraphData => {
-  const strength = getEqMode({ eqMode, isEqDoubleOn });
-  const curveStrength = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
-  const shapeState = { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ };
-  const mainShape = getBandQ(shapeState, 'eq');
-  const curveShape = getBandQ(shapeState, 'curves');
-  // Whether a layer's bands are drawn analog-matched: only what the engine
-  // playing builds that way. The custom file names no layer, so its bands
-  // stay on the cookbook in the engine and here.
-  const matchedFor = (feature?: TApoFeature) =>
-    feature !== undefined && matchedDesign[trebleScopeOf(feature)];
-  const eqMatched = matchedFor('eq');
-  const appliedFilterLine = (filter: IFilter, feature?: TApoFeature) => {
-    const effective =
-      curveStrength === 'studio'
-        ? getStudioEqFilters([filter], curveShape)[0]
-        : shapeEqFilters([filter], curveShape)[0];
-    const original = getDesignedFilterLineData(
-      effective,
-      matchedFor(feature),
-      sampleRate,
-    );
-    const correction = filterSmoothingCorrection([effective], curveSmoothing);
-    const points = correction.length
-      ? getCombinedLineData(0, {
-          original,
-          correction: getGraphicEqLineData(correction),
-        })
-      : original;
-    return curveStrength === 'double'
-      ? getCombinedLineData(0, { first: points, second: points })
-      : points;
-  };
-  const appliedGraphicLine = (curve: IGraphicEqPoint[]) => {
-    const points = getGraphicEqLineData(
-      curveStrength === 'studio'
-        ? getStudioEqGraphic(smoothEqCurve(curve, curveSmoothing))
-        : smoothEqCurve(curve, curveSmoothing),
-    );
-    return curveStrength === 'double'
-      ? getCombinedLineData(0, { first: points, second: points })
-      : points;
-  };
-  const updatedFilterLines: IChartLineDataPointsById = {};
-  // The cached lines were drawn for one engine's design at one rate:
-  // switching engines or outputs redraws every band rather than reusing a
-  // line of another shape.
-  const design = `${eqMatched ? 'matched' : 'cookbook'}@${sampleRate ?? '-'}`;
-  const redrawAll = drawnDesign.get(prevFilters) !== design;
-  drawnDesign.set(prevFilters, design);
-
-  // Update filter lines that have changed
-  Object.values(filters).forEach((filter) => {
-    // A band switched off gets no line at all, not a flat one.
-    //
-    // The EQ curve is the sum over this map, so leaving the band out is what
-    // makes the drawing agree with what Equalizer APO was actually told — the
-    // same reasoning as the bypassed layers above, one band down. Its handle
-    // stays on the graph, drawn muted, because it is still a band you can pick
-    // up and switch back on.
-    if (!isBandEnabled(filter)) {
-      return;
-    }
-    // New filters have no previous data
-    if (redrawAll || !(filter.id in prevFilters.current)) {
-      updatedFilterLines[filter.id] = getDesignedFilterLineData(
-        filter,
-        eqMatched,
-        sampleRate,
-      );
-      return;
-    }
-
-    // Recompute filter line if it has been adjusted
-    if (!isFilterEqual(filter, prevFilters.current[filter.id])) {
-      updatedFilterLines[filter.id] = getDesignedFilterLineData(
-        filter,
-        eqMatched,
-        sampleRate,
-      );
-    } else {
-      // Otherwise, reuse previous data
-      updatedFilterLines[filter.id] = prevFilterLines.current[filter.id];
-    }
+  const lines = createLayerLines(
+    { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ, curveSmoothing },
+    matchedDesign,
+    sampleRate,
+  );
+  const { strength, curveStrength, mainShape, curveShape } = lines;
+  const eqMatched = lines.matchedFor('eq');
+  const bandLines = drawBandLines(filters, eqMatched, sampleRate, {
+    prevFilters,
+    prevFilterLines,
   });
 
-  // Update past state
-  prevFilterLines.current = updatedFilterLines;
-  prevFilters.current = filters;
-
-  // The voicing is a real APO layer, so it gets a real curve rather than a
-  // note in the UI. Its filters run through the same biquad code as the
-  // bands, which is what makes "EQ + voicing" an honest sum rather than an
-  // approximation of one.
-  const voicingFilterLines: IChartLineDataPointsById = {};
-  const voicingGraphic = bypassed.includes('voicing')
-    ? []
-    : getVoicingGraphicEq(voicing);
-  if (voicingGraphic.length) {
-    voicingFilterLines['voicing-graphic'] = appliedGraphicLine(voicingGraphic);
-  }
-  // Nothing is drawn for a layer that is switched off.
-  //
-  // Bypass keeps the layer in state so the chip can put it back, which means
-  // the graph would happily go on drawing a curve for something that is no
-  // longer in the config — and a graph that disagrees with what you hear is
-  // worse than one that shows less. This is what makes the A/B honest.
-  (bypassed.includes('voicing') || voicingGraphic.length
-    ? []
-    : getVoicingFilters(voicing)
-  ).forEach((filter, index) => {
-    const id = `voicing-${index}`;
-    voicingFilterLines[id] = appliedFilterLine(
-      {
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      },
-      'voicing',
-    );
+  // Each layer a real layer of the chain, so each gets a real curve rather
+  // than a note in the UI, and through the same biquad code as the bands,
+  // which is what makes the total an honest sum rather than an approximation
+  // of one.
+  const voicingLines = layerLines(lines, {
+    feature: 'voicing',
+    isBypassed: bypassed.includes('voicing'),
+    graphic: getVoicingGraphicEq(voicing),
+    filters: getVoicingFilters(voicing),
+    graphicId: 'voicing-graphic',
+    filterPrefix: 'voicing',
   });
-  const hasVoicing = Object.keys(voicingFilterLines).length > 0;
-
-  // Driver compensation is a third APO layer, so it gets the same treatment:
-  // its own curve, from the same biquad code, rather than an invisible
-  // correction the user has to take on trust.
-  const driverFilterLines: IChartLineDataPointsById = {};
-  const driverGraphic = bypassed.includes('driver')
-    ? []
-    : getDriverGraphicEq(driver);
-  if (driverGraphic.length) {
-    driverFilterLines['driver-graphic'] = appliedGraphicLine(driverGraphic);
-  }
-  (bypassed.includes('driver') || driverGraphic.length
-    ? []
-    : getDriverFilters(driver)
-  ).forEach((filter, index) => {
-    const id = `driver-${index}`;
-    driverFilterLines[id] = appliedFilterLine(
-      {
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      },
-      'driver',
-    );
+  const driverLines = layerLines(lines, {
+    feature: 'driver',
+    isBypassed: bypassed.includes('driver'),
+    graphic: getDriverGraphicEq(driver),
+    filters: getDriverFilters(driver),
+    graphicId: 'driver-graphic',
+    filterPrefix: 'driver',
   });
-  const hasDriver = Object.keys(driverFilterLines).length > 0;
-
-  // The published headphone correction, which had no curve here at all.
-  //
-  // It was the one layer the graph did not know about: no line, no chip, and
-  // — the part that was wrong rather than merely missing — absent from the
-  // total and from the headroom below, so the curve labelled "Final output"
-  // was not the output and the preamp reserved nothing for a correction that
-  // can easily ask for six decibels. It was reported as "the AutoEQ is being
+  // The published headphone correction, which had no curve here at all: no
+  // line, no chip, and absent from the total, so the curve labelled "Final
+  // output" was not the output. It was reported as "the AutoEQ is being
   // applied as the EQ", which is what a correction with no line of its own
   // looks like from the outside.
-  //
-  // The filter projection rather than the published points, because a curve
-  // here is built from biquads: `getHeadphoneFilters` is what the editor and
-  // the band handles already read, so the line on the plot is the line the
-  // sliders describe. The writer prefers the points where a profile has them
-  // — see `getHeadphoneGraphicEq` — so this is an approximation of the
-  // published curve in exactly the way the editor's own bands are.
-  const headphoneFilterLines: IChartLineDataPointsById = {};
-  const headphoneGraphic = bypassed.includes('headphone')
-    ? []
-    : getHeadphoneGraphicEq(headphone);
-  if (headphoneGraphic.length) {
-    headphoneFilterLines['headphone-graphic'] =
-      appliedGraphicLine(headphoneGraphic);
-  }
-  (bypassed.includes('headphone') || headphoneGraphic.length
-    ? []
-    : getHeadphoneFilters(headphone)
-  ).forEach((filter, index) => {
-    const id = `headphone-${index}`;
-    headphoneFilterLines[id] = appliedFilterLine(
-      {
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      },
-      'headphone',
-    );
+  const headphoneLines = layerLines(lines, {
+    feature: 'headphone',
+    isBypassed: bypassed.includes('headphone'),
+    graphic: getHeadphoneGraphicEq(headphone),
+    filters: getHeadphoneFilters(headphone),
+    graphicId: 'headphone-graphic',
+    filterPrefix: 'headphone',
   });
-  const hasHeadphone = Object.keys(headphoneFilterLines).length > 0;
-
-  // What the measurement decided, drawn like any other layer. This one has
-  // the strongest claim to a curve of its own: nobody chose its shape, so the
-  // graph is the only place it can be inspected at all.
-  const smartFilterLines: IChartLineDataPointsById = {};
-  const smartGraphic = bypassed.includes('smart')
-    ? []
-    : getSmartEqGraphicEq(smartEq);
-  if (smartGraphic.length) {
-    smartFilterLines['smart-graphic'] = appliedGraphicLine(smartGraphic);
-  }
-  (bypassed.includes('smart') || smartGraphic.length
-    ? []
-    : getSmartEqFilters(smartEq)
-  ).forEach((filter, index) => {
-    const id = `smart-eq-${index}`;
-    smartFilterLines[id] = appliedFilterLine(
-      {
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      },
-      'smart',
-    );
+  const smartLines = layerLines(lines, {
+    feature: 'smart',
+    isBypassed: bypassed.includes('smart'),
+    graphic: getSmartEqGraphicEq(smartEq),
+    filters: getSmartEqFilters(smartEq),
+    graphicId: 'smart-graphic',
+    filterPrefix: 'smart-eq',
   });
-  const hasSmartEq = Object.keys(smartFilterLines).length > 0;
+  // The Tone panel's Bass, Mid and Treble: a layer of their own, drawn beside
+  // the bands rather than inside them (`tone.ts`), so a turn of Bass reads as
+  // the shelf it is and not only as a change in the total.
+  const toneLines = layerLines(lines, {
+    feature: 'tone',
+    isBypassed: bypassed.includes('tone'),
+    graphic: [],
+    filters: getToneFilters(tone),
+    graphicId: 'tone-graphic',
+    filterPrefix: 'tone',
+  });
 
-  // Nothing drawn for an impulse that is switched off, for the same reason as
-  // the other layers: this is what Equalizer APO is applying, and a graph
-  // that disagrees with what you hear is worse than one that shows less.
-  const convolutionFilterLines: IChartLineDataPointsById = {};
+  const convolutionLines: IChartLineDataPointsById = {};
   if (!bypassed.includes('convolution')) {
     const response = smoothEqCurve(
       convolutionResponse(convolution, curveShape),
       curveSmoothing,
     );
     if (response.length) {
-      convolutionFilterLines['convolution-response'] = getGraphicEqLineData(
+      convolutionLines['convolution-response'] = getGraphicEqLineData(
         response.map((point) => ({
           ...point,
           gain: point.gain * eqModeGainScale(curveStrength),
@@ -457,7 +257,6 @@ export const buildChartData = ({
     }
   }
 
-  const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
   // A switched-off EQ has no curve at all, like every other switched-off
   // layer. It used to be drawn flat, which is not the same claim: flat says
   // "these bands are doing nothing", and what is true is that they are not in
@@ -467,123 +266,83 @@ export const buildChartData = ({
     hasEq && eqFormat === AutoEqFormat.GRAPHIC && graphicEq?.length
       ? graphicEq
       : undefined;
-  let eqLineData: IChartLineDataPointsById = {};
+  let eqLines: IChartLineDataPointsById = {};
   if (hasEq) {
-    eqLineData = nativeEqGraphic
+    eqLines = nativeEqGraphic
       ? { 'eq-graphic': getGraphicEqLineData(nativeEqGraphic) }
-      : updatedFilterLines;
+      : bandLines;
   }
   // The bands are drawn from zero, and the preamp is left to the output
-  // curve.
+  // curve: this curve is the thing being edited, its handles sit at the gains
+  // they were given, and folding the preamp in slid the line off its own
+  // handles whenever a band nowhere near them got louder.
   //
-  // This curve is the thing being edited, and its handles sit at the gains
-  // they were given — so folding the preamp into it slid the line off its own
-  // handles by however much headroom the chain happened to need, and moved
-  // every band on screen whenever a band nowhere near it got louder. Nothing
-  // about the tuning changed; only the drawing did, which is the complaint
-  // the auto-normalize floor was already fixed for once.
-  //
-  // The preamp is real and still has to be visible, so the output curve below
-  // carries it. That is the honest place for it: it is the level the chain
-  // comes out at, not a property of any one band.
-  const eqCurveData = getCombinedLineData(0, eqLineData);
-  let appliedEqLines = eqLineData;
-  if (hasEq) {
-    const shaped = shapeEqFilters(
-      Object.values(filters).filter(isBandEnabled),
-      mainShape,
+  // The cuts go to the output curve too, and only there. They were drawn on
+  // this line while the Tone was fitted into the bands; the Tone is a curve
+  // of its own now, this line shows the bands alone, and the cuts are the
+  // Tone panel's (Ivan, 2026-09-23: "the cut applies only to final output
+  // since the cyan eq line now doesn't get affected by tone so cuts
+  // neither").
+  // What the output curve sums for the EQ: the bands as the EQ mode plays
+  // them, where the EQ curve above shows them as tuned.
+  const enabledBands = Object.values(filters).filter(isBandEnabled);
+  const drawBands = (bands: IFilter[]): IChartLineDataPointsById =>
+    Object.fromEntries(
+      bands.map((filter) => [
+        filter.id,
+        getDesignedFilterLineData(filter, eqMatched, sampleRate),
+      ]),
     );
-    const shapedLines = nativeEqGraphic
-      ? eqLineData
-      : Object.fromEntries(
-          shaped.map((filter) => [
-            filter.id,
-            getDesignedFilterLineData(filter, eqMatched, sampleRate),
-          ]),
-        );
-    if (strength === 'double') {
-      appliedEqLines = {
-        ...shapedLines,
-        'eq-second-pass': getCombinedLineData(0, shapedLines),
-      };
-    } else if (strength === 'studio') {
-      appliedEqLines = nativeEqGraphic
-        ? {
-            'eq-studio-graphic': getGraphicEqLineData(
-              getStudioEqGraphic(nativeEqGraphic),
-            ),
-          }
-        : Object.fromEntries(
-            getStudioEqFilters(
-              Object.values(filters).filter(isBandEnabled),
-              mainShape,
-            ).map((filter) => [
-              filter.id,
-              getDesignedFilterLineData(filter, eqMatched, sampleRate),
-            ]),
-          );
-    } else {
-      appliedEqLines = shapedLines;
-    }
+  let appliedEqLines = eqLines;
+  if (hasEq && strength === 'studio') {
+    appliedEqLines = nativeEqGraphic
+      ? {
+          'eq-studio-graphic': getGraphicEqLineData(
+            getStudioEqGraphic(nativeEqGraphic),
+          ),
+        }
+      : drawBands(getStudioEqFilters(enabledBands, mainShape));
+  } else if (hasEq) {
+    const shaped = nativeEqGraphic
+      ? eqLines
+      : drawBands(shapeEqFilters(enabledBands, mainShape));
+    appliedEqLines =
+      strength === 'double'
+        ? { ...shaped, 'eq-second-pass': getCombinedLineData(0, shaped) }
+        : shaped;
   }
-  const voicingCurveData = hasVoicing
-    ? getCombinedLineData(0, voicingFilterLines)
-    : [];
-  const driverCurveData = hasDriver
-    ? getCombinedLineData(0, driverFilterLines)
-    : [];
-  const headphoneCurveData = hasHeadphone
-    ? getCombinedLineData(0, headphoneFilterLines)
-    : [];
-  const smartCurveData = hasSmartEq
-    ? getCombinedLineData(0, smartFilterLines)
-    : [];
+
   // The custom file is applied after the generated chain. Draw a native
   // GraphicEQ directly; for parametric commands use the same biquad path as
   // every other layer. The parser's GraphicEQ projection is not drawn twice.
-  const customFilterLines: IChartLineDataPointsById = {};
-  const customGraphicLines: IChartLineDataPointsById = {};
-  if (!bypassed.includes('custom') && customFx) {
+  const customLines: IChartLineDataPointsById = {};
+  const customOn = !bypassed.includes('custom') && customFx !== undefined;
+  if (customOn) {
+    Object.values(customFx.filters).forEach((filter) => {
+      customLines[filter.id] = lines.filterLine(filter);
+    });
     if (customFx.graphicEq?.length) {
-      const graphic = appliedGraphicLine(customFx.graphicEq);
+      const graphic = lines.graphicLine(customFx.graphicEq);
       if (graphic.length > 0) {
-        customGraphicLines['custom-graphic'] = graphic;
+        customLines['custom-graphic'] = graphic;
       }
     }
-    Object.values(customFx.filters).forEach((filter) => {
-      customFilterLines[filter.id] = appliedFilterLine(filter);
-    });
   }
-  const customLines = { ...customFilterLines, ...customGraphicLines };
+  const customPreAmp = customOn ? customFx.preAmp : 0;
   const hasCustom =
-    Object.keys(customLines).length > 0 ||
-    (!bypassed.includes('custom') &&
-      customFx !== undefined &&
-      Math.abs(customFx.preAmp) > 0.001);
-  const customCurveData = hasCustom
-    ? getCombinedLineData(customFx?.preAmp ?? 0, customLines)
-    : [];
-  // What actually reaches the ears once every layer is applied. Worth its own
-  // curve because the layers are written separately but heard together, and
-  // two gentle corrections in the same region are not obviously gentle once
-  // they add up.
+    Object.keys(customLines).length > 0 || Math.abs(customPreAmp) > 0.001;
+
+  // What actually reaches the ears once every layer is applied: the layers
+  // are written separately but heard together, and two gentle corrections in
+  // the same region are not obviously gentle once they add up.
   //
-  // Drawn whenever a second layer EXISTS, not whenever one is switched on.
-  // Gating it on the latter meant bypassing the only extra layer took the
-  // output curve off the plot altogether — so the one curve that answers
-  // "what does this switch actually do to what I hear" vanished at the exact
-  // moment it was asked. It stays, and it moves.
-  //
-  // Every bypassed layer is already an empty set of lines by this point, EQ
-  // included, so this sum is the chain as Equalizer APO has it and nothing
-  // more.
-  //
-  // A non-zero preamp counts as a reason on its own, now that the bands are
-  // drawn from zero: with a plain EQ and nothing else, this is the only curve
-  // left that shows the headroom being reserved, and a chain quietly sitting
-  // 6 dB down with nothing on screen saying so is how a silent output goes
-  // unnoticed. At 0 dB it would be the EQ curve traced twice, so it is not
-  // drawn.
+  // Drawn whenever a second layer EXISTS, not whenever one is switched on, so
+  // bypassing the only extra layer moves this curve rather than taking the
+  // one curve that answers "what does this switch do" off the plot. Every
+  // bypassed layer is an empty set of lines by now, EQ included, so the sum
+  // is the chain as the engine has it and nothing more. A preamp counts on
+  // its own: with a plain EQ this is the only curve showing the headroom
+  // reserved, and at 0 dB it would be the EQ curve traced twice.
   const hasExtraLayers = Boolean(
     ((strength !== 'normal' || mainShape !== 'off') && hasEq) ||
     convolution ||
@@ -596,215 +355,70 @@ export const buildChartData = ({
     getHeadphoneGraphicEq(headphone).length ||
     getSmartEqFilters(smartEq).length ||
     getSmartEqGraphicEq(smartEq).length ||
-    hasCustomFxCurve(customFx),
+    hasTone(tone) ||
+    hasCustomFxCurve(customFx) ||
+    // The one curve that carries the cuts.
+    hasEqCut(eqCuts),
   );
-  const totalCurveData = hasExtraLayers
-    ? getCombinedLineData(
-        preAmp +
-          (bypassed.includes('custom') || !customFx ? 0 : customFx.preAmp),
-        {
-          ...appliedEqLines,
-          ...convolutionFilterLines,
-          ...voicingFilterLines,
-          ...driverFilterLines,
-          // The line this was named for. Left out, the sum was every layer but
-          // one and still called itself the final output — and the layer it
-          // omitted is frequently the largest thing in the chain, so the curve
-          // somebody reads to answer "what am I actually hearing" was wrong by
-          // several decibels wherever the correction was working hardest.
-          ...headphoneFilterLines,
-          ...smartFilterLines,
-          ...customLines,
-        },
-      )
+  const layersCurve = hasExtraLayers
+    ? getCombinedLineData(preAmp + customPreAmp, {
+        ...appliedEqLines,
+        ...toneLines,
+        ...convolutionLines,
+        ...voicingLines,
+        ...driverLines,
+        ...headphoneLines,
+        ...smartLines,
+        ...customLines,
+      })
     : [];
-  // Named for what it is rather than for what went into it.
-  //
-  // It used to spell out its own ingredients — "EQ + voicing + Smart EQ" —
-  // which is the longest chip in the legend and still does not say the thing
-  // that matters, which is that this line is the one you are listening to.
-  const totalCurveName = t('graph.curve.total');
-  const sortedFilters = Object.values(filters).sort(
-    (a, b) => a.frequency - b.frequency,
-  );
-  const logSpan = Math.log(GRAPH_END / GRAPH_START);
-  const eqGradientStops = [
-    { offset: 0, color: getBandColor(0).color },
-    ...sortedFilters.map((filter, index) => ({
-      offset: Math.log(filter.frequency / GRAPH_START) / logSpan,
-      color: getBandColor(
-        sortedFilters.length > 1 ? index / (sortedFilters.length - 1) : 0,
-      ).color,
-    })),
-    { offset: 1, color: getBandColor(1).color },
-  ];
 
   return {
-    chartData: [
-      ...(hasConvolution && convolution
-        ? [
-            {
-              id: 'Headphone Convolution',
-              name: `Convolution · ${convolution.name}`,
-              line: {
-                color: ColorEnum.COMPLEMENTARY,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: convolutionCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      // The voicing layer on its own, so its shape is readable next to the
-      // bands rather than hidden inside their sum.
-      ...(hasVoicing
-        ? [
-            {
-              id: 'Voicing',
-              name: t('graph.curve.voicing'),
-              line: {
-                color: ColorEnum.TRIADIC1,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: voicingCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      // Driver compensation gets the same treatment as the voicing: its own
-      // curve, so a correction applied on your behalf is visible rather than
-      // taken on trust.
-      ...(hasDriver
-        ? [
-            {
-              id: 'Driver',
-              name: t('graph.curve.driver'),
-              line: {
-                color: ColorEnum.DRIVER,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: driverCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      // Beside the driver, and drawn like it: a correction applied on your
-      // behalf, visible rather than taken on trust. It was the only one of the
-      // four without a line, and frequently the largest of them — so the only
-      // way to see its shape was to switch it off and watch the total move.
-      ...(hasHeadphone
-        ? [
-            {
-              id: 'Headphone Correction',
-              name: t('graph.curve.headphone'),
-              line: {
-                color: ColorEnum.HEADPHONE,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: headphoneCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      // Nobody chose this curve's shape, so it is the one layer that cannot
-      // be inspected anywhere else. Drawn separately from the total for the
-      // same reason as the other two: a correction you can see is a
-      // correction you can argue with.
-      ...(hasSmartEq
-        ? [
-            {
-              id: 'Smart EQ',
-              name: t('graph.curve.smart'),
-              line: {
-                color: ColorEnum.SMART,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: smartCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      ...(hasCustom
-        ? [
-            {
-              id: 'Custom FX',
-              name: `${t('graph.curve.custom')} · ${customFx?.fileName ?? ''}`,
-              line: {
-                color: ColorEnum.CUSTOM,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
-                points: customCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      ...(hasExtraLayers
-        ? [
-            {
-              id: OUTPUT_CURVE_ID,
-              name: totalCurveName,
-              line: {
-                color: ColorEnum.TOTAL,
-                strokeWidth:
-                  strength === 'normal' && curveStrength === 'normal' ? 2 : 3,
-                opacity:
-                  strength === 'normal' && curveStrength === 'normal'
-                    ? SUPPORTING_CURVE_OPACITY
-                    : 1,
-                points: totalCurveData,
-              },
-            } as IChartCurveData,
-          ]
-        : []),
-      // Quietly in the reading state, at full weight everywhere else.
-      //
-      // The line itself was never what made the layer curves hard to read —
-      // its furniture was: three pixels of stroke with a glow under it, a
-      // spectrum gradient, and two dozen handles sitting on top of the very
-      // curves somebody is trying to see. Taking the whole curve away removed
-      // the thing everything else is read against, which answers a different
-      // question from the one being asked. So the furniture goes and the line
-      // stays, thin and plain.
-      ...(hasEq
-        ? [
-            {
-              id: 'EQ Response',
-              name: t('graph.curve.eq'),
-              line: isEqQuiet
-                ? {
-                    color: 'currentColor',
-                    strokeWidth: 1.5,
-                    opacity: SUPPORTING_CURVE_OPACITY,
-                    points: eqCurveData,
-                  }
-                : {
-                    color: 'currentColor',
-                    strokeWidth: 3,
-                    points: eqCurveData,
-                    gradientId: 'chart-eq-spectrum-gradient',
-                    gradientStops: eqGradientStops,
-                    glow: true,
-                  },
-            } as IChartCurveData,
-          ]
-        : []),
-    ],
-    // Rounding to two decimals. When disabled, expose the current manual
-    // preamp so the graph and APO remain in sync without auto-adjusting it.
+    chartData: chartCurves({
+      t,
+      convolution:
+        hasConvolution && convolution
+          ? {
+              name: convolution.name,
+              points: getCombinedLineData(0, convolutionLines),
+            }
+          : undefined,
+      voicing: curveOf(voicingLines),
+      driver: curveOf(driverLines),
+      headphone: curveOf(headphoneLines),
+      smart: curveOf(smartLines),
+      custom: hasCustom
+        ? {
+            fileName: customFx?.fileName ?? '',
+            points: getCombinedLineData(customPreAmp, customLines),
+          }
+        : undefined,
+      tone: curveOf(toneLines),
+      total: hasExtraLayers
+        ? {
+            points: withEqCuts(layersCurve, eqCuts, sampleRate),
+            isEmphasised: strength !== 'normal' || curveStrength !== 'normal',
+          }
+        : undefined,
+      eq: hasEq
+        ? {
+            points: getCombinedLineData(0, eqLines),
+            isQuiet: isEqQuiet,
+            gradientStops: eqGradientStops(filters),
+          }
+        : undefined,
+    }),
     /*
      * THE GRAPH NO LONGER DERIVES THIS. IT REPORTS IT.
      *
-     * Auto normalize now reserves what the music needs, and half of that answer
-     * is a measurement the main process holds. Recomputing the chain-only worst
-     * case here would produce a different, always-wrong number — and because
-     * `FrequencyResponseChart` mirrors this straight into `setPreAmp`, it would
-     * overwrite the real one on every re-render and the whole mode would look
-     * like it did nothing. That is exactly the bug it caused: the config carried
-     * -4.36 dB while the sidebar sat at -20.00 dB and never moved.
-     *
-     * So the chain arithmetic that used to live here is gone rather than
-     * ignored, and `preAmp` — whatever the writer last derived, automatic or
-     * manual — is what the slider and the final curve both show.
+     * Auto normalize reserves what the music needs, and half of that answer
+     * is a measurement the main process holds. Recomputing the chain-only
+     * worst case here would produce a different, always-wrong number — and
+     * because `FrequencyResponseChart` mirrors this straight into
+     * `setPreAmp`, it would overwrite the real one on every re-render: the
+     * config carried -4.36 dB while the sidebar sat at -20.00 dB. So `preAmp`
+     * — whatever the writer last derived, automatic or manual — is what the
+     * slider and the final curve both show.
      */
     autoPreAmpValue: preAmp,
   };

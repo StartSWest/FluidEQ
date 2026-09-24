@@ -178,9 +178,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Modella il suono con EQ',
   'help.eq.intro':
-    'Frequenza sceglie dove agisce la banda; Guadagno, il rinforzo o taglio; Q, la larghezza: Q più alto significa banda più stretta. Senza bande selezionate, Bassi, Medi e Alti spostano tutta la curva in una volta. Inizia con correzioni leggere e larghe e confronta spesso.',
+    'Frequenza sceglie dove agisce la banda; Guadagno, il rinforzo o taglio; Q, la larghezza: Q più alto significa banda più stretta. Senza bande selezionate, le manopole del Tono — Bassi, Medi e Alti, con Taglio bassi e Taglio alti ai lati — modellano il suono come una curva a sé e lasciano le tue bande come sono. Inizia con correzioni leggere e larghe e confronta spesso.',
   'help.eq.steps':
-    'Apri EQ → Bande. Senza selezionare nulla, ruota Bassi, Medi o Alti per cambiare rapidamente il tono.\nFai clic sulla frequenza di una banda, o sul suo punto nel grafico, per selezionarla. Ruota le manopole Frequenza, Guadagno e Fattore Q, scegli un Filtro o spegnila con l’interruttore Attiva.\nFai clic destro su una banda per ripristinarla, disattivarla o aggiungere una banda accanto. Premi Azzera l’EQ per portare ogni guadagno a 0 dB mantenendo le bande. Prima chiede conferma.',
+    'Apri EQ → Bande. Senza selezionare nulla, ruota Bassi, Medi o Alti per cambiare rapidamente il tono, e Taglio bassi o Taglio alti per rifilare gli estremi. Nel grafico disegnano la propria linea del Tono.\nFai clic sulla frequenza di una banda, o sul suo punto nel grafico, per selezionarla. Ruota le manopole Frequenza, Guadagno e Fattore Q, scegli un Filtro o spegnila con l’interruttore Attiva.\nFai clic destro su una banda per ripristinarla, disattivarla o aggiungere una banda accanto. Premi Azzera l’EQ per portare ogni guadagno, e anche Bassi, Medi e Alti, a 0 dB mantenendo le bande. Prima chiede conferma.',
   'help.eq.tip':
     'Applicato anche elenca i livelli che modellano questa uscita oltre alle tue bande, ognuno con la sua intensità e la sua ×. Modalità gioco riduce il ritardo aggiunto da FluidEQ, per giochi e chiamate; i preset Gaming la attivano.',
   'help.eq.keywords':
@@ -227,7 +227,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modalità EQ e disposizioni delle bande',
   'help.eqmode.intro':
-    'Modalità EQ cambia il modo in cui vengono applicate le tue bande e le curve di correzione, senza modificarle. Le disposizioni delle bande salvano frequenze e Q di un assetto che ti piace, pronto per qualsiasi uscita.',
+    'Modalità EQ cambia il modo in cui il suono viene modellato, senza modificare nulla. Il tuo EQ comprende le tue bande, il Tono, i preset, il Tipo di driver e l’EQ intelligente; Correzioni comprende le correzioni delle cuffie e le curve importate o personalizzate. Le disposizioni delle bande salvano frequenze e Q di un assetto che ti piace, pronto per qualsiasi uscita.',
   'help.eqmode.steps':
     'Apri Modalità EQ nella barra di Bande. Prova un’opzione di Intensità, Q delle bande o Levigatura curve mentre suona la musica; il pannello resta aperto.\nCon il motore FluidEQ, scegli la fase Minima o Lineare, e Preciso o Classico per gli alti. Premi Ripristina per riportare tutto a Normale.\nPremi il pulsante delle disposizioni accanto ad Aggiungi banda. Scegli 6, 10, 15, 20 o 31 bande, oppure premi Salva disposizione… per dare un nome alla disposizione attuale.',
   'help.eqmode.tip':
@@ -236,7 +236,7 @@ const help: Record<keyof typeof en, string> = {
     'numero di bande, quante bande, layout bande, equalizzatore grafico, smoothing, linear phase, alti, preciso, classico',
   'help.eqmode.modeCaption': 'Modalità EQ',
   'help.eqmode.strength':
-    'Normale, Studio ×1.5 o ×2, per il tuo EQ e per le curve separatamente.',
+    'Normale, Studio ×1.5 o ×2, per Il tuo EQ e per le Correzioni separatamente.',
   'help.eqmode.q':
     'Costante mantiene ogni Q; Proporzionale e Asimmetrico stringono le bande man mano che crescono.',
   'help.eqmode.smoothing': 'Ammorbidisce le curve di correzione campionate.',

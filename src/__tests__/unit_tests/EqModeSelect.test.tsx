@@ -264,7 +264,7 @@ it('shows a persistent selection and pending state without confusing hover with 
   await act(async () =>
     fireEvent.click(
       within(
-        screen.getByRole('group', { name: 'Curves · Curve smoothing' }),
+        screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
       ).getByRole('button', { name: '1/3 octave' }),
     ),
   );
@@ -283,7 +283,7 @@ it('keeps only the latest queued choice per row without losing another group', a
   await pick('Normal');
   await act(async () =>
     fireEvent.click(
-      within(screen.getByRole('group', { name: 'Curves' })).getByRole(
+      within(screen.getByRole('group', { name: 'Corrections' })).getByRole(
         'button',
         { name: '×2' },
       ),
@@ -302,7 +302,7 @@ it('keeps only the latest queued choice per row without losing another group', a
 it('offers Constant instead of Off in both Q groups without removing smoothing Off', () => {
   render(<EqModeSelect />);
   fireEvent.click(menu());
-  ['Your EQ', 'Curves'].forEach((scope) => {
+  ['Your EQ', 'Corrections'].forEach((scope) => {
     const group = within(
       screen.getByRole('group', { name: `${scope} · Band Q` }),
     );
@@ -319,7 +319,7 @@ it('offers Constant instead of Off in both Q groups without removing smoothing O
   });
   expect(
     within(
-      screen.getByRole('group', { name: 'Curves · Curve smoothing' }),
+      screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
     ).getByRole('button', { name: 'Off' }),
   ).toHaveAttribute('aria-pressed', 'true');
   expect(menu()).toHaveTextContent('Normal');

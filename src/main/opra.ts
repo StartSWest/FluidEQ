@@ -37,7 +37,6 @@ import {
   FilterTypeEnum,
   clampFrequency,
   clampGain,
-  clampReferenceGain,
   clampQuality,
   getDefaultFilterWithId,
   IFilter,
@@ -46,6 +45,7 @@ import {
   IPresetV2,
   MAX_NUM_FILTERS,
 } from '../common/constants';
+import { clampCorrectionGain } from '../common/correctionRange';
 
 const getBundledOpraDir = () =>
   app.isPackaged
@@ -250,13 +250,11 @@ export const getOpraPreset = (
       // centres, the lowest at 8.5 Hz, and parseInt would have moved every one
       // of them down a hair for no reason.
       filter.frequency = clampFrequency(band.frequency);
-      // A published measurement, not something the user asked for. A pass
-      // filter has no gain at all, and clampReferenceGain reads its absence as
-      // zero.
-      filter.gain = clampReferenceGain(
-        band.gain_db as number,
-        filter.frequency,
-      );
+      // As published, to a correction's range (`correctionRange.ts`): this
+      // used to stop at 12 dB, 8 below 25 Hz and above 14 kHz, which changed
+      // 822 of the library's curves. A pass filter has no gain at all, and the
+      // clamp reads its absence as zero.
+      filter.gain = clampCorrectionGain(band.gain_db as number);
       filter.quality = qualityFor(band);
       filters[filter.id] = filter;
     });

@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ attivo',
   'eq.mode.linearDelay': '≈ +{ms} ms di ritardo',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, condiviso',
   'eq.mode.gameMinimum': 'Modalità gioco: minima',
   'eq.layouts.builtIn': 'Disposizioni integrate',
   'eq.layouts.saved': 'Le mie disposizioni',
@@ -35,7 +36,7 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.error': 'Impossibile aggiornare le disposizioni. Riprova.',
   'eq.layouts.clearTitle': 'Svuotare l’EQ?',
   'eq.layouts.clearWarning':
-    'Imposta il guadagno di ogni banda a 0 dB. Mantieni numero di bande, frequenze, Q, modalità EQ e preamplificazione attuali.',
+    'Imposta il guadagno di ogni banda e i controlli Bassi, Medi e Alti a 0 dB. Mantieni numero di bande, frequenze, Q, tagli, modalità EQ e preamplificazione attuali.',
   'eq.layouts.deleteNamed': 'Elimina «{name}»',
   'eq.layouts.deleteWarning':
     'Eliminare «{name}» dalle disposizioni salvate? L’EQ attuale non cambia.',
@@ -54,11 +55,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Preciso',
   'eq.mode.classic': 'Classico',
   'eq.mode.trebleEqPrecise':
-    'Preciso: le tue bande degli alti suonano esattamente come sono disegnate, fino a 20\u00a0kHz.',
+    'Preciso: le tue bande, Tono, Preset, Tipo di driver ed EQ intelligente suonano esattamente come sono disegnati, fino a 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Classico: come le riproduce Equalizer APO. Le bande degli alti risultano più strette e più basse di come le imposti, soprattutto vicino a 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Preciso: Preset, Tipo di driver, EQ intelligente e la tua correzione delle cuffie suonano esattamente come sono disegnati, fino a 20\u00a0kHz.',
+    'Preciso: la tua correzione delle cuffie suona esattamente come è disegnata, fino a 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Classico: come li riproduce Equalizer APO e come AutoEQ tara le correzioni delle cuffie. Le bande degli alti risultano più strette e più basse dell’impostazione, soprattutto vicino a 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -86,7 +87,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Normale',
   'eq.mode.studio': 'Studio',
   'eq.mode.yourEq': 'Il tuo EQ',
-  'eq.mode.curves': 'Curve',
+  'eq.mode.curves': 'Correzioni',
   'graph.resize': 'Trascina per ridimensionare il grafico',
   'graph.view.title': 'Quanto spazio dello schermo occupa il grafico',
   'graph.view.normal': 'Vista',
@@ -242,6 +243,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'EQ intelligente',
   'graph.curve.custom': 'FX personalizzati',
+  'graph.curve.tone': 'Tono',
   'graph.curve.total': 'Uscita finale',
   'graph.design.showWave': 'Mostra prima l’onda per poterne creare lo stile',
   'graph.design.closeHint': 'Chiudi l’editor dell’aspetto (Esc)',
@@ -548,6 +550,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'EQ intelligente',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
   'eq.layers.clearBands': 'Riporta tutte le bande a 0 dB',
+  'eq.layers.clearTone': 'Riporta Bassi, Medi e Alti a 0 dB',
   'eq.layers.clearReference': 'Rimuovi la correzione delle cuffie',
   'eq.layers.clearSmart':
     'Rimuove la correzione misurata. Le tue bande e il riferimento restano.',
@@ -560,6 +563,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Banda selezionata',
   'eq.selectedCount': '{count} bande',
   'eq.tone': 'Tono',
+  'eq.tone.lowCut': 'Taglio bassi',
+  'eq.tone.highCut': 'Taglio alti',
+  'eq.tone.lowCutHint':
+    'Taglio dei bassi a 20 Hz. A 0 è spento; alzalo per un taglio più ripido, da 12 o 24 dB per ottava.',
+  'eq.tone.highCutHint':
+    'Taglio degli alti a 20 kHz. A 0 è spento; alzalo per un taglio più ripido, da 12 o 24 dB per ottava.',
   'eq.tone.bass': 'Bassi',
   'eq.tone.mid': 'Medi',
   'eq.tone.treble': 'Alti',

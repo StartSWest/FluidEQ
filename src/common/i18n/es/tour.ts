@@ -83,9 +83,9 @@ const tour: Partial<Dictionary> = {
     'Cambiar de preset altera el carácter, no el volumen.',
   'tour.tone.kicker': 'CONTROLES DE TONO',
   'tour.tone.title': 'Graves, Medios y Agudos, como un amplificador',
-  'tour.tone.subtitle': 'Tres mandos para todo el ecualizador',
+  'tour.tone.subtitle': 'Tres mandos con su propia curva',
   'tour.tone.lead':
-    'Sin ninguna banda seleccionada, tres mandos mueven su tercio del sonido en todo el ecualizador a la vez: la forma más rápida de dar calidez o brillo a una canción, sin tocar ni una sola banda.',
+    'Sin ninguna banda seleccionada, Graves, Medios y Agudos dan forma al sonido como una curva propia, con un corte de graves y uno de agudos a los lados: la forma más rápida de dar calidez o brillo a una canción, y cada banda queda tal como la dejaste.',
   'tour.tone.point1':
     'El ecualizador se abre con todas las bandas a la vista y ninguna seleccionada.',
   'tour.tone.point2':

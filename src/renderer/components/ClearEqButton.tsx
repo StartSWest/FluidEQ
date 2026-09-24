@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { clearGains } from '../utils/equalizerApi';
-import { askToneClear } from '../eq/toneIntent';
+import { clearGains, setTone as setToneApi } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
@@ -32,9 +31,11 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setFailed(false);
     try {
-      // The EQ's three tone dials go back to zero with the curve.
-      askToneClear();
+      // Clear EQ clears what the EQ page sets, and Bass, Mid and Treble are
+      // on it. The EQ chip's × clears the bands alone: the Tone is a layer
+      // with a chip of its own (`tone.ts`).
       await clearGains();
+      await setToneApi(null);
       await refreshState();
       onClose();
     } catch (error) {

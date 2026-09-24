@@ -178,9 +178,9 @@ const help = {
 
   'help.eq.title': 'Shape your sound with EQ',
   'help.eq.intro':
-    'Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, Bass, Mid and Treble move the whole curve at once. Begin with small, broad changes and compare often.',
+    'Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, the Tone dials — Bass, Mid and Treble, with Low cut and High cut on either side — shape the sound as a curve of their own and leave your bands as they are. Begin with small, broad changes and compare often.',
   'help.eq.steps':
-    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain to 0 dB while keeping your bands. It asks first.',
+    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.',
   'help.eq.tip':
     'Also applied lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.',
   'help.eq.keywords':
@@ -220,7 +220,7 @@ const help = {
 
   'help.eqmode.title': 'EQ mode and band designs',
   'help.eqmode.intro':
-    'EQ mode changes how your bands and your correction curves are applied, without editing them. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
+    'EQ mode changes how your sound is shaped, without editing anything. Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
     'Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.\nUnder the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble. Press Reset to return everything to Normal.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
@@ -229,7 +229,7 @@ const help = {
     'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q, treble, precise, classic',
   'help.eqmode.modeCaption': 'EQ mode',
   'help.eqmode.strength':
-    'Normal, Studio ×1.5 or ×2, for your EQ and your curves separately.',
+    'Normal, Studio ×1.5 or ×2, for Your EQ and your Corrections separately.',
   'help.eqmode.q':
     'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.',
   'help.eqmode.smoothing': 'Softens sampled correction curves.',

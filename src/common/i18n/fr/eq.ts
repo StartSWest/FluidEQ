@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms avec EQ actif',
   'eq.mode.linearDelay': '≈ +{ms} ms de retard',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, partagé',
   'eq.mode.gameMinimum': 'Mode jeu : minimale',
   'eq.layouts.builtIn': 'Dispositions intégrées',
   'eq.layouts.saved': 'Mes dispositions',
@@ -36,7 +37,7 @@ const eq: Partial<Dictionary> = {
     'Impossible de mettre à jour vos dispositions. Réessayez.',
   'eq.layouts.clearTitle': 'Vider l’EQ ?',
   'eq.layouts.clearWarning':
-    'Mettre le gain de chaque bande à 0 dB. Conserver le nombre de bandes, les fréquences, Q, le mode EQ et le préampli actuels.',
+    'Mettre le gain de chaque bande et les réglages Graves, Médiums et Aigus à 0 dB. Conserver le nombre de bandes, les fréquences, Q, les coupures, le mode EQ et le préampli actuels.',
   'eq.layouts.deleteNamed': 'Supprimer « {name} »',
   'eq.layouts.deleteWarning':
     'Supprimer « {name} » des dispositions enregistrées ? Votre EQ actuel reste inchangé.',
@@ -55,11 +56,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Précis',
   'eq.mode.classic': 'Classique',
   'eq.mode.trebleEqPrecise':
-    'Précis : vos bandes d’aigus sonnent exactement comme elles sont tracées, jusqu’à 20\u00a0kHz.',
+    'Précis : vos bandes, Tonalité, Préréglage, Type de transducteur et Égalisation auto sonnent exactement comme ils sont tracés, jusqu’à 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Classique : comme Equalizer APO les restitue. Les bandes d’aigus sortent plus étroites et plus faibles que vous ne les avez réglées, surtout près de 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Précis : Préréglage, Type de transducteur, Égalisation auto et votre correction du casque sonnent exactement comme ils sont tracés, jusqu’à 20\u00a0kHz.',
+    'Précis : votre correction du casque sonne exactement comme elle est tracée, jusqu’à 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Classique : comme Equalizer APO les restitue et comme AutoEQ règle les corrections de casque. Les bandes d’aigus sortent plus étroites et plus faibles que réglé, surtout près de 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -89,7 +90,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Studio',
   'eq.mode.yourEq': 'Votre EQ',
-  'eq.mode.curves': 'Courbes',
+  'eq.mode.curves': 'Corrections',
   'graph.resize': 'Faites glisser pour redimensionner le graphique',
   'graph.view.title': 'Part de l’écran occupée par le graphique',
   'graph.view.normal': 'Affichage',
@@ -245,6 +246,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Préréglage',
   'graph.curve.smart': 'Égalisation auto',
   'graph.curve.custom': 'FX personnalisés',
+  'graph.curve.tone': 'Tonalité',
   'graph.curve.total': 'Sortie finale',
   'graph.design.showWave': 'Affichez d’abord l’onde pour créer un style',
   'graph.design.closeHint': 'Fermer l’éditeur de style (Échap)',
@@ -551,6 +553,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'Égalisation auto',
   'eq.layers.remove': 'Retirer la couche {layer}',
   'eq.layers.clearBands': 'Remettre toutes les bandes à 0 dB',
+  'eq.layers.clearTone': 'Remettre Graves, Médiums et Aigus à 0 dB',
   'eq.layers.clearReference': 'Retirer la correction du casque',
   'eq.layers.clearSmart':
     'Retirer la correction mesurée. Vos bandes et la référence restent en place.',
@@ -564,6 +567,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Bande sélectionnée',
   'eq.selectedCount': '{count} bandes',
   'eq.tone': 'Tonalité',
+  'eq.tone.lowCut': 'Coupe-bas',
+  'eq.tone.highCut': 'Coupe-haut',
+  'eq.tone.lowCutHint':
+    'Coupe-bas à 20 Hz. À 0, il est désactivé. Tournez-le pour une coupe plus raide, de 12 ou 24 dB par octave.',
+  'eq.tone.highCutHint':
+    'Coupe-haut à 20 kHz. À 0, il est désactivé. Tournez-le pour une coupe plus raide, de 12 ou 24 dB par octave.',
   'eq.tone.bass': 'Graves',
   'eq.tone.mid': 'Médiums',
   'eq.tone.treble': 'Aigus',

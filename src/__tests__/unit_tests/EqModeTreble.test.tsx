@@ -108,7 +108,7 @@ it('is not offered under Equalizer APO, which has only the cookbook', async () =
     screen.queryByRole('group', { name: 'Your EQ · Treble' }),
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('group', { name: 'Curves · Treble' }),
+    screen.queryByRole('group', { name: 'Corrections · Treble' }),
   ).not.toBeInTheDocument();
   // POSITIVE CONTROL: the menu itself is open, with the rows it always has.
   expect(
@@ -121,7 +121,7 @@ it('shows what an older engine plays, and asks for the update instead of offerin
   // That engine reads no choice, so a file left saying Classic changes nothing.
   mockFiles = { eq: 'classic', curves: 'classic' };
   await open();
-  ['Your EQ', 'Curves'].forEach((group) => {
+  ['Your EQ', 'Corrections'].forEach((group) => {
     expect(pressed(group, 'Precise')).toHaveAttribute('aria-pressed', 'true');
     expect(pressed(group, 'Precise')).toBeDisabled();
     expect(pressed(group, 'Classic')).toBeDisabled();
@@ -140,14 +140,15 @@ it('shows each group as its file says, and calls the menu custom when one is Cla
   mockFiles = { eq: 'classic', curves: 'precise' };
   await open();
   expect(pressed('Your EQ', 'Classic')).toHaveAttribute('aria-pressed', 'true');
-  expect(pressed('Curves', 'Precise')).toHaveAttribute('aria-pressed', 'true');
+  expect(pressed('Corrections', 'Precise')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   expect(
     screen.getByText(/^Classic: the way Equalizer APO plays them\./),
   ).toBeInTheDocument();
   expect(
-    screen.getByText(
-      /^Precise: Preset, Driver type, Smart EQ and your headphone correction/,
-    ),
+    screen.getByText(/^Precise: your headphone correction plays exactly/),
   ).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'EQ mode' })).toHaveTextContent(
     'Custom',
@@ -156,9 +157,12 @@ it('shows each group as its file says, and calls the menu custom when one is Cla
 
 it('writes only the group picked, and the row follows what landed', async () => {
   await open();
-  await pick('Curves', 'Classic');
+  await pick('Corrections', 'Classic');
   expect(mockSet.mock.calls).toEqual([['classic', 'curves']]);
-  expect(pressed('Curves', 'Classic')).toHaveAttribute('aria-pressed', 'true');
+  expect(pressed('Corrections', 'Classic')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   expect(pressed('Your EQ', 'Precise')).toHaveAttribute('aria-pressed', 'true');
   expect(
     screen.getByText(
@@ -193,7 +197,7 @@ it('puts every Classic group back to Precise on Reset, one after the other', asy
     ['precise', 'eq'],
     ['precise', 'curves'],
   ]);
-  ['Your EQ', 'Curves'].forEach((group) =>
+  ['Your EQ', 'Corrections'].forEach((group) =>
     expect(pressed(group, 'Precise')).toHaveAttribute('aria-pressed', 'true'),
   );
 });

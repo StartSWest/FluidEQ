@@ -41,9 +41,11 @@ import {
   IFiltersMap,
   IGraphicEqPoint,
   MAX_FREQUENCY,
+  MAX_GAIN,
   MAX_NUM_FILTERS,
   MIN_FREQUENCY,
 } from './constants';
+import { clampGainWithin } from './correctionRange';
 
 /**
  * `Filter [n]: ON TYPE Fc x Hz [Gain y dB] [Q z]`.
@@ -145,11 +147,16 @@ export interface IParsedEqText {
  * Never throws: a file with nothing usable in it comes back with `isEmpty`,
  * which the caller turns into a message. Refusing at this level would mean
  * deciding on the caller's behalf that a half-recognised file is worthless.
+ *
+ * Band gains are bounded to `gainLimit`: a slider's ±20 dB by default, a
+ * correction's range for text headed for the correction layer
+ * (`correctionRange.ts`). The preamp keeps a preamp's range whichever it is.
  */
 export const parseEqText = (
   text: string,
-  options: { preserveValues?: boolean } = {},
+  options: { preserveValues?: boolean; gainLimit?: number } = {},
 ): IParsedEqText => {
+  const gainLimit = options.gainLimit ?? MAX_GAIN;
   const filters: IFiltersMap = {};
   const graphicEq: IGraphicEqPoint[] = [];
   let preAmp = 0;
@@ -200,7 +207,9 @@ export const parseEqText = (
         ) {
           graphicEq.push({
             frequency,
-            gain: options.preserveValues ? gain : clampGain(gain),
+            gain: options.preserveValues
+              ? gain
+              : clampGainWithin(gain, gainLimit),
           });
         }
       });
@@ -238,7 +247,9 @@ export const parseEqText = (
       ? frequency
       : clampFrequency(frequency);
     const gain = Number(filterMatch[4] ?? 0);
-    filter.gain = options.preserveValues ? gain : clampGain(gain);
+    filter.gain = options.preserveValues
+      ? gain
+      : clampGainWithin(gain, gainLimit);
     if (filterMatch[5] !== undefined) {
       const quality = Number(filterMatch[5]);
       filter.quality = options.preserveValues ? quality : clampQuality(quality);
@@ -262,7 +273,7 @@ export const parseEqText = (
       const filter = getDefaultFilterWithId();
       filter.type = FilterTypeEnum.PK;
       filter.frequency = clampFrequency(point.frequency);
-      filter.gain = clampGain(point.gain);
+      filter.gain = clampGainWithin(point.gain, gainLimit);
       filter.quality = clampQuality(1.41);
       filters[filter.id] = filter;
     });

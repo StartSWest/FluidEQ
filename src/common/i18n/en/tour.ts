@@ -95,9 +95,9 @@ const tour = {
 
   'tour.tone.kicker': 'TONE CONTROLS',
   'tour.tone.title': 'Bass, Mid and Treble, like an amplifier',
-  'tour.tone.subtitle': 'Three knobs over the whole rack',
+  'tour.tone.subtitle': 'Three knobs, a curve of their own',
   'tour.tone.lead':
-    'With no band selected, three knobs move their third of the sound across the whole rack at once: the quickest way to warm a song or brighten it, without touching a single band.',
+    'With no band selected, Bass, Mid and Treble shape the sound as a curve of their own, with a low and a high cut either side: the quickest way to warm a song or brighten it, and every band stays exactly as you set it.',
   'tour.tone.point1':
     'The equaliser opens on the whole rack, with nothing selected.',
   'tour.tone.point2':

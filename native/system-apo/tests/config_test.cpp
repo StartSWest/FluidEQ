@@ -445,6 +445,72 @@ void treble_choice_keeps_a_group_on_the_cookbook() {
   CHECK(chosen.classic_eq_treble && !chosen.classic_curve_treble);
 }
 
+// The cuts' file, included after the preamp as `deviceProfiles.ts` writes it,
+// names no layer and asks for no design: every section is a plain cookbook band.
+void cuts_file_is_plain_cookbook_bands() {
+  std::printf("the cuts file is plain cookbook bands\n");
+  Files files;
+  files[L"C:\\cfg\\config.txt"] =
+      "Include: eq.txt\r\nPreamp: -3 dB\r\nInclude: fluideq-cuts.txt\r\n";
+  files[L"C:\\cfg\\eq.txt"] = "# FluidEQEqLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+                              "Filter 1: ON PK Fc 1000 Hz Gain 3 dB Q 1\r\n";
+  files[L"C:\\cfg\\fluideq-cuts.txt"] =
+      "# Cuts\r\nFilter 1: ON HPQ Fc 20 Hz Q 0.5412\r\n"
+      "Filter 2: ON HPQ Fc 20 Hz Q 1.3066\r\nFilter 3: ON LPQ Fc 20000 Hz Q 0.7071\r\n";
+  const Chain chain = resolve_chain(L"C:\\cfg", Endpoint{L"{X}", L"Test"}, provider(files));
+  CHECK(chain.bands.size() == 4 && chain.preamp_db == -3.0);
+  // POSITIVE CONTROL: the EQ's own band is matched and in its layer.
+  CHECK(chain.bands[0].matched && chain.bands[0].user_eq);
+  CHECK(std::none_of(chain.bands.begin() + 1, chain.bands.end(), [](const Band& band) {
+    return band.matched || band.user_eq || band.curve_layer;
+  }));
+  CHECK(chain.bands[1].type == FilterType::HPQ && chain.bands[3].type == FilterType::LPQ);
+}
+
+// A device's layers as `deviceProfiles.ts` writes them since the Tone became
+// a layer: every file in Your EQ's group but the headphone correction
+// (`layerGroupOf`), each asking for the matched design. Your EQ's Treble row
+// then moves the bands, the Tone and a preset together, and the correction
+// alone follows the Corrections row, in its bands and its sampled curve.
+void every_layer_but_the_correction_plays_by_your_eqs_row() {
+  std::printf("every layer but the correction plays by Your EQ's row\n");
+  const auto resolve = [](const char* eq_choice) {
+    Files files;
+    files[L"C:\\cfg\\config.txt"] =
+        "Include: eq.txt\r\nInclude: tone.txt\r\nInclude: preset.txt\r\n"
+        "Include: headphone.txt\r\n";
+    files[L"C:\\cfg\\eq.txt"] =
+        "# FluidEQEqLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON PK Fc 16000 Hz Gain 6 dB Q 2\r\n";
+    files[L"C:\\cfg\\tone.txt"] =
+        "# FluidEQEqLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON LSC Fc 100 Hz Gain 4 dB Q 0.71\r\n";
+    files[L"C:\\cfg\\preset.txt"] =
+        "# FluidEQEqLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON PK Fc 10000 Hz Gain 3 dB Q 1\r\nGraphicEQ: 20 2; 20000 -2\r\n";
+    files[L"C:\\cfg\\headphone.txt"] =
+        "# FluidEQCurveLayer: ON\r\n# FluidEQFilterDesign: MATCHED\r\n"
+        "Filter 1: ON PK Fc 8474 Hz Gain -7 dB Q 1\r\nGraphicEQ: 20 -3; 20000 1\r\n";
+    if (eq_choice != nullptr) files[L"C:\\cfg\\fluideq-eq-treble.txt"] = eq_choice;
+    return resolve_chain(L"C:\\cfg", Endpoint{L"{X}", L"Test"}, provider(files));
+  };
+  const Chain precise = resolve(nullptr);
+  CHECK(precise.bands.size() == 4);
+  CHECK(precise.bands[0].user_eq && precise.bands[1].user_eq && precise.bands[2].user_eq);
+  CHECK(precise.bands[3].curve_layer && !precise.bands[3].user_eq);
+  // POSITIVE CONTROL: all four ask for it and play matched with no choice
+  // written, so every false below is Your EQ's Classic.
+  CHECK(std::all_of(precise.bands.begin(), precise.bands.end(),
+                    [](const Band& band) { return band.matched; }));
+  const Chain classic = resolve("classic");
+  CHECK(!classic.bands[0].matched && !classic.bands[1].matched && !classic.bands[2].matched);
+  CHECK(classic.bands[3].matched);
+  // The preset's sampled curve is Your EQ's, the correction's the other row's.
+  CHECK(precise.eq_graphic_curves.size() == 1 && precise.eq_graphic_curves[0][0].gain_db == 2);
+  CHECK(precise.comparison_curves.size() == 1 &&
+        precise.comparison_curves[0][0].gain_db == -3);
+}
+
 int main() {
   std::printf("fluideq engine config\n");
   follows_includes_and_device_guards();
@@ -466,6 +532,8 @@ int main() {
   official_phase_files_are_independent_and_default_to_minimum();
   filter_design_scopes_follow_includes_without_leaking();
   treble_choice_keeps_a_group_on_the_cookbook();
+  cuts_file_is_plain_cookbook_bands();
+  every_layer_but_the_correction_plays_by_your_eqs_row();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

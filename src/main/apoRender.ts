@@ -46,6 +46,9 @@ import {
   getHeadphoneFilters,
   getHeadphoneGraphicEq,
 } from '../common/headphone';
+import { layerGainLimit, MAX_CORRECTION_GAIN } from '../common/correctionRange';
+import { layerGroupOf } from '../common/filterDesign';
+import { getToneFilters } from '../common/tone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../common/smartEq';
 import { getSmartPreAmpGain } from '../common/smartHeadroom';
 import {
@@ -375,6 +378,7 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // measurement, which is a downgrade nobody chose.
   const headphoneCurve = graphicEqCommand(
     getHeadphoneGraphicEq(state.headphone),
+    MAX_CORRECTION_GAIN,
   );
   if (headphoneCurve && !isBypassed('headphone')) {
     layers.push({
@@ -424,6 +428,11 @@ const buildLayers = (state: IState): IApoLayer[] => {
     }
   }
 
+  // The Tone panel's three dials, right after the bands they sit over and
+  // never inside them (`tone.ts`). Outside the isFlat check: a flat EQ is
+  // bands at zero, and the tone is not a band.
+  addLayer('tone', layerFilters(getToneFilters(state.tone)));
+
   // Deliberately outside the isFlat check: clearing the EQ resets the bands the
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
@@ -455,9 +464,12 @@ const buildLayers = (state: IState): IApoLayer[] => {
   }
 
   return layers.map((layer) => {
-    const scope = layer.feature === 'eq' ? 'eq' : 'curves';
+    const scope = layerGroupOf(layer.feature);
     const mode = scope === 'eq' ? getEqMode(state) : getCurveEqMode(state);
     const shape = getBandQ(state, scope);
+    // A slider's range, or a correction's for the headphone layer: what the
+    // correction publishes is what gets written (`correctionRange.ts`).
+    const limit = layerGainLimit(layer.feature);
     const source = layer.graphicPoints
       ? smoothEqCurve(
           layer.graphicPoints,
@@ -466,7 +478,7 @@ const buildLayers = (state: IState): IApoLayer[] => {
       : undefined;
     const filters =
       mode === 'studio'
-        ? getStudioEqFilters(layer.filters, shape)
+        ? getStudioEqFilters(layer.filters, shape, limit)
         : shapeEqFilters(layer.filters, shape);
     const correction =
       scope === 'curves'
@@ -474,19 +486,19 @@ const buildLayers = (state: IState): IApoLayer[] => {
         : [];
     let points = correction.length ? correction : undefined;
     if (source) {
-      points = mode === 'studio' ? getStudioEqGraphic(source) : source;
+      points = mode === 'studio' ? getStudioEqGraphic(source, limit) : source;
     }
     return {
       ...layer,
       filters,
       ...(mode === 'double' ? { passes: 2 as const } : {}),
-      gainLimit: mode === 'studio' ? MAX_GAIN * 1.5 : MAX_GAIN,
+      gainLimit: mode === 'studio' ? limit * 1.5 : limit,
       ...(points
         ? {
             graphicPoints: points,
             graphicEq: graphicEqCommand(
               points,
-              source ? MAX_GAIN * 1.5 : Number.MAX_VALUE,
+              source ? limit * 1.5 : Number.MAX_VALUE,
             ),
           }
         : {}),
@@ -724,14 +736,12 @@ export const bandPhaseScopes = (
   state: IState,
 ): { eq: boolean; curves: boolean } => {
   const layers = buildLayers(state);
-  return {
-    eq: layers.some(
-      (layer) => layer.feature === 'eq' && layer.filters.length > 0,
-    ),
-    curves: layers.some(
-      (layer) => layer.feature !== 'eq' && layer.filters.length > 0,
-    ),
-  };
+  const hasBands = (group: 'eq' | 'curves') =>
+    layers.some(
+      (layer) =>
+        layerGroupOf(layer.feature) === group && layer.filters.length > 0,
+    );
+  return { eq: hasBands('eq'), curves: hasBands('curves') };
 };
 
 export const hasSampledCurveLayers = (state: IState): boolean =>
@@ -793,7 +803,11 @@ export const stateToApoFiles = (
     preAmp: preAmpLine(state, layers, hasConvolution),
     engineDirectives: [
       `# FluidEQAutoPreamp: ${state.isAutoPreAmpOn ? 'ON' : 'OFF'}`,
-      ...(layers.some((layer) => layer.feature !== 'eq') ||
+      // The Tone is three filters and never a sampled curve, so like the
+      // bands it keeps no curves stage (and its delay) switched on.
+      ...(layers.some(
+        (layer) => layer.feature !== 'eq' && layer.feature !== 'tone',
+      ) ||
       hasConvolution ||
       Object.keys(state.customFx?.filters ?? {}).length > 0 ||
       (state.customFx?.graphicEq?.length ?? 0) > 0

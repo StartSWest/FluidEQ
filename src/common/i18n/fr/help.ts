@@ -178,9 +178,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Façonnez votre son avec l’Égaliseur',
   'help.eq.intro':
-    'Fréquence détermine où agit une bande ; Gain, son amplification ou atténuation ; Q, sa largeur : un Q élevé est plus étroit. Sans bande sélectionnée, Graves, Médiums et Aigus déplacent toute la courbe à la fois. Commencez par de petites corrections larges et comparez souvent.',
+    'Fréquence détermine où agit une bande ; Gain, son amplification ou atténuation ; Q, sa largeur : un Q élevé est plus étroit. Sans bande sélectionnée, les boutons de Tonalité — Graves, Médiums et Aigus, avec Coupe-bas et Coupe-haut de part et d’autre — façonnent le son comme une courbe à part et laissent vos bandes telles quelles. Commencez par de petites corrections larges et comparez souvent.',
   'help.eq.steps':
-    'Ouvrez Égaliseur → Bandes. Sans bande sélectionnée, tournez Graves, Médiums ou Aigus pour changer rapidement la tonalité.\nCliquez sur la fréquence d’une bande, ou sur son point dans le graphique, pour la sélectionner. Tournez ses boutons Fréquence, Gain et Facteur Q, choisissez un Filtre, ou désactivez-la avec Active.\nFaites un clic droit sur une bande pour la réinitialiser, la désactiver ou ajouter une bande à côté. Appuyez sur Vider l’égaliseur pour mettre chaque gain à 0 dB tout en gardant vos bandes. Une confirmation est d’abord demandée.',
+    'Ouvrez Égaliseur → Bandes. Sans bande sélectionnée, tournez Graves, Médiums ou Aigus pour changer rapidement la tonalité, et Coupe-bas ou Coupe-haut pour rogner les extrêmes. Ils tracent leur propre ligne Tonalité sur le graphique.\nCliquez sur la fréquence d’une bande, ou sur son point dans le graphique, pour la sélectionner. Tournez ses boutons Fréquence, Gain et Facteur Q, choisissez un Filtre, ou désactivez-la avec Active.\nFaites un clic droit sur une bande pour la réinitialiser, la désactiver ou ajouter une bande à côté. Appuyez sur Vider l’égaliseur pour mettre chaque gain, ainsi que Graves, Médiums et Aigus, à 0 dB tout en gardant vos bandes. Une confirmation est d’abord demandée.',
   'help.eq.tip':
     'Également appliqué montre les couches qui façonnent cette sortie en plus de vos bandes, chacune avec sa propre intensité et son ×. Mode jeu réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels ; les préréglages Jeux l’activent.',
   'help.eq.keywords':
@@ -226,7 +226,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Mode EQ et dispositions de bandes',
   'help.eqmode.intro':
-    'Mode EQ change la façon dont vos bandes et vos courbes de correction sont appliquées, sans les modifier. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
+    'Mode EQ change la façon dont votre son est façonné, sans rien modifier. Votre EQ regroupe vos bandes, la Tonalité, les préréglages, le Type de transducteur et l’Égalisation auto ; Corrections regroupe les corrections du casque et les courbes importées ou personnalisées. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
   'help.eqmode.steps':
     'Ouvrez Mode EQ dans la barre d’outils de la page Bandes. Essayez un choix d’Intensité, de Q des bandes ou de Lissage des courbes pendant que la musique joue ; le panneau reste ouvert.\nAvec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire, et Précis ou Classique pour les aigus. Appuyez sur Réinitialiser pour tout ramener à Normal.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
   'help.eqmode.tip':
@@ -235,7 +235,7 @@ const help: Record<keyof typeof en, string> = {
     "nombre de bandes, égaliseur graphique, bandes fixes, tiers d'octave, pré-écho, aigus, précis, classique",
   'help.eqmode.modeCaption': 'Mode EQ',
   'help.eqmode.strength':
-    'Normal, Studio ×1.5 ou ×2, séparément pour votre EQ et vos courbes.',
+    'Normal, Studio ×1.5 ou ×2, séparément pour Votre EQ et vos Corrections.',
   'help.eqmode.q':
     'Constant garde chaque Q ; Proportionnel et Asymétrique resserrent les bandes à mesure qu’elles se renforcent.',
   'help.eqmode.smoothing': 'Adoucit les courbes de correction échantillonnées.',

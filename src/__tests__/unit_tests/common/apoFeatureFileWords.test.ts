@@ -22,6 +22,7 @@ it('names the voicing’s file preset and every other feature’s by itself', ()
     'driver',
     'headphone',
     'eq',
+    'tone',
     'preset',
     'smart',
   ]);

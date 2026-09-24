@@ -71,6 +71,8 @@ const useActiveLayers = () => {
     setVoicing,
     setDriver,
     setSmartEq,
+    tone,
+    setTone,
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
@@ -240,6 +242,8 @@ const useActiveLayers = () => {
     setVoicingStrength,
     smartEq,
     setSmartEq,
+    tone,
+    setTone,
     modeName,
     setLayerStrength,
     isContinuousOn,

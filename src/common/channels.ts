@@ -145,6 +145,8 @@ enum ChannelEnum {
   GET_TREBLE_DESIGN = 'getTrebleDesign',
   SET_TREBLE_DESIGN = 'setTrebleDesign',
   SET_EQ_SHAPE = 'setEqShape',
+  SET_EQ_CUT = 'setEqCut',
+  SET_TONE = 'setTone',
   RESET_EQ_MODE = 'resetEqMode',
   // Clearing a reference clears the bands it wrote, because applying one wrote
   // them. The layers stacked after them are untouched: none of them came from

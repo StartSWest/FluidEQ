@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': 'सक्रिय EQ पर ≈ +{ms} ms',
   'eq.mode.linearDelay': '≈ +{ms} ms देरी',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, साझा',
   'eq.mode.gameMinimum': 'गेम मोड: मिनिमम',
   'eq.layouts.builtIn': 'पहले से मौजूद लेआउट',
   'eq.layouts.saved': 'मेरे डिज़ाइन',
@@ -36,7 +37,7 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.error': 'आपके डिज़ाइन अपडेट नहीं हो सके। फिर कोशिश करें।',
   'eq.layouts.clearTitle': 'EQ खाली करें?',
   'eq.layouts.clearWarning':
-    'हर बैंड का गेन 0 dB करें। मौजूदा बैंड संख्या, फ़्रीक्वेंसी, Q, EQ मोड और प्रीएम्प बने रहेंगे।',
+    'हर बैंड का गेन और बास, मिड व ट्रेबल नॉब 0 dB करें। मौजूदा बैंड संख्या, फ़्रीक्वेंसी, Q, कट, EQ मोड और प्रीएम्प बने रहेंगे।',
   'eq.layouts.deleteNamed': '“{name}” हटाएँ',
   'eq.layouts.deleteWarning':
     'सहेजे हुए डिज़ाइन से “{name}” हटाएँ? आपका मौजूदा EQ नहीं बदलेगा।',
@@ -55,11 +56,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'सटीक',
   'eq.mode.classic': 'क्लासिक',
   'eq.mode.trebleEqPrecise':
-    'सटीक: आपके ट्रेबल बैंड ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
+    'सटीक: आपके बैंड, टोन, प्रीसेट, ड्राइवर प्रकार और स्मार्ट EQ ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
   'eq.mode.trebleEqClassic':
     'क्लासिक: जैसे Equalizer APO उन्हें बजाता है। ट्रेबल बैंड आपकी सेटिंग से संकरे और धीमे निकलते हैं, 20\u00a0kHz के पास सबसे ज़्यादा।',
   'eq.mode.trebleCurvesPrecise':
-    'सटीक: प्रीसेट, ड्राइवर प्रकार, स्मार्ट EQ और आपका हेडफ़ोन सुधार ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
+    'सटीक: आपका हेडफ़ोन सुधार ठीक वैसे ही बजता है जैसे बनाया गया है, 20\u00a0kHz तक।',
   'eq.mode.trebleCurvesClassic':
     'क्लासिक: जैसे Equalizer APO इन्हें बजाता है और जैसे AutoEQ हेडफ़ोन सुधार ट्यून करता है। ट्रेबल बैंड सेटिंग से संकरे और धीमे निकलते हैं, 20\u00a0kHz के पास सबसे ज़्यादा।',
   'eq.mode.trebleUpdate':
@@ -87,7 +88,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'सामान्य',
   'eq.mode.studio': 'स्टूडियो',
   'eq.mode.yourEq': 'आपका EQ',
-  'eq.mode.curves': 'कर्व',
+  'eq.mode.curves': 'सुधार',
   'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',
   'graph.view.title': 'ग्राफ़ को मिलने वाली स्क्रीन की जगह',
   'graph.view.normal': 'दृश्य',
@@ -241,6 +242,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'प्रीसेट',
   'graph.curve.smart': 'स्मार्ट EQ',
   'graph.curve.custom': 'कस्टम FX',
+  'graph.curve.tone': 'टोन',
   'graph.curve.total': 'अंतिम आउटपुट',
   'graph.design.showWave': 'रूप बनाने के लिए पहले तरंग दिखाएँ',
   'graph.design.closeHint': 'रूप संपादक बंद करें (Esc)',
@@ -544,6 +546,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'स्मार्ट EQ',
   'eq.layers.remove': '{layer} परत हटाएँ',
   'eq.layers.clearBands': 'सभी बैंड 0 dB पर लौटाएँ',
+  'eq.layers.clearTone': 'बास, मिड और ट्रेबल 0 dB पर लौटाएँ',
   'eq.layers.clearReference': 'हेडफ़ोन सुधार हटाएँ',
   'eq.layers.clearSmart':
     'मापा गया सुधार हटाएँ। आपके बैंड और संदर्भ मॉडल वैसे ही रहेंगे।',
@@ -556,6 +559,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'चुना हुआ बैंड',
   'eq.selectedCount': '{count} बैंड',
   'eq.tone': 'टोन',
+  'eq.tone.lowCut': 'लो कट',
+  'eq.tone.highCut': 'हाई कट',
+  'eq.tone.lowCutHint':
+    '20 Hz पर लो कट। 0 पर बंद; ज़्यादा तीखे कट के लिए बढ़ाएँ, 12 या 24 dB प्रति ऑक्टेव।',
+  'eq.tone.highCutHint':
+    '20 kHz पर हाई कट। 0 पर बंद; ज़्यादा तीखे कट के लिए बढ़ाएँ, 12 या 24 dB प्रति ऑक्टेव।',
   'eq.tone.bass': 'बास',
   'eq.tone.mid': 'मिड',
   'eq.tone.treble': 'ट्रेबल',

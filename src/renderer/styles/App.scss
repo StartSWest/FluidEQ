@@ -3492,9 +3492,10 @@ button.graph-legend {
 // Amber, azure and near-white, chosen to sit well away from the three pinks the
 // graph already had, plus the magenta the headphone layer had to take because
 // nothing else was left — see ColorEnum.HEADPHONE for the measurement behind
-// it. Must match ColorEnum.DRIVER, ColorEnum.SMART, ColorEnum.TOTAL and
-// ColorEnum.HEADPHONE exactly, or a legend swatch names a colour that is not on
-// the chart.
+// it. Must match ColorEnum.DRIVER, ColorEnum.SMART, ColorEnum.TOTAL,
+// ColorEnum.HEADPHONE, ColorEnum.TONE and ColorEnum.CUSTOM exactly, or a
+// legend swatch names a colour that is not on the chart — the Tone and Custom
+// FX chips had no rule and drew a white swatch beside a coloured line.
 .graph-legend--driver {
   --curve-color: #ffb648;
 }
@@ -3509,6 +3510,14 @@ button.graph-legend {
 
 .graph-legend--total {
   --curve-color: #dbe7ff;
+}
+
+.graph-legend--tone {
+  --curve-color: #ddff1a;
+}
+
+.graph-legend--custom {
+  --curve-color: #ff7a45;
 }
 
 // Inside the legend cluster, at its left, rather than alone at the far end of

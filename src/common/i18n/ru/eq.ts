@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} мс с активным EQ',
   'eq.mode.linearDelay': '≈ +{ms} мс задержки',
+  'eq.mode.linearDelayShared': '≈ {ms} мс, общая',
   'eq.mode.gameMinimum': 'Игровой режим: минимальная',
   'eq.layouts.builtIn': 'Стандартные схемы',
   'eq.layouts.saved': 'Мои схемы',
@@ -35,7 +36,7 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.error': 'Не удалось обновить схемы. Попробуйте ещё раз.',
   'eq.layouts.clearTitle': 'Очистить EQ?',
   'eq.layouts.clearWarning':
-    'Установить усиление каждой полосы на 0 дБ. Текущие число полос, частоты, Q, режим EQ и предусиление сохранятся.',
+    'Установить усиление каждой полосы и регуляторы «Низкие», «Средние» и «Высокие» на 0 дБ. Текущие число полос, частоты, Q, срезы, режим EQ и предусиление сохранятся.',
   'eq.layouts.deleteNamed': 'Удалить «{name}»',
   'eq.layouts.deleteWarning':
     'Удалить «{name}» из сохранённых схем? Текущий EQ не изменится.',
@@ -54,11 +55,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Точный',
   'eq.mode.classic': 'Классический',
   'eq.mode.trebleEqPrecise':
-    'Точный: ваши полосы высоких звучат ровно так, как нарисованы, вплоть до 20\u00a0кГц.',
+    'Точный: ваши полосы, «Тембр», «Пресет», «Тип излучателя» и «Умный EQ» звучат ровно так, как нарисованы, вплоть до 20\u00a0кГц.',
   'eq.mode.trebleEqClassic':
     'Классический: так их воспроизводит Equalizer APO. Полосы высоких выходят уже и тише, чем заданы, сильнее всего около 20\u00a0кГц.',
   'eq.mode.trebleCurvesPrecise':
-    'Точный: «Пресет», «Тип излучателя», «Умный EQ» и ваша коррекция наушников звучат ровно так, как нарисованы, вплоть до 20\u00a0кГц.',
+    'Точный: ваша коррекция наушников звучит ровно так, как нарисована, вплоть до 20\u00a0кГц.',
   'eq.mode.trebleCurvesClassic':
     'Классический: так их воспроизводит Equalizer APO и так AutoEQ настраивает коррекции наушников. Полосы высоких выходят уже и тише, чем заданы, сильнее всего около 20\u00a0кГц.',
   'eq.mode.trebleUpdate':
@@ -87,7 +88,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Обычный',
   'eq.mode.studio': 'Студийный',
   'eq.mode.yourEq': 'Ваш EQ',
-  'eq.mode.curves': 'Кривые',
+  'eq.mode.curves': 'Коррекции',
   'graph.resize': 'Потяните, чтобы изменить размер графика',
   'graph.view.title': 'Размер графика на экране',
   'graph.view.normal': 'Вид',
@@ -241,6 +242,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Пресет',
   'graph.curve.smart': 'Умный EQ',
   'graph.curve.custom': 'Пользовательский FX',
+  'graph.curve.tone': 'Тембр',
   'graph.curve.total': 'Итоговый выход',
   'graph.design.showWave': 'Сначала покажите волну, чтобы настроить её вид',
   'graph.design.closeHint': 'Закрыть редактор оформления (Esc)',
@@ -545,6 +547,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'Умный EQ',
   'eq.layers.remove': 'Убрать слой «{layer}»',
   'eq.layers.clearBands': 'Вернуть все полосы к 0 дБ',
+  'eq.layers.clearTone': 'Вернуть «Низкие», «Средние» и «Высокие» к 0 дБ',
   'eq.layers.clearReference': 'Убрать коррекцию наушников',
   'eq.layers.clearSmart':
     'Убрать измеренную коррекцию. Ваши полосы и эталон останутся на месте.',
@@ -557,6 +560,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Выбранная полоса',
   'eq.selectedCount': 'Полос: {count}',
   'eq.tone': 'Тембр',
+  'eq.tone.lowCut': 'Срез низких',
+  'eq.tone.highCut': 'Срез высоких',
+  'eq.tone.lowCutHint':
+    'Срез низких на 20 Гц. На 0 выключен; поверните дальше для более крутого среза, 12 или 24 дБ на октаву.',
+  'eq.tone.highCutHint':
+    'Срез высоких на 20 кГц. На 0 выключен; поверните дальше для более крутого среза, 12 или 24 дБ на октаву.',
   'eq.tone.bass': 'Низкие',
   'eq.tone.mid': 'Средние',
   'eq.tone.treble': 'Высокие',

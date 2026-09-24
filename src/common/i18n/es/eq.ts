@@ -22,6 +22,7 @@ import { Dictionary } from '../en';
 const eq: Partial<Dictionary> = {
   'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ activo',
   'eq.mode.linearDelay': '≈ +{ms} ms de retardo',
+  'eq.mode.linearDelayShared': '≈ {ms} ms, compartido',
   'eq.mode.gameMinimum': 'Modo juego: mínima',
   'eq.layouts.builtIn': 'Diseños incluidos',
   'eq.layouts.saved': 'Mis diseños',
@@ -36,7 +37,7 @@ const eq: Partial<Dictionary> = {
     'No se pudieron actualizar tus diseños. Inténtalo de nuevo.',
   'eq.layouts.clearTitle': '¿Vaciar EQ?',
   'eq.layouts.clearWarning':
-    'Poner la ganancia de cada banda a 0 dB. Se conservan el número de bandas, frecuencias, Q, modo EQ y preamplificación actuales.',
+    'Poner la ganancia de cada banda y los controles Graves, Medios y Agudos a 0 dB. Se conservan el número de bandas, frecuencias, Q, cortes, modo EQ y preamplificación actuales.',
   'eq.layouts.deleteNamed': 'Eliminar «{name}»',
   'eq.layouts.deleteWarning':
     '¿Eliminar «{name}» de tus diseños guardados? Tu EQ actual no cambia.',
@@ -55,11 +56,11 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Preciso',
   'eq.mode.classic': 'Clásico',
   'eq.mode.trebleEqPrecise':
-    'Preciso: tus bandas de agudos suenan exactamente como están dibujadas, hasta 20\u00a0kHz.',
+    'Preciso: tus bandas, Tono, Preset, Tipo de transductor y EQ inteligente suenan exactamente como están dibujados, hasta 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Clásico: como las reproduce Equalizer APO. Las bandas de agudos salen más estrechas y más bajas de lo que las ajustas, sobre todo cerca de 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
-    'Preciso: Preset, Tipo de transductor, EQ inteligente y tu corrección de auriculares suenan exactamente como están dibujados, hasta 20\u00a0kHz.',
+    'Preciso: tu corrección de auriculares suena exactamente como está dibujada, hasta 20\u00a0kHz.',
   'eq.mode.trebleCurvesClassic':
     'Clásico: como los reproduce Equalizer APO y como AutoEQ afina las correcciones de auriculares. Las bandas de agudos salen más estrechas y más bajas de lo ajustado, sobre todo cerca de 20\u00a0kHz.',
   'eq.mode.trebleUpdate':
@@ -87,7 +88,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Estudio',
   'eq.mode.yourEq': 'Tu EQ',
-  'eq.mode.curves': 'Curvas',
+  'eq.mode.curves': 'Correcciones',
   'graph.resize': 'Arrastra para cambiar el tamaño de la gráfica',
   'graph.view.title': 'Cuánto espacio ocupa la gráfica',
   'graph.view.normal': 'Vista',
@@ -245,6 +246,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'EQ inteligente',
   'graph.curve.custom': 'FX personalizados',
+  'graph.curve.tone': 'Tono',
   'graph.curve.total': 'Salida final',
   'graph.design.showWave':
     'Muestra primero la onda; no hay nada sobre lo que diseñar',
@@ -550,6 +552,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.smart': 'EQ inteligente',
   'eq.layers.remove': 'Quitar la capa de {layer}',
   'eq.layers.clearBands': 'Poner todas las bandas a 0 dB',
+  'eq.layers.clearTone': 'Poner Graves, Medios y Agudos a 0 dB',
   'eq.layers.clearReference': 'Quitar la corrección de auriculares',
   'eq.layers.clearSmart':
     'Quitar la corrección medida. Tus bandas y la referencia se mantienen.',
@@ -562,6 +565,12 @@ const eq: Partial<Dictionary> = {
   'eq.selected': 'Banda seleccionada',
   'eq.selectedCount': '{count} bandas',
   'eq.tone': 'Tono',
+  'eq.tone.lowCut': 'Corte graves',
+  'eq.tone.highCut': 'Corte agudos',
+  'eq.tone.lowCutHint':
+    'Corte de graves en 20 Hz. En 0 está apagado; súbelo para un corte más pronunciado, de 12 o 24 dB por octava.',
+  'eq.tone.highCutHint':
+    'Corte de agudos en 20 kHz. En 0 está apagado; súbelo para un corte más pronunciado, de 12 o 24 dB por octava.',
   'eq.tone.bass': 'Graves',
   'eq.tone.mid': 'Medios',
   'eq.tone.treble': 'Agudos',

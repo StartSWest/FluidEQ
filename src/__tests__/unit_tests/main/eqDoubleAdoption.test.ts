@@ -14,7 +14,7 @@ import {
 import { createApoAdoption } from 'main/apoAdopt';
 import { stateToApoFiles, stateToString } from 'main/apoRender';
 import { flushPendingWrites } from 'main/asyncWriter';
-import { getEqMode } from 'common/eqMode';
+import { getCurveEqMode, getEqMode } from 'common/eqMode';
 import {
   deviceProfilesToFiles,
   getDefaultDeviceProfileSettings,
@@ -57,16 +57,30 @@ describe('two-pass external EQ adoption', () => {
       const state = shaped();
       state.eqMode = eqMode;
       state.headphone = { intensity: 1, filters: state.filters };
-      const before = JSON.stringify(state);
       const external = 'Filter 1: ON PK Fc 1000 Hz Gain 6 dB Q 1';
-      expect(
-        adoptApoFeatureText(state, 'eq', external).unsupported,
-      ).toBeGreaterThan(0);
+      // The correction is written through its own row, which follows Your
+      // EQ's here (a state from before the rows split): its file says what
+      // the strength made of it, not what it holds.
+      const before = JSON.stringify(state);
       expect(
         adoptApoFeatureText(state, 'headphone', external).unsupported,
       ).toBeGreaterThan(0);
       expect(JSON.stringify(state)).toBe(before);
-      state.eqMode = 'normal';
+      // Taking the bands back resets Your EQ's row to Normal, so it is
+      // refused while a preset rides that row with them (`layerGroupOf`).
+      state.voicing = { profileId: 'music', intensity: 1 };
+      const withPreset = JSON.stringify(state);
+      expect(
+        adoptApoFeatureText(state, 'eq', external).unsupported,
+      ).toBeGreaterThan(0);
+      expect(JSON.stringify(state)).toBe(withPreset);
+      // CONTROL: without one it is taken, and the correction's row keeps
+      // its strength — frozen before Your EQ's is reset.
+      state.voicing = undefined;
+      expect(adoptApoFeatureText(state, 'eq', external).changed).toBe(true);
+      expect(getEqMode(state)).toBe('normal');
+      expect(getCurveEqMode(state)).toBe(eqMode);
+      state.curveEqMode = 'normal';
       expect(adoptApoFeatureText(state, 'headphone', external).changed).toBe(
         true,
       );

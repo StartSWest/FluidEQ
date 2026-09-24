@@ -5,7 +5,6 @@ import {
   TCurveSmoothing,
 } from './eqShape';
 import {
-  clampGain,
   clampQuality,
   FilterTypeEnum,
   IFilter,
@@ -13,7 +12,12 @@ import {
   IState,
   IConvolutionProfile,
   isBandEnabled,
+  MAX_GAIN,
+  TApoFeature,
 } from './constants';
+import { clampGainWithin } from './correctionRange';
+import { layerGroupOf } from './filterDesign';
+import { hasTone } from './tone';
 
 import { getResponseGainAtFrequencies } from './response';
 
@@ -63,37 +67,49 @@ export const eqModeGainScale = (mode: TEqMode): number => {
   return mode === 'double' ? 2 : 1;
 };
 
+/**
+ * Whether a feature file edited outside FluidEQ can be taken back as it reads.
+ *
+ * Every layer is written through its group's strength and band shape, and a
+ * correction through smoothing too (`layerGroupOf`), so a file only says what
+ * its layer holds while those write it unchanged. Taking the bands back is the
+ * exception: it resets Your EQ's row to Normal and constant Q to match
+ * (`adoptApoFeatureText`), which is only safe while no other layer in that row
+ * is written through it.
+ */
 export const canAdoptEqModeChange = (
   state: IState,
-  feature: string,
+  feature: TApoFeature,
 ): boolean => {
-  if (
-    feature !== 'eq' &&
-    (getBandQ(state, 'curves') !== 'off' ||
-      (state.curveSmoothing && state.curveSmoothing !== 'off'))
-  ) {
-    return false;
+  if (layerGroupOf(feature) === 'curves') {
+    return (
+      getBandQ(state, 'curves') === 'off' &&
+      (!state.curveSmoothing || state.curveSmoothing === 'off') &&
+      getCurveEqMode(state) === 'normal'
+    );
   }
-  if (state.curveEqMode !== undefined) {
-    return feature === 'eq' || getCurveEqMode(state) === 'normal';
+  const writesAsIs =
+    getEqMode(state) === 'normal' && getBandQ(state, 'eq') === 'off';
+  if (feature !== 'eq') {
+    return writesAsIs;
   }
   return (
-    getEqMode(state) === 'normal' ||
-    (feature === 'eq' &&
-      !state.driver &&
-      !state.headphone &&
-      !state.voicing &&
-      !state.smartEq &&
-      !state.convolution &&
-      !state.customFx)
+    writesAsIs ||
+    (!hasTone(state.tone) && !state.voicing && !state.driver && !state.smartEq)
   );
 };
 
+/**
+ * Studio mode's one and a half times, of gains bounded to `limit` first: a
+ * slider's range unless the layer is a correction (`layerGainLimit`), which
+ * is lifted whole.
+ */
 export const getStudioEqFilters = <
   T extends Pick<IFilter, 'type' | 'gain' | 'quality'>,
 >(
   filters: T[],
   shape: TBandQ = 'proportional',
+  limit = MAX_GAIN,
 ): T[] =>
   shapeEqFilters(filters, shape).map((filter) => {
     if (
@@ -103,7 +119,7 @@ export const getStudioEqFilters = <
     ) {
       return filter;
     }
-    const gain = clampGain(filter.gain);
+    const gain = clampGainWithin(filter.gain, limit);
     return {
       ...filter,
       gain: twoPlaces(1.5 * gain),
@@ -113,10 +129,11 @@ export const getStudioEqFilters = <
 
 export const getStudioEqGraphic = (
   points: IGraphicEqPoint[],
+  limit = MAX_GAIN,
 ): IGraphicEqPoint[] =>
   points.map((point) => ({
     ...point,
-    gain: twoPlaces(1.5 * clampGain(point.gain)),
+    gain: twoPlaces(1.5 * clampGainWithin(point.gain, limit)),
   }));
 
 export const getAppliedEqFilters = <
