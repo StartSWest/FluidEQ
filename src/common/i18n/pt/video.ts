@@ -35,6 +35,11 @@ const video: Partial<Dictionary> = {
   'video.adBlock': 'Bloquear anúncios',
   'video.adBlockHint':
     'Pula os anúncios em vídeo e esconde os espaços de anúncio no YouTube.',
+  'video.matchColours': 'Usar as cores do FluidEQ',
+  'video.matchColoursHint':
+    'Pinta a página deste site com as cores do FluidEQ, só na sua tela. Vídeos, imagens, anúncios e logotipos nunca são alterados.',
+  'video.matchColoursUnavailable':
+    'Este site mantém as próprias cores: as páginas são claras e cada artista cria a sua.',
   'video.signOut': 'Sair de todos os sites',
   'video.signOutBusy': 'Saindo…',
   'video.signOutHint':

@@ -34,6 +34,11 @@ const video: Partial<Dictionary> = {
   'video.searchForgetAll': '最近の検索を消去',
   'video.adBlock': '広告をブロック',
   'video.adBlockHint': 'YouTube の動画広告をスキップし、広告枠を隠します。',
+  'video.matchColours': 'FluidEQ の配色に合わせる',
+  'video.matchColoursHint':
+    'このサイトのページを FluidEQ の配色に合わせます（あなたの画面上のみ）。動画・画像・広告・ロゴは一切変更しません。',
+  'video.matchColoursUnavailable':
+    'このサイトは独自の配色のままです。ページが明るく、アーティストが各自でデザインしているためです。',
   'video.signOut': 'すべてのサイトからログアウト',
   'video.signOutBusy': 'ログアウト中…',
   'video.signOutHint':

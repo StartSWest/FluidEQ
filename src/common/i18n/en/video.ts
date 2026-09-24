@@ -32,6 +32,11 @@ const video = {
   'video.searchForgetAll': 'Clear recent searches',
   'video.adBlock': 'Block ads',
   'video.adBlockHint': 'Skips video ads and hides ad slots on YouTube.',
+  'video.matchColours': 'Match FluidEQ’s colours',
+  'video.matchColoursHint':
+    'Colours this site’s page to match FluidEQ, on your screen only. Videos, pictures, ads and logos are never changed.',
+  'video.matchColoursUnavailable':
+    'This site keeps its own colours: its pages are light, and artists design their own.',
   'video.signOut': 'Sign out of all sites',
   'video.signOutBusy': 'Signing out…',
   'video.signOutHint':

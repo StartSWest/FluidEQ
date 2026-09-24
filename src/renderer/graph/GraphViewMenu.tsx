@@ -516,78 +516,92 @@ const GraphViewMenu = ({
                   </button>
                 )}
 
-                <label
-                  className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                  htmlFor="graph-see-through"
-                  title={t('graph.seeThroughHint')}
-                >
-                  <Icon>
-                    <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
-                    <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
-                  </Icon>
-                  <span>{t('graph.seeThrough')}</span>
-                  <span className="graph-view-menu__track">
-                    {PERCENT_SNAPS.map((snap) => (
-                      <i
-                        key={snap}
-                        className="graph-view-menu__snap"
-                        style={{ '--snap-frac': snap / 100 } as CSSProperties}
-                        aria-hidden
+                {/* Not with a Plus visualizer. A scene fills the graph edge to
+                    edge, so there is nothing of what lies behind it to see
+                    through to or blur — and it no longer lies over a video at
+                    all: in full screen it plays alone, and the video has its
+                    own full screen on a double-click (App.tsx). The standard
+                    visualizers keep both. */}
+                {!sceneLookId && (
+                  <>
+                    <label
+                      className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                      htmlFor="graph-see-through"
+                      title={t('graph.seeThroughHint')}
+                    >
+                      <Icon>
+                        <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
+                        <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
+                      </Icon>
+                      <span>{t('graph.seeThrough')}</span>
+                      <span className="graph-view-menu__track">
+                        {PERCENT_SNAPS.map((snap) => (
+                          <i
+                            key={snap}
+                            className="graph-view-menu__snap"
+                            style={
+                              { '--snap-frac': snap / 100 } as CSSProperties
+                            }
+                            aria-hidden
+                          />
+                        ))}
+                        <input
+                          id="graph-see-through"
+                          type="range"
+                          aria-label={t('graph.seeThrough')}
+                          min={minOverlayOpacity * 100}
+                          max={100}
+                          step={1}
+                          // Inverted, so right is more see-through. The stored value
+                          // is an opacity because that is what CSS wants; the slider
+                          // is a transparency because that is what the label says.
+                          value={Math.round((1 - overlayOpacity) * 100)}
+                          onChange={(event) =>
+                            onChangeOverlayOpacity(
+                              1 - snapPercent(Number(event.target.value)) / 100,
+                            )
+                          }
+                        />
+                      </span>
+                      <span className="graph-view-menu__value" aria-hidden>
+                        {t('graph.scene.percent', {
+                          percent: String(
+                            Math.round((1 - overlayOpacity) * 100),
+                          ),
+                        })}
+                      </span>
+                    </label>
+                    <label
+                      className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                      htmlFor="graph-see-through-blur"
+                      title={t('graph.blurHint')}
+                    >
+                      <Icon>
+                        <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
+                      </Icon>
+                      <span>{t('graph.blur')}</span>
+                      <input
+                        id="graph-see-through-blur"
+                        type="range"
+                        aria-label={t('graph.blur')}
+                        min={0}
+                        max={maxOverlayBlur}
+                        step={1}
+                        value={overlayBlur}
+                        onChange={(event) =>
+                          onChangeOverlayBlur(Number(event.target.value))
+                        }
                       />
-                    ))}
-                    <input
-                      id="graph-see-through"
-                      type="range"
-                      aria-label={t('graph.seeThrough')}
-                      min={minOverlayOpacity * 100}
-                      max={100}
-                      step={1}
-                      // Inverted, so right is more see-through. The stored value
-                      // is an opacity because that is what CSS wants; the slider
-                      // is a transparency because that is what the label says.
-                      value={Math.round((1 - overlayOpacity) * 100)}
-                      onChange={(event) =>
-                        onChangeOverlayOpacity(
-                          1 - snapPercent(Number(event.target.value)) / 100,
-                        )
-                      }
-                    />
-                  </span>
-                  <span className="graph-view-menu__value" aria-hidden>
-                    {t('graph.scene.percent', {
-                      percent: String(Math.round((1 - overlayOpacity) * 100)),
-                    })}
-                  </span>
-                </label>
-                <label
-                  className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                  htmlFor="graph-see-through-blur"
-                  title={t('graph.blurHint')}
-                >
-                  <Icon>
-                    <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
-                  </Icon>
-                  <span>{t('graph.blur')}</span>
-                  <input
-                    id="graph-see-through-blur"
-                    type="range"
-                    aria-label={t('graph.blur')}
-                    min={0}
-                    max={maxOverlayBlur}
-                    step={1}
-                    value={overlayBlur}
-                    onChange={(event) =>
-                      onChangeOverlayBlur(Number(event.target.value))
-                    }
-                  />
-                  <span className="graph-view-menu__value" aria-hidden>
-                    {t('graph.scene.percent', {
-                      percent: String(
-                        Math.round((overlayBlur / maxOverlayBlur) * 100),
-                      ),
-                    })}
-                  </span>
-                </label>
+                      <span className="graph-view-menu__value" aria-hidden>
+                        {t('graph.scene.percent', {
+                          percent: String(
+                            Math.round((overlayBlur / maxOverlayBlur) * 100),
+                          ),
+                        })}
+                      </span>
+                    </label>
+                  </>
+                )}
               </>
             )}
             {sceneLookId && (

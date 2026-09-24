@@ -67,6 +67,9 @@ import {
 } from '../audio/transportSource';
 import { PLAYBACK_HANDOFF_GRACE_MS } from '../audio/playbackHandoff';
 import VideoSiteIcon from './VideoSiteIcon';
+import GuestTintToggle from './GuestTintToggle';
+import { useGuestTint } from './useGuestTint';
+import VideoSceneBackdrop, { useSceneBehindVideo } from './VideoSceneBackdrop';
 import '../styles/VideoBrowser.scss';
 import {
   EXIT_PAGE_FULLSCREEN,
@@ -435,6 +438,16 @@ const VideoBrowser = ({
   // on the support dialog and this player may not be mounted at the time.
   const isAdBlockRevealed = useIsAdBlockRevealed();
   const activeSite = findSiteForUrl(currentUrl);
+  // The page in FluidEQ's colours, when the user has asked for it — or as
+  // glass over the graph's Plus visualizer in the video's own full screen.
+  const isSceneBehind = useSceneBehindVideo(isFullScreen);
+  useGuestTint(
+    webviewRef,
+    activeSite?.id,
+    pageToken,
+    isGuestReady,
+    isSceneBehind,
+  );
 
   // Held in a ref rather than in state. Nothing renders from it, and a sample
   // every five seconds that re-rendered the pane would be five seconds of work
@@ -1743,6 +1756,7 @@ const VideoBrowser = ({
           login and then shows nothing is indistinguishable from one that failed,
           and that difference matters more here than anywhere else in the app.
         */}
+          <GuestTintToggle siteId={activeSite?.id} />
           <button
             type="button"
             className={`video-browser__sign-out is-${signOutState}`}
@@ -1796,6 +1810,7 @@ const VideoBrowser = ({
       )}
 
       <div className="video-browser__stage">
+        {isSceneBehind && <VideoSceneBackdrop />}
         <Webview
           ref={webviewRef}
           className="video-browser__view"

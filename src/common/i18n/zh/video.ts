@@ -34,6 +34,11 @@ const video: Partial<Dictionary> = {
   'video.searchForgetAll': '清除最近的搜索',
   'video.adBlock': '拦截广告',
   'video.adBlockHint': '跳过视频广告，并隐藏 YouTube 上的广告位。',
+  'video.matchColours': '使用 FluidEQ 配色',
+  'video.matchColoursHint':
+    '将此网站的页面改为 FluidEQ 的配色，仅在你的屏幕上生效。视频、图片、广告和标志从不改变。',
+  'video.matchColoursUnavailable':
+    '此网站保留自己的配色：它的页面是浅色的，艺术家会自行设计自己的页面。',
   'video.signOut': '退出所有网站登录',
   'video.signOutBusy': '正在退出…',
   'video.signOutHint': '清除播放器保存的所有 Cookie、登录信息和缓存页面。',

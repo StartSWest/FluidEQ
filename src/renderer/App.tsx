@@ -88,6 +88,7 @@ import {
   useGraphFullScreen,
   useGraphView,
   useFullScreenTopBar,
+  useSceneLook,
 } from './utils/graphStyle';
 import {
   useIsChromeIdle,
@@ -1172,7 +1173,17 @@ const AppContent = () => {
   // external browser, Spotify or another application deliberately gets the
   // quiet graph-only surface.
   const isGraphBackdropMode = isGraphFullScreen && showsGraph;
-  const graphBackdropOwner = isGraphBackdropMode ? playingOwner : undefined;
+  // A Plus visualizer fills the graph edge to edge, so laid over a video it
+  // only hides the picture. With one on the graph, the graph's full screen is
+  // the visualizer alone and the video gets its own (see the double-click on
+  // the video below); the standard visualizers still draw over a playing
+  // video, see-through and all (Ivan, 2026-09-21). Karaoke keeps its stage
+  // under the graph: that is its lyrics, and it has no other full screen.
+  const isSceneOnGraph = useSceneLook() !== null;
+  const graphBackdropOwner =
+    isGraphBackdropMode && (!isSceneOnGraph || playingOwner === 'karaoke')
+      ? playingOwner
+      : undefined;
   const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
   const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
   const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
@@ -2671,6 +2682,16 @@ const AppContent = () => {
                   applyMediaFullScreen('video');
                 }}
                 onRequestGraphFullScreen={() => {
+                  // With a Plus visualizer on the graph, a double-click on the
+                  // video is the video's own full screen, in and out: the
+                  // visualizer would only have covered it (see the backdrop
+                  // above).
+                  if (isSceneOnGraph) {
+                    applyMediaFullScreen(
+                      isMediaFullScreen ? undefined : 'video',
+                    );
+                    return;
+                  }
                   // A double-click on the guest is the same command as Ctrl+F.
                   // If the shared no-graph media surface already owns the OS
                   // window, transfer it without first bouncing out of full

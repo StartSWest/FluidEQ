@@ -544,6 +544,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Sized to the row's other glyph buttons rather than to its own label, because
 // it no longer has one — the words are in the tooltip and in what a screen
 // reader is given.
+// The colours switch stands just before it and shares every line of it, so
+// the two read as one pair of marks at the end of the bar. The first of the
+// pair takes the free space; two automatic margins would have split it and
+// left a gap between them.
+.video-browser__match + .video-browser__sign-out {
+  margin-left: 0;
+}
+
+.video-browser__match,
 .video-browser__sign-out {
   display: grid;
   width: 26px;
@@ -599,6 +608,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-failed {
     color: $red;
+  }
+}
+
+// On: the drop filled and lit in the accent — the page beside it has just
+// taken the same colour, and the mark says where it came from.
+.video-browser__match.is-on {
+  color: $secondary-light;
+
+  svg path {
+    fill: color-mix(in srgb, currentcolor 45%, transparent);
   }
 }
 
@@ -672,6 +691,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   width: 100%;
   height: 100%;
+}
+
+// The graph's Plus visualizer behind the page, in the video's own full screen
+// (`VideoSceneBackdrop.tsx`): the whole stage, under the page, which is made
+// glass for it. The page stays the thing that is pressed — the scene takes no
+// pointer — and it is lifted above the scene here rather than the scene being
+// sunk below the stage, which would put it under the window's own floor.
+.video-browser__scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.video-browser__scene + .video-browser__view {
+  position: relative;
+  z-index: 1;
 }
 
 // *** Explicit web downloads ************************************************

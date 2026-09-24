@@ -35,6 +35,11 @@ const video: Partial<Dictionary> = {
   'video.adBlock': 'विज्ञापन ब्लॉक करें',
   'video.adBlockHint':
     'YouTube पर वीडियो विज्ञापन छोड़ता है और विज्ञापन की जगह छिपाता है।',
+  'video.matchColours': 'FluidEQ के रंग अपनाएँ',
+  'video.matchColoursHint':
+    'इस साइट के पेज को FluidEQ के रंगों में दिखाता है, सिर्फ़ आपकी स्क्रीन पर। वीडियो, तस्वीरें, विज्ञापन और लोगो कभी नहीं बदलते।',
+  'video.matchColoursUnavailable':
+    'यह साइट अपने रंग रखती है: इसके पेज हल्के रंग के हैं और कलाकार अपने पेज खुद डिज़ाइन करते हैं।',
   'video.signOut': 'सभी साइटों से साइन आउट करें',
   'video.signOutBusy': 'साइन आउट हो रहा है…',
   'video.signOutHint':
