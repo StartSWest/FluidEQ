@@ -2068,10 +2068,6 @@ const FrequencyResponseChart = ({
         ) : (
           <Chart
             data={displayData}
-            // The band curves, which are also the only curves: the live trace
-            // is not in `data` at all any more, so nothing the analyser does can
-            // make the y-extent memos rescan every point.
-            scaleData={appliedChartData}
             outputOffset={isPreampLive ? liveEnginePreamp : undefined}
             dimensions={dimensions}
             editablePoints={canEditEqCurve ? editablePoints : []}

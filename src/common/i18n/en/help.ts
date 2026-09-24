@@ -388,11 +388,11 @@ const help = {
   'help.graph.intro':
     'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a Plus visualizer.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen. A single click hides or shows the strip.',
+    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
   'help.graph.tip':
-    'Everything here changes only the drawing, never your sound. Rainbow mode — Help → What’s new turns it on — draws the standard styles, the meters and the wave at your screen’s full refresh rate instead of 30 frames a second. Esc leaves the expanded and full-screen views.',
+    'Everything here changes only the drawing, never your sound. Rainbow mode — Help → What’s new turns it on — draws the standard styles, the meters and the wave at your screen’s full refresh rate instead of 30 frames a second.',
   'help.graph.keywords':
-    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view',
+    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view, shortcuts, keyboard shortcuts, hotkeys, double-click, expanded, expand',
   'help.graph.stripCaption': 'With a standard style',
   'help.graph.live': 'Shows or hides the live wave.',
   'help.graph.previous': 'Steps back to the previous look.',

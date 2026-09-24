@@ -298,6 +298,7 @@ import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { GraphLookTransition } from './graphLookTransition';
 import getGraphMotionDelta from './graphMotionPacing';
 import { createDashTrails, advanceDashTrails } from './dashTrails';
+import { traceStretch } from './traceStretch';
 import {
   createTerraceJumper,
   advanceTerraceJumper,
@@ -586,7 +587,7 @@ const LiveTraceCanvas = ({
   // Whether there is a frequency axis left for the trace to be honest about.
   // Read here rather than derived from the props, because the margins the chart
   // drops when the grid goes are not the same question as whether anything on
-  // the plot is still measured against 16Hz — see the stretch in the frame loop.
+  // the plot is still measured against 10Hz — see the stretch in the frame loop.
   const isGridHidden = useGraphGridHidden();
   const isGridHiddenRef = useRef(isGridHidden);
   isGridHiddenRef.current = isGridHidden;
@@ -745,22 +746,8 @@ const LiveTraceCanvas = ({
       };
 
       /**
-       * Edge to edge, but only when there is nothing left to lie to.
-       *
-       * The axis runs 16Hz to 25kHz and the analyser only reaches 20Hz to
-       * 20kHz — a matched pair chosen so the audible marks are not sitting on
-       * the frame, which costs the trace about 3% of the plot at each end. On a
-       * ruled graph that gap is correct and is the whole point. Expanded or
-       * full screen, with the grid off and the wave on its own, it is a strip
-       * of empty card down both sides of a drawing that is supposed to fill the
-       * screen — sixty pixels at each end of a two-thousand pixel plot,
-       * measured — and there is no label, no curve and no handle left anywhere
-       * on the plot for it to be measured against.
-       *
-       * Not gated on the mode, though those are the two it is wanted in. Both
-       * flags it reads are per view already, so a pane between the sliders and
-       * the editor only reaches this if somebody asked for a gridless wave
-       * there too, which is the same request and deserves the same answer.
+       * Edge to edge where the sound stops short of an edge, and only there
+       * (`traceStretch`).
        *
        * BOTH CONDITIONS, and neither is decoration. Soloed but ruled, the
        * frequency labels underneath would name the wrong columns. Gridless with
@@ -768,19 +755,16 @@ const LiveTraceCanvas = ({
        * real axis and the two would disagree about where 1kHz is. Only "wave
        * only" plus no grid leaves the drawing alone on the card, and only then
        * is stretching it free.
-       *
-       * Measured from the data's own ends rather than from the analyser's
-       * constants: the top of the axis is `min(20kHz, nyquist)`, so an endpoint
-       * running below 40kHz reaches less far and would keep a gap that the
-       * constants say is not there.
        */
-      const firstX = Number(xScale(eased[0].x)) || 0;
-      const lastX = Number(xScale(eased[eased.length - 1].x)) || 0;
-      const dataSpan = lastX - firstX;
-      const stretch =
-        isForegroundRef.current && isGridHiddenRef.current && dataSpan > 0
-          ? (plot.right - plot.left) / dataSpan
-          : 1;
+      const { from: firstX, scale: stretch } =
+        isForegroundRef.current && isGridHiddenRef.current
+          ? traceStretch(
+              plot.left,
+              plot.right,
+              Number(xScale(eased[0].x)) || plot.left,
+              Number(xScale(eased[eased.length - 1].x)) || plot.right,
+            )
+          : { from: 0, scale: 1 };
 
       // Projected into pixels first: the axes are logarithmic in frequency and
       // decibel in level, so building bars or steps in data space and scaling
@@ -885,12 +869,12 @@ const LiveTraceCanvas = ({
       /**
        * The bars span the READING, not the plot.
        *
-       * The axis runs 16Hz to 25kHz and the analyser only reaches 20Hz to
-       * 20kHz — a deliberate pair, so the audible marks are not sitting on
-       * the frame — which costs the drawing about three per cent of the plot
-       * at each end. The wave already respects that, because it is built
-       * from the points; the bars were laid out edge to edge and so ran past
-       * both ends of the data, out over the axis labels.
+       * The axis runs 10Hz to 25kHz with the grid on, and the reading stops
+       * at the output's Nyquist — 24kHz on a 48kHz endpoint, less on a
+       * slower one — so the drawing has nothing to say in the last stretch
+       * of plot. The wave already respects that, because it is built from
+       * the points; the bars were laid out edge to edge and so ran past both
+       * ends of the data, out over the axis labels.
        */
       const fluidLeft = projected[0][0];
       const fluidRight = projected[projected.length - 1][0];

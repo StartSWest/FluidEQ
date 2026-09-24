@@ -24,7 +24,9 @@ import {
 import {
   FREQUENCY_MAJOR_TICKS,
   GAIN_AXIS_TICKS,
+  UNITY_TICKS,
   frequencyLabelTicksFor,
+  gainAxisTicksFor,
   getAxisPadding,
   liveLevelScaleFor,
   liveLevelTicksFor,
@@ -106,6 +108,21 @@ describe('the level labels', () => {
       MAX_GAIN,
     ]);
     expect(liveLevelTicksFor(gainScale(10, 0, 0))).toEqual([MAX_GAIN]);
+  });
+});
+
+describe('the gain labels', () => {
+  it('keeps all five on a tall plot and thins them on a short one', () => {
+    // A graph at its floor is 55px of plot, where all five printed over one
+    // another while the level scale beside them had already thinned itself.
+    expect(gainAxisTicksFor(gainScale(400, 0, 0))).toEqual(GAIN_AXIS_TICKS);
+    expect(gainAxisTicksFor(gainScale(60, 0, 0))).toEqual([
+      MIN_GAIN,
+      0,
+      MAX_GAIN,
+    ]);
+    // Unity is the last one kept: it is the line every curve is read against.
+    expect(gainAxisTicksFor(gainScale(30, 0, 0))).toEqual(UNITY_TICKS);
   });
 });
 

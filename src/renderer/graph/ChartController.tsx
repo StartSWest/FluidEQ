@@ -24,20 +24,46 @@ import { SelectionMode } from 'common/bandSelection';
 import { Color } from 'renderer/styles/color';
 
 /**
- * The frequency range the plot covers, which is wider than the audible band at
- * both ends so the 20Hz and 20kHz marks are not sitting on the frame.
+ * The frequency range the plot covers with its grid on, which is wider than
+ * the audible band at both ends so the 20Hz and 20kHz marks are not sitting on
+ * the frame.
  *
- * Chosen as a matched pair rather than as two round numbers. On a log axis the
- * margin is the ratio, so 10Hz put 20Hz a full 8.9% in from the left while
- * 25kHz put 20kHz only 2.9% from the right — three times the gap at one end,
- * and the whole drawing pushed over. `20 / start` and `end / 20000` are now
- * the same ratio, which lands both marks the same distance from their edge and
- * hands the space that was wasted back to the graph.
- *
- * If either is ever changed, change the other: start = 20 * 20000 / end.
+ * A whole octave below 20 Hz, as professional equalisers draw it (Pro-Q starts
+ * at 10 Hz), and not the matched pair it was. 16 Hz and 25 kHz put 20 Hz and
+ * 20 kHz the same distance from their edges, which balanced the drawing; the
+ * Tone panel's low cut then did its work in the third of an octave left below
+ * 20 Hz, and Ivan asked to see the whole spectrum down there (2026-09-23: "can
+ * we show 0 hz in the grahp too ... so we see the full espectrum"). A log axis
+ * never reaches 0 Hz; an octave below 20 Hz shows the cut's slope, the
+ * analyser's measurement of it, and the rumble it takes out. The top stays at
+ * 25 kHz: above an output's Nyquist, 24 kHz at 48 kHz, there is nothing to
+ * draw.
  */
-export const GRAPH_START = 16;
+export const GRAPH_START = 10;
 export const GRAPH_END = 25000;
+
+/**
+ * The range with the grid off, when the plot is a picture drawn edge to edge:
+ * trimmed to where records have sound (Ivan, 2026-09-23: "when grap grid is
+ * off I like to show grahp 16k so we dont show empty space on the right when
+ * showing the grahp in full screen no grid", "I mean trim the sides"). Most
+ * masters, and every MP3, are empty above 16 kHz, and nothing below 20 Hz is
+ * heard.
+ */
+export const PICTURE_START = 20;
+export const PICTURE_END = 16000;
+
+const FULL_RANGE = [GRAPH_START, GRAPH_END] as const;
+const PICTURE_RANGE = [PICTURE_START, PICTURE_END] as const;
+
+/**
+ * The frequencies the plot spans, as one of two constants: a range rebuilt
+ * each render would rebuild the scale, and every axis handed it would restart
+ * its transition.
+ */
+export const graphFrequencyRange = (
+  isGridHidden: boolean,
+): readonly [number, number] => (isGridHidden ? PICTURE_RANGE : FULL_RANGE);
 
 export const INIT_ANIMATE_DURATION = 750;
 export const GRAPH_ANIMATE_DURATION = 100;
@@ -191,46 +217,43 @@ export interface IChartLiveOffset {
 }
 
 interface IChartControllerProps {
-  /**
-   * The curves that set the y-scale. Deliberately not the curves that get
-   * drawn: the live output trace moves ~22 times a second and must not make
-   * the graph rescale under the user, and feeding it in here meant d3 walked
-   * every point of every band curve at that rate to recompute an extent that
-   * had not changed.
-   */
-  scaleData: IChartCurveData[];
-  /**
-   * Gains the scale has to reach besides `scaleData`'s: where a live offset
-   * has carried the output curve. Whole decibels, outward, so it changes only
-   * when the curve crosses one — which within ±20 dB is never.
-   */
-  extent?: readonly [number, number];
   width: number;
   height: number;
   padding: IMarginLike;
+  /** From `graphFrequencyRange`, so its identity holds between renders. */
+  frequencyRange: readonly [number, number];
 }
 
-/** The plot's frequency axis across a box `width` wide, inside its gutters. */
-export const frequencyScale = (width: number, left: number, right: number) =>
+/**
+ * The plot's frequency axis across a box `width` wide, inside its gutters,
+ * over the grid's whole spectrum unless `range` trims it.
+ */
+export const frequencyScale = (
+  width: number,
+  left: number,
+  right: number,
+  range: readonly [number, number] = FULL_RANGE,
+) =>
   d3
     .scaleLog()
-    .domain([GRAPH_START, GRAPH_END])
+    .domain([...range])
     .range([left, width - right]);
 
 /**
- * The plot's gain axis down a box `height` tall. Never narrower than ±20 dB,
- * wider when a curve in `yMin`..`yMax` needs it.
+ * The plot's gain axis down a box `height` tall: the EQ's ±20 dB, fixed.
+ *
+ * It used to stretch to hold any curve past ±20 dB, and the live preamp's
+ * offset with it, so every band, every handle and the analyser's scale beside
+ * them moved whenever a total or a preamp crossed the edge. With the analyser
+ * on a scale of its own on the right (`liveGraphBand.ts`), both scales hold
+ * still, the way a professional equaliser's do (Ivan, 2026-09-23: "it can be
+ * fixed we just have two scales one on the left for EQ and one on the right
+ * for the grhps"). A curve past the edge runs off the plot.
  */
-export const gainScale = (
-  height: number,
-  top: number,
-  bottom: number,
-  yMin: number = MIN_GAIN,
-  yMax: number = MAX_GAIN,
-) =>
+export const gainScale = (height: number, top: number, bottom: number) =>
   d3
     .scaleLinear()
-    .domain([Math.min(MIN_GAIN, yMin), Math.max(MAX_GAIN, yMax)])
+    .domain([MIN_GAIN, MAX_GAIN])
     .range([height - bottom, top]);
 
 // Module scope, so an axis handed one of these keeps the same function from
@@ -242,35 +265,19 @@ export const gainTickFormat = (domainValue: d3.NumberValue) =>
   `${Number(domainValue) > 0 ? '+' : ''}${d3.format('.2')(domainValue)} dB`;
 
 const useController = ({
-  scaleData,
-  extent,
   width,
   height,
   padding,
+  frequencyRange,
 }: IChartControllerProps) => {
   const xScaleFreq = useMemo(
-    () => frequencyScale(width, padding.left, padding.right),
-    [padding.left, padding.right, width],
+    () => frequencyScale(width, padding.left, padding.right, frequencyRange),
+    [padding.left, padding.right, width, frequencyRange],
   );
-
-  const dataMin = useMemo(
-    () =>
-      d3.min(scaleData, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
-    [scaleData],
-  );
-
-  const dataMax = useMemo(
-    () =>
-      d3.max(scaleData, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
-    [scaleData],
-  );
-
-  const yMin = Math.min(dataMin, extent?.[0] ?? dataMin);
-  const yMax = Math.max(dataMax, extent?.[1] ?? dataMax);
 
   const yScaleGain = useMemo(
-    () => gainScale(height, padding.top, padding.bottom, yMin, yMax),
-    [height, padding.bottom, padding.top, yMin, yMax],
+    () => gainScale(height, padding.top, padding.bottom),
+    [height, padding.bottom, padding.top],
   );
 
   return {

@@ -90,8 +90,17 @@ export const getAxisPadding = (
 // ticks in an effect's dependencies, and an array rebuilt each render re-ruled
 // the whole plot on every render.
 
-/** The decades, labelled along the bottom. */
-export const FREQUENCY_MAJOR_TICKS = [20, 100, 200, 1000, 2000, 10000, 20000];
+/**
+ * The labels along the bottom: the 1-2-5 series every professional analyser
+ * and equaliser draws, a fixed scale rather than the bands' own frequencies,
+ * which their sliders and handles already carry (Ivan, 2026-09-23: "should the
+ * follow the eq band settings or they should have an standard grahp freq
+ * numbers"). 10 Hz is the plot's left edge (`GRAPH_START`), labelled so the
+ * octave under 20 Hz reads as part of it.
+ */
+export const FREQUENCY_MAJOR_TICKS = [
+  10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
+];
 
 /** Between the decades, at half their ink and unlabelled. */
 export const FREQUENCY_MINOR_TICKS = [
@@ -236,6 +245,31 @@ export const liveLevelTicksFor = (
   }
   if (span < 88) {
     return [MIN_GAIN, 0, MAX_GAIN];
+  }
+  return GAIN_AXIS_TICKS;
+};
+
+/** The gain labels a short plot keeps: its two ends and unity. */
+const GAIN_AXIS_ENDS_AND_UNITY = [MIN_GAIN, 0, MAX_GAIN];
+
+/**
+ * The gain labels down the left, thinned the way the live scale's are above.
+ *
+ * They were all five at every height, and a graph at its floor — which is
+ * where a short window's pages open it (`shortWindowPaneKey`) — printed +20
+ * through -20 over one another in a 55px plot while the right-hand scale beside
+ * them had already thinned itself to two. Unity is the one label kept to the
+ * last: it is the line every curve is read against.
+ */
+export const gainAxisTicksFor = (
+  gain: ScaleLinear<number, number>,
+): number[] => {
+  const span = Math.abs(Number(gain(MAX_GAIN)) - Number(gain(MIN_GAIN)));
+  if (span < 44) {
+    return UNITY_TICKS;
+  }
+  if (span < 88) {
+    return GAIN_AXIS_ENDS_AND_UNITY;
   }
   return GAIN_AXIS_TICKS;
 };

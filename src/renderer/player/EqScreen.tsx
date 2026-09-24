@@ -23,7 +23,11 @@ import { formatDuration } from '../library/player/NowPlayingBar';
 import useIsAutoEqRunning from '../utils/autoEqRunning';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import ScenePreview from '../plus/ScenePreview';
-import { frequencyScale, gainScale } from '../graph/ChartController';
+import {
+  frequencyScale,
+  gainScale,
+  graphFrequencyRange,
+} from '../graph/ChartController';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import liveTraceCurves from '../graph/liveTraceCurves';
 import {
@@ -99,8 +103,10 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
       }),
     [orientation, waveHeight, wavePosition],
   );
+  // Gridless, so trimmed to where records have sound, as the main graph is
+  // with its grid off (`graphFrequencyRange`).
   const traceX = useMemo(
-    () => frequencyScale(sceneBox.width, 0, 0),
+    () => frequencyScale(sceneBox.width, 0, 0, graphFrequencyRange(true)),
     [sceneBox.width],
   );
   const traceY = useMemo(

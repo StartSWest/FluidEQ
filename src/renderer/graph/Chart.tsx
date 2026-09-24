@@ -25,6 +25,9 @@ import Axis from './Axis';
 import GridLine from './GridLine';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import useController, {
+  GRAPH_END,
+  GRAPH_START,
+  graphFrequencyRange,
   IChartCurveData,
   IChartGradientStop,
   IChartLiveOffset,
@@ -33,13 +36,15 @@ import useController, {
   IMarginLike,
   OUTPUT_CURVE_ID,
 } from './ChartController';
-import { useLiveCurveExtent, useLiveCurveGroup } from './useLiveCurveOffset';
+import useLiveCurveGroup from './useLiveCurveGroup';
 import {
-  toggleGraphFullScreen,
+  getGraphView,
+  setGraphView,
   useGraphCoverageHidden,
   useGraphGridHidden,
   useSceneLook,
 } from '../utils/graphStyle';
+import viewAfterPlotDoubleClick from './plotDoubleClick';
 import { toggleChromeNow } from '../utils/idleChrome';
 import {
   getPresenceLine,
@@ -70,7 +75,7 @@ import {
   FREQUENCY_MAJOR_TICKS,
   FREQUENCY_MINOR_TICKS,
   frequencyLabelTicksFor,
-  GAIN_AXIS_TICKS,
+  gainAxisTicksFor,
   GAIN_GRID_TICKS,
   getAxisPadding,
   levelTickFormat,
@@ -81,6 +86,7 @@ import {
   UNITY_RULE_INK,
   UNITY_TICKS,
 } from './graphPaper';
+import { graphLevelTickFormat } from './liveGraphBand';
 
 export interface ChartDimensions {
   height: number;
@@ -865,13 +871,6 @@ const CoverageOverlay = ({
 
 interface IChartProps {
   data: IChartCurveData[];
-  /**
-   * The subset of `data` that is allowed to set the y-scale. The live output
-   * trace is excluded: it is a reading, not part of the EQ, and letting it
-   * rescale the axes would make the bands appear to move whenever the music
-   * got louder.
-   */
-  scaleData: IChartCurveData[];
   dimensions: ChartDimensions;
   editablePoints?: IEditableChartPoint[];
   /**
@@ -893,7 +892,6 @@ interface IChartProps {
 
 const Chart = ({
   data = [],
-  scaleData = [],
   dimensions,
   editablePoints = [],
   liveCurves = [],
@@ -939,13 +937,13 @@ const Chart = ({
     [svgHeight, padding],
   );
 
-  const outputExtent = useLiveCurveExtent(scaleData, outputOffset);
+  // The whole spectrum with the grid on, trimmed to where records have sound
+  // with it off (`graphFrequencyRange`).
   const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
-    scaleData,
-    extent: outputExtent,
     width: svgWidth,
     height: svgHeight,
     padding,
+    frequencyRange: graphFrequencyRange(isGridHidden),
   });
   const attachOutputCurve = useLiveCurveGroup(outputOffset, yScaleGain);
 
@@ -990,6 +988,10 @@ const Chart = ({
   const liveLevelTickValues = useMemo(
     () => liveLevelTicksFor(liveLevelScale),
     [liveLevelScale],
+  );
+  const gainTickValues = useMemo(
+    () => gainAxisTicksFor(yScaleGain),
+    [yScaleGain],
   );
   const frequencyLabelTicks = useMemo(
     () => frequencyLabelTicksFor(xScaleFreq),
@@ -1147,7 +1149,8 @@ const Chart = ({
         // plot box around it does, and it has the toolbar's gutter above the
         // svg to spend. Curves keep their own clip path.
         overflow="visible"
-        // Double-click the plot to fill the screen, and again to come back.
+        // Double-click the plot to fill the screen, Ctrl+double-click to fill
+        // the window, and double-click again to come back (`plotDoubleClick`).
         //
         // The gesture every video player in the world uses, on the one pane here
         // that behaves like one. It rides alongside the marquee rather than
@@ -1161,7 +1164,12 @@ const Chart = ({
           if ((event.target as Element).closest?.('.graph-edit-point')) {
             return;
           }
-          toggleGraphFullScreen();
+          setGraphView(
+            viewAfterPlotDoubleClick(
+              getGraphView(),
+              event.ctrlKey || event.metaKey,
+            ),
+          );
         }}
         // A single click on the drawing shows the chrome or puts it away.
         //
@@ -1186,11 +1194,15 @@ const Chart = ({
         }}
       >
         <defs>
+          {/* Across the whole spectrum the stops are placed in
+              (`buildChartData`), wherever its ends land: past the plot's
+              sides when the range is trimmed, so each colour stays over the
+              band it belongs to. */}
           <linearGradient
             id="chart-eq-spectrum-gradient"
             gradientUnits="userSpaceOnUse"
-            x1={padding.left}
-            x2={svgWidth - padding.right}
+            x1={xScaleFreq(GRAPH_START)}
+            x2={xScaleFreq(GRAPH_END)}
             y1={0}
             y2={0}
           >
@@ -1341,16 +1353,18 @@ const Chart = ({
             type="left"
             scale={yScaleGain}
             transform={`translate(${padding.left}, 0)`}
-            tickValues={GAIN_AXIS_TICKS}
+            tickValues={gainTickValues}
             tickFormat={yTickFormat}
           />
-          {/* Same transformed pixels as the live wave it describes. */}
+          {/* Same transformed pixels as the live wave it describes, and the
+            same depth: a scene draws the shared forty decibels, the graph's
+            own analyser eighty (`liveGraphBand.ts`). */}
           <Axis
             type="right"
             scale={liveLevelScale}
             transform={`translate(${padding.left + plotWidth}, 0)`}
             tickValues={liveLevelTickValues}
-            tickFormat={levelTickFormat}
+            tickFormat={hasScene ? levelTickFormat : graphLevelTickFormat}
             disableAnimation
           />
           <Axis

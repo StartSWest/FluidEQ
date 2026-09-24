@@ -16,6 +16,7 @@ import {
 } from '../graph/ChartController';
 import {
   frequencyLabelTicksFor,
+  gainAxisTicksFor,
   getAxisPadding,
   liveLevelScaleFor,
   liveLevelTicksFor,
@@ -54,6 +55,8 @@ export interface IStudioPaper {
   frequency: ScaleLogarithmic<number, number>;
   gain: ScaleLinear<number, number>;
   level: ScaleLinear<number, number>;
+  /** The gain labels down the left: as many as fit one above another. */
+  gainTicks: number[];
   levelTicks: number[];
   /** The decades named along the bottom: those that fit side by side. */
   frequencyLabels: number[];
@@ -93,6 +96,7 @@ export const studioPaper = (
     frequency,
     gain,
     level,
+    gainTicks: gainAxisTicksFor(gain),
     levelTicks: liveLevelTicksFor(level),
     frequencyLabels: frequencyLabelTicksFor(frequency),
     spectrumRect: sceneSpectrumRectFor({

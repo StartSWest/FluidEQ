@@ -17,10 +17,13 @@ import { FilterTypeEnum, IEqCuts, IFilter } from './constants';
  * already 1.5 dB short at 8 kHz. The high cut takes off only the top and
  * leaves every band below it as Precise draws it. The low cut takes out
  * rumble at the bottom of hearing, which a bass boost would otherwise lift
- * along with everything else. It was at 10 Hz first, a whole octave below
- * the graph's left edge (16 Hz), where the curve could not show it (Ivan,
- * 2026-09-23: "not seeing the low cut in the grahp"); at 20 Hz it mirrors the
- * high cut.
+ * along with everything else. It was at 10 Hz first, which was then a whole
+ * octave below the graph's left edge, where the curve could not show it
+ * (Ivan, 2026-09-23: "not seeing the low cut in the grahp"); at 20 Hz it
+ * mirrors the high cut. The plot has since been opened down to 10 Hz
+ * (`GRAPH_START`), so the cut's own slope is drawn — which is what that
+ * request was really after, and the reason the corner stays at 20 Hz is now
+ * the mirror alone.
  *
  * Each has a dial on the Tone panel, either side of Bass, Mid and Treble, for
  * how steep it is, the way a pro DSP's cuts are set (Ivan, 2026-09-23: "add a

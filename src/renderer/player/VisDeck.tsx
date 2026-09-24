@@ -8,7 +8,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { isLockedLookId } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
-import { frequencyScale, gainScale } from '../graph/ChartController';
+import {
+  frequencyScale,
+  gainScale,
+  graphFrequencyRange,
+} from '../graph/ChartController';
 import GraphAutoCycle from '../graph/GraphAutoCycle';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import LookPicker from '../graph/LookPicker';
@@ -114,7 +118,12 @@ const VisDeck = ({ height }: { height: number }) => {
       }),
     [orientation, waveHeight, wavePosition],
   );
-  const xScale = useMemo(() => frequencyScale(box.width, 0, 0), [box.width]);
+  // Gridless, so trimmed to where records have sound, as the main graph is
+  // with its grid off (`graphFrequencyRange`).
+  const xScale = useMemo(
+    () => frequencyScale(box.width, 0, 0, graphFrequencyRange(true)),
+    [box.width],
+  );
   const yScale = useMemo(() => gainScale(box.height, 0, 0), [box.height]);
 
   const choose = useCallback((lookId: string) => {

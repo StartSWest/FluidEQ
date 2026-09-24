@@ -394,11 +394,11 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou um visualizador Plus.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia. Um clique simples oculta ou mostra a barra.',
+    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia, ou Ctrl+clique duplo para expandi-lo na janela; outro clique duplo o traz de volta. Um clique simples oculta ou mostra a barra.\nTeclas: Ctrl+F tela cheia, Ctrl+S visualização expandida, Esc volta à visualização normal, Ctrl+G a grade, Ctrl+W o que o gráfico mostra, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la e o clique direito abre o menu dela; Ctrl+roda muda o Q de um ponto selecionado.',
   'help.graph.tip':
-    'Tudo aqui muda só o desenho, nunca o seu som. O Modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Esc sai das visualizações expandida e em tela cheia.',
+    'Tudo aqui muda só o desenho, nunca o seu som. O Modo arco-íris (ativado em Ajuda → Novidades) desenha os estilos padrão, os medidores e a onda na taxa de atualização total da sua tela em vez de 30 quadros por segundo.',
   'help.graph.keywords':
-    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder',
+    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida',
   'help.graph.stripCaption': 'Com um estilo padrão',
   'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
   'help.graph.previous': 'Volta ao visual anterior.',
