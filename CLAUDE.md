@@ -623,10 +623,15 @@ Everything worth knowing about them is available through commands:
   again on its way back. The side panel's dial and its field take the full
   range, and so does the player's Pre fader — held to ±20 it could not even
   show a level set deeper elsewhere, and the first touch wrote -20 over it.
-  Unity therefore sits three quarters up both controls, where a level fader's
-  does, and the player's printed scale moved to stand beside the bands it
-  describes rather than at the head of the row, where it read as the preamp's
-  as well.
+  Unity stays at the top of the dial and the middle of the fader all the same
+  (Ivan, 2026-09-24: "center 0 on top not to the side, make 60 some how
+  compress"): `centredSweep` gives each side of 0 half the travel, the +20
+  side evenly and the -60 side compressed, as fine as the +20 side where it
+  leaves 0 (-10 dB 18% below the centre, -20 at 28%, -40 at 41%) — an even
+  travel put 0 three quarters of the way round, where a level doing nothing
+  reads as one turned up. A ±20 band's travel is the even one it always was.
+  The player's printed scale stands beside the bands it describes rather than
+  at the head of the row, where it read as the preamp's as well.
 - **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
   on the left never stretches (`gainScale`); the analyser gets 80 dB below the
   programme's peak on the right (`liveGraphBand.ts`, `graphLevelTickFormat`),

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { CSSProperties, PointerEvent, ReactNode } from 'react';
+import centredSweep from '../widgets/centredSweep';
 
 /**
  * One fader on the player's equalizer, drawn from zero.
@@ -45,9 +46,9 @@ interface IPlayerFaderProps {
   onChange: (value: number) => void;
 }
 
-/** Where a value sits on the travel, from the bottom (0) to the top (1). */
-const fraction = (value: number, min: number, max: number) =>
-  max === min ? 0 : (Math.min(max, Math.max(min, value)) - min) / (max - min);
+/** Decimals a step can land on, so a written value never carries float dust. */
+const decimalsOf = (step: number) =>
+  step < 1 ? Math.ceil(-Math.log10(step)) : 0;
 
 const PlayerFader = ({
   ariaLabel,
@@ -64,6 +65,27 @@ const PlayerFader = ({
   onHold,
   onChange,
 }: IPlayerFaderProps) => {
+  /**
+   * The travel stands `zero` at its middle, as every band's is.
+   *
+   * The preamp runs from -60 dB to +20: on an even travel its flat sat three
+   * quarters up, apart from the flat line every band beside it shares (Ivan,
+   * 2026-09-24: "center 0 on top not to the side"). So the input carries a
+   * position, not the value, through `centredSweep` — which for a band's
+   * ±20 dB is the even travel it always had — and a step of the input is one
+   * of the value's steps where the travel is finest.
+   */
+  const sweep = centredSweep(min, zero, max);
+  const finest = Math.min(zero - min, max - zero);
+  // The value's span the whole travel would have at its finest rate.
+  const travel = finest > 0 ? 2 * finest : max - min;
+  const positionStep = travel > 0 ? step / travel : 1;
+  const decimals = decimalsOf(step);
+  const toStep = (position: number) =>
+    Number(
+      (Math.round(sweep.toValue(position) / step) * step).toFixed(decimals),
+    );
+
   // Ctrl+click puts a band back to flat, the gesture the EQ page's own
   // controls answer to.
   const onPointerDown = (event: PointerEvent<HTMLInputElement>) => {
@@ -81,8 +103,8 @@ const PlayerFader = ({
       style={
         {
           '--player-fader-colour': colour,
-          '--player-fader-v': fraction(value, min, max),
-          '--player-fader-zero': fraction(zero, min, max),
+          '--player-fader-v': sweep.toPosition(value),
+          '--player-fader-zero': sweep.toPosition(zero),
         } as CSSProperties
       }
       title={title}
@@ -99,13 +121,17 @@ const PlayerFader = ({
           type="range"
           className="player-band__input"
           aria-label={ariaLabel}
+          // The input moves a position; assistive tech still hears the level.
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
           aria-valuetext={`${value > 0 ? '+' : ''}${value.toFixed(1)} dB`}
-          min={min}
-          max={max}
-          step={step}
-          value={value}
+          min={0}
+          max={1}
+          step={positionStep}
+          value={sweep.toPosition(value)}
           disabled={isDisabled}
-          onChange={(event) => onChange(Number(event.target.value))}
+          onChange={(event) => onChange(toStep(Number(event.target.value)))}
           onPointerDown={onPointerDown}
           onPointerUp={() => onHold(false)}
           onPointerCancel={() => onHold(false)}

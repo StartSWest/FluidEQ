@@ -282,16 +282,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .player-bands > .player-band {
   width: 32px;
 
-  // UNITY, AT THREE QUARTERS OF THIS FADER'S TRAVEL.
+  // UNITY, LEVEL WITH THE BANDS' FLAT LINE.
   //
-  // The preamp reaches -60 dB where the bands reach -20, so its flat point is
-  // not where theirs is and the dashed line drawn across the band row would
-  // be in the wrong place here — which is also why the printed scale now
-  // stands beside the bands instead of at the head of the row. Without a mark
-  // of its own the cap simply sits high, and a level of -10 dB reads as a
-  // boost. Taken from the same position the fill grows from, so the line and
+  // The preamp reaches -60 dB where the bands reach -20, and its travel still
+  // stands 0 in the middle, as theirs does: the -60 side is compressed into
+  // the lower half (`centredSweep`). The dashed line drawn across the band
+  // row stops at the rule, so this is its continuation over the preamp's own
+  // column. Taken from the same position the fill grows from, so the line and
   // the fill cannot disagree, and drawn in the band row's own dash so the two
-  // read as one idea.
+  // read as one line. The printed scale stands beside the bands: +20 / 0 /
+  // -20 is theirs, and the preamp's lower half is not in 20 dB steps.
   .player-band__slot::after {
     position: absolute;
     top: var(--player-fader-flat);

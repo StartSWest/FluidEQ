@@ -117,28 +117,26 @@ const SideBar = ({
               caption and a number field — which is most of the side bar spent
               on one control. The dial says the same thing in eighty: the
               sweep is the position, the number in the middle is the value.
-              It is the same `Knob` the band inspector uses for Q, and it
-              reads this range as an even one because a decibel scale that
-              crosses zero has no ratio to be logarithmic about.
+              It is the same `Knob` the band inspector uses for Q.
 
               Its floor is the PREAMP's, -60 dB, not a band's ±20: this
               number cancels the sum of every layer, and a headphone
               correction plays as published past ±20 dB (Ivan, 2026-09-23:
-              "manual yes -60"). Unity therefore sits three quarters of the
-              way round rather than at the top of the sweep, the way a
-              level control is read; the field under it is where an exact
-              value is typed, and it takes the same range. */}
+              "manual yes -60"). Unity stays at the top of the sweep all the
+              same (Ivan, 2026-09-24: "center 0 on top not to the side"): the
+              +20 side keeps its half evenly and the -60 side is compressed
+              into the other, as fine as the top side near 0 and coarser
+              towards the floor (`centredSweep`). The field under it is where
+              an exact value is typed, and it takes the same range. */}
           <div className="side-bar__preamp">
             <h4>{t('sidebar.preamp')}</h4>
             <Knob
               name={t('sidebar.preampAria')}
               min={PREAMP_MIN_GAIN}
               max={MAX_GAIN}
-              // Unity is three quarters round now, not the middle, so the arc
-              // has to be told where the dial rests: read off the two ends it
-              // would grow from the floor and sit three quarters lit while
-              // doing nothing.
-              arcFrom={0}
+              // Unity at the top, which the range cannot say by itself: it
+              // is not the middle of -60 to +20. The arc grows from there.
+              centre={0}
               value={displayedPreamp}
               step={0.01}
               unit="dB"

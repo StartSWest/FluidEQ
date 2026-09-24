@@ -240,8 +240,8 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
         // layer, and a headphone correction plays as published past ±20 dB.
         // Held to ±20 here the fader could not even SHOW a level set deeper
         // in the side panel — it pinned at the bottom, and the first touch
-        // wrote -20 over it. Unity sits three quarters up, where a level
-        // fader's is.
+        // wrote -20 over it. Unity still sits in the middle, level with the
+        // bands' flat line; the -60 side is compressed (`PlayerFader`).
         min={PREAMP_MIN_GAIN}
         max={MAX_GAIN}
         step={0.1}

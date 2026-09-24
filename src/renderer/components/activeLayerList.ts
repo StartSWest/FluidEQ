@@ -146,9 +146,32 @@ export type TLayerListInputs = Pick<
 };
 
 /**
- * The applied layers, in the order the config writes them, each with what
- * its chip needs: a name, a strength where it has one, how to take it away
- * and which include its A/B switch leaves out.
+ * The order the row shows the chips in, which is not the config's.
+ *
+ * The row used to read in the order the config is written — convolution,
+ * driver, headphone, bands, Tone, preset — and the chip most often reached for
+ * wandered: the bands' chip landed in the middle, wherever the layers before
+ * it put it. Ivan fixed the order on 2026-09-24: the headphone correction
+ * always first and the convolution after it (what the output is corrected
+ * by), then the rest, and the three that change most last and in the same
+ * places, the preset third from the end, the Tone second, and the bands'
+ * own chip last, "so its easy to find and delete".
+ */
+const ROW_ORDER: readonly string[] = [
+  'headphone',
+  'convolution',
+  'driver',
+  'smart',
+  'custom',
+  'voicing',
+  'tone',
+  'eq',
+];
+
+/**
+ * The applied layers, in the row's order (`ROW_ORDER`), each with what its
+ * chip needs: a name, a strength where it has one, how to take it away and
+ * which include its A/B switch leaves out.
  */
 export const collectLayers = ({
   t,
@@ -184,9 +207,7 @@ export const collectLayers = ({
 }: TLayerListInputs): IActiveLayer[] => {
   const layers: IActiveLayer[] = [];
 
-  // The row reads in the order the config is written, so the chips and the
-  // Equalizer APO chain tell the same story top to bottom. Convolution is
-  // first there because it is the base the rest is stacked on.
+  // Collected in the order the config is written; shown in `ROW_ORDER`.
   if (convolution) {
     layers.push({
       key: 'convolution',
@@ -513,5 +534,7 @@ export const collectLayers = ({
     });
   }
 
-  return layers;
+  return [...layers].sort(
+    (a, b) => ROW_ORDER.indexOf(a.key) - ROW_ORDER.indexOf(b.key),
+  );
 };

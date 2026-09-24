@@ -34,12 +34,14 @@ interface IKnobProps {
    */
   defaultValue?: number;
   /**
-   * The value the lit arc grows from, where the range cannot say it.
+   * The value that stands at the top of the sweep, where the range does not
+   * put it there by itself.
    *
-   * Only the side bar's preamp needs it: -60 dB to +20 with its rest at 0.
-   * Everything else is read off the two ends (`dialGesture`).
+   * Only the side bar's preamp needs it: -60 dB to +20 with its rest at 0,
+   * the -60 side compressed into its half (`centredSweep`). Everything else
+   * is read off the two ends (`dialGesture`).
    */
-  arcFrom?: number;
+  centre?: number;
   /**
    * What Ctrl+click does, where going home is not the same as setting this
    * value.
@@ -74,7 +76,7 @@ const Knob = ({
   isDisabled,
   unit,
   defaultValue,
-  arcFrom,
+  centre,
   onReset,
   handleChange,
 }: IKnobProps) => {
@@ -88,7 +90,7 @@ const Knob = ({
     isDisabled,
     unit,
     defaultValue,
-    arcFrom,
+    centre,
     onReset,
     handleChange,
   });

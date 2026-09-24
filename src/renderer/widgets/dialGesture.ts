@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ChangeEvent, PointerEvent, useRef, WheelEvent } from 'react';
+import centredSweep from './centredSweep';
 
 /**
  * Vertical travel, in pixels, that sweeps a dial end to end.
@@ -33,16 +34,16 @@ export interface IDialGesture {
   /** Where Ctrl+click puts the dial back to; omitted disables the gesture. */
   defaultValue?: number;
   /**
-   * The value the lit arc grows FROM, where the range cannot say it.
+   * The value that stands at the top of the sweep, where the range does not
+   * put it there by itself (`centredSweep`).
    *
-   * Read off the range wherever it can be (`arcOrigin` below), and named here
-   * only by a dial whose rest position is neither of its ends nor its middle:
-   * the side bar's preamp, which runs from -60 dB to +20 and rests at 0.
-   * Deliberately not `defaultValue`, which eighty dials already pass and which
-   * means where Ctrl+click goes — growing every one of their arcs from it
-   * would redraw half the DSP page.
+   * Only the side bar's preamp names one: it runs from -60 dB to +20 and rests
+   * at 0, so each side of 0 gets half the sweep, the -60 side compressed, and
+   * the lit arc grows from the top. Deliberately not `defaultValue`, which
+   * eighty dials already pass and which means where Ctrl+click goes —
+   * re-centring every one of them on it would redraw half the DSP page.
    */
-  arcFrom?: number;
+  centre?: number;
   /** What Ctrl+click does where going home is not writing `defaultValue`. */
   onReset?: () => void;
   handleChange: (newValue: number) => Promise<void> | void;
@@ -67,7 +68,7 @@ const useDialGesture = ({
   isDisabled,
   unit,
   defaultValue,
-  arcFrom,
+  centre,
   onReset,
   handleChange,
 }: IDialGesture) => {
@@ -82,19 +83,31 @@ const useDialGesture = ({
    * to 3, inside 7% of the travel, so a few pixels threw the value across a
    * filter's whole character; on a log sweep that same part gets about a fifth
    * of the dial and every pixel is the same *proportional* change wherever you
-   * are on it. The preamp is a distance in decibels that runs from -20 to +20,
-   * where a ratio has no meaning at all and the honest sweep is the even one.
+   * are on it. A range that crosses zero has no ratio at all: the even sweep,
+   * or — where the dial names the value at its top — one that stands that
+   * value there and compresses the longer side (`centredSweep`).
    */
-  const isProportional = min > 0;
+  const isProportional = min > 0 && centre === undefined;
   const ratio = isProportional ? max / min : 1;
+  const sweep =
+    centre === undefined ? undefined : centredSweep(min, centre, max);
   const toPosition = (input: number) => {
+    if (sweep) {
+      return sweep.toPosition(input);
+    }
     const clamped = Math.min(max, Math.max(min, input));
     return isProportional
       ? Math.log(clamped / min) / Math.log(ratio)
       : (clamped - min) / (max - min);
   };
-  const toValue = (position: number) =>
-    isProportional ? min * ratio ** position : min + position * (max - min);
+  const toValue = (position: number) => {
+    if (sweep) {
+      return sweep.toValue(position);
+    }
+    return isProportional
+      ? min * ratio ** position
+      : min + position * (max - min);
+  };
 
   const position = toPosition(value);
   const clampedProgress = Math.min(100, Math.max(0, position * 100));
@@ -122,18 +135,18 @@ const useDialGesture = ({
    *
    * And a range can rest somewhere the two numbers cannot show: the side bar's
    * preamp used to be -20 to +20 and be caught by the test above, and now runs
-   * to -60 dB while still resting at 0. It says so with `arcFrom`, which wins
-   * where it is given — the symptom otherwise is a dial three quarters lit
-   * while it is doing nothing, which is the exact thing this predicate exists
-   * to prevent.
+   * to -60 dB while still resting at 0. It names that `centre`, which stands
+   * at the top of its sweep, and the arc grows from there like a bipolar
+   * dial's — the symptom otherwise is a dial lit while it is doing nothing,
+   * which is the exact thing this predicate exists to prevent.
    */
   const isBipolar = min < 0 && max === -min;
-  const restsInside = arcFrom !== undefined || isBipolar;
+  const restsInside = centre !== undefined || isBipolar;
   const readOffTheRange = isBipolar ? 50 : 0;
   const arcOrigin =
-    arcFrom === undefined
+    centre === undefined
       ? readOffTheRange
-      : Math.min(100, Math.max(0, toPosition(arcFrom) * 100));
+      : Math.min(100, Math.max(0, toPosition(centre) * 100));
   const arcStart = Math.min(arcOrigin, clampedProgress);
   const arcLength = Math.abs(clampedProgress - arcOrigin);
   /**
@@ -143,7 +156,7 @@ const useDialGesture = ({
    * The stroke has round caps, so a zero-length dash paints a dot. At the low
    * end of an amount that dot is the cap of an arc about to grow and has been
    * on screen for the life of this widget. At a rest position PART WAY ROUND —
-   * the centre of a bipolar range, or wherever `arcFrom` puts it — it would be
+   * the centre of a bipolar range, or a named `centre` — it would be
    * a mark saying "a little" on the one setting that means none, and the notch
    * pointing at it already says it better.
    */
@@ -207,6 +220,17 @@ const useDialGesture = ({
       const factor = (event.shiftKey ? 1.01 : 1.04) ** sensitivity;
       const proposed = event.deltaY < 0 ? value * factor : value / factor;
       const movement = Math.max(step, Math.abs(proposed - value));
+      updateValue(value + (event.deltaY < 0 ? movement : -movement));
+      return;
+    }
+    if (sweep) {
+      // A centred sweep notches along its travel, as a drag does: an even
+      // step in decibels would jump the fine side near 0 by the coarse side's
+      // stride. The notch is still at least one step, or a turn near the far
+      // end could round back onto where it started.
+      const notch = (event.shiftKey ? 1 / 200 : 1 / 50) * sensitivity;
+      const next = toValue(position + (event.deltaY < 0 ? notch : -notch));
+      const movement = Math.max(step, Math.abs(next - value));
       updateValue(value + (event.deltaY < 0 ? movement : -movement));
       return;
     }
