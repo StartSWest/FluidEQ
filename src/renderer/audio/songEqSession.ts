@@ -37,7 +37,6 @@ import {
 } from 'renderer/utils/equalizerApi';
 import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
 import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
-import { noteSmartEqLayerReplaced } from 'renderer/utils/smartEqRun';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 
 /**
@@ -214,12 +213,11 @@ const performEffects = (effects: TSongEqEffect[]): void => {
       }
       case 'applyLayer': {
         const { settings } = effect;
-        // The continuous loop first, synchronously, so it stops steering
-        // toward the previous song before this layer lands under it — see
-        // `noteSmartEqLayerReplaced` for the tick this closes. Then mirrored
-        // into context, matching every other Smart EQ writer (see the module
-        // comment), and written over IPC.
-        noteSmartEqLayerReplaced(settings);
+        // Mirrored into context, matching every other Smart EQ writer (see
+        // the module comment), and written over IPC. The running mode needs
+        // no warning: it measures the source, so a remembered curve landing
+        // under it is neither in what it hears nor in what it solves, and its
+        // next solve of the same song lands on the same curve.
         liveSmartEqSetter?.(settings);
         setSmartEqApi(settings).catch(() => {
           // Reported nowhere on purpose, matching every other Smart EQ write

@@ -53,7 +53,6 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from 'renderer/utils/autoBalanceCapture';
-import { buildChainGainDb } from 'renderer/utils/layerTargetCurve';
 import { Translate, translate } from 'common/i18n';
 
 /* --- harness ----------------------------------------------------------- */
@@ -97,10 +96,8 @@ const runCapture = (
   levelAt: LevelAt,
   frameCount: number,
   bounds: IBalanceListenBounds | undefined = undefined,
-  chainGainDb: number[] | undefined = undefined,
 ) => {
   const state = createBalanceCaptureState(AXIS);
-  state.chainGainDb = chainGainDb;
   let report: IBalanceReport | undefined;
   let framesFed = 0;
 
@@ -439,7 +436,11 @@ describe('balance capture', () => {
   // The single most important guarantee: never produce a confident correction
   // from data that was never measured.
   describe('Suite E - never-heard bands', () => {
-    it('leaves bands above a band-limited source exactly where they were', () => {
+    it('asks nothing of bands above a band-limited source', () => {
+      // The solve is a function of the spectrum alone: a band the record has
+      // nothing in gets no correction, whatever gain the layout it is handed
+      // happens to carry. It used to hold that gain, because the layout was
+      // the layer's own last answer and the solve added a residual to it.
       const { report } = runCapture(podcast, seconds(45));
       const filters = [
         band(1000, 0),
@@ -449,8 +450,8 @@ describe('balance capture', () => {
       ];
       const gains = buildBalancedGains(report.samples, filters);
 
-      expect(gains.b10000).toBe(3.5);
-      expect(gains.b16000).toBe(-2);
+      expect(gains.b10000).toBe(0);
+      expect(gains.b16000).toBe(0);
     });
 
     it('refuses to correct at all when nothing was heard', () => {
@@ -504,163 +505,6 @@ describe('balance capture', () => {
         // 16 kHz is out of the correctable band and holds at 0 either way.
         expect(Math.abs(gain)).toBeLessThan(id === 'b16000' ? 0.1 : 1.2);
       });
-    });
-
-    it('integrates onto existing gains so a second run converges', () => {
-      const { report } = runCapture(withResonance, seconds(30));
-      const first = buildBalancedGains(report.samples, TEN_BAND);
-
-      // Re-measuring an output that is now flat must hold the correction, not
-      // undo it: the capture is a loopback of the already-corrected signal.
-      const corrected = TEN_BAND.map((filter) =>
-        band(filter.frequency, first[filter.id] ?? 0),
-      );
-      const flat = runCapture(fullRange, seconds(30));
-      const second = buildBalancedGains(flat.report.samples, corrected);
-
-      expect(second.b1000).toBeCloseTo(first.b1000, 0);
-    });
-  });
-
-  // Smart EQ: steer the output toward a chosen voicing instead of merely
-  // flattening it back onto its own tilt.
-  describe('Suite H - target curve', () => {
-    it('drives the output toward the target, not toward flat', () => {
-      const { report } = runCapture(fullRange, seconds(30));
-
-      // A bass shelf: +5 dB below ~100 Hz, tapering off above it.
-      const target = report.samples.map((sample) => ({
-        frequency: sample.frequency,
-        level: 5 / (1 + (sample.frequency / 100) ** 2),
-      }));
-
-      const neutral = buildBalancedGains(report.samples, TEN_BAND);
-      const voiced = buildBalancedGains(report.samples, TEN_BAND, {
-        targetCurve: target,
-      });
-
-      // Without a target this source is already correct, so nothing moves.
-      expect(Math.abs(neutral.b64)).toBeLessThan(1.2);
-      // With the target the low bands are pushed up relative to the rest.
-      //
-      // By the target's *shape*, not by its slope. A straight line in
-      // log-frequency is exactly what the tilt fit removes from the
-      // measurement, so a target is followed only in as far as it departs from
-      // one — which is the only self-consistent reading, since the layer the
-      // target describes is already playing and already in the capture. Asking
-      // for its slope on top of that is asking for a deviation no gain can ever
-      // satisfy, and the loop answers by walking off in a straight line.
-      expect(voiced.b64).toBeGreaterThan(neutral.b64 + 0.7);
-      expect(voiced.b64).toBeGreaterThan(voiced.b4000);
-    });
-
-    it('is not driven by a target that is a pure slope', () => {
-      // The same statement from the other side, and the reason the loop stays
-      // put: a target that is nothing but a tilt asks for nothing, because the
-      // tilt is the one thing Smart EQ never corrects.
-      const { report } = runCapture(fullRange, seconds(30));
-      const slope = report.samples.map((sample) => ({
-        frequency: sample.frequency,
-        level: -6 * Math.log10(sample.frequency) + 12,
-      }));
-
-      const neutral = buildBalancedGains(report.samples, TEN_BAND);
-      const tilted = buildBalancedGains(report.samples, TEN_BAND, {
-        targetCurve: slope,
-      });
-
-      Object.entries(tilted).forEach(([id, gain]) => {
-        expect(gain).toBeCloseTo(neutral[id], 1);
-      });
-    });
-
-    it('is unchanged by an empty target curve', () => {
-      const { report } = runCapture(withResonance, seconds(30));
-      expect(
-        buildBalancedGains(report.samples, TEN_BAND, { targetCurve: [] }),
-      ).toEqual(buildBalancedGains(report.samples, TEN_BAND));
-    });
-
-    it('still refuses to correct regions it never heard', () => {
-      const { report } = runCapture(podcast, seconds(45));
-      const target = report.samples.map((sample) => ({
-        frequency: sample.frequency,
-        level: 6,
-      }));
-      const filters = [band(1000, 0), band(10000, 2.5), band(16000, -1)];
-      const gains = buildBalancedGains(report.samples, filters, {
-        targetCurve: target,
-      });
-
-      // A target must not become a licence to move a band that was not measured.
-      expect(gains.b10000).toBe(2.5);
-      expect(gains.b16000).toBe(-1);
-    });
-  });
-
-  /*
-   * The accumulated spectrum is the RECORD, not the output.
-   *
-   * The chain curve handed to the accumulator used to feed only the evidence
-   * gate; the levels that reached the solver were still the output, with the
-   * user's bands in them. So a slider dragged to -6 dB read as a 6 dB fault in
-   * the record and Smart EQ built its mirror image — the two curves on the graph
-   * fought each other in plain sight. These are the two sides of that: the same
-   * hole in the output produces a correction when the record has it and none
-   * when the user made it.
-   */
-  describe('Suite J - the chain is subtracted from what is accumulated', () => {
-    const cut = band(1000, -6);
-    const chain = buildChainGainDb([cut], AXIS);
-    /** A flat record heard through the user's cut. */
-    const throughCut = (frequency: number) =>
-      fullRange(frequency) + chain[AXIS.indexOf(frequency)];
-
-    const runThroughChain = (levelAt: LevelAt, chainGainDb: number[]) =>
-      runCapture(levelAt, seconds(30), {}, chainGainDb).report;
-
-    it('does not correct a hole the user cut into a clean record', () => {
-      const report = runThroughChain(throughCut, chain);
-      expect(report.status).toBe('ready');
-
-      const gains = buildBalancedGains(report.samples, TEN_BAND);
-      expect(Math.abs(gains.b1000)).toBeLessThan(1.2);
-    });
-
-    it('does correct the same hole when it is in the record', () => {
-      // Positive control: identical output, no chain to account for it, so the
-      // hole is the record's and is filled. Without this the line above cannot
-      // tell "left the user's cut alone" from "stopped correcting anything".
-      const report = runThroughChain(
-        throughCut,
-        AXIS.map(() => 0),
-      );
-      expect(report.status).toBe('ready');
-
-      const gains = buildBalancedGains(report.samples, TEN_BAND);
-      expect(gains.b1000).toBeGreaterThan(1.5);
-    });
-
-    it('still finds a fault in the record underneath the user’s cut', () => {
-      // The resonance is +9 and the cut is -6 over it, so the OUTPUT shows a
-      // mild bump. Measured from the record the bump is the full nine decibels,
-      // and the correction is the same one it would make with no cut at all.
-      const buried = (frequency: number) =>
-        withResonance(frequency) + chain[AXIS.indexOf(frequency)];
-      const underCut = buildBalancedGains(
-        runThroughChain(buried, chain).samples,
-        TEN_BAND,
-      );
-      const alone = buildBalancedGains(
-        runThroughChain(
-          withResonance,
-          AXIS.map(() => 0),
-        ).samples,
-        TEN_BAND,
-      );
-
-      expect(underCut.b1000).toBeLessThan(-1.5);
-      expect(underCut.b1000).toBeCloseTo(alone.b1000, 0);
     });
   });
 

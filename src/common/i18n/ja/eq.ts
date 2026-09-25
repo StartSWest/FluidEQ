@@ -559,7 +559,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'パラメトリック EQ',
   'eq.smart': 'スマート EQ',
   'eq.smart.cancel': 'キャンセル',
-  'eq.smart.aria': '再生中の出力からスマート EQ を作成',
+  'eq.smart.aria': 'ソースからスマート EQ を作成',
   'eq.smart.cancelAria': 'スマート EQ の測定をキャンセル',
   'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',
   'eq.smart.modeAria': 'スマート EQ の測定方法を選ぶ',
@@ -669,46 +669,31 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedSilent': '一時停止中 - 音が再生されていません',
   'eq.smart.status.waitingForSound': '音を待っています',
   'eq.smart.status.bandLimited': 'フィルターされた区間 - 全帯域を待っています',
-  'eq.smart.status.soundChanged': '音が変わりました - 測定し直しています',
-  'eq.smart.status.keptChanging': '音が変わり続けました - 中止しました',
   'eq.smart.status.notEnoughRange': '測定できる帯域が足りません',
   'eq.smart.status.alreadyBalanced': 'すでに整っています',
   'eq.smart.status.applying': '適用中…',
   'eq.smart.status.cancelled': 'キャンセルしました - 変更はありません',
-  'eq.smart.status.failed': '出力を測定できませんでした。',
+  'eq.smart.status.failed': 'ソースを測定できませんでした。',
   'eq.smart.result.fullRange': '調整完了 - 全帯域',
   'eq.smart.result.range': '調整完了 - {low}〜{high} のみ',
   'eq.smart.result.withShape': '{result} · {shape}',
   'eq.smart.frequency.hz': '{value} Hz',
   'eq.smart.frequency.khz': '{value} kHz',
   'eq.smart.error.noCapture': 'この環境では音声のキャプチャができません。',
+  'eq.smart.error.noSource':
+    'FluidEQ が処理する前の音声にアクセスできませんでした。',
   'eq.smart.error.noLoopback':
     'この環境ではシステム出力のキャプチャができません。',
-  'eq.smart.error.streamStopped': '測定が終わる前に出力が止まりました。',
-  'eq.smart.error.analyserPaused':
-    'アナライザーが一時停止しているため、測定を止めました。',
-  'eq.smart.error.noSound':
-    '音が鳴っていませんでした。音楽を再生してもう一度測定してください。',
   'eq.smart.error.noAudioTrack':
     'Windows がシステム音声のストリームを返しませんでした。',
   'eq.smart.error.formatChanged':
     '測定中に出力フォーマットが変わりました。もう一度お試しください。',
-  'eq.smart.error.deviceChanged':
-    '測定中にオーディオデバイスが変わりました。もう一度お試しください。',
   'eq.smart.error.captureFailed':
     '処理後のシステム出力をキャプチャできませんでした。',
-  'eq.smart.error.analyserOff':
-    'ライブ出力アナライザーが動いていないため、測定するものがありません。',
-  'eq.smart.error.alreadyRunning': 'すでに測定が実行中です。',
-  'eq.smart.error.timedOut':
-    '測定がタイムアウトしました。もう一度お試しください。',
-  'eq.smart.error.closed': 'FluidEQ が測定を終了しました。',
   'eq.smart.presence.ignoredBelow': '{db} dB 未満は無視',
   'eq.smart.presence.trustedAbove': '{db} dB 以上は信頼',
   'eq.smart.presence.reset': 'このモードの {range} をリセット',
   'eq.smart.limit.label': 'スマート EQ 上限 {db} dB',
-  'eq.smart.gap.title': '{range}: ずれの大きさと、動くために必要な量',
-  'eq.smart.gap.countdown': '{seconds}秒後に適用',
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.eyebrow.fluid': 'インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

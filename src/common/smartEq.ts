@@ -35,13 +35,16 @@ export type { ISmartEqSettings };
 /**
  * Smart EQ: what the measurement heard, kept as a layer of its own.
  *
- * Smart EQ listens to the output and works out the residual — what is still
- * wrong once the user's bands, the voicing and the driver compensation have all
- * had their say. That residual belongs to none of them, so it is written as its
- * own block of anonymous `Filter N:` lines after every other layer, exactly the
- * way the voicing and the driver already are. Clearing the headphone reference
- * resets the bands and leaves this standing; clearing this leaves the bands and
- * the reference exactly as they were.
+ * Smart EQ listens to the SOURCE — the sound before FluidEQ processes it —
+ * and works out what is wrong with the record itself. Nothing the listener
+ * applied is in that measurement: not the bands, not a voicing, not the
+ * driver or headphone compensation, not the rack, and not this layer. So the
+ * answer belongs to none of them and is written as its own block of anonymous
+ * `Filter N:` lines after every other layer, exactly the way the voicing and
+ * the driver already are; everything else sits on top of it as the taste it
+ * is. Clearing the headphone reference resets the bands and leaves this
+ * standing; clearing this leaves the bands and the reference exactly as they
+ * were.
  *
  * The layout is fixed rather than borrowed from the band editor, for four
  * reasons that all point the same way:
@@ -113,12 +116,12 @@ export const getSmartEqLayout = (): IFilter[] =>
   }));
 
 /**
- * The layer's bands as they stand, ready to be measured against again.
+ * The layer's bands as they stand.
  *
- * The capture measures the already-corrected output, so what comes back is a
- * residual and the new gain is the old one plus that residual. Handing the
- * solver the layer's *own* previous gains is what closes that loop; handing it
- * the user's bands, as this used to, made every run rewrite their tuning.
+ * Not what the solver is handed — a solve starts from the empty layout,
+ * because the measurement is of the source and carries none of this. What
+ * these are for is comparing: the gains a running mode last wrote against the
+ * gains it has just solved, and the curve a reveal climbs from.
  */
 export const getSmartEqBands = (
   settings: ISmartEqSettings | undefined,

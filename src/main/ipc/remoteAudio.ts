@@ -15,6 +15,7 @@ import {
 } from '../../common/remoteAudio';
 import {
   IRemoteAudioCapture,
+  startRawSourceCapture,
   startRemoteAudioCapture,
 } from '../remoteAudioCapture';
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
@@ -30,6 +31,8 @@ const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
 const LAN_NETWORK_CHANNEL = 'remote-audio-lan-network';
 const LAN_ERROR_CHANNEL = 'remote-audio-lan-error';
+/** The raw-source capture stopped on its own — see `startRawSourceCapture`. */
+const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
 
 /**
  * Every listener gets the low-delay buffer, whatever was asked for.
@@ -329,9 +332,63 @@ export const registerRemoteAudioIpc = ({
     }
   });
 
+  /*
+   * Smart EQ's capture of the sound before FluidEQ processes it.
+   *
+   * Its own lease on the shared helper, separate from the LAN sender's and
+   * from every mirror's, so measuring never starts or stops the sharing and
+   * sharing never starts or stops a measurement. One at a time: a second
+   * "on" while it is open is the same capture, and "off" from anyone closes
+   * it — the window has one Smart EQ and asks once.
+   */
+  let rawSource: IRemoteAudioCapture | undefined;
+  let rawSourceOpening: Promise<boolean> | undefined;
+  const closeRawSource = () => {
+    rawSource?.close();
+    rawSource = undefined;
+    rawSourceOpening = undefined;
+  };
+  ipcMain.handle('raw-source-capture', (event, enabled: unknown) => {
+    if (event.sender !== getMainWindow()?.webContents) {
+      return false;
+    }
+    if (enabled !== true) {
+      closeRawSource();
+      return false;
+    }
+    if (rawSource) {
+      return true;
+    }
+    if (process.platform !== 'win32') {
+      return false;
+    }
+    rawSourceOpening ??= startRawSourceCapture(
+      (chunk) => ports.source(chunk),
+      () => {
+        closeRawSource();
+        sendToWindow(RAW_SOURCE_LOST_CHANNEL, undefined);
+      },
+    )
+      .then((capture) => {
+        if (rawSourceOpening === undefined) {
+          // Closed while it was opening: the answer is no capture.
+          capture.close();
+          return false;
+        }
+        rawSource = capture;
+        return true;
+      })
+      .catch(() => {
+        rawSourceOpening = undefined;
+        return false;
+      });
+    return rawSourceOpening;
+  });
+
   return () => {
     beginSessionOperation();
     stopCapture();
+    closeRawSource();
     lan.stop();
     ports.close();
     playback.close().catch(() => undefined);

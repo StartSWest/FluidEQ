@@ -83,6 +83,10 @@ const createRemoteAudioPorts = (
     analyze: (chunk: ILanRemoteAudioChunk) => {
       post('analysis', chunk);
     },
+    /** The raw source, for Smart EQ — see `startRawSourceCapture`. */
+    source: (chunk: ILanRemoteAudioChunk) => {
+      post('source', chunk);
+    },
     signal: ({ peerId, signal }: ILanRemoteAudioSignal) => {
       if (signal.kind === 'stream-mode') {
         modes.set(peerId, signal.mode);

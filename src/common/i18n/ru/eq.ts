@@ -559,7 +559,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Параметрический эквалайзер',
   'eq.smart': 'Умный EQ',
   'eq.smart.cancel': 'Отмена',
-  'eq.smart.aria': 'Умный EQ по текущему сигналу',
+  'eq.smart.aria': 'Умный EQ по исходному сигналу',
   'eq.smart.cancelAria': 'Отменить измерение умного EQ',
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать эквалайзер во время музыки',
@@ -673,45 +673,29 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.waitingForSound': 'Ждём звук',
   'eq.smart.status.bandLimited':
     'Отфильтрованный фрагмент - ждём весь диапазон',
-  'eq.smart.status.soundChanged': 'Звук изменился - измеряем заново',
-  'eq.smart.status.keptChanging': 'Звук всё время менялся - остановлено',
   'eq.smart.status.notEnoughRange': 'Слишком узкий диапазон для измерения',
   'eq.smart.status.alreadyBalanced': 'Уже сбалансировано',
   'eq.smart.status.applying': 'Применение…',
   'eq.smart.status.cancelled': 'Отменено - ничего не изменилось',
-  'eq.smart.status.failed': 'Не удалось измерить выход.',
+  'eq.smart.status.failed': 'Не удалось измерить источник.',
   'eq.smart.result.fullRange': 'Сбалансировано - весь диапазон',
   'eq.smart.result.range': 'Сбалансировано - только от {low} до {high}',
   'eq.smart.result.withShape': '{result} · {shape}',
   'eq.smart.frequency.hz': '{value} Гц',
   'eq.smart.frequency.khz': '{value} кГц',
   'eq.smart.error.noCapture': 'Захват звука в этой среде недоступен.',
+  'eq.smart.error.noSource': 'Не удалось получить звук до обработки в FluidEQ.',
   'eq.smart.error.noLoopback':
     'Захват системного вывода в этой среде недоступен.',
-  'eq.smart.error.streamStopped': 'Вывод прекратился до окончания измерения.',
-  'eq.smart.error.analyserPaused':
-    'Анализатор на паузе, поэтому измерение остановлено.',
-  'eq.smart.error.noSound':
-    'Ничего не играло. Включите музыку и измерьте заново.',
   'eq.smart.error.noAudioTrack': 'Windows не дала системный аудиопоток.',
   'eq.smart.error.formatChanged':
     'Формат вывода изменился во время измерения. Попробуйте ещё раз.',
-  'eq.smart.error.deviceChanged':
-    'Устройство вывода изменилось во время измерения. Попробуйте ещё раз.',
   'eq.smart.error.captureFailed':
     'Не удалось захватить обработанный системный вывод.',
-  'eq.smart.error.analyserOff':
-    'Анализатор живого вывода не работает, измерять нечего.',
-  'eq.smart.error.alreadyRunning': 'Измерение уже идёт.',
-  'eq.smart.error.timedOut': 'Время измерения истекло. Попробуйте ещё раз.',
-  'eq.smart.error.closed': 'FluidEQ завершил измерение.',
   'eq.smart.presence.ignoredBelow': 'ниже {db} дБ не считаем',
   'eq.smart.presence.trustedAbove': 'выше {db} дБ доверяем',
   'eq.smart.presence.reset': 'Сбросить {range} для этого режима',
   'eq.smart.limit.label': 'Предел умного EQ {db} дБ',
-  'eq.smart.gap.title':
-    '{range}: насколько расходится, против порога для действия',
-  'eq.smart.gap.countdown': 'запишем через {seconds}с',
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.eyebrow.fluid': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ',
   'convolution.title': 'Библиотека свёртки',

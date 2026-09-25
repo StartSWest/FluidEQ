@@ -107,6 +107,40 @@ export const startRemoteAudioCapture = async (
   }
 };
 
+/**
+ * The sound before FluidEQ touches it, for Smart EQ to measure.
+ *
+ * The same process loopback the LAN sender uses, and for the same reason it
+ * exists there: Windows hands a process loopback the mix BEFORE the endpoint's
+ * effects, so neither Equalizer APO nor the FluidEQ Engine is in it. Measured
+ * on 2026-09-22 against the ordinary endpoint loopback taken at the same
+ * moment, with the engine's whole rack running: the two differed by the
+ * rack's own colouring, three to five decibels across the band, and the
+ * endpoint peaked two decibels hotter — the process loopback carried none of
+ * it. That is what makes a Smart EQ correction a statement about the record
+ * rather than about whatever was already applied to it.
+ *
+ * A lease on the shared session, like the sender's, with no peer: chunks go
+ * to the window's `source` port and nowhere else. The Library keeps its rack
+ * — `setDspHostRawSharing` is deliberately NOT asked for, because putting the
+ * Library into pass-through to measure it would change what the listener
+ * hears for as long as the measurement ran; the Library's own input tap is
+ * how the measurement hears that source instead (`rawSource.ts`).
+ */
+export const startRawSourceCapture = async (
+  onAudio: (chunk: ILanRemoteAudioChunk) => void,
+  onFailure: () => void,
+): Promise<IRemoteAudioCapture> => {
+  const lease = acquire({ audio: onAudio, failure: onFailure });
+  try {
+    await lease.ready;
+    return { close: lease.close };
+  } catch (error) {
+    lease.close();
+    throw error;
+  }
+};
+
 export interface INativeOutputMirror extends IRemoteAudioCapture {
   close(): Promise<void>;
   setVolume(volume: number): Promise<void>;

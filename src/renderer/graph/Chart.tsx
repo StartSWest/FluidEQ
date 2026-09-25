@@ -24,7 +24,7 @@ import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
-import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useSmartEqMeasurement } from '../audio/smartEqMeasurement';
 import useController, {
   GRAPH_END,
   GRAPH_START,
@@ -57,11 +57,6 @@ import {
   setPresenceLine,
   usePresenceLines,
 } from '../utils/presenceThreshold';
-import {
-  DISAGREEMENT_DEADBAND_DB,
-  getSmartEqQuietUntil,
-  useSmartEqDisagreement,
-} from '../utils/smartEqDisagreement';
 import { useSmartEqMode } from '../utils/smartEqMode';
 import {
   DEFAULT_CORRECTION_LIMIT_DB,
@@ -198,8 +193,14 @@ const CoverageOverlay = ({
    */
   isOverScene: boolean;
 }) => {
-  const { balanceProgress, presenceLevels, presenceTypical } =
-    useLiveAudioFrame();
+  // What Smart EQ is hearing of the source, published by the measurement
+  // itself rather than by the loopback the graph draws — the two are
+  // different sounds now (`smartEqMeasurement.ts`).
+  const {
+    progress: balanceProgress,
+    presenceLevels,
+    presenceTypical,
+  } = useSmartEqMeasurement();
   // The region labels arriving with the measurement are identifiers, not words
   // — they key the flash store and are React keys down here — so the caption
   // localises them at the point it says them, through the same lookup the
@@ -213,19 +214,6 @@ const CoverageOverlay = ({
   // all. The values themselves are taken through `getPresenceLine`, which knows
   // where an unset edge's default goes and which mode is asking.
   usePresenceLines();
-  // The other half of why a correction has not landed yet. See its store.
-  const disagreement = useSmartEqDisagreement();
-  /*
-   * Seconds until the quiet window closes, recomputed every render.
-   *
-   * Free to derive rather than tick on its own timer: this component already
-   * re-renders on every frame the capture publishes, so the number is current
-   * without a second clock to start, stop and forget to clear.
-   */
-  const secondsLeft = Math.max(
-    0,
-    Math.ceil((getSmartEqQuietUntil() - Date.now()) / 1000),
-  );
   // How far Smart EQ may move any band, drawn as one symmetric pair.
   const correctionLimit = useCorrectionLimit();
   // Each mode keeps its own pair, so a mode change moves every line on screen.
@@ -697,98 +685,16 @@ const CoverageOverlay = ({
               fill={region.isCovered ? undefined : presenceTint(allowance)}
             />
             {/*
-             * TWO CONDITIONS, TWO BARS, BOTH FILLING LEFT TO RIGHT.
-             *
-             * The bar below says how much of this range has been heard. Alone
-             * it is the misleading half of the answer: a range can be entirely
-             * heard and still sit there doing nothing, because being heard is
-             * not the same as having something to say. A write also needs the
-             * disagreement to clear the settle deadband, and without that on
-             * screen a full bar beside a correction that never comes looks like
-             * a fault.
-             *
-             * This was a two-pixel tick sliding along the same bar, and it told
-             * nobody anything — a mark whose POSITION carries the meaning needs
-             * a scale to be read against, and there was none. A second bar that
-             * fills has the scale built in: full is full. Two bars, both full,
-             * means the only thing left to wait for is the quiet period.
-             *
-             * AND A COUNTDOWN ONCE BOTH ARE FULL, which was refused twice
-             * before this and is right now. The objection — that evidence and
-             * disagreement depend on what the music does next, so a clock
-             * against either invents a schedule nobody can keep — only holds
-             * while one of them is outstanding. Once both are met, time is
-             * genuinely the only thing left, and saying how much of it remains
-             * promises nothing that cannot be delivered.
-             *
-             * So the seconds appear exactly when they become true, and not one
-             * moment earlier.
+             * ONE BAR, FILLING LEFT TO RIGHT: how much of this range has been
+             * heard. It is the whole of why a correction has not landed yet —
+             * a running mode solves from the source and writes the moment the
+             * estimate settles, so there is no second condition and no
+             * quiet period to count down. A second bar and a countdown stood
+             * here while there was a loop with a deadband to wait out.
              */}
-            <rect
-              className="chart-coverage__gap-track"
-              x={left + 1}
-              y={plotHeight - 12}
-              width={width}
-              height={3}
-              rx={1.5}
-            />
-            <rect
-              className={`chart-coverage__gap${
-                disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB
-                  ? ' is-past'
-                  : ''
-              }`}
-              x={left + 1}
-              y={plotHeight - 12}
-              width={
-                width *
-                Math.min(
-                  1,
-                  (disagreement[region.label] ?? 0) / DISAGREEMENT_DEADBAND_DB,
-                )
-              }
-              height={3}
-              rx={1.5}
-            >
-              <title>
-                {t('eq.smart.gap.title', {
-                  range: balanceRangeName(region.label, t),
-                })}
-              </title>
-            </rect>
           </g>
         );
       })}
-      {/*
-       * ONE COUNTDOWN, NOT ONE PER RANGE, because there is one thing being
-       * waited for.
-       *
-       * It was drawn over every ready range and read as nine independent
-       * timers that all happened to agree, which is a strange thing for a
-       * picture to say. The wait is global because what it rations is global: a
-       * write rewrites the whole config and Equalizer APO reloads all of it, so
-       * nine windows would be nine reloads.
-       *
-       * What is NOT waited on is the other ranges. Only the ranges with
-       * something to say are written, and a range that is ready is never held
-       * back by one that is not — which the bars above already show, range by
-       * range. This says the remaining thing: when the next write may happen.
-       */}
-      {secondsLeft > 0 &&
-        shown.some(
-          (region) =>
-            region.isCovered &&
-            (disagreement[region.label] ?? 0) >= DISAGREEMENT_DEADBAND_DB,
-        ) && (
-          <text
-            className="chart-coverage__countdown"
-            x={Number(xScale(20000)) - 6}
-            y={plotHeight - 16}
-            textAnchor="end"
-          >
-            {t('eq.smart.gap.countdown', { seconds: secondsLeft })}
-          </text>
-        )}
       {/*
        * HOW MUCH, AND NO MORE THAN THIS.
        *

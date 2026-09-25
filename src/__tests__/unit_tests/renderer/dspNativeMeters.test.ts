@@ -122,9 +122,27 @@ const analysisFrame = (
 const fakeBridge = () => {
   let listener: ((frame: IHostAnalysis) => void) | undefined;
   const enabled: boolean[] = [];
+  const waiting: { value: boolean; resolve: () => void }[] = [];
+  /**
+   * Settles once the host has been told `value`. The switch goes through the
+   * shared claim (`hostAnalysisClaim.ts`), which only lets go after the
+   * host's answer to switching on has arrived, so a release is heard a few
+   * promises later rather than inside the call.
+   */
+  const switchedTo = (value: boolean) =>
+    new Promise<void>((resolve) => {
+      if (enabled.includes(value)) {
+        resolve();
+      } else {
+        waiting.push({ value, resolve });
+      }
+    });
   const bridge: INativeMetersBridge = {
     setDspHostAnalysis: (next) => {
       enabled.push(next);
+      waiting
+        .filter((entry) => entry.value === next)
+        .forEach((entry) => entry.resolve());
       return Promise.resolve(true);
     },
     onDspHostAnalysis: (next) => {
@@ -137,6 +155,7 @@ const fakeBridge = () => {
   return {
     bridge,
     enabled,
+    switchedTo,
     send: (frame: IHostAnalysis) => listener?.(frame),
     listening: () => listener !== undefined,
   };
@@ -269,14 +288,34 @@ describe('handing the graphs to the native engine', () => {
     expect(readDspAnalyser('eq')).toBeUndefined();
   });
 
-  it('stops listening and tells the host to stop measuring', () => {
-    const { bridge, enabled, listening } = fakeBridge();
+  it('stops listening and tells the host to stop measuring', async () => {
+    const { bridge, enabled, listening, switchedTo } = fakeBridge();
     const meters = createNativeMeters(bridge, ANALYSIS_BINS);
     expect(listening()).toBe(true);
 
     meters.release();
 
     expect(listening()).toBe(false);
+    await switchedTo(false);
+    expect(enabled).toEqual([true, false]);
+  });
+
+  /**
+   * Smart EQ claims the same host meters while it measures the Library, and
+   * either one letting go used to switch them off under the other. The host
+   * hears one "on" for the first claim and one "off" for the last release,
+   * and nothing in between (`hostAnalysisClaim.ts`).
+   */
+  it('tells the host once to start and once to stop, however many hold it', async () => {
+    const { bridge, enabled, switchedTo } = fakeBridge();
+    const first = createNativeMeters(bridge, ANALYSIS_BINS);
+    const second = createNativeMeters(bridge, ANALYSIS_BINS);
+    expect(enabled).toEqual([true]);
+
+    first.release();
+    second.release();
+
+    await switchedTo(false);
     expect(enabled).toEqual([true, false]);
   });
 

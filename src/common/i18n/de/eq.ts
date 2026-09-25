@@ -566,7 +566,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Parametrischer EQ',
   'eq.smart': 'Smart-EQ',
   'eq.smart.cancel': 'Abbrechen',
-  'eq.smart.aria': 'Smart-EQ aus dem laufenden Ausgangssignal',
+  'eq.smart.aria': 'Smart-EQ aus dem Quellsignal',
   'eq.smart.cancelAria': 'Smart-EQ-Messung abbrechen',
   'eq.smart.continuousAria':
     'Smart-EQ misst und justiert weiter, solange Musik läuft',
@@ -680,13 +680,11 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.waitingForSound': 'Wartet auf Ton',
   'eq.smart.status.bandLimited':
     'Gefilterte Passage - wartet auf das volle Spektrum',
-  'eq.smart.status.soundChanged': 'Der Ton hat sich geändert - misst neu',
-  'eq.smart.status.keptChanging': 'Der Ton änderte sich ständig - abgebrochen',
   'eq.smart.status.notEnoughRange': 'Zu wenig Bandbreite zum Messen',
   'eq.smart.status.alreadyBalanced': 'Schon ausgewogen',
   'eq.smart.status.applying': 'Wird angewendet…',
   'eq.smart.status.cancelled': 'Abgebrochen - nichts geändert',
-  'eq.smart.status.failed': 'Der Ausgang konnte nicht gemessen werden.',
+  'eq.smart.status.failed': 'Die Quelle konnte nicht gemessen werden.',
   'eq.smart.result.fullRange': 'Ausgewogen - voller Bereich',
   'eq.smart.result.range': 'Ausgewogen - nur {low} bis {high}',
   'eq.smart.result.withShape': '{result} · {shape}',
@@ -694,35 +692,20 @@ const eq: Partial<Dictionary> = {
   'eq.smart.frequency.khz': '{value} kHz',
   'eq.smart.error.noCapture':
     'Audioaufnahme ist in dieser Umgebung nicht verfügbar.',
+  'eq.smart.error.noSource':
+    'Der Ton vor der Verarbeitung durch FluidEQ ist nicht erreichbar.',
   'eq.smart.error.noLoopback':
     'Die Aufnahme der Systemausgabe ist in dieser Umgebung nicht verfügbar.',
-  'eq.smart.error.streamStopped':
-    'Die Ausgabe endete, bevor die Messung fertig war.',
-  'eq.smart.error.analyserPaused':
-    'Der Analysator ist pausiert, deshalb wurde die Messung beendet.',
-  'eq.smart.error.noSound':
-    'Es lief nichts. Starten Sie Musik und messen Sie noch einmal.',
   'eq.smart.error.noAudioTrack':
     'Windows hat keinen System-Audiostream geliefert.',
   'eq.smart.error.formatChanged':
     'Das Ausgabeformat hat sich während der Messung geändert. Noch einmal versuchen.',
-  'eq.smart.error.deviceChanged':
-    'Das Audiogerät hat sich während der Messung geändert. Noch einmal versuchen.',
   'eq.smart.error.captureFailed':
     'Die verarbeitete Systemausgabe konnte nicht aufgenommen werden.',
-  'eq.smart.error.analyserOff':
-    'Der Live-Ausgangsanalysator läuft nicht, es gibt also nichts zu messen.',
-  'eq.smart.error.alreadyRunning': 'Es läuft bereits eine Messung.',
-  'eq.smart.error.timedOut':
-    'Bei der Messung ist die Zeit abgelaufen. Noch einmal versuchen.',
-  'eq.smart.error.closed': 'FluidEQ hat die Messung beendet.',
   'eq.smart.presence.ignoredBelow': 'unter {db} dB ignoriert',
   'eq.smart.presence.trustedAbove': 'über {db} dB verlässlich',
   'eq.smart.presence.reset': '{range} für diesen Modus zurücksetzen',
   'eq.smart.limit.label': 'Smart-EQ-Grenze {db} dB',
-  'eq.smart.gap.title':
-    '{range}: wie weit es abweicht, gemessen an der nötigen Schwelle',
-  'eq.smart.gap.countdown': 'schreibt in {seconds}s',
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.eyebrow.fluid': 'IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',

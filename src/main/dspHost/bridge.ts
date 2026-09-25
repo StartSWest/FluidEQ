@@ -311,6 +311,22 @@ export const dspHostBridge = {
     endpoint: string | null,
   ): Promise<IEngineAnalysis | null | undefined> =>
     ipcRenderer.invoke(ENGINE_ANALYSIS_CHANNEL, endpoint),
+  /**
+   * Open or close the capture of the sound before FluidEQ processes it, for
+   * Smart EQ. Resolves true once the capture is delivering to the window's
+   * `source` port; false where Windows cannot provide one.
+   */
+  setRawSourceCapture: (enabled: boolean): Promise<boolean> =>
+    ipcRenderer.invoke('raw-source-capture', enabled),
+  /** The capture above stopped by itself: the helper died or Windows took
+   * the stream. The measurement it fed is over, not merely quiet. */
+  onRawSourceLost: (listener: () => void): (() => void) => {
+    const wrapped = () => listener();
+    ipcRenderer.on('raw-source-lost', wrapped);
+    return () => {
+      ipcRenderer.removeListener('raw-source-lost', wrapped);
+    };
+  },
   appProcesses,
   appProcessesClosed,
   gamePrograms,

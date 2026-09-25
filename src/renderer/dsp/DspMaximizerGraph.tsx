@@ -62,6 +62,9 @@ const FLOOR_DB = -30;
  */
 const TOP_DB = 6;
 
+/** Full deflection of the reduction meter, matching the old bar's scale. */
+const GR_FULL_SCALE_DB = 12;
+
 /** Decay toward rest, so a short reduction stays visible long enough to read. */
 const RELEASE_PER_FRAME = 0.82;
 
@@ -69,13 +72,8 @@ const RELEASE_PER_FRAME = 0.82;
 const PEAK_HOLD_FALL_DB = 0.035;
 
 const PAD_L = 38;
-/**
- * No margin meter any more. A bar of the live reduction on a grey track stood
- * here, repeating the Reduction and Peak hold readouts above the plot and the
- * amber the plot already draws — one more thing to read, and a band of
- * another colour down the side of a graph that should be one surface.
- */
-const PAD_R = 16;
+/** Room for the reduction meter and its scale, which live in this margin. */
+const PAD_R = 62;
 /**
  * The legend and the status chips own two fixed rows above the plot, at the
  * heights the stylesheet puts them. Drawing the wave under either one made the
@@ -85,6 +83,7 @@ const PAD_T = 64;
 const PAD_B = 22;
 
 const GRID_DB = [0, -6, -12, -24];
+const GR_TICKS_DB = [0, 3, 6, 12];
 
 const GRAPH_FONT =
   '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
@@ -244,8 +243,6 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         context.stroke();
         context.fillText(`-${second}s`, x, height - PAD_B / 2);
       }
-      // Against the plot's own right edge, now that nothing stands beyond it.
-      context.textAlign = 'right';
       context.fillText(
         t('dsp.maximizer.graph.now'),
         width - PAD_R,
@@ -358,6 +355,45 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         PAD_L + 6,
         centreY - ceilingReach + 10,
       );
+
+      /**
+       * The reduction meter, in the margin and hanging from the top.
+       *
+       * A depth, not a level: it grows downward from zero because what it
+       * measures is how far the limiter is pulling the signal down. Drawn as
+       * part of the same canvas so it shares the plot's own vertical space and
+       * cannot drift out of step with the amber band beside it.
+       */
+      const meterX = width - PAD_R + 14;
+      const meterWidth = 16;
+      context.fillStyle = 'rgba(255,255,255,0.06)';
+      context.fillRect(meterX, PAD_T, meterWidth, plotHeight);
+      const depthHeight =
+        Math.min(1, heldDepth.current / GR_FULL_SCALE_DB) * plotHeight;
+      if (depthHeight > 0.5) {
+        const meterInk = context.createLinearGradient(
+          0,
+          PAD_T,
+          0,
+          PAD_T + plotHeight,
+        );
+        meterInk.addColorStop(0, `rgba(${baseCurveInk()},0.85)`);
+        meterInk.addColorStop(1, `rgba(${HELD_INK},0.95)`);
+        context.fillStyle = meterInk;
+        context.fillRect(meterX, PAD_T, meterWidth, depthHeight);
+      }
+      if (peakHold.current > 0.05) {
+        const holdY =
+          PAD_T + Math.min(1, peakHold.current / GR_FULL_SCALE_DB) * plotHeight;
+        context.fillStyle = `rgba(${HELD_INK},0.95)`;
+        context.fillRect(meterX, Math.round(holdY), meterWidth, 2);
+      }
+      context.textAlign = 'left';
+      context.fillStyle = textInk;
+      GR_TICKS_DB.forEach((db) => {
+        const y = PAD_T + (db / GR_FULL_SCALE_DB) * plotHeight;
+        context.fillText(db === 0 ? '0' : `-${db}`, meterX + meterWidth + 5, y);
+      });
     };
 
     const loop = startGraphLoop(paint, {

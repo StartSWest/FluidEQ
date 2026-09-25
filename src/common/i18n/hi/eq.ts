@@ -560,7 +560,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'पैरामीट्रिक EQ',
   'eq.smart': 'स्मार्ट EQ',
   'eq.smart.cancel': 'रद्द करें',
-  'eq.smart.aria': 'चल रहे आउटपुट से स्मार्ट EQ बनाएँ',
+  'eq.smart.aria': 'स्रोत से स्मार्ट EQ बनाएँ',
   'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
   'eq.smart.continuousAria':
     'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
@@ -672,44 +672,30 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.waitingForSound': 'आवाज़ का इंतज़ार',
   'eq.smart.status.bandLimited':
     'फ़िल्टर किया गया हिस्सा - पूरी रेंज का इंतज़ार',
-  'eq.smart.status.soundChanged': 'आवाज़ बदल गई - फिर से मापा जा रहा है',
-  'eq.smart.status.keptChanging': 'आवाज़ बदलती रही - रोक दिया',
   'eq.smart.status.notEnoughRange': 'मापने के लिए पर्याप्त रेंज नहीं',
   'eq.smart.status.alreadyBalanced': 'पहले से संतुलित',
   'eq.smart.status.applying': 'लागू किया जा रहा है…',
   'eq.smart.status.cancelled': 'रद्द - कुछ नहीं बदला',
-  'eq.smart.status.failed': 'आउटपुट मापा नहीं जा सका।',
+  'eq.smart.status.failed': 'स्रोत मापा नहीं जा सका।',
   'eq.smart.result.fullRange': 'संतुलित - पूरी रेंज',
   'eq.smart.result.range': 'संतुलित - केवल {low} से {high} तक',
   'eq.smart.result.withShape': '{result} · {shape}',
   'eq.smart.frequency.hz': '{value} Hz',
   'eq.smart.frequency.khz': '{value} kHz',
   'eq.smart.error.noCapture': 'इस माहौल में ऑडियो कैप्चर उपलब्ध नहीं है।',
+  'eq.smart.error.noSource':
+    'FluidEQ द्वारा प्रोसेस होने से पहले की आवाज़ तक पहुँच नहीं हो सकी।',
   'eq.smart.error.noLoopback':
     'इस माहौल में सिस्टम आउटपुट का कैप्चर उपलब्ध नहीं है।',
-  'eq.smart.error.streamStopped': 'माप पूरा होने से पहले आउटपुट रुक गया।',
-  'eq.smart.error.analyserPaused':
-    'विश्लेषक रुका हुआ है, इसलिए माप रोक दिया गया।',
-  'eq.smart.error.noSound': 'कुछ नहीं बज रहा था। संगीत चलाएँ और फिर से मापें।',
   'eq.smart.error.noAudioTrack': 'Windows ने सिस्टम ऑडियो स्ट्रीम नहीं दी।',
   'eq.smart.error.formatChanged':
     'माप के दौरान आउटपुट फ़ॉर्मैट बदल गया। फिर से कोशिश करें।',
-  'eq.smart.error.deviceChanged':
-    'माप के दौरान ऑडियो डिवाइस बदल गया। फिर से कोशिश करें।',
   'eq.smart.error.captureFailed':
     'प्रोसेस किया गया सिस्टम आउटपुट कैप्चर नहीं हो सका।',
-  'eq.smart.error.analyserOff':
-    'लाइव आउटपुट विश्लेषक चालू नहीं है, इसलिए मापने को कुछ नहीं है।',
-  'eq.smart.error.alreadyRunning': 'एक माप पहले से चल रहा है।',
-  'eq.smart.error.timedOut': 'माप का समय पूरा हो गया। फिर से कोशिश करें।',
-  'eq.smart.error.closed': 'FluidEQ ने माप बंद कर दिया।',
   'eq.smart.presence.ignoredBelow': '{db} dB से नीचे नहीं',
   'eq.smart.presence.trustedAbove': '{db} dB से ऊपर भरोसा',
   'eq.smart.presence.reset': 'इस मोड के लिए {range} रीसेट करें',
   'eq.smart.limit.label': 'स्मार्ट EQ सीमा {db} dB',
-  'eq.smart.gap.title':
-    '{range}: कितना अंतर है, कार्रवाई के लिए ज़रूरी मात्रा के सामने',
-  'eq.smart.gap.countdown': '{seconds}से॰ में लागू',
   'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
   'convolution.eyebrow.fluid': 'इंपल्स रिस्पॉन्स',
   'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',

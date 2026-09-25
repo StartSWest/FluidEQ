@@ -180,25 +180,6 @@ export interface IBalanceCaptureState {
   axis: number[];
   /** Set only for a capture that never ends. See CONTINUOUS_HALF_LIFE_MS. */
   halfLifeMs?: number;
-  /**
-   * What the applied chain is doing at each axis point right now, in dB, so the
-   * capture measures the record rather than the output. See
-   * `accumulateBalanceFrame` for why that is the whole design and not an
-   * adjustment to it.
-   *
-   * Written by the owner of the capture rather than by the accumulator, because
-   * the chain changes underneath a session that never ends — every correction
-   * this loop applies changes it — and the accumulator has no way to know.
-   * Absent means "nothing is applied", which is what a synthetic frame in a test
-   * wants.
-   */
-  chainGainDb?: number[];
-  /**
-   * Scratch for the reconstructed source. Reused rather than allocated per
-   * frame: this runs about twenty times a second for as long as somebody is
-   * listening.
-   */
-  sourceLevels?: Float64Array;
   regions: IBalanceRegion[];
   /** Sum of weight * linear power per axis point, relative to the frame's own
    * mean level. */
@@ -483,24 +464,17 @@ export const createBalanceCaptureState = (
 };
 
 /**
- * Forget what one region has heard, because the chain under it just changed.
+ * Forget what one region has heard.
  *
- * This is what lets Continuous EQ correct one frequency range without
- * disturbing the others. The capture measures the output *including* whatever
- * correction is applied, so the moment a range is corrected everything already
- * averaged for that range describes a chain that no longer exists — and a solve
- * built on it would ask for the same correction a second time, and a third.
- * Clearing the range is the only honest answer, and clearing only that range is
- * what keeps the other eight accumulating undisturbed while it refills.
+ * Nothing in the ordinary run of a measurement calls this any more: the
+ * capture measures the source, a correction changes nothing about the
+ * source, and so correcting a range leaves everything heard in it exactly as
+ * true as it was. It stays for the one thing that does make a range's
+ * evidence wrong — a caller that knows the source itself changed under a
+ * range — and for the tests that drive the accumulator by hand.
  *
  * The convergence probe goes too. It is sampled across the whole axis, so it is
  * stale the moment any part of the axis is.
- *
- * The tilt fit that runs over the whole spectrum still needs a wide trusted
- * span, and a freshly cleared range simply carries no confidence until it
- * refills — so a solve taken while the midrange is empty declines to answer at
- * all rather than fitting a slope through a hole. That is a cycle skipped, not
- * a wrong correction.
  */
 export const resetBalanceRegion = (
   state: IBalanceCaptureState,
@@ -583,84 +557,33 @@ export const accumulateBalanceFrame = (
   frame: IBalanceFrame,
 ): IBalanceCaptureState => {
   /*
-   * THE RECORD, THROUGH THE ONE LAYER THAT IS TRYING TO FIX IT.
+   * THE RECORD, AND NOTHING ELSE.
    *
-   * The capture is a loopback, so what arrives is the output: the record with
-   * every layer already on it. Neither taking that at face value nor stripping
-   * it back to nothing is right, and the reasons pull in opposite directions.
+   * Every frame here is of the source: the sound before FluidEQ processes it,
+   * taken from the Library host's own input tap or from a process loopback,
+   * which Windows delivers ahead of the endpoint's effects (`rawSource.ts`).
+   * Not the bands, not a voicing, not the rack, not the Smart EQ layer — none
+   * of it is in what arrives, so none of it has to be excused or subtracted,
+   * and nothing measured here can ever be a measurement of the correction's
+   * own doing.
    *
-   * Measuring the whole output is blind to a cut. Crush 6.5 kHz by 20 dB and the
-   * evidence that the cut is wrong goes with it — the range never gathers enough
-   * to act on, so the measurement waits on it for the rest of the evening, and
-   * the bigger the mistake the more thoroughly it hides. It also cannot tell a
-   * fault from a decision, so every deliberate layer has to be handed back as a
-   * list of exceptions to excuse, which is a list that was wrong about at least
-   * one entry at every point in this file's history.
-   *
-   * Subtracting the whole chain fixes that and breaks something worse: it opens
-   * the loop. A correction that cannot hear its own result cannot check it.
-   * Every error in the filter model, in this subtraction, in the analyser's own
-   * response would land in the sound and stay there uncontested, because nothing
-   * downstream ever measures the consequence.
-   *
-   * So `chainGainDb` carries everything EXCEPT the Smart EQ layer. What is left
-   * after the subtraction is the record plus the correction so far, which is
-   * exactly the quantity worth having: how far the sound still is from where it
-   * belongs, given everything already done about it. Cuts made by the user no
-   * longer hide anything, because they are gone from the measurement; cuts made
-   * by the correction are still audible to it, because they are the thing being
-   * verified.
-   *
-   * Re-read every frame, because a continuous session changes the chain
-   * underneath itself every time it corrects something.
+   * This file used to receive the endpoint's loopback and take a model of the
+   * chain back off it. The model never covered the rack — a compressor, a
+   * maximizer, an exciter and the room all reshape the output by several
+   * decibels, level-dependently — so what the solver saw as "the record" was
+   * the record plus the rack's colouring, and it corrected the colouring;
+   * and the one layer the model left in on purpose, this one, made every run
+   * an accumulation onto the last, so the same record landed in different
+   * places depending on what had been played before it. Measuring the source
+   * is what makes the answer a property of the record.
    *
    * EVERYTHING BELOW MEASURES THE RECORD — the gate, the presence followers,
-   * the reference level and the accumulated spectrum alike. That last one was
-   * the exception for a long time, on the argument that "what to correct" is a
-   * question about the output because the output is what anybody hears. The
-   * argument does not survive contact with a moved slider: averaging the output
-   * hands the solver the user's own bands as error, so it builds their mirror
-   * image, and the Smart EQ curve on the graph tracks every fader in reverse. A
-   * -6 dB cut at 2.6 kHz and a +10 dB lift at 4.3 kHz came back as a +6 and a
-   * -10 inside this layer, cancelling both. Measuring the record puts the
-   * correction under the user's EQ instead of against it: Smart EQ fixes the
-   * source, and whatever was applied on top stays applied.
-   *
-   * Reconstruction is not resurrection. A point at the analyser's floor carries
-   * no information and adding gain to it would manufacture a spectrum out of
-   * dither, so those are dropped rather than compensated — which is the one
-   * thing subtraction genuinely cannot get back.
+   * the reference level and the accumulated spectrum alike.
    */
-  let recordLevels = frame.levels;
-  let recordPeakDb = frame.peakDb;
-  if (state.chainGainDb) {
-    const output = frame.levels;
-    if (!state.sourceLevels || state.sourceLevels.length !== output.length) {
-      state.sourceLevels = new Float64Array(output.length);
-    }
-    const source = state.sourceLevels;
-    let peak = Number.NEGATIVE_INFINITY;
-    for (let index = 0; index < output.length; index += 1) {
-      const level = output[index];
-      if (!Number.isFinite(level) || level < ABS_FLOOR_DBFS) {
-        source[index] = Number.NaN;
-      } else {
-        source[index] = level - (state.chainGainDb[index] ?? 0);
-        if (source[index] > peak) {
-          peak = source[index];
-        }
-      }
-    }
-    recordLevels = source;
-    if (Number.isFinite(peak)) {
-      recordPeakDb = peak;
-    }
-  }
+  const recordLevels = frame.levels;
+  const recordPeakDb = frame.peakDb;
 
-  // Loud enough to trust, asked of the record. A chain that has turned
-  // everything down does not make the music silent, and frames rejected as
-  // silence because of the user's own attenuation are frames the correction
-  // never gets to learn from.
+  // Loud enough to trust, asked of the record.
   const w = clamp01(
     (recordPeakDb - FRAME_MIN_PEAK_DBFS) /
       (FRAME_FULL_PEAK_DBFS - FRAME_MIN_PEAK_DBFS),

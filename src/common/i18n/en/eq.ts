@@ -564,7 +564,7 @@ const eq = {
   'eq.title': 'Parametric EQ',
   'eq.smart': 'Smart EQ',
   'eq.smart.cancel': 'Cancel',
-  'eq.smart.aria': 'Smart EQ from live output',
+  'eq.smart.aria': 'Smart EQ from the source',
   'eq.smart.cancelAria': 'Cancel Smart EQ measurement',
   'eq.smart.continuousAria':
     'Keep Smart EQ measuring and adjusting while music plays',
@@ -678,13 +678,11 @@ const eq = {
   'eq.smart.status.waitingForSound': 'Waiting for sound',
   'eq.smart.status.bandLimited':
     'Filtered passage - waiting for the full range',
-  'eq.smart.status.soundChanged': 'Sound changed - measuring again',
-  'eq.smart.status.keptChanging': 'The sound kept changing - stopped',
   'eq.smart.status.notEnoughRange': 'Not enough range to measure',
   'eq.smart.status.alreadyBalanced': 'Already balanced',
   'eq.smart.status.applying': 'Applying…',
   'eq.smart.status.cancelled': 'Cancelled - nothing changed',
-  'eq.smart.status.failed': 'Could not measure the output.',
+  'eq.smart.status.failed': 'Could not measure the source.',
   'eq.smart.result.fullRange': 'Balanced - full range',
   'eq.smart.result.range': 'Balanced - {low} to {high} only',
   'eq.smart.result.withShape': '{result} · {shape}',
@@ -692,34 +690,20 @@ const eq = {
   'eq.smart.frequency.khz': '{value} kHz',
   'eq.smart.error.noCapture':
     'Media capture is not available in this environment.',
+  'eq.smart.error.noSource':
+    'Could not reach the sound before FluidEQ processes it.',
   'eq.smart.error.noLoopback':
     'Desktop loopback capture is not available in this environment.',
-  'eq.smart.error.streamStopped':
-    'The output stream stopped before the measurement finished.',
-  'eq.smart.error.analyserPaused':
-    'The analyser is paused, so the measurement stopped.',
-  'eq.smart.error.noSound':
-    'No sound was playing. Start some music and measure again.',
   'eq.smart.error.noAudioTrack':
     'Windows did not provide a system-audio stream.',
   'eq.smart.error.formatChanged':
     'The output format changed while measuring. Try again.',
-  'eq.smart.error.deviceChanged':
-    'The audio device changed while measuring. Try again.',
   'eq.smart.error.captureFailed':
     'Unable to capture the processed system output.',
-  'eq.smart.error.analyserOff':
-    'The live output analyser is not running, so there is nothing to measure.',
-  'eq.smart.error.alreadyRunning': 'A measurement is already running.',
-  'eq.smart.error.timedOut': 'The measurement timed out. Try again.',
-  'eq.smart.error.closed': 'FluidEQ closed the measurement.',
   'eq.smart.presence.ignoredBelow': 'ignored below {db} dB',
   'eq.smart.presence.trustedAbove': 'trusted above {db} dB',
   'eq.smart.presence.reset': 'Reset {range} for this mode',
   'eq.smart.limit.label': 'Smart EQ limit {db} dB',
-  'eq.smart.gap.title':
-    '{range}: how far it disagrees, against the amount needed to act',
-  'eq.smart.gap.countdown': 'writing in {seconds}s',
   'convolution.eyebrow': 'APO impulse responses',
   'convolution.eyebrow.fluid': 'Impulse responses',
   'convolution.title': 'Convolution library',

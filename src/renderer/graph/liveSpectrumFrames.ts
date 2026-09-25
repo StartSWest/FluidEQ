@@ -190,17 +190,6 @@ export const detectClipping = (timeDomainData: ArrayLike<number>): boolean => {
   return false;
 };
 
-/** Wall-clock silence after which the capture status says so. */
-export const SILENCE_HINT_MS = 3000;
-/** Wall-clock silence after which the capture gives up rather than hang. */
-export const SILENCE_ABORT_MS = 15000;
-/**
- * Independent wall-clock backstop. Every other timer counts *listened* time,
- * which stops advancing entirely if the renderer is starved; this guarantees
- * the promise settles even then.
- */
-export const WATCHDOG_MS = 120000;
-
 /**
  * How soon a failed capture is tried again, and how many times.
  *

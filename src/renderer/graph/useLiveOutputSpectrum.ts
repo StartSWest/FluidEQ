@@ -18,27 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  IBalanceCaptureState,
-  IBalanceListenBounds,
-  IBalanceProgress,
-  IBalanceReport,
-  IBalanceResult,
-  accumulateBalanceFrame,
-  buildBalanceProgress,
-  buildBalanceResult,
   createAxisCells,
-  CONTINUOUS_HALF_LIFE_MS,
   IAxisCell,
-  createBalanceCaptureState,
-  evaluateBalanceCapture,
-  flipBalanceProgress,
-  isBalanceCheckDue,
   readAbsoluteLevels,
-  resetBalanceRegion,
-  shouldFinishBalanceCapture,
 } from '../utils/autoBalanceCapture';
 import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
-import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
 import {
@@ -52,12 +36,9 @@ import {
   NO_POINTS,
   NO_WAVEFORM,
   OUTPUT_SWITCH_SETTLE_MS,
-  SILENCE_ABORT_MS,
-  SILENCE_HINT_MS,
   START_RETRY_MS,
   TRACK_REFERENCE_RELEASE_DB,
   UPDATE_INTERVAL_MS,
-  WATCHDOG_MS,
   captureSystemOutput,
   createFrameBuffers,
   createFrequencyAxis,
@@ -84,90 +65,6 @@ import {
   createLevelFollower,
   readPeakAmplitude,
 } from './outputLevel';
-
-export interface IBalanceCaptureOptions extends IBalanceListenBounds {
-  signal?: AbortSignal;
-  onProgress?: (progress: IBalanceProgress) => void;
-  /**
-   * Run until aborted rather than until the measurement is complete.
-   *
-   * For Continuous EQ, which does not want an answer — it wants to keep
-   * listening. A capture that resolved would take its accumulated evidence with
-   * it, so every restart would put all nine regions back to zero together,
-   * which is the one thing this mode is trying not to do.
-   *
-   * Silence does not end it either, and neither does the watchdog. Both exist
-   * to stop a measurement somebody is waiting on from hanging; nobody is
-   * waiting on this one, and music stopping for a while is an ordinary evening
-   * rather than a failure.
-   */
-  isContinuous?: boolean;
-  /**
-   * Called with the full report at every checkpoint, and answers with the
-   * regions whose accumulated evidence is now stale — because the caller just
-   * corrected them. Those regions are cleared and start filling again; the rest
-   * carry on as if nothing happened.
-   */
-  onReport?: (report: IBalanceReport) => number[] | void;
-  /**
-   * What the applied chain is doing to each region, asked for again at every
-   * checkpoint — see `buildRegionGainDb` for what it is for.
-   *
-   * A function rather than a value because a continuous session outlives any
-   * particular chain: it is the loop's own corrections, among other things, that
-   * keep changing the answer.
-   */
-  getChainGainDb?: (axis: number[]) => number[];
-}
-
-/** An auto-balance measurement in flight. */
-interface IBalanceSession {
-  state: IBalanceCaptureState;
-  /**
-   * Scratch for the presence gate, reused rather than allocated per frame.
-   *
-   * Recomputed thirty times a second for as long as somebody is listening,
-   * which is the same reason the capture keeps its own reconstruction buffer.
-   */
-  presenceGate?: Float64Array;
-  /** Identifies the analysis axis; a change means the device changed. */
-  axisKey: string;
-  onProgress?: (progress: IBalanceProgress) => void;
-  /**
-   * What this caller asked for instead of the defaults.
-   *
-   * Held on the session rather than read from the options at each tick,
-   * because the tick runs from an interval that outlives the call.
-   */
-  bounds: IBalanceListenBounds;
-  isContinuous: boolean;
-  onReport?: (report: IBalanceReport) => number[] | void;
-  getChainGainDb?: (axis: number[]) => number[];
-  detachAbort: () => void;
-  watchdog: ReturnType<typeof setTimeout> | undefined;
-  lastAcceptedWallMs: number;
-  lastPercent: number;
-  /**
-   * The last full progress published, so a flag flip between checkpoints can
-   * republish the ranges it already had rather than an empty list — see the
-   * flip in `evaluateSession` for what an empty list did to the plot.
-   */
-  lastProgress?: IBalanceProgress;
-  wasSilent: boolean;
-  wasPaused: boolean;
-  /**
-   * The last published answer to "is the record showing its whole spectrum".
-   *
-   * Needed here rather than derivable at the checkpoint, because a hold STOPS
-   * the checkpoints: listened time is what they are due on and a held frame buys
-   * none. Without a flip of its own the bubble would freeze on whatever it last
-   * said and the mode would look hung for the length of every breakdown.
-   */
-  wasBandLimited: boolean;
-  settled: boolean;
-  resolve: (value: IBalanceResult) => void;
-  reject: (reason: Error) => void;
-}
 
 /**
  * The live capture, handed out so other features can tap it.
@@ -226,20 +123,6 @@ const useLiveOutputSpectrum = () => {
    * it only has the one.
    */
   const [outputLevels, setOutputLevels] = useState<IOutputLevel[]>(NO_LEVELS);
-  /**
-   * Each range's live level, published on the frame rather than the progress.
-   *
-   * The progress carries coverage, which is a fact about the whole session and
-   * is recomputed once a second. This is what the music is doing now, and it is
-   * drawn as a mark inside each band so the presence lines can be seen being
-   * crossed. Once a second, that mark lurches.
-   */
-  const [presenceLevels, setPresenceLevels] = useState<number[]>([]);
-  /** The same levels followed slowly, which is where the lines sit. */
-  const [presenceTypical, setPresenceTypical] = useState<number[]>([]);
-  const [balanceProgress, setBalanceProgress] = useState<
-    IBalanceProgress | undefined
-  >(undefined);
   const isClippingRef = useRef(false);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
@@ -286,7 +169,6 @@ const useLiveOutputSpectrum = () => {
   const displayClaimsRef = useRef(0);
   const workClaimsRef = useRef(0);
   const scheduleStartRef = useRef<() => void>(() => undefined);
-  const sessionRef = useRef<IBalanceSession | undefined>(undefined);
   // Mirrors `points` so the silence branch can avoid publishing a fresh empty
   // array 22 times a second for the whole of a long capture.
   const pointsRef = useRef<IChartPointData[]>(NO_POINTS);
@@ -313,32 +195,7 @@ const useLiveOutputSpectrum = () => {
     [],
   );
 
-  /** The only place a capture promise is settled. Idempotent. */
-  const settleBalance = useCallback((outcome: IBalanceResult | Error) => {
-    const session = sessionRef.current;
-    if (!session || session.settled) {
-      return;
-    }
-    session.settled = true;
-    clearTimeout(session.watchdog);
-    setBalanceProgress(undefined);
-    session.detachAbort();
-    sessionRef.current = undefined;
-    if (outcome instanceof Error) {
-      session.reject(outcome);
-    } else {
-      session.resolve(outcome);
-    }
-  }, []);
-
-  const abortBalance = useCallback(
-    (message: string) => settleBalance(new Error(message)),
-    [settleBalance],
-  );
-
   const stop = useCallback(() => {
-    // A capture must never outlive the stream it is measuring.
-    abortBalance(tRef.current('eq.smart.error.streamStopped'));
     if (pumpRef.current !== undefined) {
       clearInterval(pumpRef.current);
       pumpRef.current = undefined;
@@ -373,12 +230,13 @@ const useLiveOutputSpectrum = () => {
     setIsClipping(false);
     pointsRef.current = NO_POINTS;
     setPoints(NO_POINTS);
+    setGraphPoints(NO_POINTS);
     setWaveform(NO_WAVEFORM);
     // Emptied rather than left at the floor. A meter pinned at silence says
     // "nothing is playing"; there being no capture at all is a different fact,
     // and the strip is taken off the graph to say it.
     setOutputLevels(NO_LEVELS);
-  }, [abortBalance]);
+  }, []);
 
   /**
    * Whether anything currently justifies holding the output endpoint open.
@@ -431,99 +289,6 @@ const useLiveOutputSpectrum = () => {
       };
     },
     [isCaptureWanted, stop],
-  );
-
-  /**
-   * Score the running capture, publish progress, and finish it when the
-   * measurement has heard enough.
-   */
-  const evaluateSession = useCallback(
-    (session: IBalanceSession, nowMs: number) => {
-      const silentFor = nowMs - session.lastAcceptedWallMs;
-      const paused = isPausedRef.current;
-      const silent = !paused && silentFor >= SILENCE_HINT_MS;
-
-      // A continuous session outlives silence. Nobody is waiting on it, and
-      // music stopping for a while is an ordinary evening rather than a
-      // failure — where ending it would throw away every region's evidence and
-      // put all nine back to zero together when the music came back.
-      if (!session.isContinuous && silentFor >= SILENCE_ABORT_MS) {
-        if (session.state.acceptedFrames === 0) {
-          abortBalance(
-            tRef.current(
-              paused
-                ? 'eq.smart.error.analyserPaused'
-                : 'eq.smart.error.noSound',
-            ),
-          );
-        } else {
-          // Something was heard: keep it rather than throwing the work away.
-          settleBalance(
-            buildBalanceResult(
-              evaluateBalanceCapture(session.state, session.bounds),
-            ),
-          );
-        }
-        return;
-      }
-
-      const bandLimited = session.state.fullBand.isHolding;
-
-      if (!isBalanceCheckDue(session.state)) {
-        // Still surface a paused/silent flip immediately, so the status does
-        // not sit on a stale "Listening 40%" while nothing is playing.
-        if (
-          silent !== session.wasSilent ||
-          paused !== session.wasPaused ||
-          bandLimited !== session.wasBandLimited
-        ) {
-          session.wasSilent = silent;
-          session.wasPaused = paused;
-          session.wasBandLimited = bandLimited;
-          // The ranges it already had, with the flags moved — see
-          // `flipBalanceProgress` for what an empty list here did to the plot.
-          const flip = flipBalanceProgress(session.lastProgress, {
-            isSilent: silent,
-            isPaused: paused,
-            isBandLimited: bandLimited,
-            listenedMs: session.state.listenedMs,
-            percent: session.lastPercent,
-          });
-          session.lastProgress = flip;
-          setBalanceProgress(flip);
-          session.onProgress?.(flip);
-        }
-        return;
-      }
-
-      const report = evaluateBalanceCapture(session.state, session.bounds);
-      const progress = buildBalanceProgress(report, session.lastPercent, {
-        isSilent: silent,
-        isPaused: paused,
-        isContinuous: session.isContinuous,
-      });
-      session.lastPercent = progress.percent;
-      session.lastProgress = progress;
-      session.wasSilent = silent;
-      session.wasPaused = paused;
-      session.wasBandLimited = bandLimited;
-      setBalanceProgress(progress);
-      session.onProgress?.(progress);
-
-      // The caller sees the whole report, corrects what it likes, and names the
-      // regions it has just made stale. Those are cleared here rather than by
-      // the caller, because the accumulator belongs to the session — see
-      // `resetBalanceRegion` for why clearing them is not optional.
-      if (session.onReport) {
-        const stale = session.onReport(report) ?? [];
-        stale.forEach((index) => resetBalanceRegion(session.state, index));
-      }
-
-      if (!session.isContinuous && shouldFinishBalanceCapture(report)) {
-        settleBalance(buildBalanceResult(report));
-      }
-    },
-    [abortBalance, settleBalance],
   );
 
   const start = useCallback(async (): Promise<boolean> => {
@@ -742,7 +507,6 @@ const useLiveOutputSpectrum = () => {
       // The graphs' own points, taken from the drawing's reader below.
       const graphBuffers = createFrameBuffers();
       let bufferSlot = 0;
-      const axisKey = String(Math.round(activeAudioContext.sampleRate));
       // Shared with the drawing's reader, which may see a new peak first.
       const trackReference: { current: number | undefined } = {
         current: undefined,
@@ -755,9 +519,9 @@ const useLiveOutputSpectrum = () => {
         cells,
         graph: createLiveGraphBand(activeAudioContext, source, FFT_SIZE),
         trackReference,
-        // The display pump skips hidden windows unless a measurement needs
-        // it. Wallpaper reads still need a reference that follows quieter music.
-        releaseReference: () => isHiddenRef.current && !sessionRef.current,
+        // The display pump skips hidden windows. Wallpaper reads still need a
+        // reference that follows quieter music.
+        releaseReference: () => isHiddenRef.current,
         sound: createLiveSound(
           connectSoundAnalysers(activeAudioContext, source),
         ),
@@ -797,22 +561,12 @@ const useLiveOutputSpectrum = () => {
       let lastMeterMs = performance.now();
 
       const pump = () => {
-        const session = sessionRef.current;
-        // Nothing to draw on and nothing to measure: the entire frame is
-        // waste, down to the FFT the analyser only computes when it is read.
-        // A running measurement is deliberately exempt — surviving a minimised
-        // window is why this is an interval rather than requestAnimationFrame.
+        // Nothing to draw on: the entire frame is waste, down to the FFT the
+        // analyser only computes when it is read. Smart EQ no longer measures
+        // this stream — it hears the source (`rawSource.ts`) — so a hidden
+        // window has nothing here to keep running.
         const isHidden = isHiddenRef.current;
-        if (isHidden && !session) {
-          return;
-        }
-
-        if (isPausedRef.current) {
-          // Keep the silence/pause clock running so a paused capture still
-          // reports and eventually gives up.
-          if (session) {
-            evaluateSession(session, performance.now());
-          }
+        if (isHidden || isPausedRef.current) {
           return;
         }
 
@@ -941,99 +695,17 @@ const useLiveOutputSpectrum = () => {
           );
           setOutputLevels(meterFrame);
         }
-
-        if (!session) {
-          return;
-        }
-        if (session.axisKey !== axisKey) {
-          // Index-to-frequency changed underneath the accumulator. Mixing two
-          // axes yields frequency-shifted garbage, which is the worst possible
-          // input to an EQ writer. Never resample — abort.
-          abortBalance(tRef.current('eq.smart.error.formatChanged'));
-          return;
-        }
-        if (peak !== undefined) {
-          // Refreshed per frame rather than held, because a continuous session
-          // changes the chain underneath itself every time it corrects
-          // something — and this is what lets the gate ask about the source
-          // rather than about the output it just altered.
-          session.state.chainGainDb = session.getChainGainDb?.(
-            session.state.axis,
-          );
-          accumulateBalanceFrame(session.state, {
-            levels: levelBuffer,
-            peakDb: peak,
-            timestampMs: performance.now(),
-          });
-          session.lastAcceptedWallMs = performance.now();
-          /*
-           * Published every frame, and separately from the progress, because
-           * they answer questions on completely different timescales.
-           *
-           * `balanceProgress` is the result of `evaluateBalanceCapture`, which
-           * is expensive and runs once a second — right for coverage, which is
-           * a fact about the whole session. These are the live level of each
-           * range, drawn as a mark inside its band so somebody can watch it
-           * cross the presence lines. At one update a second that mark lurches;
-           * what it is showing is the music, and the music does not move once a
-           * second.
-           *
-           * Nine numbers copied out of the accumulator, on the same tick the
-           * trace itself is published, so the mark and the wave under it are
-           * always describing the same instant.
-           */
-          setPresenceLevels(Array.from(session.state.liveDb));
-          setPresenceTypical(Array.from(session.state.typicalDb));
-          /*
-           * The presence gate, recomputed from the lines every frame.
-           *
-           * Written here rather than inside the accumulator for the same reason
-           * the chain response is: it depends on where somebody has dragged
-           * these lines, which is a preference, and the accumulator has no
-           * business reading a store. It also has to be refreshed rather than
-           * held, because a drag moves it while the capture is running and the
-           * point of the drag is to see the fill respond.
-           *
-           * Ordered exactly as `state.regions`, which is what the accumulator
-           * indexes it by.
-           */
-          if (!session.presenceGate) {
-            session.presenceGate = new Float64Array(
-              session.state.regions.length,
-            );
-          }
-          session.state.regions.forEach((region, index) => {
-            const gate = presenceAllowance(
-              session.state.liveDb[index],
-              getPresenceLine(
-                'floor',
-                region.label,
-                region.centreFrequency,
-                session.state.typicalDb[index],
-              ),
-              getPresenceLine(
-                'full',
-                region.label,
-                region.centreFrequency,
-                session.state.typicalDb[index],
-              ),
-            );
-            (session.presenceGate as Float64Array)[index] = gate;
-          });
-          session.state.presenceGate = session.presenceGate;
-        }
-        evaluateSession(session, performance.now());
       };
 
       // An interval rather than requestAnimationFrame: rAF stops completely
-      // while the window is minimised, which is exactly what a user does
-      // during a long measurement.
+      // while the window is minimised, and the pump has to notice the window
+      // coming back on its own tick rather than waiting for a paint that a
+      // covered window never gets.
       pumpRef.current = setInterval(pump, UPDATE_INTERVAL_MS);
 
       audioTrack.addEventListener(
         'ended',
         () => {
-          abortBalance(tRef.current('eq.smart.error.deviceChanged'));
           stop();
           // Let the current capture promise finish before retrying. This
           // avoids the in-flight guard suppressing the restart.
@@ -1115,78 +787,7 @@ const useLiveOutputSpectrum = () => {
     } finally {
       isStartingRef.current = false;
     }
-  }, [abortBalance, evaluateSession, isCaptureWanted, stop]);
-
-  /**
-   * Listen until every frequency region has been heard well enough to correct,
-   * then resolve with the averaged spectrum.
-   *
-   * There is no fixed duration: a broadband track settles in a few seconds,
-   * sparse material takes longer, and a source that never covers the range
-   * resolves as `partial` with the range it did measure.
-   */
-  const captureBalanceProfile = useCallback(
-    (options: IBalanceCaptureOptions = {}) =>
-      new Promise<IBalanceResult>((resolve, reject) => {
-        const audioContext = audioContextRef.current;
-        if (!streamRef.current || !audioContext) {
-          reject(new Error(tRef.current('eq.smart.error.analyserOff')));
-          return;
-        }
-        if (sessionRef.current) {
-          reject(new Error(tRef.current('eq.smart.error.alreadyRunning')));
-          return;
-        }
-        if (options.signal?.aborted) {
-          reject(new DOMException('Measurement cancelled.', 'AbortError'));
-          return;
-        }
-
-        const axis = createFrequencyAxis(audioContext.sampleRate);
-        const onAbort = () =>
-          settleBalance(
-            new DOMException('Measurement cancelled.', 'AbortError'),
-          );
-        options.signal?.addEventListener('abort', onAbort);
-
-        sessionRef.current = {
-          // A continuous session forgets; a measurement that ends does not.
-          state: createBalanceCaptureState(
-            axis,
-            options.isContinuous ? CONTINUOUS_HALF_LIFE_MS : undefined,
-          ),
-          axisKey: String(Math.round(audioContext.sampleRate)),
-          onProgress: options.onProgress,
-          bounds: {
-            minListenMs: options.minListenMs,
-            maxListenMs: options.maxListenMs,
-          },
-          isContinuous: Boolean(options.isContinuous),
-          onReport: options.onReport,
-          getChainGainDb: options.getChainGainDb,
-          detachAbort: () =>
-            options.signal?.removeEventListener('abort', onAbort),
-          // No backstop on a continuous session. The watchdog exists so a
-          // measurement somebody is waiting on cannot hang; this one is meant
-          // to run for as long as the mode is switched on.
-          watchdog: options.isContinuous
-            ? undefined
-            : setTimeout(
-                () => abortBalance(tRef.current('eq.smart.error.timedOut')),
-                WATCHDOG_MS,
-              ),
-          lastAcceptedWallMs: performance.now(),
-          lastPercent: 0,
-          wasSilent: false,
-          wasPaused: isPausedRef.current,
-          wasBandLimited: false,
-          settled: false,
-          resolve,
-          reject,
-        };
-      }),
-    [abortBalance, settleBalance],
-  );
+  }, [isCaptureWanted, stop]);
 
   const scheduleStart = useCallback(() => {
     if (
@@ -1342,10 +943,9 @@ const useLiveOutputSpectrum = () => {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = undefined;
       }
-      abortBalance(tRef.current('eq.smart.error.closed'));
       stop();
     };
-  }, [abortBalance, isCaptureWanted, scheduleStart, stop]);
+  }, [isCaptureWanted, scheduleStart, stop]);
 
   // Split by publication rate, not by topic. `frame` is replaced ~22 times a
   // second; `control` only when the capture starts, stops, pauses or fails.
@@ -1353,31 +953,18 @@ const useLiveOutputSpectrum = () => {
   // consumer reading nothing but `isActive` still re-rendered at frame rate.
   const frame = useMemo(
     () => ({
-      balanceProgress,
       graphPoints,
       isClipping,
       outputLevels,
       points,
-      presenceLevels,
-      presenceTypical,
       waveform,
     }),
-    [
-      balanceProgress,
-      graphPoints,
-      isClipping,
-      outputLevels,
-      points,
-      presenceLevels,
-      presenceTypical,
-      waveform,
-    ],
+    [graphPoints, isClipping, outputLevels, points, waveform],
   );
 
   const control = useMemo(
     () => ({
       capture,
-      captureBalanceProfile,
       claim,
       error,
       isActive,
@@ -1398,17 +985,7 @@ const useLiveOutputSpectrum = () => {
         return start();
       },
     }),
-    [
-      capture,
-      captureBalanceProfile,
-      claim,
-      error,
-      isActive,
-      isPaused,
-      readFrame,
-      start,
-      togglePaused,
-    ],
+    [capture, claim, error, isActive, isPaused, readFrame, start, togglePaused],
   );
 
   return { control, frame };

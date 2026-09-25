@@ -17,29 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef } from 'react';
+import type { ISmartEqSettings } from 'common/constants';
 import {
-  ISmartEqSettings,
   describeSmartEqLayer,
   getSmartEqBands,
+  getSmartEqLayout,
 } from 'common/smartEq';
 import {
-  CONTINUOUS_SETTLE_DB,
-  TSmartEqDrift,
-  blendSmartEqTarget,
   buildSmartEqSettings,
   confineSmartEqResponse,
-  stepSmartEqGains,
+  isSmartEqRewriteDue,
 } from 'common/smartEqContinuous';
 import { getReferenceShape } from 'common/referenceCurve';
-import { getVoicingFilters } from 'common/voicing';
-import { getDriverFilters } from 'common/driver';
-import {
-  getEqMode,
-  getCurveEqMode,
-  getAppliedEqFilters,
-  getBandQ,
-} from 'common/eqMode';
-import { getHeadphoneFilters } from 'common/headphone';
 import {
   describeBalanceProgress,
   describeBalanceResult,
@@ -51,26 +40,21 @@ import { getPresenceLine, presenceAllowance } from './utils/presenceThreshold';
 import { getCorrectionLimit } from './utils/correctionLimit';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
-import { sortHelper } from './utils/utils';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
-import {
-  useLiveAudioCapture,
-  useLiveAudioControl,
-} from './audio/LiveAudioContext';
 import { noteSmartEqWrite } from './audio/songEqSession';
+import { useNowPlayingIdentity } from './audio/nowPlayingIdentity';
+import { usePlaybackOwner } from './audio/playbackOwner';
+import { IMeasurement, measureSource } from './audio/smartEqMeasurement';
+import type { TRawSourceKind } from './audio/rawSource';
 import { useContinuousEq } from './utils/continuousEq';
 import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
 import { buildBalancedGains } from './utils/autoBalance';
 import {
+  CONTINUOUS_HALF_LIFE_MS,
   IBalanceRegionReport,
   IBalanceReport,
 } from './utils/autoBalanceCapture';
 import { flashCorrection } from './utils/correctionFlash';
-import {
-  setSmartEqDisagreement,
-  setSmartEqQuietUntil,
-} from './utils/smartEqDisagreement';
-import { buildChainGainDb } from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
 import {
   registerSmartEqControl,
@@ -79,91 +63,6 @@ import {
   setSmartEqStatus,
   useSmartEqRun,
 } from './utils/smartEqRun';
-
-/**
- * How many times a measurement will restart itself.
- *
- * Changing the sound mid-capture restarts rather than cancels. Bounded so that
- * someone fiddling with sliders while it listens eventually gets an answer
- * instead of an endless loop.
- */
-const MAX_BALANCE_ATTEMPTS = 3;
-
-/**
- * How long after a correction lands before the analyser is believed again.
- *
- * Equalizer APO reloads its config when the file changes, and what comes out
- * while it does is neither the old chain nor the new one. Averaging that in is
- * how a correction ends up measured against half of itself — and the regions
- * that were just corrected are exactly the ones freshly cleared and listening,
- * so they are exactly the ones that would swallow it.
- *
- * Three quarters of a second is comfortably longer than a reload and shorter
- * than the gap between two checkpoints, so in the ordinary case it costs
- * nothing at all: the window has closed again before the next one is due.
- */
-const CONTINUOUS_SETTLE_MS = 750;
-
-/** After this, an outstanding write is treated as lost rather than pending. */
-const CONTINUOUS_APPLY_TIMEOUT_MS = 10000;
-
-/**
- * The least time between two corrections.
- *
- * Separate from the settle above, which is about the analyser being lied to for
- * a moment while Equalizer APO reloads. This one is about the person in the
- * room. Checkpoints arrive about once a second, and a mode that is allowed to
- * act on every one of them is a mode that can rewrite the config a dozen times
- * a minute and announce each — which is exhausting to sit next to even when
- * every individual correction is right.
- *
- * Twenty seconds, with a deadband large enough that most checkpoints have
- * nothing to say anyway. Together they turn the mode from something fidgeting
- * constantly into something that speaks up when it has a reason to.
- */
-const CONTINUOUS_QUIET_MS = 20000;
-
-/**
- * The shortest that window gets, when what is waiting is worth hearing about.
- *
- * Twenty seconds for everything was the same wait for a correction of eight
- * tenths of a decibel and one of four, and that has no defence: the window
- * exists so nobody has to notice this mode a dozen times a minute, and a
- * correction big enough to hear is not the kind anybody minds noticing.
- *
- * So the wait scales with what is at stake. At the deadband it is the full
- * twenty seconds, because a correction that only just clears the bar is exactly
- * the sort that should wait its turn. At three decibels out it is four, because
- * by then the sound is audibly wrong and making somebody sit through most of a
- * minute of it to spare them a config write is the wrong trade.
- *
- * The window is global rather than per range, and that is not a limitation to
- * be worked around: a write rewrites the whole config and Equalizer APO reloads
- * the lot. Nine independent windows would be nine reloads, which is the thing
- * being rationed. What is NOT waited on is the other ranges being ready -- only
- * the ranges with something to say are written, and the rest are not held back
- * by them.
- */
-const CONTINUOUS_QUIET_MIN_MS = 4000;
-
-/** Disagreement at which the wait is as short as it gets, in dB. */
-const CONTINUOUS_URGENT_DB = 3;
-
-/**
- * How long to wait before the next write, given the largest thing pending.
- *
- * Linear between the deadband and `CONTINUOUS_URGENT_DB`, so there is no step
- * at which the behaviour jumps -- a correction that grows while it waits gets
- * its turn sooner rather than crossing a threshold and lurching.
- */
-const quietWindowFor = (largestDb: number) => {
-  const span = CONTINUOUS_URGENT_DB - CONTINUOUS_SETTLE_DB;
-  const over = Math.max(0, Math.min(span, largestDb - CONTINUOUS_SETTLE_DB));
-  const t = span > 0 ? over / span : 1;
-  return Math.round(
-    CONTINUOUS_QUIET_MS - (CONTINUOUS_QUIET_MS - CONTINUOUS_QUIET_MIN_MS) * t,
-  );
-};
 
 /**
  * How long the bubble stays up after the last thing it had to say.
@@ -181,6 +80,23 @@ const quietWindowFor = (largestDb: number) => {
 const STATUS_LINGER_MS = 6000;
 
 /**
+ * How far a band has to move for its range to be named and lit as "moved"
+ * when a running mode writes, in dB. Below it the write is a refinement of a
+ * range that was already right, and lighting it would say something changed
+ * there that nobody can hear.
+ */
+const MOVED_DB = 0.5;
+
+/** The bands a solve is asked for: the fixed layout, every gain at zero. */
+const LAYOUT = getSmartEqLayout();
+
+/** The layer's gains by band id, zero where it holds nothing. */
+const gainsOf = (layer: ISmartEqSettings | undefined): Record<string, number> =>
+  Object.fromEntries(
+    getSmartEqBands(layer).map((band) => [band.id, band.gain]),
+  );
+
+/**
  * Every Smart EQ measurement there is, hosted where no tab can end one.
  *
  * Renders nothing. It is mounted once, above the workspace tabs, and the EQ
@@ -190,58 +106,100 @@ const STATUS_LINGER_MS = 6000;
  * all evening stopped because somebody looked at something else, and came back
  * having forgotten every region it had heard.
  *
- * Both halves live here together on purpose. They share one analyser session,
- * and only one of them may hold it: the loop stands down while a one-shot runs
+ * WHAT IT MEASURES IS THE SOURCE, and everything about how it corrects
+ * follows from that. The measurement is of the sound before FluidEQ touches
+ * it (`audio/rawSource.ts`): the record, with none of the bands, no voicing,
+ * no rack and no Smart EQ layer in it. A solve is therefore a pure function
+ * of the record and the mode, and a solve REPLACES the layer rather than
+ * adding to it. The same record gives the same layer whatever was applied
+ * before, whatever was played before, and whichever mode was on before — and
+ * the listener's own bands, voicing and rack sit on top of it as the taste
+ * they are, never measured and never corrected.
+ *
+ * It used to measure the endpoint's loopback — the record with every layer
+ * and the whole rack already on it — subtract a model of four of those
+ * layers, and add each solve onto the last as a residual. The rack was never
+ * in the model, so a compressor, an exciter or the room reshaping the output
+ * by several decibels read as faults in the record and were corrected; and
+ * the residual loop meant the answer depended on where it started. Both were
+ * heard, and both are gone with the loop.
+ *
+ * Both halves live here together on purpose. They share one status bubble
+ * and only one of them may run: the loop stands down while a one-shot runs
  * (`isRunning` is in its dependencies) and the button tears the loop down
- * itself before asking for the analyser (see `continuousAbortRef`). Keeping
- * them in one component is what makes that ordering expressible at all.
+ * itself before asking for a tap (see `continuousAbortRef`).
  */
 const SmartEqEngine = () => {
-  const {
-    filters,
-    convolution,
-    voicing,
-    driver,
-    smartEq,
-    headphone,
-    setSmartEq,
-    getBandSetGeneration,
-    bypassed,
-    isEqDoubleOn,
-    eqMode,
-    curveEqMode,
-    eqBandQ,
-    curveBandQ,
-  } = useFluidEqContext();
-  const { captureBalanceProfile, isActive: isLiveOutputActive } =
-    useLiveAudioControl();
+  const { smartEq, setSmartEq, getBandSetGeneration, bypassed } =
+    useFluidEqContext();
   /**
    * The language, on a ref, and the ref is the point.
    *
-   * Everything that writes a status here does it from inside a capture that
-   * runs for tens of seconds or, in a continuous mode, all evening — so reading
-   * `t` from the closure would freeze the readout in whatever language was
-   * selected when the capture started. Worse, putting it in the effect's
-   * dependencies would tear the capture down and start it again on a language
-   * change, taking every region's accumulated evidence with it. A ref is the
-   * only version that is both current and free.
-   *
-   * A sentence already on screen stays in the old language until the next one
-   * is written, which for a running measurement is about a second.
+   * Everything that writes a status here does it from inside a measurement
+   * that runs for tens of seconds or, in a continuous mode, all evening — so
+   * reading `t` from the closure would freeze the readout in whatever language
+   * was selected when the measurement started. Worse, putting it in the
+   * effect's dependencies would tear the measurement down and start it again
+   * on a language change, taking every region's accumulated evidence with it.
+   * A ref is the only version that is both current and free.
    */
   const { t } = useTranslation();
   const tRef = useRef(t);
   tRef.current = t;
   /** What the page shows, and the flag the loop stands down for. */
   const { status, isRunning } = useSmartEqRun();
-  // A run outlives being looked at. It gathers evidence region by region over
-  // tens of seconds — all evening, in the continuous mode — and `stop()` aborts
-  // the session outright, so letting a minimised window release the capture
-  // would throw away everything the run had heard so far.
-  useLiveAudioCapture(isRunning, 'work');
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
   const smartEqMode = useSmartEqMode();
+  /**
+   * Which tap hears the source. The Library plays through FluidEQ's own host,
+   * whose input tap is the decoded file; everything else is heard through the
+   * process loopback, which Windows delivers ahead of the endpoint's effects.
+   */
+  const owner = usePlaybackOwner();
+  const sourceKind: TRawSourceKind = owner === 'library' ? 'host' : 'process';
+  /**
+   * Which song is playing, and whether anything is.
+   *
+   * The song is what a running mode measures ONE OF: its session restarts
+   * when the song changes, so the layer written for a song is a function of
+   * that song alone and the next song is met with an empty accumulator rather
+   * than the tail of the last one. Where nothing names the song — a game, a
+   * page with no media session — the session runs on a half-life instead and
+   * follows the content by forgetting.
+   *
+   * Whether anything is playing is what tells the measurement it has gone
+   * silent: a tap with nothing to hear sends nothing, and nothing is not an
+   * event.
+   */
+  const { identity, isPlaying } = useNowPlayingIdentity();
+  const songKey = identity?.key;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+  /**
+   * The measurement in flight, whichever kind, so silence and a change of
+   * song can reach it.
+   */
+  const measurementRef = useRef<IMeasurement | undefined>(undefined);
+  useEffect(() => {
+    measurementRef.current?.setSilent(!isPlaying);
+  }, [isPlaying]);
+  /**
+   * A new song is a different record: the accumulator starts again, on the
+   * same tap. Not a restart of the whole session — that would close the tap
+   * and reopen it, which for the process loopback is the capture helper
+   * spawned afresh at every track change.
+   */
+  const songHalfLife = (key: string | undefined) =>
+    key === undefined ? CONTINUOUS_HALF_LIFE_MS : undefined;
+  const previousSongRef = useRef(songKey);
+  useEffect(() => {
+    if (previousSongRef.current === songKey) {
+      return;
+    }
+    previousSongRef.current = songKey;
+    measurementRef.current?.restart(songHalfLife(songKey));
+  }, [songKey]);
   /**
    * What the capture is still waiting to hear, for the bubble's resting state.
    *
@@ -250,100 +208,26 @@ const SmartEqEngine = () => {
    * cleared by a timeout that exists to stop a sentence going stale.
    *
    * Written only when the answer CHANGES, which is a handful of times per
-   * capture rather than once a second. That distinction still matters even now
-   * that it is published from outside the view — the EQ page lays out every
-   * band in the editor, and it subscribes to this, so a publish per checkpoint
-   * would re-render the lot at the analyser's cadence.
+   * capture rather than once a second — the EQ page lays out every band in
+   * the editor and it subscribes to this, so a publish per checkpoint would
+   * re-render the lot at the analyser's cadence.
    */
   const listeningForRef = useRef('');
-  /** A correction is on its way to Equalizer APO right now. */
+  /** A correction is on its way to the engine right now. */
   const isApplyingRef = useRef(false);
-  /** When it set off, so a write that never returns cannot wedge the mode. */
-  const applyStartedAtRef = useRef(0);
-  /** When the chain can be believed again, after the last one landed. */
-  const applySettledAtRef = useRef(0);
-  /** Regions to clear once it has: what they heard mid-change is not evidence. */
-  const pendingResetRef = useRef<number[]>([]);
-  /** The floor between two corrections — see CONTINUOUS_QUIET_MS. */
-  const quietUntilRef = useRef(0);
   /**
-   * Where the correction is heading, averaged over every window so far.
-   *
-   * The one thing in this loop that deliberately outlives a region being
-   * cleared. See `blendSmartEqTarget` for why an average of destinations is
-   * meaningful across corrections where an average of measurements is not.
-   */
-  const longRunTargetRef = useRef<Record<string, number>>({});
-  /** How many windows running each band has disagreed with that estimate. */
-  const longRunDriftRef = useRef<TSmartEqDrift>({});
-  /**
-   * Which bands are part-way through a correction, so they can be held to a
-   * finishing tolerance rather than a starting one.
-   *
-   * See `CONTINUOUS_SETTLE_DB`. Without it a band stops the moment it is inside
-   * the trigger and stays there — the correction reaches a level and never
-   * completes, which is what it looked like from the outside.
-   */
-  const movingBandsRef = useRef<Set<string>>(new Set());
-  /**
-   * The layer as the loop last left it, or last accepted from somebody else,
-   * described the way it will be heard.
-   *
-   * What the loop compares the live layer against to tell its own echo from an
-   * outside write. Its own writes come back through context looking exactly
-   * like a profile load, and a comparison is the only thing that can tell them
-   * apart — see `layerReplaced` for what an outside write means to the loop.
-   */
-  const lastWrittenRef = useRef<string | undefined>(undefined);
-  /**
-   * Every range is stale, not just the ones a correction moved.
-   *
-   * Set when the layer under the capture was replaced from outside, and
-   * answered at the next checkpoint after the settle: everything heard so far
-   * was heard through a chain that no longer exists, and the accumulator has
-   * to be told that region by region.
-   */
-  const resetAllRegionsRef = useRef(false);
-  /**
-   * Which reference the loop is holding records to, read from a ref.
-   *
-   * The capture runs for as long as the mode is on and the callback inside it
-   * is held on a ref for the same reason, so reading the mode through state
-   * would give it whatever was current when the capture started.
+   * Which reference the loop is holding records to, and which tap it should
+   * open, read from refs: the callbacks inside a measurement are held for as
+   * long as it runs, so reading these through state would give them whatever
+   * was current when it started.
    */
   const referenceModeRef = useRef(smartEqMode);
   referenceModeRef.current = smartEqMode;
+  const sourceKindRef = useRef(sourceKind);
+  sourceKindRef.current = sourceKind;
+  const smartEqRef = useRef(smartEq);
+  smartEqRef.current = smartEq;
 
-  /*
-   * ARRIVING AT A CONTINUOUS MODE USED TO THROW THE CORRECTION AWAY, AND MUST
-   * NOT.
-   *
-   * The argument for clearing was about the closed loop, and it was not silly.
-   * The layer already applied was built to satisfy the OLD reference and the
-   * measurement includes it, so the new mode can listen to a record already
-   * bent toward somebody else's idea of right and find little left to disagree
-   * with. Switching from Target to Detail could keep the target curve.
-   *
-   * What that argument left out is what clearing sounds like. A correction that
-   * is mostly cuts — which most of them are, since a record is more often too
-   * much of something than too little — disappears all at once, and the output
-   * jumps up by however much it was holding down. Not a fade: one config write.
-   * On headphones that is unpleasant. On a PA in front of people it is the kind
-   * of thing that damages equipment and ears, and it fires on an ordinary menu
-   * click, which is the worst possible trigger for it.
-   *
-   * So the new mode starts from the curve the old one left and works from
-   * there. Every continuous mode is a closed loop over the output: whatever it
-   * inherits is measured, compared against its own reference, and moved toward
-   * it a step at a time. Inheriting a curve costs convergence time. Clearing
-   * costs a level jump nobody asked for, and only one of those is recoverable.
-   *
-   * The inheritance the old comment worried about is real but narrower than it
-   * says, and it is fixed in the right place instead: only the modes that FIT
-   * the tilt rather than holding one can mistake our own correction for the
-   * record's tonality, because a fitted line absorbs whatever tilt it is shown.
-   * Balance and Target hold a slope and converge on it from anywhere.
-   */
   /**
    * How much boost each frequency has earned, read off the lines on the plot.
    *
@@ -396,6 +280,57 @@ const SmartEqEngine = () => {
     };
 
   /**
+   * The whole answer for a measured spectrum: the mode's destination, the
+   * presence lines' allowance, the limit line, and nothing else — no layer,
+   * no history. Undefined when the measurement cannot support an answer at
+   * all (too narrow a trusted span for the tilt fit).
+   */
+  const solve = (
+    report: Pick<IBalanceReport, 'samples' | 'regions'>,
+  ): Record<string, number> | undefined => {
+    const gains = buildBalancedGains(report.samples, LAYOUT, {
+      // The mode's curve, whatever else is switched on. Which mode is chosen
+      // decides the destination and nothing else does — see
+      // `getReferenceShape`.
+      reference: getReferenceShape(referenceModeRef.current),
+      // A range nothing is playing in cannot be lifted, however loudly it
+      // reports a deficit. See the presence lines on the plot.
+      boostAllowance: allowanceFrom(report.regions),
+      // Symmetric limits, whatever the listener chose. An asymmetric pair
+      // biases a centred correction; see `correctionLimit`.
+      maxBoost: getCorrectionLimit(),
+      maxCut: getCorrectionLimit(),
+    });
+    if (Object.keys(gains).length === 0) {
+      return undefined;
+    }
+    // The limit line bounds the CURVE, and bells sum: two lawful bands can
+    // stack past it. Out of bounds is scaled home — see confineSmartEqResponse.
+    return confineSmartEqResponse(gains, LAYOUT, getCorrectionLimit());
+  };
+
+  /** The solved gains as the layer to write, keeping the listener's strength. */
+  const layerOf = (
+    gains: Record<string, number>,
+    measurement: Pick<
+      ISmartEqSettings,
+      'status' | 'lowFrequency' | 'highFrequency'
+    >,
+  ): ISmartEqSettings | undefined =>
+    buildSmartEqSettings(
+      LAYOUT,
+      gains,
+      {
+        ...measurement,
+        // The strength the listener set survives the write: a measurement is
+        // a new shape for the layer, not a decision about how much of it to
+        // apply.
+        intensity: smartEqRef.current?.intensity,
+      },
+      getCorrectionLimit(),
+    );
+
+  /**
    * The one-shot, reachable from an effect.
    *
    * `autoBalance` is rebuilt every render and closes over half the component,
@@ -413,26 +348,14 @@ const SmartEqEngine = () => {
       // The one-shot runs the moment it is chosen, like the other three do.
       runAutoBalanceRef.current();
     }
-    // A continuous mode needs no setting up. It keeps whatever curve is already
-    // applied and steers it toward its own reference on the next checkpoint,
-    // which is the only transition that cannot make the output jump.
+    // A continuous mode needs no setting up. Everything heard so far is of
+    // the record and is as true under the new mode as under the old; only
+    // the destination changes, and the loop reads that from a ref. It keeps
+    // whatever layer is applied until its next settled solve and replaces it
+    // then — the one transition that cannot make the output jump, since
+    // nothing is cleared.
   }, [smartEqMode]);
 
-  /*
-   * A VOICING CHANGE USED TO RESTART THE CORRECTION, AND NO LONGER DOES.
-   *
-   * There was an effect here that cleared the Smart EQ layer whenever the
-   * voicing changed, announced it, and let the loop rebuild over the following
-   * minute. It was right at the time: the voicing was part of what the
-   * correction aimed at, so a new one made the old answer stale.
-   *
-   * Neither half of that is true now. The voicing is subtracted from the
-   * capture, so it is not in what the correction measures, and the destination
-   * is the mode's own curve, so it is not in what the correction aims at. A
-   * voicing change leaves the Smart EQ layer exactly as valid as it was a second
-   * earlier — and throwing it away meant a minute of rebuilding, audibly, every
-   * time somebody tried a different flavour.
-   */
   // Said, then gone. See `STATUS_LINGER_MS`.
   useEffect(() => {
     if (!status) {
@@ -446,16 +369,13 @@ const SmartEqEngine = () => {
   }, [status]);
 
   /**
-   * The running Continuous EQ capture, so the manual button can end it.
+   * The running continuous session, so the manual button can end it.
    *
-   * There is only one analyser session, and starting a second is refused. The
-   * effect below would tear this one down on its own — `isRunning` is in its
+   * The effect below would tear it down on its own — `isRunning` is in its
    * dependencies — but that happens on React's schedule, and `autoBalance`
-   * reaches for the analyser in the same tick it sets the flag. Whether the
-   * teardown wins the race depends on whether there is a layer to clear first,
-   * because that is what puts an `await` in front of the capture. So it is done
-   * here explicitly instead: pressing Smart EQ stops the loop before it asks
-   * for anything.
+   * opens its own tap in the same tick it sets the flag. Two taps on the
+   * source at once is not wrong, but it is two captures for one answer; so
+   * the loop is stopped here explicitly, before anything is opened.
    */
   const continuousAbortRef = useRef<AbortController | undefined>(undefined);
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
@@ -471,12 +391,10 @@ const SmartEqEngine = () => {
    * means the window closing: this component sits above the tabs and nothing
    * short of that takes it down.
    */
-  const layerReplacedRef = useRef((_settings?: ISmartEqSettings) => {});
   useEffect(() => {
     registerSmartEqControl({
       run: () => runAutoBalanceRef.current(),
       cancel: () => balanceAbortRef.current?.abort(),
-      layerReplaced: (settings) => layerReplacedRef.current(settings),
     });
     return () => registerSmartEqControl(undefined);
   }, []);
@@ -493,132 +411,13 @@ const SmartEqEngine = () => {
     [],
   );
 
-  // The chain as it is right now, not as it was when this render's closures
-  // were made. A measurement runs for tens of seconds, and everything captured
-  // in that closure is frozen at the moment it started — which is how the guard
-  // meant to notice the layout changing mid-capture ended up comparing the
-  // measured set against itself and never firing, and how the voicing used to
-  // be read for the target curve long after the user had switched it.
-  const filtersRef = useRef(filters);
-  const curveModeRef = useRef(
-    getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode }),
-  );
-  curveModeRef.current = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
-  const eqModeRef = useRef(getEqMode({ eqMode, isEqDoubleOn }));
-  eqModeRef.current = getEqMode({ eqMode, isEqDoubleOn });
-  const shapeRef = useRef({
-    eqMode,
-    curveEqMode,
-    isEqDoubleOn,
-    eqBandQ,
-    curveBandQ,
-  });
-  shapeRef.current = { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ };
-  filtersRef.current = filters;
-  const voicingRef = useRef(voicing);
-  voicingRef.current = voicing;
-  const driverRef = useRef(driver);
-  driverRef.current = driver;
-  /*
-   * The published headphone correction, subtracted like every other layer.
-   *
-   * On a ref for the same reason every other layer here is: the capture runs
-   * for minutes and the closure would freeze whatever was applied when it
-   * started.
-   */
-  const headphoneRef = useRef(headphone);
-  headphoneRef.current = headphone;
-  const convolutionRef = useRef(convolution);
-  convolutionRef.current = convolution;
-  const smartEqRef = useRef(smartEq);
-  smartEqRef.current = smartEq;
-  const bypassedRef = useRef(bypassed);
-  bypassedRef.current = bypassed;
-
   /**
-   * The layer under the loop was replaced by something that is not the loop.
+   * Listen to the source until every frequency region has been heard well
+   * enough to correct, solve once, and write the answer as the layer.
    *
-   * THIS IS WHAT "RECOVERING" A SONG'S CURVE DEPENDS ON. A remembered curve
-   * arriving over the top of the running correction — or being handed back at
-   * the end of the song — is a write from outside, and the loop used to
-   * measure straight through it with everything it remembered: a destination
-   * averaged over the previous song, three windows of drift, a set of bands
-   * still travelling, and forty-five seconds of evidence heard through the
-   * OLD layer. The next solve then read the song's own curve as a
-   * disagreement with where the loop had been heading, and walked it back a
-   * step at a time. The match landed, and within one quiet window it was
-   * mostly gone — which from the outside is a feature that remembers a song
-   * and then forgets it again.
-   *
-   * So an outside write is treated exactly as a mode change is: the loop
-   * keeps the layer it was handed and starts its opinion from nothing. The
-   * long-run destination, the drift counts and the moving set go; every
-   * range's evidence is cleared once the reload has settled, because it was
-   * heard through a chain that no longer exists; and the disagreement bars,
-   * which described a comparison against the old layer, are taken down. The
-   * new layer is measured on its own merits, and a curve that was right for
-   * this song comes out inside the deadband and is left alone — which is the
-   * whole of what remembering it was for.
-   *
-   * Reached two ways. The song recorder says so at the moment of its write,
-   * because the loop acts from an interval that can fire between a state
-   * update and the render that carries it. Everything else — the chip's clear
-   * button, a profile load, the strength slider — is noticed at the next
-   * checkpoint by comparing the live layer with what the loop last wrote.
-   */
-  const layerReplaced = (settings: ISmartEqSettings | undefined) => {
-    smartEqRef.current = settings;
-    lastWrittenRef.current = describeSmartEqLayer(settings);
-    longRunTargetRef.current = {};
-    longRunDriftRef.current = {};
-    movingBandsRef.current = new Set();
-    resetAllRegionsRef.current = true;
-    applySettledAtRef.current = Date.now() + CONTINUOUS_SETTLE_MS;
-    setSmartEqDisagreement({});
-  };
-  layerReplacedRef.current = layerReplaced;
-
-  /**
-   * Everything audible, as one comparable string.
-   *
-   * The accumulator averages frames from whatever chain was live, so any change
-   * to that chain part-way through contaminates the result — not only the band
-   * count the old guard watched, but a gain nudge, a voicing switch, a driver
-   * change or a convolution appearing. All of it is read from refs, because the
-   * question is what is live now, not what was live when the run started.
-   *
-   * The Smart EQ layer is not in here, but it is guarded — separately, against
-   * what the run itself believes it wrote, rather than against a snapshot of
-   * the ref. ActiveLayers' clear button and every refreshState write it too, so
-   * it cannot be assumed to move only when the run moves it; and a snapshot
-   * would report the run's own optimistic clear as an outside change, because
-   * React owes us nothing about when the next render lands.
-   */
-  const describeLiveChain = () =>
-    JSON.stringify([
-      Object.values(filtersRef.current)
-        .sort(sortHelper)
-        .map(
-          (filter) =>
-            `${filter.type}@${filter.frequency}/${filter.gain}/${filter.quality}`,
-        ),
-      voicingRef.current?.profileId ?? '',
-      voicingRef.current?.intensity ?? 0,
-      driverRef.current?.profileId ?? '',
-      driverRef.current?.intensity ?? 0,
-      convolutionRef.current?.fileName ?? convolutionRef.current?.name ?? '',
-    ]);
-
-  /**
-   * Listen to what is actually coming out of the speakers, then flatten the
-   * peaks and dips it finds while leaving the music's own spectral tilt alone.
-   *
-   * The answer lands in the Smart EQ layer, never in the bands on screen. What
-   * the measurement finds is what is wrong with the record itself, heard with
-   * every other layer subtracted and only the last Smart EQ correction still in
-   * — so it belongs to no band, no voicing and no driver profile, and writing
-   * it into the bands meant a measurement quietly rewrote a tuning someone had
-   * built by hand.
+   * Pressing it again on the same passage gives the same answer, because the
+   * answer is of the record and not of what the layer held: a second press
+   * that finds nothing new to write says so and writes nothing.
    *
    * There is no fixed duration. The measurement runs until every frequency
    * region has been heard well enough to correct — or reports which range it
@@ -631,9 +430,9 @@ const SmartEqEngine = () => {
       return;
     }
 
-    // The analyser takes one session at a time, and Continuous EQ holds one for
-    // as long as it is switched on. See `continuousAbortRef` for why waiting
-    // for the effect to do this would be a race rather than an ordering.
+    // One tap on the source at a time. See `continuousAbortRef` for why
+    // waiting for the effect to do this would be a race rather than an
+    // ordering.
     continuousAbortRef.current?.abort();
 
     balanceRunRef.current += 1;
@@ -645,229 +444,129 @@ const SmartEqEngine = () => {
     setSmartEqRunning(true);
 
     try {
-      let attempt = 0;
-
-      // Runs once normally. It goes round again only when the audible chain
-      // changed while it was listening.
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        attempt += 1;
-
-        // The layer this attempt is measuring against, read fresh every time
-        // round. Carrying it *across* attempts was how one profile's accumulated
-        // correction ended up written into whichever profile the user had
-        // switched to, since the commonest reason to go round again is that they
-        // loaded another one.
-        const layer = smartEqRef.current;
-
-        // NOT from flat, which it used to be, and the reversal is worth the
-        // paragraph.
-        //
-        // The old rule cleared this layer before listening, on the argument that
-        // measuring an already-corrected output has a blind spot: a region cut
-        // hard has little energy left in it, so the measurement marks it
-        // untrustworthy and never touches it again — the correction hiding the
-        // problem it is causing. Clearing first was the way out of that.
-        //
-        // It is the wrong trade because of what it does to the ordinary case.
-        // Pressing this is asking "fix what I am hearing"; clearing the layer
-        // changes what is being heard before anything is measured, so the run
-        // answers a question about a chain the user was not listening to and
-        // rebuilds a correction they already had. It also threw away the one
-        // thing that makes repeated runs converge.
-        //
-        // What is measured now is the output as it stands, all of it, and what
-        // is solved is the residual against the mode's own destination. The
-        // blind spot is real and stays: a range cut so hard nothing is left to
-        // measure will not be found. Clear EQ is the way out of that, and it is
-        // one press away and says exactly what it does — which is a better place
-        // for a destructive act than the inside of a button labelled "listen".
-
-        // The layer's own bands, so the solve accumulates onto what it wrote
-        // last time instead of onto whatever the user's editor happens to hold.
-        const bands = getSmartEqBands(layer);
-        const chainBeforeCapture = describeLiveChain();
-        // What this run believes the layer to be. Comparing the live layer
-        // against this after the capture is what tells somebody else's write —
-        // the chip's clear button, a profile load — from the run's own.
-        const layerBeforeCapture = describeSmartEqLayer(layer);
-
-        setSmartEqStatus(
-          tRef.current('eq.smart.status.listeningPercent', { percent: 0 }),
-        );
-        const result = await captureBalanceProfile({
+      const layer = smartEqRef.current;
+      setSmartEqStatus(
+        tRef.current('eq.smart.status.listeningPercent', { percent: 0 }),
+      );
+      const measurement = measureSource(
+        {
+          source: sourceKindRef.current,
           signal: controller.signal,
-          getChainGainDb: (axis) => chainGainDbRef.current(axis),
           onProgress: (progress) => {
             if (isCurrentRun()) {
               setSmartEqStatus(describeBalanceProgress(progress, tRef.current));
             }
           },
-        });
+        },
+        tRef.current,
+      );
+      measurementRef.current = measurement;
+      measurement.setSilent(!isPlayingRef.current);
+      const result = await measurement.done;
 
-        if (!isCurrentRun()) {
-          return;
-        }
+      if (!isCurrentRun()) {
+        return;
+      }
 
-        // Changing anything audible mid-capture invalidates the average: the
-        // frames it is built from describe two different chains. Rather than
-        // throwing away the half-minute the user just spent listening, measure
-        // again against what they now have — reaching for a slider part-way
-        // through is a perfectly reasonable thing to do, and being told off for
-        // it is not.
-        //
-        // The layer counts as part of that chain. Clearing it from the chip
-        // while a run listens used to be silently undone, because the run went
-        // on to write `the gains it started from + this residual` back over the
-        // top of the clear.
-        if (
-          describeLiveChain() !== chainBeforeCapture ||
-          describeSmartEqLayer(smartEqRef.current) !== layerBeforeCapture
-        ) {
-          if (attempt >= MAX_BALANCE_ATTEMPTS) {
-            setSmartEqStatus(tRef.current('eq.smart.status.keptChanging'));
-            return;
-          }
-          setSmartEqStatus(tRef.current('eq.smart.status.soundChanged'));
-          // eslint-disable-next-line no-continue
-          continue;
-        }
+      const gains = solve(result);
+      if (!gains) {
+        setSmartEqStatus(tRef.current('eq.smart.status.notEnoughRange'));
+        return;
+      }
+      const measured = layerOf(gains, {
+        status: result.status,
+        lowFrequency: result.lowFrequency,
+        highFrequency: result.highFrequency,
+      });
 
-        // Steer toward the destination the chosen mode names, rather than
-        // merely flattening — the same reference the continuous modes use, so
-        // Target means the same thing whichever way it is reached.
-        //
-        // Nothing is excused, because nothing needs to be. The capture
-        // subtracts every layer but this one (see `chainGainDb`), so the
-        // samples are the record plus the correction so far — the bands, the
-        // voicing, the driver and headphone corrections are not in them and
-        // cannot be undone by them. This used to hand the solver a target curve
-        // holding the voicing and the driver as "do not touch", which was right
-        // while the measurement was the raw output and doubles them now.
-        const gains = buildBalancedGains(result.samples, bands, {
-          reference: getReferenceShape(referenceModeRef.current),
-          // A range nothing is playing in cannot be lifted, however loudly it
-          // reports a deficit. See the presence lines on the plot.
-          boostAllowance: allowanceFrom(result.regions),
-          // Symmetric limits, whatever the listener chose. An asymmetric pair
-          // biases a centred correction; see `correctionLimit`.
-          maxBoost: getCorrectionLimit(),
-          maxCut: getCorrectionLimit(),
-        });
-        if (Object.keys(gains).length === 0) {
-          setSmartEqStatus(tRef.current('eq.smart.status.notEnoughRange'));
-          return;
-        }
+      // Compared on what will be written, not on object identity: a run that
+      // lands within the rounding step of what is applied has genuinely found
+      // nothing left to correct.
+      if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
+        setSmartEqStatus(tRef.current('eq.smart.status.alreadyBalanced'));
+        return;
+      }
 
-        const measured = buildSmartEqSettings(
-          bands,
-          confineSmartEqResponse(gains, bands, getCorrectionLimit()),
-          {
-            status: result.status,
-            lowFrequency: result.lowFrequency,
-            highFrequency: result.highFrequency,
-            // The strength the listener set survives the run, as it does the
-            // continuous loop's writes: a measurement is a new shape for the
-            // layer, not a decision about how much of it to apply.
-            intensity: layer?.intensity,
+      setSmartEqStatus(tRef.current('eq.smart.status.applying'));
+
+      // The same reveal the AutoEQ panel uses, pointed at the layer instead
+      // of at the bands: its curve climbs onto the graph a band at a time
+      // rather than appearing whole. The write below is still one message —
+      // what is heard changes once, at the start — and the animation that
+      // follows is only how the result is drawn.
+      //
+      // Revealed from the layer's previous gains rather than from silence,
+      // because what is worth watching is where it moved.
+      const generation = getBandSetGeneration();
+      const isCurrent = () =>
+        isCurrentRun() && getBandSetGeneration() === generation;
+      const plan = measured
+        ? planBandReveal(measured.filters, { from: layer?.filters })
+        : undefined;
+
+      setSmartEq(
+        plan && measured ? { ...measured, filters: plan.initial } : measured,
+      );
+      await setSmartEqApi(measured);
+
+      if (!isCurrent()) {
+        return;
+      }
+
+      if (plan && measured) {
+        const revealed = { ...plan.initial };
+        await revealBands(
+          plan.steps,
+          (arriving) => {
+            arriving.forEach(({ id, gain }) => {
+              revealed[id] = { ...revealed[id], gain };
+            });
+            setSmartEq({ ...measured, filters: { ...revealed } });
           },
-          getCorrectionLimit(),
+          { isCurrent },
         );
-
-        // Compared on what will be written, not on object identity: a run that
-        // moves every band by less than the rounding step has genuinely found
-        // nothing left to correct.
-        if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
-          setSmartEqStatus(tRef.current('eq.smart.status.alreadyBalanced'));
-          return;
-        }
-
-        setSmartEqStatus(tRef.current('eq.smart.status.applying'));
-
-        // The same reveal the AutoEQ panel uses, pointed at the layer instead
-        // of at the bands: its curve climbs onto the graph a band at a time
-        // rather than appearing whole. The write below is still one message —
-        // what is heard changes once, at the start — and the animation that
-        // follows is only how the result is drawn.
-        //
-        // Revealed from the layer's previous gains rather than from silence,
-        // because a run after the first is a correction to a correction, and
-        // what is worth watching is where it moved.
-        const generation = getBandSetGeneration();
-        const isCurrent = () =>
-          isCurrentRun() && getBandSetGeneration() === generation;
-        const plan = measured
-          ? planBandReveal(measured.filters, { from: layer?.filters })
-          : undefined;
-
-        setSmartEq(
-          plan && measured ? { ...measured, filters: plan.initial } : measured,
-        );
-        await setSmartEqApi(measured);
-
         if (!isCurrent()) {
           return;
         }
+        setSmartEq(measured);
+      }
 
-        if (plan && measured) {
-          const revealed = { ...plan.initial };
-          await revealBands(
-            plan.steps,
-            (arriving) => {
-              arriving.forEach(({ id, gain }) => {
-                revealed[id] = { ...revealed[id], gain };
-              });
-              setSmartEq({ ...measured, filters: { ...revealed } });
-            },
-            { isCurrent },
-          );
-          if (!isCurrent()) {
-            return;
-          }
-          setSmartEq(measured);
-        }
-
-        // What was heard, and then what was done about it. The first half was
-        // all this said for a long time, and it is the half the app cannot be
-        // held to: it describes a measurement. The second half is the gains it
-        // wrote, which are on disk and can be argued with.
-        //
-        // Joined through a key rather than with a template literal, because the
-        // separator between the two halves is a typographic decision and one of
-        // the ten dictionaries may want a different one.
-        {
-          const shape = describeCorrectionShape(
-            Object.values(measured?.filters ?? {}),
-            tRef.current,
-          );
-          const heard = describeBalanceResult(result, tRef.current);
-          setSmartEqStatus(
-            shape
-              ? tRef.current('eq.smart.result.withShape', {
-                  result: heard,
-                  shape,
-                })
-              : heard,
-          );
-        }
-        break;
+      // What was heard, and then what was done about it. The first half
+      // describes a measurement; the second is the gains written, which are
+      // on disk and can be argued with.
+      //
+      // Joined through a key rather than with a template literal, because the
+      // separator between the two halves is a typographic decision and one of
+      // the ten dictionaries may want a different one.
+      {
+        const shape = describeCorrectionShape(
+          Object.values(measured?.filters ?? {}),
+          tRef.current,
+        );
+        const heard = describeBalanceResult(result, tRef.current);
+        setSmartEqStatus(
+          shape
+            ? tRef.current('eq.smart.result.withShape', {
+                result: heard,
+                shape,
+              })
+            : heard,
+        );
       }
     } catch (e) {
       if (!isCurrentRun()) {
         return;
       }
-      // A failed measurement is a normal outcome (nothing playing, cancelled,
-      // capture unavailable); report it in place rather than as a global
+      // A failed measurement is a normal outcome (nothing to hear, cancelled,
+      // no tap on the source); report it in place rather than as a global
       // failure that would blank the whole workspace.
       if (e instanceof DOMException && e.name === 'AbortError') {
         setSmartEqStatus(tRef.current('eq.smart.status.cancelled'));
       } else {
-        // An Error's own message is passed through, and it is already
-        // translated: everything the capture rejects with is looked up in
-        // `useLiveOutputSpectrum` before it is thrown, precisely so this line
-        // does not have to guess. What is left for the key below is the case
-        // where something threw a non-Error, which no code here does and only a
-        // browser can.
+        // An Error's message is already translated: everything the
+        // measurement rejects with is looked up before it is thrown. What is
+        // left for the key below is a non-Error, which no code here throws
+        // and only a browser can.
         setSmartEqStatus(
           e instanceof Error
             ? e.message
@@ -878,6 +577,7 @@ const SmartEqEngine = () => {
       if (isCurrentRun()) {
         setSmartEqRunning(false);
         balanceAbortRef.current = undefined;
+        measurementRef.current = undefined;
       }
     }
   };
@@ -889,525 +589,175 @@ const SmartEqEngine = () => {
   };
 
   /**
-   * Continuous EQ: measure, move a little, measure again, for as long as there
-   * is music.
+   * A running mode: solve from what has been heard of this song so far, and
+   * write the answer when it has settled and differs from what is written.
    *
-   * The difference from pressing the button is entirely in the size of the
-   * move. A solve says where every band belongs; this goes half a decibel of
-   * the way there and solves again, so the correction arrives without ever
-   * announcing itself — and so that what it converges on is the system rather
-   * than the song. A correction that could keep up with the content would be a
-   * dynamic EQ: it would flatten a bass drop at exactly the moment the drop is
-   * meant to land. This one moves far slower than the music does, so one
-   * track's emphasis and the next one's cancel, and only what every track
-   * agrees about survives — which is the headphones and the room, which is the
-   * thing worth correcting.
-   *
-   * It never clears first. The from-flat rule the button follows exists for a
-   * real reason, written out where the button does it, but applying it here
-   * would mean the correction going away for the length of every capture, over
-   * and over. Pressing Smart EQ by hand is still the way to start again, and
-   * doing so suspends this loop rather than racing it: `isRunning` is in the
-   * dependencies, so the effect tears down and comes back when the manual run
-   * finishes.
-   *
-   * ONE capture, not a series of them, and that is what makes the ranges
-   * independent. Every restart would put all nine regions back to zero
-   * together, so they would fill together, become ready together and be
-   * corrected together — which is what a series of measurements looks like from
-   * the outside and is exactly what this is not meant to be. Here each region
-   * fills at its own rate, is corrected the moment it alone has been heard well
-   * enough, and is cleared on its own so it can start again while its
-   * neighbours carry on undisturbed.
+   * Every checkpoint brings the whole report. Nothing is remembered between
+   * two of them — no destination, no step, no drift — because the estimate
+   * behind the report IS the memory, and it is of the record: the answer at
+   * any checkpoint is the answer for the song heard up to then. Two things
+   * hold a write back, and both are conditions rather than clocks: the
+   * estimate has to have settled (three checkpoints within a fraction of a
+   * decibel, `isConverged`), so the layer is not rewritten while an intro is
+   * still becoming a chorus; and the fresh answer has to differ from the
+   * written layer by an audible amount (`isSmartEqRewriteDue`), so a
+   * refinement nobody could hear is not a reload on the engine's side.
    */
-  const applyReadyRegions = (report: IBalanceReport): number[] => {
-    // ONE correction at a time, and nothing measured while one is landing.
-    //
-    // Checkpoints arrive about once a second and a write takes an unknown
-    // fraction of that: the IPC, the config rewrite, Equalizer APO noticing and
-    // reloading. Two of them overlapping is not a rare race but the ordinary
-    // case, and it goes wrong twice over — the second solve reads a layer React
-    // has not re-rendered yet, so it starts from the pre-step gains and applies
-    // the same step a second time, and the two writes reach APO in whichever
-    // order they finish in.
-    //
-    // The window stays shut for a moment after the write lands as well. What
-    // the analyser hears while APO reloads is neither the old chain nor the new
-    // one, and averaging it in is how a correction gets measured against half
-    // of itself.
-    //
-    // The in-flight flag carries a deadline, because it is cleared by a promise
-    // and a promise that never settles would switch this mode off for the rest
-    // of the session with nothing on screen saying so. Ten seconds is far
-    // longer than a config write has ever taken; a write still outstanding then
-    // is not coming back, and carrying on is a better answer than stopping
-    // forever.
-    const isWriteInFlight =
-      isApplyingRef.current &&
-      Date.now() - applyStartedAtRef.current < CONTINUOUS_APPLY_TIMEOUT_MS;
-    if (isWriteInFlight || Date.now() < applySettledAtRef.current) {
-      return [];
+  const applyReport = (report: IBalanceReport) => {
+    // One correction at a time. A write is the IPC, the config rewrite and
+    // the engine noticing; a second solve arriving while one is in flight
+    // would be written over the top of it in whichever order they finish.
+    if (isApplyingRef.current) {
+      return;
     }
-
-    // Somebody else wrote the layer since the loop last did. See
-    // `layerReplaced` for what that means to the loop; the settle it opens
-    // makes this checkpoint the last one before every range is cleared.
-    if (describeSmartEqLayer(smartEqRef.current) !== lastWrittenRef.current) {
-      layerReplaced(smartEqRef.current);
-      return [];
+    // Not from an estimate that is still moving, and not from one that has
+    // deliberately stopped — see `fullBandGate`: the record has dropped an
+    // end of its spectrum and nothing is being heard.
+    if (!report.isConverged || report.isBandLimited) {
+      return;
     }
-
-    // Everything, after an outside write: what every range heard was heard
-    // through a layer that is gone. Ahead of the partial clear below, which
-    // it makes redundant — the ranges a correction moved are among these.
-    if (resetAllRegionsRef.current) {
-      resetAllRegionsRef.current = false;
-      pendingResetRef.current = [];
-      return report.regions.map((_region, index) => index);
-    }
-
-    // The transitional frames, thrown away now that the settle is over. The
-    // regions were cleared at the moment of the write so they could not be
-    // corrected twice; this second clear is about what they heard *since*, back
-    // when the chain was mid-change.
-    if (pendingResetRef.current.length > 0) {
-      const stale = pendingResetRef.current;
-      pendingResetRef.current = [];
-      return stale;
-    }
-
-    /*
-     * The record has dropped an end of its spectrum, so nothing is being heard
-     * — see `fullBandGate`. The estimate has deliberately stopped moving, and
-     * correcting from an estimate that is standing still is spending a config
-     * write on the last thing heard before the drop.
-     *
-     * Checked here rather than left to the checkpoints drying up on their own:
-     * one is usually already due when a hold starts, and that one would act.
-     */
-    if (report.isBandLimited) {
-      return [];
-    }
-
-    // Not yet, whatever the measurement says. Checked after the stale clear
-    // above rather than before it, because throwing away contaminated frames is
-    // housekeeping the quiet window has no business delaying — it is about how
-    // often the correction may CHANGE, not about how often the loop may think.
-    if (Date.now() < quietUntilRef.current) {
-      return [];
-    }
-
-    // Read fresh each time rather than carried: over an evening the user will
-    // have moved a band, loaded a profile, cleared the layer. Every one of
-    // those makes the gains a held copy started from wrong.
-    const layer = smartEqRef.current;
-    const bands = getSmartEqBands(layer);
-    const ready = report.regions
-      .map((region, index) => ({ region, index }))
-      .filter(({ region }) => region.isCovered);
+    const ready = report.regions.filter((region) => region.isCovered);
     if (ready.length === 0) {
-      return [];
+      return;
     }
-
-    // The whole curve, for all three, which is what Smart EQ has always used.
-    //
-    // The nine range levels were here first and the argument for them was
-    // sound: each is a weighted mean over every frame that had energy in that
-    // range, where a point of the smoothed curve is one FFT bin averaged with
-    // its neighbours. Sturdier, and deliberately blind to anything narrower
-    // than an octave.
-    //
-    // Too blind, as it turns out. A resonance sits *inside* a range, so a range
-    // average smears it into that range's own level and there is nothing left
-    // to correct — and the difference is audible: the one-shot measurement,
-    // which never used ranges, is the one people actually like the sound of.
-    //
-    // The continuous modes can afford the finer input where the one-shot
-    // cannot, because everything that protects them sits downstream of this: a
-    // band must be a decibel out before it moves at all, it moves half a
-    // decibel at a time, the destination is averaged over many windows, and the
-    // total is capped. None of that is true of a single measurement applied
-    // whole.
-    const solved = buildBalancedGains(report.samples, bands, {
-      // A range nothing is playing in cannot be lifted, however loudly it
-      // reports a deficit. See the presence lines on the plot.
-      boostAllowance: allowanceFrom(report.regions),
-      // Symmetric limits, whatever the listener chose. An asymmetric pair
-      // biases a centred correction; see `correctionLimit`.
-      maxBoost: getCorrectionLimit(),
-      maxCut: getCorrectionLimit(),
-      // The mode's curve, whatever else is switched on. Which mode is chosen
-      // decides the destination and nothing else does — see
-      // `getReferenceShape`.
-      reference: getReferenceShape(referenceModeRef.current),
-      // No layer is excused here, because none is in the measurement. The
-      // capture subtracts the whole chain but this layer (see `chainGainDb`),
-      // so what the solver sees is the record plus its own correction, and the
-      // destination is the mode's curve and nothing else. Excusing the voicing
-      // and the driver on top of that — as this did when the measurement was
-      // the raw output — would count them twice and rebuild them in here.
-    });
-    if (Object.keys(solved).length === 0) {
-      // No answer this time. The tilt fit needs a wide trusted span and a range
-      // that was cleared a moment ago carries none, so a solve taken while the
-      // midrange is refilling declines rather than fitting a slope through a
-      // hole. A cycle skipped, not a wrong correction.
-      return [];
+    const gains = solve(report);
+    if (!gains) {
+      // No answer this time. The tilt fit needs a wide trusted span, and a
+      // song whose midrange has not been heard yet cannot support one. A
+      // cycle skipped, not a wrong correction.
+      return;
     }
-
-    // Only the ranges that have been heard. A band outside them has no entry
-    // here at all, and `stepSmartEqGains` leaves a band it is told nothing
-    // about exactly where it is.
-    const scoped: Record<string, number> = {};
-    bands.forEach((band) => {
-      const isReady = ready.some(
-        ({ region }) =>
-          band.frequency >= region.lowFrequency &&
-          band.frequency <= region.highFrequency,
-      );
-      if (isReady && Number.isFinite(solved[band.id])) {
-        scoped[band.id] = solved[band.id];
-      }
+    const layer = smartEqRef.current;
+    const written = gainsOf(layer);
+    if (!isSmartEqRewriteDue(LAYOUT, written, gains)) {
+      return;
+    }
+    const measured = layerOf(gains, {
+      status: report.status === 'ready' ? 'ready' : 'partial',
+      lowFrequency: ready[0].lowFrequency,
+      highFrequency: ready[ready.length - 1].highFrequency,
     });
-
-    /*
-     * How far each range is from where it is being steered, for the plot.
-     *
-     * The coverage bar answers "how much of this range have I heard", which is
-     * only half of why a correction has not landed — and alone it is the
-     * misleading half, because a range can be completely heard and still sit
-     * there having nothing to say. Published beside it so both halves are
-     * visible: the largest gap in the range between a band and where this solve
-     * wanted it.
-     *
-     * Taken from `scoped` rather than `solved`, so it describes what would
-     * actually be written. A range still gathering evidence contributes no
-     * entry at all, which is the truthful answer rather than a zero.
-     */
-    const gapsByRange = Object.fromEntries(
-      report.regions.map((region) => {
-        const gaps = bands
-          .filter(
-            (band) =>
-              band.frequency >= region.lowFrequency &&
-              band.frequency <= region.highFrequency &&
-              scoped[band.id] !== undefined,
-          )
-          .map((band) => Math.abs(scoped[band.id] - band.gain));
-        return [region.label, gaps.length > 0 ? Math.max(...gaps) : 0];
-      }),
-    );
-    setSmartEqDisagreement(gapsByRange);
-    // The biggest thing waiting to be written, which is what sizes the wait
-    // before the next write. See `quietWindowFor`.
-    const largestPendingDb = Math.max(
-      0,
-      ...(Object.values(gapsByRange) as number[]),
-    );
-
-    // Toward where every window so far agrees the band belongs, not toward
-    // what this one said.
-    //
-    // Clearing a range after correcting it is necessary — its old average
-    // describes a chain that no longer exists — but it also threw away the
-    // long-run memory, so every decision rested on the music of the last minute
-    // or two. That is enough for a bass-heavy album and a thin one to be
-    // measured separately, agreed to separately, and corrected in opposite
-    // directions one after the other, forever. The destinations are absolute
-    // gains and so are comparable across corrections, which is what makes an
-    // average of them meaningful where an average of raw measurements would
-    // not be.
-    // Two rates. Small disagreements are averaged away so it settles and stops;
-    // a large one that survives three windows running is a different situation
-    // rather than a different track, and is taken whole.
-    const blended = blendSmartEqTarget(longRunTargetRef.current, scoped, {
-      drift: longRunDriftRef.current,
-    });
-    const { target, drift } = blended;
-    longRunTargetRef.current = target;
-    longRunDriftRef.current = drift;
-    const steppedRaw = stepSmartEqGains(bands, longRunTargetRef.current, {
-      moving: movingBandsRef.current,
-      // Symmetric, and whatever the listener chose. See `correctionLimit`.
-      maxBoost: getCorrectionLimit(),
-      maxCut: getCorrectionLimit(),
-    });
-    // The limit line bounds the CURVE, and bells sum: two lawful bands can
-    // stack past it, and a layer inherited from a wider limit starts outside
-    // it. Out of bounds is scaled home in one move rather than stepped -- see
-    // confineSmartEqResponse.
-    const stepped = confineSmartEqResponse(
-      steppedRaw,
-      bands,
-      getCorrectionLimit(),
-    );
-    // Which bands are still travelling, for the next pass. Derived rather than
-    // tracked: a band moved exactly when its gain changed, so this cannot drift
-    // out of step with what was actually written.
-    movingBandsRef.current = new Set(
-      bands
-        .filter((band) => stepped[band.id] !== band.gain)
-        .map((band) => band.id),
-    );
-    const measured = buildSmartEqSettings(
-      bands,
-      stepped,
-      {
-        status: report.status === 'ready' ? 'ready' : 'partial',
-        // The strength the listener set, kept. A write that left it out came
-        // back at full strength, so a layer turned down to half snapped back
-        // to all of it on the next correction — and the comparison below,
-        // which describes the layer as heard, saw a change at every
-        // checkpoint for as long as it stayed turned down.
-        intensity: layer?.intensity,
-      },
-      getCorrectionLimit(),
-    );
     if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
-      // Every ready range was inside its threshold, so nothing was written and
-      // nothing has gone stale — those ranges keep accumulating, which only
-      // sharpens them. A band that had been travelling and has now arrived drops
-      // out of the moving set above, so it goes back to needing a full
-      // `CONTINUOUS_TRIGGER_DB` before it will start again.
-      return [];
+      return;
     }
-
-    // Exactly the ranges that moved, and only those. A range whose bands all
-    // sat inside the deadband is not stale — the chain under it did not change
-    // — and clearing it would throw away good evidence for nothing.
-    const moved = ready.filter(({ region }) =>
-      bands.some(
+    // The ranges that actually moved, for the graph to light and the bubble
+    // to name — not every range the write happened to carry.
+    const moved = report.regions.filter((region) =>
+      LAYOUT.some(
         (band) =>
           band.frequency >= region.lowFrequency &&
           band.frequency <= region.highFrequency &&
-          stepped[band.id] !== band.gain,
+          Math.abs((gains[band.id] ?? 0) - (written[band.id] ?? 0)) >= MOVED_DB,
       ),
     );
 
-    // Shut before the write, not after it. `setSmartEqApi` returns a promise
-    // and the checkpoint that could collide with it is a whole second away, but
-    // the flag has to be set on this side of the call all the same: setting it
-    // in the promise body would leave a gap between deciding to write and being
-    // marked as writing, which is precisely the gap a race lives in.
+    // Shut before the write, not after it: setting the flag in the promise
+    // body would leave a gap between deciding to write and being marked as
+    // writing, which is precisely the gap a race lives in.
     isApplyingRef.current = true;
-    applyStartedAtRef.current = Date.now();
-    // Ours, so the song recorder keeps its loan through this refinement — and
-    // so the loop recognises its own echo when it comes back through context.
-    lastWrittenRef.current = describeSmartEqLayer(measured);
+    // Ours, so the song recorder keeps its loan through this refinement.
     noteSmartEqWrite(measured);
     setSmartEq(measured);
     setSmartEqApi(measured)
       .catch(() => {
         // Reported nowhere on purpose: a write that fails from a loop nobody
         // started should not raise the banner over the whole workspace. The
-        // next pass writes again.
+        // next settled solve writes again.
       })
       .finally(() => {
         isApplyingRef.current = false;
-        applySettledAtRef.current = Date.now() + CONTINUOUS_SETTLE_MS;
-        // The two windows do different jobs and both start now: the short one
-        // is the analyser being lied to while APO reloads, the long one is how
-        // often anybody should have to notice this mode at all.
-        // Sized by what was actually pending, so a big correction is not made
-        // to wait as long as a marginal one. See `quietWindowFor`.
-        quietUntilRef.current = Date.now() + quietWindowFor(largestPendingDb);
-        // Published so the plot can say how long is left. One number, because
-        // one config write serves every range at once.
-        setSmartEqQuietUntil(quietUntilRef.current);
-        pendingResetRef.current = moved.map(({ index }) => index);
-        // Marked here and nowhere earlier: this is the moment the chain on disk
-        // actually changed, so it is the moment the sound did. Announcing it at
-        // the decision instead would light the graph up over a write that had
-        // not happened yet and might still fail.
-        flashCorrection(moved.map(({ region }) => region));
+        // Marked here and nowhere earlier: this is the moment the chain on
+        // disk actually changed, so it is the moment the sound did.
+        flashCorrection(moved);
       });
 
-    // What just moved, not what the correction adds up to.
-    //
-    // It reported the accumulated shape for a while, and the shape is often
-    // quiet even when the mode plainly is not: a range's bands can each shift
-    // by a decibel or two in a write while the range's own average stays inside
-    // the threshold worth naming. The curve on the graph visibly moved and the
-    // bubble said nothing, which is the app looking broken while working
-    // correctly.
-    //
-    // Phrased as a need — "Needs more deep bass" — so it is the same voice the
-    // measurement underneath it speaks in, and it sits over a bubble that has
-    // just turned green, which is what says the need was met rather than merely
-    // noticed.
+    // What just moved, phrased as a need — "Needs more deep bass" — so it is
+    // the same voice the measurement underneath it speaks in.
     setSmartEqStatus(
       describeCorrectionNeed(
-        bands,
-        stepped,
+        getSmartEqBands(layer),
+        gains,
         tRef.current,
-        moved.map(({ region }) => region),
+        moved,
       ),
     );
-    return moved.map(({ index }) => index);
   };
 
-  // Held on a ref so the capture is not torn down and restarted on every
+  // Held on a ref so the measurement is not torn down and restarted on every
   // render. Restarting is the one thing this must not do casually: it would
   // take every region's accumulated evidence with it.
-  const applyReadyRegionsRef = useRef(applyReadyRegions);
-  applyReadyRegionsRef.current = applyReadyRegions;
-
-  /**
-   * What the chain is doing at each analysis frequency, so the capture measures
-   * the record rather than the output — see `buildChainGainDb`.
-   *
-   * EVERY LAYER EXCEPT SMART EQ'S OWN, and that exception is the whole of the
-   * design rather than a special case in it.
-   *
-   * Everything else comes out because none of it is the record: a voicing, a
-   * headphone correction and a slider somebody dragged are all things done to
-   * the sound afterwards, and leaving them in is what made the measurement blind
-   * to a range that had been cut — the cut removed the evidence against itself,
-   * so the correction waited forever on a range it had already destroyed.
-   *
-   * Smart EQ's own layer stays in, because taking it out would open the loop.
-   * A correction that cannot hear its own result cannot verify it: every error
-   * in the filter model, in this subtraction, in the analyser's own response
-   * would land in the output and stay there, uncontested, because nothing
-   * downstream ever measures the consequence. Leaving it in makes what arrives a
-   * residual — how far the sound still is from where it should be, given
-   * everything already done about it — so a second look corrects the first
-   * instead of repeating it.
-   *
-   * So the record is measured as it was written, through the one layer whose job
-   * is to fix it, and the user's own chain sits on top untouched.
-   *
-   * Bypassed layers are left out for a different reason: their `Include:` is not
-   * in the config, so nothing of theirs is in what the analyser hears and there
-   * is nothing to remove.
-   */
-  const chainGainDb = (axis: number[]) => {
-    const filters = [
-      ...(bypassedRef.current.includes('driver')
-        ? []
-        : getDriverFilters(driverRef.current)),
-      // A digital loopback cannot hear the transducer this compensates.
-      // Subtracting its correction keeps both the evidence gate and the
-      // solver from treating the headphone response as part of the record.
-      ...(bypassedRef.current.includes('headphone')
-        ? []
-        : getHeadphoneFilters(headphoneRef.current)),
-      ...(bypassedRef.current.includes('voicing')
-        ? []
-        : getVoicingFilters(voicingRef.current)),
-    ];
-    return buildChainGainDb(
-      [
-        ...getAppliedEqFilters(
-          bypassedRef.current.includes('eq')
-            ? []
-            : Object.values(filtersRef.current),
-          eqModeRef.current,
-          getBandQ(shapeRef.current, 'eq'),
-        ),
-        ...getAppliedEqFilters(
-          filters,
-          curveModeRef.current,
-          getBandQ(shapeRef.current, 'curves'),
-        ),
-      ],
-      axis,
-    );
-  };
-  const chainGainDbRef = useRef(chainGainDb);
-  chainGainDbRef.current = chainGainDb;
+  const applyReportRef = useRef(applyReport);
+  applyReportRef.current = applyReport;
 
   useEffect(() => {
-    // Switching the Smart EQ layer off stops it. Its `Include:` is not in the
-    // config while it is bypassed, so every correction this loop worked out
-    // would be measured against a chain that does not contain the last one —
-    // it would hear its own correction missing, decide the room had changed,
-    // and walk the layer somewhere arbitrary for as long as the switch was off.
-    // The chip is the switch, and it is one press away.
-    if (
-      !isContinuousOn ||
-      !isLiveOutputActive ||
-      isRunning ||
-      isSmartBypassed
-    ) {
+    // Switching the Smart EQ layer off stops it: a loop writing a layer that
+    // is not in the chain is work nobody can hear. The chip is the switch,
+    // and it is one press away.
+    if (!isContinuousOn || isRunning || isSmartBypassed) {
       return undefined;
     }
 
     const controller = new AbortController();
     continuousAbortRef.current = controller;
-    // Nothing carried over from the last time the mode ran: a settle window
-    // that outlived its write, or a list of regions to clear in a capture that
-    // no longer exists, would both be applied to the wrong session.
     isApplyingRef.current = false;
-    applySettledAtRef.current = 0;
-    quietUntilRef.current = 0;
-    pendingResetRef.current = [];
     // A fresh session has heard nothing yet, and saying otherwise would leave
     // the bubble asserting a condition from the last one.
     listeningForRef.current = tRef.current('eq.smart.status.listening');
     setSmartEqListening(listeningForRef.current);
-    // A fresh session starts with no opinion. The last one may have been
-    // measuring a different output, a different headphone, or a chain the
-    // manual button has since rebuilt from flat.
-    longRunTargetRef.current = {};
-    longRunDriftRef.current = {};
-    movingBandsRef.current = new Set();
-    // Whatever is in the chain now is the loop's starting point, not an
-    // outside write to be noticed at the first checkpoint: a fresh capture
-    // has no evidence to throw away yet.
-    lastWrittenRef.current = describeSmartEqLayer(smartEqRef.current);
-    resetAllRegionsRef.current = false;
 
-    captureBalanceProfile({
-      signal: controller.signal,
-      isContinuous: true,
-      getChainGainDb: (axis) => chainGainDbRef.current(axis),
-      // The same shape of sentence the button's own measurement writes, in the
-      // plural, because this measurement is in the plural — see
-      // `describeContinuousProgress`. It was cut back to a bare "Listening" for
-      // a while on the theory that a running commentary buried the sentence that
-      // mattered; it did the opposite, because with the percentage gone nothing
-      // on screen moved and a mode working quietly looked like one that had
-      // hung.
-      //
-      // Written only when the wording changes. That is a re-render of the whole
-      // editor about once a second while music is playing, which is what the
-      // one-shot measurement has always cost — the difference is that this one
-      // does not stop, so the guard is worth having even though the percentage
-      // usually changes anyway.
-      onProgress: (progress) => {
-        const next = describeContinuousProgress(progress, tRef.current);
-        if (next !== listeningForRef.current) {
-          listeningForRef.current = next;
-          setSmartEqListening(next);
-        }
+    const measurement = measureSource(
+      {
+        source: sourceKind,
+        signal: controller.signal,
+        isContinuous: true,
+        // One song, measured whole, where something names the song; a
+        // forgetting window where nothing does. See `songKey` above. Read
+        // here for the first song; every later one arrives by `restart`.
+        halfLifeMs: songHalfLife(previousSongRef.current),
+        // The same shape of sentence the button's own measurement writes, in
+        // the plural, because this measurement is in the plural — see
+        // `describeContinuousProgress`. Written only when the wording
+        // changes: a publish is a re-render of the whole editor.
+        onProgress: (progress) => {
+          const next = describeContinuousProgress(progress, tRef.current);
+          if (next !== listeningForRef.current) {
+            listeningForRef.current = next;
+            setSmartEqListening(next);
+          }
+        },
+        onReport: (report) => applyReportRef.current(report),
       },
-      onReport: (report) => applyReadyRegionsRef.current(report),
-    }).catch(() => {
-      // Aborting is how this ends, and an abort rejects. Nothing here is a
-      // failure worth reporting.
+      tRef.current,
+    );
+    measurementRef.current = measurement;
+    measurement.setSilent(!isPlayingRef.current);
+    measurement.done.catch((error: unknown) => {
+      // Aborting is how this ends, and an abort rejects: nothing to report.
+      // Anything else is the tap on the source going away, which is worth a
+      // sentence — the mode is still switched on and now hears nothing.
+      if (
+        !(error instanceof DOMException && error.name === 'AbortError') &&
+        error instanceof Error
+      ) {
+        setSmartEqStatus(error.message);
+      }
     });
     return () => {
       controller.abort();
       if (continuousAbortRef.current === controller) {
         continuousAbortRef.current = undefined;
       }
+      if (measurementRef.current === measurement) {
+        measurementRef.current = undefined;
+      }
     };
-    // The mode restarts the capture, which is the point of it being here rather
-    // than only on the ref the callback reads. Everything a region has heard was
-    // heard through the correction the old mode had applied, and that correction
-    // has just been cleared — so the evidence describes a chain that no longer
-    // exists, exactly as it does after a single region is corrected. Starting
-    // over is the same answer at a larger scale, and it takes the long-run
-    // destinations with it.
-  }, [
-    captureBalanceProfile,
-    isRunning,
-    isContinuousOn,
-    isLiveOutputActive,
-    isSmartBypassed,
-    smartEqMode,
-  ]);
+    // The tap restarts the measurement, because a different tap is a
+    // different sound and everything heard through the old one is of a
+    // source no longer playing. The mode does not: the evidence is of the
+    // record and is as true under one destination as another, so the loop
+    // reads the mode from a ref and the next settled solve aims there. A new
+    // song restarts the accumulator, not the session — see `restart`.
+  }, [isRunning, isContinuousOn, isSmartBypassed, sourceKind]);
 
   return null;
 };

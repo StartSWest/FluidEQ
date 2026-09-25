@@ -24,7 +24,6 @@ import {
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { IReferenceShape } from 'common/referenceCurve';
-import { gainAtFrequency, getTFCoefficients } from 'common/response';
 import { clamp } from './utils';
 import {
   BALANCE_MAX_FREQUENCY,
@@ -34,7 +33,6 @@ import {
   MIN_BAND_CONFIDENCE,
   MIN_TRUSTED_OCTAVES,
   ROLLOFF_MIN_DB_PER_OCTAVE,
-  SOLVE_HOME,
   SOLVE_RIDGE,
   TRUSTED_HIGH_ANCHOR_HZ,
   TRUSTED_LOW_ANCHOR_HZ,
@@ -212,27 +210,6 @@ export interface IAutoBalanceOptions {
   /** Bands below this confidence hold their current gain instead of guessing. */
   minConfidence?: number;
   /**
-   * The capture measures the already-corrected output, so the result is a
-   * residual. Adding it to the current gain makes repeated runs converge
-   * instead of undoing each other.
-   */
-  relativeToCurrentGain?: boolean;
-  /**
-   * What everything deliberate below this correction already does, in dB.
-   *
-   * Not a wish: those layers are already written into the config and already
-   * inside the capture. Naming them here is what stops the measurement reading
-   * them as error and cancelling them out, and it is what turns the answer into
-   * the residual it claims to be — the correction ends up steering toward
-   * `the program's tilt + target` rather than toward flat.
-   *
-   * Followed by its shape, not by its slope. A straight line in log-frequency
-   * is exactly what the tilt fit removes from the measurement, so a target is
-   * followed only as far as it departs from one — see the fit below for why
-   * anything else cannot converge.
-   */
-  targetCurve?: ISpectrumSample[];
-  /**
    * What the record is held to, rather than what it is.
    *
    * Empty means the reference is a line fitted to this record, which is the
@@ -243,42 +220,22 @@ export interface IAutoBalanceOptions {
 }
 
 /**
- * The fraction of the measured deviation one pass asks for. It was 0.65.
+ * The fraction of the measured deviation one solve asks for.
  *
- * That number was chosen when a run cleared the layer to flat and applied its
- * whole answer at once, where asking for everything really could overshoot with
- * nothing to pull it back. Neither half of that is true now: the layer stays in
- * the measurement, so what a run solves is a residual, and a pass that goes too
- * far is measured as too far and corrected on the next one.
+ * One, and the ridge term in the solve is what keeps that from being a
+ * caricature: it damps the joint answer, so a solve at 1.0 removes about half
+ * of an eight-decibel resonance rather than all of it, and everything
+ * downstream bounds the rest — `SMART_EQ_MAX_BOOST_DB` and its cut, the limit
+ * line on the plot. Practitioners matching a long-term average spectrum back
+ * the result off to about half before it sounds like anything but a
+ * caricature; the ridge already is that backing off, measured in the solve
+ * rather than applied after it. Tried at 0.6 on top of it: against a bass
+ * shelf and a presence scoop totalling 5.5 dB, 0.6 corrected 1.4 dB where 1.0
+ * corrected 2.4, and the complaint this feature attracts is that it does
+ * nothing visible to a curve somebody has plainly bent.
  *
- * The conservatism was costing far more than it bought, and the amount is
- * measurable rather than a matter of taste. At 0.65 a single pass removes about
- * 2.7 dB of an 8 dB resonance — a third of it, which is a correction nobody can
- * see on the plot and few would notice by ear. Records that are genuinely dark,
- * bright or bass-heavy were moved by around a decibel and left there, which is
- * the difference between a feature that works and one that appears not to.
- *
- * A one is not a promise of a full correction, which is the part worth knowing
- * before reaching for something larger: the ridge term in the solve damps the
- * answer as well, so one pass at 1.0 removes about half of the same resonance.
- * The rest arrives over the following passes, which is what a closed loop is
- * for. Everything downstream still bounds it — `SMART_EQ_MAX_BOOST_DB` and its
- * cut, the continuous stepper's own limits, and the deadband.
- *
- * IT STAYS AT ONE, and the reason is worth recording because the received
- * wisdom says otherwise. Practitioners matching a long-term average spectrum
- * report having to back the result off to about half before it sounds like
- * anything but a caricature, and match EQs fit deliberately few bands for the
- * same reason. Both are true, and neither applies here: they describe a static
- * match that computes its whole answer once and commits it, where being wrong
- * is permanent. This re-measures and converges, so a pass that overshoots is
- * seen as an overshoot and taken back.
- *
- * Tried at 0.6 anyway, and measured what it cost. Against a bass shelf and a
- * presence scoop totalling 5.5 dB, a pass at 0.6 corrects 1.4 dB where a pass
- * at 1.0 corrects 2.4. The complaint this feature actually attracts is that it
- * does nothing visible to a curve somebody has plainly bent, and halving the
- * only number that answers that is the wrong direction.
+ * The listener's own strength slider is what halves the result when they
+ * want it halved — see `ISmartEqSettings.intensity`.
  */
 export const DEFAULTS: Required<IAutoBalanceOptions> = {
   strength: 1,
@@ -288,8 +245,6 @@ export const DEFAULTS: Required<IAutoBalanceOptions> = {
   boostAllowance: () => 1,
   smoothingOctaves: smoothingOctavesAt,
   minConfidence: MIN_BAND_CONFIDENCE,
-  relativeToCurrentGain: true,
-  targetCurve: [],
   reference: {},
 };
 
@@ -548,12 +503,18 @@ export const sampleSpectrumAt = (
 };
 
 /**
- * Turn a measured spectrum into a gain for each band.
+ * Turn a measured spectrum of the SOURCE into a gain for each band.
  *
- * The result is the inverse of the smoothed deviation from the program's own
- * tilt, scaled back by `strength` so the correction is a nudge rather than a
- * hard flattening, and centred so it changes tone rather than loudness. Bands
- * whose region was never heard well enough are left exactly where they are.
+ * A pure function of the spectrum and the mode: the same record measured
+ * twice gives the same layer, and nothing about the layer already applied is
+ * consulted, because none of it is in the measurement. The result is the
+ * inverse of the smoothed deviation from the program's own tilt (or the
+ * mode's held slope), centred so it changes tone rather than loudness. Bands
+ * whose region was never heard well enough come out at zero rather than at a
+ * guess: with nothing measured there, no correction is the answer.
+ *
+ * `filters` is the layout — which bands exist, at what frequency and Q. Their
+ * gains are not read.
  */
 export const buildBalancedGains = (
   spectrum: ISpectrumSample[],
@@ -567,8 +528,6 @@ export const buildBalancedGains = (
     boostAllowance,
     smoothingOctaves,
     minConfidence,
-    relativeToCurrentGain,
-    targetCurve,
     reference,
   } = { ...DEFAULTS, ...options };
 
@@ -608,27 +567,6 @@ export const buildBalancedGains = (
     }
   }
 
-  // The deliberate layers come off BEFORE the tilt is fitted, not after.
-  //
-  // The fitted line is meant to be the program material's own slope, and it is
-  // the one thing here that is deliberately never corrected. A measurement
-  // still carrying a bass shelf reads part of that shelf as slope, so fitting
-  // first and subtracting the target afterwards leaves the target's own tilt
-  // standing as a deviation — a constant drive that no gain can ever satisfy,
-  // because a layer shaped like a straight line contributes nothing to the
-  // residual it is supposed to cancel. Each run then adds another slice of it
-  // and the correction walks off in a straight line until it hits the clamps.
-  // Taking the layers out first makes the fit an estimate of the program alone,
-  // which is what it always claimed to be.
-  const hasTarget = targetCurve.length > 0;
-  const steered = usable.map((sample) => ({
-    frequency: sample.frequency,
-    level:
-      sample.level -
-      (hasTarget ? sampleSpectrumAt(targetCurve, sample.frequency) : 0),
-    confidence: sample.confidence,
-  }));
-
   // What this record is being held to.
   //
   // A line fitted to the record itself says its own tonal signature is correct
@@ -638,50 +576,15 @@ export const buildBalancedGains = (
   // longer moves when the music does. The shape on top is the rest of a target
   // curve, when there is one. See `common/referenceCurve`.
   //
-  // FITTED TO THE RECORD, NOT TO THE RECORD WITH THIS LAYER ON IT.
-  //
-  // The measurement is the output, and the output carries the layer being
-  // solved for — deliberately, since that is what closes the loop. But a line
-  // fitted through the output absorbs whatever straight line the LAYER happens
-  // to contribute, slope and level alike, and a slope the fit has absorbed is
-  // one the deviation never sees. So a layer that arrived tilted stayed tilted:
-  // the same record, measured from a flat start and from a bent one, settled
-  // six to seven decibels apart in the fitted modes, and the divergence test
-  // recorded the number rather than hiding it. The line is meant to be the
-  // programme's own tilt, so it is fitted to the programme — the output with
-  // this layer's own response taken back off — and the layer is left inside
-  // the deviation, where the correction can see it and undo it.
-  //
-  // The held-slope modes never had this problem, because a held slope cannot
-  // absorb anything; their intercept is fitted the same way for the same
-  // reason, which changes nothing they do since the level is centred anyway.
-  const ownResponse = relativeToCurrentGain
-    ? filters
-        .filter(
-          (filter) =>
-            !NO_GAIN_FILTER_TYPES.includes(filter.type) &&
-            Number.isFinite(filter.gain) &&
-            filter.gain !== 0,
-        )
-        .map((filter) => getTFCoefficients(filter))
-    : [];
-  const programme =
-    ownResponse.length > 0
-      ? steered.map((sample) => ({
-          ...sample,
-          level:
-            sample.level -
-            ownResponse.reduce(
-              (total, coefficients) =>
-                total + gainAtFrequency(sample.frequency, coefficients),
-              0,
-            ),
-        }))
-      : steered;
-  const fit = fitSpectralTilt(programme, reference.slope);
+  // Fitted to the record, which is all the measurement holds. It used to hold
+  // this layer as well, and a line fitted through that absorbed whatever
+  // straight line the layer contributed — the same record, measured from a
+  // flat start and from a bent one, settled six to seven decibels apart. The
+  // measurement is of the source now, so there is nothing to take back off.
+  const fit = fitSpectralTilt(usable, reference.slope);
   const hasShape = Boolean(reference.shape?.length);
   const deviation = smoothSpectrum(
-    steered.map((sample) => ({
+    usable.map((sample) => ({
       frequency: sample.frequency,
       level:
         sample.level -
@@ -880,15 +783,8 @@ export const buildBalancedGains = (
     const meanDiagonal =
       normal.reduce((total, row, index) => total + row[index], 0) / n;
     const ridge = Math.max(meanDiagonal * SOLVE_RIDGE, 1e-6);
-    // And the pull on the total, which is what lets the layer forget a comb
-    // the measurement cannot see. The step is solved for, so pulling the
-    // TOTAL toward zero means asking the step to cancel what is already
-    // there: the diagonal carries the weight and the right-hand side carries
-    // the gain it is applied to. See `SOLVE_HOME` for the measurement.
-    const home = meanDiagonal * SOLVE_HOME;
     for (let i = 0; i < n; i += 1) {
-      normal[i][i] += ridge + home;
-      rhs[i] -= home * (relativeToCurrentGain ? solvable[i].gain : 0);
+      normal[i][i] += ridge;
     }
 
     const solved = solveLinearSystem(normal, rhs);
@@ -1025,19 +921,18 @@ export const buildBalancedGains = (
   const gains: Record<string, number> = Object.fromEntries(
     raw.map((entry) => {
       // Clamp the correction, then clamp the total. The correction limit is
-      // what stops one run swinging a band further than a measurement can
-      // justify; the total limit is what Equalizer APO will build.
+      // what stops one solve swinging a band further than a measurement can
+      // justify; the total limit is what the engine will build.
       //
-      // Both now bound the Smart EQ layer alone rather than the user's band
-      // plus a correction, because the bands handed in are the layer's own.
-      // A band and the layer above it can therefore add up to more than ±20 dB
-      // between them, which is safe: the preamp is sized from the peak of the
-      // whole written chain, layers included, so the headroom follows.
-      const base = relativeToCurrentGain ? entry.gain : 0;
-      // A band the solver declined holds exactly where it is. The anchor is
-      // subtracted only from bands that were actually answered for — applying it
-      // to the others would move them on the strength of an average they took no
-      // part in, which is a correction nobody measured.
+      // Both bound the Smart EQ layer alone, never the user's band plus a
+      // correction: the layer sits under the bands, and the preamp is sized
+      // from the peak of the whole written chain, layers included, so the
+      // headroom follows.
+      //
+      // A band the solver declined comes out at zero. The anchor is subtracted
+      // only from bands that were actually answered for — applying it to the
+      // others would move them on the strength of an average they took no part
+      // in, which is a correction nobody measured.
       /*
        * The anchor applies only to the bands that are in it.
        *
@@ -1060,13 +955,10 @@ export const buildBalancedGains = (
        * it does not make a band untouchable.
        */
       const anchor = allowanceOf(entry) > 0 ? mean : 0;
-      // Home, for a band aimed at a rolloff — see `isInRolloff`. Scaled by
-      // strength so it relaxes at the same pace everything else corrects.
+      // Nothing, for a band aimed at a rolloff — see `isInRolloff`: the
+      // energy was never there, so no correction is the answer.
       if (entry.isSolvable && isInRolloff(entry.filter.frequency)) {
-        const relaxed = relativeToCurrentGain
-          ? entry.gain * (1 - strength * 0.5)
-          : 0;
-        return [entry.id, clamp(relaxed, MIN_GAIN, MAX_GAIN)];
+        return [entry.id, 0];
       }
       const correction = entry.isSolvable ? entry.correction - anchor : 0;
       /*
@@ -1084,9 +976,11 @@ export const buildBalancedGains = (
        * this, and any synthetic frame — behaves exactly as it did.
        */
       const allowance = allowanceOf(entry);
-      const gain =
-        base +
-        clamp(correction * entry.confidence, -maxCut, maxBoost * allowance);
+      const gain = clamp(
+        correction * entry.confidence,
+        -maxCut,
+        maxBoost * allowance,
+      );
       return [entry.id, clamp(gain, MIN_GAIN, MAX_GAIN)];
     }),
   );

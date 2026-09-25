@@ -35,6 +35,7 @@ import { setDspRoomReport } from './roomTelemetry';
  * tell the difference. Not one of them is touched by this file.
  */
 import { IHostAnalysis, TAnalysisStage } from '../../common/dsp/analysisWire';
+import claimHostAnalysis from './hostAnalysisClaim';
 import {
   clearDspMeterTelemetry,
   IDspAnalyser,
@@ -250,7 +251,21 @@ export const createNativeMeters = (
     setDspPeak(Math.max(frame.peaks[0], frame.peaks[1]));
   });
 
-  bridge.setDspHostAnalysis(true).catch(() => undefined);
+  // Through the shared claim, not the bridge directly: Smart EQ reads the
+  // same meters while it measures the Library, and whichever of the two
+  // finished second used to switch them off under the other.
+  let releaseClaim: (() => void) | undefined;
+  let released = false;
+  claimHostAnalysis(bridge)
+    .then((release) => {
+      if (released) {
+        release();
+      } else {
+        releaseClaim = release;
+      }
+      return undefined;
+    })
+    .catch(() => undefined);
 
   return {
     release: (clearTelemetry = false) => {
@@ -258,7 +273,8 @@ export const createNativeMeters = (
       if (telemetryOwner === owner) {
         setDspRoomReport(undefined);
       }
-      bridge.setDspHostAnalysis(false).catch(() => undefined);
+      released = true;
+      releaseClaim?.();
       if (clearTelemetry && telemetryOwner === owner) {
         telemetryOwner = undefined;
         clearDspMeterTelemetry();
