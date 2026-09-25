@@ -36,17 +36,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Never in full screen. There the bar is a thing that appears when the
  * pointer goes looking for it, over a picture — and an empty one appearing
  * over a video would be chrome arriving to say nothing.
+ *
+ * AND IT SAYS WHAT PLAYED LAST, once anything has. The player that described
+ * a song can go — a reload, the browser tab closed, the other computer
+ * disconnected, the queue stopped — and "Nothing playing" in its place read
+ * as the app having forgotten (Ivan, 2026-09-24: "we need to keep last thing
+ * was playing on the bar always unless there is a new thing that plays").
+ * The words, the picture and where it came from stay, from `lastShown`; the
+ * buttons stay quiet, because there is nothing live behind them to press,
+ * and the press on the title goes to the tab that played it.
  */
 
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
+import type { ILastShown } from '../../audio/lastShown';
 import useTransportStrip from '../../audio/useTransportStrip';
+import { sourceLabel } from '../../player/playerText';
 import LibraryCoverArt from '../LibraryCoverArt';
 import { useTranslation } from '../../utils/I18nContext';
 import { TransportIcon } from './NowPlayingBar';
 import '../../styles/NowPlayingBar.scss';
 
-const IdleTransportBar = ({ onGoToLibrary }: { onGoToLibrary: () => void }) => {
+interface IIdleTransportBarProps {
+  /** The last thing played, when there has been one. */
+  remembered: ILastShown | undefined;
+  /**
+   * Where the press on the title goes: the tab that played the remembered
+   * song, the Library when there is none. Absent for another program's sound,
+   * which has no tab here — see `SourceTransportBar` for why a press that goes
+   * nowhere is not offered.
+   */
+  onReveal: (() => void) | undefined;
+}
+
+const IdleTransportBar = ({ remembered, onReveal }: IIdleTransportBarProps) => {
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,39 +87,77 @@ const IdleTransportBar = ({ onGoToLibrary }: { onGoToLibrary: () => void }) => {
   // something starts playing, which was the other half of that trade.
   useTransportStrip(barRef, true, false);
 
+  const contextLabel =
+    remembered === undefined ? '' : sourceLabel(remembered, t);
+
   return createPortal(
     <div
       ref={barRef}
-      className="now-playing-bar is-empty"
+      className={`now-playing-bar ${
+        remembered === undefined ? 'is-empty' : 'is-remembered'
+      }`}
       role="region"
       aria-label={t('library.nowPlaying')}
     >
       <div className="now-playing-bar__track">
-        {/* "Pick something to play" is an instruction, so it is also the way
-            to do it. The same press-target the library's bar uses to reveal
-            the playing track, pointed at the place where something can be
-            picked — a line telling somebody to choose, that does nothing when
-            pressed, is the app declining to answer its own sentence. */}
-        <button
-          type="button"
-          className="now-playing-bar__reveal"
-          aria-label={t('library.nothingPlayingHint')}
-          onClick={onGoToLibrary}
-        >
-          {/* The generated tile, from no title at all: the same square in the
-              same place, so the bar does not change shape the moment a song
-              arrives in it. */}
-          <LibraryCoverArt label="" size="row" />
-          <span className="now-playing-bar__meta">
-            <span className="now-playing-bar__title">
-              {t('library.nothingPlaying')}
+        {remembered === undefined ? (
+          /* "Pick something to play" is an instruction, so it is also the
+             way to do it. The same press-target the library's bar uses to
+             reveal the playing track, pointed at the place where something
+             can be picked — a line telling somebody to choose, that does
+             nothing when pressed, is the app declining to answer its own
+             sentence. */
+          <button
+            type="button"
+            className="now-playing-bar__reveal"
+            aria-label={t('library.nothingPlayingHint')}
+            onClick={onReveal}
+            disabled={onReveal === undefined}
+          >
+            {/* The generated tile, from no title at all: the same square in
+                the same place, so the bar does not change shape the moment a
+                song arrives in it. */}
+            <LibraryCoverArt label="" size="row" />
+            <span className="now-playing-bar__meta">
+              <span className="now-playing-bar__title">
+                {t('library.nothingPlaying')}
+              </span>
+              <span className="now-playing-bar__artist">
+                {t('library.nothingPlayingHint')}
+              </span>
+              <span className="now-playing-bar__format" />
             </span>
-            <span className="now-playing-bar__artist">
-              {t('library.nothingPlayingHint')}
+          </button>
+        ) : (
+          /* The live bar's three lines, from what it said last: the title,
+             the artist, and the place it played in — which is also where
+             the press goes. */
+          <button
+            type="button"
+            className="now-playing-bar__reveal"
+            title={contextLabel}
+            aria-label={`${contextLabel} — ${remembered.title}`}
+            onClick={onReveal}
+            disabled={onReveal === undefined}
+          >
+            <LibraryCoverArt
+              src={remembered.artworkUrl}
+              label={remembered.title}
+              size="row"
+            />
+            <span className="now-playing-bar__meta">
+              <span className="now-playing-bar__title">{remembered.title}</span>
+              {remembered.subtitle && (
+                <span className="now-playing-bar__artist">
+                  {remembered.subtitle}
+                </span>
+              )}
+              <span className="now-playing-bar__format now-playing-bar__context">
+                {contextLabel}
+              </span>
             </span>
-            <span className="now-playing-bar__format" />
-          </span>
-        </button>
+          </button>
+        )}
       </div>
 
       <div className="now-playing-bar__deck">

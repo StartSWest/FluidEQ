@@ -7,12 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, DragEvent } from 'react';
 import { libraryFileKind } from 'common/library/files';
+import { useTransportSources } from '../audio/transportSource';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import { formatDuration } from '../library/player/NowPlayingBar';
 import { useTranslation } from '../utils/I18nContext';
 import PlayerIcon from './PlayerIcon';
 import { useLibraryDeck } from './libraryDeck';
-import usePlayerSource from './usePlayerSource';
 
 /**
  * The drag type a queue row carries, so a song being reordered and music
@@ -44,8 +44,16 @@ const formatTotal = (ms: number) => {
 const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   const { t } = useTranslation();
   const library = useLibraryDeck();
-  const source = usePlayerSource();
+  // THE LIBRARY'S OWN TRANSPORT, not whichever player the deck above is
+  // showing. This list is the Library's queue, so its bars say whether the
+  // Library is sounding, and a press starts the Library: asking the deck's
+  // player instead, a press with a browser tab playing moved the Library's
+  // playhead and started nothing.
+  const transport = useTransportSources().library;
+  const isSounding = transport?.isPlaying === true;
   const listRef = useRef<HTMLOListElement>(null);
+  // The song under the playhead when the latest press began; see `restart`.
+  const positionAtPressRef = useRef<number | undefined>(undefined);
   // True while a drag carrying files is over the deck, so it can say it will
   // take them.
   const [isDropTarget, setIsDropTarget] = useState(false);
@@ -66,8 +74,8 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
    */
   const play = (at: number) => {
     library?.jumpTo(at);
-    if (source && !source.isPlaying && source.canToggle !== false) {
-      source.toggle();
+    if (transport && !transport.isPlaying && transport.canToggle !== false) {
+      transport.toggle();
     }
   };
 
@@ -81,15 +89,20 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
    * 2026-09-22). Seeking to zero rather than reloading: the sound carries on
    * without a gap, and a source that cannot seek falls back to the press it
    * already had.
+   *
+   * Only a song that was ALREADY under the playhead when the double-press
+   * began. By the time a double-press lands, its first press has moved the
+   * playhead to a new song and started it from the top; seeking that one back
+   * to nought would replay whatever of its opening had already been heard.
    */
   const restart = (at: number) => {
-    if (at !== library?.position || !source?.seek) {
+    if (at !== positionAtPressRef.current || !transport?.seek) {
       play(at);
       return;
     }
-    source.seek(0);
-    if (!source.isPlaying && source.canToggle !== false) {
-      source.toggle();
+    transport.seek(0);
+    if (!transport.isPlaying && transport.canToggle !== false) {
+      transport.toggle();
     }
   };
 
@@ -323,6 +336,13 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
           ref={listRef}
           onDragOver={onListDragOver}
           onDrop={onListDrop}
+          // Captured ahead of the row's own press, so it still names the song
+          // that was playing before that press moved the playhead.
+          onClickCapture={(event) => {
+            if (event.detail === 1) {
+              positionAtPressRef.current = library.position;
+            }
+          }}
         >
           {library.items.map((item) => {
             const isNow = item.position === library.position;
@@ -349,8 +369,17 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
                   onDragEnd={endRowDrag}
                 >
                   <span className="player-queue__number" aria-hidden="true">
+                    {/* Still while the song is paused: the bars say "this is
+                        sounding", and a paused song is not (Ivan,
+                        2026-09-23). They stop where they stood rather than
+                        leaving, so the song under the playhead keeps its
+                        mark, and pick up from there when it plays again. */}
                     {isNow ? (
-                      <span className="player-queue__bars">
+                      <span
+                        className={`player-queue__bars${
+                          isSounding ? '' : ' is-still'
+                        }`}
+                      >
                         <span />
                         <span />
                         <span />

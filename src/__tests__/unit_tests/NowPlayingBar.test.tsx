@@ -348,12 +348,29 @@ describe('the song-eq badge', () => {
    * the badge appear on the other two bars, so a badge showing up here too
    * would not be a mock left on its default — it would be this bar drawing
    * one it was specified never to draw.
+   *
+   * Both of its faces: the one that names the last song played is the one a
+   * badge would most plausibly be added to, and it is still not a song that
+   * is playing, so there is nothing for Smart EQ to be learning.
    */
   it('never shows a badge on the idle bar, even while something elsewhere is recording', () => {
     mockUseSongEqRecording.mockReturnValue(recording({ isSaveOn: true }));
+    const view = render(
+      <I18nProvider>
+        <IdleTransportBar remembered={undefined} onReveal={() => {}} />
+      </I18nProvider>,
+    );
+    expect(
+      screen.queryByLabelText(/smart eq is learning this song/i),
+    ).toBeNull();
+    view.unmount();
+
     render(
       <I18nProvider>
-        <IdleTransportBar onGoToLibrary={() => {}} />
+        <IdleTransportBar
+          remembered={{ owner: 'library', title: 'Blue' }}
+          onReveal={() => {}}
+        />
       </I18nProvider>,
     );
     expect(
@@ -372,7 +389,7 @@ describe('the idle bar', () => {
     const goToLibrary = jest.fn();
     render(
       <I18nProvider>
-        <IdleTransportBar onGoToLibrary={goToLibrary} />
+        <IdleTransportBar remembered={undefined} onReveal={goToLibrary} />
       </I18nProvider>,
     );
     await userEvent.click(
@@ -387,9 +404,79 @@ describe('the idle bar', () => {
     // has no queue to start.
     render(
       <I18nProvider>
-        <IdleTransportBar onGoToLibrary={jest.fn()} />
+        <IdleTransportBar remembered={undefined} onReveal={jest.fn()} />
       </I18nProvider>,
     );
     expect(screen.getByRole('button', { name: /^play$/i })).toBeDisabled();
+  });
+});
+
+/**
+ * Once anything has played, the bar never goes back to "Nothing playing".
+ * The player that showed a song can go — a reload, a browser tab closed, the
+ * other computer disconnected, Stop — and the bar goes on saying what played
+ * last, where it played, and where to find it again.
+ */
+describe('the idle bar after something has played', () => {
+  it('says what played last and where, instead of "Nothing playing"', () => {
+    render(
+      <I18nProvider>
+        <IdleTransportBar
+          remembered={{ owner: 'library', title: 'Blue', subtitle: 'Miles' }}
+          onReveal={jest.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText('Blue')).toBeVisible();
+    expect(screen.getByText('Miles')).toBeVisible();
+    expect(screen.getByText('Library')).toBeVisible();
+    expect(screen.queryByText('Nothing playing')).toBeNull();
+    // There is nothing live behind it to press: the words stay, the
+    // controls stay quiet.
+    expect(screen.getByRole('button', { name: /^play$/i })).toBeDisabled();
+  });
+
+  it('names the computer a sent song came from', () => {
+    render(
+      <I18nProvider>
+        <IdleTransportBar
+          remembered={{ owner: 'remote', title: 'Take Five', origin: 'Den' }}
+          onReveal={undefined}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText('Playing remote · Den')).toBeVisible();
+  });
+
+  it('sends the press on the song to the place that played it', async () => {
+    const reveal = jest.fn();
+    render(
+      <I18nProvider>
+        <IdleTransportBar
+          remembered={{ owner: 'karaoke', title: 'Warm-up' }}
+          onReveal={reveal}
+        />
+      </I18nProvider>,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Karaoke — Warm-up' }),
+    );
+    expect(reveal).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no press for sound that has no place here to go back to', () => {
+    // Another program's sound has no tab in this app. A press that would go
+    // nowhere is switched off, not offered and ignored.
+    render(
+      <I18nProvider>
+        <IdleTransportBar
+          remembered={{ owner: 'system', title: 'A browser tab' }}
+          onReveal={undefined}
+        />
+      </I18nProvider>,
+    );
+    expect(
+      screen.getByRole('button', { name: 'System audio — A browser tab' }),
+    ).toBeDisabled();
   });
 });

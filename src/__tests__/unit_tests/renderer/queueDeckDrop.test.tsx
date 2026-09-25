@@ -1,10 +1,21 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { useCallback, useState } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import en from 'common/i18n/en';
-import type { ILibraryQueue } from 'common/library/queue';
+import { currentTrackId, type ILibraryQueue } from 'common/library/queue';
 import type { ILibraryTrack } from 'common/library/types';
+import {
+  resetTransportSource,
+  setTransportSource,
+  type ITransportSource,
+} from 'renderer/audio/transportSource';
+import { LibraryProvider } from 'renderer/library/LibraryContext';
 import QueueDeck from 'renderer/player/QueueDeck';
 import { usePublishedLibraryDeck } from 'renderer/player/libraryDeck';
+import createFakeLibraryStore, {
+  type IFakeLibraryStore,
+} from '../../utils/fakeLibraryStore';
 
 jest.mock('renderer/library/LibraryCoverArt', () => () => null);
 
@@ -22,7 +33,7 @@ const trackById = new Map<string, ILibraryTrack>(
   ]),
 );
 // The second song is playing: one behind it, three ahead.
-const queue: ILibraryQueue = {
+const startQueue: ILibraryQueue = {
   trackIds: ids,
   order: [0, 1, 2, 3, 4],
   position: 1,
@@ -32,24 +43,50 @@ const queue: ILibraryQueue = {
 
 const moveUpNext = jest.fn();
 const addFiles = jest.fn(() => Promise.resolve());
+const jumpTo = jest.fn();
+let store: IFakeLibraryStore;
 
-/** Stands in for the Library's provider, which is where the deck comes from. */
+/**
+ * Stands in for the Library's provider, which is where the deck comes from.
+ * A press moves its playhead, as the Library's own queue does, so a second
+ * press lands on a deck that has already moved.
+ */
 const Publisher = () => {
+  const [queue, setQueue] = useState(startQueue);
+  const jumpToQueuePosition = useCallback((position: number) => {
+    jumpTo(position);
+    setQueue((current) => ({ ...current, position }));
+  }, []);
+  const playing = currentTrackId(queue);
   usePublishedLibraryDeck({
     queue,
-    track: trackById.get('b'),
+    track: playing === undefined ? undefined : trackById.get(playing),
     trackById,
     isShuffled: false,
     repeat: 'off',
     stop: () => undefined,
     setShuffle: () => undefined,
     cycleRepeat: () => undefined,
-    jumpToQueuePosition: () => undefined,
+    jumpToQueuePosition,
     addFiles,
     moveUpNext,
   });
   return null;
 };
+
+/** The Library's own transport, as its player describes itself. */
+const libraryTransport = (
+  over: Partial<ITransportSource> = {},
+): ITransportSource => ({
+  owner: 'library',
+  title: 'Song B',
+  isPlaying: false,
+  positionMs: 30_000,
+  durationMs: 120_000,
+  toggle: jest.fn(),
+  seek: jest.fn(),
+  ...over,
+});
 
 /** A drag's transfer, as far as the deck reads it. */
 const transfer = (files: File[] = []) => ({
@@ -67,22 +104,35 @@ const transfer = (files: File[] = []) => ({
 const row = (title: string) =>
   screen.getByTitle(en['player.queue.play'].replace('{title}', title));
 
-beforeEach(() => {
+/** The bars on the row of the song under the playhead. */
+const nowBars = () => row('Song B').querySelector('.player-queue__bars');
+
+beforeEach(async () => {
   moveUpNext.mockClear();
   addFiles.mockClear();
+  jumpTo.mockClear();
+  store = createFakeLibraryStore([], [...trackById.values()]);
   Object.assign(window, {
     electron: {
       ipcRenderer: {
+        ...store.bridge,
         getPathForFile: (file: File) => `D:\\music\\${file.name}`,
       },
     },
   });
   render(
-    <>
+    <LibraryProvider>
       <Publisher />
       <QueueDeck onOpenLibrary={() => undefined} />
-    </>,
+    </LibraryProvider>,
   );
+  // The summary, and then how long is left: the store sums it, since the
+  // queue can run past the stretch the deck lists.
+  await store.settle();
+});
+
+afterEach(() => {
+  act(() => resetTransportSource());
 });
 
 describe('the head', () => {
@@ -143,5 +193,79 @@ describe('music dropped in from the computer', () => {
     const deck = screen.getByRole('region', { name: en['library.upNext'] });
     fireEvent.dragOver(deck, { dataTransfer: transfer() });
     expect(screen.queryByText(en['player.queue.drop'])).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * The list is the Library's queue, so it answers to the Library's own
+ * transport — never to whichever player the deck above happens to show. A
+ * browser tab sounding is not the Library sounding, and a press on a song
+ * here is a press on the Library.
+ */
+describe('the Library’s own transport', () => {
+  it('holds the bars still while the Library is paused, whatever else is sounding', () => {
+    act(() => {
+      setTransportSource(libraryTransport({ isPlaying: false }));
+      setTransportSource({
+        owner: 'system',
+        title: 'A browser tab',
+        isPlaying: true,
+        positionMs: 0,
+        durationMs: 0,
+        toggle: jest.fn(),
+      });
+    });
+    expect(nowBars()).toHaveClass('is-still');
+
+    // The control: the same bars move once the Library itself sounds.
+    act(() => setTransportSource(libraryTransport({ isPlaying: true })));
+    expect(nowBars()).not.toHaveClass('is-still');
+  });
+
+  it('starts the Library on a press, even with another player sounding', async () => {
+    const libraryToggle = jest.fn();
+    const tabToggle = jest.fn();
+    act(() => {
+      setTransportSource(libraryTransport({ toggle: libraryToggle }));
+      setTransportSource({
+        owner: 'system',
+        title: 'A browser tab',
+        isPlaying: true,
+        positionMs: 0,
+        durationMs: 0,
+        toggle: tabToggle,
+      });
+    });
+
+    await userEvent.click(row('Song C'));
+
+    expect(jumpTo).toHaveBeenCalledWith(2);
+    expect(libraryToggle).toHaveBeenCalledTimes(1);
+    expect(tabToggle).not.toHaveBeenCalled();
+  });
+});
+
+describe('a double press on a song', () => {
+  it('starts the song under the playhead again from the top', async () => {
+    const seek = jest.fn();
+    act(() => setTransportSource(libraryTransport({ isPlaying: true, seek })));
+
+    await userEvent.dblClick(row('Song B'));
+
+    expect(seek).toHaveBeenCalledWith(0);
+  });
+
+  it('does not rewind a song its own first press has just started', async () => {
+    // The first press of the two moves the playhead onto this song and
+    // starts it from the top; by the second the song IS under the playhead,
+    // and seeking it to nought would replay what had already been heard.
+    const seek = jest.fn();
+    act(() => setTransportSource(libraryTransport({ isPlaying: true, seek })));
+
+    await userEvent.dblClick(row('Song D'));
+
+    expect(jumpTo).toHaveBeenCalledWith(3);
+    expect(row('Song D')).toHaveAttribute('aria-current', 'true');
+    expect(seek).not.toHaveBeenCalled();
   });
 });

@@ -135,7 +135,8 @@ import {
 } from './audio/transportSource';
 import pickTransportOwner from './audio/transportRouting';
 import TaskbarTransport from './audio/TaskbarTransport';
-import { useIdlePlayerMount } from './audio/useIdlePlayerMount';
+import keepsPlayerMounted from './audio/playerMount';
+import { useLastShown } from './audio/lastShown';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
@@ -532,6 +533,7 @@ const IdleTransportBarSlot = ({
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
   const lastOwner = useLastTransportOwner();
+  const remembered = useLastShown();
   const owner = pickTransportOwner(
     TAB_TRANSPORT[activeTab],
     sources,
@@ -543,13 +545,25 @@ const IdleTransportBarSlot = ({
   // On a machine where the library is still empty — a fresh install, the
   // "No music yet" screen — a transport across the whole foot of the window
   // is the loudest thing on it, and it is for nothing: there is no queue to
-  // resume and no tab that could fill it. `lastOwner` is remembered across
-  // restarts, so this appears the moment something has been played once and
-  // stays from then on, which is the "always a bar" that was asked for.
-  if (owner !== undefined || isFullScreen || lastOwner === undefined) {
+  // resume and no tab that could fill it. `lastOwner` and `remembered` are
+  // kept across restarts, so this appears the moment something has been
+  // played once and stays from then on, which is the "always a bar" that was
+  // asked for — saying what played last, from then on, rather than nothing.
+  if (
+    owner !== undefined ||
+    isFullScreen ||
+    (lastOwner === undefined && remembered === undefined)
+  ) {
     return null;
   }
-  return <IdleTransportBar onGoToLibrary={() => onGoToTab('library')} />;
+  const tab =
+    remembered === undefined ? 'library' : TRANSPORT_TAB[remembered.owner];
+  return (
+    <IdleTransportBar
+      remembered={remembered}
+      onReveal={tab === undefined ? undefined : () => onGoToTab(tab)}
+    />
+  );
 };
 
 const TabTransportBar = ({
@@ -703,7 +717,8 @@ const AppContent = () => {
    * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't
    * work, the app needs to enable that feature"). The deck lists that player's
    * queue and hands it the music dropped on it, and with the providers put
-   * away — as they are off-tab once the silent lease runs out, and as they
+   * away — as they are off-tab once silent and no longer the last thing
+   * played, and as they
    * have never been on a fresh launch — the deck had nothing to list and a
    * drop went nowhere, silently. So while the window is the amp and its
    * queue is open, the Library counts as opened and as active below.
@@ -924,20 +939,19 @@ const AppContent = () => {
     !showsKaraokeGraphBackdrop &&
     Boolean(systemTransport?.title);
 
-  // A loaded silent player keeps only its controller/media shell for five
-  // seconds after leaving the tab. That prevents the fast empty-bar glitch,
-  // but the lease is bounded: once it expires, unmounting disposes the guest,
-  // media elements, observers and native DSP host. Playing audio has no timer.
-  // Nor does the picture under an expanded graph: a paused song there is on
-  // screen, not behind another tab, and unmounting it five seconds into the
-  // pause blacked the card out.
-  const keepVideoMounted = useIdlePlayerMount({
+  // Off its tab a player stays for as long as it plays, hands over, or is the
+  // last thing played — see `keepsPlayerMounted`. The picture under an
+  // expanded graph counts as seen: a paused song there is on screen, not
+  // behind another tab, and unmounting it blacked the card out.
+  const lastTransportOwner = useLastTransportOwner();
+  const keepVideoMounted = keepsPlayerMounted({
     isActive: isVideoTab || showsMediaGraphBackdrop,
-    hasLoadedSource: transportIdentities.media !== undefined,
     isPlaying:
       playingOwner === 'media' || transportIdentities.media?.isPlaying === true,
+    isHandingOver: transportIdentities.media?.retainWhenHidden === true,
+    isLastOwner: lastTransportOwner === 'media',
   });
-  const keepLibraryMounted = useIdlePlayerMount({
+  const keepLibraryMounted = keepsPlayerMounted({
     // The native DSP engine lives in this provider as well. If it has already
     // been opened, the visible DSP rack is an active consumer even though the
     // Library shelf itself is not the selected tab. So is the amp's open
@@ -947,17 +961,19 @@ const AppContent = () => {
       isDspTab ||
       playerWantsLibrary ||
       showsLibraryGraphBackdrop,
-    hasLoadedSource: transportIdentities.library !== undefined,
     isPlaying:
       playingOwner === 'library' ||
       transportIdentities.library?.isPlaying === true,
+    isHandingOver: transportIdentities.library?.retainWhenHidden === true,
+    isLastOwner: lastTransportOwner === 'library',
   });
-  const keepKaraokeMounted = useIdlePlayerMount({
+  const keepKaraokeMounted = keepsPlayerMounted({
     isActive: isKaraokeTab || showsKaraokeGraphBackdrop,
-    hasLoadedSource: transportIdentities.karaoke !== undefined,
     isPlaying:
       playingOwner === 'karaoke' ||
       transportIdentities.karaoke?.isPlaying === true,
+    isHandingOver: transportIdentities.karaoke?.retainWhenHidden === true,
+    isLastOwner: lastTransportOwner === 'karaoke',
   });
 
   /**
@@ -1248,7 +1264,7 @@ const AppContent = () => {
   useTitlebarRoom(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
   // `showsGraph` and the backdrop it decides are worked out beside the players'
-  // mount leases above, which have to know whether a paused player is on
+  // mount rules above, which have to know whether a paused player is on
   // screen under the graph.
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
@@ -1567,8 +1583,8 @@ const AppContent = () => {
    * The player somebody was using when the window last closed.
    *
    * Each of the three below becomes eligible to mount on its first visit and
-   * can later be disposed after its silent off-tab lease. The tab is remembered
-   * but a disposed player is not live, so coming
+   * is disposed off its tab once it is silent and no longer the last thing
+   * played. The tab is remembered but a disposed player is not live, so coming
    * back on the EQ, DSP or Config tab — which is most restarts — left every
    * player unmounted, nothing describing itself to the bar, and the foot of
    * the window reading "Nothing playing" over a queue that was sitting in
@@ -1588,12 +1604,12 @@ const AppContent = () => {
    */
   const [restoredOwner] = useState(readRememberedTransportOwner);
   // Once visited, the Media tab is eligible to reconstruct its guest. A silent
-  // hidden browser receives only the shared five-second disposal lease.
+  // hidden browser stays only while it is the last thing played.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(
     () => restoredOwner === 'media',
   );
   // Library follows the same eligibility rule. Its providers survive off-tab
-  // while a deck is making sound, or for the bounded silent grace period.
+  // while a deck is making sound, or while its queue is the last thing played.
   const [hasOpenedLibrary, setHasOpenedLibrary] = useState(
     () => restoredOwner === 'library',
   );

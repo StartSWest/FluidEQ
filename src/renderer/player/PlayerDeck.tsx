@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useState } from 'react';
+import { useLastShown } from '../audio/lastShown';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import { formatDuration } from '../library/player/NowPlayingBar';
@@ -57,6 +58,11 @@ interface IPlayerDeckProps {
 const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
   const { t } = useTranslation();
   const source = usePlayerSource();
+  // With no player live, the words and the picture of the last thing played,
+  // as the bar at the foot of the window keeps them (`lastShown`); the
+  // transport stays off, because there is nothing behind it to press.
+  const remembered = useLastShown();
+  const shown = source ?? remembered;
   const library = useLibraryDeck();
   const isTimeLeft = useIsTimeLeft();
   // In two columns the deck stands as tall as the equalizer beside it, and the
@@ -73,7 +79,7 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
   useLiveAudioCapture(true);
 
   const isLibrary = source?.owner === 'library' && library !== undefined;
-  const title = source?.title ?? t('library.nothingPlaying');
+  const title = shown?.title ?? t('library.nothingPlaying');
   const shownMs = scrubMs ?? (second ?? 0) * 1000;
   const clock = clockFor({
     shownMs,
@@ -117,7 +123,7 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
               className="player-icon player-icon--state"
             />
             <span className="player-screen__source">
-              {source ? sourceLabel(source, t) : ''}
+              {shown ? sourceLabel(shown, t) : ''}
             </span>
           </span>
           <button
@@ -141,14 +147,14 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
             <VolumeReadout adjust={adjust} />
           ) : (
             <Marquee
-              text={nowPlayingLine(source, t('library.nothingPlaying'))}
+              text={nowPlayingLine(shown, t('library.nothingPlaying'))}
               className="player-screen__title"
             />
           )}
           <div className="player-screen__meta">
             <span className="player-screen__art">
               <LibraryCoverArt
-                src={isLibrary ? undefined : source?.artworkUrl}
+                src={isLibrary ? undefined : shown?.artworkUrl}
                 artId={isLibrary ? library.track?.artId : undefined}
                 label={title}
                 size="row"

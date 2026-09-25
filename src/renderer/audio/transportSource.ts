@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import type { ISongIdentity } from 'common/songIdentity';
-import type { TPlaybackOwner } from './playbackOwner';
+import { noteShown, resetLastShown } from './lastShown';
+import { getPlaybackOwner, type TPlaybackOwner } from './playbackOwner';
+import pickTransportOwner from './transportRouting';
 
 /**
  * What a player tells the bar at the foot of the window about itself.
@@ -168,22 +170,28 @@ const sameIdentity = (
   current?.source === next?.source;
 
 /**
- * Who described themselves last.
+ * Whose sound the bar last showed playing.
  *
  * The bar on a tab that is not a player — the EQ, Voicing, Config — is
- * whatever was last being used, and this is how it is known. Publishing
- * happens on every change a transport can show, so the most recent publish is
- * the song that is playing, or, once it is paused, the song somebody paused
- * and is about to resume. Without it, pausing while on one of those tabs made
- * the bar vanish and took the resume button with it.
+ * whatever was last being listened to, and this is how it is known. It moves
+ * only when something plays and the bar shows it playing: a player that
+ * merely describes itself — the Media tab loading a page, Karaoke opening a
+ * session, the library restoring a queue — does not take the bar from the
+ * song somebody paused (Ivan, 2026-09-24: "we need to keep last thing was
+ * playing on the bar always unless there is a new thing that plays").
+ *
+ * Every owner counts, the machine's own players and another computer's
+ * included ("and for system audio metadata same"; "other pc can be sender
+ * their metadata too"). It used to leave out a program outside this app, so a
+ * paused browser tab lost the bar to a library song paused hours before, and
+ * to leave another computer out of storage, so a reload forgot it.
  *
  * Remembered across restarts, so the answer survives the one moment it is
- * least obvious: the app opens with nothing having been described yet, and
- * the first player to come back — the library restoring its queue, karaoke
- * its session — is not necessarily the one somebody was using. The stored
- * name is only a preference for whichever of them registers; a source that
- * never arrives is never shown, because `pickTransportOwner` reads the
- * register rather than this.
+ * least obvious: the app opens with nothing having been described yet. The
+ * stored name decides which of this app's own players is mounted at launch
+ * to restore itself (`App.tsx`); a source that never arrives is never drawn
+ * as live, because `pickTransportOwner` reads the register rather than this,
+ * and what the bar shows in its place is `lastShown`.
  */
 const LAST_OWNER_KEY = 'fluideq.transport.lastOwner';
 
@@ -221,13 +229,11 @@ let lastOwner: TPlaybackOwner | undefined = readRememberedTransportOwner();
  * Who most recently reported `isPlaying: true`, kept alive across the pause
  * that follows.
  *
- * Distinct from `lastOwner` above in both directions: that one deliberately
- * excludes `system` (the bar has no resume button for a program outside this
- * app) and tracks description recency rather than playing recency, so a
- * player that only ever had something cued still counts. This is for a
- * recorder rather than a bar — `nowPlayingIdentity.ts`'s `pickPlayingIdentity`
- * is the only reader — and needs the opposite of both: `system` included,
- * and only a source that actually played.
+ * Distinct from `lastOwner` above: that one is what the bar showed playing,
+ * so a browser tab playing under a library song never takes it, and it
+ * outlives a restart. This is for a recorder rather than a bar —
+ * `nowPlayingIdentity.ts`'s `pickPlayingIdentity` is the only reader — and
+ * wants any source that reported playing, for this window only.
  *
  * `lastPlayingKey` guards it against a stale identity: a player can describe
  * a newly cued track without ever pressing play again, and without the
@@ -253,37 +259,45 @@ const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
  * more than re-rendering a bar of six buttons.
  */
 export const setTransportSource = (next: ITransportSource): void => {
-  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING".
+  const nextSources = { ...sources, [next.owner]: next };
+  // WHAT THE BAR SHOWS PLAYING, ASKED OF THE BAR'S OWN RULE.
   //
-  // It takes the bar by playing and by nothing else — see `pickTransportOwner`
-  // — so on a tab that is not a player, with nothing making any sound, the bar
-  // goes back to the last song of this app's rather than to a browser tab
-  // somebody paused an hour ago. Which is the whole of the rule: something
-  // outside is worth the bar while it is playing, and worth nothing once it
-  // stops.
-  //
-  // ANOTHER MACHINE'S IS, FOR AS LONG AS IT IS CONNECTED. A sender paused
-  // from this bar is not a tab somebody forgot: the link is live, the sender
-  // is still describing the song, and the press that paused it is the press
-  // that will resume it. Held in memory only — see `pickTransportOwner`,
-  // which reads the register, so a sender that has gone is simply not there;
-  // and never written down, because on the next launch the remembered owner
-  // decides which of this app's own players is mounted, and "the other
-  // computer" is not one of them.
+  // Not simply "whoever says they are playing": a browser tab left playing
+  // under a library song (the one-player switch off) says so on every Windows
+  // reading while the bar shows the song, and a sender's position ticks every
+  // second while the machine's own player holds the bar. Either one taking the
+  // last-owner slot would flip it back and forth, and write it down each time.
+  // The owner `pickTransportOwner` puts on a tab-less bar, when that owner is
+  // playing, is the one somebody is listening to.
   //
   // Position republishes this source several times a second. Writing the same
   // owner through synchronous localStorage on every tick made a UI-only clock
   // wait on persistent storage; the preference changes only when the owner does.
-  if (next.owner !== 'system' && lastOwner !== next.owner) {
-    lastOwner = next.owner;
-    if (next.owner !== 'remote') {
-      try {
-        window.localStorage.setItem(LAST_OWNER_KEY, next.owner);
-      } catch {
-        // The preference then lasts as long as the window, which is what it
-        // did before it was written down at all.
-      }
+  const onTheBar = pickTransportOwner(
+    undefined,
+    nextSources,
+    getPlaybackOwner(),
+    lastOwner,
+  );
+  const ownerChanged =
+    onTheBar !== undefined &&
+    onTheBar !== lastOwner &&
+    nextSources[onTheBar]?.isPlaying === true;
+  if (ownerChanged) {
+    lastOwner = onTheBar;
+    try {
+      window.localStorage.setItem(LAST_OWNER_KEY, onTheBar);
+    } catch {
+      // The preference then lasts as long as the window, which is what it
+      // did before it was written down at all.
     }
+  }
+  // The words and the picture of the last thing played follow that owner's
+  // description, paused or playing, so the bar that stands in for it after
+  // the player has gone says what the live bar said last.
+  const shown = lastOwner === undefined ? undefined : nextSources[lastOwner];
+  if (shown !== undefined && (ownerChanged || lastOwner === next.owner)) {
+    noteShown(shown);
   }
   const currentIdentity = identitySources[next.owner];
   if (
@@ -313,7 +327,7 @@ export const setTransportSource = (next: ITransportSource): void => {
     lastPlayingOwner = undefined;
     lastPlayingKey = undefined;
   }
-  publish({ ...sources, [next.owner]: next });
+  publish(nextSources);
 };
 
 /** Withdraw a description. Not guarded against another owner's, the way
@@ -420,5 +434,6 @@ export const resetTransportSource = (): void => {
   } catch {
     // Nothing was stored; nothing to forget.
   }
+  resetLastShown();
   listeners.forEach((listener) => listener());
 };

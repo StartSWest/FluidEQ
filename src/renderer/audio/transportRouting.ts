@@ -31,8 +31,9 @@ import type { ITransportSource } from './transportSource';
  *
  * With nothing playing, the bar belongs to the page it is under: Karaoke gets
  * the karaoke session, Media the page it has loaded, Library the queue. A tab
- * that is not a player keeps whatever was last described, which is the paused
- * song somebody is about to resume.
+ * that is not a player keeps whatever was last playing, which is the paused
+ * song somebody is about to resume — the machine's own player and another
+ * computer's included, for as long as they still describe it.
  *
  * Two components ask this — the library's bar, which draws itself, and the
  * host that draws every other tab's — and they must never both answer yes.

@@ -12,6 +12,7 @@ import {
 import { ILibraryTrack } from 'common/library/types';
 import TaskbarTransport from '../../../renderer/audio/TaskbarTransport';
 import {
+  claimPlayback,
   resetPlaybackOwner,
   TPlaybackOwner,
 } from '../../../renderer/audio/playbackOwner';
@@ -76,7 +77,14 @@ it('disables an empty toolbar and releases its listener on unmount', () => {
     canNext: false,
     canPrevious: false,
   });
+  // A player that only describes itself — a page loaded, nothing pressed —
+  // is not a thing to control from a tab that is not its own.
   act(() => setTransportSource(source('media')));
+  expect(latest().canToggle).toBe(false);
+  act(() => {
+    claimPlayback('media');
+    setTransportSource(source('media', true));
+  });
   expect(latest().canToggle).toBe(true);
   view.unmount();
   expect(listener).toBeUndefined();
@@ -137,13 +145,22 @@ it('follows the audible external player, then returns to the paused tab when it 
   expect(latest().isPlaying).toBe(false);
   act(() => listener?.('toggle'));
   expect(actions).toEqual(['system:toggle', 'library:toggle']);
+  // The tab's own player gone, the buttons fall to what was listened to
+  // last — the paused external player, for as long as it still describes
+  // itself — and only once that has gone too is there nothing to press.
   act(() => clearTransportSource('library'));
+  expect(latest().canToggle).toBe(true);
+  act(() => listener?.('toggle'));
+  expect(actions).toEqual(['system:toggle', 'library:toggle', 'system:toggle']);
+  act(() => clearTransportSource('system'));
   expect(latest().canToggle).toBe(false);
   view.unmount();
 });
 
 it('keeps a paused remote sender available to resume and follows tab changes', () => {
-  setTransportSource(source('remote'));
+  // Heard, then paused: the sender is what was listened to last.
+  setTransportSource(source('remote', true));
+  setTransportSource(source('remote', false));
   const view = render(<TaskbarTransport />);
   act(() => listener?.('toggle'));
   act(() => setTransportSource(source('karaoke')));

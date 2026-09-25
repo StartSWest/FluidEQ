@@ -22,7 +22,7 @@ import { liveLevelScaleFor } from '../graph/graphPaper';
 import LookPicker from '../graph/LookPicker';
 import liveTraceCurves from '../graph/liveTraceCurves';
 import SceneLikeButton from '../graph/SceneLikeButton';
-import SceneTintToggle from '../graph/SceneTintToggle';
+import SceneTintMenu from '../graph/SceneTintMenu';
 import ScenePreview from '../plus/ScenePreview';
 import {
   cycleGraphLook,
@@ -322,9 +322,10 @@ const VisDeck = ({ height }: { height: number }) => {
             isEditing={false}
           />
           {/* What a Plus visualizer does to the window — nothing, its colours,
-              or its colours beating with it (Ivan, 2026-09-21). Only on a
-              scene: a free look has no colours of its own to lend. */}
-          {isScene && <SceneTintToggle />}
+              its colours beating with it, or itself behind the window (Ivan,
+              2026-09-21) — named, as on the graph. Only on a scene: a free
+              look has no colours of its own to lend. */}
+          {isScene && <SceneTintMenu />}
           {isScene && memberScene && (
             <SceneLikeButton key={memberScene.lookId} scene={memberScene} />
           )}

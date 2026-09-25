@@ -17,17 +17,22 @@ export type TPlayerState = 'play' | 'pause' | 'stop';
 /**
  * The line that scrolls across the player's screen: the artist, the title,
  * and the length, as Winamp's did.
+ *
+ * Takes the words alone, so the last thing played (`lastShown`) can fill it
+ * after its player has gone; that one has no length to give.
  */
 export const nowPlayingLine = (
-  source: ITransportSource | undefined,
+  source:
+    | (Pick<ITransportSource, 'title' | 'subtitle'> & { durationMs?: number })
+    | undefined,
   nothing: string,
 ) => {
   if (!source) {
     return nothing;
   }
   const lead = source.subtitle ? `${source.subtitle} — ` : '';
-  const length =
-    source.durationMs > 0 ? ` (${formatDuration(source.durationMs)})` : '';
+  const durationMs = source.durationMs ?? 0;
+  const length = durationMs > 0 ? ` (${formatDuration(durationMs)})` : '';
   return `${lead}${source.title}${length}`;
 };
 
@@ -64,7 +69,10 @@ export const playerStateOf = (
 };
 
 /** Where the sound is from, in the words the bar uses for it. */
-export const sourceLabel = (source: ITransportSource, t: TranslateFn) => {
+export const sourceLabel = (
+  source: Pick<ITransportSource, 'owner' | 'origin'>,
+  t: TranslateFn,
+) => {
   switch (source.owner) {
     case 'library':
       return t('tabs.library');

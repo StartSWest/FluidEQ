@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PRODUCT_NAME } from 'common/branding';
+import { useLastShown } from '../audio/lastShown';
 import TrafficLightSlot from '../components/TrafficLightSlot';
 import BrandMark from '../icons/BrandMark';
 import { useTranslation } from '../utils/I18nContext';
@@ -48,6 +49,8 @@ import usePlayerSource from './usePlayerSource';
 const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
   const { t } = useTranslation();
   const source = usePlayerSource();
+  // The last thing played, while no player is live — see `PlayerDeck`.
+  const remembered = useLastShown();
   const library = useLibraryDeck();
   const power = useEqualizerPower();
   const isTimeLeft = useIsTimeLeft();
@@ -125,7 +128,10 @@ const FoldStrip = ({ onUnfold }: { onUnfold: () => void }) => {
         </span>
         <div className="player-fold__screen">
           <Marquee
-            text={nowPlayingLine(source, t('library.nothingPlaying'))}
+            text={nowPlayingLine(
+              source ?? remembered,
+              t('library.nothingPlaying'),
+            )}
             className="player-fold__title"
           />
           <button

@@ -32,6 +32,11 @@ import {
   buildAcceptance,
 } from '../../common/disclaimer';
 import { ErrorCode } from '../../common/errors';
+import type {
+  ILibraryAnswers,
+  ILibrarySummary,
+  TLibraryRequest,
+} from '../../common/library/query';
 import { VIDEO_GRAPH_FULLSCREEN_REQUEST } from '../../common/videoSites';
 import App from '../../renderer/App';
 import { Channels } from '../../main/api';
@@ -48,6 +53,47 @@ import {
   setGraphContents,
   setGraphView,
 } from '../../renderer/utils/graphStyle';
+
+/**
+ * An empty library, answered as main's store answers one. These tests open
+ * the Library tab for its place in the shell — full screen, the backdrop —
+ * and need it to mount, not to hold songs.
+ */
+const EMPTY_LIBRARY: ILibrarySummary = {
+  version: 0,
+  roots: [],
+  trackCount: 0,
+  videoCount: 0,
+  wasReset: false,
+};
+
+/** Every question but a page, whose answer carries the offset it was asked at. */
+const EMPTY_ANSWERS: Omit<ILibraryAnswers, 'page'> = {
+  position: -1,
+  letters: {},
+  ids: [],
+  tracks: [],
+  continuation: [],
+  duration: 0,
+  headings: [],
+  rest: -1,
+};
+
+const emptyLibraryAnswer = (
+  request: TLibraryRequest,
+): ILibraryAnswers[TLibraryRequest['type']] => {
+  if (request.type === 'page') {
+    return {
+      total: 0,
+      nearCount: 0,
+      markedCount: 0,
+      offset: request.offset,
+      items: [],
+      version: EMPTY_LIBRARY.version,
+    };
+  }
+  return EMPTY_ANSWERS[request.type];
+};
 
 jest.mock('../../renderer/community/CommunityPanel', () => ({
   __esModule: true,
@@ -140,13 +186,11 @@ describe('App', () => {
           setWindowFullScreen,
           sendMediaTransport,
           releaseKaraokeSeparationModel: jest.fn(),
-          getLibraryIndex: async () => ({
-            index: { version: 1, roots: [], tracks: [] },
-            wasReset: false,
-          }),
+          getLibrarySummary: async () => EMPTY_LIBRARY,
+          queryLibrary: async (request: TLibraryRequest) =>
+            emptyLibraryAnswer(request),
           onLibraryScanProgress: () => () => {},
-          onLibraryTracksAdded: () => () => {},
-          onLibraryIndexChanged: () => () => {},
+          onLibraryChanged: () => () => {},
         },
       }),
     });
@@ -174,13 +218,18 @@ describe('App', () => {
     expect(scrollArea).not.toContainElement(footer as HTMLElement);
   });
 
-  it('starts both output sections collapsed', async () => {
+  // The Output card holds the profiles now, under the output they play
+  // through, and they were never folded away at launch: the card starts open.
+  // The second output is a detail until somebody wants it, and starts folded.
+  it('starts the Output card open and the second output folded', async () => {
     render(<App />);
     await act(async () => Promise.resolve());
 
-    expect(
-      screen.getByRole('button', { name: /Automatic profile/i }),
-    ).toHaveAttribute('aria-expanded', 'false');
+    const output = screen.getByRole('button', { name: 'Output' });
+    expect(output).toHaveAttribute('aria-expanded', 'true');
+    expect(output.closest('.device-profiles')).toContainElement(
+      document.querySelector('.presets-bar'),
+    );
     expect(
       screen.getByRole('button', { name: /Second output/i }),
     ).toHaveAttribute('aria-expanded', 'false');

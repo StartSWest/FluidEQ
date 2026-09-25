@@ -19,15 +19,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * The register of players, and which of them counts as "the last thing".
  *
- * The bar on a tab that is not a player is whatever was last used, and the
- * one player this app does not own must never be it: a browser tab paused an
- * hour ago is not what somebody is about to resume.
+ * The bar on a tab that is not a player is whatever was last listened to:
+ * the owner the bar last showed playing, whoever that was — one of this
+ * app's players, the machine's own, another computer's. A player that only
+ * describes itself does not take it, and a player going away does not take
+ * it either: the words of what played stay, so the bar can keep showing them
+ * until something new plays.
  */
 
 import { act, renderHook } from '@testing-library/react';
 import { buildSongIdentity } from 'common/songIdentity';
+import type * as LastShownModule from '../../../renderer/audio/lastShown';
+import { useLastShown } from '../../../renderer/audio/lastShown';
+import {
+  claimPlayback,
+  releasePlayback,
+  resetPlaybackOwner,
+} from '../../../renderer/audio/playbackOwner';
 import {
   clearTransportSource,
+  readRememberedTransportOwner,
   resetTransportSource,
   setTransportSource,
   useLastPlayingOwner,
@@ -49,6 +60,25 @@ const source = (
   toggle: () => {},
 });
 
+/**
+ * One of this app's players starting: it claims playback, as each of them
+ * does from its own `play` event, and then describes itself as playing.
+ */
+const appPlays = (next: ITransportSource) => {
+  act(() => {
+    claimPlayback(next.owner);
+    setTransportSource({ ...next, isPlaying: true });
+  });
+};
+
+/** And pausing: it gives playback up and says so. */
+const appPauses = (next: ITransportSource) => {
+  act(() => {
+    releasePlayback(next.owner);
+    setTransportSource({ ...next, isPlaying: false });
+  });
+};
+
 const librarySongA = buildSongIdentity('library', 'a', 'Song A');
 const librarySongB = buildSongIdentity('library', 'b', 'Song B');
 const spotifySong = buildSongIdentity('system', 'Spotify.exe', 'Song B');
@@ -64,38 +94,74 @@ const playing = (
   identity: NonNullable<ITransportSource['identity']>,
 ): ITransportSource => ({ ...source(owner, isPlaying), identity });
 
-describe('the register of players', () => {
-  beforeEach(() => {
+beforeEach(() => {
+  resetPlaybackOwner();
+  resetTransportSource();
+});
+
+afterEach(() => {
+  act(() => {
+    resetPlaybackOwner();
     resetTransportSource();
   });
+});
 
-  afterEach(() => {
-    act(() => resetTransportSource());
-  });
-
-  it('remembers the last of this app’s own players', () => {
+describe('the register of players', () => {
+  it('remembers whose sound the bar last showed playing', () => {
     const { result } = renderHook(() => useLastTransportOwner());
 
-    act(() => setTransportSource(source('library')));
-    act(() => setTransportSource(source('karaoke')));
+    appPlays(source('library'));
+    appPlays(source('karaoke'));
 
     expect(result.current).toBe('karaoke');
   });
 
-  it('never lets the machine’s own player become the last thing', () => {
-    const { result } = renderHook(() => ({
-      last: useLastTransportOwner(),
-      sources: useTransportSources(),
-    }));
+  it('does not hand the last thing to a player that only describes itself', () => {
+    // The Media tab loading a page, Karaoke opening a session: neither is
+    // somebody listening to something, and neither may take the bar from the
+    // song that was paused a moment ago.
+    const { result } = renderHook(() => useLastTransportOwner());
 
-    act(() => setTransportSource(source('library')));
-    // A browser tab starts, takes the bar by playing, and then stops. What is
-    // left on a tab with no player of its own has to be the library song.
+    appPlays(source('library'));
+    appPauses(source('library'));
+    act(() => setTransportSource(source('media')));
+    act(() => setTransportSource(source('karaoke')));
+
+    expect(result.current).toBe('library');
+  });
+
+  it('lets the machine’s own player be the last thing once the bar showed it playing', () => {
+    const { result } = renderHook(() => useLastTransportOwner());
+
+    appPlays(source('library'));
+    appPauses(source('library'));
+    // A browser tab starts with nothing of this app's playing, takes the bar
+    // by playing, and then stops. It is what was listened to last.
     act(() => setTransportSource(source('system', true)));
     act(() => setTransportSource(source('system', false)));
 
-    expect(result.current.sources.system).toBeDefined();
-    expect(result.current.last).toBe('library');
+    expect(result.current).toBe('system');
+  });
+
+  it('keeps a browser tab playing under a library song from taking the last thing', () => {
+    // With the one-player switch off, a browser tab can go on playing while
+    // the bar shows the library song. The bar is the song's, so the last
+    // thing is too — the tab saying it is playing on every reading must not
+    // flip it back and forth.
+    const { result } = renderHook(() => useLastTransportOwner());
+
+    appPlays(source('library'));
+    act(() => setTransportSource(source('system', true)));
+
+    expect(result.current).toBe('library');
+  });
+
+  it('writes the last thing down, another computer’s sound included', () => {
+    // What decides, at the next launch, which player comes back to restore
+    // itself — and a sender that was last is last after a reload too.
+    act(() => setTransportSource(source('remote', true)));
+
+    expect(readRememberedTransportOwner()).toBe('remote');
   });
 
   it('forgets a player that has gone', () => {
@@ -110,22 +176,21 @@ describe('the register of players', () => {
   it('still remembers who that player was, so Stop leaves a bar behind', () => {
     // Stop empties the queue, which leaves no track to describe, which
     // withdraws the library's entry here. `lastOwner` used to be wiped along
-    // with it — and `IdleTransportBarSlot` reads `lastOwner` as its proof
-    // that something has ever played, the one thing separating a fresh
-    // install (no bar) from a machine where music has been chosen. So a press
-    // of Stop took the whole foot of the window away instead of falling back
-    // to the empty bar.
+    // with it — and the bar reads `lastOwner` as its proof that something has
+    // ever played, the one thing separating a fresh install (no bar) from a
+    // machine where music has been chosen. So a press of Stop took the whole
+    // foot of the window away instead of leaving the bar behind.
     //
     // The entry going and the memory of it going are two different things:
     // the first is asserted above, and `pickTransportOwner` reads this only
     // to index the register, so a name outliving its entry can never put a
-    // bar on screen for a player that is gone.
+    // live bar on screen for a player that is gone.
     const { result } = renderHook(() => ({
       last: useLastTransportOwner(),
       sources: useTransportSources(),
     }));
 
-    act(() => setTransportSource(source('library')));
+    appPlays(source('library'));
     act(() => clearTransportSource('library'));
 
     expect(result.current.sources.library).toBeUndefined();
@@ -183,5 +248,120 @@ describe('the register of players', () => {
     act(() => clearTransportSource('library'));
 
     expect(result.current).toBeUndefined();
+  });
+});
+
+/**
+ * What a freshly loaded window reads: a new copy of the module, starting from
+ * storage alone. Its hook is read with React's store subscription standing
+ * aside, because a component of this copy's own React would be a second
+ * React the test renderer has never heard of.
+ */
+const reloadedLastShown = (): LastShownModule.ILastShown | undefined => {
+  let fresh: typeof LastShownModule | undefined;
+  jest.isolateModules(() => {
+    jest.doMock('react', () => ({
+      useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) =>
+        getSnapshot(),
+    }));
+    // eslint-disable-next-line global-require -- a fresh copy of the module is what a reload is
+    fresh = require('../../../renderer/audio/lastShown');
+  });
+  jest.dontMock('react');
+  if (fresh === undefined) {
+    throw new Error('the reloaded module did not load');
+  }
+  return fresh.useLastShown();
+};
+
+/**
+ * "Nothing playing" never replaces a song that was playing: after Stop, a
+ * closed browser tab, a disconnected sender or a reload, the bar goes on
+ * saying what played last until something new plays.
+ */
+describe('what the bar last showed playing', () => {
+  const song: ITransportSource = {
+    ...source('library'),
+    title: 'Blue in Green',
+    subtitle: 'Miles Davis',
+    artworkUrl: 'fluideq-media://art/cover-1',
+  };
+
+  it('keeps its words and picture once the player that showed it has gone', () => {
+    const { result } = renderHook(() => useLastShown());
+
+    appPlays(song);
+    act(() => clearTransportSource('library'));
+
+    expect(result.current).toEqual({
+      owner: 'library',
+      title: 'Blue in Green',
+      subtitle: 'Miles Davis',
+      artworkUrl: 'fluideq-media://art/cover-1',
+    });
+  });
+
+  it('keeps a sender’s name, for the line that says where it came from', () => {
+    const { result } = renderHook(() => useLastShown());
+
+    act(() =>
+      setTransportSource({
+        ...source('remote', true),
+        title: 'Take Five',
+        origin: 'Studio PC',
+      }),
+    );
+    act(() => clearTransportSource('remote'));
+
+    expect(result.current).toEqual({
+      owner: 'remote',
+      title: 'Take Five',
+      origin: 'Studio PC',
+    });
+  });
+
+  it('is not replaced by a player that only describes itself', () => {
+    const { result } = renderHook(() => useLastShown());
+
+    appPlays(song);
+    appPauses(song);
+    act(() =>
+      setTransportSource({ ...source('media'), title: 'A page, loaded' }),
+    );
+
+    expect(result.current?.title).toBe('Blue in Green');
+  });
+
+  it('is replaced by the next thing that plays', () => {
+    // The control for the case above: the words do move, and on playing.
+    const { result } = renderHook(() => useLastShown());
+
+    appPlays(song);
+    appPlays({ ...source('karaoke'), title: 'Warm-up' });
+
+    expect(result.current).toEqual({ owner: 'karaoke', title: 'Warm-up' });
+  });
+
+  it('does not keep a picture that dies with the page that made it', () => {
+    // A `blob:` URL belongs to the page that minted it; after a restart it
+    // draws as a broken image where the generated tile would otherwise be.
+    const { result } = renderHook(() => useLastShown());
+
+    appPlays({ ...song, artworkUrl: 'blob:http://localhost/cover' });
+
+    expect(result.current?.title).toBe('Blue in Green');
+    expect(result.current?.artworkUrl).toBeUndefined();
+  });
+
+  it('is still there after the window reloads', () => {
+    appPlays(song);
+    act(() => clearTransportSource('library'));
+
+    expect(reloadedLastShown()).toEqual({
+      owner: 'library',
+      title: 'Blue in Green',
+      subtitle: 'Miles Davis',
+      artworkUrl: 'fluideq-media://art/cover-1',
+    });
   });
 });
