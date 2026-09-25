@@ -14,25 +14,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * it needs to break no rule, it signs and publishes like any other scene, and
  * what the victim sees is an app that stops answering.
  *
- * Two shapes did exactly that, and both are pinned here with the input that
- * found them. The times are generous — this runs on whatever a build machine
- * is — but the defects were 1.8 s and 23 s, two and three orders of magnitude
- * away from the bound, so a regression cannot slip under it.
+ * Every shape that did exactly that is pinned here with the input that found
+ * it. The times are generous — this runs on whatever a build machine is — but
+ * the defects were one to twenty-three seconds, orders of magnitude away from
+ * the bound, so a regression cannot slip under it.
  */
 
-import { checkMemberSceneSource } from '../../../common/memberSceneRules';
+import {
+  checkMemberSceneSource,
+  MAX_MEMBER_SOURCE_BYTES,
+} from '../../../common/memberSceneRules';
 
 const ENTRY = 'vec4 sceneColour(vec2 uv) { return vec4(0.0); }\n';
 
 /**
  * The FASTEST of three runs, not one.
  *
- * What these cases guard are shapes that are slow every single time — the two
- * they were written for were quadratic and took 1.8 s and 23 s. A machine
- * running six hundred suites at once stalls for other reasons entirely, and
- * one such stall failed two of these once in a full run and never again. The
- * answer is not a looser bound, which would let a quadratic regression at this
- * input size through; it is to stop measuring the stall.
+ * What these cases guard are shapes that are slow every single time — the
+ * ones they were written for were quadratic and took one to twenty-three
+ * seconds. A machine running six hundred suites at once stalls for other
+ * reasons entirely, and one such stall failed two of these once in a full run
+ * and never again. The answer is not a looser bound, which would let a
+ * quadratic regression at this input size through; it is to stop measuring
+ * the stall.
  */
 const msToCheck = (source: string) => {
   let quickest = Infinity;
@@ -91,6 +95,68 @@ it('refuses a padded loop header quickly', () => {
 it('still reads a loop whose step is spaced out', () => {
   const source = `${ENTRY}void pad() { for (int i = 0; i < 4;   i++   ) { } }\n`;
   expect(msToCheck(source).problems).toEqual([]);
+});
+
+/**
+ * Sources written only to be slow to judge, each at the length that found it.
+ * The first two took one and six seconds until 2026-09-13, and all four most
+ * of a second of the main process before that.
+ *
+ * They lived in the rules' own tests as ONE cold run of all five against
+ * 400 ms, which the build machine missed at 484 ms with nothing wrong: warmed
+ * and fastest of three, the heaviest takes 8 ms here, and none came near the
+ * budget with every core of this machine saturated and eight runs at once.
+ */
+describe('a source built to be slow to check', () => {
+  const SHAPES: readonly [
+    string,
+    (count: number) => string,
+    number,
+    readonly string[],
+  ][] = [
+    [
+      'a loop header opened over and over',
+      (count) => `${'for('.repeat(count)}\n${ENTRY}`,
+      12_800,
+      ['loop-shape'],
+    ],
+    [
+      'a do over and over',
+      (count) => `${'do '.repeat(count)}\n${ENTRY}`,
+      21_000,
+      ['do'],
+    ],
+    [
+      'one long name before a bracket',
+      (count) => `${'a'.repeat(count)}(\n${ENTRY}`,
+      60_000,
+      [],
+    ],
+    [
+      'a type over and over',
+      (count) => `${'int '.repeat(count)}\n${ENTRY}`,
+      15_000,
+      [],
+    ],
+  ];
+
+  it.each(SHAPES)('judges %s quickly', (_name, shape, count, refused) => {
+    const { ms, problems } = msToCheck(shape(count));
+    expect(problems.map((problem) => problem.code)).toEqual(
+      expect.arrayContaining([...refused]),
+    );
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('refuses one past the size limit, and quickly', () => {
+    // A quarter of a megabyte since the 64 KB it used to be was measured to
+    // buy nothing (scenePacks.ts).
+    const { ms, problems } = msToCheck(
+      `${'a'.repeat(MAX_MEMBER_SOURCE_BYTES)}(\n${ENTRY}`,
+    );
+    expect(problems.map((problem) => problem.code)).toContain('too-large');
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
 });
 
 /**

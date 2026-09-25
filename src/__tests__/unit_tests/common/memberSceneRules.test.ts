@@ -259,20 +259,6 @@ describe('member scene rules', () => {
     );
   });
 
-  it('refuses a source built to be slow to check, and quickly', () => {
-    const started = performance.now();
-    expect(codes(`${'for('.repeat(12800)}\n${GOOD}`)).toContain('loop-shape');
-    expect(codes(`${'do '.repeat(21000)}\n${GOOD}`)).toContain('do');
-    // Both took most of a second of the main process before; these two took
-    // one and six seconds until 2026-09-13.
-    // Past MAX_MEMBER_SOURCE_BYTES, which is a quarter of a megabyte since
-    // the 64 KB it used to be was measured to buy nothing (scenePacks.ts).
-    expect(codes(`${'a'.repeat(263000)}(\n${GOOD}`)).toContain('too-large');
-    codes(`${'a'.repeat(60000)}(\n${GOOD}`);
-    codes(`${'int '.repeat(15000)}\n${GOOD}`);
-    expect(performance.now() - started).toBeLessThan(400);
-  });
-
   it('refuses a block comment that never closes', () => {
     // After the scene, so no later `*/` in it can close the comment.
     expect(codes(`${GOOD}/* open\n`)).toEqual(['unterminated-comment']);
