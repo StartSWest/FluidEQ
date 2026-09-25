@@ -104,14 +104,12 @@ const VisDeck = ({ height }: { height: number }) => {
   // Ctrl+G shows and hides the grid here as it does on the graph, and it is
   // the graph's own switch: the trace stretches edge to edge exactly when
   // that switch is off (`traceStretch`), so a grid of the player's own could
-  // label columns the trace had moved. Not in full screen, the picture alone,
-  // which has no grid to show (Ivan, 2026-09-24: "control + G also show and
-  // hide grid there in mini player on two columns only"). The graph behind
-  // the player stands its own Ctrl+G down (`FrequencyResponseChart`).
+  // label columns the trace had moved (Ivan, 2026-09-24: "control + G also
+  // show and hide grid there in mini player on two columns only"). In full
+  // screen as well, where a measuring view keeps its grid ("the grid also in
+  // fullscreen for those meter ones"). The graph behind the player stands its
+  // own Ctrl+G down (`FrequencyResponseChart`).
   useEffect(() => {
-    if (isFull) {
-      return undefined;
-    }
     const onKey = (event: KeyboardEvent) => {
       if (
         (event.ctrlKey || event.metaKey) &&
@@ -125,7 +123,7 @@ const VisDeck = ({ height }: { height: number }) => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isFull]);
+  }, []);
   const [box, setBox] = useState({ width: 0, height: 0 });
   // The scene that failed here, so its fallback stays until another is picked.
   const [troubled, setTroubled] = useState<string>();
@@ -163,7 +161,6 @@ const VisDeck = ({ height }: { height: number }) => {
   // switch (`paperRules.ts`).
   const paper = playerPaperFor(look.style, {
     isTrace: !isScene && scene.state !== 'loading',
-    isFull,
     isGridHidden,
   });
   const { padding } = paper;

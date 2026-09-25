@@ -13,7 +13,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { GraphStyle } from 'common/graphStyles';
 import { playerPaperFor } from '../../../../renderer/player/paperRules';
 
-const ON = { isTrace: true, isFull: false, isGridHidden: false };
+// Full screen asks the same question: a measuring view on the whole screen
+// keeps its grid (Ivan, 2026-09-24: "the grid also in fullscreen for those
+// meter ones"), so nothing here depends on it.
+const ON = { isTrace: true, isGridHidden: false };
 
 describe("the player's grid", () => {
   it('rules both scales under the spectrum views, clear of the strip', () => {
@@ -63,10 +66,6 @@ describe("the player's grid", () => {
     });
     // A Plus scene plays in the deck instead of the trace.
     expect(playerPaperFor('analyzer', { ...ON, isTrace: false })).toMatchObject(
-      bare,
-    );
-    // Full screen is the picture alone.
-    expect(playerPaperFor('analyzer', { ...ON, isFull: true })).toMatchObject(
       bare,
     );
     // Ctrl+G, the graph's own switch, took it away.

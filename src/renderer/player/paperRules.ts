@@ -21,7 +21,9 @@ import type { IMarginLike } from '../graph/ChartController';
  * the graph's grid switch is on, and each scale only where it names what is
  * drawn (`frequencyAxisSuitsLook`, `levelAxisSuitsLook`). Only on the
  * measuring views: a scene is a picture, and the deck gives it the whole
- * surface as before. Not in full screen either, which is the picture alone.
+ * surface as before. In full screen too (Ivan, 2026-09-24: "the grid also in
+ * fullscreen for those meter ones"): a measuring view on the whole screen is
+ * still an instrument, and its numbers are what it is there to be read by.
  */
 export interface IPlayerPaper {
   /** Frequencies along the bottom, with their rules. */
@@ -87,16 +89,14 @@ export const playerPaperFor = (
   style: GraphStyle,
   {
     isTrace,
-    isFull,
     isGridHidden,
   }: {
     /** The live trace draws the look here, rather than a Plus scene. */
     isTrace: boolean;
-    isFull: boolean;
     isGridHidden: boolean;
   },
 ): IPlayerPaper => {
-  if (!isTrace || isFull || isGridHidden || !isAnalysisStyle(style)) {
+  if (!isTrace || isGridHidden || !isAnalysisStyle(style)) {
     return BARE;
   }
   const frequency = frequencyAxisSuitsLook(style);
