@@ -231,6 +231,28 @@ describe('the Plus terms', () => {
   });
 
   /**
+   * The terms tell a reader which switch lets an AI tool look at the Studio,
+   * by the name the Studio's card wears. A card renamed in one place and not
+   * the other sends the reader looking for a switch that is not there.
+   */
+  it('name the Studio’s AI link by its card’s own title, in every language', () => {
+    expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
+      'terms.elsewhere.p9',
+    );
+    const namesTheCard = (
+      code: (typeof LOCALES)[number]['code'],
+      key: 'terms.elsewhere.p9' | 'terms.elsewhere.p3',
+    ) => translate(code, key).includes(translate(code, 'studio.agent.title'));
+    const unnamed = LOCALES.filter(
+      ({ code }) => !namesTheCard(code, 'terms.elsewhere.p9'),
+    ).map(({ code }) => code);
+    expect(unnamed).toEqual([]);
+    // The positive control: a line that does not name the card is seen as
+    // not naming it.
+    expect(namesTheCard('en', 'terms.elsewhere.p3')).toBe(false);
+  });
+
+  /**
    * Buy Me a Coffee, which takes the payment, requires every account holder
    * to be 18. Terms that let a younger person join promise a membership the
    * payment side will not sell.
