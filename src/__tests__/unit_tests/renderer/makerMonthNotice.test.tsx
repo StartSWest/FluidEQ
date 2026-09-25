@@ -19,6 +19,8 @@ import { resetMakerMonthStore } from '../../../renderer/plus/makerMonthStore';
  */
 
 const ME = 'c0ffee00-1111-4222-8333-444455556666';
+/** Another account signing in on the same computer. */
+const SOMEBODY_ELSE = 'decaf000-7777-4888-9999-aaaabbbbcccc';
 const DAY = 24 * 60 * 60 * 1000;
 
 let account: IAccountState = { status: 'signed-in', identity: { id: ME } };
@@ -137,6 +139,23 @@ test('put away, it stays away for the rest of the sitting', async () => {
   render(<MakerMonthNotice />);
   await waitFor(() => expect(mockMonth).toHaveBeenCalledTimes(2));
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+test('one account putting it away does not put it away for the next', async () => {
+  // Mounted once for the window's life, across sign-outs: a "Not now" kept
+  // as a bare state hid the next account's own warning, never once shown.
+  month({ until: new Date(Date.now() + 2 * DAY).toISOString() });
+  const { rerender } = render(<MakerMonthNotice />);
+  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+  await userEvent.click(
+    screen.getByRole('button', { name: 'account.maker.notice.later' }),
+  );
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+  account = { status: 'signed-in', identity: { id: SOMEBODY_ELSE } };
+  rerender(<MakerMonthNotice />);
+  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+  expect(mockMonth).toHaveBeenCalledTimes(2);
 });
 
 test('signed out, it asks nothing and shows nothing', async () => {

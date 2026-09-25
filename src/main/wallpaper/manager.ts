@@ -52,6 +52,17 @@ const RETRIED_ON_DISPLAY_CHANGE: readonly TWallpaperError[] = [
 ];
 
 /**
+ * Failures of a monitor's scene itself, which another scene answers: a
+ * monitor following the graph whose visualizer was removed, or would not run
+ * here, takes the graph's next one. Anything else — a monitor unplugged, the
+ * membership gone, the desktop itself — waits as it always did.
+ */
+const MENDED_BY_ANOTHER_SCENE: readonly TWallpaperError[] = [
+  'missing-scene',
+  'refused',
+];
+
+/**
  * Every monitor's background — what it shows, what it was last set to show,
  * kept between launches — and everything that starts, pauses or stops them:
  * the window's requests, the membership, the scenes, the monitors themselves
@@ -75,6 +86,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   // A game of this listener's own is in front. The window says so, because
   // the profiles that decide what counts as a game are the window's.
   let gameInFront = false;
+  // The Plus visualizer the graph shows, as the window last said: what every
+  // monitor set to follow the graph goes to (`followGraph`). Not kept between
+  // launches; the window says it again as soon as it opens.
+  let graphLook: string | undefined;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -252,6 +267,70 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   };
 
   /**
+   * Every monitor set to follow the graph, onto the Plus visualizer the graph
+   * shows. Nothing moves while that visualizer cannot be loaded here, and a
+   * monitor that is gone, or waiting on something a new scene cannot mend,
+   * stays as it is: following never takes a background off the desktop. The
+   * one it replaces plays until the new one has drawn (`backgrounds.place`).
+   */
+  const followGraph = (): boolean => {
+    if (disposed || !graphLook || !app.isReady() || !entitled()) {
+      return false;
+    }
+    const lookId = graphLook;
+    const followers = [...saved.values()].filter(
+      (entry) =>
+        entry.choice.followsGraph === true && entry.choice.lookId !== lookId,
+    );
+    const scene = followers.length > 0 ? deps.loadScene(lookId) : undefined;
+    if (!scene) {
+      return false;
+    }
+    const connected = screen.getAllDisplays();
+    const displays = connectedDisplays();
+    let changed = false;
+    followers.forEach((entry) => {
+      const failure = backgrounds.failureOn(entry.displayId);
+      const playing = backgrounds.surfaceOn(entry.displayId) !== undefined;
+      const target = connected.find((item) => item.id === entry.displayId);
+      const display = displays.find((item) => item.id === entry.displayId);
+      if (
+        !target ||
+        !display ||
+        !(
+          playing ||
+          (failure && MENDED_BY_ANOTHER_SCENE.includes(failure.error))
+        )
+      ) {
+        return;
+      }
+      const choice: IWallpaperChoice = { ...entry.choice, lookId };
+      backgrounds.place(target, choice, scene);
+      remember(
+        display,
+        backgrounds.surfaceOn(entry.displayId)?.choice() ?? choice,
+      );
+      changed = true;
+    });
+    return changed;
+  };
+
+  /**
+   * The Plus visualizer the graph shows now, as the window says each time it
+   * changes to another one — by hand or by the graph's automatic switching.
+   */
+  const setGraphLook = (lookId: string) => {
+    if (disposed || lookId === graphLook) {
+      return;
+    }
+    graphLook = lookId;
+    if (followGraph()) {
+      save();
+      publish();
+    }
+  };
+
+  /**
    * What was on the desktop before FluidEQ last closed, back on the same
    * monitors. It waits for the window, whose page answers the monitors' audio
    * reads, and for the membership, which the account may confirm after launch.
@@ -275,6 +354,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     missing.forEach((entry) =>
       backgrounds.fail(entry.displayId, entry.choice, 'missing-display'),
     );
+    // The graph may have moved on since FluidEQ last closed, and said so
+    // before these were back.
+    followGraph();
     save();
     publish();
   };
@@ -304,13 +386,22 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     if (disposed) {
       return;
     }
-    const { displayIds, lookId, wave, motion } = request;
+    const { displayIds, lookId, wave, motion, followsGraph } = request;
     // Rebuilt field by field: what is kept, sent back and written to disk is
     // exactly these numbers, whatever else the request carried.
     const choice: IWallpaperChoice = {
       lookId,
       wave: { height: wave.height, position: wave.position },
       motion,
+    };
+    // Following the graph as the request says. Unsaid, a monitor already set
+    // to this look keeps following if it did — the same look set again for
+    // its wave or its motion — and one given a different look by name stops.
+    const choiceFor = (displayId: number): IWallpaperChoice => {
+      const kept = saved.get(displayId)?.choice;
+      const follows =
+        followsGraph ?? (kept?.lookId === lookId && kept.followsGraph === true);
+      return follows ? { ...choice, followsGraph: true } : choice;
     };
     pauseOnBattery = request.pauseOnBattery;
     const owner = ownerContents();
@@ -326,7 +417,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       } else {
         reason = 'missing-scene';
       }
-      displayIds.forEach((id) => backgrounds.fail(id, choice, reason));
+      displayIds.forEach((id) => backgrounds.fail(id, choiceFor(id), reason));
     } else {
       watchOwner(owner);
       const connected = screen.getAllDisplays();
@@ -334,26 +425,31 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       displayIds.forEach((id) => {
         const target = connected.find((entry) => entry.id === id);
         const display = displays.find((entry) => entry.id === id);
+        const chosen = choiceFor(id);
         if (!target || !display) {
-          backgrounds.fail(id, choice, 'missing-display');
+          backgrounds.fail(id, chosen, 'missing-display');
           return;
         }
         const playing = backgrounds.surfaceOn(id);
         if (playing?.lookId === lookId) {
-          // Set again with another wave or motion: the one already playing
-          // takes it, with no restart and no blink.
-          playing.retune(choice);
+          // Set again with another wave or motion, or to follow the graph or
+          // not: the one already playing takes it, with no restart and no
+          // blink.
+          playing.retune(chosen);
         } else {
-          backgrounds.place(target, choice, scene);
+          backgrounds.place(target, chosen, scene);
         }
         // Remembered once it is on the monitor: a request refused outright
         // is not something to bring back at the next launch.
         if (backgrounds.lookOn(id) === lookId) {
           // What it actually draws: a look tuned in the window lands on that
           // band, and the file has to agree with the desktop.
-          remember(display, backgrounds.surfaceOn(id)?.choice() ?? choice);
+          remember(display, backgrounds.surfaceOn(id)?.choice() ?? chosen);
         }
       });
+      // Set to follow the graph while the graph shows another Plus
+      // visualizer: it goes there now, not at the graph's next change.
+      followGraph();
     }
     save();
     // The battery choice is one setting, so monitors already playing follow it.
@@ -422,6 +518,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         changed = true;
       }
     });
+    // The graph's visualizer may only now be one this can load — a member's
+    // scene the store finished reading after launch.
+    if (followGraph()) {
+      save();
+      changed = true;
+    }
     if (changed) {
       publish();
     }
@@ -447,7 +549,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         waiting,
         connectedDisplays().filter((display) => !taken.has(display.id)),
       );
-      if (matched > 0) {
+      // One brought back while it followed the graph goes where the graph is.
+      const followed = followGraph();
+      if (matched > 0 || followed) {
         save();
       }
     }
@@ -538,6 +642,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     setGameInFront,
     setPerformance,
     setTuning,
+    setGraphLook,
     restoreSaved,
     failEverywhere,
     surfaceFailed,

@@ -155,9 +155,11 @@ export type TLayerListInputs = Pick<
  * always first and the convolution after it (what the output is corrected
  * by), then the rest, and the three that change most last and in the same
  * places, the preset third from the end, the Tone second, and the bands'
- * own chip last, "so its easy to find and delete".
+ * own chip last, "so its easy to find and delete". The graph's curve chips
+ * read in the same order (Ivan, the same day: "same order as pills"), so a
+ * layer is found in the same place on both rows.
  */
-const ROW_ORDER: readonly string[] = [
+export const ROW_ORDER: readonly string[] = [
   'headphone',
   'convolution',
   'driver',

@@ -14,7 +14,8 @@ import {
   setDspPhaseView,
   useDspPhaseView,
 } from './store';
-import { readTextInk, readAccent, readSurfaceAlpha } from '../utils/theme';
+import { readTextInk, readAccent } from '../utils/theme';
+import { fadeTrail, fadingContext } from '../utils/fadingCanvas';
 
 /** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
@@ -153,18 +154,12 @@ const SCOPE_FADE = 0.16;
  * same one — here they look nothing alike.
  */
 const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
-  // Painted over rather than cleared, which is where the tail comes from.
-  //
-  // The card's own colour, which its block now wears too (`.dsp-eq-phase`):
-  // Ivan, 2026-09-22, "match the card". It was a near-black violet from
-  // before the palette existed, then the plot colour, a step darker than
-  // the card around it — either way a rectangle of another colour.
-  context.fillStyle = readSurfaceAlpha(
-    '--surface-block',
-    SCOPE_FADE,
-    `rgba(30, 66, 87, ${SCOPE_FADE})`,
-  );
-  context.fillRect(0, 0, box.width, box.height);
+  // Faded rather than cleared, which is where the tail comes from — toward
+  // transparent, so the card shows through the whole box (`fadingCanvas.ts`).
+  // It was faded toward the card's colour, and an 8-bit canvas never got
+  // there: the box settled a shade off the card and kept the dial's ghost
+  // behind the trace for good (Ivan, 2026-09-22).
+  fadeTrail(context, box.width, box.height, SCOPE_FADE);
 
   const size = Math.min(box.width, box.height) - 6;
   const midX = box.width / 2;
@@ -238,7 +233,8 @@ const DspPhaseMeter = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
+    // The scope fades its trail, which only completes on this kind of canvas.
+    const context = canvas && fadingContext(canvas);
     if (!canvas || !context) {
       return undefined;
     }
@@ -289,10 +285,17 @@ const DspPhaseMeter = () => {
     let frame = 0;
     /** Eased toward the reading, so the needle swings rather than jumping. */
     let shown = 1;
+    // The scope's first frame starts from nothing: whatever the view before
+    // it drew — the dial — is not a trail of this one, and faded instead of
+    // cleared it stood behind the trace for as long as it took to go.
+    let isFirstFrame = true;
 
     const paint = () => {
       frame = 0;
-      const box = measure(view === 'scope');
+      const box = measure(view === 'scope' && !isFirstFrame);
+      if (box) {
+        isFirstFrame = false;
+      }
       // Nothing to report on, or nowhere to draw it. Either way the loop keeps
       // turning so the meter starts by itself once the engine does.
       if (!box || !readDspAnalyser('eq')) {

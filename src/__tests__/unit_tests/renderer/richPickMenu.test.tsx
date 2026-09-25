@@ -517,3 +517,64 @@ describe('a pick with no actions, like Carácter', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 });
+
+describe('a pick with a preview beside its list', () => {
+  /**
+   * The genre notes' column (`GenreNotesPreview`): it answers for the chosen
+   * row on opening, then for whichever row the pointer or the arrows reached
+   * last, and it can close the menu for an action of its own.
+   */
+  const renderWithPreview = () =>
+    render(
+      <RichPick
+        entries={VOICINGS}
+        groupLabel={(group) => group}
+        activeId="music"
+        onPick={jest.fn()}
+        placeholder="Character"
+        triggerAriaLabel="Character: music"
+        triggerTitle="Character"
+        placeholderIcon={<span />}
+        renderPreview={(id, close) => (
+          <>
+            <p data-testid="preview">{id ?? 'nothing'}</p>
+            <button type="button" onClick={close}>
+              Full notes
+            </button>
+          </>
+        )}
+      />,
+    );
+
+  it('describes the chosen row on opening, then the row reached last', async () => {
+    renderWithPreview();
+    await open('Character: music');
+    expect(screen.getByRole('menu')).toHaveClass('has-preview');
+    expect(screen.getByTestId('preview')).toHaveTextContent('music');
+
+    fireEvent.pointerEnter(screen.getByRole('menuitemradio', { name: /Rock/ }));
+    expect(screen.getByTestId('preview')).toHaveTextContent('rock');
+
+    // The keyboard reaches rows too, and the preview follows focus there.
+    act(() => {
+      screen.getByRole('menuitemradio', { name: /Speech/ }).focus();
+    });
+    expect(screen.getByTestId('preview')).toHaveTextContent('speech');
+  });
+
+  it('lets the preview close the menu', async () => {
+    renderWithPreview();
+    await open('Character: music');
+    await userEvent.click(screen.getByRole('button', { name: 'Full notes' }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('draws no preview column for a pick that has none (control)', async () => {
+    renderVoicings();
+    await open('Character: none');
+    expect(screen.getByRole('menu')).not.toHaveClass('has-preview');
+    expect(
+      screen.getByRole('menu').querySelector('.rich-pick__preview'),
+    ).toBeNull();
+  });
+});

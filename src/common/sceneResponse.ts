@@ -1,3 +1,4 @@
+import type { ISceneRhythm } from './sceneRhythm';
 import { getEaseFactor } from './smoothing';
 
 /**
@@ -130,6 +131,7 @@ export interface IHeardMusic {
   bands: readonly [number, number, number];
   spectrum: Uint8Array;
   waveform: Uint8Array;
+  rhythm?: ISceneRhythm;
 }
 
 /**
@@ -172,11 +174,18 @@ export const respond = (
       Math.round(heard.waveform[sample] * response.sensitivity),
     );
   }
+  const resting = gatedLevel <= 0;
   return {
     level: state.level,
-    beat: gatedLevel > 0 ? heard.beat : 0,
+    beat: resting ? 0 : heard.beat,
     bands: state.bands,
     spectrum: out.spectrum,
     waveform: out.waveform,
+    // The drums are the beat's parts, and rest with it where the scene's own
+    // gate calls the music too quiet to answer. The clocks run on: a beat
+    // phase is where the music is, not something it did.
+    ...(heard.rhythm && resting
+      ? { rhythm: { ...heard.rhythm, kick: 0, snare: 0, hat: 0 } }
+      : {}),
   };
 };

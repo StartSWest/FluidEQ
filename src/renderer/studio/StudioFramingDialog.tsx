@@ -24,6 +24,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { drawFramed } from './scenePicture';
 import type { IFramingSession } from './useScenePictures';
+import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/Gallery.scss';
 import '../styles/StudioControls.scss';
 import '../styles/StudioPictures.scss';
@@ -84,6 +85,8 @@ export default function StudioFramingDialog({
   onCancel,
 }: IStudioFramingDialogProps) {
   const { t } = useTranslation();
+  // Open on the Studio's project: its AI may not switch the Studio under it.
+  useStudioAgentHold(true);
   const zoomId = useId();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);

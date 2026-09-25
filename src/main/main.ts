@@ -219,6 +219,7 @@ import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerMakerMonthIpc } from './ipc/makerMonth';
+import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { setKnownMaker } from './account/knownMakers';
 import { registerPlusGiftsIpc } from './ipc/plusGifts';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
@@ -3322,11 +3323,21 @@ const makerMonthIpc = registerMakerMonthIpc({
     }
   },
 });
+// The member's own AI looking at the scene it is writing, over MCP on this
+// computer only — shut until the member opens it on the Studio's card.
+const studioAgentDoor = createStudioAgentDoor({
+  userDataDir,
+  getMainWindow: () => mainWindow,
+  agentProject: memberScenesIpc.agentProject,
+  appVersion: appVersion(),
+  logger: log,
+});
 const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,
   userDataDir,
   activeFolder: memberScenesIpc.activeFolder,
   activeIsInspection: memberScenesIpc.activeIsInspection,
+  mayPublishActive: memberScenesIpc.mayUseActive,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
   onPublished: () => {
     plusGalleryIpc
@@ -3796,6 +3807,8 @@ app.on('before-quit', (event) => {
   memberSharingIpc.dispose();
   memberScenesIpc.dispose();
   makerMonthIpc.dispose();
+  // Its listening socket, like the forum's below, must not outlive the app.
+  studioAgentDoor.dispose().catch(() => undefined);
   plusProfileIpc.dispose();
   leaderboardIpc.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.

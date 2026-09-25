@@ -53,6 +53,15 @@ version and in these notes.
 - **The Compact player keeps a theme of its own.** Light or Dark, chosen in its
   menu, apart from the full app's, so the app can stay Dark while the player
   sits Light beside your work.
+- **The player's visualizer has the graph's switches.** Changing looks by
+  itself, a scene's colours on the window, the desk lights and the desktop
+  background, in the same order as on the graph: beside the picture when the
+  player is two columns wide, and in the corner of the equaliser's screen
+  when it is one.
+- **On a Mac, FluidEQ looks like a Mac app.** The Mac's own close, minimise
+  and zoom buttons stand in the title bar and in the player's strip, with the
+  Mac's corner and edge, text drawn the way the Mac draws it, and the green
+  button and a double-click on the title bar doing what your Mac is set to do.
 - **The volume is your computer's own.** FluidEQ's separate volume level is
   gone: the slider on the player, on both bars and in Karaoke is Windows'
   volume, so it sets the level of everything the computer plays and stays
@@ -60,10 +69,10 @@ version and in these notes.
 - **Every game its own sound.** A chain per game — from Steam, Epic Games, EA,
   GOG, Ubisoft, Battle.net and Xbox, or any program that is open — switched
   the moment the game comes to the front, and kept until the game is closed,
-  however often you alt-tab. A card on the desktop, in the window's own
-  colours, says what was loaded and another what came back. While a game holds
-  the sound, the player bar names it. The equaliser's fourth pill is named for
-  what it holds — Game presets.
+  however often you alt-tab. A card on the desktop — on the screen FluidEQ is
+  on, in the window's own colours — says what was loaded and another what came
+  back. While a game holds the sound, the player bar names it. The equaliser's
+  fourth pill is named for what it holds — Game presets.
 - **Game mode, and the delay you can see.** Game mode cuts the delay FluidEQ
   adds, for aim and for voice chat, and the Gaming presets turn it on. The EQ
   and DSP pages now show the delay the chain adds as measured, broken down by
@@ -75,6 +84,16 @@ version and in these notes.
   five measured bands in front of the Room so the chain sounds like itself
   through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
   than it went in; those bands are that difference).
+- **Every music style explains itself.** Each genre preset has notes: what the
+  style asks for, why each point on its curve is where it is, and what every
+  effect in its chain does or why it is left off, with how loud it plays
+  against DSP Off. They open from About on the DSP page, from the i on the
+  preset's chip under Also applied, and beside the list while you point at a
+  preset in either picker, and the points they explain stand on the preset's
+  curve on the graph. Every preset was checked against its notes and does what
+  they say: a style mixed with its bass in the centre plays it centred below
+  the point that style names, and no curve lifts where its style keeps things
+  flat.
 - **None is one choice, first in both pickers.** Picked on the equaliser or on
   the DSP page, it takes the whole preset away — its tone and every stage of
   its chain — and it stands above everything in both lists, the chains you
@@ -102,8 +121,68 @@ version and in these notes.
   head by ear: all of it is open to everybody.
 - **Bass, Mid and Treble across the whole rack**, the way an amplifier has
   them, on the main equaliser whenever no band is selected. Each moves its own
-  third of the spectrum; Ctrl+click puts that third back to flat. The
-  equaliser now opens with nothing selected, showing the whole rack.
+  third of the spectrum; Ctrl+click puts that third back to flat. They are a
+  curve of their own — drawn in their own colour, with a chip under Also
+  applied, and saved with the profile — so turning them never rewrites bands
+  you tuned by hand. The equaliser now opens with nothing selected, showing
+  the whole rack.
+- **A low cut and a high cut** on the Tone panel, either side of Bass, Mid
+  and Treble: off, 12 or 24 dB per octave, at 20 Hz and at 20 kHz.
+- **The equaliser plays the curve you drew, all the way to the top.** On the
+  FluidEQ Engine a band near the top of the range used to play weaker than the
+  graph showed — nearly 4 dB short at 20 kHz on a 48 kHz output. It now plays
+  as drawn. The EQ mode menu's Treble row keeps the old way as Classic, for
+  your EQ and for headphone corrections separately — Classic is how Equalizer
+  APO builds a band and how AutoEQ tunes a correction — and the graph draws
+  whichever one is playing.
+- **Auto normalize lands on an edit's level at once.** Applying a curve or
+  moving a band used to drop the volume by the most it could ever need and
+  climb back over several seconds. On the FluidEQ Engine it now works out the
+  level the new sound needs from the last ten seconds of music, moves there in
+  one step, and only fine-tunes after that.
+- **Linear phase on your EQ and on the curves shares one delay**, instead of
+  adding the two together.
+- **The graph shows the whole spectrum, on scales that hold still.** With the
+  grid on it starts an octave below 20 Hz, where a low cut does its work; with
+  the grid off it is trimmed to 20 Hz – 16 kHz, where records have sound, so a
+  full-screen picture has no empty strip down the side. The equaliser's ±20 dB
+  scale no longer stretches when a curve runs past it, and the live sound has
+  a scale of its own on the right, 80 dB deep as a studio analyser draws it, so
+  the top octave and a high cut show. Frequencies are labelled 10, 20, 50,
+  100… the way analysers print them.
+- **Double-click the graph to fill the screen, Ctrl+double-click to fill the
+  window**, and double-click again to come back from either. Help lists the
+  graph's keyboard shortcuts.
+- **Twelve ways to read the sound.** The graph's plain drawings gave way to
+  the views studio tools use: Analyzer, Before & after, Spectrogram,
+  Third-octave RTA, Peak & average, Waterfall, Stereo & loudness,
+  Oscilloscope, Mid & side, Note spectrum, Energy bands and Phase history. A
+  look you saved on one of the old drawings still draws.
+- **Twenty new visualizers under Scenes.** LED wall, Glass towers, Tide, Halo
+  and Synthwave; LED bars with square segments, Neon bars, 3D bars, Spectrum
+  wave and Silk waves; and Mirror bars, Pixel bars, Light beams, Spark bars,
+  Glitch bars, Orb, Kaleidoscope, Helix, Mesh and Halftone. Each moves with the
+  bass, the beat and the treble separately, keeps its shape upside down and
+  mirrored, and follows the look editor like every other look: colour by
+  frequency, level or loudness, pieces and gap, filled or outline, opacity,
+  line width, texture, lit peaks and glow.
+- **The wave's height and position are kept per view.** Set in the graph's
+  View menu, they are remembered separately for the pane, the expanded view
+  and full screen, and for each Plus visualizer. The Compact player and the
+  desktop backgrounds draw a visualizer with its full-screen setting.
+- **Another player's cover behind the graph.** When the sound comes from
+  Spotify, a browser or any other player, its album art fills the graph
+  behind the wave in the expanded view and in full screen.
+- **YouTube, YouTube Music, Twitch and Suno in FluidEQ's colours.** Match
+  FluidEQ's colours, in the Media page's toolbar, gives a site's dark page,
+  cards, menus and top bar the window's colour at the same darkness, on your
+  screen only. Text keeps its own colour, and videos, pictures, ads and logos
+  are never changed. It is off until you turn it on, and works in each site's
+  dark mode.
+- **A Plus visualizer behind the Media page.** With a Plus visualizer on the
+  graph and the site's colours matched, the video's own full screen plays the
+  visualizer behind the page: the chat, the comments and the suggestions
+  stand over it, and the video stays solid on top.
 - **A twenty-band quick layout**, and every layout moved onto the
   international standard's frequencies: a band labelled 64 Hz is now the
   63 Hz everything else means by it. Bands also open as wide as their spacing
@@ -120,8 +199,8 @@ version and in these notes.
   pictures are shown in Light when the window is Light and in Dark when it is
   Dark. Help itself is now the book in the title bar, beside the actions menu.
 - **The Studio is part of Plus, and opens with a free trial.** Fifteen days,
-  no card, nothing charged when it ends — **for an account created after the
-  offer opened on 20 September 2026**. Somebody without Plus meets a page that
+  no card, nothing charged when it ends — **for an account created on or after
+  20 September 2026, the day the offer opened**. Somebody without Plus meets a page that
   says what the Studio is and how to get in, and names the folder any project
   of theirs is sitting in, whole and untouched, for the day they come back to
   it.
@@ -134,15 +213,53 @@ version and in these notes.
   new version is published above the highest number that scene was ever out
   at, so a number can never come back around. A scene you find wrong can be
   reported from the looks menu.
+- **Your AI can see your scene, and hear the song.** Copy the AI prompt in
+  the Studio and your AI assistant — Claude Code, Codex or another that
+  speaks MCP — connects to FluidEQ on this computer by itself. It can draw
+  your scene at any shape and moment, with music or in silence, read why a
+  scene cannot play, and hear how the song you are playing moves — its
+  sections, builds, drops, drums and tempo — as numbers, never the sound and
+  never which song. The switch is on the Studio's card, and nothing of it
+  leaves your computer.
+- **Scenes can dance to the song.** A scene now hears the tempo and where
+  each beat and bar falls — a clock that lands on the beat instead of
+  answering after it — the kick, the snare and the hi-hats apart, how intense
+  the song is, when it builds and when it drops, where the music sits between
+  the speakers, and the singer's voice. The AI prompt teaches all of it, so a
+  scene written from one line can step on the kick and leap at the drop.
+- **Turn a 3D scene with your mouse.** Where its maker allows, drag a scene to
+  see it from another side, Ctrl+scroll or pinch to move in and out, and press
+  Reset view for the view it was made with — on the graph, in the Studio and
+  in the gallery. On the graph a plain drag still selects bands; the right or
+  middle button turns the scene there. A scene can also answer where you
+  point and tap.
+- **The Studio's meters follow the rhythm and the song**: the tempo and how
+  sure it is, a lamp each for the kick, the snare and the hats, a spin the
+  music winds up, intensity, build and drop, the voice and its note, and
+  where the music stands left to right. The test music plays a song's shape —
+  a verse, a build and a drop, the kick on one and three and the snare on two
+  and four — so a scene's answer to each can be tried.
+- **The Plus terms, third edition.** They now cover the approval every
+  published scene waits for, the free trial, the month an approved scene
+  earns and the one Studio project a maker keeps without Plus, and they say
+  what an AI tool on your computer can see once you let it look at the
+  Studio's stage. Members who agreed to an earlier edition are told once, in
+  a small card, what changed.
 - **The equaliser shows the output's rate** beside its name, as the DSP page
   does: the rate Windows runs the output you are listening to at, read again
   when the output changes or you come back to the window.
-- **Start with Windows.** A switch in the actions menu starts FluidEQ when you
-  sign in.
+- **Start with Windows.** A switch in the actions menu, under Animations,
+  starts FluidEQ when you sign in. It needs no administrator, and it says so
+  when Windows' own Startup apps has FluidEQ switched off.
 - **A desktop background keeps its place.** It plays on while its replacement
   is prepared, pauses while windows cover its whole monitor or a game is in
   front, gives the desktop its own wallpaper back while it waits on battery,
   and follows the visualizer's settings from the window as you change them.
+- **A monitor can follow the graph.** Switch on Follow graph for it in the
+  desktop background's Manage dialog, and it changes to whichever Plus
+  visualizer the graph shows, whether you picked it or the graph changed looks
+  by itself. When the graph shows a standard look, the monitor keeps the last
+  Plus visualizer it had. Each monitor has its own switch.
 - **The FluidEQ Engine has a new build.** The copy on your machine is offered
   an update the first time you run 1.8.0: one press in the notice, and Windows
   restarts its audio itself. Until you take it the equaliser keeps working and
@@ -168,6 +285,47 @@ version and in these notes.
   instant, and the seek bar no longer jumps back and forth after you drag it.
   Getting the next song ready used to reset the effects under the song that
   was playing twice a track — a small hiccup mid-song — and no longer does.
+- **Up Next keeps the order you give it.** A song dragged to a new place went
+  back to its old one when the next song started, and a song taken out came
+  back; and after taking any song out, the whole queue was gone at the next
+  launch.
+- **Switching to the player and back no longer shows a stretched window**, and
+  neither does the player's picture going to full screen: the window changes
+  size out of sight and comes back drawn, full screen fades in from black,
+  and a view that measures the sound keeps its grid there.
+- **The player's visualizer, two columns wide, reads like the graph.** A view
+  that measures the sound shows the graph's grid and scales there, and Ctrl+G
+  shows and hides them as it does on the graph; the level meter runs across
+  the whole picture; a view's legend sits under the picture instead of behind
+  the look picker; and full screen has no frame around the picture.
+- **The output level meter no longer slows the window.** It printed its scale
+  afresh on every frame, about a quarter of a processor core's work; it now
+  prints it only when something on it changes.
+- **The graph's curve chips are in the order of the chips under Also
+  applied**: the headphone correction first, then the convolution, the
+  preset, the Tone and your EQ, with the final output after them.
+- **The Compact player recovers from an error.** Its recovery screen said it
+  was reloading and never did; it now reloads, and comes back as the player.
+- **The Studio's colours stay on the Studio's page.** Going to the player or
+  another page from the Studio, the window takes the colours of the
+  visualizer that is playing instead of the Studio's scene.
+- **Scene icons show in the player's look picker**, where they were blank.
+- **The desk lights switch on the graph shows its light only while it is
+  on.** Switched off, it drew the same rays as on.
+- **A visualizer looks the same wherever it plays.** Your own scene on the
+  desktop was treated as another member's and left a ghost of each frame
+  behind it, while the Studio showed it clean. The graph, the gallery, the
+  Studio, the player and the desktop now play every scene by the same rules.
+  The desktop also follows the music on every frame it draws, where it used
+  to move in steps thirty times a second.
+- **Another member's scene that flashes is calmed, not smeared.** The flash
+  protection used to blend the previous picture into fast motion, which showed
+  as a double image. Now it only dims the patches that flash, and everything
+  else moves as drawn.
+- **FluidEQ fits a screen scaled to 200%**, such as a Mac showing it at
+  1440 × 852: the title bar and the playback bar are shorter, the DSP pages'
+  pictures fit beside their controls, the cover flow shows more songs, and
+  Karaoke's pitch lane keeps its notes readable.
 - **Repeat One repeats the song again** in the Library.
 - **An EQ switched off from its chip comes back on when you clear its bands.**
   Switched off from Also applied and then cleared with Clear EQ, the chip's ×
@@ -182,15 +340,50 @@ version and in these notes.
   player.
 - **Smart EQ's speech bubble no longer covers Game mode, the delay or the page
   title.** It finds room above or below its button at any window width.
-- **The phase meters on the EQ and Dimension cards** are drawn in the card's
-  own colour instead of a darker box, in both themes.
+- **Each DSP card is one colour.** Every box of controls or readings on a
+  card, the phase meters on the EQ and Dimension cards among them, wears the
+  card's own colour with a thin edge, in both themes, instead of two or three
+  shades of slate; the graphs keep their darker ground. The scopes' trails
+  fade into the card instead of leaving the dial's ghost behind them, and the
+  line under the DSP title is one strip with its button at the end.
+- **The Denoise graph shows its numbers.** It printed {{count}} and {{hz}}
+  instead of how many clicks it repaired and the hum's frequency, in every
+  language.
+- **The DSP page's header keeps to one row** on a window 1100 pixels wide and
+  up: the presets no longer leave their file actions on a line of their own,
+  and the Dimension card's legend no longer stands across the header.
 - **Renaming a profile says why a name was refused in your language**, and the
   Config page calls the preset's layer a preset, not a voicing.
 - **FluidEQ says when it is not reaching the output**, instead of looking
   switched on while nothing goes through it, and the EQ page stops taking
   changes the engine cannot hear, the way it does when FluidEQ is off.
+- **A headset connected after FluidEQ started is no longer reported as out of
+  its reach** while FluidEQ is processing it. A Bluetooth headset switched to
+  mid-session was marked in red, and the EQ page stopped taking changes, over
+  an equaliser that was working.
+- **Switching output keeps the preset you picked.** The new output's profile
+  used to bring back whichever preset it had been saved with, so the preset
+  picker named one preset while its chip under Also applied named another.
+- **Changes no longer click.** Every change the FluidEQ Engine hears — a band
+  moved, a preset picked, the preamp — now fades in over a fiftieth of a
+  second with each band carrying on where it was, where a big move used to
+  click. Dragging a band through 0 dB no longer clicks either.
+- **A headphone correction plays as published**, even where it goes past the
+  sliders' ±20 dB, and the preamp you set by hand now reaches −60 dB to hold
+  it, as Auto normalize already could. A deep preamp is no longer put back to
+  −20 dB after a restart.
+- **The engine does less work.** With no headphone curve on it no longer
+  spends two thirds of its effort on a filter doing nothing, the headphone
+  curve in minimum phase adds about 13 ms of delay instead of 55, and silence
+  from a paused player no longer costs thirteen times what the equaliser does.
 - **The Target button on the EQ page no longer flashes the wrong look for a
   moment at launch.**
+- **Leaving a Plus visualizer no longer flashes the screen white.** Pressing
+  Back, going to another page or starting a scene on the graph showed one
+  white frame where the visualizer had been.
+- **The graph's View menu is never cut off at the top.** It opens clear of
+  the bar above the graph and scrolls inside itself when it is taller than
+  the room.
 - **Help's pictures point at things, the way a printed manual does.** Each
   control on a picture has a numbered circle beside it and a line to it, with
   the same numbers in the list underneath, in the app and in the printed guide
@@ -221,25 +414,38 @@ version and in these notes.
 - **Eight controls that took an answer and did nothing with it** are either
   wired up or gone, and three more are no longer drawn on the screens that
   cannot read them.
-- **Shared audio is sent as it was recorded**, with the processing delay and
-  the presets answered the same way on both machines, and Share Audio no
-  longer asks the sender to pick Music or Game/Video.
-- **The leaderboard shows real people**, from first place down; the invented
-  names it was built with are gone from every build.
+- **Shared audio arrives exactly as it was recorded.** The computer you share
+  from sends its sound untouched, and the computer with your headphones or
+  speakers applies its own EQ and effects to it once. Share Audio no longer
+  asks the sender to pick Music or Game/Video.
+- **The leaderboard lists every place from first down.** The three on the
+  podium are in the list under it too, their ranks in gold, silver and bronze,
+  where the list used to start at fourth.
 - **Plus given as a gift is not described as a subscription**, and a maker
   with another earned month waiting keeps Plus the moment one runs out.
-- **Sending more than two scenes in a month says exactly that**, and when you
-  can send again; a server answer nobody can read no longer shuts the Studio.
+- **Sending more scenes than a month allows says so**, and when you can send
+  again; a server answer nobody can read no longer shuts the Studio. A member
+  with as many scenes out as one member can have is told that, and to
+  unpublish one, instead of being asked to fix a scene with nothing wrong in
+  it.
+- **The Studio's meters keep time with the music.** They move the moment the
+  sound reaches you, where they came a drawn frame behind it; Bass follows the
+  bass line and the kick, where a man's singing lit it; the beat lamp flashes
+  on every beat once the tempo is found; and the stage keeps one steady frame
+  rate instead of stumbling between two.
 - **A scene's colours reach the rest of the window**, and the Library stops
-  blurring FluidEQ's own scenes as though they were a stranger's; the gallery's
-  pictures fill their panel.
+  blurring FluidEQ's own scenes as though they were a stranger's; on a scene's
+  page the picture fills the height of the panel beside it instead of leaving
+  an empty band under it.
 - **Signing out asks through a clear card**, the Animations switch takes effect
   at once, and the player bar no longer says nothing is playing after the
-  window reloads mid-song.
+  window reloads mid-song, nor leaves a second copy of what it watches the
+  rest of the machine with running in the background.
 - **The Processes list names every program FluidEQ starts.** The helpers that
   follow Windows' volume, tell FluidEQ which game is in front and play audio
   another FluidEQ shares with you each have a row saying what they do, and
-  their memory is in the total.
+  their memory is in the total. The audio capture row no longer says it runs
+  only while you share your audio: a second output and Smart EQ use it too.
 - **The Room is built on other people's measurements, and says so.** The
   acknowledgement names them, and SwiftF0's author with them.
 

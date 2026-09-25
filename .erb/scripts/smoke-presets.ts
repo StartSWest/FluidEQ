@@ -14,32 +14,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * It cannot decide whether a tonal choice is tasteful; that final judgement is
  * still a listening test in the real window.
  */
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-import {
-  DSP_DEFAULTS,
-  IDspSettings,
-  IEqSettings,
-} from '../../src/common/dsp/chain';
+import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
 import { encodeChainSettings } from '../../src/common/dsp/chainWire';
-import { dspPresetVoicing } from '../../src/common/dsp/presetVoicing';
-import {
-  biquadCoefficients,
-  createBiquadState,
-  processBiquad,
-} from '../../src/renderer/dsp/biquad';
 import { filterPresetCases } from './dsp-preset-cases';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_PRESETS } from '../../src/common/dsp/presets';
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
 import { writeProgrammeFixture } from './programme-fixture';
-
-interface IAudio {
-  rate: number;
-  channels: Float32Array[];
-}
+import {
+  IAudio,
+  bassCorrelation,
+  fairStereo,
+  heardLevel,
+  readFloatWav,
+  settleFrames,
+  songSecondsFor,
+  withCurve,
+  writeFloatWav,
+} from './preset-hearing';
 
 interface IMetrics {
   finite: boolean;
@@ -58,47 +54,6 @@ interface IMetrics {
  */
 const MASTER_MAKEUP_DB = 4;
 
-/**
- * A preset as it is heard: its rack's output, then its curve.
- *
- * A preset's tone left the rack for the main EQ (`presetCurve.ts`), which the
- * engine applies after everything the rack does, with the cookbook filters
- * Equalizer APO renders. So the rack alone no longer says how loud a preset
- * is: Warm's rack lost the level its bass lift carried and measured quieter
- * than DSP Off while nothing a listener hears had moved. The level windows
- * judge the rack and its curve together, before the listener's own headroom;
- * the shape checks stay on the rack, whose limiter they hold, because the
- * curve's headroom is the preamp's to find — on this engine as on APO.
- */
-const withCurve = (audio: IAudio, id: string, curve: IEqSettings): IAudio => {
-  const filters = Object.values(
-    dspPresetVoicing(id, curve).apoOverride?.filters ?? {},
-  );
-  return {
-    rate: audio.rate,
-    channels: audio.channels.map((channel) => {
-      const out = Float32Array.from(channel);
-      filters.forEach((filter) => {
-        processBiquad(
-          createBiquadState(),
-          out,
-          biquadCoefficients(
-            {
-              type: filter.type,
-              frequency: filter.frequency,
-              gainDb: filter.gain,
-              quality: filter.quality,
-            },
-            audio.rate,
-            'clean',
-          ),
-        );
-      });
-      return out;
-    }),
-  };
-};
-
 /** A chain that is deliberately moving the level toward a delivery target. */
 const normalisesLoudness = (settings: IDspSettings): boolean =>
   settings.master.enabled &&
@@ -114,55 +69,18 @@ const check = (condition: boolean, what: string) => {
   }
 };
 
-/** The host writes float WAV, but walking chunks keeps the reader honest. */
-const readWav = (file: string): IAudio => {
-  const bytes = readFileSync(file);
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let at = 12;
-  let format = 0;
-  let channelCount = 0;
-  let rate = 0;
-  let bits = 0;
-  let dataAt = 0;
-  let dataBytes = 0;
-  while (at + 8 <= bytes.length) {
-    const id = bytes.toString('ascii', at, at + 4);
-    const size = view.getUint32(at + 4, true);
-    if (id === 'fmt ') {
-      format = view.getUint16(at + 8, true);
-      channelCount = view.getUint16(at + 10, true);
-      rate = view.getUint32(at + 12, true);
-      bits = view.getUint16(at + 22, true);
-    } else if (id === 'data') {
-      dataAt = at + 8;
-      dataBytes = size;
-      break;
-    }
-    at += 8 + size + (size % 2);
-  }
-  if (format !== 3 || bits !== 32 || channelCount < 1 || dataAt === 0) {
-    throw new Error(`preset smoke: unreadable float WAV ${file}`);
-  }
-  const frames = Math.floor(dataBytes / (4 * channelCount));
-  const channels = Array.from(
-    { length: channelCount },
-    () => new Float32Array(frames),
-  );
-  for (let frame = 0; frame < frames; frame += 1) {
-    for (let channel = 0; channel < channelCount; channel += 1) {
-      channels[channel][frame] = view.getFloat32(
-        dataAt + (frame * channelCount + channel) * 4,
-        true,
-      );
-    }
-  }
-  return { rate, channels };
-};
+/** Under this, a source's bass is out of phase between its channels. */
+const FAIR_BASS_CORRELATION = -0.3;
+/**
+ * Where in the song a fair programme is built from, and how much of it: the
+ * renders below read two seconds from twelve in, so twenty is room enough.
+ */
+const PROGRAMME_START_SECONDS = 30;
+const PROGRAMME_SECONDS = 20;
 
 /** Ignore filter warm-up, then measure both channels as one programme. */
 const measure = (audio: IAudio): IMetrics => {
-  const frames = audio.channels[0]?.length ?? 0;
-  const skip = Math.min(Math.floor(audio.rate / 4), Math.floor(frames / 4));
+  const skip = settleFrames(audio);
   let finite = true;
   let peak = 0;
   let sum = 0;
@@ -209,8 +127,7 @@ const holdsCeiling = (settings: IDspSettings): boolean =>
 
 const passesShapeSafety = (metrics: IMetrics, held: boolean): boolean =>
   metrics.finite &&
-  (!held ||
-    (metrics.peak <= 1.0001 && metrics.nearCeilingFraction < 0.0001)) &&
+  (!held || (metrics.peak <= 1.0001 && metrics.nearCeilingFraction < 0.0001)) &&
   metrics.rms > 0.003 &&
   metrics.crestDb > 2 &&
   metrics.dc < 0.02;
@@ -268,10 +185,15 @@ const main = async (): Promise<void> => {
    * the bound until both passed would assert nothing; shaping the generator
    * until it agreed would be fitting the evidence to the answer.
    *
-   * So they run over real music and are skipped otherwise. The shape-safety
-   * pass, which asks whether a profile renders valid audio at all, runs
-   * always — it does not care what it is given, and it is the half a cold
-   * build most needs.
+   * So they run over real music and are skipped otherwise — and over music
+   * whose bass is in phase between its channels (`bassCorrelation`). The
+   * instrumental they were first drawn on is the right channel the left
+   * turned upside down, and every chain that folds the bass to mono measured
+   * a fault of that file, so that song is now rebuilt as fair stereo before
+   * it is measured, and a named recording like it is refused. The
+   * shape-safety pass, which asks whether a profile renders valid audio at
+   * all, runs always — it does not care what it is given, and it is the half
+   * a cold build most needs.
    */
   let levelChecks = true;
   if (fixture) {
@@ -286,14 +208,7 @@ const main = async (): Promise<void> => {
     writeProgrammeFixture(source);
     levelChecks = false;
   }
-  // Said out loud, and unmissably, because a green run means two different
-  // things depending on it.
   line(`source: ${source}`);
-  line(
-    levelChecks
-      ? 'level windows: ON (real music)'
-      : 'level windows: SKIPPED — synthesised programme, shape safety only',
-  );
   const host = new DspHostSupervisor({
     executablePath,
     expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
@@ -322,7 +237,7 @@ const main = async (): Promise<void> => {
     // This waits on completed engine work rather than guessing with a timer.
     check(await host.runOfflineBlocks(96), `${name}: pre-rolls`);
     check(await host.renderToFile(96_000, target), `${name}: renders`);
-    return measure(readWav(target));
+    return measure(readFloatWav(target));
   };
 
   try {
@@ -334,11 +249,77 @@ const main = async (): Promise<void> => {
     // DSP Off must bypass the root. An enabled empty rack still runs final
     // safety, so its attenuation would make every preset seem louder by the
     // same amount when comparing against that already-limited reference.
-    const dry = await render(
-      { ...DSP_DEFAULTS, enabled: false },
-      'dry-reference',
+    const dryOff = { ...DSP_DEFAULTS, enabled: false };
+    let probe = await render(dryOff, 'dry-probe');
+    const correlation = bassCorrelation(
+      readFloatWav(path.join(scratch, 'dry-probe.wav')),
     );
+    if (levelChecks && correlation < FAIR_BASS_CORRELATION) {
+      const reason = `the source's bass is out of phase between its channels (correlation ${correlation.toFixed(2)}), and a stage that folds the bass to mono cancels it`;
+      if (fixture) {
+        throw new Error(`preset smoke: ${reason}; name a fair recording`);
+      }
+      /**
+       * The song at the root is exactly that — its right channel is its left
+       * upside down — so the windows run over a fair programme built from it
+       * (`fairStereo`) rather than being skipped: the same song, from
+       * PROGRAMME_START_SECONDS, with its own later bars for ambience.
+       */
+      const song = path.join(scratch, 'song.wav');
+      check(
+        await host.applyChain(encodeChainSettings(dryOff)),
+        'the song decodes',
+      );
+      check(await host.seekDeck(0, PROGRAMME_START_SECONDS), 'the song seeks');
+      check(await host.setTrackGains(0, 0, true), 'the song plays at unity');
+      check(await host.runOfflineBlocks(16), 'the song pre-rolls');
+      check(
+        await host.renderToFile(
+          Math.round(48_000 * songSecondsFor(PROGRAMME_SECONDS)),
+          song,
+        ),
+        'the song renders',
+      );
+      const decoded = readFloatWav(song);
+      source = path.join(scratch, 'fair-programme.wav');
+      writeFloatWav(
+        source,
+        fairStereo(decoded.channels[0], decoded.rate, PROGRAMME_SECONDS),
+      );
+      check(await host.loadDeck(0, source), 'the fair programme loads');
+      check(await host.setPlaying(true), 'the transport restarts');
+      line(`source: ${source}, fair stereo built from the song (${reason})`);
+      probe = await render(dryOff, 'dry-probe');
+    }
+    /**
+     * Every render starts from the source brought under the ceiling the
+     * engine's output guard holds everything to, DSP Off included: -1 dBTP,
+     * and half a decibel more for the peaks between samples.
+     *
+     * A record that plays over it is heard at that ceiling whatever the rack
+     * does, so a reference left above it read every limited chain low by the
+     * record's overs — two to three decibels on a modern master decoded past
+     * full scale — while the listener, hearing both through the guard, heard
+     * them level.
+     */
+    const headroomDb = Math.min(
+      0,
+      -1.5 - 20 * Math.log10(Math.max(probe.peak, 1e-9)),
+    );
+    const dryName = headroomDb < 0 ? 'dry-reference' : 'dry-probe';
+    const dry =
+      headroomDb < 0 ? await render(dryOff, dryName, headroomDb) : probe;
     check(passesShapeSafety(dry, false), 'the reference is valid programme');
+    const dryLoudness = heardLevel(
+      readFloatWav(path.join(scratch, `${dryName}.wav`)),
+    );
+    // Said out loud, and unmissably, because a green run means two different
+    // things depending on it.
+    line(
+      levelChecks
+        ? `level windows: ON (real music, started ${(-headroomDb).toFixed(1)} dB down)`
+        : 'level windows: SKIPPED — synthesised programme, shape safety only',
+    );
 
     // Positive control: a flat-topped constant must fail the same predicate.
     const clipped = measure({
@@ -353,19 +334,24 @@ const main = async (): Promise<void> => {
     for (let index = 0; index < DSP_PRESETS.length; index += 1) {
       const preset = DSP_PRESETS[index];
       // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
-      const result = await render(preset.settings, `chain-${preset.id}`);
-      const heard = preset.curve
-        ? measure(
-            withCurve(
-              readWav(path.join(scratch, `chain-${preset.id}.wav`)),
-              preset.id,
-              preset.curve,
-            ),
-          )
-        : result;
-      const levelDb = dbRatio(heard.rms, dry.rms);
+      const result = await render(
+        preset.settings,
+        `chain-${preset.id}`,
+        headroomDb,
+      );
+      const rendered = readFloatWav(
+        path.join(scratch, `chain-${preset.id}.wav`),
+      );
+      const levelDb = dbRatio(
+        heardLevel(
+          preset.curve
+            ? withCurve(rendered, preset.id, preset.curve)
+            : rendered,
+        ),
+        dryLoudness,
+      );
       line(
-        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · RMS ${levelDb.toFixed(1).padStart(5)} dB vs dry, with its curve · crest ${result.crestDb.toFixed(1)} dB`,
+        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · ${levelDb.toFixed(1).padStart(5)} dB vs DSP Off, heard, with its curve · crest ${result.crestDb.toFixed(1)} dB`,
       );
       const held = holdsCeiling(preset.settings);
       check(
@@ -388,7 +374,8 @@ const main = async (): Promise<void> => {
          */
         const normalising = normalisesLoudness(preset.settings);
         check(
-          levelDb > -1.5 && levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
+          levelDb > -1.5 &&
+            levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
           normalising
             ? `${preset.id}: spends its makeup and no more`
             : `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,

@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   MAX_WALLPAPER_DISPLAYS,
+  isWallpaperAudio,
   isWallpaperStart,
   isWallpaperState,
   isWallpaperStop,
@@ -181,6 +182,24 @@ describe('what the window accepts back from main', () => {
         screens: [{ ...screen, phase: 'dancing' }],
       }),
     ).toBe(false);
+  });
+});
+
+describe('the music main hands a desktop page', () => {
+  const frame = { points: [{ x: 100, y: -12 }], waveform: [0.5, -0.5] };
+
+  // The window's capture is in stereo, and a scene on the desktop hears
+  // where the music stands between the speakers as the graph's own do.
+  it('carries where the music stands between the speakers, or nothing', () => {
+    expect(isWallpaperAudio(frame)).toBe(true);
+    expect(isWallpaperAudio({ ...frame, stereo: [-0.4, 0.9] })).toBe(true);
+    expect(isWallpaperAudio({ ...frame, stereo: [-1, 0] })).toBe(true);
+  });
+
+  it('refuses a stereo image outside the balance and width a scene reads', () => {
+    [[1.5, 0.5], [0, -0.1], [0, 1.2], [0.2], [0.1, 0.2, 0.3], ['0', 0.5], {}]
+      .map((stereo) => ({ ...frame, stereo }))
+      .forEach((raw) => expect(isWallpaperAudio(raw)).toBe(false));
   });
 });
 

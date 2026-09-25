@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
 interface IStudioShareDialogProps {
@@ -27,6 +28,8 @@ export default function StudioShareDialog({
   onCancel,
 }: IStudioShareDialogProps) {
   const { t } = useTranslation();
+  // Open on the Studio's project: its AI may not switch the Studio under it.
+  useStudioAgentHold(true);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const agreeRef = useRef<HTMLButtonElement>(null);
 

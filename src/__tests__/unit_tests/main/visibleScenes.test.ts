@@ -130,7 +130,7 @@ describe('loading the pack behind a look id', () => {
   it('hands over a scene this account may see', () => {
     const { store, loads } = storeOf([scene({})]);
     const loaded = loadVisibleScene(store, viewerOf(ME, true), ME_LOOK);
-    expect(loaded?.id).toBe('one');
+    expect(loaded?.pack.id).toBe('one');
     expect(loads).toEqual([[ME, 'one']]);
   });
 

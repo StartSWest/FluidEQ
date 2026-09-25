@@ -1,0 +1,222 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Tone: the curve in its three thirds, the three knobs, the quick layouts.
+
+.tone-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  gap: calc(#{$u} * 0.8);
+  @include animate(rise-in, $motion-slow);
+}
+
+.tone-visual__graph {
+  position: relative;
+  aspect-ratio: 2.3;
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.12);
+  border-radius: $radius-l;
+  background: $surface-plot;
+  box-shadow: 0 16px 40px rgba($black, 0.4);
+
+  svg {
+    position: absolute;
+    inset: calc(#{$u} * 1.8) 0 calc(#{$u} * 0.4);
+    width: 100%;
+    height: calc(100% - #{$u} * 2.2);
+    overflow: visible;
+  }
+}
+
+// Each third a band of its own light, named along the top.
+.tone-visual__third {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding-top: calc(#{$u} * 0.55);
+  border-right: 1px dashed rgba($edge-tint, 0.14);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.64);
+  font-weight: $weight-bold;
+  text-align: center;
+  text-transform: uppercase;
+  @include tracking(0.12em);
+
+  &:nth-of-type(1) {
+    color: $amber;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $amber 12%, transparent),
+      transparent 80%
+    );
+  }
+
+  &:nth-of-type(3) {
+    border-right: 0;
+    color: $text-accent;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-default 12%, transparent),
+      transparent 80%
+    );
+  }
+}
+
+.tone-visual__zero {
+  stroke: rgba($edge-tint, 0.2);
+  stroke-dasharray: 2 2;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-visual__fill {
+  stroke: none;
+}
+
+// The fill fades from the curve down to nothing, rather than a slab.
+.tone-visual__fade-top {
+  stop-color: $secondary-default;
+  stop-opacity: 0.3;
+}
+
+.tone-visual__fade-bottom {
+  stop-color: $secondary-default;
+  stop-opacity: 0;
+}
+
+.tone-visual__curve {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 6px $secondary-default);
+  vector-effect: non-scaling-stroke;
+}
+
+.tone-visual__controls {
+  display: grid;
+  align-items: stretch;
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+
+.tone-visual__knobs {
+  @include panel;
+
+  display: grid;
+  margin: 0;
+  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.6);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    display: grid;
+    justify-items: center;
+    gap: calc(#{$u} * 0.2);
+    text-align: center;
+  }
+
+  svg {
+    width: calc(#{$u} * 3.2);
+    height: calc(#{$u} * 3.2);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.8);
+  }
+
+  span {
+    color: $text-accent;
+    font-size: calc(#{$u} * 0.7);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// A dial as the app draws its tone dials: a ring with the turned part lit
+// from the middle, a cap, and a pointer.
+.tone-visual__track,
+.tone-visual__value {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 2.6;
+}
+
+.tone-visual__track {
+  stroke: $track-well;
+}
+
+.tone-visual__value {
+  stroke: $secondary-light;
+  filter: drop-shadow(0 0 3px $secondary-default);
+}
+
+.tone-visual__cap {
+  fill: $surface-block;
+  stroke: rgba($edge-tint, 0.22);
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 3px rgba($black, 0.4));
+}
+
+.tone-visual__needle {
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+.tone-visual__layouts {
+  display: grid;
+  align-content: start;
+  gap: calc(#{$u} * 0.45);
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    gap: calc(#{$u} * 0.35);
+    list-style: none;
+  }
+
+  li {
+    @include pill;
+
+    color: $text-primary;
+    background: $surface-field;
+
+    &.is-new {
+      border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+      background: color-mix(in srgb, $secondary-default 12%, transparent);
+    }
+  }
+
+  em {
+    padding: 0 calc(#{$u} * 0.35);
+    color: $surface-base;
+    border-radius: $radius-pill;
+    background: $secondary-light;
+    font-size: calc(#{$u} * 0.56);
+    font-style: normal;
+    font-weight: $weight-bold;
+  }
+}
+
+.tone-visual__caption {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}

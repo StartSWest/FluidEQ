@@ -58,6 +58,13 @@ $bp-desktop: 1920px;
 // never a figure measured off a screenshot.
 $bp-lg: 1024px;
 
+// The step down of the same scale, needed once: a preset menu with the genre
+// notes beside its list is two columns, and a player window can be narrower
+// than two columns. Below this it is the list alone, as it always was. On the
+// window, not a panel, because the menu is portalled to the window and is
+// placed and clamped against it.
+$bp-md: 768px;
+
 // The next step up of the same scale, needed once: the rack's header carries a
 // title, a preset field with two arrows, four file actions and two switches,
 // and their words stop fitting on one row at about 1150px of panel. Everything

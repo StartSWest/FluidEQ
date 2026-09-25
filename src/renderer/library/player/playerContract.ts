@@ -115,8 +115,12 @@ export interface ILibraryPlayerContextValue {
    * it is not in that list at all — a search that excludes it, a shelf it
    * does not appear on — the queue is left exactly as it was, because the
    * alternative is stranding somebody mid-song with nothing after it.
+   *
+   * `listKey` names the list, so the one the queue is already aimed at is
+   * known when it is asked for again: that only tops the queue up, keeping
+   * the order the listener made (`extendQueue`).
    */
-  retargetQueue: (trackIds: readonly string[]) => void;
+  retargetQueue: (trackIds: readonly string[], listKey: string) => void;
   /**
    * WHAT THE LISTENER PUT THERE, AND NOTHING ELSE.
    *

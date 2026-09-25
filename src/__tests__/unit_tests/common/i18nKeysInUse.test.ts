@@ -120,6 +120,18 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/dsp/DspMasterBar.tsx': ['dsp.masterPresetGroup.*'],
   'src/renderer/dsp/DspMasterCard.tsx': ['dsp.master.limit.*'],
   'src/renderer/dsp/DspRoomFit.tsx': ['dsp.room.head.*'],
+  // A genre's notes, by the genre's id and the part (`genreNoteKey`): its
+  // hook, story and off line, a what and a why for each pin, a line for each
+  // stage its rack plays. `genre.notes.*` is the dialog's own, written out.
+  'src/renderer/dsp/genreNotesModel.ts': [
+    ['genre.*.{hook,story,off}', 'genre.*.*'],
+    ['genre.*.pin.*', 'genre.*.*'],
+    ['genre.*.pin.*.why', 'genre.*.*'],
+    [
+      'genre.*.stage.{exciter,bassForge,bassPunch,dimension,maximizer}',
+      'genre.*.*',
+    ],
+  ],
   'src/renderer/dsp/presetPickEntries.tsx': ['dsp.eqPresetGroup.*'],
   'src/renderer/games/GamesPanel.tsx': ['games.source.*'],
   'src/renderer/graph/lookPickerRows.ts': ['graph.styleName.*'],

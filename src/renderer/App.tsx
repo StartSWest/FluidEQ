@@ -68,13 +68,17 @@ import {
 import CommunityPanel from './community/CommunityPanel';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribePlusTabRequests } from './plus/plusTabRequest';
+import useStudioAgent from './studio/useStudioAgent';
 import { usePlusWelcome } from './account/plusWelcomeStore';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
+import HeardSongNames from './graph/HeardSongNames';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
+import WallpaperGraphLook from './wallpaper/WallpaperGraphLook';
 import WallpaperTuning from './wallpaper/WallpaperTuning';
 import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
+import { GenreNotesHost } from './dsp/GenreNotesDialog';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -1111,6 +1115,9 @@ const AppContent = () => {
       }),
     [selectTopWorkspaceTab],
   );
+  // The member's own AI asking to see the scene it is writing: answered for
+  // the life of the window, since bringing the Studio up is one of the answers.
+  useStudioAgent();
   // The welcome takes the Account panel's place the moment a membership
   // lands: it is the panel's own "you are Plus now", said larger, and the
   // panel underneath it was what the person had left to go and pay from.
@@ -3306,13 +3313,20 @@ export default function App() {
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}
             <DynamicLightingLoop />
+            {/* Which song the players say is playing, so the songs kept for
+                the member's AI are told apart. Renders nothing. */}
+            <HeardSongNames />
             {/* The desktop background's music, read for its monitors while
                 any plays; what every visualizer is set to, for the monitors
-                showing one; and its dialogs, which outlive the menus that
-                open them. */}
+                showing one; the graph's own, for the monitors following it;
+                and its dialogs, which outlive the menus that open them. */}
             <WallpaperAudio />
             <WallpaperTuning />
+            <WallpaperGraphLook />
             <WallpaperDialogHost />
+            {/* A genre's notes, for the same reason: two of the places that
+                open them are menus, which close when pressed. */}
+            <GenreNotesHost />
             <Router>
               <Routes>
                 <Route path="/" element={<AppContent />} />

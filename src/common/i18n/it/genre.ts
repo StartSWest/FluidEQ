@@ -1,0 +1,28 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+export default {
+  'genre.notes.eyebrow': 'Note sul genere',
+  'genre.notes.about': 'Informazioni su {name}',
+  'genre.notes.aboutShort': 'Info',
+  'genre.notes.aboutNone': 'Le note sono scritte per i preset di genere',
+  'genre.notes.full': 'Note complete',
+  'genre.notes.close': 'Chiudi',
+  'genre.notes.sound': 'Il suono',
+  'genre.notes.curve': 'Perché questa curva',
+  'genre.notes.rack': 'Cosa fa la catena DSP',
+  'genre.notes.on': 'Attivo',
+  'genre.notes.leftOff': 'Non usati',
+  'genre.notes.measured': 'Misurato su {count} brani',
+  'genre.notes.louder': 'più forte che senza DSP',
+  'genre.notes.quieter': 'più piano che senza DSP',
+  'genre.notes.peak': 'picco più alto, mai in clipping',
+  'genre.notes.none': 'Nessuna',
+  'genre.notes.distortion': 'distorsione aggiunta',
+  'genre.notes.byDesign': 'Intenzionali',
+  'genre.notes.harmonics': 'armoniche dal modulo {stage}',
+  'genre.notes.listen': 'Ascoltalo in',
+  'genre.notes.research': 'Ricerca: {sources}',
+  'genre.notes.curveLabel': 'La curva di {name}',
+  'genre.notes.pinOpen': 'Clicca per le note complete su {name}',
+  'genre.notes.hint': 'Punta un genere per vedere perché suona così.',
+};

@@ -935,8 +935,12 @@ describe('DspPanel', () => {
     expect(
       await screen.findByText(/Play an audio track from Library to use DSP/i),
     ).toBeInTheDocument();
+    // Amber on the strip that carries the sentence, its glyph and its button
+    // (`DspScopeNotice`), rather than on the sentence alone.
     expect(
-      screen.getByText(/Play an audio track from Library to use DSP/i),
+      screen
+        .getByText(/Play an audio track from Library to use DSP/i)
+        .closest('.dsp-scope'),
     ).toHaveClass('is-idle');
     // The indicator reflects active processing, while the saved preference
     // stays enabled so Library playback can restore it without another click.

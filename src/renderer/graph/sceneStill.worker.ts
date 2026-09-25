@@ -1,16 +1,29 @@
 import type { IScenePack } from 'common/scenePacks';
-import { decodeSceneArtwork } from './sceneArtwork';
+import { SILENT_RHYTHM } from 'common/sceneRhythm';
 import {
-  compileScene,
-  createSceneContext,
-  type ISceneFrame,
-  type ISceneProgram,
-} from './sceneGl';
-import { BLAMED_FRAME_MS, createDrawWatch } from './sceneDrawWatch';
-import { walkBands } from './sceneStillBands';
+  STUDIO_AGENT_SILENCE_S,
+  type IStudioAgentMoment,
+} from 'common/studioAgent';
+import type { ISceneFrame } from './sceneGl';
+import { decodeSceneArtwork } from './sceneArtwork';
+import { compileScene, createSceneContext } from './sceneGl';
 import { sceneProgramKey } from './sceneLinkTurns';
-import { capturedRun, showcaseRun, type TFrameRun } from './sceneShowcaseRun';
+import {
+  capturedRun,
+  handedRun,
+  showcaseRun,
+  silenceRun,
+  type TFrameRun,
+} from './sceneShowcaseRun';
+import {
+  keptFrame,
+  renderSize,
+  STILL_SIZE,
+  watchDraws,
+  type IBuiltScene,
+} from './sceneStillKeep';
 import type {
+  ISceneStillVisibility,
   TSceneStillRefusal,
   TSceneStillReply,
   TSceneStillRequest,
@@ -35,26 +48,25 @@ import type {
  */
 
 const scope = globalThis as unknown as {
-  onmessage: (event: MessageEvent<TSceneStillRequest>) => void;
+  onmessage: (
+    event: MessageEvent<TSceneStillRequest | ISceneStillVisibility>,
+  ) => void;
   postMessage(reply: TSceneStillReply, transfer?: Transferable[]): void;
 };
 
-/** The picture's size: what the server keeps, the cards and the scene page show. */
-const STILL_WIDTH = 1280;
-const STILL_HEIGHT = 720;
-
-/** The kept frame is drawn this much larger than the picture, then filtered down. */
-const SUPERSAMPLE = 1.5;
-const RENDER_WIDTH = Math.round(STILL_WIDTH * SUPERSAMPLE);
-const RENDER_HEIGHT = Math.round(STILL_HEIGHT * SUPERSAMPLE);
+/**
+ * A JPEG, not the PNG the preview file is: the picture travels inside the
+ * assistant's own conversation, where a noisy scene's lossless 1280x720 ran to
+ * megabytes, and every assistant opens a JPEG. At this quality a model sees
+ * what the member would.
+ */
+const AGENT_JPEG_QUALITY = 0.9;
 
 /**
- * The size the scene's clock is run at before the kept frame. Every easing a
- * scene keeps is measured in time, not pixels, so these draws only have to
- * happen, not to be seen.
+ * What the member's AI is told a frame costs: the fastest of five draws, after
+ * four that warm the driver and the GPU up and are not counted (`keptFrame`).
  */
-const WARMUP_WIDTH = 64;
-const WARMUP_HEIGHT = 36;
+const AGENT_TIMING = { warmups: 4, timings: 5 };
 
 /** The server refuses a picture over 512KB; this leaves a margin. */
 const MAX_STILL_BYTES = 480 * 1024;
@@ -72,17 +84,6 @@ const SAMPLE_HEIGHT = 54;
  * one vote in nine rather than the whole answer.
  */
 const SAMPLE_EVERY = 10;
-
-/** A frame estimated past this is not drawn at all: no picture, no reset. */
-const HOPELESS_STILL_MS = 30_000;
-
-/**
- * The GPU time a pixel may take before a scene is given up on: the rate at
- * which the kept frame would be hopeless. A postage stamp slower than its
- * pixels at this rate is a scene whose picture would never be drawn anyway.
- */
-const HOPELESS_MS_PER_PIXEL =
-  HOPELESS_STILL_MS / (RENDER_WIDTH * RENDER_HEIGHT);
 
 let target: { canvas: OffscreenCanvas; gl: WebGL2RenderingContext } | undefined;
 
@@ -121,7 +122,10 @@ const context = () => {
       refused.delete(key);
     }
   });
-  const canvas = new OffscreenCanvas(RENDER_WIDTH, RENDER_HEIGHT);
+  const canvas = new OffscreenCanvas(
+    STILL_SIZE.renderWidth,
+    STILL_SIZE.renderHeight,
+  );
   canvas.addEventListener('webglcontextlost', () => {
     // Blamed already, when a frame of it held the GPU (`watchDraws`).
     if (drawing && !refused.has(drawing)) {
@@ -133,30 +137,59 @@ const context = () => {
   return target;
 };
 
-/** `pack`'s program on the shared context, or nothing it could not build. */
-const build = async (pack: IScenePack) => {
+type TBuilt =
+  | ({ ok: true } & IBuiltScene)
+  /** `log`: the shader did not compile, in the driver's words. */
+  | { ok: false; log?: string };
+
+/** What gives `pack` up for the rest of this worker's life, and why. */
+const refuserOf = (pack: IScenePack) => (reason: TSceneStillRefusal) => {
+  refused.set(sceneKey(pack), reason);
+};
+
+/**
+ * `pack`'s program on the shared context, or why not: nothing to say when
+ * the scene is refused, the artwork will not decode or there is no context,
+ * the driver's own words when the shader does not compile.
+ */
+/**
+ * Fired when the page stops being seen: a link the member's AI is waiting on
+ * frame by frame is read to its end at once, rather than when the member
+ * next looks at FluidEQ (`linkSceneProgram`). Made again when it is seen.
+ */
+let hidden = new AbortController();
+
+const build = async (
+  pack: IScenePack,
+  hurry?: AbortSignal,
+): Promise<TBuilt> => {
   if (refused.has(sceneKey(pack))) {
-    return undefined;
+    return { ok: false };
   }
   const drawn = context();
   if (!drawn) {
-    return undefined;
+    return { ok: false };
   }
   drawing = sceneKey(pack);
   let artwork: ImageBitmap | undefined;
   try {
     artwork = await decodeSceneArtwork(pack);
   } catch {
-    return undefined;
+    return { ok: false };
   }
   // Started from a promise, so a compile that throws, and one that answers
   // straight away or later, all settle the same way. On this thread a
   // compile that holds it up holds up nothing on screen.
   const compiled = await Promise.resolve()
-    .then(() => compileScene(drawn.gl, pack, artwork))
+    .then(() => compileScene(drawn.gl, pack, artwork, undefined, hurry))
     .catch(() => undefined)
     .finally(() => artwork?.close());
-  return compiled?.ok ? { ...drawn, program: compiled.program } : undefined;
+  if (!compiled) {
+    return { ok: false };
+  }
+  return compiled.ok
+    ? { ok: true, ...drawn, program: compiled.program }
+    : { ok: false, log: compiled.log };
 };
 
 /** The first quality whose WebP fits, each tried only if the last was too big. */
@@ -183,163 +216,124 @@ const encodeStill = async (
 const encodePreview = (still: OffscreenCanvas) =>
   still.convertToBlob({ type: 'image/png' });
 
-const pixel = new Uint8Array(4);
-
-/** The postage stamps' own warm-up is a single tiny draw before the run. */
-const STAMP_LADDER = [[16, 9]] as const;
-
-/** A watch over `pack`'s draws on the shared context (`sceneDrawWatch.ts`). */
-const watchDraws = (
-  gl: WebGL2RenderingContext,
-  program: ISceneProgram,
-  pack: IScenePack,
-) => {
-  const watch = createDrawWatch({
-    draw: (frame, width, height) => program.draw(frame, width, height),
-    finish: () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel),
-    isLost: () => gl.isContextLost(),
-    now: () => performance.now(),
-    msPerPixel: HOPELESS_MS_PER_PIXEL,
-    ladder: STAMP_LADDER,
-  });
-  return (frame: ISceneFrame, width: number, height: number) => {
-    const started = performance.now();
-    if (watch(frame, width, height)) {
-      return true;
-    }
-    // Lost while one of its own frames held the GPU: the reset was this
-    // scene's. Lost otherwise, somebody else's; and not lost, only slow.
-    let reason: TSceneStillRefusal = 'too-heavy';
-    if (gl.isContextLost()) {
-      reason =
-        performance.now() - started > BLAMED_FRAME_MS
-          ? 'gpu-reset'
-          : 'context-lost';
-    }
-    refused.set(sceneKey(pack), reason);
-    return false;
-  };
-};
-
-/**
- * Whether the kept frame is worth starting at all.
- *
- * Timed on the postage stamp at the same instant, with a pixel read back so
- * the time is the GPU's: the fastest of three, times how many more pixels the
- * kept frame has. A scene this says would take half a minute is one whose
- * picture would never arrive, so nothing is drawn and nobody waits.
- *
- * This answer is ONLY ever trusted to say no. It used to decide how many
- * bands the frame was drawn in as well, and that put the scene in charge of
- * its own limit: every draw here is at the postage stamp's size, and a shader
- * is handed the size it is drawing at, so `if (uResolution.x > 900.0)` made
- * the estimate nothing and the frame went to the driver whole. A scene that
- * lies the other way now buys only that its picture is attempted — and
- * `drawInBands` below measures what it actually costs, at the size that
- * matters, before it commits to more than a thirty-second of the frame.
- */
-const keptFrameWorthDrawing = (
-  gl: WebGL2RenderingContext,
-  program: ISceneProgram,
-  last: ISceneFrame,
-): boolean => {
-  const stamp = { ...last, deltaMs: 0 };
-  const times = [0, 1, 2].map(() => {
-    const started = performance.now();
-    program.draw(stamp, WARMUP_WIDTH, WARMUP_HEIGHT);
-    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-    return performance.now() - started;
-  });
-  const estimate =
-    Math.min(...times) *
-    ((RENDER_WIDTH * RENDER_HEIGHT) / (WARMUP_WIDTH * WARMUP_HEIGHT));
-  return !gl.isContextLost() && estimate <= HOPELESS_STILL_MS;
-};
-
-/**
- * The frame drawn a band at a time, each band finished on the GPU before the
- * next is sent. The scissor keeps every band's pixels where the whole frame
- * puts them, and the frame's zero elapsed time draws the same instant each
- * time, so the bands meet without a seam.
- *
- * How tall each band may be is `sceneStillBands.ts`, decided as this goes from
- * the band before it — never from anything the scene had a say in.
- */
-const drawInBands = (
-  gl: WebGL2RenderingContext,
-  program: ISceneProgram,
-  frame: ISceneFrame,
-) => {
-  gl.enable(gl.SCISSOR_TEST);
-  try {
-    walkBands(RENDER_HEIGHT, (from, rows) => {
-      if (gl.isContextLost()) {
-        return undefined;
-      }
-      gl.scissor(0, from, RENDER_WIDTH, rows);
-      const started = performance.now();
-      program.draw(frame, RENDER_WIDTH, RENDER_HEIGHT);
-      gl.readPixels(0, from, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-      return performance.now() - started;
-    });
-  } finally {
-    gl.disable(gl.SCISSOR_TEST);
-  }
-};
-
-/**
- * Plays `run` to a fresh copy of `pack` on the postage stamp and draws the
- * last frame at full quality: the picture, or nothing when this machine
- * cannot draw the scene.
- *
- * The last frame is drawn a second time, at full size, with no time passing
- * in between. The scene keeps state of its own between frames — a slow copy
- * of the spectrum, the musical accent's envelope — and all of it advances by
- * the frame's elapsed time, so drawing the same instant again at zero elapsed
- * shows exactly what the postage stamp just reached instead of moving on.
- *
- * It is brought down to the picture's size at once, in the task that drew
- * it: a WebGL canvas without a preserved buffer is only readable there, and
- * encoding is not.
- */
 const renderStill = async (
   pack: IScenePack,
   run: TFrameRun,
   format?: 'png',
 ): Promise<Blob | undefined> => {
   const built = await build(pack);
-  if (!built) {
+  if (!built.ok) {
     return undefined;
   }
-  const { canvas, gl, program } = built;
-  let still: OffscreenCanvas | undefined;
-  try {
-    let last: ISceneFrame | undefined;
-    const watch = watchDraws(gl, program, pack);
-    for (let frame = run(); frame; frame = run()) {
-      if (!watch(frame, WARMUP_WIDTH, WARMUP_HEIGHT)) {
-        return undefined;
-      }
-      last = frame;
-    }
-    if (last && keptFrameWorthDrawing(gl, program, last)) {
-      drawInBands(gl, program, { ...last, deltaMs: 0 });
-      const scaled = new OffscreenCanvas(STILL_WIDTH, STILL_HEIGHT);
-      const flat = scaled.getContext('2d');
-      if (flat) {
-        flat.imageSmoothingEnabled = true;
-        flat.imageSmoothingQuality = 'high';
-        flat.drawImage(canvas, 0, 0, STILL_WIDTH, STILL_HEIGHT);
-        still = scaled;
-      }
-    }
-  } finally {
-    program.dispose();
-  }
-  if (!still) {
+  const kept = keptFrame(built, run, STILL_SIZE, refuserOf(pack));
+  if (!kept) {
     return undefined;
   }
-  return format === 'png' ? encodePreview(still) : encodeStill(still);
+  return format === 'png' ? encodePreview(kept.still) : encodeStill(kept.still);
+};
+
+type TAgentReply = Omit<Extract<TSceneStillReply, { kind: 'agent' }>, 'id'>;
+
+/** What the music was doing at `frame`, as the scene heard it. */
+const momentOf = (frame: ISceneFrame): IStudioAgentMoment => {
+  const rhythm = frame.rhythm ?? SILENT_RHYTHM;
+  return {
+    beatPhase: rhythm.beatPhase,
+    barPhase: rhythm.barPhase,
+    tempo: rhythm.tempo,
+    confidence: rhythm.confidence,
+    kick: rhythm.kick,
+    snare: rhythm.snare,
+    hat: rhythm.hat,
+    intensity: rhythm.intensity,
+    build: rhythm.build,
+    drop: rhythm.drop,
+    drops: rhythm.dropSerial,
+    balance: frame.stereo?.[0] ?? 0,
+    width: frame.stereo?.[1] ?? 0,
+    level: frame.level,
+    beat: frame.beat,
+    accent: frame.musicAccent[0],
+    voiceOpen: frame.voice?.[0] ?? 0,
+    voicePitch: frame.voice?.[1] ?? 0,
+    voiceSure: frame.voice?.[2] ?? 0,
+  };
+};
+
+/** One attempt at the member's AI's picture. */
+const drawAgentPicture = async (
+  request: Extract<TSceneStillRequest, { kind: 'agent' }>,
+): Promise<TAgentReply> => {
+  const { pack, accent, sound, seconds } = request;
+  const built = await build(
+    pack,
+    request.unseen ? AbortSignal.abort() : hidden.signal,
+  );
+  if (!built.ok) {
+    return { kind: 'agent', ...(built.log ? { log: built.log } : {}) };
+  }
+  const size = renderSize(request.width, request.height);
+  // The wave's band, which the gallery's pictures leave to the default (an
+  // AI placing its subject in the band needs to see it move), and the
+  // viewer's hands as the AI placed them.
+  const run = handedRun(
+    () =>
+      sound === 'silence'
+        ? silenceRun(pack, accent, seconds ?? STUDIO_AGENT_SILENCE_S)
+        : showcaseRun(pack, accent, seconds, request.tempo),
+    request,
+  );
+  const kept = keptFrame(built, run, size, refuserOf(pack), AGENT_TIMING);
+  if (!kept) {
+    // A frame that held the GPU is also recorded in `refused`, which the
+    // reply carries and which says more; this is what is left.
+    return { kind: 'agent', hopeless: true };
+  }
+  return {
+    kind: 'agent',
+    image: await kept.still.convertToBlob({
+      type: 'image/jpeg',
+      quality: AGENT_JPEG_QUALITY,
+    }),
+    drawMs: kept.drawMs,
+    renderWidth: size.renderWidth,
+    renderHeight: size.renderHeight,
+    moment: momentOf(kept.frame),
+  };
+};
+
+/**
+ * The member's AI's picture, in the shape and at the moment it asked for.
+ *
+ * "Too heavy" is a judgement of the GPU at one moment, and this worker keeps
+ * it for the scene until its context is made again. For the gallery that is
+ * a missing picture; for the member's AI it is an instruction — "make it much
+ * cheaper" — and a scene that is fine gets gutted for it. It happened on the
+ * first real run: FluidEQ's own desktop backgrounds were drawing scenes on
+ * the same GPU, two frames of a 64x36 stamp ran past their allowance, and the
+ * cat that drew its 1080x1920 frame in 11 ms a minute later was refused, and
+ * refused again at every shape after it. So a timing verdict is set aside
+ * before the AI's picture is drawn, and a picture refused on timing alone is
+ * drawn once more before the AI is told. A GPU reset or a lost context is
+ * about the scene and stands.
+ */
+const renderForAgent = async (
+  request: Extract<TSceneStillRequest, { kind: 'agent' }>,
+): Promise<TAgentReply> => {
+  const key = sceneKey(request.pack);
+  const timingOnly = () => {
+    const reason = refused.get(key);
+    return reason === undefined || reason === 'too-heavy';
+  };
+  if (refused.get(key) === 'too-heavy') {
+    refused.delete(key);
+  }
+  const first = await drawAgentPicture(request);
+  if (!first.hopeless || !timingOnly()) {
+    return first;
+  }
+  refused.delete(key);
+  return drawAgentPicture(request);
 };
 
 /** The showcase's frames drawn small and read back, as premultiplied RGBA. */
@@ -348,7 +342,7 @@ const sampleFrames = async (
   accent: readonly [number, number, number],
 ): Promise<Uint8Array | undefined> => {
   const built = await build(pack);
-  if (!built) {
+  if (!built.ok) {
     return undefined;
   }
   const { gl, program } = built;
@@ -356,7 +350,7 @@ const sampleFrames = async (
     const frameBytes = SAMPLE_WIDTH * SAMPLE_HEIGHT * 4;
     const frames: Uint8Array[] = [];
     const run = showcaseRun(pack, accent);
-    const watch = watchDraws(gl, program, pack);
+    const watch = watchDraws(gl, program, refuserOf(pack));
     let index = 0;
     for (let frame = run(); frame; frame = run()) {
       if (!watch(frame, SAMPLE_WIDTH, SAMPLE_HEIGHT)) {
@@ -412,6 +406,15 @@ const answer = async (request: TSceneStillRequest) => {
     );
     return;
   }
+  if (request.kind === 'agent') {
+    const drawn = await renderForAgent(request).catch(
+      (): Omit<Extract<TSceneStillReply, { kind: 'agent' }>, 'id'> => ({
+        kind: 'agent',
+      }),
+    );
+    scope.postMessage({ ...drawn, id: request.id, ...refusalOf(key) });
+    return;
+  }
   const run = request.frames
     ? capturedRun(request.frames)
     : showcaseRun(request.pack, request.accent);
@@ -431,5 +434,13 @@ const answer = async (request: TSceneStillRequest) => {
 let queue: Promise<void> = Promise.resolve();
 
 scope.onmessage = ({ data }) => {
+  if (data.kind === 'visibility') {
+    if (data.hidden) {
+      hidden.abort();
+    } else if (hidden.signal.aborted) {
+      hidden = new AbortController();
+    }
+    return;
+  }
   queue = queue.then(() => answer(data));
 };

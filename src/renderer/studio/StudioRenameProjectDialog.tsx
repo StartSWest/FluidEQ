@@ -7,6 +7,7 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { renameStudioProject } from './studioStore';
+import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
 const REFUSALS: Record<
@@ -41,6 +42,8 @@ export default function StudioRenameProjectDialog({
   onClose,
 }: IStudioRenameProjectDialogProps) {
   const { t } = useTranslation();
+  // Open on the Studio's project: its AI may not switch the Studio under it.
+  useStudioAgentHold(true);
   const nameId = useId();
   const [value, setValue] = useState(name);
   const [running, setRunning] = useState(false);

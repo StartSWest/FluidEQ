@@ -1,0 +1,28 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+export default {
+  'genre.notes.eyebrow': '流派说明',
+  'genre.notes.about': '关于{name}',
+  'genre.notes.aboutShort': '说明',
+  'genre.notes.aboutNone': '说明只为流派预设而写',
+  'genre.notes.full': '完整说明',
+  'genre.notes.close': '关闭',
+  'genre.notes.sound': '声音',
+  'genre.notes.curve': '为什么是这条曲线',
+  'genre.notes.rack': 'DSP 滤镜链做了什么',
+  'genre.notes.on': '开',
+  'genre.notes.leftOff': '未使用',
+  'genre.notes.measured': '在 {count} 首歌上测量',
+  'genre.notes.louder': '比关闭 DSP 更响',
+  'genre.notes.quieter': '比关闭 DSP 更轻',
+  'genre.notes.peak': '最高峰值，从不削波',
+  'genre.notes.none': '无',
+  'genre.notes.distortion': '额外失真',
+  'genre.notes.byDesign': '有意为之',
+  'genre.notes.harmonics': '来自{stage}的谐波',
+  'genre.notes.listen': '在这些歌里听',
+  'genre.notes.research': '研究来源：{sources}',
+  'genre.notes.curveLabel': '{name}的曲线',
+  'genre.notes.pinOpen': '点击查看{name}的完整说明',
+  'genre.notes.hint': '指向一个流派，看看它为什么是这种声音。',
+};

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
-import { DEFAULT_SCENE_WAVE } from 'common/sceneWave';
+import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
-import { createWarmupLadder } from '../graph/sceneWarmup';
+import { createSceneInteraction } from '../graph/sceneInteraction';
+import SceneViewReset from '../graph/SceneViewReset';
 import { studioSpectrumRect } from '../studio/studioWave';
 import useSceneRunner, {
   type ISceneSource,
@@ -18,9 +19,9 @@ interface IScenePreviewProps {
   /** The scene and its version: a new one starts it from the top. */
   identity: string;
   /**
-   * Who made the scene being shown. The gallery shows FluidEQ's own scenes,
-   * other members' work, and the viewer's own published scenes, and the
-   * brightness limiter is only for the middle one.
+   * Who made the scene being shown (`sceneMaker.ts`). The gallery shows
+   * FluidEQ's own scenes, other members' work, and the viewer's own
+   * published scenes, and each is run as it is everywhere else.
    */
   madeBy: TSceneMaker;
   pack: IScenePack;
@@ -32,18 +33,27 @@ interface IScenePreviewProps {
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** The member's settings over the pack's — the Studio's, in Publish. */
   tuning?: ISceneTuning;
+  /**
+   * Where the wave stands, for a preview that plays the listener's own
+   * visualizer — the Library's player, its EQ screen, the backdrop behind a
+   * video — which takes the wave the listener watches it with, as the desktop
+   * does (`useWatchedSceneWave`). Absent, the author's: the gallery and the
+   * review show a scene as its maker framed it.
+   */
+  wave?: ISceneWave;
 }
 
 /**
  * A scene playing on the member's own music: a published one on its page,
- * or the member's own in the Publish dialog, where the cover is caught.
+ * the listener's visualizer in the Library's player, or the member's own in
+ * the Publish dialog, where the cover is caught.
  *
- * The same runner the graph and the Studio use, with the warm-up ladder and
- * the brightness limiter, because this is where a stranger's scene is first
- * watched. It holds the live capture open while it is on screen — the Plus
- * tab is a view of its own, and a preview that heard nothing would show a
- * scene at rest whatever was playing. Only one plays at a time: the page
- * shows one scene, and the cards beside it are pictures.
+ * The same runner the graph, the desktop and the Studio use, run by the same
+ * rules for the same maker (`sceneRules.ts`). It holds the live capture open
+ * while it is on screen — the Plus tab is a view of its own, and a preview
+ * that heard nothing would show a scene at rest whatever was playing. Only
+ * one plays at a time: the page shows one scene, and the cards beside it are
+ * pictures.
  */
 export default function ScenePreview({
   identity,
@@ -54,6 +64,7 @@ export default function ScenePreview({
   onDrawn,
   shapeFrame,
   tuning,
+  wave: listenerWave,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -99,7 +110,6 @@ export default function ScenePreview({
         troubleRef.current(reason === 'compile' ? 'compile' : 'unavailable');
       },
       tooSlow: () => troubleRef.current('heavy'),
-      createLadder: createWarmupLadder,
       madeBy,
     }),
     [identity, madeBy],
@@ -118,15 +128,20 @@ export default function ScenePreview({
   // fills the picture, and drew it somewhere else entirely: Alpine's curtain
   // came down among the mountains here while it crossed the sky everywhere
   // else, which is a scene a listener cannot judge from its own page. The
-  // author's wave, because this is the scene as its maker framed it; a
-  // listener's own choice belongs to the graph they play it on.
-  const wave = pack.wave ?? DEFAULT_SCENE_WAVE;
+  // author's wave unless the place playing it hands over the listener's.
+  const wave = listenerWave ?? pack.wave ?? DEFAULT_SCENE_WAVE;
   const { height: waveHeight, position: wavePosition } = wave;
   const spectrumRect = useMemo(
     () =>
       studioSpectrumRect(pack, { height: waveHeight, position: wavePosition }),
     [pack, waveHeight, wavePosition],
   );
+
+  // The viewer's hands: turned and tapped wherever a preview can be reached
+  // at all. Where one only decorates - a banner under its own overlay, a
+  // backdrop that takes no pointer - no press ever arrives, and nothing here
+  // needs telling so.
+  const interaction = useMemo(createSceneInteraction, []);
 
   const sceneRef = useSceneRunner({
     source,
@@ -136,7 +151,21 @@ export default function ScenePreview({
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: drawn,
+    interaction,
   });
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const host = sceneRef.current;
+    if (!frame || !host) {
+      return undefined;
+    }
+    return interaction.attach(frame, {
+      frame: () => host.getBoundingClientRect(),
+      turns: () => true,
+      grabs: () => true,
+    });
+  }, [interaction, sceneRef]);
 
   return (
     <div ref={frameRef} className="gallery-preview__frame">
@@ -146,6 +175,10 @@ export default function ScenePreview({
         role="img"
         aria-label={label}
         style={{ width: box.width, height: box.height }}
+      />
+      <SceneViewReset
+        interaction={interaction}
+        className="gallery-preview__reset"
       />
     </div>
   );

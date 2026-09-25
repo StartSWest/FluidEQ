@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { requestAccountPanel } from '../account/accountPanel';
@@ -84,15 +85,22 @@ const STEPS: readonly IStep[] = [
  * - a trial to start: the card's is the thing to press, so "See Plus" goes
  *   quiet beside it;
  * - a trial that ended: the card already carries "See plans", which IS this
- *   button, so this one is not drawn at all;
+ *   button, so this one is not drawn — until "Keep using free" puts the card
+ *   away, when this one is the only way in again;
  * - no trial at all: this is the only way in, and it is loud.
  */
 export default function StudioLocked() {
   const { t } = useTranslation();
   const { offer } = usePlusTrial();
   const { state } = useStudio();
+  // The ended trial's card hides itself once it is put away, remembering the
+  // trial's end as the one it was put away for; this page follows the same
+  // key. Deferring to a card that had gone left the page with no way to Plus
+  // at all.
+  const [keptFreeAt, setKeptFreeAt] = useState<number>();
   const trialWaiting = offer?.state === 'eligible';
-  const trialOffersPlans = offer?.state === 'ended';
+  const trialOffersPlans =
+    offer?.state === 'ended' && keptFreeAt !== offer.endsAt;
   // Their own work, not FluidEQ's scenes opened to look inside.
   const mine = state.projects.filter((project) => !project.official);
   const kept =
@@ -162,7 +170,7 @@ export default function StudioLocked() {
           ))}
         </ul>
       </section>
-      <PlusTrialOffer />
+      <PlusTrialOffer onKeepFree={() => setKeptFreeAt(offer?.endsAt)} />
     </div>
   );
 }

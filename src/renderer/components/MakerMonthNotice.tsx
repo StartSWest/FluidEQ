@@ -64,7 +64,11 @@ export default function MakerMonthNotice() {
   const { identity, status } = useAccount();
   const accountId = status === 'signed-in' ? identity?.id : undefined;
   const { month, accountId: asked } = useMakerMonth();
-  const [putAway, setPutAway] = useState<TShown | undefined>();
+  // What was put away in this window, as the account it was put away for:
+  // the notice is mounted once for the window's life, across sign-outs, and
+  // one account's "Not now" kept as a bare state hid the next account's own
+  // warning, which it had never shown.
+  const [putAway, setPutAway] = useState<string | undefined>();
 
   useEffect(() => {
     if (accountId) {
@@ -78,7 +82,11 @@ export default function MakerMonthNotice() {
   const state = makerMonthState(month, Date.now());
   const which: TShown | undefined =
     state === 'ending' || state === 'ended' ? state : undefined;
-  if (!which || putAway === which || alreadySaid(accountId, which)) {
+  if (
+    !which ||
+    putAway === seenKey(accountId, which) ||
+    alreadySaid(accountId, which)
+  ) {
     return null;
   }
 
@@ -99,7 +107,7 @@ export default function MakerMonthNotice() {
   };
   const close = () => {
     rememberSaid(accountId, which);
-    setPutAway(which);
+    setPutAway(seenKey(accountId, which));
   };
   const open = () => {
     close();

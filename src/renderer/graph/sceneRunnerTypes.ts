@@ -1,9 +1,9 @@
+import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
-import type { TSceneMaker } from './sceneFlashGuard';
-import type { ICostLadder } from './sceneHealth';
+import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
 
 /**
@@ -30,11 +30,12 @@ export interface ISceneDrawReport {
 }
 
 /**
- * Where a scene comes from and what to do when it cannot run — the only thing
- * that differs between an official look on the graph, a member's look on the
- * graph, and the Studio's live stage. The runner (`useSceneRunner.ts`) is the
- * same for all three, so a member's scene is drawn by exactly the code an
- * official one is, plus the two safeguards its source asks for.
+ * Where a scene comes from, who made it, and what to do when it cannot run —
+ * the only things that differ between the places a scene plays. How it is
+ * run follows from who made it, in `sceneRules.ts`, and the runner
+ * (`useSceneRunner.ts`) reads it from there for every place alike: a source
+ * cannot ask for a ladder, a limiter or a rest of its own, which is how the
+ * desktop once drew the listener's own scene ghosted beside a clean Studio.
  */
 export interface ISceneSource {
   /** What is being drawn. A change starts the clock and the fade again. */
@@ -61,30 +62,11 @@ export interface ISceneSource {
    */
   reportNotes?(notes: readonly string[]): void;
   /**
-   * `top` is the largest scale the ladder may reach: 1 for the panel's own
-   * pixels, more when `best` smoothing draws the scene larger than the panel.
-   * `floor` is the smallest the listener allows (`autoFloor`): below it the
-   * ladder slows the frame rate rather than the picture.
+   * Who made the scene (`sceneMaker.ts`): FluidEQ, the listener, or another
+   * member. Its size ladder, its brightness limiter and whether it is
+   * compiled ahead follow from this alone (`sceneRules.ts`).
    */
-  createLadder(top: number, floor: number): ICostLadder;
-  /** Present only for scenes drawn through the brightness limiter. */
   madeBy: TSceneMaker;
-  /**
-   * Compile the scene's program while it is out of sight, so it is ready the
-   * moment it is shown (`warmSceneProgram`). The graph's look, which somebody
-   * opening the window expects to see at once; not a gallery of previews,
-   * which would compile every card at once. FluidEQ's own scenes only: a
-   * member's shader reaches the GPU's compiler when somebody looks at it,
-   * never at launch while the graph sits on another tab.
-   */
-  warmWhenUnseen?: boolean;
-  /**
-   * Ease to thirty frames a second once nothing has played for a while
-   * (`sceneRest.ts`): the graph's look and the desktop, which are left
-   * running for hours. Not the Studio's stage or a preview, where somebody
-   * is judging the motion of a scene that may have no music at all.
-   */
-  restsInSilence?: boolean;
 }
 
 export interface ISceneRunnerOptions {
@@ -130,10 +112,28 @@ export interface ISceneRunnerOptions {
    */
   onWaiting?: (waiting: boolean) => void;
   /**
+   * The viewer's hands on this surface (`sceneInteraction.ts`): the pointer,
+   * taps and the camera the scene's `camera` limits allow. Absent, a scene
+   * is pointed at by nobody and seen from where its author put the camera.
+   */
+  interaction?: ISceneInteraction;
+  /**
+   * Every frame the moment it is made, before the GPU is asked for it: what
+   * the scene gets, what it heard before its response bent it, and the
+   * musical accent's envelope as the scene last drew it. For what has to keep
+   * up with the sound rather than with the picture - the Studio's meters,
+   * which fed from the drawn frame were a GPU's round trip behind the music,
+   * and not moved at all by a frame the GPU skipped.
+   */
+  onHeard?: (
+    frame: ISceneFrame,
+    heard: ISceneFrame,
+    musicAccent: number,
+  ) => void;
+  /**
    * After every drawn frame: what the scene got, the ladder's scale, the
    * musical accent's envelope the scene was given, what it heard before its
-   * response bent it — the Studio's meters show both — and what the frame
-   * cost.
+   * response bent it, and what the frame cost.
    */
   onDrawn?: (
     frame: ISceneFrame,

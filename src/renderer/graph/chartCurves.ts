@@ -12,6 +12,7 @@ import {
   IChartGradientStop,
   IChartPointData,
   OUTPUT_CURVE_ID,
+  VOICING_CURVE_ID,
 } from './ChartController';
 import { Color, ColorEnum } from '../styles/color';
 import { getBandColor } from '../utils/bandColors';
@@ -99,7 +100,7 @@ const chartCurves = ({
   ...(voicing
     ? [
         supporting(
-          'Voicing',
+          VOICING_CURVE_ID,
           t('graph.curve.voicing'),
           ColorEnum.TRIADIC1,
           voicing,

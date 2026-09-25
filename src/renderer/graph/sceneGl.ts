@@ -1,7 +1,9 @@
 import type { IScenePack } from 'common/scenePacks';
+import { SILENT_RHYTHM, type ISceneRhythm } from 'common/sceneRhythm';
 import { getEaseFactor } from 'common/smoothing';
 import {
   assembleFragmentSource,
+  SCENE_TAP_AGE_LIMIT_S,
   SPECTRUM_TEXELS,
   uniformNameForParam,
   WAVEFORM_TEXELS,
@@ -39,11 +41,58 @@ export interface ISceneFrame {
   musicRun: readonly [number, number];
   accent: readonly [number, number, number];
   fade: number;
+  /**
+   * Whether anything is being played to the scene: the music, or the
+   * Studio's made-up music. Not silence, and not a desktop's calm motion,
+   * which nobody plays. A scene played nothing for a while rests
+   * (`sceneRest.ts`), in every place alike. Never handed to a scene; absent
+   * where nothing is played at all (a still, the lamps).
+   */
+  playing?: boolean;
   spectrum: Uint8Array;
   spectrumRect?: readonly [number, number, number, number];
   waveform: Uint8Array;
   params: Readonly<Record<string, number>>;
+  /**
+   * Contract 8: the music's time and shape (`sceneRhythm.ts`). Absent on a
+   * surface that hears no music of its own - a still, a lamp - and read as
+   * nothing heard.
+   */
+  rhythm?: ISceneRhythm;
+  /** Where the music leans, -1 left to 1 right, and how wide it is, 0..1. */
+  stereo?: readonly [number, number];
+  /**
+   * The singing voice (`voiceReading.ts`): how open, the note (0 at 80 Hz to
+   * 1 at 1 kHz), how sure. Absent where nothing is heard: no voice.
+   */
+  voice?: readonly [number, number, number];
+  /** The pointer over the panel: x, y in uv, held 0..1, over the panel 0..1. */
+  pointer?: readonly [number, number, number, number];
+  /** The last tap: x, y in uv, seconds since (to the limit), how many so far. */
+  tap?: readonly [number, number, number, number];
+  /** The viewer's camera: yaw and pitch in radians, zoom (1 as authored). */
+  camera?: readonly [number, number, number];
+  /**
+   * The music's own clock, in real seconds, which reduced motion does not
+   * slow as it slows `timeSeconds`: the Studio's made-up music is played on
+   * it, as real music would play. Never handed to a scene. Absent where the
+   * two clocks are one (a still, the lamps).
+   */
+  musicSeconds?: number;
 }
+
+/** Where the pointer is taken to be when nobody is pointing: nowhere near. */
+export const NO_POINTER: readonly [number, number, number, number] = [
+  0.5, 0.5, 0, 0,
+];
+/** No tap yet: as long ago as a tap is ever said to be. */
+export const NO_TAP: readonly [number, number, number, number] = [
+  0.5,
+  0.5,
+  SCENE_TAP_AGE_LIMIT_S,
+  0,
+];
+export const HOME_CAMERA: readonly [number, number, number] = [0, 0, 1];
 
 export interface ISceneProgram {
   /** Upload this frame's measurement and draw one triangle. */
@@ -120,13 +169,21 @@ const compileShaderScene = async (
   pack: IScenePack,
   artwork?: ImageBitmap,
   signal?: AbortSignal,
+  /** Fired when no window is on screen to poll the link on (`linkSceneProgram`). */
+  hurry?: AbortSignal,
 ): Promise<TSceneCompileResult> => {
   if (pack.artwork && !artwork) {
     return { ok: false, log: 'scene artwork was not decoded' };
   }
   const { source, sourceLineOffset } = assembleFragmentSource(pack);
 
-  const linked = await linkSceneProgram(gl, source, sourceLineOffset, signal);
+  const linked = await linkSceneProgram(
+    gl,
+    source,
+    sourceLineOffset,
+    signal,
+    hurry,
+  );
   if (!linked.ok) {
     return linked;
   }
@@ -190,6 +247,14 @@ const compileShaderScene = async (
     spectrumRect: location('uSpectrumRect'),
     waveform: location('uWaveform'),
     artwork: location('uArtwork'),
+    rhythm: location('uRhythm'),
+    drums: location('uDrums'),
+    song: location('uSong'),
+    stereo: location('uStereo'),
+    voice: location('uVoice'),
+    pointer: location('uPointer'),
+    tap: location('uTap'),
+    camera: location('uCamera'),
   };
   const paramLocations = pack.params.map((param) => ({
     id: param.id,
@@ -330,6 +395,27 @@ const compileShaderScene = async (
           frame.accent[2],
         );
         gl.uniform1f(uniforms.fade, frame.fade);
+        const rhythm = frame.rhythm ?? SILENT_RHYTHM;
+        gl.uniform4f(
+          uniforms.rhythm,
+          rhythm.beatPhase,
+          rhythm.barPhase,
+          rhythm.tempo,
+          rhythm.confidence,
+        );
+        gl.uniform3f(uniforms.drums, rhythm.kick, rhythm.snare, rhythm.hat);
+        gl.uniform4f(
+          uniforms.song,
+          rhythm.intensity,
+          rhythm.build,
+          rhythm.drop,
+          rhythm.dropSerial,
+        );
+        gl.uniform2f(uniforms.stereo, ...(frame.stereo ?? [0, 0]));
+        gl.uniform3f(uniforms.voice, ...(frame.voice ?? [0, 0, 0]));
+        gl.uniform4f(uniforms.pointer, ...(frame.pointer ?? NO_POINTER));
+        gl.uniform4f(uniforms.tap, ...(frame.tap ?? NO_TAP));
+        gl.uniform3f(uniforms.camera, ...(frame.camera ?? HOME_CAMERA));
         paramLocations.forEach(({ id, location: where, fallback }) => {
           gl.uniform1f(where, frame.params[id] ?? fallback);
         });
@@ -361,15 +447,17 @@ export const compileScene = async (
   pack: IScenePack,
   artwork?: ImageBitmap,
   signal?: AbortSignal,
+  /** Fired when no window is on screen to poll the link on (`linkSceneProgram`). */
+  hurry?: AbortSignal,
 ): Promise<TSceneCompileResult> => {
   if (!pack.world) {
-    return compileShaderScene(gl, pack, artwork, signal);
+    return compileShaderScene(gl, pack, artwork, signal, hurry);
   }
-  const world = await compileWorldScene(gl, pack, artwork, signal);
+  const world = await compileWorldScene(gl, pack, artwork, signal, hurry);
   if (world.ok) {
     return world;
   }
-  const shader = await compileShaderScene(gl, pack, artwork, signal);
+  const shader = await compileShaderScene(gl, pack, artwork, signal, hurry);
   return shader.ok
     ? { ...shader, notes: [`The 3D world was not drawn: ${world.log}`] }
     : shader;

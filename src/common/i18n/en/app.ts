@@ -79,9 +79,9 @@ const app = {
   'app.processes.name.desktopHost': 'Desktop visualizer helper',
   'app.processes.what.desktopHost':
     'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
-  'app.processes.name.shareCapture': 'Audio sharing capture',
+  'app.processes.name.shareCapture': 'Audio capture',
   'app.processes.what.shareCapture':
-    'Captures what this PC plays, before the equalizer, to send it to another FluidEQ. Runs only while you share your audio.',
+    'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
     'Plays the sound another FluidEQ shares with this PC. Runs only while you are listening to it.',

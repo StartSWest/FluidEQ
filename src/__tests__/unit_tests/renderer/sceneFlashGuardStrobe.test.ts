@@ -5,136 +5,169 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the brightness limiter does to a picture that flashes, run frame by
- * frame through the guard's own exported arithmetic.
+ * What the brightness limiter puts on the screen for a picture that flashes,
+ * run frame by frame through the guard's own exported arithmetic, and counted
+ * the way WCAG 2.3.1 counts: a flash is a pair of opposing swings of a tenth
+ * of full luminance or more, and three a second is the most allowed.
  *
- * A member's scene is shown to other people without anybody having watched
- * it first, and a picture flashing more than three times a second can cause a
- * seizure. The limiter compared each frame to the one before and only
- * remembered a step of a tenth of full scale or more — so brightness ramped
- * over eleven frames or more moved by less than that every time, remembered
- * nothing, and the instant drop at the end had nothing to oppose. Measured on
- * this arithmetic: a full-screen black-to-white strobe at three to five and a
- * half flashes a second was drawn exactly as written. Ten characters of
- * shader, and it reaches the graph, full screen and the desktop background.
+ * One pixel of a picture that is the same everywhere, which is the one case
+ * the arithmetic can stand in for the shaders whole: its flag is the flag of
+ * every pixel around it, so the area it is weighed by is the flag itself, and
+ * the calm field's patch around it is the picture. That pixel goes through
+ * the same three steps the GPU runs — the state pass's reading of how soon it
+ * rose again (`flashStep`), the calm field following it no faster than the
+ * limit (`flashCalmShare`), and the calming weighed by the cube of its flag
+ * (`flashCalmWeight`) — and what comes out is what the listener's eye gets.
  *
- * Both what must be held and what must NOT be are measured here, because a
- * limiter that holds everything is not a fix — it is the smearing this file's
- * own header says was sent back twice.
- *
- * WHAT THIS FILE CANNOT SEE, and was once read as if it could: it measures
- * the ONE frame a picture snaps on, through the coarse path alone. It says
- * nothing about the frames after that snap, on which a picture held for one
- * frame arrives anyway, and nothing about the per-pixel path that does most
- * of the holding. Passing here is not "the strobe never reaches the screen";
- * it is "the frame that snaps is blended away". The rate a viewer's eye
- * actually receives needs both passes run frame by frame on a GPU, which no
- * suite here can do — `sceneFlashGuardMemory.test.ts` says what was measured
- * that way and what it cost to find out the hard way.
+ * Both what must be held and what must NOT be are measured, because a
+ * limiter that holds everything is not a fix: smearing every scene is how
+ * this one was wrong before, twice. Patterns, partial areas and the finishing
+ * chain need the passes run on a GPU, which no suite here can do; that was
+ * done over every shape below and more, at 30, 60, 144 and 240 frames a
+ * second (see the header of `sceneFlashGuard.ts`).
  */
 
 import {
+  FLASH_STATE_REST,
+  FLASH_SWING,
   flashAllowance,
-  flashAlternating,
-  flashBlend,
-  flashCoarseMemory,
+  flashCalmShare,
+  flashCalmWeight,
+  flashPressureMemory,
+  flashStep,
 } from '../../../renderer/graph/sceneFlashGuard';
 
-const FRAME_MS = 1000 / 60;
+const WCAG_FLASHES_PER_SECOND = 3;
 
-/**
- * The share of a frame's own change that reaches the screen, at its worst
- * moment: 1 is drawn as the scene wrote it, 0 is held completely.
- */
-const shownSwing = (brightness: readonly number[]) => {
-  let travelled = 0;
-  let worst = 1;
-  brightness.forEach((value, at) => {
-    if (at === 0) {
-      return;
-    }
-    const swing = value - brightness[at - 1];
-    const before = travelled;
-    travelled = flashCoarseMemory(swing, travelled, FRAME_MS);
-    const alternating = flashAlternating(travelled, before);
-    const change = Math.abs(swing);
-    const blend = flashBlend(change, flashAllowance(FRAME_MS));
-    const shown = 1 - alternating * (1 - blend);
-    if (change > 0.2) {
-      worst = Math.min(worst, shown);
-    }
+/** The luminance on the screen, frame by frame, for `drawn` at `fps`. */
+const shownOf = (drawn: readonly number[], fps = 60): number[] => {
+  const frameMs = 1000 / fps;
+  const allowance = flashAllowance(frameMs);
+  let state = FLASH_STATE_REST;
+  let travel = 0;
+  let calm = drawn[0] ?? 0;
+  return drawn.map((level, frame) => {
+    const swing = frame === 0 ? 0 : level - drawn[frame - 1];
+    state = flashStep(state, swing, travel, frameMs);
+    travel = flashPressureMemory(swing, travel, frameMs);
+    calm += (level - calm) * flashCalmShare(level - calm, allowance);
+    const calmed = flashCalmWeight(state.flashing);
+    return level + (calm - level) * calmed;
   });
-  return worst;
 };
 
-/** Brightness rising over a period then dropping in one frame, `seconds` long. */
-const sawtooth = (hz: number, seconds = 3) =>
-  Array.from({ length: Math.round(seconds * 60) }, (_, frame) => {
-    const turn = ((frame / 60) * hz) % 1;
-    return turn;
+/**
+ * Flashes a second in a series of luminances, as WCAG counts them: swings of
+ * a tenth or more from the last extreme, two to a flash.
+ */
+const flashesPerSecond = (series: readonly number[], fps = 60): number => {
+  let anchor = series[0] ?? 0;
+  let direction = 0;
+  let swings = 0;
+  series.forEach((value) => {
+    const moved = value - anchor;
+    if (direction !== 0 && moved * direction > 0) {
+      anchor = value;
+      return;
+    }
+    if (Math.abs(moved) >= FLASH_SWING) {
+      direction = Math.sign(moved);
+      anchor = value;
+      swings += 1;
+    }
   });
+  return swings / 2 / (series.length / fps);
+};
 
-/** A square wave: full on, full off, at `hz` flashes a second. */
-const square = (hz: number, seconds = 3) =>
-  Array.from({ length: Math.round(seconds * 60) }, (_, frame) =>
-    ((frame / 60) * hz) % 1 < 0.5 ? 0 : 1,
+const SECONDS = 5;
+
+/** Full on, full off, `hz` flashes a second. */
+const square = (hz: number, fps = 60) =>
+  Array.from({ length: SECONDS * fps }, (_, frame) =>
+    ((frame / fps) * hz) % 1 < 0.5 ? 0 : 1,
   );
 
-/** A scene breathing with the music: smooth, both ways, at `hz` a second. */
-const breathe = (hz: number, seconds = 3) =>
+/** Rising over each cycle in steps too small to count, dropping in one frame. */
+const rampAndSnap = (hz: number, fps = 60) =>
+  Array.from({ length: SECONDS * fps }, (_, frame) => ((frame / fps) * hz) % 1);
+
+/** A scene breathing with the music: smooth, both ways, `hz` a second. */
+const breathe = (hz: number, fps = 60) =>
   Array.from(
-    { length: Math.round(seconds * 60) },
-    (_, frame) => 0.5 - 0.5 * Math.cos(2 * Math.PI * hz * (frame / 60)),
-  );
-
-/** A picture getting brighter and staying bright: motion, never a flash. */
-const oneWay = (seconds = 3) =>
-  Array.from({ length: Math.round(seconds * 60) }, (_, frame) =>
-    Math.min(1, frame / 30),
+    { length: SECONDS * fps },
+    (_, frame) => 0.5 - 0.5 * Math.cos(2 * Math.PI * hz * (frame / fps)),
   );
 
 describe('a picture that flashes is held', () => {
-  // The shape that went through untouched: a ramp every step of which is too
-  // small to count, and a drop that used to meet nothing.
-  it.each([2.5, 3, 3.5, 4, 5, 5.5])(
-    'holds a ramp-and-drop at %s flashes a second',
+  it.each([3.75, 4, 5, 6, 10])('holds a square strobe at %s a second', (hz) => {
+    // The control: drawn, it is the flash it is meant to be.
+    expect(flashesPerSecond(square(hz))).toBeGreaterThan(
+      WCAG_FLASHES_PER_SECOND,
+    );
+    expect(flashesPerSecond(shownOf(square(hz)))).toBeLessThanOrEqual(1);
+  });
+
+  it.each([3.75, 4, 5, 6, 10])(
+    'holds a ramp that snaps back at %s a second',
     (hz) => {
-      expect(shownSwing(sawtooth(hz))).toBeLessThan(0.35);
+      expect(flashesPerSecond(rampAndSnap(hz))).toBeGreaterThan(
+        WCAG_FLASHES_PER_SECOND,
+      );
+      expect(flashesPerSecond(shownOf(rampAndSnap(hz)))).toBeLessThanOrEqual(1);
     },
   );
 
-  /**
-   * Squares from just over the allowed rate upward. 3.33 is here by name: it
-   * is over the limit and used to show 0.6 of every swing, because the ramp
-   * between "two a second is allowed" and "three is not" left everything just
-   * past three only partly held. Travel closed it without the thresholds
-   * being touched — measured at 0.01 from three a second up.
-   */
-  it.each([3, 3.2, 3.33, 3.5, 4, 6, 10, 30])(
-    'holds a square wave at %s a second',
-    (hz) => {
-      expect(shownSwing(square(hz))).toBeLessThan(0.35);
+  it.each([30, 144, 240])(
+    'holds a strobe the same at %s frames a second',
+    (fps) => {
+      expect(
+        flashesPerSecond(shownOf(square(6, fps), fps), fps),
+      ).toBeLessThanOrEqual(1);
     },
   );
 });
 
 describe('a picture that does not flash is left alone', () => {
-  // The control. Without these, holding everything would pass every case
-  // above, and smearing every scene is how this limiter was wrong before.
-  it.each([0.25, 0.5, 1, 1.5])(
-    'leaves a scene breathing at %s a second',
-    (hz) => {
-      expect(shownSwing(breathe(hz))).toBeGreaterThan(0.9);
-    },
-  );
-
-  it('leaves a picture that only gets brighter', () => {
-    expect(shownSwing(oneWay())).toBe(1);
+  it.each([2, 2.5, 3])('leaves a square at %s a second as drawn', (hz) => {
+    const drawn = square(hz);
+    expect(shownOf(drawn)).toEqual(drawn);
   });
 
-  // Two flashes a second is what WCAG allows, and the thresholds are set on
-  // it deliberately: it may not be held whole.
-  it('lets two flashes a second through', () => {
-    expect(shownSwing(sawtooth(2))).toBeGreaterThan(0.35);
+  it.each([2, 2.5])('leaves a ramp that snaps back at %s a second', (hz) => {
+    const drawn = rampAndSnap(hz);
+    expect(shownOf(drawn)).toEqual(drawn);
+  });
+
+  it.each([0.5, 1, 2])('leaves a scene breathing at %s a second', (hz) => {
+    const drawn = breathe(hz);
+    expect(shownOf(drawn)).toEqual(drawn);
+  });
+
+  it('leaves one cut on a beat alone', () => {
+    const drawn = Array.from({ length: 120 }, (_, frame) =>
+      frame < 60 ? 0 : 1,
+    );
+    expect(shownOf(drawn)).toEqual(drawn);
+  });
+});
+
+describe('what a held picture shows', () => {
+  it('moves no faster than the limit once it is calmed', () => {
+    const shown = shownOf(square(10));
+    const allowance = flashAllowance(1000 / 60);
+    // Past the first swings, which arm it: every frame after, the step on
+    // the screen is the calm field's own, within the allowance.
+    const settled = shown.slice(30);
+    settled.slice(1).forEach((value, at) => {
+      expect(Math.abs(value - settled[at])).toBeLessThanOrEqual(
+        allowance + 1e-9,
+      );
+    });
+  });
+
+  it('comes back to what is drawn once the flashing stops', () => {
+    const drawn = [...square(10).slice(0, 60), ...new Array(240).fill(0.4)];
+    const shown = shownOf(drawn);
+    expect(shown[shown.length - 1]).toBeCloseTo(0.4, 2);
   });
 });

@@ -7,6 +7,7 @@ import {
 import { isScenePerformance } from '../../common/scenePerformance';
 import {
   WALLPAPER,
+  isWallpaperLookId,
   isWallpaperStart,
   isWallpaperStop,
   isWallpaperTuningMap,
@@ -97,6 +98,11 @@ const registerWallpaperIpc = (
     onWindowMessage(WALLPAPER.tuning, (event, raw: unknown) => {
       if (fromOwner(event) && isWallpaperTuningMap(raw)) {
         manager.setTuning(raw);
+      }
+    }),
+    onWindowMessage(WALLPAPER.graphLook, (event, raw: unknown) => {
+      if (fromOwner(event) && isWallpaperLookId(raw)) {
+        manager.setGraphLook(raw);
       }
     }),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {

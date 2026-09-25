@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
+import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
-import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { useTranslation } from '../utils/I18nContext';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
@@ -14,7 +14,7 @@ export const TASTE_SECONDS = PLUS_TASTE_SECONDS;
 
 interface ISceneTasteProps {
   identity: string;
-  /** Whose scene it is, for the runner (`limiterIsFor`). */
+  /** Whose scene it is, for the runner (`sceneRules.ts`). */
   madeBy: TSceneMaker;
   pack: IScenePack;
   onTrouble: (trouble: TPreviewTrouble) => void;

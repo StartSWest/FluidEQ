@@ -111,11 +111,31 @@ describe('reading back what each monitor was set to show', () => {
     });
   });
 
+  // Every file written before the switch existed has no such field, and its
+  // monitors keep what they were given, as they always did.
+  it('keeps a monitor following the graph, and one from before as not following', () => {
+    const [screen] = file.screens;
+    const following = parseArrangement({
+      ...file,
+      screens: [{ ...screen, followsGraph: true }],
+    });
+    expect(following?.screens[0].choice.followsGraph).toBe(true);
+    const switchedOff = parseArrangement({
+      ...file,
+      screens: [{ ...screen, followsGraph: false }],
+    });
+    expect(switchedOff?.screens[0].choice).not.toHaveProperty('followsGraph');
+    expect(parseArrangement(file)?.screens[0].choice).not.toHaveProperty(
+      'followsGraph',
+    );
+  });
+
   it('ignores the whole file when any of it is not what this app writes', () => {
     const [screen] = file.screens;
     const broken: unknown[] = [
       { ...file, version: 2 },
       { ...file, pauseOnBattery: 'no' },
+      { ...file, screens: [{ ...screen, followsGraph: 'yes' }] },
       { ...file, screens: [{ ...screen, lookId: 'C:/scene.frag' }] },
       { ...file, screens: [{ ...screen, motion: 'loud' }] },
       { ...file, screens: [{ ...screen, wave: { height: 3, position: 0 } }] },

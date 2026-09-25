@@ -4,7 +4,10 @@ import { useWatchedGraphWave } from '../utils/graphViewSettings';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useAllListenerParams } from '../utils/sceneParamStore';
 import { useAllListenerResponses } from '../utils/sceneResponseStore';
-import { useWatchedListenerWaves } from '../utils/sceneWaveStore';
+import {
+  useWatchedListenerWaves,
+  watchedSceneWave,
+} from '../utils/sceneWaveStore';
 import { useUsableScenes } from '../utils/scenePacks';
 import { sendSceneTuning } from './wallpaperStore';
 
@@ -38,7 +41,7 @@ export default function WallpaperTuning() {
       record[lookId] = {
         ...(chosen ? { params: { ...chosen } } : {}),
         ...(response ? { response: { ...response } } : {}),
-        wave: waves.get(lookId) ?? scene.wave ?? graphWave,
+        wave: watchedSceneWave(waves.get(lookId), scene.wave, graphWave),
       };
     });
     return record;

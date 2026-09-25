@@ -50,12 +50,20 @@ jest.mock('../../../renderer/studio/StudioBench', () => ({
   default: () => <div data-testid="studio-bench" />,
 }));
 
+const STARTED = Date.UTC(2026, 8, 1);
+const ENDED = Date.UTC(2026, 8, 16);
+
 const offer = (state: IPlusTrialOffer['state']): IPlusTrialOffer => ({
   enabled: true,
   days: 15,
   state,
   termsVersion: 8,
   trialTermsVersion: 1,
+  // A trial that started carries both its dates: the offer's parser refuses
+  // one without them (`parsePlusTrialOffer`).
+  ...(state === 'active' || state === 'ended'
+    ? { startedAt: STARTED, endsAt: ENDED }
+    : {}),
 });
 
 let trial: IPlusTrialOffer | undefined;
@@ -126,6 +134,27 @@ test('an ended trial is not offered the same press twice', async () => {
   expect(
     screen.queryByRole('button', { name: 'plus.gate.cta' }),
   ).not.toBeInTheDocument();
+});
+
+test('an ended trial put away leaves the page its own way to Plus', async () => {
+  // "Keep using free" puts the trial card away, and with it the "See plans"
+  // this page had deferred to: it left the page with nothing to press.
+  trial = offer('ended');
+  render(<StudioPanel />);
+  expect(
+    screen.queryByRole('button', { name: 'plus.gate.cta' }),
+  ).not.toBeInTheDocument();
+
+  await userEvent.click(
+    screen.getByRole('button', { name: 'trial.ended.free' }),
+  );
+  expect(screen.queryByText('trial.ended.plans')).not.toBeInTheDocument();
+  const seePlus = screen.getByRole('button', { name: 'plus.gate.cta' });
+  // The only way in again, so the loud one.
+  expect(seePlus).toHaveClass('button', 'small');
+  expect(seePlus).not.toHaveClass('subtle');
+  await userEvent.click(seePlus);
+  expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
 });
 
 test('projects made before the Studio was Plus’s are not left unmentioned', () => {

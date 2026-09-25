@@ -43,9 +43,10 @@ const ELECTRONIC_RACKS: readonly IGenreRack[] = [
     bassForge: forge(100, 4, 0.85, 0.8, 0.6, 0.65),
     bassPunch: punch(120, 0.75, -0.2, 0.1, 90, 0.5),
     dimension: width(0.5, 1, 1.1, 150, 3_000, 0.1),
-    // Half a decibel more than the family's other rows: at 0.75 it sat 0.2 LU
-    // over DSP Off where its siblings sat 0.3 to 0.6, and the extra half
-    // pumps no more than they do (2026-09-23).
+    // Half a decibel more than the family's club rows: at 0.75 it sat 0.2 LU
+    // over DSP Off where they sat 0.3 to 0.6. That costs the family's most
+    // pumping, 0.33 dB against 0.22 to 0.30 (2026-09-24, where 09-23 read it
+    // as no more); the notes say only that it is driven harder to sit level.
     maximizer: ceiling(1.25, -1, 3, sixteenthMs(125)),
     offered: ['exciter', 'bassForge', 'bassPunch'],
   },
@@ -91,11 +92,12 @@ const ELECTRONIC_RACKS: readonly IGenreRack[] = [
   },
   {
     // Breaks at 174 over a mono sine sub: the snare and the break are the
-    // genre's identity. The kick tightened, never lifted, and the sub mono.
-    // Stored as the chain it has always been.
+    // genre's identity. The kick tightened, never lifted (its attack was
+    // lifted 0.25 until 2026-09-24), and the sub mono under 90 Hz by the
+    // curve's own mono-maker. Stored as the chain it has always been.
     id: 'drumBass',
     chainId: 'drum-bass',
-    bassPunch: punch(120, 0.25, -0.5, 0, 40, 0),
+    bassPunch: punch(120, 0, -0.5, 0, 40, 0),
     dimension: width(0.5, 1, 1.05, 150, 3_000, 0.05),
     maximizer: ceiling(0.75, -1, 3, sixteenthMs(174)),
   },

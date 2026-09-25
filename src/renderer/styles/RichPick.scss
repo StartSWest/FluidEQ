@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'sass:color' as sass-color;
 @use 'color' as *;
+@use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -121,6 +122,63 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The list's scroll position, readable by the search row and the actions
   // beside it rather than only by what is inside it.
   timeline-scope: --rich-pick-list;
+}
+
+// A column beside the list about the row being pointed at (`renderPreview`).
+//
+// Narrow first: the wrapper around the search, the list and the actions is no
+// box at all, so they are the menu's own children exactly as in a picker with
+// no preview, and the preview is not drawn — a player window can be narrower
+// than the two columns. From `$bp-md` the menu turns into a row: the list
+// keeps its 300px and its every rule above, because the same flex column now
+// lives in the wrapper, and the column beside it takes the rest.
+//
+// The two columns stretch to the menu's height, which is AnchoredMenu's cap
+// when the list is longer than the window: a single-line flex row clamps its
+// line to the container's max height, and a stretched item's height is then
+// definite, so the list inside the wrapper still shrinks and scrolls as it
+// does alone.
+.rich-pick__main {
+  display: contents;
+}
+
+.rich-pick__preview {
+  display: none;
+}
+
+@media (min-width: $bp-md) {
+  .rich-pick__menu.has-preview {
+    flex-direction: row;
+    width: 624px;
+  }
+
+  .rich-pick__main {
+    display: flex;
+    flex: 0 0 300px;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .rich-pick__preview {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 14px 14px 12px;
+    border-left: 1px solid $border-subtle;
+    // The preset line's violet, faintly: this column is about the curve the
+    // graph draws in that colour, and it sets the column apart from the list
+    // without a second surface of its own.
+    background: linear-gradient(
+      180deg,
+      rgba($triadic-1, 0.07),
+      rgba($triadic-1, 0.02) 60%,
+      transparent
+    );
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 // Never scrolls away from the list it is filtering.

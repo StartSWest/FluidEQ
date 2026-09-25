@@ -14,12 +14,17 @@ import { DSP_PRESETS, DSP_PRESET_GROUPS } from '../../common/dsp/presets';
 import { dspVoicingCurve } from '../../common/dsp/presetVoicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import type { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { exportDspChainPreset } from '../utils/equalizerApi';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import DspPresetImportDialog from './DspPresetImportDialog';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
+import GenreNotesPreview from './GenreNotesPreview';
+import { InfoMark } from './GenreNotesParts';
+import { genreNotesFor } from './genreNotesModel';
+import { openGenreNotes } from './genreNotesStore';
 import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
@@ -33,6 +38,7 @@ import {
   QUICK_DSP_PRESETS,
   dspPresetHint as chainHint,
   dspPresetName,
+  dspPresetRowHint,
 } from './dspPresetCatalog';
 import {
   IUserDspPreset,
@@ -102,7 +108,7 @@ const DspChainPresetBar = ({
       DSP_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
         id: preset.id,
         name: dspPresetName(preset, t),
-        hint: chainHint(preset, t),
+        hint: dspPresetRowHint(preset, t),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
@@ -180,6 +186,13 @@ const DspChainPresetBar = ({
   // arrived it sounded like None. A pick keeps what is the listener's and
   // not the sound's: the crossfade, the surround switch, the head.
   const reset = () => applyPreset(DEFAULT_CHAIN_ID);
+
+  // The chosen chain's notes, where it is a genre's. The button stays in the
+  // row for every other chain, dimmed: coming and going as the arrows step
+  // through the list, it shoved the file actions beside it along the row the
+  // way the picker's own width once did.
+  const notes = genreNotesFor(settings.presetId);
+  const notesName = notes ? t(notes.labelKey as TranslationKey) : undefined;
 
   // A chain is saved and shared as it is heard: the rack, and the tone the
   // Preset layer is playing in the main EQ (`presetCurve.ts`).
@@ -290,6 +303,9 @@ const DspChainPresetBar = ({
           triggerAriaLabel={t('dsp.presets')}
           triggerTitle={t('dsp.presets')}
           disabled={disabled || selecting}
+          renderPreview={(id, close) => (
+            <GenreNotesPreview chainId={id} closeMenu={close} />
+          )}
         />
         <button
           type="button"
@@ -314,6 +330,27 @@ const DspChainPresetBar = ({
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="m6 3 5 5-5 5" />
           </svg>
+        </button>
+        <button
+          type="button"
+          className="genre-about"
+          aria-label={
+            notesName
+              ? t('genre.notes.about', { name: notesName })
+              : t('genre.notes.aboutNone')
+          }
+          title={
+            notesName
+              ? t('genre.notes.about', { name: notesName })
+              : t('genre.notes.aboutNone')
+          }
+          disabled={!notes}
+          onClick={() => openGenreNotes(settings.presetId)}
+        >
+          <InfoMark />
+          <span className="genre-about__label">
+            {t('genre.notes.aboutShort')}
+          </span>
         </button>
       </div>
 

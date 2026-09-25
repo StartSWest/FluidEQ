@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import type { ISceneRhythm } from 'common/sceneRhythm';
 
 /**
  * What the window and the lighting scene worker say to each other, and the
@@ -28,6 +29,10 @@ export interface ILightingSceneFrame {
   musicAccent: [number, number];
   /** The flywheel the music winds: turns, and turns a second. */
   musicRun: [number, number];
+  /** The music's time, drums and shape (`sceneRhythm.ts`). */
+  rhythm: ISceneRhythm;
+  /** The singing voice: how open, the note, how sure (`voiceReading.ts`). */
+  voice?: [number, number, number];
   accent: [number, number, number];
   fade: number;
   spectrum: Uint8Array;

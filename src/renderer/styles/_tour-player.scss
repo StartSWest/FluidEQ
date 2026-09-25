@@ -1,0 +1,61 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The Compact player: a capture of it in each theme, the second standing a
+// step lower and a little behind, as a pair of things you could pick from.
+
+// Sized in tour units rather than as a share of the frame: the frame's own
+// height comes from the slide, and a picture sized from the frame made the
+// slide taller than the panel at 2560 x 1392, with "How to start" under the
+// fold. Twenty-seven units is the height of the other slides' pictures.
+.player-visual {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.player-visual__player {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(#{$u} * 0.55);
+  @include animate(rise-in, $motion-slow);
+
+  & + & {
+    z-index: 0;
+    margin-top: calc(#{$u} * 2.4);
+    margin-left: calc(#{$u} * -1.1);
+    animation-delay: 140ms;
+  }
+}
+
+.player-visual__shot {
+  display: block;
+  width: auto;
+  height: calc(#{$u} * 27);
+  max-width: 100%;
+  border-radius: $radius-l;
+  object-fit: contain;
+  @include framed;
+}
+
+.player-visual__theme {
+  @include pill;
+
+  color: $text-muted;
+  background: color-mix(in srgb, $surface-block 90%, transparent);
+}

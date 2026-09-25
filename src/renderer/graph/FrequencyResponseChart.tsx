@@ -137,6 +137,7 @@ import {
 } from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
+import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
 import SceneTintToggle from './SceneTintToggle';
@@ -829,14 +830,6 @@ const FrequencyResponseChart = ({
     if (driver?.profileId && !isBypassed('driver')) {
       curveChips.push({ curve: 'driver', label: t('graph.curve.driver') });
     }
-    // Beside the driver, because it is written beside it and because it is the
-    // same kind of thing: a correction for the hardware rather than for taste.
-    //
-    // The word is the one the chip row above the editor uses for this layer —
-    // `eq.layers.headphone` — but written out, like every other label here. The
-    // legend is not translated: `Driver`, `Voicing`, `Smart EQ` and `Final
-    // output` are all English in the source, and one translated chip among six
-    // would be the odd one rather than the start of anything.
     if (hasHeadphoneLayer(headphone) && !isBypassed('headphone')) {
       curveChips.push({
         curve: 'headphone',
@@ -846,7 +839,6 @@ const FrequencyResponseChart = ({
     if (!isBypassed('eq')) {
       curveChips.push({ curve: 'eq', label: t('graph.curve.eq') });
     }
-    // Beside the bands, which is where the Tone is written (`tone.ts`).
     if (hasTone(tone) && !isBypassed('tone')) {
       curveChips.push({ curve: 'tone', label: t('graph.curve.tone') });
     }
@@ -883,6 +875,11 @@ const FrequencyResponseChart = ({
     ) {
       curveChips.push({ curve: 'total', label: t('graph.curve.total') });
     }
+    // In the pill row's order, headphone first and the bands last, so a layer
+    // is in the same place on both rows; the sum of them all after them.
+    const rank = (curve: TGraphCurve) =>
+      curve === 'total' ? ROW_ORDER.length : ROW_ORDER.indexOf(curve);
+    curveChips.sort((a, b) => rank(a.curve) - rank(b.curve));
   }
 
   /**

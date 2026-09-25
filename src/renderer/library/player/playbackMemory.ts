@@ -85,6 +85,10 @@ export interface IPlaybackMemory {
   repeat: TLibraryRepeat;
   isShuffled: boolean;
   positionMs: number;
+  /** The list on screen the queue was aimed at (`ILibraryQueue.source`), so
+   * the same list after a restart tops it up instead of rebuilding the order
+   * the listener made. */
+  source?: string;
 }
 
 const isStringArray = (value: unknown): value is string[] =>
@@ -100,9 +104,16 @@ const isNumberArray = (value: unknown): value is number[] =>
  * localStorage is user-editable and outlives the version that wrote it, so
  * this treats every field as untrusted: anything malformed becomes "nothing
  * was playing" rather than a queue with holes in it that the player would
- * then have to survive. The `order` array is checked against `trackIds` for
- * length AND range, because an out-of-range index is the one corruption that
+ * then have to survive. Every index in `order` is checked against the length
+ * of `trackIds`, because an out-of-range index is the one corruption that
  * would look valid and then index past the end of the queue.
+ *
+ * NOT FOR BEING THE SAME LENGTH. Taking a song out of Up Next edits `order`
+ * alone (`removeUpNextAt`), so an `order` shorter than `trackIds` is an
+ * ordinary queue — and checking the two for equal length threw the whole
+ * session away at the next launch, every time a song had been taken out. The
+ * range was checked against `order`'s own length too, which a shorter one
+ * failed for any song past it.
  */
 export const readPlaybackMemory = (): IPlaybackMemory | undefined => {
   try {
@@ -121,10 +132,9 @@ export const readPlaybackMemory = (): IPlaybackMemory | undefined => {
     }
     if (
       !isNumberArray(order) ||
-      order.length !== trackIds.length ||
       order.some(
         (index) =>
-          !Number.isInteger(index) || index < 0 || index >= order.length,
+          !Number.isInteger(index) || index < 0 || index >= trackIds.length,
       )
     ) {
       return undefined;
@@ -149,6 +159,7 @@ export const readPlaybackMemory = (): IPlaybackMemory | undefined => {
       repeat,
       isShuffled: value.isShuffled === true,
       positionMs,
+      ...(typeof value.source === 'string' ? { source: value.source } : {}),
     };
   } catch {
     return undefined;
@@ -171,6 +182,7 @@ export const writePlaybackMemory = (
       repeat: queue.repeat,
       isShuffled: queue.isShuffled,
       positionMs,
+      ...(queue.source === undefined ? {} : { source: queue.source }),
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
   } catch {

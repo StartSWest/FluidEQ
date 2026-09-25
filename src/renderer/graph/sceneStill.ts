@@ -45,8 +45,9 @@ export const renderSceneStill = (pack: IScenePack) => drawStillInWorker(pack);
  * the member is its only pair of eyes, which is why a scene can go several
  * rounds with its subject a grey smudge in a corner. FluidEQ is the one thing
  * here that can draw the scene, so it is FluidEQ that hands the picture over
- * — written into the folder the assistant is already editing, not reached for
- * through any door into the app.
+ * — written into the folder the assistant is already editing, for the ones
+ * not connected to the Studio's agent door, which draws its pictures through
+ * `drawForAgentInWorker` instead.
  */
 export const renderScenePreview = (pack: IScenePack) =>
   drawStillInWorker(pack, undefined, 'png');

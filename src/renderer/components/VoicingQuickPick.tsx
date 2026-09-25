@@ -3,7 +3,7 @@ import {
   NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
   activeDspPresetId,
-  dspPresetHint,
+  dspPresetRowHint,
   useDspPresetCatalog,
 } from '../dsp/dspPresetCatalog';
 import {
@@ -13,6 +13,7 @@ import {
 } from '../dsp/store';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
+import GenreNotesPreview from '../dsp/GenreNotesPreview';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
@@ -71,7 +72,7 @@ const VoicingQuickPick = () => {
           id: preset.id,
           name: preset.name,
           group: preset.group,
-          hint: isApo ? t('dsp.quick.apo') : dspPresetHint(preset, t),
+          hint: isApo ? t('dsp.quick.apo') : dspPresetRowHint(preset, t),
           icon: (
             <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
           ),
@@ -115,6 +116,9 @@ const VoicingQuickPick = () => {
       triggerAriaLabel={t('dsp.presets')}
       triggerTitle={t('dsp.presets')}
       disabled={isBlockingError || !isEnabled || selecting}
+      renderPreview={(id, close) => (
+        <GenreNotesPreview chainId={id} closeMenu={close} />
+      )}
     />
   );
 };

@@ -868,7 +868,7 @@ const overBudget = (
  * the compiler to link, which holds every other scene in the window while it
  * does. Past it the source is not read further.
  */
-const MAX_MEMBER_LOOPS = 64;
+export const MAX_MEMBER_LOOPS = 64;
 
 /**
  * Every rule the source breaks, at most once each, in the order they appear.

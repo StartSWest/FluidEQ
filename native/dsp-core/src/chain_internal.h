@@ -115,6 +115,18 @@ constexpr double kMaximizerLowLookAheadMs = 3.0;
 constexpr double kMaximizerLowSplitHz = 250.0;
 constexpr double kMaximizerLowFloorDb = -12.0;
 constexpr double kMaximizerLowReleaseMs = 30.0;
+/**
+ * How long a peak's reduction stays what the low band recovers toward: half a
+ * cycle of a 25 Hz note, the lowest an 808 or a five-string bass plays. The
+ * low band's own reduction is still held only 10 ms and let go over 30, but
+ * toward the deepest reduction of the last 20 to 40 ms rather than toward
+ * the sample in hand, which between two peaks of a note asks for none.
+ * Recovering there moved the gain inside every cycle: a held 60 Hz note at
+ * -1 dBFS through Pop's rack came out with 0.6% of harmonics once it wavered
+ * by a tenth of a percent (120 Hz at -47 dB, 180 at -48), and a note under
+ * 50 Hz sawed on every cycle, its half cycle longer than the hold.
+ */
+constexpr double kMaximizerLowWindowMs = 20.0;
 
 /** Per-domain buffers and single-channel filter state. */
 struct ChainEqSlot {

@@ -1540,6 +1540,28 @@ const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
    * threshold work below and is simply the curve.
    */
   fluid: 'trace',
+  /**
+   * The drawn scenes that hold their peaks: the lamp left lit over a board's
+   * column, the cap floating over glass or a bar, the dotted ring outside the
+   * halo, the spray off the sea, the envelope over the spectrum wave. Each
+   * draws its own mark (`sceneViews/`); this only says it has one, so Lit
+   * peaks starts on for them.
+   */
+  ledwall: 'bead',
+  towers: 'bead',
+  tide: 'bead',
+  halo: 'bead',
+  ledbars: 'bead',
+  neonbars: 'bead',
+  bars3d: 'bead',
+  spectrumwave: 'bead',
+  mirrorbars: 'bead',
+  pixelbars: 'bead',
+  beams: 'bead',
+  sparkbars: 'bead',
+  glitchbars: 'bead',
+  orb: 'bead',
+  halftone: 'bead',
 };
 
 /**

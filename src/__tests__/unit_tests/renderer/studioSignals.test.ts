@@ -11,6 +11,10 @@ import {
   studioBands,
 } from '../../../renderer/studio/studioSignals';
 import type { ISceneFrame } from '../../../renderer/graph/sceneGl';
+import { BASS_HZ, MID_HZ, TREBLE_HZ } from '../../../common/spectrumEnergy';
+
+/** What a part playing as it has been reads (`energyLevels.ts`). */
+const AT_USUAL = 0.55;
 
 const live = (seconds: number): ISceneFrame => ({
   timeSeconds: seconds,
@@ -56,20 +60,19 @@ describe("the Studio's test signals", () => {
 
   /**
    * A song's spectrum as the analyser lays it out, 20 Hz to 20 kHz on a log
-   * scale: loud in the bass, less in the mids, quiet in the treble.
+   * scale, a level in each part where the parts meet: loud in the bass, less
+   * in the mids, quiet in the treble.
    */
   const texelHertz = (texel: number) => 20 * 1000 ** (texel / 511);
   const song = (bass: number, mid: number, treble: number) => {
     const spectrum = new Uint8Array(512);
     spectrum.forEach((_, texel) => {
       const hertz = texelHertz(texel);
-      let value = 0;
-      if (hertz >= 20 && hertz < 160) {
+      let value = treble;
+      if (hertz < BASS_HZ[1]) {
         value = bass;
-      } else if (hertz >= 160 && hertz < 2000) {
+      } else if (hertz < MID_HZ[1]) {
         value = mid;
-      } else if (hertz >= 2000 && hertz < 16000) {
-        value = treble;
       }
       spectrum[texel] = value;
     });
@@ -83,31 +86,44 @@ describe("the Studio's test signals", () => {
   const firstTexelAt = (hertz: number) =>
     Math.ceil((Math.log(hertz / 20) / Math.log(1000)) * 511);
 
+  /** `count` frames of `spectrum` under `signal`, the last one shaped. */
+  const hearFor = (
+    signal: 'bass' | 'mid' | 'treble',
+    spectrum: Uint8Array,
+    count: number,
+    buffers = createStudioSignalBuffers(),
+  ) => {
+    let shaped = live(0);
+    for (let frame = 0; frame < count; frame += 1) {
+      shaped = shapeStudioFrame(playing(frame / 60, spectrum), signal, buffers);
+    }
+    return shaped;
+  };
+
   it.each([
-    ['bass', 0, 204, [20, 160]],
-    ['mid', 1, 153, [160, 2000]],
-    ['treble', 2, 102, [2000, 16000]],
+    ['bass', 0, 204, BASS_HZ],
+    ['mid', 1, 153, MID_HZ],
+    ['treble', 2, 102, TREBLE_HZ],
   ] as const)(
     'hears only the %s of the music playing, measured as the graph measures it',
     (signal, index, value, [from, to]) => {
-      const shaped = shapeStudioFrame(
-        playing(1, song(204, 153, 102)),
-        signal,
-        createStudioSignalBuffers(),
-      );
-      // That part as loud as it is in the music, the others silent.
-      expect(shaped.bands[index]).toBeCloseTo(value / 255, 2);
+      const shaped = hearFor(signal, song(204, 153, 102), 20);
+      // That part playing as it has been, and the rest taken out: nothing at
+      // all, where a quiet rest still read as a part playing.
+      expect(shaped.bands[index]).toBeCloseTo(AT_USUAL, 2);
       expect(shaped.bands.filter((_, other) => other !== index)).toEqual([
         0, 0,
       ]);
       // The spectrum keeps that part where it lives, and nothing else.
-      const inside = firstTexelAt(from) + 2;
-      const outside = firstTexelAt(to) + 2;
+      const inside = Math.max(0, firstTexelAt(Math.max(20, from))) + 2;
       expect(shaped.spectrum[inside]).toBe(value);
-      expect(shaped.spectrum[outside]).toBe(0);
-      // Only as loud as that part alone, so quieter than the whole song.
+      const outsideLit = Array.from(shaped.spectrum.keys()).filter(
+        (texel) =>
+          (texelHertz(texel) < from || texelHertz(texel) >= to) &&
+          shaped.spectrum[texel] !== 0,
+      );
+      expect(outsideLit).toEqual([]);
       expect(shaped.level).toBeGreaterThan(0);
-      expect(shaped.level).toBeLessThan(shaped.bands[index]);
     },
   );
 
@@ -121,9 +137,10 @@ describe("the Studio's test signals", () => {
           buffers,
         ).bands[0],
     );
-    expect(heard[0]).toBeCloseTo(30 / 255, 2);
-    // Up in the same frame the kick is in, never eased in.
-    expect(heard[1]).toBeCloseTo(230 / 255, 2);
+    expect(heard[0]).toBeCloseTo(AT_USUAL, 2);
+    // Up in the same frame the kick is in, never eased in: far over the bass
+    // it had been hearing.
+    expect(heard[1]).toBe(1);
     // Down again, eased, but already on its way.
     expect(heard[2]).toBeLessThan(heard[1]);
     expect(heard[3]).toBeLessThan(heard[2]);
@@ -158,27 +175,30 @@ describe("the Studio's test signals", () => {
     expect(play(60, 1, 240, 20)).toBe(1);
   });
 
-  it('takes the waveform down by as much of the level as is left', () => {
-    const shaped = shapeStudioFrame(
-      playing(1, song(204, 153, 102)),
-      'treble',
-      createStudioSignalBuffers(),
-    );
-    const scale = shaped.level / 0.5;
-    expect(shaped.waveform[10]).toBe(Math.round(77 * scale));
+  it('takes the waveform down by as much of the sound as is left', () => {
+    // A song that is all bass is all there under Bass.
+    expect(hearFor('bass', song(204, 0, 0), 1).waveform[10]).toBe(77);
+    // The quiet treble of a song is a small part of it, and the loud bass a
+    // large one: each scaled by its share, and neither by a level, which
+    // reads 1 for a part alone and for the whole song alike.
+    const treble = hearFor('treble', song(204, 153, 102), 1).waveform[10];
+    const bass = hearFor('bass', song(204, 153, 102), 1).waveform[10];
+    expect(treble).toBeGreaterThan(0);
+    expect(treble).toBeLessThan(77 / 4);
+    expect(bass).toBeGreaterThan(treble);
+    expect(bass).toBeLessThan(77);
   });
 
   it('starts afresh when another part is chosen', () => {
     const buffers = createStudioSignalBuffers();
-    shapeStudioFrame(playing(0, song(240, 10, 10)), 'bass', buffers);
-    // The bass the last signal heard does not carry into the mids.
-    const mids = shapeStudioFrame(
-      playing(1 / 60, song(240, 10, 10)),
-      'mid',
-      buffers,
-    );
+    hearFor('bass', song(240, 10, 10), 20, buffers);
+    // The bass the last signal heard does not carry into the mids: they read
+    // exactly as mids heard from the start.
+    const mids = hearFor('mid', song(240, 10, 10), 10, buffers);
+    const fresh = hearFor('mid', song(240, 10, 10), 10);
+    expect(mids.bands).toEqual(fresh.bands);
     expect(mids.bands[0]).toBe(0);
-    expect(mids.bands[1]).toBeCloseTo(10 / 255, 2);
+    expect(mids.bands[1]).toBeGreaterThan(0);
   });
 
   it('beats at a steady tempo', () => {

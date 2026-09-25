@@ -27,3 +27,10 @@ it under the terms of the GNU General Public License version 3 or later.
 .gallery-preview__canvas {
   display: block;
 }
+
+// The way back to the scene's own view (`SceneViewReset.tsx`): the corner a
+// taste's running-out line and the stepping arrows both leave clear.
+.gallery-preview__reset {
+  right: 12px;
+  bottom: 12px;
+}

@@ -28,6 +28,9 @@ const wallpaper = {
   'wallpaper.motion.calm': 'Calmo',
   'wallpaper.motion.calm.hint':
     'Uma animação lenta e serena que ignora a música.',
+  'wallpaper.follow': 'Seguir o gráfico',
+  'wallpaper.follow.hint':
+    'Mostra o visualizador Plus do gráfico e muda junto com ele, seja você a escolher ou a troca automática. Enquanto o gráfico mostrar um visualizador que não é Plus, esta tela mantém o último Plus.',
   'wallpaper.cancel': 'Cancelar',
   'wallpaper.done': 'Concluído',
   'wallpaper.start': 'Definir fundo',

@@ -23,7 +23,7 @@ import { NEUTRAL_RESPONSE } from '../../../common/sceneResponse';
 import { SPECTRUM_TEXELS } from '../../../common/sceneUniformContract';
 import type { ISceneFrame } from '../../../renderer/graph/sceneGl';
 import StudioMeters from '../../../renderer/studio/StudioMeters';
-import type { TStageDrawn } from '../../../renderer/studio/StudioStage';
+import type { TStageHeard } from '../../../renderer/studio/StudioStage';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -44,15 +44,11 @@ const frame = (level: number): ISceneFrame => ({
 });
 
 it('changes a readout in the text node it already has', () => {
-  const feed = createRef<TStageDrawn>() as MutableRefObject<
-    TStageDrawn | undefined
+  const feed = createRef<TStageHeard>() as MutableRefObject<
+    TStageHeard | undefined
   >;
   const { container } = render(
-    <StudioMeters
-      feed={feed}
-      onScale={jest.fn()}
-      response={NEUTRAL_RESPONSE}
-    />,
+    <StudioMeters feed={feed} response={NEUTRAL_RESPONSE} />,
   );
   const draw = feed.current;
   if (!draw) {
@@ -66,21 +62,11 @@ it('changes a readout in the text node it already has', () => {
     throw new Error('no level readout');
   }
 
-  const report = {
-    scale: 1,
-    intervalMs: 10,
-    drawnWidth: 1460,
-    drawnHeight: 700,
-    outputWidth: 1460,
-    outputHeight: 700,
-    fsr: false,
-    fxaa: false,
-  };
-  draw(frame(0.25), 1, 0, frame(0.25), report);
+  draw(frame(0.25), frame(0.25), 0);
   const node = value.firstChild;
   expect(value).toHaveTextContent('0.25');
 
-  draw(frame(0.5), 1, 0, frame(0.5), report);
+  draw(frame(0.5), frame(0.5), 0);
   // The control: the number did change, so a kept node is not a stale one.
   expect(value).toHaveTextContent('0.50');
   expect(value.firstChild).toBe(node);

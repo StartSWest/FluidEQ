@@ -21,6 +21,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 
+// A BOX INSIDE A PROCESSOR CARD IS ITS EDGE AND NOTHING ELSE: the card's own
+// colour shows through, the way the Dimension card's Width and Shape groups
+// always drew it (Ivan, 2026-09-22: "set all DSP cards to that — same as the
+// bg, just borders"). The bands, the readout tiles and the panels each had a
+// fill of their own — the plot colour, a step darker than the card, or the
+// card's colour laid over itself — so a page was two or three shades of
+// slate for no reason a listener could name.
+//
+// Never a graph ("not the graph, never the graph"): a plot keeps its own
+// darker ground, which is what its lines are drawn to be read against. And
+// the Exciter's two tinted bands keep their tint; the colour says what they
+// are.
+@mixin dsp-box {
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: none;
+}
+
 // Does not scroll itself: the workspace panel around it does, the same as
 // `.voicing-panel`. A scroller here would nest inside that one and leave the
 // content floating clear of the panel's own padding.
@@ -124,7 +142,13 @@ $dsp-rail-offset: 110ms;
 
   // The title keeps its baseline alignment with the rate beside it; a line
   // box one control tall is what centres both on the row.
+  //
+  // And it never gives width up. Every flex item shrinks by default, so a
+  // crowded row took a little off the heading as well — which is why the
+  // presets beside it were pinned to `min-content` instead of being allowed
+  // to fill the row. With the title held, they can be (see `.dsp-presets`).
   > .dsp-title {
+    flex: none;
     line-height: $control-height;
   }
 
@@ -187,12 +211,26 @@ $dsp-rail-offset: 110ms;
 // the feature as broken rather than as misunderstood — so it is readable body
 // text at the top of the panel, not a muted caption at the bottom and not a
 // tooltip nobody hovers.
+//
+// A strip rather than a paragraph (`DspScopeNotice.tsx`): the glyph of what it
+// is about, the sentence, and the way out as a real button at its end — the
+// button drops under the sentence, at the right, when the page is narrow. As
+// wide as it has to be and no wider, so it reads as one message under the
+// header rather than as a band across the whole page.
 .dsp-scope {
-  max-width: 680px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: fit-content;
+  max-width: 100%;
   // The panel's own 14px gap plus this: the sentence sat as close to the rack
   // below it as the heading above it does, so a line that qualifies the whole
   // page read as a caption belonging to the first card in it.
   margin: 0 0 8px;
+  padding: 7px 8px 7px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
   color: $text-muted;
   font-size: $text-body;
   line-height: 1.45;
@@ -202,21 +240,31 @@ $dsp-rail-offset: 110ms;
   // is active; amber says "not yet" without borrowing red from a real engine
   // failure.
   &.is-idle {
+    border-color: color-mix(in srgb, $amber 34%, transparent);
+    background: color-mix(in srgb, $amber 7%, transparent);
     color: $amber;
   }
 }
 
-// The way out of the Library-only scope, offered where the limitation is
-// stated rather than left to be found in a menu. Inline in the sentence, so
-// the button's own padding is taken back on the left and the row keeps its
-// baseline.
-.dsp-scope-link {
-  margin-left: 2px;
-  padding-block: 0;
-  padding-inline: 4px;
-  font-size: inherit;
-  font-weight: $weight-semibold;
-  vertical-align: baseline;
+.dsp-scope__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+// Takes the line, and wraps before the button has to: a sentence two lines
+// tall beside its button reads better than one line with the button alone
+// under it.
+.dsp-scope__text {
+  flex: 1 1 280px;
+  min-width: 0;
+  max-width: 72ch;
+  margin: 0;
+}
+
+.dsp-scope__action {
+  flex: none;
+  margin-left: auto;
 }
 
 // Not an error, and it must not look like one. The engine lives in the library
@@ -243,10 +291,19 @@ $dsp-rail-offset: 110ms;
   // It is the same preset control as every filter bar, at the rack level. The
   // shared classes keep the arrows, field and label literally identical.
   //
-  // Sized from its widest group, as the processor headers' toolbars are: from
-  // its whole width it wrapped under the title on a narrow panel and pushed
-  // the rack's switch onto a third line of its own, stranded at the left.
-  flex: 1 1 min-content;
+  // ITS WHOLE WIDTH WHEN THE ROW HAS IT, its narrowest when it does not.
+  //
+  // This was `min-content`, which on a wide panel is a box that can never
+  // grow: an `auto` margin — and the switch group after it carries one —
+  // takes ALL of a row's free space before `flex-grow` is offered any. So the
+  // presets stood at their narrowest with four hundred pixels of empty row
+  // beside them and their four file actions broken onto a line of their own,
+  // under the picker (Ivan, 2026-09-21). An `auto` basis is the group's
+  // content on one line; it still shrinks to `min-content` and wraps inside
+  // itself when the row is tight, and the title beside it is pinned so the
+  // shrinking never comes off the heading, which is what `min-content` was
+  // guarding against.
+  flex: 1 1 auto;
   margin-right: auto;
   // The same rule the power group on the right already carried, so the header
   // reads as three groups with two matching separators rather than one
@@ -356,13 +413,8 @@ $dsp-rail-offset: 110ms;
 .dsp-normalizer-analysis,
 .dsp-normalizer-live,
 .dsp-denoise-analysis {
+  @include dsp-box;
   min-width: 0;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  // The block colour, like every other card on a pane. It was black at 18%,
-  // which over the pane came out darker than the floor the window stands on
-  // — a well rather than a card, and the only one in the app.
-  background: $block-lift;
 }
 
 // Denoise reuses the Normalizer's panel treatment rather than defining its
@@ -434,6 +486,9 @@ $dsp-rail-offset: 110ms;
   min-width: 0;
   height: 200px;
   flex-direction: column;
+  // Clipped to its corners: the click lane along its top is painted in the
+  // card's colour right to the edge (`DspDenoiseGraph.tsx`).
+  overflow: hidden;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
   background: $surface-plot;
@@ -673,9 +728,8 @@ $dsp-rail-offset: 110ms;
     justify-content: center;
     gap: 5px;
     padding: 6px 10px;
-    border: 1px solid rgba($white, 0.05);
+    @include dsp-box;
     border-radius: $radius-xs;
-    background: $surface-plot;
   }
 
   dt,
@@ -764,9 +818,18 @@ $dsp-rail-offset: 110ms;
 .dsp-crossfade-preview,
 .dsp-crossfade-controls {
   min-height: 150px;
+}
+
+// The curve is a graph and keeps the plot's ground; the controls beside it
+// are a box on the card (`dsp-box`).
+.dsp-crossfade-preview {
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
   background: $surface-plot;
+}
+
+.dsp-crossfade-controls {
+  @include dsp-box;
 }
 
 // The plot fills the box and never sizes it. In the flow, the SVG took its
@@ -1276,9 +1339,8 @@ $dsp-rail-offset: 110ms;
     gap: 5px;
     align-items: baseline;
     padding: 4px 9px;
-    border: 1px solid rgba($white, 0.07);
+    @include dsp-box;
     border-radius: $radius-xs;
-    background: $surface-plot;
     color: rgba($white, 0.82);
     font-size: $text-body;
     font-variant-numeric: tabular-nums;
@@ -1491,9 +1553,7 @@ $dsp-rail-offset: 110ms;
   gap: 6px;
   min-width: 0;
   padding: 8px 10px 4px;
-  border: 1px solid rgba($white, 0.05);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  @include dsp-box;
 }
 
 .dsp-band-title {
@@ -2338,9 +2398,7 @@ $dsp-pane-columns: 6;
   min-width: 0;
   align-content: center;
   padding: 10px 12px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  @include dsp-box;
 }
 
 // One row, centred: the selected band's controls and nothing else. Centring
@@ -2360,9 +2418,7 @@ $dsp-pane-columns: 6;
   justify-content: center;
   gap: 14px 18px;
   padding: 10px 14px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  @include dsp-box;
   flex-wrap: wrap;
 }
 
@@ -2454,9 +2510,7 @@ $dsp-pane-columns: 6;
   justify-content: center;
   gap: 10px;
   padding: 6px 12px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  @include dsp-box;
 }
 
 .dsp-eq-dynamic-readout {
@@ -2959,7 +3013,17 @@ $dsp-pane-columns: 6;
 // accessible name instead of taking it out of one. The hover name is the
 // `title` each of them carries.
 @container dsp-panel (max-width: #{$bp-xl}) {
-  .dsp-chain-transfer {
+  // A word that NAMES a control goes at this width; a word that IS a value
+  // stays. Every one of these keeps its name on its own `title`, so it is
+  // still announced and still appears on hover.
+  //
+  // The equaliser's four join the rack's four, at the same width and by the
+  // same rule (Ivan, 2026-09-21): they were four labelled buttons across the
+  // middle of the card's first row, and the band picker at the end of that
+  // row — the one control there that says what is being edited — was pushed
+  // under them onto a line of its own.
+  .dsp-chain-transfer,
+  .dsp-eq-transfer {
     .button.small {
       padding-right: 9px;
       padding-left: 9px;
@@ -2971,6 +3035,25 @@ $dsp-pane-columns: 6;
       width: 15px;
       height: 15px;
       margin-right: 0;
+    }
+  }
+
+  // The engine capsule keeps its gamepad and its figure and drops the two
+  // captions between them (Ivan, 2026-09-21). They are the longest words in
+  // the header and they are the two that say the least: the glyph is what
+  // the switch is, and a figure carrying `ms` is what the reading is. Left
+  // in, the capsule ran about 300px and the presets beside it broke into
+  // three lines. `font-size: 0` rather than a rule per text node, because
+  // the switch's caption is a bare text node beside its glyph.
+  .engine-strip {
+    .game-mode-switch__label {
+      gap: 0;
+      font-size: 0;
+      letter-spacing: 0;
+    }
+
+    .latency-readout__name {
+      display: none;
     }
   }
 }
@@ -3137,12 +3220,11 @@ $dsp-pane-columns: 6;
   margin-right: auto;
   margin-left: auto;
   padding: 8px 12px 4px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: $radius-s;
-  // The card's own colour, with only the hairline to say where the block
-  // is (Ivan, 2026-09-22: "match the card"). It was the plot surface, one
-  // step darker, and the scope inside faded toward a third colour again.
-  background: $block-lift;
+  // Like every box on the card (`dsp-box`), which is also what its needle's
+  // trail fades toward (`DspPhaseMeter.tsx`). It was the card's colour laid
+  // over the card while the boxes beside it were the plot's, a step darker,
+  // so it was the one lighter block in the row (Ivan, 2026-09-22).
+  @include dsp-box;
 }
 
 // The block’s caption and its three mode glyphs share one line, so the icons
@@ -4078,7 +4160,13 @@ $dsp-pane-columns: 6;
   border: 1px solid $border-subtle;
 }
 
+// Every other processor hangs its legend inside `.dsp-eq-plot`, which is
+// positioned; this one hangs it here, and this was not. `.dsp-eq-legend` is
+// `position: absolute`, so with no containing block of its own it measured
+// `top: 6px; left: 50%` off the whole page instead of off the curve, and the
+// three names stood at the top of the DSP page across the header.
 .dsp-dimension-curve {
+  position: relative;
   display: grid;
   gap: 6px;
   min-width: 0;

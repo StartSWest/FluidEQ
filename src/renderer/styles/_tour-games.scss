@@ -1,0 +1,261 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Game presets: the page with four games, and the desktop under it with the
+// two cards a game raises — one as it comes to the front, one as it closes.
+
+.games-visual {
+  display: flex;
+  width: 100%;
+  max-width: calc(#{$u} * 34);
+  flex-direction: column;
+  gap: calc(#{$u} * 0.9);
+  @include animate(rise-in, $motion-slow);
+}
+
+.games-visual__page {
+  @include panel;
+
+  overflow: hidden;
+}
+
+.games-visual__head {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.75) calc(#{$u} * 0.9);
+  border-bottom: 1px solid rgba($edge-tint, 0.08);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.95);
+  gap: calc(#{$u} * 0.5);
+}
+
+.games-visual__glyph {
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  color: $secondary-light;
+}
+
+.games-visual__add {
+  @include pill;
+
+  margin-left: auto;
+  color: $text-accent;
+  border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.games-visual__rows {
+  display: grid;
+  margin: 0;
+  padding: calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.4);
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: center;
+    padding: calc(#{$u} * 0.5) calc(#{$u} * 0.6);
+    border: 1px solid transparent;
+    border-radius: $radius-m;
+    background: rgba($white, 0.025);
+    gap: calc(#{$u} * 0.7);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    @include stagger-in(4, 60ms, 180ms);
+  }
+
+  li.is-front {
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+  }
+}
+
+.games-visual__tile {
+  display: grid;
+  width: calc(#{$u} * 2.4);
+  height: calc(#{$u} * 2.4);
+  place-items: center;
+  color: $white;
+  border-radius: $radius-s;
+  background: linear-gradient(135deg, var(--game-from), var(--game-to));
+  font-size: calc(#{$u} * 0.85);
+  font-weight: $weight-bold;
+  text-shadow: 0 1px 2px rgba($black, 0.35);
+}
+
+.games-visual__game {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.2);
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.88);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: calc(#{$u} * 0.4);
+  }
+}
+
+.games-visual__source {
+  @include pill;
+
+  padding-block: 0;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+}
+
+.games-visual__live {
+  overflow: hidden;
+  color: $text-accent;
+  font-size: calc(#{$u} * 0.64);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &::before {
+    display: inline-block;
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    margin-right: calc(#{$u} * 0.3);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 8px $secondary-light;
+    content: '';
+  }
+}
+
+.games-visual__sound {
+  @include pill;
+
+  max-width: calc(#{$u} * 11);
+  overflow: hidden;
+  color: $text-primary;
+  border-color: rgba($edge-tint, 0.16);
+  background: $surface-field;
+  text-overflow: ellipsis;
+
+  &::before {
+    flex: none;
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    border-radius: 50%;
+    background: $secondary-light;
+    content: '';
+  }
+
+  &.is-none {
+    color: $text-muted;
+
+    &::before {
+      background: $text-faint;
+    }
+  }
+}
+
+.games-visual__desk {
+  position: relative;
+  height: calc(#{$u} * 7.6);
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      ellipse 60% 90% at 20% 30%,
+      color-mix(in srgb, $complementary 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 90% at 85% 80%,
+      color-mix(in srgb, $secondary-default 22%, transparent),
+      transparent 70%
+    ),
+    $surface-well;
+}
+
+.games-visual__card {
+  position: absolute;
+  right: calc(#{$u} * 0.9);
+  bottom: calc(#{$u} * 0.9);
+  display: flex;
+  max-width: calc(100% - #{$u} * 1.8);
+  align-items: center;
+  padding: calc(#{$u} * 0.55) calc(#{$u} * 0.8);
+  border: 1px solid $border-menu;
+  border-radius: $radius-l;
+  background: $surface-menu;
+  box-shadow: 0 12px 30px rgba($black, 0.45);
+  gap: calc(#{$u} * 0.6);
+  @include animate(rise-in, $motion-slow);
+
+  > span:not(.games-visual__mode) {
+    display: grid;
+    min-width: 0;
+    gap: calc(#{$u} * 0.1);
+  }
+
+  strong,
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.82);
+  }
+
+  small {
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.68);
+  }
+
+  &.is-behind {
+    top: calc(#{$u} * 0.8);
+    right: auto;
+    bottom: auto;
+    left: calc(#{$u} * 0.9);
+    opacity: 0.72;
+    animation-delay: 220ms;
+  }
+}
+
+.games-visual__card-glyph {
+  flex: none;
+  width: calc(#{$u} * 1.5);
+  height: calc(#{$u} * 1.5);
+  padding: calc(#{$u} * 0.25);
+  color: $secondary-light;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+}
+
+.games-visual__mode {
+  @include pill;
+
+  flex: none;
+  color: $text-accent;
+  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  font-size: calc(#{$u} * 0.62);
+}

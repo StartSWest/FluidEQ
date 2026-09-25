@@ -26,6 +26,9 @@ const wallpaper = {
   'wallpaper.motion.calm': 'Спокойно',
   'wallpaper.motion.calm.hint':
     'Медленная тихая анимация, которая не слушает музыку.',
+  'wallpaper.follow': 'Как на графике',
+  'wallpaper.follow.hint':
+    'Показывает Plus-визуализатор, открытый на графике, и меняется вместе с ним — вручную или при автосмене. Пока на графике визуализатор не из Plus, этот экран оставляет последний Plus-визуализатор.',
   'wallpaper.cancel': 'Отмена',
   'wallpaper.done': 'Готово',
   'wallpaper.start': 'Установить фон',

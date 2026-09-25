@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MAX_GAIN } from 'common/constants';
 import {
   AMBIENT_CEILING,
   ambientElementsAt,
@@ -285,14 +285,11 @@ export default function SceneAmbient() {
       // The music as it is now; nothing while paused or sent from elsewhere.
       const heard = pausedRef.current ? undefined : readFrameRef.current();
       const points = heard?.points ?? NO_POINTS;
-      const bands = advanceEnergy(
-        energy,
-        points,
-        MIN_GAIN,
-        MAX_GAIN,
-        elapsed,
-        points.length > 0,
-      );
+      // The window's own reading of the music, the one every drawing in it
+      // reads (`liveSound.ts`); without it, measured here from the points.
+      const bands = heard?.sound
+        ? heard.sound.music()
+        : advanceEnergy(energy, points, MAX_GAIN, elapsed, points.length > 0);
       (Object.keys(levels) as (keyof IAmbientMusicLevels)[]).forEach((key) => {
         const target = bands[key];
         levels[key] +=

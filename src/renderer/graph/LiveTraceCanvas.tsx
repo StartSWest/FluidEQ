@@ -91,6 +91,7 @@ import {
   isAnalysisStyle,
   legendWords,
 } from 'common/graphAnalysis';
+import { isSceneViewStyle } from 'common/graphSceneViews';
 import type { TranslationKey } from 'common/i18n';
 import {
   advanceRoadTrip,
@@ -285,6 +286,9 @@ import {
   type IAnalysisBand,
 } from './analysis/analysisFrame';
 import drawAnalysisView from './analysis/drawAnalysisView';
+import drawSceneView, {
+  createSceneViewState,
+} from './sceneViews/drawSceneView';
 import useAnalysisChannels from './analysis/useAnalysisChannels';
 import { GRAPH_SILENT_POINTS } from './liveGraphBand';
 import { useTranslation } from '../utils/I18nContext';
@@ -620,6 +624,7 @@ const LiveTraceCanvas = ({
     analysisNeeds(look.style, look.tuning.channels === 'split'),
   );
   const analysisRef = useRef(createAnalysisState());
+  const sceneViewRef = useRef(createSceneViewState());
   /**
    * What the legend calls each channel, on a ref: the drawing runs on its own
    * frames and a language change must not rebuild the whole loop.
@@ -931,6 +936,24 @@ const LiveTraceCanvas = ({
        * lets them read left and right separately without every scene below
        * having to learn what a second channel is.
        */
+      /**
+       * The band each copy of the figure stands in, from the wave controls
+       * (height, position, mirrored, upside down): the measuring views and
+       * the drawn scenes both lay themselves out in these.
+       */
+      const figureBands = (): IAnalysisBand[] =>
+        curves.map((curve) => {
+          const wave = getWaveTransform(curve, baseline, plot.top);
+          const restY = plot.bottom * wave.scaleY + wave.translateY;
+          const fullY = plot.top * wave.scaleY + wave.translateY;
+          const flipped = fullY > restY;
+          return {
+            top: flipped ? restY : fullY,
+            bottom: flipped ? fullY : restY,
+            flipped,
+            opacity: curve.opacity,
+          };
+        });
       if (isAnalysisStyle(chosen)) {
         const needs = analysisNeeds(chosen, tuning.channels === 'split');
         const isEuphoric =
@@ -966,18 +989,7 @@ const LiveTraceCanvas = ({
             isSelfColouredLook(viewPalette, viewColours),
             euphoria,
           ) ?? rampRgba(viewColours, 1, 1);
-        const bands: IAnalysisBand[] = curves.map((curve) => {
-          const wave = getWaveTransform(curve, baseline, plot.top);
-          const restY = plot.bottom * wave.scaleY + wave.translateY;
-          const fullY = plot.top * wave.scaleY + wave.translateY;
-          const flipped = fullY > restY;
-          return {
-            top: flipped ? restY : fullY,
-            bottom: flipped ? fullY : restY,
-            flipped,
-            opacity: curve.opacity,
-          };
-        });
+        const bands = figureBands();
         const moved = drawAnalysisView({
           style: chosen,
           context,
@@ -1015,6 +1027,39 @@ const LiveTraceCanvas = ({
           scope: needs.scope ? channels.scope() : undefined,
           eqResponse: eqResponseRef.current,
           state: analysisRef.current,
+        });
+        const settling = transitionRef.current.paint(context, now);
+        return settling || moved || moving;
+      }
+
+      /**
+       * The drawn scenes (`graphSceneViews.ts`) draw themselves too, for the
+       * same reason: each is layers, lights and particles rather than one
+       * figure. They are handed the look as chosen, so on Auto with no
+       * colours of its own a scene can paint itself the way the real thing
+       * looks.
+       */
+      if (isSceneViewStyle(chosen)) {
+        const moved = drawSceneView({
+          style: chosen,
+          context,
+          ratio,
+          plot,
+          window: { width, height },
+          bands: figureBands(),
+          deltaMs: motionDeltaMs,
+          playing: playingRef.current,
+          points: eased,
+          live: data,
+          columns: projected,
+          tuning,
+          palette: lookRef.current.palette,
+          resolvedPalette: resolveGraphPalette(chosen, lookRef.current.palette),
+          colours: lookRef.current.colours,
+          glow: document.documentElement.classList.contains('is-euphoric')
+            ? tuning.glow
+            : 0,
+          state: sceneViewRef.current,
         });
         const settling = transitionRef.current.paint(context, now);
         return settling || moved || moving;

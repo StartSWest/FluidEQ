@@ -8,6 +8,7 @@ import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
 import {
   clearListenerWave,
   setListenerWave,
+  watchedSceneWave,
 } from 'renderer/utils/sceneWaveStore';
 
 /**
@@ -161,5 +162,27 @@ describe(`a listener's wave for one scene`, () => {
     expect(stored().aurora).toEqual({
       fullscreen: { height: 0.5, position: 0 },
     });
+  });
+});
+
+/**
+ * Wherever a visualizer is watched rather than read against a grid — the
+ * desktop, the player and its EQ screen, behind a video — it is drawn with
+ * one wave, the graph's rule for full screen. The player once drew its
+ * author's wave while the desktop beside it drew the listener's.
+ */
+describe('the wave a visualizer is watched with', () => {
+  const graph: ISceneWave = { height: 1, position: 0 };
+  const chosen: ISceneWave = { height: 0.3, position: 0.7 };
+
+  it('is the listener’s own, over its author’s', () => {
+    expect(watchedSceneWave(chosen, authored, graph)).toBe(chosen);
+    expect(watchedSceneWave(undefined, authored, graph)).toBe(authored);
+  });
+
+  it('is the graph’s own for a scene built around no wave', () => {
+    expect(watchedSceneWave(undefined, undefined, graph)).toBe(graph);
+    // Nothing is kept for such a scene, and a stray entry changes nothing.
+    expect(watchedSceneWave(chosen, undefined, graph)).toBe(graph);
   });
 });

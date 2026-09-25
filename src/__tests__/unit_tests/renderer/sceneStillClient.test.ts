@@ -18,6 +18,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import type { IScenePack } from '../../../common/scenePacks';
 import type {
+  ISceneStillVisibility,
   TSceneStillReply,
   TSceneStillRequest,
 } from '../../../renderer/graph/sceneStillMessages';
@@ -45,7 +46,11 @@ class FakeWorker {
 
   onmessageerror: (() => void) | null = null;
 
+  /** The requests, each answered by its own reply. */
   sent: TSceneStillRequest[] = [];
+
+  /** What the page told it about being seen, which nothing answers. */
+  hidden: boolean[] = [];
 
   terminated = false;
 
@@ -53,8 +58,12 @@ class FakeWorker {
     FakeWorker.made.push(this);
   }
 
-  postMessage(request: TSceneStillRequest) {
-    this.sent.push(request);
+  postMessage(message: TSceneStillRequest | ISceneStillVisibility) {
+    if (message.kind === 'visibility') {
+      this.hidden.push(message.hidden);
+    } else {
+      this.sent.push(message);
+    }
   }
 
   terminate() {
@@ -169,6 +178,32 @@ it.each(['too-heavy', 'gpu-reset', 'context-lost'] as const)(
     await expect(secondDrawing).resolves.toBe(blob);
   },
 );
+
+// A link waiting on frames the hidden page stopped giving has to be told to
+// finish without them, so the worker hears whether the page can be seen from
+// the moment it starts and at every change - and stops hearing it once let go.
+it('tells the worker whether the page can be seen, from its start and at every change', async () => {
+  const client = load()();
+  let hidden = false;
+  jest.spyOn(document, 'hidden', 'get').mockImplementation(() => hidden);
+  const drawing = client.drawStillInWorker(pack);
+  await settle();
+  const [worker] = FakeWorker.made;
+  expect(worker.hidden).toEqual([false]);
+  hidden = true;
+  document.dispatchEvent(new Event('visibilitychange'));
+  expect(worker.hidden).toEqual([false, true]);
+
+  const errors = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => undefined);
+  worker.onerror?.({ message: 'gone' } as ErrorEvent);
+  await expect(drawing).resolves.toBeUndefined();
+  document.dispatchEvent(new Event('visibilitychange'));
+  expect(worker.hidden).toEqual([false, true]);
+  errors.mockRestore();
+  jest.restoreAllMocks();
+});
 
 it('answers nothing at once where there are no workers at all', async () => {
   Reflect.deleteProperty(window, 'Worker');

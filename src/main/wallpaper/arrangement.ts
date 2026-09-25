@@ -78,17 +78,20 @@ interface IStoredScreen {
   lookId: string;
   wave?: unknown;
   motion?: unknown;
+  followsGraph?: unknown;
   monitor: ISavedMonitor;
 }
 
 // Files written before backgrounds kept a wave, or a motion, have none, and
-// meant the whole band following the music: what those were drawn with.
+// meant the whole band following the music: what those were drawn with. One
+// written before a monitor could follow the graph meant one that did not.
 const isStoredScreen = (raw: unknown): raw is IStoredScreen =>
   isRecord(raw) &&
   Number.isSafeInteger(raw.displayId) &&
   isWallpaperLookId(raw.lookId) &&
   (raw.wave === undefined || isWallpaperWave(raw.wave)) &&
   (raw.motion === undefined || isWallpaperMotion(raw.motion)) &&
+  (raw.followsGraph === undefined || typeof raw.followsGraph === 'boolean') &&
   isSavedMonitor(raw.monitor);
 
 /** The file is read back as untrusted: anything but what this module writes is ignored whole. */
@@ -113,6 +116,7 @@ export const parseArrangement = (
         ? { height: entry.wave.height, position: entry.wave.position }
         : DEFAULT_WALLPAPER_WAVE,
       motion: isWallpaperMotion(entry.motion) ? entry.motion : 'music',
+      ...(entry.followsGraph === true ? { followsGraph: true } : {}),
     },
     monitor: {
       label: entry.monitor.label,

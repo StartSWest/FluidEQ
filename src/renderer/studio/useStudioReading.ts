@@ -2,7 +2,7 @@ import { useCallback, useRef, type RefObject } from 'react';
 import type { Translate } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import writeLiveText from '../utils/liveText';
-import type { TStageDrawn } from './StudioStage';
+import type { TStageDrawn, TStageHeard } from './StudioStage';
 import { createStudioReadingSettler } from './studioReading';
 
 /**
@@ -15,12 +15,15 @@ export const widestStudioReadings = (t: Translate) => [
 ];
 
 /**
- * The stage's frame callback: each frame goes on to the meters, and what it
- * cost is read out on the test card and in the stage's own corner.
+ * The stage's frame callbacks: each frame goes to the meters the moment it
+ * is made, and once drawn, what it cost is read out on the test card and in
+ * the stage's own corner.
  */
 export default function useStudioReading(
   /** The meters' own writer (`StudioMeters.tsx`), handed every frame first. */
-  feed: RefObject<TStageDrawn | undefined>,
+  feed: RefObject<TStageHeard | undefined>,
+  /** The ladder's scale, whenever it changes: the cost line says what it is. */
+  onScale: (scale: number) => void,
 ) {
   const { t } = useTranslation();
   // What the frames cost, under the cost line: the GPU's own time for a
@@ -35,9 +38,24 @@ export default function useStudioReading(
   // keeps its reading whether the stage is showing one or not.
   const stageReadingRef = useRef<HTMLSpanElement>(null);
   const settler = useRef(createStudioReadingSettler());
+  const scaleRef = useRef(onScale);
+  scaleRef.current = onScale;
+  const lastScale = useRef<number | undefined>(undefined);
+  // The meters are handed the frame before the GPU is asked for it. Fed from
+  // the drawn frame they were a GPU's round trip behind the music, and a
+  // frame the GPU skipped did not move them at all (Ivan, 2026-09-24: "the
+  // indicators need to be seen in the UI at the same time the sound hits my
+  // ears").
+  const onHeard = useCallback<TStageHeard>(
+    (frame, heard, musicAccent) => feed.current?.(frame, heard, musicAccent),
+    [feed],
+  );
   const onDrawn = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent, heard, report) => {
-      feed.current?.(frame, drawnScale, accent, heard, report);
+    (_frame, drawnScale, _musicAccent, _heard, report) => {
+      if (drawnScale !== lastScale.current) {
+        lastScale.current = drawnScale;
+        scaleRef.current(drawnScale);
+      }
       // The clock is read here, at the frame, so the rate on the card is the
       // rate frames are arriving at rather than the runner's own estimate of
       // the display's beat.
@@ -63,7 +81,7 @@ export default function useStudioReading(
         writeLiveText(node, reading),
       );
     },
-    [feed, t],
+    [t],
   );
-  return { readingRef, stageReadingRef, onDrawn };
+  return { readingRef, stageReadingRef, onHeard, onDrawn };
 }

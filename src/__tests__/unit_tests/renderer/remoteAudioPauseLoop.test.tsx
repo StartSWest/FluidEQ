@@ -145,7 +145,13 @@ describe('a sending computer announcing a press', () => {
       { initialProps: { phase: 'connecting' as TRemoteAudioPhase } },
     );
     act(() => setTransportSource(source('library', 'Album', false)));
-    act(() => setTransportSource(source('library', 'Album', true)));
+    // Played the way the library plays: it claims playback as it starts. A
+    // source that says playing without claiming it is a state the app never
+    // reaches, and the bar is right not to describe it.
+    act(() => {
+      setTransportSource(source('library', 'Album', true));
+      claimPlayback('library');
+    });
     sendRemoteAudioLanSignal.mockClear();
     rerender({ phase: 'connected' });
     expect(lastMessage()).toMatchObject({ playing: { isPlaying: true } });

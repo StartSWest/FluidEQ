@@ -21,11 +21,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * it out on 2026-09-22 ("remove the speaker thing from the UI, no need"); the
  * output is named in the sound panel, where it is chosen.
  *
+ * One strip for every case: the glyph of what it is about, the sentence, and
+ * the way out as a real button at its end. It was an amber paragraph with a
+ * link wrapped onto a line of its own under it, which read as an error left
+ * on the page rather than as something to act on (Ivan, 2026-09-22).
+ *
  * Its own file rather than more of `DspPanel.tsx`, which is already past the
  * project's 500-line limit.
  */
 
+import type { ReactNode } from 'react';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
 import type { TRackSuspension } from './rackPlacement';
@@ -40,9 +47,39 @@ interface IDspScopeNoticeProps {
   suspension: TRackSuspension | undefined;
   /** False while nothing is playing through the Library player. */
   isRackEngaged: boolean;
-  /** Absent until the engine dialog exists; the link renders only with it. */
+  /** Absent until the engine dialog exists; the button renders only with it. */
   onOpenEngineDialog?: () => void;
 }
+
+interface IScopeStripProps {
+  icon: MenuIconName;
+  /**
+   * Amber, the page's "not now" rather than a fault: the rack is intact and
+   * does its work the moment what it waits for arrives.
+   */
+  isWaiting: boolean;
+  children: string;
+  action?: ReactNode;
+}
+
+const ScopeStrip = ({
+  icon,
+  isWaiting,
+  children,
+  action,
+}: IScopeStripProps) => (
+  <div className={`dsp-scope${isWaiting ? ' is-idle' : ''}`} role="status">
+    <MenuIcon name={icon} className="dsp-scope__icon" />
+    <p className="dsp-scope__text">{children}</p>
+    {action}
+  </div>
+);
+
+const SUSPENSION = {
+  'sharing-raw': { label: 'dsp.scope.rawSender', icon: 'waveform' },
+  'switched-off': { label: 'dspOff.switchedOff', icon: 'power' },
+  'engine-off': { label: 'dspOff.engineOff', icon: 'chip' },
+} as const;
 
 const DspScopeNotice = ({
   status,
@@ -54,29 +91,30 @@ const DspScopeNotice = ({
   const power = useEqualizerPower();
 
   if (suspension !== undefined) {
-    const suspensionLabel = {
-      'sharing-raw': 'dsp.scope.rawSender',
-      'switched-off': 'dspOff.switchedOff',
-      'engine-off': 'dspOff.engineOff',
-    } as const;
-    // Amber, the page's "not now" rather than a fault: the rack is intact and
-    // comes back as it was the moment FluidEQ, or the engine, does.
+    const { label, icon } = SUSPENSION[suspension];
     return (
-      <p className="dsp-scope is-idle" role="status">
-        {t(suspensionLabel[suspension])}
-        {suspension === 'switched-off' ? (
-          <button
-            type="button"
-            className="link-button dsp-scope-link"
-            disabled={power.isBlockingError}
-            onClick={() => {
-              power.toggle().catch(() => undefined);
-            }}
-          >
-            {t('dspOff.turnOn')}
-          </button>
-        ) : undefined}
-      </p>
+      <ScopeStrip
+        icon={icon}
+        isWaiting
+        action={
+          suspension === 'switched-off' ? (
+            // The loud style: switching FluidEQ back on is what the line
+            // exists to suggest.
+            <button
+              type="button"
+              className="button small dsp-scope__action"
+              disabled={power.isBlockingError}
+              onClick={() => {
+                power.toggle().catch(() => undefined);
+              }}
+            >
+              {t('dspOff.turnOn')}
+            </button>
+          ) : undefined
+        }
+      >
+        {t(label)}
+      </ScopeStrip>
     );
   }
 
@@ -90,18 +128,25 @@ const DspScopeNotice = ({
   }
 
   return (
-    <p className={`dsp-scope${!isRackEngaged ? ' is-idle' : ''}`}>
+    <ScopeStrip
+      icon="album"
+      isWaiting={!isRackEngaged}
+      action={
+        onOpenEngineDialog ? (
+          // The way to have the rack on everything, offered where the
+          // limitation is stated rather than left to be found in a menu.
+          <button
+            type="button"
+            className="button small dsp-scope__action"
+            onClick={onOpenEngineDialog}
+          >
+            {t('dsp.scope.useFluid')}
+          </button>
+        ) : undefined
+      }
+    >
       {t(!isRackEngaged ? 'dsp.idle' : 'dsp.scopeNotice')}
-      {onOpenEngineDialog ? (
-        <button
-          type="button"
-          className="link-button dsp-scope-link"
-          onClick={onOpenEngineDialog}
-        >
-          {t('dsp.scope.useFluid')}
-        </button>
-      ) : undefined}
-    </p>
+    </ScopeStrip>
   );
 };
 

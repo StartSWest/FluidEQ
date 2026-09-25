@@ -94,24 +94,39 @@ const programReady = (renderer: WebGLRenderer, material: Material) => {
 /**
  * Resolves once every program is linked, checked on animation frames like
  * the shader-only path's link (`sceneCompile.ts`): the driver compiles on its
- * own threads and this thread is never held waiting for it.
+ * own threads and this thread is never held waiting for it. `hurry` is that
+ * link's too: fired, no frame is coming to check on, and the first draw
+ * reads the links to their end.
  */
 const waitForPrograms = (
   renderer: WebGLRenderer,
   materials: Material[],
   signal: AbortSignal | undefined,
+  hurry: AbortSignal | undefined,
 ) =>
   new Promise<void>((resolve) => {
+    let animation: number | undefined;
+    const done = () => {
+      if (animation !== undefined) {
+        cancelAnimationFrame(animation);
+      }
+      signal?.removeEventListener('abort', done);
+      hurry?.removeEventListener('abort', done);
+      resolve();
+    };
     const check = () => {
       if (
         signal?.aborted ||
+        hurry?.aborted ||
         materials.every((material) => programReady(renderer, material))
       ) {
-        resolve();
+        done();
       } else {
-        requestAnimationFrame(check);
+        animation = requestAnimationFrame(check);
       }
     };
+    signal?.addEventListener('abort', done, { once: true });
+    hurry?.addEventListener('abort', done, { once: true });
     check();
   });
 
@@ -125,6 +140,7 @@ const compileWorld = async (
   pack: IScenePack,
   artwork: ImageBitmap | undefined,
   signal?: AbortSignal,
+  hurry?: AbortSignal,
 ): Promise<TSceneCompileResult> => {
   const { world } = pack;
   if (!world) {
@@ -329,7 +345,7 @@ const compileWorld = async (
   renderer
     .compile(pass.scene, pass.camera)
     .forEach((material) => materials.add(material));
-  await waitForPrograms(renderer, [...materials], signal);
+  await waitForPrograms(renderer, [...materials], signal, hurry);
   if (signal?.aborted) {
     release();
     throw abortError();

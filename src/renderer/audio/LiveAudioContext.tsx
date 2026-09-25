@@ -54,7 +54,7 @@ const LiveAudioControlContext = createContext<
   | (LiveAudioValue['control'] & {
       setSharingAudio(active: boolean): void;
       readBackgroundFrame(): Promise<
-        Pick<ILiveFrame, 'points' | 'waveform'> | undefined
+        Pick<ILiveFrame, 'points' | 'waveform' | 'stereo'> | undefined
       >;
     })
   | undefined

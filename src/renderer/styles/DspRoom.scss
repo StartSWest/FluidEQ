@@ -294,15 +294,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   inset: 0;
   padding: 18px;
   border-radius: $radius-s;
-  // The app's own scrim, which is built from the window's surface — so it is
-  // the theme's colour dimmed, and a purple card shades to purple. Black was
-  // the first attempt and it read as a hole cut in the page: nothing else on
-  // this card is black, and a wash that belongs to no theme belongs to none
-  // of them. Strength is the other half of it: mixed opaque it is a blackout,
-  // which loses the point, because the controls ARE there and are simply not
-  // yours yet. With the blur taking their edges, a dial behind reads as a
-  // shape and never as a number.
-  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  // The card's own colour, veiled over the controls: the pane is the same
+  // card, waiting. Black was the first attempt and read as a hole cut in the
+  // page; the window's surface was the second, and it is the darkest layer
+  // there is — on the Light theme's card (#1e4257 over #0d2030) it was the
+  // same hole in navy, reported as "too dark" (2026-09-22). Strength is the
+  // other half of it: mixed opaque it is a blackout, which loses the point,
+  // because the controls ARE there and are simply not yours yet. With the
+  // blur taking their edges, a dial behind reads as a shape and never as a
+  // number.
+  background: color-mix(in srgb, $block-lift 88%, transparent);
   backdrop-filter: blur(5px) saturate(0.6);
   text-align: center;
 }

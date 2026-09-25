@@ -76,13 +76,14 @@ const compileWorldScene = async (
   pack: IScenePack,
   artwork: ImageBitmap | undefined,
   signal: AbortSignal | undefined,
+  hurry: AbortSignal | undefined,
 ): Promise<TSceneCompileResult> => {
   const compile = loadWorldEngine();
   if (!compile) {
     return { ok: false, log: unavailable };
   }
   try {
-    return await compile(gl, pack, artwork, signal);
+    return await compile(gl, pack, artwork, signal, hurry);
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw error;

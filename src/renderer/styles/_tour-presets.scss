@@ -1,0 +1,195 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Presets: the picker as it opens now, Rock under the pointer in the list and
+// its notes in the column beside it. The notes are the real ones, drawn by
+// their own parts and coloured by GenreNotes.scss; what is restated here is
+// only their size, in tour units, so the picture keeps its proportions from a
+// 1440-wide window to a 4K one.
+
+// One menu, two columns, as RichPick lays out a picker with a preview: the
+// list narrower than the column about the row. The real menu gives them 300
+// and 324 px; here the names are short and the notes are the news, so the
+// list gives up a little more.
+.presets-visual {
+  @include panel;
+
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  overflow: hidden;
+  background: $surface-menu;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  @include animate(rise-in, $motion-slow);
+}
+
+.presets-visual__list {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.7);
+  gap: calc(#{$u} * 0.5);
+}
+
+.presets-visual__search {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-size: calc(#{$u} * 0.75);
+  gap: calc(#{$u} * 0.4);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.presets-visual__section {
+  display: grid;
+  gap: calc(#{$u} * 0.15);
+
+  ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    gap: 1px;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    padding: calc(#{$u} * 0.28) calc(#{$u} * 0.45);
+    color: $text-primary;
+    border-radius: $radius-s;
+    font-size: calc(#{$u} * 0.78);
+    gap: calc(#{$u} * 0.45);
+
+    > span {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  li.is-chosen {
+    color: $text-accent;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    font-weight: $weight-semibold;
+  }
+}
+
+.presets-visual__group {
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.45) calc(#{$u} * 0.1);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+.presets-visual__icon {
+  flex: none;
+  width: calc(#{$u} * 1);
+  height: calc(#{$u} * 1);
+  color: $secondary-light;
+}
+
+// Lit, in the Library's favourite yellow, as the real list lights it.
+.presets-visual__star {
+  flex: none;
+  width: calc(#{$u} * 0.85);
+  height: calc(#{$u} * 0.85);
+  color: $neon-yellow;
+  fill: currentcolor;
+}
+
+// The column beside the list, as the picker draws it: a hairline, and the
+// preset line's violet faintly behind (`.rich-pick__preview`). It arrives a
+// beat after the list, the way it follows the pointer onto a row.
+//
+// Two classes, so these sizes win over GenreNotes.scss's own px whichever of
+// the two stylesheets the page happens to load first.
+.presets-visual__notes.genre-preview {
+  align-content: start;
+  padding: calc(#{$u} * 0.9) calc(#{$u} * 0.85) calc(#{$u} * 0.8);
+  border-left: 1px solid $border-subtle;
+  background: linear-gradient(
+    180deg,
+    rgba($triadic-1, 0.07),
+    rgba($triadic-1, 0.02) 60%,
+    transparent
+  );
+  gap: calc(#{$u} * 0.75);
+  @include animate(rise-in, $motion-slow, $delay: 160ms);
+
+  .genre-preview__head {
+    gap: calc(#{$u} * 0.15);
+
+    strong {
+      font-size: calc(#{$u} * 1);
+      line-height: 1.2;
+    }
+
+    span {
+      font-size: calc(#{$u} * 0.7);
+      line-height: 1.35;
+      text-wrap: pretty;
+    }
+  }
+
+  .genre-whys {
+    gap: calc(#{$u} * 0.25);
+
+    li {
+      padding: calc(#{$u} * 0.12) calc(#{$u} * 0.25);
+      font-size: calc(#{$u} * 0.7);
+      gap: calc(#{$u} * 0.4);
+      grid-template-columns:
+        calc(#{$u} * 1.05) calc(#{$u} * 3.2) calc(#{$u} * 3)
+        minmax(0, 1fr);
+      @include stagger-in(6, 60ms, 300ms);
+    }
+  }
+
+  .genre-whys__number {
+    width: calc(#{$u} * 1.05);
+    height: calc(#{$u} * 1.05);
+    font-size: calc(#{$u} * 0.58);
+  }
+
+  .genre-figures {
+    font-size: calc(#{$u} * 0.66);
+    gap: calc(#{$u} * 0.1) calc(#{$u} * 0.75);
+    line-height: 1.4;
+  }
+}
+
+// "Full notes", in the filled accent the picker's own button wears
+// (`.button.small`).
+.presets-visual__full {
+  justify-self: start;
+  padding: calc(#{$u} * 0.32) calc(#{$u} * 0.7);
+  color: $surface-base;
+  border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
+  border-radius: $radius-xs;
+  background: $secondary-default;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-bold;
+  line-height: 1.25;
+}

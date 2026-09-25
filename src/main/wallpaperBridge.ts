@@ -25,6 +25,12 @@ const wallpaperBridge = {
    */
   setSceneTuning: (value: Record<string, IWallpaperTuning>) =>
     ipcRenderer.send(WALLPAPER.tuning, value),
+  /**
+   * The Plus visualizer the graph shows, each time it changes to another
+   * one, for the monitors set to follow the graph.
+   */
+  setGraphLook: (lookId: string) =>
+    ipcRenderer.send(WALLPAPER.graphLook, lookId),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),
   startWallpaper: (request: IWallpaperStart): Promise<unknown> =>

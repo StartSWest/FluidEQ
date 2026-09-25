@@ -9,9 +9,11 @@ import {
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
+import { useSceneAudio } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
+import { createSceneInteraction } from '../graph/sceneInteraction';
+import SceneViewReset from '../graph/SceneViewReset';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
-import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
   type ISceneSource,
   type ISceneTuning,
@@ -49,6 +51,17 @@ export type TStageDrawn = (
   report: ISceneDrawReport,
 ) => void;
 
+/**
+ * Every frame the moment it is made, before the GPU draws it: what the scene
+ * gets, what it heard before its response bent it, and the musical accent's
+ * envelope as the scene last drew it (`ISceneRunnerOptions.onHeard`).
+ */
+export type TStageHeard = (
+  frame: ISceneFrame,
+  heard: ISceneFrame,
+  musicAccent: number,
+) => void;
+
 interface IStudioStageProps {
   /** The folder being worked on: a new one starts the scene from the top. */
   identity: string;
@@ -78,6 +91,8 @@ interface IStudioStageProps {
   /** Written to from the frame callback (`StudioBench.tsx`), never by React. */
   readingRef: RefObject<HTMLSpanElement | null>;
   onTrouble: (trouble: TStageTrouble) => void;
+  /** What the meters show, as soon as each frame is made. */
+  onHeard?: TStageHeard;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
   /** Double-clicking the stage: full screen, or back from it. */
@@ -86,10 +101,10 @@ interface IStudioStageProps {
 
 /**
  * The Studio's live stage: the member's scene, on their music, through the
- * same runner the graph uses, with the warm-up ladder — a scene nobody has
- * watched may be heavy enough to reset a display driver — and WITHOUT the
- * brightness limiter, because this is the watching, and what the author sees
- * has to be the scene itself (see the source below).
+ * same runner the graph and the desktop use, run by the same rules as the
+ * listener's own scene is everywhere else (`sceneRules.ts`) — so what the
+ * author sees here is what the graph, the desktop and the Library's player
+ * will show.
  *
  * It holds the live capture open while it is on screen, as the graph does:
  * the Plus tab is a whole view of its own, and a stage that listened to
@@ -108,6 +123,7 @@ export default function StudioStage({
   percent,
   readingRef,
   onTrouble,
+  onHeard,
   onDrawn,
   onExitFullscreen,
   onToggleFullscreen,
@@ -212,9 +228,8 @@ export default function StudioStage({
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
       reportNotes: (notes) =>
         troubleRef.current({ kind: 'world', log: notes.join('\n') }),
-      createLadder: createWarmupLadder,
       // The author is at the machine looking at their own work, which is the
-      // watching the brightness limiter exists for (`limiterIsFor`).
+      // watching the brightness limiter exists for (`sceneRules.ts`).
       madeBy: 'listener',
     }),
     [identity, serial],
@@ -223,9 +238,16 @@ export default function StudioStage({
   const buffers = useMemo(createStudioSignalBuffers, []);
   const signalRef = useRef(signal);
   signalRef.current = signal;
+  // The window's sound, which Bass, Mids and Treble hear their part of: read
+  // inside the frame, after the runner's own read, so both hear one moment.
+  const { readFrame } = useSceneAudio();
+  const readFrameRef = useRef(readFrame);
+  readFrameRef.current = readFrame;
   const shapeFrame = useMemo(
     () => (frame: ISceneFrame) =>
-      shapeStudioFrame(frame, signalRef.current, buffers),
+      shapeStudioFrame(frame, signalRef.current, buffers, {
+        sound: readFrameRef.current()?.sound,
+      }),
     [buffers],
   );
 
@@ -272,6 +294,10 @@ export default function StudioStage({
     [spectrumRange, wave],
   );
 
+  // The viewer's hands, as a listener's would be on the graph: the author
+  // turns the scene to see it from every angle it allows, and taps it.
+  const interaction = useMemo(createSceneInteraction, []);
+
   const sceneRef = useSceneRunner({
     source,
     width: box.width,
@@ -279,10 +305,27 @@ export default function StudioStage({
     spectrumRect: paper?.spectrumRect ?? gridless,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
+    onHeard,
     onDrawn: onFrame,
     onWaiting: setWaiting,
+    interaction,
   });
   hostRef.current = sceneRef;
+
+  // Every drag on the stage is the scene's: nothing else on it drags, and
+  // its one other gesture, the double click, is two taps the scene hears.
+  useEffect(() => {
+    const frame = frameRef.current;
+    const host = sceneRef.current;
+    if (!frame || !host) {
+      return undefined;
+    }
+    return interaction.attach(frame, {
+      frame: () => host.getBoundingClientRect(),
+      turns: () => true,
+      grabs: () => true,
+    });
+  }, [interaction, sceneRef]);
 
   return (
     <div className="studio-stage__well">
@@ -321,6 +364,20 @@ export default function StudioStage({
             readingRef={readingRef}
           />
         )}
+        <SceneViewReset
+          interaction={interaction}
+          className="studio-stage__reset"
+          // With the grid over the scene, inside its ruled plot: the scales'
+          // labels run along the bottom and the right edge of the stage.
+          style={
+            paper
+              ? {
+                  right: paper.margins.right + paper.padding.right + 8,
+                  bottom: paper.margins.bottom + paper.padding.bottom + 8,
+                }
+              : undefined
+          }
+        />
         {waiting && <StudioStageLoading name={pack.names.en} />}
         {/* On screen whenever the screen is full, whichever of the two
             believes it: a way out that depends on the app's own idea of the

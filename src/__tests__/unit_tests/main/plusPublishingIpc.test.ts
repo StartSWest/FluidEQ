@@ -62,6 +62,11 @@ const invoke = <T>(channel: string, ...args: unknown[]) => {
 let root: string;
 let folder: string | undefined;
 let entitled: boolean;
+/**
+ * The account has had a scene approved, and the open project is the one the
+ * Studio keeps for it without Plus (`projectAccess.ts`).
+ */
+let maker: boolean;
 let signedIn: boolean;
 /** Who is signed in: a computer can be shared. */
 let signedInAs: string;
@@ -137,6 +142,7 @@ const setup = (onTermsAgreed?: (version: number) => void) =>
     userDataDir: userDataDir(),
     activeFolder: () => folder,
     activeIsInspection: () => inspecting,
+    mayPublishActive: () => signedIn && (entitled || maker),
     onTermsAgreed,
   });
 
@@ -150,6 +156,7 @@ beforeEach(async () => {
     id: 'my-first-scene',
   });
   entitled = true;
+  maker = false;
   signedIn = true;
   signedInAs = ME;
   switchDuringAuth = false;
@@ -472,6 +479,19 @@ describe('publishing from the Studio', () => {
       reason: 'no-build',
     });
     expect(calls).toEqual([]);
+  });
+
+  it('publishes for a maker without Plus, from the project the Studio keeps', async () => {
+    // Publishing is how a maker earns their next month. Refused here for want
+    // of Plus, the approval that would have earned it could never happen,
+    // while the server takes it (`is_scene_maker`, migration 0041).
+    setup();
+    entitled = false;
+    maker = true;
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(publishRequests()).toHaveLength(1);
   });
 
   it('refuses a picture that is not a small WebP', async () => {

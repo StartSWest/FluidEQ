@@ -40,13 +40,42 @@ jest.mock('electron', () => ({
     };
   }),
   screen: {
-    getDisplayNearestPoint: () => ({
-      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    getDisplayNearestPoint: (point: { x: number }) => mockDisplayAt(point.x),
+    getDisplayMatching: (rect: { x: number }) => mockDisplayAt(rect.x),
+    // The second screen runs at 200%: real pixels halve into Electron's.
+    screenToDipPoint: (point: { x: number; y: number }) => ({
+      x: point.x / 2,
+      y: point.y / 2,
     }),
     getCursorScreenPoint: () => ({ x: 0, y: 0 }),
   },
   session: { fromPartition: mockFromPartition },
 }));
+
+/**
+ * Two screens side by side, as Electron lays them out: the main one at
+ * 1920x1080, and a second to its right. A point on neither is on the main one,
+ * which is where Electron's own nearest-display answer lands a stray point.
+ */
+const mockDisplays = [
+  {
+    id: 1,
+    bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+    workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+  },
+  {
+    id: 2,
+    bounds: { x: 1920, y: 0, width: 1280, height: 720 },
+    workArea: { x: 1920, y: 0, width: 1280, height: 680 },
+  },
+];
+function mockDisplayAt(x: number) {
+  return (
+    mockDisplays.find(
+      (one) => x >= one.bounds.x && x < one.bounds.x + one.bounds.width,
+    ) ?? mockDisplays[0]
+  );
+}
 
 jest.mock('electron-log', () => ({ info: jest.fn() }));
 
@@ -139,5 +168,67 @@ describe('the window the game card is drawn in', () => {
     expect(said.has('base')).toBe(false);
     // The positive control beside the refusals: a colour still goes through.
     expect(said.get('text')).toBe('#ecf5fb');
+  });
+});
+
+/**
+ * Which screen the card opens on. Ivan, 2026-09-24: "open it always where
+ * the app is at that moment". It followed the game, and some cards opened on
+ * another screen than he was looking for them on.
+ */
+describe('the screen the game card opens on', () => {
+  const cardX = () => mockCreated[0].options?.x as number;
+  /** Where a card sits on a screen: its bottom-right corner, 26 px in. */
+  const cornerOf = (display: (typeof mockDisplays)[number]) =>
+    display.workArea.x + display.workArea.width - 520 - 26;
+
+  const appWindow = (
+    x: number,
+    { minimized = false }: { minimized?: boolean } = {},
+  ) =>
+    ({
+      isDestroyed: () => false,
+      isMinimized: () => minimized,
+      // Windows parks a minimised window far off every screen.
+      getBounds: () =>
+        minimized
+          ? { x: -32000, y: -32000, width: 160, height: 28 }
+          : { x, y: 40, width: 900, height: 600 },
+      getNormalBounds: () => ({ x, y: 40, width: 900, height: 600 }),
+    }) as never;
+
+  // The game, fullscreen on the main screen.
+  const onMainScreen = '0,0,1920,1080';
+
+  it('is the screen FluidEQ is on, whichever screen the game is on', () => {
+    createGameToasts(() => appWindow(2100)).show({
+      what: 'Loaded Gaming',
+      game: 'for Overwatch',
+      rect: onMainScreen,
+    });
+    expect(cardX()).toBe(cornerOf(mockDisplays[1]));
+  });
+
+  it('is where FluidEQ will come back, while it is minimised', () => {
+    createGameToasts(() => appWindow(2100, { minimized: true })).show({
+      what: 'Loaded Gaming',
+      game: 'for Overwatch',
+      rect: onMainScreen,
+    });
+    expect(cardX()).toBe(cornerOf(mockDisplays[1]));
+  });
+
+  it('is the game’s screen when there is no window, read in the screens’ own units', () => {
+    // The game fullscreen on the second screen, in the real pixels the
+    // watcher reports: 3840..6400 at 200% is 1920..3200 on Electron's layout.
+    createGameToasts().show({
+      what: 'Loaded Gaming',
+      game: 'for Overwatch',
+      rect: '3840,0,2560,1440',
+    });
+    expect(cardX()).toBe(cornerOf(mockDisplays[1]));
+    // The control: the same rectangle read as it arrives lies on no screen,
+    // and Electron would have put the card on the main one.
+    expect(mockDisplayAt(3840 + 2560 / 2).id).toBe(1);
   });
 });

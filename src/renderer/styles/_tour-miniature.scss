@@ -1,0 +1,48 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// What the 1.8 slide pictures share (`release18Visuals.tsx`). Like the 1.7
+// ones, every length is in tour units, so a picture keeps its proportions
+// from a 1440-wide window to a 4K one, and every colour is a theme token:
+// the miniatures are the app's own pages, and they wear whichever theme the
+// app is wearing.
+
+$u: var(--tour-unit);
+
+// A capture's frame: the edge and the shadow the tour's real screenshots wear.
+@mixin framed {
+  border: 1px solid rgba($edge-tint, 0.14);
+  box-shadow:
+    0 22px 56px rgba($black, 0.55),
+    0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
+}
+
+// A miniature of one of the app's panels.
+@mixin panel {
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: $surface-panel;
+  box-shadow: 0 16px 40px rgba($black, 0.4);
+}
+
+// A small rounded label.
+@mixin pill {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.22) calc(#{$u} * 0.6);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-pill;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+  gap: calc(#{$u} * 0.35);
+  white-space: nowrap;
+}

@@ -7,12 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
-import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
+import { holdEnergy, type ISpectrumEnergy } from 'common/spectrumEnergy';
 import workletUrl from '../remoteAudio/workletUrl';
 import {
   createAxisCells,
   readAbsoluteLevels,
 } from '../utils/autoBalanceCapture';
+import { connectSoundAnalysers, createLiveSound } from '../graph/liveSound';
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import {
   FFT_SIZE,
@@ -41,8 +42,9 @@ import {
  * What the scene hears, measured for the lamps on the audio clock.
  *
  * The same measurement the graph's scene gets — the same analyser settings,
- * the same track-referenced decibel window, the same energy and beat — so the
- * lamps move with the music the way the picture does. Its own analyser on the
+ * the same track-referenced decibel window, the same sound read every ten
+ * milliseconds (`liveSound.ts`) — so the lamps move with the music the way
+ * the picture does. Its own analyser on the
  * capture's source rather than the graph's frames, because the graph publishes
  * nothing while the window is hidden, and the desk is lit exactly when the
  * window is not being looked at.
@@ -98,6 +100,10 @@ export const startLightingListener = async (
   mute.gain.value = 0;
   source.connect(analyser);
   source.connect(clock);
+  // The sound itself, for the energy and the rhythm: read on this clock's
+  // ticks, which come whether or not the window is on screen.
+  const soundAnalysers = connectSoundAnalysers(context, source);
+  const sound = createLiveSound(soundAnalysers);
   clock.connect(mute).connect(context.destination);
 
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
@@ -109,7 +115,7 @@ export const startLightingListener = async (
   const waveformPoints = new Array<number>(WAVEFORM_POINT_COUNT).fill(0);
   const spectrum = createSpectrumTexels();
   const waveform = createWaveformTexels();
-  const energy = createEnergyState();
+  let last: ISpectrumEnergy | undefined;
   let reference: number | undefined;
   let timeSeconds = 0;
   let fade = 0;
@@ -145,14 +151,9 @@ export const startLightingListener = async (
       waveformPoints.fill(0);
     }
 
-    const heard = advanceEnergy(
-      energy,
-      points,
-      MIN_GAIN,
-      MAX_GAIN,
-      deltaMs,
-      points.length > 0,
-    );
+    // Paused, the lamps hold what they last showed, as the picture does.
+    const heard = isPaused() && last ? holdEnergy(last) : sound.music();
+    last = heard;
     fillSpectrumTexels(points, spectrum, MIN_GAIN, MAX_GAIN);
     fillWaveformTexels(waveformPoints, waveform);
     timeSeconds = (timeSeconds + deltaMs / 1000) % SCENE_TIME_WRAP_S;
@@ -167,6 +168,8 @@ export const startLightingListener = async (
         bands: [heard.bass, heard.mid, heard.treble],
         musicAccent: [heard.accent, heard.accentSerial],
         musicRun: [heard.run, heard.runSpeed],
+        rhythm: heard.rhythm,
+        voice: [heard.voice.open, heard.voice.pitch, heard.voice.sure],
         accent,
         fade,
         spectrum,
@@ -204,6 +207,7 @@ export const startLightingListener = async (
       clock.port.onmessage = null;
       clock.port.close();
       disconnect(source, analyser);
+      disconnect(source, soundAnalysers.input);
       disconnect(source, clock);
       disconnect(clock);
       disconnect(mute);

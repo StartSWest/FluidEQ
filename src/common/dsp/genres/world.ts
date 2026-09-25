@@ -48,7 +48,8 @@ const WORLD_RACKS: readonly IGenreRack[] = [
   {
     // About 110 BPM, a round kick and a sine sub (log drums in the newer
     // records), everything under 100-150 Hz in mono and the shakers wide.
-    // The sub warmed in mono by the curve, never widened, and the shakers
+    // The sub warmed by the curve and mono under 150 Hz, never widened, and
+    // the shakers
     // left alone; Forge offered and left off, as a sine sub is clean and
     // wants no octave or grit made under it.
     id: 'afrobeats',
@@ -60,8 +61,8 @@ const WORLD_RACKS: readonly IGenreRack[] = [
   {
     // The log drum is a pitched, percussive bass whose attack "is the
     // energy", already driven in production. Mild sub support from the
-    // curve, mono up to 200 Hz so its body stays centred, and width only for
-    // the pads above. Forge offered and left off: the research's one rule
+    // curve, the sub mono under 120 Hz and the body narrowed up to 200 so it
+    // stays centred, and width only above 3 kHz. Forge offered and left off: the research's one rule
     // for the log drum is no saturation on it.
     id: 'amapiano',
     bassForge: forge(90, 0, 0.6, 0.3, 0.95, 0.25),
@@ -149,7 +150,8 @@ const WORLD_RACKS: readonly IGenreRack[] = [
   },
   {
     // Worship pop-rock: a quiet verse building to a big bridge, the lyric
-    // clear, ambient guitars already very wide. A mono bottom and a ceiling
+    // clear, ambient guitars already very wide. A narrowed bottom and a
+    // ceiling
     // slow enough to keep the arc.
     id: 'christian',
     dimension: width(0.65, 1, 1, 160, 3_200, 0),

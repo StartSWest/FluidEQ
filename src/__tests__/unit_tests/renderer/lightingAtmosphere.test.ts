@@ -1,4 +1,5 @@
 import { DEFAULT_LIGHTING_PROFILE } from 'common/lighting/lightingProfiles';
+import { SILENT_RHYTHM } from 'common/sceneRhythm';
 import { createLightingAtmosphere } from 'renderer/lighting/lightingAtmosphere';
 import type { IHeardFrame } from 'renderer/lighting/lightingListener';
 
@@ -12,6 +13,7 @@ const heard = (silent: boolean): IHeardFrame => ({
     bands: silent ? [0, 0, 0] : [0.8, 0.6, 0.4],
     musicAccent: [0, 0],
     musicRun: [0, 0],
+    rhythm: SILENT_RHYTHM,
     accent: [1, 0, 1],
     fade: 1,
     spectrum: new Uint8Array(256),

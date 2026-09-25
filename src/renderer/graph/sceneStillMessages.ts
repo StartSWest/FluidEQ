@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import type { IStudioAgentMoment, TStudioAgentSound } from 'common/studioAgent';
 import type { ISceneFrame } from './sceneGl';
 
 /**
@@ -28,7 +29,44 @@ export type TSceneStillRequest =
       id: number;
       pack: IScenePack;
       accent: readonly [number, number, number];
+    }
+  | {
+      /**
+       * A picture the member's AI asked for over the Studio's agent door:
+       * any of the shapes a panel takes, under the test music or silence, at
+       * a moment of the caller's choosing, and the driver's own words when
+       * the shader does not compile.
+       */
+      kind: 'agent';
+      id: number;
+      pack: IScenePack;
+      accent: readonly [number, number, number];
+      width: number;
+      height: number;
+      sound: TStudioAgentSound;
+      seconds?: number;
+      /** The test music's tempo, when not its own. */
+      tempo?: number;
+      spectrumRect: readonly [number, number, number, number];
+      /** The window cannot be seen: link without waiting on frames. */
+      unseen: boolean;
+      /** `uCamera` for every frame, already inside the scene's limits. */
+      camera?: readonly [number, number, number];
+      /** Where the pointer rests, and whether it is pressed. */
+      pointer?: { x: number; y: number; pressed: boolean };
+      /** A tap this many seconds before the picture. */
+      tap?: { x: number; y: number; seconds: number };
     };
+
+/**
+ * The page telling the worker whether it can be seen, as that changes: not a
+ * request, answered by nothing and queued behind nothing, because the one it
+ * matters to is a link already waiting on frames that stopped coming.
+ */
+export interface ISceneStillVisibility {
+  kind: 'visibility';
+  hidden: boolean;
+}
 
 /**
  * Why a worker gave a scene up: its context was lost right after one of its
@@ -47,5 +85,22 @@ export type TSceneStillReply =
       kind: 'sample';
       id: number;
       pixels?: Uint8Array;
+      refused?: TSceneStillRefusal;
+    }
+  | {
+      kind: 'agent';
+      id: number;
+      /** A JPEG of the size asked for. */
+      image?: Blob;
+      /** The GPU's time for the kept frame, at `renderWidth` x `renderHeight`. */
+      drawMs?: number;
+      renderWidth?: number;
+      renderHeight?: number;
+      /** What the music was doing at the kept frame. */
+      moment?: IStudioAgentMoment;
+      /** The shader did not compile, in the driver's words. */
+      log?: string;
+      /** It built, and its frame would take this computer far too long. */
+      hopeless?: true;
       refused?: TSceneStillRefusal;
     };

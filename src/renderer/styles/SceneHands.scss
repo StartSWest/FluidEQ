@@ -1,0 +1,73 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The viewer's hands on a scene (`sceneInteraction.ts`): the cursor over a
+// scene that can be turned, and the way back to its own view.
+
+// A hand where a plain press turns the scene, a closed one while it turns.
+// Set on the element the gestures are on only while the scene has a camera
+// to turn, so a panel whose drag does something else keeps its own cursor.
+// And no touch panning there: the browser takes a finger that moves for a
+// scroll and cancels the press, which ended every turn a few pixels in and
+// left two-finger zoom unreachable.
+[data-scene-hand] {
+  touch-action: none;
+}
+
+[data-scene-hand='grab'] {
+  cursor: grab;
+}
+
+[data-scene-hand='grabbing'] {
+  cursor: grabbing;
+}
+
+// The quiet button is an outline with a breath of accent in it, which a
+// bright scene reads straight through, so it stands on the frosted plate the
+// Studio's corner reading stands on. Where the plate stands is each
+// surface's; it is there only while the view has been turned.
+.scene-view-reset {
+  position: absolute;
+  z-index: 2;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-menu 78%, transparent);
+  backdrop-filter: blur(12px);
+  animation: scene-view-reset-in $motion-fast $ease-out;
+  transition: opacity 320ms ease;
+
+  > .button {
+    gap: 6px;
+  }
+
+  .profile-action-icon {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+// With the chrome it sits over: gone while the full screen is idle, and
+// taking no press while it is gone.
+.scene-view-reset.is-idle {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 520ms;
+}
+
+@keyframes scene-view-reset-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}

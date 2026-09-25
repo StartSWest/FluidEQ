@@ -4,7 +4,15 @@ import type { ICaptureGraph } from 'renderer/graph/useLiveOutputSpectrum';
 function setup() {
   let finish: () => void = () => undefined;
   const source = { connect: jest.fn(), disconnect: jest.fn() };
-  const analyser = { frequencyBinCount: 1024 };
+  // The lamps' spectrum, and the two channels the sound is read from
+  // (`connectSoundAnalysers`), which hang off their own clock.
+  const analyser = {
+    frequencyBinCount: 1024,
+    fftSize: 2048,
+    context: { sampleRate: 48000, currentTime: 0 },
+    getFloatTimeDomainData: jest.fn(),
+  };
+  const splitter = { connect: jest.fn() };
   const mute = {
     gain: { value: 1 },
     connect: jest.fn(),
@@ -29,6 +37,7 @@ function setup() {
     },
     createAnalyser: jest.fn(() => analyser),
     createGain: jest.fn(() => mute),
+    createChannelSplitter: jest.fn(() => splitter),
   };
   const construct = jest.fn(() => clock);
   Object.defineProperty(window, 'AudioWorkletNode', {
@@ -99,8 +108,9 @@ it('connects a valid producer and closes its own clock and connections', async (
   fixture.finish();
   const listener = await pending;
   expect(fixture.construct).toHaveBeenCalledTimes(1);
-  expect(fixture.source.connect).toHaveBeenCalledTimes(2);
+  // The spectrum, the clock, and the sound's two channels.
+  expect(fixture.source.connect).toHaveBeenCalledTimes(3);
   listener.close();
   expect(fixture.clock.port.close).toHaveBeenCalledTimes(1);
-  expect(fixture.source.disconnect).toHaveBeenCalledTimes(2);
+  expect(fixture.source.disconnect).toHaveBeenCalledTimes(3);
 });

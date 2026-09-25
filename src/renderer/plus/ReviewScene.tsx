@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IReviewItem, TReviewAnswer } from 'common/plusReview';
+import { sceneMakerOf } from 'common/sceneMaker';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TReviewAnswerOutcome } from 'main/ipc/plusReview';
 import Avatar from '../community/Avatar';
@@ -49,6 +50,8 @@ type TScene =
 
 interface IReviewSceneProps {
   item: IReviewItem;
+  /** The admin's own account, whose scenes are run as their own are elsewhere. */
+  me: string | undefined;
 }
 
 /**
@@ -58,12 +61,14 @@ interface IReviewSceneProps {
  * Laid out as a gallery scene's page is, because that is what approving it
  * makes it: what the admin sees here is what every member will. The scene is
  * the exact file the queue named — main refuses any other — and it plays
- * through the same runner with the brightness limiter on, as a stranger's
- * scene does everywhere else in the app: being watched by the admin is no
- * reason to hand a flashing picture to anybody at full strength.
+ * through the same runner by the same rules as everywhere else in the app
+ * (`sceneRules.ts`): another member's scene through the brightness limiter,
+ * because being watched by the admin is no reason to hand a flashing picture
+ * to anybody at full strength, and the admin's own as their own.
  */
-export default function ReviewScene({ item }: IReviewSceneProps) {
+export default function ReviewScene({ item, me }: IReviewSceneProps) {
   const { t, locale } = useTranslation();
+  const madeBy = sceneMakerOf({ member: true, own: item.authorId === me });
   const [scene, setScene] = useState<TScene>({ state: 'loading' });
   const [live, setLive] = useState(false);
   const [trouble, setTrouble] = useState<TranslationKey>();
@@ -201,7 +206,7 @@ export default function ReviewScene({ item }: IReviewSceneProps) {
             {scene.state === 'ready' && (
               <ScenePreview
                 identity={`${item.lookId}@${item.version}:${item.sha256}`}
-                madeBy="member"
+                madeBy={madeBy}
                 pack={scene.pack}
                 label={t('plus.scene.playing')}
                 onTrouble={(next) => setTrouble(PREVIEW_TROUBLE[next])}

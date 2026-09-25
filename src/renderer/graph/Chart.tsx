@@ -71,6 +71,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
+import GenrePins from './GenrePins';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import SceneCanvas from './SceneCanvas';
 import {
@@ -1132,6 +1133,15 @@ const Chart = ({
             width={width}
             height={height}
             spectrumRect={sceneSpectrumRect}
+            // A plain drag is the band marquee wherever there are bands to
+            // select, and turning a scene must never cost the equaliser that.
+            dragTurns={!onMarqueeSelect}
+            // Clear of the axes: their labels live in the padding inside the
+            // drawing, not in its margins.
+            inset={{
+              right: margins.right + padding.right,
+              bottom: margins.bottom + padding.bottom,
+            }}
           />
         ) : (
           <LiveTraceCanvas
@@ -1333,6 +1343,14 @@ const Chart = ({
             />
           ),
         )}
+        {/* A genre's pins on its Preset line: over the lines, under the
+          band handles, so a handle standing on a pin can still be dragged. */}
+        <GenrePins
+          data={data}
+          xScale={xScaleFreq}
+          yScale={yScaleGain}
+          isHidden={isLiveOutputForeground || isGridHidden}
+        />
         {editablePoints.map((point) => (
           <EditablePoint
             key={point.id}

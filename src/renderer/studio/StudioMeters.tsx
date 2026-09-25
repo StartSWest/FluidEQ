@@ -1,136 +1,167 @@
-import { useEffect, useRef, type MutableRefObject } from 'react';
-import type { TranslationKey } from 'common/i18n';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  type MutableRefObject,
+} from 'react';
 import { isNeutralResponse, type ISceneResponse } from 'common/sceneResponse';
 import { SPECTRUM_TEXELS } from 'common/sceneUniformContract';
-import LiveFigure from '../components/LiveFigure';
-import type { ISceneFrame } from '../graph/sceneGl';
 import { useTranslation } from '../utils/I18nContext';
-import writeLiveText from '../utils/liveText';
-import type { TStageDrawn } from './StudioStage';
-
-type TMeterKey = 'level' | 'beat' | 'bass' | 'mid' | 'treble' | 'accent';
+import StudioCardGroup from './StudioCardGroup';
+import {
+  StudioBalanceMeter,
+  StudioBeatClock,
+  StudioDrumLamps,
+  StudioLevelMeter,
+  StudioMomentumMeter,
+  StudioVoiceMeter,
+  type ILevelMeter,
+  type TMeterDraw,
+  type TMeterRegister,
+} from './StudioMeterRows';
+import type { TStageHeard } from './StudioStage';
+import '../styles/StudioMeters.scss';
 
 /**
- * Each meter, the line saying what that part of the music is, and — for the
- * ones the response bends — where to read it in a frame. The accent is the
- * scene's own envelope, made after the response, so it has nothing heard to
- * compare with.
+ * What the sound is made of: the ones the response bends, with the music as
+ * played under them, and the stereo width beside the balance.
  */
-const METERS: ReadonlyArray<{
-  key: TMeterKey;
-  label: TranslationKey;
-  hint: TranslationKey;
-  read?: (frame: ISceneFrame) => number;
-  /** Where the response's gate sits on this meter's scale. */
-  gated?: boolean;
-}> = [
+const SOUND: readonly ILevelMeter[] = [
   {
     key: 'level',
     label: 'studio.meter.level',
     hint: 'studio.hears.level',
-    read: (frame) => frame.level,
-    gated: true,
-  },
-  {
-    key: 'beat',
-    label: 'studio.meter.beat',
-    hint: 'studio.hears.beat',
-    read: (frame) => frame.beat,
+    value: (frame) => frame.level,
+    heard: (frame) => frame.level,
   },
   {
     key: 'bass',
     label: 'studio.meter.bass',
     hint: 'studio.hears.bass',
-    read: (frame) => frame.bands[0],
-    gated: true,
+    value: (frame) => frame.bands[0],
+    heard: (frame) => frame.bands[0],
   },
   {
     key: 'mid',
     label: 'studio.meter.mid',
     hint: 'studio.hears.mid',
-    read: (frame) => frame.bands[1],
-    gated: true,
+    value: (frame) => frame.bands[1],
+    heard: (frame) => frame.bands[1],
   },
   {
     key: 'treble',
     label: 'studio.meter.treble',
     hint: 'studio.hears.treble',
-    read: (frame) => frame.bands[2],
-    gated: true,
+    value: (frame) => frame.bands[2],
+    heard: (frame) => frame.bands[2],
   },
-  { key: 'accent', label: 'studio.meter.accent', hint: 'studio.hears.accent' },
+];
+
+const WIDTH: ILevelMeter = {
+  key: 'width',
+  label: 'studio.meter.width',
+  hint: 'studio.hears.width',
+  value: (frame) => frame.stereo?.[1] ?? 0,
+};
+
+/** The clock's certainty, and the pulse the beat lights. */
+const RHYTHM: readonly ILevelMeter[] = [
+  {
+    key: 'sure',
+    label: 'studio.meter.sure',
+    hint: 'studio.hears.sure',
+    value: (frame) => frame.rhythm?.confidence ?? 0,
+  },
+  {
+    key: 'beat',
+    label: 'studio.meter.beat',
+    hint: 'studio.hears.beat',
+    value: (frame) => frame.beat,
+    heard: (frame) => frame.beat,
+  },
+];
+
+/**
+ * Where the song is: how intense this part is, a build, a drop landing (its
+ * readout counts the drops, which scenes use to make each one different),
+ * and the rare big moment. The accent is the scene's own envelope, made
+ * after the response, so it has nothing heard to compare with.
+ */
+const SONG: readonly ILevelMeter[] = [
+  {
+    key: 'intensity',
+    label: 'studio.meter.intensity',
+    hint: 'studio.hears.intensity',
+    value: (frame) => frame.rhythm?.intensity ?? 0,
+  },
+  {
+    key: 'build',
+    label: 'studio.meter.build',
+    hint: 'studio.hears.build',
+    value: (frame) => frame.rhythm?.build ?? 0,
+  },
+  {
+    key: 'drop',
+    label: 'studio.meter.drop',
+    hint: 'studio.hears.drop',
+    value: (frame) => frame.rhythm?.drop ?? 0,
+    text: (frame) => `#${frame.rhythm?.dropSerial ?? 0}`,
+    // The count comes round again after 4095 (`rhythmSection.ts`).
+    widest: '#0000',
+  },
+  {
+    key: 'accent',
+    label: 'studio.meter.accent',
+    hint: 'studio.hears.accent',
+    value: (_frame, accent) => accent,
+  },
 ];
 
 /** Bars in the spectrum strip: enough to read its shape, few enough to draw. */
 const SPECTRUM_BARS = 32;
 
-const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
-
-/** A value from 0 to 1, as its readout writes it: every one is this wide. */
-const VALUE_WIDEST = ['0.00'];
-
 interface IStudioMetersProps {
-  /** The stage calls this after every frame it draws. */
-  feed: MutableRefObject<TStageDrawn | undefined>;
-  /** The ladder's scale changes rarely; the cost line follows it. */
-  onScale: (scale: number) => void;
+  /** The stage calls this with every frame, the moment it is made. */
+  feed: MutableRefObject<TStageHeard | undefined>;
   /** How the scene answers the music now, to show what it does. */
   response: ISceneResponse;
 }
 
 /**
- * What the scene heard on the frame just drawn — so a creator can see WHY
- * something moved, or why it did not.
+ * What the scene hears, frame by frame as the music is heard — so a creator
+ * can see WHY something moved, or why it did not — in three groups that fold
+ * on their own, as the settings card's do: the sound, its rhythm (the clock a
+ * dance is built on, the drums, the flywheel) and where the song is.
  *
  * With a response set, each bent meter shows both: faint, the music as it
  * is played; bright, what the scene got from it; and a mark where the
  * threshold cuts in, on the music's own scale. A slider moved beside it
  * shows its effect here in the same second.
- *
- * Written straight to the elements, not through React state: a meter that
- * re-rendered its component sixty times a second would cost more than the
- * scene it describes. React draws the rows once; the stage's frame callback
- * moves the bars, and writes readouts laid out on their own
- * (`LiveFigure.tsx`) — never the page around them.
  */
-export default function StudioMeters({
-  feed,
-  onScale,
-  response,
-}: IStudioMetersProps) {
+export default function StudioMeters({ feed, response }: IStudioMetersProps) {
   const { t } = useTranslation();
-  const fills = useRef<Partial<Record<TMeterKey, HTMLSpanElement | null>>>({});
-  const ghosts = useRef<Partial<Record<TMeterKey, HTMLSpanElement | null>>>({});
-  const values = useRef<Partial<Record<TMeterKey, HTMLSpanElement | null>>>({});
+  const titleId = useId();
+  const drawers = useRef(new Map<string, TMeterDraw>());
   const bars = useRef<Array<HTMLElement | null>>([]);
-  const lastScale = useRef(-1);
-  const scaleRef = useRef(onScale);
-  scaleRef.current = onScale;
+  const register = useCallback<TMeterRegister>((key, draw) => {
+    if (draw) {
+      drawers.current.set(key, draw);
+    } else {
+      drawers.current.delete(key);
+    }
+  }, []);
   const bent = !isNeutralResponse(response);
   // Where the gate shuts, in what is heard: below this, the scene gets
   // nothing. Past the end of the scale when the sensitivity makes it so.
-  const gateAt = Math.min(1, response.threshold / response.sensitivity);
+  const gateAt =
+    response.threshold > 0
+      ? Math.min(1, response.threshold / response.sensitivity)
+      : undefined;
 
   useEffect(() => {
-    const write = (key: TMeterKey, value: number, heard: number) => {
-      const fill = fills.current[key];
-      const ghost = ghosts.current[key];
-      const text = values.current[key];
-      if (fill) {
-        fill.style.transform = `scaleX(${clamp01(value)})`;
-      }
-      if (ghost) {
-        ghost.style.transform = `scaleX(${clamp01(heard)})`;
-      }
-      writeLiveText(text ?? null, clamp01(value).toFixed(2));
-    };
-    feed.current = (frame, scale, musicAccent, heard) => {
-      METERS.forEach(({ key, read }) => {
-        if (read) {
-          write(key, read(frame), read(heard));
-        }
-      });
-      write('accent', musicAccent, 0);
+    feed.current = (frame, heard, musicAccent) => {
+      drawers.current.forEach((draw) => draw(frame, heard, musicAccent));
       const step = SPECTRUM_TEXELS / SPECTRUM_BARS;
       bars.current.forEach((bar, index) => {
         if (bar) {
@@ -138,10 +169,6 @@ export default function StudioMeters({
           bar.style.transform = `scaleY(${Math.max(0.03, texel / 255)})`;
         }
       });
-      if (scale !== lastScale.current) {
-        lastScale.current = scale;
-        scaleRef.current(scale);
-      }
     };
     return () => {
       feed.current = undefined;
@@ -149,76 +176,81 @@ export default function StudioMeters({
   }, [feed]);
 
   return (
-    <div
+    <section
       className={`studio-card studio-meters${bent ? ' is-bent' : ''}`}
+      aria-labelledby={titleId}
       aria-live="off"
     >
-      <span className="studio-card__eyebrow">{t('studio.meters.title')}</span>
-      {METERS.map(({ key, label, hint, read, gated }) => (
+      <span className="studio-card__eyebrow" id={titleId}>
+        {t('studio.meters.title')}
+      </span>
+      <StudioCardGroup group="sound" title={t('studio.meters.sound')}>
+        <div className="studio-meters__rows">
+          {SOUND.map((meter) => (
+            <StudioLevelMeter
+              key={meter.key}
+              meter={meter}
+              gate={gateAt}
+              register={register}
+            />
+          ))}
+          <StudioVoiceMeter register={register} />
+          <StudioBalanceMeter register={register} />
+          <StudioLevelMeter meter={WIDTH} register={register} />
+        </div>
         <div
-          key={key}
-          className={`studio-meter studio-meter--${key}`}
-          role="presentation"
-          title={t(hint)}
+          className="studio-meters__spectrum"
+          aria-hidden="true"
+          title={t('studio.hears.spectrum')}
         >
-          <span className="studio-meter__label">{t(label)}</span>
-          <span className="studio-meter__track">
-            {read && (
-              <span
-                className="studio-meter__heard"
-                ref={(element) => {
-                  ghosts.current[key] = element;
-                }}
-              />
-            )}
-            <span
-              className="studio-meter__fill"
+          {Array.from({ length: SPECTRUM_BARS }, (_, index) => (
+            <i
+              // The bars are positions on a fixed axis, never reordered.
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
               ref={(element) => {
-                fills.current[key] = element;
+                bars.current[index] = element;
               }}
             />
-            {gated && response.threshold > 0 && (
-              <span
-                className="studio-meter__gate"
-                style={{ left: `${gateAt * 100}%` }}
-              />
-            )}
-          </span>
-          <LiveFigure
-            className="studio-meter__value"
-            widest={VALUE_WIDEST}
-            textRef={(element) => {
-              values.current[key] = element;
-            }}
-          >
-            0.00
-          </LiveFigure>
+          ))}
         </div>
-      ))}
-      <div
-        className="studio-meters__spectrum"
-        aria-hidden="true"
-        title={t('studio.hears.spectrum')}
-      >
-        {Array.from({ length: SPECTRUM_BARS }, (_, index) => (
-          <i
-            // The bars are positions on a fixed axis, never reordered.
-            // eslint-disable-next-line react/no-array-index-key
-            key={index}
-            ref={(element) => {
-              bars.current[index] = element;
-            }}
-          />
-        ))}
-      </div>
-      {bent && (
-        <span className="studio-meters__legend">
-          <span className="studio-meters__swatch is-heard" aria-hidden="true" />
-          {t('studio.meters.heard')}
-          <span className="studio-meters__swatch" aria-hidden="true" />
-          {t('studio.meters.got')}
-        </span>
-      )}
-    </div>
+        {bent && (
+          <span className="studio-meters__legend">
+            <span
+              className="studio-meters__swatch is-heard"
+              aria-hidden="true"
+            />
+            {t('studio.meters.heard')}
+            <span className="studio-meters__swatch" aria-hidden="true" />
+            {t('studio.meters.got')}
+          </span>
+        )}
+      </StudioCardGroup>
+      <StudioCardGroup group="rhythm" title={t('studio.meters.rhythm')}>
+        <div className="studio-meters__rows">
+          <StudioBeatClock register={register} />
+          {RHYTHM.map((meter) => (
+            <StudioLevelMeter
+              key={meter.key}
+              meter={meter}
+              register={register}
+            />
+          ))}
+          <StudioDrumLamps register={register} />
+          <StudioMomentumMeter register={register} />
+        </div>
+      </StudioCardGroup>
+      <StudioCardGroup group="song" title={t('studio.meters.song')}>
+        <div className="studio-meters__rows">
+          {SONG.map((meter) => (
+            <StudioLevelMeter
+              key={meter.key}
+              meter={meter}
+              register={register}
+            />
+          ))}
+        </div>
+      </StudioCardGroup>
+    </section>
   );
 }

@@ -103,6 +103,29 @@ const windowedQueueIds = (
 };
 
 /**
+ * A short name for a list: the same for the same ids in the same order.
+ *
+ * What the queue is aimed at (`retargetQueue`). Every change of song asks
+ * again, with a window that slides on through a list longer than
+ * `QUEUE_WINDOW`, and only the name tells that ask from a change of list: a
+ * slid window compared by content looked like a changed shelf and rebuilt
+ * the run, so a row dragged in Up Next went home when the song ended. A
+ * polynomial hash of the ids, with a separator between them, beside their
+ * count.
+ */
+const listKeyOf = (ids: readonly string[]): string => {
+  const modulus = 2_147_483_647;
+  let hash = 7;
+  ids.forEach((id) => {
+    for (let at = 0; at < id.length; at += 1) {
+      hash = (hash * 31 + id.charCodeAt(at)) % modulus;
+    }
+    hash = (hash * 31 + 1) % modulus;
+  });
+  return `${ids.length}:${hash.toString(36)}`;
+};
+
+/**
  * The card width below which the queue floats over the shelf instead of taking
  * a strip beside it.
  *
@@ -1148,6 +1171,7 @@ const LibraryWorkspace = ({
     () => (queueTrackIds.length > 1 ? queueTrackIds : visibleTrackIds),
     [queueTrackIds, visibleTrackIds],
   );
+  const viewQueueKey = useMemo(() => listKeyOf(viewQueueIds), [viewQueueIds]);
 
   /**
    * Changing the view changes what plays next.
@@ -1167,14 +1191,19 @@ const LibraryWorkspace = ({
    * work is skipped outright. What the queue holds is ids and indices rather
    * than tracks, and `retargetQueue` returns the existing queue untouched
    * when the list comes back the same, so the only real rebuild is a view
-   * that actually changed under a song that is actually playing.
+   * that actually changed under a song that is actually playing. The list is
+   * named (`listKeyOf`), so a change of song, the same list asked for again,
+   * only tops the queue up and keeps the order made in Up Next.
    */
   useEffect(() => {
     if (!playingTrack) {
       return;
     }
-    retargetQueue(windowedQueueIds(viewQueueIds, playingTrack.id));
-  }, [playingTrack, retargetQueue, viewQueueIds]);
+    retargetQueue(
+      windowedQueueIds(viewQueueIds, playingTrack.id),
+      viewQueueKey,
+    );
+  }, [playingTrack, retargetQueue, viewQueueIds, viewQueueKey]);
 
   /**
    * How much of the shelf is still to come that the queue has NOT got.

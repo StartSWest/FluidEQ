@@ -81,9 +81,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'Desktop-Visualizer-Helfer',
   'app.processes.what.desktopHost':
     'Legt den Desktop-Visualizer dieses Monitors hinter die Symbole und meldet ihm, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der einen zeigt.',
-  'app.processes.name.shareCapture': 'Aufnahme zum Audio teilen',
+  'app.processes.name.shareCapture': 'Audioaufnahme',
   'app.processes.what.shareCapture':
-    'Nimmt auf, was dieser PC abspielt, vor dem Equalizer, um es an ein anderes FluidEQ zu senden. Läuft nur, solange Sie Ihr Audio teilen.',
+    'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.sharePlayback': 'Wiedergabe des geteilten Audios',
   'app.processes.what.sharePlayback':
     'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt. Läuft nur, solange Sie ihn hören.',

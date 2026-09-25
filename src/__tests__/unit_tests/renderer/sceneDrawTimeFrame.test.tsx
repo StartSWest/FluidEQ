@@ -24,8 +24,15 @@ const flat = (y: number) =>
     x: 16 * (25_000 / 16) ** (i / 319),
     y,
   }));
+/** Far under the analyser's floor: nothing playing at all. */
+const SILENT = -120;
+/**
+ * What the first music a reading hears reads in each part: its usual level,
+ * since there is nothing yet to be louder than (`energyLevels.ts`).
+ */
+const FIRST_HEARD = 0.55;
 
-let mockReactPoints = flat(-20);
+let mockReactPoints = flat(SILENT);
 let mockFresh:
   { points: { x: number; y: number }[]; waveform: number[] } | undefined;
 const mockDraw = jest.fn();
@@ -63,6 +70,23 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
     dispose: jest.fn(),
   }),
 }));
+// The size ladder comes from the rules for who made the scene; this one only
+// records what it was asked to judge.
+jest.mock('../../../renderer/graph/sceneRules', () => ({
+  sceneRulesFor: () => ({
+    limited: false,
+    warmWhenUnseen: false,
+    createLadder: () => ({
+      frame: mockLadderFrame,
+      scale: () => 1,
+      slowed: () => false,
+      refloor: () => undefined,
+      resume: () => undefined,
+      reset: () => undefined,
+      cheapFinish: () => false,
+    }),
+  }),
+}));
 
 const pack: IScenePack = {
   schema: 1,
@@ -84,15 +108,6 @@ const source: ISceneSource = {
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
   madeBy: 'fluideq' as const,
-  createLadder: () => ({
-    frame: mockLadderFrame,
-    scale: () => 1,
-    slowed: () => false,
-    refloor: () => undefined,
-    resume: () => undefined,
-    reset: jest.fn(),
-    cheapFinish: () => false,
-  }),
 };
 
 /**
@@ -100,7 +115,10 @@ const source: ISceneSource = {
  * the runner's own report, not a poll against a deadline, which failed under
  * the whole suite's load while passing alone.
  */
-const renderLoaded = async (onDrawn?: ISceneRunnerOptions['onDrawn']) => {
+const renderLoaded = async (
+  onDrawn?: ISceneRunnerOptions['onDrawn'],
+  onHeard?: ISceneRunnerOptions['onHeard'],
+) => {
   let loaded: () => void = () => undefined;
   const settled = new Promise<void>((resolve) => {
     loaded = resolve;
@@ -113,6 +131,7 @@ const renderLoaded = async (onDrawn?: ISceneRunnerOptions['onDrawn']) => {
       spectrumRect: [0, 1, 0, 1],
       onLoaded: () => loaded(),
       ...(onDrawn ? { onDrawn } : {}),
+      ...(onHeard ? { onHeard } : {}),
     });
     return <div ref={ref} />;
   }
@@ -147,7 +166,7 @@ const drawBass = () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockReactPoints = flat(-20);
+  mockReactPoints = flat(SILENT);
   mockLoadResult = { kind: 'ready', rebuilt: true };
   mockFresh = undefined;
   // jsdom lays nothing out, and a scene with no box on screen draws nothing.
@@ -171,9 +190,32 @@ describe('a scene frame', () => {
   it('is drawn from the music as it is when the frame is drawn', async () => {
     await renderLoaded();
     expect(drawBass()).toBe(0);
-    // The React frame still says silence; the draw-time read says full scale.
+    // The React frame still says silence; the draw-time read says music.
     mockFresh = { points: flat(20), waveform: [] };
-    expect(drawBass()).toBe(1);
+    expect(drawBass()).toBeCloseTo(FIRST_HEARD, 3);
+  });
+
+  // Fed from the drawn frame, the Studio's meters were a GPU's round trip
+  // behind the music, and a frame the GPU skipped did not move them at all
+  // (Ivan, 2026-09-24: "the indicators need to be seen in the UI at the same
+  // time the sound hits my ears").
+  it('hands each frame to whoever listens as it is made, before the GPU is asked', async () => {
+    const order: string[] = [];
+    const heard = jest.fn<void, [ISceneFrame, ISceneFrame, number]>(() => {
+      order.push('heard');
+    });
+    mockDraw.mockImplementation(() => {
+      order.push('draw');
+    });
+    await renderLoaded(undefined, heard);
+    order.length = 0;
+    heard.mockClear();
+    mockFrameCallback?.(16);
+    mockFrameCallback?.(16);
+    expect(order).toEqual(['heard', 'draw', 'heard', 'draw']);
+    // The frame the scene is drawn with, as it was made.
+    expect(heard.mock.calls[1]?.[0]).toBe(mockDraw.mock.calls[1]?.[0]);
+    mockDraw.mockReset();
   });
 
   it('falls back to the published frame when there is no live read', async () => {
@@ -181,7 +223,7 @@ describe('a scene frame', () => {
     // same loop draws the React frame, loud as it is.
     mockReactPoints = flat(20);
     await renderLoaded();
-    expect(drawBass()).toBe(1);
+    expect(drawBass()).toBeCloseTo(FIRST_HEARD, 3);
   });
 });
 

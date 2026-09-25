@@ -14,9 +14,11 @@ import {
   fetchPicture,
   listGallery,
   MAX_PICTURE_BYTES,
+} from '../../../main/plus/galleryApi';
+import {
   publishScene,
   unpublishScene,
-} from '../../../main/plus/galleryApi';
+} from '../../../main/plus/galleryPublishApi';
 import {
   fakeResponse,
   memberPack,
@@ -275,6 +277,19 @@ describe('publishing', () => {
     });
     expect(await publish(422, {})).toEqual({ ok: false, reason: 'refused' });
     expect(await publish(500, {})).toEqual({ ok: false, reason: 'server' });
+  });
+
+  // The cap on scenes is `refused` on the wire, like a scene that fails a
+  // check, and only its reason tells them apart. Read as `refused` it told a
+  // maker with nothing wrong to fix what the Studio showed.
+  it('tells a full gallery apart from a scene that was refused', async () => {
+    expect(
+      await publish(422, { error: 'refused', reason: 'too_many_scenes' }),
+    ).toEqual({ ok: false, reason: 'too-many-scenes' });
+    expect(await publish(422, { error: 'refused', reason: 'scene' })).toEqual({
+      ok: false,
+      reason: 'refused',
+    });
   });
 
   // Server migration 0038: a scene on the block list takes no new version.

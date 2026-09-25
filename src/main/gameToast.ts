@@ -13,11 +13,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * can click, because a card that swallowed a shot in a match would be worse
  * than no card at all.
  *
- * It appears on the screen the game is on, from the rectangle the watcher
- * reports, and falls back to the screen the pointer is on — which for a
- * fullscreen game is the same screen. It never takes focus, and it closes
- * itself: the page drains a line and calls `window.close()`, so nothing here
- * counts time.
+ * It appears on the screen FluidEQ's own window is on (Ivan, 2026-09-24:
+ * "open it always where the app is at that moment"). It used to follow the
+ * game, read from the rectangle the watcher reports, and some cards landed
+ * on another screen: that rectangle is in real pixels and the displays are
+ * laid out in scaled ones, so on screens of different scales the point fell
+ * on the wrong one — and a card for a game that had just closed was placed
+ * by whatever program Windows put in front next. The game's rectangle is
+ * still the answer when there is no window to ask, converted first. It never
+ * takes focus, and it closes itself: the page drains a line and calls
+ * `window.close()`, so nothing here counts time.
  */
 
 import { BrowserWindow, screen, session } from 'electron';
@@ -113,7 +118,13 @@ const pagePath = (): string => {
     : path.join(__dirname, '../../assets/game-toast.html');
 };
 
-/** The middle of the game's window, or the pointer, as a point on the desk. */
+/**
+ * The middle of the game's window, or the pointer, as a point on the desk.
+ *
+ * The watcher reports real pixels and Electron lays its displays out in
+ * scaled ones; with two screens at different scales the raw point belongs
+ * to neither, so it is converted before anything is asked of it.
+ */
 const pointOf = (rect: string | undefined): Electron.Point => {
   const parts = (rect ?? '').split(',').map((one) => Number(one));
   if (parts.length === 4 && parts.every((one) => Number.isFinite(one))) {
@@ -121,10 +132,31 @@ const pointOf = (rect: string | undefined): Electron.Point => {
     // A fullscreen game's rectangle is its whole screen; a windowed one's is
     // where it sits. The centre is inside either.
     if (width > 0 && height > 0) {
-      return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
+      const middle = {
+        x: Math.round(x + width / 2),
+        y: Math.round(y + height / 2),
+      };
+      return screen.screenToDipPoint ? screen.screenToDipPoint(middle) : middle;
     }
   }
   return screen.getCursorScreenPoint();
+};
+
+/**
+ * The screen the card belongs on: FluidEQ's own window's, whatever it is
+ * doing. Minimised, its bounds are Windows' parking place off every screen,
+ * so the size it will come back at is what says where it lives.
+ */
+const displayFor = (
+  app: BrowserWindow | null,
+  rect: string | undefined,
+): Electron.Display => {
+  if (app && !app.isDestroyed()) {
+    return screen.getDisplayMatching(
+      app.isMinimized() ? app.getNormalBounds() : app.getBounds(),
+    );
+  }
+  return screen.getDisplayNearestPoint(pointOf(rect));
 };
 
 export interface IGameToasts {
@@ -132,7 +164,9 @@ export interface IGameToasts {
   close: () => void;
 }
 
-export const createGameToasts = (): IGameToasts => {
+export const createGameToasts = (
+  appWindow: () => BrowserWindow | null = () => null,
+): IGameToasts => {
   let card: BrowserWindow | undefined;
 
   const close = () => {
@@ -148,7 +182,7 @@ export const createGameToasts = (): IGameToasts => {
     // rather than stacking cards over somebody's aim.
     close();
     try {
-      const display = screen.getDisplayNearestPoint(pointOf(toast.rect));
+      const display = displayFor(appWindow(), toast.rect);
       const area = display.workArea;
       const window = new BrowserWindow({
         width: WIDTH,

@@ -299,6 +299,9 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.elsewhere.p1',
       'terms.elsewhere.p2',
       'terms.elsewhere.p3',
+      // The Studio's AI link, written after p8 and read beside the models:
+      // the numbers are identifiers, this list is the order.
+      'terms.elsewhere.p9',
       'terms.elsewhere.p4',
       'terms.elsewhere.p5',
       'terms.elsewhere.p6',

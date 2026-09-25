@@ -22,6 +22,7 @@ import {
   ILibraryQueue,
   buildQueue,
   currentTrackId,
+  extendQueue,
   setShuffle as setQueueShuffle,
 } from '../../../common/library/queue';
 import { nextRepeat } from './playerContract';
@@ -39,8 +40,11 @@ export interface IQueueControls {
    * Nothing here reaches a media element, and that is the point: the same
    * `trackId` comes out, so the loader — keyed on that id alone — does not
    * run and the audio carries on through the swap.
+   *
+   * `listKey` names the list `trackIds` come from. The list the queue is
+   * already aimed at only tops it up (`extendQueue`); another one re-aims it.
    */
-  retargetQueue: (trackIds: readonly string[]) => void;
+  retargetQueue: (trackIds: readonly string[], listKey: string) => void;
 }
 
 export const useQueueControls = (options: {
@@ -230,7 +234,7 @@ export const useQueueControls = (options: {
    * come across too.
    */
   const retargetQueue = useCallback(
-    (trackIds: readonly string[]) => {
+    (trackIds: readonly string[], listKey: string) => {
       setQueue((current) => {
         if (!current) {
           return current;
@@ -238,6 +242,24 @@ export const useQueueControls = (options: {
         const playing = currentTrackId(current);
         if (playing === undefined || !trackIds.includes(playing)) {
           return current;
+        }
+        // THE LIST THE QUEUE IS ALREADY AIMED AT ONLY TOPS IT UP.
+        //
+        // Every change of song asks again, and a library's list arrives as a
+        // window around the playing song that slides on with every song once
+        // the list is longer than the window. Compared by content below, a
+        // slid window was a changed shelf and rebuilt the run: a row dragged
+        // in Up Next went home when the song ended and a row taken out came
+        // back, the bug the "same shelf" rule below had fixed for a list
+        // handed over whole. Named by the view that sent it, the same list is
+        // known for what it is, and only songs the queue never held join.
+        if (current.source === listKey) {
+          return extendQueue(
+            current,
+            trackIds,
+            (id) =>
+              continuedIdsRef.current.has(id) && !addedIdsRef.current.has(id),
+          );
         }
         // WHAT WAS ADDED BY HAND SURVIVES THE SWAP, IN ITS OWN ORDER.
         //
@@ -292,12 +314,16 @@ export const useQueueControls = (options: {
         // and in order — a hand reorder moves `order` and leaves `trackIds`
         // alone, so an untouched shelf still matches here while a sorted one
         // does not.
+        //
+        // Whichever way the queue is kept below, it is now aimed at this list,
+        // so the next song's ask for it tops it up instead of comparing again.
+        const aimed = { ...current, source: listKey };
         const built = current.trackIds.filter((id) => !pendingSet.has(id));
         if (
           built.length === context.length &&
           built.every((id, index) => id === context[index])
         ) {
-          return current;
+          return aimed;
         }
         // A SHUFFLED QUEUE IS NOT RE-AIMED BY A LIST OF THE SAME SONGS.
         //
@@ -324,7 +350,7 @@ export const useQueueControls = (options: {
             held.size === arriving.size &&
             [...arriving].every((id) => held.has(id))
           ) {
-            return current;
+            return aimed;
           }
         }
         const base = buildQueue([...context], playing, current.isShuffled);
@@ -357,11 +383,11 @@ export const useQueueControls = (options: {
           next.order.every((value, index) => value === current.order[index])
         ) {
           // The same list arriving again — a re-render of the view rather than a
-          // change of it. Returning the existing object keeps every consumer of
-          // this context from re-rendering for nothing.
-          return current;
+          // change of it. Nothing but the aim changes, so the order the
+          // listener sees stays the object it was.
+          return aimed;
         }
-        return { ...next, repeat: current.repeat };
+        return { ...next, repeat: current.repeat, source: listKey };
       });
       // Refs, listed because the rule cannot see they are stable through a hook
       // boundary.

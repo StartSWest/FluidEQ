@@ -1,6 +1,7 @@
 import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
 import type { IScenePerformance } from './scenePerformance';
+import type { TSceneMaker } from './sceneMaker';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
 import { parseMemberLookId } from './memberScenes';
 
@@ -21,6 +22,12 @@ export const WALLPAPER = {
   performance: 'wallpaper-performance',
   /** What the listener set for each visualizer: its controls and its timing. */
   tuning: 'wallpaper-tuning',
+  /**
+   * The Plus visualizer the graph is showing, for the monitors set to follow
+   * it. Only ever a Plus one: the graph on a free look says nothing, and a
+   * monitor following it keeps the last Plus one it was given.
+   */
+  graphLook: 'wallpaper-graph-look',
 } as const;
 
 /** More monitors than a desk has; bounds what one request can create. */
@@ -57,9 +64,20 @@ export interface IWallpaperChoice {
   lookId: string;
   wave: IWallpaperWave;
   motion: TWallpaperMotion;
+  /**
+   * Shows whichever Plus visualizer the graph shows, and changes when the
+   * graph does — picked by hand or by its automatic switching. The graph on a
+   * free look leaves the monitor on the last Plus one: following never takes
+   * a background off the desktop. Absent is false.
+   */
+  followsGraph?: boolean;
 }
 
-/** Puts one visualizer on every monitor named, replacing what each showed. */
+/**
+ * Puts one visualizer on every monitor named, replacing what each showed.
+ * `followsGraph` left out keeps a monitor already set to this look following
+ * as it was, and stops it on a monitor given a different look by name.
+ */
 export interface IWallpaperStart extends IWallpaperChoice {
   displayIds: number[];
   pauseOnBattery: boolean;
@@ -161,13 +179,23 @@ export interface IWallpaperSurfaceState {
 /** Scene source is loaded and authorized by main, never sent back by a page. */
 export interface IWallpaperBootstrap {
   pack: IScenePack;
-  member: boolean;
+  /**
+   * Who made the scene, in main's word: the listener's own is run as
+   * their own on the desktop, as it is everywhere else (`sceneRules.ts`).
+   */
+  madeBy: TSceneMaker;
   state: IWallpaperSurfaceState;
 }
 
 export interface IWallpaperAudio {
   points: { x: number; y: number }[];
   waveform: number[];
+  /**
+   * Where the music leans, -1 left to 1 right, and how wide it is, 0..1
+   * (`stereoImage.ts`), as the graph's own scenes hear it. Absent where
+   * the capture is not in stereo.
+   */
+  stereo?: readonly [number, number];
 }
 
 export interface IWallpaperSurfaceBridge {
@@ -242,7 +270,8 @@ const isWallpaperChoice = (
 ): raw is Record<string, unknown> & IWallpaperChoice =>
   isWallpaperLookId(raw.lookId) &&
   isWallpaperWave(raw.wave) &&
-  isWallpaperMotion(raw.motion);
+  isWallpaperMotion(raw.motion) &&
+  (raw.followsGraph === undefined || typeof raw.followsGraph === 'boolean');
 
 export const isWallpaperStart = (raw: unknown): raw is IWallpaperStart =>
   isRecord(raw) &&
@@ -254,11 +283,26 @@ export const isWallpaperStart = (raw: unknown): raw is IWallpaperStart =>
 export const isWallpaperStop = (raw: unknown): raw is number[] | undefined =>
   raw === undefined || isDisplayIdList(raw);
 
+/** A balance of -1..1 and a width of 0..1, as `stereoImage.ts` reads them. */
+const isStereoImage = (raw: unknown): raw is readonly [number, number] => {
+  if (!Array.isArray(raw) || raw.length !== 2) {
+    return false;
+  }
+  const [balance, width]: unknown[] = raw;
+  return (
+    typeof balance === 'number' &&
+    typeof width === 'number' &&
+    Math.abs(balance) <= 1 &&
+    width >= 0 &&
+    width <= 1
+  );
+};
+
 export const isWallpaperAudio = (raw: unknown): raw is IWallpaperAudio => {
   if (!isRecord(raw)) {
     return false;
   }
-  const { points, waveform } = raw;
+  const { points, waveform, stereo } = raw;
   return (
     Array.isArray(points) &&
     points.length <= 512 &&
@@ -268,7 +312,8 @@ export const isWallpaperAudio = (raw: unknown): raw is IWallpaperAudio => {
     ) &&
     Array.isArray(waveform) &&
     waveform.length <= 2048 &&
-    waveform.every(Number.isFinite)
+    waveform.every(Number.isFinite) &&
+    (stereo === undefined || isStereoImage(stereo))
   );
 };
 

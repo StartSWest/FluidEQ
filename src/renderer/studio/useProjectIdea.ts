@@ -8,10 +8,12 @@ import { setStudioIdea, useStudioIdea } from './studioIdea';
  * Project notes travel with the folder; the unassigned draft stays separate.
  *
  * The prompt handed over is always this app's, with the idea the member can
- * see in the field after it. A project folder can come from anywhere, and the
- * prompt its notes saved went to the member's AI - which works with the
- * member's files - from a collapsed panel nobody reads: a folder shared on a
- * forum could have told that AI to do anything.
+ * see in the field after it (`StudioMaker` builds it). A project folder can
+ * come from anywhere, and the prompt its notes saved went to the member's AI
+ * - which works with the member's files - from a collapsed panel nobody
+ * reads: a folder shared on a forum could have told that AI to do anything.
+ * The prompt kept in the notes never carries the door's connection: a folder
+ * is synced and shared, and its key is the member's own.
  */
 export default function useProjectIdea(project?: IStudioProject) {
   const draft = useStudioIdea();
@@ -86,12 +88,5 @@ export default function useProjectIdea(project?: IStudioProject) {
       };
     }
   };
-  return {
-    idea,
-    update,
-    save,
-    loading,
-    failed,
-    prompt: promptWithIdea(idea, folder),
-  };
+  return { idea, update, save, loading, failed };
 }

@@ -6,6 +6,7 @@ import {
   useState,
   type RefObject,
 } from 'react';
+import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
@@ -28,11 +29,12 @@ import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import SceneLoading from './SceneLoading';
-import { createCostLadder } from './sceneHealth';
-import { createWarmupLadder } from './sceneWarmup';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
+import { useIsChromeIdle } from '../utils/idleChrome';
+import { createSceneInteraction } from './sceneInteraction';
+import SceneViewReset from './SceneViewReset';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -42,6 +44,14 @@ interface ISceneCanvasProps {
   width: number;
   height: number;
   spectrumRect: readonly [number, number, number, number];
+  /**
+   * Whether a plain drag on the plot turns a scene that can be turned: only
+   * while it is not the band marquee. A right or middle drag turns it
+   * whichever it is.
+   */
+  dragTurns: boolean;
+  /** How far in from the panel's right and bottom the ruled plot stands. */
+  inset: { right: number; bottom: number };
 }
 
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
@@ -62,21 +72,22 @@ const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
  * an error; the fallback form is the error state, and it is a working
  * visualizer.
  *
- * A member's scene differs in exactly three ways: it warms up from an eighth
- * of the size instead of starting at full, it is drawn through the brightness
- * limiter, and it is not compiled ahead while out of sight. Nobody watched it
- * before it reached this screen.
+ * How it is run — its size ladder, the brightness limiter, whether it is
+ * compiled ahead — follows from who made it (`sceneRules.ts`), exactly as it
+ * does on the desktop, in the Library's player and on the Studio's stage.
  */
 export default function SceneCanvas({
   scene,
   width,
   height,
   spectrumRect,
+  dragTurns,
+  inset,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
-  // below, and the runner alone decides what follows (`limiterIsFor`).
-  const own = member && scene.own;
+  // below, and the runner alone decides what follows (`sceneRules.ts`).
+  const madeBy = sceneMakerOf({ member, own: member && scene.own });
   const key = member ? scene.lookId : scene.id;
   const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
@@ -93,9 +104,7 @@ export default function SceneCanvas({
               reportMemberSceneFailure(key, reason).catch(() => undefined);
             },
             tooSlow: () => blockMemberScene(key),
-            createLadder: createWarmupLadder,
-            madeBy: own ? 'listener' : 'member',
-            restsInSilence: true,
+            madeBy,
           }
         : {
             identity: key,
@@ -109,12 +118,9 @@ export default function SceneCanvas({
             // A slow session is a fact about the machine right now, not about
             // the pack: fall back until the next launch, write nothing down.
             tooSlow: () => blockScene(key),
-            createLadder: createCostLadder,
-            madeBy: 'fluideq',
-            warmWhenUnseen: true,
-            restsInSilence: true,
+            madeBy,
           },
-    [member, own, key, version, name],
+    [member, madeBy, key, version, name],
   );
 
   // Which scene has drawn its first frame. Kept by identity, because the
@@ -191,6 +197,12 @@ export default function SceneCanvas({
     [lookId, authorId],
   );
 
+  // The viewer's hands on the scene: a camera to turn where the scene has
+  // one, the pointer and taps where it answers them.
+  const interaction = useMemo(createSceneInteraction, []);
+  const dragTurnsRef = useRef(dragTurns);
+  dragTurnsRef.current = dragTurns;
+
   const sceneRef = useSceneRunner({
     source,
     width,
@@ -199,8 +211,33 @@ export default function SceneCanvas({
     tuning,
     onDrawn,
     onLoaded,
+    interaction,
   });
   hostRef.current = sceneRef;
+
+  // On the plot, not on the scene's own layer, which takes no pointer: the
+  // drawing and its handles lie over it. Heard before them, in the capture,
+  // and every press that is not the scene's goes on to them untouched.
+  useEffect(() => {
+    const host = sceneRef.current;
+    const plot = host?.closest<HTMLElement>('.graph-plot');
+    if (!host || !plot) {
+      return undefined;
+    }
+    return interaction.attach(plot, {
+      frame: () => host.getBoundingClientRect(),
+      turns: (event) =>
+        event.button === 1 ||
+        event.button === 2 ||
+        (event.button === 0 && dragTurnsRef.current),
+      grabs: () => dragTurnsRef.current,
+      owns: (target) =>
+        Boolean(
+          target.closest('.graph-edit-point, .chart-limit, .chart-presence'),
+        ),
+    });
+  }, [interaction, sceneRef]);
+  const isChromeIdle = useIsChromeIdle();
 
   return (
     <>
@@ -216,6 +253,12 @@ export default function SceneCanvas({
         className="chart-scene-canvas"
         aria-hidden="true"
         style={{ width, height }}
+      />
+      <SceneViewReset
+        interaction={interaction}
+        className={isChromeIdle ? 'is-idle' : ''}
+        // In the drawing's own corner, clear of the axes' labels.
+        style={{ right: inset.right + 8, bottom: inset.bottom + 8 }}
       />
     </>
   );

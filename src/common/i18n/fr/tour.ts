@@ -72,16 +72,12 @@ const tour: Partial<Dictionary> = {
   'tour.presets.point2':
     'La courbe d’un préréglage apparaît sur le graphique comme une couche à part, avec une intensité que vous pouvez baisser.',
   'tour.presets.point3':
-    '« Aucun » désactive tous les étages d’un seul clic ; les chaînes marquées d’une étoile viennent juste après.',
+    'Chaque style s’explique : pointez-en un et ses notes s’ouvrent à côté de la liste.',
   'tour.presets.how':
     'Ouvrez l’Égaliseur et appuyez sur Préréglages, ou choisissez une chaîne en haut du DSP.',
   'tour.presets.open': 'Ouvrir l’Égaliseur',
   'tour.presets.imageAlt':
-    'Le sélecteur de préréglages avec Rock choisi, les étages qu’active sa chaîne, et trois chaînes mesurées au même niveau.',
-  'tour.presets.chain': 'Une chaîne complète, pas seulement une courbe',
-  'tour.presets.level': 'Toutes au même niveau',
-  'tour.presets.levelNote':
-    'Passer de l’une à l’autre change le caractère, pas le volume.',
+    'Le sélecteur de préréglages avec Rock choisi et ses notes à côté de la liste : sa courbe aux points numérotés, le rôle de chaque point et le niveau auquel il joue.',
   'tour.tone.kicker': 'RÉGLAGES DE TONALITÉ',
   'tour.tone.title': 'Graves, Médiums et Aigus, comme sur un ampli',
   'tour.tone.subtitle': 'Trois boutons, une courbe à part',

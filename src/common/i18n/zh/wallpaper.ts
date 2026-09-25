@@ -23,6 +23,9 @@ const wallpaper = {
   'wallpaper.motion.music.hint': '随正在播放的内容而动。',
   'wallpaper.motion.calm': '平静',
   'wallpaper.motion.calm.hint': '缓慢安静的动画，不受音乐影响。',
+  'wallpaper.follow': '跟随图表',
+  'wallpaper.follow.hint':
+    '显示图表上的 Plus 可视化效果并随之切换，无论是你手动选择还是自动切换。当图表显示非 Plus 可视化效果时，此屏幕保留最后一个 Plus 可视化效果。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '设置背景',

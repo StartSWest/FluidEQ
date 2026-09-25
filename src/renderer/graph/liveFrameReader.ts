@@ -26,7 +26,9 @@ import {
   readGraphLevels,
   writeGraphPoints,
 } from './liveGraphBand';
+import type { ILiveSound } from './liveSound';
 import { readPeakAmplitude } from './outputLevel';
+import { readStereoImage } from './stereoImage';
 
 /**
  * The live spectrum and waveform as they are at the moment a frame is drawn.
@@ -65,6 +67,16 @@ export interface ILiveFrame {
    * taken from 33 ms earlier.
    */
   channelPeaks: number[];
+  /**
+   * Where the music stands between the speakers (`stereoImage.ts`): balance
+   * -1..1 and width 0..1. Undefined unless the capture has two channels.
+   */
+  stereo?: [number, number];
+  /**
+   * The capture's sound, read every ten milliseconds, and the music heard in
+   * it once for every drawing in the window (`liveSound.ts`).
+   */
+  sound?: ILiveSound;
 }
 
 export interface ILiveFrameReader {
@@ -97,6 +109,8 @@ export interface ILiveFrameReaderOptions {
   audioTimeMs?: () => number;
   /** The hidden-window pump skips this work; a background drawing owns it. */
   releaseReference?: () => boolean;
+  /** The capture's sound, handed on with every frame. */
+  sound?: ILiveSound;
 }
 
 /**
@@ -135,6 +149,7 @@ export const createLiveFrameReader = ({
   trackReference,
   audioTimeMs = () => analyser.context.currentTime * 1000,
   releaseReference = () => false,
+  sound,
 }: ILiveFrameReaderOptions): ILiveFrameReader => {
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
   const levels = new Float64Array(axis.length);
@@ -148,6 +163,8 @@ export const createLiveFrameReader = ({
     graphPoints: NO_POINTS,
     waveform: buffers.waveform[0],
     channelPeaks: channelAnalysers.map(() => 0),
+    ...(channelAnalysers.length >= 2 ? { stereo: [0, 0] } : {}),
+    ...(sound ? { sound } : {}),
   };
   let readAt: number | undefined;
 
@@ -172,6 +189,9 @@ export const createLiveFrameReader = ({
         channel.getFloatTimeDomainData(channelSamples[index]);
         frame.channelPeaks[index] = readPeakAmplitude(channelSamples[index]);
       });
+      if (frame.stereo) {
+        readStereoImage(channelSamples[0], channelSamples[1], frame.stereo);
+      }
       frame.waveform = writeChannelWaveformPoints(
         buffers.waveform[0],
         channelSamples,

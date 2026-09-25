@@ -40,7 +40,8 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
   {
     // Drums and sub-bass up front at 65-75 BPM, the rest dropping in and out
     // through tape echo: the drops are the composition, so the ceiling only
-    // catches. Sub weight in mono from the curve; Forge offered, left off.
+    // catches. The bottom mono under 150 Hz, as the originals were narrow;
+    // Forge offered, left off.
     id: 'dub',
     bassForge: forge(80, 0, 0.8, 0.4, 0.95, 0.3),
     dimension: width(0.5, 1, 1, 150, 3_000, 0),
@@ -49,9 +50,9 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
   },
   {
     // Digital riddims at about 100 BPM on an 808-style sub, everything else
-    // high-passed under 80 Hz by the producer. Sub support in mono from the
-    // curve, Forge offered and left off, and a ceiling quick enough to leave
-    // the percussion crisp.
+    // high-passed under 80 Hz by the producer. Sub support from the curve,
+    // mono under 120 Hz, Forge offered and left off, and a ceiling quick
+    // enough to leave the percussion crisp.
     id: 'dancehall',
     bassForge: forge(90, 0, 0.7, 0.5, 0.9, 0.3),
     dimension: width(0.5, 1, 1.05, 150, 3_000, 0.05),

@@ -58,8 +58,16 @@ export const sceneListing = (
     : { entitled: false, scenes: [], locked: scenes };
 };
 
+/** A scene this account may draw, and whether this account made it. */
+export interface IVisibleScene {
+  pack: IScenePack;
+  own: boolean;
+}
+
 /**
- * The pack behind a look id, when this account may both see and draw it.
+ * The pack behind a look id, when this account may both see and draw it,
+ * and whether this account made it — which decides how it is run wherever
+ * it plays, the desktop included (`sceneRules.ts`).
  *
  * The entitlement is checked here and not only where the list is built: a
  * page that kept an id from before a membership ended would otherwise be able
@@ -69,14 +77,15 @@ export const loadVisibleScene = (
   store: IMemberSceneStore,
   viewer: ISceneViewer,
   lookId: unknown,
-): IScenePack | undefined => {
+): IVisibleScene | undefined => {
   const ref =
     typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
   if (!ref || !viewer.entitled()) {
     return undefined;
   }
-  const seen = visibleScenes(store, viewer).some(
+  const seen = visibleScenes(store, viewer).find(
     (scene) => scene.authorId === ref.authorId && scene.packId === ref.packId,
   );
-  return seen ? store.load(ref.authorId, ref.packId) : undefined;
+  const pack = seen ? store.load(ref.authorId, ref.packId) : undefined;
+  return seen && pack ? { pack, own: seen.own } : undefined;
 };

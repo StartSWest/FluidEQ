@@ -33,7 +33,7 @@ export interface IGuestStyleTarget extends Pick<
 }
 
 /** Everything learned about a site, and how many rules its page held then. */
-interface ISiteKnowledge extends IGuestTintKnowledge {
+export interface ISiteKnowledge extends IGuestTintKnowledge {
   readonly ruleCount: number | undefined;
 }
 
@@ -126,7 +126,7 @@ const learnKeeps = (
  * be built again: only when a grey, a use or a rule was learned, not when the
  * page merely counted its rules.
  */
-const learnSite = (
+export const learnSite = (
   known: ISiteKnowledge | undefined,
   report: IGuestTintReport,
 ): { site: ISiteKnowledge; isNew: boolean } => {

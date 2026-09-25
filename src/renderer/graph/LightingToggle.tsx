@@ -39,7 +39,11 @@ export default function LightingToggle() {
     >
       <svg viewBox="0 0 16 16" aria-hidden>
         <rect x="2.5" y="8" width="11" height="6" rx="1.6" />
-        <path d="M6 11h4M8 2v2.4M3.6 3.6l1.6 1.6M12.4 3.6l-1.6 1.6" />
+        <path d="M6 11h4" />
+        {/* The rays are the light, so they are drawn only while it is on: an
+            unlit device under rays read as switched on (Ivan, 2026-09-24). The
+            device keeps its place, so the button does not jump on a press. */}
+        {enabled && <path d="M8 2v2.4M3.6 3.6l1.6 1.6M12.4 3.6l-1.6 1.6" />}
       </svg>
     </button>
   );

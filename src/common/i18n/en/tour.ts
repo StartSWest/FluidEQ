@@ -83,15 +83,12 @@ const tour = {
   'tour.presets.point2':
     'A preset’s curve shows on the graph as a layer of its own, with a strength you can turn down.',
   'tour.presets.point3':
-    'None switches every stage off in one pick; the chains you star come right after it.',
+    'Every style explains itself: point at one and its notes open beside the list.',
   'tour.presets.how':
     'Open EQ and press Presets, or pick a chain at the top of DSP.',
   'tour.presets.open': 'Open EQ',
   'tour.presets.imageAlt':
-    'The presets picker with Rock chosen, the stages its chain switches on, and three chains measured at the same loudness.',
-  'tour.presets.chain': 'A whole chain, not just a curve',
-  'tour.presets.level': 'All at one loudness',
-  'tour.presets.levelNote': 'Switching changes the character, not the volume.',
+    'The presets picker with Rock chosen and its notes beside the list: its curve with numbered points, what each point is for and how loud it plays.',
 
   'tour.tone.kicker': 'TONE CONTROLS',
   'tour.tone.title': 'Bass, Mid and Treble, like an amplifier',

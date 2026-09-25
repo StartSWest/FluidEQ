@@ -157,6 +157,13 @@ export const linkStudioFolder = async (): Promise<
   return result.outcome;
 };
 
+/**
+ * The open project as last heard from main. Read outside React by the
+ * member's AI's answers (`useStudioAgent.ts`); between Studio sessions it is
+ * the last one known, and selecting it again changes nothing.
+ */
+export const studioActiveId = () => view.state.activeId;
+
 /** Puts another project on the bench; the one there stops being watched. */
 export const selectStudioProject = async (id: string) => {
   const state = await bridge()?.selectStudioProject?.(id);

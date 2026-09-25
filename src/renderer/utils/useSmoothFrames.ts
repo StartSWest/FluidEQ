@@ -17,11 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import {
-  EUPHORIA_FRAME_MS,
-  SMOOTH_FRAME_MS,
-  shouldDrawFrame,
-} from 'common/smoothing';
+import { EUPHORIA_FRAME_MS, SMOOTH_FRAME_MS } from 'common/smoothing';
+import { displayTickMs, isFrameDue } from './framePace';
 import observeShown from './observeShown';
 
 /**
@@ -144,15 +141,21 @@ const useSmoothFrames = (
       return;
     }
     lastDrawRef.current = performance.now();
+    // The display's frame, measured from the loop's own animation frames:
+    // what a pace is judged against as well as its own length (`framePace.ts`).
+    let lastTickAt: number | undefined;
+    let tickMs = 1000 / 60;
 
     const tick = (now: number) => {
       if (document.hidden || !enabledRef.current || !shownRef.current) {
         frameRef.current = undefined;
         return;
       }
+      tickMs = displayTickMs(now, lastTickAt, tickMs);
+      lastTickAt = now;
       const elapsed = now - lastDrawRef.current;
       const pace = paceRef.current;
-      if (!shouldDrawFrame(elapsed, pace ? pace() : getFrameBudget())) {
+      if (!isFrameDue(elapsed, pace ? pace() : getFrameBudget(), tickMs)) {
         // Too soon for this mode. Still queued, so the next frame is
         // considered — skipping is how the rate is capped without a timer.
         frameRef.current = requestAnimationFrame(tick);
