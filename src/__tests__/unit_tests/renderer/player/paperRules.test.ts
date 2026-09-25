@@ -26,7 +26,10 @@ describe("the player's grid", () => {
         // scale's top number sat under Auto before the plot moved below it.
         expect(paper.padding.top).toBeGreaterThanOrEqual(34);
         expect(paper.padding.bottom).toBeGreaterThan(0);
-        expect(paper.padding.right).toBeGreaterThan(0);
+        // The main graph's 48px for "-80 dB" and a margin: the player's
+        // picture runs to the deck's edge, and at 48 the numbers ended
+        // against it (Ivan, 2026-09-24: "bit right padding for the numbers").
+        expect(paper.padding.right).toBeGreaterThanOrEqual(56);
       },
     );
   });

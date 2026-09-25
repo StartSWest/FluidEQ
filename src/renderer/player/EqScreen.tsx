@@ -42,7 +42,7 @@ import { useShownSceneSky } from '../utils/sceneTintStore';
 import { useSmartEqRun } from '../utils/smartEqRun';
 import { sortHelper } from '../utils/utils';
 import AnchoredMenu from '../widgets/AnchoredMenu';
-import DesktopKey from './DesktopKey';
+import SceneKeys from './SceneKeys';
 import paintEqCurves from './eqCurvePaint';
 import PlayerIcon from './PlayerIcon';
 import useMenuDismiss from './useMenuDismiss';
@@ -376,10 +376,11 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
             );
           })}
         </span>
-        {/* The scene playing behind the curve, onto the desktop — in the
-            corner, where the eye is on the picture rather than on a layer. */}
+        {/* The scene playing behind the curve: its colour on the window, the
+            desk lights, the desktop — in the corner, where the eye is on the
+            picture rather than on a layer. */}
         {isVisHere && scene.state === 'ready' && (
-          <DesktopKey lookId={scene.lookId} />
+          <SceneKeys lookId={scene.lookId} />
         )}
       </div>
       <div className="player-eq-screen__plot" ref={plotRef}>

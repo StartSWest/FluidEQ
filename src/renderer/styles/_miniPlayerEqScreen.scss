@@ -151,54 +151,83 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
 }
 
-// The desktop background, at the far end of the line (`DesktopKey`): the
+// The scene's three switches at the far end of the line (`SceneKeys`): the
+// window's colour, the desk lights, the desktop background. Each wears the
 // "Also applied" key's own face at its height, square, so the line reads as
-// one strip with a control at each end. Lit like a layer that is on while the
-// scene is on a monitor.
-.player-eq-screen__desktop {
-  display: inline-grid;
+// one strip with a control at each end. They are the graph's own buttons,
+// whose look is scoped to the graph's strip, so their whole face is said
+// here. Lit like a layer that is on.
+.player-eq-screen__keys {
+  display: inline-flex;
   flex: none;
-  width: 18px;
-  height: 16px;
+  gap: 4px;
   margin-inline-start: auto;
-  padding: 0;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-  border-radius: 4px;
-  background: rgba($black, 0.35);
-  color: color-mix(in srgb, var(--player-ink) 70%, var(--player-text-soft));
-  cursor: pointer;
 
-  svg {
-    width: 11px;
-    height: 11px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.5;
-  }
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    color: var(--player-ink-bright);
-  }
-
-  // On a monitor: lit like a lamp, the key filled with the accent and its
-  // glyph glowing, so the difference reads across the room and not only up
-  // close.
-  &[aria-pressed='true'] {
-    border-color: color-mix(in srgb, var(--accent) 75%, transparent);
-    background: color-mix(in srgb, var(--accent) 24%, rgba($black, 0.35));
-    color: var(--player-ink-bright);
-    box-shadow: 0 0 6px var(--player-glow);
+  .graph-look-step {
+    display: inline-grid;
+    width: 18px;
+    height: 16px;
+    min-height: 0;
+    padding: 0;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius: 4px;
+    background: rgba($black, 0.35);
+    box-shadow: none;
+    color: color-mix(in srgb, var(--player-ink) 70%, var(--player-text-soft));
+    cursor: pointer;
 
     svg {
-      filter: drop-shadow(0 0 3px var(--player-glow));
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.5;
+    }
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      color: var(--player-ink-bright);
+    }
+
+    // On: lit like a lamp, the key filled with the accent and its glyph
+    // glowing, so the difference reads across the room and not only up
+    // close.
+    &[aria-pressed='true'] {
+      border-color: color-mix(in srgb, var(--accent) 75%, transparent);
+      background: color-mix(in srgb, var(--accent) 24%, rgba($black, 0.35));
+      color: var(--player-ink-bright);
+      box-shadow: 0 0 6px var(--player-glow);
+
+      svg {
+        filter: drop-shadow(0 0 3px var(--player-glow));
+      }
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
     }
   }
 
-  &:focus-visible {
-    @include focus-ring($white);
+  // The tint glyph's filled half says what the switch does, as on the graph:
+  // the ring's ink while off, the colour the window is taking while on.
+  .graph-scene-tint {
+    .tint-icon__half {
+      fill: currentColor;
+      stroke: none;
+      opacity: 0.45;
+    }
+
+    .tint-icon__wave {
+      opacity: 0.55;
+    }
+
+    &[aria-pressed='true'] .tint-icon__half {
+      fill: var(--scene-tint-swatch, currentColor);
+      opacity: 1;
+    }
   }
 }
 

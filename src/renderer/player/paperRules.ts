@@ -35,15 +35,19 @@ export interface IPlayerPaper {
 /**
  * Room for the labels, in CSS pixels.
  *
- * The bottom and right gutters are the main graph's own (`graphPaper.ts`):
- * "10k Hz" under the plot, "-80 dB" beside it. The left is half a frequency
- * label, so "10 Hz" is not cut in half at the edge. The top clears the
- * player's strip of controls, which stands 8px down and 26px tall across the
- * whole top of the deck: the level scale's top number sat under Auto.
+ * The bottom gutter is the main graph's own (`graphPaper.ts`): "10k Hz"
+ * under the plot. The right is the main graph's 48 for "-80 dB" and 8 more:
+ * the main graph's card keeps its own padding around the plot, and the
+ * player's picture runs to the deck's edge, so at 48 the numbers ended
+ * against it (Ivan, 2026-09-24: "bit right padding for the numbers of the
+ * grid"). The left is half a frequency label, so "10 Hz" is not cut in half
+ * at the edge. The top clears the player's strip of controls, which stands
+ * 8px down and 26px tall across the whole top of the deck: the level scale's
+ * top number sat under Auto.
  */
 const FREQUENCY_BOTTOM = 30;
 const FREQUENCY_SIDE = 20;
-const LEVEL_RIGHT = 48;
+const LEVEL_RIGHT = 56;
 const UNDER_STRIP = 44;
 
 // Module constants, so a deck that re-renders keeps the same padding object
