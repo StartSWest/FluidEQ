@@ -46,6 +46,7 @@ import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import SupportRainbowUnlock from './components/SupportRainbowUnlock';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
+import isOwnAnimationEnd from './utils/ownAnimationEnd';
 import './styles/Support.scss';
 
 // Webpack substitutes NODE_ENV so the release minifier removes these controls.
@@ -66,11 +67,6 @@ interface ISupportDialogProps {
   isCovered?: boolean;
 }
 
-const COPY_FEEDBACK_MS = 2000;
-
-/** How long the creature keeps the face the last tap earned it. */
-const PET_MOOD_MS = 700;
-
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -90,10 +86,10 @@ export default function SupportDialog({
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const copyResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
   const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
+  // Bumped per copy, so copying again while "Copied" is up holds it for its
+  // own full moment rather than for what the last one had left.
+  const [copySeq, setCopySeq] = useState(0);
   // Counted rather than held, because the hop is a CSS animation and the only
   // way to restart one already running is to change its name. Odd and even taps
   // alternate between two identical keyframe sets, so a tap landing mid-hop
@@ -103,16 +99,12 @@ export default function SupportDialog({
   const gameRef = useRef<IRhythmGameHandle>(null);
   // Score at keydown through the ref, not a render later in an effect.
   // The face reacts briefly; the run store keeps the streak across closing.
+  // How long she keeps it is the hold on the mark inside her button
+  // (`support-pet-mood` in `Support.scss`), whose end clears it.
   const [mood, setMood] = useState<'perfect' | 'miss' | ''>('');
-  const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
   const bouncePet = useCallback(() => {
     setPetTaps((count) => count + 1);
     const result = gameRef.current?.registerTap();
-    if (moodResetRef.current !== undefined) {
-      clearTimeout(moodResetRef.current);
-    }
     if (!result) {
       return;
     }
@@ -121,20 +113,7 @@ export default function SupportDialog({
       return;
     }
     setMood(result.verdict);
-    moodResetRef.current = setTimeout(() => {
-      moodResetRef.current = undefined;
-      setMood('');
-    }, PET_MOOD_MS);
   }, []);
-
-  useEffect(
-    () => () => {
-      if (moodResetRef.current !== undefined) {
-        clearTimeout(moodResetRef.current);
-      }
-    },
-    [],
-  );
   const petHopClass =
     // eslint-disable-next-line no-nested-ternary
     petTaps === 0 ? '' : petTaps % 2 === 1 ? ' is-hopping-a' : ' is-hopping-b';
@@ -208,28 +187,16 @@ export default function SupportDialog({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isCovered]);
 
-  useEffect(
-    () => () => {
-      if (copyResetRef.current !== undefined) {
-        clearTimeout(copyResetRef.current);
-      }
-    },
-    [],
-  );
-
   const handleCopyAddress = async (id: SupportMethodId, address: string) => {
-    if (copyResetRef.current !== undefined) {
-      clearTimeout(copyResetRef.current);
-    }
     try {
       await navigator.clipboard.writeText(address);
       setCopiedId(id);
+      setCopySeq((seq) => seq + 1);
     } catch {
       // Clipboard permission can be refused; the address stays selectable so
       // the donor is never stuck.
       setCopiedId('');
     }
-    copyResetRef.current = setTimeout(() => setCopiedId(''), COPY_FEEDBACK_MS);
   };
 
   const hasStripe = methods.some((method) => method.id === 'stripe');
@@ -315,6 +282,23 @@ export default function SupportDialog({
                   }}
                 >
                   <SupportPetHero hasContributed={hasContributed} />
+                  {/* How long the face the tap earned stays: this mark's
+                      hold, keyed on the tap so each one gets the whole of it,
+                      and its end is what puts her resting face back. It was a
+                      timer, which ran on behind a covered window. Draws
+                      nothing — the face is the classes on the button. */}
+                  {mood && (
+                    <span
+                      key={petTaps}
+                      className="support-pet-tap__mood"
+                      aria-hidden
+                      onAnimationEnd={(event) => {
+                        if (isOwnAnimationEnd(event, 'support-pet-mood')) {
+                          setMood('');
+                        }
+                      }}
+                    />
+                  )}
                 </button>
                 <div>
                   <span className="eyebrow">{t('support.eyebrow')}</span>
@@ -422,9 +406,23 @@ export default function SupportDialog({
                       className="support-method__action"
                       onClick={() => handleCopyAddress(asset.id, address)}
                     >
-                      {copiedId === asset.id
-                        ? t('support.copied')
-                        : t('support.copy')}
+                      {/* "Copied" for its moment: the word's own hold
+                          (`support-copied`), whose end puts "Copy" back. */}
+                      {copiedId === asset.id ? (
+                        <span
+                          key={copySeq}
+                          className="support-method__confirmed"
+                          onAnimationEnd={(event) => {
+                            if (isOwnAnimationEnd(event, 'support-copied')) {
+                              setCopiedId('');
+                            }
+                          }}
+                        >
+                          {t('support.copied')}
+                        </span>
+                      ) : (
+                        t('support.copy')
+                      )}
                     </button>
                     {uri && (
                       <a

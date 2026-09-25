@@ -20,6 +20,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * anything. Neither replaces the other, so both are written.
  */
 
+import nextTask from '../../../common/nextTask';
+
 /**
  * 192 kbps joint stereo.
  *
@@ -73,12 +75,6 @@ const toInt16 = (samples: Float32Array): Int16Array => {
   return out;
 };
 
-/** Give the event loop a turn, so the window keeps painting mid-encode. */
-const yieldToRenderer = () =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
-
 export interface IEncodeMp3Options {
   /** 0..1, called as blocks complete, for a caller that shows progress. */
   onProgress?: (fraction: number) => void;
@@ -117,10 +113,15 @@ export const encodeChannelsAsMp3 = async (
     }
     if (block % BLOCKS_PER_YIELD === BLOCKS_PER_YIELD - 1) {
       onProgress?.(block / totalBlocks);
+      // A task, not a zero-delay timer: a hidden window runs timers once a
+      // second at best, so a four-minute stem — about 140 of these — took two
+      // minutes or more to encode behind a minimised window, holding every
+      // sample of it. A task comes next whatever is painted, and at once when
+      // the encode is cancelled.
       // eslint-disable-next-line no-await-in-loop -- the yield is the point:
       // this loop is deliberately paced so the renderer can paint between
       // batches, which parallelising would defeat.
-      await yieldToRenderer();
+      await nextTask(signal);
       if (signal?.aborted) {
         throw new DOMException('MP3 encoding cancelled.', 'AbortError');
       }

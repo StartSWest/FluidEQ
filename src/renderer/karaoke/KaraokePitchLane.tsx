@@ -169,6 +169,17 @@ const KaraokePitchLane = ({
   const viewportRef = useRef<IKaraokePitchViewportState | undefined>(undefined);
   const lastTraceSampleRef = useRef(0);
   const scrubStateRef = useRef<IKaraokePitchScrubState | undefined>(undefined);
+  /**
+   * The click that ends a scrub, which is not a click on what it lands on.
+   *
+   * A press that moved is a drag, and the `click` the pointer's release sends
+   * after it would otherwise practise whatever issue the drag ended over. Set
+   * by the release and spent by that click; a new press clears it, because
+   * whatever click comes after that press belongs to it. It was cleared by a
+   * zero-delay timer, which relied on the click being dispatched in the same
+   * task as the release — true, but a guess about the browser rather than a
+   * reading of the events themselves.
+   */
   const suppressCanvasClickRef = useRef(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [performanceIssues, setPerformanceIssues] = useState<
@@ -1427,6 +1438,7 @@ const KaraokePitchLane = ({
   };
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    suppressCanvasClickRef.current = false;
     if (!canScrub || event.button !== 0) {
       return;
     }
@@ -1454,10 +1466,8 @@ const KaraokePitchLane = ({
       return;
     }
     setIsScrubbing(false);
-    suppressCanvasClickRef.current = true;
-    window.setTimeout(() => {
-      suppressCanvasClickRef.current = false;
-    }, 0);
+    // A cancelled pointer sends no click, so there is nothing to swallow.
+    suppressCanvasClickRef.current = event.type === 'pointerup';
     event.currentTarget.style.cursor = 'grab';
     event.currentTarget.title = t('karaoke.pitch.scrubHint');
     onScrubEnd?.(scrub.lastTimeMs);

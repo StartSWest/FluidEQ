@@ -36,6 +36,46 @@ import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import { sendFilesToKaraoke } from '../../renderer/library/karaokeHandoff';
 import { karaokeLayoutStorageKey } from '../../renderer/karaoke/karaokeLayout';
+import {
+  createKaraokeAudioClock,
+  IKaraokeAudioClock,
+} from '../../renderer/karaoke/karaokeAudioClock';
+import { FakeClockContext, openFakeClock } from '../utils/fakeAudioClock';
+
+/**
+ * The count-in, the Maker's countdown and its auditions keep time on the sound
+ * card's clock, which jsdom does not have. One clock the test moves by hand,
+ * shared by the workspace and its Maker as the real one is.
+ */
+let mockClockContext = new FakeClockContext();
+let mockClock: IKaraokeAudioClock = createKaraokeAudioClock(
+  openFakeClock(mockClockContext),
+);
+jest.mock('../../renderer/karaoke/karaokeAudioClock', () => ({
+  ...jest.requireActual('../../renderer/karaoke/karaokeAudioClock'),
+  useKaraokeAudioClock: () => mockClock,
+}));
+
+/** An animation's end, named, as the element's own or bubbled from a child. */
+const animationEnd = (element: Element, animationName: string) => {
+  const event = new Event('animationend', { bubbles: true });
+  Object.defineProperty(event, 'animationName', { value: animationName });
+  act(() => {
+    element.dispatchEvent(event);
+  });
+};
+
+/**
+ * Moves the sound card's clock on, once any waiting `resume()` has settled,
+ * and lets what the cues set off — a `play()` that resolves — land inside
+ * `act` as well.
+ */
+const advanceAudioClock = async (seconds: number) => {
+  await act(async () => undefined);
+  await act(async () => {
+    mockClockContext.advance(seconds);
+  });
+};
 
 const fireTestPointer = (
   target: Element,
@@ -95,6 +135,8 @@ describe('KaraokeWorkspace', () => {
   });
 
   beforeEach(() => {
+    mockClockContext = new FakeClockContext();
+    mockClock = createKaraokeAudioClock(openFakeClock(mockClockContext));
     createObjectURL.mockClear();
     revokeObjectURL.mockClear();
     load.mockClear();
@@ -181,15 +223,12 @@ describe('KaraokeWorkspace', () => {
     const cue = () =>
       container.querySelector('.karaoke-count-in strong') as HTMLElement;
     await waitFor(() => expect(cue()).toHaveTextContent('1'));
-    await waitFor(() => expect(cue()).toHaveTextContent('2'), {
-      timeout: 1_000,
-    });
-    await waitFor(() => expect(cue()).toHaveTextContent('3'), {
-      timeout: 1_000,
-    });
-    await waitFor(() => expect(cue()).toHaveTextContent('GO'), {
-      timeout: 1_000,
-    });
+    await advanceAudioClock(0.551);
+    expect(cue()).toHaveTextContent('2');
+    await advanceAudioClock(0.55);
+    expect(cue()).toHaveTextContent('3');
+    await advanceAudioClock(0.55);
+    expect(cue()).toHaveTextContent('GO');
   };
 
   it('offers real local import actions in the empty state', async () => {
@@ -630,7 +669,6 @@ describe('KaraokeWorkspace', () => {
     expect(
       screen.queryByRole('button', { name: 'Mark line start' }),
     ).not.toBeInTheDocument();
-    jest.useFakeTimers();
     play.mockClear();
     const guidedAudio = container.querySelector('audio') as HTMLAudioElement;
     guidedAudio.currentTime = 18;
@@ -644,15 +682,20 @@ describe('KaraokeWorkspace', () => {
         '.karaoke-maker__capture-coach-countdown strong',
       ) as HTMLElement;
     expect(captureCue()).toHaveTextContent('1');
-    act(() => jest.advanceTimersByTime(650));
+    // A beat is 650 ms of the sound card's clock, and a millisecond short of
+    // it is still the beat before.
+    await advanceAudioClock(0.649);
+    expect(captureCue()).toHaveTextContent('1');
+    await advanceAudioClock(0.002);
     expect(captureCue()).toHaveTextContent('2');
-    act(() => jest.advanceTimersByTime(650));
+    await advanceAudioClock(0.65);
     expect(captureCue()).toHaveTextContent('3');
-    act(() => jest.advanceTimersByTime(650));
+    expect(play).not.toHaveBeenCalled();
+    await advanceAudioClock(0.65);
     expect(captureCue()).toHaveTextContent('GO');
     expect(play).toHaveBeenCalledTimes(1);
-    act(() => jest.advanceTimersByTime(550));
-    jest.useRealTimers();
+    await advanceAudioClock(0.55);
+    expect(captureCue()).toBeNull();
     guidedAudio.currentTime = 5;
     fireEvent.keyDown(window, {
       key: 'ArrowLeft',
@@ -703,6 +746,18 @@ describe('KaraokeWorkspace', () => {
         'Line timing complete. Ready to review and use in the player.',
       ),
     ).toBeVisible();
+    // Up until its own linger animation ends — not a child's, not another's.
+    const timingNotice = screen
+      .getByText('Line timing complete. Ready to review and use in the player.')
+      .closest('.karaoke-maker__notice') as HTMLElement;
+    animationEnd(
+      timingNotice.firstElementChild as HTMLElement,
+      'karaoke-maker-notice-linger',
+    );
+    animationEnd(timingNotice, 'karaoke-maker-toast');
+    expect(timingNotice).toBeInTheDocument();
+    animationEnd(timingNotice, 'karaoke-maker-notice-linger');
+    expect(timingNotice).not.toBeInTheDocument();
     play.mockClear();
     fireEvent.click(screen.getByRole('button', { name: 'Play word' }));
     expect(play).toHaveBeenCalledTimes(1);
@@ -1143,6 +1198,15 @@ describe('KaraokeWorkspace', () => {
         'Using the current player timing. Undo restores your saved draft.',
       ),
     ).toBeVisible();
+    // Gone on its fade's end: the drift beside it ends at once under reduced
+    // motion and must not take it down.
+    const toast = container.querySelector(
+      '.karaoke-maker__toast',
+    ) as HTMLElement;
+    animationEnd(toast, 'karaoke-maker-toast-drift');
+    expect(toast).toBeInTheDocument();
+    animationEnd(toast, 'karaoke-maker-toast');
+    expect(toast).not.toBeInTheDocument();
     const timingButton = screen.getByRole('button', {
       name: 'Lyrics timing',
     });
@@ -1575,9 +1639,15 @@ describe('KaraokeWorkspace', () => {
       height: 240,
       toJSON: () => ({}),
     });
+    // The click a drag's release sends was swallowed by a flag a zero-delay
+    // timer cleared; the next press clears it now.
+    const scrubTimers = jest.spyOn(window, 'setTimeout');
     fireTestPointer(pitchCanvas, 'pointerdown', 11, 500);
     fireTestPointer(pitchCanvas, 'pointermove', 11, 300);
     fireTestPointer(pitchCanvas, 'pointerup', 11, 300);
+    fireEvent.click(pitchCanvas);
+    expect(scrubTimers).not.toHaveBeenCalled();
+    scrubTimers.mockRestore();
     expect(audio.currentTime).toBeGreaterThan(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
@@ -1599,6 +1669,51 @@ describe('KaraokeWorkspace', () => {
 
     unmount();
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:karaoke-song');
+  });
+
+  it("counts in on the sound card's clock, never a timer", async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [new File(['audio'], 'Counting.mp3', { type: 'audio/mpeg' })],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Counting' }),
+    ).toBeVisible();
+    // Each beat was a `setTimeout` started when the one before it fired.
+    const timers = jest.spyOn(window, 'setTimeout');
+    const cue = () => container.querySelector('.karaoke-count-in strong');
+    try {
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+      expect(cue()).toHaveTextContent('1');
+      await advanceAudioClock(0.549);
+      expect(cue()).toHaveTextContent('1');
+      await advanceAudioClock(0.002);
+      expect(cue()).toHaveTextContent('2');
+      await advanceAudioClock(0.55);
+      expect(cue()).toHaveTextContent('3');
+      expect(play).not.toHaveBeenCalled();
+      await advanceAudioClock(0.55);
+      // The song on "GO", and "GO" up while it comes in.
+      expect(cue()).toHaveTextContent('GO');
+      expect(play).toHaveBeenCalledTimes(1);
+      await advanceAudioClock(0.597);
+      expect(cue()).toHaveTextContent('GO');
+      await advanceAudioClock(0.003);
+      expect(cue()).toBeNull();
+
+      expect(timers).not.toHaveBeenCalled();
+      // The control: the spy sees a timer when one is set.
+      window.setTimeout(() => undefined, 0);
+      expect(timers).toHaveBeenCalledTimes(1);
+    } finally {
+      // A spied `setTimeout` reads to Testing Library as fake timers.
+      timers.mockRestore();
+    }
   });
 
   it('moves the redesigned pitch lane beside the mic in a compact window', async () => {

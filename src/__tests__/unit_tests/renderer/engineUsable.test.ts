@@ -55,7 +55,9 @@ describe('whether the equaliser can do anything', () => {
   it('stays usable through a failure that is only a message', () => {
     // A preset that would not save is not a reason to grey out the equalizer
     // while APO is still processing audio perfectly well.
-    expect(isEngineUsable(true, errors[ErrorCode.TIMEOUT])).toBe(true);
+    expect(isEngineUsable(true, errors[ErrorCode.PRESET_FILE_ERROR])).toBe(
+      true,
+    );
   });
 
   it('counts a missing Equalizer APO as blocking in the first place', () => {

@@ -108,6 +108,7 @@ import { useKaraokeVocalMix } from './useKaraokeVocalMix';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
 import useKaraokeSessionSaving from './useKaraokeSessionSaving';
 import { KaraokeLiveValue } from './karaokeLiveValue';
+import { useKaraokeAudioClock } from './karaokeAudioClock';
 import { releaseKaraokeWhisperModel } from './makerAi';
 import '../styles/Karaoke.scss';
 
@@ -305,10 +306,13 @@ const KaraokeWorkspace = ({
   const layoutsRef = useRef(layouts);
   const playlistResizeStartRef = useRef(0);
   const pitchResizeStartRef = useRef(0);
-  const countInTimerRef = useRef<number | undefined>(undefined);
+  const cancelCountInCuesRef = useRef<(() => void) | undefined>(undefined);
   const resumeWithCountInAfterScrubRef = useRef(false);
   const autoplayAfterLoadRef = useRef(false);
   const [retainWhenHidden, setRetainWhenHidden] = usePlaybackHandoff();
+  // The count-in's tempo, and the Maker's countdown and auditions: the sound
+  // card's clock, opened on the first of them and idle between them.
+  const audioClock = useKaraokeAudioClock();
   const microphone = useKaraokeMicrophoneInput(!isHidden);
   // Whether the stage can be seen at all. The amp puts the whole window's
   // pages out of sight without leaving this tab, and the playhead went on
@@ -489,39 +493,51 @@ const KaraokeWorkspace = ({
   }, []);
 
   const cancelCountIn = useCallback(() => {
-    if (countInTimerRef.current !== undefined) {
-      window.clearTimeout(countInTimerRef.current);
-      countInTimerRef.current = undefined;
-    }
+    cancelCountInCuesRef.current?.();
+    cancelCountInCuesRef.current = undefined;
     setCountInCue(undefined);
     setCountInLabel(undefined);
   }, []);
 
+  /**
+   * "1, 2, 3, go" a beat apart, the song on "go", and the card gone a moment
+   * after.
+   *
+   * On the audio clock. It was a chain of timers, each started when the one
+   * before it fired, so every step's lateness — a busy thread, a render —
+   * was carried into the next and "go" landed late by all of it. Every cue is
+   * now a time past one origin on the sound card's clock. "1" is up at the
+   * press; the clock's own start-up (none once it has run, a few milliseconds
+   * the first time) lengthens that first beat and never the ones after it.
+   */
   const startCountIn = useCallback(
     (label: string, onGo: () => void) => {
       cancelCountIn();
       sessionRef.current.pause();
       setCountInLabel(label);
-      const cues = ['1', '2', '3', t('karaoke.practice.go')];
-      const showCue = (index: number) => {
-        setCountInCue(cues[index]);
-        if (index === cues.length - 1) {
-          onGo();
-          countInTimerRef.current = window.setTimeout(() => {
-            countInTimerRef.current = undefined;
-            setCountInCue(undefined);
-            setCountInLabel(undefined);
-          }, 600);
-          return;
-        }
-        countInTimerRef.current = window.setTimeout(
-          () => showCue(index + 1),
-          550,
-        );
+      setCountInCue('1');
+      const beatSeconds = 0.55;
+      const goSeconds = beatSeconds * 3;
+      const clear = () => {
+        cancelCountInCuesRef.current = undefined;
+        setCountInCue(undefined);
+        setCountInLabel(undefined);
       };
-      showCue(0);
+      cancelCountInCuesRef.current = audioClock.schedule(() => [
+        { atSeconds: beatSeconds, run: () => setCountInCue('2') },
+        { atSeconds: beatSeconds * 2, run: () => setCountInCue('3') },
+        {
+          atSeconds: goSeconds,
+          run: () => {
+            setCountInCue(t('karaoke.practice.go'));
+            onGo();
+          },
+        },
+        // "Go" stays up while the song comes in, as it always has.
+        { atSeconds: goSeconds + 0.6, run: clear },
+      ]);
     },
-    [cancelCountIn, t],
+    [audioClock, cancelCountIn, t],
   );
 
   const startSongPlayback = useCallback(
@@ -1623,6 +1639,14 @@ const KaraokeWorkspace = ({
    */
   const coverAsset = song?.assets.find((asset) => asset.role === 'cover');
   const makerAudio = song?.assets.find((asset) => asset.role === 'audio');
+  /**
+   * The Maker is over the stage. Covered is not hidden — the stage is laid
+   * out and on screen beneath it, so `observeShown` says shown — and the
+   * words' and the pitch lane's frame loops drew every frame for nobody for
+   * as long as the Maker was open. Both stand down while it is, and come back
+   * drawing the song where it is when it closes.
+   */
+  const isMakerShown = isMakerOpen && Boolean(song) && Boolean(makerAudio);
   const coverUrl = useMemo(
     () => (coverAsset ? URL.createObjectURL(coverAsset.file) : undefined),
     [coverAsset],
@@ -2125,6 +2149,7 @@ const KaraokeWorkspace = ({
                   <KaraokeLyrics
                     song={song}
                     playheadMs={playheadMs}
+                    isActive={!isMakerShown}
                     onSeek={handleSelectLyric}
                     followRequestKey={lyricsFollowRequestKey}
                     textSize={lyricTextSize}
@@ -2147,7 +2172,7 @@ const KaraokeWorkspace = ({
                   <KaraokeLiveValue value={microphone.livePitch}>
                     {(pitch) => (
                       <KaraokePitchLane
-                        isActive={!isHidden}
+                        isActive={!isHidden && !isMakerShown}
                         isPlaying={status === 'playing'}
                         pitch={pitch}
                         analysisStatus={microphone.pitchAnalysisStatus}
@@ -2256,7 +2281,7 @@ const KaraokeWorkspace = ({
             <KaraokeLiveValue value={microphone.livePitch}>
               {(pitch) => (
                 <KaraokePitchLane
-                  isActive={!isHidden}
+                  isActive={!isHidden && !isMakerShown}
                   isPlaying={status === 'playing'}
                   pitch={pitch}
                   analysisStatus={microphone.pitchAnalysisStatus}
@@ -2275,7 +2300,7 @@ const KaraokeWorkspace = ({
           </div>
         </>
       )}
-      {isMakerOpen && song && makerAudio && (
+      {isMakerShown && song && makerAudio && (
         <KaraokeLiveValue value={playhead}>
           {(playheadMs) => (
             <KaraokeMaker
@@ -2291,6 +2316,8 @@ const KaraokeWorkspace = ({
               isPlaying={status === 'playing'}
               restoreSavedDraft={restoreMakerDraft}
               readPlayheadMs={session.readPlayheadMs}
+              audioRef={session.audioRef}
+              audioClock={audioClock}
               vocalLevel={canMixVocals ? vocalLevel : undefined}
               onVocalLevel={canMixVocals ? setVocalLevel : undefined}
               stemFocus={stemFocus}

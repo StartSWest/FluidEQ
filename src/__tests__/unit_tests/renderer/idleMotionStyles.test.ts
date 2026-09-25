@@ -72,7 +72,7 @@ describe('the titlebar pet', () => {
     expect(waves).toContain('display 0s linear 260ms allow-discrete');
     // The control: under a streak they are drawn, and they still scroll.
     expect(bodyOf(css, ':root.has-pet-joy .support-pet__eye-waves')).toContain(
-      'display: inline',
+      'display: block',
     );
     expect(bodyOf(css, '.support-pet__eye-waves path')).toContain(
       'animation: pet-eye-scroll 900ms linear infinite',
@@ -213,19 +213,32 @@ describe('the amp', () => {
     ).toContain('animation: none');
   });
 
-  it('blinks the paused clock with one animation, not one per segment', () => {
-    expect(bodyOf(css, '.player-clock.is-paused')).toContain(
+  it('blinks the paused clock by the lit layer’s opacity alone', () => {
+    // One animation, of a property the compositor runs, on the layer that
+    // holds the lit segments (`LedClock.tsx`).
+    expect(bodyOf(css, '.player-clock.is-paused .led-clock__lit')).toContain(
       'animation: player-led-blink 1s steps(1) infinite',
     );
-    const lit = bodyOf(css, '.player-clock.is-paused .led-clock .is-lit');
-    expect(lit).not.toContain('animation');
-    // At 1 the mix is the lit segment's own ink and glow.
-    expect(lit).toContain(
-      'color-mix(in srgb, var(--player-ink) calc(var(--player-led-lit) * 100%), var(--player-lcd-ghost))',
-    );
     const blink = keyframesOf(css, 'player-led-blink');
-    expect(blink).toContain('--player-led-lit: 0');
+    expect(blink).toContain('opacity: 0');
     expect(blink).not.toContain('fill');
+    expect(blink).not.toContain('--');
+    // Nothing restyles the segments: lit is ink and glow, the face is ghost.
+    expect(css).not.toContain('--player-led-lit');
+    const lit = bodyOf(css, '.led-clock .is-lit');
+    expect(lit).toContain('fill: var(--player-ink)');
+    expect(lit).toContain('filter: drop-shadow(0 0 3px var(--player-glow))');
+    expect(bodyOf(css, '.led-clock .is-ghost')).toContain(
+      'fill: var(--player-lcd-ghost)',
+    );
+  });
+
+  it('keeps the paused clock lit and still for less motion', () => {
+    const media = css.indexOf('@media (prefers-reduced-motion: reduce)');
+    expect(media).toBeGreaterThan(-1);
+    expect(
+      bodyOf(css, '.player-clock.is-paused .led-clock__lit', media),
+    ).toContain('animation: none');
   });
 });
 

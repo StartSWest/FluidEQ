@@ -85,17 +85,20 @@ export const registerKaraokeIpc = ({
     clearKaraokeSession(userDataDir);
   });
 
-  ipcMain.handle('karaoke-maker-draft-save', (_event, project: unknown) => {
-    saveKaraokeMakerDraft(userDataDir, project);
-  });
+  ipcMain.handle(
+    'karaoke-maker-draft-save',
+    async (_event, project: unknown) => {
+      await saveKaraokeMakerDraft(userDataDir, project);
+    },
+  );
 
   ipcMain.handle('karaoke-maker-draft-load', (_event, projectId: unknown) =>
     loadKaraokeMakerDraft(userDataDir, projectId),
   );
 
-  ipcMain.handle('karaoke-maker-draft-delete', (_event, projectId: unknown) => {
-    deleteKaraokeMakerDraft(userDataDir, projectId);
-  });
+  ipcMain.handle('karaoke-maker-draft-delete', (_event, projectId: unknown) =>
+    deleteKaraokeMakerDraft(userDataDir, projectId),
+  );
 
   ipcMain.handle('karaoke-maker-export', async (_event, request: unknown) => {
     const output = normalizeKaraokeMakerExport(request);

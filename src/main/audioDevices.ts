@@ -52,8 +52,8 @@ const HELPER_PREFIX = 'audio-devices-';
  *
  * The script's C# is compiled by `Add-Type`, which starts the C# compiler —
  * csc.exe and its temp files — each time it runs, and the output list is read
- * every few seconds while the window is open (`DeviceProfiles.tsx`), plus on
- * every output change: the compile was most of each read. Measured under
+ * on every output change Windows reports (`outputWatch.ts`) and whenever the
+ * window is come back to: the compile was most of each read. Measured under
  * PowerShell 7, whose compiler runs in-process and is the cheaper of the two,
  * a read took ≈1.0–1.3 s compiling and ≈0.6 s loading the kept helper.
  *

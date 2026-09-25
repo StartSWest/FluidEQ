@@ -53,9 +53,6 @@ export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
     buildResponseHandler<IAudioEngineStatus>((result, resolve) =>
       resolve(result),
     ),
-    // No deadline: the helper asks Windows up to three times, waiting for its
-    // audio services to settle between, and main answers every request.
-    { timeout: null },
   );
 };
 
@@ -72,9 +69,7 @@ export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
  */
 export const setAudioEngine = (engine: TAudioEngine): Promise<void> => {
   const channel = ChannelEnum.SET_AUDIO_ENGINE;
-  return sendRequest(channel, [engine], setterResponseHandler, {
-    timeout: null,
-  });
+  return sendRequest(channel, [engine], setterResponseHandler);
 };
 
 /**
@@ -102,7 +97,6 @@ const promptedCall = <Type extends IEngineSetupResult | IAudioRestartOutcome>(
     channel,
     args,
     buildResponseHandler<Type>((result, resolve) => resolve(result)),
-    { timeout: null },
   ).catch((error: unknown) =>
     failed(error instanceof Error ? error.message : String(error)),
   );

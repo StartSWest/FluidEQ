@@ -91,6 +91,9 @@ const app = {
   'app.processes.name.games': 'Game detection',
   'app.processes.what.games':
     'Tells FluidEQ which program is in front, so a game gets its own sound the moment you switch to it. Runs only while a game has a sound of its own or the Game presets page is open.',
+  'app.processes.name.outputs': 'Output watcher',
+  'app.processes.what.outputs':
+    'Hears Windows say an output was plugged in, unplugged or changed, so FluidEQ moves to that output’s profile even while its window is hidden. Runs for as long as FluidEQ does.',
   'app.processes.name.mediaWatch': 'Other apps’ media',
   'app.processes.what.mediaWatch':
     'Reads what Spotify, a browser or another player is playing, so the player bar can show and control it. It stops when FluidEQ no longer needs it.',

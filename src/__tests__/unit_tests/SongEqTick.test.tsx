@@ -29,8 +29,11 @@ import { useNowPlayingIdentity } from 'renderer/audio/nowPlayingIdentity';
 import {
   resetSongEqSession,
   setSongEqSaveOn,
+  useSongEqClock,
   useSongEqSessionHost,
 } from 'renderer/audio/songEqSession';
+import { resetTransportSource } from 'renderer/audio/transportSource';
+import playFor from '__tests__/utils/playerReports';
 import { formatDuration } from 'renderer/library/player/NowPlayingBar';
 import MainContent from 'renderer/MainContent';
 import {
@@ -148,7 +151,20 @@ const layerOf = (gain: number): ISmartEqSettings => ({
  * session, so nothing updates without this. */
 const Harness = () => {
   useSongEqSessionHost();
-  return <MainContent />;
+  return (
+    <>
+      <SongEqClock />
+      <MainContent />
+    </>
+  );
+};
+
+/** The host's clock, which rides beside it in the window (`SongEqNotice`):
+ * nothing counts down without a player reporting that it plays. A component of
+ * its own, as there, so a report redraws it and not the panel. */
+const SongEqClock = () => {
+  useSongEqClock();
+  return null;
 };
 
 /**
@@ -180,6 +196,7 @@ describe('the save-for-this-song tick', () => {
     jest.useFakeTimers();
     jest.setSystemTime(0);
     resetSongEqSession();
+    resetTransportSource();
     setSmartEqMode('smart');
     mockLive.smartEq = undefined;
     mockSetSmartEq.mockClear();
@@ -318,15 +335,10 @@ describe('the save-for-this-song tick', () => {
     render(<Harness />);
 
     // Past the settle window and well under the two-minute floor. Landing on
-    // a whole second keeps the last `tick` dispatch's clock exactly here,
-    // since the interval fires every 1000ms from the moment the session
-    // opened (t=0).
+    // a whole second keeps the last report's clock exactly here, since the
+    // player reports every 1000ms from the moment the session opened (t=0).
     const elapsedMs = SONG_EQ_SETTLE_MS + 100_000;
-    await act(async () => {
-      jest.advanceTimersByTime(elapsedMs);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(elapsedMs);
 
     const expectedRemaining = formatDuration(
       SONG_EQ_MIN_LISTENED_MS - elapsedMs,
@@ -370,13 +382,7 @@ describe('the save-for-this-song tick', () => {
       setSongEqSaveOn(true);
     });
 
-    await act(async () => {
-      jest.advanceTimersByTime(
-        SONG_EQ_SETTLE_MS + SONG_EQ_MIN_LISTENED_MS + 2000,
-      );
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + SONG_EQ_MIN_LISTENED_MS + 2000);
 
     expect(
       screen.getByText(
@@ -430,11 +436,7 @@ describe('the save-for-this-song tick', () => {
     // it would put the bar at 51.7% and make the expected figure a restatement
     // of the component's own arithmetic rather than a round number to check it
     // against. Half the floor is still far past settle.
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_MIN_LISTENED_MS / 2);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_MIN_LISTENED_MS / 2);
 
     expect(fill.style.width).toBe('50%');
   });

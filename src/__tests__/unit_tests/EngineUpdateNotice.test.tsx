@@ -5,10 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import en from 'common/i18n/en';
 import EngineUpdateNotice from 'renderer/components/EngineUpdateNotice';
+import { claimNotice } from 'renderer/utils/noticeTurn';
 import type {
   IAudioRestart,
   TRestartPhase,
@@ -137,21 +138,25 @@ describe('EngineUpdateNotice', () => {
 
   // Out of sight behind the output or the engine trouble notice, an Escape
   // meant for that one would have put this away before it was ever read.
-  it('keeps out of an Escape meant for the notice in front of it', () => {
-    const update = updateIn('ask');
-    const inFront = document.createElement('aside');
-    inFront.className = 'device-apo-notice engine-trouble-notice';
-    document.body.appendChild(inFront);
-    render(<EngineUpdateNotice update={update} isHidden={false} />);
+  it.each(['output', 'room', 'engineTrouble'] as const)(
+    'waits behind the %s notice and keeps out of its Escape',
+    (inFront) => {
+      const update = updateIn('ask');
+      const release = claimNotice(inFront);
+      render(<EngineUpdateNotice update={update} isHidden={false} />);
 
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(update.close).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).toBeNull();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(update.close).not.toHaveBeenCalled();
 
-    // Positive control: with the spot to itself, the same key puts it away.
-    inFront.remove();
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(update.close).toHaveBeenCalledTimes(1);
-  });
+      // Positive control: with the spot to itself, it is on screen and the
+      // same key puts it away.
+      act(release);
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(update.close).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('keeps out of an Escape a dialog has already answered', () => {
     const update = updateIn('ask');

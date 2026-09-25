@@ -5,11 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { IAudioDevice } from 'common/constants';
 import en from 'common/i18n/en';
 import type { TEngineTrouble } from 'renderer/audio/engineTrouble';
 import EngineTroubleNotice from 'renderer/components/EngineTroubleNotice';
+import { claimNotice } from 'renderer/utils/noticeTurn';
 
 const speakers: IAudioDevice = {
   id: 'speakers',
@@ -322,19 +323,30 @@ describe('EngineTroubleNotice', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  it('keeps an unseen notice when Escape belongs to the output notice', () => {
-    const inFront = document.createElement('aside');
-    inFront.className = 'device-apo-notice';
-    document.body.appendChild(inFront);
+  it('waits behind the output notice, and keeps out of its Escape', () => {
+    const release = claimNotice('output');
     renderNotice({ trouble: off });
     try {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       fireEvent.keyDown(document, { key: 'Escape' });
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     } finally {
-      inFront.remove();
+      act(release);
     }
+    // Still there once the spot is its own: the Escape was not its.
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it("waits behind the Room's 7.1 offer too", () => {
+    const release = claimNotice('room');
+    renderNotice({ trouble: off });
+    try {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    } finally {
+      act(release);
+    }
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
   it('leaves the notice alone when a later dialog handles Escape', () => {
@@ -352,15 +364,14 @@ describe('EngineTroubleNotice', () => {
   });
 
   it('still answers Escape when only the lower-priority update notice is present', () => {
-    const update = document.createElement('aside');
-    update.className = 'device-apo-notice engine-update-notice';
-    document.body.appendChild(update);
+    const release = claimNotice('engineUpdate');
     renderNotice({ trouble: off });
     try {
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     } finally {
-      update.remove();
+      act(release);
     }
   });
 

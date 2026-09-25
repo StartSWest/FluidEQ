@@ -447,8 +447,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': 'Спрашивать',
   'karaoke.maker.memoryPolicy.auto': 'Выгружать автоматически',
   'karaoke.maker.memoryPolicy.keep': 'Оставлять загруженной',
-  'karaoke.maker.memoryAfter': 'Через',
-  'karaoke.maker.memoryMinutes': '{count} мин',
   'karaoke.maker.memoryPromptTitle': 'Освободить память речевой модели?',
   'karaoke.maker.memoryPromptBody':
     'Локальная речевая модель не используется. Её выгрузка освободит ОЗУ; файлы останутся в кэше для быстрой повторной загрузки.',

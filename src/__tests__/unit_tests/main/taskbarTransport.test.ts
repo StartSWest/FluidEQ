@@ -38,6 +38,11 @@ jest.mock('electron', () => ({
 }));
 // eslint-disable-next-line import/first -- install the Electron boundary before loading the controller
 import installTaskbarTransport from '../../../main/taskbarTransport';
+// eslint-disable-next-line import/first -- the mock installed above
+import allowTaskbarMessages from '../../../main/taskbarMessages';
+
+/** What reached the shell, in order: the message filter and each toolbar. */
+let shellCalls: string[];
 
 const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 let buttons: ThumbarButton[];
@@ -65,6 +70,11 @@ const publish = (next: unknown = state, event: unknown = undefined) =>
   );
 
 beforeEach(() => {
+  shellCalls = [];
+  (allowTaskbarMessages as jest.Mock).mockReset();
+  (allowTaskbarMessages as jest.Mock).mockImplementation(() => {
+    shellCalls.push('allow');
+  });
   Object.defineProperty(process, 'platform', { value: 'win32' });
   handlers.clear();
   buttons = [];
@@ -104,6 +114,7 @@ beforeEach(() => {
       }
       buttons = next;
       updates += 1;
+      shellCalls.push('buttons');
       return accept;
     },
   }) as unknown as BrowserWindow;
@@ -254,4 +265,35 @@ it('retries a refused shell write on show and clears stale controls on navigatio
   window.emit('closed');
   expect(handlers.size).toBe(0);
   expect(theme.listenerCount('updated')).toBe(0);
+});
+
+it("lets Explorer's clicks through at the window's first show, ahead of the buttons, and once", () => {
+  // Installed with the page, not before it is on screen: koffi stays unloaded
+  // for as long as there is no taskbar entry to put buttons on.
+  visible = false;
+  publish();
+  window.emit('ready-to-show');
+  expect(allowTaskbarMessages).not.toHaveBeenCalled();
+  visible = true;
+  window.emit('show');
+  expect(shellCalls).toEqual(['allow', 'buttons']);
+  window.emit('hide');
+  window.emit('show');
+  publish({ ...state, isPlaying: true });
+  expect(allowTaskbarMessages).toHaveBeenCalledTimes(1);
+});
+
+it('lets the clicks through at a first minimize too, and keeps the buttons when that fails', () => {
+  (allowTaskbarMessages as jest.Mock).mockImplementation(() => {
+    shellCalls.push('allow');
+    throw new Error('refused');
+  });
+  visible = false;
+  publish();
+  expect(allowTaskbarMessages).not.toHaveBeenCalled();
+  minimized = true;
+  window.emit('minimize');
+  expect(shellCalls).toEqual(['allow', 'buttons']);
+  window.emit('minimize');
+  expect(allowTaskbarMessages).toHaveBeenCalledTimes(1);
 });

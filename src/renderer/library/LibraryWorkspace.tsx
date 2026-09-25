@@ -297,6 +297,14 @@ const LibraryWorkspace = ({
    * position, exactly as the karaoke panes' does. */
   const upNextResizeStartRef = useRef(upNextWidth);
   /**
+   * The queue's edge is being dragged. Published on the card as
+   * `is-resizing-up-next` for the stylesheet, which used to find it out with
+   * `:has(.library-up-next__splitter .is-dragging)` — and paid for it: every
+   * queue row picked up or put down re-asked the card, 9 ms a time against
+   * 0.2 measured, because the rows' own drag wears `is-dragging` too.
+   */
+  const [isResizingUpNext, setIsResizingUpNext] = useState(false);
+  /**
    * The width the last drag step asked for, remembered once the drag ends.
    *
    * Not on every width: it was an effect on the width, so each pointer move
@@ -1300,6 +1308,17 @@ const LibraryWorkspace = ({
         !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextDrawer ? ' has-up-next-floating' : ''
+      }${
+        // The picture owns the screen: what `LibraryVideoStage` marks
+        // `is-fullscreen`, said on the card so the stylesheet need not ask
+        // the card's whole subtree with `:has()` (see `isResizingUpNext`).
+        videoTrackId && isFullScreen ? ' is-video-full' : ''
+      }${
+        // Only while the splitter is there to be dragged, as the handle's
+        // own `is-dragging` was.
+        isResizingUpNext && !isHidden && !isUpNextCollapsed
+          ? ' is-resizing-up-next'
+          : ''
       }`}
       ref={cardRef}
       aria-label={t('tabs.library')}
@@ -1702,6 +1721,7 @@ const LibraryWorkspace = ({
                 }
                 onStart={() => {
                   upNextResizeStartRef.current = upNextWidth;
+                  setIsResizingUpNext(true);
                 }}
                 onDrag={(delta) => {
                   const next = Math.min(
@@ -1711,12 +1731,13 @@ const LibraryWorkspace = ({
                   upNextDraggedToRef.current = next;
                   setUpNextWidth(next);
                 }}
-                onEnd={() =>
+                onEnd={() => {
+                  setIsResizingUpNext(false);
                   writePersistedText(
                     UP_NEXT_WIDTH_KEY,
                     String(upNextDraggedToRef.current),
-                  )
-                }
+                  );
+                }}
               />
             </div>
           )}

@@ -85,6 +85,15 @@ interface IKaraokeLyricsProps {
    * to withhold.
    */
   translationLanguage?: string;
+  /**
+   * Whether anyone can see the words. Default true.
+   *
+   * False while the Maker covers the stage. Covered is not hidden — the words
+   * are laid out and on screen under it, so `observeShown` says shown — and
+   * their frame loop drew every frame for nobody for as long as the Maker was
+   * open, beside the Maker's own preview of the same words.
+   */
+  isActive?: boolean;
 }
 
 export interface ILyricHitRegion {
@@ -179,6 +188,7 @@ const KaraokeLyrics = ({
   captureLineState,
   showTranslationPicker = true,
   translationLanguage: externalTranslationLanguage,
+  isActive = true,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(true);
@@ -319,6 +329,13 @@ const KaraokeLyrics = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!isActive) {
+      // Covered, so nothing is drawn — and when it is uncovered the words
+      // come back where they belong, not gliding in from the line that was
+      // up when the cover went over them.
+      motionStateRef.current = undefined;
+      return undefined;
+    }
     // Chromium provides ResizeObserver. The guard avoids trying to validate
     // pixels in DOM-only test environments that do not implement Canvas.
     if (!canvas || typeof ResizeObserver === 'undefined') {
@@ -784,7 +801,7 @@ const KaraokeLyrics = ({
       observer.disconnect();
       hitRegions.length = 0;
     };
-  }, [captureLineId, captureLineState, song.lines.length]);
+  }, [captureLineId, captureLineState, isActive, song.lines.length]);
 
   const browseLyrics = (direction: -1 | 1) => {
     setManualCenterIndex((current) =>

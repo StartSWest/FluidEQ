@@ -88,22 +88,26 @@ export const useKaraokeVocalMix = ({
       return;
     }
     // A source cut at full level is a click; a 10 ms ramp to zero is not.
-    // The node is stopped shortly after the ramp lands, from a timeout —
-    // stopping it inside the same tick would cut the ramp short.
+    // The node is told to stop 30 ms on, on the context's own clock, when the
+    // ramp has landed (7.5 time constants, -65 dB), and its `ended` — set
+    // where it was made — lets it go. It was a 30 ms timer on the window's
+    // thread, which is not the clock the ramp runs on: a busy or hidden
+    // window stopped it late, holding a live node for as long.
     const context = contextRef.current;
-    if (fade && context) {
-      fade.gain.setTargetAtTime(0, context.currentTime, 0.004);
-    }
-    window.setTimeout(() => {
-      try {
-        source.stop();
-      } catch {
-        // Already stopped; a source node is single-use and this is the
-        // cheapest way to say "stop if you have not".
-      }
+    if (!fade || !context || context.state === 'closed') {
       source.disconnect();
       fade?.disconnect();
-    }, 30);
+      return;
+    }
+    fade.gain.setTargetAtTime(0, context.currentTime, 0.004);
+    try {
+      source.stop(context.currentTime + 0.03);
+    } catch {
+      // Never started — a paused element's source is made and left — so it
+      // will never end either: let go of it now.
+      source.disconnect();
+      fade.disconnect();
+    }
   }, []);
 
   /**
@@ -131,6 +135,15 @@ export const useKaraokeVocalMix = ({
     fade.gain.setTargetAtTime(1, context.currentTime, 0.004);
     source.connect(fade);
     fade.connect(gain);
+    // However it ends — stopped by `stop`, or run off the end of the stem.
+    source.addEventListener(
+      'ended',
+      () => {
+        source.disconnect();
+        fade.disconnect();
+      },
+      { once: true },
+    );
     fadeRef.current = fade;
     source.playbackRate.value = element.playbackRate;
     if (!element.paused) {

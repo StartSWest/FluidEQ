@@ -16,8 +16,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * nothing, and the first loud frame is published again.
  *
  * The capture is Windows loopback and cannot run here, so the Web Audio pieces
- * are stand-ins whose every sample is the one number the test sets. The pump's
- * clock is its own interval, driven by jest's timers.
+ * are stand-ins whose every sample is the one number the test sets
+ * (`fakeLiveCapture.ts`). The pump's clock is the audio clock, ticked by hand;
+ * the fake timers only move `performance.now()`, which the meters' ballistics
+ * read, and nothing in the capture may leave a timer behind.
  */
 
 import { act, render } from '@testing-library/react';
@@ -29,6 +31,12 @@ import {
 } from 'renderer/graph/liveSpectrumFrames';
 import { IOutputLevel, LEVEL_FLOOR_DB } from 'renderer/graph/outputLevel';
 import useLiveOutputSpectrum from 'renderer/graph/useLiveOutputSpectrum';
+import {
+  installFakeCapture,
+  signal,
+  tickAudio,
+  uninstallFakeCapture,
+} from '../../utils/fakeLiveCapture';
 
 jest.mock('renderer/graph/liveFrameReader', () => ({
   connectDrawAnalyser: () => ({}),
@@ -45,51 +53,6 @@ jest.mock('renderer/graph/liveGraphBand', () => ({
   ...jest.requireActual('renderer/graph/liveGraphBand'),
   createLiveGraphBand: () => ({}),
 }));
-
-/** What every analyser hears: one amplitude, on every sample of both channels. */
-const signal = { amplitude: 0 };
-
-const node = () => ({ connect: () => undefined, disconnect: () => undefined });
-
-const createAnalyser = () => ({
-  ...node(),
-  fftSize: 2048,
-  frequencyBinCount: 1024,
-  minDecibels: -100,
-  maxDecibels: 0,
-  smoothingTimeConstant: 0,
-  getFloatFrequencyData: (target: Float32Array) => {
-    target.fill(signal.amplitude > 0 ? -20 : -Infinity);
-  },
-  getFloatTimeDomainData: (target: Float32Array) => {
-    target.fill(signal.amplitude);
-  },
-});
-
-const createAudioContext = () => ({
-  sampleRate: 48_000,
-  state: 'running',
-  addEventListener: () => undefined,
-  resume: () => Promise.resolve(),
-  close: () => Promise.resolve(),
-  createAnalyser,
-  createMediaStreamSource: () => ({ ...node(), channelCount: 2 }),
-  createChannelSplitter: node,
-});
-
-const audioTrack = {
-  muted: false,
-  getSettings: () => ({ channelCount: 2 }),
-  addEventListener: () => undefined,
-  removeEventListener: () => undefined,
-  stop: () => undefined,
-};
-const stream = {
-  getVideoTracks: () => [],
-  getAudioTracks: () => [audioTrack],
-  getTracks: () => [audioTrack],
-  removeTrack: () => undefined,
-};
 
 interface IPublished {
   atMs: number;
@@ -116,17 +79,22 @@ function Probe() {
 /** Everything the capture's start awaits, which no timer advances. */
 const settle = async () => {
   await act(async () => {
-    for (let turn = 0; turn < 20; turn += 1) {
+    for (let turn = 0; turn < 40; turn += 1) {
       // eslint-disable-next-line no-await-in-loop -- each turn is one microtask of the start's await chain
       await Promise.resolve();
     }
   });
 };
 
+/**
+ * One tick of the audio clock per step: a thirtieth of a second of audio, and
+ * the same of wall time for the meters' ballistics.
+ */
 const tick = (count = 1) => {
   for (let step = 0; step < count; step += 1) {
     act(() => {
       jest.advanceTimersByTime(UPDATE_INTERVAL_MS);
+      tickAudio(UPDATE_INTERVAL_MS);
     });
   }
 };
@@ -134,20 +102,17 @@ const tick = (count = 1) => {
 const ticksIn = (ms: number) => Math.ceil(ms / UPDATE_INTERVAL_MS);
 
 beforeAll(() => {
-  Object.assign(globalThis, { AudioContext: jest.fn(createAudioContext) });
-  Object.defineProperty(navigator, 'mediaDevices', {
-    configurable: true,
-    value: { getDisplayMedia: () => Promise.resolve(stream) },
-  });
+  installFakeCapture();
 });
 
 afterAll(() => {
-  Reflect.deleteProperty(globalThis, 'AudioContext');
-  Reflect.deleteProperty(navigator, 'mediaDevices');
+  uninstallFakeCapture();
 });
 
 beforeEach(async () => {
-  jest.useFakeTimers();
+  // Microtasks left real, so the count below is of timers alone: React queues
+  // its own work as microtasks, and a faked one counts as a timer.
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] });
   published = [];
   signal.amplitude = 0.5;
   render(<Probe />);
@@ -159,6 +124,35 @@ beforeEach(async () => {
 
 afterEach(() => {
   jest.useRealTimers();
+});
+
+describe('the live capture on the audio clock', () => {
+  it('runs no timer of its own, and publishes a frame on every tick of audio', () => {
+    // The pump was a 33 ms interval, which a minimised window throttles to
+    // once a second and then once a minute. Nothing of the capture's is left
+    // on the window's timers now.
+    expect(jest.getTimerCount()).toBe(0);
+
+    // POSITIVE CONTROL: the audio clock alone drives it.
+    const before = published.length;
+    act(() => {
+      tickAudio(UPDATE_INTERVAL_MS);
+    });
+    expect(published.length).toBe(before + 1);
+    act(() => {
+      tickAudio(UPDATE_INTERVAL_MS);
+    });
+    act(() => {
+      tickAudio(UPDATE_INTERVAL_MS);
+    });
+    expect(published.length).toBe(before + 3);
+
+    // And a wall clock moving with no audio is nothing to it.
+    act(() => {
+      jest.advanceTimersByTime(10_000);
+    });
+    expect(published.length).toBe(before + 3);
+  });
 });
 
 describe('the live capture in silence', () => {
@@ -225,6 +219,33 @@ describe('the live capture in silence', () => {
     // Smart EQ's countdown on the graph is worked out on these frames.
     tick(30);
     expect(published.length - quietFrom).toBe(30);
+
+    act(() => abort.abort());
+    await expect(running).rejects.toThrow();
+  });
+
+  it('still says the output has come to rest while a measurement runs through the quiet', async () => {
+    const abort = new AbortController();
+    const running = control?.captureBalanceProfile({
+      isContinuous: true,
+      signal: abort.signal,
+    });
+    tick(10);
+    signal.amplitude = 0;
+    // POSITIVE CONTROL: falling, the meters are not at rest yet.
+    tick(3);
+    expect(published[published.length - 1].waveform).not.toBe(SILENT_WAVEFORM);
+
+    // Down on the floor: the resting waveform, which is how the graph learns
+    // the music stopped (`SilenceWatch`), while the levels keep coming.
+    tick(ticksIn(10_000));
+    const quietFrom = published.length;
+    expect(published[quietFrom - 1].waveform).toBe(SILENT_WAVEFORM);
+    tick(5);
+    expect(published.length - quietFrom).toBe(5);
+    published.slice(quietFrom).forEach((frame) => {
+      expect(frame.waveform).toBe(SILENT_WAVEFORM);
+    });
 
     act(() => abort.abort());
     await expect(running).rejects.toThrow();

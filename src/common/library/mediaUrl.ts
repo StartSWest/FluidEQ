@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * The `fluideq-media://` URL grammar itself — pure string functions with no
  * Electron and no Node dependency, so both processes can import them
- * directly. `registerLibraryMediaScheme` and `handleLibraryMedia`, which
+ * directly. `registerPrivilegedSchemes` and `handleLibraryMedia`, which
  * genuinely need `electron`, stay in `src/main/library/libraryProtocol.ts`;
  * this module exists because `LibraryCoverArt.tsx` (renderer) needs
  * `libraryMediaUrl` and importing it from that main-process file dragged

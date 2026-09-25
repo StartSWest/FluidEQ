@@ -453,8 +453,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': 'Nachfragen',
   'karaoke.maker.memoryPolicy.auto': 'Automatisch freigeben',
   'karaoke.maker.memoryPolicy.keep': 'Geladen lassen',
-  'karaoke.maker.memoryAfter': 'Nach',
-  'karaoke.maker.memoryMinutes': '{count} Min.',
   'karaoke.maker.memoryPromptTitle': 'Speicher des Sprachmodells freigeben?',
   'karaoke.maker.memoryPromptBody':
     'Das lokale Sprachmodell ist inaktiv. Das Freigeben spart Arbeitsspeicher; seine Dateien bleiben für ein schnelleres Neuladen zwischengespeichert.',

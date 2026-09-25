@@ -110,6 +110,7 @@ import {
 } from './graph/liveSpectrumFrames';
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
+import useMomentaryHold from './utils/useMomentaryHold';
 import {
   toggleEuphoriaEnabled,
   useIsEuphoriaAchieved,
@@ -125,6 +126,9 @@ type TWaveformCycleStyle = WaveformStyle | 'off';
 
 /** The held peak at its widest: it is let go below `SILENCE_DB`, -70. */
 const PEAK_WIDEST = ['-00.0 dB', '—'];
+
+/** The keyframes that hold the style's name up (WaveformVisualizer.scss). */
+const ANNOUNCEMENT_HOLD = 'waveform-visualizer-announcement-hold';
 
 const WAVEFORM_CYCLE: readonly TWaveformCycleStyle[] = [
   ...WAVEFORM_STYLES,
@@ -250,12 +254,20 @@ const WaveformVisualizer = () => {
   // two seconds in a pill on the pane and then faded out. It lives in DOM
   // rather than on the canvas so it sits outside the clipped stage, on the
   // card itself. The name stays in state through the fade so there is
-  // still something to fade away — clearing it when the timer fires would
-  // cut the animation at the instant it starts.
+  // still something to fade away — clearing it when the hold ends would
+  // cut the fade at the instant it starts.
+  //
+  // The two seconds are the pill's own hold animation, and its end is what
+  // takes it down (`useMomentaryHold`). They were a timer beside it, which
+  // ran on behind a minimised window and took the name down unseen.
   const [announcedStyle, setAnnouncedStyle] =
     useState<TWaveformCycleStyle>(style);
-  const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
-  const announcementTimerRef = useRef<number | null>(null);
+  const {
+    ref: announcementRef,
+    isShown: isAnnouncementVisible,
+    show: showAnnouncement,
+    onAnimationEnd: onAnnouncementAnimationEnd,
+  } = useMomentaryHold<HTMLSpanElement>(ANNOUNCEMENT_HOLD);
 
   const cycleStyle = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
@@ -276,29 +288,12 @@ const WaveformVisualizer = () => {
           // Not worth failing a click over.
         }
         setAnnouncedStyle(next);
-        setIsAnnouncementVisible(true);
-        if (announcementTimerRef.current !== null) {
-          window.clearTimeout(announcementTimerRef.current);
-        }
-        announcementTimerRef.current = window.setTimeout(() => {
-          setIsAnnouncementVisible(false);
-          announcementTimerRef.current = null;
-        }, 2000);
         return next;
       });
+      // Outside the updater, which React may run twice: once per click.
+      showAnnouncement();
     },
-    [],
-  );
-
-  useEffect(
-    // The timer is a window handle, not React's; unmount has to clear it
-    // or the deferred setState fires against a component that is gone.
-    () => () => {
-      if (announcementTimerRef.current !== null) {
-        window.clearTimeout(announcementTimerRef.current);
-      }
-    },
-    [],
+    [showAnnouncement],
   );
 
   const smoothedRef = useRef<number[]>([]);
@@ -998,11 +993,13 @@ const WaveformVisualizer = () => {
             drawing. Always rendered so the fade-out has a name to fade;
             `role="status"` reaches a reader for the same brief window. */}
         <span
+          ref={announcementRef}
           className={`waveform-visualizer__announcement${
             isOff || isAnnouncementVisible ? ' is-visible' : ''
-          }`}
+          }${isAnnouncementVisible ? ' is-announcing' : ''}`}
           role="status"
           aria-hidden={!isOff && !isAnnouncementVisible}
+          onAnimationEnd={onAnnouncementAnimationEnd}
         >
           {isOff ? style : announcedStyle}
         </span>

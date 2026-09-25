@@ -36,12 +36,32 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
   if (process.platform !== 'win32') {
     return;
   }
-  try {
-    allowTaskbarMessages(window.getNativeWindowHandle());
-    log.info('Taskbar command delivery ready');
-  } catch (error) {
-    log.error('Could not enable taskbar command delivery', error);
-  }
+  /**
+   * Let Explorer's clicks through, the first time the buttons can be put up.
+   *
+   * It loads koffi's native module (20 ms to require, measured on a warm
+   * disk) and two system DLLs to ask whether the process is elevated, and
+   * nothing needs it until the window has a taskbar entry for the buttons to
+   * be on — its first `show`, or its first `minimize` when it starts that way
+   * — which is when `update` first gets past its check. Done ahead of the
+   * buttons, never after: a button put up before the filter is lifted is one
+   * whose click an elevated FluidEQ never hears. It used to run as the page
+   * was asked for, on every launch, including the ones that never show a
+   * window at all. Once, whether or not it worked.
+   */
+  let isDeliveryAllowed = false;
+  const allowDelivery = () => {
+    if (isDeliveryAllowed) {
+      return;
+    }
+    isDeliveryAllowed = true;
+    try {
+      allowTaskbarMessages(window.getNativeWindowHandle());
+      log.info('Taskbar command delivery ready');
+    } catch (error) {
+      log.error('Could not enable taskbar command delivery', error);
+    }
+  };
   let state = EMPTY;
   let applied: string | undefined;
   const icons = new Map<string, Electron.NativeImage>();
@@ -82,6 +102,7 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     ) {
       return;
     }
+    allowDelivery();
     const dark = nativeTheme.shouldUseDarkColorsForSystemIntegratedUI;
     const locale = resolveLocale(state.locale);
     // This process holds only English until a language is asked for, and the

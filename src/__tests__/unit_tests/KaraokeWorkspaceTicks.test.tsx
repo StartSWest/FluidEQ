@@ -39,6 +39,29 @@ jest.mock('../../renderer/karaoke/KaraokePaneSplitter', () => ({
 }));
 
 /**
+ * Whether the stage's words and pitch lane may run their frame loops, as the
+ * workspace last said. The Maker's own preview of the words is left out: it
+ * is the one drawing while the Maker is open.
+ */
+const mockStageLoops: { lyrics?: boolean; lane?: boolean } = {};
+jest.mock('../../renderer/karaoke/KaraokeLyrics', () => ({
+  __esModule: true,
+  default: (props: { isActive?: boolean; showFollowButton?: boolean }) => {
+    if (props.showFollowButton === undefined) {
+      mockStageLoops.lyrics = props.isActive ?? true;
+    }
+    return null;
+  },
+}));
+jest.mock('../../renderer/karaoke/KaraokePitchLane', () => ({
+  __esModule: true,
+  default: (props: { isActive: boolean }) => {
+    mockStageLoops.lane = props.isActive;
+    return null;
+  },
+}));
+
+/**
  * The position of every publish to the register, in order. A reader of the
  * register renders once per publish, which is the cost being counted.
  */
@@ -82,6 +105,8 @@ describe('KaraokeWorkspace while a song moves', () => {
 
   beforeEach(() => {
     mockWorkspaceRenders = 0;
+    mockStageLoops.lyrics = undefined;
+    mockStageLoops.lane = undefined;
     published.length = 0;
     getPathForFile.mockReset().mockReturnValue('');
     saveKaraokeSession.mockReset().mockResolvedValue(undefined);
@@ -163,6 +188,25 @@ describe('KaraokeWorkspace while a song moves', () => {
       document.dispatchEvent(new Event('visibilitychange'));
     });
   };
+
+  it('stands the stage down while the Maker covers it, and brings it back when it closes', async () => {
+    await openSong('Covered');
+    // The control: an uncovered stage runs both loops.
+    expect(mockStageLoops).toEqual({ lyrics: true, lane: true });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(
+      await screen.findByRole('button', { name: 'Close maker' }),
+    ).toBeVisible();
+    // Covered is not hidden — nothing told the stage it could not be seen —
+    // and both loops drew every frame under the Maker.
+    expect(mockStageLoops).toEqual({ lyrics: false, lane: false });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close maker' }));
+    await waitFor(() =>
+      expect(mockStageLoops).toEqual({ lyrics: true, lane: true }),
+    );
+  });
 
   it('moves the readout at the foot of the window without re-rendering the workspace', async () => {
     const audio = await openSong('Ticking');

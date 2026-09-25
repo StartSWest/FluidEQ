@@ -94,6 +94,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.games': 'Détection des jeux',
   'app.processes.what.games':
     'Indique à FluidEQ quel programme est au premier plan, pour qu’un jeu ait son propre son dès que vous y passez. Ne tourne que lorsqu’un jeu a un son à lui ou que la page Préréglages de jeu est ouverte.',
+  'app.processes.name.outputs': 'Veille des sorties',
+  'app.processes.what.outputs':
+    'Entend Windows signaler qu’une sortie a été branchée, débranchée ou modifiée, pour que FluidEQ passe au profil de cette sortie même quand sa fenêtre est masquée. Tourne tant que FluidEQ tourne.',
   'app.processes.name.mediaWatch': 'Médias des autres apps',
   'app.processes.what.mediaWatch':
     "Lit ce que joue Spotify, un navigateur ou un autre lecteur, pour que la barre du lecteur puisse l'afficher et le piloter. S'arrête quand FluidEQ n'en a plus besoin.",

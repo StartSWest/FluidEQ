@@ -64,13 +64,20 @@ export type TProcessRole =
    */
   | 'volume'
   /**
+   * `FluidEQ-Outputs.exe`: hears Windows say an output was plugged in,
+   * removed, made the default or had its effects changed, so main follows it
+   * with the window hidden. Runs for as long as the app does.
+   */
+  | 'outputs'
+  /**
    * `FluidEQ-Games.exe`: says which program is in front, for Game presets,
    * while a game has a sound of its own or the Game presets page is open.
    */
   | 'games'
   /**
-   * The PowerShell that reads what other apps are playing for the transport
-   * bar (`systemMedia.ts`), and the short-lived one that sends them a command.
+   * `FluidEQ-Media.exe`, which is told what other apps are playing for the
+   * transport bar (`systemMedia.ts`), and the short-lived PowerShell that
+   * sends them a command.
    */
   | 'mediaWatch'
   /** Chromium's audio service, which is what the browser-side player uses. */
@@ -238,8 +245,10 @@ export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-lan-capture.exe': 'shareCapture',
   'fluideq-lan-playback.exe': 'sharePlayback',
   'fluideq-volume.exe': 'volume',
+  'fluideq-outputs.exe': 'outputs',
   'fluideq-games.exe': 'games',
   'powershell.exe': 'mediaWatch',
+  'fluideq-media.exe': 'mediaWatch',
   'fluideq-dsp.exe': 'engine',
   'fluideq-lighting.exe': 'lighting',
   'fluideq-meter.exe': 'meter',
@@ -293,6 +302,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'shareCapture',
   'sharePlayback',
   'volume',
+  'outputs',
   'games',
   'mediaWatch',
   'sound',

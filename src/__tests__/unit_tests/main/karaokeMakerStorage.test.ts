@@ -42,8 +42,8 @@ describe('Karaoke Maker draft and export storage', () => {
     fs.rmSync(directory, { recursive: true, force: true });
   });
 
-  it('uses a hashed filename and restores/deletes the validated draft', () => {
-    saveKaraokeMakerDraft(directory, project());
+  it('uses a hashed filename and restores/deletes the validated draft', async () => {
+    await saveKaraokeMakerDraft(directory, project());
     const draftDirectory = path.join(directory, 'karaoke-maker');
     const files = fs.readdirSync(draftDirectory);
     expect(files).toHaveLength(1);
@@ -55,10 +55,27 @@ describe('Karaoke Maker draft and export storage', () => {
       title: 'Draft',
     });
 
-    deleteKaraokeMakerDraft(directory, '../../cannot-escape');
+    await deleteKaraokeMakerDraft(directory, '../../cannot-escape');
     expect(
       loadKaraokeMakerDraft(directory, '../../cannot-escape'),
     ).toBeUndefined();
+  });
+
+  it('lands a save and a delete asked in a row in that order', async () => {
+    // Not waited for between them, as the window does not wait: a save still
+    // on its way must not land after the delete and bring the draft back.
+    const saved = saveKaraokeMakerDraft(directory, project());
+    const deleted = deleteKaraokeMakerDraft(directory, '../../cannot-escape');
+    await Promise.all([saved, deleted]);
+
+    expect(
+      loadKaraokeMakerDraft(directory, '../../cannot-escape'),
+    ).toBeUndefined();
+    // Nothing half-written is left beside it either. The delete may have
+    // superseded the save before it started, in which case there is no
+    // folder at all.
+    const folder = path.join(directory, 'karaoke-maker');
+    expect(fs.existsSync(folder) ? fs.readdirSync(folder) : []).toEqual([]);
   });
 
   it('normalizes an export without allowing path traversal or bad extensions', () => {

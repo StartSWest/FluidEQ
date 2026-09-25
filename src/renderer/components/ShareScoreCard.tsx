@@ -27,6 +27,7 @@ import {
 import { OFFICIAL_SITE_URL, PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { readAccentLight, readTextInk } from '../utils/theme';
 import '../styles/ShareScore.scss';
 
@@ -41,9 +42,6 @@ const CARD_HEIGHT = 630;
 
 /** Drawn at 2x and scaled down, so the text is not soft on a HiDPI screen. */
 const CARD_SCALE = 2;
-
-/** How long the copy button stays confirmed before going back to its label. */
-const COPIED_MS = 1600;
 
 interface IShareScoreCardProps {
   score: number;
@@ -531,7 +529,9 @@ const ShareScoreCard = ({
   // Which button was pressed, not merely that one was. Two things can be
   // copied now and a shared boolean confirmed the wrong one.
   const [copied, setCopied] = useState<'card' | 'text' | ''>('');
-  const copiedTimer = useRef<number | undefined>(undefined);
+  // Bumped per copy, so copying again while confirmed holds the word for its
+  // own full moment rather than for what the last one had left.
+  const [copiedSeq, setCopiedSeq] = useState(0);
 
   const text = buildShareText(score, multiplier, isEuphoric);
   // The site, not a releases page. A share post is read by people who have
@@ -546,13 +546,6 @@ const ShareScoreCard = ({
       drawCard(canvasRef.current, score, multiplier, url, isEuphoric);
     }
   }, [isEuphoric, multiplier, score, url]);
-
-  useEffect(
-    () => () => {
-      window.clearTimeout(copiedTimer.current);
-    },
-    [],
-  );
 
   const save = useCallback(() => {
     const canvas = canvasRef.current;
@@ -571,9 +564,30 @@ const ShareScoreCard = ({
 
   const confirm = useCallback((which: 'card' | 'text') => {
     setCopied(which);
-    window.clearTimeout(copiedTimer.current);
-    copiedTimer.current = window.setTimeout(() => setCopied(''), COPIED_MS);
+    setCopiedSeq((seq) => seq + 1);
   }, []);
+
+  /**
+   * The word that says it worked, for its moment.
+   *
+   * How long it stays is its own hold (`share-score-copied` in
+   * `ShareScore.scss`), and the end of that is what puts the button's label
+   * back. It was a timer beside it, which ran on behind a covered window and
+   * took the word down before it could be read.
+   */
+  const confirmation = (text: string) => (
+    <span
+      key={copiedSeq}
+      className="share-score__confirmed"
+      onAnimationEnd={(event) => {
+        if (isOwnAnimationEnd(event, 'share-score-copied')) {
+          setCopied('');
+        }
+      }}
+    >
+      {text}
+    </span>
+  );
 
   /**
    * The image itself, on the clipboard.
@@ -667,7 +681,7 @@ const ShareScoreCard = ({
           // through a downloads folder.
         >
           {copied === 'card'
-            ? t('support.game.shareCardCopied')
+            ? confirmation(t('support.game.shareCardCopied'))
             : t('support.game.shareCopyCard')}
         </button>
         <button type="button" className="share-score__copy" onClick={save}>
@@ -675,7 +689,7 @@ const ShareScoreCard = ({
         </button>
         <button type="button" className="share-score__copy" onClick={copy}>
           {copied === 'text'
-            ? t('support.game.shareCopied')
+            ? confirmation(t('support.game.shareCopied'))
             : t('support.game.shareCopy')}
         </button>
       </div>

@@ -29,23 +29,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * carries the title, the artist, the playback state and the timeline of every
  * player that registered one.
  *
- * REACHED THROUGH POWERSHELL, AND THAT IS NOT LAZINESS. The API is WinRT, and
- * calling WinRT from Node needs a native addon; the maintained ones do not
- * exist and an unmaintained one is a compiled dependency in a signed,
- * paid-for build. Windows PowerShell projects the same namespace natively, so
- * the whole of the integration is a script and a pipe — nothing to compile,
- * nothing to sign, and nothing that can fail to load on somebody else's
- * machine.
- *
- * POLLED, AND THAT IS NOT LAZINESS EITHER. Measured on this machine:
+ * WATCHED BY A HELPER OF OUR OWN, BECAUSE WINDOWS SAYS WHEN IT CHANGES AND
+ * POWERSHELL CANNOT HEAR IT. The watcher was a PowerShell loop reading the
+ * session manager every 700 ms, because — measured on this machine —
  * `Register-ObjectEvent` against either the manager or a session answers
- * "Windows PowerShell cannot subscribe to Windows RT events", so there is no
- * push to listen to from here. The loop lives inside the child, prints only
- * when something the bar shows has actually changed, and stops the moment the
- * window says it no longer needs it.
+ * "Windows PowerShell cannot subscribe to Windows RT events". So it asked
+ * again and again, a PowerShell awake for as long as the bar wanted it,
+ * finding nothing new almost every time and seeing a change up to 700 ms
+ * late. Windows does announce every change the bar draws: sessions coming
+ * and going, its own pick moving, a song, a pause, a seek. `FluidEQ-Media.exe`
+ * (native/media-watch/src/main.cpp) is a small program that subscribes to
+ * those events and prints the same lines the script printed, so the parsing
+ * below did not change. It starts when the window asks, holds nothing
+ * between runs, and exits when its input closes — which is also what happens
+ * when FluidEQ ends however it ends. WinRT from Node itself would need a
+ * native addon rebuilt for every Electron; the helper is plain C++ against
+ * the Windows SDK, built with the volume and game helpers beside it.
+ *
+ * The commands (next, previous, seek, stop, pause) are still PowerShell: a
+ * process per press, see `sendSystemMediaCommand`.
  */
 
 import { ChildProcess, spawn } from 'child_process';
+import { existsSync } from 'fs';
+import path from 'path';
+import log from 'electron-log';
 import { APP_ID } from '../common/branding';
 import { POWERSHELL_PATH } from './powershell';
 
@@ -63,9 +71,13 @@ import { POWERSHELL_PATH } from './powershell';
  * that, whatever Windows calls the current session, as long as it is not
  * ours; failing that, the first session that is not ours. It is a function
  * rather than a filter at the call site because the command script has to
- * choose the same session this one is describing — a "next" that went to the
- * app's own webview because the manager happened to call it current would be
- * a button acting on something other than the card above it.
+ * choose the same session the watcher is describing — a "next" that went to
+ * the app's own webview because the manager happened to call it current would
+ * be a button acting on something other than the card above it.
+ *
+ * The watcher is native now, and applies this same rule in its own words
+ * (`choose` in native/media-watch/src/main.cpp), told `APP_ID` as its one
+ * argument so the id is written down once. Change the two together.
  */
 const SELF_SKIP = `
 $selfId = '${APP_ID}'
@@ -179,161 +191,42 @@ export type TSystemMediaCommand =
   'next' | 'previous' | 'seek' | 'stop' | 'pause';
 
 /**
- * The watcher, as one PowerShell script.
- *
- * Passed as an argument rather than written to a file: a script on disk is a
- * file to keep in step with the code that spawns it, and a temporary one is a
- * file to leave behind on a crash.
- *
- * The comparison at the bottom is what keeps this quiet. A player publishes a
- * timeline that advances continuously, so printing every reading would be a
- * line every cycle forever; the bar needs the position to move, but a second's
- * worth of drift is invisible on a seek bar and worth nothing on the wire.
+ * The watcher's executable, where this platform has one. Windows alone
+ * publishes media sessions this way.
  */
-const WATCH_SCRIPT = `
-$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Runtime.WindowsRuntime | Out-Null
+export const SYSTEM_MEDIA_EXECUTABLE =
+  process.platform === 'win32' ? 'FluidEQ-Media.exe' : undefined;
 
-$asTask = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
-  $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and
-  $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1'
-})[0]
+const resourcesPath = (): string => {
+  const { resourcesPath: found } = process as NodeJS.Process & {
+    resourcesPath?: string;
+  };
+  return typeof found === 'string' ? found : '';
+};
 
-function Await($op, $type) {
-  $task = $asTask.MakeGenericMethod($type).Invoke($null, @($op))
-  if (-not $task.Wait(4000)) { return $null }
-  $task.Result
-}
-
-$managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]
-$propsType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]
-$streamType = [Windows.Storage.Streams.IRandomAccessStreamWithContentType, Windows.Storage.Streams, ContentType = WindowsRuntime]
-$inputType = [Windows.Storage.Streams.IInputStream, Windows.Storage.Streams, ContentType = WindowsRuntime]
-$manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
-if (-not $manager) { exit 1 }
-
-# The cover is read through reflection because the stream comes back from
-# AsTask as a bare COM object that PowerShell's own binder refuses to hand to a
-# method taking IInputStream ("cannot convert System.__ComObject"), measured
-# against Spotify; reflection's invoke makes the interface cast the binder
-# will not. Its content type does not survive the same trip, so the format is
-# read from the picture's own first bytes.
-$asStream = [System.IO.WindowsRuntimeStreamExtensions].GetMethod('AsStreamForRead', [type[]]@($inputType))
-$md5 = [System.Security.Cryptography.MD5]::Create()
-
-function Read-Cover($props) {
-  if (-not $props.Thumbnail) { return $null }
-  $stream = Await ($props.Thumbnail.OpenReadAsync()) $streamType
-  if (-not $stream) { return $null }
-  try {
-    $net = $asStream.Invoke($null, @($stream))
-    $mem = New-Object System.IO.MemoryStream
-    $net.CopyTo($mem)
-    $bytes = $mem.ToArray()
-    $net.Dispose()
-    $mem.Dispose()
-  } finally {
-    try {
-      [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($stream)
-    } catch {
-      # Not a COM object after all, so there is nothing to release.
-    }
+/**
+ * The helper beside the packaged app, or in the native build's output in
+ * development — looked for the way `findSystemVolumeExecutable` looks for
+ * its own.
+ */
+export const findSystemMediaExecutable = (): string | undefined => {
+  if (!SYSTEM_MEDIA_EXECUTABLE) {
+    return undefined;
   }
-  if ($bytes.Length -lt 64 -or $bytes.Length -gt 3MB) { return $null }
-  $type = ''
-  if ($bytes[0] -eq 0xFF -and $bytes[1] -eq 0xD8) { $type = 'image/jpeg' }
-  elseif ($bytes[0] -eq 0x89 -and $bytes[1] -eq 0x50 -and $bytes[2] -eq 0x4E -and $bytes[3] -eq 0x47) { $type = 'image/png' }
-  elseif ($bytes[0] -eq 0x52 -and $bytes[1] -eq 0x49 -and $bytes[8] -eq 0x57 -and $bytes[9] -eq 0x45) { $type = 'image/webp' }
-  elseif ($bytes[0] -eq 0x47 -and $bytes[1] -eq 0x49 -and $bytes[2] -eq 0x46) { $type = 'image/gif' }
-  if (-not $type) { return $null }
-  $id = -join ($md5.ComputeHash($bytes)[0..7] | ForEach-Object { $_.ToString('x2') })
-  return @{ id = $id; type = $type; data = [Convert]::ToBase64String($bytes) }
-}
+  return [
+    path.join(resourcesPath(), 'native', SYSTEM_MEDIA_EXECUTABLE),
+    path.join(__dirname, '../../native/.build/bin', SYSTEM_MEDIA_EXECUTABLE),
+    path.join(__dirname, '../../../native/.build/bin', SYSTEM_MEDIA_EXECUTABLE),
+  ].find((candidate) => existsSync(candidate));
+};
 
-${SELF_SKIP}
-
-$last = ''
-# The cover follows the song it was read for, and is looked for again on the
-# next rounds while it has not turned up: a player publishes the title a
-# moment before the picture, so the first read of a new song is often empty.
-$coverSong = ''
-$cover = $null
-$coverTries = 0
-$lastCover = ''
-while ($true) {
-  $line = 'null'
-  try {
-    $session = Select-OtherSession $manager
-    if ($session) {
-      # Everything else that is playing, for the rule that stops one program
-      # when another starts. Read in the same pass as the description, or the
-      # two would be answers to different moments.
-      $playing = @(@($manager.GetSessions() | Where-Object {
-        $_.SourceAppUserModelId -ne $selfId -and
-        "$($_.GetPlaybackInfo().PlaybackStatus)" -eq 'Playing'
-      }) | ForEach-Object { [string]$_.SourceAppUserModelId })
-      $info = $session.GetPlaybackInfo()
-      $props = Await ($session.TryGetMediaPropertiesAsync()) $propsType
-      $timeline = $session.GetTimelineProperties()
-      $controls = $info.Controls
-      $songKey = "$($session.SourceAppUserModelId)|$($props.Title)|$($props.Artist)"
-      if ($songKey -ne $coverSong) {
-        $coverSong = $songKey
-        $cover = $null
-        $coverTries = 0
-      }
-      if (-not $cover -and $coverTries -lt 8) {
-        $coverTries += 1
-        try { $cover = Read-Cover $props } catch { $cover = $null }
-      }
-      $payload = [pscustomobject]@{
-        app = [string]$session.SourceAppUserModelId
-        title = [string]$props.Title
-        artist = [string]$props.Artist
-        isPlaying = ("$($info.PlaybackStatus)" -eq 'Playing')
-        positionMs = [int]$timeline.Position.TotalMilliseconds
-        durationMs = [int]$timeline.EndTime.TotalMilliseconds
-        canNext = [bool]$controls.IsNextEnabled
-        canPrevious = [bool]$controls.IsPreviousEnabled
-        canSeek = [bool]$controls.IsPlaybackPositionEnabled
-        playing = $playing
-        coverId = $(if ($cover) { [string]$cover.id } else { '' })
-      }
-      $line = $payload | ConvertTo-Json -Compress
-    }
-  } catch {
-    $line = 'null'
-  }
-
-  # Only what the bar would draw differently. The position is compared in
-  # whole seconds for the same reason the bar shows whole seconds.
-  $shape = $line
-  if ($line -ne 'null') {
-    $parsed = $line | ConvertFrom-Json
-    # The list of who is playing is part of the shape, or a second program
-    # starting behind the one on the bar would change nothing this loop
-    # prints, and the rule that stops it would never be told.
-    $shape = "$($parsed.app)|$($parsed.title)|$($parsed.artist)|$($parsed.isPlaying)|$([int]($parsed.positionMs / 1000))|$($parsed.durationMs)|$($parsed.canNext)$($parsed.canPrevious)$($parsed.canSeek)|$(@($parsed.playing) -join ',')|$($parsed.coverId)"
-  }
-  if ($shape -ne $last) {
-    $last = $shape
-    # The picture goes out on a line of its own, once per cover, and BEFORE the
-    # reading that names it: the window asks main for a cover by the id the
-    # reading carries, so main has to be holding it by then. Written out by
-    # hand because every part of it is already safe inside a JSON string — a
-    # hex id, one of four fixed types, base64 — and ConvertTo-Json over a few
-    # hundred kilobytes is the slow part of this loop for nothing.
-    if ($line -ne 'null' -and $cover -and $cover.id -ne $lastCover) {
-      $lastCover = $cover.id
-      [Console]::Out.WriteLine('{"cover":{"id":"' + $cover.id + '","type":"' + $cover.type + '","data":"' + $cover.data + '"}}')
-    }
-    [Console]::Out.WriteLine($line)
-    [Console]::Out.Flush()
-  }
-
-  Start-Sleep -Milliseconds 700
-}
-`;
+/**
+ * Said once per run. With no helper — a development tree before its native
+ * build — nothing is reported and nothing stands in for it, and the window
+ * asks again every time its own players fall silent: a line each time would
+ * bury the log.
+ */
+let missingHelperLogged = false;
 
 let child: ChildProcess | undefined;
 
@@ -365,8 +258,9 @@ let lastSnapshot: ISystemMediaSnapshot | undefined;
  */
 let lastCover: ISystemMediaCover | undefined;
 
-/** The playing list as it survives PowerShell's JSON: a list, a bare string
- * where there was one of them, or missing from an older watcher. */
+/** The playing list: a list from the helper, a bare string where the
+ * PowerShell watcher's JSON collapsed a list of one, or missing from an
+ * older watcher. */
 const playingApps = (value: unknown): string[] => {
   if (typeof value === 'string') {
     return value ? [value] : [];
@@ -482,14 +376,18 @@ export const parseSystemMediaCover = (
  *
  * One child, however many times this is asked for: the window asks whenever
  * its own players fall silent, which can happen twice in a row for one pause,
- * and a second child would be a second PowerShell reading the same sessions.
+ * and a second child would be a second helper told about the same sessions.
  *
  * But the LISTENER is replaced every time, and the caller is answered with
  * what is playing right now before this returns. See `notify` for the reload
  * this is the whole point of.
+ *
+ * `locate` is the tests' way in; the app always looks where the build puts
+ * the helper.
  */
 export const watchSystemMedia = (
   onSnapshot: (snapshot: ISystemMediaSnapshot | undefined) => void,
+  locate: () => string | undefined = findSystemMediaExecutable,
 ): void => {
   notify = onSnapshot;
   if (child) {
@@ -499,23 +397,44 @@ export const watchSystemMedia = (
     return;
   }
 
-  const started = spawn(
-    POWERSHELL_PATH,
-    [
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-Command',
-      WATCH_SCRIPT,
-    ],
-    { windowsHide: true },
-  );
+  const executable = locate();
+  if (!executable) {
+    // No fallback poll. The PowerShell loop this replaced is exactly what the
+    // helper exists not to be, and a second way of reading the same thing is
+    // a second thing to keep in step; the bar shows the app's own players,
+    // as it would on a machine with nothing else playing.
+    if (!missingHelperLogged) {
+      missingHelperLogged = true;
+      log.warn(
+        'Other apps’ media is not reported: FluidEQ-Media.exe was not found (it is built with the native helpers).',
+      );
+    }
+    return;
+  }
+
+  // The app's own id is the helper's one argument, so the rule that looks
+  // past this app's sessions (`SELF_SKIP`) reads the same id on both sides.
+  // Nobody reads its stderr, so it is not a pipe that could fill.
+  const started = spawn(executable, [APP_ID], {
+    stdio: ['pipe', 'pipe', 'ignore'],
+    windowsHide: true,
+  });
   child = started;
 
   let pending = '';
-  started.stdout?.on('data', (chunk: Buffer) => {
-    pending += chunk.toString('utf8');
+  // Decoded by the stream, never chunk by chunk. The helper writes UTF-8, and
+  // a pipe read can end in the middle of a character: decoding each chunk on
+  // its own turns both halves of that character into replacement marks, in
+  // the middle of a title.
+  started.stdout?.setEncoding('utf8');
+  started.stdout?.on('data', (chunk: string) => {
+    // A helper that was stopped can still print before it is gone — an event
+    // landing as its input closed — and that reading is not the current
+    // helper's to hand on.
+    if (started !== child) {
+      return;
+    }
+    pending += chunk;
     const lines = pending.split(/\r?\n/);
     pending = lines.pop() ?? '';
     lines.forEach((line) => {
@@ -536,18 +455,18 @@ export const watchSystemMedia = (
     });
   });
 
-  // Nothing is logged from stderr on purpose. The script's own `catch` prints
-  // `null` for a session it could not read, which is the honest answer and
-  // already handled; a machine with the namespace missing would otherwise
-  // write a stack trace on every cycle.
-  started.on('exit', () => {
+  // Closing this input is how the helper is stopped. A helper that has
+  // already gone makes the close fail, and its exit already said so.
+  started.stdin?.on('error', () => undefined);
+
+  const ended = () => {
     // Only the CURRENT watcher's death means anything. A window reload stops
     // this child and starts the next one at once, and this exit is delivered
-    // only once the old PowerShell has actually died — after the new one is
+    // only once the old helper has actually gone — after the new one is
     // already running. Taken as the current child's, it cleared the new child
-    // out of the module while it kept polling: the fresh window was told
+    // out of the module while it kept running: the fresh window was told
     // nothing was playing in the middle of a song, the next subscribe started
-    // a third PowerShell, and the second one was never killed, because stop
+    // a third watcher, and the second one was never stopped, because stop
     // only reaches the child it knows about.
     if (child !== started) {
       return;
@@ -556,7 +475,12 @@ export const watchSystemMedia = (
     lastSnapshot = undefined;
     lastCover = undefined;
     notify?.(undefined);
+  };
+  started.on('error', (error) => {
+    log.info('The media helper could not start', error);
+    ended();
   });
+  started.on('exit', ended);
 };
 
 /**
@@ -570,7 +494,10 @@ export const getSystemMediaCover = (id: string): string | undefined =>
 /** Stop reporting. The bar has an owner of its own again, or the window has
  * gone. */
 export const stopWatchingSystemMedia = (): void => {
-  child?.kill();
+  // Its input closing is what ends the helper — the same end it meets when
+  // the app itself goes, however it goes — and it lets go of Windows' event
+  // subscriptions on the way out rather than being cut off holding them.
+  child?.stdin?.end();
   child = undefined;
   // Cleared with the child: a reading kept past the watcher's life would be
   // handed to the next subscriber as though it were current, and it would name

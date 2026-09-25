@@ -77,6 +77,11 @@ export interface IMakerProjectFilesParams extends Pick<
   setExportOpen: Dispatch<SetStateAction<boolean>>;
   setSelection: Dispatch<SetStateAction<TSelection>>;
 
+  /**
+   * Writes the open project's view before a file replaces it, so that one is
+   * where it was left and a file of the same project reads it back as it is.
+   */
+  flushEditorView: () => void;
   /** The view a reopened project is restored into. */
   setViewStartMs: Dispatch<SetStateAction<number>>;
   setViewDurationMs: Dispatch<SetStateAction<number>>;
@@ -122,6 +127,7 @@ export const karaokeExportNotice = (
 
 export const useMakerProjectFiles = ({
   clearHistory,
+  flushEditorView,
   localizeMakerError,
   project,
   setAnalysisFile,
@@ -233,6 +239,7 @@ export const useMakerProjectFiles = ({
           parseKaraokeText(file.name, contents),
         );
       }
+      flushEditorView();
       setProject(imported);
       clearHistory();
       const importedView = readKaraokeMakerEditorView(imported.id);

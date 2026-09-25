@@ -39,6 +39,7 @@ import { useFluidEqLayers } from 'renderer/utils/FluidEqContext';
 import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
 import { noteSmartEqLayerReplaced } from 'renderer/utils/smartEqRun';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
+import { useTransportSources } from './transportSource';
 
 /**
  * Drives Task 3's reducer from the real world, and decides nothing.
@@ -48,8 +49,8 @@ import { useNowPlayingIdentity } from './nowPlayingIdentity';
  * `willSongEqSave` is pulled from rather than re-derived here). This file's
  * only job is the three things a pure reducer cannot do for itself: notice
  * that the world changed (a song started, the output switched, somebody
- * moved a slider), keep a clock running while nothing else does, and perform
- * the effects the reducer hands back. Anywhere this file appears to be
+ * moved a slider), carry the clock forward while a song plays (`useSongEqClock`),
+ * and perform the effects the reducer hands back. Anywhere this file appears to be
  * making a feature decision, that decision belongs in the reducer instead.
  *
  * Plain module state rather than a component, for the same reason
@@ -80,10 +81,6 @@ import { useNowPlayingIdentity } from './nowPlayingIdentity';
  * able to agree with it or be wrong.
  */
 
-/** How long the "we remembered this" notice stays up before it fades itself,
- * mirroring the status bubble's own linger window in `SmartEqEngine`. */
-const SONG_EQ_NOTICE_LINGER_MS = 6000;
-
 export interface ISongEqRecordingStatus {
   isSaveOn: boolean;
   /** Wall-clock ms accumulated on the song now open, including the run in
@@ -96,7 +93,19 @@ export interface ISongEqRecordingStatus {
   willSave: boolean;
 }
 
-type TSongEqNotice = { identity: ISongIdentity; entry: ISongEqEntry };
+/**
+ * The "we remembered this" notice, and which one it is.
+ *
+ * How long it stays up is the notice's own animation (`song-eq-notice-linger`
+ * in `SongEqNotice.scss`); the component reports its end back through
+ * `endSongEqNotice`, by `id`, so a notice raised while another is still up is
+ * not taken down by the earlier one's end.
+ */
+type TSongEqNotice = {
+  id: number;
+  identity: ISongIdentity;
+  entry: ISongEqEntry;
+};
 
 /* --- subscriptions: one set feeds every hook below, exactly as
    smartEqRun.ts's single `listeners` set feeds its several published
@@ -132,7 +141,7 @@ const subscribe = (listener: () => void): (() => void) => {
  */
 let state: ISongEqRecorderState = getInitialRecorderState();
 let notice: TSongEqNotice | undefined;
-let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+let lastNoticeId = 0;
 
 /**
  * Registered by the host as it mounts, mirroring `registerSmartEqControl` in
@@ -172,21 +181,28 @@ let recordingSnapshot: ISongEqRecordingStatus = computeRecording(
   Date.now(),
 );
 
-const clearNoticeTimer = (): void => {
-  if (noticeTimer !== undefined) {
-    clearTimeout(noticeTimer);
-    noticeTimer = undefined;
-  }
-};
+/**
+ * Whether two statuses would draw the same.
+ *
+ * Every report of a playing song's position is a tick now, twenty a second
+ * from Karaoke, and each one recomputes the status. The badge, the chip and
+ * the player's screen draw the listened time to the second, so a status that
+ * moved by less than that is not news, and telling them would redraw all three
+ * twenty times a second to say nothing new — where the interval that used to
+ * drive this said it once.
+ */
+const drawsTheSame = (
+  a: ISongEqRecordingStatus,
+  b: ISongEqRecordingStatus,
+): boolean =>
+  a.isSaveOn === b.isSaveOn &&
+  a.title === b.title &&
+  a.willSave === b.willSave &&
+  Math.floor(a.listenedMs / 1000) === Math.floor(b.listenedMs / 1000);
 
 const showNotice = (identity: ISongIdentity, entry: ISongEqEntry): void => {
-  clearNoticeTimer();
-  notice = { identity, entry };
-  noticeTimer = setTimeout(() => {
-    notice = undefined;
-    noticeTimer = undefined;
-    emit();
-  }, SONG_EQ_NOTICE_LINGER_MS);
+  lastNoticeId += 1;
+  notice = { id: lastNoticeId, identity, entry };
   emit();
 };
 
@@ -270,10 +286,22 @@ const performEffects = (effects: TSongEqEffect[]): void => {
 
 const dispatchSongEq = (event: TSongEqEvent, at: number): void => {
   const [nextState, effects] = reduceSongEq(state, event, at);
+  const nextRecording = computeRecording(nextState, at);
+  // A tick that moved nothing the reducer keeps and nothing anybody draws is
+  // time passing and nothing more — see `drawsTheSame`.
+  const isNews =
+    event.kind !== 'tick' ||
+    nextState !== state ||
+    effects.length > 0 ||
+    !drawsTheSame(recordingSnapshot, nextRecording);
   state = nextState;
-  recordingSnapshot = computeRecording(state, at);
+  if (isNews) {
+    recordingSnapshot = nextRecording;
+  }
   performEffects(effects);
-  emit();
+  if (isNews) {
+    emit();
+  }
 };
 
 /**
@@ -305,10 +333,28 @@ export const useSongEqNotice = (): TSongEqNotice | undefined =>
   );
 
 export const dismissSongEqNotice = (): void => {
-  if (notice === undefined && noticeTimer === undefined) {
+  if (notice === undefined) {
     return;
   }
-  clearNoticeTimer();
+  notice = undefined;
+  emit();
+};
+
+/**
+ * The notice named by `id` has been on screen for its whole moment.
+ *
+ * Reported by the notice itself, at the end of its own linger animation. A
+ * timer used to take it down six seconds after the match, whether or not the
+ * window was painting — so a song matched behind a minimised window put up a
+ * notice nobody could have seen, and took it away again.
+ *
+ * Fading is not undoing: this only stops saying it. The loaned layer keeps
+ * playing, exactly as if neither button had been pressed.
+ */
+export const endSongEqNotice = (id: number): void => {
+  if (notice?.id !== id) {
+    return;
+  }
   notice = undefined;
   emit();
 };
@@ -374,7 +420,6 @@ export const useSongEqSaveOn = (): boolean =>
  * next.
  */
 export const resetSongEqSession = (): void => {
-  clearNoticeTimer();
   notice = undefined;
   state = getInitialRecorderState();
   recordingSnapshot = computeRecording(state, Date.now());
@@ -431,13 +476,6 @@ export const useSongEqSessionHost = (): void => {
   }, [isAutoEqRunning]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      dispatchSongEq({ kind: 'tick' }, Date.now());
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     // This fires as the window is already on its way out. Nothing here waits
     // for the dispatch to finish, and nothing downstream may assume it does:
     // the promises a 'closing' checkpoint or hand-back kicks off have no time
@@ -451,4 +489,36 @@ export const useSongEqSessionHost = (): void => {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
+};
+
+/**
+ * The recorder's clock: time passing while something plays.
+ *
+ * What the reducer calls a `tick` is a moment at which time has passed — a
+ * song holding still long enough to settle and be looked up, the two-minute
+ * floor reached and checkpointed, the countdown on the chip. A one-second
+ * interval stood in for all of it and ran for the life of the window, playing
+ * or not, throttled to once a minute behind a minimised one. What it stood for
+ * is a song playing, and every player already says so: each publishes its
+ * position to the bar several times a second while it plays
+ * (`setTransportSource`). Each of those reports is the tick now, stamped with
+ * the time it arrived; when nothing plays, nothing reports, and nothing here
+ * runs.
+ *
+ * A paused song's one-minute grace therefore ends at the next thing that
+ * happens — the same song back, another one, a different output, the window
+ * closing — rather than on the minute. Nothing is lost by it: listened time
+ * stops at the pause, so what that close commits is the same whenever it
+ * comes, and until it comes nothing plays through the loaned curve.
+ *
+ * A hook of its own, for a component of its own: `useTransportSources` changes
+ * with every position, and in the host — which lives in the window's root —
+ * that would redraw the whole window several times a second. The component
+ * that calls this draws nothing (`SongEqNotice`'s clock).
+ */
+export const useSongEqClock = (): void => {
+  const sources = useTransportSources();
+  useEffect(() => {
+    dispatchSongEq({ kind: 'tick' }, Date.now());
+  }, [sources]);
 };

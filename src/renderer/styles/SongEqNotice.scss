@@ -45,8 +45,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // 720px) the overlap covers nearly this notice's entire width. No position
 // avoids that at this app's minimum size — only the z-index below decides who
 // is readable when it happens.
+//
+// How long it stays up: the linger below, whose end takes it down.
+$song-eq-notice-linger: 6s;
+
 .song-eq-notice {
-  @include animate(slide-in-right, $motion-base);
+  // The entrance, then the linger — and the linger's end is what takes the
+  // notice away (`endSongEqNotice`), where a six-second timer beside it used
+  // to. Written out rather than through `animate`, which sets the whole
+  // property and would drop the second, and which stands itself down under
+  // reduced motion, where the entrance may go but the linger may not.
+  animation:
+    slide-in-right $motion-base $ease-out backwards,
+    song-eq-notice-linger $song-eq-notice-linger linear;
   position: fixed;
   // This notice deliberately loses every stacking contest. It is the only one
   // of the app's notices that asks nothing of the user — it is informational,
@@ -77,6 +88,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu-top 97%, transparent);
   box-shadow: 0 16px 40px rgba($black, 0.45);
+}
+
+// The linger holds `visibility`, which the notice already has, and nothing
+// else: it changes nothing that can be seen, only how long the notice stays.
+// An opacity hold would have kept it on a compositor layer of its own for all
+// six seconds, where its text loses subpixel antialiasing (`_motion.scss`).
+@keyframes song-eq-notice-linger {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// Reduced motion takes the entrance and keeps the linger, which is not a
+// movement and has to end for the notice to go. Against the stand-down's 1ms
+// (`App.scss`) that needs a class more than its `*` and `!important` to meet
+// its own; the media query is the launch switch's half of the same setting.
+@media (prefers-reduced-motion: reduce) {
+  .song-eq-notice {
+    animation: song-eq-notice-linger $song-eq-notice-linger linear;
+  }
+}
+
+:root[data-motion='reduced'] .song-eq-notice {
+  animation: song-eq-notice-linger $song-eq-notice-linger linear !important;
 }
 
 .song-eq-notice__icon {

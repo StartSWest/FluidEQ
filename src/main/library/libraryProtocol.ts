@@ -26,6 +26,7 @@ import {
   parseLibraryMediaUrl,
 } from '../../common/library/mediaUrl';
 import { ILibraryIndex } from '../../common/library/types';
+import { FILE_CODE_CACHE_SCHEME } from '../fileCodeCache';
 import { artworkPath } from './libraryArtwork';
 import { trackPathById } from './libraryIndex';
 
@@ -42,7 +43,7 @@ import { trackPathById } from './libraryIndex';
  * amount of work on the slider or the player state could have fixed it.
  *
  * So the ranges are served here rather than delegated. `stream: true` on the
- * scheme (see `registerLibraryMediaScheme`) is what allows a streamed body;
+ * scheme (see `registerPrivilegedSchemes`) is what allows a streamed body;
  * this is the other half it was waiting for.
  */
 const MEDIA_TYPES: Record<string, string> = {
@@ -158,7 +159,11 @@ const CORS_HEADERS: Record<string, string> = {
     'Content-Length, Content-Range, Accept-Ranges',
 };
 
-export const registerLibraryMediaScheme = (): void => {
+/**
+ * Every scheme this app gives privileges to, in Electron's one call: the
+ * Library's media, and `file:` for the window's own compiled code.
+ */
+export const registerPrivilegedSchemes = (): void => {
   protocol.registerSchemesAsPrivileged([
     {
       scheme: LIBRARY_MEDIA_SCHEME,
@@ -171,6 +176,10 @@ export const registerLibraryMediaScheme = (): void => {
         bypassCSP: false,
       },
     },
+    // In this call because Electron documents it as callable once per
+    // process. The window's own scripts keeping their compiled code between
+    // launches — see the file.
+    FILE_CODE_CACHE_SCHEME,
   ]);
 };
 

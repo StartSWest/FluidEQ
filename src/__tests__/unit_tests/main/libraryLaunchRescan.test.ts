@@ -27,8 +27,17 @@ jest.mock('electron', () => ({
   shell: { showItemInFolder: jest.fn() },
 }));
 
+/**
+ * Called when the walk starts. The scanner is `import()`ed on first use
+ * (`scanHost.ts`), so the walk begins a turn or two after the rescan is asked
+ * for; the test waits for this rather than guessing how many.
+ */
+let onScanStarted: () => void = () => undefined;
 const scanLibraryRoot = jest.fn<Promise<IScanResult>, [IScanOptions]>(
-  async () => ({ tracks: [], karaokeSkipped: 0, wasCancelled: false }),
+  async () => {
+    onScanStarted();
+    return { tracks: [], karaokeSkipped: 0, wasCancelled: false };
+  },
 );
 jest.mock('../../../main/library/libraryScanner', () => ({
   scanLibraryRoot: (options: IScanOptions) => scanLibraryRoot(options),
@@ -79,9 +88,14 @@ describe('the launch rescan', () => {
     other.emit('show');
     await libraryIndexSnapshot();
     expect(scanLibraryRoot).not.toHaveBeenCalled();
+    // Still waiting for the main window: the other one was let go by.
+    expect(appEvents.listenerCount('browser-window-created')).toBe(1);
 
+    const started = new Promise<void>((resolve) => {
+      onScanStarted = resolve;
+    });
     main.emit('show');
-    await libraryIndexSnapshot();
+    await started;
     expect(scanLibraryRoot).toHaveBeenCalledTimes(1);
     expect(scanLibraryRoot.mock.calls[0][0].rootPath).toBe(music);
     // Once for the life of the process: nothing is left listening.

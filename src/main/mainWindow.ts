@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import path from 'path';
-import { BrowserWindow, app, desktopCapturer, ipcMain, screen } from 'electron';
+import { BrowserWindow, app, desktopCapturer, screen } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import { RENDERER_READY_EVENT } from '../common/constants';
@@ -31,7 +31,7 @@ import {
 } from '../common/windowMode';
 import type { IRect, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
-import { resolveHtmlPath, waitForRenderer } from './util';
+import { resolveHtmlPath } from './util';
 import openExternalIfSafe from './safeExternal';
 import contentSecurityPolicy from './contentSecurityPolicy';
 import MenuBuilder from './menu';
@@ -43,6 +43,7 @@ import { macWindowOptions } from './macWindowChrome';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
+import onWindowMessage from './ipc/windowMessages';
 
 /**
  * The window has no backdrop material and is not see-through (Ivan,
@@ -66,15 +67,6 @@ import installTaskbarTransport from './taskbarTransport';
  * window itself, at whatever radius that release of macOS draws, so the page
  * draws no edge of its own there.
  */
-
-/**
- * How long a renderer gets to paint before the window is shown anyway.
- *
- * The renderer says when it is ready (see RENDERER_READY_EVENT) and this is
- * only the fallback for one that never does. Showing a blank window late is
- * bad; never showing it at all is worse.
- */
-const RENDERER_PAINT_GRACE_MS = 1500;
 
 /** A double-click on a window's non-client area, and the caption hit code. */
 const WM_NCLBUTTONDBLCLK = 0x00a3;
@@ -115,6 +107,12 @@ export interface IMainWindowDeps {
     player?: IRect;
     isPinned?: boolean;
   };
+  /**
+   * Asks for the geometry to be written, and returns at once: the write is
+   * the coalescing writer's (`asyncWriter`), one in flight and the newest
+   * waiting, so calling this on every frame of a drag costs a handful of
+   * writes and never blocks the main process.
+   */
   saveWindowState: () => void;
   /** Tells the renderer whether it is maximised, so its chrome can match. */
   sendWindowState: () => void;
@@ -486,11 +484,13 @@ export const createMainWindowFactory = ({
     // in-session still resizes.
 
     let hasRevealedMainWindow = false;
+    let stopWaitingForPaint: (() => void) | undefined;
     const revealMainWindow = () => {
-      if (!created || hasRevealedMainWindow) {
+      if (!created || created.isDestroyed() || hasRevealedMainWindow) {
         return;
       }
       hasRevealedMainWindow = true;
+      stopWaitingForPaint?.();
 
       if (startsHidden()) {
         // Nothing at all: no show, no minimize. A minimized window would still
@@ -536,16 +536,64 @@ export const createMainWindowFactory = ({
       }
     };
 
-    // `ready-to-show` fires when Chromium has a first frame, which for a React
-    // app is an empty <div id="root"> — the window would appear, sit blank, and
-    // then fill in. The renderer says when it has actually painted something
-    // (see RENDERER_READY_EVENT); this is only the fallback for a renderer that
-    // never gets that far, so a crashed bundle still shows a window with an
-    // error in it rather than nothing at all.
-    created.once('ready-to-show', () => {
-      setTimeout(revealMainWindow, RENDERER_PAINT_GRACE_MS);
+    /**
+     * WHEN THE WINDOW APPEARS IS SAID BY THE PAGE, NEVER BY A CLOCK.
+     *
+     * `ready-to-show` is not the moment: it fires on Chromium's first frame,
+     * which for a React app is an empty <div id="root">. The first of these is:
+     *
+     *  - the page saying it has painted (RENDERER_READY_EVENT, sent two frames
+     *    after React's first commit, once its language and the page it opens
+     *    on have loaded — `src/renderer/index.tsx`);
+     *  - the page finishing its load — `await firstLoad` below, which is
+     *    `did-finish-load`. A bundle that threw before it could draw anything
+     *    still finishes loading, so this is what shows a crashed bundle's
+     *    window, with whatever it managed to put up and, in development, its
+     *    devtools;
+     *  - the page failing: its load refused (`did-fail-load`), its process
+     *    gone (`render-process-gone`), its preload thrown (`preload-error`),
+     *    or the window no longer answering (`unresponsive`). Recovery
+     *    (`crashRecovery.ts`) takes each of those from here, and what it puts
+     *    on screen — the reload, the crash page, its dialog — has a window to
+     *    be seen in.
+     *
+     * This used to be a 1.5 s grace after `ready-to-show`, a guess at how long
+     * a first paint takes that only ever decided anything when the load had
+     * neither finished nor failed by then. What it covered that none of the
+     * above does is a page hung in its own script before its load finished;
+     * that window stays hidden, where it used to appear frozen, and the tray
+     * still opens it.
+     */
+    const stopReadyMessages = onWindowMessage(RENDERER_READY_EVENT, (event) => {
+      if (!created.isDestroyed() && event.sender === created.webContents) {
+        revealMainWindow();
+      }
     });
-    ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
+    const revealOnFailedLoad = (
+      _event: Electron.Event,
+      _code: number,
+      _description: string,
+      _url: string,
+      isMainFrame: boolean,
+    ) => {
+      if (isMainFrame) {
+        revealMainWindow();
+      }
+    };
+    created.webContents.on('did-fail-load', revealOnFailedLoad);
+    created.webContents.on('render-process-gone', revealMainWindow);
+    created.webContents.on('preload-error', revealMainWindow);
+    created.on('unresponsive', revealMainWindow);
+    stopWaitingForPaint = () => {
+      stopReadyMessages();
+      if (!created.isDestroyed()) {
+        created.webContents.off('did-fail-load', revealOnFailedLoad);
+        created.webContents.off('render-process-gone', revealMainWindow);
+        created.webContents.off('preload-error', revealMainWindow);
+        created.off('unresponsive', revealMainWindow);
+      }
+    };
+    created.once('closed', stopReadyMessages);
     created.on('maximize', sendWindowState);
     created.on('unmaximize', sendWindowState);
     // The material comes off in full screen and goes back on the way out (see
@@ -567,32 +615,26 @@ export const createMainWindowFactory = ({
       applyWindowBackdrop(created, false);
       sendFullScreenState(false);
     });
-    // Debounced: dragging a window fires 'resize' continuously, and writing a
-    // file on every frame of that would be absurd. 400ms after the user stops.
-    let saveTimer: NodeJS.Timeout | undefined;
-    const scheduleSave = () => {
-      if (saveTimer) {
-        clearTimeout(saveTimer);
-      }
-      saveTimer = setTimeout(saveWindowState, 400);
-    };
-    created.on('resize', scheduleSave);
-    created.on('move', scheduleSave);
-    created.on('maximize', scheduleSave);
-    created.on('unmaximize', scheduleSave);
+    // Every frame of a drag asks for a write, and the writer coalesces them:
+    // one write in flight, the newest waiting behind it, identical contents
+    // skipped. It used to wait for 400 ms of quiet instead, a guess at when
+    // the drag had ended that lost the last position to any close or crash
+    // inside that window.
+    created.on('resize', saveWindowState);
+    created.on('move', saveWindowState);
+    created.on('maximize', saveWindowState);
+    created.on('unmaximize', saveWindowState);
 
     created.on('close', (event) => {
-      // Synchronously, before the window goes: a pending debounce would never
-      // fire, so closing right after a resize would lose that resize.
+      // The final write, before the window goes. On a real quit the writer
+      // has already been flushed by `before-quit`, which asked for this same
+      // state first, so this finds it written and changes nothing.
       //
       // Runs on both paths on purpose. Hiding into the tray is where the
       // window stops being looked at, so it is exactly as good a moment to
       // write down its size and position as a real close is — and if the
       // process is later ended without another close, this is the only chance
       // there was.
-      if (saveTimer) {
-        clearTimeout(saveTimer);
-      }
       saveWindowState();
 
       // THE CLOSE BUTTON HIDES; IT DOES NOT QUIT. See tray.ts for why, and for
@@ -641,35 +683,30 @@ export const createMainWindowFactory = ({
     };
     created.webContents.on('will-navigate', stayInApp);
     created.webContents.on('will-redirect', stayInApp);
-    // Polling for the dev server is an optimisation, not a gate. Giving up used
-    // to throw out of createMainWindow with nothing to catch it, so a slow bundle
-    // produced an unhandled rejection and no window at all — while
-    // webpack-dev-middleware was perfectly willing to hold the request until the
-    // bundle finished. Load either way and let that happen.
-    await waitForRenderer(rendererUrl).catch((error) => {
-      log.warn(
-        'Renderer was not ready in time; loading anyway and letting the dev server finish.',
-        error,
-      );
-    });
+    // Loaded at once, in development too. `pnpm dev` starts this process only
+    // once the dev server is listening (`onListening` in
+    // webpack.config.renderer.dev.ts), and webpack-dev-middleware holds the
+    // request until the bundle is built — so there is nothing to wait for
+    // here. This used to poll the server every 100 ms for up to two minutes.
     const firstLoad = created.loadURL(appUrl()).catch((error) => {
       log.error('Initial window load failed; handing it to recovery', error);
       return recoverWindow();
     });
-    // The taskbar's buttons once the page is on its way, not before it: on
-    // Windows this loads koffi's native module (20 ms to require, measured on
-    // a warm disk) and two system DLLs to ask whether the process is elevated,
-    // and ahead of `loadURL` every launch waited for that before the page was
-    // even asked for. Still in the same turn as the call, so its IPC handler
-    // is registered before the page can have run a line of script to send to.
+    // The taskbar's buttons. Cheap now — the native part (koffi, and the two
+    // system DLLs that ask whether the process is elevated) waits for the
+    // window's first show (`taskbarTransport.ts`). In the same turn as the
+    // load, so its IPC handler is registered before the page can have run a
+    // line of script to send to.
     installTaskbarTransport(created, RESOURCES_PATH);
     await firstLoad;
     if (created.isDestroyed() || isAppQuitting()) {
       return;
     }
 
-    // If ready-to-show was skipped by a fast dev-server response, reveal the
-    // already-loaded window instead of leaving an invisible Electron process.
+    // The page has finished loading (`did-finish-load`, which is what
+    // `loadURL` resolves on) — or recovery has finished with it. Shown now if
+    // the page has not already said it painted; see "when the window appears"
+    // above.
     revealMainWindow();
 
     // Keep both public measurement databases current without blocking the first

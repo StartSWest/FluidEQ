@@ -19,13 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import KaraokeChordGuide from '../../renderer/karaoke/KaraokeChordGuide';
+import { createKaraokeLiveValue } from '../../renderer/karaoke/karaokeLiveValue';
 
 describe('KaraokeChordGuide', () => {
   it('shows the current and upcoming estimated guitar chords', () => {
     render(
       <KaraokeChordGuide
         status="ready"
-        progress={1}
+        progress={createKaraokeLiveValue(1)}
         playheadMs={1_000}
         chords={[
           {
@@ -64,7 +65,7 @@ describe('KaraokeChordGuide', () => {
     render(
       <KaraokeChordGuide
         status="analyzing"
-        progress={0.42}
+        progress={createKaraokeLiveValue(0.42)}
         playheadMs={0}
         chords={[]}
       />,

@@ -24,16 +24,10 @@ import {
   useFluidEqShell,
 } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { sortHelper, useThrottleAndExecuteLatest } from '../utils/utils';
+import { sortHelper, useLatestCall } from '../utils/utils';
 import PlayerFader from './PlayerFader';
 import useAutoPreAmp from '../components/useAutoPreAmp';
 import { isDenseBands } from './playerLayout';
-
-/**
- * The cadence a band's writes go out at while it is dragged: the EQ page's
- * own, so a drag here reaches the engine as a drag there does.
- */
-const WRITE_EVERY_MS = 50;
 
 /** The preamp's key among the faders, for the screen's read-out. */
 export const PREAMP_FOCUS = 'preamp';
@@ -73,7 +67,9 @@ const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
     },
     [band.id, dispatchFilter],
   );
-  const throttled = useThrottleAndExecuteLatest(write, WRITE_EVERY_MS);
+  // One write in flight and the newest position waiting behind it: the EQ
+  // page's own pace, so a drag here reaches the engine as a drag there does.
+  const throttled = useLatestCall(write);
   const setValue = useCallback(
     async (gain: number) => {
       try {

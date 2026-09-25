@@ -27,6 +27,8 @@ import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 import { openWindowsSoundSettings } from './utils/soundSettings';
 import { reportError } from './utils/logger';
 import { subscribeAudioEngineChanged } from './utils/audioEngineEvents';
+import { useNoticeClaim } from './utils/noticeTurn';
+import useOutputReadings from './utils/useOutputReadings';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -90,86 +92,56 @@ const DeviceProfiles = ({
   const [isAttaching, setIsAttaching] = useState(false);
   const activeDeviceIdRef = useRef('');
 
-  const refresh = useCallback(async () => {
-    try {
-      const [nextDevices, nextSettings] = await Promise.all([
-        getAudioDevices(),
-        getDeviceProfileSettings(),
-      ]);
-      // Kept when nothing in them moved. Every answer arrives as new arrays,
-      // and handing React those re-rendered the whole panel with the list it
-      // already showed — every three seconds, for the life of the window.
-      setDevices((current) => keepIfUnchanged(current, nextDevices));
-      setSettings((current) => keepIfUnchanged(current, nextSettings));
-      const activeDevice = nextDevices.find((device) => device.isDefault);
-      if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
-        activeDeviceIdRef.current = activeDevice.id;
-        setSelectedDeviceId(activeDevice.id);
-        window.dispatchEvent(
-          new CustomEvent('fluideq-output-changed', {
-            detail: { deviceId: activeDevice.id },
-          }),
-        );
-        refreshState();
-      }
-      setSelectedDeviceId((current) => {
-        if (nextDevices.some((device) => device.id === current)) {
-          return current;
+  // A reading of the outputs, asked for here or pushed by main: true once it
+  // is on screen, false when it failed and the failure is instead.
+  const show = useCallback(
+    async (reading: Promise<IAudioDevice[]>) => {
+      try {
+        const [nextDevices, nextSettings] = await Promise.all([
+          reading,
+          getDeviceProfileSettings(),
+        ]);
+        // Kept when nothing in them moved. Every answer arrives as new arrays,
+        // and handing React those re-rendered the whole panel with the list it
+        // already showed.
+        setDevices((current) => keepIfUnchanged(current, nextDevices));
+        setSettings((current) => keepIfUnchanged(current, nextSettings));
+        const activeDevice = nextDevices.find((device) => device.isDefault);
+        if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
+          activeDeviceIdRef.current = activeDevice.id;
+          setSelectedDeviceId(activeDevice.id);
+          window.dispatchEvent(
+            new CustomEvent('fluideq-output-changed', {
+              detail: { deviceId: activeDevice.id },
+            }),
+          );
+          refreshState();
         }
-        return (
-          nextDevices.find((device) => device.isDefault)?.id ||
-          nextDevices[0]?.id ||
-          ''
-        );
-      });
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  }, [refreshState, setGlobalError]);
-
-  // Polled, because Windows does not tell us when someone plugs in headphones,
-  // and paused whenever the window is hidden.
-  //
-  // Each tick is an IPC round-trip that enumerates every audio endpoint on the
-  // machine, and this panel is mounted for the whole life of the app — so
-  // unpaused it is twenty of those a minute, forever, including while the
-  // window is minimised behind everything else. A device list nobody can see
-  // does not need refreshing, and nothing is missed by stopping: the refresh
-  // on the way back up runs before the window is painted, so what you see when
-  // you look is current.
-  useEffect(() => {
-    let timer: number | undefined;
-
-    const stop = () => {
-      if (timer !== undefined) {
-        window.clearInterval(timer);
-        timer = undefined;
+        setSelectedDeviceId((current) => {
+          if (nextDevices.some((device) => device.id === current)) {
+            return current;
+          }
+          return (
+            nextDevices.find((device) => device.isDefault)?.id ||
+            nextDevices[0]?.id ||
+            ''
+          );
+        });
+        return true;
+      } catch (e) {
+        setGlobalError(e as ErrorDescription);
+        return false;
       }
-    };
+    },
+    [refreshState, setGlobalError],
+  );
 
-    const start = () => {
-      if (timer !== undefined) {
-        return;
-      }
-      refresh();
-      timer = window.setInterval(refresh, 3000);
-    };
+  const refresh = useCallback(() => show(getAudioDevices()), [show]);
 
-    const onVisibilityChange = () => {
-      if (document.hidden) {
-        stop();
-      } else {
-        start();
-      }
-    };
-
-    onVisibilityChange();
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => {
-      stop();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [refresh]);
+  // Read on mount, on main's push when Windows says the outputs moved, and
+  // when the window is come back to — no longer every three seconds; see
+  // `useOutputReadings` for what that poll cost and what it missed.
+  useOutputReadings(refresh, show);
 
   const selectedDevice = useMemo(
     () => devices.find((device) => device.id === selectedDeviceId),
@@ -219,6 +191,9 @@ const DeviceProfiles = ({
     document.addEventListener('keydown', dismissOnEscape);
     return () => document.removeEventListener('keydown', dismissOnEscape);
   }, [selectedDevice, showEngineNotice]);
+  // First in the engine's spot, and in front of the corner's notices
+  // (`noticeTurn.ts`).
+  useNoticeClaim('output', showEngineNotice && selectedDevice !== undefined);
   const assignedPreset = selectedDeviceId
     ? settings.assignments[selectedDeviceId]?.presetName || ''
     : '';

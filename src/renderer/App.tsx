@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  Activity,
   memo,
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -26,6 +28,7 @@ import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
+  type SyntheticEvent,
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import type { IAudioRestartOutcome, TAudioEngine } from 'common/audioEngine';
@@ -48,8 +51,6 @@ import {
 import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
 import { useTitlebarRoom } from './utils/useTitlebarRoom';
-import ConfigInspector from './components/ConfigInspector';
-import GamesPanel from './games/GamesPanel';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
@@ -66,11 +67,9 @@ import {
   subscribeAccountPanelRequests,
   type TAccountPanelPage,
 } from './account/accountPanel';
-import CommunityPanel from './community/CommunityPanel';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribePlusTabRequests } from './plus/plusTabRequest';
 import { usePlusWelcome } from './account/plusWelcomeStore';
-import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
@@ -103,12 +102,10 @@ import {
   watchChromeIdle,
 } from './utils/idleChrome';
 import { reportError, reportInfo } from './utils/logger';
-import VideoBrowser from './video/VideoBrowser';
 import { albumKey } from '../common/library/grouping';
 import { ILibraryTrack } from '../common/library/types';
 import LibraryStageArt from './library/LibraryStageArt';
 import SystemStageArt from './library/SystemStageArt';
-import LibraryWorkspace from './library/LibraryWorkspace';
 import { LibraryProvider } from './library/LibraryContext';
 import { PlaylistProvider, usePlaylists } from './library/PlaylistContext';
 import { useHasPendingKaraokeFiles } from './library/karaokeHandoff';
@@ -134,7 +131,9 @@ import {
 import pickTransportOwner from './audio/transportRouting';
 import TaskbarTransport from './audio/TaskbarTransport';
 import { useIdlePlayerMount } from './audio/useIdlePlayerMount';
-import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
+import useCaptureBridge from './audio/useCaptureBridge';
+import useAppFullMark from './utils/useAppFullMark';
+import { useNoticeClaim } from './utils/noticeTurn';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
 import WorkspaceSectionTabs from './components/WorkspaceSectionTabs';
@@ -149,13 +148,33 @@ import {
 } from './utils/paneSizes';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
-import EqPresetsPanel from './EqPresetsPanel';
 import DeviceProfiles from './DeviceProfiles';
 import ExtraOutputs from './ExtraOutputs';
 import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
-import ConvolutionPanel from './ConvolutionPanel';
-import DspPanel from './dsp/DspPanel';
+import {
+  ConfigPage,
+  ConvolutionPage,
+  DspPanelPage,
+  ForumPage,
+  GamesPage,
+  isTabReady,
+  KaraokePage,
+  LibraryPage,
+  MediaPage,
+  PlusPage,
+  preloadTab,
+  PresetsPage,
+  SharePage,
+} from './workspacePages';
+import {
+  LEGACY_WORKSPACE_TABS,
+  readWorkspaceTab,
+  resolveWorkspaceTab,
+  WORKSPACE_TAB_KEY,
+  WORKSPACE_TABS,
+  type TWorkspaceTab,
+} from './workspaceTabs';
 import {
   applyDspSettings,
   persistDspSettings,
@@ -204,7 +223,6 @@ import {
   LiveAudioProvider,
   useLiveAudioControl,
 } from './audio/LiveAudioContext';
-import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
 import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import ScenePulse from './components/ScenePulse';
@@ -265,64 +283,8 @@ const APP_VERSION = PRODUCT_VERSION;
 /** What this version brought, then the standing slides. */
 const TOUR_SLIDES = featureTourFor(APP_VERSION);
 
-/** The workspace tab the app was left on. */
-const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 /** Independent response-graph visibility overrides for each workspace tab. */
 const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
-
-type TWorkspaceTab =
-  | 'eq'
-  | 'presets'
-  | 'convolution'
-  | 'dsp'
-  | 'share'
-  | 'video'
-  | 'library'
-  | 'karaoke'
-  | 'community'
-  | 'forum'
-  | 'games'
-  | 'config';
-
-/**
- * Tab names this build no longer uses, and what they became.
- *
- * Both of the things remembered about a tab — which one you were on, and
- * whether its graph was showing — are keyed by name, so a rename is a silent
- * data loss unless the old name still resolves. `autoeq` became `presets` when
- * the library behind it stopped being AutoEq's.
- */
-const LEGACY_WORKSPACE_TABS: Record<string, TWorkspaceTab> = {
-  autoeq: 'presets',
-};
-
-/**
- * The tab strip, in the order it is drawn.
- *
- * Config last, and deliberately at the end rather than beside the panels that
- * change the sound. It is the only one that changes nothing — it reports what
- * is on disk — so it is where you go when something is wrong, not somewhere you
- * pass through on the way to a tuning.
- *
- * Reordering this list is safe because what is persisted is the tab's name and
- * not its position: `readWorkspaceTab` looks the stored string up here, so a
- * tab that moves takes its remembered state with it. An index would have sent
- * everybody who left the app on Config to a different tab on the next launch.
- */
-const WORKSPACE_TABS: TWorkspaceTab[] = [
-  'eq',
-  'presets',
-  'convolution',
-  'video',
-  'library',
-  'karaoke',
-  'community',
-  'forum',
-  'dsp',
-  'share',
-  'games',
-  'config',
-];
 
 /**
  * The five tabs that are one place: the equaliser and the things that set it.
@@ -392,13 +354,6 @@ const FULLSCREEN_MEDIA_TABS: readonly TWorkspaceTab[] = [
 const isFullscreenMediaTab = (tab: TWorkspaceTab): boolean =>
   FULLSCREEN_MEDIA_TABS.includes(tab);
 
-/** A stored tab name, under whatever name that tab had when it was written. */
-const resolveWorkspaceTab = (stored: unknown): TWorkspaceTab | undefined =>
-  typeof stored === 'string'
-    ? (WORKSPACE_TABS.find((tab) => tab === stored) ??
-      LEGACY_WORKSPACE_TABS[stored])
-    : undefined;
-
 type TWorkspaceGraphVisibility = Partial<Record<TWorkspaceTab, boolean>>;
 
 const readWorkspaceGraphVisibility = ():
@@ -425,33 +380,6 @@ const readWorkspaceGraphVisibility = ():
     return Object.keys(visibility).length ? visibility : undefined;
   } catch {
     return undefined;
-  }
-};
-
-/**
- * Which tab to open on.
- *
- * Remembered, which is a departure from the rule the graph's modes follow —
- * solo and full screen are deliberately forgotten, because a mode that outlives
- * a restart is how somebody ends up convinced their bands have vanished. A tab
- * is not that: every one of them is visibly a tab, the one you are on is named
- * in the row, and getting back is one click that is already on screen.
- *
- * And the Video tab is the reason it is worth doing. Something is playing in
- * it. Dropping back to the EQ on every reload stops what was being listened to
- * and puts the app on the pane that was not being used — during development,
- * where a reload happens on every save, that is most of them.
- *
- * Validated against the list rather than cast, because this is storage a user
- * can edit and an older build may have written a name this one no longer has.
- */
-const readWorkspaceTab = (): TWorkspaceTab => {
-  try {
-    const stored = window.localStorage.getItem(WORKSPACE_TAB_KEY);
-    return resolveWorkspaceTab(stored) ?? 'eq';
-  } catch {
-    // Storage can be unavailable, and the EQ is the right place to land.
-    return 'eq';
   }
 };
 
@@ -648,7 +576,7 @@ const DspPage = memo(
     const settings = useDspSettings();
     const engineState = useDspEngineState();
     return (
-      <DspPanel
+      <DspPanelPage.Page
         settings={settings}
         onChange={applyDspSettings}
         onCommit={persistDspSettings}
@@ -754,14 +682,68 @@ const AppContent = () => {
   // the tab press appear to do nothing.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
-  const selectTopWorkspaceTab = useCallback(
-    (next: TWorkspaceTab) => {
-      if (next !== activeWorkspaceTab && graphView !== 'normal') {
+  /**
+   * Every route to another page: a tab, a pill, the amp, the tour, a reveal.
+   *
+   * Most pages are fetched on their first opening (`workspacePages.ts`), and a
+   * page that has not arrived yet is fetched before anything changes, so the
+   * page being left stays on screen until the next one can be drawn whole —
+   * never an empty pane between the two. The latest press wins: one made
+   * while an earlier page was still arriving is the page that opens.
+   *
+   * Read through refs at the moment the page is shown, not closed over at the
+   * press, because that moment can be a fetch later than the press.
+   */
+  const activeTabRef = useRef(activeWorkspaceTab);
+  activeTabRef.current = activeWorkspaceTab;
+  const requestedTabRef = useRef<TWorkspaceTab | undefined>(undefined);
+  const selectTopWorkspaceTab = useCallback((next: TWorkspaceTab) => {
+    requestedTabRef.current = next;
+    const show = () => {
+      if (requestedTabRef.current !== next) {
+        return;
+      }
+      if (next !== activeTabRef.current && getGraphView() !== 'normal') {
         exitGraphFullScreen();
       }
       setActiveWorkspaceTab(next);
+    };
+    if (isTabReady(next)) {
+      show();
+      return;
+    }
+    preloadTab(next).then(show, (error: unknown) => {
+      // Shown anyway: a press that does nothing reads as a dead button, and
+      // drawing the page meets the failure again where it can be reported.
+      reportError(`Loading the ${next} page`, error);
+      show();
+    });
+  }, []);
+  /** A hover or a focus on a way to a page is when its code is fetched. */
+  const preloadTabOnApproach = useCallback((tab: TWorkspaceTab) => {
+    preloadTab(tab).catch((error: unknown) => {
+      reportError(`Fetching the ${tab} page ahead of its press`, error);
+    });
+  }, []);
+  /**
+   * The same for the equaliser's pills, which are drawn by a component that
+   * knows them only by their order: they are `EQ_GROUP_TABS`, in that order.
+   * One listener on the panel rather than one per pill.
+   */
+  const preloadEqPillOnApproach = useCallback(
+    (event: SyntheticEvent<HTMLElement>) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+      const pill = event.target.closest('.workspace-pill');
+      const pills = pill?.parentElement?.querySelectorAll('.workspace-pill');
+      const index = pill && pills ? Array.from(pills).indexOf(pill) : -1;
+      const tab = EQ_GROUP_TABS[index];
+      if (tab !== undefined) {
+        preloadTabOnApproach(tab);
+      }
     },
-    [activeWorkspaceTab, graphView],
+    [preloadTabOnApproach],
   );
   /**
    * Which of the equaliser's five was last open, for the tab that holds them.
@@ -813,17 +795,47 @@ const AppContent = () => {
   }, [windowMode]);
   const openPageFromPlayer = useCallback(
     (page: TPlayerPage) => {
-      if (page === 'eq') {
-        selectTopWorkspaceTab(lastEqTab);
-      } else if (page === 'plus') {
-        selectTopWorkspaceTab('community');
-      } else {
-        selectTopWorkspaceTab(page);
+      let tab: TWorkspaceTab = page === 'plus' ? 'community' : lastEqTab;
+      if (page !== 'eq' && page !== 'plus') {
+        tab = page;
       }
-      setWindowMode('app').catch(() => undefined);
+      // The amp stays until the page it opens onto has arrived, so the app
+      // comes back already showing that page rather than the one it was left
+      // on and then changing.
+      preloadTab(tab)
+        .catch((error: unknown) => {
+          reportError(`Loading the ${tab} page`, error);
+        })
+        .finally(() => {
+          selectTopWorkspaceTab(tab);
+          setWindowMode('app').catch(() => undefined);
+        });
     },
     [lastEqTab, selectTopWorkspaceTab],
   );
+  /**
+   * What sleeps while the window is the amp.
+   *
+   * The app behind the amp was only `display: none` (`_miniPlayerShell.scss`),
+   * so every page, the graph and the panels kept their effects, their frame
+   * loops and their store subscriptions running for a window nobody could
+   * see. Inside `<Activity mode="hidden">` they keep their state and their
+   * DOM, lose their effects, and render only when nothing else wants the
+   * thread; switching back runs the effects again, the same way opening a tab
+   * does.
+   *
+   * Only what is already mounted and unmounted in ordinary use goes inside:
+   * the pages (a tab switch unmounts each), the graph (hiding it on a tab
+   * unmounts it), and the preset, output and driver panels. What has to keep
+   * going for the amp stays outside and awake — see the markup below for each
+   * one and why.
+   */
+  const isAmp = windowMode === 'player';
+  const behindAmp = isAmp ? 'hidden' : 'visible';
+  // Entering the amp and leaving it move the live capture's owners in one
+  // commit: the sleeping pages let go and the amp takes hold, or the other
+  // way round. Without a bridge the capture closed and reopened in between.
+  useCaptureBridge(windowMode);
 
   const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
     TWorkspaceGraphVisibility | undefined
@@ -985,20 +997,24 @@ const AppContent = () => {
     !showsKaraokeGraphBackdrop &&
     hasSystemTitle;
 
-  // A loaded silent player keeps only its controller/media shell for five
-  // seconds after leaving the tab. That prevents the fast empty-bar glitch,
-  // but the lease is bounded: once it expires, unmounting disposes the guest,
-  // media elements, observers and native DSP host. Playing audio has no timer.
-  // Nor does the picture under an expanded graph: a paused song there is on
-  // screen, not behind another tab, and unmounting it five seconds into the
-  // pause blacked the card out.
+  // A loaded silent player keeps only its controller/media shell after its
+  // tab is left, until somebody has moved on — another page after the one
+  // they went to, another player starting, the window put away
+  // (`useIdlePlayerMount`). That prevents the fast empty-bar glitch, and the
+  // lease still ends: unmounting disposes the guest, media elements,
+  // observers and native DSP host. Playing audio keeps it, and so does the
+  // picture under an expanded graph: a paused song there is on screen, not
+  // behind another tab, and unmounting it during the pause blacked the card
+  // out.
   const keepVideoMounted = useIdlePlayerMount({
+    page: activeWorkspaceTab,
     isActive: isVideoTab || showsMediaGraphBackdrop,
     hasLoadedSource: transportIdentities.media !== undefined,
     isPlaying:
       playingOwner === 'media' || transportIdentities.media?.isPlaying === true,
   });
   const keepLibraryMounted = useIdlePlayerMount({
+    page: activeWorkspaceTab,
     // The native DSP engine lives in this provider as well. If it has already
     // been opened, the visible DSP rack is an active consumer even though the
     // Library shelf itself is not the selected tab. So is the amp's open
@@ -1014,6 +1030,7 @@ const AppContent = () => {
       transportIdentities.library?.isPlaying === true,
   });
   const keepKaraokeMounted = useIdlePlayerMount({
+    page: activeWorkspaceTab,
     isActive: isKaraokeTab || showsKaraokeGraphBackdrop,
     hasLoadedSource: transportIdentities.karaoke !== undefined,
     isPlaying:
@@ -1053,6 +1070,8 @@ const AppContent = () => {
         aria-label={t('tabs.media')}
         className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('video')}
+        onPointerEnter={() => preloadTabOnApproach('video')}
+        onFocus={() => preloadTabOnApproach('video')}
       >
         <MenuIcon name="video" />
         <span className="workspace-tab__label">
@@ -1066,6 +1085,8 @@ const AppContent = () => {
         aria-label={t('tabs.share')}
         className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('share')}
+        onPointerEnter={() => preloadTabOnApproach('share')}
+        onFocus={() => preloadTabOnApproach('share')}
       >
         <MenuIcon name="waveform" />
         <span className="workspace-tab__label">{t('tabs.share')}</span>
@@ -1086,6 +1107,8 @@ const AppContent = () => {
           isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
         }`}
         onClick={() => selectTopWorkspaceTab(lastEqTab)}
+        onPointerEnter={() => preloadTabOnApproach(lastEqTab)}
+        onFocus={() => preloadTabOnApproach(lastEqTab)}
       >
         <MenuIcon name="layout" />
         <span className="workspace-tab__label">{t('tabs.eq')}</span>
@@ -1105,6 +1128,8 @@ const AppContent = () => {
         aria-label={t('tabs.dsp')}
         className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('dsp')}
+        onPointerEnter={() => preloadTabOnApproach('dsp')}
+        onFocus={() => preloadTabOnApproach('dsp')}
       >
         <MenuIcon name="configure" />
         <span className="workspace-tab__label">{t('tabs.dsp')}</span>
@@ -1116,6 +1141,8 @@ const AppContent = () => {
         aria-label={t('tabs.library')}
         className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('library')}
+        onPointerEnter={() => preloadTabOnApproach('library')}
+        onFocus={() => preloadTabOnApproach('library')}
       >
         <MenuIcon name="album" />
         <span className="workspace-tab__label">{t('tabs.library')}</span>
@@ -1127,6 +1154,8 @@ const AppContent = () => {
         aria-label={t('tabs.karaoke')}
         className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('karaoke')}
+        onPointerEnter={() => preloadTabOnApproach('karaoke')}
+        onFocus={() => preloadTabOnApproach('karaoke')}
       >
         <MenuIcon name="microphone" />
         <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
@@ -1142,6 +1171,8 @@ const AppContent = () => {
           aria-label={t('tabs.plus')}
           className={`workspace-tab${isCommunityTab ? ' is-active' : ''}`}
           onClick={() => selectTopWorkspaceTab('community')}
+          onPointerEnter={() => preloadTabOnApproach('community')}
+          onFocus={() => preloadTabOnApproach('community')}
         >
           <MenuIcon name="plusTab" />
           <span className="workspace-tab__label">{t('tabs.plus')}</span>
@@ -1380,6 +1411,7 @@ const AppContent = () => {
    * under a stage that should have filled it.
    */
   const isAppFullScreen = isGraphAppFullScreen || isMediaFullScreen;
+  useAppFullMark(isAppFullScreen);
   const isPlayerVisFull = usePlayerVisFull();
   /**
    * Whether anything in here is actually claiming the full-screen window.
@@ -2259,6 +2291,14 @@ const AppContent = () => {
       performEngineRepair,
     );
   const handleRestartWindowsAudio = audioRestart.open;
+  // The restart and capture notices below hold the corner notices back
+  // while they are up (`noticeTurn.ts`).
+  useNoticeClaim(
+    'audioRestart',
+    !suppressAudioNotices &&
+      (showAudioRestartRecommendation ||
+        (Boolean(captureError) && !isCaptureNoticeHidden)),
+  );
   // Never restarted by itself. The engine on the output being listened to
   // and Windows not running it used to get Windows audio restarted the
   // moment sound was heard — once a session, without a press — and that
@@ -2762,126 +2802,159 @@ const AppContent = () => {
           >
             {/* The six places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
-            {isEqGroupTab(activeWorkspaceTab) && (
-              // The shared header must outlive section changes: remounting the
-              // engine label briefly hid it while status loaded and restarted
-              // its rainbow animation. Only the scroll content is keyed.
-              <div
-                key="eq-workspace"
-                className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
-                aria-disabled={
-                  activeWorkspaceTab === 'config' ||
-                  activeWorkspaceTab === 'games'
-                    ? undefined
-                    : !isEqReachingSound
-                }
-              >
-                {eqGroupPills}
+            {/* The pages, asleep behind the amp (`behindAmp`). Each is
+                unmounted by an ordinary tab switch already, so nothing in one
+                has to run while it is not on screen. The players below are
+                not in here: they are the sound. */}
+            <Activity mode={behindAmp}>
+              {isEqGroupTab(activeWorkspaceTab) && (
+                // The shared header must outlive section changes: remounting the
+                // engine label briefly hid it while status loaded and restarted
+                // its rainbow animation. Only the scroll content is keyed.
                 <div
-                  key={activeWorkspaceTab}
-                  className="workspace-tab-panel__scroll"
+                  key="eq-workspace"
+                  className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
+                  aria-disabled={
+                    activeWorkspaceTab === 'config' ||
+                    activeWorkspaceTab === 'games'
+                      ? undefined
+                      : !isEqReachingSound
+                  }
+                  onPointerOver={preloadEqPillOnApproach}
+                  onFocus={preloadEqPillOnApproach}
                 >
-                  {activeWorkspaceTab === 'eq' && <MainContent />}
-                  {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
-                  {activeWorkspaceTab === 'convolution' && <ConvolutionPanel />}
-                  {activeWorkspaceTab === 'games' && <GamesPanel />}
-                  {activeWorkspaceTab === 'config' && <ConfigInspector />}
+                  {eqGroupPills}
+                  <div
+                    key={activeWorkspaceTab}
+                    className="workspace-tab-panel__scroll"
+                  >
+                    {/* Only met by a page drawn before its code arrived, which
+                      `selectTopWorkspaceTab` never does: the pills stay, and
+                      the page follows a moment later. */}
+                    <Suspense fallback={null}>
+                      {activeWorkspaceTab === 'eq' && <MainContent />}
+                      {activeWorkspaceTab === 'presets' && <PresetsPage.Page />}
+                      {activeWorkspaceTab === 'convolution' && (
+                        <ConvolutionPage.Page />
+                      )}
+                      {activeWorkspaceTab === 'games' && <GamesPage.Page />}
+                      {activeWorkspaceTab === 'config' && <ConfigPage.Page />}
+                    </Suspense>
+                  </div>
                 </div>
-              </div>
-            )}
-            {/* No engine-disabled state, and that is not an oversight. The
+              )}
+              {/* No engine-disabled state, and that is not an oversight. The
                 panels above are inert with the equaliser off because they only
                 write APO's config. This one is a Web Audio graph on FluidEQ's
                 own player — APO is not in its path at all, so it works exactly
                 the same either way, and greying it out would be a lie. */}
-            {activeWorkspaceTab === 'dsp' && (
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--dsp"
-              >
-                <div className="workspace-tab-panel__scroll">
-                  <DspPage onOpenEngineDialog={handleOpenEngineDialog} />
+              {activeWorkspaceTab === 'dsp' && (
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--dsp"
+                >
+                  <div className="workspace-tab-panel__scroll">
+                    <Suspense fallback={null}>
+                      <DspPage onOpenEngineDialog={handleOpenEngineDialog} />
+                    </Suspense>
+                  </div>
                 </div>
-              </div>
-            )}
-            {activeWorkspaceTab === 'share' && (
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--share"
-              >
-                <div className="workspace-tab-panel__scroll">
-                  <RemoteAudioPanel />
+              )}
+              {activeWorkspaceTab === 'share' && (
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--share"
+                >
+                  <div className="workspace-tab-panel__scroll">
+                    <Suspense fallback={null}>
+                      <SharePage.Page />
+                    </Suspense>
+                  </div>
                 </div>
-              </div>
-            )}
-            {activeWorkspaceTab === 'community' && (
-              // No `__scroll` wrapper: the gallery, the board and the Studio
-              // each scroll inside themselves beside a rail that stays put.
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--community"
-              >
-                <CommunityPanel
-                  onSignIn={() => setAccountDialogPage('home')}
-                  onShowGraph={() =>
-                    showGalleryGraph(() => {
-                      setGraphVisibilityByTab((current) => ({
-                        ...current,
-                        eq: true,
-                      }));
-                      selectTopWorkspaceTab('eq');
-                    })
-                  }
-                />
-              </div>
-            )}
-            {activeWorkspaceTab === 'forum' && (
-              // Like Plus: the list and the thread scroll inside
-              // themselves, so the panel does not.
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--forum"
-              >
-                <ForumPanel />
-              </div>
-            )}
+              )}
+              {activeWorkspaceTab === 'community' && (
+                // No `__scroll` wrapper: the gallery, the board and the Studio
+                // each scroll inside themselves beside a rail that stays put.
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--community"
+                >
+                  <Suspense fallback={null}>
+                    <PlusPage.Page
+                      onSignIn={() => setAccountDialogPage('home')}
+                      onShowGraph={() =>
+                        showGalleryGraph(() => {
+                          setGraphVisibilityByTab((current) => ({
+                            ...current,
+                            eq: true,
+                          }));
+                          selectTopWorkspaceTab('eq');
+                        })
+                      }
+                    />
+                  </Suspense>
+                </div>
+              )}
+              {activeWorkspaceTab === 'forum' && (
+                // Like Plus: the list and the thread scroll inside
+                // themselves, so the panel does not.
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--forum"
+                >
+                  <Suspense fallback={null}>
+                    <ForumPage.Page />
+                  </Suspense>
+                </div>
+              )}
+            </Activity>
             {/* A loaded guest gets a five-second silent lease through a tab
                 switch. Playing has no deadline; a silent guest is then
-                unmounted, which destroys its renderer process. */}
+                unmounted, which destroys its renderer process.
+
+                The three players stay awake behind the amp — their audio,
+                the guest and the transport they describe are what the amp
+                plays — and are put away there the way a tab switch puts them
+                away, by `isHidden`: the page drawn by each one sleeps, its
+                sound does not. Each waits for its code in a boundary of its
+                own, so nothing around it is hidden while it does. */}
             {hasOpenedVideo && keepVideoMounted && (
-              <VideoBrowser
-                isHidden={
-                  !showsMediaGraphBackdrop &&
-                  (!isVideoTab || isGraphBackdropMode)
-                }
-                isFullScreen={mediaFullScreenOwner === 'video'}
-                isGraphBackdrop={showsMediaGraphBackdrop}
-                onRequestFullScreen={() => {
-                  applyMediaFullScreen('video');
-                }}
-                onRequestGraphFullScreen={() => {
-                  // With a Plus visualizer on the graph, a double-click on the
-                  // video is the video's own full screen, in and out: the
-                  // visualizer would only have covered it (see the backdrop
-                  // above).
-                  if (isSceneOnGraph) {
-                    applyMediaFullScreen(
-                      isMediaFullScreen ? undefined : 'video',
-                    );
-                    return;
+              <Suspense fallback={null}>
+                <MediaPage.Page
+                  isHidden={
+                    isAmp ||
+                    (!showsMediaGraphBackdrop &&
+                      (!isVideoTab || isGraphBackdropMode))
                   }
-                  // A double-click on the guest is the same command as Ctrl+F.
-                  // If the shared no-graph media surface already owns the OS
-                  // window, transfer it without first bouncing out of full
-                  // screen and making Chromium resize the live video twice.
-                  if (isMediaFullScreen) {
-                    mediaFullScreenRequestedRef.current = false;
-                    setMediaFullScreenOwner(undefined);
-                  }
-                  setActiveTabGraphVisibility(true);
-                  toggleGraphFullScreen();
-                }}
-              />
+                  isFullScreen={mediaFullScreenOwner === 'video'}
+                  isGraphBackdrop={showsMediaGraphBackdrop}
+                  onRequestFullScreen={() => {
+                    applyMediaFullScreen('video');
+                  }}
+                  onRequestGraphFullScreen={() => {
+                    // With a Plus visualizer on the graph, a double-click on the
+                    // video is the video's own full screen, in and out: the
+                    // visualizer would only have covered it (see the backdrop
+                    // above).
+                    if (isSceneOnGraph) {
+                      applyMediaFullScreen(
+                        isMediaFullScreen ? undefined : 'video',
+                      );
+                      return;
+                    }
+                    // A double-click on the guest is the same command as Ctrl+F.
+                    // If the shared no-graph media surface already owns the OS
+                    // window, transfer it without first bouncing out of full
+                    // screen and making Chromium resize the live video twice.
+                    if (isMediaFullScreen) {
+                      mediaFullScreenRequestedRef.current = false;
+                      setMediaFullScreenOwner(undefined);
+                    }
+                    setActiveTabGraphVisibility(true);
+                    toggleGraphFullScreen();
+                  }}
+                />
+              </Suspense>
             )}
             {/* The bar for karaoke and for the Media page, mounted where
                 nothing can gate it. Its own rule keeps it and the library's
@@ -2913,22 +2986,25 @@ const AppContent = () => {
                     playlist is resolved against the index the player reads. */}
                 <PlaylistProvider>
                   <LibraryPlayerProvider>
-                    <LibraryWorkspace
-                      isHidden={
-                        !showsLibraryGraphBackdrop &&
-                        (!isLibraryTab || isGraphBackdropMode)
-                      }
-                      isGraphBackdrop={showsLibraryGraphBackdrop}
-                      revealRequest={libraryReveal}
-                      isFullScreen={mediaFullScreenOwner === 'library'}
-                      onToggleFullScreen={() => {
-                        applyMediaFullScreen(
-                          mediaFullScreenOwner === 'library'
-                            ? undefined
-                            : 'library',
-                        );
-                      }}
-                    />
+                    <Suspense fallback={null}>
+                      <LibraryPage.Page
+                        isHidden={
+                          isAmp ||
+                          (!showsLibraryGraphBackdrop &&
+                            (!isLibraryTab || isGraphBackdropMode))
+                        }
+                        isGraphBackdrop={showsLibraryGraphBackdrop}
+                        revealRequest={libraryReveal}
+                        isFullScreen={mediaFullScreenOwner === 'library'}
+                        onToggleFullScreen={() => {
+                          applyMediaFullScreen(
+                            mediaFullScreenOwner === 'library'
+                              ? undefined
+                              : 'library',
+                          );
+                        }}
+                      />
+                    </Suspense>
                     {showsLibraryGraphBackdrop && <LibraryStageArt />}
                     <ConnectedNowPlayingBar
                       activeTab={activeWorkspaceTab}
@@ -2952,26 +3028,31 @@ const AppContent = () => {
                 transport during the silent lease. It then unmounts completely
                 unless playback resumed. */}
             {hasOpenedKaraoke && keepKaraokeMounted && (
-              <KaraokeWorkspace
-                isHidden={
-                  !showsKaraokeGraphBackdrop &&
-                  (!isKaraokeTab || isGraphBackdropMode)
-                }
-                isFullScreen={isKaraokeSurfaceFullScreen}
-                isGraphOverlay={isKaraokeGraphOverlay}
-                isChromeIdle={isChromeIdle}
-                hasFullScreenTopBar={hasFullScreenTopBar}
-                onToggleFullScreenTopBar={toggleFullScreenTopBar}
-                onToggleFullScreen={() => {
-                  if (isKaraokeGraphFullScreen) {
-                    exitGraphFullScreen();
-                    return;
+              <Suspense fallback={null}>
+                <KaraokePage.Page
+                  isHidden={
+                    isAmp ||
+                    (!showsKaraokeGraphBackdrop &&
+                      (!isKaraokeTab || isGraphBackdropMode))
                   }
-                  applyMediaFullScreen(
-                    mediaFullScreenOwner === 'karaoke' ? undefined : 'karaoke',
-                  );
-                }}
-              />
+                  isFullScreen={isKaraokeSurfaceFullScreen}
+                  isGraphOverlay={isKaraokeGraphOverlay}
+                  isChromeIdle={isChromeIdle}
+                  hasFullScreenTopBar={hasFullScreenTopBar}
+                  onToggleFullScreenTopBar={toggleFullScreenTopBar}
+                  onToggleFullScreen={() => {
+                    if (isKaraokeGraphFullScreen) {
+                      exitGraphFullScreen();
+                      return;
+                    }
+                    applyMediaFullScreen(
+                      mediaFullScreenOwner === 'karaoke'
+                        ? undefined
+                        : 'karaoke',
+                    );
+                  }}
+                />
+              </Suspense>
             )}
             {/* Outside the tab switch for the same class of reason, and more
                 strictly: this one renders nothing at all. It hosts both Smart
@@ -2997,16 +3078,21 @@ const AppContent = () => {
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}
-          {showsGraph && !isGraphFullScreen && (
-            <GraphPaneResizer
-              paneKey={paneKey}
-              ariaLabel={t('graph.resize')}
-              onStart={handleGraphResizeStart}
-              onDrag={handleGraphResizeDrag}
-              onEnd={handleGraphResizeEnd}
-            />
-          )}
-          {showsGraph ? <FrequencyResponseChart isVisible /> : null}
+          {/* Asleep behind the amp, like the pages: hiding the graph on a tab
+              already unmounts it, so its loops and its claim on the capture
+              are known to stop and start cleanly. */}
+          <Activity mode={behindAmp}>
+            {showsGraph && !isGraphFullScreen && (
+              <GraphPaneResizer
+                paneKey={paneKey}
+                ariaLabel={t('graph.resize')}
+                onStart={handleGraphResizeStart}
+                onDrag={handleGraphResizeDrag}
+                onEnd={handleGraphResizeEnd}
+              />
+            )}
+            {showsGraph ? <FrequencyResponseChart isVisible /> : null}
+          </Activity>
         </div>
         {/*
           Below the three-column breakpoint the sound panel is a slide-over
@@ -3041,27 +3127,36 @@ const AppContent = () => {
         )}
         <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
           <div className="right-content__scroll">
-            <PresetsBar
-              fetchPresets={getPresetListFromFiles}
-              loadPreset={loadPreset}
-              savePreset={savePreset}
-              createPreset={createPreset}
-              renamePreset={renamePreset}
-              deletePreset={deletePreset}
-            />
-            <DeviceProfiles
-              engine={engineStatus?.engine ?? null}
-              isNoticeHidden={suppressAudioNotices}
-              onConfigureApo={handleConfigureEqualizerApo}
-              onAttachFluidEngine={handleAttachFluidEngine}
-            />
+            {/* Asleep behind the amp. Each reads what it shows again when it
+                wakes: the preset list, the outputs and their profiles. */}
+            <Activity mode={behindAmp}>
+              <PresetsBar
+                fetchPresets={getPresetListFromFiles}
+                loadPreset={loadPreset}
+                savePreset={savePreset}
+                createPreset={createPreset}
+                renamePreset={renamePreset}
+                deletePreset={deletePreset}
+              />
+              <DeviceProfiles
+                engine={engineStatus?.engine ?? null}
+                isNoticeHidden={suppressAudioNotices}
+                onConfigureApo={handleConfigureEqualizerApo}
+                onAttachFluidEngine={handleAttachFluidEngine}
+              />
+            </Activity>
             {/* Directly under the output picker: it is the same question asked
                 twice over — that one chooses where the sound goes, this one
                 adds a second somewhere. */}
+            {/* Awake behind the amp: it plays the mirror to the second output
+                (`useOutputMirror`), and asleep it would silence that output
+                the moment the window became the amp. */}
             <ExtraOutputs engine={engineStatus?.engine ?? null} />
             {/* Sits with the output device because it answers the same question:
                 what is this sound coming out of. */}
-            <DriverPicker />
+            <Activity mode={behindAmp}>
+              <DriverPicker />
+            </Activity>
           </div>
           <footer className="right-content__footer">
             <a

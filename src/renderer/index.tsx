@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// First, before anything that imports a stylesheet of its own: this is the
+// order the whole window's CSS cascades in, and only the first import of a
+// sheet places it. See the file.
+import './styles/cascade';
 import { createRoot } from 'react-dom/client';
 import { RENDERER_READY_EVENT } from 'common/constants';
 import { PRODUCT_NAME } from 'common/branding';
@@ -25,6 +29,7 @@ import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers, reportError } from './utils/logger';
 import { readInitialLocale } from './utils/I18nContext';
+import { preloadLaunchPages } from './workspacePages';
 
 // The window title, which `index.ejs` also carries so that something sensible
 // is on the taskbar before any JavaScript runs. Set again from branding
@@ -95,8 +100,17 @@ const start = () => {
 // first frame is already in it. English is in the bundle and resolves at once;
 // any other is one local file of its own (`loadLocale`). A load that fails
 // still starts the window, in English, rather than leaving it empty.
-loadLocale(readInitialLocale())
-  .catch((error: unknown) => {
+//
+// The page it opens on likewise, alongside it: every page but the EQ's is a
+// chunk of its own, and one drawn before its code arrived would leave the
+// window's first frame empty where the page belongs. A page that cannot be
+// fetched still starts the window; the failure is met again, and reported by
+// the boundary below, only when that page is drawn.
+Promise.all([
+  loadLocale(readInitialLocale()).catch((error: unknown) => {
     reportError('Loading the interface language', error);
-  })
-  .finally(start);
+  }),
+  preloadLaunchPages().catch((error: unknown) => {
+    reportError('Loading the page the window opens on', error);
+  }),
+]).finally(start);

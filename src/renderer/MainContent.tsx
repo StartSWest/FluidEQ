@@ -49,7 +49,7 @@ import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
 import './styles/MultiSelect.scss';
 import Spinner from './icons/Spinner';
-import { clamp, sortHelper, useThrottleAndExecuteLatest } from './utils/utils';
+import { clamp, sortHelper, useLatestCall } from './utils/utils';
 import Button from './widgets/Button';
 import AnchoredMenu, { isInsideAnchoredMenu } from './widgets/AnchoredMenu';
 import OverflowArrow from './components/OverflowArrow';
@@ -78,10 +78,20 @@ import {
   setSmartEqMode,
   useSmartEqMode,
 } from './utils/smartEqMode';
-import { cancelSmartEq, runSmartEq, useSmartEqRun } from './utils/smartEqRun';
+import {
+  cancelSmartEq,
+  endSmartEqStatus,
+  runSmartEq,
+  useSmartEqRun,
+  useSmartEqStatus,
+} from './utils/smartEqRun';
 import isSmartEqPairDisabled from './utils/smartEqPair';
 import useIsAutoEqRunning from './utils/autoEqRunning';
-import { useCorrectionFlash } from './utils/correctionFlash';
+import {
+  endCorrectionFlash,
+  useCorrectionFlash,
+} from './utils/correctionFlash';
+import isOwnAnimationEnd from './utils/ownAnimationEnd';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import ListenedLatency from './components/ListenedLatency';
@@ -97,7 +107,6 @@ import ConfirmIcon from './icons/ConfirmIcon';
 import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 
-import GROUP_EDIT_INTERVAL from './eq/groupEdit';
 import useTone, { TONE_CONTROLS } from './eq/useTone';
 
 const MainContent = () => {
@@ -127,11 +136,8 @@ const MainContent = () => {
    * mid-capture. They are hosted in `SmartEqEngine` now, above the tabs, and
    * this reads the same three values it used to own.
    */
-  const {
-    status: balanceStatus,
-    listeningFor,
-    isRunning: isBalancing,
-  } = useSmartEqRun();
+  const { listeningFor, isRunning: isBalancing } = useSmartEqRun();
+  const balanceStatus = useSmartEqStatus();
   const isContinuousOn = useContinuousEq();
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
@@ -162,17 +168,15 @@ const MainContent = () => {
     : t('eq.smart.aria');
   const continuousLabel = t('eq.smart.continuousAria');
   /**
-   * A correction landing, for a second and a half, from the store the graph
-   * marks its ranges from. One source for both, so the bubble turning green and
-   * the columns appearing over the frequencies that moved are the same event
-   * rather than two timers that agree most of the time.
+   * A correction landing, for as long as the bubble's text holds the applied
+   * colour — its own animation, whose end is what clears the flash.
    */
-  const flashedRanges = useCorrectionFlash();
+  const correctionFlash = useCorrectionFlash();
   /**
    * What the bubble says: an announcement if there is one, the measurement
    * otherwise.
    *
-   * `balanceStatus` is a remark with a timer on it — a correction landing, a
+   * `balanceStatus` is a remark held for a moment — a correction landing, a
    * voicing change rebuilding the layer, a run finishing — and outranks the rest
    * because somebody is waiting to hear about it. Underneath is the running
    * measurement, which is the truth for almost all of the time and is worth
@@ -180,7 +184,18 @@ const MainContent = () => {
    * and the percentage moving is the difference between a mode working quietly
    * and a mode that has stopped.
    */
-  const bubbleText = balanceStatus || (isContinuousRunning ? listeningFor : '');
+  const bubbleText =
+    balanceStatus?.text || (isContinuousRunning ? listeningFor : '');
+  // The bubble is the only thing that shows a flash, and its animation is the
+  // only thing that ends one. A correction landing after the mode was stopped
+  // finds no bubble, so nothing would ever end it, and the next bubble would
+  // arrive green over a write minutes old. Nothing can show it, so it is over.
+  const flashId = correctionFlash?.id;
+  useEffect(() => {
+    if (flashId !== undefined && !bubbleText) {
+      endCorrectionFlash(flashId);
+    }
+  }, [bubbleText, flashId]);
   // Somewhere free around the button, chosen from what the header holds at
   // this width: see `eq/bubblePlacement.ts`.
   const bubbleRef = useRef<HTMLSpanElement>(null);
@@ -395,10 +410,12 @@ const MainContent = () => {
     [setGlobalError],
   );
 
-  const throttledGroupFlush = useThrottleAndExecuteLatest(
-    flushGroupEdit,
-    GROUP_EDIT_INTERVAL,
-  );
+  // One write on its way at a time, the newest edit waiting behind it: a drag
+  // no longer queues a rewrite per frame, and its last edit always lands. It
+  // was a throttle, at most one write per 100 ms and the last one put on a
+  // timer; the write already says when it is done, and that is when the next
+  // can go.
+  const groupFlush = useLatestCall(flushGroupEdit);
 
   /**
    * Move one parameter across everything selected.
@@ -410,11 +427,12 @@ const MainContent = () => {
    * pushed to the top and then pulled back spreads out, and that is the only
    * behaviour that does not silently discard the rest of the selection.
    *
-   * The edit is shown immediately and written on a throttle. Both halves
-   * matter: showing it immediately is what makes the next delta measure from
-   * where the band actually is, and throttling the write is what stops a drag
-   * queueing a config rewrite per frame. They are absolute values, so a write
-   * skipped mid-drag loses nothing — the one that lands last is complete.
+   * The edit is shown immediately and written one write at a time. Both
+   * halves matter: showing it immediately is what makes the next delta measure
+   * from where the band actually is, and one write at a time is what stops a
+   * drag queueing a config rewrite per frame. They are absolute values, so an
+   * edit folded into a newer one mid-drag loses nothing — the one that lands
+   * last is complete.
    */
   const updateSelectedGroup = useCallback(
     async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
@@ -452,9 +470,9 @@ const MainContent = () => {
         return;
       }
       dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-      await throttledGroupFlush(edits);
+      await groupFlush(edits);
     },
-    [dispatchFilter, throttledGroupFlush],
+    [dispatchFilter, groupFlush],
   );
 
   const handleBandGainChange = useCallback(
@@ -1061,12 +1079,12 @@ const MainContent = () => {
                 rather than a label here and a character there. */}
             {bubbleText && (
               <span
-                // Green for the second and a half after a write reaches
-                // Equalizer APO, which is the moment the sound changes. It is
-                // the one thing in here that is not a sentence about what will
-                // happen: it means it just did.
+                // Green for a moment after a write reaches Equalizer APO, which
+                // is the moment the sound changes. It is the one thing in here
+                // that is not a sentence about what will happen: it means it
+                // just did.
                 className={`eq-mode__bubble${
-                  flashedRanges.length > 0 ? ' is-applied' : ''
+                  correctionFlash ? ' is-applied' : ''
                 }${bubbleSpot?.isBelow ? ' is-below' : ''}`}
                 role="status"
                 ref={bubbleRef}
@@ -1085,7 +1103,41 @@ const MainContent = () => {
                 <span className="eq-mode__bubble-pet" aria-hidden>
                   <PetArt />
                 </span>
-                <span className="eq-mode__bubble-text">{bubbleText}</span>
+                {/* Keyed on the landing, so a second correction arriving
+                    while the first is still green holds the colour for its
+                    own full moment rather than for what the first had left.
+                    The text's hold (`eq-bubble-applied`) is that moment, and
+                    its end is what ends the flash. */}
+                <span
+                  key={correctionFlash?.id ?? 'resting'}
+                  className="eq-mode__bubble-text"
+                  onAnimationEnd={(event) => {
+                    if (
+                      correctionFlash &&
+                      isOwnAnimationEnd(event, 'eq-bubble-applied')
+                    ) {
+                      endCorrectionFlash(correctionFlash.id);
+                    }
+                  }}
+                >
+                  {balanceStatus ? (
+                    // Keyed on the remark, so each new one is held for its
+                    // own full moment; the hold's end is what ends it.
+                    <span
+                      key={balanceStatus.id}
+                      className="eq-mode__bubble-status"
+                      onAnimationEnd={(event) => {
+                        if (isOwnAnimationEnd(event, 'smart-eq-status-hold')) {
+                          endSmartEqStatus(balanceStatus.id);
+                        }
+                      }}
+                    >
+                      {balanceStatus.text}
+                    </span>
+                  ) : (
+                    bubbleText
+                  )}
+                </span>
               </span>
             )}
           </span>

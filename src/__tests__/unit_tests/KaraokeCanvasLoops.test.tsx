@@ -308,5 +308,35 @@ describe("the karaoke stage's frame loops", () => {
     it('POSITIVE CONTROL: a minimised window still resumes mid-glide', () => {
       expect(returnToLineFive(true)).toBeGreaterThan(200);
     });
+
+    it('stop drawing while the Maker covers them, and come back where they belong', () => {
+      // Covered is not hidden: the watcher says shown the whole time.
+      const { rerender } = render(
+        <KaraokeLyrics song={song} playheadMs={1_200} onSeek={jest.fn()} />,
+      );
+      runFrame(0);
+      // The control: an uncovered stage draws, frame after frame.
+      expect(frames.size).toBe(1);
+
+      rerender(
+        <KaraokeLyrics
+          song={song}
+          playheadMs={4_200}
+          onSeek={jest.fn()}
+          isActive={false}
+        />,
+      );
+      expect(frames.size).toBe(0);
+
+      rerender(
+        <KaraokeLyrics song={song} playheadMs={4_200} onSeek={jest.fn()} />,
+      );
+      expect(frames.size).toBe(1);
+      lineFiveYs.length = 0;
+      runFrame(16);
+      // Line 5 at the singing height at once, not gliding up from line 2,
+      // which was up when the Maker opened.
+      expect(lineFiveYs[0]).toBeCloseTo(200, 6);
+    });
   });
 });

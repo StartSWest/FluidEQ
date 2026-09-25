@@ -71,8 +71,6 @@ const workerEntry = (): string | undefined => {
  */
 let workerUnavailable = false;
 
-type TScanner = typeof import('./libraryScanner');
-
 /**
  * The fallback still runs inside Electron, so it can cache covers directly.
  *
@@ -80,17 +78,18 @@ type TScanner = typeof import('./libraryScanner');
  * the file: it brings the tag reader with it (`music-metadata`, and
  * `file-type` and `strtok3` under that), all of which a static import
  * evaluated in main at every launch, for a path that only runs when the worker
- * cannot start. Required rather than `import()`ed — which would also take it
- * out of `main.js` — because the walk has to begin within the call that asked
- * for it: `libraryIpc.test.ts` holds a root queued from inside a walk to be in
- * the index that call returns.
+ * cannot start. `import()`ed, so webpack puts it in a chunk of its own and
+ * `main.js` no longer carries it either. The walk therefore begins a moment
+ * after the call rather than within it — the chunk is read from disk first —
+ * which nothing depends on: the call's answer is its promise.
  *
  * Its reports go through the same gate the worker's do (`scanProgressGate.ts`),
  * because from here each one is a message to the window.
  */
-const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> => {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- deferred to the fallback on purpose; see above
-  const { scanLibraryRoot } = require('./libraryScanner') as TScanner;
+const scanLibraryRootInMain = async (
+  options: IScanOptions,
+): Promise<IScanResult> => {
+  const { scanLibraryRoot } = await import('./libraryScanner');
   const gate = gateScanProgress(options.onProgress);
   const { onTracks } = options;
   return scanLibraryRoot({

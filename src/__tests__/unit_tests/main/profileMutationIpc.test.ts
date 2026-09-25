@@ -198,7 +198,6 @@ describe('renaming and deleting a profile through IPC', () => {
       applyDeviceState: () => undefined,
       captureCurrentLayout: () => undefined,
       notifyOutputStateChanged: () => undefined,
-      retryHelper: async (_attempts, work) => work(),
       guardAgainstApo: async () => undefined,
     });
   });

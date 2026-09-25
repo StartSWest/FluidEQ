@@ -136,3 +136,26 @@ it('remembers the width a key step reached, not the one before it', async () => 
   fireEvent.keyDown(edge, { key: 'ArrowLeft' });
   expect(widthWrites(setItem)).toEqual(['284']);
 });
+
+// The stylesheet reads the drag from the card (`is-resizing-up-next`) rather
+// than asking the card's subtree for the handle's `is-dragging` with `:has()`.
+it('marks the card for exactly as long as the handle is dragged', async () => {
+  const edge = await openQueueEdge();
+  const card = edge.closest('.library-workspace');
+  expect(card).not.toHaveClass('is-resizing-up-next');
+
+  // A key step is no drag: the handle never wore `is-dragging` for one.
+  fireEvent.keyDown(edge, { key: 'ArrowLeft' });
+  expect(edge).not.toHaveClass('is-dragging');
+  expect(card).not.toHaveClass('is-resizing-up-next');
+
+  fireEvent.pointerDown(edge, { clientX: 500 });
+  expect(edge).toHaveClass('is-dragging');
+  expect(card).toHaveClass('is-resizing-up-next');
+  fireEvent.pointerMove(edge, { clientX: 480 });
+  expect(card).toHaveClass('is-resizing-up-next');
+
+  fireEvent.pointerUp(edge, { clientX: 480 });
+  expect(edge).not.toHaveClass('is-dragging');
+  expect(card).not.toHaveClass('is-resizing-up-next');
+});

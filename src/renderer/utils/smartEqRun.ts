@@ -65,15 +65,13 @@ export interface ISmartEqControl {
 }
 
 interface IRunState {
-  /** An announcement with a timer on it — a run finishing, a correction made. */
-  status: string;
   /** The running measurement, which is a condition rather than a remark. */
   listeningFor: string;
   /** Whether the one-shot is in progress, which is what the button says. */
   isRunning: boolean;
 }
 
-let state: IRunState = { status: '', listeningFor: '', isRunning: false };
+let state: IRunState = { listeningFor: '', isRunning: false };
 let control: ISmartEqControl | undefined;
 const listeners = new Set<() => void>();
 
@@ -83,7 +81,6 @@ const update = (next: Partial<IRunState>) => {
   // Compared before publishing, because these are written from a callback that
   // fires at every checkpoint and each publish re-renders the toolbar.
   if (
-    (next.status ?? state.status) === state.status &&
     (next.listeningFor ?? state.listeningFor) === state.listeningFor &&
     (next.isRunning ?? state.isRunning) === state.isRunning
   ) {
@@ -93,7 +90,6 @@ const update = (next: Partial<IRunState>) => {
   emit();
 };
 
-export const setSmartEqStatus = (status: string) => update({ status });
 export const setSmartEqListening = (listeningFor: string) =>
   update({ listeningFor });
 export const setSmartEqRunning = (isRunning: boolean) => update({ isRunning });
@@ -132,3 +128,77 @@ const read = () => state;
 
 export const useSmartEqRun = () =>
   useSyncExternalStore(subscribe, read, read) as IRunState;
+
+/**
+ * An announcement — a run finishing, a correction made — and which one it is.
+ *
+ * Said, then gone. These modes run for hours and are silent for most of that,
+ * so a remark that stayed up would be a stale sentence hanging over the
+ * toolbar all evening. How long it stays is the stylesheet's: whatever shows
+ * it holds it for a `smart-eq-status-hold` animation and ends it by id when
+ * that ends (`endSmartEqStatus`). Long enough to read twice, and anything new
+ * starts a new hold, so a measurement reporting progress keeps it up for as
+ * long as it is working; the same words again are not news and start none.
+ *
+ * It was a six-second timer in the engine, which ran whether or not anything
+ * was drawn: a remark made behind a minimised window was gone before anybody
+ * looked.
+ */
+export interface ISmartEqStatus {
+  id: number;
+  text: string;
+}
+
+let status: ISmartEqStatus | undefined;
+let lastStatusId = 0;
+/** What is showing the status now: the EQ page's bubble, the player's line. */
+const statusViews = new Set<() => void>();
+
+const emitStatus = () => statusViews.forEach((listener) => listener());
+
+export const setSmartEqStatus = (text: string) => {
+  if (text === (status?.text ?? '')) {
+    return;
+  }
+  // Said to nobody, a remark is over — kept, it would come up over whatever
+  // the page next opened on, long after the moment it was about.
+  if (!text || statusViews.size === 0) {
+    status = undefined;
+    emitStatus();
+    return;
+  }
+  lastStatusId += 1;
+  status = { id: lastStatusId, text };
+  emitStatus();
+};
+
+/**
+ * The remark named by `id` has been shown for its moment. By id, because a
+ * newer one can arrive while it is showing, and the older one's end must not
+ * take the newer away.
+ */
+export const endSmartEqStatus = (id: number) => {
+  if (status?.id !== id) {
+    return;
+  }
+  status = undefined;
+  emitStatus();
+};
+
+/** Module-level, so React keeps one subscription per view for its life. */
+const subscribeStatus = (listener: () => void) => {
+  statusViews.add(listener);
+  return () => {
+    statusViews.delete(listener);
+    // The last view has gone, and the animation that would have ended the
+    // remark went with it; nothing will end it now, so it is over.
+    if (statusViews.size === 0) {
+      status = undefined;
+    }
+  };
+};
+
+const readStatus = () => status;
+
+export const useSmartEqStatus = () =>
+  useSyncExternalStore(subscribeStatus, readStatus, readStatus);

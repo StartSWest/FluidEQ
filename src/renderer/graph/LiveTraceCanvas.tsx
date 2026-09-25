@@ -278,7 +278,11 @@ import {
   createSlopeFieldPaths,
   smoothSlopeColumns,
 } from './slopeField';
-import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
+import {
+  noteLookPreviewPainted,
+  resolveLookWaveform,
+  useLookPreviewPoints,
+} from './lookPreview';
 import {
   createAnalysisState,
   rampRgba,
@@ -391,6 +395,14 @@ const PRESENTATION_SETTLE_MS = 120;
 /** Below these the eased presentation values have arrived and are snapped. */
 const OPACITY_EPSILON = 0.002;
 const STROKE_WIDTH_EPSILON = 0.01;
+
+/**
+ * How near its shape a look preview has to rise before it counts as shown, in
+ * dB: a few pixels on this plot. The 0.05 dB the easing settles to takes ten
+ * half-lives, over a second on a look with a slow attack, and nobody sees the
+ * last of it; the preview would hang at the top for no visible reason.
+ */
+const PREVIEW_REACHED_DB = 1;
 
 /**
  * The fluid's wave, stroked the titlebar's way and only the titlebar's way.
@@ -707,6 +719,10 @@ const LiveTraceCanvas = ({
   // nothing else reading the analyser — the meter, the Smart EQ solver, the
   // rhythm game — should ever see an invented frame.
   const previewPoints = useLookPreviewPoints(livePoints, look.id);
+  // What the frame loop reports as painted: the preview's own identity, which
+  // is what lets it go, even where the drawing shows the floor in its place.
+  const previewPointsRef = useRef(previewPoints);
+  previewPointsRef.current = previewPoints;
   const points = useMemo(() => {
     if ((!ambient || !isPaused) && previewPoints.length > 0) {
       return previewPoints;
@@ -834,8 +850,14 @@ const LiveTraceCanvas = ({
       const rise = getEaseFactor(motionDeltaMs, tuning.attackMs);
       const fall = getEaseFactor(motionDeltaMs, tuning.releaseMs);
       let moving = false;
+      // A point still more than this short of what it was handed has not
+      // reached it yet. A look preview counts as painted only once none is.
+      let rising = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
+        if (distance > PREVIEW_REACHED_DB) {
+          rising = true;
+        }
         // In decibels, and a twentieth of one is far below what a pixel on
         // this graph can show. Tighter than this and the loop never settles:
         // something among three hundred points is always drifting, so it
@@ -1060,6 +1082,9 @@ const LiveTraceCanvas = ({
           state: analysisRef.current,
         });
         const settling = transitionRef.current.paint(context, now);
+        if (!settling && !rising) {
+          noteLookPreviewPainted(previewPointsRef.current);
+        }
         return settling || moved || moving;
       }
 
@@ -4680,6 +4705,9 @@ const LiveTraceCanvas = ({
       });
 
       const transitioning = transitionRef.current.paint(context, now);
+      if (!transitioning && !rising) {
+        noteLookPreviewPainted(previewPointsRef.current);
+      }
       return (
         transitioning ||
         moving ||

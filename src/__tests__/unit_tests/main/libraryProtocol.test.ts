@@ -75,7 +75,7 @@ import {
 // eslint-disable-next-line import/first
 import {
   handleLibraryMedia,
-  registerLibraryMediaScheme,
+  registerPrivilegedSchemes,
 } from '../../../main/library/libraryProtocol';
 // eslint-disable-next-line import/first
 import { trackIdForPath } from '../../../main/library/libraryScanner';
@@ -285,7 +285,7 @@ describe('the scheme privileges', () => {
   it('declares the scheme CORS-enabled, or Web Audio gets silence', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require -- the electron mock is only resolvable after the mocks above have run
     const { protocol } = require('electron');
-    registerLibraryMediaScheme();
+    registerPrivilegedSchemes();
     const [[[registered]]] = (protocol.registerSchemesAsPrivileged as jest.Mock)
       .mock.calls;
     expect(registered.scheme).toBe(LIBRARY_MEDIA_SCHEME);
@@ -295,5 +295,32 @@ describe('the scheme privileges', () => {
     expect(registered.privileges.stream).toBe(true);
     expect(registered.privileges.supportFetchAPI).toBe(true);
     expect(registered.privileges.bypassCSP).toBe(false);
+  });
+
+  /**
+   * The window's scripts keep their compiled code only because `file` is a
+   * code-cache scheme (`fileCodeCache.ts`), and Electron takes the list in one
+   * call per process — a second call elsewhere would be the bug. And nothing
+   * beyond the two privileges that needs: `file` given `bypassCSP`, CORS or
+   * service workers would widen what every local page may do for no reason.
+   */
+  it('makes file a code-cache scheme in the same one call, and nothing more', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require -- the electron mock is only resolvable after the mocks above have run
+    const { protocol } = require('electron');
+    const register = protocol.registerSchemesAsPrivileged as jest.Mock;
+    register.mockClear();
+    registerPrivilegedSchemes();
+    expect(register).toHaveBeenCalledTimes(1);
+    const [[schemes]] = register.mock.calls as [
+      { scheme: string; privileges: Record<string, boolean> }[],
+    ][];
+    expect(schemes.map((entry) => entry.scheme)).toEqual([
+      LIBRARY_MEDIA_SCHEME,
+      'file',
+    ]);
+    expect(schemes[1].privileges).toEqual({ standard: true, codeCache: true });
+    // The media scheme beside it is untouched by the addition.
+    expect(schemes[0].privileges.corsEnabled).toBe(true);
+    expect(schemes[0].privileges.codeCache).toBeUndefined();
   });
 });

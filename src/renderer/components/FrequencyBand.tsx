@@ -33,7 +33,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
+import { useLatestCall } from 'renderer/utils/utils';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
@@ -76,12 +76,6 @@ const FrequencyBand = forwardRef(
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
-    // How often a drag reaches the store and the engine: twenty times a
-    // second. The thumb itself follows the pointer on every event (see
-    // RangeInput); this is the cadence at which the response graph redraws
-    // and Equalizer APO is told. A hundred milliseconds — ten a second — was
-    // audible as steps while a band was dragged with music playing.
-    const INTERVAL = 50;
     const { setGlobalError, dispatchFilter } = useFluidEqShell();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
@@ -144,10 +138,13 @@ const FrequencyBand = forwardRef(
       [dispatchFilter, filter.id, onGainChange],
     );
 
-    const throttleSetGain = useThrottleAndExecuteLatest(
-      normalSetGain,
-      INTERVAL,
-    );
+    // How often a drag reaches the store and the engine: as often as the
+    // engine takes a write — one in flight, the newest position waiting
+    // behind it. The thumb itself follows the pointer on every event (see
+    // RangeInput). It was twenty times a second on a timer, which also held
+    // the last position back a twentieth of a second after the hand stopped;
+    // ten a second was audible as steps with music playing.
+    const throttleSetGain = useLatestCall(normalSetGain);
 
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
     const handleGainSubmit = useCallback(

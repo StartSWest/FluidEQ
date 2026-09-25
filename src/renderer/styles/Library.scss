@@ -38,7 +38,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the way `will-change: transform` does on `.center-workspace`. Measured
   // here, a `position: fixed; inset: 0` child came out at 192,90 1370x858 —
   // the card — rather than the window. The full-screen video is such a child.
-  // See the `:has()` rule below, which takes the containment away for as long
+  // See `is-video-full` below, which takes the containment away for as long
   // as one is up.
   container: library / inline-size;
   display: flex;
@@ -93,7 +93,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `.center-workspace`'s `will-change` caused, from a different direction,
   // and the same answer. Nothing queries the container while a video owns the
   // tab: the toolbar that measures itself against it is not on screen.
-  &:has(.library-video-stage.is-fullscreen) {
+  //
+  // `is-video-full` is the card's own word for its video stage being full
+  // screen (`LibraryWorkspace`). It was `:has(.library-video-stage
+  // .is-fullscreen)` here and in the rules below; see `is-resizing-up-next`
+  // for what asking the card's subtree cost.
+  &.is-video-full {
     container-type: normal;
     // NO FRAME. The card's border, corners, shadow and floor are what make it
     // one panel among several; with the picture filling the screen they are a
@@ -2812,7 +2817,14 @@ $library-wave-step: 4ms;
 // pointer: a transition there would trail every movement by the length of a
 // fold. Said in this selector rather than overridden by another one, which
 // this many `:not()`s would outrank.
-.library-workspace:not(:has(.library-up-next__splitter .is-dragging))
+//
+// `is-resizing-up-next` is the card saying so (`LibraryWorkspace`). It was
+// `:has(.library-up-next__splitter .is-dragging)`, and a queue row being
+// dragged wears `is-dragging` too, so picking one up or putting it down made
+// the browser ask the card's whole subtree again: measured in Chromium on a
+// windowed list of 14,000 rows, 9 ms of style work each time against 0.2 ms
+// with the class, and a scroll 1.2-1.8x the style work.
+.library-workspace:not(.is-resizing-up-next)
   > *:not(.library-up-next):not(.library-up-next__splitter):not(
     .library-toolbar-row
   ):not(.library-up-next__chip--over-video) {
@@ -2820,8 +2832,7 @@ $library-wave-step: 4ms;
 }
 
 // And the panel's own width follows the same drag.
-.library-workspace:has(.library-up-next__splitter .is-dragging)
-  .library-up-next {
+.library-workspace.is-resizing-up-next .library-up-next {
   transition: none;
 }
 
@@ -2951,7 +2962,7 @@ $library-wave-step: 4ms;
     top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
   }
 
-  &:has(.library-video-stage.is-fullscreen) {
+  &.is-video-full {
     // THE BROWSE BAR IS NOT DRAWN OVER A FULL-SCREEN PICTURE.
     //
     // It earns its place while the tab is a tab — it is how you leave the
@@ -3033,7 +3044,7 @@ $library-wave-step: 4ms;
 // arithmetic App.scss uses for the padding, said again here because there is
 // no way for one to read the other.
 .app-workspace.is-app-full.is-media-full.has-top-bar
-  .library-workspace:has(.library-video-stage.is-fullscreen) {
+  .library-workspace.is-video-full {
   .library-up-next,
   .library-up-next__splitter,
   .library-up-next__chip--over-video {
@@ -3069,7 +3080,7 @@ $library-wave-step: 4ms;
 // The queue panel itself is not in this list: it already moves for its fold,
 // and a list here would replace that one. Its own transitions carry the
 // slide out as well (`.library-up-next`, `--up-next-chrome`).
-.library-workspace:has(.library-video-stage.is-fullscreen) {
+.library-workspace.is-video-full {
   .library-video-stage__back,
   .library-up-next__splitter,
   .library-up-next__chip--over-video {
@@ -3079,8 +3090,7 @@ $library-wave-step: 4ms;
   }
 }
 
-#root.is-chrome-idle
-  .library-workspace:has(.library-video-stage.is-fullscreen) {
+#root.is-chrome-idle .library-workspace.is-video-full {
   .library-video-stage__back {
     // Up and out through the top edge it sits against.
     opacity: 0;
@@ -3099,7 +3109,7 @@ $library-wave-step: 4ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .library-workspace:has(.library-video-stage.is-fullscreen) {
+  .library-workspace.is-video-full {
     .library-video-stage__back,
     .library-up-next__splitter,
     .library-up-next__chip--over-video {
@@ -3117,7 +3127,7 @@ $library-wave-step: 4ms;
 // the ones nearest what plays next, which is the half of the list anybody
 // looks at in full screen.
 #root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
-  .library-workspace.has-video:has(.library-video-stage.is-fullscreen) {
+  .library-workspace.has-video.is-video-full {
   .library-up-next,
   .library-up-next__splitter {
     bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
