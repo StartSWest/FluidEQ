@@ -51,6 +51,23 @@ jest.mock('child_process', () => {
   return { execFile };
 });
 
+// The scan's other halves read the disks — Steam's libraries, Epic's
+// manifests, the Xbox app's folders on every drive letter — so on a Windows
+// machine with games installed this test got them back beside the script's
+// answer, and passed only where the disks had none (Linux has no drive
+// letters). Here the disks hold nothing, and everything the scan returns is
+// the script's.
+jest.mock('fs', () => {
+  const actual = jest.requireActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    existsSync: () => false,
+    readdirSync: () => {
+      throw Object.assign(new Error('no such directory'), { code: 'ENOENT' });
+    },
+  };
+});
+
 // eslint-disable-next-line import/first -- the process boundary is installed first
 import { scanGameLibraries } from '../../../main/gameScan';
 
