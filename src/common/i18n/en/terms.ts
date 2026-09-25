@@ -33,7 +33,7 @@ const terms = {
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel. Plus can also arrive without a payment. When FluidEQ offers a free trial, an account created on or after the day that offer began can take it once, for {trialDays} days, with no card and nothing charged when it ends. And a scene you publish that a moderator approves can earn you a month of Plus. Neither is a subscription: nothing renews them, and nothing is ever charged for them.',
+    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel. Plus can also arrive without a payment. When FluidEQ offers a free trial, an account created on or after the day that offer began can take it once, for {trialDays} days, with no card and nothing charged when it ends. And a scene you publish that a moderator approves can earn you a month of Plus. Neither is a subscription: nothing renews them, and nothing is ever charged for them. Once a scene of yours has earned a month, the Studio keeps one project open to you even without Plus, so you can publish your next scene; exporting a file stays with Plus.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p4':
@@ -225,6 +225,8 @@ const terms = {
     'Headphone presets: when FluidEQ opens, it checks GitHub for new headphone presets, and the Convolution tab downloads AutoEq files from GitHub when you open it or choose a headphone.',
   'terms.elsewhere.p3':
     'Models you use: the Karaoke Maker downloads its speech, vocal and melody models from Hugging Face, and the voice denoiser its model from GitHub. Your audio is processed on your computer.',
+  'terms.elsewhere.p9':
+    'Your AI assistant: only while “Let your AI see the stage” is on in the Studio (copying the prompt for your AI turns it on, unless you turned it off yourself), an AI tool on this computer that has your key can ask FluidEQ for pictures of your Studio scenes, with FluidEQ’s reasons when one cannot play, and for numbers describing how the music you play moves — never the sound itself, and never which song it is. What that tool does with them is under its own terms.',
   'terms.elsewhere.p4':
     'Share Audio: the audio, what is playing and this computer’s name go only to the computer you pair with on your local network, encrypted. This computer’s name is also announced on that network, so the other computer can find it.',
   'terms.elsewhere.p5':
