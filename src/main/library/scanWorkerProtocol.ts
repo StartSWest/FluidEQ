@@ -29,6 +29,7 @@ import {
   ILibraryScanProgress,
   ILibraryTrack,
 } from '../../common/library/types';
+import type { IKnownTrack } from './libraryScanDiscovery';
 
 export type IScanWorkerRequest =
   | {
@@ -36,7 +37,9 @@ export type IScanWorkerRequest =
       rootId: string;
       rootPath: string;
       userDataDir: string;
-      known: ILibraryTrack[];
+      /** Only what the walk reads of each known track; the host keeps the
+       * tracks themselves and is answered with places in this list. */
+      known: IKnownTrack[];
     }
   | { type: 'cancel' }
   | {
@@ -51,7 +54,17 @@ export type IScanWorkerResponse =
   | { type: 'tracks'; tracks: readonly ILibraryTrack[] }
   | {
       type: 'done';
+      /** The tracks this walk read or found, in the order they come in the
+       * result. */
       tracks: ILibraryTrack[];
+      /**
+       * The result, in order: for each track, the place in the request's
+       * `known` of the one carried forward unchanged, or -1 for the next of
+       * `tracks`. An unchanged library comes back as numbers rather than as
+       * fourteen thousand tracks main already has. Absent, `tracks` is the
+       * whole result.
+       */
+      knownAt?: number[];
       karaokeSkipped: number;
       wasCancelled: boolean;
     }

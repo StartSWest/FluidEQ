@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import nextTask from '../nextTask';
+
 export type TKaraokeChordQuality = 'major' | 'minor';
 
 export interface IKaraokeChordEstimate {
@@ -249,24 +251,6 @@ const normalizeChroma = (chroma: Float32Array) => {
   }
 };
 
-/**
- * Give the frame back, so a long analysis does not freeze the window.
- *
- * `requestAnimationFrame` rather than `setTimeout(0)`, and the difference is
- * the whole point of the function's name: this waits for the paint it exists to
- * allow, instead of for a zero that only happens to be scheduled near one.
- * `analyzeKaraokeChords` is awaited from `useKaraokeChordAnalysis`, a hook, so
- * this is the renderer's own thread and the callback is always there.
- *
- * A microtask would not do — `queueMicrotask` and a resolved promise both run
- * BEFORE the browser paints, so the loop would yield without ever letting
- * anything be drawn, which is the same freeze with more steps.
- */
-const yieldToRenderer = (): Promise<void> =>
-  new Promise((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-
 const smoothChordFrames = (
   frames: readonly IKaraokeChordFrameResult[],
 ): Array<string | undefined> =>
@@ -447,7 +431,12 @@ export const analyzeKaraokeChords = async (
     });
     options.onProgress?.((frameIndex + 1) / frameCount);
     if ((frameIndex + 1) % framesPerYield === 0) {
-      await yieldToRenderer();
+      // A task, so the window can paint and take a key between batches. Not an
+      // animation frame, which this waited for until it was found parked
+      // mid-song, holding the song's samples, in a minimised window — which
+      // runs no frames at all. A microtask would yield without letting
+      // anything be drawn.
+      await nextTask();
     }
   }
 

@@ -13,7 +13,7 @@ import {
 import { DSP_PRESETS, DSP_PRESET_GROUPS } from '../../common/dsp/presets';
 import { dspVoicingCurve } from '../../common/dsp/presetVoicing';
 import VoicingIcon from '../icons/VoicingIcon';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { exportDspChainPreset } from '../utils/equalizerApi';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
@@ -71,7 +71,7 @@ const DspChainPresetBar = ({
   onCommit,
 }: IDspChainPresetBarProps) => {
   const { t } = useTranslation();
-  const { voicing } = useFluidEqContext();
+  const { voicing } = useFluidEqLayers();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isNaming, setIsNaming] = useState(false);

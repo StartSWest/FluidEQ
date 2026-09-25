@@ -52,13 +52,13 @@ import type { ISongIdentity } from 'common/songIdentity';
 import type { ITone } from 'common/tone';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 
+import coalesceRequests from 'common/coalescedRequest';
 import {
   buildResponseHandler,
   sendRequest,
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
-import coalesceRequests from './coalescedRequest';
 
 // Re-exported: TSuccess and TError are the reply shapes the main process
 // builds, and every IPC module imports them from here.
@@ -326,13 +326,52 @@ export const importDeviceChain = (): Promise<IChainImport> => {
 };
 
 /**
+ * The list as the window last read it — see `readKnownAudioDevices`.
+ */
+let knownDevices: IAudioDevice[] | undefined;
+let isWatchingForChanges = false;
+
+/**
  * Coalesced: every panel that names an output re-reads this list on the same
  * output change, and each read is a PowerShell enumeration in main.
  */
-export const getAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
+const requestAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   return sendRequest(channel, [], simpleResponseHandler<IAudioDevice[]>());
 });
+
+/** Ask main for the list now — for the output panel's own refresh. */
+export const getAudioDevices = async (): Promise<IAudioDevice[]> => {
+  const devices = await requestAudioDevices();
+  knownDevices = devices;
+  return devices;
+};
+
+/**
+ * The list the window already holds, asked for only when it may have moved.
+ *
+ * The output panel reads the list every three seconds while the window is on
+ * screen (`DeviceProfiles`), and every page that names an output — the EQ's
+ * rate and the graph's, the DSP meters, the output being listened to — asked
+ * main again each time it was opened: one more PowerShell run per visit, for
+ * the list the panel had just read. The kept list is dropped whenever
+ * something says the outputs may have moved — an output change announced, or
+ * the window being come back to, where Sound settings may have been used — so
+ * a reader after either asks main exactly as before. Dropped in the capture
+ * phase, ahead of the readers' own listeners for the same events.
+ */
+export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
+  if (!isWatchingForChanges) {
+    isWatchingForChanges = true;
+    const forget = () => {
+      knownDevices = undefined;
+    };
+    window.addEventListener('fluideq-output-changed', forget, true);
+    window.addEventListener('focus', forget, true);
+    document.addEventListener('visibilitychange', forget, true);
+  }
+  return knownDevices ? Promise.resolve(knownDevices) : getAudioDevices();
+};
 
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;

@@ -346,7 +346,19 @@ $pet-hop-duration: 520ms;
 // Scaled off `--pet-joy` on both opacity and stroke width, because either alone
 // is lost at this size: the creature is 132px in the dialog and this lives
 // inside a 3.4px pupil.
+//
+// Out of the drawing without a streak. At zero joy the waves are fully
+// transparent, and their scroll still ran every frame in the titlebar, for
+// everybody, for the life of the window: an SVG child's motion is laid out
+// and painted on the main thread, never handed to the compositor. So they are
+// drawn only under `has-pet-joy`, set beside `--pet-joy` (`EuphoriaGlow.tsx`),
+// and taken out only once the fade to nothing is over — `display` waits the
+// fade's 260ms — so a run that ends keeps scrolling while it fades, as it did.
+// Hidden or shown, the eyes' and the body's boxes keep the same centre (the
+// waves run symmetrically about both eyes), so the blink and the breath pivot
+// where they always did.
 .support-pet__eye-waves {
+  display: none;
   fill: none;
   stroke: $secondary-light;
   stroke-width: calc(0.35px + var(--pet-joy, 0) * 0.55px);
@@ -354,11 +366,27 @@ $pet-hop-duration: 520ms;
   opacity: calc(var(--pet-joy, 0) * 0.95);
   transition:
     opacity 260ms ease-out,
-    stroke-width 260ms ease-out;
+    stroke-width 260ms ease-out,
+    display 0s linear 260ms allow-discrete;
 
   path {
     // Exactly one period per iteration, so the loop point is invisible.
     animation: pet-eye-scroll 900ms linear infinite;
+  }
+}
+
+:root.has-pet-joy .support-pet__eye-waves {
+  display: inline;
+  // Shown at once. Coming back from `display: none` there is no earlier style
+  // to fade from, so where the fade starts is stated: the waves at zero joy,
+  // which is where it started when they were always drawn.
+  transition:
+    opacity 260ms ease-out,
+    stroke-width 260ms ease-out;
+
+  @starting-style {
+    opacity: 0;
+    stroke-width: 0.35px;
   }
 }
 

@@ -11,6 +11,7 @@ import {
   MASTER_LOUDNESS_GAIN_MIN_DB,
 } from '../../common/dsp/chain';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
+import nextTask from '../../common/nextTask';
 import {
   ABSOLUTE_GATE_LUFS,
   SILENCE_DB,
@@ -51,19 +52,27 @@ export interface IAnalyzeInputOptions {
   measureNoise?: boolean;
 }
 
-const nextFrame = (): Promise<void> =>
-  new Promise((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
+/**
+ * Frames measured between two yields to the window.
+ *
+ * The meters cost about a microsecond a frame at 44.1 kHz — 41 ms of
+ * arithmetic per second of stereo, 57 ms with the noise floor, measured under
+ * Node — so the one-second chunk this loop used while it waited a frame per
+ * chunk held the thread for 41 to 57 ms at a time. It no longer waits for
+ * frames (`nextTask`), so a chunk only has to be short: 4096 frames is 4 to
+ * 5 ms at 44.1 kHz, and less at 96 and 192 kHz, where the true-peak meter
+ * oversamples less.
+ */
+const CHUNK_FRAMES = 4096;
 
 /**
  * Decode and measure one complete file before its constant gain is chosen.
  *
  * The measurement itself is `loudnessAnalysis.ts` — BS.1770 blocks and gates,
  * with the true peak taken in the same pass. What stays here is the part that
- * needs a renderer: decoding, and yielding once per second of programme so a
- * large lossless file does not freeze the window. Cancellation is checked at
- * that same boundary when the queue moves on.
+ * needs a renderer: decoding, and giving the thread back between short chunks
+ * so a large lossless file does not freeze the window. Cancellation is checked
+ * at that same boundary when the queue moves on.
  */
 export const analyzeInputTrack = async (
   bytes: ArrayBuffer,
@@ -126,19 +135,45 @@ export const analyzeInputTrack = async (
   const noiseAnalyzer = options.measureNoise
     ? createNoiseProfileAnalyzer(source.sampleRate, channelCount)
     : undefined;
-  const yieldFrames = Math.max(1, Math.round(source.sampleRate));
 
-  for (let from = 0; from < source.length; from += yieldFrames) {
-    const to = Math.min(source.length, from + yieldFrames);
-    analyzer.feed(channels, from, to);
-    edgeAnalyzer.feed(channels, from, to);
-    noiseAnalyzer?.feed(channels, from, to);
-    options.onProgress({ fraction: to / source.length });
-    // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
-    await nextFrame();
-    if (options.signal.aborted || options.isCancelled()) {
-      return undefined;
+  /**
+   * Progress, handed on at most once per painted frame.
+   *
+   * The loop runs a chunk every few milliseconds now, and each report
+   * re-renders the player's provider and the DSP panel through the store;
+   * nothing can show a fraction between two paints. A hidden window paints
+   * nothing, so it hears nothing until the end.
+   */
+  let fraction = 0;
+  let progressFrame = 0;
+  const reportProgress = () => {
+    progressFrame = 0;
+    options.onProgress({ fraction });
+  };
+  try {
+    for (let from = 0; from < source.length; from += CHUNK_FRAMES) {
+      const to = Math.min(source.length, from + CHUNK_FRAMES);
+      analyzer.feed(channels, from, to);
+      edgeAnalyzer.feed(channels, from, to);
+      noiseAnalyzer?.feed(channels, from, to);
+      fraction = to / source.length;
+      if (progressFrame === 0) {
+        progressFrame = requestAnimationFrame(reportProgress);
+      }
+      // A task, never an animation frame: a minimised or covered window runs
+      // no frames, and waiting for one parked the job after its first chunk
+      // holding the whole decoded file, deaf to the abort that replaced it.
+      // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
+      await nextTask(options.signal);
+      if (options.signal.aborted || options.isCancelled()) {
+        return undefined;
+      }
     }
+  } finally {
+    // A frame still pending would report after the final fraction, or after
+    // the job was dropped: the panel back on "analysing" over a finished or
+    // abandoned measurement.
+    cancelAnimationFrame(progressFrame);
   }
 
   const measurement = analyzer.finish();

@@ -54,6 +54,7 @@ import {
   OUTPUT_SWITCH_SETTLE_MS,
   SILENCE_ABORT_MS,
   SILENCE_HINT_MS,
+  SILENT_WAVEFORM,
   START_RETRY_MS,
   TRACK_REFERENCE_RELEASE_DB,
   UPDATE_INTERVAL_MS,
@@ -63,6 +64,7 @@ import {
   createFrequencyAxis,
   detectClipping,
   getPeakLevel,
+  isMeterAtRest,
   writeChannelWaveformPoints,
   writeFrequencyPoints,
   SPECTRUM_SMOOTHING,
@@ -776,6 +778,14 @@ const useLiveOutputSpectrum = () => {
       // changed identity to re-render, so the frame it is holding must not be
       // the one being overwritten. Two channels of two numbers is not much to
       // allocate, but it would be allocated thirty times a second forever.
+      //
+      // The waveform's pair and these share `levelSlot`, which says which one
+      // React holds and flips only when a frame is published. Resting in
+      // silence publishes nothing, so flipping every tick would have written
+      // the first loud frame into the array React already held and handed it
+      // back under the same identity: no render, and sound returning unseen.
+      let levelSlot = 0;
+      let isMeterResting = false;
       const meterFrames: [IOutputLevel[], IOutputLevel[]] = [
         meterAnalysers.map(() => ({
           levelDb: LEVEL_FLOOR_DB,
@@ -898,7 +908,8 @@ const useLiveOutputSpectrum = () => {
             Math.max(0, meterNowMs - lastMeterMs),
           );
           lastMeterMs = meterNowMs;
-          const meterFrame = meterFrames[bufferSlot];
+          const nextLevelSlot = levelSlot === 0 ? 1 : 0;
+          const meterFrame = meterFrames[nextLevelSlot];
           let anyChannelClipping = false;
           for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
             const channelSamples = meterSamples[channel];
@@ -929,13 +940,34 @@ const useLiveOutputSpectrum = () => {
             isClippingRef.current = anyChannelClipping;
             setIsClipping(anyChannelClipping);
           }
-          setWaveform(
-            writeChannelWaveformPoints(
-              buffers.waveform[bufferSlot],
-              meterSamples,
-            ),
+          const waveformFrame = writeChannelWaveformPoints(
+            buffers.waveform[nextLevelSlot],
+            meterSamples,
           );
-          setOutputLevels(meterFrame);
+          /*
+           * Silence is published once, and then not again until sound returns.
+           *
+           * A visible window never went idle: silence was published here
+           * thirty times a second for as long as it was open, a new waveform
+           * and level pair every tick, so every consumer of the frame
+           * re-rendered and both meters cleared and redrew the same rest. Now
+           * the frame that brings the last reading down to rest goes out as
+           * `SILENT_WAVEFORM`, and nothing after it, which is the rule
+           * `points` already follows. Every tick until then still goes out,
+           * so the meters reach the floor on the frames they always did; a
+           * reading counted in frames finishes on its own clock from there.
+           *
+           * A measurement keeps them coming. Smart EQ's countdown on the graph
+           * (`Chart.tsx`) is worked out again on each frame, and in a quiet
+           * gap between songs they are the only clock it has.
+           */
+          const isAtRest = !session && isMeterAtRest(waveformFrame, meterFrame);
+          if (!isAtRest || !isMeterResting) {
+            levelSlot = nextLevelSlot;
+            setWaveform(isAtRest ? SILENT_WAVEFORM : waveformFrame);
+            setOutputLevels(meterFrame);
+          }
+          isMeterResting = isAtRest;
         }
 
         if (!session) {

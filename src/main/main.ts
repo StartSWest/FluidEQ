@@ -47,12 +47,11 @@ import { execFile } from 'child_process';
 import { createHash } from 'crypto';
 import { redact } from '../common/bugReport';
 import {
-  checkConfigFile,
+  CONFIG_FILENAME,
   stateToApoFiles,
   getResolvedPreAmp,
   fetchSettings,
   save,
-  updateConfig,
   savePreset,
   fetchPreset,
   doesPresetExist,
@@ -66,6 +65,7 @@ import {
   scheduleWrite,
 } from './asyncWriter';
 import {
+  forgetApoInstall,
   getConfigPath,
   getFluidEngineDllPath,
   isEngineInstalled,
@@ -101,7 +101,6 @@ import ChannelEnum from '../common/channels';
 import { compressChainToLimit } from '../common/response';
 import {
   AutoEqFormat,
-  FilterTypeEnum,
   IState,
   IPresetV2,
   MAX_GAIN,
@@ -122,11 +121,9 @@ import {
   TApoLayer,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
-import {
-  getFixedBandSizeForCount,
-  ILayoutSnapshot,
-  snapshotFilters,
-} from '../common/layouts';
+import type { ILayoutSnapshot } from '../common/layouts';
+import { createLayoutSettingsStore } from './layoutSettings';
+import { createConfigInclude } from './configInclude';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
@@ -281,6 +278,7 @@ import {
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
 import onWindowMessage from './ipc/windowMessages';
+import { declineDefaultMenu } from './menu';
 
 /**
  * Declares the `fluideq-media:` scheme's privileges before the app is ready.
@@ -294,6 +292,10 @@ import onWindowMessage from './ipc/windowMessages';
  * points back here. See the doc comment on the function itself.
  */
 registerLibraryMediaScheme();
+
+// Before `ready` for the same reason: Electron builds its default menu then,
+// for an app that has not said it wants none. See `declineDefaultMenu`.
+declineDefaultMenu();
 
 /**
  * The updater exists only after Windows verifies which release channel this
@@ -893,7 +895,14 @@ const syncDatabasesOnStartup = async () => {
   });
 };
 
-if (process.platform !== 'win32') {
+// A sandbox for running from a checkout on macOS or Linux, where neither engine
+// can be installed. Only there: a packaged build took it too and kept every
+// setting, profile and cache in the temp folder, which Linux empties at boot
+// and macOS purges, so a start after a reboot began from nothing. Nothing is
+// copied over from it: no macOS or Linux build has been published (releases
+// carry only the Windows installer), and this is the folder development
+// writes to, which a copy would pour into an installed app.
+if (process.platform !== 'win32' && !app.isPackaged) {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
@@ -1103,95 +1112,25 @@ const hydrateActiveConvolution = () => {
   return false;
 };
 
-const LAYOUT_SETTINGS_FILENAME = 'layout-frequencies.json';
-interface ILayoutSettingsFile {
-  version: 1;
-  devices: Record<string, Record<string, ILayoutSnapshot>>;
-}
-
-const layoutSettingsPath = path.join(userDataDir, LAYOUT_SETTINGS_FILENAME);
-
-const loadLayoutSettings = (): ILayoutSettingsFile => {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(layoutSettingsPath, 'utf8')) as
-      Partial<ILayoutSettingsFile> | undefined;
-    if (parsed?.version !== 1 || !parsed.devices) {
-      throw new Error('Invalid layout settings');
-    }
-    return {
-      version: 1,
-      devices:
-        typeof parsed.devices === 'object'
-          ? (parsed.devices as ILayoutSettingsFile['devices'])
-          : {},
-    };
-  } catch {
-    return { version: 1, devices: {} };
-  }
-};
-
 // Deferred until after the per-output folders exist, since that is where the
 // profiles it repairs now live. See runStartupProfileMaintenance.
 
-const layoutSettings = loadLayoutSettings();
-
-const saveLayoutSettings = () => {
-  try {
-    fs.writeFileSync(
-      layoutSettingsPath,
-      JSON.stringify(layoutSettings, null, 2),
-      'utf8',
-    );
-  } catch (error) {
-    log.warn('Unable to save per-layout frequencies', error);
-  }
-};
+const layoutSettings = createLayoutSettingsStore(userDataDir);
 
 const getLayoutDeviceKey = () => session.activeAudioDeviceId || 'global';
 
-const getCurrentLayoutSize = () =>
-  getFixedBandSizeForCount(Object.keys(state.filters).length);
-
 const captureCurrentLayout = () => {
-  const size = getCurrentLayoutSize();
-  if (!size) {
-    return;
-  }
-  const deviceKey = getLayoutDeviceKey();
-  if (!layoutSettings.devices[deviceKey]) {
-    layoutSettings.devices[deviceKey] = {};
-  }
-  layoutSettings.devices[deviceKey][String(size)] = snapshotFilters(
-    state.filters,
-  );
-  saveLayoutSettings();
+  layoutSettings.capture(getLayoutDeviceKey(), state.filters);
 };
 
 const clearCurrentLayoutSettings = () => {
-  delete layoutSettings.devices[getLayoutDeviceKey()];
-  saveLayoutSettings();
+  layoutSettings.clear(getLayoutDeviceKey());
 };
 
 const getStoredLayout = (
   size: FixedBandSizeEnum,
-): ILayoutSnapshot | undefined => {
-  const snapshot = layoutSettings.devices[getLayoutDeviceKey()]?.[String(size)];
-  if (!Array.isArray(snapshot) || snapshot.length !== size) {
-    return undefined;
-  }
-  if (
-    !snapshot.every(
-      (band) =>
-        Number.isFinite(band.frequency) &&
-        Number.isFinite(band.gain) &&
-        Number.isFinite(band.quality) &&
-        Object.values(FilterTypeEnum).includes(band.type),
-    )
-  ) {
-    return undefined;
-  }
-  return snapshot;
-};
+): ILayoutSnapshot | undefined =>
+  layoutSettings.stored(getLayoutDeviceKey(), size);
 
 const getAutomaticPresetName = (deviceId: string) =>
   `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
@@ -1763,11 +1702,10 @@ const updateConfigPath = async (
     // this is a computed path; under 'apo' it is the registry lookup, which
     // throws when Equalizer APO is not installed.
     session.configPath = await getConfigPath(engine);
-    // Overwrite the config file if necessary
-    if (!checkConfigFile(session.configPath)) {
-      updateConfig(session.configPath);
-    }
+    // Watching before the include is read, so a change to config.txt after
+    // the read is one the watcher reports.
     startApoConfigWatcher();
+    configInclude.ensure(session.configPath);
   } catch (e) {
     handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
     return false;
@@ -1801,7 +1739,8 @@ const handleUpdateHelperCore = async <T>(
   // can be uninstalled while the app is running. Under 'fluid' this is a file
   // check plus the helper's last word on the registration, and no registry
   // probe: Equalizer APO being absent is not a failure when it is not the
-  // engine being written to.
+  // engine being written to. Under 'apo' it is a file check too, once the
+  // registry has answered for the session (`registry.ts`).
   const engine = session.audioEngine;
   if (engine === null) {
     handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
@@ -1823,9 +1762,7 @@ const handleUpdateHelperCore = async <T>(
       session.configPath = await getConfigPath(engine);
     }
     startApoConfigWatcher();
-    if (!checkConfigFile(session.configPath)) {
-      updateConfig(session.configPath);
-    }
+    configInclude.ensure(session.configPath);
     // Keep the root state, the disabled slider and the generated APO line on
     // the same automatic value. The writer derives this independently as its
     // final safety check; synchronizing here prevents the stored manual preamp
@@ -2079,6 +2016,12 @@ let watchedApoConfigPath = '';
 let apoWatchTimer: ReturnType<typeof setTimeout> | undefined;
 let apoSyncQueue: Promise<void> = Promise.resolve();
 
+/** Read once per folder the watcher below is on (`configInclude.ts`). */
+const configInclude = createConfigInclude(
+  (configPath) =>
+    apoConfigWatcher !== undefined && watchedApoConfigPath === configPath,
+);
+
 const persistExternallyAdoptedState = () => {
   save(state, userDataDir);
   const assignment =
@@ -2248,10 +2191,14 @@ function startApoConfigWatcher() {
       session.configPath,
       { persistent: false },
       (_eventType, fileName) => {
+        const name = fileName?.toString();
+        if (!name || name.toLowerCase() === CONFIG_FILENAME) {
+          configInclude.forget();
+        }
         if (
-          !fileName ||
+          !name ||
           /^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:driver|headphone|eq|voicing|smart|custom))?\.txt$/i.test(
-            fileName.toString(),
+            name,
           )
         ) {
           queueApoDiskSync();
@@ -2263,6 +2210,10 @@ function startApoConfigWatcher() {
       apoConfigWatcher?.close();
       apoConfigWatcher = undefined;
       watchedApoConfigPath = '';
+      configInclude.forget();
+      // A folder that cannot be watched any more is usually a folder that is
+      // gone, and the registry is what says where Equalizer APO's is now.
+      forgetApoInstall();
     });
   } catch (error) {
     apoConfigWatcher = undefined;
@@ -2447,6 +2398,10 @@ registerAudioEngineIpc({
     // send the next flush — the reflush this switch is about to run — into
     // the folder the app has just finished neutralising.
     session.configPath = '';
+    // And Equalizer APO's installation is asked of the registry again: the
+    // session keeps it between switches (`registry.ts`), and a switch is
+    // where somebody who has just installed or moved it comes back to it.
+    forgetApoInstall();
   },
   setSwitching: (isSwitching) => {
     session.engineSwitching = isSwitching;
@@ -3474,7 +3429,15 @@ const engineHealth = registerEngineHealthIpc({
   onHealth: songProgramme.onHealth,
 });
 
-if (process.env.NODE_ENV === 'production') {
+// Only in the build that has source maps: DEBUG_PROD is the one production
+// build the main webpack config gives a `devtool`, and every other one has its
+// maps deleted. Installed without them it still read the whole of main.js into
+// its cache on the first stack it formatted, and kept it, to map nothing. Both
+// halves of the test fold at build time, so a release does not bundle it.
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.DEBUG_PROD === 'true'
+) {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
 }

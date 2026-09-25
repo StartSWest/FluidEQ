@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
 import type { BrowserWindow, ThumbarButton } from 'electron';
+import { loadLocale } from 'common/i18n';
 import {
   ITaskbarTransportState,
   TASKBAR_TRANSPORT_STATE,
@@ -205,7 +206,7 @@ it('registers controls when starting minimized and keeps playback state current'
   expect(updates).toBe(2);
 });
 
-it('deduplicates state, changes glyph contrast with Windows, and localizes karaoke arrows', () => {
+it('deduplicates state, changes glyph contrast with Windows, and localizes karaoke arrows', async () => {
   publish();
   publish();
   expect(updates).toBe(1);
@@ -218,6 +219,10 @@ it('deduplicates state, changes glyph contrast with Windows, and localizes karao
     file: expect.stringContaining('play-dark.png'),
   });
   publish({ ...state, locale: 'es', navigation: 'boundaries' });
+  // Main holds only English until a language is asked for: the buttons go up
+  // in English and are written again once the dictionary has loaded.
+  expect(buttons[1].tooltip).toBe('Play');
+  await loadLocale('es');
   expect(buttons[1].tooltip).toBe('Reproducir');
   expect(buttons[0].tooltip).not.toBe('Previous');
   expect(buttons[2].tooltip).not.toBe('Next');

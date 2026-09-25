@@ -47,7 +47,7 @@ describe('persisted Karaoke session', () => {
   });
 
   it('restores the folder, active song, playhead and lazy audio token', async () => {
-    saveKaraokeSession(directory, {
+    await saveKaraokeSession(directory, {
       version: 1,
       files: [
         { localPath: audioPath, relativePath: 'Album/Song.mp3' },
@@ -58,7 +58,7 @@ describe('persisted Karaoke session', () => {
       playheadMs: 12_345,
     });
 
-    const restored = restoreKaraokeSession(directory);
+    const restored = await restoreKaraokeSession(directory);
     expect(restored).toMatchObject({
       playlistOrder: ['album/song.mp3'],
       selectedPlaylistId: 'album/song.mp3',
@@ -86,19 +86,116 @@ describe('persisted Karaoke session', () => {
     );
   });
 
-  it('drops missing files and clears the saved session', () => {
-    saveKaraokeSession(directory, {
+  it('drops missing files and clears the saved session', async () => {
+    await saveKaraokeSession(directory, {
       version: 1,
       files: [{ localPath: audioPath, relativePath: 'Song.mp3' }],
       playlistOrder: ['song.mp3'],
       playheadMs: 0,
     });
     fs.rmSync(audioPath);
-    expect(restoreKaraokeSession(directory)).toBeUndefined();
+    await expect(restoreKaraokeSession(directory)).resolves.toBeUndefined();
 
-    clearKaraokeSession(directory);
+    await clearKaraokeSession(directory);
     expect(fs.existsSync(path.join(directory, 'karaoke-session.json'))).toBe(
       false,
     );
+  });
+});
+
+/**
+ * A save off main's own thread, and only when there is something new to keep.
+ *
+ * Every save used to stat each playlist file with `statSync` and write with
+ * `writeFileSync`, on the thread every window message waits on, whether or not
+ * the snapshot had changed since the last one.
+ */
+describe('saving the Karaoke session', () => {
+  let directory: string;
+  let audioPath: string;
+  let sessionFile: string;
+
+  const snapshot = (playheadMs: number) => ({
+    version: 1 as const,
+    files: [{ localPath: audioPath, relativePath: 'Song.mp3' }],
+    playlistOrder: ['song.mp3'],
+    playheadMs,
+  });
+
+  /** How many times the session file itself has been replaced. */
+  const writesOfSession = (rename: jest.SpyInstance) =>
+    rename.mock.calls.filter(([, to]) => to === sessionFile).length;
+
+  beforeEach(() => {
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-karaoke-'));
+    audioPath = path.join(directory, 'Song.mp3');
+    sessionFile = path.join(directory, 'karaoke-session.json');
+    fs.writeFileSync(audioPath, Buffer.from([1, 2, 3, 4]));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  it('asks the disk nothing on main’s own thread', async () => {
+    const statSync = jest.spyOn(fs, 'statSync');
+    const writeFileSync = jest.spyOn(fs, 'writeFileSync');
+
+    await saveKaraokeSession(directory, snapshot(1_000));
+
+    expect(statSync).not.toHaveBeenCalled();
+    expect(writeFileSync).not.toHaveBeenCalled();
+    // The positive control: the session did reach the disk.
+    expect(JSON.parse(fs.readFileSync(sessionFile, 'utf8'))).toMatchObject({
+      files: [{ localPath: audioPath, relativePath: 'Song.mp3' }],
+      playheadMs: 1_000,
+    });
+  });
+
+  it('writes a snapshot identical to the last one written once', async () => {
+    const rename = jest.spyOn(fs.promises, 'rename');
+    const stat = jest.spyOn(fs.promises, 'stat');
+
+    await saveKaraokeSession(directory, snapshot(1_000));
+    expect(writesOfSession(rename)).toBe(1);
+    const statsForFirst = stat.mock.calls.length;
+
+    await saveKaraokeSession(directory, snapshot(1_000));
+    expect(writesOfSession(rename)).toBe(1);
+    // Nor were the playlist's files asked about again.
+    expect(stat.mock.calls.length).toBe(statsForFirst);
+
+    // The control: a snapshot that moved is written.
+    await saveKaraokeSession(directory, snapshot(2_000));
+    expect(writesOfSession(rename)).toBe(2);
+    expect(JSON.parse(fs.readFileSync(sessionFile, 'utf8')).playheadMs).toBe(
+      2_000,
+    );
+  });
+
+  it('restores what a save still on its way was asked to keep', async () => {
+    const saving = saveKaraokeSession(directory, snapshot(3_000));
+
+    const restored = await restoreKaraokeSession(directory);
+
+    expect(restored?.playheadMs).toBe(3_000);
+    await saving;
+  });
+
+  it('keeps a clear sent after a save cleared, and saves again after it', async () => {
+    await saveKaraokeSession(directory, snapshot(1_000));
+
+    const saving = saveKaraokeSession(directory, snapshot(4_000));
+    const clearing = clearKaraokeSession(directory);
+    await Promise.all([saving, clearing]);
+
+    expect(fs.existsSync(sessionFile)).toBe(false);
+    await expect(restoreKaraokeSession(directory)).resolves.toBeUndefined();
+
+    // The same snapshot as before the clear is not "already written": the
+    // file it was written to is gone.
+    await saveKaraokeSession(directory, snapshot(1_000));
+    expect(fs.existsSync(sessionFile)).toBe(true);
   });
 });

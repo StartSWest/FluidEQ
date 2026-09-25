@@ -293,13 +293,19 @@ const LibraryWorkspace = ({
       ? Math.min(UP_NEXT_MAX, Math.max(UP_NEXT_MIN, stored))
       : 260;
   });
-  useEffect(
-    () => writePersistedText(UP_NEXT_WIDTH_KEY, String(upNextWidth)),
-    [upNextWidth],
-  );
   /** The width the drag started from — the splitter reports a delta, not a
    * position, exactly as the karaoke panes' does. */
   const upNextResizeStartRef = useRef(upNextWidth);
+  /**
+   * The width the last drag step asked for, remembered once the drag ends.
+   *
+   * Not on every width: it was an effect on the width, so each pointer move
+   * of a drag wrote localStorage, which is synchronous, on the thread drawing
+   * the drag — `commitPaneSizes` writes on release for the same reason. A ref
+   * rather than the state, because a keyboard step is start, drag and end in
+   * one handler, where the end still sees the width from before the step.
+   */
+  const upNextDraggedToRef = useRef(upNextWidth);
 
   /** Not over a video: there the picture is the whole surface. */
   /**
@@ -1697,18 +1703,20 @@ const LibraryWorkspace = ({
                 onStart={() => {
                   upNextResizeStartRef.current = upNextWidth;
                 }}
-                onDrag={(delta) =>
-                  setUpNextWidth(
-                    Math.min(
-                      UP_NEXT_MAX,
-                      Math.max(
-                        UP_NEXT_MIN,
-                        upNextResizeStartRef.current - delta,
-                      ),
-                    ),
+                onDrag={(delta) => {
+                  const next = Math.min(
+                    UP_NEXT_MAX,
+                    Math.max(UP_NEXT_MIN, upNextResizeStartRef.current - delta),
+                  );
+                  upNextDraggedToRef.current = next;
+                  setUpNextWidth(next);
+                }}
+                onEnd={() =>
+                  writePersistedText(
+                    UP_NEXT_WIDTH_KEY,
+                    String(upNextDraggedToRef.current),
                   )
                 }
-                onEnd={() => undefined}
               />
             </div>
           )}

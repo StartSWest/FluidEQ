@@ -2312,7 +2312,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // space for it to sit above rather than over. With it gone the picture runs
 // the full height and the bar lies on top of it, which is what its translucent
 // gradient and its blur were built for and never previously used.
-#root:has(.app-workspace.is-app-full) {
+//
+// A child, not any descendant — `.app-workspace` is the root's own child, as
+// App.scss's rules on the same flag already say. Written as a descendant, it
+// made a change anywhere in the window a question the root's `:has()` might
+// have to answer again; as a child, only the root's own children are asked.
+#root:has(> .app-workspace.is-app-full) {
   padding-top: 0;
 }
 

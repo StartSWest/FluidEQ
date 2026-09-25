@@ -7,11 +7,14 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { execFile } from 'child_process';
+import { createHash } from 'crypto';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
+import { app } from 'electron';
 import log from 'electron-log';
 import { IAudioDevice } from '../common/constants';
+import coalesceRequests from '../common/coalescedRequest';
 import { POWERSHELL_PATH } from './powershell';
 
 const execFileAsync = promisify(execFile);
@@ -40,6 +43,58 @@ const getAudioDeviceScriptPath = () => {
     '../../assets/windows-audio-devices.ps1',
   );
   return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
+};
+
+const HELPER_PREFIX = 'audio-devices-';
+
+/**
+ * Where the script keeps its compiled helper between runs.
+ *
+ * The script's C# is compiled by `Add-Type`, which starts the C# compiler —
+ * csc.exe and its temp files — each time it runs, and the output list is read
+ * every few seconds while the window is open (`DeviceProfiles.tsx`), plus on
+ * every output change: the compile was most of each read. Measured under
+ * PowerShell 7, whose compiler runs in-process and is the cheaper of the two,
+ * a read took ≈1.0–1.3 s compiling and ≈0.6 s loading the kept helper.
+ *
+ * Named by the script's own hash, so a new version of the script compiles
+ * once and never loads an older helper, and the helpers of older versions are
+ * removed. Undefined — the script then compiles in memory, as every run used
+ * to — when the folder cannot be made; the script does the same on its own
+ * for a helper that is missing, half written or refused.
+ */
+let helperAssembly: Promise<string | undefined> | undefined;
+const getHelperAssemblyPath = (): Promise<string | undefined> => {
+  helperAssembly ??= (async () => {
+    try {
+      const script = await fs.promises.readFile(getAudioDeviceScriptPath());
+      const digest = createHash('sha256')
+        .update(script)
+        .digest('hex')
+        .slice(0, 16);
+      const folder = path.join(app.getPath('userData'), 'helpers');
+      await fs.promises.mkdir(folder, { recursive: true });
+      const name = `${HELPER_PREFIX}${digest}.dll`;
+      const stale = (await fs.promises.readdir(folder)).filter(
+        (file) => file.startsWith(HELPER_PREFIX) && file !== name,
+      );
+      // A helper still loaded by a run in flight cannot be removed yet; the
+      // next launch removes it.
+      await Promise.allSettled(
+        stale.map((file) => fs.promises.rm(path.join(folder, file))),
+      );
+      return path.join(folder, name);
+    } catch (error) {
+      log.warn('Output list: compiling its helper on every read', error);
+      return undefined;
+    }
+  })();
+  return helperAssembly;
+};
+
+const helperArguments = async (): Promise<string[]> => {
+  const assembly = await getHelperAssemblyPath();
+  return assembly === undefined ? [] : ['-AssemblyPath', assembly];
 };
 
 /**
@@ -104,50 +159,58 @@ export const filterVisibleAudioDevices = (
   });
 };
 
-export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
-  if (process.platform !== 'win32') {
-    return [
-      {
-        id: 'demo-speakers',
-        name: 'Demo Speakers (Windows discovery runs on Windows)',
-        guid: '{DEMO-SPEAKERS}',
-        isDefault: true,
-        isActive: true,
-        isEqualizerApoAttached: true,
-        isFluidEngineAttached: true,
-        canHostEffects: true,
-      },
-      {
-        id: 'demo-headphones',
-        name: 'Demo Headphones',
-        guid: '{DEMO-HEADPHONES}',
-        isDefault: false,
-        isActive: true,
-        isEqualizerApoAttached: true,
-        isFluidEngineAttached: true,
-        canHostEffects: true,
-      },
-    ];
-  }
+/**
+ * The endpoints Windows has, read by one PowerShell run however many callers
+ * ask at once — see `coalesceRequests` for who shares an answer and who waits
+ * for the next one.
+ */
+export const discoverAudioDevices = coalesceRequests(
+  async (): Promise<IAudioDevice[]> => {
+    if (process.platform !== 'win32') {
+      return [
+        {
+          id: 'demo-speakers',
+          name: 'Demo Speakers (Windows discovery runs on Windows)',
+          guid: '{DEMO-SPEAKERS}',
+          isDefault: true,
+          isActive: true,
+          isEqualizerApoAttached: true,
+          isFluidEngineAttached: true,
+          canHostEffects: true,
+        },
+        {
+          id: 'demo-headphones',
+          name: 'Demo Headphones',
+          guid: '{DEMO-HEADPHONES}',
+          isDefault: false,
+          isActive: true,
+          isEqualizerApoAttached: true,
+          isFluidEngineAttached: true,
+          canHostEffects: true,
+        },
+      ];
+    }
 
-  const { stdout } = await execFileAsync(
-    // Absolute, never a bare name: libuv searches the current directory before
-    // PATH, and a shortcut-launched Electron app has its install directory as
-    // the current directory. See the comment on the constant.
-    POWERSHELL_PATH,
-    [
-      '-NoLogo',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      getAudioDeviceScriptPath(),
-    ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
-  );
-  return filterVisibleAudioDevices(parseDeviceJson(stdout));
-};
+    const { stdout } = await execFileAsync(
+      // Absolute, never a bare name: libuv searches the current directory before
+      // PATH, and a shortcut-launched Electron app has its install directory as
+      // the current directory. See the comment on the constant.
+      POWERSHELL_PATH,
+      [
+        '-NoLogo',
+        '-NoProfile',
+        '-NonInteractive',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        getAudioDeviceScriptPath(),
+        ...(await helperArguments()),
+      ],
+      { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+    );
+    return filterVisibleAudioDevices(parseDeviceJson(stdout));
+  },
+);
 
 export const setDefaultAudioDevice = async (deviceId: string) => {
   if (process.platform !== 'win32') {
@@ -172,6 +235,7 @@ export const setDefaultAudioDevice = async (deviceId: string) => {
       getAudioDeviceScriptPath(),
       '-SetDefaultDeviceId',
       deviceId,
+      ...(await helperArguments()),
     ],
     { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
   );

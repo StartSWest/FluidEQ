@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 import { useEffect } from 'react';
 import { ANALYSIS_BINS, IHostAnalysis } from '../../common/dsp/analysisWire';
-import { getAudioDevices } from '../utils/equalizerApi';
+import { readKnownAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import { createNativeMeters } from './nativeMeters';
 import { setDspSampleRate } from './store';
@@ -84,7 +84,7 @@ const useSystemMeters = (enabled: boolean): void => {
       }
       const current = generation;
       try {
-        const devices = await getAudioDevices();
+        const devices = await readKnownAudioDevices();
         if (disposed || current !== generation) {
           return;
         }

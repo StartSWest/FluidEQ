@@ -10,6 +10,7 @@ import {
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
+import textDigest from 'common/textDigest';
 import { isOnBattery } from 'renderer/utils/batteryPower';
 import observeShown from 'renderer/utils/observeShown';
 import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
@@ -75,8 +76,19 @@ const paceMsOf = (
  * run of frames this session, by every runner in the window. A scene built
  * again — full screen and back, a look put away and taken out, a lost
  * context restored — starts its ladder there rather than from the bottom.
+ *
+ * Keyed by a digest of the program, never by its text. The key used to carry
+ * the whole shader source, and nothing leaves this map: every Studio save
+ * that ran long enough to prove a size kept its own copy of the source — up
+ * to `MAX_MEMBER_SOURCE_BYTES`, 256 KB — for the rest of the session. A
+ * digest is a few bytes, so one entry per program ever proved costs nothing
+ * worth evicting.
  */
 const provenScales = new Map<string, number>();
+
+/** `provenScales`'s key: the runner, and what makes two builds one program. */
+const ladderProgramOf = (identity: string, pack: IScenePack): string =>
+  `${identity}\n${textDigest(sceneProgramKey(pack))}`;
 
 /** Frames a size has to be held for before it counts as proved. */
 const PROVEN_FRAMES = SCENE_SLOW_FRAMES_TO_STEP;
@@ -174,7 +186,7 @@ export default function useSceneRunner({
    */
   const readyGenerationRef = useRef<number | undefined>(undefined);
   /**
-   * The program (`sceneProgramKey`) the size ladder has been climbing with.
+   * The program (`ladderProgramOf`) the size ladder has been climbing with.
    * The same program built again — in a fresh worker, once the scene is seen
    * again after being put away — keeps the size it had already proved it can
    * draw; the warm-up started from an eighth again on every return to the
@@ -714,7 +726,7 @@ export default function useSceneRunner({
         paramsRef.current = Object.fromEntries(
           pack.params.map((param) => [param.id, param.value]),
         );
-        const program = `${sourceRef.current.identity}\n${sceneProgramKey(pack)}`;
+        const program = ladderProgramOf(sourceRef.current.identity, pack);
         if (result.rebuilt && program !== ladderProgramRef.current) {
           ladderRef.current = sourceRef.current.createLadder(
             ladderTopRef.current,

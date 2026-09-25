@@ -18,7 +18,11 @@ import { getBandColor } from '../utils/bandColors';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreamp, useEnginePreampReader } from '../utils/enginePreamp';
 import { setGain, setMainPreAmp } from '../utils/equalizerApi';
-import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
+import {
+  FilterActionEnum,
+  useFluidEqContext,
+  useFluidEqShell,
+} from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { sortHelper, useThrottleAndExecuteLatest } from '../utils/utils';
 import PlayerFader from './PlayerFader';
@@ -55,7 +59,7 @@ interface IMiniBandProps {
 
 /** One band: the player's own fader in the band's colour, its frequency. */
 const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
-  const { dispatchFilter, setGlobalError } = useFluidEqContext();
+  const { dispatchFilter, setGlobalError } = useFluidEqShell();
   // The screen first, then the engine — the order the EQ page keeps, so the
   // slider does not jitter while the write is on its way.
   const write = useCallback(

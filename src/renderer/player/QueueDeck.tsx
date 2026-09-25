@@ -350,7 +350,11 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
                 >
                   <span className="player-queue__number" aria-hidden="true">
                     {isNow ? (
-                      <span className="player-queue__bars">
+                      <span
+                        className={`player-queue__bars${
+                          source?.isPlaying ? '' : ' is-paused'
+                        }`}
+                      >
                         <span />
                         <span />
                         <span />

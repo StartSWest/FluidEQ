@@ -21,7 +21,7 @@ import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
 import RoomOutputNotice from './components/RoomOutputNotice';
 import { IOptionEntry } from './widgets/List';
-import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 import { openWindowsSoundSettings } from './utils/soundSettings';
@@ -38,6 +38,16 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
   version: 1,
   assignments: {},
 };
+
+/**
+ * The value already held when the new one says the same thing.
+ *
+ * By their JSON, which is what they crossed the process boundary as: a
+ * handful of outputs and one small settings object, cheaper to compare than
+ * to render.
+ */
+const keepIfUnchanged = <Value,>(current: Value, next: Value): Value =>
+  JSON.stringify(current) === JSON.stringify(next) ? current : next;
 
 interface IDeviceProfilesProps {
   /**
@@ -63,7 +73,7 @@ const DeviceProfiles = ({
   // start-up screen, so noticing a headphone plug used to blank the whole
   // workspace and rebuild it instead of moving the bands to that output's
   // profile. See the same note in PresetsBar.
-  const { isBlockingError, refreshState, setGlobalError } = useFluidEqContext();
+  const { isBlockingError, refreshState, setGlobalError } = useFluidEqShell();
   const { t } = useTranslation();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
@@ -86,8 +96,11 @@ const DeviceProfiles = ({
         getAudioDevices(),
         getDeviceProfileSettings(),
       ]);
-      setDevices(nextDevices);
-      setSettings(nextSettings);
+      // Kept when nothing in them moved. Every answer arrives as new arrays,
+      // and handing React those re-rendered the whole panel with the list it
+      // already showed — every three seconds, for the life of the window.
+      setDevices((current) => keepIfUnchanged(current, nextDevices));
+      setSettings((current) => keepIfUnchanged(current, nextSettings));
       const activeDevice = nextDevices.find((device) => device.isDefault);
       if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
         activeDeviceIdRef.current = activeDevice.id;

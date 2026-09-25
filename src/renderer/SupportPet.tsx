@@ -330,11 +330,11 @@ export const buildEyeWave = (centreX: number, centreY: number) => {
  * the two can never drift apart.
  *
  * In a frame of its own because it moves every frame while music plays — it
- * breathes, and the wave scrolls in its eyes — and a drawing that moves has to
- * be laid out again. Standing straight in the grid that centres it, it had
- * the browser lay out the whole window with it each time: a grid's item is
- * never laid out on its own. Inside the frame the drawing is, so the moving
- * creature costs its own few shapes and nothing around it.
+ * breathes, and during a streak the wave scrolls in its eyes — and a drawing
+ * that moves has to be laid out again. Standing straight in the grid that
+ * centres it, it had the browser lay out the whole window with it each time: a
+ * grid's item is never laid out on its own. Inside the frame the drawing is,
+ * so the moving creature costs its own few shapes and nothing around it.
  */
 export function PetArt() {
   return (
@@ -399,7 +399,9 @@ export function PetArt() {
               rather than drawn over it. Invisible at rest and brightening with
               the streak — see `--pet-joy`. Always in the markup rather than
               mounted on demand, so nothing re-renders mid-run to make it
-              appear. */}
+              appear; left out of the drawing by the stylesheet while there is
+              no streak (`has-pet-joy`), so it scrolls only while it can be
+              seen. */}
             <g className="support-pet__eye-waves">
               <g clipPath="url(#pet-eye-left)">
                 <path d={buildEyeWave(15.4, 22)} />

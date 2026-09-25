@@ -32,8 +32,11 @@ import observeShown from './observeShown';
  * have to be threaded through every component in between and would only be as
  * current as the last re-render, which for a component that has stopped
  * re-rendering is not current at all.
+ *
+ * Exported for the page's other drawing held to the same budget (the Ambient
+ * layer), so the two cannot drift apart.
  */
-const getFrameBudget = () =>
+export const getFrameBudget = () =>
   document.documentElement.classList.contains('is-euphoric')
     ? EUPHORIA_FRAME_MS
     : SMOOTH_FRAME_MS;

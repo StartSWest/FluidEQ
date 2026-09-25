@@ -14,7 +14,7 @@ import {
   PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
 } from '../../../common/plusTerms';
-import { LOCALES, translate } from '../../../common/i18n';
+import { LOCALES, loadLocale, translate } from '../../../common/i18n';
 import AccountDialog from '../../../renderer/account/AccountDialog';
 import { termsValues } from '../../../renderer/account/PlusTermsDocument';
 import {
@@ -79,6 +79,10 @@ const agreeButton = () =>
   screen.getByRole('button', { name: 'terms.agree.continue' });
 
 describe('the Plus terms', () => {
+  // Every language but English is a chunk of its own, loaded when it is
+  // first chosen; these read all ten, so all ten are loaded first.
+  beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockEntitlement = { state: 'none' };

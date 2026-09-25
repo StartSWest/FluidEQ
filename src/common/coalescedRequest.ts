@@ -26,6 +26,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * current one settles. So every answer handed out was asked for after its
  * caller had reason to ask, a burst costs one request, and a burst overlapping
  * one already out costs two.
+ *
+ * Main enumerates by the same rule (`audioDevices.ts`): the window's request,
+ * the profile switch, the Equalizer APO guard, the output mirror and a bug
+ * report each ran their own PowerShell whenever they overlapped.
  */
 const coalesceRequests = <Type>(
   request: () => Promise<Type>,

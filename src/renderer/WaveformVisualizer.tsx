@@ -104,6 +104,10 @@ import {
 } from './audio/LiveAudioContext';
 import LiveFigure from './components/LiveFigure';
 import type { IChartPointData } from './graph/ChartController';
+import {
+  SILENT_WAVEFORM,
+  UPDATE_INTERVAL_MS,
+} from './graph/liveSpectrumFrames';
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
 import {
@@ -133,6 +137,30 @@ const isWaveformCycleStyle = (
   value: string | null,
 ): value is TWaveformCycleStyle =>
   value === 'off' || WAVEFORM_STYLES.includes(value as WaveformStyle);
+
+/**
+ * The held peak one published frame later: up to a louder frame at once,
+ * otherwise down by `PEAK_RELEASE_DB`, and gone below `SILENCE_DB`.
+ *
+ * Rounded to the decimal the readout shows, so a change the reader could not
+ * see never reaches React.
+ */
+const nextHeldPeak = (
+  previous: number | undefined,
+  framePeak: number | undefined,
+): number | undefined => {
+  let next: number | undefined;
+  if (
+    framePeak !== undefined &&
+    (previous === undefined || framePeak > previous)
+  ) {
+    next = framePeak;
+  } else if (previous !== undefined) {
+    const released = previous - PEAK_RELEASE_DB;
+    next = released > SILENCE_DB ? released : undefined;
+  }
+  return next === undefined ? undefined : Math.round(next * 10) / 10;
+};
 
 const WaveformVisualizer = () => {
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -497,6 +525,33 @@ const WaveformVisualizer = () => {
       return false;
     }
 
+    // The held peak lets go a step per published frame, and the capture's
+    // resting frame is the last one until sound returns, so a peak still
+    // showing then would stand on a number the silence left behind. From
+    // there it steps down here instead, once per `UPDATE_INTERVAL_MS` — the
+    // cadence the frames it is standing in for would have arrived at — and
+    // holds still while paused, as it did when a paused capture sent none.
+    if (
+      targetRef.current === SILENT_WAVEFORM &&
+      heldPeakRef.current !== undefined &&
+      !isPausedRef.current
+    ) {
+      restReleaseMsRef.current += deltaMs;
+      let held: number | undefined = heldPeakRef.current;
+      while (
+        held !== undefined &&
+        restReleaseMsRef.current >= UPDATE_INTERVAL_MS
+      ) {
+        restReleaseMsRef.current -= UPDATE_INTERVAL_MS;
+        held = nextHeldPeak(held, undefined);
+      }
+      if (held !== heldPeakRef.current) {
+        heldPeakRef.current = held;
+        setHeldPeak(held);
+      }
+      moving = moving || held !== undefined;
+    }
+
     // Spectrum bars — imperative rather than through the shape, because
     // each bar carries its own hue and its own vertical gradient and a
     // single shared fillStyle on a Path2D can express neither. Ported
@@ -799,28 +854,17 @@ const WaveformVisualizer = () => {
   // this pane is a bitmap.
   const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);
   const heldPeakRef = useRef<number | undefined>(undefined);
+  // How long the loop has drawn the capture's resting frame since the held
+  // peak last stepped down — see the release in `drawFrame`.
+  const restReleaseMsRef = useRef(0);
 
   useEffect(() => {
     if (isOff) {
       return;
     }
-    const framePeak = peakDbOf(waveform);
-    const previous = heldPeakRef.current;
-    let next: number | undefined;
-
-    if (
-      framePeak !== undefined &&
-      (previous === undefined || framePeak > previous)
-    ) {
-      next = framePeak;
-    } else if (previous !== undefined) {
-      const released = previous - PEAK_RELEASE_DB;
-      next = released > SILENCE_DB ? released : undefined;
-    }
-
-    // Rounded to the decimal the readout shows, so a change the reader
-    // could not see never reaches React.
-    const shown = next === undefined ? undefined : Math.round(next * 10) / 10;
+    // A published frame is a step of its own; the rest clock counts from it.
+    restReleaseMsRef.current = 0;
+    const shown = nextHeldPeak(heldPeakRef.current, peakDbOf(waveform));
     if (shown !== heldPeakRef.current) {
       heldPeakRef.current = shown;
       setHeldPeak(shown);

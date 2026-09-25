@@ -2403,6 +2403,18 @@ textarea,
   min-width: 0;
 }
 
+// Read by `.middle-content` alone, and written on it on every pointer move of
+// a divider drag. Registered as not inherited, so each write restyles that one
+// element: as an ordinary custom property it was inherited by every element of
+// the open page, and each pixel of a drag restyled all of them.
+//
+// No initial value: unset, it stays the guaranteed-invalid value, so the
+// `auto` fallback below still applies wherever the divider has not set it.
+@property --editor-height {
+  syntax: '*';
+  inherits: false;
+}
+
 // The top half of the split. `--editor-height` is what the divider sets.
 //
 // Height, not a ceiling, for three of the four tabs: the player has no natural

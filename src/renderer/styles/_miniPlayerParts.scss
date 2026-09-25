@@ -288,15 +288,53 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Paused part-way, the clock blinks, as a deck's did.
-.player-clock.is-paused .led-clock .is-lit {
+// Paused part-way, the clock blinks, as a deck's did: lit for half a second,
+// a ghost for the next.
+//
+// One animation, on the clock, which every lit segment reads. It was one on
+// each lit segment — a dozen and more of them — and fill and filter are not
+// properties the compositor can animate, so every one was restyled on the
+// main thread on every frame of the pause, however long the pause. Now the
+// clock is, and the segments change twice a second, when the blink does. At
+// 1 the mixes below are exactly the lit segment's ink and glow; at 0 the
+// ghost's fill, under a shadow of nothing.
+@property --player-led-lit {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+.player-clock.is-paused {
   animation: player-led-blink 1s steps(1) infinite;
+
+  .led-clock .is-lit {
+    fill: color-mix(
+      in srgb,
+      var(--player-ink) calc(var(--player-led-lit) * 100%),
+      var(--player-lcd-ghost)
+    );
+    filter: drop-shadow(
+      0 0 3px
+        color-mix(
+          in srgb,
+          var(--player-glow) calc(var(--player-led-lit) * 100%),
+          transparent
+        )
+    );
+  }
 }
 
 @keyframes player-led-blink {
   50% {
-    fill: var(--player-lcd-ghost);
-    filter: none;
+    --player-led-lit: 0;
+  }
+}
+
+// Lit and still. `_miniPlayerSliders.scss` stands the blink down by naming
+// the segments, which no longer carry it.
+@media (prefers-reduced-motion: reduce) {
+  .player-clock.is-paused {
+    animation: none;
   }
 }
 

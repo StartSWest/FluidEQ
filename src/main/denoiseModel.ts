@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import log from 'electron-log';
+import { saveDownload } from './modelDownload';
 
 /**
  * The Voice module's model, downloaded once when the user asks for it.
@@ -173,10 +174,10 @@ let downloading = false;
 /**
  * Fetch the model to disk, verify it, and only then put it where it is found.
  *
- * Read whole and then written, never streamed through `pipeline`: fetch plus
- * pipeline crashes inside Node's HTTP parser when the disk is slower than the
- * socket, and it does so AFTER every byte has arrived — which looks exactly
- * like a flaky mirror and is not.
+ * Written chunk by chunk as it arrives, never streamed through `pipeline`:
+ * fetch plus pipeline crashes inside Node's HTTP parser when the disk is
+ * slower than the socket, and it does so AFTER every byte has arrived — which
+ * looks exactly like a flaky mirror and is not (`modelDownload.ts`).
  *
  * Written under a temporary name and renamed only once the hash matches, so a
  * crash or a truncated download cannot leave a file that looks cached forever
@@ -192,51 +193,32 @@ export const downloadDenoiseModel = async (
     return false;
   }
   downloading = true;
-  const target = denoiseModelPath();
-  const temporary = `${target}.download`;
   try {
-    fs.mkdirSync(modelDir(), { recursive: true });
+    await fs.promises.mkdir(modelDir(), { recursive: true });
     const response = await fetch(MODEL_URL);
     if (!response.ok || !response.body) {
       return false;
     }
-    const total = Number(response.headers.get('content-length') ?? MODEL_BYTES);
-    const reader = response.body.getReader();
-    const parts: Uint8Array[] = [];
-    let received = 0;
-    for (;;) {
-      // eslint-disable-next-line no-await-in-loop -- a stream is read in order.
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      parts.push(value);
-      received += value.length;
-      onProgress({ received, total });
-    }
-    const bytes = Buffer.concat(parts);
-    const digest = createHash('sha256').update(bytes).digest('hex');
-    if (digest !== MODEL_SHA256) {
-      // Not a warning. A model whose bytes we cannot identify does not go into
-      // the audio path, and leaving the file behind would make the next
-      // attempt trust it.
-      log.error(`denoise model: sha256 ${digest}, expected ${MODEL_SHA256}`);
-      return false;
-    }
-    fs.writeFileSync(temporary, bytes);
-    fs.renameSync(temporary, target);
-    return true;
+    return await saveDownload({
+      body: response.body,
+      total: Number(response.headers.get('content-length') ?? MODEL_BYTES),
+      target: denoiseModelPath(),
+      onBytes: (received, total) => onProgress({ received, total }),
+      accept: (digest) => {
+        if (digest === MODEL_SHA256) {
+          return true;
+        }
+        // Not a warning. A model whose bytes we cannot identify does not go
+        // into the audio path, and leaving the file behind would make the
+        // next attempt trust it.
+        log.error(`denoise model: sha256 ${digest}, expected ${MODEL_SHA256}`);
+        return false;
+      },
+    });
   } catch (error) {
     log.error('denoise model download failed', error);
     return false;
   } finally {
-    try {
-      if (fs.existsSync(temporary)) {
-        fs.unlinkSync(temporary);
-      }
-    } catch {
-      // A leftover temporary is harmless; it is overwritten next attempt.
-    }
     downloading = false;
   }
 };

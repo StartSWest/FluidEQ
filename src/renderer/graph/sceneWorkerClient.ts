@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
@@ -78,7 +79,12 @@ const startSceneWorker = () =>
     ),
   );
 
-/** Programs compiled ahead of being seen this session, by `sceneProgramKey`. */
+/**
+ * Programs compiled ahead of being seen this session, by a digest of their
+ * `sceneProgramKey`: that key carries the whole shader source, up to 256 KB
+ * for a member scene, and nothing leaves this set — every Studio save warmed
+ * kept a copy of its source for the rest of the session.
+ */
 const warmed = new Set<string>();
 
 /**
@@ -94,14 +100,15 @@ const warmed = new Set<string>();
  */
 export const warmSceneProgram = (pack: IScenePack, guarded: boolean): void => {
   const key = sceneProgramKey(pack);
+  const warmedKey = textDigest(key);
   if (
-    warmed.has(key) ||
+    warmed.has(warmedKey) ||
     typeof Worker === 'undefined' ||
     typeof OffscreenCanvas === 'undefined'
   ) {
     return;
   }
-  warmed.add(key);
+  warmed.add(warmedKey);
   takeLinkTurn(key)
     .then((release) => {
       let worker: Worker;
@@ -109,7 +116,7 @@ export const warmSceneProgram = (pack: IScenePack, guarded: boolean): void => {
         worker = startSceneWorker();
       } catch {
         release();
-        warmed.delete(key);
+        warmed.delete(warmedKey);
         return undefined;
       }
       const end = () => {
@@ -120,7 +127,7 @@ export const warmSceneProgram = (pack: IScenePack, guarded: boolean): void => {
       worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
         if (data.kind === 'loaded') {
           if (data.result.kind !== 'ready') {
-            warmed.delete(key);
+            warmed.delete(warmedKey);
           }
           // Retired rather than ended: see `dispose` below.
           worker.postMessage({ kind: 'retire' } satisfies TSceneWorkerRequest);
@@ -135,7 +142,7 @@ export const warmSceneProgram = (pack: IScenePack, guarded: boolean): void => {
       worker.postMessage(load);
       return undefined;
     })
-    .catch(() => warmed.delete(key));
+    .catch(() => warmed.delete(warmedKey));
 };
 
 export const createSceneWorkerClient = (

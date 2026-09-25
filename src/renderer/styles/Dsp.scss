@@ -1154,11 +1154,16 @@ $dsp-rail-offset: 110ms;
   background: $track-well;
 }
 
+// The track's whole width, slid left by what the peak falls short of
+// (`meterFill` in `DspNormalizerReadouts.tsx`): a width set with every host
+// frame laid the window out with it, a transform lays nothing out. Empty
+// until the meter places it.
 .dsp-normalizer-meter-fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0;
   border-radius: inherit;
-  transition: width 70ms linear;
+  transform: translateX(-100%);
+  transition: transform 70ms linear;
 
   &.is-before {
     background: color-mix(in srgb, var(--dsp-contrast) 46%, transparent);
@@ -1222,7 +1227,10 @@ $dsp-rail-offset: 110ms;
   flex-wrap: wrap;
   pointer-events: none;
 
-  span {
+  // The chips, and only the chips: a live figure inside one is made of spans
+  // too (`LiveFigure`), and a chip's padding and border on each of those
+  // would draw chips inside the chip.
+  > span {
     padding: 3px 7px;
     border: 1px solid rgba($white, 0.08);
     border-radius: $radius-xs;
@@ -1312,7 +1320,7 @@ $dsp-rail-offset: 110ms;
     left: 18px;
     gap: 3px;
 
-    span {
+    > span {
       padding-right: 5px;
       padding-left: 5px;
       font-size: $text-eyebrow;
@@ -3377,7 +3385,10 @@ $dsp-pane-columns: 6;
 // rule and then breaking it on the third item. The values match `TRANSIENT_INK`,
 // `SUSTAIN_INK` and `DUCK_INK` in `DspBassPunchGraph.tsx`.
 .dsp-bass-punch-status {
-  span {
+  // The chips alone, for the reason `.dsp-master-status` gives: made an inline
+  // flex box, a figure's own text box, sized by nothing inside it, would be
+  // left no width to lay its text out in.
+  > span {
     display: inline-flex;
     gap: 6px;
     align-items: baseline;
@@ -3405,6 +3416,13 @@ $dsp-pane-columns: 6;
     font-weight: $weight-regular;
     letter-spacing: 0;
     text-transform: none;
+  }
+
+  // A live figure keeps the width of its widest reading; set to the end of
+  // it, as every other live readout is, so the unit stays where it is and
+  // only the digits move.
+  .dsp-status-figure {
+    text-align: end;
   }
 }
 

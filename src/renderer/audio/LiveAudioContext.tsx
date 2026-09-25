@@ -29,7 +29,7 @@ import {
 import useLiveOutputSpectrum, {
   TCaptureClaim,
 } from '../graph/useLiveOutputSpectrum';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import useSenderSpectrum from '../remoteAudio/useSenderSpectrum';
 import { SceneAudioProvider } from './SceneAudioContext';
 import type { ILiveFrame } from '../graph/liveFrameReader';
@@ -98,7 +98,7 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
     }),
     [visibleFrame.points, visibleFrame.waveform, control.isPaused, readFrame],
   );
-  const { isEnabled } = useFluidEqContext();
+  const { isEnabled } = useFluidEqShell();
   const wasEngineEnabledRef = useRef(isEnabled);
 
   useEffect(() => {

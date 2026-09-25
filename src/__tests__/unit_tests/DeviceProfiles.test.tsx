@@ -17,11 +17,16 @@ import {
   getDeviceProfileSettings,
 } from 'renderer/utils/equalizerApi';
 
-jest.mock('renderer/utils/equalizerApi', () => ({
-  getAudioDevices: jest.fn(),
-  getDeviceProfileSettings: jest.fn(),
-  setDefaultAudioDevice: jest.fn(),
-}));
+jest.mock('renderer/utils/equalizerApi', () => {
+  const getAudioDevices = jest.fn();
+  return {
+    getAudioDevices,
+    // Open-time readers take the kept list; here it is the same answer.
+    readKnownAudioDevices: () => getAudioDevices(),
+    getDeviceProfileSettings: jest.fn(),
+    setDefaultAudioDevice: jest.fn(),
+  };
+});
 
 const missingApoDevice = {
   id: 'speakers',

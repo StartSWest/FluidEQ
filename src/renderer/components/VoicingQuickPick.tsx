@@ -1,4 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
+import { memo } from 'react';
 import {
   NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
@@ -14,18 +15,31 @@ import {
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
 import VoicingIcon from '../icons/VoicingIcon';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick from '../widgets/RichPick';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import '../styles/VoicingQuickPick.scss';
 
-const VoicingQuickPick = () => {
+/**
+ * The equaliser's preset pick, on its toolbar and on the player's deck.
+ *
+ * Memoised, and on the layers rather than the whole context, because both
+ * parents re-render with every frame of a band being dragged: each of those
+ * renders read the saved chains and the stars out of storage, parsed and
+ * clamped them (`useDspPresetCatalog`) and rebuilt forty to eighty rows with
+ * their hints and icons, for a menu nobody had open. It takes no props, so it
+ * now renders when something it reads changes — the language, a saved chain
+ * or a star, the rack, a layer, the engine — and not when its parent does.
+ */
+const VoicingQuickPick = memo(() => {
   const { t } = useTranslation();
   const settings = useDspSettings();
   const { favorites, catalog } = useDspPresetCatalog(t);
-  const { isEnabled, isBlockingError, voicing } = useFluidEqContext();
-  const { status } = useAudioEngineStatus();
+  const { isEnabled, isBlockingError, voicing } = useFluidEqLayers();
+  // What the window already holds: asking main on mount ran the engine
+  // helper again every time the equaliser's page or the player's deck opened.
+  const status = useKnownAudioEngineStatus();
   const isApo = status?.engine === 'apo';
   // One None for two states: nothing chosen at all, and the None chain the
   // DSP page may have put on a running rack. Picked here, it is the first.
@@ -117,5 +131,5 @@ const VoicingQuickPick = () => {
       disabled={isBlockingError || !isEnabled || selecting}
     />
   );
-};
+});
 export default VoicingQuickPick;

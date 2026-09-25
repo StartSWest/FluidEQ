@@ -9,7 +9,7 @@ import {
   type IMediaOutputDevice,
   resolveMirrorSinkId,
 } from '../../common/audioDeviceBridge';
-import { getAudioDevices } from '../utils/equalizerApi';
+import { readKnownAudioDevices } from '../utils/equalizerApi';
 
 const DEFAULT_SINK_ID = 'default';
 
@@ -26,7 +26,7 @@ const resolveSelectedOutputSinkId = async (
   activeDeviceId: string,
 ): Promise<string> => {
   if (window.electron?.platform === 'win32') {
-    const devices = await getAudioDevices();
+    const devices = await readKnownAudioDevices();
     return (
       devices.find((device) => device.id === activeDeviceId)?.guid ??
       DEFAULT_SINK_ID
@@ -36,7 +36,7 @@ const resolveSelectedOutputSinkId = async (
     return DEFAULT_SINK_ID;
   }
   const [devices, mediaDevices] = await Promise.all([
-    getAudioDevices(),
+    readKnownAudioDevices(),
     navigator.mediaDevices.enumerateDevices(),
   ]);
   const active = devices.find((device) => device.id === activeDeviceId);

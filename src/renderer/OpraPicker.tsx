@@ -11,7 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
-import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
   addOpraSearchToHistory,
@@ -19,7 +19,6 @@ import {
   useOpraSearchHistory,
 } from './utils/opraSearchHistory';
 import HeadphoneCurvePreview from './components/HeadphoneCurvePreview';
-import { OPRA_UPDATED_EVENT } from './components/OpraLibraryStatus';
 import SidebarSection from './components/SidebarSection';
 import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
@@ -27,17 +26,46 @@ import Dropdown from './widgets/Dropdown';
 import { IOptionEntry } from './widgets/List';
 import opraLogo from '../../assets/opra-logo.png';
 import './styles/AutoEQ.scss';
+import { loadOpraPreset, clearHeadset } from './utils/equalizerApi';
 import {
-  getOpraProductList,
-  loadOpraPreset,
-  clearHeadset,
-} from './utils/equalizerApi';
+  knownOpraProducts,
+  loadOpraProducts,
+  subscribeOpraProducts,
+} from './opraProducts';
 
 const OPRA_URL = 'https://github.com/opra-project/OPRA';
 
 /** `Sennheiser HD 650`, which is what the old library called a model. */
 const productLabel = (product: IOpraProduct) =>
   `${product.vendor} ${product.name}`;
+
+/**
+ * The rows that light up for whatever is applied, if it came from this
+ * library. A selection saved before the switch carries the AutoEq source id
+ * and names a model that no longer resolves — its bands are still applied and
+ * still audible, there is simply no row here to light up for it.
+ */
+const appliedSelection = (
+  products: readonly IOpraProduct[],
+  headset: string | undefined,
+  headsetTarget: string | undefined,
+  headsetSource: string | undefined,
+): { product: string; curve: string } => {
+  const applied =
+    headset && headsetSource === OPRA_SOURCE_ID
+      ? products.find((entry) => entry.id === headset)
+      : undefined;
+  if (!applied) {
+    return { product: '', curve: '' };
+  }
+  return {
+    product: applied.id,
+    curve:
+      headsetTarget && applied.curves.some((c) => c.id === headsetTarget)
+        ? headsetTarget
+        : '',
+  };
+};
 
 const OpraPicker = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
@@ -49,24 +77,25 @@ const OpraPicker = () => {
     isBlockingError,
     setGlobalError,
     refreshState,
-  } = useFluidEqContext();
+  } = useFluidEqLayers();
   const { t } = useTranslation();
   const searchHistory = useOpraSearchHistory();
-  const [products, setProducts] = useState<IOpraProduct[]>([]);
-  const [currentProduct, setCurrentProduct] = useState('');
-  const [currentCurve, setCurrentCurve] = useState('');
+  // A second visit starts from the list this window already read
+  // (`opraProducts.ts`), with what is applied already lit.
+  const [products, setProducts] = useState<IOpraProduct[]>(
+    () => knownOpraProducts() ?? [],
+  );
+  const [currentProduct, setCurrentProduct] = useState(
+    () =>
+      appliedSelection(products, headset, headsetTarget, headsetSource).product,
+  );
+  const [currentCurve, setCurrentCurve] = useState(
+    () =>
+      appliedSelection(products, headset, headsetTarget, headsetSource).curve,
+  );
   const [isApplying, setIsApplying] = useState(false);
   const applyRunRef = useRef(0);
   const fetchRunRef = useRef(0);
-  const appliedRef = useRef(headset);
-  const appliedTargetRef = useRef(headsetTarget);
-  const appliedSourceRef = useRef(headsetSource);
-
-  useEffect(() => {
-    appliedRef.current = headset;
-    appliedTargetRef.current = headsetTarget;
-    appliedSourceRef.current = headsetSource;
-  }, [headset, headsetSource, headsetTarget]);
 
   useEffect(
     () => () => {
@@ -92,68 +121,43 @@ const OpraPicker = () => {
     const runId = fetchRunRef.current;
 
     try {
-      const entries = await getOpraProductList();
+      const entries = await loadOpraProducts();
       if (fetchRunRef.current !== runId) {
         return;
       }
       setProducts(entries);
-
-      // Restore whatever is applied, if it came from this library. A selection
-      // saved before the switch carries the AutoEq source id and names a model
-      // that no longer resolves — its bands are still applied and still audible,
-      // there is simply no row here to light up for it.
-      const appliedId = appliedRef.current;
-      const appliedSource = appliedSourceRef.current;
-      if (!appliedId || appliedSource !== OPRA_SOURCE_ID) {
-        setCurrentProduct('');
-        setCurrentCurve('');
-        return;
-      }
-      const applied = entries.find((entry) => entry.id === appliedId);
-      if (!applied) {
-        setCurrentProduct('');
-        setCurrentCurve('');
-        return;
-      }
-      setCurrentProduct(applied.id);
-      const appliedTarget = appliedTargetRef.current;
-      setCurrentCurve(
-        appliedTarget && applied.curves.some((c) => c.id === appliedTarget)
-          ? appliedTarget
-          : '',
-      );
     } catch (error) {
       setGlobalError(error as ErrorDescription);
     }
   }, [setGlobalError]);
 
-  // The status line lives in the page heading now, and replacing the library on
-  // disk is its button. This is how the picker hears that it did.
-  useEffect(() => {
-    const reread = () => {
-      fetchProducts();
-    };
-    window.addEventListener(OPRA_UPDATED_EVENT, reread);
-    return () => window.removeEventListener(OPRA_UPDATED_EVENT, reread);
-  }, [fetchProducts]);
-
-  // A background sync replaces the library on disk, so the list in hand is
-  // stale. The status line in the page heading reports the same event.
-  useEffect(() => {
-    const unsubscribe = window.electron.ipcRenderer.on(
-      'databases-synced',
-      () => {
+  // The library on disk replaced — by the update button in the page heading,
+  // or by the sync at launch — drops the list the window holds, and the picker
+  // reads the new one.
+  useEffect(
+    () =>
+      subscribeOpraProducts(() => {
         fetchProducts();
-      },
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [fetchProducts]);
+      }),
+    [fetchProducts],
+  );
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts, headset, headsetTarget, headsetSource]);
+  }, [fetchProducts]);
+
+  // The applied headset moving is answered from the list in hand. It used to
+  // fetch the whole library again first, for rows that had not changed.
+  useEffect(() => {
+    const restored = appliedSelection(
+      products,
+      headset,
+      headsetTarget,
+      headsetSource,
+    );
+    setCurrentProduct(restored.product);
+    setCurrentCurve(restored.curve);
+  }, [products, headset, headsetTarget, headsetSource]);
 
   const selectedProduct = useMemo(
     () => products.find((product) => product.id === currentProduct),

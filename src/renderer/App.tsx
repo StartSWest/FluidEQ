@@ -17,14 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import {
+  memo,
   useCallback,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
   type MouseEvent,
+  type ReactNode,
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import type { IAudioRestartOutcome, TAudioEngine } from 'common/audioEngine';
@@ -78,7 +79,7 @@ import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
-import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
+import { FluidEqProvider, useFluidEqShell } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
 import AudioTroubleshooter from './components/AudioTroubleshooter';
@@ -125,6 +126,8 @@ import {
   readRememberedTransportOwner,
   useLastPlayingOwner,
   useLastTransportOwner,
+  useHasTransportTitle,
+  useIsTransportPlaying,
   useTransportIdentitySources,
   useTransportSources,
 } from './audio/transportSource';
@@ -630,6 +633,101 @@ const ConnectedNowPlayingBar = ({
   );
 };
 
+/**
+ * The DSP page, subscribed to the rack's settings itself.
+ *
+ * The settings live in the DSP store because the engine that consumes them
+ * runs inside `LibraryPlayerContext`; reading them here rather than in
+ * `AppContent` is the other half of that. The root used to read them for this
+ * one prop, and the store publishes on every step of a knob, so every drag
+ * re-rendered the whole window — titlebar, both side columns, the chart and
+ * any mounted player — for a page that is one leaf of it.
+ */
+const DspPage = memo(
+  ({ onOpenEngineDialog }: { onOpenEngineDialog: () => void }) => {
+    const settings = useDspSettings();
+    const engineState = useDspEngineState();
+    return (
+      <DspPanel
+        settings={settings}
+        onChange={applyDspSettings}
+        onCommit={persistDspSettings}
+        engineState={engineState}
+        onOpenEngineDialog={onOpenEngineDialog}
+      />
+    );
+  },
+);
+
+/**
+ * The pane above the graph, sized by the divider.
+ *
+ * Its height is read here and nowhere above. The store publishes on every
+ * pixel of a divider drag and on every resize of the column, and read in
+ * `AppContent` it re-rendered the whole window for one number each time. The
+ * children are built by the root and handed down, so they keep their identity
+ * and React passes over them when only the height moves.
+ */
+const MiddleContent = ({
+  paneKey,
+  isSized,
+  children,
+}: {
+  paneKey: string;
+  isSized: boolean;
+  children: ReactNode;
+}) => {
+  const editorHeight = useEditorHeight(paneKey);
+  return (
+    <div
+      className="middle-content"
+      // What the divider actually sets: the height of everything above the
+      // graph, on every tab. It used to be a ceiling on the EQ tab so the card
+      // could hug its content — see App.scss for why one handle behaving
+      // differently depending on the open tab was not worth what it bought.
+      style={
+        isSized
+          ? ({ '--editor-height': `${editorHeight}px` } as CSSProperties)
+          : undefined
+      }
+    >
+      {children}
+    </div>
+  );
+};
+
+/** The divider, reading the height it reports for itself — see above. */
+const GraphPaneResizer = ({
+  paneKey,
+  ariaLabel,
+  onStart,
+  onDrag,
+  onEnd,
+}: {
+  paneKey: string;
+  ariaLabel: string;
+  onStart: () => void;
+  onDrag: (deltaY: number) => void;
+  onEnd: () => void;
+}) => {
+  const editorHeight = useEditorHeight(paneKey);
+  // How much of the workspace the editor currently has, as a percentage. Only
+  // for the divider's `aria-valuenow` — a pixel height means nothing read out
+  // loud without also knowing how tall the window is.
+  const valuePercent = Math.round(
+    (editorHeight / Math.max(1, window.innerHeight)) * 100,
+  );
+  return (
+    <PaneResizer
+      ariaLabel={ariaLabel}
+      valuePercent={valuePercent}
+      onStart={onStart}
+      onDrag={onDrag}
+      onEnd={onEnd}
+    />
+  );
+};
+
 const AppContent = () => {
   const {
     isLoading,
@@ -641,7 +739,7 @@ const AppContent = () => {
     performHealthCheck,
     refreshState,
     setGlobalError,
-  } = useFluidEqContext();
+  } = useFluidEqShell();
   const { t } = useTranslation();
 
   // The sound panel drawer, meaningful only under the three-column breakpoint.
@@ -731,15 +829,6 @@ const AppContent = () => {
     TWorkspaceGraphVisibility | undefined
   >(readWorkspaceGraphVisibility);
 
-  /**
-   * The equaliser's five, drawn at the top of whichever of them is open.
-   *
-   * Read from the DSP store rather than held here: the engine that consumes
-   * them runs inside `LibraryPlayerContext`, where the `<audio>` element it
-   * has to attach to lives. Lifting the state to this component would
-   * re-render the whole player tree on every knob turn.
-   */
-  const dspSettings = useDspSettings();
   // Which engine is processing the audio, held once for the whole shell: the
   // output panels, the troubleshooter and the dialog all read this one answer
   // rather than each asking main for its own copy.
@@ -758,7 +847,6 @@ const AppContent = () => {
   // The EQ pages lock on all three ways a band cannot be heard, not only the
   // two the context knows about. See `eqReachesSound.ts`.
   const isEqReachingSound = eqReachesSound(isEngineUsable, isEngineOnOutput);
-  const dspEngineState = useDspEngineState();
 
   /**
    * Inside the page rather than above it, and pills rather than tabs: the
@@ -870,9 +958,11 @@ const AppContent = () => {
    * one of ours that is playing, and never over Karaoke's stage, which is its
    * lyrics and whose count-in dies if the stage is hidden (see above).
    */
-  const systemTransport = useTransportSources().system;
-  const isSystemSounding =
-    playingOwner === undefined && systemTransport?.isPlaying === true;
+  // Two flags, not the register: read whole, it changes with the position and
+  // re-rendered this entire tree on every seek-bar tick while music played.
+  const isSystemPlaying = useIsTransportPlaying('system');
+  const hasSystemTitle = useHasTransportTitle('system');
+  const isSystemSounding = playingOwner === undefined && isSystemPlaying;
   const graphBackdropOwner =
     isGraphBackdropMode &&
     (!isSceneOnGraph || heldOwner === 'karaoke') &&
@@ -893,7 +983,7 @@ const AppContent = () => {
     !showsMediaGraphBackdrop &&
     !showsLibraryGraphBackdrop &&
     !showsKaraokeGraphBackdrop &&
-    Boolean(systemTransport?.title);
+    hasSystemTitle;
 
   // A loaded silent player keeps only its controller/media shell for five
   // seconds after leaving the tab. That prevents the fast empty-bar glitch,
@@ -1318,7 +1408,6 @@ const AppContent = () => {
     isShortWindow && !isEqGroupTab(activeWorkspaceTab)
       ? shortWindowPaneKey(activeWorkspaceTab)
       : activeWorkspaceTab;
-  const editorHeight = useEditorHeight(paneKey);
 
   // Watched only in full screen, and stopped on the way out — see the store for
   // why leaving it running would strand a faded workspace.
@@ -1640,12 +1729,6 @@ const AppContent = () => {
     commitPaneSizes();
   }, []);
 
-  // How much of the workspace the editor currently has, as a percentage. Only
-  // for the divider's `aria-valuenow` — a pixel height means nothing read out
-  // loud without also knowing how tall the window is.
-  const graphHeightPercent = Math.round(
-    (editorHeight / Math.max(1, window.innerHeight)) * 100,
-  );
   const [hasContributed, setHasContributed] = useState(
     () => localStorage.getItem(SUPPORT_CONTRIBUTED_KEY) === 'true',
   );
@@ -1913,13 +1996,14 @@ const AppContent = () => {
     }
   };
 
-  const handleOpenEngineDialog = () => {
+  // Stable, so the DSP page it is handed to keeps its memo.
+  const handleOpenEngineDialog = useCallback(() => {
     // Asked again on the way in: the answer can have changed since the window
     // opened — Equalizer APO installed from outside, the engine attached to a
     // new output — and this dialog is where that is acted on.
     refreshEngineStatus();
     setShowEngineDialog(true);
-  };
+  }, [refreshEngineStatus]);
 
   /**
    * Put the chosen engine in place, in the order that leaves the machine
@@ -2672,20 +2756,9 @@ const AppContent = () => {
             exitGraphFullScreen();
           }}
         >
-          <div
-            className="middle-content"
-            // What the divider actually sets: the height of everything above
-            // the graph, on every tab. It used to be a ceiling on the EQ tab so
-            // the card could hug its content — see App.scss for why one handle
-            // behaving differently depending on the open tab was not worth what
-            // it bought.
-            style={
-              showsGraph && !isGraphFullScreen
-                ? ({
-                    '--editor-height': `${editorHeight}px`,
-                  } as CSSProperties)
-                : undefined
-            }
+          <MiddleContent
+            paneKey={paneKey}
+            isSized={showsGraph && !isGraphFullScreen}
           >
             {/* The six places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
@@ -2727,13 +2800,7 @@ const AppContent = () => {
                 className="workspace-tab-panel workspace-tab-panel--dsp"
               >
                 <div className="workspace-tab-panel__scroll">
-                  <DspPanel
-                    settings={dspSettings}
-                    onChange={applyDspSettings}
-                    onCommit={persistDspSettings}
-                    engineState={dspEngineState}
-                    onOpenEngineDialog={handleOpenEngineDialog}
-                  />
+                  <DspPage onOpenEngineDialog={handleOpenEngineDialog} />
                 </div>
               </div>
             )}
@@ -2926,14 +2993,14 @@ const AppContent = () => {
             {/* A preset's rack across an engine switch, which is made in a
                 dialog over whichever page is open. */}
             <RackFollowsEngine />
-          </div>
+          </MiddleContent>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}
           {showsGraph && !isGraphFullScreen && (
-            <PaneResizer
+            <GraphPaneResizer
+              paneKey={paneKey}
               ariaLabel={t('graph.resize')}
-              valuePercent={graphHeightPercent}
               onStart={handleGraphResizeStart}
               onDrag={handleGraphResizeDrag}
               onEnd={handleGraphResizeEnd}
@@ -3313,11 +3380,11 @@ export default function App() {
             <WallpaperAudio />
             <WallpaperTuning />
             <WallpaperDialogHost />
-            <Router>
-              <Routes>
-                <Route path="/" element={<AppContent />} />
-              </Routes>
-            </Router>
+            {/* No router: the window has one page and moves between its
+                places with state (`activeWorkspaceTab`). A MemoryRouter with
+                a single route stood here, and its package shipped in the
+                window's script for it. */}
+            <AppContent />
           </RemoteAudioProvider>
         </LiveAudioProvider>
       </FluidEqProvider>

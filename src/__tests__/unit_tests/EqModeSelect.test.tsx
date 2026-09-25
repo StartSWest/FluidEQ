@@ -30,11 +30,11 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
   setTrebleDesign: jest.fn(),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({
+  ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     ...mockWorld,
     refreshState: mockRefresh,
     setGlobalError: mockError,
-  }),
+  })),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   resetEqMode: () => mockReset(),

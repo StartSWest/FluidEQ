@@ -57,7 +57,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import type { AxisScale, NumberValue } from 'd3';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_GLOW, resolveLookColours } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
@@ -509,6 +509,46 @@ const toCanvasPaint = (
   return gradient;
 };
 
+/**
+ * Every scene's state as the drawing first holds it, built once per mount.
+ *
+ * Each used to be `useRef(createX())`, which calls `createX` on every render
+ * and keeps only the first result. This component renders with every
+ * analyser frame, so the space invasion's 340 stars and the warp tunnel's 420
+ * alone were about 760 objects and 2,300 noise lookups built and thrown away
+ * on each one, on the default page, whichever look was showing.
+ */
+const createSceneStates = () => ({
+  motion: createGraphMotionState(),
+  terraceJumper: createTerraceJumper(),
+  trussBridge: createTrussBridge(),
+  caveDrips: createCaveDrips(),
+  invasion: createSpaceInvasion(),
+  invaderCabinet: createInvaderCabinet(),
+  warp: createWarpTunnel(),
+  arcade: createStoneArcade(),
+  bonfire: createBonfire(),
+  storm: createRainstorm(),
+  fence: createCountryFence(),
+  braidStage: createBraidStage(),
+  crystal: createCrystalSpikes(),
+  valley: createTerraceValley(),
+  night: createNightSurfaces(),
+  city: createCitySkyline(),
+  slopeField: createSlopeField(),
+  bubbleStorm: createBubbleStorm(),
+  bubbleMotes: createBubbleMotes(),
+  sawtoothScope: createSawtoothScope(),
+  pulseMonitor: createPulseMonitor(),
+  echoWaves: createEchoWaves(),
+  roadTrip: createRoadTrip(),
+  dashTrails: createDashTrails(),
+  transition: new GraphLookTransition(),
+  analysis: createAnalysisState(),
+  legend: legendWords(() => ''),
+  accent: createAccentState(),
+});
+
 const LiveTraceCanvas = ({
   curves,
   xScale,
@@ -530,34 +570,37 @@ const LiveTraceCanvas = ({
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
   const playingRef = useRef(false);
-  const motionRef = useRef(createGraphMotionState());
-  const terraceJumperRef = useRef(createTerraceJumper());
-  const trussBridgeRef = useRef(createTrussBridge());
-  const caveDripsRef = useRef(createCaveDrips());
+  // Built once, on mount — see `createSceneStates` — and handed to the refs
+  // below as their first values, which the drawing then owns and replaces.
+  const [scenes] = useState(createSceneStates);
+  const motionRef = useRef(scenes.motion);
+  const terraceJumperRef = useRef(scenes.terraceJumper);
+  const trussBridgeRef = useRef(scenes.trussBridge);
+  const caveDripsRef = useRef(scenes.caveDrips);
   const caveClockRef = useRef(0);
-  const invasionRef = useRef(createSpaceInvasion());
-  const invaderCabinetRef = useRef(createInvaderCabinet());
+  const invasionRef = useRef(scenes.invasion);
+  const invaderCabinetRef = useRef(scenes.invaderCabinet);
   /** Whether the last frame drawn was the arcade, to tell an arrival. */
   const wasInvadersRef = useRef(false);
   const invasionClockRef = useRef(0);
-  const warpRef = useRef(createWarpTunnel());
+  const warpRef = useRef(scenes.warp);
   const warpClockRef = useRef(0);
-  const arcadeRef = useRef(createStoneArcade());
+  const arcadeRef = useRef(scenes.arcade);
   const arcadeClockRef = useRef(0);
-  const bonfireRef = useRef(createBonfire());
+  const bonfireRef = useRef(scenes.bonfire);
   const bonfireClockRef = useRef(0);
-  const stormRef = useRef(createRainstorm());
+  const stormRef = useRef(scenes.storm);
   const stormClockRef = useRef(0);
-  const fenceRef = useRef(createCountryFence());
+  const fenceRef = useRef(scenes.fence);
   const fenceClockRef = useRef(0);
-  const braidStageRef = useRef(createBraidStage());
+  const braidStageRef = useRef(scenes.braidStage);
   const braidClockRef = useRef(0);
-  const crystalRef = useRef(createCrystalSpikes());
+  const crystalRef = useRef(scenes.crystal);
   const crystalClockRef = useRef(0);
-  const valleyRef = useRef(createTerraceValley());
+  const valleyRef = useRef(scenes.valley);
   const valleyClockRef = useRef(0);
-  const nightRef = useRef(createNightSurfaces());
-  const cityRef = useRef(createCitySkyline());
+  const nightRef = useRef(scenes.night);
+  const cityRef = useRef(scenes.city);
   const cityClockRef = useRef(0);
   /** Stems: each band's live level last frame, and until when its head flares. */
   const stemLevelsRef = useRef<number[]>([]);
@@ -570,16 +613,16 @@ const LiveTraceCanvas = ({
   // The bridge keeps its own clock, advanced while its scenery is visible.
   const trussClockRef = useRef(0);
   const slopeFlowRef = useRef(0);
-  const slopeFieldRef = useRef(createSlopeField());
+  const slopeFieldRef = useRef(scenes.slopeField);
   const slopeClockRef = useRef(0);
-  const bubbleStormRef = useRef(createBubbleStorm());
-  const bubbleMotesRef = useRef(createBubbleMotes());
+  const bubbleStormRef = useRef(scenes.bubbleStorm);
+  const bubbleMotesRef = useRef(scenes.bubbleMotes);
   const bubbleMotesClockRef = useRef(0);
-  const sawtoothScopeRef = useRef(createSawtoothScope());
-  const pulseMonitorRef = useRef(createPulseMonitor());
-  const echoWavesRef = useRef(createEchoWaves());
-  const roadTripRef = useRef(createRoadTrip());
-  const dashTrailsRef = useRef(createDashTrails());
+  const sawtoothScopeRef = useRef(scenes.sawtoothScope);
+  const pulseMonitorRef = useRef(scenes.pulseMonitor);
+  const echoWavesRef = useRef(scenes.echoWaves);
+  const roadTripRef = useRef(scenes.roadTrip);
+  const dashTrailsRef = useRef(scenes.dashTrails);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   /**
@@ -598,7 +641,7 @@ const LiveTraceCanvas = ({
   const intersectionRef = useRef<IntersectionObserver | null>(null);
   /** Stops watching the canvas for a lost drawing surface — see `attachCanvas`. */
   const contextWatchRef = useRef<() => void>(undefined);
-  const transitionRef = useRef(new GraphLookTransition());
+  const transitionRef = useRef(scenes.transition);
   // Held rather than fetched per frame: the computed style is a live object
   // bound to the element, and it goes stale with the context if the canvas is
   // ever replaced, so the two are taken together.
@@ -619,7 +662,7 @@ const LiveTraceCanvas = ({
   const channels = useAnalysisChannels(
     analysisNeeds(look.style, look.tuning.channels === 'split'),
   );
-  const analysisRef = useRef(createAnalysisState());
+  const analysisRef = useRef(scenes.analysis);
   /**
    * What the legend calls each channel, on a ref: the drawing runs on its own
    * frames and a language change must not rebuild the whole loop.
@@ -630,7 +673,7 @@ const LiveTraceCanvas = ({
     t('graph.channel.right'),
   ];
   /** The words a measuring view's key uses, on a ref for the same reason. */
-  const legendRef = useRef(legendWords(() => ''));
+  const legendRef = useRef(scenes.legend);
   legendRef.current = legendWords((key) =>
     t(`graph.legend.${key}` as TranslationKey),
   );
@@ -712,7 +755,7 @@ const LiveTraceCanvas = ({
    * what is drawn on the peaks already held rather than throwing them away —
    * which is the difference between a setting and a restart.
    */
-  const accentStateRef = useRef(createAccentState());
+  const accentStateRef = useRef(scenes.accent);
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity

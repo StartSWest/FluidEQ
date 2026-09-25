@@ -230,6 +230,23 @@ export const useDeckAudio = (options: {
     }
   }, []);
 
+  /**
+   * Every blob URL this player made goes when the player does.
+   *
+   * `useIdlePlayerMount` in `App.tsx` unmounts the provider once nothing on
+   * screen uses it and nothing is playing, and `useDeckLifecycle`'s teardown
+   * empties the decks without reaching this map. The paused track's URL
+   * stayed registered with nothing left that could revoke it: a whole audio
+   * file pinned for the rest of the session, once per visit. `releaseBlob`
+   * also takes a swap still waiting for its metadata off its deck.
+   */
+  useEffect(() => {
+    const blobUrls = blobUrlsRef.current;
+    return () => {
+      Array.from(blobUrls.keys()).forEach(releaseBlob);
+    };
+  }, [releaseBlob]);
+
   const startCrossfade = useCallback(
     (
       outgoing: HTMLAudioElement,

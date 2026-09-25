@@ -19,14 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import GraphViewSwitch from '../../renderer/components/GraphViewSwitch';
-import { useFluidEqContext } from '../../renderer/utils/FluidEqContext';
+import { useFluidEqShell } from '../../renderer/utils/FluidEqContext';
 import {
   disableGraphView,
   enableGraphView,
 } from '../../renderer/utils/equalizerApi';
 
 jest.mock('../../renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: jest.fn(),
+  useFluidEqShell: jest.fn(),
 }));
 jest.mock('../../renderer/utils/equalizerApi', () => ({
   disableGraphView: jest.fn(async () => undefined),
@@ -39,7 +39,7 @@ describe('GraphViewSwitch', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useFluidEqContext as jest.Mock).mockReturnValue({
+    (useFluidEqShell as jest.Mock).mockReturnValue({
       isBlockingError: false,
       isGraphViewOn: true,
       setGlobalError,

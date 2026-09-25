@@ -187,7 +187,8 @@ export const registerLibraryMediaScheme = (): void => {
  */
 export const handleLibraryMedia = (deps: {
   userDataDir: string;
-  getIndex: () => ILibraryIndex;
+  /** May have to wait for the index to be read (`libraryIndexSnapshot`). */
+  getIndex: () => ILibraryIndex | Promise<ILibraryIndex>;
 }): void => {
   protocol.handle(LIBRARY_MEDIA_SCHEME, async (request) => {
     const parsed = parseLibraryMediaUrl(request.url);
@@ -198,7 +199,7 @@ export const handleLibraryMedia = (deps: {
     }
     const resolved =
       parsed.kind === 'track'
-        ? trackPathById(deps.getIndex(), parsed.id)
+        ? trackPathById(await deps.getIndex(), parsed.id)
         : artworkPath(deps.userDataDir, parsed.id);
     if (!resolved) {
       // A click that loads the bar and then does nothing, ever, used to

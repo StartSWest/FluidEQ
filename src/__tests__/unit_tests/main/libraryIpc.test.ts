@@ -45,7 +45,7 @@ import type {
   IScanResult,
 } from '../../../main/library/libraryScanner';
 
-/** A fresh, real, writable directory `saveLibraryIndex` can write into. */
+/** A fresh, real, writable directory the index can be written into. */
 const tempDir = (prefix: string): string =>
   fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 

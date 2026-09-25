@@ -27,7 +27,7 @@ import {
 import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
 import {
-  getAudioDevices,
+  readKnownAudioDevices,
   getDeviceProfileSettings,
 } from '../utils/equalizerApi';
 import { reportInfo, reportError } from '../utils/logger';
@@ -193,7 +193,7 @@ const useOutputMirror = () => {
   const refresh = useCallback(async () => {
     try {
       const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
-        getAudioDevices(),
+        readKnownAudioDevices(),
         native ? Promise.resolve([]) : listMediaOutputs(),
         getDeviceProfileSettings(),
       ]);

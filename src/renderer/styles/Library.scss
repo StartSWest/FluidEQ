@@ -1268,16 +1268,36 @@ $library-row-height: 46px;
 // starts something, and putting one on the row that is already going says the
 // opposite of what it means.
 .library-list__playing-mark {
-  display: inline-flex;
+  display: block;
   width: 14px;
   height: 12px;
   flex: 0 0 auto;
-  align-items: center;
+}
+
+// The drawing's frame (`LibraryTrackRow.tsx`). The bars are SVG shapes, and
+// an SVG shape that moves is laid out again on every frame it moves, on the
+// main thread. Straight in the mark, the drawing was an item of the title's
+// flex row, and a flex item is never laid out on its own: every frame of the
+// song took the list's layout with it. A block in a block, with its size and
+// its layout contained, is laid out alone — and this one is the mark's own
+// 14 by 12, so containing it changes nothing about where it stands.
+.library-list__playing-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  contain: size layout style;
 
   svg {
+    display: block;
     width: 100%;
     height: 100%;
     overflow: visible;
+    // The bars' glow (below), once over the four rather than once on each:
+    // four filters were four shadow passes on every frame of the song, for
+    // one halo around the same bars.
+    filter: drop-shadow(
+      0 0 3px color-mix(in srgb, $secondary-default 55%, transparent)
+    );
   }
 }
 
@@ -1288,9 +1308,6 @@ $library-row-height: 46px;
 .library-list__playing-bars rect {
   fill: $secondary-light;
   animation: library-playing-bar 1000ms ease-in-out infinite;
-  filter: drop-shadow(
-    0 0 3px color-mix(in srgb, $secondary-default 55%, transparent)
-  );
   transform-box: fill-box;
   transform-origin: bottom;
 }

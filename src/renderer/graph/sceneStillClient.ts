@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
 import type {
@@ -113,9 +114,13 @@ const pageAccent = () =>
  * the same reset of the display.
  */
 const refusedScenes = new Set<string>();
+/**
+ * A digest of the program rather than its text, which is the whole shader
+ * source and would be kept here for the session.
+ */
 const refusalKey = (pack: IScenePack) =>
   `${pack.version}
-${sceneProgramKey(pack)}`;
+${textDigest(sceneProgramKey(pack))}`;
 
 const ask = <K extends TSceneStillRequest['kind']>(
   request: Omit<Extract<TSceneStillRequest, { kind: K }>, 'id'>,

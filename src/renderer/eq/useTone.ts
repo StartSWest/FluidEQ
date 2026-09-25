@@ -8,7 +8,7 @@ import { useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { FLAT_TONE, ITone, toTone } from 'common/tone';
 import { setTone as setToneApi } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 
 /** Low to high, the order a tone stack is read in. */
 export const TONE_CONTROLS: readonly {
@@ -38,7 +38,7 @@ export const TONE_CONTROLS: readonly {
  */
 const useTone = () => {
   const { tone, setTone, isBlockingError, refreshState, setGlobalError } =
-    useFluidEqContext();
+    useFluidEqLayers();
   const [turnedTo, setTurnedTo] = useState<ITone>();
   const wanted = useRef<ITone | undefined>(undefined);
   const writing = useRef(false);

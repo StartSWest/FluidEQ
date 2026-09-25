@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'sass:list';
+@use 'sass:math';
 @use 'color' as *;
 @use 'theme' as *;
 
@@ -204,35 +206,123 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // Three bars keeping time beside the song that is playing.
+//
+// Each bar falls from its own height to a quarter of the meter and back. The
+// fall used to be the bar's `height`, which laid the row out again on every
+// frame for as long as the queue was open, playing or paused. Now nothing
+// that moves takes up room: the bar's box stands at its full height, and in
+// it a body shrinks from the bottom and a cap rides its top, both on the
+// compositor. Two pieces rather than one bar squashed, so the rounded ends
+// keep their shape at every height; the bar's own rounded clip gives the
+// foot, and the glow is a filter over the whole bar, so it is the same 4px
+// halo at every height instead of one squashed with the bar. The cap is two
+// radii tall and the body starts one radius down, so each meets the other
+// inside solid lamp and no seam can show where they join.
+$queue-bar-meter: 10px;
+$queue-bar-radius: 1px;
+// Where every bar falls to, as a share of the meter.
+$queue-bar-floor: 0.25;
+// Each bar's height at rest and its place in the beat, left to right.
+$queue-bar-rests: (0.6, 1, 0.4);
+$queue-bar-delays: (0s, -0.3s, -0.6s);
+
 .player-queue__bars {
   display: flex;
   align-items: flex-end;
   gap: 1.5px;
-  height: 10px;
+  height: $queue-bar-meter;
 
   span {
+    position: relative;
     width: 3px;
-    height: 60%;
-    border-radius: 1px;
-    background: var(--player-lamp);
-    box-shadow: 0 0 4px var(--player-glow);
-    animation: player-queue-bars 0.9s ease-in-out infinite alternate;
+    overflow: hidden;
+    border-radius: 0 0 $queue-bar-radius $queue-bar-radius;
+    filter: drop-shadow(0 0 4px var(--player-glow));
+
+    &::before,
+    &::after {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      background: var(--player-lamp);
+      content: '';
+      animation-duration: 0.9s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+    }
+
+    // The body.
+    &::before {
+      top: $queue-bar-radius;
+      bottom: 0;
+      transform-origin: 50% 100%;
+    }
+
+    // The cap.
+    &::after {
+      top: 0;
+      height: 2 * $queue-bar-radius;
+      border-radius: $queue-bar-radius $queue-bar-radius 0 0;
+    }
   }
 
-  span:nth-child(2) {
-    height: 100%;
-    animation-delay: -0.3s;
+  // Standing still while the song is paused (`QueueDeck.tsx`). The bars say
+  // "this is what you are hearing"; falling and rising over silence they
+  // said the opposite, and kept a layer animating for as long as the queue
+  // was open.
+  &.is-paused span::before,
+  &.is-paused span::after {
+    animation-play-state: paused;
   }
 
-  span:nth-child(3) {
-    height: 40%;
-    animation-delay: -0.6s;
+  @for $bar from 1 through list.length($queue-bar-rests) {
+    span:nth-child(#{$bar}) {
+      height: math.percentage(list.nth($queue-bar-rests, $bar));
+
+      &::before,
+      &::after {
+        animation-delay: list.nth($queue-bar-delays, $bar);
+      }
+
+      &::before {
+        animation-name: player-queue-bar-#{$bar}-body;
+      }
+
+      &::after {
+        animation-name: player-queue-bar-#{$bar}-cap;
+      }
+    }
   }
 }
 
-@keyframes player-queue-bars {
-  to {
-    height: 25%;
+// Both pieces of a bar move linearly with its height, on one timing, so
+// they stay together at every frame of the fall.
+@for $bar from 1 through list.length($queue-bar-rests) {
+  $rest: list.nth($queue-bar-rests, $bar) * $queue-bar-meter;
+  $floor: $queue-bar-floor * $queue-bar-meter;
+
+  @keyframes player-queue-bar-#{$bar}-body {
+    to {
+      scale: 1 math.div($floor - $queue-bar-radius, $rest - $queue-bar-radius);
+    }
+  }
+
+  @keyframes player-queue-bar-#{$bar}-cap {
+    to {
+      translate: 0 ($rest - $floor);
+    }
+  }
+}
+
+// Standing still at their resting heights. The fold's own rule for this
+// (`_miniPlayerFold.scss`) names the bars, which no longer move themselves;
+// `:nth-child(n)` makes this as specific as the rules naming each bar's
+// animations, which a plain `span` would lose to.
+@media (prefers-reduced-motion: reduce) {
+  .player-queue__bars span:nth-child(n)::before,
+  .player-queue__bars span:nth-child(n)::after {
+    animation: none;
   }
 }
 

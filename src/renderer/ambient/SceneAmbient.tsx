@@ -13,7 +13,7 @@ import {
   type IAmbientElement,
 } from 'common/sceneAmbient';
 import type { IScenePack } from 'common/scenePacks';
-import { getEaseFactor } from 'common/smoothing';
+import { getEaseFactor, shouldDrawFrame } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
 import { useLiveAudioControl } from '../audio/LiveAudioContext';
 import type { TDrawableScene } from '../graph/SceneCanvas';
@@ -29,6 +29,7 @@ import {
   useStudioTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
+import { getFrameBudget } from '../utils/useSmoothFrames';
 import {
   createAmbientField,
   resizeAmbientField,
@@ -259,6 +260,22 @@ export default function SceneAmbient() {
 
     let animation = 0;
     const draw = (now: number) => {
+      // Held to the 2D graph's budget (`getFrameBudget`): thirty frames a
+      // second, and every frame the display offers while the window is
+      // euphoric. This layer used to draw on every frame the display offered,
+      // up to 144 a second — a window-sized canvas cleared, drawn and screened
+      // over the whole window by the page itself, where the graph beside it,
+      // drawn by the same page, is held to thirty. A Plus scene runs at the
+      // display's rate because the GPU draws it in a worker; this is not one.
+      if (
+        last !== undefined &&
+        !shouldDrawFrame(now - last, getFrameBudget())
+      ) {
+        // Too soon for the budget. Still asked for, so the next frame is
+        // considered: skipping is how the rate is held, without a timer.
+        animation = requestAnimationFrame(draw);
+        return;
+      }
       const elapsed = last === undefined ? 16 : now - last;
       last = now;
       const wanted = wantedRef.current;

@@ -31,9 +31,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { app, utilityProcess } from 'electron';
-import { IScanOptions, IScanResult, scanLibraryRoot } from './libraryScanner';
+import type { ILibraryTrack } from '../../common/library/types';
+import type { IKnownTrack, IScanOptions, IScanResult } from './libraryScanner';
 import { storeArtwork as cacheArtwork } from './libraryArtwork';
 import { IScanWorkerRequest, IScanWorkerResponse } from './scanWorkerProtocol';
+import { gateScanProgress } from './scanProgressGate';
 import { LIBRARY_SCAN_PROCESS_NAME } from '../utilityProcessNames';
 
 /**
@@ -69,14 +71,84 @@ const workerEntry = (): string | undefined => {
  */
 let workerUnavailable = false;
 
-/** The fallback still runs inside Electron, so it can cache covers directly. */
-const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> =>
-  scanLibraryRoot({
+type TScanner = typeof import('./libraryScanner');
+
+/**
+ * The fallback still runs inside Electron, so it can cache covers directly.
+ *
+ * The scanner is loaded here, on first use, and not imported at the top of
+ * the file: it brings the tag reader with it (`music-metadata`, and
+ * `file-type` and `strtok3` under that), all of which a static import
+ * evaluated in main at every launch, for a path that only runs when the worker
+ * cannot start. Required rather than `import()`ed — which would also take it
+ * out of `main.js` — because the walk has to begin within the call that asked
+ * for it: `libraryIpc.test.ts` holds a root queued from inside a walk to be in
+ * the index that call returns.
+ *
+ * Its reports go through the same gate the worker's do (`scanProgressGate.ts`),
+ * because from here each one is a message to the window.
+ */
+const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> => {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- deferred to the fallback on purpose; see above
+  const { scanLibraryRoot } = require('./libraryScanner') as TScanner;
+  const gate = gateScanProgress(options.onProgress);
+  const { onTracks } = options;
+  return scanLibraryRoot({
     ...options,
     storeArtwork:
       options.storeArtwork ??
       ((bytes) => cacheArtwork(options.userDataDir, bytes)),
+    onProgress: gate.progress,
+    // Left undefined when the caller gave none: discovery only builds its
+    // provisional rows for somebody who will receive them.
+    onTracks:
+      onTracks &&
+      ((tracks) => {
+        onTracks(tracks);
+        gate.tracksSent();
+      }),
   });
+};
+
+/** What the walk reads of a known track (`IKnownTrack`), and nothing else. */
+const knownFactsOf = (track: ILibraryTrack): IKnownTrack => ({
+  path: track.path,
+  sizeBytes: track.sizeBytes,
+  mtimeMs: track.mtimeMs,
+  artId: track.artId,
+  artworkChecked: track.artworkChecked,
+  addedAt: track.addedAt,
+});
+
+/**
+ * The worker's result with main's own tracks put back where it named them by
+ * place (`encodeResult` in `scanWorker.ts`), or undefined when a place does
+ * not exist or the tracks do not add up — an answer that cannot be trusted to
+ * describe the root, which is only ever replaced wholesale from it.
+ */
+const rebuildResult = (
+  tracks: readonly ILibraryTrack[],
+  knownAt: readonly number[] | undefined,
+  known: readonly ILibraryTrack[],
+): ILibraryTrack[] | undefined => {
+  if (!knownAt) {
+    return [...tracks];
+  }
+  let read = 0;
+  const rebuilt: Array<ILibraryTrack | undefined> = knownAt.map((place) => {
+    if (place >= 0) {
+      return known[place];
+    }
+    read += 1;
+    return tracks[read - 1];
+  });
+  const complete = rebuilt.filter(
+    (track): track is ILibraryTrack => track !== undefined,
+  );
+  return read === tracks.length && complete.length === rebuilt.length
+    ? complete
+    : undefined;
+};
 
 const scanLibraryRootOffThread = (
   options: IScanOptions,
@@ -88,14 +160,34 @@ const scanLibraryRootOffThread = (
   return new Promise<IScanResult>((resolve) => {
     let settled = false;
     let fallbackStarted = false;
+    let child: ReturnType<typeof utilityProcess.fork>;
+
+    // The worker cannot be asked to stop through a return value, so a cancel
+    // is passed on as a message: the moment the caller's `signal` aborts, and
+    // otherwise on the worker's next message, for a caller that gave only
+    // `isCancelled`. It used to be the next message alone, which was enough
+    // while the worker reported every file; it now reports only now and then
+    // (`scanProgressGate.ts`), and Stop must not wait out a slow folder.
+    let cancelSent = false;
+    const forwardCancel = () => {
+      if (cancelSent || settled || fallbackStarted || !options.isCancelled()) {
+        return;
+      }
+      cancelSent = true;
+      const cancel: IScanWorkerRequest = { type: 'cancel' };
+      child.postMessage(cancel);
+    };
+
     const finish = (result: IScanResult) => {
+      // One signal serves every root of a rescan; a finished root's worker
+      // must not be written to when a later root is cancelled.
+      options.signal?.removeEventListener('abort', forwardCancel);
       if (!settled) {
         settled = true;
         resolve(result);
       }
     };
 
-    let child: ReturnType<typeof utilityProcess.fork>;
     try {
       /**
        * Written for a human reading a process list, not for a grep.
@@ -127,21 +219,7 @@ const scanLibraryRootOffThread = (
       );
       return;
     }
-
-    // The worker cannot be asked to stop through a return value, so the
-    // caller's own `isCancelled` is forwarded as a message. Checked against
-    // the worker's own traffic rather than on a timer: it reports every file
-    // it touches, so the cancel goes out on the next one — and a scan that
-    // has stopped reporting has nothing left to cancel.
-    let cancelSent = false;
-    const forwardCancel = () => {
-      if (cancelSent || !options.isCancelled()) {
-        return;
-      }
-      cancelSent = true;
-      const cancel: IScanWorkerRequest = { type: 'cancel' };
-      child.postMessage(cancel);
-    };
+    options.signal?.addEventListener('abort', forwardCancel, { once: true });
 
     const stop = () => {
       child.kill();
@@ -223,8 +301,19 @@ const scanLibraryRootOffThread = (
       }
       if (message.type === 'done') {
         stop();
+        const tracks = rebuildResult(
+          message.tracks,
+          message.knownAt,
+          options.known,
+        );
+        if (!tracks) {
+          fallBackToMain(
+            'Library scan worker answered with tracks it was never sent; scanning in-process instead',
+          );
+          return;
+        }
         finish({
-          tracks: message.tracks,
+          tracks,
           karaokeSkipped: message.karaokeSkipped,
           wasCancelled: message.wasCancelled,
         });
@@ -243,12 +332,15 @@ const scanLibraryRootOffThread = (
       );
     });
 
+    // Six fields of each known track rather than the tracks: fourteen
+    // thousand whole ones took main 32-97 ms to serialise (V8, measured on a
+    // synthetic root; noise profiles are the high end), the facts 5 ms.
     const request: IScanWorkerRequest = {
       type: 'scan',
       rootId: options.rootId,
       rootPath: options.rootPath,
       userDataDir: options.userDataDir,
-      known: options.known.slice(),
+      known: options.known.map(knownFactsOf),
     };
     child.postMessage(request);
   });

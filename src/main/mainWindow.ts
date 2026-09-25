@@ -337,7 +337,6 @@ export const createMainWindowFactory = ({
         }
       });
     }
-    installTaskbarTransport(created, RESOURCES_PATH);
     // The material, from the first frame: it is what Windows rounds the
     // window's corners around, so a window without it is square from the
     // moment it opens.
@@ -653,10 +652,18 @@ export const createMainWindowFactory = ({
         error,
       );
     });
-    await created.loadURL(appUrl()).catch((error) => {
+    const firstLoad = created.loadURL(appUrl()).catch((error) => {
       log.error('Initial window load failed; handing it to recovery', error);
       return recoverWindow();
     });
+    // The taskbar's buttons once the page is on its way, not before it: on
+    // Windows this loads koffi's native module (20 ms to require, measured on
+    // a warm disk) and two system DLLs to ask whether the process is elevated,
+    // and ahead of `loadURL` every launch waited for that before the page was
+    // even asked for. Still in the same turn as the call, so its IPC handler
+    // is registered before the page can have run a line of script to send to.
+    installTaskbarTransport(created, RESOURCES_PATH);
+    await firstLoad;
     if (created.isDestroyed() || isAppQuitting()) {
       return;
     }

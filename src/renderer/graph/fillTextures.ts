@@ -9,6 +9,7 @@ import {
   TEXTURE_TILE,
   isTextureImage,
 } from '../../common/graphTextures';
+import { recallRecent, rememberRecent } from '../utils/recentMap';
 
 /**
  * The pattern that goes inside a filled figure.
@@ -43,8 +44,14 @@ const tiles = new Map<string, CanvasPattern | undefined>();
  * the decode finishes finds it here. No timer is involved — the draw loop is
  * already running at display rate, and the image's own load event is the
  * signal.
+ *
+ * At most `KEPT_PICTURES` of them, the ones drawn most recently. Every picture
+ * ever dropped used to stay for the session, decoded and keyed by its whole
+ * data URI; far fewer than that are ever on screen at once, and one let go is
+ * decoded again the first time it is drawn.
  */
 const pictures = new Map<string, HTMLImageElement | 'loading' | 'failed'>();
+const KEPT_PICTURES = 16;
 
 const makeCanvas = (side: number): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
@@ -282,19 +289,21 @@ const picturePattern = (
   context: CanvasRenderingContext2D,
   source: string,
 ): CanvasPattern | undefined => {
-  const held = pictures.get(source);
+  const held = recallRecent(pictures, source);
   if (held === 'failed' || held === 'loading') {
     return undefined;
   }
   if (held === undefined) {
+    const remember = (state: HTMLImageElement | 'loading' | 'failed') =>
+      rememberRecent(pictures, source, state, KEPT_PICTURES);
     if (!isTextureImage(source)) {
-      pictures.set(source, 'failed');
+      remember('failed');
       return undefined;
     }
-    pictures.set(source, 'loading');
+    remember('loading');
     const image = new Image();
-    image.onload = () => pictures.set(source, image);
-    image.onerror = () => pictures.set(source, 'failed');
+    image.onload = () => remember(image);
+    image.onerror = () => remember('failed');
     image.src = source;
     return undefined;
   }

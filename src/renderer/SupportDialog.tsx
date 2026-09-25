@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -133,69 +139,74 @@ export default function SupportDialog({
     // eslint-disable-next-line no-nested-ternary
     petTaps === 0 ? '' : petTaps % 2 === 1 ? ' is-hopping-a' : ' is-hopping-b';
 
+  // The keys read whichever `onClose` is current, and focus returns to Close
+  // only when the dialog opens or a card that covered it goes. Both used to
+  // re-run with `onClose`, which the window hands over new on every render of
+  // its own — several times a second while anything plays — so tabbing
+  // through the ways to support kept snapping back to Close.
+  const handleKey = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+      return;
+    }
+    // Ctrl+Shift+Alt+B, and only while this dialog is open.
+    //
+    // It puts the ad blocker's switch into the video tab's bar, or takes it
+    // away again, and says nothing either way — a dialog that announced it
+    // would stop the switch being something somebody went looking for, which
+    // is the entire reason it is not simply in the interface.
+    //
+    // Here because this dialog is reachable from anywhere and the player is
+    // not: it is only mounted once the video tab has been opened, so the
+    // answer lives in a root-level flag that the player reads when it does.
+    if (isAdBlockRevealChord(event)) {
+      event.preventDefault();
+      toggleAdBlockRevealed();
+      return;
+    }
+    // Space plays from the stage or the initially focused close button.
+    // Focused payment/unlock controls retain normal keyboard activation.
+    const isGameTarget =
+      event.target instanceof Element &&
+      (event.target.closest('.support-dialog__stage') !== null ||
+        event.target === closeRef.current);
+    if (event.key === ' ' && isGameTarget) {
+      event.preventDefault();
+      if (!event.repeat) {
+        bouncePet();
+      }
+      return;
+    }
+    // A modal must not leak focus to the workspace behind it.
+    if (event.key !== 'Tab' || !dialogRef.current) {
+      return;
+    }
+    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled])',
+    );
+    if (focusable.length === 0) {
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
   useEffect(() => {
     if (isCovered) {
       return undefined;
     }
     closeRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-        return;
-      }
-      // Ctrl+Shift+Alt+B, and only while this dialog is open.
-      //
-      // It puts the ad blocker's switch into the video tab's bar, or takes it
-      // away again, and says nothing either way — a dialog that announced it
-      // would stop the switch being something somebody went looking for, which
-      // is the entire reason it is not simply in the interface.
-      //
-      // Here because this dialog is reachable from anywhere and the player is
-      // not: it is only mounted once the video tab has been opened, so the
-      // answer lives in a root-level flag that the player reads when it does.
-      if (isAdBlockRevealChord(event)) {
-        event.preventDefault();
-        toggleAdBlockRevealed();
-        return;
-      }
-      // Space plays from the stage or the initially focused close button.
-      // Focused payment/unlock controls retain normal keyboard activation.
-      const isGameTarget =
-        event.target instanceof Element &&
-        (event.target.closest('.support-dialog__stage') !== null ||
-          event.target === closeRef.current);
-      if (event.key === ' ' && isGameTarget) {
-        event.preventDefault();
-        if (!event.repeat) {
-          bouncePet();
-        }
-        return;
-      }
-      // A modal must not leak focus to the workspace behind it.
-      if (event.key !== 'Tab' || !dialogRef.current) {
-        return;
-      }
-      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled])',
-      );
-      if (focusable.length === 0) {
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
+    const onKeyDown = (event: KeyboardEvent) => handleKey(event);
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [bouncePet, isCovered, onClose]);
+  }, [isCovered]);
 
   useEffect(
     () => () => {

@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import DspPhaseModes from './DspPhaseModes';
+import { startGraphLoop } from './graphLoop';
 import {
   readDspAnalyser,
   readDspCorrelation,
@@ -244,6 +245,16 @@ const DspPhaseMeter = () => {
     }
 
     /**
+     * The element's box in CSS pixels, kept by the observer below.
+     *
+     * It was measured with `getBoundingClientRect` at the top of every frame,
+     * engine or not, which is a layout read sixty times a second: wherever
+     * anything else on the page had changed since the last one, the browser
+     * laid the window out right there to answer it.
+     */
+    const size: IBox = { width: 0, height: 0 };
+
+    /**
      * Sized from the element, which is the only place the box is decided.
      *
      * `keep` leaves the previous frame in place for the scope to fade over.
@@ -251,90 +262,90 @@ const DspPhaseMeter = () => {
      * whatever was in it is gone anyway.
      */
     const measure = (keep = false): IBox | undefined => {
-      const box = canvas.getBoundingClientRect();
-      if (box.width < 1) {
+      if (size.width < 1) {
         return undefined;
       }
       const ratio = window.devicePixelRatio || 1;
-      const width = Math.max(1, Math.round(box.width * ratio));
-      const height = Math.max(1, Math.round(box.height * ratio));
+      const width = Math.max(1, Math.round(size.width * ratio));
+      const height = Math.max(1, Math.round(size.height * ratio));
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       if (!keep) {
-        context.clearRect(0, 0, box.width, box.height);
+        context.clearRect(0, 0, size.width, size.height);
       }
-      return { width: box.width, height: box.height };
+      return { width: size.width, height: size.height };
     };
 
-    /**
-     * Off paints the dial once, at rest and dimmed, and asks for no more frames.
-     *
-     * The whole point of switching it off is that it stops moving in the corner
-     * of the eye. A loop still turning behind a greyed picture would be the cost
-     * without the benefit.
-     */
+    let redraw: () => void;
+    let stop: () => void = () => undefined;
     if (view === 'off') {
-      const box = measure();
-      if (box) {
-        context.globalAlpha = 0.28;
-        drawDial(context, box, 0);
-        context.globalAlpha = 1;
-      }
-      return undefined;
+      /**
+       * Off paints the dial at rest and dimmed, and asks for no more frames
+       * than a new size needs.
+       *
+       * The whole point of switching it off is that it stops moving in the
+       * corner of the eye. A loop still turning behind a greyed picture would
+       * be the cost without the benefit.
+       */
+      redraw = () => {
+        const box = measure();
+        if (box) {
+          context.globalAlpha = 0.28;
+          drawDial(context, box, 0);
+          context.globalAlpha = 1;
+        }
+      };
+    } else {
+      /** Eased toward the reading, so the needle swings rather than jumping. */
+      let shown = 1;
+      /**
+       * The rack's own loop: it turns while the engine publishes, stops when
+       * it lets go, and is started again by the engine registering rather
+       * than by a render (`graphLoop.ts`).
+       *
+       * This one used to ask for its next frame unconditionally, because
+       * stopping when there was no analyser had left the meter dead for good
+       * whenever the page mounted before the engine started — nothing re-armed
+       * it. That was a frame and a measurement sixty times a second on a page
+       * with nothing playing; the registration is what re-arms it now.
+       */
+      const loop = startGraphLoop(() => {
+        const box = measure(view === 'scope');
+        // Nothing to report on, or nowhere to draw it yet: the observer asks
+        // again when a box arrives, and the engine when it starts publishing.
+        if (!box || !readDspAnalyser('eq')) {
+          return;
+        }
+        if (view === 'scope') {
+          drawScope(context, box);
+        } else {
+          // Slow enough to be read at a glance. The figure it is drawing moves
+          // twenty-three times a second and a needle that followed it exactly
+          // would be a blur — an analogue meter has mass for the same reason.
+          shown += (readDspCorrelation() - shown) * 0.09;
+          drawDial(context, box, shown);
+        }
+      });
+      redraw = loop.schedule;
+      stop = loop.stop;
     }
 
-    let frame = 0;
-    /** Eased toward the reading, so the needle swings rather than jumping. */
-    let shown = 1;
-
-    const paint = () => {
-      frame = 0;
-      const box = measure(view === 'scope');
-      // Nothing to report on, or nowhere to draw it. Either way the loop keeps
-      // turning so the meter starts by itself once the engine does.
-      if (!box || !readDspAnalyser('eq')) {
-        schedule();
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.contentRect;
+      if (!box) {
         return;
       }
-      if (view === 'scope') {
-        drawScope(context, box);
-      } else {
-        // Slow enough to be read at a glance. The figure it is drawing moves
-        // twenty-three times a second and a needle that followed it exactly
-        // would be a blur — an analogue meter has mass for the same reason.
-        shown += (readDspCorrelation() - shown) * 0.09;
-        drawDial(context, box, shown);
-      }
-      schedule();
-    };
-
-    function schedule() {
-      /**
-       * Always, and never conditional on the engine existing.
-       *
-       * Stopping the loop when there was no analyser meant the meter died
-       * permanently if it happened to mount before the engine started — which
-       * is the common order, since the DSP page can be opened before anything
-       * is played. Nothing re-armed it, so the meter worked or did not
-       * depending on which mounted first, and that is exactly how it behaved.
-       *
-       * The paint above returns immediately when there is no engine, so an idle
-       * frame costs a function call rather than a redraw.
-       */
-      if (frame === 0) {
-        frame = window.requestAnimationFrame(paint);
-      }
-    }
-
-    // Armed once; `schedule` keeps it alive for as long as the engine exists.
-    frame = window.requestAnimationFrame(paint);
+      size.width = box.width;
+      size.height = box.height;
+      redraw();
+    });
+    observer.observe(canvas);
     return () => {
-      if (frame !== 0) {
-        window.cancelAnimationFrame(frame);
-      }
+      observer.disconnect();
+      stop();
     };
   }, [view]);
 

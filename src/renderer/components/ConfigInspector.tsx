@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   IApoConfigDevice,
   IApoConfigFile,
@@ -511,6 +511,34 @@ const splitLabel = (device: IApoConfigDevice) => {
   return { output, profile };
 };
 
+/**
+ * The `Device:` pattern of the output Windows was last found playing
+ * through, for the next reading of this page — this visit's or a later one's.
+ *
+ * The tree is local files and the output is a PowerShell enumeration, and the
+ * two used to be awaited together, so every reading — each visit, and each
+ * edit made anywhere while the page is open — drew nothing until the
+ * enumeration came back. With the output known the tree is drawn as soon as
+ * it is read. Only while it is not known — the first reading, and the first
+ * after the output moves — does the tree wait for it: the current output's
+ * card leads the row and is the one selected, and drawing first would move
+ * both a moment later.
+ */
+let knownPattern: string | undefined;
+let isWatchingOutputs = false;
+
+const rememberPattern = (pattern: string) => {
+  knownPattern = pattern;
+  if (!isWatchingOutputs) {
+    isWatchingOutputs = true;
+    // For the life of the window: the output can move while this page is
+    // not open, and the next visit must not draw the old one's card first.
+    window.addEventListener('fluideq-output-changed', () => {
+      knownPattern = undefined;
+    });
+  }
+};
+
 const ConfigInspector = () => {
   const { t } = useTranslation();
   // The page shows whichever engine's folder the app writes to; its words
@@ -533,21 +561,35 @@ const ConfigInspector = () => {
     status: 'loading',
   });
   /** The `Device:` pattern of the output Windows is playing through. */
-  const [currentPattern, setCurrentPattern] = useState<string>('');
+  const [currentPattern, setCurrentPattern] = useState<string>(
+    () => knownPattern ?? '',
+  );
   const [selected, setSelected] = useState<string | undefined>(undefined);
+  /** The newest reading; an older one's answers are dropped. */
+  const readingRef = useRef(0);
 
   const load = useCallback(async () => {
+    readingRef.current += 1;
+    const reading = readingRef.current;
     setState({ status: 'loading' });
-    // The devices are asked for alongside the config rather than before it, so
-    // a machine where enumeration is slow still shows the tree promptly and
-    // simply cannot mark which output is current.
-    const [tree, devices] = await Promise.all([
-      getApoConfigTree().catch((error: Error) => error),
-      getAudioDevices().catch(() => []),
-    ]);
-
-    const active = devices.find((device) => device.isDefault);
-    setCurrentPattern(active?.guid || active?.name || '');
+    const readOutput = async () => {
+      const devices = await getAudioDevices().catch(() => []);
+      if (reading !== readingRef.current) {
+        return;
+      }
+      const active = devices.find((device) => device.isDefault);
+      const pattern = active?.guid || active?.name || '';
+      rememberPattern(pattern);
+      setCurrentPattern(pattern);
+    };
+    const outputRead = readOutput();
+    const tree = await getApoConfigTree().catch((error: Error) => error);
+    if (knownPattern === undefined) {
+      await outputRead;
+    }
+    if (reading !== readingRef.current) {
+      return;
+    }
 
     if (tree instanceof Error) {
       setState({ status: 'failed', message: tree.message });

@@ -20,9 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { createRoot } from 'react-dom/client';
 import { RENDERER_READY_EVENT } from 'common/constants';
 import { PRODUCT_NAME } from 'common/branding';
+import { loadLocale } from 'common/i18n';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
-import { installGlobalErrorHandlers } from './utils/logger';
+import { installGlobalErrorHandlers, reportError } from './utils/logger';
+import { readInitialLocale } from './utils/I18nContext';
 
 // The window title, which `index.ejs` also carries so that something sensible
 // is on the taskbar before any JavaScript runs. Set again from branding
@@ -60,28 +62,41 @@ window.addEventListener(
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
-// Outermost on purpose. React tears down the whole tree when a render throws,
-// so without something above App a single bad frame leaves an empty window
-// with nothing on screen to explain it.
-root.render(
-  <ErrorBoundary>
-    <App />
-  </ErrorBoundary>,
-);
 
-/**
- * Tell main the window is worth showing.
- *
- * Electron's `ready-to-show` fires as soon as Chromium has a first frame, which
- * for a React app is an empty root div — so the window appeared blank and then
- * filled in. This waits for the frame after React's first commit, which is the
- * first one with an interface in it.
- *
- * Two nested rAFs rather than one: the first runs before the browser paints the
- * commit, the second after it.
- */
-requestAnimationFrame(() => {
+const start = () => {
+  // Outermost on purpose. React tears down the whole tree when a render
+  // throws, so without something above App a single bad frame leaves an empty
+  // window with nothing on screen to explain it.
+  root.render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>,
+  );
+
+  /**
+   * Tell main the window is worth showing.
+   *
+   * Electron's `ready-to-show` fires as soon as Chromium has a first frame,
+   * which for a React app is an empty root div — so the window appeared blank
+   * and then filled in. This waits for the frame after React's first commit,
+   * which is the first one with an interface in it.
+   *
+   * Two nested rAFs rather than one: the first runs before the browser paints
+   * the commit, the second after it.
+   */
   requestAnimationFrame(() => {
-    window.electron.ipcRenderer.sendMessage(RENDERER_READY_EVENT, []);
+    requestAnimationFrame(() => {
+      window.electron.ipcRenderer.sendMessage(RENDERER_READY_EVENT, []);
+    });
   });
-});
+};
+
+// The language the window opens in is loaded before anything is drawn, so the
+// first frame is already in it. English is in the bundle and resolves at once;
+// any other is one local file of its own (`loadLocale`). A load that fails
+// still starts the window, in English, rather than leaving it empty.
+loadLocale(readInitialLocale())
+  .catch((error: unknown) => {
+    reportError('Loading the interface language', error);
+  })
+  .finally(start);

@@ -34,7 +34,10 @@ import {
 import { setDspNativeState } from '../../../renderer/dsp/store';
 import { getAudioEngineStatus } from '../../../renderer/utils/audioEngineApi';
 import { FluidEqProviderWrapper } from '../../../renderer/utils/FluidEqContext';
-import { resetAudioEngineStatus } from '../../../renderer/utils/useAudioEngineStatus';
+import {
+  refreshAudioEngineStatus,
+  resetAudioEngineStatus,
+} from '../../../renderer/utils/useAudioEngineStatus';
 import {
   animationName,
   baseRules,
@@ -146,8 +149,11 @@ const pastTheLastBeat = (card: Element) => [
   ),
 ];
 
-const renderPanel = () =>
-  render(
+const renderPanel = () => {
+  // The shell's own question, asked once at launch (`AppContent`): the page
+  // reads that answer and asks main nothing itself.
+  refreshAudioEngineStatus();
+  return render(
     <FluidEqProviderWrapper
       value={{ ...defaultFluidEqContext, isEnabled: true }}
     >
@@ -159,6 +165,7 @@ const renderPanel = () =>
       />
     </FluidEqProviderWrapper>,
   );
+};
 
 beforeEach(() => {
   resetAudioEngineStatus();

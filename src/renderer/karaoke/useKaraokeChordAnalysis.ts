@@ -22,7 +22,9 @@ import {
   IKaraokeChordSegment,
   KARAOKE_CHORD_ANALYSIS_SAMPLE_RATE,
 } from '../../common/karaoke/chords';
+import nextTask from '../../common/nextTask';
 import { IKaraokeSong } from '../../common/karaoke/types';
+import { recallRecent, rememberRecent } from '../utils/recentMap';
 
 export type TKaraokeChordAnalysisStatus =
   'idle' | 'analyzing' | 'ready' | 'unsupported' | 'error';
@@ -33,12 +35,13 @@ export interface IKaraokeChordAnalysisState {
   progress: number;
 }
 
+/**
+ * Chords already worked out, by song, so going back to a song does not decode
+ * it again. Capped: kept for every song ever opened, it grew for as long as
+ * the window was open; a returning singer's recent songs stay.
+ */
 const chordCache = new Map<string, IKaraokeChordSegment[]>();
-
-const yieldToRenderer = (): Promise<void> =>
-  new Promise((resolve) => {
-    window.setTimeout(resolve, 0);
-  });
+const CACHED_SONGS = 32;
 
 /** Downmix and resample in bounded chunks after Chromium decodes the file. */
 const audioBufferToChordPcm = async (
@@ -76,7 +79,10 @@ const audioBufferToChordPcm = async (
       });
       output[index] = channels.length ? mono / channels.length : 0;
     }
-    await yieldToRenderer();
+    // A task, not a zero-delay timer: a hidden window runs timers once a
+    // second at best, so a four-minute song — about twenty chunks — took
+    // twenty seconds or more to convert, holding the whole decoded song.
+    await nextTask();
   }
   return output;
 };
@@ -101,7 +107,7 @@ export const useKaraokeChordAnalysis = (
       setState(initialState);
       return undefined;
     }
-    const cached = chordCache.get(songId);
+    const cached = recallRecent(chordCache, songId);
     if (cached) {
       setState({ status: 'ready', chords: cached, progress: 1 });
       return undefined;
@@ -163,7 +169,7 @@ export const useKaraokeChordAnalysis = (
         if (cancelled) {
           return;
         }
-        chordCache.set(songId, chords);
+        rememberRecent(chordCache, songId, chords, CACHED_SONGS);
         setState({ status: 'ready', chords, progress: 1 });
       } catch {
         if (!cancelled) {

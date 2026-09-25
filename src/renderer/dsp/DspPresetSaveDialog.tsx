@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
@@ -57,16 +57,22 @@ const DspPresetSaveDialog = ({
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Escape reads whichever `onClose` is current, and the name field is focused
+  // once. Both used to re-run with `onClose`, which the page hands over new on
+  // each of its renders — and the DSP page renders with its meters — so focus
+  // was put back in the field, over whatever in the dialog was pressed last.
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  });
+
   useEffect(() => {
     inputRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+    const onKey = (event: KeyboardEvent) => closeOnEscape(event);
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   const trimmed = name.trim();
   const overwrites = existing.some(

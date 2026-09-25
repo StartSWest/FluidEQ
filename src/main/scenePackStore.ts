@@ -10,6 +10,7 @@ import {
 import type { ISceneWave } from '../common/sceneWave';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
+import { createSceneSummaryCache } from './sceneSummaryCache';
 
 /**
  * Premium looks on disk, and how they get there.
@@ -19,6 +20,12 @@ import { readSceneCache, writeSceneCache } from './sceneCacheFile';
  * file gets arbitrary GLSL into the GPU path with our name on it. One Ed25519
  * check is tens of microseconds; per pack per launch it is free, and it makes
  * the cache a convenience rather than a trust boundary.
+ *
+ * The list is the one exception, and only for what it shows: a pack's summary
+ * (names, colours, version — never its shader) is kept while its file is
+ * unchanged, because the list is asked on every focus of the window
+ * (`sceneSummaryCache.ts`). A file that changes is read and verified again on
+ * the next list, and drawing a pack always goes through `load`.
  *
  * The signed envelope is encrypted with the OS key store before reaching disk.
  * Legacy copies are verified and migrated atomically on read. This protects
@@ -133,13 +140,19 @@ export const createScenePackStore = ({
   // encrypted-cache build which still wrote to the old name.
   const packPath = (id: string) => path.join(packsDir, `${id}.pack.enc`);
   const legacyPath = (id: string) => path.join(packsDir, `${id}.pack.json`);
+  /** The file a read of `id` opens: the encrypted copy, else a legacy one. */
+  const fileOf = (id: string) =>
+    fs.existsSync(packPath(id)) ? packPath(id) : legacyPath(id);
+
+  /** Each file's summary while it is unchanged (`sceneSummaryCache.ts`). */
+  const summaries = createSceneSummaryCache<IScenePackSummary>();
 
   /**
    * Read, decrypt and verify one cached envelope. Invalid signed content is
    * removed as before; an unavailable OS key never deletes the offline copy.
    */
   const readVerified = (id: string): IScenePack | undefined => {
-    const file = fs.existsSync(packPath(id)) ? packPath(id) : legacyPath(id);
+    const file = fileOf(id);
     const verified = readSceneCache(
       file,
       `official/${id}`,
@@ -194,24 +207,34 @@ export const createScenePackStore = ({
   const saveRejected = () =>
     writeAtomically(rejectedPath, JSON.stringify(rejected));
 
+  const summarise = (pack: IScenePack): IScenePackSummary => ({
+    id: pack.id,
+    version: pack.version,
+    revision: createHash('sha256').update(JSON.stringify(pack)).digest('hex'),
+    names: pack.names,
+    fallbackStyle: pack.fallbackStyle,
+    swatch: pack.swatch,
+    ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
+    ...(pack.wave ? { wave: pack.wave } : {}),
+  });
+
+  /** Both names a pack can be stored under; see `packPath`. */
+  const forgetSummaries = (id: string) => {
+    summaries.forget(packPath(id));
+    summaries.forget(legacyPath(id));
+  };
+
   return {
     list: () =>
       heldIds()
         .filter((id) => !removed[id])
-        .map((id) => readVerified(id))
-        .filter((pack): pack is IScenePack => pack !== undefined)
-        .map((pack) => ({
-          id: pack.id,
-          version: pack.version,
-          revision: createHash('sha256')
-            .update(JSON.stringify(pack))
-            .digest('hex'),
-          names: pack.names,
-          fallbackStyle: pack.fallbackStyle,
-          swatch: pack.swatch,
-          ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
-          ...(pack.wave ? { wave: pack.wave } : {}),
-        })),
+        .flatMap((id) => {
+          const summary = summaries.get(fileOf(id), () => {
+            const pack = readVerified(id);
+            return pack && summarise(pack);
+          });
+          return summary ? [summary] : [];
+        }),
 
     load: (id) => {
       if (!ID.test(id) || removed[id]) {
@@ -264,6 +287,7 @@ export const createScenePackStore = ({
         ) {
           return;
         }
+        forgetSummaries(pack.id);
         writeSceneCache(
           packPath(pack.id),
           `official/${pack.id}`,
@@ -287,6 +311,7 @@ export const createScenePackStore = ({
       const next = { ...removed, [id]: 'removed' };
       writeAtomically(removedPath, JSON.stringify(next));
       removed = next;
+      forgetSummaries(id);
       fs.rmSync(packPath(id), { force: true });
       fs.rmSync(legacyPath(id), { force: true });
       return true;

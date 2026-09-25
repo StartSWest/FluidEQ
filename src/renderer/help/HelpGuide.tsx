@@ -1,7 +1,8 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import {
-  Fragment,
+  useCallback,
+  useDeferredValue,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -12,23 +13,15 @@ import { createPortal } from 'react-dom';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
-import { useTheme } from '../utils/theme';
 import DialogHeader from '../components/DialogHeader';
+import HelpChapter, {
+  type IHelpCapture,
+  type IHelpShownChapter,
+} from './HelpChapter';
 import { HelpColumnContext, type IHelpColumn } from './HelpColumn';
-import HelpFigure from './HelpFigure';
-import {
-  HelpFoundContext,
-  Marked,
-  MarkedText,
-  type IHelpFound,
-} from './HelpMarks';
-import {
-  buildHelpIndex,
-  helpAnchor,
-  searchHelp,
-  type IHelpHit,
-} from './helpSearch';
-import { helpScreenshot } from './screenshots';
+import HelpContentsEntry from './HelpContentsEntry';
+import { HelpFoundContext, type IHelpFound } from './HelpMarks';
+import { buildHelpIndex, searchHelp } from './helpSearch';
 import '../styles/FeatureTour.scss';
 
 interface IHelpGuideProps {
@@ -36,6 +29,17 @@ interface IHelpGuideProps {
 }
 
 const NOTHING_FOUND: IHelpFound = { marks: new Map(), targets: new Set() };
+
+/**
+ * What follows the reading position, set up once for as long as the guide is
+ * open: the scroll listener and the observer, and the sections the observer
+ * is watching.
+ */
+interface IReadingWatch {
+  update: () => void;
+  resize: ResizeObserver;
+  watched: Set<Element>;
+}
 
 /** Where the article draws a passage. Anchors are ids, slashes and digits. */
 const drawnAt = (viewport: HTMLElement, anchor: string) =>
@@ -88,39 +92,56 @@ const stepThroughMarks = (viewport: HTMLElement, direction: 1 | -1) => {
 
 export default function HelpGuide({ onClose }: IHelpGuideProps) {
   const { t, locale } = useTranslation();
-  // The pictures follow the window: Light captures in the Light theme.
-  const theme = useTheme();
   const dialog = useRef<HTMLDialogElement>(null);
   const lightbox = useRef<HTMLDialogElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
   const article = useRef<HTMLDivElement>(null);
   const columnEdge = useRef<HTMLDivElement>(null);
+  const readingWatch = useRef<IReadingWatch | undefined>(undefined);
   const [column, setColumn] = useState<IHelpColumn>();
   const [query, setQuery] = useState('');
   const [activeChapter, setActiveChapter] = useState<string>();
-  const [capture, setCapture] = useState<{ src: string; title: string }>();
-  const chapters = HELP_CHAPTERS.map(({ id, group, figures }, index) => ({
-    id,
-    group,
-    figures,
-    // Its place in the guide, which a search keeps while reordering it.
-    number: index + 1,
-    title: t(`help.${id}.title`),
-    intro: t(`help.${id}.intro`),
-    steps: t(`help.${id}.steps`).split('\n'),
-    tip: t(`help.${id}.tip`),
-  }));
+  const [capture, setCapture] = useState<IHelpCapture>();
+  /**
+   * What the search answers: the query as typed, a render behind.
+   *
+   * Every key used to re-render the whole guide and run the search inside the
+   * keystroke — thirty-one chapters to change the text in one box. The box
+   * now takes the key at once and the chapters follow in a render React can
+   * interrupt when the next key arrives; `HelpChapter` and `HelpContentsEntry`
+   * are memoised, so the render that takes the key skips all of them.
+   */
+  const searched = useDeferredValue(query);
+  // Read once per language: `t` changes exactly when the text can.
+  const chapters = useMemo<IHelpShownChapter[]>(
+    () =>
+      HELP_CHAPTERS.map(({ id, group, figures }, index) => ({
+        id,
+        group,
+        figures,
+        number: index + 1,
+        title: t(`help.${id}.title`),
+        intro: t(`help.${id}.intro`),
+        steps: t(`help.${id}.steps`).split('\n'),
+        tip: t(`help.${id}.tip`),
+      })),
+    [t],
+  );
   // The whole guide is read once per language and searched on every key.
   const guide = useMemo(() => buildHelpIndex(HELP_CHAPTERS, locale), [locale]);
-  const found = useMemo(() => searchHelp(guide, query), [guide, query]);
+  const found = useMemo(() => searchHelp(guide, searched), [guide, searched]);
   const searching = found !== undefined;
-  const matches: ((typeof chapters)[number] & { hit?: IHelpHit })[] = found
-    ? found.hits.flatMap((hit) =>
-        chapters
-          .filter((chapter) => chapter.id === hit.chapterId)
-          .map((chapter) => ({ ...chapter, hit })),
-      )
-    : chapters;
+  const matches = useMemo<IHelpShownChapter[]>(
+    () =>
+      found
+        ? found.hits.flatMap((hit) =>
+            chapters
+              .filter((chapter) => chapter.id === hit.chapterId)
+              .map((chapter) => ({ ...chapter, hit })),
+          )
+        : chapters,
+    [chapters, found],
+  );
   const foundInGuide = useMemo<IHelpFound>(
     () =>
       found
@@ -136,10 +157,22 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
    * search puts the best chapter first whatever part it is in, so then every
    * chapter says which part it is from.
    */
-  const startsGroup = (index: number) =>
+  const groupLabelAt = (index: number) =>
     searching ||
     index === 0 ||
-    matches[index].group !== matches[index - 1].group;
+    matches[index].group !== matches[index - 1].group
+      ? t(`help.group.${matches[index].group}`)
+      : undefined;
+  /** A contents entry pressed: to what the search found there, or its top. */
+  const openChapter = useCallback((chapter: IHelpShownChapter) => {
+    const heading = document.getElementById(`help-${chapter.id}`);
+    if (chapter.hit && article.current) {
+      reveal(article.current, chapter.hit.anchor);
+    } else {
+      heading?.scrollIntoView({ block: 'start' });
+    }
+    heading?.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     const element = dialog.current;
@@ -157,13 +190,17 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
     };
   }, []);
 
+  // Set up once. It used to be torn down and built again on every key typed
+  // in the search, which had nothing new to listen to; what a search changes
+  // is which sections there are, and the effect below keeps up with that.
   useEffect(() => {
     const viewport = article.current;
     if (!viewport) {
       return undefined;
     }
-    const headings = Array.from(viewport.querySelectorAll('h2[id]'));
-    const updateChapter = () => {
+    const update = () => {
+      // Read afresh: a search redraws the chapters under the listener.
+      const headings = Array.from(viewport.querySelectorAll('h2[id]'));
       // Track the heading crossing the reading area, rather than the biggest
       // visible section: long screenshots would otherwise select too early.
       const readingLine =
@@ -183,16 +220,41 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
       }
       setActiveChapter(current?.id);
     };
-    viewport.addEventListener('scroll', updateChapter, { passive: true });
-    const resize = new ResizeObserver(updateChapter);
+    viewport.addEventListener('scroll', update, { passive: true });
+    const resize = new ResizeObserver(update);
     resize.observe(viewport);
-    Array.from(viewport.children).forEach((child) => resize.observe(child));
-    updateChapter();
+    readingWatch.current = { update, resize, watched: new Set() };
     return () => {
-      viewport.removeEventListener('scroll', updateChapter);
+      readingWatch.current = undefined;
+      viewport.removeEventListener('scroll', update);
       resize.disconnect();
     };
-  }, [query, locale]);
+  }, []);
+
+  // The sections a search drew, watched for a capture changing their height,
+  // and the ones it took away no longer watched, so the observer holds only
+  // what is on the page. Then the chapter being read, worked out again.
+  useEffect(() => {
+    const viewport = article.current;
+    const watch = readingWatch.current;
+    if (!viewport || !watch) {
+      return;
+    }
+    const drawn = new Set(Array.from(viewport.children));
+    watch.watched.forEach((section) => {
+      if (!drawn.has(section)) {
+        watch.resize.unobserve(section);
+        watch.watched.delete(section);
+      }
+    });
+    drawn.forEach((section) => {
+      if (!watch.watched.has(section)) {
+        watch.resize.observe(section);
+        watch.watched.add(section);
+      }
+    });
+    watch.update();
+  }, [matches]);
 
   // The column every capture is drawn to, before the first paint so none
   // appears at one size and jumps to another. A resize of the window alone
@@ -303,76 +365,13 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
               </span>
               <nav aria-label={t('help.contents')}>
                 {matches.map((chapter, index) => (
-                  <Fragment key={chapter.id}>
-                    {!searching && startsGroup(index) && (
-                      <span className="help-guide__group" aria-hidden="true">
-                        {t(`help.group.${chapter.group}`)}
-                      </span>
-                    )}
-                    <button
-                      className={`feature-tour__rail-item help-guide__entry${activeChapter === `help-${chapter.id}` ? ' is-active' : ''}`}
-                      type="button"
-                      aria-label={chapter.title}
-                      aria-describedby={
-                        chapter.hit ? `help-found-${chapter.id}` : undefined
-                      }
-                      aria-current={
-                        activeChapter === `help-${chapter.id}`
-                          ? 'location'
-                          : undefined
-                      }
-                      onClick={() => {
-                        const heading = document.getElementById(
-                          `help-${chapter.id}`,
-                        );
-                        if (chapter.hit && article.current) {
-                          reveal(article.current, chapter.hit.anchor);
-                        } else {
-                          heading?.scrollIntoView({ block: 'start' });
-                        }
-                        heading?.focus({ preventScroll: true });
-                      }}
-                    >
-                      <span
-                        className="feature-tour__rail-number"
-                        aria-hidden="true"
-                      >
-                        {chapter.number}
-                      </span>
-                      <span className="help-guide__entry-text">
-                        <span className="help-guide__entry-title">
-                          <Marked
-                            text={chapter.title}
-                            anchor={helpAnchor.title(chapter.id)}
-                            kind="title"
-                          />
-                        </span>
-                        {chapter.hit && chapter.hit.snippet.length > 0 && (
-                          <span
-                            id={`help-found-${chapter.id}`}
-                            className="help-guide__entry-found"
-                          >
-                            {chapter.hit.snippet.map((part, partIndex) => (
-                              <Fragment key={part.text}>
-                                {partIndex > 0 && (
-                                  <span
-                                    className="help-guide__entry-gap"
-                                    aria-hidden="true"
-                                  >
-                                    {' · '}
-                                  </span>
-                                )}
-                                <MarkedText
-                                  text={part.text}
-                                  marks={part.marks}
-                                />
-                              </Fragment>
-                            ))}
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  </Fragment>
+                  <HelpContentsEntry
+                    key={chapter.id}
+                    chapter={chapter}
+                    groupLabel={searching ? undefined : groupLabelAt(index)}
+                    isActive={activeChapter === `help-${chapter.id}`}
+                    onOpen={openChapter}
+                  />
                 ))}
               </nav>
               <span className="help-guide__offline">{t('help.offline')}</span>
@@ -411,94 +410,12 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 </div>
               )}
               {matches.map((chapter, index) => (
-                <section
+                <HelpChapter
                   key={chapter.id}
-                  className="help-guide__chapter"
-                  aria-labelledby={`help-${chapter.id}`}
-                >
-                  {startsGroup(index) && (
-                    <span className="eyebrow help-guide__chapter-group">
-                      {t(`help.group.${chapter.group}`)}
-                    </span>
-                  )}
-                  <div className="help-guide__chapter-heading">
-                    <span
-                      className="feature-tour__rail-number"
-                      aria-hidden="true"
-                    >
-                      {chapter.number}
-                    </span>
-                    <h2
-                      id={`help-${chapter.id}`}
-                      tabIndex={-1}
-                      data-help-anchor={helpAnchor.title(chapter.id)}
-                    >
-                      <Marked
-                        text={chapter.title}
-                        anchor={helpAnchor.title(chapter.id)}
-                        kind="title"
-                      />
-                    </h2>
-                  </div>
-                  <p data-help-anchor={helpAnchor.intro(chapter.id)}>
-                    <Marked
-                      text={chapter.intro}
-                      anchor={helpAnchor.intro(chapter.id)}
-                      kind="intro"
-                    />
-                  </p>
-                  {chapter.figures.map((figure, figureIndex) => {
-                    const title = figure.caption
-                      ? t(figure.caption)
-                      : chapter.title;
-                    return (
-                      <HelpFigure
-                        key={figure.image}
-                        anchor={helpAnchor.figure(chapter.id, figureIndex)}
-                        figure={figure}
-                        src={helpScreenshot(figure.image, theme)}
-                        title={title}
-                        onEnlarge={() =>
-                          setCapture({
-                            src: helpScreenshot(figure.image, theme),
-                            title,
-                          })
-                        }
-                      />
-                    );
-                  })}
-                  <h3>{t('help.steps')}</h3>
-                  <ol>
-                    {chapter.steps.map((step, stepIndex) => (
-                      <li
-                        key={step}
-                        data-help-anchor={helpAnchor.step(
-                          chapter.id,
-                          stepIndex,
-                        )}
-                      >
-                        <Marked
-                          text={step}
-                          anchor={helpAnchor.step(chapter.id, stepIndex)}
-                          kind="step"
-                        />
-                      </li>
-                    ))}
-                  </ol>
-                  <aside
-                    className="help-guide__tip"
-                    data-help-anchor={helpAnchor.tip(chapter.id)}
-                  >
-                    <strong>{t('help.tip')}</strong>
-                    <p>
-                      <Marked
-                        text={chapter.tip}
-                        anchor={helpAnchor.tip(chapter.id)}
-                        kind="tip"
-                      />
-                    </p>
-                  </aside>
-                </section>
+                  chapter={chapter}
+                  groupLabel={groupLabelAt(index)}
+                  onEnlarge={setCapture}
+                />
               ))}
               {matches.length > 0 && (
                 <button

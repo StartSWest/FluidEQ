@@ -35,6 +35,7 @@ import { findFolderArt, readLibraryTags } from './libraryMetadata';
 import {
   ICandidateFile,
   IDiscoverState,
+  IKnownTrack,
   IWalkContext,
   reportProgress,
   trackIdForPath,
@@ -54,7 +55,7 @@ export { trackIdForPath };
  * edited file showing stale tags forever.
  */
 export const shouldReparse = (
-  existing: ILibraryTrack | undefined,
+  existing: IKnownTrack | undefined,
   stat: { size: number; mtimeMs: number },
 ): boolean =>
   existing === undefined ||
@@ -150,14 +151,16 @@ const buildTrack = async (
   };
 };
 
-export interface IParseState {
-  tracks: ILibraryTrack[];
+export interface IParseState<TKnown extends IKnownTrack = ILibraryTrack> {
+  /** In candidate order: a track read here, or a known one carried forward
+   * as the very object it arrived as. */
+  tracks: Array<ILibraryTrack | TKnown>;
   parsed: number;
 }
 
 // Trade-off, not a measurement: a smaller batch shows a new track to the
 // renderer sooner and re-renders the view more often; a larger one cuts the
-// number of `library-index-changed` sends at the cost of a longer wait
+// number of `library-tracks-added` sends at the cost of a longer wait
 // before the first tracks appear. Emitted on whichever limit is hit first,
 // so a folder with very slow tag reads (a handful of large videos) still
 // publishes on the timer instead of waiting for 25 files that may take
@@ -170,13 +173,16 @@ const TRACK_PUBLISH_INTERVAL_MS = 400;
  * forward unchanged, or reading it fresh. No karaoke check here -- that
  * question was already answered in phase one, which is why this list never
  * contains a karaoke song to begin with.
+ *
+ * Answers the track it read, and nothing for a known one carried forward or a
+ * file that vanished: only a read is news to anybody holding the index.
  */
-const parseCandidate = async (
+const parseCandidate = async <TKnown extends IKnownTrack>(
   candidate: ICandidateFile,
-  context: IWalkContext,
+  context: IWalkContext<TKnown>,
   folderArtByDir: Map<string, IFolderArtCache>,
-  state: IParseState,
-): Promise<void> => {
+  state: IParseState<TKnown>,
+): Promise<ILibraryTrack | undefined> => {
   let folderArt = folderArtByDir.get(candidate.dir);
   if (!folderArt) {
     folderArt = { computed: false, id: undefined };
@@ -206,7 +212,7 @@ const parseCandidate = async (
     // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
     console.error(`Could not stat ${candidate.filePath}`, error);
     state.parsed += 1;
-    return;
+    return undefined;
   }
   const statInfo = { size: stats.size, mtimeMs: stats.mtimeMs };
   const existing = context.knownByPath.get(candidate.filePath);
@@ -214,19 +220,21 @@ const parseCandidate = async (
     // Carrying the known track forward unchanged is what makes a rescan of
     // an unchanged folder cost one stat per file instead of a full tag read.
     state.tracks.push(existing);
-  } else {
-    const addedAt = existing?.addedAt ?? Date.now();
-    const track = await buildTrack(
-      candidate.filePath,
-      candidate.name,
-      candidate.kind,
-      addedAt,
-      statInfo,
-      dirCtx,
-    );
-    state.tracks.push(track);
+    state.parsed += 1;
+    return undefined;
   }
+  const addedAt = existing?.addedAt ?? Date.now();
+  const track = await buildTrack(
+    candidate.filePath,
+    candidate.name,
+    candidate.kind,
+    addedAt,
+    statInfo,
+    dirCtx,
+  );
+  state.tracks.push(track);
   state.parsed += 1;
+  return track;
 };
 
 export interface IParseOutcome {
@@ -253,11 +261,17 @@ export interface IParseOutcome {
  * comes first, and whatever remains unpublished is flushed once more before
  * this returns -- on a normal finish, on cancellation, or if a scan turns
  * out to have no candidates at all.
+ *
+ * Only tracks this walk read are published. A known track carried forward
+ * unchanged is already in the index and on screen; republishing it made the
+ * launch rescan of an unchanged library send all of it again, twenty-five at
+ * a time — five hundred and sixty merges into main's copy for fourteen
+ * thousand songs that had not moved.
  */
-export const parseCandidates = async (
-  context: IWalkContext,
+export const parseCandidates = async <TKnown extends IKnownTrack>(
+  context: IWalkContext<TKnown>,
   discovered: IDiscoverState,
-  state: IParseState,
+  state: IParseState<TKnown>,
 ): Promise<IParseOutcome> => {
   const folderArtByDir = new Map<string, IFolderArtCache>();
   let pendingBatch: ILibraryTrack[] = [];
@@ -276,13 +290,15 @@ export const parseCandidates = async (
       return { wasCancelled: true, reachedCount: index };
     }
     const candidate = discovered.candidates[index];
-    const tracksBefore = state.tracks.length;
     // eslint-disable-next-line no-await-in-loop -- one file at a time by design; see the module comment.
-    await parseCandidate(candidate, context, folderArtByDir, state);
-    // A candidate that failed its stat (see parseCandidate's own comment)
-    // advances `state.parsed` without adding a track -- nothing to publish.
-    if (state.tracks.length > tracksBefore) {
-      pendingBatch.push(state.tracks[state.tracks.length - 1]);
+    const read = await parseCandidate(
+      candidate,
+      context,
+      folderArtByDir,
+      state,
+    );
+    if (read) {
+      pendingBatch.push(read);
     }
     if (
       pendingBatch.length >= TRACK_PUBLISH_BATCH_SIZE ||

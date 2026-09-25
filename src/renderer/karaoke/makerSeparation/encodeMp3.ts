@@ -4,8 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Mp3Encoder } from '@breezystack/lamejs';
-
 /**
  * MP3 alongside the WAV a split produces.
  *
@@ -41,6 +39,16 @@ const MP3_KBPS = 192;
  * block for no reason when the loop can simply walk in the right stride.
  */
 const LAME_BLOCK = 1152;
+
+/**
+ * LAME itself, loaded the first time an MP3 is asked for.
+ *
+ * 162 KB of the window's script, which it parsed at every launch for the one
+ * export in the Maker that writes an MP3. A chunk of its own beside the
+ * window's script; the first export waits for it once.
+ */
+const loadLame = () =>
+  import(/* webpackChunkName: "lamejs" */ '@breezystack/lamejs');
 
 /**
  * How many blocks to encode before letting the window breathe.
@@ -91,6 +99,7 @@ export const encodeChannelsAsMp3 = async (
   { onProgress, signal }: IEncodeMp3Options = {},
 ): Promise<File> => {
   const isStereo = Boolean(right && right !== left);
+  const { Mp3Encoder } = await loadLame();
   const encoder = new Mp3Encoder(isStereo ? 2 : 1, sampleRate, MP3_KBPS);
   const leftPcm = toInt16(left);
   const rightPcm = isStereo && right ? toInt16(right) : undefined;

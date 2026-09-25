@@ -72,7 +72,7 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
-  useFluidEqContext: () => ({
+  ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     filters: {},
     isLoading: false,
     isBlockingError: false,
@@ -92,7 +92,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     activeDeviceId: 'device-a',
     smartEq: mockLive.smartEq,
     setSmartEq: mockSetSmartEq,
-  }),
+  })),
 }));
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({

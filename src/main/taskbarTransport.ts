@@ -8,7 +8,12 @@ import path from 'path';
 import { BrowserWindow, ipcMain, nativeImage, nativeTheme } from 'electron';
 import log from 'electron-log';
 import allowTaskbarMessages from './taskbarMessages';
-import { resolveLocale, translate } from '../common/i18n';
+import {
+  isLocaleLoaded,
+  loadLocale,
+  resolveLocale,
+  translate,
+} from '../common/i18n';
 import {
   ITaskbarTransportState,
   isTaskbarTransportState,
@@ -78,11 +83,22 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
       return;
     }
     const dark = nativeTheme.shouldUseDarkColorsForSystemIntegratedUI;
-    const signature = JSON.stringify([state, dark]);
+    const locale = resolveLocale(state.locale);
+    // This process holds only English until a language is asked for, and the
+    // window can publish its state before it has named its language to the
+    // tray. The buttons go up in English for the moment the dictionary takes
+    // to load and are written again once it has — which is why whether it
+    // was loaded is part of what they were written from.
+    const translated = isLocaleLoaded(locale);
+    if (!translated) {
+      loadLocale(locale).then(update, (error: unknown) => {
+        log.warn(`Could not load the ${locale} dictionary`, error);
+      });
+    }
+    const signature = JSON.stringify([state, dark, translated]);
     if (applied === signature) {
       return;
     }
-    const locale = resolveLocale(state.locale);
     const toggleIcon = state.isPlaying ? 'pause' : 'play';
     const buttons: Electron.ThumbarButton[] = [
       {

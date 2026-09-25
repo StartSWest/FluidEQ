@@ -27,27 +27,49 @@ import { useFluidEqContext } from './utils/FluidEqContext';
 import { sendSmartHeadroomMeasurement } from './utils/equalizerApi';
 import ApoHeadroomSupervisor from './utils/apoHeadroomSupervisor';
 
+/**
+ * One part of the chain as text, spelled as it was inside the array this
+ * used to serialise whole: a part that is absent reads as `null` there, so an
+ * absent part that comes back as `null` is not an edit here either.
+ */
+const partText = (part: unknown): string => JSON.stringify(part) ?? 'null';
+
 const SmartHeadroomEngine = () => {
   const engine = useCurrentEngine();
   const chain = useFluidEqContext();
-  const revision = JSON.stringify([
-    chain.filters,
-    chain.graphicEq,
-    chain.eqMode,
-    chain.curveEqMode,
-    chain.eqBandQ,
-    chain.curveBandQ,
-    chain.curveSmoothing,
-    chain.isEqDoubleOn,
-    chain.driver,
-    chain.headphone,
-    chain.voicing,
-    chain.smartEq,
-    chain.convolution,
-    chain.customFx,
-    chain.bypassed,
-  ]);
-  const previousRevision = useRef(revision);
+  const {
+    filters,
+    graphicEq,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
+    isEqDoubleOn,
+    driver,
+    headphone,
+    voicing,
+    smartEq,
+    convolution,
+    customFx,
+    bypassed,
+  } = chain;
+  /**
+   * Each part of the chain as it stood at the last edit that counted, and its
+   * text.
+   *
+   * This whole chain used to be serialised on every render — the headphone
+   * correction, the custom file's bands and Smart EQ's among it — and the
+   * context renders this with every band step, preamp change, selection and
+   * hover. A part is now read as text only when its reference moves, and
+   * still compared as text before it counts: `refreshState` hands every part
+   * a new object whether or not anything in it changed, and each of those
+   * counted as an edit would send the supervisor to reassess a chain nobody
+   * touched.
+   */
+  const lastChain = useRef<{ parts: unknown[]; texts: string[] } | undefined>(
+    undefined,
+  );
   const runningSupervisor = useRef<ApoHeadroomSupervisor | undefined>(
     undefined,
   );
@@ -171,11 +193,48 @@ const SmartHeadroomEngine = () => {
   }, [capture, enabled, isActive]);
 
   useEffect(() => {
-    if (previousRevision.current !== revision) {
+    const parts = [
+      filters,
+      graphicEq,
+      eqMode,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+      isEqDoubleOn,
+      driver,
+      headphone,
+      voicing,
+      smartEq,
+      convolution,
+      customFx,
+      bypassed,
+    ];
+    const last = lastChain.current;
+    const texts = parts.map((part, at) =>
+      last && Object.is(part, last.parts[at]) ? last.texts[at] : partText(part),
+    );
+    if (last && texts.some((text, at) => text !== last.texts[at])) {
       runningSupervisor.current?.notifyEdit();
     }
-    previousRevision.current = revision;
-  }, [revision]);
+    lastChain.current = { parts, texts };
+  }, [
+    filters,
+    graphicEq,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
+    isEqDoubleOn,
+    driver,
+    headphone,
+    voicing,
+    smartEq,
+    convolution,
+    customFx,
+    bypassed,
+  ]);
 
   return null;
 };

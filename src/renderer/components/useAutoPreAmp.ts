@@ -8,7 +8,7 @@ import { useCallback, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 
 /**
  * Auto normalize, switched.
@@ -28,7 +28,7 @@ const useAutoPreAmp = () => {
     setGlobalError,
     setAutoPreAmpOn,
     setPreAmp,
-  } = useFluidEqContext();
+  } = useFluidEqShell();
   const engine = useCurrentEngine();
   const pending = useRef(false);
   const [isBusy, setIsBusy] = useState(false);

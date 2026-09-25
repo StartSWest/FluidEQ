@@ -36,7 +36,7 @@ import {
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
-import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
+import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
@@ -82,7 +82,7 @@ const FrequencyBand = forwardRef(
     // and Equalizer APO is told. A hundred milliseconds — ten a second — was
     // audible as steps while a band was dragged with music playing.
     const INTERVAL = 50;
-    const { setGlobalError, dispatchFilter } = useFluidEqContext();
+    const { setGlobalError, dispatchFilter } = useFluidEqShell();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(

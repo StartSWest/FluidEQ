@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ErrorDescription } from 'common/errors';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
@@ -33,7 +33,7 @@ import type { TActiveLayers } from './useActiveLayers';
 const ActiveLayerChips = ({ active }: { active: TActiveLayers }) => {
   const { layers, isBypassed, voicingGlyph, toggle, setStrength } = active;
   const { t } = useTranslation();
-  const { isBlockingError, isEnabled, setGlobalError } = useFluidEqContext();
+  const { isBlockingError, isEnabled, setGlobalError } = useFluidEqShell();
   return (
     <>
       {layers.map((layer) => (

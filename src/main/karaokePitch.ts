@@ -13,6 +13,7 @@ import withRendererOperation from './rendererOperation';
 import { separationFft } from '../common/karaoke/separationDsp';
 import { isSeparationLoaded, separationWeightBytes } from './karaokeSeparation';
 import onWindowMessage from './ipc/windowMessages';
+import { saveDownload } from './modelDownload';
 
 /**
  * Vocal pitch detection with isolated native inference: RMVPE first, SwiftF0 always.
@@ -190,7 +191,11 @@ const decodeSalience = (
   }
 };
 
-/** Download RMVPE once, atomically, reporting bytes to the renderer. */
+/**
+ * Download RMVPE once, reporting bytes to the renderer. Written as it arrives
+ * under a temporary name and renamed, so a crash mid-write cannot leave a
+ * truncated file that looks cached forever after (`modelDownload.ts`).
+ */
 const ensureRmvpe = async (
   onBytes: (received: number, total: number) => void,
   signal: AbortSignal,
@@ -199,7 +204,7 @@ const ensureRmvpe = async (
   if (fs.existsSync(target)) {
     return target;
   }
-  fs.mkdirSync(modelDir(), { recursive: true });
+  await fs.promises.mkdir(modelDir(), { recursive: true });
   // Announce the fetch before waiting on DNS, TLS, or the first response byte.
   // Without this, a slow connection left the Maker on a generic analysis bar
   // and the model appeared not to be downloading at all.
@@ -208,25 +213,12 @@ const ensureRmvpe = async (
   if (!response.ok || !response.body) {
     throw new Error(`RMVPE download failed (${response.status}).`);
   }
-  const total = Number(response.headers.get('content-length') ?? 0);
-  const reader = response.body.getReader();
-  const parts: Uint8Array[] = [];
-  let received = 0;
-  for (;;) {
-    // eslint-disable-next-line no-await-in-loop
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    parts.push(value);
-    received += value.length;
-    onBytes(received, total);
-  }
-  // A temporary name and a rename, so a crash mid-write cannot leave a
-  // truncated file that looks cached forever after.
-  const temporary = `${target}.download`;
-  fs.writeFileSync(temporary, Buffer.concat(parts));
-  fs.renameSync(temporary, target);
+  await saveDownload({
+    body: response.body,
+    total: Number(response.headers.get('content-length') ?? 0),
+    target,
+    onBytes,
+  });
   return target;
 };
 

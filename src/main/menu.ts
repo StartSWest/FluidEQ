@@ -52,6 +52,28 @@ const ZOOM_STEP = 0.5;
 const ZOOM_MIN_LEVEL = -3;
 const ZOOM_MAX_LEVEL = 4;
 
+/** The builds `buildMenu` gives a menu of their own: reload, DevTools. */
+const hasDevelopmentMenu = () =>
+  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+
+/**
+ * No application menu on Windows and Linux in a release, said before `ready`.
+ *
+ * Electron builds a default menu at launch for an app that has not set one —
+ * File, Edit, View, Window, Help and their accelerators — and a release there
+ * never shows it: the window is frameless and `buildMenu` takes its menu away
+ * the moment the page has loaded. Said after `ready` it is too late, the
+ * default has been built by then. macOS keeps Electron's default, because its
+ * Edit menu is what makes Command+C, Command+V and Command+A work in a text
+ * field; development builds its own menu later either way.
+ */
+export const declineDefaultMenu = (): void => {
+  if (process.platform === 'darwin' || hasDevelopmentMenu()) {
+    return;
+  }
+  Menu.setApplicationMenu(null);
+};
+
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
@@ -72,10 +94,7 @@ export default class MenuBuilder {
     // hung off a menu item would only ever fire in development.
     this.installZoomShortcuts();
 
-    if (
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-    ) {
+    if (hasDevelopmentMenu()) {
       this.setupDevelopmentEnvironment();
     } else {
       this.mainWindow.setMenu(null);
@@ -298,11 +317,7 @@ export default class MenuBuilder {
       ],
     };
 
-    const subMenuView =
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-        ? subMenuViewDev
-        : subMenuViewProd;
+    const subMenuView = hasDevelopmentMenu() ? subMenuViewDev : subMenuViewProd;
 
     return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
   }
@@ -311,45 +326,43 @@ export default class MenuBuilder {
     const templateDefault = [
       {
         label: '&View',
-        submenu:
-          process.env.NODE_ENV === 'development' ||
-          process.env.DEBUG_PROD === 'true'
-            ? [
-                {
-                  label: '&Reload',
-                  accelerator: 'Ctrl+R',
-                  click: () => {
-                    this.mainWindow.webContents.reload();
-                  },
+        submenu: hasDevelopmentMenu()
+          ? [
+              {
+                label: '&Reload',
+                accelerator: 'Ctrl+R',
+                click: () => {
+                  this.mainWindow.webContents.reload();
                 },
-                {
-                  label: 'Toggle &Full Screen',
-                  accelerator: 'F11',
-                  click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
-                    );
-                  },
+              },
+              {
+                label: 'Toggle &Full Screen',
+                accelerator: 'F11',
+                click: () => {
+                  this.mainWindow.setFullScreen(
+                    !this.mainWindow.isFullScreen(),
+                  );
                 },
-                {
-                  label: 'Toggle &Developer Tools',
-                  accelerator: 'Alt+Ctrl+I',
-                  click: () => {
-                    this.mainWindow.webContents.toggleDevTools();
-                  },
+              },
+              {
+                label: 'Toggle &Developer Tools',
+                accelerator: 'Alt+Ctrl+I',
+                click: () => {
+                  this.mainWindow.webContents.toggleDevTools();
                 },
-              ]
-            : [
-                {
-                  label: 'Toggle &Full Screen',
-                  accelerator: 'F11',
-                  click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
-                    );
-                  },
+              },
+            ]
+          : [
+              {
+                label: 'Toggle &Full Screen',
+                accelerator: 'F11',
+                click: () => {
+                  this.mainWindow.setFullScreen(
+                    !this.mainWindow.isFullScreen(),
+                  );
                 },
-              ],
+              },
+            ],
       },
       {
         label: 'Help',

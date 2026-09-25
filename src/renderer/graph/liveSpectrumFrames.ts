@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { Translate } from 'common/i18n';
 import { IChartPointData } from './ChartController';
-import { IOutputLevel } from './outputLevel';
+import { IOutputLevel, LEVEL_FLOOR_DB } from './outputLevel';
 
 /**
  * One frame of the live spectrum: what it is measured with, and how it is read.
@@ -289,6 +289,41 @@ export const createFrameBuffers = (): IFrameBuffers => {
 /** Shared empties, so silence and teardown never mint a fresh array. */
 export const NO_POINTS: IChartPointData[] = [];
 export const NO_WAVEFORM: number[] = [];
+
+/**
+ * The waveform the capture publishes once when the output comes to rest, and
+ * after which it publishes nothing until sound returns (`isMeterAtRest`).
+ *
+ * Its own array rather than one of the pair, so a drawing can tell the last
+ * frame from one more of a stream. Anything that was letting go of a reading
+ * a step per published frame — the titlebar's held peak — has to finish that
+ * on its own clock from here, because no further frame is coming to count.
+ */
+export const SILENT_WAVEFORM: number[] = Array.from(
+  { length: WAVEFORM_POINT_COUNT },
+  () => 0,
+);
+
+/**
+ * Whether a frame of the meters has nothing left to show: every sample of the
+ * window a digital zero, and each channel's level and held peak down on the
+ * floor with no clip warning standing.
+ *
+ * Exactly zero, not quiet. A waveform with anything in it still draws, and
+ * the titlebar reads a peak down to -70 dBFS, ten decibels under the meter's
+ * floor, so only digital silence is a frame every drawing agrees is at rest.
+ */
+export const isMeterAtRest = (
+  waveform: readonly number[],
+  levels: readonly IOutputLevel[],
+): boolean =>
+  waveform.every((sample) => sample === 0) &&
+  levels.every(
+    (level) =>
+      !level.isClipping &&
+      level.levelDb <= LEVEL_FLOOR_DB &&
+      level.peakDb <= LEVEL_FLOOR_DB,
+  );
 
 /**
  * The shape of silence: the analyser's own axis, every band at the floor.

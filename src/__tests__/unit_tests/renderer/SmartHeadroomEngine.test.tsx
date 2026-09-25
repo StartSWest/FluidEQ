@@ -4,6 +4,7 @@ import { useCurrentEngine } from 'renderer/utils/audioEngineContext';
 import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
 import { useLiveAudioControl } from 'renderer/audio/LiveAudioContext';
 import { sendSmartHeadroomMeasurement } from 'renderer/utils/equalizerApi';
+import ApoHeadroomSupervisor from 'renderer/utils/apoHeadroomSupervisor';
 
 jest.mock('renderer/utils/audioEngineContext');
 jest.mock('renderer/utils/FluidEqContext');
@@ -120,6 +121,44 @@ describe('background APO headroom tap', () => {
     view.unmount();
     await act(async () => loaded?.());
     expect(source.connect).not.toHaveBeenCalled();
+  });
+
+  /*
+   * An edit sends the running supervisor to reassess the chain. The chain was
+   * serialised whole on every render to find one; a part is now read only
+   * when its reference moves — and still compared by content, because a
+   * state refresh hands every part a new object whether anything changed or
+   * not, and a reassessment of a chain nobody touched moves the preamp.
+   */
+  it('reassesses on an edit to the chain, and not on a copy of the same chain', async () => {
+    const notifyEdit = jest.spyOn(
+      ApoHeadroomSupervisor.prototype,
+      'notifyEdit',
+    );
+    const chainWith = (gain: number) =>
+      ({
+        isAutoPreAmpOn: true,
+        isEnabled: true,
+        filters: { a: { id: 'a', frequency: 1000, gain, quality: 1 } },
+        headphone: { filters: {} },
+        bypassed: [],
+      }) as unknown as ReturnType<typeof useFluidEqContext>;
+    jest.mocked(useFluidEqContext).mockReturnValue(chainWith(3));
+    const view = render(<SmartHeadroomEngine />);
+    await act(async () => undefined);
+
+    // Every part a new object, and nothing in any of them changed.
+    jest.mocked(useFluidEqContext).mockReturnValue(chainWith(3));
+    view.rerender(<SmartHeadroomEngine />);
+    expect(notifyEdit).not.toHaveBeenCalled();
+
+    // The control: a band moved.
+    jest.mocked(useFluidEqContext).mockReturnValue(chainWith(-2));
+    view.rerender(<SmartHeadroomEngine />);
+    expect(notifyEdit).toHaveBeenCalledTimes(1);
+
+    notifyEdit.mockRestore();
+    view.unmount();
   });
 
   it('clears a legacy moving-spectrum estimate once before listening', async () => {

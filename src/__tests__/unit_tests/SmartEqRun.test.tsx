@@ -100,7 +100,7 @@ jest.mock('renderer/utils/useCurvePhase', () => ({
 
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
-  useFluidEqContext: () => ({
+  ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     filters: mockLive.filters,
     isLoading: false,
     isBlockingError: false,
@@ -124,7 +124,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     // bands it is drawing are actually being applied, so it has to be an array.
     bypassed: [],
     getBandSetGeneration: () => 0,
-  }),
+  })),
 }));
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({

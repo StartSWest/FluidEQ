@@ -23,6 +23,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState,
@@ -237,6 +238,90 @@ export interface IFluidEqContext extends IState {
 
 const FluidEqContext = createContext<IFluidEqContext | undefined>(undefined);
 
+/**
+ * The part of the context that says what state the equaliser is in, and the
+ * actions that change it — every one of them stable for the provider's life.
+ *
+ * WHY THREE CONTEXTS AND NOT ONE. Everything used to be one object, built
+ * afresh on each render of the provider, and the provider renders on every
+ * frame of a band drag, every step of a knob and every band the pointer
+ * crosses. Every reader re-rendered with it — the window's root among them,
+ * so the titlebar, both side columns, the open page and any mounted player
+ * redrew sixty times a second for a change to one band. Readers now take the
+ * narrowest of the three that has what they use: this one changes when the
+ * equaliser is switched, fails or loads; `IFluidEqLayers` when a layer, a mode
+ * or the band count does; the whole context with every band edit, the preamp,
+ * the selection and the hover.
+ */
+export type IFluidEqShell = Pick<
+  IFluidEqContext,
+  | 'activeDeviceId'
+  | 'isLoading'
+  | 'globalError'
+  | 'isBlockingError'
+  | 'isEngineUsable'
+  | 'isEnabled'
+  | 'isAutoPreAmpOn'
+  | 'isGraphViewOn'
+  | 'isCaseSensitiveFs'
+  | 'performHealthCheck'
+  | 'refreshState'
+  | 'setGlobalError'
+  | 'setIsEnabled'
+  | 'setAutoPreAmpOn'
+  | 'setGraphViewOn'
+  | 'setPreAmp'
+  | 'setConvolution'
+  | 'setDriver'
+  | 'setVoicing'
+  | 'setSmartEq'
+  | 'setTone'
+  | 'setHeadphone'
+  | 'setSelectedFilterId'
+  | 'setSelectedFilterIds'
+  | 'setHoveredFilterId'
+  | 'dispatchFilter'
+  | 'getBandSetGeneration'
+>;
+
+/**
+ * The shell, and every layer and mode the chain carries — what changes when
+ * somebody picks something, never while a band is dragged. `bandCount` is the
+ * one thing of the bands' here: it moves only when a band is added or removed.
+ */
+export type IFluidEqLayers = IFluidEqShell &
+  Pick<
+    IFluidEqContext,
+    | 'convolution'
+    | 'headset'
+    | 'headsetTarget'
+    | 'headsetSource'
+    | 'voicing'
+    | 'driver'
+    | 'smartEq'
+    | 'tone'
+    | 'headphone'
+    | 'customFx'
+    | 'bypassed'
+    | 'isEqDoubleOn'
+    | 'eqMode'
+    | 'eqBandDesign'
+    | 'curveEqMode'
+    | 'eqBandQ'
+    | 'curveBandQ'
+    | 'curveSmoothing'
+    | 'eqCuts'
+    | 'eqFormat'
+    | 'graphicEq'
+    | 'eqImport'
+    | 'isFlat'
+  > & { bandCount: number };
+
+const FluidEqShellContext = createContext<IFluidEqShell | undefined>(undefined);
+const FluidEqLayersContext = createContext<IFluidEqLayers | undefined>(
+  undefined,
+);
+
 type IFilterReducer = (
   filters: IFiltersMap,
   action: FilterAction,
@@ -398,12 +483,198 @@ interface IFluidEqProviderProps {
   children: ReactNode;
 }
 
+/**
+ * All three contexts from one value — see `IFluidEqShell` for why three.
+ *
+ * The narrow two are memoised field by field, so they keep their identity for
+ * as long as what they carry does, however often `value` itself is rebuilt.
+ * Tests hand this a plain object; the provider below hands it its own.
+ */
 export const FluidEqProviderWrapper = ({
   value,
   children,
 }: IFluidEqProviderWrapperProps) => {
+  const {
+    activeDeviceId,
+    isLoading,
+    globalError,
+    isBlockingError,
+    isEngineUsable,
+    isEnabled,
+    isAutoPreAmpOn,
+    isGraphViewOn,
+    isCaseSensitiveFs,
+    performHealthCheck,
+    refreshState,
+    setGlobalError,
+    setIsEnabled,
+    setAutoPreAmpOn,
+    setGraphViewOn,
+    setPreAmp,
+    setConvolution,
+    setDriver,
+    setVoicing,
+    setSmartEq,
+    setTone,
+    setHeadphone,
+    setSelectedFilterId,
+    setSelectedFilterIds,
+    setHoveredFilterId,
+    dispatchFilter,
+    getBandSetGeneration,
+    convolution,
+    headset,
+    headsetTarget,
+    headsetSource,
+    voicing,
+    driver,
+    smartEq,
+    tone,
+    headphone,
+    customFx,
+    bypassed,
+    isEqDoubleOn,
+    eqMode,
+    eqBandDesign,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
+    eqCuts,
+    eqFormat,
+    graphicEq,
+    eqImport,
+    isFlat,
+    filters,
+  } = value;
+  const bandCount = Object.keys(filters ?? {}).length;
+
+  const shell = useMemo<IFluidEqShell>(
+    () => ({
+      activeDeviceId,
+      isLoading,
+      globalError,
+      isBlockingError,
+      isEngineUsable,
+      isEnabled,
+      isAutoPreAmpOn,
+      isGraphViewOn,
+      isCaseSensitiveFs,
+      performHealthCheck,
+      refreshState,
+      setGlobalError,
+      setIsEnabled,
+      setAutoPreAmpOn,
+      setGraphViewOn,
+      setPreAmp,
+      setConvolution,
+      setDriver,
+      setVoicing,
+      setSmartEq,
+      setTone,
+      setHeadphone,
+      setSelectedFilterId,
+      setSelectedFilterIds,
+      setHoveredFilterId,
+      dispatchFilter,
+      getBandSetGeneration,
+    }),
+    [
+      activeDeviceId,
+      isLoading,
+      globalError,
+      isBlockingError,
+      isEngineUsable,
+      isEnabled,
+      isAutoPreAmpOn,
+      isGraphViewOn,
+      isCaseSensitiveFs,
+      performHealthCheck,
+      refreshState,
+      setGlobalError,
+      setIsEnabled,
+      setAutoPreAmpOn,
+      setGraphViewOn,
+      setPreAmp,
+      setConvolution,
+      setDriver,
+      setVoicing,
+      setSmartEq,
+      setTone,
+      setHeadphone,
+      setSelectedFilterId,
+      setSelectedFilterIds,
+      setHoveredFilterId,
+      dispatchFilter,
+      getBandSetGeneration,
+    ],
+  );
+
+  const layers = useMemo<IFluidEqLayers>(
+    () => ({
+      ...shell,
+      convolution,
+      headset,
+      headsetTarget,
+      headsetSource,
+      voicing,
+      driver,
+      smartEq,
+      tone,
+      headphone,
+      customFx,
+      bypassed,
+      isEqDoubleOn,
+      eqMode,
+      eqBandDesign,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+      eqCuts,
+      eqFormat,
+      graphicEq,
+      eqImport,
+      isFlat,
+      bandCount,
+    }),
+    [
+      shell,
+      convolution,
+      headset,
+      headsetTarget,
+      headsetSource,
+      voicing,
+      driver,
+      smartEq,
+      tone,
+      headphone,
+      customFx,
+      bypassed,
+      isEqDoubleOn,
+      eqMode,
+      eqBandDesign,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+      eqCuts,
+      eqFormat,
+      graphicEq,
+      eqImport,
+      isFlat,
+      bandCount,
+    ],
+  );
+
   return (
-    <FluidEqContext.Provider value={value}>{children}</FluidEqContext.Provider>
+    <FluidEqShellContext.Provider value={shell}>
+      <FluidEqLayersContext.Provider value={layers}>
+        <FluidEqContext.Provider value={value}>
+          {children}
+        </FluidEqContext.Provider>
+      </FluidEqLayersContext.Provider>
+    </FluidEqShellContext.Provider>
   );
 };
 
@@ -412,7 +683,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     ErrorDescription | undefined
   >();
 
-  const DEFAULT_STATE = getDefaultState();
+  // Once, for the initial values below: it mints fifteen band ids and works out
+  // their Q, and was being run again on every render — every frame of a drag.
+  const [DEFAULT_STATE] = useState(getDefaultState);
 
   const [isEnabled, setIsEnabled] = useState<boolean>(DEFAULT_STATE.isEnabled);
   const [isEqDoubleOn, setIsEqDoubleOn] = useState(false);
@@ -591,9 +864,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     [nextFilterSelection, setSelectedFilterIds],
   );
 
-  const setGraphViewOn = (newValue: boolean) => {
+  const setGraphViewOn = useCallback((newValue: boolean) => {
     setIsGraphViewOn(newValue);
-  };
+  }, []);
 
   const refreshState = useCallback(
     async (options?: IRefreshStateOptions) => {
@@ -704,7 +977,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setGlobalError(e as ErrorDescription);
       }
     },
-    [dispatchFilter],
+    [dispatchFilter, setGraphViewOn],
   );
 
   const performHealthCheck = useCallback(async () => {
@@ -772,77 +1045,148 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     };
   }, [refreshState]);
 
+  const isBlockingError = isBlockingErrorCode(globalError);
+  const value = useMemo<IFluidEqContext>(
+    () => ({
+      activeDeviceId,
+      isLoading,
+      globalError,
+      isBlockingError,
+      isEngineUsable: isEnabled && !isBlockingError,
+      isEnabled,
+      isAutoPreAmpOn,
+      isGraphViewOn,
+      isCaseSensitiveFs,
+      preAmp,
+      isFlat,
+      eqFormat,
+      graphicEq,
+      eqImport,
+      filters,
+      performHealthCheck,
+      refreshState,
+      setGlobalError,
+      setIsEnabled,
+      setAutoPreAmpOn,
+      setGraphViewOn,
+      setPreAmp,
+      convolution,
+      setConvolution,
+      headset,
+      headsetTarget,
+      headsetSource,
+      voicing,
+      driver,
+      smartEq,
+      tone,
+      setTone,
+      headphone,
+      customFx,
+      setHeadphone,
+      bypassed,
+      isEqDoubleOn,
+      eqMode,
+      eqBandDesign,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+      eqCuts,
+      setDriver,
+      setVoicing,
+      setSmartEq,
+      selectedFilterId,
+      setSelectedFilterId,
+      selectedFilterIds,
+      setSelectedFilterIds,
+      nextFilterSelection,
+      toggleFilterSelection,
+      hoveredFilterId,
+      setHoveredFilterId,
+      dispatchFilter,
+      getBandSetGeneration,
+    }),
+    [
+      activeDeviceId,
+      isLoading,
+      globalError,
+      isBlockingError,
+      isEnabled,
+      isAutoPreAmpOn,
+      isGraphViewOn,
+      isCaseSensitiveFs,
+      preAmp,
+      isFlat,
+      eqFormat,
+      graphicEq,
+      eqImport,
+      filters,
+      performHealthCheck,
+      refreshState,
+      setGraphViewOn,
+      convolution,
+      headset,
+      headsetTarget,
+      headsetSource,
+      voicing,
+      driver,
+      smartEq,
+      tone,
+      headphone,
+      customFx,
+      bypassed,
+      isEqDoubleOn,
+      eqMode,
+      eqBandDesign,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+      eqCuts,
+      selectedFilterId,
+      setSelectedFilterId,
+      selectedFilterIds,
+      setSelectedFilterIds,
+      nextFilterSelection,
+      toggleFilterSelection,
+      hoveredFilterId,
+      dispatchFilter,
+      getBandSetGeneration,
+    ],
+  );
+
   return (
-    <FluidEqProviderWrapper
-      value={{
-        activeDeviceId,
-        isLoading,
-        globalError,
-        isBlockingError: isBlockingErrorCode(globalError),
-        isEngineUsable: isEnabled && !isBlockingErrorCode(globalError),
-        isEnabled,
-        isAutoPreAmpOn,
-        isGraphViewOn,
-        isCaseSensitiveFs,
-        preAmp,
-        isFlat,
-        eqFormat,
-        graphicEq,
-        eqImport,
-        filters,
-        performHealthCheck,
-        refreshState,
-        setGlobalError,
-        setIsEnabled,
-        setAutoPreAmpOn,
-        setGraphViewOn,
-        setPreAmp,
-        convolution,
-        setConvolution,
-        headset,
-        headsetTarget,
-        headsetSource,
-        voicing,
-        driver,
-        smartEq,
-        tone,
-        setTone,
-        headphone,
-        customFx,
-        setHeadphone,
-        bypassed,
-        isEqDoubleOn,
-        eqMode,
-        eqBandDesign,
-        curveEqMode,
-        eqBandQ,
-        curveBandQ,
-        curveSmoothing,
-        eqCuts,
-        setDriver,
-        setVoicing,
-        setSmartEq,
-        selectedFilterId,
-        setSelectedFilterId,
-        selectedFilterIds,
-        setSelectedFilterIds,
-        nextFilterSelection,
-        toggleFilterSelection,
-        hoveredFilterId,
-        setHoveredFilterId,
-        dispatchFilter,
-        getBandSetGeneration,
-      }}
-    >
-      {children}
-    </FluidEqProviderWrapper>
+    <FluidEqProviderWrapper value={value}>{children}</FluidEqProviderWrapper>
   );
 };
 
+/**
+ * Everything, bands included — re-renders with every band edit, the preamp,
+ * the selection and the hover. For what draws or edits the bands; anything
+ * else takes `useFluidEqLayers` or `useFluidEqShell`.
+ */
 export const useFluidEqContext = () => {
   const context = useContext(FluidEqContext);
   if (context === undefined) {
     throw new Error('useFluidEqContext must be used within an FluidEqProvider');
+  }
+  return context;
+};
+
+/** The equaliser's state and actions only — see `IFluidEqShell`. */
+export const useFluidEqShell = (): IFluidEqShell => {
+  const context = useContext(FluidEqShellContext);
+  if (context === undefined) {
+    throw new Error('useFluidEqShell must be used within an FluidEqProvider');
+  }
+  return context;
+};
+
+/** The shell, and every layer and mode — see `IFluidEqLayers`. */
+export const useFluidEqLayers = (): IFluidEqLayers => {
+  const context = useContext(FluidEqLayersContext);
+  if (context === undefined) {
+    throw new Error('useFluidEqLayers must be used within an FluidEqProvider');
   }
   return context;
 };
