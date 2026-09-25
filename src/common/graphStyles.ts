@@ -59,14 +59,13 @@ export type GraphStyle =
   | 'silkwaves'
   | 'mirrorbars'
   | 'pixelbars'
-  | 'beams'
   | 'sparkbars'
   | 'glitchbars'
-  | 'orb'
-  | 'kaleido'
-  | 'helix'
-  | 'mesh'
   | 'halftone'
+  | 'bouncedots'
+  | 'fallblocks'
+  | 'fibers'
+  | 'afterglow'
   | 'line'
   | 'area'
   | 'bars'
@@ -227,14 +226,13 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'silkwaves',
   'mirrorbars',
   'pixelbars',
-  'beams',
   'sparkbars',
   'glitchbars',
-  'orb',
-  'kaleido',
-  'helix',
-  'mesh',
   'halftone',
+  'bouncedots',
+  'fallblocks',
+  'fibers',
+  'afterglow',
 ];
 
 /**
@@ -350,14 +348,13 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   silkwaves: 'Silk waves',
   mirrorbars: 'Mirror bars',
   pixelbars: 'Pixel bars',
-  beams: 'Light beams',
   sparkbars: 'Spark bars',
   glitchbars: 'Glitch bars',
-  orb: 'Orb',
-  kaleido: 'Kaleidoscope',
-  helix: 'Helix',
-  mesh: 'Mesh',
   halftone: 'Halftone',
+  bouncedots: 'Bouncing dots',
+  fallblocks: 'Falling blocks',
+  fibers: 'Fiber optics',
+  afterglow: 'Afterglow',
   line: 'Line',
   area: 'Area',
   bars: 'Bars',
@@ -581,14 +578,13 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   silkwaves: 'level',
   mirrorbars: 'rainbow',
   pixelbars: 'level',
-  beams: 'rainbow',
   sparkbars: 'level',
   glitchbars: 'rainbow',
-  orb: 'level',
-  kaleido: 'rainbow',
-  helix: 'rainbow',
-  mesh: 'level',
   halftone: 'level',
+  bouncedots: 'rainbow',
+  fallblocks: 'level',
+  fibers: 'rainbow',
+  afterglow: 'rainbow',
   // Traces and silhouettes: one colour.
   line: 'signal',
   ridge: 'signal',
@@ -856,14 +852,13 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   silkwaves: { attackMs: 18, releaseMs: 320 },
   mirrorbars: { attackMs: 5, releaseMs: 220 },
   pixelbars: { attackMs: 2, releaseMs: 240 },
-  beams: { attackMs: 8, releaseMs: 260 },
   sparkbars: { attackMs: 3, releaseMs: 220 },
   glitchbars: { attackMs: 3, releaseMs: 200 },
-  orb: { attackMs: 12, releaseMs: 280 },
-  kaleido: { attackMs: 14, releaseMs: 300 },
-  helix: { attackMs: 16, releaseMs: 300 },
-  mesh: { attackMs: 6, releaseMs: 200 },
   halftone: { attackMs: 8, releaseMs: 260 },
+  bouncedots: { attackMs: 4, releaseMs: 240 },
+  fallblocks: { attackMs: 4, releaseMs: 260 },
+  fibers: { attackMs: 6, releaseMs: 220 },
+  afterglow: { attackMs: 4, releaseMs: 260 },
   midside: { attackMs: 4, releaseMs: 360 },
   line: { attackMs: 12, releaseMs: 150 },
   // Snap up, hang, drop away — a meter's manners.
@@ -1136,12 +1131,13 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   bars3d: 32,
   mirrorbars: 72,
   pixelbars: 64,
-  beams: 40,
   sparkbars: 56,
   glitchbars: 48,
-  helix: 40,
-  mesh: 48,
   halftone: 72,
+  bouncedots: 48,
+  fallblocks: 40,
+  fibers: 140,
+  afterglow: 64,
 };
 
 export const getColumnCount = (style: GraphStyle) =>
@@ -1206,14 +1202,13 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   silkwaves: 1,
   mirrorbars: 1,
   pixelbars: 1,
-  beams: 1,
   sparkbars: 1,
   glitchbars: 1,
-  orb: 1,
-  kaleido: 1,
-  helix: 1,
-  mesh: 1,
   halftone: 1,
+  bouncedots: 1,
+  fallblocks: 1,
+  fibers: 1,
+  afterglow: 1,
   /**
    * Brighter than the shared default and dimmer than solid.
    *
@@ -1302,11 +1297,13 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   bars3d: 0.3,
   mirrorbars: 0.4,
   pixelbars: 0.12,
-  beams: 0.36,
   sparkbars: 0.55,
   glitchbars: 0.3,
-  helix: 0.5,
   halftone: 0.2,
+  bouncedots: 0.35,
+  fallblocks: 0.14,
+  fibers: 0.4,
+  afterglow: 0.3,
 };
 
 export const getGraphBarGap = (style: GraphStyle): number =>
@@ -1478,12 +1475,13 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'bars3d',
   'mirrorbars',
   'pixelbars',
-  'beams',
   'sparkbars',
   'glitchbars',
-  'helix',
-  'mesh',
   'halftone',
+  'bouncedots',
+  'fallblocks',
+  'fibers',
+  'afterglow',
 ]);
 
 /**
