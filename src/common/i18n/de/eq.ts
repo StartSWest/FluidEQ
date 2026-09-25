@@ -149,7 +149,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',
   'graph.sceneTint.brightnessHint':
-    'Wie hell oder dunkel das Fenster in den Farben des Visualizers steht',
+    'Wie hell oder dunkel das Fenster steht, in Ihrem Design oder in den Farben des Visualizers',
   'graph.member.mine': 'Von Ihnen erstellt',
   'graph.member.theirs': 'Von Mitgliedern erstellt',
   'graph.member.by': 'von {name}',

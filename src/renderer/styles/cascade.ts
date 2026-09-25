@@ -154,8 +154,8 @@ import './LabelledKnob.scss';
 import './DspRoom.scss';
 import './LanguagePicker.scss';
 import './ActionsMenu.scss';
-// The theme's slider: in the actions menu's tray, the player's menu and the
-// head of Window colours, after the tray's own rules for its rows.
+// The theme's slider in the actions menu's tray and the player's menu, after
+// the tray's own rules for its rows, and Window colours' Brightness track.
 import './ThemeShade.scss';
 import './UpdateNotice.scss';
 import './SpeechMemoryNotice.scss';

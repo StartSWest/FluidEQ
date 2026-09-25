@@ -150,7 +150,7 @@ const eq: Partial<Dictionary> = {
     'Quelle part du visualiseur transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
   'graph.sceneTint.brightnessHint':
-    'La clarté de la fenêtre dans les couleurs du visualiseur',
+    'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
   'graph.member.mine': 'Créés par vous',
   'graph.member.theirs': 'Créés par des membres',
   'graph.member.by': 'par {name}',

@@ -148,36 +148,40 @@ describe('the graph’s menu', () => {
     );
   });
 
-  // The theme's slider at the head of the menu in every mode (Ivan,
-  // 2026-09-25: "make the root menu slider that"), and each mode's own
-  // sliders under the list and nowhere else ("for ambient and colors only
-  // that slider under that menu … for fondo 2 slider tansparenty and
-  // briness").
+  // Two sliders at the head of the menu in every mode, Brightness and
+  // Transparency (Ivan, 2026-09-25: "in total I want only two options
+  // brightness and transparency"), and Transparency only moves under the
+  // Backdrop, the one mode with a scene behind the panes to see through to.
   it.each([
-    ['off', ['theme.aria']],
-    ['tint', ['theme.aria', 'graph.sceneTint.brightness']],
-    ['pulse', ['theme.aria', 'graph.sceneTint.brightness']],
-    [
-      'cover',
-      ['theme.aria', 'graph.backdropVeil', 'graph.sceneTint.brightness'],
-    ],
-  ])('under %s offers %j', async (mode, sliders) => {
-    const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
-    fresh.render(<Menu />);
-    await userEvent.click(
-      fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
-    );
-    // Named by an aria-label, or like the theme's, by the label it stands in.
-    expect(
-      fresh.screen
-        .queryAllByRole('slider')
-        .map(
-          (slider) =>
-            slider.getAttribute('aria-label') ??
-            (slider as HTMLInputElement).labels?.[0]?.textContent,
-        ),
-    ).toEqual(sliders);
-  });
+    ['off', false],
+    ['tint', false],
+    ['pulse', false],
+    ['cover', true],
+  ])(
+    'under %s offers Brightness, and Transparency live: %s',
+    async (mode, isLive) => {
+      const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
+      fresh.render(<Menu />);
+      await userEvent.click(
+        fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
+      );
+      expect(
+        fresh.screen
+          .queryAllByRole('slider')
+          .map((slider) => slider.getAttribute('aria-label')),
+      ).toEqual(['graph.sceneTint.brightness', 'graph.backdropVeil']);
+      expect(
+        fresh.screen.getByRole('slider', {
+          name: 'graph.sceneTint.brightness',
+        }),
+      ).toBeEnabled();
+      expect(
+        fresh.screen
+          .getByRole('slider', { name: 'graph.backdropVeil' })
+          .matches(':disabled'),
+      ).toBe(!isLive);
+    },
+  );
 });
 
 describe('the player’s corner key', () => {

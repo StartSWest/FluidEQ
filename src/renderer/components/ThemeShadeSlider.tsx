@@ -22,11 +22,10 @@ const TRACK_STYLE = {
 
 /**
  * The theme, as a slider from Black to a lighter Ocean — in the actions
- * menu's settings tray, in the amp's menu, and at the head of the
- * window-colours menu, where it is what a visualizer's colours stand on
- * (Ivan, 2026-09-25: "make the root menu slider that to also move at same
- * way"). It replaced a choice of two themes: every step between them is a
- * theme now (`themeShade.ts`).
+ * menu's settings tray and in the amp's menu. It replaced a choice of two
+ * themes: every step between them is a theme now (`themeShade.ts`). The
+ * window-colours menu carries the same value as its Brightness
+ * (`WindowBrightnessSlider`), where it also walks a visualizer's colours.
  *
  * The window follows the thumb as it moves: nothing is committed on release,
  * because the colour on screen is the only way to judge where to stop.

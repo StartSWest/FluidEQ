@@ -144,7 +144,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
   'graph.sceneTint.brightnessHint':
-    'Насколько светлым или тёмным будет окно в цветах визуализатора',
+    'Насколько светлым или тёмным будет окно — в вашей теме или в цветах визуализатора',
   'graph.member.mine': 'Созданы вами',
   'graph.member.theirs': 'Созданы участниками',
   'graph.member.by': 'автор: {name}',

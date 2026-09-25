@@ -17,11 +17,7 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from './sceneTint';
-import {
-  getTintBrightness,
-  subscribeTintBrightness,
-} from './sceneTintBrightness';
-import { TINT_LIGHTNESS_PER_STEP } from './sceneTintPalette';
+import { tintLiftForShade } from './sceneTintPalette';
 import { getThemeShade, subscribeTheme } from './theme';
 
 /**
@@ -389,13 +385,14 @@ let painted: { sky: ISceneSky | undefined; shade: number; lift: number } = {
 };
 
 /**
- * The lift the graph's mode asks for (the window-colours menu's Brightness).
- * None while the Studio holds the window's colour: its switch has no
- * Brightness, and a lift set for the graph would tone somebody's scene while
- * they judge it.
+ * How far the window's Brightness lifts a visualizer's colours past the
+ * theme it tones them from: nothing at its left end, where they are the
+ * darkest the theme stands, and `TINT_SHADE_LIFT` at its right. One slider
+ * for every mode and for the Studio too, since it is the theme's (Ivan,
+ * 2026-09-25: "in total I want only two options brightness and
+ * transparency").
  */
-const wantedLift = () =>
-  studioSource ? 0 : getTintBrightness(setting.get()) * TINT_LIGHTNESS_PER_STEP;
+const wantedLift = () => tintLiftForShade(getThemeShade());
 const wantedListeners = new Set<() => void>();
 
 const SCENE_TINT_TRANSITION = 'scene-tint';
@@ -567,10 +564,9 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
 };
 
 /**
- * A Brightness moved, the theme's shade moved, or a change of mode that
- * carries another Brightness, lands at once and at most once a frame: the
- * sliders move under the pointer, and a cross-fade on every step would be the
- * window lagging behind them. Mid-fade it waits for the fade, which repaints
+ * The Brightness moved lands at once and at most once a frame: the slider
+ * moves under the pointer, and a cross-fade on every step would be the
+ * window lagging behind it. Mid-fade it waits for the fade, which repaints
  * to whatever is wanted when it ends.
  */
 let liftFrame = 0;
@@ -585,8 +581,6 @@ const repaintLift = () => {
     }
   });
 };
-subscribeTintBrightness(repaintLift);
-setting.subscribe(repaintLift);
 subscribeTheme(repaintLift);
 
 const subscribeWanted = (listener: () => void) => {

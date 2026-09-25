@@ -20,25 +20,24 @@ import {
   useShownSceneSky,
 } from '../utils/sceneTintStore';
 import AnchoredMenu from '../widgets/AnchoredMenu';
-import ThemeShadeSlider from '../components/ThemeShadeSlider';
 import BackdropVeilSlider from './BackdropVeilSlider';
-import SceneTintBrightnessSlider from './SceneTintBrightnessSlider';
+import WindowBrightnessSlider from './WindowBrightnessSlider';
 
 /**
  * What a Plus visualizer does to the window, as a named menu: the mode it is
- * in on the button; at the head of the menu the theme's own slider, Black to
- * a lighter Ocean, which every mode's colours stand on (Ivan, 2026-09-25:
- * "for plus viz is the same … make the root menu slider that"); all four
- * modes, each with what it does; and under them the chosen mode's own
- * sliders — Brightness for Colours and Ambient, Transparency and Brightness
- * for the Backdrop (Ivan, 2026-09-25: "make it available inside each mode …
- * under the ambient menu not the main one").
+ * in on the button; at the head of the menu its two sliders, Brightness and
+ * Transparency, the same whichever mode is chosen (Ivan, 2026-09-25: "in
+ * total I want only two options brightness and transparency" — they had
+ * been one set under each mode, and the theme's slider a third above them);
+ * and all four modes, each with what it does. Brightness is the theme's own
+ * slider, walking the visualizer's colours while it lends them; Transparency
+ * is the Backdrop's, and says so by standing dimmed under any other mode.
  *
  * It was a glyph walking the four (`SceneTintToggle`, which the player's
  * corner keys still are), and a glyph that cycles keeps three of its four
  * choices behind presses nobody knows to make: Ivan found Ambient itself
  * easy to miss ("a tiny icon that can pass desapercibido"). Choosing a mode
- * keeps the menu open, since its sliders are what comes next.
+ * keeps the menu open, since the sliders above are often what comes next.
  *
  * Never disabled: the colour and the beat change the whole window whether or
  * not the wave is on the plot, and a control that could only be turned off
@@ -115,8 +114,9 @@ const SceneTintMenu = () => {
       >
         <div ref={content} className="scene-look-menu__content">
           <div className="scene-look-menu__heading">{heading}</div>
-          <div className="scene-look-menu__theme">
-            <ThemeShadeSlider />
+          <div className="scene-look-menu__sliders">
+            <WindowBrightnessSlider />
+            <BackdropVeilSlider />
           </div>
           <div
             className="scene-look-menu__choices"
@@ -143,12 +143,6 @@ const SceneTintMenu = () => {
               </button>
             ))}
           </div>
-          {mode !== 'off' && (
-            <div className="scene-look-menu__sliders">
-              {mode === 'cover' && <BackdropVeilSlider />}
-              <SceneTintBrightnessSlider mode={mode} />
-            </div>
-          )}
         </div>
       </AnchoredMenu>
     </span>

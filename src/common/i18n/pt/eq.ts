@@ -147,7 +147,7 @@ const eq: Partial<Dictionary> = {
     'Quanto do visualizador aparece através dos painéis',
   'graph.sceneTint.brightness': 'Brilho',
   'graph.sceneTint.brightnessHint':
-    'O quanto a janela fica clara ou escura nas cores do visualizador',
+    'O quanto a janela fica clara ou escura, no seu tema ou nas cores do visualizador',
   'graph.member.mine': 'Feitos por você',
   'graph.member.theirs': 'Feitos por membros',
   'graph.member.by': 'por {name}',

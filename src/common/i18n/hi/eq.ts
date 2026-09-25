@@ -144,7 +144,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
   'graph.sceneTint.brightnessHint':
-    'विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
+    'आपकी थीम में या विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',

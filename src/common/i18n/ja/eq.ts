@@ -146,7 +146,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
   'graph.sceneTint.brightnessHint':
-    'ビジュアライザーの色で表示されるウィンドウの明るさ',
+    'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',
   'graph.member.theirs': 'メンバーが作成',
   'graph.member.by': '作者: {name}',

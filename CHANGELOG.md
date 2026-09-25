@@ -305,14 +305,15 @@ version and in these notes.
   the left to a lighter Ocean at the right, and every step between them is a
   theme: the window follows the thumb as it moves. Ocean as it was stands
   three quarters of the way along, which is where anyone who had chosen it
-  finds it. It is in the menu behind the pulse icon, in the Compact player's
-  menu, and at the head of Window colours.
+  finds it. It is in the menu behind the pulse icon and in the Compact
+  player's menu.
 - **Window colours, by name.** The button beside Auto on the graph says what a
   Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
-  and opens the theme's slider, which the visualizer's colours stand on, and
-  all four, each with a line on what it does. Under the one you choose:
-  Brightness, for how light the window stands in the visualizer's colours,
-  and for the Backdrop, Transparency.
+  and opens all four, each with a line on what it does, under two sliders.
+  Brightness is the theme's own slider: with the theme it goes from Black to
+  Ocean, and while a visualizer lends the window its colours it goes from
+  their darkest, never black, to their lightest. Transparency is how much of
+  the visualizer shows through the panes on the Backdrop.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let
   it show through.

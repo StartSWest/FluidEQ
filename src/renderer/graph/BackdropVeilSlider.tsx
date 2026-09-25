@@ -13,22 +13,28 @@ import {
   useBackdropVeil,
 } from '../utils/backdropVeil';
 import { useTranslation } from '../utils/I18nContext';
+import { useSceneTintMode } from '../utils/sceneTintStore';
 
 /**
- * How much of the Backdrop's scene shows through the panes, in the
- * window-colours menu under the Backdrop (Ivan, 2026-09-25: "for fondo 2
- * slider tansparenty and briness also under the ambien menu not the main
- * one"). Stored as the veil's strength, which is what the stylesheet wants
- * (`backdropVeil.ts`); shown as its transparency, which is what the name
- * says, so right is more of the scene.
+ * How much of the Backdrop's scene shows through the panes, at the head of
+ * the window-colours menu beside Brightness (Ivan, 2026-09-25: "in total I
+ * want only two options brightness and transparency"). Stored as the veil's
+ * strength, which is what the stylesheet wants (`backdropVeil.ts`); shown as
+ * its transparency, which is what the name says, so right is more of the
+ * scene.
+ *
+ * Only the Backdrop puts a scene behind the panes, so under any other mode
+ * it stands dimmed and does not move: a slider that moved and changed
+ * nothing would read as broken.
  */
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
+  const isBackdrop = useSceneTintMode() === 'cover';
   const transparency = 100 - veil;
   return (
     <label
-      className="graph-view-menu__slider"
+      className={`graph-view-menu__slider${isBackdrop ? '' : ' is-disabled'}`}
       htmlFor="scene-look-transparency"
       title={t('graph.backdropVeilHint')}
     >
@@ -44,6 +50,7 @@ const BackdropVeilSlider = () => {
         min={100 - BACKDROP_VEIL_MAX}
         max={100 - BACKDROP_VEIL_MIN}
         step={1}
+        disabled={!isBackdrop}
         value={transparency}
         onChange={(event) => setBackdropVeil(100 - Number(event.target.value))}
       />

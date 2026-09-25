@@ -148,10 +148,11 @@ const eq = {
   'graph.backdropVeil': 'Transparency',
   'graph.backdropVeilHint':
     'How much of the visualizer shows through the panels',
-  // Under Colours, Ambient and the Backdrop: how light the window's surfaces stand.
+  // The window-colours menu's Brightness: the theme's own slider, which also
+  // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
   'graph.sceneTint.brightnessHint':
-    "How light or dark the window stands in the visualizer's colours",
+    "How light or dark the window stands, in your theme or in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',

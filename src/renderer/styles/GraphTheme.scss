@@ -1035,14 +1035,15 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-primary;
 }
 
-// The chosen mode's own sliders, under a hairline: the View menu's slider
-// rows, so a slider reads the same wherever the graph offers one.
+// Brightness and Transparency, at the head of the menu over the modes and
+// parted from them by a hairline: the View menu's slider rows, so a slider
+// reads the same wherever the graph offers one.
 .scene-look-menu__sliders {
   display: grid;
   gap: 2px;
-  margin-top: 2px;
-  padding: 6px 4px 2px;
-  border-top: 1px solid $border-subtle;
+  margin-bottom: 2px;
+  padding: 0 4px 6px;
+  border-bottom: 1px solid $border-subtle;
 }
 
 /**
