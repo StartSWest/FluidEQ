@@ -20,7 +20,8 @@ import en from 'common/i18n/en';
 import ActionsMenu, {
   type TEngineState,
 } from 'renderer/components/ActionsMenu';
-import { getTheme, setTheme } from 'renderer/utils/theme';
+import { getThemeShade, setTheme } from 'renderer/utils/theme';
+import { OCEAN_SHADE, THEME_SHADE_MAX } from 'renderer/utils/themeShade';
 
 afterEach(() => {
   cleanup();
@@ -257,30 +258,26 @@ describe('the commands of the actions menu', () => {
 });
 
 describe('the settings tray', () => {
-  it('shows both themes as a choice, each with a swatch of itself', () => {
+  it('shows the theme as a slider from Dark to Light that moves the window as it goes', () => {
     const { trigger } = show('ready');
     open(trigger);
-    const themes = screen.getByRole('group', { name: 'Theme' });
-    const black = within(themes).getByRole('menuitemradio', {
-      name: en['theme.black'],
-    });
-    const ocean = within(themes).getByRole('menuitemradio', {
-      name: en['theme.ocean'],
-    });
+    const theme = screen.getByRole('slider', { name: 'Theme' });
+    const row = theme.closest('.theme-shade');
 
-    expect(black).toHaveAttribute('aria-checked', 'true');
-    expect(
-      ocean.querySelector('[data-theme-swatch="ocean"]'),
-    ).toBeInTheDocument();
-    expect(
-      black.querySelector('[data-theme-swatch="black"]'),
-    ).toBeInTheDocument();
+    // Black, the default, at the dark end; the two ends named either side.
+    expect(theme).toHaveValue('0');
+    expect(row).toHaveTextContent(en['theme.black']);
+    expect(row).toHaveTextContent(en['theme.ocean']);
 
-    fireEvent.click(ocean);
+    fireEvent.change(theme, { target: { value: String(OCEAN_SHADE) } });
+    expect(getThemeShade()).toBe(OCEAN_SHADE);
+    expect(document.documentElement.getAttribute('data-theme-shade')).toBe(
+      String(OCEAN_SHADE),
+    );
 
-    expect(getTheme()).toBe('ocean');
-    expect(ocean).toHaveAttribute('aria-checked', 'true');
-    expect(black).toHaveAttribute('aria-checked', 'false');
+    fireEvent.change(theme, { target: { value: String(THEME_SHADE_MAX) } });
+    expect(getThemeShade()).toBe(THEME_SHADE_MAX);
+    expect(theme).toHaveValue(String(THEME_SHADE_MAX));
     // Choosing a setting is not a command: the menu stays where it is.
     expect(
       screen.getByRole('menu', { name: 'FluidEQ actions' }),
@@ -313,9 +310,7 @@ describe('opening and closing the actions menu', () => {
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(
-      screen.getByRole('menuitemradio', { name: en['theme.black'] }),
-    ).toHaveFocus();
+    expect(screen.getByRole('slider', { name: 'Theme' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'End' });
     fireEvent.keyDown(menu, { key: 'ArrowDown' });

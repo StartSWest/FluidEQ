@@ -148,24 +148,34 @@ describe('the graph’s menu', () => {
     );
   });
 
-  // Each mode's own sliders under the list, and nowhere else (Ivan,
-  // 2026-09-25: "for ambient and colors only that slider under that menu …
-  // for fondo 2 slider tansparenty and briness").
+  // The theme's slider at the head of the menu in every mode (Ivan,
+  // 2026-09-25: "make the root menu slider that"), and each mode's own
+  // sliders under the list and nowhere else ("for ambient and colors only
+  // that slider under that menu … for fondo 2 slider tansparenty and
+  // briness").
   it.each([
-    ['off', []],
-    ['tint', ['graph.sceneTint.brightness']],
-    ['pulse', ['graph.sceneTint.brightness']],
-    ['cover', ['graph.backdropVeil', 'graph.sceneTint.brightness']],
+    ['off', ['theme.aria']],
+    ['tint', ['theme.aria', 'graph.sceneTint.brightness']],
+    ['pulse', ['theme.aria', 'graph.sceneTint.brightness']],
+    [
+      'cover',
+      ['theme.aria', 'graph.backdropVeil', 'graph.sceneTint.brightness'],
+    ],
   ])('under %s offers %j', async (mode, sliders) => {
     const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
     fresh.render(<Menu />);
     await userEvent.click(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
     );
+    // Named by an aria-label, or like the theme's, by the label it stands in.
     expect(
       fresh.screen
         .queryAllByRole('slider')
-        .map((slider) => slider.getAttribute('aria-label')),
+        .map(
+          (slider) =>
+            slider.getAttribute('aria-label') ??
+            (slider as HTMLInputElement).labels?.[0]?.textContent,
+        ),
     ).toEqual(sliders);
   });
 });

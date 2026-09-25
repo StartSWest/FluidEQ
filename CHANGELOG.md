@@ -11,8 +11,8 @@ link brings you here. **Help → What's new** opens the tour again any time.
 FluidEQ can now be small. One switch in the title bar turns the whole window
 into the Compact player — the song, the equaliser, a visualizer and Up Next in
 one narrow column — and the same switch brings the full app back on the page
-you left. It has its own Light or Dark theme, folds to a single line, stays on
-top of other windows if you ask, and its volume is your computer's own.
+you left. It has a theme of its own, folds to a single line, stays on top of
+other windows if you ask, and its volume is your computer's own.
 
 Games got their own sound: a chain per game, switched the moment the game
 comes to the front and kept until you close it, however often you alt-tab.
@@ -50,9 +50,9 @@ version and in these notes.
   double-click of its strip; its menu opens the full app on any page. If it
   ever ends up off the screen, FluidEQ's icon in the tray has Recover the
   window.
-- **The Compact player keeps a theme of its own.** Light or Dark, chosen in its
-  menu, apart from the full app's, so the app can stay Dark while the player
-  sits Light beside your work.
+- **The Compact player keeps a theme of its own.** Its menu has the theme's
+  slider too, remembered apart from the full app's, so the app can stay dark
+  while the player sits light beside your work.
 - **The player's visualizer has the graph's switches.** Changing looks by
   itself, a scene's colours on the window, the desk lights and the desktop
   background, in the same order as on the graph: beside the picture when the
@@ -301,11 +301,18 @@ version and in these notes.
   slider stands under the point on the graph it moves. The header's wave lost
   its box, the menus lost their rainbow edge, and the tooltips are FluidEQ's
   own.
+- **The theme is a slider.** Light and Dark became one slider, from Black at
+  the left to a lighter Ocean at the right, and every step between them is a
+  theme: the window follows the thumb as it moves. Ocean as it was stands
+  three quarters of the way along, which is where anyone who had chosen it
+  finds it. It is in the menu behind the pulse icon, in the Compact player's
+  menu, and at the head of Window colours.
 - **Window colours, by name.** The button beside Auto on the graph says what a
   Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
-  and opens all four, each with a line on what it does. Under the one you
-  choose: Brightness, for how light the window stands in the visualizer's
-  colours, and for the Backdrop, Transparency.
+  and opens the theme's slider, which the visualizer's colours stand on, and
+  all four, each with a line on what it does. Under the one you choose:
+  Brightness, for how light the window stands in the visualizer's colours,
+  and for the Backdrop, Transparency.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let
   it show through.

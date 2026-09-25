@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useRef, useState } from 'react';
 import BrandMark from '../icons/BrandMark';
-import ThemePicker from '../components/ThemePicker';
+import ThemeShadeSlider from '../components/ThemeShadeSlider';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu from '../widgets/AnchoredMenu';
@@ -117,12 +117,12 @@ const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
           ))}
         </div>
         <div className="player-menu__rule" role="separator" />
-        {/* THE AMP'S OWN LIGHT OR DARK. The app's own picker, unchanged: it
+        {/* THE AMP'S OWN LIGHT OR DARK. The app's own slider, unchanged: it
             reads and writes whichever choice belongs to the window's current
-            mode (`utils/theme.ts`), so opened from here it is the amp's and
-            opened from the full app's menu it is the app's. The two are
+            mode (`utils/theme.ts`), so moved from here it is the amp's and
+            moved from the full app's menu it is the app's. The two are
             remembered apart (Ivan, 2026-09-22). */}
-        <ThemePicker />
+        <ThemeShadeSlider />
         <div className="player-menu__rule" role="separator" />
         <button
           type="button"

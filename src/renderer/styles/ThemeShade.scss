@@ -1,0 +1,86 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'spacing' as *;
+
+// The theme's slider (`ThemeShadeSlider`): "Dark", a track painted from the
+// window's own panes at one end to its panes at the other, and "Light".
+//
+// The track is the answer to "what will this do": the colours are the ones
+// the window will stand in, walked through Ocean as the slider walks, so no
+// swatch or legend is needed beside it. The panes and not the floor, because
+// Black's floor on a menu is a black bar on a black menu.
+.theme-shade {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.theme-shade__end {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.theme-shade__range {
+  width: 100%;
+  min-width: 72px;
+  height: 22px;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: $radius-pill;
+    background: var(--theme-shade-track);
+    box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.2);
+  }
+
+  // The thumb in the text's white, ringed in the accent: it stands on every
+  // colour the track passes through, the darkest and the lightest alike.
+  &::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+    margin-top: -4px;
+    border: 3px solid $secondary-default;
+    border-radius: 50%;
+    background: $text-primary;
+    box-shadow: 0 1px 4px rgba($black, 0.5);
+    appearance: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-default;
+    outline-offset: 3px;
+    border-radius: $radius-pill;
+  }
+}
+
+// At the head of the window-colours menu (`SceneTintMenu`), over the modes
+// it underlies: the name at the left like a mode's, the slider across the
+// rest, and a hairline under it where the modes begin.
+.scene-look-menu__theme {
+  display: grid;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 2px 10px 8px;
+  border-bottom: 1px solid $border-subtle;
+
+  .menu-preference {
+    display: contents;
+  }
+
+  .menu-preference__label {
+    min-height: 34px;
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+}

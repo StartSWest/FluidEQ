@@ -17,7 +17,16 @@ it under the terms of the GNU General Public License version 3 or later.
  * the theme, a scene's tint on the root, a stylesheet — is still seen.
  */
 
-import { readSurface, readTextInk } from '../../../renderer/utils/theme';
+import {
+  readSurface,
+  readTextInk,
+  setThemeShade,
+} from '../../../renderer/utils/theme';
+import {
+  OCEAN_SHADE,
+  THEME_SHADE_MAX,
+  themeShadeTokens,
+} from '../../../renderer/utils/themeShade';
 
 const root = document.documentElement;
 let computed: jest.SpyInstance;
@@ -30,7 +39,6 @@ const observed = () =>
 
 beforeEach(() => {
   root.removeAttribute('style');
-  root.removeAttribute('data-theme');
   computed = jest.spyOn(window, 'getComputedStyle');
 });
 
@@ -57,22 +65,38 @@ it('reads again when a tint rewrites the root inline style', () => {
 it('reads again when the theme attribute changes', () => {
   const style = document.createElement('style');
   style.textContent =
-    ':root { --accent: #111111; } :root[data-theme="black"] { --accent: #222222; }';
+    ':root { --dsp-sky: #111111; } :root[data-theme-shade="40"] { --dsp-sky: #222222; }';
   document.head.append(style);
-  expect(readSurface('--accent', '#ffffff')).toBe('#111111');
-  root.setAttribute('data-theme', 'black');
-  expect(readSurface('--accent', '#ffffff')).toBe('#222222');
+  setThemeShade(0);
+  expect(readSurface('--dsp-sky', '#ffffff')).toBe('#111111');
+  setThemeShade(40);
+  expect(readSurface('--dsp-sky', '#ffffff')).toBe('#222222');
+  setThemeShade(0);
   style.remove();
+});
+
+// The drawings read the theme's own colours as the slider moves, each step
+// at once, and the slider's ends and middle are the colours it promises.
+it("follows the theme's slider step by step", () => {
+  setThemeShade(0);
+  expect(readSurface('--surface-panel', '#ffffff')).toBe('#0c0e12');
+  setThemeShade(OCEAN_SHADE);
+  expect(readSurface('--surface-panel', '#ffffff')).toBe('#1a3a4e');
+  setThemeShade(THEME_SHADE_MAX);
+  expect(readSurface('--surface-panel', '#ffffff')).toBe(
+    themeShadeTokens(THEME_SHADE_MAX)['--surface-panel'],
+  );
+  setThemeShade(0);
 });
 
 it('reads again when a stylesheet is rewritten in place', async () => {
   const style = document.createElement('style');
-  style.textContent = ':root { --track-well: #333333; }';
+  style.textContent = ':root { --meter-well: #333333; }';
   document.head.append(style);
-  expect(readSurface('--track-well', '#ffffff')).toBe('#333333');
-  style.textContent = ':root { --track-well: #444444; }';
+  expect(readSurface('--meter-well', '#ffffff')).toBe('#333333');
+  style.textContent = ':root { --meter-well: #444444; }';
   await observed();
-  expect(readSurface('--track-well', '#ffffff')).toBe('#444444');
+  expect(readSurface('--meter-well', '#ffffff')).toBe('#444444');
   style.remove();
 });
 

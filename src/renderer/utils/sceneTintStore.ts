@@ -22,7 +22,7 @@ import {
   subscribeTintBrightness,
 } from './sceneTintBrightness';
 import { TINT_LIGHTNESS_PER_STEP } from './sceneTintPalette';
-import { getTheme, type TTheme } from './theme';
+import { getThemeShade, subscribeTheme } from './theme';
 
 /**
  * The window in a Plus visualizer's colour: the switch, what each scene's sky
@@ -379,12 +379,12 @@ export const useRememberedSceneSky = (lookId: string) =>
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
 /**
- * What the root carries now, the theme it was toned against, and the
+ * What the root carries now, the theme's shade it was toned against, and the
  * lightness it was lifted by.
  */
-let painted: { sky: ISceneSky | undefined; theme: TTheme; lift: number } = {
+let painted: { sky: ISceneSky | undefined; shade: number; lift: number } = {
   sky: undefined,
-  theme: getTheme(),
+  shade: getThemeShade(),
   lift: 0,
 };
 
@@ -418,7 +418,7 @@ const sameSky = (left?: ISceneSky, right?: ISceneSky) =>
     sameColour(left.active, right.active));
 
 /**
- * The theme's own values for the tinted tokens, read once per theme.
+ * The theme's own values for the tinted tokens, read once per shade.
  *
  * Reading them means lifting the overrides first — they are what the computed
  * style would otherwise answer — and that is a whole style pass of its own on
@@ -426,10 +426,10 @@ const sameSky = (left?: ISceneSky, right?: ISceneSky) =>
  * landed on the first frame of the fade. A stylesheet edited under a running
  * development window is not seen here until the theme changes or it reloads.
  */
-let themeBase: { theme: TTheme; values: Record<string, string> } | undefined;
+let themeBase: { shade: number; values: Record<string, string> } | undefined;
 
-const readThemeBase = (theme: TTheme) => {
-  if (themeBase?.theme === theme) {
+const readThemeBase = (shade: number) => {
+  if (themeBase?.shade === shade) {
     return themeBase.values;
   }
   const root = document.documentElement;
@@ -449,7 +449,7 @@ const readThemeBase = (theme: TTheme) => {
       root.style.setProperty(token, value);
     }
   });
-  themeBase = { theme, values };
+  themeBase = { shade, values };
   return values;
 };
 
@@ -461,10 +461,10 @@ const readThemeBase = (theme: TTheme) => {
  */
 const paint = () => {
   const { style } = document.documentElement;
-  const theme = getTheme();
+  const shade = getThemeShade();
   const lift = wantedLift();
   const palette = wanted
-    ? tintThemePalette(readThemeBase(theme), wanted, lift)
+    ? tintThemePalette(readThemeBase(shade), wanted, lift)
     : undefined;
   SCENE_TINT_TOKENS.forEach((token) => {
     const value = palette?.[token];
@@ -481,13 +481,13 @@ const paint = () => {
     'data-scene-tint',
     palette !== undefined,
   );
-  painted = { sky: wanted, theme, lift };
+  painted = { sky: wanted, shade, lift };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
   (wanted !== undefined &&
-    (painted.theme !== getTheme() || painted.lift !== wantedLift()));
+    (painted.shade !== getThemeShade() || painted.lift !== wantedLift()));
 
 /**
  * Whether the change can cross-fade.
@@ -567,10 +567,11 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
 };
 
 /**
- * A Brightness moved, or a change of mode that carries another one, lands at
- * once and at most once a frame: the slider moves under the pointer, and a
- * cross-fade on every step would be the window lagging behind it. Mid-fade
- * it waits for the fade, which repaints to whatever is wanted when it ends.
+ * A Brightness moved, the theme's shade moved, or a change of mode that
+ * carries another Brightness, lands at once and at most once a frame: the
+ * sliders move under the pointer, and a cross-fade on every step would be the
+ * window lagging behind them. Mid-fade it waits for the fade, which repaints
+ * to whatever is wanted when it ends.
  */
 let liftFrame = 0;
 const repaintLift = () => {
@@ -586,6 +587,7 @@ const repaintLift = () => {
 };
 subscribeTintBrightness(repaintLift);
 setting.subscribe(repaintLift);
+subscribeTheme(repaintLift);
 
 const subscribeWanted = (listener: () => void) => {
   wantedListeners.add(listener);

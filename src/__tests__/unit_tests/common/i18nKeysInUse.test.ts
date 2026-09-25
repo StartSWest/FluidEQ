@@ -89,9 +89,6 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/components/RhythmGame.tsx': [
     ['support.game.{perfect,great,good,miss}', 'support.game.*'],
   ],
-  'src/renderer/components/ThemePicker.tsx': [
-    ['theme.{ocean,black}', 'theme.*'],
-  ],
   // Each slide is a prefix and a fixed set of suffixes, both typed unions in
   // the slide's own file; these are them.
   'src/renderer/components/featureTour/FeatureSlide.tsx': [

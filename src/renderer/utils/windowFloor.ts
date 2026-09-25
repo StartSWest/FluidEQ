@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect } from 'react';
-import { useTheme } from './theme';
+import { useThemeShade } from './theme';
 
 /**
  * Tells the native window what colour the shell's floor is.
@@ -43,7 +43,7 @@ export const readWindowFloor = (): string | undefined => {
 };
 
 /**
- * Publishes it on mount and on every theme change.
+ * Publishes it on mount and on every step of the theme's slider.
  *
  * In an effect rather than beside the attribute the theme writes: the theme is
  * applied as soon as its module loads, which in development is before
@@ -52,7 +52,7 @@ export const readWindowFloor = (): string | undefined => {
  * has, every time.
  */
 const useWindowFloor = () => {
-  const theme = useTheme();
+  const shade = useThemeShade();
   useEffect(() => {
     const floor = readWindowFloor();
     if (!floor) {
@@ -64,7 +64,7 @@ const useWindowFloor = () => {
     window.electron?.ipcRenderer
       ?.setWindowFloor?.(floor)
       ?.catch(() => undefined);
-  }, [theme]);
+  }, [shade]);
 };
 
 export default useWindowFloor;

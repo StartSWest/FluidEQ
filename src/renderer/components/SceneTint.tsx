@@ -25,7 +25,6 @@ import {
   useSceneTintEnabled,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
-import { useTheme } from '../utils/theme';
 
 /**
  * Puts the whole window in the colour of a Plus scene. Renders nothing.
@@ -56,9 +55,6 @@ const SceneTint = () => {
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
   const memberScenes = useUsableMemberScenes();
-  // The palette is toned from the theme's own values, so a change of theme
-  // has to tone it again.
-  const theme = useTheme();
   const hasPainted = useRef(false);
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);
@@ -142,7 +138,7 @@ const SceneTint = () => {
       showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, theme]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch]);
 
   return null;
 };

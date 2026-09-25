@@ -8,25 +8,32 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useSyncExternalStore } from 'react';
 import { readStored, writeStored } from './graphStorage';
+import {
+  OCEAN_SHADE,
+  THEME_SHADE_MIN,
+  clampThemeShade,
+  themeShadeRule,
+} from './themeShade';
 
 /**
- * The two themes, and what a theme IS here: a set of surface colours.
+ * The theme, and what a theme IS here: a set of surface colours.
  *
  * Every pane, block, field, menu and well in the window reads its colour
- * from a custom property on `:root` (see the `:root` blocks at the head of
- * App.scss). A theme is that list declared again under `data-theme`, and
- * switching is one attribute on the document element. Text, the accent and
- * the semantic colours are shared — a theme changes what things stand on,
- * not what they say.
+ * from a custom property on `:root` (see the `:root` block at the head of
+ * App.scss). The theme is one number, the slider from Black to a lighter
+ * Ocean (`themeShade.ts`), and the properties it sets are written as one rule
+ * over that block. Text and the semantic colours are shared — a theme changes
+ * what things stand on, not what they say.
  *
- * `ocean` is the slate-navy the app was designed on and needs no attribute:
- * it is what `:root` declares. Anything else is named.
- *
- * `black` is nonetheless the default. It arrived in 1.6 and is what a fresh
- * install and an upgrade from anything earlier both open in; Ocean stays one
- * pick away and, once picked, is remembered like any other choice.
+ * Black (0) is the default. It arrived in 1.6 and is what a fresh install
+ * and an upgrade from anything earlier both open in.
  */
 export const THEMES = ['ocean', 'black'] as const;
+
+/**
+ * The end of the slider a shade is nearer: what the help's screenshots and
+ * the tour's pictures are chosen by, which exist in those two colours only.
+ */
 export type TTheme = (typeof THEMES)[number];
 
 /** Which window the choice belongs to: the full app, or the amp. */
@@ -38,46 +45,64 @@ export type TThemeScope = 'app' | 'player';
  * one window, one theme at a time, and a choice remembered for each.
  *
  * So there is no second set of colours to declare anywhere. The theme is one
- * attribute on the document, and the only question is which of the two
- * choices is written there — answered by the mode the window is in.
+ * rule on the document, and the only question is which of the two choices is
+ * written there — answered by the mode the window is in.
+ *
+ * Under the keys the two named themes were kept under: a stored `black` or
+ * `ocean` is that theme's place on the slider, so nobody's window changes
+ * colour on the update that brought the slider.
  */
 const STORAGE_KEY = 'fluideq.theme';
 const PLAYER_STORAGE_KEY = 'fluideq.theme.player';
-/** What `:root` paints with no attribute; see the note above. */
-const ROOT_THEME: TTheme = 'ocean';
-const DEFAULT_THEME: TTheme = 'black';
+const DEFAULT_SHADE = THEME_SHADE_MIN;
 
-const isTheme = (value: string | null): value is TTheme =>
-  value !== null && (THEMES as readonly string[]).includes(value);
+const SHADE_OF_THEME: Record<TTheme, number> = {
+  black: THEME_SHADE_MIN,
+  ocean: OCEAN_SHADE,
+};
+
+const storedShade = (key: string): number => {
+  const stored = readStored(key);
+  if (stored === 'black' || stored === 'ocean') {
+    return SHADE_OF_THEME[stored];
+  }
+  const value = stored === null ? Number.NaN : Number(stored);
+  return Number.isFinite(value) ? clampThemeShade(value) : DEFAULT_SHADE;
+};
 
 const listeners = new Set<() => void>();
 
-const storedTheme = (key: string): TTheme => {
-  const stored = readStored(key);
-  return isTheme(stored) ? stored : DEFAULT_THEME;
-};
-
 /** One choice per mode, and which mode the window is in. */
-const chosen: Record<TThemeScope, TTheme> = {
-  app: storedTheme(STORAGE_KEY),
-  player: storedTheme(PLAYER_STORAGE_KEY),
+const chosen: Record<TThemeScope, number> = {
+  app: storedShade(STORAGE_KEY),
+  player: storedShade(PLAYER_STORAGE_KEY),
 };
 let scope: TThemeScope = 'app';
-let current: TTheme = chosen.app;
+let current = chosen.app;
+
+const SHADE_ATTRIBUTE = 'data-theme-shade';
+let rule: HTMLStyleElement | undefined;
 
 /**
- * Written to the root element rather than to a wrapper, so the menus and
- * bars portalled to `document.body` — which live outside every React tree —
- * take the theme too. A wrapper would have themed the workspace and left
- * every dropdown in the old colours.
+ * Written as a rule for the root element rather than for a wrapper, so the
+ * menus and bars portalled to `document.body` — which live outside every
+ * React tree — take the theme too. A wrapper would have themed the workspace
+ * and left every dropdown in the old colours.
+ *
+ * A rule and not the root's inline style, because the inline style is the
+ * scene tint's: it writes the same properties there, toned from these, and
+ * reads these back by taking its own off for a moment (`sceneTintStore.ts`).
+ * The attribute says which shade is on, for everything that watches the
+ * root for a change of colour (`rootStateOf`, `subscribeRoot`).
  */
-const applyTheme = (theme: TTheme) => {
-  const root = document.documentElement;
-  if (theme === ROOT_THEME) {
-    root.removeAttribute('data-theme');
-  } else {
-    root.setAttribute('data-theme', theme);
+const applyShade = (shade: number) => {
+  if (!rule) {
+    rule = document.createElement('style');
+    rule.setAttribute(SHADE_ATTRIBUTE, '');
+    document.head.append(rule);
   }
+  rule.textContent = themeShadeRule(shade);
+  document.documentElement.setAttribute(SHADE_ATTRIBUTE, String(shade));
   // The window's backdrop material is no longer the theme's business. It used
   // to be — black wanted none, because a blur of the desktop under a true
   // black floor made it grey — and the floor is opaque now, so no theme can
@@ -86,9 +111,14 @@ const applyTheme = (theme: TTheme) => {
   // drawing its lit edge, on every theme. See `windowBackdrop.ts`.
 };
 
-applyTheme(current);
+applyShade(current);
 
-export const getTheme = (): TTheme => current;
+const notify = () => listeners.forEach((listener) => listener());
+
+export const getThemeShade = (): number => current;
+
+export const getTheme = (): TTheme =>
+  current < OCEAN_SHADE / 2 ? 'black' : 'ocean';
 
 /**
  * The window has become the app or the amp: wear that one's choice.
@@ -102,30 +132,40 @@ export const applyThemeScope = (next: TThemeScope) => {
     return;
   }
   current = chosen[next];
-  applyTheme(current);
-  listeners.forEach((listener) => listener());
+  applyShade(current);
+  notify();
 };
 
-export const setTheme = (next: TTheme) => {
-  chosen[scope] = next;
-  writeStored(scope === 'player' ? PLAYER_STORAGE_KEY : STORAGE_KEY, next);
-  if (next === current) {
+export const setThemeShade = (next: number) => {
+  const shade = clampThemeShade(next);
+  chosen[scope] = shade;
+  writeStored(
+    scope === 'player' ? PLAYER_STORAGE_KEY : STORAGE_KEY,
+    String(shade),
+  );
+  if (shade === current) {
     return;
   }
-  current = next;
-  applyTheme(next);
-  listeners.forEach((listener) => listener());
+  current = shade;
+  applyShade(shade);
+  notify();
 };
 
-const subscribe = (listener: () => void) => {
+/** One of the two named places on the slider: the tour's "try" buttons. */
+export const setTheme = (next: TTheme) => setThemeShade(SHADE_OF_THEME[next]);
+
+export const subscribeTheme = (listener: () => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
 };
 
+export const useThemeShade = (): number =>
+  useSyncExternalStore(subscribeTheme, getThemeShade, () => DEFAULT_SHADE);
+
 export const useTheme = (): TTheme =>
-  useSyncExternalStore(subscribe, getTheme, () => DEFAULT_THEME);
+  useSyncExternalStore(subscribeTheme, getTheme, () => 'black');
 
 export type TSurfaceName =
   | '--surface-base'
@@ -179,7 +219,7 @@ const watchSheets = () => {
  * without asking for a style.
  */
 const rootStateOf = (root: HTMLElement) =>
-  `${root.getAttribute('data-theme') ?? ''}|${root.className}|${root.getAttribute('style') ?? ''}|${document.styleSheets.length}|${sheetEdits}`;
+  `${root.getAttribute(SHADE_ATTRIBUTE) ?? ''}|${root.className}|${root.getAttribute('style') ?? ''}|${document.styleSheets.length}|${sheetEdits}`;
 
 const surfaces = new Map<TSurfaceName, string>();
 let surfacesFor = '';
@@ -236,7 +276,7 @@ const subscribeRoot = (listener: () => void) => {
     });
     rootObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['style', 'class', 'data-theme', 'data-scene-tint'],
+      attributeFilter: ['style', 'class', SHADE_ATTRIBUTE, 'data-scene-tint'],
     });
   }
   return () => {

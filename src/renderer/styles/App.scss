@@ -1953,19 +1953,18 @@ textarea,
 // Every surface in the window — floor, pane, block, field, menu, well, the
 // empty-track colour — is one of these, and nothing else in any stylesheet
 // names a slate of its own. The Sass tokens in `_theme.scss` read these by
-// name, so a theme is exactly this list said again with different values:
-// the second block below is the whole of the black theme. Text, the accent
-// and the semantic colours (lime, red, amber) are shared; a theme changes what
+// name, so the theme is this list said again with different values. Text and
+// the semantic colours (lime, red, amber) are shared; a theme changes what
 // things stand on, not what they say.
 //
-// `data-theme` is set on the document element by `renderer/utils/theme.ts`,
-// which is also where the choice is remembered.
-//
-// Each block is declared for `data-theme-swatch` as well: the theme picker's
-// swatch of a theme is painted from these, inside a window wearing the other
-// one, so a swatch is the theme itself and not a copy of its colours.
-:root,
-[data-theme-swatch='ocean'] {
+// The theme is a slider from Black to a lighter Ocean (Ivan, 2026-09-25), and
+// `renderer/utils/themeShade.ts` writes every step of it as a rule over this
+// block: the surfaces, the edges, the accent and the coverage columns, walked
+// in OKLab through Black (`#050608` floor, `#52e9dc` accent, grey coverage
+// columns) and the Ocean below. This block is what the window paints before
+// that script has run, and `themeShade.test.ts` holds the script's Ocean to
+// it.
+:root {
   --text-primary: #{$text-primary};
   --text-muted: #{$text-muted};
   --text-faint: #{$text-faint};
@@ -2024,51 +2023,6 @@ textarea,
   // reference, so a Plus scene lending the window its accent recolours these
   // with it rather than leaving cyan columns under a pink curve.
   --coverage-band: var(--accent);
-}
-
-// Black: near-black, cool, and quiet — not a high-contrast theme.
-//
-// The first cut was white on true black with grey hairlines, and it read as
-// an accessibility mode: every edge shouting, every button a white slab. What
-// makes a dark theme feel expensive is the opposite — the surfaces are a few
-// values apart on a faintly cool near-black, the edges are barely there, and
-// the accent is a colour with some restraint in it rather than pure white.
-//
-// The accent is a green-cyan, taken from the Maker's own waveform: the same
-// family as the ocean theme's cyan so the two are plainly one app, softer so
-// it does not glow on black. The rainbow stays — it is the music.
-:root[data-theme='black'],
-[data-theme-swatch='black'] {
-  --surface-base: #050608;
-  --surface-panel: #0c0e12;
-  --surface-block: #12151a;
-  --surface-field: #14181d;
-  --surface-field-end: #0f1216;
-  --surface-menu: #0e1116;
-  --surface-menu-top: #13171c;
-  --surface-menu-face: #171c23;
-  --surface-well: #030405;
-  --track-well: #222731;
-  // Cool and faint. The edges only have to hint where a card ends; at the
-  // first cut's alphas they drew a wireframe over the window.
-  --border-subtle: rgba(190, 205, 225, 0.06);
-  --border-panel: rgba(190, 205, 225, 0.08);
-  --border-menu: rgba(190, 205, 225, 0.14);
-  // A green-cyan, the one the Maker's song strip has always drawn its
-  // waveform in — softer and a touch greener than the ocean theme's cyan, so
-  // the two are the same family without being the same colour, and it sits
-  // on near-black without glowing.
-  --accent: #52e9dc;
-  --accent-light: #b6f7f0;
-  --accent-dark: #2fcfc2;
-  --accent-darker: #1f9e95;
-  // Gray, not the accent. The columns stand at 6-20% opacity over the whole
-  // plot; in the accent they were a green wash behind a green curve and
-  // the two fought. A cool mid gray — the borders' tint, darker than the
-  // light gray first tried, which sat too bright over near-black — reads as
-  // shading on the floor, and leaves the accent to the things that are
-  // chosen or live.
-  --coverage-band: #7a8594;
 }
 
 // While a Plus scene lends the window its colours the root is marked

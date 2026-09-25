@@ -20,15 +20,19 @@ import {
   useShownSceneSky,
 } from '../utils/sceneTintStore';
 import AnchoredMenu from '../widgets/AnchoredMenu';
+import ThemeShadeSlider from '../components/ThemeShadeSlider';
 import BackdropVeilSlider from './BackdropVeilSlider';
 import SceneTintBrightnessSlider from './SceneTintBrightnessSlider';
 
 /**
  * What a Plus visualizer does to the window, as a named menu: the mode it is
- * in on the button; all four in the menu, each with what it does; and under
- * them the chosen mode's own sliders — Brightness for Colours and Ambient,
- * Transparency and Brightness for the Backdrop (Ivan, 2026-09-25: "make it
- * available inside each mode … under the ambient menu not the main one").
+ * in on the button; at the head of the menu the theme's own slider, Black to
+ * a lighter Ocean, which every mode's colours stand on (Ivan, 2026-09-25:
+ * "for plus viz is the same … make the root menu slider that"); all four
+ * modes, each with what it does; and under them the chosen mode's own
+ * sliders — Brightness for Colours and Ambient, Transparency and Brightness
+ * for the Backdrop (Ivan, 2026-09-25: "make it available inside each mode …
+ * under the ambient menu not the main one").
  *
  * It was a glyph walking the four (`SceneTintToggle`, which the player's
  * corner keys still are), and a glyph that cycles keeps three of its four
@@ -111,6 +115,9 @@ const SceneTintMenu = () => {
       >
         <div ref={content} className="scene-look-menu__content">
           <div className="scene-look-menu__heading">{heading}</div>
+          <div className="scene-look-menu__theme">
+            <ThemeShadeSlider />
+          </div>
           <div
             className="scene-look-menu__choices"
             role="radiogroup"

@@ -313,40 +313,17 @@
   line-height: 1.35;
 }
 
-// Both themes, each with a swatch of itself. 22px tall, so the control comes
-// out at the language list's 28.
-.actions-menu__prefs .theme-picker__option {
-  display: inline-flex;
-  min-height: 22px;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
+// The theme's slider, as wide as a track needs to be read as one: the Dark
+// and Light either side of it and 120px of travel between them. The column
+// is shared with the language list, which comes out the same width beside it.
+.actions-menu__prefs .theme-shade {
+  min-width: 212px;
 }
 
-// A window in miniature, in the theme's own colours from the declarations
-// `App.scss` makes for `data-theme-swatch`: its ground, a pane down the left
-// and a stroke of the accent. The themes share an accent and differ in what
-// things stand on, so the ground has to be most of the picture. A circle
-// split with the accent read as the same teal dot twice, and one with a dot
-// in its middle read as two radio buttons, both on.
-.theme-picker__swatch {
-  width: 16px;
-  height: 12px;
-  flex: 0 0 auto;
-  border-radius: 3px;
-  background:
-    linear-gradient(var(--surface-panel) 0 0) 2px 2px / 5px 8px no-repeat,
-    linear-gradient(var(--accent) 0 0) 9px 7px / 5px 2px no-repeat,
-    var(--surface-base);
-  box-shadow: 0 0 0 1px rgba($edge-tint, 0.34);
-}
-
-// The language list's trigger, drawn as the theme's sibling rather than as a
-// field that wandered in: the segmented control's edge, radius and height.
-// Regular weight like the theme's names: a field's value is set bold, and
-// beside the segmented control that made the language the loudest word in
-// the tray.
+// The language list's trigger, drawn as a sibling of the tray's other
+// controls rather than as a field that wandered in: 28px, the switches' edge
+// and radius. Regular weight: a field's value is set bold, and in the tray
+// that made the language the loudest word in it.
 .actions-menu__prefs .menu-preference__control .dropdown > [role='menu'] {
   min-height: 28px;
   padding: 4px 8px 4px 10px;
