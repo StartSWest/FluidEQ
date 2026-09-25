@@ -149,6 +149,15 @@ add_executable(fluideq-song-leveling-test dsp-core/tests/song_leveling_test.cpp)
 target_link_libraries(fluideq-song-leveling-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME song-leveling COMMAND fluideq-song-leveling-test)
 
+# The wake the audio callback gives the threads that wait on it — decoder,
+# voice cleaner, telemetry. A lost wake is not a wrong answer but a thread
+# that never wakes, so the checks are work that cannot finish without every
+# wake, and this limit is what reports one lost.
+add_executable(fluideq-wake-test dsp-core/tests/wake_test.cpp)
+target_link_libraries(fluideq-wake-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME wake COMMAND fluideq-wake-test)
+set_tests_properties(wake PROPERTIES TIMEOUT 120)
+
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
@@ -405,8 +414,11 @@ if(WIN32)
   # Windows 7 and later the header redirects it into kernel32 and this import
   # library goes unused, which costs nothing and keeps the link honest about
   # what the code asked for.
+  # `advapi32` is the service manager, which the backend asks to be told when
+  # Windows audio stops and comes back (`wasapi_backend.cpp`); MSVC links it
+  # by default, and naming it keeps the link honest here too.
   target_link_libraries(fluideq-dsp-host PRIVATE
-    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi)
+    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi advapi32)
 
 else()
   target_sources(fluideq-dsp-host PRIVATE

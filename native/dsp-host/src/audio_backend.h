@@ -20,6 +20,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <memory>
 #include <string>
 
+#include "fluideq/wake.h"
+
 /**
  * What the device actually agreed to, which is rarely what was asked for.
  *
@@ -121,11 +123,13 @@ class IAudioOutputBackend {
   /**
    * Should this endpoint be closed and reopened?
    *
-   * True once the system has changed which device is the default, or once the
-   * render thread has stopped for a reason nobody asked for. Both leave a
-   * stream that is technically healthy and inaudible: the old endpoint stays
-   * valid, so WASAPI reports nothing and the audio simply goes where the
-   * listener is not.
+   * True once the system has changed which device is the default, once the
+   * stream has been disconnected under it, or — while no stream is open —
+   * once anything about the outputs has changed, which is when opening one
+   * may succeed where it failed. Each of these leaves a stream that is
+   * technically healthy and inaudible, or none at all, and each raises the
+   * wake handed to `create_audio_backend` as it happens: the host waits on
+   * that, and never asks on a clock.
    *
    * Answered false by a backend that cannot tell, which is the honest default —
    * a platform with no notification API should not claim its device never
@@ -135,19 +139,6 @@ class IAudioOutputBackend {
 
   /** Acknowledge a reopen, so it is acted on once. */
   virtual void clear_reopen() {}
-
-  /**
-   * Ask for another attempt, because the last one did not succeed.
-   *
-   * A reopen is acknowledged BEFORE it is tried, so a change arriving during
-   * the attempt is not lost. That leaves nothing holding the request when the
-   * attempt itself fails — and an endpoint that has just gone away is exactly
-   * when opening fails, so the one case this whole mechanism exists for was
-   * also the one it gave up on: closed, silent, and nothing scheduled to try
-   * again. Putting the request back is what makes it wait for the device to
-   * come back rather than for the user to restart the app.
-   */
-  virtual void request_reopen() {}
 
   /** A human-readable name for the handshake and for support reports. */
   virtual const char* name() const = 0;
@@ -163,6 +154,7 @@ class IAudioOutputBackend {
  * device would.
  */
 std::unique_ptr<IAudioOutputBackend> create_audio_backend(FeqRenderFn render,
-                                                          void* context);
+                                                          void* context,
+                                                          FeqWake* changes);
 
 #endif /* FLUIDEQ_HOST_AUDIO_BACKEND_H */

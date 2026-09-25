@@ -24,15 +24,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <atomic>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <thread>
 #include <vector>
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <audioclient.h>
+#include <audiopolicy.h>
 #include <avrt.h>
 #include <mmdeviceapi.h>
 #include <wrl/client.h>
@@ -89,7 +93,27 @@ bool is_float32(const WAVEFORMATEX* format) {
 }
 
 /**
- * Told when Windows changes which endpoint is the default render device.
+ * What the backend is told about, from the three places that tell it.
+ *
+ * Every one of them arrives on a thread that is not the host's — a COM
+ * notification thread, the service manager's APC, the device's session — and
+ * every answer is the same: raise a flag and wake the host, which does the
+ * work on its own thread. Nothing is torn down from inside a notification
+ * about the thing being torn down.
+ */
+class IOutputsListener {
+ public:
+  virtual ~IOutputsListener() = default;
+  /** Windows moved the default render endpoint. */
+  virtual void heard_default_changed() = 0;
+  /** An endpoint was added, removed, enabled, disabled or changed. */
+  virtual void heard_outputs_changed() = 0;
+  /** The stream playing now was cut off, or Windows audio went away. */
+  virtual void heard_stream_lost() = 0;
+};
+
+/**
+ * Told when Windows changes anything about the render endpoints.
  *
  * Without this the host opens the default endpoint once and writes to it
  * forever. Switching output — speakers to headphones, a monitor unplugged —
@@ -98,18 +122,14 @@ bool is_float32(const WAVEFORMATEX* format) {
  * fails and nothing is reported. The `<audio>` element path follows the default
  * on its own, which is why only the native engine went quiet.
  *
- * A notification rather than polling the endpoint id on a timer, because the
- * event exists and asking repeatedly for something the system will tell us is
- * the shape of fix this codebase has a rule against.
- *
- * Only the flag is set here. This is called on a COM callback thread, and doing
- * the reopen on it would tear the device down from inside a notification about
- * that device.
+ * The other notices matter while no stream is open. An output that failed to
+ * open — unplugged, re-enumerating, held by another program — is tried again
+ * when anything about the outputs changes, which is when it may have come
+ * back; it used to be tried forty times a second until it did.
  */
-class DefaultDeviceWatcher final : public IMMNotificationClient {
+class EndpointWatcher final : public IMMNotificationClient {
  public:
-  explicit DefaultDeviceWatcher(std::atomic<bool>& changed)
-      : changed_(changed) {}
+  explicit EndpointWatcher(IOutputsListener& listener) : listener_(listener) {}
 
   // IUnknown. Not reference counted in any meaningful way: this object is owned
   // by the backend and outlives every callback by construction, because the
@@ -136,31 +156,215 @@ class DefaultDeviceWatcher final : public IMMNotificationClient {
     // stream's business and reopening for it would interrupt playback for
     // something the listener did not do.
     if (flow == eRender && role == eConsole) {
-      changed_.store(true, std::memory_order_release);
+      listener_.heard_default_changed();
     }
     return S_OK;
   }
 
   HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR, DWORD) override {
+    listener_.heard_outputs_changed();
     return S_OK;
   }
-  HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR) override { return S_OK; }
-  HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR) override { return S_OK; }
+  HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR) override {
+    listener_.heard_outputs_changed();
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR) override {
+    listener_.heard_outputs_changed();
+    return S_OK;
+  }
   HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR,
                                                    const PROPERTYKEY) override {
+    listener_.heard_outputs_changed();
     return S_OK;
   }
 
  private:
-  std::atomic<bool>& changed_;
+  IOutputsListener& listener_;
 };
 
-class WasapiBackend final : public IAudioOutputBackend {
+/**
+ * Told when the stream playing now has been cut off.
+ *
+ * The render loop used to find that out by waiting two seconds for a period
+ * that did not come — two full buffers of silence, guessed as long enough to
+ * mean dead rather than slow. Windows says it outright: the device was
+ * removed, its format was changed in Sound settings, Windows audio stopped,
+ * the session was logged off, or another program took the device in
+ * exclusive mode. Each of those is a reason to reopen, and none of them sends
+ * another period.
+ */
+class SessionWatcher final : public IAudioSessionEvents {
  public:
-  WasapiBackend(FeqRenderFn render, void* context)
-      : render_(render), context_(context) {}
+  explicit SessionWatcher(IOutputsListener& listener) : listener_(listener) {}
 
-  ~WasapiBackend() override { close(); }
+  ULONG STDMETHODCALLTYPE AddRef() override { return 1; }
+  ULONG STDMETHODCALLTYPE Release() override { return 1; }
+  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid,
+                                           void** object) override {
+    if (object == nullptr) {
+      return E_POINTER;
+    }
+    if (riid == __uuidof(IUnknown) || riid == __uuidof(IAudioSessionEvents)) {
+      *object = static_cast<IAudioSessionEvents*>(this);
+      return S_OK;
+    }
+    *object = nullptr;
+    return E_NOINTERFACE;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  OnSessionDisconnected(AudioSessionDisconnectReason) override {
+    listener_.heard_stream_lost();
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDisplayNameChanged(LPCWSTR, LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnIconPathChanged(LPCWSTR, LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnSimpleVolumeChanged(float, BOOL,
+                                                  LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnChannelVolumeChanged(DWORD, float*, DWORD,
+                                                   LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnGroupingParamChanged(LPCGUID,
+                                                   LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnStateChanged(AudioSessionState) override {
+    return S_OK;
+  }
+
+ private:
+  IOutputsListener& listener_;
+};
+
+/**
+ * One of Windows' audio services, and whether it left or came back.
+ *
+ * Touched only on the watch thread: the service manager's callback is an APC,
+ * run inside that thread's own alertable wait. The same watch the output
+ * helper keeps (`native/output-watch`), for the same reason: when
+ * AudioEndpointBuilder restarts, a registered endpoint callback goes with it
+ * and no notice ever arrives again, and when Audiosrv stops, every stream on
+ * the machine stops with it.
+ */
+struct ServiceWatch {
+  SC_HANDLE service = nullptr;
+  SERVICE_NOTIFYW notify{};
+  bool is_running = false;
+  bool is_armed = false;
+  bool came_back = false;
+  bool went_down = false;
+  /** The service manager said it can no longer tell this watch anything. */
+  bool has_failed = false;
+};
+
+constexpr const wchar_t* kAudioServices[2] = {L"AudioEndpointBuilder",
+                                             L"Audiosrv"};
+
+VOID CALLBACK on_service_changed(PVOID parameter) {
+  auto* notify = static_cast<SERVICE_NOTIFYW*>(parameter);
+  auto* watch = static_cast<ServiceWatch*>(notify->pContext);
+  watch->is_armed = false;
+  if (notify->dwNotificationStatus != ERROR_SUCCESS) {
+    watch->has_failed = true;
+    return;
+  }
+  const bool is_running =
+      notify->ServiceStatus.dwCurrentState == SERVICE_RUNNING;
+  if (is_running && !watch->is_running) {
+    watch->came_back = true;
+  }
+  if (!is_running && watch->is_running) {
+    watch->went_down = true;
+  }
+  watch->is_running = is_running;
+}
+
+/**
+ * Ask to be told when the service leaves the state it is in — only the other
+ * states, because the service manager answers at once for the state a service
+ * is already in, and asking a running service to say when it runs would
+ * answer on every wait, for ever. A watch the manager gave up on, or refuses
+ * to arm, is opened again from `manager`; false only when that fails too.
+ */
+bool arm(ServiceWatch& watch, SC_HANDLE manager, const wchar_t* name) {
+  if (watch.is_armed) {
+    return true;
+  }
+  if (watch.service != nullptr && watch.has_failed) {
+    CloseServiceHandle(watch.service);
+    watch.service = nullptr;
+  }
+  for (int attempt = 0; attempt < 2; ++attempt) {
+    if (watch.service == nullptr) {
+      watch.has_failed = false;
+      watch.service = OpenServiceW(manager, name, SERVICE_QUERY_STATUS);
+      if (watch.service == nullptr) {
+        return false;
+      }
+      SERVICE_STATUS status{};
+      if (!QueryServiceStatus(watch.service, &status)) {
+        CloseServiceHandle(watch.service);
+        watch.service = nullptr;
+        return false;
+      }
+      watch.is_running = status.dwCurrentState == SERVICE_RUNNING;
+    }
+    watch.notify = SERVICE_NOTIFYW{};
+    watch.notify.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE;
+    watch.notify.pfnNotifyCallback = on_service_changed;
+    watch.notify.pContext = &watch;
+    const DWORD states =
+        watch.is_running
+            ? SERVICE_NOTIFY_STOPPED | SERVICE_NOTIFY_STOP_PENDING |
+                  SERVICE_NOTIFY_START_PENDING | SERVICE_NOTIFY_PAUSED |
+                  SERVICE_NOTIFY_PAUSE_PENDING |
+                  SERVICE_NOTIFY_CONTINUE_PENDING
+            : SERVICE_NOTIFY_RUNNING;
+    if (NotifyServiceStatusChangeW(watch.service, states, &watch.notify) ==
+        ERROR_SUCCESS) {
+      watch.is_armed = true;
+      return true;
+    }
+    // Refused — a client too slow to be told, or a service being deleted.
+    // Once more on a fresh handle, then given up.
+    CloseServiceHandle(watch.service);
+    watch.service = nullptr;
+  }
+  return false;
+}
+
+class WasapiBackend final : public IAudioOutputBackend,
+                            private IOutputsListener {
+ public:
+  WasapiBackend(FeqRenderFn render, void* context, FeqWake* changes)
+      : render_(render), context_(context), changes_(changes) {
+    // For the backend's whole life, not a stream's: an output that is not
+    // there to open is exactly when somebody has to be listening for it.
+    watch_stop_ = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    if (watch_stop_ != nullptr) {
+      watch_thread_ = std::thread([this] { watch(); });
+    }
+  }
+
+  ~WasapiBackend() override {
+    close();
+    if (watch_thread_.joinable()) {
+      SetEvent(watch_stop_);
+      watch_thread_.join();
+    }
+    if (watch_stop_ != nullptr) {
+      CloseHandle(watch_stop_);
+    }
+  }
 
   bool open(FeqBackendFormat& negotiated, std::string& error) override {
     if (is_open()) {
@@ -171,12 +375,25 @@ class WasapiBackend final : public IAudioOutputBackend {
     // between two opens — plugging in a USB DAC is exactly that — and a latched
     // answer would keep reporting the silence it found the first time.
     endpoint_absent_ = false;
+    changed_while_opening_.store(false, std::memory_order_release);
+    opening_.store(true, std::memory_order_release);
     if (!prepare(error)) {
       teardown();
+      // Waiting for the outputs to change BEFORE this attempt stops counting
+      // as one, so a notice arriving in between is heard by one or the other.
+      awaiting_.store(true, std::memory_order_release);
+      opening_.store(false, std::memory_order_release);
+      if (changed_while_opening_.exchange(false, std::memory_order_acq_rel)) {
+        // Something changed while this attempt failed: it may be what failed
+        // it, so the next attempt is due now rather than at the next notice.
+        raise_reopen();
+      }
       return false;
     }
     negotiated = format_;
     open_.store(true, std::memory_order_release);
+    awaiting_.store(false, std::memory_order_release);
+    opening_.store(false, std::memory_order_release);
     return true;
   }
 
@@ -197,6 +414,8 @@ class WasapiBackend final : public IAudioOutputBackend {
   }
 
   void close() override {
+    // Closed on purpose, so nothing is waited for: a STOP is not an outage.
+    awaiting_.store(false, std::memory_order_release);
     const bool was_running = running_.exchange(false, std::memory_order_acq_rel);
     if (!open_.exchange(false, std::memory_order_acq_rel) && !was_running) {
       teardown();
@@ -204,8 +423,9 @@ class WasapiBackend final : public IAudioOutputBackend {
     }
     stop_.store(true, std::memory_order_release);
     if (event_ != nullptr) {
-      // Wake the thread rather than wait out its timeout. A stop that takes a
-      // full period to be noticed is a stop somebody can hear as a tail.
+      // Wake the thread, which otherwise waits for the device's next period —
+      // for good, if the stream has been cut off. A stop that takes a full
+      // period to be noticed is a stop somebody can hear as a tail.
       SetEvent(event_);
     }
     if (thread_.joinable()) {
@@ -231,9 +451,11 @@ class WasapiBackend final : public IAudioOutputBackend {
   /**
    * Has the endpoint this stream is writing to stopped being the right one?
    *
-   * Set by the default-device notification, and by the render loop when it
-   * stops for any reason other than being asked to — a device that was removed
-   * fails its next call and the loop exits, which was previously silent.
+   * Set by the default-device notification, by the stream's own session when
+   * it is cut off, by Windows audio stopping, by the render loop when a call
+   * fails under it — a device that was removed fails its next call and the
+   * loop exits, which was previously silent — and, while an open is waited
+   * for, by any change to the outputs. Every one of them wakes the host.
    */
   bool needs_reopen() const override {
     return reopen_.load(std::memory_order_acquire);
@@ -241,10 +463,6 @@ class WasapiBackend final : public IAudioOutputBackend {
 
   void clear_reopen() override {
     reopen_.store(false, std::memory_order_release);
-  }
-
-  void request_reopen() override {
-    reopen_.store(true, std::memory_order_release);
   }
 
   const char* name() const override { return "wasapi-shared"; }
@@ -295,17 +513,9 @@ class WasapiBackend final : public IAudioOutputBackend {
       error = with_code("no audio endpoint enumerator", created);
       return false;
     }
-    /**
-     * Ask to be told when the default moves, before opening anything.
-     *
-     * Registered on the enumerator, which has to be kept alive for the
-     * registration to mean anything — hence `notifications_` rather than the
-     * local. A failure here is survivable: the stream still plays, it simply
-     * will not follow a device change, which is worth less than refusing to
-     * start at all.
-     */
-    notifications_ = enumerator;
-    notifications_->RegisterEndpointNotificationCallback(&watcher_);
+    // A reopen asked for before this attempt is answered by it. Changes to
+    // the outputs are heard by the watch thread (`watch`), for the backend's
+    // whole life rather than a stream's.
     reopen_.store(false, std::memory_order_release);
 
     const HRESULT endpoint =
@@ -390,6 +600,16 @@ class WasapiBackend final : public IAudioOutputBackend {
       error = "the output device exposed no render client";
       return false;
     }
+    /**
+     * Told when this stream is cut off. A failure here is survivable: the
+     * stream still plays, and a device removed under it still fails the
+     * render loop's next call; what goes unheard is a disconnect that sends
+     * no error, until the outputs next change.
+     */
+    if (SUCCEEDED(client_->GetService(IID_PPV_ARGS(&session_))) &&
+        FAILED(session_->RegisterAudioSessionNotification(&session_watcher_))) {
+      session_.Reset();
+    }
 
     format_.sample_rate = rate;
     format_.channels = channels;
@@ -410,10 +630,10 @@ class WasapiBackend final : public IAudioOutputBackend {
 
   void teardown() {
     // Unregistered before anything else goes, so no callback can arrive against
-    // a half-destroyed backend.
-    if (notifications_) {
-      notifications_->UnregisterEndpointNotificationCallback(&watcher_);
-      notifications_.Reset();
+    // a half-destroyed stream.
+    if (session_) {
+      session_->UnregisterAudioSessionNotification(&session_watcher_);
+      session_.Reset();
     }
     render_client_.Reset();
     client_.Reset();
@@ -425,6 +645,118 @@ class WasapiBackend final : public IAudioOutputBackend {
     if (owns_com_) {
       CoUninitialize();
       owns_com_ = false;
+    }
+  }
+
+  /** Ask the host to reopen, and wake it to do so. Any thread. */
+  void raise_reopen() {
+    reopen_.store(true, std::memory_order_release);
+    if (changes_ != nullptr) {
+      changes_->signal();
+    }
+  }
+
+  void heard_default_changed() override { raise_reopen(); }
+
+  /**
+   * An output changed. Only a reason to act while an open is waited for:
+   * with a stream playing, a property changing on some other endpoint is
+   * nothing to interrupt it for, and a default moving has its own notice.
+   */
+  void heard_outputs_changed() override {
+    if (opening_.load(std::memory_order_acquire)) {
+      changed_while_opening_.store(true, std::memory_order_release);
+      return;
+    }
+    if (awaiting_.load(std::memory_order_acquire)) {
+      raise_reopen();
+    }
+  }
+
+  void heard_stream_lost() override { raise_reopen(); }
+
+  /** A fresh enumerator with the endpoint callback on it, or nothing. */
+  ComPtr<IMMDeviceEnumerator> listen() {
+    ComPtr<IMMDeviceEnumerator> enumerator;
+    if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+                                CLSCTX_ALL, IID_PPV_ARGS(&enumerator))) ||
+        FAILED(enumerator->RegisterEndpointNotificationCallback(
+            &endpoint_watcher_))) {
+      return nullptr;
+    }
+    return enumerator;
+  }
+
+  void stop_listening(ComPtr<IMMDeviceEnumerator>& enumerator) {
+    if (enumerator) {
+      enumerator->UnregisterEndpointNotificationCallback(&endpoint_watcher_);
+      enumerator.Reset();
+    }
+  }
+
+  /**
+   * The watch thread: Windows' notices about outputs and its audio services,
+   * for the backend's whole life.
+   *
+   * It waits alertably on its stop event, which is where the service
+   * manager's callbacks run, and on nothing else. When the audio services
+   * come back the endpoint callback is registered again on a fresh
+   * enumerator — the old registration went with the service — and an open
+   * that was waiting is tried; when either service goes, the stream went
+   * with it.
+   */
+  void watch() {
+    const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    ComPtr<IMMDeviceEnumerator> enumerator = listen();
+    const SC_HANDLE manager =
+        OpenSCManagerW(nullptr, nullptr, SC_MANAGER_CONNECT);
+    ServiceWatch services[2];
+    bool is_lost = false;
+    for (int at = 0; at < 2 && manager != nullptr; ++at) {
+      is_lost = !arm(services[at], manager, kAudioServices[at]) || is_lost;
+    }
+    for (;;) {
+      const DWORD result = WaitForSingleObjectEx(watch_stop_, INFINITE, TRUE);
+      if (result != WAIT_IO_COMPLETION) {
+        break;
+      }
+      bool came_back = false;
+      bool went_down = false;
+      for (int at = 0; at < 2; ++at) {
+        came_back = came_back || services[at].came_back;
+        went_down = went_down || services[at].went_down;
+        services[at].came_back = false;
+        services[at].went_down = false;
+        if (!services[at].is_armed && manager != nullptr &&
+            !arm(services[at], manager, kAudioServices[at]) && !is_lost) {
+          // Said once. Outputs are still followed; only a restart of
+          // Windows audio would go unseen from here.
+          is_lost = true;
+          std::fprintf(stderr,
+                       "FluidEQ-DSP: stopped hearing about Windows audio "
+                       "restarts\n");
+        }
+      }
+      if (went_down) {
+        heard_stream_lost();
+      }
+      if (came_back) {
+        stop_listening(enumerator);
+        enumerator = listen();
+        heard_outputs_changed();
+      }
+    }
+    stop_listening(enumerator);
+    for (ServiceWatch& service : services) {
+      if (service.service != nullptr) {
+        CloseServiceHandle(service.service);
+      }
+    }
+    if (manager != nullptr) {
+      CloseServiceHandle(manager);
+    }
+    if (SUCCEEDED(com)) {
+      CoUninitialize();
     }
   }
 
@@ -450,7 +782,7 @@ class WasapiBackend final : public IAudioOutputBackend {
       // is how this happens, and nothing else would ever reopen it. Returning
       // quietly used to leave playback silent while the host went on
       // reporting a stream that was running.
-      reopen_.store(true, std::memory_order_release);
+      raise_reopen();
       if (task != nullptr) {
         AvRevertMmThreadCharacteristics(task);
       }
@@ -463,16 +795,17 @@ class WasapiBackend final : public IAudioOutputBackend {
     const uint32_t device_channels = format_.channels;
 
     while (!stop_.load(std::memory_order_acquire)) {
-      // Two full buffers is far longer than any period; reaching it means the
-      // device has stopped asking, which is a dead stream rather than a slow
-      // one.
-      const DWORD waited = WaitForSingleObject(event_, 2000);
+      // Until the device asks for its next period, however long that is. It
+      // was two seconds, after which the stream was called dead: a guess, and
+      // a stream that is cut off says so (`SessionWatcher`), which wakes the
+      // host, whose reopen wakes this wait through `close`.
+      const DWORD waited = WaitForSingleObject(event_, INFINITE);
       if (stop_.load(std::memory_order_acquire)) {
         break;
       }
       if (waited != WAIT_OBJECT_0) {
-        // Two full buffers with no request is a dead stream, not a slow one.
-        reopen_.store(true, std::memory_order_release);
+        // The wait itself failed: the event is gone, and so is the stream.
+        raise_reopen();
         break;
       }
 
@@ -480,7 +813,7 @@ class WasapiBackend final : public IAudioOutputBackend {
       if (FAILED(client_->GetCurrentPadding(&padding))) {
         // The device went away underneath the stream. Silent before this: the
         // loop simply left and nothing above was told.
-        reopen_.store(true, std::memory_order_release);
+        raise_reopen();
         break;
       }
       const UINT32 available = buffer_frames_ - padding;
@@ -503,7 +836,7 @@ class WasapiBackend final : public IAudioOutputBackend {
 
       BYTE* raw = nullptr;
       if (FAILED(render_client_->GetBuffer(available, &raw))) {
-        reopen_.store(true, std::memory_order_release);
+        raise_reopen();
         break;
       }
       auto* interleaved = reinterpret_cast<float*>(raw);
@@ -528,7 +861,7 @@ class WasapiBackend final : public IAudioOutputBackend {
 
       if (FAILED(render_client_->ReleaseBuffer(available, 0))) {
         // Same as a failed GetBuffer above: the device has gone.
-        reopen_.store(true, std::memory_order_release);
+        raise_reopen();
         break;
       }
       periods_.fetch_add(1, std::memory_order_relaxed);
@@ -566,14 +899,25 @@ class WasapiBackend final : public IAudioOutputBackend {
   std::atomic<uint64_t> underruns_{0};
   /** Raised when the endpoint should be reopened; read by the control side. */
   std::atomic<bool> reopen_{false};
-  DefaultDeviceWatcher watcher_{reopen_};
-  ComPtr<IMMDeviceEnumerator> notifications_;
+  /** An open failed and nothing has closed it on purpose since. */
+  std::atomic<bool> awaiting_{false};
+  /** An open is being attempted, and whether the outputs changed during it. */
+  std::atomic<bool> opening_{false};
+  std::atomic<bool> changed_while_opening_{false};
+  /** The host's wake, raised with every reopen asked for. */
+  FeqWake* changes_ = nullptr;
+  EndpointWatcher endpoint_watcher_{*this};
+  SessionWatcher session_watcher_{*this};
+  ComPtr<IAudioSessionControl> session_;
+  std::thread watch_thread_;
+  HANDLE watch_stop_ = nullptr;
   std::atomic<uint64_t> periods_{0};
 };
 
 }  // namespace
 
 std::unique_ptr<IAudioOutputBackend> create_audio_backend(FeqRenderFn render,
-                                                          void* context) {
-  return std::make_unique<WasapiBackend>(render, context);
+                                                          void* context,
+                                                          FeqWake* changes) {
+  return std::make_unique<WasapiBackend>(render, context, changes);
 }

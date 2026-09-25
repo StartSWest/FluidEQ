@@ -35,7 +35,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <new>
@@ -46,6 +45,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "denoise_internal.h"
 #include "fluideq/convolver.h"
 #include "fluideq/resampler.h"
+#include "fluideq/wake.h"
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -208,6 +208,11 @@ struct VoiceRuntime {
 
   std::thread worker;
   std::atomic<bool> running{false};
+  /**
+   * The callback's word to the worker that it handed over a block — input to
+   * convert, room made in the output — or that the worker should stop.
+   */
+  FeqWake wake;
   std::atomic<uint32_t> underruns{0};
   uint32_t channel_count = 2;
 };
@@ -484,9 +489,23 @@ bool resample_output(VoiceRuntime& runtime) {
   return consumed > 0 || produced > 0;
 }
 
-/** The worker converts to 48 kHz, runs the model, then converts back. */
+/**
+ * The worker converts to 48 kHz, runs the model, then converts back.
+ *
+ * With nothing to do it sleeps until the callback hands over its next block
+ * (`wake`). It used to sleep a millisecond and look again — a thousand wake-ups
+ * a second to find, mostly, that no block had arrived, since the callback
+ * hands one over every period (10 ms in shared mode). Now it wakes once per
+ * block, the moment there is something to convert.
+ */
 void worker_loop(VoiceRuntime* runtime) {
-  while (runtime->running.load(std::memory_order_acquire)) {
+  for (;;) {
+    // Before looking: a block handed over during this pass is a signal after
+    // it, and the wait below returns at once instead of sleeping through it.
+    const uint32_t seen = runtime->wake.seen();
+    if (!runtime->running.load(std::memory_order_acquire)) {
+      return;
+    }
     bool worked = resample_input(*runtime);
     while (process_model_hop(*runtime)) {
       worked = true;
@@ -495,9 +514,7 @@ void worker_loop(VoiceRuntime* runtime) {
       worked = true;
     }
     if (!worked) {
-      // Nothing ready. Yielding rather than spinning: the callback refills
-      // every few milliseconds and a busy loop would take a core from it.
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      runtime->wake.wait(seen);
     }
   }
 }
@@ -557,6 +574,7 @@ void destroy_runtime(VoiceRuntime* runtime) {
     return;
   }
   runtime->running.store(false, std::memory_order_release);
+  runtime->wake.signal();
   if (runtime->worker.joinable()) {
     runtime->worker.join();
   }
@@ -706,6 +724,10 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
     }
   }
   runtime->dry_cursor = (runtime->dry_cursor + frames) % dry_ring;
+  // A block in and a block's room out: the worker has work. While this
+  // callback is still counted as a reader, so the runtime cannot be freed
+  // under the signal.
+  runtime->wake.signal();
   denoise->voice_readers.fetch_sub(1, std::memory_order_release);
   return underruns;
 }
