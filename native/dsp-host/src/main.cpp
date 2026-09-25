@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "chain_route.h"
 #include "analysis_publication.h"
 #include "fluideq/chain.h"
+#include "fluideq/doorbell.h"
 #include "fluideq/dsp.h"
 #include "fluideq/player.h"
 #include "fluideq/parameters.h"
@@ -64,21 +65,19 @@ namespace {
 constexpr uint32_t kFallbackSampleRate = 48000;
 constexpr uint32_t kFallbackBlockFrames = 512;
 constexpr uint32_t kEngineChannels = 2;
-/** 25 ms, i.e. 40 Hz — ahead of the 20-30 Hz the renderer redraws at. */
-constexpr int kTelemetryIntervalMs = 25;
 
 /**
- * Twenty telemetry ticks, so half a second between process samples.
+ * Twenty engine reports, so half a second of audio between process samples
+ * while something plays.
  *
- * Counted on the loop that already exists rather than given a clock of its
- * own. The number is chosen from what reads well rather than from what is
- * cheap: memory and CPU are figures somebody watches climb, and a column that
- * changes forty times a second cannot be read at all. It is also the window
- * the CPU percentage is averaged over — short enough to see the engine react
- * to a track starting, long enough that a single scheduling quantum does not
- * dominate the answer.
+ * Counted in the reports telemetry already drains — the engine publishes one
+ * per fortieth of a second of audio — rather than given a clock of its own.
+ * The number is chosen from what reads well rather than from what is cheap:
+ * memory and CPU are figures somebody watches climb, and a row that changes
+ * forty times a second cannot be read at all. With nothing playing a sample
+ * follows whatever work the host did instead (`stats_wanted`).
  */
-constexpr int kStatsIntervalTicks = 20;
+constexpr uint32_t kStatsIntervalReports = 20;
 
 enum class SignalKind : int { Silence = 0, Sine = 1 };
 
@@ -193,6 +192,34 @@ struct HostState {
   /** True once a deck holds audio, which is what silences the generator. */
   std::atomic<bool> player_has_source{false};
   /**
+   * What the decoder thread sleeps on.
+   *
+   * Armed by the audio thread when the decks gave up frames — room in the
+   * read-ahead is the decoder's only work while a track plays — and rung by
+   * the control thread whenever it changes what the decks hold. The decoder
+   * used to sleep 5 ms and look, two hundred times a second, with two seconds
+   * already buffered and whether or not anything played.
+   */
+  FeqDoorbell decoder_bell;
+  /** Audio thread (or an offline render, which never runs beside it): the
+   *  frames the decks had given up when the decoder was last armed. */
+  uint64_t frames_taken_armed = 0;
+  /**
+   * What the telemetry thread sleeps on.
+   *
+   * Armed by the audio thread when the engine publishes a report — about
+   * forty a second of audio, which is the rate the panel has always been fed
+   * at, now kept by the music rather than by a 25 ms sleep that went on
+   * ticking with the device closed. Rung as well when the device wants
+   * reopening, when a command left the process changed with no device
+   * running (`stats_wanted`), and to stop.
+   */
+  FeqDoorbell telemetry_bell;
+  /** Audio thread (or an offline render, which never runs beside it). */
+  uint64_t reports_seen = 0;
+  /** A process sample is owed for work done with no audio to count it by. */
+  std::atomic<bool> stats_wanted{false};
+  /**
    * Guards the decoder against its two writers.
    *
    * The decoder thread pumps; the control thread loads and seeks. Both touch
@@ -253,9 +280,10 @@ struct HostState {
   /**
    * Whether the current outage has already been logged.
    *
-   * The retry runs on the telemetry thread, about forty times a second, so a
-   * line per attempt would bury the one that says what happened. Touched only
-   * under `device_mutex`, which every reopen already holds.
+   * The retry runs on the telemetry thread once per change Windows reports
+   * while the outage lasts — a headset re-enumerating reports several — so a
+   * line per attempt would bury the one that says what happened. Touched
+   * only under `device_mutex`, which every reopen already holds.
    */
   bool reopen_failure_reported{false};
 };
@@ -576,10 +604,13 @@ void drain_analysis(HostState& state) {
   write_frame(packet.data(), packet.size());
 }
 
-void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
+/** Sends every report the engine has published, and says how many. */
+uint32_t drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
   const std::lock_guard<std::mutex> held(state.device_mutex);
   FeqTelemetryV1 record{};
+  uint32_t drained = 0;
   while (feq_engine_try_read_telemetry(state.engine, &record)) {
+    drained += 1;
     const FeqBackendStats stats = backend.stats();
     FeqWireTelemetryFrame frame{};
     frame.magic = FEQ_MAGIC_TELEMETRY;
@@ -644,6 +675,7 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     }
     write_frame(&frame, sizeof(frame));
   }
+  return drained;
 }
 
 /**
@@ -653,7 +685,10 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
  * produced per audio callback and therefore stops entirely when nothing is
  * playing, which is when a memory figure is most often being looked at. A
  * process asleep with a gigabyte resident is a bug; a process asleep with no
- * row is invisible.
+ * row is invisible. So a sample also follows every command handled with no
+ * device running (`stats_wanted`) — whatever made the gigabyte resident was
+ * one of those — and the CPU figure is a running total, which goes on
+ * reading as asleep without being sent again.
  *
  * A platform without an implementation sends nothing at all, rather than a
  * frame of zeroes: the app draws a dash for a figure it does not have, and a
@@ -667,7 +702,7 @@ void publish_process_stats() {
   FeqWireStatsFrame frame{};
   frame.magic = FEQ_MAGIC_STATS;
   frame.working_set_bytes = sample.working_set_bytes;
-  frame.cpu_percent = sample.cpu_percent;
+  frame.cpu_seconds = sample.cpu_seconds;
   write_frame(&frame, sizeof(frame));
 }
 
@@ -695,6 +730,21 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   if (state->player != nullptr &&
       state->player_has_source.load(std::memory_order_acquire)) {
     feq_player_render(state->player, planar, frames);
+    /**
+     * Room in the read-ahead is the decoder's work, and a decode chunk of it
+     * is worth a wake: about twelve a second of playback, each one a whole
+     * read, with the two seconds ahead never lower than that chunk short.
+     * Armed at every block instead, the device thread paid a wake per period
+     * for a decoder with a few hundred frames to write. A total that went
+     * backwards is a new player. Armed, not rung: the ring is
+     * `ring_what_the_block_armed`, after the period.
+     */
+    const uint64_t taken = feq_player_frames_taken(state->player);
+    if (taken < state->frames_taken_armed ||
+        taken - state->frames_taken_armed >= FEQ_PLAYER_DECODE_CHUNK) {
+      state->frames_taken_armed = taken;
+      state->decoder_bell.arm();
+    }
   } else {
     state->source.render(planar, state->channels, frames);
   }
@@ -762,6 +812,36 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   const float* inputs[2] = {planar[0], state->channels > 1 ? planar[1]
                                                            : planar[0]};
   feq_engine_process_planar(state->engine, inputs, planar, frames);
+
+  // A report published is telemetry's work, and the pace it has always had.
+  const uint64_t reports = feq_engine_reports_published(state->engine);
+  if (reports != state->reports_seen) {
+    state->reports_seen = reports;
+    state->telemetry_bell.arm();
+  }
+}
+
+/**
+ * Ring what the block just rendered armed: the decoder, telemetry, and the
+ * chain's voice worker.
+ *
+ * The backend calls this on the device thread once the period is the
+ * device's (`FeqPeriodDoneFn`), and the offline loops after each block. The
+ * callback above makes no system call, so this is the first point at which
+ * the threads it gave work to can be woken — microseconds after the block,
+ * where a fixed sleep had them up to 25 ms late or two hundred times a second
+ * early.
+ */
+void ring_what_the_block_armed(void* context) {
+  auto* state = static_cast<HostState*>(context);
+  state->decoder_bell.ring_if_armed();
+  state->telemetry_bell.ring_if_armed();
+  feq_chain_wake_workers(state->chain);
+}
+
+/** The backend's `reopen_wanted`: the telemetry thread is the one that acts. */
+void wake_telemetry(void* context) {
+  static_cast<HostState*>(context)->telemetry_bell.ring();
 }
 
 /**
@@ -1067,6 +1147,8 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
   }
 
   backend.close();
+  // Before the attempt, so a device that arrives while it fails still counts.
+  backend.await_endpoint();
   std::string error;
   FeqBackendFormat negotiated{};
   if (!backend.open(negotiated, error)) {
@@ -1082,12 +1164,14 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
      * it. That is the "no sound after changing output" this mechanism was
      * supposed to prevent.
      *
-     * The request goes back so the next telemetry tick tries again, which is a
-     * poll that already exists rather than a delay invented here. Reported
-     * once per outage: this runs about forty times a second, and a log line
-     * per attempt would bury the one that matters.
+     * The next attempt is Windows' to call, through `await_endpoint` above: a
+     * device arriving or changing state, the default moving, or Windows audio
+     * running again wakes this thread with the request raised. It was the
+     * telemetry thread's 25 ms tick, forty attempts a second for as long as
+     * the outage lasted, each one a COM activation. Reported once per outage,
+     * because a change reported while it lasts is an attempt, and a line per
+     * attempt would bury the one that matters.
      */
-    backend.request_reopen();
     if (!state.reopen_failure_reported) {
       state.reopen_failure_reported = true;
       std::fprintf(stderr,
@@ -1132,11 +1216,12 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
   }
   if (!backend.start(error)) {
     // Opened and then refused to run, which is the same outage a moment later.
-    // Closed and asked for again rather than left as a silent open handle.
+    // Closed, and awaiting the next change, rather than left as a silent open
+    // handle.
     std::fprintf(stderr, "FluidEQ-DSP: reopen failed to start: %s\n",
                  error.c_str());
     backend.close();
-    backend.request_reopen();
+    backend.await_endpoint();
     return;
   }
 
@@ -1234,8 +1319,12 @@ int main(int argc, char** argv) {
    */
   state.meters = feq_meters_create(state.channels);
 
-  std::unique_ptr<IAudioOutputBackend> backend =
-      create_audio_backend(&render_bridge, &state);
+  FeqBackendHooks hooks;
+  hooks.render = &render_bridge;
+  hooks.period_done = &ring_what_the_block_armed;
+  hooks.reopen_wanted = &wake_telemetry;
+  hooks.context = &state;
+  std::unique_ptr<IAudioOutputBackend> backend = create_audio_backend(hooks);
   /**
    * Started before the handshake, so a parent that dies during start-up still
    * takes this process with it.
@@ -1275,34 +1364,39 @@ int main(int argc, char** argv) {
   uint32_t snapshot_revision = 0;
 
   std::atomic<bool> publishing{true};
+  /**
+   * The telemetry thread: reports, the panel's pictures, the device's upkeep.
+   *
+   * Asleep until rung (`telemetry_bell`): by a report the engine published,
+   * by Windows saying the device wants reopening, by a command that left the
+   * process changed with no device running, or to stop. Everything it does is
+   * one of those — a report to send, a window to transform, an endpoint to
+   * reopen, a sample to take — so with the device closed it does not run at
+   * all, where the 25 ms sleep it replaces went on ticking for the life of
+   * the host.
+   *
+   * The count is read before the work is looked for, so a ring that lands
+   * while this pass runs returns the wait at once.
+   */
   std::thread telemetry([&] {
-    /*
-     * Prime the CPU difference here, and throw the answer away.
-     *
-     * A percentage is a difference between two readings and the first call has
-     * only one. Whatever it returned would be a number about starting up
-     * printed in a column that is read as "what the engine is doing now", so
-     * the first frame anybody sees is deliberately a real half-second interval
-     * instead. Until it arrives the app draws its dash, which is what a dash
-     * there means.
-     */
-    FeqProcessStats primed{};
-    feq_sample_process_stats(&primed);
-    int stats_ticks = 0;
-    while (publishing.load(std::memory_order_acquire)) {
+    uint32_t reports_since_stats = 0;
+    for (;;) {
+      const uint32_t seen = state.telemetry_bell.rung();
+      if (!publishing.load(std::memory_order_acquire)) {
+        break;
+      }
       reopen_if_device_changed(state, *backend, decoder_ops);
-      drain_telemetry(state, *backend);
+      reports_since_stats += drain_telemetry(state, *backend);
       // Same thread as telemetry, deliberately: this is where the transforms
       // are allowed to happen, and giving them a thread of their own would add
       // a second writer to stdout for no gain.
       drain_analysis(state);
-      stats_ticks += 1;
-      if (stats_ticks >= kStatsIntervalTicks) {
-        stats_ticks = 0;
+      if (reports_since_stats >= kStatsIntervalReports ||
+          state.stats_wanted.exchange(false, std::memory_order_acq_rel)) {
+        reports_since_stats = 0;
         publish_process_stats();
       }
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(kTelemetryIntervalMs));
+      state.telemetry_bell.wait(seen);
     }
     drain_telemetry(state, *backend);
   });
@@ -1310,12 +1404,17 @@ int main(int argc, char** argv) {
   /**
    * The decoder thread: the only one that may touch a file.
    *
-   * It fills whatever room the decks have and then waits. The wait is not a
-   * race being papered over — a ring that is full has nothing to be done about
-   * until the audio thread takes some, and there is no useful signal to block
-   * on that would not cost a lock the callback might contend for. Five
-   * milliseconds against a two-second read-ahead is four hundred times more
-   * often than it needs to be, which is the margin.
+   * It fills whatever room the decks have and then sleeps until there is more
+   * (`decoder_bell`): the audio thread took frames out of the read-ahead, or
+   * the control thread changed what a deck holds. It used to sleep 5 ms and
+   * look again — two hundred times a second, with two seconds buffered, and
+   * whether or not anything was playing — because there was no signal to
+   * block on that would not cost a lock the callback might contend for. The
+   * callback now only arms the doorbell, one atomic store, once the decks
+   * have played a decode chunk (`FEQ_PLAYER_DECODE_CHUNK`), and the ring
+   * comes after the period is handed to the device: about twelve times a
+   * second of playback, and not at all when nothing plays. The decoding
+   * itself is the same work either way.
    *
    * `load` and `seek` are handled on the control thread, which is a second
    * writer to the same decoder. That is safe only because the control thread
@@ -1324,7 +1423,11 @@ int main(int argc, char** argv) {
    */
   std::atomic<bool> decoding{true};
   std::thread decoder([&] {
-    while (decoding.load(std::memory_order_acquire)) {
+    for (;;) {
+      const uint32_t seen = state.decoder_bell.rung();
+      if (!decoding.load(std::memory_order_acquire)) {
+        return;
+      }
       uint32_t produced = 0;
       {
         const std::lock_guard<std::mutex> held(state.decoder_mutex);
@@ -1336,7 +1439,7 @@ int main(int argc, char** argv) {
         }
       }
       if (produced == 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        state.decoder_bell.wait(seen);
       }
     }
   });
@@ -1520,6 +1623,7 @@ int main(int argc, char** argv) {
         for (uint32_t block = 0; block < frame.parameter_id; ++block) {
           pump_decks(state);
           render_bridge(&state, planar, state.block_frames);
+          ring_what_the_block_armed(&state);
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
                  static_cast<uint64_t>(frame.parameter_id) * state.block_frames,
@@ -1729,6 +1833,9 @@ int main(int argc, char** argv) {
             note.fresh = false;
           }
         }
+        // A file opened, or named for the next free deck: the decoder's work,
+        // and nothing the audio thread has taken will say so.
+        state.decoder_bell.ring();
         if (loaded && deck < FEQ_PLAYER_DECKS) {
           state.player_has_source.store(true, std::memory_order_release);
           // A new source on the deck being heard, not an A/B toggle: every
@@ -1789,6 +1896,9 @@ int main(int argc, char** argv) {
             sought = feq_player_seek(state.player, deck, frame.value) != 0;
           }
         }
+        // The read-ahead for the old position is dropped; the new one's is
+        // the decoder's to fill, now rather than when a block next plays.
+        state.decoder_bell.ring();
         // Cueing the spare deck to its lead-in while the other plays is not
         // a jump in what is heard (see LOAD_DECK).
         if (sought && heard && state.chain != nullptr) {
@@ -1814,6 +1924,8 @@ int main(int argc, char** argv) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
           took_the_path(state, deck);
+          // Which may have readied the next track onto the deck this left.
+          state.decoder_bell.ring();
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
@@ -1836,6 +1948,7 @@ int main(int argc, char** argv) {
             feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
           }
           took_the_path(state, to_deck);
+          state.decoder_bell.ring();
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  frame.value);
@@ -1992,6 +2105,7 @@ int main(int argc, char** argv) {
                                     : state.block_frames;
           pump_decks(state);
           render_bridge(&state, planar, span);
+          ring_what_the_block_armed(&state);
           // Interleaved on the way out, which is what a WAV holds and what
           // every reader on the other side expects.
           for (uint32_t frame_at = 0; frame_at < span; ++frame_at) {
@@ -2021,14 +2135,27 @@ int main(int argc, char** argv) {
         send_ack(frame.request_id, FEQ_WIRE_UNSUPPORTED, 0, 0, 0.0);
         break;
     }
+
+    /**
+     * Work done with no device running is work no engine report will count:
+     * a voice model loaded, a deck decoded, a device closed. The process
+     * sample that says what it cost is taken on the telemetry thread, its
+     * only caller, and follows the command rather than a clock.
+     */
+    if (!backend->is_running()) {
+      state.stats_wanted.store(true, std::memory_order_release);
+      state.telemetry_bell.ring();
+    }
   }
 
   // Device first: the real-time thread reads the engine, so the engine must
   // outlive it by the whole of this shutdown.
   backend->close();
   decoding.store(false, std::memory_order_release);
+  state.decoder_bell.ring();
   decoder.join();
   publishing.store(false, std::memory_order_release);
+  state.telemetry_bell.ring();
   telemetry.join();
   // The player before the chain before the engine, which is the reverse of the
   // order they are read in: nothing may be destroyed while a thread above it

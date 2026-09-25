@@ -120,11 +120,6 @@ std::vector<float> spectrum_at(uint32_t stage, const FeqChainSettings& settings,
   return bins;
 }
 
-/** The bin a frequency lands in for this transform size and rate. */
-uint32_t bin_for(double hz) {
-  return static_cast<uint32_t>((hz / kRate) * FEQ_METER_WINDOW + 0.5);
-}
-
 /**
  * The exciter tap must not see Bass Forge.
  *

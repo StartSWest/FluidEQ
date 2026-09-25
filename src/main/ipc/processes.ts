@@ -149,10 +149,12 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
       /*
        * Appended rather than merged: Electron does not know about it.
        *
-       * The host measures itself and says so on its own wire, twice a second.
-       * Those two numbers are the fallback for a machine without the meter;
-       * where it runs, the meter's private working set and CPU time replace
-       * them, as they replace Electron's.
+       * The host measures itself and says so on its own wire, whenever it
+       * has done something. Those two numbers are the fallback for a machine
+       * without the meter; where it runs, the meter's private working set and
+       * CPU time replace them, as they replace Electron's. A running total
+       * rather than a percentage, like the meter's: an idle host sends
+       * nothing, and a total that has not moved is what reads as idle.
        */
       const stats = deps.getNativeHostStats();
       rows.push({
@@ -160,10 +162,7 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
         role: 'engine',
         memoryMb:
           stats === undefined ? undefined : megabytes(stats.workingSetBytes),
-        cpuPercent:
-          stats === undefined
-            ? undefined
-            : Math.round(stats.cpuPercent * 10) / 10,
+        cpuSeconds: stats?.cpuSeconds,
       });
     }
 

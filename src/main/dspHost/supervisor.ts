@@ -853,6 +853,14 @@ export class DspHostSupervisor {
     });
     this.trace('spawned', child, { path: this.options.executablePath });
 
+    // A write into a pipe the host has closed — it exited, or is exiting —
+    // fails on this stream, and with no listener that failure is thrown in
+    // this process. Nothing written there can arrive; whatever waits on it is
+    // settled by the exit that follows, or by its own deadline.
+    child.stdin.on('error', (error: Error) => {
+      this.trace('stdin-error', child, { message: error.message });
+    });
+
     const handshakeArrived = new Promise<IHostHandshake | undefined>(
       (resolve) => {
         const timer = setTimeout(

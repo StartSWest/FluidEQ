@@ -44,6 +44,14 @@ extern "C" {
 
 #define FEQ_PLAYER_DECKS 2
 
+/**
+ * Frames the decoder reads from a file in one go, before resampling. A block,
+ * not a buffer — and the amount of room worth waking the decoder for: the
+ * host arms the decoder thread once the decks have given up this many frames
+ * since it last did, so each wake is one read rather than a sliver of one.
+ */
+#define FEQ_PLAYER_DECODE_CHUNK 4096u
+
 typedef struct FeqDecoderInfo {
   uint32_t sample_rate;
   /**
@@ -139,10 +147,23 @@ int feq_player_seek(FeqPlayer* player, uint32_t deck, double seconds);
 /**
  * Fill whatever room the rings have. Returns frames decoded across both decks.
  *
- * Call it whenever it returns non-zero and then wait; a decoder thread that
- * spins on a full ring is a core spent on nothing.
+ * Call it whenever it returns non-zero and then wait until the audio thread
+ * has taken frames (`feq_player_frames_taken`) or the decks were changed; a
+ * decoder thread that spins on a full ring is a core spent on nothing. Zero
+ * is only ever "full, or finished" — never room left with the file unread.
  */
 uint32_t feq_player_pump(FeqPlayer* player);
+
+/**
+ * Frames the audio thread has taken out of the decks' read-ahead, both decks
+ * together, since the player was made. A seek's discard counts.
+ *
+ * It grows exactly when there is room for the decoder that there was not,
+ * which is what the decoder thread waits for: the host's callback arms the
+ * decoder's doorbell once it has grown by `FEQ_PLAYER_DECODE_CHUNK`. Any
+ * thread; lock-free, and cheap enough for the callback.
+ */
+uint64_t feq_player_frames_taken(const FeqPlayer* player);
 
 /* ------------------------------------------------------ any thread ------ */
 

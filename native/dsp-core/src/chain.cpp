@@ -491,6 +491,12 @@ int feq_chain_load_voice_model(FeqChain* chain,
                                       runtime_path);
 }
 
+void feq_chain_wake_workers(FeqChain* chain) {
+  if (chain != nullptr) {
+    feq_denoise_wake_workers(chain->denoise);
+  }
+}
+
 void feq_chain_denoise_report(const FeqChain* chain, FeqDenoiseReport* out) {
   feq_denoise_report(chain == nullptr ? nullptr : chain->denoise, out);
 }

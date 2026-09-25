@@ -131,9 +131,8 @@ export interface IAppProcess {
    * The list asks once per painted frame, and a percentage over sixteen
    * milliseconds is quantised by the Windows scheduler tick into 0 or 100. A
    * running total lets the window average over whatever span it chooses, and
-   * no other caller of `getAppMetrics` can shorten that span. Absent for the
-   * DSP host until the meter answers for it, since the host reports only its
-   * own half-second percentage.
+   * no other caller of `getAppMetrics` can shorten that span. The DSP host
+   * reports its own, which the meter's replaces where it runs.
    */
   cpuSeconds?: number;
   /**

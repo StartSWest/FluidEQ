@@ -518,6 +518,17 @@ int feq_chain_load_voice_model(FeqChain* chain,
                                const char* model_path,
                                const char* runtime_path);
 
+/**
+ * Wake whatever worker the last block gave work to — today the voice model's.
+ *
+ * `feq_chain_process` stays free of system calls, so a stage whose work
+ * happens on a worker only ARMS it; the owner of the callback rings it here
+ * once the block has been handed on (the device thread after the period, an
+ * offline loop after each block). A chain with no voice model has nothing to
+ * ring and this costs one atomic load. Never from inside the callback.
+ */
+void feq_chain_wake_workers(FeqChain* chain);
+
 /** What the Denoise stage did with the last block. **Control thread.** */
 void feq_chain_denoise_report(const FeqChain* chain, FeqDenoiseReport* out);
 

@@ -97,6 +97,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/loudness.cpp
   dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
+  dsp-core/src/doorbell.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/room.cpp
   dsp-core/src/room_kernels.cpp
@@ -322,6 +323,12 @@ add_executable(fluideq-output-quality-test dsp-core/tests/output_quality_test.cp
 target_link_libraries(fluideq-output-quality-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME output-quality COMMAND fluideq-output-quality-test)
 
+# A hang is this test's failure — a ring lost is a waiter that never wakes —
+# so it gets a ceiling rather than the default of waiting for ever.
+add_executable(fluideq-doorbell-test dsp-core/tests/doorbell_test.cpp)
+target_link_libraries(fluideq-doorbell-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME doorbell COMMAND fluideq-doorbell-test)
+set_tests_properties(doorbell PROPERTIES TIMEOUT 60)
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player COMMAND fluideq-player-test)
@@ -385,6 +392,9 @@ set_source_files_properties(dsp-host/src/decoders/vendor/vendor.cpp
 if(WIN32)
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/windows/wasapi_backend.cpp
+    # What Windows says about the outputs and the audio service, which is
+    # what a failed reopen waits on instead of a retry clock.
+    dsp-host/src/platform/windows/device_watch.cpp
     # The version resource, which is what Task Manager's Name column reads.
     # Without it this is one more row saying "FluidEQ" in a tree of eight, and
     # none of them says which is holding the memory.
@@ -409,8 +419,10 @@ if(WIN32)
   # Windows 7 and later the header redirects it into kernel32 and this import
   # library goes unused, which costs nothing and keeps the link honest about
   # what the code asked for.
+  # `advapi32` is the service control manager, which the device watch asks to
+  # be told when Windows Audio is running again.
   target_link_libraries(fluideq-dsp-host PRIVATE
-    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi)
+    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi advapi32)
 
 else()
   target_sources(fluideq-dsp-host PRIVATE

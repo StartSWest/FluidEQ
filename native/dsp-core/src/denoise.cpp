@@ -227,6 +227,12 @@ void feq_denoise_reset(FeqDenoise* denoise) {
   denoise->reported_voice_underruns.store(0, std::memory_order_relaxed);
 }
 
+void feq_denoise_wake_workers(FeqDenoise* denoise) {
+  if (denoise != nullptr) {
+    denoise_voice_wake(denoise);
+  }
+}
+
 void feq_denoise_process(FeqDenoise* denoise,
                          float* const* channels,
                          uint32_t frames) {

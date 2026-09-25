@@ -1144,6 +1144,21 @@ Out-String` (or any other capture) is what actually waits for it and shows
   `a_room_copy_keeps_its_chains_tone` with the room alone as its control),
   and the Room switched on by hand does not. The whole answer is a tone hold
   inside the second renderer, and it wants his ears before it ships.
+- **The DSP host's threads sleep on doorbells, and the audio callback only
+  arms them** (`fluideq/doorbell.h`). The decoder, the voice cleaner's worker
+  and telemetry used to sleep 5, 1 and 25 ms and look; now the callback arms
+  a doorbell (one atomic store — it still makes no system call) and
+  `ring_what_the_block_armed` rings it after the period is handed to the
+  device, or after each block of an offline render. A new worker a chain
+  stage feeds from the callback gets its ring from `feq_chain_wake_workers`,
+  or it sleeps for ever and every block passes dry. Rings are kernel events on
+  Windows, not `WaitOnAddress`: MSVC's `notify_one` goes through a table
+  ntdll keeps in user mode, which the device thread must not share. A failed
+  reopen of the output waits on Windows (`device_watch.h`: endpoints
+  arriving or changing state, the default moving, Windows Audio back to
+  RUNNING) instead of the 40 Hz retry it was; another program releasing an
+  output it held exclusively sends nothing, so that outage ends at the next
+  device change.
 - **The Library's DSP host reads the room's head from the shipped folder,
   not from the wire.** The host is spawned with `--room-heads <dir>`
   (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's
