@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { cycleGraphLookUnattended } from './graphStyle';
 
 export const GRAPH_AUTO_CYCLE_INTERVALS = [0, 10, 20, 30, 60, 120] as const;
@@ -33,6 +33,34 @@ export const saveGraphAutoCycle = (seconds: number) => {
   }
 };
 
+/**
+ * How many of the graph's pickers are open — the look explorer and the
+ * interval list, wherever either is mounted. Each takes a hold while it is
+ * open, and the cycle reads the count.
+ *
+ * The cycle used to find them by asking the document for
+ * `.graph-look-menu, .graph-auto-cycle-menu` on every frame: 8.6-11 ms of
+ * main-thread time per second in full screen at 1920x1080 and ~100 fps, more
+ * than a whole drawn scene costs.
+ */
+let openPickers = 0;
+
+/** While `isOpen`, every running cycle waits at the start of its interval. */
+export const useHoldGraphAutoCycle = (isOpen: boolean) => {
+  // Layout, not passive: the cycle runs on animation frames, and a passive
+  // effect can land after one — a frame in which the list is on screen and
+  // the look can still change underneath it.
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+    openPickers += 1;
+    return () => {
+      openPickers -= 1;
+    };
+  }, [isOpen]);
+};
+
 /** One visible interval per look, including after a manual selection or edit. */
 export const useGraphAutoCycle = (
   seconds: number,
@@ -55,10 +83,7 @@ export const useGraphAutoCycle = (
       previous = now;
       // A hidden window accrues no time, and an open picker must never have
       // its selection changed underneath the person choosing from it.
-      if (
-        document.hidden ||
-        document.querySelector('.graph-look-menu, .graph-auto-cycle-menu')
-      ) {
+      if (document.hidden || openPickers > 0) {
         elapsed = 0;
       } else {
         elapsed += delta;

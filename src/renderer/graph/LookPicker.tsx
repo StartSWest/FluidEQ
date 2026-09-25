@@ -20,6 +20,7 @@ import LookIcon from '../icons/LookIcon';
 import SceneLookIcon from '../icons/SceneLookIcon';
 import { findGalleryScene } from '../plus/galleryStore';
 import { useCustomLooks } from '../utils/customLooks';
+import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { getSelectableLooks, useGraphPalette } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -69,7 +70,8 @@ import '../styles/LookPicker.scss';
  * without growing longer to scroll.
  *
  * `graph-look-menu` stays on the window: the graph's idle chrome stays up while
- * the pointer is in it, and the auto-cycle waits while it is open.
+ * the pointer is in it. The auto-cycle waits while it is open
+ * (`useHoldGraphAutoCycle`).
  */
 
 /** Remembered for the session, so reopening lands where it was left. */
@@ -126,6 +128,7 @@ const LookPicker = ({
   if (disabled && isOpen) {
     setIsOpen(false);
   }
+  useHoldGraphAutoCycle(isOpen);
   const [query, setQuery] = useState('');
   const [styleFilter, setStyleFilter] = useState(lastStyleFilter);
   const [plusFilter, setPlusFilter] = useState(lastPlusFilter);

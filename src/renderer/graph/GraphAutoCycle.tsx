@@ -6,6 +6,7 @@ import {
   readGraphAutoCycle,
   saveGraphAutoCycle,
   useGraphAutoCycle,
+  useHoldGraphAutoCycle,
 } from '../utils/graphAutoCycle';
 
 interface IGraphAutoCycleProps {
@@ -31,7 +32,9 @@ const GraphAutoCycle = ({
 }: IGraphAutoCycleProps) => {
   const { t } = useTranslation();
   const [seconds, setSeconds] = useState(readGraphAutoCycle);
+  const [isChoosing, setIsChoosing] = useState(false);
   useGraphAutoCycle(seconds, isWaveHidden || isEditing, selectedLookId);
+  useHoldGraphAutoCycle(isChoosing);
   const options = useMemo(
     () =>
       GRAPH_AUTO_CYCLE_INTERVALS.map((value) => {
@@ -53,6 +56,7 @@ const GraphAutoCycle = ({
       value={String(seconds)}
       isDisabled={isWaveHidden}
       placement="down"
+      onOpenChange={setIsChoosing}
       handleChange={(value) => {
         const next = Number(value);
         setSeconds(next);

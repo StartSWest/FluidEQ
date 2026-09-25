@@ -1,12 +1,22 @@
-import { act, renderHook } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react';
+import GraphAutoCycle from 'renderer/graph/GraphAutoCycle';
+import LookPicker from 'renderer/graph/LookPicker';
 import { cycleGraphLookUnattended } from 'renderer/utils/graphStyle';
 import {
   readGraphAutoCycle,
   saveGraphAutoCycle,
   useGraphAutoCycle,
+  useHoldGraphAutoCycle,
 } from 'renderer/utils/graphAutoCycle';
 
 jest.mock('renderer/utils/graphStyle', () => ({
+  ...jest.requireActual('renderer/utils/graphStyle'),
   cycleGraphLookUnattended: jest.fn(),
 }));
 
@@ -80,22 +90,90 @@ describe('automatic visualizer switching', () => {
     expect(frames.size).toBe(0);
   });
 
-  it.each(['graph-look-menu', 'graph-auto-cycle-menu'])(
-    'waits until %s closes',
-    (className) => {
-      renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
-      const menu = document.createElement('div');
-      menu.className = className;
-      document.body.append(menu);
-      paintAt(30000);
-      expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
-      menu.remove();
-      paintAt(39999);
-      expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
-      paintAt(40000);
-      expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
-    },
-  );
+  // The first test is the control: unheld, the same cycle switches at 10 s,
+  // so nothing by 30 s here is the hold and not a cycle that never runs.
+  it('does not advance while a picker holds it open, and starts a fresh interval once it closes', () => {
+    renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
+    const picker = renderHook(({ open }) => useHoldGraphAutoCycle(open), {
+      initialProps: { open: false },
+    });
+    paintAt(5000);
+    picker.rerender({ open: true });
+    paintAt(30000);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    picker.rerender({ open: false });
+    paintAt(39999);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    paintAt(40000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays held until the last open picker closes or goes away', () => {
+    renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
+    const looks = renderHook(({ open }) => useHoldGraphAutoCycle(open), {
+      initialProps: { open: true },
+    });
+    const interval = renderHook(() => useHoldGraphAutoCycle(true));
+    paintAt(20000);
+    looks.rerender({ open: false });
+    paintAt(40000);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    interval.unmount();
+    paintAt(49999);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    paintAt(50000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds while its own interval list is open', () => {
+    saveGraphAutoCycle(10);
+    render(
+      <GraphAutoCycle
+        selectedLookId="bars-signal"
+        isWaveHidden={false}
+        isEditing={false}
+      />,
+    );
+    const trigger = screen.getByRole('menu', {
+      name: 'Automatic visualizer switching',
+    });
+    fireEvent.click(trigger);
+    expect(screen.getAllByRole('menuitem')).toHaveLength(6);
+    paintAt(30000);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    fireEvent.click(trigger);
+    expect(screen.queryByRole('menuitem')).toBeNull();
+    paintAt(39999);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    paintAt(40000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds while the look explorer is open', () => {
+    renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
+    render(
+      <LookPicker
+        value="bars-signal"
+        disabled={false}
+        onChoose={() => undefined}
+      />,
+    );
+    const trigger = screen.getByRole('button', {
+      name: 'Styles and visualizers',
+    });
+    fireEvent.click(trigger);
+    expect(
+      screen.getByRole('dialog', { name: 'Styles and visualizers' }),
+    ).toBeTruthy();
+    paintAt(30000);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    fireEvent.click(trigger);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    paintAt(39999);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    paintAt(40000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+  });
 
   it('does not count hidden time or catch up when the window returns', () => {
     renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));

@@ -83,6 +83,14 @@ interface IDropdownProps {
   leading?: ReactNode;
   /** Put beside `dropdown`, for a strip whose controls share one face. */
   className?: string;
+  /**
+   * Told when the list opens, and when it closes or goes away open. Before
+   * the frame is painted, for an owner that must act on that frame — the
+   * graph's auto-cycle holds still while its interval list is being read.
+   * Pass a stable function: one made anew each render is told false and then
+   * true again on every render while the list is open.
+   */
+  onOpenChange?: (isOpen: boolean) => void;
   handleChange: (newValue: string) => void;
 }
 
@@ -164,6 +172,7 @@ const Dropdown = ({
   menuClassName,
   leading,
   className,
+  onOpenChange,
 }: IDropdownProps) => {
   const { t } = useTranslation();
   const resolvedFilterPlaceholder = filterPlaceholder ?? t('common.search');
@@ -376,6 +385,14 @@ const Dropdown = ({
       setIsOpen(false);
     }
   }, [isDisabled]);
+
+  useLayoutEffect(() => {
+    if (!isOpen || !onOpenChange) {
+      return undefined;
+    }
+    onOpenChange(true);
+    return () => onOpenChange(false);
+  }, [isOpen, onOpenChange]);
 
   useEffect(() => {
     if (isOpen && isFilterable) {
