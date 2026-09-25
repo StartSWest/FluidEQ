@@ -63,10 +63,27 @@ vec3 worldDecode(vec3 shown) {
   vec3 c = clamp(shown, 0.0, 1.0);
   return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
 }
+// Whether the world hides the sky at every pixel of this 2x2 block. The
+// sky is then never seen there (it is weighted by 1 - cover, which is 0),
+// so it is not worked out: over a floor, a city or a mountain the scene's
+// shader runs only where some of it shows. Decided for the whole block, the
+// way the GPU shades it, so a shader's texture() and fwidth() still read
+// their neighbours at the edge of a hidden region, and nothing on screen
+// differs from working it out everywhere.
+bool skyHidden() {
+  ivec2 last = textureSize(uWorld, 0) - 1;
+  ivec2 block = ivec2(gl_FragCoord.xy) & ivec2(~1);
+  float least = min(
+    min(texelFetch(uWorld, min(block, last), 0).a,
+        texelFetch(uWorld, min(block + ivec2(1, 0), last), 0).a),
+    min(texelFetch(uWorld, min(block + ivec2(0, 1), last), 0).a,
+        texelFetch(uWorld, min(block + ivec2(1, 1), last), 0).a));
+  return least >= 1.0;
+}
 void main() {
 ${
   world.backdrop === 'shader'
-    ? '  vec4 back = clamp(sceneColour(vUv), 0.0, 1.0);'
+    ? '  vec4 back = skyHidden() ? vec4(0.0) : clamp(sceneColour(vUv), 0.0, 1.0);'
     : '  vec4 back = vec4(uBackdrop, 1.0);'
 }
   vec4 drawn = texture(uWorld, vUv);

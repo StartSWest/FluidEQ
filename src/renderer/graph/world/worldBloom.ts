@@ -97,6 +97,8 @@ export interface IWorldBloom {
   /** The glow of `source`, a `width × height` picture, half its size. */
   render(source: Texture, width: number, height: number): Texture;
   setShape(threshold: number, radius: number): void;
+  /** Frees the glow's pictures; the next `render` makes them again. */
+  release(): void;
   dispose(): void;
 }
 
@@ -204,6 +206,9 @@ export const createWorldBloom = (
       down.uniforms.uThreshold.value = threshold;
       radius = spread;
     },
+    // A disposed target is made again by three the next time it is drawn
+    // into, at the size it kept.
+    release: () => targets.forEach((target) => target.dispose()),
     dispose: () => {
       targets.forEach((target) => target.dispose());
       down.dispose();

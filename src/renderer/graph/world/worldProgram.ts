@@ -441,6 +441,14 @@ const compileWorld = async (
     },
     isSettled: () => inputs.settled(),
     musicAccent: () => lastAccent,
+    rest: () => {
+      // Each is made again by the next frame at the size it kept, so the
+      // frame after a rest is the frame it would have been.
+      drawn.dispose();
+      bloom?.release();
+      mirror?.dispose();
+      rendered = undefined;
+    },
     dispose: release,
   };
   return { ok: true, program, ...(notes.length > 0 ? { notes } : {}) };

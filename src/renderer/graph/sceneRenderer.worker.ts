@@ -509,6 +509,11 @@ scope.onmessage = ({ data }) => {
   }
   if (data.kind === 'idle') {
     stopPacing();
+    // Hidden: covered, minimised or on another desktop. What the next frame
+    // makes again is given back meanwhile, the program and its passes kept,
+    // so coming back costs the first frame an allocation and no compile.
+    program?.rest?.();
+    post?.shed();
     return;
   }
   if (data.kind === 'load') {

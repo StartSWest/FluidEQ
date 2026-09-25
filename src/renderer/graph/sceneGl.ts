@@ -90,6 +90,13 @@ export interface ISceneProgram {
    * derived here, not in the frame, so the Studio's meter reads it from here.
    */
   musicAccent(): number;
+  /**
+   * Gives back what the next frame can make again, while the window cannot
+   * be seen: a 3D world's pictures are its largest use of the GPU's memory,
+   * from 70 MB at 1080p to several hundred at 4K. A shader has nothing worth
+   * giving back and leaves this out.
+   */
+  rest?(): void;
   dispose(): void;
 }
 
