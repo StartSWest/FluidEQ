@@ -125,6 +125,15 @@ export const useSessionMemory = (options: {
       }
     });
     const order = keptOrder.map((id) => trackIds.indexOf(id));
+    // And the songs taken out of Up Next, still held though no longer
+    // queued, as they were before the restart: the queue tops itself up
+    // with what it has never held (`extendQueue`), so forgetting these
+    // brought each one back the first time its list was asked for again.
+    memory.trackIds.forEach((id) => {
+      if (trackById.has(id) && !trackIds.includes(id)) {
+        trackIds.push(id);
+      }
+    });
     const wantedId = playOrder[memory.position];
     const stillThere = trackById.has(wantedId)
       ? wantedId
@@ -165,6 +174,7 @@ export const useSessionMemory = (options: {
       position,
       repeat: memory.repeat,
       isShuffled: memory.isShuffled,
+      ...(memory.source === undefined ? {} : { source: memory.source }),
     });
   }, [
     libraryTracks,

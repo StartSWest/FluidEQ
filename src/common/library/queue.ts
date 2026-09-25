@@ -30,6 +30,15 @@ export interface ILibraryQueue {
   position: number;
   repeat: TLibraryRepeat;
   isShuffled: boolean;
+  /**
+   * The list on screen this queue was last aimed at, as that list names
+   * itself (`retargetQueue`), or nothing for a queue that was started rather
+   * than aimed. It is how the same list asked for again — every change of
+   * song asks — is told from a different one: the same list only tops the
+   * queue up (`extendQueue`), and never rebuilds the order the listener made.
+   * Every change to a queue copies it, so it stays; a new queue has none.
+   */
+  source?: string;
 }
 
 const identityOrder = (length: number): number[] =>
@@ -129,6 +138,67 @@ export const buildQueue = (
     isShuffled: false,
   };
   return isShuffled ? setShuffle(base, true) : base;
+};
+
+/**
+ * The songs of `trackIds` the queue has never held, added ahead of the
+ * playhead; everything already there stays exactly where it is.
+ *
+ * The same list asked for again, which is what every change of song does: a
+ * library's list is handed over as a window around the playing song, and on
+ * a list longer than the window it slides one song on with every song.
+ * Rebuilding the queue from each slid window put the list's order back over
+ * the listener's — a row dragged in Up Next went home when the song ended,
+ * and a row taken out came back — which is what `retargetQueue`'s "same
+ * shelf" rule had already fixed for a list handed over whole. So a window of
+ * the same list only tops the queue up: never a song it has held, whether it
+ * is still ahead, was played, or was taken out.
+ *
+ * Playing in order, only the songs past the playing one join, after the
+ * list's songs already ahead and before `isGuess`'s, which continuation drew
+ * because the list had run out and which come after all of it. Shuffled,
+ * every new song joins at a random place among those ahead, so the run stays
+ * shuffled without reshuffling anything already in it. Answers `queue`
+ * itself when nothing joins.
+ */
+export const extendQueue = (
+  queue: ILibraryQueue,
+  trackIds: readonly string[],
+  isGuess: (trackId: string) => boolean,
+  random: () => number = Math.random,
+): ILibraryQueue => {
+  const playing = currentTrackId(queue);
+  const at = playing === undefined ? -1 : trackIds.indexOf(playing);
+  if (at === -1) {
+    return queue;
+  }
+  const held = new Set(queue.trackIds);
+  const fresh: string[] = [];
+  (queue.isShuffled ? trackIds : trackIds.slice(at + 1)).forEach((id) => {
+    if (!held.has(id)) {
+      held.add(id);
+      fresh.push(id);
+    }
+  });
+  if (fresh.length === 0) {
+    return queue;
+  }
+  const order = [...queue.order];
+  let end = order.length;
+  while (
+    end > queue.position + 1 &&
+    isGuess(queue.trackIds[order[end - 1] ?? -1] ?? '')
+  ) {
+    end -= 1;
+  }
+  fresh.forEach((_, offset) => {
+    const place = queue.isShuffled
+      ? queue.position + 1 + Math.floor(random() * (end - queue.position))
+      : end;
+    order.splice(place, 0, queue.trackIds.length + offset);
+    end += 1;
+  });
+  return { ...queue, trackIds: [...queue.trackIds, ...fresh], order };
 };
 
 /** True once `position` is on the last entry of `order`, empty queue included. */
