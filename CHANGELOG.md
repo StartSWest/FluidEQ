@@ -233,6 +233,18 @@ version and in these notes.
   in the gallery. On the graph a plain drag still selects bands; the right or
   middle button turns the scene there. A scene can also answer where you
   point and tap.
+- **Visualizers in real 3D.** A scene can now carry a 3D world — shapes and
+  models, materials, lights, reflections on wet floors and water, glow —
+  standing in front of its painted sky and moving with the music: the kick,
+  the snare and the hats each their own way, gathering in a build and
+  breaking on the drop. It goes through the same smoothing, FSR upscaling
+  and brightness limiter as every scene, everywhere a scene plays — the
+  graph, the desktop, the lights, the Studio and the gallery — turns with
+  your mouse where its maker allows, and hands its graphics memory back
+  while the window is covered. In the Studio a world is a file beside the
+  scene with its own GLSL and models, and opening one of FluidEQ's scenes
+  writes its world out for you to look inside. A FluidEQ from before this
+  plays the same scene without its world.
 - **The Studio's meters follow the rhythm and the song**: the tempo and how
   sure it is, a lamp each for the kick, the snare and the hats, a spin the
   music winds up, intensity, build and drop, the voice and its note, and
