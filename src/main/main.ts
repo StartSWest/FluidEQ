@@ -117,6 +117,7 @@ import {
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
+  APO_FEATURE_FILE_WORD_PATTERN,
   APO_FEATURES,
   TApoFeature,
   TApoLayer,
@@ -1329,12 +1330,19 @@ const runStartupProfileMaintenance = () => {
  *
  * Everything a profile can carry moves — bands, preamp, voicing, driver
  * correction, convolution — because all of it was chosen for the headphones or
- * speakers on that endpoint and means nothing on another one. Only the three
+ * speakers on that endpoint and means nothing on another one. Only the four
  * app-wide preferences below stay put: whether the engine is on, whether the
- * graph is showing, and what the filesystem is like.
+ * graph is showing, what the filesystem is like, and the cuts, which are
+ * written for every output at once.
  */
 const applyDeviceState = (next: IState) => {
-  const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } = next;
+  const {
+    isEnabled,
+    isGraphViewOn,
+    isCaseSensitiveFs,
+    eqCuts,
+    ...deviceState
+  } = next;
   Object.assign(state, deviceState);
   // The measurement belongs to the endpoint it was heard on and to nothing
   // else. A profile carries none, so the spread above cannot clear it, and
@@ -1369,6 +1377,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   // Equalizer APO exactly never, because the session override rendered it from
   // the state while the profile was written without it — and the profile is
   // what the config is built from.
+  tone: state.tone,
   voicing: state.voicing,
   driver: state.driver,
   smartEq: state.smartEq,
@@ -1407,9 +1416,16 @@ const getCurrentPreset = (): IPresetV2 => ({
  * Deliberately not applied to a profile the user loads. Their own tuning is
  * theirs, however extreme, and quietly rescaling a saved profile on load would
  * change a sound they chose and kept.
+ *
+ * `limit` is a slider's ±20 dB for bands headed for the user's own EQ. A
+ * headphone correction is given a correction's range (`correctionRange.ts`):
+ * it plays as published, and only a chain past what the preamp can take back
+ * is compressed. The fifty-decibel curve above was built out of a raw Squiglink
+ * measurement; every correction applied now arrives as a published fit, from
+ * OPRA or a pasted EQ export.
  */
-const shieldReferenceBands = (filters: IFiltersMap) =>
-  compressChainToLimit(filters, MAX_GAIN);
+const shieldReferenceBands = (filters: IFiltersMap, limit = MAX_GAIN) =>
+  compressChainToLimit(filters, limit);
 
 const switchToParametricEditing = () => {
   state.eqFormat = AutoEqFormat.PARAMETRIC;
@@ -1530,6 +1546,7 @@ const resetEqToDefaults = () => {
 const resetStateToDefaults = () => {
   resetEqToDefaults();
   state.convolution = undefined;
+  state.tone = undefined;
   state.voicing = undefined;
   state.driver = undefined;
   state.smartEq = undefined;
@@ -1907,6 +1924,7 @@ const handleUpdateHelperCore = async <T>(
           activeOverride,
           state.isEnabled,
           sessionHeadroom(),
+          state.eqCuts,
         );
       });
     }
@@ -2217,6 +2235,7 @@ const syncActiveApoFilesFromDisk = async () => {
         undefined,
         state.isEnabled,
         sessionHeadroom(),
+        state.eqCuts,
       );
     });
   }
@@ -2238,6 +2257,12 @@ const queueApoDiskSync = () => {
   }, APO_WATCH_DEBOUNCE_MS);
 };
 
+/** A device file, a feature file or a custom file FluidEQ keeps per output. */
+const GENERATED_CHAIN_FILE = new RegExp(
+  `^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:${APO_FEATURE_FILE_WORD_PATTERN}|custom))?\\.txt$`,
+  'i',
+);
+
 function startApoConfigWatcher() {
   if (!session.configPath || watchedApoConfigPath === session.configPath) {
     return;
@@ -2249,12 +2274,10 @@ function startApoConfigWatcher() {
       session.configPath,
       { persistent: false },
       (_eventType, fileName) => {
-        if (
-          !fileName ||
-          /^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:driver|headphone|eq|voicing|smart|custom))?\.txt$/i.test(
-            fileName.toString(),
-          )
-        ) {
+        // Every word a feature's file is or was named by, from the one list:
+        // spelled out here it missed `preset` when the voicing's file was
+        // renamed, and would have missed `tone`.
+        if (!fileName || GENERATED_CHAIN_FILE.test(fileName.toString())) {
           queueApoDiskSync();
         }
       },
