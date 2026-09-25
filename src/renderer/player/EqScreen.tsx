@@ -406,6 +406,9 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
               offsetLeft={0}
               offsetTop={0}
               isForeground
+              // Behind the curve this screen is for, a measuring view's key
+              // lands on that curve; the view's name is under the glass.
+              hasKey={false}
             />
           </div>
         )}

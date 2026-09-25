@@ -118,6 +118,11 @@ export interface IMainWindowDeps {
   saveWindowState: () => void;
   /** Tells the renderer whether it is maximised, so its chrome can match. */
   sendWindowState: () => void;
+  /**
+   * The same, with the full-screen state the window is moving INTO said
+   * rather than read: see the two handlers that call it.
+   */
+  sendFullScreenState: (isFullScreen: boolean) => void;
   /** The app and the player, and the floor each keeps. */
   windowModes: TWindowModes;
   /**
@@ -145,6 +150,7 @@ export const createMainWindowFactory = ({
   loadWindowState,
   saveWindowState,
   sendWindowState,
+  sendFullScreenState,
   setActiveAutoUpdater,
   setMainWindow,
   setUpAutoUpdates,
@@ -533,13 +539,21 @@ export const createMainWindowFactory = ({
     // The material comes off in full screen and goes back on the way out (see
     // `windowBackdrop.ts`), and the page squares its own edge off and rounds
     // it again with it.
+    //
+    // Both SAID, never read. Windows has no native full-screen state, and in
+    // these two events the window still reports the state it is leaving —
+    // which is why the backdrop is handed its answer too. Read, every entry
+    // told the page "not full screen": the player's full-screen picture kept
+    // the floating window's lit rim round it (Ivan, 2026-09-24: "it adds
+    // crappy container border"), and a full screen left by any route but the
+    // page's own reached it as one being entered.
     created.on('enter-full-screen', () => {
       applyWindowBackdrop(created, true);
-      sendWindowState();
+      sendFullScreenState(true);
     });
     created.on('leave-full-screen', () => {
       applyWindowBackdrop(created, false);
-      sendWindowState();
+      sendFullScreenState(false);
     });
     // Debounced: dragging a window fires 'resize' continuously, and writing a
     // file on every frame of that would be absurd. 400ms after the user stops.

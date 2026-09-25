@@ -3094,6 +3094,17 @@ const sendWindowState = () => {
   );
 };
 
+/** The state with the full screen a transition is moving into (`mainWindow.ts`). */
+const sendFullScreenState = (isFullScreen: boolean) => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  mainWindow.webContents.send('window-state-changed', {
+    ...windowStateOf(mainWindow),
+    isFullScreen,
+  });
+};
+
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and
 // the page is told, because what it draws is the mode.
@@ -3632,6 +3643,7 @@ const createMainWindow = createMainWindowFactory({
   loadWindowState,
   saveWindowState,
   sendWindowState,
+  sendFullScreenState,
   windowModes,
   setActiveAutoUpdater: (next) => {
     activeAutoUpdater = next;

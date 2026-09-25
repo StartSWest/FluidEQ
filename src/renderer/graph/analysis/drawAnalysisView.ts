@@ -91,6 +91,8 @@ export interface IAnalysisRequest {
   channelLabels: readonly [string, string];
   /** What the key calls each reading, in the language on screen. */
   legend: Record<TLegendKey, string>;
+  /** Whether the readings are named in a key (`IAnalysisFrame.keyed`). */
+  keyed: boolean;
   edge: IAnalysisFrame['edge'];
   glow: number;
   /** The reading as it is drawn, eased by the look's attack and release. */
@@ -373,6 +375,7 @@ const drawAnalysisView = (request: IAnalysisRequest): boolean => {
       scope: request.scope,
       channelLabels: request.channelLabels,
       legend: request.legend,
+      keyed: request.keyed,
     };
     moving = draw(frame, state) || moving;
     // Named once per copy, over the drawing it belongs to. Only where there

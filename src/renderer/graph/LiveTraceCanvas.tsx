@@ -442,6 +442,11 @@ interface ILiveTraceCanvasProps {
    * this back out of the reading, point by point. No other view reads it.
    */
   eqResponse?: IChartPointData[];
+  /**
+   * Whether a measuring view names its readings in a key: yes wherever it is
+   * the picture, no where it plays behind another drawing (`EqScreen`).
+   */
+  hasKey?: boolean;
 }
 
 /**
@@ -514,6 +519,7 @@ const LiveTraceCanvas = ({
   offsetTop,
   isForeground,
   eqResponse,
+  hasKey = true,
 }: ILiveTraceCanvasProps) => {
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
@@ -630,6 +636,8 @@ const LiveTraceCanvas = ({
   );
   const eqResponseRef = useRef(eqResponse);
   eqResponseRef.current = eqResponse;
+  const hasKeyRef = useRef(hasKey);
+  hasKeyRef.current = hasKey;
   const ambient = hasGraphAmbientMotion(look.style);
   playingRef.current = ambient || !isPaused;
   const isRainbow = useIsRootEuphoric();
@@ -989,6 +997,7 @@ const LiveTraceCanvas = ({
           glow: isEuphoric && canGraphGlow(chosen) ? tuning.glow : 0,
           channelLabels: channelLabelsRef.current,
           legend: legendRef.current,
+          keyed: hasKeyRef.current,
           points: eased,
           live: data,
           columns: projected,

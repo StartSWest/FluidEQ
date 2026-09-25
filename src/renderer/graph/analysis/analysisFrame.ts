@@ -111,6 +111,12 @@ export interface IAnalysisFrame {
   channelLabels: readonly [string, string];
   /** What the key calls each reading, in the language on screen. */
   legend: Record<TLegendKey, string>;
+  /**
+   * Whether the view names its readings in a key at all. Not where it plays
+   * behind another drawing — the player's equaliser screen — where the key
+   * lands on the curve that screen is for (`paintLegend`).
+   */
+  keyed: boolean;
 }
 
 /** Where a reading of `level` lands, in CSS pixels. */

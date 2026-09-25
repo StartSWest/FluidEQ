@@ -148,6 +148,7 @@ import useMatchedDesign from './useMatchedDesign';
 import useOutputRate from '../utils/useOutputRate';
 import LookPicker from './LookPicker';
 import liveTraceCurves from './liveTraceCurves';
+import { useWindowMode } from '../player/windowModeStore';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
@@ -615,6 +616,13 @@ const FrequencyResponseChart = ({
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
+  // While the window is the player this graph is behind it, unseen, and the
+  // player's visualizer deck takes Ctrl+G for its own grid — in two columns
+  // only, where there is a grid to see (`VisDeck`). Both toggling the one
+  // switch would undo each other.
+  const { mode: windowMode } = useWindowMode();
+  const isPlayerWindowRef = useRef(windowMode === 'player');
+  isPlayerWindowRef.current = windowMode === 'player';
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -1418,7 +1426,9 @@ const FrequencyResponseChart = ({
           } else if (key === 'f') {
             toggleGraphFullScreen();
           } else if (key === 'g') {
-            toggleGraphGrid();
+            if (!isPlayerWindowRef.current) {
+              toggleGraphGrid();
+            }
           } else if (key === 'i') {
             // Not over a Plus visualizer, which takes the wave's height and
             // position but never its orientation.

@@ -54,6 +54,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   pointer-events: none;
 }
 
+// The main graph's grid over a measuring view (`PlayerPaper`): laid over the
+// trace as the graph's own is, under the strip of controls, and never in the
+// way of a press on the picture.
+.player-vis__paper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 // `.live-output-controls` gives it the graph's strip — its placement over
 // the picture and every control in it; this lays out its two ends, and
 // keeps it readable over a picture of any colour.

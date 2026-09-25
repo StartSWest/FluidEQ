@@ -22,6 +22,7 @@ import { useLibraryDeck } from './libraryDeck';
 import {
   toggleTimeLeft,
   useIsTimeLeft,
+  usePlayerColumns,
   type IPlayerDecks,
   type TPlayerDeck,
 } from './playerLayout';
@@ -58,6 +59,10 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
   const source = usePlayerSource();
   const library = useLibraryDeck();
   const isTimeLeft = useIsTimeLeft();
+  // In two columns the deck stands as tall as the equalizer beside it, and the
+  // meter takes the whole width under the clock and the song rather than a
+  // third of it beside a column of empty glass (Ivan, 2026-09-24).
+  const isWide = usePlayerColumns() >= 2;
   const { second, durationMs, hasPosition } = usePlayerClock(source);
   const [scrubMs, setScrubMs] = useState<number>();
   // The volume while its slider is held: the display shows it in the
@@ -104,7 +109,7 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
 
   return (
     <section className="player-deck" aria-label={t('player.deck.aria')}>
-      <div className="player-screen">
+      <div className={`player-screen${isWide ? ' is-wide' : ''}`}>
         <div className="player-screen__left">
           <span className="player-screen__state">
             <PlayerIcon
@@ -130,7 +135,6 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
               <LedClock text={clock} />
             </span>
           </button>
-          <SpectrumWell />
         </div>
         <div className="player-screen__right">
           {adjust ? (
@@ -152,6 +156,9 @@ const PlayerDeck = ({ decks, onToggleDeck }: IPlayerDeckProps) => {
             </span>
             <PlayerReadouts />
           </div>
+        </div>
+        <div className="player-screen__well">
+          <SpectrumWell />
         </div>
       </div>
 

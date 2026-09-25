@@ -120,18 +120,37 @@ export interface ILegendEntry {
 }
 
 /**
+ * Room left under the legend: clear of the names two views print along the
+ * floor — the octave Cs of the note spectrum, the bands of the energy view —
+ * which stand in the fourteen pixels above it.
+ */
+const LEGEND_FLOOR = 20;
+
+/**
  * The legend: a swatch and a word for each reading, on the plot.
  *
  * On the plot rather than beside it because this canvas is the whole drawing
- * — there is no room outside it that belongs to this view — and pinned to the
- * top-left corner, which is the one part of the plot a spectrum never
- * reaches: the bass is on the left and the readings fall away from the top.
+ * — there is no room outside it that belongs to this view.
+ *
+ * AT THE BOTTOM-LEFT, not the top. The top of the plot is where the controls
+ * laid over it live: the player's strip spans the whole top row with the view
+ * picker at its left end, and the legend sat under the picker's name (Ivan,
+ * 2026-09-24: "move legends below ... doesn't conflict with selector"); full
+ * screen puts its creature in the same corner. Down here it also covers the
+ * body of a filled figure rather than the edge that is being read, which a
+ * loud bass reached at the top.
+ *
+ * Anchored to the plot, not to the copy of the drawing it is painted for, so
+ * a mirrored wave's two copies name themselves in one place rather than two.
  */
 export const paintLegend = (
   frame: IAnalysisFrame,
   entries: readonly ILegendEntry[],
 ): void => {
   const { context, plot, band } = frame;
+  if (!frame.keyed) {
+    return;
+  }
   const chips = entries;
   context.save();
   context.font = `600 ${LEGEND_TEXT}px system-ui, sans-serif`;
@@ -147,7 +166,7 @@ export const paintLegend = (
     LEGEND_GAP * 2 +
     LEGEND_PAD * 2;
   const left = plot.left + 10;
-  const top = Math.min(band.top, plot.top) + 8;
+  const top = plot.bottom - LEGEND_FLOOR - height;
   context.globalAlpha = band.opacity * 0.9;
   // A recessed block, the same idea as the app's own: dark, barely there, so
   // the letters read over any drawing without hiding a decibel of it.

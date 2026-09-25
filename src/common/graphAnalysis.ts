@@ -134,6 +134,27 @@ export const levelAxisSuitsLook = (style: GraphStyle): boolean =>
   !LEVEL_AXIS_WRONG.has(style);
 
 /**
+ * Whether the frequencies along the bottom describe this drawing, the same
+ * question asked of the other axis.
+ *
+ * The main graph cannot leave them off, because its equaliser is drawn on
+ * them whatever the view; somewhere with no equaliser on the plot (the
+ * player) they go wherever they would name nothing. Four views: the stereo
+ * view's box, the oscilloscope's time, the phase history's time, and the
+ * energy view's five named columns, which stand evenly apart rather than
+ * where their frequencies fall.
+ */
+const FREQUENCY_AXIS_WRONG: ReadonlySet<string> = new Set([
+  'loudness',
+  'scope',
+  'phase',
+  'energy',
+]);
+
+export const frequencyAxisSuitsLook = (style: GraphStyle): boolean =>
+  !FREQUENCY_AXIS_WRONG.has(style);
+
+/**
  * What each measuring view needs measured beyond the shared reading.
  *
  * Asked as one question so the hook that builds the extra analysers has one

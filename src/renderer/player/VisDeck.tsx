@@ -18,6 +18,7 @@ import GraphAutoCycle from '../graph/GraphAutoCycle';
 import GraphWallpaperToggle from '../graph/GraphWallpaperToggle';
 import LightingToggle from '../graph/LightingToggle';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
+import { liveLevelScaleFor } from '../graph/graphPaper';
 import LookPicker from '../graph/LookPicker';
 import liveTraceCurves from '../graph/liveTraceCurves';
 import SceneLikeButton from '../graph/SceneLikeButton';
@@ -26,6 +27,9 @@ import ScenePreview from '../plus/ScenePreview';
 import {
   cycleGraphLook,
   setGraphLook,
+  toggleGraphGrid,
+  useGraphGridHidden,
+  useGraphLook,
   useSelectedLookId,
   useWatchedGraphWave,
   useWaveOrientation,
@@ -33,6 +37,8 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import useGraphScenePack from './useGraphScenePack';
+import PlayerPaper from './PlayerPaper';
+import { playerPaperFor } from './paperRules';
 import {
   PLAYER_VIS_MIN,
   setPlayerVisFull,
@@ -61,6 +67,8 @@ const VisDeck = ({ height }: { height: number }) => {
   // like a desktop background, and the pane's measuring height is about a
   // card this window does not have.
   const { height: waveHeight, position: wavePosition } = useWatchedGraphWave();
+  const look = useGraphLook();
+  const isGridHidden = useGraphGridHidden();
   const stageRef = useRef<HTMLDivElement>(null);
   const isFull = usePlayerVisFull();
   /**
@@ -92,6 +100,32 @@ const VisDeck = ({ height }: { height: number }) => {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isFull, toggleFull]);
+
+  // Ctrl+G shows and hides the grid here as it does on the graph, and it is
+  // the graph's own switch: the trace stretches edge to edge exactly when
+  // that switch is off (`traceStretch`), so a grid of the player's own could
+  // label columns the trace had moved. Not in full screen, the picture alone,
+  // which has no grid to show (Ivan, 2026-09-24: "control + G also show and
+  // hide grid there in mini player on two columns only"). The graph behind
+  // the player stands its own Ctrl+G down (`FrequencyResponseChart`).
+  useEffect(() => {
+    if (isFull) {
+      return undefined;
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        !event.repeat &&
+        event.key.toLowerCase() === 'g'
+      ) {
+        event.preventDefault();
+        toggleGraphGrid();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFull]);
   const [box, setBox] = useState({ width: 0, height: 0 });
   // The scene that failed here, so its fallback stays until another is picked.
   const [troubled, setTroubled] = useState<string>();
@@ -124,13 +158,43 @@ const VisDeck = ({ height }: { height: number }) => {
       }),
     [orientation, waveHeight, wavePosition],
   );
-  // Gridless, so trimmed to where records have sound, as the main graph is
-  // with its grid off (`graphFrequencyRange`).
+  const isScene = scene.state === 'ready' && scene.identity !== troubled;
+  // The main graph's grid under a measuring view, from the graph's own grid
+  // switch (`paperRules.ts`).
+  const paper = playerPaperFor(look.style, {
+    isTrace: !isScene && scene.state !== 'loading',
+    isFull,
+    isGridHidden,
+  });
+  const { padding } = paper;
+  // The whole spectrum under a ruled bottom, as the main graph's with its grid
+  // on; gridless, trimmed to where records have sound (`graphFrequencyRange`).
   const xScale = useMemo(
-    () => frequencyScale(box.width, 0, 0, graphFrequencyRange(true)),
-    [box.width],
+    () =>
+      frequencyScale(
+        box.width,
+        padding.left,
+        padding.right,
+        graphFrequencyRange(!paper.frequency),
+      ),
+    [box.width, padding, paper.frequency],
   );
-  const yScale = useMemo(() => gainScale(box.height, 0, 0), [box.height]);
+  const yScale = useMemo(
+    () => gainScale(box.height, padding.top, padding.bottom),
+    [box.height, padding],
+  );
+  // The analyser's scale where the watched wave puts it, which the numbers
+  // down the right describe.
+  const levelScale = useMemo(
+    () =>
+      liveLevelScaleFor({
+        gain: yScale,
+        liveCurve: traceCurves[traceCurves.length - 1],
+        height: box.height,
+        marginTop: 0,
+      }),
+    [yScale, traceCurves, box.height],
+  );
 
   const choose = useCallback((lookId: string) => {
     if (!isLockedLookId(lookId)) {
@@ -149,7 +213,6 @@ const VisDeck = ({ height }: { height: number }) => {
     }
   }, [scene]);
 
-  const isScene = scene.state === 'ready' && scene.identity !== troubled;
   const hasBox = box.width > 0 && box.height > 0;
   // A member's scene, which has an author to thank as it does on the graph.
   const memberScene = isMemberLookId(selectedLookId)
@@ -202,6 +265,15 @@ const VisDeck = ({ height }: { height: number }) => {
             isForeground
           />
         )}
+        {hasBox && (paper.frequency || paper.level) && (
+          <PlayerPaper
+            width={box.width}
+            height={box.height}
+            paper={paper}
+            frequency={xScale}
+            level={levelScale}
+          />
+        )}
         {/* The graph's own strip over its picture: its arrows, its picker and
             its automatic switching, under its class. Inside the stage, so it
             is placed against the picture whatever the deck around it does.
@@ -243,9 +315,9 @@ const VisDeck = ({ height }: { height: number }) => {
               then on a scene what it does to the window, the heart on a
               member's scene, the desk lights and the desktop background.
               Each is the graph's own control and hides itself where it can do
-              nothing. Not the grid switch or the View menu: this picture has
-              no grid, and the View menu's modes are the graph's panes, so both
-              would be presses that change nothing here. */}
+              nothing. Not the View menu, whose modes are the graph's panes, a
+              press that would change nothing here; the grid is Ctrl+G, the
+              graph's own key (see above). */}
           <GraphAutoCycle
             selectedLookId={selectedLookId}
             isWaveHidden={false}
