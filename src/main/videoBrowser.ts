@@ -144,6 +144,18 @@ const lockDownSession = () => {
   // Nothing here may enumerate a HID, serial or USB device.
   videoSession.setDevicePermissionHandler(() => false);
 
+  // Nor read a local file, by any route. `file:` is a privileged scheme for
+  // the app's own window, so the browser process no longer refuses it to a
+  // renderer that asks (`fileCodeCache.ts`); a site's page cannot ask — Blink
+  // refuses it first — but a compromised renderer could, by a subframe
+  // navigation (which the player's navigation guards, main-frame only, never
+  // see) or a direct request. Answered here for this session alone, so the
+  // window keeps its compiled code and the player gets nothing from the disk.
+  videoSession.protocol.handle(
+    'file',
+    () => new Response(null, { status: 403 }),
+  );
+
   // The app's own window is allowed to capture system audio — that is the
   // spectrum analyser, and the handler for it is in main.ts. A web page inside
   // the player must never get near that API: it would hand a site a recording

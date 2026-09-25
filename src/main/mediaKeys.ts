@@ -147,7 +147,7 @@ export const sendMediaTransportKey = async (action: unknown): Promise<void> => {
         '-VirtualKey',
         String(virtualKey),
       ],
-      { windowsHide: true, timeout: 10000 },
+      { windowsHide: true },
     );
   } catch {
     // See above: a key that did not land is not worth interrupting anybody for.

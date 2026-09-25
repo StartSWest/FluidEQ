@@ -53,8 +53,14 @@ const endAnimation = (animationName: string) => {
 
 const holdEnds = () => endAnimation('smart-eq-status-hold');
 
+// Fake, so the count below can see a clock if one is ever set again.
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
 afterEach(() => {
   act(() => setSmartEqStatus(''));
+  jest.useRealTimers();
 });
 
 it('stays up until its hold has been shown, and no clock is set', () => {

@@ -20,7 +20,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and line, before it can reach a window.
  *
  * Also held: PowerShell sleeping in a loop, which is the same guess made in a
- * child process instead of this one.
+ * child process instead of this one; and the same guess in its other
+ * spellings, each of which was found in the tree after the plain calls were
+ * gone — a timer passed in under another name (the instance marker's twenty-
+ * second heartbeat), `AbortSignal.timeout` (the pairing's five seconds), a
+ * child process's `timeout:` option, and a PowerShell `Wait(4000)`.
  */
 
 import fs from 'fs';
@@ -44,12 +48,14 @@ const filesUnder = (dir: string, extensions: readonly string[]): string[] =>
   });
 
 /**
- * A call, not a mention: comments explaining why a timer is gone name it, and
- * `clearTimeout` on a handle that can no longer exist would be dead code the
- * linter already refuses.
+ * The name in code, not only a call: a timer handed on under another name
+ * (`setInterval: schedule = setInterval`) is still a timer. Comments explaining
+ * why one is gone are taken off first (`codeOf`).
  */
-const TIMER_CALL = /\b(?:setTimeout|setInterval)\s*\(/;
-const SLEEP = /\bStart-Sleep\b/i;
+const TIMER = /\b(?:setTimeout|setInterval)\b|\bAbortSignal\s*\.\s*timeout\b/;
+/** A deadline on a child process or a request: `{ timeout: 10000 }`. */
+const DEADLINE_OPTION = /\btimeout\s*:\s*[\d_]+/;
+const SLEEP = /\bStart-Sleep\b|\.Wait\(\s*\d/i;
 
 /** The line with its comments taken off, so prose about timers is allowed. */
 const codeOf = (line: string): string => {
@@ -91,11 +97,15 @@ describe('waiting is spelled with events', () => {
     ).not.toHaveLength(0);
   });
 
-  it('calls no setTimeout and no setInterval', () => {
-    expect(offences(sources, TIMER_CALL)).toEqual([]);
+  it('calls no setTimeout and no setInterval, by any name', () => {
+    expect(offences(sources, TIMER)).toEqual([]);
   });
 
-  it('sleeps no PowerShell in a loop, in a script file or one written inline', () => {
+  it('puts no deadline on a child process or a request', () => {
+    expect(offences(sources, DEADLINE_OPTION)).toEqual([]);
+  });
+
+  it('sleeps and times out no PowerShell, in a script file or one written inline', () => {
     const scripts = filesUnder(ASSETS, ['.ps1']);
     expect(offences([...scripts, ...sources], SLEEP)).toEqual([]);
   });

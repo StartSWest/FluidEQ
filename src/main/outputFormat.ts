@@ -74,7 +74,7 @@ export const runFormatScript: TRunFormatScript = async (args) => {
       scriptPath(),
       ...args,
     ],
-    { windowsHide: true, timeout: 20000, maxBuffer: 1024 * 1024 },
+    { windowsHide: true, maxBuffer: 1024 * 1024 },
   );
   const parsed: unknown = JSON.parse(stdout.trim());
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {

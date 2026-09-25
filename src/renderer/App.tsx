@@ -3027,13 +3027,19 @@ const AppContent = () => {
             {/* Loaded Karaoke keeps only its audio element and exact shared
                 transport during the silent lease. It then unmounts completely
                 unless playback resumed. */}
+            {/* Not hidden behind the compact player, unlike the Media and
+                Library pages: hidden, Karaoke renders only its audio host, so
+                an open Maker unmounts and cancels whatever it is running — a
+                background removal takes minutes without a GPU, and the compact
+                player is exactly where somebody waits for it. The window
+                behind the amp is not drawn, and the stage's own loops stop
+                when it is not shown. */}
             {hasOpenedKaraoke && keepKaraokeMounted && (
               <Suspense fallback={null}>
                 <KaraokePage.Page
                   isHidden={
-                    isAmp ||
-                    (!showsKaraokeGraphBackdrop &&
-                      (!isKaraokeTab || isGraphBackdropMode))
+                    !showsKaraokeGraphBackdrop &&
+                    (!isKaraokeTab || isGraphBackdropMode)
                   }
                   isFullScreen={isKaraokeSurfaceFullScreen}
                   isGraphOverlay={isKaraokeGraphOverlay}

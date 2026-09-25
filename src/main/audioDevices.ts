@@ -229,7 +229,11 @@ export const discoverAudioDevices = coalesceRequests(
         getAudioDeviceScriptPath(),
         ...(await helperArguments()),
       ],
-      { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+      // No deadline: the script's exit is the answer. Ten seconds killed a
+      // read that was only slow — the first one on a cold machine compiles
+      // the helper — and a reading that never ends is a fault to find, not
+      // one to time out and start again.
+      { windowsHide: true, maxBuffer: 1024 * 1024 },
     );
     return filterVisibleAudioDevices(parseDeviceJson(stdout));
   },
@@ -260,6 +264,6 @@ export const setDefaultAudioDevice = async (deviceId: string) => {
       deviceId,
       ...(await helperArguments()),
     ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+    { windowsHide: true, maxBuffer: 1024 * 1024 },
   );
 };

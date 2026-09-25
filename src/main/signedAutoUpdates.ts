@@ -218,7 +218,7 @@ const inspectAuthenticodeSignature: SignatureInspector = (executablePath) =>
         '-Command',
         buildPowershellScript(executablePath),
       ],
-      { encoding: 'utf8', timeout: 20_000, windowsHide: true },
+      { encoding: 'utf8', windowsHide: true },
       (error, stdout, stderr) => {
         if (error) {
           reject(error);

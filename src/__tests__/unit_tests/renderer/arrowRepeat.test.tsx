@@ -42,6 +42,15 @@ const renderArrow = (handleChange: () => void) =>
   );
 
 describe('holding an arrow', () => {
+  // Fake, so the count below can see a clock if one is ever set again.
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('steps on the press, then once per turn, and stops on release', () => {
     const handleChange = jest.fn();
     renderArrow(handleChange);

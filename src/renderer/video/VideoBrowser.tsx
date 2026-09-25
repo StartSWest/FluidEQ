@@ -257,6 +257,13 @@ const VIDEO_RESUME_KEY = 'fluideq.videoResume';
 const TRANSPORT_CLOCK_SAMPLE_MS = 250;
 
 /**
+ * How far the playhead moves, in the video's own seconds, before where it is
+ * gets written down as this site's resume mark. The five the old sample
+ * interval allowed a crash to lose, counted in the video now, not the clock.
+ */
+const NOTE_PLAYHEAD_EVERY_S = 5;
+
+/**
  * How many times one document is told the app's level again before it wins.
  *
  * See `guestVolumeArgumentsRef`: a site sets its own remembered level while
@@ -472,12 +479,15 @@ const VideoBrowser = ({
    *
    * It was a sample on a five-second interval. What the interval stood for is
    * the playhead moving, and the page reports exactly that: while a video
-   * plays, the bar's own clock reads the position several times a second
-   * (`samplePlaybackClock`), and each reading is noted here — so a crash loses
-   * a quarter of a second where it lost up to five. The moments a video stops
-   * or starts, the guest's own `media-paused` and `media-started-playing`, are
-   * read directly, which is where somebody leaving a video leaves it; and a
-   * page arriving, or this tab coming back, is read once.
+   * plays, the bar's own clock reads the position four times a second
+   * (`samplePlaybackClock`), and a reading is noted here once the playhead has
+   * moved `NOTE_PLAYHEAD_EVERY_S` from the last mark — so a crash loses what it
+   * lost before, and nothing waits on a clock. Not every reading: each note is
+   * a synchronous address read and a storage write on the window's thread.
+   * The moments a video stops or starts, the guest's own `media-paused` and
+   * `media-started-playing`, are read and noted directly, which is where
+   * somebody leaving a video leaves it; and a page arriving, or this tab
+   * coming back, is read once.
    *
    * Only while the tab is on screen. A player left running in the background is
    * still playing and its position still moves, but so does the position of the
@@ -500,7 +510,9 @@ const VideoBrowser = ({
     // then on. Reading both halves of the pair from the same source at the same
     // instant is what makes them agree — `rememberPlayback` checks the pairing
     // too, but this is where it stops being wrong in the first place.
+    let notedSeconds = Number.NEGATIVE_INFINITY;
     const note = (seconds: number) => {
+      notedSeconds = seconds;
       try {
         const url = view.getURL();
         const site = findSiteForUrl(url);
@@ -535,7 +547,11 @@ const VideoBrowser = ({
     };
 
     read();
-    notePlayingPositionRef.current = note;
+    notePlayingPositionRef.current = (seconds) => {
+      if (Math.abs(seconds - notedSeconds) >= NOTE_PLAYHEAD_EVERY_S) {
+        note(seconds);
+      }
+    };
     view.addEventListener('media-paused', read);
     view.addEventListener('media-started-playing', read);
     return () => {

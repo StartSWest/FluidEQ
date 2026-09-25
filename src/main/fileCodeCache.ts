@@ -37,13 +37,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * What `standard` costs, which Electron requires beside `codeCache`: URL
  * parsing is untouched (`file` is already standard inside Chromium), but it is
- * also made web-safe, so the browser process stops refusing a renderer's
- * request for a `file:` URL by itself. The app's own guards still refuse it —
- * the video player's navigation allow-list (`videoHardening.ts`), the main
- * window never navigating off its own document (`mainWindow.ts`),
- * `openExternalIfSafe` opening only http(s) —
- * and a web page has no `file:` loader to ask with: Electron hands one only to
- * frames Chromium already lets read files.
+ * also made web-safe, process-wide, so the browser process stops refusing a
+ * renderer's request for a `file:` URL by itself. A site's own script still
+ * cannot make one — Blink's local-resource check refuses it first — so what
+ * this gives up is the check that held after a renderer was compromised. The
+ * one session that shows other people's pages, the Media player's, answers
+ * `file:` with a 403 of its own (`lockDownSession` in `videoBrowser.ts`), which
+ * covers subframes and direct requests the player's main-frame navigation
+ * guards never see; the main window never navigates off its own document
+ * (`mainWindow.ts`), and `openExternalIfSafe` opens only http(s).
  */
 export const FILE_CODE_CACHE_SCHEME: Electron.CustomScheme = {
   scheme: 'file',

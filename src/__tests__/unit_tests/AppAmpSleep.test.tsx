@@ -203,4 +203,30 @@ describe('the window behind the amp', () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId('karaoke-player')).toBeInTheDocument();
   });
+
+  it('leaves the Karaoke page as it was, so a Maker job keeps running behind it', async () => {
+    // Hidden, the Karaoke page renders only its audio host: an open Maker
+    // would unmount and cancel a background removal that takes minutes —
+    // and the amp is where somebody waits for one.
+    render(<App />);
+    await act(async () => Promise.resolve());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+      await preloadTab('karaoke');
+    });
+    act(() => claimPlayback('karaoke'));
+    expect(screen.getByTestId('karaoke-player')).toHaveAttribute(
+      'data-hidden',
+      'false',
+    );
+    mockLog.length = 0;
+
+    await announceWindowMode('player');
+    expect(screen.getByTestId('amp')).toBeInTheDocument();
+    expect(screen.getByTestId('karaoke-player')).toHaveAttribute(
+      'data-hidden',
+      'false',
+    );
+    expect(mockLog).not.toContain('karaoke player stopped');
+  });
 });

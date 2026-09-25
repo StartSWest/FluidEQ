@@ -277,8 +277,8 @@ import {
 } from './systemMedia';
 import {
   claimInstance,
-  describeInstanceMarker,
-  isAnotherInstanceLive,
+  describeInstanceHolder,
+  instanceLockPath,
 } from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
@@ -3764,46 +3764,51 @@ app.on('before-quit', (event) => {
  * clicked the shortcut.
  */
 /**
- * Beside both data directories rather than inside either, because the whole
- * point is that development and the installed build do not share one.
+ * Named for the folder both data directories sit in rather than either one,
+ * because the whole point is that development and the installed build do not
+ * share one (`singleInstance.ts`).
  */
-const INSTANCE_MARKER_PATH = path.join(
-  app.getPath('appData'),
-  'fluideq-running.json',
-);
+const INSTANCE_LOCK_PATH = instanceLockPath(app.getPath('appData'));
 
-let releaseInstanceMarker: (() => void) | undefined;
+let releaseInstanceLock: (() => void) | undefined;
 
-if (!app.requestSingleInstanceLock()) {
-  // Another copy of THIS build holds Electron's lock, so this one hands its
-  // launch over and goes. It used to go without a word, and that is the single
-  // reason "the installer opens FluidEQ and it closes again" could not be
-  // answered from a bug report: this is the one path out of the whole start-up
-  // that wrote nothing anywhere, so the log of such a launch was indis-
-  // tinguishable from the app never having been started at all. What the
-  // marker can see goes with it, because the copy still holding the lock is
-  // usually one an installer has just killed.
-  log.warn(
-    `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${describeInstanceMarker(
-      INSTANCE_MARKER_PATH,
-    )}`,
-  );
-  app.quit();
-} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
-  // Electron's lock did not catch this one, so it is the other build: dev
-  // started while the installed copy is running, or the other way round. Said
-  // out loud rather than quitting blankly — a window that never appears is the
-  // sort of thing somebody spends an evening on.
-  log.warn(
-    `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${describeInstanceMarker(
-      INSTANCE_MARKER_PATH,
-    )}`,
-  );
-  app.quit();
-} else {
+/**
+ * This copy holds the app, once the cross-build lock says so. Asked before
+ * anything is made: `onAppReady` waits for it, so a copy on its way out never
+ * builds a window, a tray or a pipe of its own.
+ */
+const becomesTheOnlyCopy = async (): Promise<boolean> => {
+  if (!app.requestSingleInstanceLock()) {
+    // Another copy of THIS build holds Electron's lock, so this one hands its
+    // launch over and goes. It used to go without a word, and that is the
+    // single reason "the installer opens FluidEQ and it closes again" could
+    // not be answered from a bug report: this was the one path out of the
+    // whole start-up that wrote nothing anywhere, so the log of such a launch
+    // was indistinguishable from the app never having been started at all.
+    // Who holds the cross-build lock goes with it, because the copy still
+    // holding Electron's is usually one an installer has just killed.
+    const holder = await describeInstanceHolder(INSTANCE_LOCK_PATH);
+    log.warn(
+      `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${holder}`,
+    );
+    app.quit();
+    return false;
+  }
+  const claim = await claimInstance(INSTANCE_LOCK_PATH);
+  if (claim.status === 'taken') {
+    // Electron's lock did not catch this one, so it is the other build: dev
+    // started while the installed copy is running, or the other way round.
+    // Said out loud rather than quitting blankly — a window that never
+    // appears is the sort of thing somebody spends an evening on.
+    log.warn(
+      `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${claim.holder}`,
+    );
+    app.quit();
+    return false;
+  }
   // One FluidEQ at a time, whatever build or checkout it comes from: two
   // copies write the same engine config and adopt each other's writes.
-  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
+  releaseInstanceLock = claim.release;
   // Temporary files an earlier run was killed in the middle of writing. The
   // library index, the Karaoke session, the band layout, the stems and the
   // Karaoke Maker's drafts are written beside themselves and renamed over,
@@ -3827,20 +3832,24 @@ if (!app.requestSingleInstanceLock()) {
         .catch(() => undefined);
     },
   );
-  app.on('second-instance', () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return;
-    }
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore();
-    }
-    mainWindow.show();
-    mainWindow.focus();
-  });
-}
+  return true;
+};
+
+const isTheOnlyCopy = becomesTheOnlyCopy();
+
+app.on('second-instance', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.show();
+  mainWindow.focus();
+});
 
 app.on('will-quit', () => {
-  releaseInstanceMarker?.();
+  releaseInstanceLock?.();
 });
 
 /**
@@ -4015,4 +4024,8 @@ const onAppReady = async () => {
   });
 };
 
-app.whenReady().then(onAppReady).catch(log.error);
+app
+  .whenReady()
+  .then(() => isTheOnlyCopy)
+  .then((isOnly) => (isOnly ? onAppReady() : undefined))
+  .catch(log.error);

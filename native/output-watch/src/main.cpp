@@ -228,15 +228,23 @@ VOID CALLBACK on_service_changed(PVOID parameter) {
  * states: the service manager answers at once for a state the service is
  * already in, so asking a running service to say when it runs would answer
  * on every wait, for ever.
+ *
+ * False when the watch had to be given up — the service manager reported a
+ * failure, or refused to be asked again. From then on a restart of the audio
+ * services would leave the endpoint callback registered with a service that
+ * is gone, and this helper running but deaf, which the app cannot see: it
+ * starts a new helper only when one has ended. So the loop ends the run on
+ * it, and the next wake-up starts a helper that watches afresh.
  */
-void arm(ServiceWatch& watch) {
+bool arm(ServiceWatch& watch) {
   if (watch.service != nullptr && watch.has_failed) {
     // Asked again it would answer with the same failure, at once, for ever.
     CloseServiceHandle(watch.service);
     watch.service = nullptr;
+    return false;
   }
   if (watch.service == nullptr || watch.is_armed) {
-    return;
+    return true;
   }
   watch.notify = SERVICE_NOTIFYW{};
   watch.notify.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE;
@@ -251,14 +259,12 @@ void arm(ServiceWatch& watch) {
   if (NotifyServiceStatusChangeW(watch.service, states, &watch.notify) ==
       ERROR_SUCCESS) {
     watch.is_armed = true;
-    return;
+    return true;
   }
-  // Refused — a client too slow to be told, or a service being deleted. The
-  // endpoint callback keeps working without it; only a later restart of the
-  // audio services goes unseen, and the app's window still re-reads the list
-  // whenever it is come back to.
+  // Refused — a client too slow to be told, or a service being deleted.
   CloseServiceHandle(watch.service);
   watch.service = nullptr;
+  return false;
 }
 
 void watch_services(SC_HANDLE manager) {
@@ -276,6 +282,9 @@ void watch_services(SC_HANDLE manager) {
       continue;
     }
     watch.is_running = status.dwCurrentState == SERVICE_RUNNING;
+    // A watch refused at the start is only a restart that will go unseen:
+    // the endpoint callback works without it, and ending here would only
+    // bring the same refusal back with the next helper.
     arm(watch);
   }
 }
@@ -336,10 +345,17 @@ int run() {
         WaitForMultipleObjectsEx(2, handles, FALSE, INFINITE, TRUE);
     if (result == WAIT_IO_COMPLETION) {
       bool is_renewed = false;
+      bool is_lost = false;
       for (ServiceWatch& watch : services) {
         is_renewed = is_renewed || watch.came_back;
         watch.came_back = false;
-        arm(watch);
+        is_lost = !arm(watch) || is_lost;
+      }
+      if (is_lost) {
+        // See `arm`: deaf from the next restart on, so end, and be started
+        // again.
+        code = 1;
+        break;
       }
       if (is_renewed) {
         stop_listening(devices);
