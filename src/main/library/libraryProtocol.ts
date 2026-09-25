@@ -25,9 +25,7 @@ import {
   LIBRARY_MEDIA_SCHEME,
   parseLibraryMediaUrl,
 } from '../../common/library/mediaUrl';
-import { ILibraryIndex } from '../../common/library/types';
 import { artworkPath } from './libraryArtwork';
-import { trackPathById } from './libraryIndex';
 
 /**
  * What a media element needs to be told before it will let anyone seek.
@@ -177,17 +175,18 @@ export const registerLibraryMediaScheme = (): void => {
 /**
  * Answers every `fluideq-media://` request the renderer makes.
  *
- * The id is resolved against the index (tracks) or the artwork cache (covers)
- * — both lookups this module does not perform itself, so a track path never
- * comes from anywhere but `trackPathById` and a cover path never comes from
- * anywhere but `artworkPath`. Byte ranges are served here rather than
+ * The id is resolved against the library store (tracks) or the artwork cache
+ * (covers) — both lookups this module does not perform itself, so a track
+ * path never comes from anywhere but the store's own row for that id and a
+ * cover path never comes from anywhere but `artworkPath`. Byte ranges are served here rather than
  * delegated — see `parseByteRange` above for why that turned out to be the
  * whole of seeking. Anything that fails to parse or fails to resolve gets a
  * 404; nothing here guesses at what a malformed request meant.
  */
 export const handleLibraryMedia = (deps: {
   userDataDir: string;
-  getIndex: () => ILibraryIndex;
+  /** The file a track id names, as the library store holds it. */
+  getTrackPath: (trackId: string) => string | undefined;
 }): void => {
   protocol.handle(LIBRARY_MEDIA_SCHEME, async (request) => {
     const parsed = parseLibraryMediaUrl(request.url);
@@ -198,7 +197,7 @@ export const handleLibraryMedia = (deps: {
     }
     const resolved =
       parsed.kind === 'track'
-        ? trackPathById(deps.getIndex(), parsed.id)
+        ? deps.getTrackPath(parsed.id)
         : artworkPath(deps.userDataDir, parsed.id);
     if (!resolved) {
       // A click that loads the bar and then does nothing, ever, used to

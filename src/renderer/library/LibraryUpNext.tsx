@@ -20,7 +20,7 @@ import { DragEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
-import { useLibrary } from './LibraryContext';
+import { useLibraryTracks } from './useLibraryTracks';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
 import Switch from '../widgets/Switch';
@@ -217,7 +217,6 @@ const LibraryUpNext = ({
   restTotal: number | undefined;
 }) => {
   const { t } = useTranslation();
-  const { index } = useLibrary();
   const {
     upNext,
     jumpToQueuePosition,
@@ -277,11 +276,18 @@ const LibraryUpNext = ({
     setScrollTop(0);
   }, [firstTrackId]);
 
-  /** Built from the index alone, so a queue change does not rebuild it. */
-  const byId = useMemo(
-    () => new Map(index.tracks.map((track) => [track.id, track])),
-    [index.tracks],
+  /**
+   * The songs the queue names, and only those: asked of the library by id
+   * (`useLibraryTracks`). The queue is a window of a few hundred at most, so
+   * this is the window, never the library. A song not read yet, or one the
+   * library no longer has, is left out until it is — the same rule the
+   * panel always drew by.
+   */
+  const queuedIds = useMemo(
+    () => upNext.map((entry) => entry.trackId),
+    [upNext],
   );
+  const byId = useLibraryTracks(queuedIds);
 
   const entries = useMemo(
     () =>
@@ -298,7 +304,7 @@ const LibraryUpNext = ({
               }
               return entry.isContinued ? 'continued' : 'rest';
             })(),
-            track: byId.get(entry.trackId),
+            track: byId.get(entry.trackId) ?? undefined,
           }))
           .filter(
             (
@@ -496,11 +502,22 @@ const LibraryUpNext = ({
                 }}
               >
                 {/* The row is the control: every part of it means the same
-                    thing — play this one now instead of waiting for it. */}
+                    thing — play this one now instead of waiting for it.
+                    Only the first press of a double-press: that press plays
+                    the song and takes it out of this list, so the row under
+                    the pointer for the second is the song after it, and a
+                    double-click used to skip straight past the one chosen.
+                    The chosen one has just started from the top, which is
+                    all a double-press on a song asks for anywhere else. */}
                 <button
                   type="button"
                   className="library-up-next__row"
-                  onClick={() => jumpToQueuePosition(entry.position)}
+                  onClick={(event) => {
+                    if (event.detail > 1) {
+                      return;
+                    }
+                    jumpToQueuePosition(entry.position);
+                  }}
                 >
                   <LibraryCoverArt
                     artId={entry.track.artId}

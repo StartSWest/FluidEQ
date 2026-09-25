@@ -190,7 +190,7 @@ import { createAutomaticSetup } from './automaticSetup';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerTrebleDesignIpc } from './ipc/trebleDesign';
 import { registerUpdatesIpc } from './ipc/updates';
-import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
+import { registerLibraryIpc } from './ipc/library';
 import {
   dspHostPid,
   dspHostStats,
@@ -3467,7 +3467,7 @@ registerProcessIpc({
   meter: createProcessMeter(),
 });
 
-registerLibraryIpc({
+const libraryIpc = registerLibraryIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
 });
@@ -3671,6 +3671,7 @@ const createMainWindow = createMainWindowFactory({
     next?.on('session-end', resetActiveEngineAtSessionEnd);
     if (next) {
       comeBack.watchWindow(next);
+      libraryIpc.watchWindow(next);
     }
   },
   setUpAutoUpdates,
@@ -3975,7 +3976,7 @@ const onAppReady = async () => {
   // `registerLibraryMediaScheme` at the top of the file — that call only
   // declares the scheme's privileges and has to run before `whenReady`;
   // this one answers its requests and has to run after.
-  handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
+  handleLibraryMedia({ userDataDir, getTrackPath: libraryIpc.trackPath });
   // Before the window, so before anything writes an engine configuration: the
   // FluidEQ Engine only applies one while this process holds its pipe open,
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.

@@ -76,10 +76,10 @@ const sanitizeText = (value: string | undefined): string | undefined =>
  * length, and measured against a WAV whose `fmt ` chunk declares a
  * block-align of zero, `Infinity` (the divide-by-zero survives because
  * music-metadata only guards the zero-sample-rate case, not this one).
- * `JSON.stringify` turns `NaN` into `null`, and `parseLibraryIndex` in
- * libraryIndex.ts rejects `null` for every optional numeric field it knows —
- * one non-finite number anywhere in the index declares the whole file
- * corrupt and resets it to empty on the next launch.
+ * Neither is a length or a rate anybody can use, and neither survives the
+ * trip: SQLite stores `NaN` as nothing and the window's JSON as `null`, and
+ * the old JSON index went further, declaring the whole file corrupt over one
+ * and starting the library again empty.
  */
 const finiteOrUndefined = (
   value: number | null | undefined,

@@ -27,7 +27,7 @@ import {
   useRef,
 } from 'react';
 import { ILibraryQueue } from '../../../common/library/queue';
-import { ILibraryTrack } from '../../../common/library/types';
+import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
   restorablePositionMs,
@@ -48,21 +48,11 @@ export const useSessionMemory = (options: {
   queue: ILibraryQueue | undefined;
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
   positionMs: number;
-  trackById: Map<string, ILibraryTrack>;
-  /** Everything the library knows, so a stored id can be checked. */
-  libraryTracks: readonly ILibraryTrack[];
   setQueue: Dispatch<SetStateAction<ILibraryQueue | undefined>>;
   setPositionMs: (value: number) => void;
 }): ISessionMemory => {
-  const {
-    queue,
-    queueRef,
-    positionMs,
-    trackById,
-    libraryTracks,
-    setQueue,
-    setPositionMs,
-  } = options;
+  const { queue, queueRef, positionMs, setQueue, setPositionMs } = options;
+  const { isIndexLoaded } = useLibrary();
 
   /**
    * Where the last session left off, waiting for the element to be ready for
@@ -85,100 +75,131 @@ export const useSessionMemory = (options: {
   /**
    * Puts the last session's queue and playhead back, once.
    *
-   * Waits for the index, because a queue is a list of ids and every one of
-   * them has to still exist — a rescan that dropped the folder must leave
-   * the player empty rather than pointing at files that are gone. Runs while
-   * `libraryTracks` is empty on the very first render and simply does nothing,
-   * then again when the index arrives.
+   * Asks the library for the stored queue's songs, because a queue is a list
+   * of ids and every one of them has to still exist — a rescan that dropped
+   * the folder must leave the player empty rather than pointing at files that
+   * are gone. Waits for the library's first answer, and writes nothing until
+   * this one has come back (`isRestoringRef`), or the empty queue of the
+   * first render would erase the very thing being restored.
    */
   useEffect(() => {
-    if (!isRestoringRef.current || libraryTracks.length === 0) {
-      return;
+    if (!isRestoringRef.current || !isIndexLoaded) {
+      return undefined;
     }
-    isRestoringRef.current = false;
     const memory = readPlaybackMemory();
     if (!memory) {
-      return;
+      isRestoringRef.current = false;
+      return undefined;
     }
-    /**
-     * The queue as it was, minus whatever the library no longer has.
-     *
-     * One missing file used to drop the whole thing — a scan that lost a
-     * folder, or a track renamed, and a two-hundred-song queue came back
-     * empty, which the next write then made permanent (Ivan, 2026-09-21:
-     * keep Up Next across a restart). What is left is still the queue the
-     * listener had, in the order they had it, so it is rebuilt from the
-     * survivors: the play order is filtered, the ids renumbered against it
-     * — a queue may hold the same track twice, so they are numbered by
-     * first appearance — and the playhead put back on the song it was on,
-     * or the next one still there.
-     */
-    const playOrder = memory.order.map((index) => memory.trackIds[index]);
-    const keptOrder = playOrder.filter((id) => trackById.has(id));
-    if (keptOrder.length === 0) {
-      return;
-    }
-    const trackIds: string[] = [];
-    keptOrder.forEach((id) => {
-      if (!trackIds.includes(id)) {
-        trackIds.push(id);
-      }
-    });
-    const order = keptOrder.map((id) => trackIds.indexOf(id));
-    // And the songs taken out of Up Next, still held though no longer
-    // queued, as they were before the restart: the queue tops itself up
-    // with what it has never held (`extendQueue`), so forgetting these
-    // brought each one back the first time its list was asked for again.
-    memory.trackIds.forEach((id) => {
-      if (trackById.has(id) && !trackIds.includes(id)) {
-        trackIds.push(id);
-      }
-    });
-    const wantedId = playOrder[memory.position];
-    const stillThere = trackById.has(wantedId)
-      ? wantedId
-      : playOrder.slice(memory.position).find((id) => trackById.has(id));
-    const position = Math.max(
-      0,
-      stillThere === undefined ? 0 : keptOrder.indexOf(stillThere),
-    );
-    const restoreTrackId = keptOrder[position];
-    const restoreMs = restorablePositionMs(
-      memory.positionMs,
-      trackById.get(restoreTrackId)?.durationMs,
-    );
-    /**
-     * Cued, never started — and that is unconditional.
-     *
-     * These are two separate questions and they were answered by one `if`.
-     * `restorablePositionMs` decides whether the PLAYHEAD is worth putting
-     * back, and it declines under five seconds; but the loader reads this same
-     * ref to decide whether to cue the track or call `play()` on it. So a
-     * session that ended two seconds into a song set nothing here, fell through
-     * to the play branch, and the app started making noise on its own at
-     * launch.
-     *
-     * Whether to resume a position is a judgement. Whether to start playing
-     * unasked is not.
-     */
-    pendingRestore.current = {
-      trackId: restoreTrackId,
-      positionMs: restoreMs ?? 0,
+    let isCurrent = true;
+    window.electron.ipcRenderer
+      .queryLibrary({
+        type: 'tracks',
+        ids: Array.from(new Set(memory.trackIds)),
+      })
+      .then((found) => {
+        if (!isCurrent) {
+          return undefined;
+        }
+        isRestoringRef.current = false;
+        // Something was pressed while the library answered: that is what the
+        // listener wants now, not what they had last time.
+        if (queueRef.current !== undefined) {
+          return undefined;
+        }
+        const durationById = new Map(
+          found.map((track) => [track.id, track.durationMs]),
+        );
+        /**
+         * The queue as it was, minus whatever the library no longer has.
+         *
+         * One missing file used to drop the whole thing — a scan that lost a
+         * folder, or a track renamed, and a two-hundred-song queue came back
+         * empty, which the next write then made permanent (Ivan, 2026-09-21:
+         * keep Up Next across a restart). What is left is still the queue the
+         * listener had, in the order they had it, so it is rebuilt from the
+         * survivors: the play order is filtered, the ids renumbered against
+         * it — a queue may hold the same track twice, so they are numbered by
+         * first appearance — and the playhead put back on the song it was
+         * on, or the next one still there.
+         */
+        const playOrder = memory.order.map((index) => memory.trackIds[index]);
+        const keptOrder = playOrder.filter((id) => durationById.has(id));
+        if (keptOrder.length === 0) {
+          return undefined;
+        }
+        const trackIds: string[] = [];
+        keptOrder.forEach((id) => {
+          if (!trackIds.includes(id)) {
+            trackIds.push(id);
+          }
+        });
+        const order = keptOrder.map((id) => trackIds.indexOf(id));
+        // And the songs taken out of Up Next, still held though no longer
+        // queued, as they were before the restart: the queue tops itself up
+        // with what it has never held (`extendQueue`), so forgetting these
+        // brought each one back the first time its list was asked for again.
+        memory.trackIds.forEach((id) => {
+          if (durationById.has(id) && !trackIds.includes(id)) {
+            trackIds.push(id);
+          }
+        });
+        const wantedId = playOrder[memory.position];
+        const stillThere = durationById.has(wantedId)
+          ? wantedId
+          : playOrder.slice(memory.position).find((id) => durationById.has(id));
+        const position = Math.max(
+          0,
+          stillThere === undefined ? 0 : keptOrder.indexOf(stillThere),
+        );
+        const restoreTrackId = keptOrder[position];
+        const restoreMs = restorablePositionMs(
+          memory.positionMs,
+          durationById.get(restoreTrackId),
+        );
+        /**
+         * Cued, never started — and that is unconditional.
+         *
+         * These are two separate questions and they were answered by one
+         * `if`. `restorablePositionMs` decides whether the PLAYHEAD is worth
+         * putting back, and it declines under five seconds; but the loader
+         * reads this same ref to decide whether to cue the track or call
+         * `play()` on it. So a session that ended two seconds into a song set
+         * nothing here, fell through to the play branch, and the app started
+         * making noise on its own at launch.
+         *
+         * Whether to resume a position is a judgement. Whether to start
+         * playing unasked is not.
+         */
+        pendingRestore.current = {
+          trackId: restoreTrackId,
+          positionMs: restoreMs ?? 0,
+        };
+        if (restoreMs !== undefined) {
+          setPositionMs(restoreMs);
+        }
+        setQueue({
+          trackIds,
+          order,
+          position,
+          repeat: memory.repeat,
+          isShuffled: memory.isShuffled,
+          ...(memory.source === undefined ? {} : { source: memory.source }),
+        });
+        return undefined;
+      })
+      .catch((error: unknown) => {
+        // Nothing to put back is still an answer: stop holding writes.
+        isRestoringRef.current = false;
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; the player starts empty
+        console.error('Could not read the last session back', error);
+      });
+    return () => {
+      isCurrent = false;
     };
-    if (restoreMs !== undefined) {
-      setPositionMs(restoreMs);
-    }
-    setQueue({
-      trackIds,
-      order,
-      position,
-      repeat: memory.repeat,
-      isShuffled: memory.isShuffled,
-      ...(memory.source === undefined ? {} : { source: memory.source }),
-    });
   }, [
-    libraryTracks,
-    trackById,
+    isIndexLoaded,
+    queueRef,
     setQueue,
     setPositionMs,
     pendingRestore,

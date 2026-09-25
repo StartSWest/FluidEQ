@@ -61,8 +61,6 @@ const read = (): boolean => {
 
 let asTree = read();
 
-export const isFolderTree = (): boolean => asTree;
-
 export const setFolderTree = (next: boolean): void => {
   if (next === asTree) {
     return;

@@ -16,6 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/**
+ * The JSON file the library lived in before the store (`libraryStore.ts`).
+ *
+ * Read once, on the first launch of a build with the store, to move every
+ * root and song into it (`libraryStoreOpen.ts`), and never written again. The
+ * checks stay as strict as they were: a file this version never wrote is
+ * refused whole rather than moved in half.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import {
@@ -175,26 +184,3 @@ export const loadLibraryIndex = (
   backupUnreadableIndex(target);
   return { index: emptyLibraryIndex(), wasReset: true };
 };
-
-export const saveLibraryIndex = (
-  userDataDir: string,
-  index: ILibraryIndex,
-): void => {
-  fs.mkdirSync(userDataDir, { recursive: true });
-  const target = libraryIndexPath(userDataDir);
-  const temporary = `${target}.tmp`;
-  // A write that dies partway through leaves the .tmp file damaged, not the
-  // index a scan is about to be checked against; the rename that follows is
-  // atomic on both NTFS and the POSIX filesystems this app ships on.
-  fs.writeFileSync(temporary, JSON.stringify(index, null, 2), 'utf8');
-  fs.renameSync(temporary, target);
-};
-
-export const trackPathById = (
-  index: ILibraryIndex,
-  id: string,
-): string | undefined =>
-  // Not a lookup object: an id from a URL could read 'constructor' or
-  // 'toString' and come back with an inherited function instead of undefined.
-  // Array#find has no prototype chain for that id to fall into.
-  index.tracks.find((track) => track.id === id)?.path;

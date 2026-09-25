@@ -28,14 +28,11 @@ import {
 import {
   albumKey,
   artistKey,
-  groupIntoAlbums,
-  searchTracks,
-  sortTracks,
-  isTrackBeneathFolder,
   parentFolderPath,
   trackFolderPath,
 } from '../../common/library/grouping';
 import { trackGenreIds } from '../../common/library/genres';
+import type { ILibraryListQuery } from '../../common/library/query';
 import type {
   ILibraryTrack,
   TLibraryBrowseMode,
@@ -47,6 +44,10 @@ import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
 import { usePlaylists } from './PlaylistContext';
 import { findPlaylist } from '../../common/library/playlists';
+import { useFolderTree } from './folderTree';
+import { shelfQueryFor, shelfTracksQueryFor } from './libraryShelfQuery';
+import { useLibraryList } from './useLibraryList';
+import { useViewQueue } from './useViewQueue';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryCoverFlow from './LibraryCoverFlow';
@@ -60,70 +61,10 @@ import LibraryScanProgress from './LibraryScanProgress';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
 import KaraokePaneSplitter from '../karaoke/KaraokePaneSplitter';
 import LibraryToolbar from './LibraryToolbar';
-import { isFolderTree } from './folderTree';
-import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
+import LibraryPlaceBar from './LibraryPlaceBar';
+import useLibraryPlaceRecord from './useLibraryPlaceRecord';
+import LibraryVideoSection from './LibraryVideoSection';
 import '../styles/Library.scss';
-
-/**
- * The most tracks a queue ever holds.
- *
- * The Songs shelf of a real collection is tens of thousands of rows, and a
- * queue is not a copy of the library: handing all of them over means an id
- * array and an index array of that size rebuilt on every view change, and an
- * Up Next panel that answers "what is next" with everything you own.
- *
- * Two hundred is a hundred either side of what is playing — some ten hours
- * ahead, further than anybody listens in a sitting — and it refills itself
- * for free: the effect that re-aims the queue runs on every track change as
- * well as every view change, so the hundred ahead are replenished from the
- * full list as they are used.
- */
-const QUEUE_WINDOW = 200;
-
-/**
- * `ids` narrowed to a window around `aroundId`, or `ids` itself when it is
- * already small enough to hold entirely.
- */
-const windowedQueueIds = (
-  ids: readonly string[],
-  aroundId: string | undefined,
-): readonly string[] => {
-  if (ids.length <= QUEUE_WINDOW) {
-    return ids;
-  }
-  const index = aroundId === undefined ? -1 : ids.indexOf(aroundId);
-  if (index === -1) {
-    return ids.slice(0, QUEUE_WINDOW);
-  }
-  const start = Math.max(
-    0,
-    Math.min(index - Math.floor(QUEUE_WINDOW / 2), ids.length - QUEUE_WINDOW),
-  );
-  return ids.slice(start, start + QUEUE_WINDOW);
-};
-
-/**
- * A short name for a list: the same for the same ids in the same order.
- *
- * What the queue is aimed at (`retargetQueue`). Every change of song asks
- * again, with a window that slides on through a list longer than
- * `QUEUE_WINDOW`, and only the name tells that ask from a change of list: a
- * slid window compared by content looked like a changed shelf and rebuilt
- * the run, so a row dragged in Up Next went home when the song ended. A
- * polynomial hash of the ids, with a separator between them, beside their
- * count.
- */
-const listKeyOf = (ids: readonly string[]): string => {
-  const modulus = 2_147_483_647;
-  let hash = 7;
-  ids.forEach((id) => {
-    for (let at = 0; at < id.length; at += 1) {
-      hash = (hash * 31 + id.charCodeAt(at)) % modulus;
-    }
-    hash = (hash * 31 + 1) % modulus;
-  });
-  return `${ids.length}:${hash.toString(36)}`;
-};
 
 /**
  * The card width below which the queue floats over the shelf instead of taking
@@ -267,8 +208,7 @@ const LibraryWorkspace = ({
 }: ILibraryWorkspaceProps) => {
   const { t } = useTranslation();
   const {
-    index,
-    wasReset,
+    summary,
     isIndexLoaded,
     isScanning,
     progress,
@@ -279,6 +219,8 @@ const LibraryWorkspace = ({
     cancelScan,
     removeRoot,
   } = useLibrary();
+  const { roots, wasReset, trackCount } = summary;
+  const isTree = useFolderTree();
   const { playlists, wasReset: playlistsWereReset } = usePlaylists();
   const {
     playTracks,
@@ -288,6 +230,7 @@ const LibraryWorkspace = ({
     videoTrackId,
     track: playingTrack,
     isPlaying,
+    seek,
   } = useLibraryPlayerSession();
 
   /**
@@ -646,7 +589,7 @@ const LibraryWorkspace = ({
     // in every time they changed how it was arranged.
   }, [browseMode]);
 
-  const karaokeSkippedCount = index.roots.reduce(
+  const karaokeSkippedCount = roots.reduce(
     (total, root) => total + root.karaokeSkipped,
     0,
   );
@@ -657,96 +600,14 @@ const LibraryWorkspace = ({
   // most of all).
   const offlineRootIds = useMemo(
     () =>
-      new Set(
-        index.roots.filter((root) => root.isOffline).map((root) => root.id),
-      ),
-    [index.roots],
+      new Set(roots.filter((root) => root.isOffline).map((root) => root.id)),
+    [roots],
   );
 
-  // What `LibraryListView` and `LibraryGridView` (and, later, Cover Flow)
-  // actually draw: the toolbar's own query and sort applied once here, so
-  // every view is handed the same already-filtered, already-ordered tracks
-  // rather than repeating the search/sort logic per view. Memoised because
-  // both steps scan and copy every track — `searchTracks` normalises and
-  // tests each one, `sortTracks` copies the array and runs `localeCompare`
-  // per comparison — and without this, a large library redoes that work on
-  // every render this component has, including ones the search box and the
-  // sort dropdown had nothing to do with (a drag-over toggle, a scan
-  // progress tick).
   /**
-   * While a search is running, relevance IS the order.
-   *
-   * `searchTracks` ranks its hits — best match first — and sorting that by
-   * title afterwards throws the ranking away, which is how a search for an
-   * artist used to bury them somewhere in four thousand alphabetised results.
-   * Clearing the box puts the chosen column back.
+   * While a search is running, relevance IS the order — see `viewSort`.
    */
   const isSearching = query.trim().length > 0;
-
-  /**
-   * THE FOLDER SOMEBODY IS STANDING IN IS WHERE THEY ARE, ON EVERY SHELF.
-   *
-   * Not a drill-in that belongs to the Folders view: a physical directory is
-   * the one thing all four shelves can agree on, so walking into `[Country]`
-   * and pressing Albums shows the albums in `[Country]`, Artists the artists
-   * in it, Songs its songs. Leaving it is the Back chip, and nothing else
-   * moves it — which is why it survives a shelf change and a restart, where
-   * an album id would not: the tags can change under it, the path cannot.
-   */
-  const scopedTracks = useMemo(
-    () =>
-      openFolderPath === undefined
-        ? index.tracks
-        : index.tracks.filter((track) =>
-            isTrackBeneathFolder(track.path, openFolderPath),
-          ),
-    [index.tracks, openFolderPath],
-  );
-
-  const visibleTracks = useMemo(() => {
-    const matches = searchTracks(scopedTracks, query);
-    if (!isSearching) {
-      return sortTracks(matches, sort, sortDirection);
-    }
-    // A SHELF OF CONTAINERS SHOWS WHOLE CONTAINERS.
-    //
-    // The album and artist shelves group whatever they are handed, so handing
-    // them the matches alone described every record by the part of it that
-    // matched: a five-hundred-track compilation holding two songs by the band
-    // searched for was drawn as "Baladas · 2 songs", which is not an album
-    // that exists. The same query on an album whose own artist matched showed
-    // it whole, so two rows of one shelf were counting different things.
-    //
-    // Every container with a hit in it is listed, and listed entire. Which
-    // songs actually matched is said inside, where `LibraryDetail` lifts them
-    // to the head of the table and lights them — the honest division of
-    // labour between "what is this" and "why is it here".
-    //
-    // Songs and videos are not containers and keep the matches themselves.
-    if (browseMode === 'song' || browseMode === 'video') {
-      return matches;
-    }
-    // The one shelf whose containers are many-to-many, so it cannot be a
-    // single key per track like the others below: a file tagged "Rock; Pop"
-    // is in two of them, and keying on the first would drop the whole Pop
-    // shelf out of a search that matched a Pop record.
-    if (browseMode === 'genre') {
-      const hit = new Set(matches.flatMap(trackGenreIds));
-      return scopedTracks.filter((track) =>
-        trackGenreIds(track).some((id) => hit.has(id)),
-      );
-    }
-    // What "the same container" means on each shelf.
-    const containerKeys: Partial<
-      Record<TLibraryBrowseMode, (track: ILibraryTrack) => string>
-    > = {
-      artist: artistKey,
-      folder: (track) => trackFolderPath(track.path),
-    };
-    const keyOf = containerKeys[browseMode] ?? albumKey;
-    const hit = new Set(matches.map(keyOf));
-    return scopedTracks.filter((track) => hit.has(keyOf(track)));
-  }, [scopedTracks, query, isSearching, sort, sortDirection, browseMode]);
 
   /**
    * The order to hand the views: nothing while searching, which every one of
@@ -765,8 +626,82 @@ const LibraryWorkspace = ({
   // What makes the list a DIFFERENT list, as opposed to the same list with
   // more in it. A scan republishes the whole index every batch, so the track
   // array's identity changes constantly and means nothing to the reader —
-  // only these four do.
-  const listResetKey = `${browseMode}|${query}|${sort}|${sortDirection}`;
+  // only these five do. The folder is one: the albums in `Pop` and the
+  // albums in the whole library are two lists, each with its own place to
+  // come back to, and without it stepping out of a folder kept the scroll
+  // and selection of the one just left.
+  const listResetKey = `${browseMode}|${openFolderPath ?? ''}|${query}|${sort}|${sortDirection}`;
+
+  /**
+   * The Folders shelf's row in Cover Flow is the level the open folder stands
+   * on, so the open one is always among its neighbours: the row used to be
+   * the roots and only the roots, and the second step into a tree closed the
+   * panel and left a carousel of one card.
+   */
+  const folderLevel =
+    browseMode === 'folder' &&
+    viewMode === 'coverflow' &&
+    openFolderPath !== undefined
+      ? parentFolderPath(openFolderPath, roots)
+      : undefined;
+
+  /**
+   * The shelf, as the store is asked for it — every rule of where the reader
+   * stands and what a search reaches is `libraryShelfQuery.ts`'s. Every view
+   * draws it a page at a time; none of them holds it whole.
+   */
+  const hasRoots = roots.length > 0;
+  const shelfState = useMemo(
+    () => ({
+      browseMode,
+      viewMode,
+      folderPath: openFolderPath,
+      search: query,
+      sort: viewSort,
+      direction: sortDirection,
+      isTree,
+      hasRoots,
+      folderLevel,
+    }),
+    [
+      browseMode,
+      viewMode,
+      openFolderPath,
+      query,
+      viewSort,
+      sortDirection,
+      isTree,
+      hasRoots,
+      folderLevel,
+    ],
+  );
+  const shelfQuery = useMemo(() => shelfQueryFor(shelfState), [shelfState]);
+  const shelfList = useLibraryList(shelfQuery);
+
+  /**
+   * The tile or cover the playing song belongs to on this shelf — its album,
+   * artist, genre or folder, or the song itself — keyed the way the shelf
+   * groups, so a cover and its songs never disagree about which is playing.
+   * A song tagged with several genres marks the first: one cover can be the
+   * one playing, and the tag's own order keeps the choice stable.
+   */
+  const playingItemId = useMemo(() => {
+    if (!isPlaying || !playingTrack) {
+      return undefined;
+    }
+    switch (browseMode) {
+      case 'album':
+        return albumKey(playingTrack);
+      case 'artist':
+        return artistKey(playingTrack);
+      case 'genre':
+        return trackGenreIds(playingTrack)[0];
+      case 'folder':
+        return trackFolderPath(playingTrack.path);
+      default:
+        return playingTrack.id;
+    }
+  }, [browseMode, isPlaying, playingTrack]);
 
   /**
    * A column header was pressed.
@@ -816,12 +751,37 @@ const LibraryWorkspace = ({
    * somewhere, and going to the playing song is what the bar at the foot of
    * the window is for.
    */
+  const anchorQuery = useMemo((): ILibraryListQuery | undefined => {
+    if (openAlbumId !== undefined) {
+      return {
+        shelf: 'tracks',
+        scope: { album: openAlbumId },
+        natural: 'disc',
+        direction: 'asc',
+      };
+    }
+    if (openArtistId !== undefined) {
+      return {
+        shelf: 'tracks',
+        scope: { artist: openArtistId },
+        natural: 'album',
+        direction: 'asc',
+      };
+    }
+    if (openFolderPath !== undefined) {
+      return {
+        shelf: 'tracks',
+        scope: { folder: openFolderPath },
+        natural: 'path',
+        direction: 'asc',
+      };
+    }
+    return undefined;
+  }, [openAlbumId, openArtistId, openFolderPath]);
+  /** The first song of whatever is open, as the store orders it. */
+  const firstOfOpen = useLibraryList(anchorQuery).at(0);
   const drillInAnchor = useMemo(() => {
-    if (
-      openAlbumId === undefined &&
-      openArtistId === undefined &&
-      openFolderPath === undefined
-    ) {
+    if (anchorQuery === undefined) {
       return undefined;
     }
     const belongs = (track: ILibraryTrack): boolean => {
@@ -836,8 +796,15 @@ const LibraryWorkspace = ({
     if (playingTrack && belongs(playingTrack)) {
       return playingTrack;
     }
-    return index.tracks.find(belongs);
-  }, [index.tracks, playingTrack, openAlbumId, openArtistId, openFolderPath]);
+    return firstOfOpen?.kind === 'track' ? firstOfOpen.track : undefined;
+  }, [
+    anchorQuery,
+    firstOfOpen,
+    playingTrack,
+    openAlbumId,
+    openArtistId,
+    openFolderPath,
+  ]);
 
   /**
    * A browse chip was pressed.
@@ -944,43 +911,65 @@ const LibraryWorkspace = ({
   );
 
   /**
-   * A drill-in is open, so the list the toolbar steers is not the thing on
-   * screen.
+   * The genre and the playlist that are open, only on their own shelves.
    *
-   * A folder counts only on the Folders shelf. Everywhere else it is not a
-   * drill-in at all: it is where the reader is standing, and the shelf goes
-   * on drawing albums or artists — the ones inside it. See `scopedTracks`.
+   * Gated because the ids are restored from storage independently at launch:
+   * a stale genre would otherwise open over the Albums shelf, and a stale
+   * playlist put itself on it — both the chip handler and the mode effect
+   * clear them, but a restart is neither.
    */
-  const isDrilledIn = Boolean(
+  const shelfGenreId = browseMode === 'genre' ? openGenreId : undefined;
+  const shelfPlaylistId =
+    browseMode === 'playlist' ? openPlaylistId : undefined;
+
+  /**
+   * A record is open beneath wherever the reader stands: an album, an
+   * artist, a genre or a playlist. The folder is not one — it is where they
+   * stand (`scopedTracks`) — and Back closes a record before it moves them.
+   */
+  const hasOpenRecord = Boolean(
     openAlbumId ||
     openArtistId ||
-    // Gated on its own shelf for the same reason the playlist below is: the
-    // two ids are restored from storage independently at launch, and a stale
-    // genre would otherwise open over the Albums shelf.
-    (openGenreId !== undefined && browseMode === 'genre') ||
-    // Gated on its own shelf, the way the folder below is. Nothing should be
-    // able to leave a playlist open while albums are being browsed — both the
-    // chip handler and the mode effect clear it — but the two values are
-    // restored from storage independently at launch, and a stale pair would
-    // otherwise put a playlist on the Albums shelf.
-    (openPlaylistId !== undefined && browseMode === 'playlist') ||
-    (openFolderPath !== undefined && browseMode === 'folder'),
+    shelfGenreId !== undefined ||
+    shelfPlaylistId !== undefined,
   );
 
   /**
-   * Searching leaves wherever you were standing.
+   * A drill-in is open, so the list the toolbar steers is not the thing on
+   * screen.
+   *
+   * A folder counts only on the Folders shelf, and only while nothing is
+   * searched. Everywhere else it is not a drill-in at all: it is where the
+   * reader is standing, and the shelf goes on drawing albums or artists — the
+   * ones inside it. And a search from inside it is answered by the shelf,
+   * that folder's matches first and the rest after (`libraryShelfQuery.ts`),
+   * not by the folder's own panel, which would show only the first half.
+   */
+  const isDrilledIn =
+    hasOpenRecord ||
+    (openFolderPath !== undefined && browseMode === 'folder' && !isSearching);
+
+  const placeRecord = useLibraryPlaceRecord({
+    albumId: openAlbumId,
+    artistId: openArtistId,
+    genreId: shelfGenreId,
+    playlistId: shelfPlaylistId,
+  });
+
+  /**
+   * A search reaches the whole library, and keeps the reader where they are.
    *
    * This box says "search songs, artists, albums" and means the library, not
-   * the folder somebody happens to be inside — typing in it from three levels
-   * down returned the four matches in that directory and looked like a
-   * library with almost nothing in it. So the first non-empty query steps
-   * back out to the root and closes any drill-in with it, and what comes back
-   * is everything that matched, anywhere.
+   * the folder somebody happens to be inside — answering from that folder
+   * alone looked like a library with almost nothing in it. It used to step
+   * out to the root to get there, which lost the place. Now the folder stays
+   * where it is on the place bar, the search reaches everywhere, and what
+   * matched in that folder and beneath it comes first, under a heading of its
+   * own, with everything else after under another (Ivan, 2026-09-23).
    *
-   * It does not put them back when the box is cleared. Coming out of a search
-   * lands at the top of the library, which is where the search itself was
-   * looking from; restoring a place they had left would be a second surprise
-   * after the first.
+   * A record open beneath the folder — an album, an artist — does close: it
+   * is a thing that was opened, the search is for something else, and the
+   * shelf is where its answer is drawn.
    */
   const handleQuery = useCallback((next: string) => {
     setQuery(next);
@@ -993,7 +982,6 @@ const LibraryWorkspace = ({
     setOpenArtistId(undefined);
     setOpenGenreId(undefined);
     setOpenPlaylistId(undefined);
-    setOpenFolderPath(undefined);
   }, []);
 
   /** The toolbar's arrow: reverses whatever column is already chosen. The
@@ -1032,86 +1020,110 @@ const LibraryWorkspace = ({
     setOpenArtistId(undefined);
     setOpenGenreId(genreId);
   }, []);
-  const handleBack = useCallback(() => {
+  const closeRecords = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
     setOpenGenreId(undefined);
     setOpenPlaylistId(undefined);
-    // Up one level, where there is one above and the tree is what is being
-    // walked: back out of `Artist/Album` in a file manager is `Artist`, not
-    // the shelf you came in from. At a root there is nothing above that this
-    // library knows anything about, so there it closes as it always did.
+  }, []);
+
+  /**
+   * ONE STEP UP THE TRAIL THE PLACE BAR DRAWS — the Library's only Back.
+   *
+   * The record open beneath the folder first, and the folder stays: closing
+   * an album used to walk the folder up a level as well, which landed on a
+   * shelf narrowed to the parent with no Back left on it (Ivan, 2026-09-23).
+   * With no record open, one folder up — back out of `Artist/Album` in a file
+   * manager is `Artist` — in both readings, and out of a root into the whole
+   * library. It is also how a panel closes itself (an orphan, a deleted
+   * playlist), which is the same step.
+   */
+  const handleBack = useCallback(() => {
+    if (hasOpenRecord) {
+      closeRecords();
+      return;
+    }
     setOpenFolderPath((current) =>
-      current && isFolderTree()
-        ? parentFolderPath(current, index.roots)
-        : undefined,
+      current === undefined ? undefined : parentFolderPath(current, roots),
     );
-  }, [index.roots]);
-  // The queue a click hands to `playTracks`: whatever list the surface the
-  // click came from is actually showing, so the order the bar plays through
-  // matches the order on screen — mirroring `LibraryDetail`'s own
-  // `detailTracks` (the *whole* album or artist, never narrowed by the
-  // search box that got you there — see its own comment) and
-  // `LibraryVideoSection`'s own folder groups exactly, rather than always
-  // falling back to the flat browse list. Walks the whole library the same
-  // way those two already do, so it is memoised the same way: on the track
-  // list and the id actually open, not on every render this workspace has.
-  const queueTrackIds = useMemo(() => {
-    if (openPlaylistId && browseMode === 'playlist') {
-      // The playlist's own order, and only the songs the library can
-      // currently resolve — an id whose drive is unplugged is not a track the
-      // player can be handed. `LibraryDetail` filters the same way for the
-      // table, so the queue matches what is on screen.
-      const known = new Set(index.tracks.map((track) => track.id));
-      return (
-        findPlaylist(playlists, openPlaylistId)?.trackIds.filter((id) =>
-          known.has(id),
-        ) ?? []
-      );
+  }, [closeRecords, hasOpenRecord, roots]);
+
+  /** The first step of the trail: out of every folder and every record. */
+  const handleAllMusic = useCallback(() => {
+    closeRecords();
+    setOpenFolderPath(undefined);
+  }, [closeRecords]);
+
+  /** A folder step of the trail, pressed: stand there, nothing open in it. */
+  const handlePlaceFolder = useCallback(
+    (folderPath: string) => {
+      closeRecords();
+      setOpenFolderPath(folderPath);
+    },
+    [closeRecords],
+  );
+  /**
+   * The songs of the record open on screen, in the order its own panel lists
+   * them — the album as pressed, an artist or a genre by album, a folder's own
+   * files by name, a playlist in its own order — so the order the bar plays
+   * through matches the order on screen. Only the songs the library can see:
+   * a playlist's song on an unplugged drive is not one the player can be
+   * handed.
+   */
+  const recordQueueQuery = useMemo((): ILibraryListQuery | undefined => {
+    if (openPlaylistId !== undefined && browseMode === 'playlist') {
+      const playlist = findPlaylist(playlists, openPlaylistId);
+      return playlist === undefined
+        ? undefined
+        : {
+            shelf: 'tracks',
+            scope: { ids: playlist.trackIds },
+            natural: 'ids',
+            direction: 'asc',
+          };
     }
     if (openAlbumId) {
-      return (
-        groupIntoAlbums(index.tracks).find((album) => album.id === openAlbumId)
-          ?.trackIds ?? []
-      );
+      return {
+        shelf: 'tracks',
+        scope: { album: openAlbumId },
+        natural: 'disc',
+        direction: 'asc',
+      };
     }
     if (openArtistId) {
-      return sortTracks(
-        index.tracks.filter((track) => artistKey(track) === openArtistId),
-        'album',
-      ).map((track) => track.id);
+      return {
+        shelf: 'tracks',
+        scope: { artist: openArtistId },
+        natural: 'album',
+        direction: 'asc',
+      };
     }
-    // The genre shelf's own list, by album — the same order and the same
-    // membership rule `LibraryDetail` lists it with. `trackGenreIds` rather
-    // than a compare on `track.genre`: a file tagged "Rock; Pop" is on both
-    // shelves, and a queue built by string equality would play neither.
+    // `trackGenreIds` membership, as the shelf builds genres: a file tagged
+    // "Rock; Pop" is on both, and plays from either.
     if (openGenreId !== undefined && browseMode === 'genre') {
-      return sortTracks(
-        index.tracks.filter((track) =>
-          trackGenreIds(track).includes(openGenreId),
-        ),
-        'album',
-      ).map((track) => track.id);
+      return {
+        shelf: 'tracks',
+        scope: { genre: openGenreId },
+        natural: 'album',
+        direction: 'asc',
+      };
     }
-    // The folder that is open, exactly as its panel lists it: its own files,
-    // in path order, and not the ones in the folders below it. Without this
-    // branch a folder drill-in fell through to the shelf, so Next from the
-    // third song of an album went to whatever the shelf happened to hold
-    // next — the one drill-in of the three that did not carry its own queue.
-    if (openFolderPath !== undefined && browseMode === 'folder') {
-      return index.tracks
-        .filter((track) => trackFolderPath(track.path) === openFolderPath)
-        .sort((left, right) => left.path.localeCompare(right.path))
-        .map((track) => track.id);
+    // The folder open on its own shelf, exactly as its panel lists it: its
+    // own files, in path order, and not the ones in the folders below it.
+    if (
+      openFolderPath !== undefined &&
+      browseMode === 'folder' &&
+      !isSearching
+    ) {
+      return {
+        shelf: 'tracks',
+        scope: { folder: openFolderPath },
+        natural: 'path',
+        direction: 'asc',
+      };
     }
-    if (browseMode === 'video') {
-      return videoFolderGroups(visibleTracks).flatMap((group) =>
-        group.tracks.map((track) => track.id),
-      );
-    }
-    return visibleTracks.map((track) => track.id);
+    return undefined;
   }, [
-    index.tracks,
     openAlbumId,
     openArtistId,
     openGenreId,
@@ -1119,138 +1131,66 @@ const LibraryWorkspace = ({
     playlists,
     openFolderPath,
     browseMode,
-    visibleTracks,
+    isSearching,
   ]);
-
-  // The one real destination every view's click hands off to. A track this
-  // build cannot decode (`isPlayable === false`) is still handed to
-  // `playTracks` rather than swallowed here — `LibraryPlayerContext` loads it,
-  // marks it unplayable and `NowPlayingBar` says so with a disabled Play
-  // button, which is the honest answer to a click that cannot do anything:
-  // visible feedback, not a silent no-op.
-  /**
-   * A QUEUE OF ONE IS NOT A QUEUE, AND IT FAILS SILENTLY.
-   *
-   * `advanceQueue` clamps at both ends, so a queue holding a single track
-   * answers Next and Previous with nothing at all — no stumble, no message —
-   * and the end of that track is the end of the queue, which arrives as "it
-   * does not play the next song". One bug, both reports.
-   *
-   * Two ways in, and the album shelf is the one that survived the first fix.
-   * The obvious one is the fallback below: `queueTrackIds` follows what is
-   * OPEN rather than where the click came from, so a drill-in left open from
-   * the last session made the guard fail for a row clicked anywhere else, and
-   * the old code went straight to `[trackId]`.
-   *
-   * The other is an open drill-in that really does hold one track, which is
-   * ordinary rather than exotic: `groupIntoAlbums` keys on the tags, so a
-   * folder of loose or inconsistently tagged files is a shelf of one-track
-   * albums. The clicked song IS in that list, the guard passes, and the queue
-   * is one long anyway. So the test is not "is it in there" but "is there
-   * anything to move to" — and where there is not, what is on screen is a
-   * real queue and a better answer.
-   *
-   * `[trackId]` is left for what it was written for: a song that is in no
-   * list here at all.
-   */
-  /** What is on screen, as ids — the fallback queue, and what a view change
-   * re-aims the player at. */
-  const visibleTrackIds = useMemo(
-    () => visibleTracks.map((track) => track.id),
-    [visibleTracks],
+  const shelfTracksQuery = useMemo(
+    () => shelfTracksQueryFor(shelfState, shelfQuery),
+    [shelfState, shelfQuery],
+  );
+  const upNextIds = useMemo(
+    () => upNext.map((entry) => entry.trackId),
+    [upNext],
   );
 
   /**
-   * The list Next should walk from wherever the reader is standing now.
-   *
-   * The drill-in's own list when it has somewhere to go, and what is on
-   * screen otherwise — a one-entry album is not a queue, whatever the tags
-   * say about it.
+   * What plays next follows what is on screen, and how much of it is still
+   * to come — see `useViewQueue`. A track this build cannot decode is still
+   * handed to the player rather than swallowed here: the player marks it
+   * unplayable and the bar says so, which is the honest answer to a click
+   * that cannot do anything.
    */
-  const viewQueueIds = useMemo(
-    () => (queueTrackIds.length > 1 ? queueTrackIds : visibleTrackIds),
-    [queueTrackIds, visibleTrackIds],
-  );
-  const viewQueueKey = useMemo(() => listKeyOf(viewQueueIds), [viewQueueIds]);
+  const { restTotal: upNextRestTotal, playTrack: handlePlayTrack } =
+    useViewQueue({
+      recordQuery: recordQueueQuery,
+      shelfQuery: shelfTracksQuery,
+      playingTrackId: playingTrack?.id,
+      upNextIds,
+      isScanning,
+      playTracks,
+      retargetQueue,
+    });
 
   /**
-   * Changing the view changes what plays next.
+   * A DOUBLE-PRESS ON A SONG STARTS IT AGAIN, as it does in the player's
+   * queue (Ivan, 2026-09-23). Every view sends the second press of a
+   * double-press here instead of to `handlePlayTrack`.
    *
-   * The same files group differently on every shelf, so the album that
-   * follows this song is not the folder that follows it and neither is what
-   * the Songs list has next. Leaving the queue frozen at whatever was open
-   * when Play was pressed made Next answer for a screen the reader had left.
+   * Back to the top only for a song that was ALREADY on the transport when
+   * the double-press began (`transportAtPressRef`). A song the first press has
+   * just started is at the top already, and seeking it back to nought would
+   * replay whatever of its opening had been heard. The song is still asked for
+   * whenever it is not sounding: a first press that only turned a cover to the
+   * centre has played nothing, and a paused song started again should be
+   * heard.
    *
-   * Nothing restarts: `retargetQueue` keeps the playing track and its place,
-   * and does nothing at all when that track is not in the new list.
-   *
-   * Gated on something being loaded, which is what keeps this cheap on a big
-   * library. The Songs shelf of a ten-thousand-track collection rebuilds a
-   * ten-thousand-entry order, and `visibleTracks` changes on every keystroke
-   * of a search — so with nothing playing there is nothing to re-aim and the
-   * work is skipped outright. What the queue holds is ids and indices rather
-   * than tracks, and `retargetQueue` returns the existing queue untouched
-   * when the list comes back the same, so the only real rebuild is a view
-   * that actually changed under a song that is actually playing. The list is
-   * named (`listKeyOf`), so a change of song, the same list asked for again,
-   * only tops the queue up and keeps the order made in Up Next.
+   * Read through a ref rather than depended on, so the handler keeps one
+   * identity and the memoised rows are not all drawn again at every play,
+   * pause and song change.
    */
-  useEffect(() => {
-    if (!playingTrack) {
-      return;
-    }
-    retargetQueue(
-      windowedQueueIds(viewQueueIds, playingTrack.id),
-      viewQueueKey,
-    );
-  }, [playingTrack, retargetQueue, viewQueueIds, viewQueueKey]);
-
-  /**
-   * How much of the shelf is still to come that the queue has NOT got.
-   *
-   * The queue never holds more than `QUEUE_WINDOW`, and the effect above
-   * slides that window along on every track change, so a shelf far longer
-   * than the window still plays through to its end. The panel counts the rows
-   * it has, which is the window; this is the rest, and `upNextTotal` adds the
-   * two.
-   *
-   * Which is why what the queue already holds is subtracted here rather than
-   * counted twice. Adding a thirteen-song folder to the picks promotes those
-   * files into the queue — they are still on the shelf, so a plain
-   * "everything after the playhead" counted each of them once as a pick and
-   * again as the folder's remainder, and thirteen songs read as "13 / 25".
-   *
-   * `undefined` when the playing track is not on this shelf at all — then the
-   * queue is its own list and its rows are the whole honest count.
-   */
-  const upNextRestTotal = useMemo(() => {
-    if (!playingTrack) {
-      return undefined;
-    }
-    const at = viewQueueIds.indexOf(playingTrack.id);
-    if (at === -1) {
-      return undefined;
-    }
-    const held = new Set(upNext.map((entry) => entry.trackId));
-    let rest = 0;
-    for (let index = at + 1; index < viewQueueIds.length; index += 1) {
-      if (!held.has(viewQueueIds[index])) {
-        rest += 1;
-      }
-    }
-    return rest;
-  }, [playingTrack, viewQueueIds, upNext]);
-
-  const handlePlayTrack = useCallback(
+  const transportRef = useRef({ trackId: playingTrack?.id, isPlaying });
+  transportRef.current = { trackId: playingTrack?.id, isPlaying };
+  const transportAtPressRef = useRef<string | undefined>(undefined);
+  const handleRestartTrack = useCallback(
     (trackId: string) => {
-      playTracks(
-        viewQueueIds.includes(trackId)
-          ? windowedQueueIds(viewQueueIds, trackId)
-          : [trackId],
-        trackId,
-      );
+      const transport = transportRef.current;
+      if (transport.trackId !== trackId || !transport.isPlaying) {
+        handlePlayTrack(trackId);
+      }
+      if (transportAtPressRef.current === trackId) {
+        seek(0);
+      }
     },
-    [viewQueueIds, playTracks],
+    [handlePlayTrack, seek],
   );
 
   const handleAddFolder = () => {
@@ -1327,6 +1267,13 @@ const LibraryWorkspace = ({
       ref={cardRef}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
+      // The song on the transport as a press begins — captured ahead of the
+      // press itself, which may change it. See `handleRestartTrack`.
+      onClickCapture={(event) => {
+        if (event.detail === 1) {
+          transportAtPressRef.current = transportRef.current.trackId;
+        }
+      }}
       // The one number both the panel and the strip it stands in are sized
       // from, so the two cannot disagree about how much of the tab is spoken
       // for.
@@ -1404,7 +1351,7 @@ const LibraryWorkspace = ({
           its place at the top and the picture takes what is left under it
           (see `has-video` in Library.scss, which orders the two), so
           leaving a video is the same gesture as leaving anything else. */}
-          {index.roots.length > 0 && (
+          {roots.length > 0 && (
             <div className="library-toolbar-row" ref={chromeRef}>
               <LibraryToolbar
                 browseMode={browseMode}
@@ -1450,7 +1397,7 @@ const LibraryWorkspace = ({
               stay where the eye goes looking for them: the top right. */}
               <div className="library-toolbar__tail">
                 <LibraryFolderActions
-                  roots={index.roots}
+                  roots={roots}
                   isScanning={isScanning}
                   onAddFolder={handleAddFolder}
                   onRescan={handleRescan}
@@ -1492,7 +1439,7 @@ const LibraryWorkspace = ({
           filled by a reply a moment later, so gated on the count alone this
           panel greeted everybody with a library every time they opened the
           tab — "no music yet" over a library of fourteen thousand songs. */}
-          {isIndexLoaded && index.tracks.length === 0 && (
+          {isIndexLoaded && trackCount === 0 && (
             <LibraryEmptyState
               karaokeSkippedCount={karaokeSkippedCount}
               onAddFolder={handleAddFolder}
@@ -1503,58 +1450,38 @@ const LibraryWorkspace = ({
               <Spinner />
             </div>
           )}
-          {/* A second Back used to stand here, on the shelves that are not the
-          tree, naming the folder the albums below belonged to.
-
-          Two of them on screen at once is one too many, and they did not do
-          the same thing: this one walked up the tree while the drill-in's own
-          went back to the shelf, so which you got depended on which line you
-          happened to aim at. There is one Back now — the drill-in's — and it
-          carries the directory beside it, so where the reader is standing is
-          said once, on the control that leaves it. */}
+          {/* WHERE THE READER IS STANDING, over every shelf and every view,
+          and the one Back in the Library (`LibraryPlaceBar`). It used to be
+          two things: a Back on an opened album's panel, and one on Videos.
+          Every other screen a folder narrowed had neither — Genres, Songs,
+          Playlists, an Albums shelf whose folder held only folders, Cover
+          Flow after its panel closed — and the library read as a fraction of
+          itself with no word why and no way out (Ivan, 2026-09-23). Drawn
+          whenever anything narrows the shelf, a folder or an open record. */}
+          {trackCount > 0 &&
+            !videoTrackId &&
+            (openFolderPath !== undefined || hasOpenRecord) && (
+              <LibraryPlaceBar
+                folderPath={openFolderPath}
+                roots={roots}
+                record={placeRecord}
+                onBack={handleBack}
+                onAllMusic={handleAllMusic}
+                onOpenFolder={handlePlaceFolder}
+              />
+            )}
           {/* Videos have no album or artist to drill into — routed here on its
           own rather than through the three views below, which never see
           `browseMode === 'video'` at all. The view-mode toggle (list/grid/
           Cover Flow) has nothing to say about a shelf grouped by folder, so
           it is ignored while this is what is browsed. */}
-          {/* WHERE THE READER IS STANDING, said on this shelf too. The
-          folder scope (`scopedTracks`) applies to videos exactly as it does
-          to albums and artists, so somebody who walked into `lana de rey`
-          on the Artists shelf and pressed Videos got that folder's videos —
-          none — with nothing on screen saying which folder, and no way out
-          but guessing. This is the same Back and the same path line the
-          drill-in draws, from the same classes; it leaves the folder the way
-          the drill-in's does, and the shelf under it says "no videos" for
-          what it is: this folder has none, not the library. */}
-          {index.tracks.length > 0 &&
-            !videoTrackId &&
-            browseMode === 'video' &&
-            openFolderPath !== undefined && (
-              <div className="library-detail__top">
-                <button
-                  type="button"
-                  className="library-toolbar__chip library-detail__back"
-                  onClick={handleBack}
-                >
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M10 3L5 8l5 5" />
-                  </svg>
-                  <span>{t('library.back')}</span>
-                </button>
-                <span className="library-detail__folder" title={openFolderPath}>
-                  {openFolderPath}
-                </span>
-              </div>
-            )}
-          {index.tracks.length > 0 &&
-            !videoTrackId &&
-            browseMode === 'video' && (
-              <LibraryVideoSection
-                tracks={visibleTracks}
-                onPlayTrack={handlePlayTrack}
-                offlineRootIds={offlineRootIds}
-              />
-            )}
+          {trackCount > 0 && !videoTrackId && browseMode === 'video' && (
+            <LibraryVideoSection
+              list={shelfList}
+              onPlayTrack={handlePlayTrack}
+              offlineRootIds={offlineRootIds}
+            />
+          )}
           {/* The drill-in behind whichever tile, row or cover was opened, in
           place of the browse view below rather than over it — search and
           sort still apply to what got you here, but the album or artist
@@ -1564,13 +1491,12 @@ const LibraryWorkspace = ({
           underneath its row, from the same `openAlbumId`. Rendering it here
           as well put the same album on the screen twice, one above the
           carousel and one below it. */}
-          {index.tracks.length > 0 &&
+          {trackCount > 0 &&
             !videoTrackId &&
             browseMode !== 'video' &&
             viewMode !== 'coverflow' &&
             isDrilledIn && (
               <LibraryDetail
-                tracks={index.tracks}
                 albumId={openAlbumId}
                 artistId={openArtistId}
                 genreId={browseMode === 'genre' ? openGenreId : undefined}
@@ -1579,16 +1505,18 @@ const LibraryWorkspace = ({
                 // and the panel would be a second answer to a question the list
                 // below is already answering.
                 folderPath={
-                  browseMode === 'folder' ? openFolderPath : undefined
+                  browseMode === 'folder' && !isSearching
+                    ? openFolderPath
+                    : undefined
                 }
                 playlistId={
                   browseMode === 'playlist' ? openPlaylistId : undefined
                 }
                 onBack={handleBack}
                 onPlayTrack={handlePlayTrack}
+                onRestartTrack={handleRestartTrack}
                 onQueueTracks={appendToQueue}
                 offlineRootIds={offlineRootIds}
-                folderRoots={index.roots}
                 onOpenFolder={handleOpenFolder}
                 viewMode={viewMode}
                 playingTrackId={playingMarkId}
@@ -1596,13 +1524,13 @@ const LibraryWorkspace = ({
                 query={query}
               />
             )}
-          {index.tracks.length > 0 &&
+          {trackCount > 0 &&
             !videoTrackId &&
             browseMode !== 'video' &&
             !isDrilledIn &&
             viewMode === 'list' && (
               <LibraryListView
-                tracks={visibleTracks}
+                list={shelfList}
                 browseMode={browseMode}
                 onOpenAlbum={handleOpenAlbum}
                 onOpenArtist={handleOpenArtist}
@@ -1610,35 +1538,26 @@ const LibraryWorkspace = ({
                 onOpenFolder={handleOpenFolder}
                 onOpenPlaylist={handleOpenPlaylist}
                 onPlayTrack={handlePlayTrack}
+                onRestartTrack={handleRestartTrack}
                 // The Songs shelf has no drill-in header to queue from, so the
                 // row menu is the only way into the queue here at all.
                 onQueueTracks={appendToQueue}
                 offlineRootIds={offlineRootIds}
-                folderRoots={index.roots}
-                isSearching={isSearching}
                 sort={viewSort}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                // The Songs shelf is a flat run of everything, and the folder a
-                // file came from is the only structure it has left — so it is
-                // always shown here. It was a toggle, which meant the shelf
-                // shipped without its structure and the reader had to know to ask
-                // for it. The drill-in's own track list does NOT get this: an
-                // album is one folder, and a heading over its twelve songs names
-                // what the header above them already says.
-                groupByFolder
                 playingTrackId={playingMarkId}
                 revealTrack={revealTrack}
                 resetKey={listResetKey}
               />
             )}
-          {index.tracks.length > 0 &&
+          {trackCount > 0 &&
             !videoTrackId &&
             browseMode !== 'video' &&
             !isDrilledIn &&
             viewMode === 'grid' && (
               <LibraryGridView
-                tracks={visibleTracks}
+                list={shelfList}
                 browseMode={browseMode}
                 onOpenAlbum={handleOpenAlbum}
                 onOpenArtist={handleOpenArtist}
@@ -1646,12 +1565,9 @@ const LibraryWorkspace = ({
                 onOpenFolder={handleOpenFolder}
                 onOpenPlaylist={handleOpenPlaylist}
                 onPlayTrack={handlePlayTrack}
+                onRestartTrack={handleRestartTrack}
                 offlineRootIds={offlineRootIds}
-                folderRoots={index.roots}
-                isSearching={isSearching}
-                sort={viewSort}
-                sortDirection={sortDirection}
-                playingTrackId={playingMarkId}
+                playingItemId={playingItemId}
                 revealTrack={revealTrack}
                 resetKey={listResetKey}
               />
@@ -1661,26 +1577,33 @@ const LibraryWorkspace = ({
           album carries that album across -- `openId` centres it and opens it
           -- rather than dropping the reader at the top of an unrelated
           carousel with what they were reading closed. */}
-          {index.tracks.length > 0 &&
+          {trackCount > 0 &&
             !videoTrackId &&
             browseMode !== 'video' &&
             viewMode === 'coverflow' && (
               <LibraryCoverFlow
-                tracks={visibleTracks}
+                list={shelfList}
                 browseMode={browseMode}
                 onPlayTrack={handlePlayTrack}
-                sort={viewSort}
-                sortDirection={sortDirection}
-                folderRoots={index.roots}
-                isSearching={isSearching}
+                onRestartTrack={handleRestartTrack}
+                folderRoots={roots}
                 playingTrackId={playingMarkId}
+                playingItemId={playingItemId}
                 revealTrack={revealTrack}
+                // What is open ON THIS SHELF, and nothing else. It was the
+                // first of all five, so over Albums a folder's path came
+                // through as the album to open: no cover answered to it, no
+                // panel opened, and the shelf sat narrowed with no Back.
                 openId={
-                  openAlbumId ??
-                  openArtistId ??
-                  openGenreId ??
-                  openPlaylistId ??
-                  openFolderPath
+                  {
+                    album: openAlbumId,
+                    artist: openArtistId,
+                    genre: shelfGenreId,
+                    playlist: shelfPlaylistId,
+                    folder: openFolderPath,
+                    song: undefined,
+                    video: undefined,
+                  }[browseMode]
                 }
                 onOpenChange={handleCoverFlowOpen}
                 onQueueTracks={appendToQueue}

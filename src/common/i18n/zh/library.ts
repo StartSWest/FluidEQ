@@ -98,6 +98,12 @@ const library: Partial<Dictionary> = {
   'library.indexReset': '媒体库索引无法读取，已重新建立。',
 
   'library.back': '返回',
+  'library.place.aria': '你在媒体库中的位置',
+  'library.place.all': '全部音乐',
+  'library.place.allHint': '离开此文件夹，显示整个媒体库',
+  'library.search.near': '在 {folder} 中',
+  'library.search.nearEmpty': '{folder} 中没有结果',
+  'library.search.elsewhere': '媒体库的其他位置',
 
   'library.upNext': '接下来播放',
   'library.upNext.empty': '队列暂时为空',

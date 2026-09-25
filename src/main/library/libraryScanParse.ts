@@ -52,12 +52,17 @@ export { trackIdForPath };
  * wrong toward re-parsing too much makes a rescan of an unchanged folder as
  * slow as the first scan; getting it wrong toward too little leaves an
  * edited file showing stale tags forever.
+ *
+ * A pending row is a file listed and never read, and the walk now asks the
+ * live store, where discovery's own pending rows land moments before parsing
+ * reaches them: it must be read whatever its size and time say.
  */
 export const shouldReparse = (
   existing: ILibraryTrack | undefined,
   stat: { size: number; mtimeMs: number },
 ): boolean =>
   existing === undefined ||
+  existing.isPending === true ||
   (existing.artId === undefined && existing.artworkChecked !== true) ||
   existing.sizeBytes !== stat.size ||
   existing.mtimeMs !== stat.mtimeMs;
@@ -151,13 +156,20 @@ const buildTrack = async (
 };
 
 export interface IParseState {
-  tracks: ILibraryTrack[];
   parsed: number;
+  /** Files read and still there — unchanged or built — the root's count. */
+  found: number;
 }
+
+/** What one candidate came to. */
+type TParseOutcome =
+  | { kind: 'unchanged'; id: string }
+  | { kind: 'built'; track: ILibraryTrack }
+  | { kind: 'missing' };
 
 // Trade-off, not a measurement: a smaller batch shows a new track to the
 // renderer sooner and re-renders the view more often; a larger one cuts the
-// number of `library-index-changed` sends at the cost of a longer wait
+// number of store writes and `library-changed` sends at the cost of a longer wait
 // before the first tracks appear. Emitted on whichever limit is hit first,
 // so a folder with very slow tag reads (a handful of large videos) still
 // publishes on the timer instead of waiting for 25 files that may take
@@ -166,17 +178,24 @@ const TRACK_PUBLISH_BATCH_SIZE = 25;
 const TRACK_PUBLISH_INTERVAL_MS = 400;
 
 /**
- * Resolves one already-discovered candidate: either carrying a known track
- * forward unchanged, or reading it fresh. No karaoke check here -- that
- * question was already answered in phase one, which is why this list never
- * contains a karaoke song to begin with.
+ * Unchanged files are ids, a few bytes each, and confirming them is one
+ * indexed update apiece: many to a message, so a rescan of an unchanged
+ * library is a few dozen messages rather than one per file.
+ */
+const UNCHANGED_PUBLISH_BATCH_SIZE = 500;
+
+/**
+ * Resolves one already-discovered candidate: either confirming a known track
+ * unchanged, or reading it fresh. No karaoke check here -- that question was
+ * already answered in phase one, which is why this list never contains a
+ * karaoke song to begin with.
  */
 const parseCandidate = async (
   candidate: ICandidateFile,
   context: IWalkContext,
   folderArtByDir: Map<string, IFolderArtCache>,
   state: IParseState,
-): Promise<void> => {
+): Promise<TParseOutcome> => {
   let folderArt = folderArtByDir.get(candidate.dir);
   if (!folderArt) {
     folderArt = { computed: false, id: undefined };
@@ -206,27 +225,32 @@ const parseCandidate = async (
     // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
     console.error(`Could not stat ${candidate.filePath}`, error);
     state.parsed += 1;
-    return;
+    return { kind: 'missing' };
   }
   const statInfo = { size: stats.size, mtimeMs: stats.mtimeMs };
-  const existing = context.knownByPath.get(candidate.filePath);
-  if (existing !== undefined && !shouldReparse(existing, statInfo)) {
-    // Carrying the known track forward unchanged is what makes a rescan of
-    // an unchanged folder cost one stat per file instead of a full tag read.
-    state.tracks.push(existing);
-  } else {
-    const addedAt = existing?.addedAt ?? Date.now();
-    const track = await buildTrack(
-      candidate.filePath,
-      candidate.name,
-      candidate.kind,
-      addedAt,
-      statInfo,
-      dirCtx,
-    );
-    state.tracks.push(track);
-  }
+  const existing = context.lookupKnown(candidate.filePath);
   state.parsed += 1;
+  state.found += 1;
+  if (
+    existing !== undefined &&
+    !context.force &&
+    !shouldReparse(existing, statInfo)
+  ) {
+    // A known file unchanged is confirmed by id, never re-read and never sent
+    // again: one stat per file is the whole cost of a rescan of an unchanged
+    // folder.
+    return { kind: 'unchanged', id: existing.id };
+  }
+  const addedAt = existing?.addedAt ?? Date.now();
+  const track = await buildTrack(
+    candidate.filePath,
+    candidate.name,
+    candidate.kind,
+    addedAt,
+    statInfo,
+    dirCtx,
+  );
+  return { kind: 'built', track };
 };
 
 export interface IParseOutcome {
@@ -245,14 +269,14 @@ export interface IParseOutcome {
 /**
  * Parses every candidate discovery collected, in the order they were found.
  *
- * Publishes newly-resolved tracks to `context.onTracks` in batches rather
- * than one call per file -- one IPC message per track would flood the
- * channel and re-render the whole library view on every file. A batch goes
- * out once it reaches `TRACK_PUBLISH_BATCH_SIZE` or once
- * `TRACK_PUBLISH_INTERVAL_MS` has elapsed since the last one, whichever
- * comes first, and whatever remains unpublished is flushed once more before
- * this returns -- on a normal finish, on cancellation, or if a scan turns
- * out to have no candidates at all.
+ * Publishes newly-resolved tracks to `context.onTracks`, and the ids of the
+ * unchanged ones to `context.onUnchanged`, in batches rather than one call
+ * per file -- one IPC message per track would flood the channel. A batch goes
+ * out once it reaches its size or once `TRACK_PUBLISH_INTERVAL_MS` has
+ * elapsed since the last one, whichever comes first, and whatever remains
+ * unpublished is flushed once more before this returns -- on a normal
+ * finish, on cancellation, or if a scan turns out to have no candidates.
+ * Nothing is kept: the root's songs live in the store, not in this walk.
  */
 export const parseCandidates = async (
   context: IWalkContext,
@@ -261,13 +285,17 @@ export const parseCandidates = async (
 ): Promise<IParseOutcome> => {
   const folderArtByDir = new Map<string, IFolderArtCache>();
   let pendingBatch: ILibraryTrack[] = [];
+  let pendingUnchanged: string[] = [];
   let batchStartedAt = Date.now();
   const flushBatch = (): void => {
-    if (pendingBatch.length === 0) {
-      return;
+    if (pendingBatch.length > 0) {
+      context.onTracks?.(pendingBatch, true);
+      pendingBatch = [];
     }
-    context.onTracks?.(pendingBatch);
-    pendingBatch = [];
+    if (pendingUnchanged.length > 0) {
+      context.onUnchanged?.(pendingUnchanged);
+      pendingUnchanged = [];
+    }
     batchStartedAt = Date.now();
   };
   for (let index = 0; index < discovered.candidates.length; index += 1) {
@@ -276,16 +304,23 @@ export const parseCandidates = async (
       return { wasCancelled: true, reachedCount: index };
     }
     const candidate = discovered.candidates[index];
-    const tracksBefore = state.tracks.length;
     // eslint-disable-next-line no-await-in-loop -- one file at a time by design; see the module comment.
-    await parseCandidate(candidate, context, folderArtByDir, state);
+    const outcome = await parseCandidate(
+      candidate,
+      context,
+      folderArtByDir,
+      state,
+    );
     // A candidate that failed its stat (see parseCandidate's own comment)
-    // advances `state.parsed` without adding a track -- nothing to publish.
-    if (state.tracks.length > tracksBefore) {
-      pendingBatch.push(state.tracks[state.tracks.length - 1]);
+    // advances `state.parsed` without a track -- nothing to publish.
+    if (outcome.kind === 'built') {
+      pendingBatch.push(outcome.track);
+    } else if (outcome.kind === 'unchanged') {
+      pendingUnchanged.push(outcome.id);
     }
     if (
       pendingBatch.length >= TRACK_PUBLISH_BATCH_SIZE ||
+      pendingUnchanged.length >= UNCHANGED_PUBLISH_BATCH_SIZE ||
       Date.now() - batchStartedAt >= TRACK_PUBLISH_INTERVAL_MS
     ) {
       flushBatch();

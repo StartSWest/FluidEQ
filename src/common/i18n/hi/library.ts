@@ -100,6 +100,13 @@ const library: Partial<Dictionary> = {
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 
   'library.back': 'वापस',
+  'library.place.aria': 'लाइब्रेरी में आप कहाँ हैं',
+  'library.place.all': 'सारा संगीत',
+  'library.place.allHint':
+    'इस फ़ोल्डर से बाहर निकलें और अपनी पूरी लाइब्रेरी देखें',
+  'library.search.near': '{folder} में',
+  'library.search.nearEmpty': '{folder} में कुछ नहीं',
+  'library.search.elsewhere': 'बाकी लाइब्रेरी में',
 
   'library.upNext': 'आगे',
   'library.upNext.empty': 'कतार अभी खाली है',

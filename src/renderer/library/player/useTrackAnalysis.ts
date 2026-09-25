@@ -56,7 +56,7 @@ export interface ITrackAnalysisDeps {
   track: ILibraryTrack | undefined;
   trackId: string | undefined;
   queue: ILibraryQueue | undefined;
-  trackById: Map<string, ILibraryTrack>;
+  trackById: ReadonlyMap<string, ILibraryTrack>;
   dspSettings: IDspSettings;
   dspSettingsRef: MutableRefObject<IDspSettings>;
   trackIdRef: MutableRefObject<string | undefined>;

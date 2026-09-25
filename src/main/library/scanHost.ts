@@ -69,6 +69,17 @@ const workerEntry = (): string | undefined => {
  */
 let workerUnavailable = false;
 
+/**
+ * What a scan that could run nowhere reports: nothing found and cancelled, so
+ * the caller sweeps nothing — every song the store holds for the root stays
+ * exactly as it was, which is what a walk that never happened established.
+ */
+const UNFINISHED: IScanResult = {
+  found: 0,
+  karaokeSkipped: 0,
+  wasCancelled: true,
+};
+
 /** The fallback still runs inside Electron, so it can cache covers directly. */
 const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> =>
   scanLibraryRoot({
@@ -118,13 +129,7 @@ const scanLibraryRootOffThread = (
         'Could not start the library scan worker; scanning in-process instead',
         error,
       );
-      scanLibraryRootInMain(options).then(finish, () =>
-        finish({
-          tracks: options.known.slice(),
-          karaokeSkipped: 0,
-          wasCancelled: true,
-        }),
-      );
+      scanLibraryRootInMain(options).then(finish, () => finish(UNFINISHED));
       return;
     }
 
@@ -152,9 +157,8 @@ const scanLibraryRootOffThread = (
      *
      * The packaged worker once launched with no message listener because it
      * read the wrong `parentPort`. It then exited normally, and the old exit
-     * handler returned the known tracks — an empty array for a newly-added
-     * root — so the folder picker looked broken even though it had added the
-     * folder correctly. Any worker failure now takes the proven in-process
+     * handler reported the root as scanned with nothing in it, so the folder
+     * picker looked broken even though it had added the folder correctly. Any worker failure now takes the proven in-process
      * path instead. The flag keeps an error followed by an exit from starting
      * two scans of the same root.
      */
@@ -167,13 +171,7 @@ const scanLibraryRootOffThread = (
       // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
       console.error(message, error);
       stop();
-      scanLibraryRootInMain(options).then(finish, () =>
-        finish({
-          tracks: options.known.slice(),
-          karaokeSkipped: 0,
-          wasCancelled: true,
-        }),
-      );
+      scanLibraryRootInMain(options).then(finish, () => finish(UNFINISHED));
     };
 
     child.on('message', (raw: unknown) => {
@@ -218,13 +216,17 @@ const scanLibraryRootOffThread = (
         return;
       }
       if (message.type === 'tracks') {
-        options.onTracks?.(message.tracks);
+        options.onTracks?.(message.tracks, message.confirmed);
+        return;
+      }
+      if (message.type === 'unchanged') {
+        options.onUnchanged?.(message.ids);
         return;
       }
       if (message.type === 'done') {
         stop();
         finish({
-          tracks: message.tracks,
+          found: message.found,
           karaokeSkipped: message.karaokeSkipped,
           wasCancelled: message.wasCancelled,
         });
@@ -248,7 +250,7 @@ const scanLibraryRootOffThread = (
       rootId: options.rootId,
       rootPath: options.rootPath,
       userDataDir: options.userDataDir,
-      known: options.known.slice(),
+      force: options.force,
     };
     child.postMessage(request);
   });

@@ -50,11 +50,13 @@ import {
   currentTrackId,
   ILibraryQueue,
 } from '../../../common/library/queue';
+import type { ILibraryTrack } from '../../../common/library/types';
 import { useDspEngine } from '../../dsp/useDspEngine';
 import { useDspSettings } from '../../dsp/store';
 import { usePlaybackHandoff } from '../../audio/playbackHandoff';
 import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
 import { useLibrary } from '../LibraryContext';
+import { useLibraryTracks } from '../useLibraryTracks';
 import {
   ILibraryPlayerClock,
   ILibraryPlayerContextValue,
@@ -68,7 +70,10 @@ import { usePlaybackCommands } from './usePlaybackCommands';
 import { usePlayerDecks } from './usePlayerDecks';
 import { usePlayerEngine } from './usePlayerEngine';
 import usePublishedTransport from './usePublishedTransport';
-import { usePublishedLibraryDeck } from '../../player/libraryDeck';
+import {
+  deckWindowIds,
+  usePublishedLibraryDeck,
+} from '../../player/libraryDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -95,15 +100,12 @@ export const LibraryPlayerProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  // Track metadata comes from the library index — the queue itself (Task 18)
-  // only ever carries ids. `LibraryPlayerProvider` has to sit inside
-  // `LibraryProvider` for this lookup to resolve, which `App.tsx` already
-  // arranges the same way it nests every other library-scoped provider.
-  const { index, queueFiles } = useLibrary();
-  const trackById = useMemo(
-    () => new Map(index.tracks.map((t) => [t.id, t])),
-    [index.tracks],
-  );
+  // The queue carries ids only; what they name is asked of the library, and
+  // only for the songs the player is holding (`useLibraryTracks`).
+  // `LibraryPlayerProvider` has to sit inside `LibraryProvider` for that,
+  // which `App.tsx` already arranges the same way it nests every other
+  // library-scoped provider.
+  const { queueFiles } = useLibrary();
   // Non-null while `LibraryVideoStage` has a `<video>` registered — the
   // element every transport command reaches instead, for exactly as long as
   // the current track is a video.
@@ -153,7 +155,44 @@ export const LibraryPlayerProvider = ({
     queueRef.current = queue;
   }, [queue]);
 
-  const trackId = queue ? currentTrackId(queue) : undefined;
+  const queuedTrackId = queue ? currentTrackId(queue) : undefined;
+  const nextQueuedId = queue
+    ? currentTrackId(advanceQueue(queue, 1))
+    : undefined;
+  /**
+   * THE SONG ON THE DECK CHANGES ONCE THE LIBRARY HAS READ THE NEXT ONE.
+   *
+   * The queue moves the moment a song is pressed; what that id names comes
+   * back from the store a moment later. Until it has, the player goes on
+   * being the song it was — the one still sounding — rather than a song with
+   * nothing known about it: the loader, keyed on the id, would otherwise run
+   * for a song it could not load, silence the deck, and never run again once
+   * the answer landed. A song the store says it has not got (`null`) is
+   * settled too, as missing, which is what stops a removed folder's song.
+   */
+  const settledTrackIdRef = useRef<string | undefined>(undefined);
+  const lookup = useLibraryTracks([
+    ...(queuedTrackId === undefined ? [] : [queuedTrackId]),
+    ...(nextQueuedId === undefined ? [] : [nextQueuedId]),
+    ...(settledTrackIdRef.current === undefined
+      ? []
+      : [settledTrackIdRef.current]),
+    ...deckWindowIds(queue),
+  ]);
+  if (queuedTrackId === undefined || lookup.has(queuedTrackId)) {
+    settledTrackIdRef.current = queuedTrackId;
+  }
+  const trackId = settledTrackIdRef.current;
+  /** The songs read, without the ones the store has said are gone. */
+  const trackById = useMemo(() => {
+    const found = new Map<string, ILibraryTrack>();
+    lookup.forEach((entry, id) => {
+      if (entry !== null) {
+        found.set(id, entry);
+      }
+    });
+    return found;
+  }, [lookup]);
   const track = trackId ? trackById.get(trackId) : undefined;
 
   const analysisJobRef = useRef<
@@ -255,8 +294,6 @@ export const LibraryPlayerProvider = ({
     queue,
     queueRef,
     positionMs,
-    trackById,
-    libraryTracks: index.tracks,
     setQueue,
     setPositionMs,
   });
@@ -401,7 +438,6 @@ export const LibraryPlayerProvider = ({
     queue,
     trackId,
     trackById,
-    libraryTracks: index.tracks,
     setQueue,
   });
   /**

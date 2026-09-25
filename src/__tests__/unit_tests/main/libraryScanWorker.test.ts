@@ -17,6 +17,18 @@ jest.mock('../../../main/library/libraryScanner', () => ({
   scanLibraryRoot: (options: IScanOptions) => scanLibraryRoot(options),
 }));
 
+/** The store as the worker reads it: one path at a time, and closed after. */
+const readerClose = jest.fn();
+const trackByPath = jest.fn<ILibraryTrack | undefined, [string]>(
+  () => undefined,
+);
+jest.mock('../../../main/library/libraryStoreOpen', () => ({
+  openLibraryReader: () => ({
+    trackByPath: (filePath: string) => trackByPath(filePath),
+    close: () => readerClose(),
+  }),
+}));
+
 interface IFakeParentPort {
   postMessage: jest.Mock<void, [unknown]>;
   on: jest.Mock<
@@ -70,8 +82,11 @@ describe('the packaged library scan worker', () => {
         mtimeMs: 4,
         addedAt: 5,
       };
+      // What the store already holds is asked of it, path by path.
+      options.lookupKnown('C:\\Music\\Covered.mp3');
+      options.onTracks?.([track], true);
       return {
-        tracks: [track],
+        found: 1,
         karaokeSkipped: 0,
         wasCancelled: false,
       };
@@ -86,7 +101,7 @@ describe('the packaged library scan worker', () => {
         rootId: 'music-root',
         rootPath: 'C:\\Music',
         userDataDir: 'C:\\FluidEQ',
-        known: [],
+        force: false,
       },
     });
     await flushMessages();
@@ -111,11 +126,18 @@ describe('the packaged library scan worker', () => {
     });
     await flushMessages();
 
-    expect(port.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'done',
-        tracks: [expect.objectContaining({ artId: 'abc123' })],
-      }),
-    );
+    expect(port.postMessage).toHaveBeenCalledWith({
+      type: 'tracks',
+      tracks: [expect.objectContaining({ artId: 'abc123' })],
+      confirmed: true,
+    });
+    expect(port.postMessage).toHaveBeenCalledWith({
+      type: 'done',
+      found: 1,
+      karaokeSkipped: 0,
+      wasCancelled: false,
+    });
+    expect(trackByPath).toHaveBeenCalledWith('C:\\Music\\Covered.mp3');
+    expect(readerClose).toHaveBeenCalled();
   });
 });

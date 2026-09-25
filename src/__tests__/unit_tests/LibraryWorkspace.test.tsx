@@ -17,57 +17,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type {
-  ILibraryIndex,
-  ILibraryScanProgress,
-  ILibraryTrack,
-} from '../../common/library/types';
+import type { ILibraryRoot, ILibraryTrack } from '../../common/library/types';
 import LibraryWorkspace from '../../renderer/library/LibraryWorkspace';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
-import { LibraryPlayerProvider } from '../../renderer/library/player/LibraryPlayerContext';
+import {
+  LibraryPlayerProvider,
+  useLibraryPlayerSession,
+} from '../../renderer/library/player/LibraryPlayerContext';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
-
-const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
-  id: over.title ?? 'id',
-  rootId: 'r1',
-  path: 'C:\\Music\\a.mp3',
-  kind: 'audio',
-  isPlayable: true,
-  title: 'Untitled',
-  sizeBytes: 1,
-  mtimeMs: 1,
-  addedAt: 1,
-  ...over,
-});
+import {
+  type ILibraryStoreBridge,
+  installIpcRenderer,
+  libraryRoot,
+  libraryTrack as track,
+  openLibraryStoreBridge,
+} from '../utils/libraryStoreBridge';
 
 // jsdom's own `HTMLMediaElement.prototype.play` returns `undefined` rather
 // than the Promise every real engine (including Electron's Chromium) hands
 // back — `KaraokeWorkspace.test.tsx` stubs the same three methods for the
 // same reason. Needed here only once a test actually reaches
 // `LibraryPlayerContext`/`LibraryVideoStage`'s real `element.play().catch(...)`
-// calls, which nothing in this file did before Task 19 wired `playTracks` in.
+// calls.
 const mediaPlay = jest.fn().mockResolvedValue(undefined);
 const mediaPause = jest.fn();
 const toggleFullScreen = jest.fn();
 
-const addLibraryRoot = jest.fn(() =>
-  Promise.resolve({ version: 1, roots: [], tracks: [] }),
-);
 const cancelLibraryScan = jest.fn();
 
-// Captured so a test can simulate a live scan by calling it directly, the
-// way `onLibraryIndexChanged` already is not exercised because nothing here
-// needs to.
-let progressListener: ((progress: ILibraryScanProgress) => void) | undefined;
-// Captured the same way, for the one test that simulates the index changing
-// out from under an open drill-in.
-let indexListener: ((index: ILibraryIndex) => void) | undefined;
-// Reassigned by a test before calling `renderWorkspace()`, read by the
-// `getLibraryIndex` mock at render time — the empty-library shape every
-// other test in this file still gets by not touching it.
-let initialIndex: ILibraryIndex = { version: 1, roots: [], tracks: [] };
+let bridge: ILibraryStoreBridge | undefined;
 
 beforeAll(() => {
   Object.defineProperty(HTMLMediaElement.prototype, 'play', {
@@ -81,78 +61,85 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  addLibraryRoot.mockClear();
   cancelLibraryScan.mockClear();
   mediaPlay.mockClear();
   mediaPause.mockClear();
   toggleFullScreen.mockClear();
-  progressListener = undefined;
-  indexListener = undefined;
-  initialIndex = { version: 1, roots: [], tracks: [] };
   // Each persisted-mode test below writes to this directly; jsdom's
   // localStorage otherwise survives across `it` blocks in the same file,
   // which would leak one test's stored mode into the next one's "nothing
   // was ever stored" assumption.
   window.localStorage.clear();
-  window.electron = {
-    ipcRenderer: {
-      getLibraryIndex: () =>
-        Promise.resolve({
-          index: initialIndex,
-          wasReset: false,
-        }),
-      addLibraryRoot,
-      cancelLibraryScan,
-      onLibraryScanProgress: (
-        callback: (progress: ILibraryScanProgress) => void,
-      ) => {
-        progressListener = callback;
-        return () => {
-          progressListener = undefined;
-        };
-      },
-      onLibraryTracksAdded: () => () => {},
-      onLibraryIndexChanged: (callback: (index: ILibraryIndex) => void) => {
-        indexListener = callback;
-        return () => {
-          indexListener = undefined;
-        };
-      },
-      // `LibraryVideoStage` (Task 19) listens for 'window-state-changed' the
-      // moment a video track opens the stage — same shape App.test.tsx's own
-      // mock already uses for the same preload method.
-      on: (_channel: string, _func: (...args: unknown[]) => void) => () => {},
-    },
-  } as unknown as typeof window.electron;
 });
 
-const renderWorkspace = () =>
+afterEach(() => {
+  // Unmounted before the store closes, so nothing asks a closed store.
+  cleanup();
+  bridge?.close();
+  bridge = undefined;
+});
+
+/** What the player is holding, for a test to wait on the click reaching it. */
+const PlayerProbe = () => {
+  const { track: held, isUnplayable } = useLibraryPlayerSession();
+  return (
+    <output aria-label="Player">
+      {held?.id ?? ''}
+      {isUnplayable ? ' unplayable' : ''}
+    </output>
+  );
+};
+
+/**
+ * The Library tab over a store holding `roots` and `tracks` — main's own
+ * store and questions, so every shelf on screen is what the app would draw.
+ */
+const renderWorkspace = ({
+  roots = [],
+  tracks = [],
+}: {
+  roots?: ILibraryRoot[];
+  tracks?: ILibraryTrack[];
+} = {}) => {
+  const opened = openLibraryStoreBridge({ roots, tracks });
+  bridge = opened;
+  const addLibraryRoot = jest.fn(() => Promise.resolve(opened.summary()));
+  installIpcRenderer({
+    ...opened.channels,
+    addLibraryRoot,
+    cancelLibraryScan,
+    // `LibraryVideoStage` listens for 'window-state-changed' the moment a
+    // video track opens the stage; nothing here changes the window state.
+    on: jest.fn(() => jest.fn()),
+  });
   render(
     <I18nProvider>
       <LibraryProvider>
-        {/* `LibraryWorkspace` now calls `useLibraryPlayer` itself (Task 19) to
-            hand every view's click a real `playTracks` — nested inside
-            `LibraryProvider` the same way `App.tsx` nests the two, since
-            `LibraryPlayerProvider` resolves a track id against the index
-            `LibraryProvider` holds. */}
+        {/* Nested inside `LibraryProvider` the same way `App.tsx` nests the
+            two: the player reads the songs it holds from the library. */}
         <LibraryPlayerProvider>
           <LibraryWorkspace
             isHidden={false}
             isFullScreen={false}
             onToggleFullScreen={toggleFullScreen}
           />
+          <PlayerProbe />
         </LibraryPlayerProvider>
       </LibraryProvider>
     </I18nProvider>,
   );
+  return { library: opened, addLibraryRoot };
+};
+
+const MUSIC = libraryRoot('r1', 'C:\\Music');
 
 describe('the library with nothing in it', () => {
   it('offers the one action that fixes an empty library', async () => {
-    renderWorkspace();
+    const { addLibraryRoot } = renderWorkspace();
     expect(await screen.findByText('No music yet')).toBeInTheDocument();
     // With no roots yet the toolbar row does not render at all, so the
     // empty state's own button is the only "Add folder" on screen -- see
-    // `LibraryWorkspace.tsx`'s `index.roots.length > 0` gate.
+    // `LibraryWorkspace.tsx`'s `roots.length > 0` gate.
     const add = screen.getByRole('button', { name: 'Add folder' });
     await userEvent.click(add);
     expect(addLibraryRoot).toHaveBeenCalled();
@@ -174,10 +161,10 @@ describe('a scan in progress', () => {
     // `LibraryScanProgress` calls whatever `onCancel` prop it was given --
     // this proves `LibraryWorkspace` wires that prop all the way through
     // `useLibrary().cancelScan` to the actual IPC channel.
-    renderWorkspace();
+    const { library } = renderWorkspace();
     await screen.findByText('No music yet');
     act(() => {
-      progressListener?.({
+      library.sendProgress({
         rootId: 'r1',
         seen: 3,
         parsed: 1,
@@ -193,45 +180,45 @@ describe('a scan in progress', () => {
 
 describe('a drill-in whose album disappears underneath it', () => {
   it('closes on its own and returns to the grid, rather than sitting on a blank screen', async () => {
-    // Default browse mode is 'album', default view mode is 'grid' (both
-    // `LibraryWorkspace`'s own fallbacks), so nothing here needs to click
-    // through the toolbar first.
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Music',
-          addedAt: 1,
-          trackCount: 1,
-          karaokeSkipped: 0,
-        },
-      ],
+    // The grid, chosen: a fresh install opens on Cover Flow, which draws its
+    // drill-in under the row rather than in place of the shelf.
+    window.localStorage.setItem('fluideq.library.viewMode', 'grid');
+    const { library } = renderWorkspace({
+      roots: [MUSIC],
       tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
-    };
-    renderWorkspace();
+    });
 
     await userEvent.click(await screen.findByText('Kind'));
     // The drill-in is open — its one filled button is on screen.
-    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Play' }),
+    ).toBeInTheDocument();
 
-    // The folder is removed mid-view: the same `onLibraryIndexChanged` push
-    // `LibraryContext` already subscribes to, now carrying an index with no
-    // trace of the album that was open.
-    act(() => {
-      indexListener?.({
-        version: 1,
-        roots: [],
-        tracks: [track({ title: 'Other', album: 'Bitches', artist: 'Miles' })],
-      });
-    });
+    // The folder is removed mid-view and another one's scan lands: the store
+    // changes and main announces it, the push `LibraryContext` subscribes to.
+    library.store.removeRoot('r1');
+    library.store.addRoots([libraryRoot('r2', 'D:\\More')]);
+    library.store.upsertTracks(
+      [
+        track({
+          title: 'Other',
+          album: 'Bitches',
+          artist: 'Miles',
+          rootId: 'r2',
+          path: 'D:\\More\\Other.mp3',
+        }),
+      ],
+      0,
+    );
+    act(() => library.announce());
 
     // Not stuck on "Unknown album" with a dead Play button — back on the
     // grid, which is not empty either: the surviving album's tile is shown.
+    expect(await screen.findByText('Bitches')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Play' }),
     ).not.toBeInTheDocument();
-    expect(await screen.findByText('Bitches')).toBeInTheDocument();
+    expect(screen.queryByText('Kind')).not.toBeInTheDocument();
   });
 });
 
@@ -240,31 +227,58 @@ describe('the search box, wired to the shelf below it', () => {
     // `LibraryToolbar`'s own test proves the box reports what was typed and
     // where it sits in the bar. This is the other half: that what it reports
     // actually reaches the list.
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Music',
-          addedAt: 1,
-          trackCount: 2,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [MUSIC],
       tracks: [
         track({ title: 'Blue', album: 'Kind', artist: 'Miles' }),
         track({ title: 'Red', album: 'Scarlet', artist: 'Otis' }),
       ],
-    };
-    renderWorkspace();
+    });
 
     expect(await screen.findByText('Kind')).toBeInTheDocument();
     expect(screen.getByText('Scarlet')).toBeInTheDocument();
 
     await userEvent.type(screen.getByRole('searchbox'), 'scarlet');
 
-    expect(await screen.findByText('Scarlet')).toBeInTheDocument();
-    expect(screen.queryByText('Kind')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText('Kind')).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('Scarlet')).toBeInTheDocument();
+  });
+
+  it('reaches the whole library from inside a folder, the folder first', async () => {
+    // Searching while standing in a folder used to answer from that folder
+    // alone, which read as a library with almost nothing in it. Now what
+    // matched there comes first under its own heading, and everything else
+    // after it under another.
+    window.localStorage.setItem('fluideq.library.browseMode', 'song');
+    window.localStorage.setItem('fluideq.library.viewMode', 'list');
+    window.localStorage.setItem('fluideq.library.openFolder', 'C:/Music/Pop');
+    renderWorkspace({
+      roots: [MUSIC],
+      tracks: [
+        track({ title: 'Blue Pop', path: 'C:\\Music\\Pop\\blue.mp3' }),
+        track({ title: 'Blue Jazz', path: 'C:\\Music\\Jazz\\blue.mp3' }),
+        track({ title: 'Red Pop', path: 'C:\\Music\\Pop\\red.mp3' }),
+      ],
+    });
+
+    // Standing in the folder, the shelf is the folder's songs alone.
+    expect(await screen.findByText('Red Pop')).toBeInTheDocument();
+    expect(screen.queryByText('Blue Jazz')).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByRole('searchbox'), 'blue');
+
+    expect(await screen.findByText('Blue Jazz')).toBeInTheDocument();
+    const order = screen
+      .getAllByText(/^(In Pop|Everywhere else|Blue Pop|Blue Jazz|Red Pop)$/)
+      .map((element) => element.textContent);
+    expect(order).toEqual([
+      'In Pop',
+      'Blue Pop',
+      'Everywhere else',
+      'Blue Jazz',
+    ]);
   });
 });
 
@@ -276,20 +290,10 @@ describe('the folded queue chip', () => {
     // needs neither, and this is the assertion that says so — a chip that
     // slid back out of the cluster would leave the shelf sitting under it
     // again with nothing to catch it.
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Music',
-          addedAt: 1,
-          trackCount: 1,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [MUSIC],
       tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
-    };
-    renderWorkspace();
+    });
 
     // By pattern, not by exact name: the chip carries its count inside the
     // button, so its accessible name is the label and the number together.
@@ -322,62 +326,42 @@ describe('a browse mode remembered from last time', () => {
     // If a future refactor ever drops 'video' from that list again, this is
     // the test that has to catch it.
     window.localStorage.setItem('fluideq.library.browseMode', 'video');
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Music',
-          addedAt: 1,
-          trackCount: 1,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [MUSIC],
       tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
-    };
-    renderWorkspace();
+    });
 
-    // No video tracks in this index, so the video shelf's own empty message
-    // is what proves the stored mode actually took effect -- an 'album'
-    // fallback would show the grid instead, with "Kind" as a tile.
+    // No video tracks in this library, so the video shelf's own empty
+    // message is what proves the stored mode actually took effect -- an
+    // 'album' fallback would show the albums instead, with "Kind" on one.
     expect(
       await screen.findByText('No videos in the folders you have added.'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Kind')).not.toBeInTheDocument();
   });
 
-  // No persisted mode had regression coverage before this task touched the
-  // mechanism, not just browse mode -- cheap to close all three gaps in one
-  // pass rather than leave the other two exactly as uncovered as browse mode
-  // was.
+  // No persisted mode had regression coverage before browse mode's did --
+  // cheap to close all three gaps in one pass rather than leave the other
+  // two exactly as uncovered as browse mode was.
   it('honours a stored view mode and sort too', async () => {
     window.localStorage.setItem('fluideq.library.browseMode', 'song');
     window.localStorage.setItem('fluideq.library.viewMode', 'list');
     window.localStorage.setItem('fluideq.library.sort', 'year');
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Music',
-          addedAt: 1,
-          trackCount: 2,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [MUSIC],
       tracks: [
         track({ title: 'Newer', year: 2020 }),
         track({ title: 'Older', year: 1980 }),
       ],
-    };
-    renderWorkspace();
+    });
 
-    // 'list', not the default 'grid' -- only `LibraryListView` draws a
+    // 'list', not the default Cover Flow -- only `LibraryListView` draws a
     // `role="table"`.
     expect(await screen.findByRole('table')).toBeInTheDocument();
     // 'year' ascending, not the default 'title' -- Older (1980) sorts ahead
     // of Newer (2020), so it is the first of the two title matches in
     // document order.
+    await screen.findByText('Older');
     const titles = screen.getAllByText(/^(Older|Newer)$/);
     expect(titles.map((title) => title.textContent)).toEqual([
       'Older',
@@ -386,20 +370,13 @@ describe('a browse mode remembered from last time', () => {
   });
 });
 
-describe('handing a click off to the player (Task 19)', () => {
+describe('handing a click off to the player', () => {
+  const VIDEOS = libraryRoot('r1', 'C:\\Videos');
+
   it('loads a clicked video track into the stage, replacing the shelf it was clicked from', async () => {
     window.localStorage.setItem('fluideq.library.browseMode', 'video');
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Videos',
-          addedAt: 1,
-          trackCount: 1,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [VIDEOS],
       tracks: [
         track({
           id: 'v1',
@@ -408,16 +385,14 @@ describe('handing a click off to the player (Task 19)', () => {
           path: 'C:\\Videos\\Live\\show.mp4',
         }),
       ],
-    };
-    renderWorkspace();
+    });
 
     await userEvent.click(await screen.findByText('Live at the Roxy'));
 
     // The stage's own way back is the only thing here with this label, so its
-    // presence is proof `handlePlayTrack` actually reached `playTracks` rather
-    // than staying the inert stub it was before this task. It used to be the
-    // full-screen button; that went when full screen became the double-click
-    // and Ctrl+F, which every video player already answers to.
+    // presence is proof the click actually reached `playTracks`. It used to
+    // be the full-screen button; that went when full screen became the
+    // double-click and Ctrl+F, which every video player already answers to.
     expect(
       await screen.findByRole('button', { name: 'Back' }),
     ).toBeInTheDocument();
@@ -425,27 +400,18 @@ describe('handing a click off to the player (Task 19)', () => {
     // `LibraryVideoSection` in `LibraryWorkspace`. The toolbar above it is
     // not: browse, view and search stay reachable while a video plays.
     expect(screen.queryByText('Live at the Roxy')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
   });
 
   it('leaves the shelf in place for a video FluidEQ cannot decode, instead of opening a broken stage', async () => {
-    // The exact gap Task 19 closed in `LibraryPlayerContext`: `videoTrackId`
-    // used to key on `kind === 'video'` alone, so an unplayable container
-    // still opened `LibraryVideoStage` and asked a `<video>` to load a file
-    // Chromium has no demuxer for. Gating it on `isPlayable` too keeps the
-    // stage closed here, the same as it would for any other unplayable
-    // click.
+    // `videoTrackId` used to key on `kind === 'video'` alone, so an
+    // unplayable container still opened `LibraryVideoStage` and asked a
+    // `<video>` to load a file Chromium has no demuxer for. Gating it on
+    // `isPlayable` too keeps the stage closed here, the same as it would for
+    // any other unplayable click.
     window.localStorage.setItem('fluideq.library.browseMode', 'video');
-    initialIndex = {
-      version: 1,
-      roots: [
-        {
-          id: 'r1',
-          path: 'C:\\Videos',
-          addedAt: 1,
-          trackCount: 1,
-          karaokeSkipped: 0,
-        },
-      ],
+    renderWorkspace({
+      roots: [VIDEOS],
       tracks: [
         track({
           id: 'v1',
@@ -455,13 +421,20 @@ describe('handing a click off to the player (Task 19)', () => {
           path: 'C:\\Videos\\Live\\tape.avi',
         }),
       ],
-    };
-    renderWorkspace();
+    });
 
     await userEvent.click(await screen.findByText('Old Camcorder Tape'));
 
+    // The click reached the player, which took the song and called it
+    // unplayable — so the absence below is the stage staying closed, not
+    // the stage not having been asked yet.
+    await waitFor(() =>
+      expect(screen.getByLabelText('Player')).toHaveTextContent(
+        'v1 unplayable',
+      ),
+    );
     expect(
-      screen.queryByRole('button', { name: 'Full screen' }),
+      screen.queryByRole('button', { name: 'Back' }),
     ).not.toBeInTheDocument();
     // The shelf is still the thing on screen -- a click on an unplayable
     // track is not a silent no-op, it just does not open a stage that would

@@ -101,6 +101,13 @@ const library: Partial<Dictionary> = {
     'Der Bibliotheksindex konnte nicht gelesen werden und wurde neu aufgebaut.',
 
   'library.back': 'Zurück',
+  'library.place.aria': 'Ihr Ort in der Bibliothek',
+  'library.place.all': 'Alle Musik',
+  'library.place.allHint':
+    'Diesen Ordner verlassen und die ganze Bibliothek zeigen',
+  'library.search.near': 'In {folder}',
+  'library.search.nearEmpty': 'Nichts in {folder}',
+  'library.search.elsewhere': 'Überall sonst',
 
   'library.upNext': 'Als Nächstes',
   'library.upNext.empty': 'Noch nichts in der Warteschlange',

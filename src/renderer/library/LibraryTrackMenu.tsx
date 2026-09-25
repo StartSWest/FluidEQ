@@ -31,17 +31,21 @@ interface ILibraryTrackMenuProps {
   anchor: HTMLElement | null;
   isOpen: boolean;
   /**
-   * Everything the menu acts on, resolved by the caller — which already holds
-   * the list these came from.
+   * Everything the menu acts on, by id, in the order the caller's list has
+   * them.
    *
    * One song from a row, several from a lit selection, a whole record from a
    * drill-in header. The count is the only difference, so it is the only
    * thing this takes: a set-of-one is not a special case, it is the ordinary
-   * one. Empty for ids the index stopped knowing between the click and this
-   * render — a rescan finishing under the pointer — and the menu then draws
-   * nothing rather than acting on a song that is gone.
+   * one. Empty draws nothing.
    */
-  tracks: readonly ILibraryTrack[];
+  trackIds: readonly string[];
+  /**
+   * The song itself, when the menu is about exactly one and the caller has
+   * it — what sending to Karaoke needs to know about the file. A set never
+   * has one: that item is for a single song.
+   */
+  track?: ILibraryTrack;
   /** The playlist being read, when one is open. Adds the one item that only
    * makes sense there, and never appears anywhere else. */
   openPlaylistId?: string;
@@ -70,7 +74,8 @@ type TMenuPage = 'actions' | 'playlists';
 const LibraryTrackMenu = ({
   anchor,
   isOpen,
-  tracks,
+  trackIds,
+  track,
   openPlaylistId,
   onQueueTracks,
   onReveal,
@@ -90,19 +95,18 @@ const LibraryTrackMenu = ({
   // row. Keyed on what is being acted on as well as on `isOpen`, because
   // right-clicking a second row while the first row's menu is up moves the
   // menu rather than closing it.
-  const subject = tracks.map((entry) => entry.id).join('|');
+  const subject = trackIds.join('|');
   useEffect(() => {
     setPage('actions');
     setDidSendFail(false);
   }, [isOpen, subject]);
 
-  const [single] = tracks;
-  if (!single) {
+  const [single] = trackIds;
+  if (single === undefined) {
     return null;
   }
 
-  const trackIds = tracks.map((entry) => entry.id);
-  const isOne = tracks.length === 1;
+  const isOne = trackIds.length === 1;
   // ALL of them, so the label says what the press will do. A record where
   // four of twelve are starred is not "in Favourites", and offering to remove
   // it would take away the eight that are not there while leaving the four
@@ -111,12 +115,17 @@ const LibraryTrackMenu = ({
   // One song at a time. The handoff reads whole files through main, and
   // "send" on a fifty-track record would be fifty of those at once — a
   // different feature, and not one anybody asked for by pressing this.
-  const canSendToKaraoke = isOne && canSendTrackToKaraoke(single);
+  const sendable = isOne && track?.id === single ? track : undefined;
+  const canSendToKaraoke =
+    sendable !== undefined && canSendTrackToKaraoke(sendable);
 
   const sendToKaraoke = () => {
+    if (sendable === undefined) {
+      return;
+    }
     setIsSending(true);
     setDidSendFail(false);
-    trackAsKaraokeFile(single)
+    trackAsKaraokeFile(sendable)
       .then((file) => {
         setIsSending(false);
         if (!file) {
@@ -144,7 +153,7 @@ const LibraryTrackMenu = ({
           things to a library. */}
       {!isOne && (
         <p className="library-list__menu-subject">
-          {t('library.trackCount', { count: tracks.length })}
+          {t('library.trackCount', { count: trackIds.length })}
         </p>
       )}
       {/* FIRST, and above the two that file the song away.
@@ -259,7 +268,7 @@ const LibraryTrackMenu = ({
           not, and picking one of them to open would be answering a question
           nobody asked. */}
       {isOne && (
-        <button type="button" onClick={() => onReveal(single.id)}>
+        <button type="button" onClick={() => onReveal(single)}>
           <MenuIcon name="external" className="library-list__menu-icon" />
           <span>{t('library.reveal')}</span>
         </button>

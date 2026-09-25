@@ -662,9 +662,11 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
   /**
    * Catches the one case the effect above cannot: `trackId` staying exactly
    * where it is while `track` disappears from under it — `library-root-remove`
-   * (`ipc/library.ts`) deletes a root's tracks outright, so `trackById.get(trackId)`
-   * starts returning `undefined` with no change to the queue that would
-   * re-run the loader effect. Left alone, the hidden `Audio()` keeps whatever
+   * (`ipc/library.ts`) deletes a root's tracks outright, the library then
+   * answers that it has no such song (`useLibraryTracks`' `null`), and
+   * `track` goes `undefined` with no change to the queue that would re-run
+   * the loader effect. A song not read YET never gets here: the provider
+   * keeps the last settled song until the library has answered for the next. Left alone, the hidden `Audio()` keeps whatever
    * `src` it already had — playing, with no bar and no controls, reachable
    * only by quitting.
    *

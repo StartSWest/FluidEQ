@@ -21,43 +21,27 @@ import {
   MouseEvent as ReactMouseEvent,
   PointerEvent,
   useEffect,
-  useMemo,
+  useLayoutEffect,
   useRef,
   useState,
   WheelEvent,
 } from 'react';
-import {
-  albumKey,
-  artistKey,
-  groupIntoAlbums,
-  groupIntoArtists,
-  normalizeForSearch,
-  parentFolderPath,
-  sortAlbums,
-  sortArtists,
-  sortFolders,
-  trackFolderPath,
-} from '../../common/library/grouping';
-import {
-  UNKNOWN_GENRE_ID,
-  groupIntoGenres,
-  sortGenres,
-  trackGenreIds,
-} from '../../common/library/genres';
-import {
-  ILibraryTrack,
-  TLibraryBrowseMode,
-  TLibrarySort,
-  TLibrarySortDirection,
-} from '../../common/library/types';
+import { parentFolderPath } from '../../common/library/grouping';
+import { UNKNOWN_GENRE_ID } from '../../common/library/genres';
+import { JUMP_LETTERS, jumpLetterOf } from '../../common/library/jumpLetter';
+import type { TLibraryListItem } from '../../common/library/query';
+import type { TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
-import { useFolderEntries } from './useFolderEntries';
 import LibraryDetail from './LibraryDetail';
+import { useSectionLabel } from './LibrarySectionHeading';
 import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
 import { usePlaylists } from './PlaylistContext';
+import type { ILibraryList } from './useLibraryList';
+import usePlaylistCovers from './usePlaylistCovers';
+import { useLibrary } from './LibraryContext';
 import '../styles/LibraryCoverFlow.scss';
 
 /** Covers kept mounted either side of the centre. Past this, nothing renders
@@ -152,83 +136,61 @@ export const coverFlowTransform = (offset: number): string => {
   ].join(' ');
 };
 
-/** Stable, so the folder memo is not handed a new array every render. */
 const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
 
 interface ILibraryCoverFlowProps {
-  tracks: readonly ILibraryTrack[];
+  /**
+   * The covers of the row, a page at a time (`useLibraryList`) — every shelf
+   * but Playlists, which are the listener's own. On the Folders shelf the
+   * workspace asks for the level the open folder stands on, so the open one
+   * is always among its neighbours.
+   */
+  list?: ILibraryList;
   browseMode: TLibraryBrowseMode;
   // No `onOpenAlbum`/`onOpenArtist`. This view does not navigate: pressing a
   // cover opens its songs underneath the row it is standing in — see
-  // `activateCurrent`. The drill-in page is what the list and grid do, and
-  // reaching it from here meant losing the carousel and your place in it.
-  /** Song mode's own primary action — optional the same way `NowPlayingBar`'s
-   * `volume` is: real usage (`LibraryWorkspace`) always supplies it, and none
-   * of this view's other tests — geometry, browsing, identity tracking — need
-   * a working one to exercise what they cover. */
+  // `activateCurrent`.
+  /** Song mode's own primary action. */
   onPlayTrack?: (trackId: string) => void;
-  /** The active order, for the same reason `LibraryGridView` takes it: song
-   * covers arrive already sorted, groupings do not. */
-  sort?: TLibrarySort;
-  sortDirection?: TLibrarySortDirection;
-  /** The library roots, for the Directories reading of the Folders shelf —
-   * see `useFolderEntries`. Without them this shows every folder at once. */
+  /** A song cover, or a row in the panel under the row, pressed twice in one
+   * double-press. See `LibraryListView`'s own prop of the same name. */
+  onRestartTrack?: (trackId: string) => void;
+  /** The library roots, so Back in a folder's panel climbs one level and
+   * knows when it has reached the top. */
   folderRoots?: readonly { path: string }[];
-  /** A search is on, so the folders shown are where the matches are rather
-   * than the top of the tree — see `useFolderEntries`. */
-  isSearching?: boolean;
-  /** An album or artist the workspace already has open — from the list or
-   * the grid, before the reader switched to this view. The row centres on it
-   * and opens it, so changing view carries you to the same place rather than
-   * dropping you at the top of an unrelated carousel. */
+  /** What the workspace already has open. The row centres on it and opens
+   * it, so changing view carries you to the same place rather than dropping
+   * you at the top of an unrelated carousel. */
   openId?: string;
   /** Reports what this view now has open, so the drill-in is one piece of
    * state shared by all three views rather than three that disagree. */
   onOpenChange?: (openId: string | undefined) => void;
-  /** The track the player is on, forwarded to the detail this opens. */
+  /** The song the player is on, forwarded to the panel this opens. */
   playingTrackId?: string;
-  /** A track to scroll to and select inside the panel this opens, forwarded
-   * to the same-named prop on `LibraryDetail`. */
+  /** The cover the playing song belongs to — its album, artist, genre,
+   * folder, or the song itself. */
+  playingItemId?: string;
+  /** A song to centre, or to select inside the panel this opens. */
   revealTrack?: { trackId: string; nonce: number };
-  /** The toolbar's search, forwarded to the panel this opens — which decides
-   * for itself whether the query found the container or found tracks inside
-   * it. See `LibraryDetail`'s `isQueryTheContainer`. */
+  /** The toolbar's search, forwarded to the panel this opens, which decides
+   * for itself whether the query found the container or songs inside it. */
   query?: string;
-  /** Add-to-queue, forwarded to the panel this opens. `LibraryDetail` draws
-   * that button only when it is given somewhere to send the tracks, so
-   * leaving it out is what made this the one view where a record could be
-   * started but not queued. */
+  /** Add-to-queue, forwarded to the panel this opens. */
   onQueueTracks?: (trackIds: readonly string[]) => void;
 }
 
-/** One cover's worth of what this view draws — the same split
- * `LibraryGridView`'s `IGridItem` makes between raw data (kept in the memo)
- * and the translated title/subtitle (resolved at render time), for the same
- * reason: neither `t` nor the open callbacks need to be memo dependencies. */
+/** One cover's worth of what this view draws, words resolved. */
 interface ICoverFlowItem {
   id: string;
   artId?: string;
   title: string;
-  artistName: string;
-  albumCount?: number;
-  /** A song cover: the track itself. An album or artist cover: true only
-   * while every track currently grouped into it is still unread — see
-   * `groupIntoAlbums`'/`groupIntoArtists`' own comments. */
+  /** The title as the store has it, before an empty one is named "Unknown
+   * album": what the rail files the cover under, as the store does. */
+  railTitle: string;
+  subtitle: string;
+  /** Every song grouped here is still unread — see `groupIntoAlbums`. */
   isPending: boolean;
 }
-
-/** The rail's buttons, in order. `#` collects everything that does not start
- * with a Latin letter once folded — digits, and every script this app is
- * translated into. One bucket rather than none: a library of Japanese album
- * titles should still have somewhere to jump to. */
-const JUMP_LETTERS = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')] as const;
-
-/** Which rail button a title belongs under. Accent-folded first, so "Ángel"
- * files under A rather than under `#`. */
-const jumpLetterOf = (title: string): string => {
-  const first = normalizeForSearch(title).charAt(0).toUpperCase();
-  return first >= 'A' && first <= 'Z' ? first : '#';
-};
 
 const clampIndex = (index: number, length: number): number => {
   if (length <= 0) {
@@ -244,372 +206,393 @@ const clampIndex = (index: number, length: number): number => {
  * window, the input handling and the accessible structure around it.
  *
  * Only `COVER_FLOW_NEIGHBOURS` covers either side of the centre are ever
- * mounted — see the constant's own comment. Moving the centre is wired four
- * ways: arrow keys, Home/End, the mouse wheel and a pointer drag, because a
- * carousel reachable only one of those ways is unusable for whoever does not
- * have the other.
+ * mounted, and only their pages are ever here. Moving the centre is wired
+ * four ways: arrow keys, Home/End, the mouse wheel and a pointer drag,
+ * because a carousel reachable only one of those ways is unusable for
+ * whoever does not have the other.
  *
  * The stage carries `role="listbox"` and the focus; individual covers are
  * `role="option"` and are never themselves tabbable — the
  * `aria-activedescendant` pattern WAI-ARIA's listbox authoring practice
- * describes, so a screen reader announces a position ("3 of 40") without a
- * roving tab stop the arrow keys would have to fight for.
+ * describes, so a screen reader announces a position without a roving tab
+ * stop the arrow keys would have to fight for.
  */
 const LibraryCoverFlow = ({
-  tracks,
+  list,
   browseMode,
   onPlayTrack,
-  sort,
-  sortDirection = 'asc',
+  onRestartTrack,
   folderRoots = NO_FOLDER_ROOTS,
-  isSearching = false,
   openId,
   onOpenChange,
   playingTrackId,
+  playingItemId,
   revealTrack,
   query,
   onQueueTracks,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
+  const { isScanning } = useLibrary();
   const { playlists } = usePlaylists();
+  const isPlaylists = browseMode === 'playlist';
+  const covers = usePlaylistCovers(isPlaylists ? playlists : []);
+  const sectionLabel = useSectionLabel();
 
-  // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
-  // actually change what is grouped, not on the callbacks `LibraryWorkspace`
-  // hands down fresh every render or on `t` — see that component's comment
-  // for the scan-tick re-render this avoids repeating.
-  //
-  // Declared above the state rather than beside the rest of the derivations
-  // because `currentIndex` starts from it — see that hook.
-  /**
-   * The level of the tree this row is standing on: the siblings of whatever
-   * is open, so the open one is always among the covers.
-   *
-   * The row used to be the roots and only the roots. Walking into a folder
-   * from the panel below set an id that was nowhere in the row — and the
-   * panel only draws while its id is one of the covers, so the second step
-   * into a tree closed the panel and left a carousel of one card. Reading the
-   * level from the open folder's parent makes each step a row of that
-   * folder's neighbours, which is what walking a tree looks like.
-   *
-   * From `openId` rather than `expandedId`: this has to be resolved before
-   * the state below it, and the workspace hands the same value straight back
-   * down through `onOpenChange`.
-   */
-  const folderLevel =
-    browseMode === 'folder' && openId !== undefined
-      ? parentFolderPath(openId, folderRoots)
-      : undefined;
-  // Which folders the shelf holds, under whichever reading is on.
-  const folderEntries = useFolderEntries(
-    tracks,
-    folderRoots,
-    folderLevel,
-    isSearching,
-  );
+  const count = isPlaylists ? playlists.length : (list?.count ?? 0);
 
-  const items: ICoverFlowItem[] = useMemo(() => {
-    if (browseMode === 'album') {
-      const grouped = groupIntoAlbums(tracks);
-      return (sort ? sortAlbums(grouped, sort, sortDirection) : grouped).map(
-        (album) => ({
-          id: album.id,
-          artId: album.artId,
-          title: album.title,
-          artistName: album.artist,
-          isPending: album.isPending,
-        }),
-      );
-    }
-    if (browseMode === 'artist') {
-      const grouped = groupIntoArtists(tracks);
-      return (sort ? sortArtists(grouped, sort, sortDirection) : grouped).map(
-        (artist) => ({
-          id: artist.id,
-          artId: artist.artId,
-          title: artist.name,
-          artistName: '',
-          albumCount: artist.albumCount,
-          isPending: artist.isPending,
-        }),
-      );
-    }
-    if (browseMode === 'folder') {
-      return (
-        sort ? sortFolders(folderEntries, sort, sortDirection) : folderEntries
-      ).map((folder) => ({
-        id: folder.id,
-        artId: folder.artId,
-        title: folder.name,
-        // The path under the name, exactly as `LibraryGridView` shows it:
-        // two folders called "CD1" are the normal case, and the name alone
-        // cannot tell them apart.
-        artistName: folder.id,
-        isPending: folder.isPending,
-      }));
-    }
-    if (browseMode === 'genre') {
-      const grouped = groupIntoGenres(tracks);
-      return (sort ? sortGenres(grouped, sort, sortDirection) : grouped).map(
-        (genre) => ({
-          id: genre.id,
-          artId: genre.artId,
-          // Named here rather than in `tileTitle`, the way the playlist
-          // branch below names Favourites: `t` is already a dependency of
-          // this memo for exactly that reason.
+  /** A cover, words resolved, from what the store sent. */
+  const coverOf = (item: TLibraryListItem): ICoverFlowItem | undefined => {
+    switch (item.kind) {
+      case 'album':
+        return {
+          id: item.id,
+          artId: item.artId,
+          title: item.title || t('library.unknownAlbum'),
+          railTitle: item.title,
+          subtitle: item.artist || t('library.unknownArtist'),
+          isPending: item.isPending,
+        };
+      case 'artist':
+        return {
+          id: item.id,
+          artId: item.artId,
+          title: item.name || t('library.unknownArtist'),
+          railTitle: item.name,
+          subtitle: t('library.albumCount', { count: item.albumCount }),
+          isPending: item.isPending,
+        };
+      case 'genre':
+        return {
+          id: item.id,
+          artId: item.artId,
           title:
-            genre.id === UNKNOWN_GENRE_ID
+            item.id === UNKNOWN_GENRE_ID
               ? t('library.genre.unknown')
-              : genre.name,
-          artistName: t('library.artistCount', { count: genre.artistCount }),
-          isPending: genre.isPending,
-        }),
-      );
+              : item.name,
+          railTitle: item.name,
+          subtitle: t('library.artistCount', { count: item.artistCount }),
+          isPending: item.isPending,
+        };
+      case 'folder':
+        // The path under the name: two folders called "CD1" are the normal
+        // case, and the name alone cannot tell them apart.
+        return {
+          id: item.id,
+          artId: item.artId,
+          title: item.name,
+          railTitle: item.name,
+          subtitle: item.id,
+          isPending: item.isPending,
+        };
+      case 'track':
+        return {
+          id: item.track.id,
+          artId: item.track.artId,
+          title: item.track.title,
+          railTitle: item.track.title,
+          subtitle: item.track.artist ?? '',
+          isPending: item.track.isPending === true,
+        };
+      default:
+        return undefined;
     }
-    if (browseMode === 'playlist') {
-      // In `sortPlaylists`' order and not the toolbar's, for the reason the
-      // list and grid branches give: Favourites is always the first cover.
-      return playlists.map((playlist) => ({
-        id: playlist.id,
-        artId: tracks.find((track) => playlist.trackIds.includes(track.id))
-          ?.artId,
-        title:
-          playlist.id === FAVORITES_PLAYLIST_ID
-            ? t('library.playlist.favorites')
-            : playlist.name,
-        artistName: t(
-          playlist.trackIds.length === 1
-            ? 'library.playlist.songCountOne'
-            : 'library.playlist.songCount',
-          { count: playlist.trackIds.length },
-        ),
-        isPending: false,
-      }));
+  };
+
+  /** The cover at `index`, or nothing while its page is out. */
+  const itemAt = (index: number): ICoverFlowItem | undefined => {
+    if (isPlaylists) {
+      const playlist = playlists[index];
+      return playlist === undefined
+        ? undefined
+        : {
+            id: playlist.id,
+            artId: covers.get(playlist.id),
+            title:
+              playlist.id === FAVORITES_PLAYLIST_ID
+                ? t('library.playlist.favorites')
+                : playlist.name,
+            railTitle: playlist.name,
+            subtitle: t(
+              playlist.trackIds.length === 1
+                ? 'library.playlist.songCountOne'
+                : 'library.playlist.songCount',
+              { count: playlist.trackIds.length },
+            ),
+            isPending: false,
+          };
     }
-    // 'song', and any browse mode this view does not know about yet — the
-    // same fallback `LibraryGridView` and `LibraryListView` make.
-    return tracks.map((track) => ({
-      id: track.id,
-      artId: track.artId,
-      title: track.title,
-      artistName: track.artist ?? '',
-      isPending: track.isPending === true,
-    }));
-  }, [tracks, browseMode, sort, sortDirection, folderEntries, playlists, t]);
+    const item = list?.at(index);
+    return item === undefined ? undefined : coverOf(item);
+  };
 
   /**
-   * The centre starts on whatever the workspace already had open.
-   *
-   * Not zero. Switching to this view from an open album used to mount the row
-   * at its first cover and let the hand-off effect below move it on the next
-   * commit — with the covers' 320ms transition live, so the whole carousel
-   * visibly flew from the first album to the one being read every single time
-   * the view was chosen. Starting where it belongs makes the switch a cut,
-   * which is what a view change should be; the effect below is then only for
-   * an album that arrives later, mid-scan.
+   * Where a cover is among what is held: its index, -1 where the answer is
+   * final (a playlist, or no list to ask), or nothing where only the store
+   * can say.
    */
-  const [currentIndex, setCurrentIndex] = useState(() => {
-    if (openId === undefined) {
-      return 0;
+  const heldPositionOf = (id: string): number | undefined => {
+    if (isPlaylists) {
+      return playlists.findIndex((playlist) => playlist.id === id);
     }
-    const index = items.findIndex((item) => item.id === openId);
-    return index < 0 ? 0 : index;
-  });
-  // The id of whatever is currently centred, kept beside the index itself so
-  // that a change to `items` can re-find that same album, artist or track —
-  // see the reconciling effect below, and `setCentre`, which is the only
-  // place this is written.
-  const centredId = useRef<string | undefined>(items[currentIndex]?.id);
-  /** The `openId` this view has already centred on — see the effect that
-   * reads it for why once per id, not once per `items`. */
+    const held = list?.indexOf(id) ?? -1;
+    return held !== -1 || list?.query === undefined ? held : undefined;
+  };
+  /** Where a cover is: among what is held, or asked of the store. */
+  const positionOf = (id: string): Promise<number> => {
+    const held = heldPositionOf(id);
+    if (held !== undefined || list?.query === undefined) {
+      return Promise.resolve(held ?? -1);
+    }
+    return window.electron.ipcRenderer.queryLibrary({
+      type: 'position',
+      query: list.query,
+      id,
+    });
+  };
+  const positionOfRef = useRef(positionOf);
+  positionOfRef.current = positionOf;
+
+  /**
+   * The centre, starting at the top and moved to whatever the workspace has
+   * open as soon as the store says where that is — the hand-off below.
+   */
+  const [currentIndex, setCurrentIndex] = useState(0);
+  // The id of whatever is centred, kept beside the index so a new list can
+  // find the same album, artist or song again — see the effect on the list.
+  const centredId = useRef<string | undefined>(undefined);
+  /** The `openId` this view has already centred on — once per id. */
   const appliedOpenId = useRef<string | undefined>(undefined);
   /**
    * The album or artist the drill-in below the row is showing, if any.
    *
    * Held as an id rather than as "whatever is centred", because turning the
    * row and choosing something are two different acts. Arrow keys, the wheel
-   * and a drag move the row and leave the panel exactly as it was — it does
-   * not close, and it does not follow along. Only a click on a cover changes
-   * what it shows, and only Back closes it.
+   * and a drag move the row and leave the panel exactly as it was. Only a
+   * click on a cover changes what it shows, and only Back closes it.
    *
    * Never set in song mode: a track has nothing to expand into.
    */
   const [expandedId, setExpandedId] = useState<string | undefined>(openId);
 
+  /**
+   * Which browse modes have anything to drill into: containers do, a song is
+   * not one — left ungated, switching to Songs with an album remembered from
+   * another view opened a panel over nothing.
+   */
+  const hasDrillIn =
+    browseMode === 'album' ||
+    browseMode === 'artist' ||
+    browseMode === 'genre' ||
+    browseMode === 'folder' ||
+    browseMode === 'playlist';
+
   /** Every path that opens or closes the panel goes through this, so the
-   * workspace hears about it and the other two views agree. Reporting from
-   * here rather than from an effect on `expandedId` is what keeps the sync
-   * with `openId` below from feeding back on itself. */
+   * workspace hears about it and the other two views agree. */
   const openPanel = (next: string | undefined) => {
     setExpandedId(next);
     onOpenChange?.(next);
   };
+
+  /**
+   * THE PANEL FOLLOWS THE WORKSPACE WHEN IT IS THE WORKSPACE THAT MOVES.
+   *
+   * Back and every step of the trail live on the place bar over the views
+   * (`LibraryPlaceBar`), so a record closes, and a folder changes, from
+   * outside this view. Every change of `openId` lands, closing included; a
+   * press here reports through `openPanel` and comes back as the same id,
+   * which changes nothing.
+   */
+  useEffect(() => {
+    setExpandedId(hasDrillIn ? openId : undefined);
+  }, [hasDrillIn, openId]);
   /** The covers' shared parent, measured on every press — see
    * `coverIndexAt`, which has to work out for itself what was pressed. */
   const trackRef = useRef<HTMLDivElement | null>(null);
   /** Which cover the pointer is over, or nothing. React state rather than a
-   * CSS `:hover` rule for the same reason the click is computed: Chromium
-   * does not deliver hover to these rotated covers either, so only the centre
-   * one ever lit up. */
+   * CSS `:hover` rule: Chromium does not deliver hover to these rotated
+   * covers, so only the centre one ever lit up. */
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(
     undefined,
   );
 
-  /** Moves the centre to `index`, clamped to the live `items` array, and
-   * records what is now centred. Every path that changes the centre —
-   * keyboard, wheel, drag, a click — goes through this rather than
-   * `setCurrentIndex` directly, so `centredId` is never out of date when
-   * `items` next changes. */
+  /** Moves the centre to `index`, clamped to the row, and records what is
+   * now centred. Every path that changes the centre goes through this. */
   const setCentre = (index: number) => {
-    const clamped = clampIndex(index, items.length);
-    centredId.current = items[clamped]?.id;
+    const clamped = clampIndex(index, count);
+    centredId.current = itemAt(clamped)?.id;
     setCurrentIndex(clamped);
-    // Nothing here touches the panel. It follows the centre rather than
-    // belonging to one album — see `isPanelOpen`.
   };
 
-  // `items` changing shape — a rescan that inserts albums ahead of the one
-  // being looked at, one that finishes and removes it — must not leave the
-  // centre pointing at whatever numeric position now happens to be in
-  // range: that silently swaps what the centre is showing with no
-  // indication anything moved. `centredId` is looked up in the new `items`
-  // first, so the same album, artist or track stays centred at whatever
-  // index it now sits at; only when that id is gone entirely (or this is
-  // the first render) does the centre fall back to clamping the old index.
+  // The covers either side of the centre, asked for as the centre moves.
   useEffect(() => {
-    const previousId = centredId.current;
-    const foundIndex =
-      previousId === undefined
-        ? -1
-        : items.findIndex((item) => item.id === previousId);
-    const nextIndex = clampIndex(
-      foundIndex === -1 ? currentIndex : foundIndex,
-      items.length,
+    list?.want(
+      Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS),
+      currentIndex + COVER_FLOW_NEIGHBOURS + 1,
     );
-    centredId.current = items[nextIndex]?.id;
-    setCurrentIndex(nextIndex);
-    // `currentIndex` is deliberately not a dependency: this effect exists to
-    // reconcile the centre against a new `items` array, and every other
-    // change to `currentIndex` already goes through `setCentre` above, which
-    // keeps `centredId` in step itself without needing this effect to run
-    // again for it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items]);
+  }, [list, currentIndex]);
+
+  /**
+   * THE ROW MOVING UNDER THE CENTRE KEEPS WHAT WAS CENTRED.
+   *
+   * A scan changes the rows under the same query — a song's tags are read and
+   * its album re-sorts, albums whose titles sort first arrive — and the cover
+   * at the centre's index is then a different one. Adopting it silently showed
+   * another album where the reader had left theirs, so a cover that is not the
+   * one recorded is looked for, and the centre goes to it; only one that is
+   * gone from the row lets the centre take what now stands there. Every move
+   * made on purpose records its id first (`setCentre`, the hand-offs), so a
+   * difference here is the row moving, never the reader.
+   *
+   * With nothing recorded yet — the centre was moved onto a page still out —
+   * the cover that arrives is simply what is centred.
+   *
+   * Before the paint, and from the rows held when they have it — they
+   * usually do, a scan's insertions being near — so the other cover is never
+   * drawn at the centre for a frame; only a cover past the held pages waits
+   * on the store.
+   */
+  const centreId = itemAt(currentIndex)?.id;
+  const heldPositionOfRef = useRef(heldPositionOf);
+  heldPositionOfRef.current = heldPositionOf;
+  useLayoutEffect(() => {
+    const wanted = centredId.current;
+    if (centreId === undefined || wanted === centreId) {
+      return undefined;
+    }
+    if (wanted === undefined) {
+      centredId.current = centreId;
+      return undefined;
+    }
+    const held = heldPositionOfRef.current(wanted);
+    if (held !== undefined) {
+      if (held >= 0) {
+        setCurrentIndex(held);
+      } else {
+        centredId.current = centreId;
+      }
+      return undefined;
+    }
+    let isCurrent = true;
+    positionOfRef
+      .current(wanted)
+      .then((index) => {
+        if (!isCurrent) {
+          return undefined;
+        }
+        if (index >= 0) {
+          setCurrentIndex(index);
+        } else {
+          centredId.current = centreId;
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+  }, [centreId]);
+
+  /**
+   * A DIFFERENT ROW — a new sort, a search, another shelf — keeps what was
+   * centred, wherever it now stands. Asked of the store, because it can be
+   * anywhere in the new row; one that is not in it leaves the centre where
+   * it was, clamped to the row's length.
+   */
+  const listKey = list?.query === undefined ? '' : JSON.stringify(list.query);
+  useEffect(() => {
+    const id = centredId.current;
+    if (id === undefined) {
+      return undefined;
+    }
+    let isCurrent = true;
+    positionOfRef
+      .current(id)
+      .then((index) => {
+        if (isCurrent && index >= 0) {
+          setCurrentIndex(index);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+  }, [listKey]);
+  // Clamped whenever the row gets shorter under a scan.
+  useEffect(() => {
+    setCurrentIndex((current) => clampIndex(current, count));
+  }, [count]);
 
   /**
    * The workspace already had something open when this view was chosen, so
-   * go to it: centre that cover and show its detail underneath.
-   *
-   * Without this, switching to Cover Flow from an open album dropped the
-   * reader at the top of an unrelated carousel and closed what they were
-   * looking at — the view change threw away the only thing they had said.
-   *
-   * Depends on `items` as well as `openId`: a scan still running can produce
-   * the album a moment after the switch, and the row should go to it when it
-   * arrives rather than only if it happened to exist already.
+   * go to it: centre that cover and show its detail underneath. Once per id,
+   * not once per answer: the row changes under a scan several times a
+   * second, and an effect that centred on `openId` every time dragged the row
+   * back to it the instant the reader turned away.
    */
   useEffect(() => {
     if (openId === undefined) {
       appliedOpenId.current = undefined;
-      return;
+      return undefined;
     }
-    // Once per id, not once per render of `items`.
-    //
-    // `items` gets a new identity on every scan batch — several times a
-    // second while one runs — so an effect that centred on `openId` every
-    // time it changed dragged the row back to that album the instant the
-    // reader scrolled away from it. Recording which id has already been
-    // honoured is what makes this a hand-off rather than a leash.
     if (appliedOpenId.current === openId) {
-      return;
+      return undefined;
     }
-    const index = items.findIndex((item) => item.id === openId);
-    if (index < 0) {
-      // Not in the row yet. Deliberately not marked as applied: a scan still
-      // running can produce this album a moment from now, and the hand-off
-      // should still happen when it does.
-      return;
-    }
-    appliedOpenId.current = openId;
-    centredId.current = openId;
-    setCurrentIndex(index);
-    setExpandedId(openId);
-  }, [openId, items]);
+    let isCurrent = true;
+    positionOfRef
+      .current(openId)
+      .then((index) => {
+        // Not in the row yet: a scan still running can produce it, and the
+        // hand-off should still happen when it does — so not marked applied.
+        if (!isCurrent || index < 0) {
+          return undefined;
+        }
+        appliedOpenId.current = openId;
+        centredId.current = openId;
+        setCurrentIndex(index);
+        setExpandedId(openId);
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+  }, [openId, listKey, count]);
 
   /**
-   * Song mode's own hand-off: centre the row on a track the workspace asked
-   * for.
-   *
-   * `openId` cannot do this job — it opens a panel, and a track has nothing
-   * to open. So a switch to Songs, or the now-playing bar's "show me what is
-   * playing", arrives here instead and only moves the centre. In the other
-   * three modes the id is an album's, an artist's or a folder's and never
-   * matches a cover here, so the effect stands aside and `openId` above does
-   * the work.
+   * Song mode's own hand-off: centre the row on a song the workspace asked
+   * for. In the other modes the id is a container's and matches no cover, so
+   * this stands aside and `openId` above does the work.
    */
   const revealNonce = revealTrack?.nonce;
   const revealTrackId = revealTrack?.trackId;
   useEffect(() => {
-    if (revealTrackId === undefined) {
-      return;
+    if (revealTrackId === undefined || browseMode !== 'song') {
+      return undefined;
     }
-    const index = items.findIndex((item) => item.id === revealTrackId);
-    if (index < 0) {
-      return;
-    }
-    centredId.current = revealTrackId;
-    setCurrentIndex(index);
-    // Keyed on the request rather than on `items`, which gets a new identity
-    // on every scan batch — see the effect above for what that costs.
+    let isCurrent = true;
+    positionOfRef
+      .current(revealTrackId)
+      .then((index) => {
+        if (isCurrent && index >= 0) {
+          centredId.current = revealTrackId;
+          setCurrentIndex(index);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+    // Keyed on the request, not on the row changing under a scan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealTrackId, revealNonce]);
 
   /**
-   * The cover the playing track belongs to.
-   *
-   * Marking the song in the table below was not enough: the row is what the
-   * reader is looking at in this view, and with only the list marked the
-   * carousel gave no sign at all of where the music was coming from. Keyed
-   * the same way the covers themselves are grouped — `albumKey` for an album
-   * cover, `artistKey` for an artist one, the track's own id for a song —
-   * so a cover and its songs can never disagree about which is playing.
-   */
-  const playingItemId = useMemo(() => {
-    if (playingTrackId === undefined) {
-      return undefined;
-    }
-    const playing = tracks.find((track) => track.id === playingTrackId);
-    if (!playing) {
-      return undefined;
-    }
-    if (browseMode === 'album') {
-      return albumKey(playing);
-    }
-    if (browseMode === 'artist') {
-      return artistKey(playing);
-    }
-    if (browseMode === 'genre') {
-      // The first of them, where a track claims several. This marks ONE
-      // cover as the one playing and a track tagged "Rock; Pop" is genuinely
-      // on two shelves — highlighting both is not something a single centre
-      // index can express, and picking the first is at least stable across
-      // renders because `trackGenreIds` preserves tag order.
-      return trackGenreIds(playing)[0];
-    }
-    if (browseMode === 'folder') {
-      return trackFolderPath(playing.path);
-    }
-    return playing.id;
-  }, [tracks, playingTrackId, browseMode]);
-
-  /**
-   * Left and right move the row, whether or not it has been clicked first.
-   *
-   * The stage carries the same keys and always has, but only once it holds
-   * focus — and nothing about a carousel says "click me before the arrow keys
-   * do anything". This is the same handler at window level, refusing to act
-   * whenever the key belongs to somebody else: any text field, any element a
-   * reader is editing, and any modifier combination, which are shortcuts
-   * rather than navigation.
+   * Left and right move the row, whether or not it has been clicked first —
+   * the stage's own keys, at window level, refusing whenever the key belongs
+   * to somebody else: any text field, anything being edited, and any
+   * modifier combination, which are shortcuts rather than navigation.
    */
   useEffect(() => {
     const onKey = (event: globalThis.KeyboardEvent) => {
@@ -642,47 +625,44 @@ const LibraryCoverFlow = ({
   }, []);
 
   /**
-   * The first cover under each letter of the rail.
-   *
-   * Built from `items` in their current order, so it follows whatever sort is
-   * in force rather than assuming alphabetical — a rail that jumps to "the
-   * first D" is honest under any order; one that assumed A-Z would send the
-   * reader somewhere arbitrary the moment they sorted by year.
+   * The first cover under each letter of the rail, in the row's current
+   * order — a rail that jumps to "the first D" is honest under any sort; one
+   * that assumed A-Z would send the reader somewhere arbitrary sorted by
+   * year. Asked of the store for the whole row, once per row: not at every
+   * change a scan makes, which would walk the list again several times a
+   * second, but once more when the scan is done.
    *
    * A letter with nothing under it stays on the rail and is disabled: a
-   * jumper whose buttons come and go is one nobody can build muscle memory
-   * for, and the gap itself says something about the library.
+   * jumper whose buttons come and go is one nobody builds muscle memory for.
    */
-  const jumpTargets = useMemo(() => {
-    const firstIndex = new Map<string, number>();
-    items.forEach((item, index) => {
-      const letter = jumpLetterOf(item.title);
-      if (!firstIndex.has(letter)) {
-        firstIndex.set(letter, index);
-      }
-    });
-    return firstIndex;
-  }, [items]);
-
-  const tileSubtitle = (item: ICoverFlowItem): string => {
-    if (browseMode === 'artist') {
-      return t('library.albumCount', { count: item.albumCount ?? 0 });
+  const [jumpTargets, setJumpTargets] = useState<Map<string, number>>(
+    () => new Map(),
+  );
+  useEffect(() => {
+    if (isPlaylists) {
+      setJumpTargets(new Map());
+      return undefined;
     }
-    if (browseMode === 'album') {
-      return item.artistName || t('library.unknownArtist');
+    const asked = list?.query;
+    if (asked === undefined) {
+      return undefined;
     }
-    return item.artistName;
-  };
-
-  const tileTitle = (item: ICoverFlowItem): string => {
-    if (browseMode === 'album') {
-      return item.title || t('library.unknownAlbum');
-    }
-    if (browseMode === 'artist') {
-      return item.title || t('library.unknownArtist');
-    }
-    return item.title;
-  };
+    let isCurrent = true;
+    window.electron.ipcRenderer
+      .queryLibrary({ type: 'letters', query: asked })
+      .then((letters) => {
+        if (isCurrent) {
+          setJumpTargets(new Map(Object.entries(letters)));
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+    // `list.query` is what `listKey` spells.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listKey, isPlaylists, isScanning]);
 
   /**
    * The centre's own primary action.
@@ -695,9 +675,11 @@ const LibraryCoverFlow = ({
    * in below it. Pressing the same cover again puts it back.
    *
    * A song still just plays — there is nothing under a track to expand into.
+   * `pressCount` is the system's own click count: the second press of a
+   * double-press starts the song again, as a row does (`LibraryTrackRow`).
    */
-  const activateCurrent = () => {
-    const item = items[currentIndex];
+  const activateCurrent = (pressCount: number) => {
+    const item = itemAt(currentIndex);
     if (!item) {
       return;
     }
@@ -709,6 +691,10 @@ const LibraryCoverFlow = ({
       browseMode === 'playlist'
     ) {
       openPanel(expandedId === item.id ? undefined : item.id);
+      return;
+    }
+    if (pressCount > 1) {
+      (onRestartTrack ?? onPlayTrack)?.(item.id);
       return;
     }
     onPlayTrack?.(item.id);
@@ -742,12 +728,12 @@ const LibraryCoverFlow = ({
     }
     if (event.key === 'End') {
       event.preventDefault();
-      setCentre(items.length - 1);
+      setCentre(count - 1);
       return;
     }
     if (event.key === 'Enter') {
       event.preventDefault();
-      activateCurrent();
+      activateCurrent(1);
     }
   };
 
@@ -846,13 +832,13 @@ const LibraryCoverFlow = ({
     dragState.current = undefined;
   };
 
-  const onCoverClick = (index: number) => {
+  const onCoverClick = (index: number, pressCount: number) => {
     if (suppressNextClick.current) {
       suppressNextClick.current = false;
       return;
     }
     if (index === currentIndex) {
-      activateCurrent();
+      activateCurrent(pressCount);
       return;
     }
     setCentre(index);
@@ -860,7 +846,7 @@ const LibraryCoverFlow = ({
     // already open. Turning the row by any other means leaves the panel
     // showing what it was showing; see `expandedId`.
     if (expandedId !== undefined) {
-      openPanel(items[clampIndex(index, items.length)]?.id);
+      openPanel(itemAt(clampIndex(index, count))?.id);
     }
   };
 
@@ -887,10 +873,13 @@ const LibraryCoverFlow = ({
    * fanned row should take you to it.
    */
   const start = Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS);
-  const end = Math.min(items.length - 1, currentIndex + COVER_FLOW_NEIGHBOURS);
-  const visible: { item: ICoverFlowItem; index: number }[] = [];
+  const end = Math.min(count - 1, currentIndex + COVER_FLOW_NEIGHBOURS);
+  // A cover whose page is still out is drawn as an empty sleeve in its place,
+  // so every mounted cover is one step of the row — `coverIndexAt` counts on
+  // that.
+  const visible: { item: ICoverFlowItem | undefined; index: number }[] = [];
   for (let index = start; index <= end; index += 1) {
-    visible.push({ item: items[index], index });
+    visible.push({ item: itemAt(index), index });
   }
 
   const coverIndexAt = (clientX: number): number | undefined => {
@@ -917,39 +906,59 @@ const LibraryCoverFlow = ({
   const onStageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     const index = coverIndexAt(event.clientX);
     if (index !== undefined) {
-      onCoverClick(index);
+      onCoverClick(index, event.detail);
     }
   };
 
-  const centreItem = items[currentIndex];
+  const centreItem = itemAt(currentIndex);
   const optionId = (id: string) => `library-coverflow-option-${id}`;
-  /**
-   * Which browse modes have anything to drill into.
-   *
-   * An album, an artist and a folder are containers and the panel below lists
-   * what is in them. A song is not: the row is the songs, and pressing one
-   * plays it. Left ungated, switching to Songs with an album still remembered
-   * from another view opened that panel with no container id to look up — a
-   * header reading "Unknown artist, 0 albums, 0 songs" over an empty table,
-   * with a Play button that could not do anything.
-   */
-  const hasDrillIn =
-    browseMode === 'album' ||
-    browseMode === 'artist' ||
-    browseMode === 'genre' ||
-    browseMode === 'folder' ||
-    browseMode === 'playlist';
 
-  // Open, and still pointing at something that exists: a rescan can remove
-  // the album out from under it, and a panel with nothing behind it is a
-  // blank page with a Back button.
-  const isExpanded =
-    hasDrillIn &&
-    expandedId !== undefined &&
-    items.some((item) => item.id === expandedId);
+  // Open is open. Whether what it names still exists is the panel's own
+  // question: `LibraryDetail` closes itself when its record is gone (a rescan
+  // dropped the album, the root was removed). It used to be asked here as
+  // "is it one of the covers", which with the row read a page at a time would
+  // close the panel whenever the reader turned the row far enough from it —
+  // and a folder holding only folders is never a cover at all.
+  const isExpanded = hasDrillIn && expandedId !== undefined;
+
+  /**
+   * Which half of a search the centre is in, when the search was made from
+   * inside a folder: its matches come first, then the rest of the library
+   * (`libraryRows.ts`). The row has no rows to put a heading between, so the
+   * heading is said over the row, for the cover in front of the reader.
+   */
+  const nearQuery = list?.query;
+  const isSectioned =
+    !isPlaylists &&
+    nearQuery?.near !== undefined &&
+    (nearQuery.search ?? '').trim() !== '' &&
+    list?.isLoaded === true;
+  let centreSection: 'near' | 'nearEmpty' | 'elsewhere' | undefined;
+  if (isSectioned && list !== undefined) {
+    if (list.nearCount === 0) {
+      centreSection = 'nearEmpty';
+    } else {
+      centreSection = currentIndex < list.nearCount ? 'near' : 'elsewhere';
+    }
+  }
 
   return (
     <div className={`library-coverflow${isExpanded ? ' is-expanded' : ''}`}>
+      {/* Which half of a search the cover in front of the reader is in. */}
+      {centreSection !== undefined && (
+        <p
+          className={`library-section library-coverflow__section library-section--${centreSection}`}
+          aria-live="polite"
+        >
+          <MenuIcon
+            name={centreSection === 'elsewhere' ? 'folderTree' : 'folder'}
+            className="library-section__icon"
+          />
+          <span className="library-section__label">
+            {sectionLabel(centreSection, nearQuery?.near)}
+          </span>
+        </p>
+      )}
       {/* The letter rail, above the row it steers. Thirteen covers of a
           fourteen-thousand-file library is a lot of scrolling to reach the
           Rs; this is the one control that crosses the whole collection in a
@@ -963,7 +972,7 @@ const LibraryCoverFlow = ({
           const target = jumpTargets.get(letter);
           const isCurrent =
             centreItem !== undefined &&
-            jumpLetterOf(centreItem.title) === letter;
+            jumpLetterOf(centreItem.railTitle) === letter;
           return (
             <button
               key={letter}
@@ -1023,7 +1032,7 @@ const LibraryCoverFlow = ({
           className="library-coverflow__arrow library-coverflow__arrow--next"
           aria-label={t('library.coverflow.next')}
           title={t('library.coverflow.next')}
-          disabled={currentIndex >= items.length - 1}
+          disabled={currentIndex >= count - 1}
           onClick={(event) => {
             event.stopPropagation();
             moveBy(1);
@@ -1036,8 +1045,23 @@ const LibraryCoverFlow = ({
         <div className="library-coverflow__track" ref={trackRef}>
           {visible.map(({ item, index }) => {
             const isCentre = index === currentIndex;
-            const title = tileTitle(item);
-            const subtitle = tileSubtitle(item);
+            if (item === undefined) {
+              return (
+                <div
+                  key={`pending-${index}`}
+                  aria-hidden="true"
+                  className="library-coverflow__cover library-coverflow__cover--placeholder"
+                  style={{
+                    transform: coverFlowTransform(index - currentIndex),
+                  }}
+                >
+                  <span className="library-coverflow__art">
+                    <span className="library-cover-art library-cover-art--cover" />
+                  </span>
+                </div>
+              );
+            }
+            const { title, subtitle } = item;
             return (
               // An `option` in the `aria-activedescendant` pattern is
               // deliberately not a tab stop and has no key handler of its
@@ -1109,19 +1133,18 @@ const LibraryCoverFlow = ({
           the same track table with its badges and reveal menu that the list
           and grid open. A second, near-identical panel was written here
           first and was exactly the kind of thing that drifts: one of the two
-          would grow a column the other never got. Its Back button collapses
-          the panel instead of navigating, which is the only difference and
-          is the whole point of this view. */}
+          would grow a column the other never got. Back is the place bar's,
+          over the views; closing a record there collapses this panel and
+          leaves the row where it was, which is the whole point of this
+          view. */}
       {isExpanded && (
         <div className="library-coverflow__panel">
           <LibraryDetail
-            tracks={tracks}
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
             genreId={browseMode === 'genre' ? expandedId : undefined}
             folderPath={browseMode === 'folder' ? expandedId : undefined}
             playlistId={browseMode === 'playlist' ? expandedId : undefined}
-            folderRoots={folderRoots}
             // Walking deeper is opening a different cover, which this view
             // already knows how to do.
             onOpenFolder={(path) => openPanel(path)}
@@ -1138,6 +1161,7 @@ const LibraryCoverFlow = ({
               )
             }
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+            onRestartTrack={onRestartTrack}
             onQueueTracks={onQueueTracks}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}

@@ -32,8 +32,8 @@ import {
   useState,
 } from 'react';
 import {
+  CONTINUATION_BATCH,
   CONTINUATION_LOW_WATER,
-  pickContinuation,
 } from '../../../common/library/continuation';
 import { ILibraryQueue, currentTrackId } from '../../../common/library/queue';
 import { ILibraryTrack } from '../../../common/library/types';
@@ -64,14 +64,12 @@ export interface IUpNext {
 export const useUpNext = (options: {
   queue: ILibraryQueue | undefined;
   trackId: string | undefined;
-  trackById: Map<string, ILibraryTrack>;
-  /** Everything the library knows, which is where continuation draws from. */
-  libraryTracks: readonly ILibraryTrack[];
+  trackById: ReadonlyMap<string, ILibraryTrack>;
   setQueue: (
     update: (current: ILibraryQueue | undefined) => ILibraryQueue | undefined,
   ) => void;
 }): IUpNext => {
-  const { queue, trackId, trackById, libraryTracks, setQueue } = options;
+  const { queue, trackId, trackById, setQueue } = options;
 
   /**
    * KEEP PLAYING WHEN THE LIST RUNS OUT.
@@ -83,8 +81,9 @@ export const useUpNext = (options: {
    * failure this project's rules are written against.
    *
    * So when the run ahead gets short, more of the same genre is drawn from
-   * the whole library and appended. `pickContinuation` owns the choosing and
-   * is pure; this owns only when to ask.
+   * the whole library and appended. The store does the choosing
+   * (`continuation` in `libraryTrackQuestions.ts`, the rules of
+   * `pickContinuation`); this owns only when to ask.
    *
    * NOT A TIMER, and it must never become one: the condition is how much is
    * left ahead of the playhead, which changes exactly when the queue does.
@@ -124,53 +123,77 @@ export const useUpNext = (options: {
     }
   }, [trackId]);
 
+  const playing = queue ? currentTrackId(queue) : undefined;
+  // The seed's kind alone, so the lookup being refreshed — a scan batch, a
+  // loudness measured — does not ask for more while the first ask is out.
+  const seedKind =
+    playing === undefined ? undefined : trackById.get(playing)?.kind;
   useEffect(() => {
     // `repeat` other than 'off' means the queue never runs out — 'all' wraps
     // and 'one' holds — so there is nothing here to answer.
     if (!isContinuationOn || !queue || queue.repeat !== 'off') {
-      return;
+      return undefined;
     }
     const ahead = queue.order.length - queue.position - 1;
-    if (ahead >= CONTINUATION_LOW_WATER) {
-      return;
-    }
-    const playing = currentTrackId(queue);
-    const seed = playing === undefined ? undefined : trackById.get(playing);
     // A film ending is not a request for more films. Continuation is about
-    // music carrying on in the background; `pickContinuation` draws audio
-    // only, and seeding it from a video would answer a question nobody asked.
-    if (!seed || seed.kind !== 'audio') {
-      return;
+    // music carrying on in the background; the store draws audio only, and
+    // seeding it from a video would answer a question nobody asked.
+    if (
+      ahead >= CONTINUATION_LOW_WATER ||
+      playing === undefined ||
+      seedKind !== 'audio'
+    ) {
+      return undefined;
     }
-    const exclude = new Set([...queue.trackIds, ...playedIds.current]);
-    const picked = pickContinuation(libraryTracks, seed, exclude);
-    if (picked.length === 0) {
-      // Nothing left in the genre that has not been heard. The player stops
-      // at the end of the run, which is the honest answer — better than
-      // starting the same forty songs again without being asked.
-      return;
-    }
-    setContinuedIds((current) => {
-      const next = new Set(current);
-      picked.forEach((id) => next.add(id));
-      return next;
-    });
-    // AT THE END, not after the playhead: what sits directly after the
-    // current track is the listener's own picks, and a continuation that
-    // pushed itself in front of them would answer a decision they made with
-    // a guess this made.
-    setQueue((current) => {
-      if (!current) {
-        return current;
-      }
-      const base = current.trackIds.length;
-      return {
-        ...current,
-        trackIds: [...current.trackIds, ...picked],
-        order: [...current.order, ...picked.map((_, index) => base + index)],
-      };
-    });
-  }, [isContinuationOn, queue, libraryTracks, trackById, setQueue]);
+    let isCurrent = true;
+    window.electron.ipcRenderer
+      .queryLibrary({
+        type: 'continuation',
+        seedId: playing,
+        exclude: Array.from(new Set([...queue.trackIds, ...playedIds.current])),
+        count: CONTINUATION_BATCH,
+      })
+      .then((picked) => {
+        // Nothing left in the genre that has not been heard: the player
+        // stops at the end of the run, which is the honest answer — better
+        // than starting the same forty songs again without being asked. And
+        // a queue that moved while this was out asks again for itself.
+        if (!isCurrent || picked.length === 0) {
+          return undefined;
+        }
+        setContinuedIds((current) => {
+          const next = new Set(current);
+          picked.forEach((id) => next.add(id));
+          return next;
+        });
+        // AT THE END, not after the playhead: what sits directly after the
+        // current track is the listener's own picks, and a continuation that
+        // pushed itself in front of them would answer a decision they made
+        // with a guess this made.
+        setQueue((current) => {
+          if (!current) {
+            return current;
+          }
+          const base = current.trackIds.length;
+          return {
+            ...current,
+            trackIds: [...current.trackIds, ...picked],
+            order: [
+              ...current.order,
+              ...picked.map((_, index) => base + index),
+            ],
+          };
+        });
+        return undefined;
+      })
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; the run ends where it ends
+        console.error('Could not draw songs to keep playing', error);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [isContinuationOn, queue, playing, seedKind, setQueue]);
 
   /**
    * The ids the listener added by hand, ever.

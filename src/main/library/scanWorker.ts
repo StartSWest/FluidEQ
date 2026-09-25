@@ -40,6 +40,7 @@ import {
   onHostMessage,
 } from './scanWorkerProtocol';
 import { scanLibraryRoot } from './libraryScanner';
+import { openLibraryReader } from './libraryStoreOpen';
 
 let cancelRequested = false;
 let nextArtworkRequestId = 0;
@@ -88,20 +89,39 @@ onHostMessage((message: IScanWorkerRequest) => {
     return;
   }
   cancelRequested = false;
+  // What the library already holds is asked of the store one path at a time,
+  // over a read-only connection main's writes do not block (WAL). A store
+  // that will not open here is reported as a failure, which puts the host on
+  // its in-process path with main's own connection — never scanned as if
+  // the library were empty, which would re-read every file and reset the day
+  // each song was added.
+  let reader: ReturnType<typeof openLibraryReader>;
+  try {
+    reader = openLibraryReader(message.userDataDir);
+  } catch (error) {
+    send({
+      type: 'failed',
+      message: `Could not open the library store: ${String(error)}`,
+    });
+    return;
+  }
   scanLibraryRoot({
     rootId: message.rootId,
     rootPath: message.rootPath,
     userDataDir: message.userDataDir,
-    known: message.known,
+    lookupKnown: reader.trackByPath,
+    force: message.force,
     storeArtwork: storeArtworkInHost,
     onProgress: (progress) => send({ type: 'progress', progress }),
-    onTracks: (tracks) => send({ type: 'tracks', tracks }),
+    onTracks: (tracks, confirmed) =>
+      send({ type: 'tracks', tracks, confirmed }),
+    onUnchanged: (ids) => send({ type: 'unchanged', ids }),
     isCancelled: () => cancelRequested,
   })
     .then((result) =>
       send({
         type: 'done',
-        tracks: result.tracks,
+        found: result.found,
         karaokeSkipped: result.karaokeSkipped,
         wasCancelled: result.wasCancelled,
       }),
@@ -110,5 +130,6 @@ onHostMessage((message: IScanWorkerRequest) => {
       // The host cannot see this process's stack otherwise, and a scan that
       // ends with nothing said is indistinguishable from one still running.
       send({ type: 'failed', message: String(error) });
-    });
+    })
+    .finally(() => reader.close());
 });

@@ -23,15 +23,15 @@ import {
   emptyLibraryIndex,
   loadLibraryIndex,
   parseLibraryIndex,
-  saveLibraryIndex,
-  trackPathById,
 } from '../../../main/library/libraryIndex';
 
 const tempDir = (): string =>
   fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-library-'));
 
-describe('the library index on disk', () => {
-  it('round-trips what it was given', () => {
+// The JSON file the library lived in before the store: read once, to move it
+// in (`libraryStoreOpen.ts`), and never written again.
+describe('the old library index on disk', () => {
+  it('reads what an earlier build wrote', () => {
     const dir = tempDir();
     const index = emptyLibraryIndex();
     index.roots.push({
@@ -52,7 +52,10 @@ describe('the library index on disk', () => {
       mtimeMs: 20,
       addedAt: 30,
     });
-    saveLibraryIndex(dir, index);
+    fs.writeFileSync(
+      path.join(dir, 'library-index.json'),
+      JSON.stringify(index, null, 2),
+    );
     expect(loadLibraryIndex(dir)).toEqual({ index, wasReset: false });
   });
 
@@ -86,23 +89,5 @@ describe('the library index on disk', () => {
       roots: [],
       tracks: [],
     });
-  });
-
-  it('resolves a track id to its path and nothing else to anything', () => {
-    const index = emptyLibraryIndex();
-    index.tracks.push({
-      id: 't1',
-      rootId: 'r1',
-      path: 'C:\\Music\\a.mp3',
-      kind: 'audio',
-      isPlayable: true,
-      title: 'A',
-      sizeBytes: 1,
-      mtimeMs: 1,
-      addedAt: 1,
-    });
-    expect(trackPathById(index, 't1')).toBe('C:\\Music\\a.mp3');
-    expect(trackPathById(index, '../../etc/passwd')).toBeUndefined();
-    expect(trackPathById(index, 'constructor')).toBeUndefined();
   });
 });

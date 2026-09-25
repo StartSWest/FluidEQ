@@ -16,8 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { rowWindowFor } from '../../renderer/library/LibraryListView';
-import { tileWindowFor } from '../../renderer/library/LibraryGridView';
+import {
+  gridWindowFor,
+  IGridWindow,
+  TGridBlock,
+} from '../../renderer/library/libraryGridLayout';
+import { rowWindowFor } from '../../renderer/library/useListWindow';
 
 /**
  * The library's list and grid mount only the rows near the viewport. How many
@@ -46,6 +50,17 @@ const GRID_METRICS = {
   columns: 6,
   padding: 16,
 };
+
+/** The whole library as one run of tiles: a grid with nothing searched. */
+const ONE_RUN: TGridBlock[] = [{ kind: 'tiles', first: 0, count: ROWS }];
+
+/** Every tile the window mounts, however many slices it came in. */
+const tilesMounted = (grid: IGridWindow): number =>
+  grid.mounted.reduce(
+    (total, entry) =>
+      entry.kind === 'tiles' ? total + entry.end - entry.start : total,
+    0,
+  );
 
 describe('the list window', () => {
   it('mounts a few screenfuls, not the whole library', () => {
@@ -148,86 +163,149 @@ describe('the list window', () => {
 
 describe('the grid window', () => {
   it('mounts a few rows of tiles, not the whole library', () => {
-    const { start, end } = tileWindowFor({
+    const grid = gridWindowFor({
       scrollTop: 0,
       paneHeight: SCREEN,
       screenHeight: SCREEN,
       metrics: GRID_METRICS,
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(start).toBe(0);
-    expect(end).toBeLessThan(300);
+    expect(grid.start).toBe(0);
+    expect(grid.end).toBeGreaterThan(0);
+    expect(grid.end).toBeLessThan(300);
+    expect(tilesMounted(grid)).toBe(grid.end - grid.start);
   });
 
   it('refuses a pane taller than the screen', () => {
-    const { start, end } = tileWindowFor({
+    const grid = gridWindowFor({
       scrollTop: 0,
       paneHeight: RUNAWAY_PANE,
       screenHeight: SCREEN,
       metrics: GRID_METRICS,
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(end - start).toBeLessThanOrEqual(600);
-    expect(end).toBeLessThan(ROWS / 10);
+    expect(tilesMounted(grid)).toBeLessThanOrEqual(600);
+    expect(grid.end).toBeLessThan(ROWS / 10);
   });
 
   it('caps the window even when the screen itself is absurd', () => {
-    const { start, end } = tileWindowFor({
+    const grid = gridWindowFor({
       scrollTop: 0,
       paneHeight: RUNAWAY_PANE,
       screenHeight: RUNAWAY_PANE,
       metrics: GRID_METRICS,
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(end - start).toBeLessThanOrEqual(600);
+    expect(tilesMounted(grid)).toBeLessThanOrEqual(600);
   });
 
   it('survives a single-column layout, which is what a narrow window gives', () => {
     // The resize that started all this. One column means one tile per row, so
     // the row count equals the tile count — the case most likely to overshoot.
-    const { start, end } = tileWindowFor({
+    const grid = gridWindowFor({
       scrollTop: 0,
       paneHeight: RUNAWAY_PANE,
       screenHeight: 700,
       metrics: { ...GRID_METRICS, columns: 1 },
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(end - start).toBeLessThanOrEqual(600);
+    expect(tilesMounted(grid)).toBeLessThanOrEqual(600);
+  });
+
+  it('caps the window across runs too, not one run at a time', () => {
+    // A search from inside a folder is two runs of tiles with a band between
+    // them. A cap applied per run would let each mount its own six hundred.
+    const grid = gridWindowFor({
+      scrollTop: 0,
+      paneHeight: RUNAWAY_PANE,
+      screenHeight: RUNAWAY_PANE,
+      metrics: GRID_METRICS,
+      blocks: [
+        { kind: 'band', row: 0 },
+        { kind: 'tiles', first: 1, count: 5_000 },
+        { kind: 'band', row: 5_001 },
+        { kind: 'tiles', first: 5_002, count: 9_000 },
+      ],
+    });
+    expect(tilesMounted(grid)).toBeLessThanOrEqual(600);
   });
 
   it('mounts whole rows, so the last line is never ragged', () => {
-    const { start, end } = tileWindowFor({
-      scrollTop: 4_000,
+    // Far enough down that the overscan above does not reach the top: a
+    // window starting at tile 0 is a whole row by accident.
+    const grid = gridWindowFor({
+      scrollTop: 40_000,
       paneHeight: SCREEN,
       screenHeight: SCREEN,
       metrics: GRID_METRICS,
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(start % GRID_METRICS.columns).toBe(0);
-    expect(end % GRID_METRICS.columns).toBe(0);
+    expect(grid.start).toBeGreaterThan(0);
+    expect(grid.start % GRID_METRICS.columns).toBe(0);
+    expect(grid.end % GRID_METRICS.columns).toBe(0);
+  });
+
+  it('starts every run on a row of its own, whole rows either side of a band', () => {
+    // A band spans every column and CSS grid places nothing beside it, so the
+    // run after one starts a new row — counted from the run, not the list.
+    const grid = gridWindowFor({
+      scrollTop: 0,
+      paneHeight: SCREEN,
+      screenHeight: SCREEN,
+      metrics: GRID_METRICS,
+      blocks: [
+        { kind: 'band', row: 0 },
+        { kind: 'tiles', first: 1, count: 4 },
+        { kind: 'band', row: 5 },
+        { kind: 'tiles', first: 6, count: 20 },
+      ],
+    });
+    expect(grid.mounted).toEqual([
+      { kind: 'band', row: 0 },
+      { kind: 'tiles', start: 1, end: 5 },
+      { kind: 'band', row: 5 },
+      { kind: 'tiles', start: 6, end: 26 },
+    ]);
   });
 
   it('never runs past the end of the grid', () => {
-    const { start, end } = tileWindowFor({
+    const pitch = GRID_METRICS.tileHeight + GRID_METRICS.rowGap;
+    const content =
+      Math.ceil(ROWS / GRID_METRICS.columns) * pitch -
+      GRID_METRICS.rowGap +
+      GRID_METRICS.padding * 2;
+    // Scrolled to the very bottom: the last tile is mounted and nothing after.
+    const bottom = gridWindowFor({
+      scrollTop: content - SCREEN,
+      paneHeight: SCREEN,
+      screenHeight: SCREEN,
+      metrics: GRID_METRICS,
+      blocks: ONE_RUN,
+    });
+    expect(bottom.end).toBe(ROWS);
+    expect(bottom.start).toBeLessThanOrEqual(bottom.end);
+    // And a scroll position past the content — a list that shrank before the
+    // pane clamped its scroll — mounts nothing that is not there.
+    const past = gridWindowFor({
       scrollTop: 10_000_000,
       paneHeight: SCREEN,
       screenHeight: SCREEN,
       metrics: GRID_METRICS,
-      count: ROWS,
+      blocks: ONE_RUN,
     });
-    expect(end).toBe(ROWS);
-    expect(start).toBeLessThanOrEqual(end);
+    expect(past.end).toBeLessThanOrEqual(ROWS);
+    expect(past.start).toBeLessThanOrEqual(past.end);
   });
 
   it('holds an empty grid at nothing', () => {
     expect(
-      tileWindowFor({
+      gridWindowFor({
         scrollTop: 0,
         paneHeight: SCREEN,
         screenHeight: SCREEN,
         metrics: GRID_METRICS,
-        count: 0,
+        blocks: [],
       }),
-    ).toEqual({ start: 0, end: 0 });
+    ).toEqual({ above: 0, mounted: [], below: 0, start: 0, end: 0 });
   });
 });

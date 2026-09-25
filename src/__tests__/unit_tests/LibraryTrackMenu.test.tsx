@@ -16,39 +16,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { ILibraryTrack } from '../../common/library/types';
+import type { ILibraryTrack } from '../../common/library/types';
 import {
   FAVORITES_PLAYLIST_ID,
   ILibraryPlaylists,
   emptyLibraryPlaylists,
   favoritesPlaylist,
 } from '../../common/library/playlists';
+import { LibraryProvider } from '../../renderer/library/LibraryContext';
 import LibraryListView from '../../renderer/library/LibraryListView';
 import { PlaylistProvider } from '../../renderer/library/PlaylistContext';
+import { shelfQueryFor } from '../../renderer/library/libraryShelfQuery';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 import { pendingKaraokeFiles } from '../../renderer/library/karaokeHandoff';
-
-const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
-  id: over.title ?? 'id',
-  rootId: 'r',
-  path: 'C:\\Music\\a.mp3',
-  kind: 'audio',
-  isPlayable: true,
-  title: 'Untitled',
-  sizeBytes: 1,
-  mtimeMs: 1,
-  addedAt: 1,
-  ...over,
-});
+import LibraryListOf from '../utils/LibraryListOf';
+import {
+  type ILibraryStoreBridge,
+  installIpcRenderer,
+  libraryTrack as track,
+  openLibraryStoreBridge,
+} from '../utils/libraryStoreBridge';
 
 const addTracksToLibraryPlaylist = jest.fn();
 const removeTracksFromLibraryPlaylist = jest.fn();
 const createLibraryPlaylist = jest.fn();
 const libraryTrackBytes = jest.fn();
+const onQueueTracks = jest.fn();
 let stored: ILibraryPlaylists = emptyLibraryPlaylists();
+let bridge: ILibraryStoreBridge | undefined;
 
 beforeEach(() => {
   addTracksToLibraryPlaylist.mockReset().mockResolvedValue(stored);
@@ -57,42 +61,75 @@ beforeEach(() => {
   libraryTrackBytes.mockReset().mockResolvedValue(undefined);
   onQueueTracks.mockReset();
   stored = emptyLibraryPlaylists();
-  window.electron = {
-    ipcRenderer: {
-      getLibraryPlaylists: () =>
-        Promise.resolve({ playlists: stored, wasReset: false }),
-      onLibraryPlaylistsChanged: () => () => {},
-      addTracksToLibraryPlaylist,
-      removeTracksFromLibraryPlaylist,
-      createLibraryPlaylist,
-      libraryTrackBytes,
-      revealLibraryTrack: () => Promise.resolve(),
-    },
-  } as unknown as typeof window.electron;
 });
 
-const onQueueTracks = jest.fn();
+afterEach(() => {
+  // Unmounted before the store closes, so nothing asks a closed store.
+  cleanup();
+  bridge?.close();
+  bridge = undefined;
+});
 
-const renderRows = (tracks: ILibraryTrack[], openPlaylistId?: string) =>
-  render(
+/** The Songs shelf as the list view draws it, over a library of `tracks`. */
+const SONG_SHELF = shelfQueryFor({
+  browseMode: 'song',
+  viewMode: 'list',
+  folderPath: undefined,
+  search: '',
+  sort: 'title',
+  direction: 'asc',
+  isTree: false,
+  hasRoots: true,
+  folderLevel: undefined,
+});
+
+const renderRows = (
+  tracks: ILibraryTrack[],
+  {
+    openPlaylistId,
+    withQueue = true,
+  }: { openPlaylistId?: string; withQueue?: boolean } = {},
+) => {
+  const opened = openLibraryStoreBridge({ tracks });
+  bridge = opened;
+  installIpcRenderer({
+    ...opened.channels,
+    getLibraryPlaylists: () =>
+      Promise.resolve({ playlists: stored, wasReset: false }),
+    onLibraryPlaylistsChanged: () => () => {},
+    addTracksToLibraryPlaylist,
+    removeTracksFromLibraryPlaylist,
+    createLibraryPlaylist,
+    libraryTrackBytes,
+    revealLibraryTrack: () => Promise.resolve(),
+  });
+  return render(
     <I18nProvider>
-      <PlaylistProvider>
-        <LibraryListView
-          tracks={tracks}
-          browseMode="song"
-          openPlaylistId={openPlaylistId}
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-          onPlayTrack={jest.fn()}
-          onQueueTracks={onQueueTracks}
-        />
-      </PlaylistProvider>
+      <LibraryProvider>
+        <PlaylistProvider>
+          <LibraryListOf query={SONG_SHELF}>
+            {(list) => (
+              <LibraryListView
+                list={list}
+                browseMode="song"
+                openPlaylistId={openPlaylistId}
+                onOpenAlbum={jest.fn()}
+                onOpenArtist={jest.fn()}
+                onPlayTrack={jest.fn()}
+                onQueueTracks={withQueue ? onQueueTracks : undefined}
+              />
+            )}
+          </LibraryListOf>
+        </PlaylistProvider>
+      </LibraryProvider>
     </I18nProvider>,
   );
+};
 
 /** Right-click the row, the way a reader reaches this menu. */
 const openMenuOn = async (title: string) => {
-  const row = screen.getByText(title).closest('[role="row"]');
+  const row = (await screen.findByText(title)).closest('[role="row"]');
+  expect(row).not.toBeNull();
   fireEvent.contextMenu(row as Element);
   await screen.findByRole('menu');
 };
@@ -121,19 +158,7 @@ describe('what a song row offers', () => {
   // A POSITIVE CONTROL for the item above: with no queue to append to it is
   // not drawn, so a menu that always rendered it would fail here.
   it('does not offer the queue where there is none', async () => {
-    render(
-      <I18nProvider>
-        <PlaylistProvider>
-          <LibraryListView
-            tracks={[track({ title: 'Blue' })]}
-            browseMode="song"
-            onOpenAlbum={jest.fn()}
-            onOpenArtist={jest.fn()}
-            onPlayTrack={jest.fn()}
-          />
-        </PlaylistProvider>
-      </I18nProvider>,
-    );
+    renderRows([track({ title: 'Blue' })], { withQueue: false });
     await openMenuOn('Blue');
     expect(screen.queryByText('Add to up next')).toBeNull();
   });
@@ -171,6 +196,7 @@ describe('what a song row offers', () => {
       playlists: [{ ...favoritesPlaylist(), trackIds: ['Blue'] }],
     };
     renderRows([track({ title: 'Blue' }), track({ title: 'Red' })]);
+    await screen.findByText('Red');
     await waitFor(() =>
       expect(screen.getByTitle('In your Favourites')).toBeInTheDocument(),
     );
@@ -188,7 +214,7 @@ describe('what a song row offers', () => {
   });
 
   it('removes from the open playlist when one is open', async () => {
-    renderRows([track({ title: 'Blue' })], 'pl-a');
+    renderRows([track({ title: 'Blue' })], { openPlaylistId: 'pl-a' });
     await openMenuOn('Blue');
     await userEvent.click(screen.getByText('Remove from this playlist'));
     expect(removeTracksFromLibraryPlaylist).toHaveBeenCalledWith('pl-a', [
@@ -286,7 +312,7 @@ describe('sending a song to Karaoke', () => {
 
   it('queues the file for the Karaoke tab when the bytes arrive', async () => {
     libraryTrackBytes.mockResolvedValue(new ArrayBuffer(8));
-    renderRows([track({ title: 'Blue' })]);
+    renderRows([track({ title: 'Blue', path: 'C:\\Music\\a.mp3' })]);
     await openMenuOn('Blue');
     await userEvent.click(screen.getByText('Send to Karaoke'));
     await waitFor(() => expect(pendingKaraokeFiles()).toHaveLength(1));

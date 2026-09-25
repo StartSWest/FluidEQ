@@ -129,11 +129,14 @@ import type { TSceneFailure } from './scenePackStore';
 import type { IScenePack } from '../common/scenePacks';
 import type { TBillingOutcome } from './ipc/account';
 import type {
-  ILibraryIndex,
   ILibraryNormalizationAnalysis,
   ILibraryScanProgress,
-  ILibraryTrack,
 } from '../common/library/types';
+import type {
+  ILibraryAnswers,
+  ILibrarySummary,
+  TLibraryRequest,
+} from '../common/library/query';
 import type { ILibraryPlaylists } from '../common/library/playlists';
 import type {
   ILanHostDetails,
@@ -562,42 +565,52 @@ const onKaraokeSeparationProgress = (
   };
 };
 
-/** `wasReset` is `loadLibraryIndex`'s own answer, carried through unchanged. */
-const getLibraryIndex = () =>
-  ipcRenderer.invoke('library-index-get') as Promise<{
-    index: ILibraryIndex;
-    wasReset: boolean;
-  }>;
+/**
+ * The library's folders, how many songs it has, and the version everything
+ * else is read at. The window never holds the songs themselves: it asks for
+ * the page it draws (`queryLibrary`).
+ */
+const getLibrarySummary = () =>
+  ipcRenderer.invoke('library-summary-get') as Promise<ILibrarySummary>;
+
+/**
+ * One question about the library — a page of a list, where a song sits in
+ * it, which letter starts where, some songs by id — answered from the store
+ * in main. Typed by the question: the answer is `ILibraryAnswers[type]`.
+ */
+const queryLibrary = <R extends TLibraryRequest>(request: R) =>
+  ipcRenderer.invoke('library-query', request) as Promise<
+    ILibraryAnswers[R['type']]
+  >;
 
 /** Opens the OS folder picker and scans whatever the user chose. */
 const addLibraryRoot = () =>
-  ipcRenderer.invoke('library-root-add') as Promise<ILibraryIndex>;
+  ipcRenderer.invoke('library-root-add') as Promise<ILibrarySummary>;
 
 /** For a dropped folder: main decides what is really a directory. */
 const addLibraryRootPaths = (paths: string[]) =>
-  ipcRenderer.invoke('library-root-add-paths', paths) as Promise<ILibraryIndex>;
+  ipcRenderer.invoke(
+    'library-root-add-paths',
+    paths,
+  ) as Promise<ILibrarySummary>;
 
 /**
- * For music files dropped straight onto the player's queue: the index with
- * them in it, and their ids in the order they were dropped, so the queue can
- * be added to in the same gesture. A file already known keeps its id.
+ * For music files dropped straight onto the player's queue: their ids in the
+ * order they were dropped, so the queue can be added to in the same gesture.
+ * A file already known keeps its id.
  */
 const queueLibraryFiles = (paths: string[]) =>
-  ipcRenderer.invoke('library-queue-files', paths) as Promise<{
-    index: ILibraryIndex;
-    trackIds: string[];
-  }>;
+  ipcRenderer.invoke('library-queue-files', paths) as Promise<string[]>;
 
 const removeLibraryRoot = (rootId: string) =>
-  ipcRenderer.invoke('library-root-remove', rootId) as Promise<ILibraryIndex>;
+  ipcRenderer.invoke('library-root-remove', rootId) as Promise<ILibrarySummary>;
 
-/** Kicks off a rescan of every root; progress arrives through the two listeners below. */
+/** Kicks off a rescan of every root; progress arrives through the listener below. */
 const rescanLibrary = () =>
   ipcRenderer.invoke('library-scan-start') as Promise<void>;
 
 /**
- * A rescan that hands the scanner no known tracks at all, so every candidate
- * is re-read regardless of whether its size and modified time still match --
+ * A rescan that re-reads every file whatever its size and modified time say —
  * the escape hatch for a tagger's preserve-mtime option, and for a track
  * whose cached `artId` points at a `userData/library-art` file something
  * outside the app deleted.
@@ -618,39 +631,23 @@ const onLibraryScanProgress = (
   };
 };
 
-const onLibraryIndexChanged = (listener: (index: ILibraryIndex) => void) => {
-  const wrapped = (_event: IpcRendererEvent, index: ILibraryIndex) =>
-    listener(index);
-  ipcRenderer.on('library-index-changed', wrapped);
-  return () => {
-    ipcRenderer.removeListener('library-index-changed', wrapped);
-  };
-};
-
 /**
- * The tracks one batch of a scan just read, and only those.
- *
- * The whole index used to come down `library-index-changed` for this — every
- * twenty-five files, the entire library re-sent. On fourteen thousand tracks
- * that is five hundred and sixty messages carrying fourteen thousand objects
- * each, which main has to serialise and the renderer has to deserialise before
- * either can do anything else. That is why the window stopped answering for
- * the length of a scan, and it was never about which process did the reading.
- *
- * A batch is twenty-five. The renderer merges them — see `LibraryContext`.
+ * The library changed — a scan's batch, a folder added or removed, a loudness
+ * measured. Carries the new summary, never songs: the window asks again for
+ * what it is showing. The whole index used to come down this way, every
+ * twenty-five files of a scan, and the window stopped answering for the
+ * length of it.
  */
-const onLibraryTracksAdded = (
-  listener: (tracks: readonly ILibraryTrack[]) => void,
-) => {
-  const wrapped = (_event: IpcRendererEvent, tracks: ILibraryTrack[]) =>
-    listener(tracks);
-  ipcRenderer.on('library-tracks-added', wrapped);
+const onLibraryChanged = (listener: (summary: ILibrarySummary) => void) => {
+  const wrapped = (_event: IpcRendererEvent, summary: ILibrarySummary) =>
+    listener(summary);
+  ipcRenderer.on('library-changed', wrapped);
   return () => {
-    ipcRenderer.removeListener('library-tracks-added', wrapped);
+    ipcRenderer.removeListener('library-changed', wrapped);
   };
 };
 
-/** Shows the file in Explorer/Finder; an id the index no longer knows does nothing. */
+/** Shows the file in Explorer/Finder; an id the library no longer knows does nothing. */
 const revealLibraryTrack = (trackId: string) =>
   ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
 
@@ -691,7 +688,7 @@ const setLibraryTrackNormalization = (
 /**
  * The playlists, and whether the file holding them had to be thrown away.
  *
- * `wasReset` answers the same question `getLibraryIndex`'s does and is worth
+ * `wasReset` answers the same question `getLibrarySummary`'s does and is worth
  * as much: a scan puts the songs back, but nothing puts back a playlist, so
  * the one moment it can be said is the moment it is noticed.
  */
@@ -1504,7 +1501,8 @@ export default {
     onKaraokeSeparationProgress,
     exportKaraokeMakerFile,
     revealVideoDownload,
-    getLibraryIndex,
+    getLibrarySummary,
+    queryLibrary,
     addLibraryRoot,
     addLibraryRootPaths,
     queueLibraryFiles,
@@ -1513,8 +1511,7 @@ export default {
     forceRescanLibrary,
     cancelLibraryScan,
     onLibraryScanProgress,
-    onLibraryIndexChanged,
-    onLibraryTracksAdded,
+    onLibraryChanged,
     revealLibraryTrack,
     libraryTrackBytes,
     libraryTrackSignature,

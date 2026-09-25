@@ -99,6 +99,12 @@ const library = {
     'The library index could not be read and has been rebuilt.',
 
   'library.back': 'Back',
+  'library.place.aria': 'Where you are in the library',
+  'library.place.all': 'All music',
+  'library.place.allHint': 'Leave this folder and show your whole library',
+  'library.search.near': 'In {folder}',
+  'library.search.nearEmpty': 'Nothing in {folder}',
+  'library.search.elsewhere': 'Everywhere else',
 
   'library.upNext': 'Up next',
   'library.upNext.empty': 'Nothing queued yet',

@@ -44,7 +44,7 @@ describe('the packaged library worker channel', () => {
       rootId: 'music-root',
       rootPath: 'C:\\Music',
       userDataDir: 'C:\\FluidEQ',
-      known: [],
+      force: false,
     };
     // Electron's ParentPort emits a MessageEvent. The value sent by the host
     // is its `data`, never the event object itself.

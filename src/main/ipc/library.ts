@@ -23,35 +23,14 @@ import {
   ipcMain,
   shell,
 } from 'electron';
-import crypto from 'crypto';
 import fs from 'fs';
-import path from 'path';
-// Imported rather than the ambient global: under the jsdom test environment,
-// global `setTimeout` is jsdom's browser-style version, whose return value has
-// no `.unref()`. This process only ever runs under real Node (the Electron
-// main process never sees jsdom), so importing it directly from `timers`
-// reaches Node's own implementation regardless of what a test replaced the
-// global with.
-import { setTimeout as scheduleTimeout } from 'timers';
-import {
-  ILibraryIndex,
-  ILibraryNormalizationAnalysis,
-  ILibraryRoot,
-  ILibraryScanProgress,
-  ILibraryTrack,
-} from '../../common/library/types';
-import {
-  emptyLibraryIndex,
-  loadLibraryIndex,
-  saveLibraryIndex,
-  trackPathById,
-} from '../library/libraryIndex';
-import { libraryFileKind } from '../../common/library/files';
-import {
-  buildProvisionalTrack,
-  trackIdForPath,
-} from '../library/libraryScanDiscovery';
-import scanLibraryRootOffThread from '../library/scanHost';
+import type { ILibrarySummary } from '../../common/library/query';
+import type { ILibraryNormalizationAnalysis } from '../../common/library/types';
+import { createLibraryQueries } from '../library/libraryQuery';
+import { buildRoot, queueLibraryFiles } from '../library/libraryQueueFiles';
+import parseLibraryRequest from '../library/libraryRequestGuard';
+import { createLibraryScanRunner } from '../library/libraryScanRunner';
+import { openLibraryStore } from '../library/libraryStoreOpen';
 import { isLocalRendererPath } from '../rendererPaths';
 import onWindowMessage from './windowMessages';
 
@@ -102,449 +81,103 @@ const isNormalizationAnalysis = (
   );
 };
 
+const isFileSignature = (
+  value: unknown,
+): value is { sizeBytes: number; mtimeMs: number } =>
+  typeof value === 'object' &&
+  value !== null &&
+  'sizeBytes' in value &&
+  'mtimeMs' in value &&
+  typeof value.sizeBytes === 'number' &&
+  typeof value.mtimeMs === 'number';
+
 /**
  * What these handlers need from the process around them.
  *
- * The library channels touch the userData directory -- where the index and
- * its cached artwork live -- and the main window, where scan progress and
- * index changes are sent. `getMainWindow` is a function for the same reason
- * as in `karaoke.ts`: the window is created, destroyed and recreated over the
- * life of the process, so a reference captured at registration would be the
- * first one forever. Here it also has to tolerate being called before any
- * window exists at all, since `registerLibraryIpc` runs at module scope in
- * `main.ts`, ahead of `app.whenReady()`.
+ * `getMainWindow` is a function because the window is created, destroyed and
+ * recreated over the life of the process, and this is registered at module
+ * scope in `main.ts`, before any window exists.
  */
 export interface ILibraryIpcDeps {
   userDataDir: string;
   getMainWindow: () => BrowserWindow | null;
 }
 
+export interface ILibraryIpc {
+  /** The file a track id names — the media protocol's one lookup. */
+  readonly trackPath: (trackId: string) => string | undefined;
+  /**
+   * The main window, each time one is made. The first one shown starts the
+   * one rescan every launch gets, so a walk of every folder never competes
+   * with the first paint.
+   */
+  readonly watchWindow: (window: BrowserWindow) => void;
+}
+
 /**
- * The library index, held here rather than reloaded on every request.
+ * Roots, scanning, the library's questions, and the files behind its songs —
+ * everything the Library tab needs from the main process.
  *
- * Every handler below reads and writes this one in-memory copy and saves it
- * to disk after each change. `handleLibraryMedia` -- registered separately in
- * `main.ts`, inside `whenReady`, next to `setUpVideoBrowser` -- reads the same
- * copy through {@link libraryIndexSnapshot} to resolve a track id to a path.
- *
- * `isScanning`/`cancelRequested` are this module's stand-in for an
- * `AbortController`: `scanLibraryRoot` already takes a plain `isCancelled`
- * function rather than a signal object, so a boolean polled from it is all a
- * cancel needs to be. `isScanning` is shared by every entry point that can
- * start a walk -- adding a root, a dropped folder, an explicit rescan, and
- * the automatic launch rescan -- so at most one directory is ever being
- * walked at a time; concurrent walks would race on the same in-memory index.
+ * THE STORE IS NEVER CLOSED. SQLite in WAL mode keeps every committed write
+ * through a process exit, and a scan's last batch can still arrive while the
+ * app quits: written to a closed handle it would throw in main at the one
+ * moment a throw costs most.
  */
-let currentIndex: ILibraryIndex = emptyLibraryIndex();
-let indexWasReset = false;
-let isScanning = false;
-let cancelRequested = false;
-
-/**
- * Preserve a measurement that finishes while an older scan is still walking.
- * Size and mtime make this safe: a changed file must be analyzed again rather
- * than inheriting the result cached for its previous bytes.
- */
-const preserveCurrentNormalization = (
-  tracks: readonly ILibraryTrack[],
-): ILibraryTrack[] => {
-  const currentById = new Map(
-    currentIndex.tracks.map((track) => [track.id, track]),
-  );
-  return tracks.map((track) => {
-    const current = currentById.get(track.id);
-    if (
-      track.normalization ||
-      !current?.normalization ||
-      current.sizeBytes !== track.sizeBytes ||
-      current.mtimeMs !== track.mtimeMs
-    ) {
-      return track;
-    }
-    return { ...track, normalization: current.normalization };
-  });
-};
-
-/**
- * Roots that asked to be scanned while a walk was already running.
- *
- * `requestScan` is what fills this in, for every caller that must not lose a
- * request just because it lost the race for `isScanning` -- adding a root
- * from the dialog or a drop. `library-scan-start` and the launch rescan
- * deliberately do not go through `requestScan`: the brief calls for those to
- * be dropped, not queued, when a scan is already running. `performScan`
- * drains this set itself once the walk it is already doing finishes; nothing
- * else ever starts a scan on the strength of this set being non-empty.
- */
-const pendingRescanRootIds = new Set<string>();
-
-/** Read by `handleLibraryMedia` to resolve a `fluideq-media://track/<id>` request. */
-export const libraryIndexSnapshot = (): ILibraryIndex => currentIndex;
-
-/**
- * Whether `child` is `parent` or lies under it.
- *
- * Compared as resolved paths with a separator appended, so `C:\Music2` is not
- * read as being inside `C:\Music`; case-insensitively, because Windows paths
- * are.
- */
-const isInsideDirectory = (parent: string, child: string): boolean => {
-  const from = path.resolve(parent).toLowerCase();
-  const to = path.resolve(child).toLowerCase();
-  return (
-    to === from ||
-    to.startsWith(from.endsWith(path.sep) ? from : from + path.sep)
-  );
-};
-
-const buildRoot = (rootPath: string): ILibraryRoot => ({
-  id: crypto.randomUUID(),
-  path: rootPath,
-  addedAt: Date.now(),
-  trackCount: 0,
-  karaokeSkipped: 0,
-});
-
-const setRoot = (rootId: string, patch: Partial<ILibraryRoot>): void => {
-  currentIndex = {
-    ...currentIndex,
-    roots: currentIndex.roots.map((root) =>
-      root.id === rootId ? { ...root, ...patch } : root,
-    ),
-  };
-};
-
-/**
- * Scans one root by id, folding the result back into `currentIndex`.
- *
- * A root whose folder does not exist right now -- an unplugged drive, a
- * folder deleted outside the app -- is marked `isOffline` and left exactly as
- * it was otherwise. Its tracks are never dropped here: doing that would mean
- * the library empties itself every time a USB drive happens to be out at
- * launch, which is worse than showing stale tracks for a folder that is
- * temporarily gone.
- */
-const scanOneRoot = async (
-  deps: ILibraryIpcDeps,
-  rootId: string,
-  force: boolean,
-): Promise<void> => {
-  const root = currentIndex.roots.find((candidate) => candidate.id === rootId);
-  if (!root) {
-    return;
-  }
-  let stat: fs.Stats | undefined;
-  try {
-    stat = fs.statSync(root.path);
-  } catch {
-    stat = undefined;
-  }
-  if (!stat?.isDirectory()) {
-    setRoot(rootId, { isOffline: true });
-    return;
-  }
-  setRoot(rootId, { isOffline: false });
-  // A force rescan hands the walk nothing to compare against, so every
-  // candidate is re-read regardless of whether its size and mtime still
-  // match — the escape hatch for a tagger's preserve-mtime option, and for
-  // `artId` itself: `storeArtwork` trusts a cached id forever on a bare
-  // `existsSync` (see its own comment), so if anything ever clears
-  // `userData/library-art` from outside the app, every affected cover would
-  // otherwise render blank permanently, with no ordinary rescan able to
-  // notice and re-derive it.
-  const known = force
-    ? []
-    : currentIndex.tracks.filter((track) => track.rootId === rootId);
-  try {
-    const result = await scanLibraryRootOffThread({
-      rootId,
-      rootPath: root.path,
-      userDataDir: deps.userDataDir,
-      known,
-      onProgress: (progress) => {
-        deps
-          .getMainWindow()
-          ?.webContents.send('library-scan-progress', progress);
-      },
-      onTracks: (tracks) => {
-        // Same guard as the final merge below: a root removed while its own
-        // walk is still in flight must not have a mid-scan batch resurrect
-        // it in the index.
-        if (!currentIndex.roots.some((candidate) => candidate.id === rootId)) {
-          return;
-        }
-        // Upsert by id, not a concat -- during a rescan `currentIndex`
-        // already holds this root's previously-known tracks, so appending
-        // a batch that reconfirms one unchanged would duplicate it in the
-        // view mid-scan. This never deletes: a track this batch does not
-        // mention (not yet reached, or on another root entirely) is left
-        // exactly as it was. Only the wholesale replace below, which runs
-        // once the whole root has been walked, is allowed to remove one.
-        const mergedTracks = preserveCurrentNormalization(tracks);
-        const batchIds = new Set(mergedTracks.map((track) => track.id));
-        currentIndex = {
-          ...currentIndex,
-          tracks: [
-            ...currentIndex.tracks.filter((track) => !batchIds.has(track.id)),
-            ...mergedTracks,
-          ],
-        };
-        // The batch, and not the index it was just merged into.
-        //
-        // This used to send `currentIndex` — the whole library, every
-        // twenty-five files. On fourteen thousand tracks that is five hundred
-        // and sixty messages carrying fourteen thousand objects each: main
-        // serialises all of it and the renderer deserialises all of it before
-        // either can do anything else, and that is the window going
-        // unresponsive for the length of a scan. It was never about which
-        // process did the reading — that has been a `utilityProcess` all
-        // along.
-        //
-        // Sending the twenty-five that actually changed leaves main's copy
-        // authoritative for anything that asks for it later, and gives the
-        // renderer the same information for three orders of magnitude less
-        // work. It merges them itself; see `LibraryContext`.
-        deps
-          .getMainWindow()
-          ?.webContents.send('library-tracks-added', mergedTracks);
-      },
-      isCancelled: () => cancelRequested,
-    });
-    // The root can be removed by the user while its own walk is still in
-    // flight; dropping the result here rather than writing it back avoids
-    // resurrecting a root nobody asked to keep any more.
-    if (currentIndex.roots.some((candidate) => candidate.id === rootId)) {
-      const mergedTracks = preserveCurrentNormalization(result.tracks);
-      currentIndex = {
-        ...currentIndex,
-        tracks: [
-          ...currentIndex.tracks.filter((track) => track.rootId !== rootId),
-          ...mergedTracks,
-        ],
-      };
-      setRoot(rootId, {
-        trackCount: result.tracks.length,
-        karaokeSkipped: result.karaokeSkipped,
-        lastScanAt: Date.now(),
-      });
-    }
-  } catch (error) {
-    // One root failing partway through -- a permissions error, a device
-    // pulled mid-walk -- must not lose every other root queued behind it, and
-    // must not vanish silently either.
-    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-    console.error(`Could not scan library root ${root.path}`, error);
-    // `LibraryContext.tsx`'s `isScanning` is derived solely from the last
-    // `progress.isDone` it received (see its own comment) -- with no event
-    // sent here, whatever throw broke `scanLibraryRoot` also leaves the
-    // renderer believing this root's walk never finished: the strip stays
-    // pinned, Rescan stays disabled, Stop stays inert, for the rest of the
-    // session. The counts are not real -- the walk stopped at an unknown
-    // point -- but `isDone: true` is what actually unwedges the UI, and
-    // nothing downstream of a scan progress event reads these counts once
-    // `isDone` is true.
-    const terminal: ILibraryScanProgress = {
-      rootId,
-      seen: 0,
-      parsed: 0,
-      karaokeSkipped: 0,
-      isDone: true,
-    };
-    deps.getMainWindow()?.webContents.send('library-scan-progress', terminal);
-  }
-};
-
-/**
- * Walks every root named in `rootIds`, one at a time, then saves and
- * broadcasts the result. A second call while one is already running is a
- * no-op -- see the module comment on `isScanning`.
- *
- * Before returning, it drains `pendingRescanRootIds`: a root queued by
- * `requestScan` while this walk was already under way is picked up as a
- * further batch of the same walk instead of being left to wait for the next
- * explicit rescan, or for a launch rescan that only ever runs once. Written
- * as a loop over batches, all under one `isScanning = true`, rather than as
- * this function calling itself once it is done -- a batch that queues yet
- * another root while it is draining is caught by the loop condition on its
- * next pass, with no repeated call into this function and no gap where
- * `isScanning` is briefly false and a second, truly concurrent walk could
- * start.
- *
- * `force` applies to every root this call walks, including a further batch
- * drained from `pendingRescanRootIds` before this returns -- see
- * `scanOneRoot`'s own comment for what it changes.
- */
-const performScan = async (
-  deps: ILibraryIpcDeps,
-  rootIds: readonly string[],
-  force: boolean,
-): Promise<void> => {
-  if (isScanning) {
-    return;
-  }
-  isScanning = true;
-  cancelRequested = false;
-  try {
-    let batch: string[] = [...rootIds];
-    while (batch.length > 0) {
-      for (let index = 0; index < batch.length; index += 1) {
-        if (cancelRequested) {
-          break;
-        }
-        // eslint-disable-next-line no-await-in-loop -- one root walked at a time by design; see the module comment on isScanning.
-        await scanOneRoot(deps, batch[index], force);
-      }
-      saveLibraryIndex(deps.userDataDir, currentIndex);
-      deps
-        .getMainWindow()
-        ?.webContents.send('library-index-changed', currentIndex);
-      if (cancelRequested || pendingRescanRootIds.size === 0) {
-        break;
-      }
-      batch = Array.from(pendingRescanRootIds);
-      pendingRescanRootIds.clear();
-    }
-  } finally {
-    isScanning = false;
-    cancelRequested = false;
-  }
-};
-
-/**
- * Starts a scan without making the caller wait for it, logging rather than
- * losing whatever `performScan` itself does not already catch (a
- * `saveLibraryIndex` write failing, say). Every automatic scan in this module
- * goes through this instead of an unawaited `performScan(...)` directly, so
- * that failure is never silently dropped on the floor.
- */
-const runScanInBackground = (
-  deps: ILibraryIpcDeps,
-  rootIds: readonly string[],
-  force = false,
-): void => {
-  performScan(deps, rootIds, force).catch((error: unknown) => {
-    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-    console.error('Library scan failed', error);
-  });
-};
-
-/**
- * Starts a scan, or -- if one is already running -- queues these roots to be
- * picked up by `performScan`'s own drain once it finishes, rather than
- * dropping the request. Used by every caller that must not silently lose a
- * newly added root: `library-root-add` and `library-root-add-paths`.
- * `library-scan-start` and the launch rescan call `runScanInBackground`
- * directly instead, on purpose -- the brief calls for a second explicit
- * rescan request to be ignored, not queued, while one is already running.
- */
-const requestScan = (
-  deps: ILibraryIpcDeps,
-  rootIds: readonly string[],
-): void => {
-  if (rootIds.length === 0) {
-    return;
-  }
-  if (isScanning) {
-    rootIds.forEach((rootId) => pendingRescanRootIds.add(rootId));
-    return;
-  }
-  runScanInBackground(deps, rootIds);
-};
-
-/**
- * Adds each path as a new root and starts scanning them, without waiting for
- * the scan to finish.
- *
- * Returning before the walk completes is deliberate: blocking "Add folder"
- * for as long as a large library takes to read would be exactly the silent,
- * unresponsive click the project's UI rules forbid. The caller gets the new
- * roots back immediately, at `trackCount: 0`; `library-scan-progress` and
- * `library-index-changed` carry the rest. Goes through `requestScan`, not
- * `runScanInBackground`, so a root dropped while another is already scanning
- * is queued rather than left at `trackCount: 0` with nothing left to pick it
- * back up -- see `requestScan`.
- */
-const addRootsAndScan = (
-  deps: ILibraryIpcDeps,
-  paths: readonly string[],
-): ILibraryIndex => {
-  if (paths.length === 0) {
-    return currentIndex;
-  }
-  const newRoots = paths.map(buildRoot);
-  currentIndex = {
-    ...currentIndex,
-    roots: [...currentIndex.roots, ...newRoots],
-  };
-  saveLibraryIndex(deps.userDataDir, currentIndex);
-  requestScan(
-    deps,
-    newRoots.map((root) => root.id),
-  );
-  return currentIndex;
-};
-
-const LAUNCH_RESCAN_POLL_MS = 250;
-
-/** Guards the automatic launch rescan to once per process; see `armLaunchRescan`. */
-let launchRescanArmed = false;
-
-/**
- * Starts the one incremental rescan every process gets on its own, timed to
- * the window's native `show` event rather than to registration.
- *
- * `registerLibraryIpc` runs before `app.whenReady()`, well before a window
- * exists, so there is nothing to attach to yet -- this polls `getMainWindow`
- * until there is, rather than requiring `main.ts` to call back in once the
- * window is up. Each poll is `unref`'d so a process that quits before a
- * window is ever created (the second-instance handoff, for one) is never
- * held open by this alone. Once a window is found, the scan waits for its
- * `show` event -- checking `isVisible` first, in case it was already shown
- * between polls -- so a full directory walk never competes with the first
- * paint. `launchRescanArmed` keeps this to one attempt for the life of the
- * process, even if `main.ts` ends up creating more than one window (macOS
- * `activate` can).
- */
-const armLaunchRescan = (deps: ILibraryIpcDeps): void => {
-  if (launchRescanArmed) {
-    return;
-  }
-  launchRescanArmed = true;
-  const startRescan = (): void => {
-    runScanInBackground(
-      deps,
-      currentIndex.roots.map((root) => root.id),
-    );
-  };
-  const waitForWindow = (): void => {
-    const window = deps.getMainWindow();
-    if (!window) {
-      scheduleTimeout(waitForWindow, LAUNCH_RESCAN_POLL_MS).unref();
-      return;
-    }
-    if (window.isVisible()) {
-      startRescan();
-      return;
-    }
-    window.once('show', startRescan);
-  };
-  waitForWindow();
-};
-
-/**
- * Index, roots, scanning and reveal -- everything the Library tab needs from
- * the main process.
- */
-export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
+export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
   const { userDataDir, getMainWindow } = deps;
-  const loaded = loadLibraryIndex(userDataDir);
-  currentIndex = loaded.index;
-  indexWasReset = loaded.wasReset;
+  const { store, wasReset } = openLibraryStore(userDataDir);
+  const queries = createLibraryQueries(store);
 
-  ipcMain.handle('library-index-get', () => ({
-    index: currentIndex,
-    wasReset: indexWasReset,
-  }));
+  const summary = (): ILibrarySummary => ({
+    version: store.version(),
+    roots: store.roots(),
+    trackCount: store.trackCount(),
+    videoCount: store.videoCount(),
+    wasReset,
+  });
+
+  /**
+   * The library changed: the window is told the new version and summary, and
+   * asks again for whatever it is showing. Never the songs themselves — the
+   * whole index used to come down this way, every twenty-five files of a scan.
+   */
+  const announce = (): void => {
+    getMainWindow()?.webContents.send('library-changed', summary());
+  };
+
+  const scans = createLibraryScanRunner({
+    store,
+    userDataDir,
+    sendProgress: (progress) =>
+      getMainWindow()?.webContents.send('library-scan-progress', progress),
+    announce,
+  });
+
+  /**
+   * New roots, scanned without the caller waiting: blocking "Add folder" for
+   * as long as a large library takes to read would be exactly the silent,
+   * unresponsive click the project's UI rules forbid. Queued behind a walk
+   * already running rather than dropped (`request`).
+   */
+  const addRootsAndScan = (paths: readonly string[]): ILibrarySummary => {
+    if (paths.length === 0) {
+      return summary();
+    }
+    const roots = paths.map(buildRoot);
+    store.addRoots(roots);
+    scans.request(roots.map((root) => root.id));
+    return summary();
+  };
+
+  ipcMain.handle('library-summary-get', () => summary());
+
+  ipcMain.handle('library-query', (_event, rawRequest: unknown) => {
+    const request = parseLibraryRequest(rawRequest);
+    if (!request) {
+      throw new Error('Not a library question');
+    }
+    return queries.answer(request);
+  });
 
   ipcMain.handle('library-root-add', async () => {
     const window = getMainWindow();
@@ -554,17 +187,14 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
     const result = window
       ? await dialog.showOpenDialog(window, dialogOptions)
       : await dialog.showOpenDialog(dialogOptions);
-    if (result.canceled) {
-      return currentIndex;
-    }
-    return addRootsAndScan(deps, result.filePaths);
+    return result.canceled ? summary() : addRootsAndScan(result.filePaths);
   });
 
   ipcMain.handle('library-root-add-paths', (_event, rawPaths: unknown) => {
-    // The one channel that takes a path in from the window, because a folder
-    // dropped on the Library is a real folder the page learned the path of
-    // (`webUtils.getPathForFile`). Each candidate has to prove it is a real
-    // directory; everything else is dropped.
+    // The one channel that takes a folder in from the window, because a
+    // folder dropped on the Library is a real folder the page learned the
+    // path of (`webUtils.getPathForFile`). Each candidate has to prove it is
+    // a real directory; everything else is dropped.
     //
     // A path on ANOTHER MACHINE is refused before the filesystem is asked
     // anything (`rendererPaths.ts`): `stat` on `\\host\share` authenticates
@@ -581,164 +211,37 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
         return false;
       }
     });
-    return addRootsAndScan(deps, directories);
+    return addRootsAndScan(directories);
   });
 
-  /**
-   * Music files dropped straight onto the player's queue.
-   *
-   * The Library's own drop takes folders (`library-root-add-paths` above);
-   * this one takes the files themselves and hands back their ids, so the
-   * queue can be added to in the same gesture (Ivan, 2026-09-22). A file
-   * already in the index keeps the id it has, so dropping a song twice does
-   * not make two of it.
-   *
-   * WHAT IT PUTS IN THE INDEX, AND WHY IT IS ENOUGH TO PLAY. A file nobody
-   * has scanned gets the same provisional row phase one of a scan would give
-   * it — real identity, real path, the title from its file name, no tags and
-   * no duration (`buildProvisionalTrack`). That is everything playback needs,
-   * so the song starts at once; the scan started underneath fills the rest in
-   * and the row settles by itself.
-   *
-   * Its FOLDER becomes a library root, which is the same thing dropping that
-   * folder on the Library would have done. A track has to belong to a root or
-   * a rescan has nothing to keep it alive, and a listener who drags music
-   * into FluidEQ has said, as plainly as anyone can, that this is music they
-   * want it to know about.
-   *
-   * A path on another machine is refused before the filesystem is asked
-   * anything, for the reason `library-root-add-paths` gives.
-   */
   ipcMain.handle('library-queue-files', async (_event, rawPaths: unknown) => {
-    const candidates = Array.isArray(rawPaths)
-      ? rawPaths.filter(isLocalRendererPath)
-      : [];
-    const files = candidates.filter((candidate) => {
-      if (libraryFileKind(path.basename(candidate)) === undefined) {
-        return false;
-      }
-      try {
-        return fs.statSync(candidate).isFile();
-      } catch {
-        return false;
-      }
-    });
-    if (files.length === 0) {
-      return { index: currentIndex, trackIds: [] };
+    const queued = await queueLibraryFiles(store, rawPaths);
+    if (queued.trackIds.length > 0) {
+      announce();
     }
-
-    const known = new Map(currentIndex.tracks.map((row) => [row.id, row]));
-    // One root per folder the drop touched that no root covers already.
-    const rootFor = new Map<string, string>();
-    const addedRoots: ILibraryRoot[] = [];
-    const rootIdOf = (directory: string): string => {
-      const covering = currentIndex.roots.find((root) =>
-        isInsideDirectory(root.path, directory),
-      );
-      if (covering) {
-        return covering.id;
-      }
-      const already = rootFor.get(directory.toLowerCase());
-      if (already !== undefined) {
-        return already;
-      }
-      const root = buildRoot(directory);
-      rootFor.set(directory.toLowerCase(), root.id);
-      addedRoots.push(root);
-      return root.id;
-    };
-
-    // Built in the order the listener dropped them in, which is the order
-    // they are queued in. `Promise.all` over the whole drop rather than one
-    // await after another: each new file is a single stat, and the roots are
-    // decided before any of them run, so nothing here races anything else.
-    const rows = await Promise.all(
-      files.map(async (filePath) => {
-        const id = trackIdForPath(filePath);
-        if (known.has(id)) {
-          return { id, row: undefined };
-        }
-        const directory = path.dirname(filePath);
-        const name = path.basename(filePath);
-        const row = await buildProvisionalTrack(
-          {
-            filePath,
-            name,
-            kind: libraryFileKind(name) ?? 'audio',
-            dir: directory,
-            // Only the artwork lookup reads this, and a provisional row has
-            // no artwork; the scan lists the folder properly.
-            dirFileNames: [],
-          },
-          rootIdOf(directory),
-        );
-        return { id, row };
-      }),
-    );
-    const addedTracks = rows
-      .map((entry) => entry.row)
-      .filter((row): row is ILibraryTrack => row !== undefined);
-    const trackIds = rows
-      .filter((entry) => entry.row !== undefined || known.has(entry.id))
-      .map((entry) => entry.id);
-
-    if (addedRoots.length || addedTracks.length) {
-      currentIndex = {
-        ...currentIndex,
-        roots: [...currentIndex.roots, ...addedRoots],
-        tracks: [...currentIndex.tracks, ...addedTracks],
-      };
-      saveLibraryIndex(deps.userDataDir, currentIndex);
-      requestScan(
-        deps,
-        addedRoots.map((root) => root.id),
-      );
-    }
-    return { index: currentIndex, trackIds };
+    scans.request(queued.addedRootIds);
+    return queued.trackIds;
   });
 
   ipcMain.handle('library-root-remove', (_event, rawRootId: unknown) => {
-    if (typeof rawRootId !== 'string') {
-      return currentIndex;
+    if (typeof rawRootId === 'string') {
+      store.removeRoot(rawRootId);
     }
-    currentIndex = {
-      ...currentIndex,
-      roots: currentIndex.roots.filter((root) => root.id !== rawRootId),
-      tracks: currentIndex.tracks.filter((track) => track.rootId !== rawRootId),
-    };
-    saveLibraryIndex(userDataDir, currentIndex);
-    return currentIndex;
+    return summary();
   });
 
+  // One walk at a time: a second Rescan while one runs is ignored, force or
+  // not, because it would walk everything the first is walking.
+  // Answered at once: the window follows the walk through its progress, and
+  // an ask that waited for the walk would hold the button for its length. A
+  // walk logs its own failure (`libraryScanRunner.ts`) and never rejects.
   ipcMain.handle('library-scan-start', () => {
-    if (isScanning) {
-      // One scan at a time: a second request while one is running is ignored
-      // rather than queued.
-      return;
-    }
-    runScanInBackground(
-      deps,
-      currentIndex.roots.map((root) => root.id),
-    );
+    scans.rescanAll(false);
   });
-
   ipcMain.handle('library-scan-force', () => {
-    // Same one-at-a-time rule as `library-scan-start` above -- a second
-    // request while a walk is already running is ignored rather than
-    // queued, force or not.
-    if (isScanning) {
-      return;
-    }
-    runScanInBackground(
-      deps,
-      currentIndex.roots.map((root) => root.id),
-      true,
-    );
+    scans.rescanAll(true);
   });
-
-  onWindowMessage('library-scan-cancel', () => {
-    cancelRequested = true;
-  });
+  onWindowMessage('library-scan-cancel', () => scans.cancel());
 
   /**
    * The whole file, for the renderer to hold as a blob.
@@ -757,10 +260,8 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
    * keeps the protocol and its byte ranges.
    */
   ipcMain.handle('library-track-bytes', async (_event, rawTrackId: unknown) => {
-    if (typeof rawTrackId !== 'string') {
-      return undefined;
-    }
-    const trackPath = trackPathById(currentIndex, rawTrackId);
+    const trackPath =
+      typeof rawTrackId === 'string' ? store.trackPath(rawTrackId) : undefined;
     if (trackPath === undefined) {
       return undefined;
     }
@@ -787,10 +288,10 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
   ipcMain.handle(
     'library-track-signature',
     async (_event, rawTrackId: unknown) => {
-      if (typeof rawTrackId !== 'string') {
-        return undefined;
-      }
-      const trackPath = trackPathById(currentIndex, rawTrackId);
+      const trackPath =
+        typeof rawTrackId === 'string'
+          ? store.trackPath(rawTrackId)
+          : undefined;
       if (trackPath === undefined) {
         return undefined;
       }
@@ -803,6 +304,11 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
     },
   );
 
+  /**
+   * A loudness measurement, kept only while the file is the one measured: the
+   * window says which bytes it measured, and a file that has changed since
+   * is measured again rather than handed an answer for other bytes.
+   */
   ipcMain.handle(
     'library-track-normalization-set',
     async (
@@ -814,23 +320,12 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
       if (
         typeof rawTrackId !== 'string' ||
         !isNormalizationAnalysis(rawAnalysis) ||
-        !rawSignature ||
-        typeof rawSignature !== 'object' ||
-        !('sizeBytes' in rawSignature) ||
-        !('mtimeMs' in rawSignature) ||
-        typeof rawSignature.sizeBytes !== 'number' ||
-        typeof rawSignature.mtimeMs !== 'number'
+        !isFileSignature(rawSignature)
       ) {
         return false;
       }
-      const at = currentIndex.tracks.findIndex(
-        (track) => track.id === rawTrackId && track.kind === 'audio',
-      );
-      if (at < 0) {
-        return false;
-      }
-      const trackPath = trackPathById(currentIndex, rawTrackId);
-      if (!trackPath) {
+      const trackPath = store.trackPath(rawTrackId);
+      if (trackPath === undefined) {
         return false;
       }
       try {
@@ -844,36 +339,49 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
       } catch {
         return false;
       }
-      const updated = {
-        ...currentIndex.tracks[at],
-        sizeBytes: rawSignature.sizeBytes,
-        mtimeMs: rawSignature.mtimeMs,
-        normalization: rawAnalysis,
-      };
-      currentIndex = {
-        ...currentIndex,
-        tracks: currentIndex.tracks.map((track, index) =>
-          index === at ? updated : track,
-        ),
-      };
-      saveLibraryIndex(userDataDir, currentIndex);
-      getMainWindow()?.webContents.send('library-tracks-added', [updated]);
+      const updated = store.setNormalization(
+        rawTrackId,
+        rawAnalysis,
+        rawSignature,
+      );
+      if (updated === undefined) {
+        return false;
+      }
+      announce();
       return true;
     },
   );
 
   ipcMain.handle('library-reveal', (_event, rawTrackId: unknown) => {
-    if (typeof rawTrackId !== 'string') {
-      return;
+    const trackPath =
+      typeof rawTrackId === 'string' ? store.trackPath(rawTrackId) : undefined;
+    // An id the library no longer knows: nothing to reveal, and nothing to
+    // guess at instead.
+    if (trackPath !== undefined) {
+      shell.showItemInFolder(trackPath);
     }
-    const trackPath = trackPathById(currentIndex, rawTrackId);
-    if (trackPath === undefined) {
-      // An id the index no longer knows -- nothing to reveal, and nothing to
-      // guess at instead.
-      return;
-    }
-    shell.showItemInFolder(trackPath);
   });
 
-  armLaunchRescan(deps);
+  // Once per process, on the first window actually shown: a window closed
+  // before it ever showed leaves the rescan to the next one.
+  let launchRescanStarted = false;
+  const startRescan = () => {
+    if (!launchRescanStarted) {
+      launchRescanStarted = true;
+      scans.rescanAll(false);
+    }
+  };
+  return {
+    trackPath: store.trackPath,
+    watchWindow: (window) => {
+      if (launchRescanStarted) {
+        return;
+      }
+      if (window.isVisible()) {
+        startRescan();
+        return;
+      }
+      window.once('show', startRescan);
+    },
+  };
 };

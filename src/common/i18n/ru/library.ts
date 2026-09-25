@@ -100,6 +100,12 @@ const library: Partial<Dictionary> = {
     'Индекс библиотеки не удалось прочитать, и он был перестроен.',
 
   'library.back': 'Назад',
+  'library.place.aria': 'Где вы находитесь в библиотеке',
+  'library.place.all': 'Вся музыка',
+  'library.place.allHint': 'Выйти из этой папки и показать всю библиотеку',
+  'library.search.near': 'В папке «{folder}»',
+  'library.search.nearEmpty': 'В папке «{folder}» ничего',
+  'library.search.elsewhere': 'В остальной библиотеке',
 
   'library.upNext': 'Далее',
   'library.upNext.empty': 'В очереди пока пусто',

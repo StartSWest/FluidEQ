@@ -16,65 +16,91 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { ILibraryTrack } from '../../common/library/types';
+import { albumKey } from '../../common/library/grouping';
+import type { ILibraryTrack } from '../../common/library/types';
+import { LibraryProvider } from '../../renderer/library/LibraryContext';
 import LibraryGridView from '../../renderer/library/LibraryGridView';
+import { shelfQueryFor } from '../../renderer/library/libraryShelfQuery';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
+import LibraryListOf from '../utils/LibraryListOf';
+import {
+  type ILibraryStoreBridge,
+  installIpcRenderer,
+  libraryTrack as track,
+  openLibraryStoreBridge,
+} from '../utils/libraryStoreBridge';
 
-const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
-  id: over.title ?? 'id',
-  rootId: 'r',
-  path: 'C:\\Music\\a.mp3',
-  kind: 'audio',
-  isPlayable: true,
-  title: 'Untitled',
-  sizeBytes: 1,
-  mtimeMs: 1,
-  addedAt: 1,
-  ...over,
+let bridge: ILibraryStoreBridge | undefined;
+
+afterEach(() => {
+  // Unmounted before the store closes, so nothing asks a closed store.
+  cleanup();
+  bridge?.close();
+  bridge = undefined;
 });
+
+/** The Albums shelf as a grid, over a library holding `tracks`. */
+const showAlbums = (
+  tracks: ILibraryTrack[],
+  onOpenAlbum: (albumId: string) => void = jest.fn(),
+) => {
+  const opened = openLibraryStoreBridge({ tracks });
+  bridge = opened;
+  installIpcRenderer(opened.channels);
+  const query = shelfQueryFor({
+    browseMode: 'album',
+    viewMode: 'grid',
+    folderPath: undefined,
+    search: '',
+    sort: 'title',
+    direction: 'asc',
+    isTree: false,
+    hasRoots: true,
+    folderLevel: undefined,
+  });
+  render(
+    <I18nProvider>
+      <LibraryProvider>
+        <LibraryListOf query={query}>
+          {(list) => (
+            <LibraryGridView
+              list={list}
+              browseMode="album"
+              onOpenAlbum={onOpenAlbum}
+              onOpenArtist={jest.fn()}
+              onPlayTrack={jest.fn()}
+            />
+          )}
+        </LibraryListOf>
+      </LibraryProvider>
+    </I18nProvider>,
+  );
+};
 
 describe('the library as a grid', () => {
   it('draws a tile per album and opens the one that was clicked', async () => {
     const onOpenAlbum = jest.fn();
-    render(
-      <I18nProvider>
-        <LibraryGridView
-          tracks={[
-            track({ title: 'A', album: 'Kind', artist: 'Miles' }),
-            track({ title: 'B', album: 'Bitches', artist: 'Miles' }),
-          ]}
-          browseMode="album"
-          onOpenAlbum={onOpenAlbum}
-          onOpenArtist={jest.fn()}
-          onPlayTrack={jest.fn()}
-        />
-      </I18nProvider>,
+    const kind = track({ title: 'A', album: 'Kind', artist: 'Miles' });
+    showAlbums(
+      [kind, track({ title: 'B', album: 'Bitches', artist: 'Miles' })],
+      onOpenAlbum,
     );
+    await screen.findByText('Kind');
     expect(screen.getAllByRole('button')).toHaveLength(2);
     await userEvent.click(screen.getByText('Kind'));
-    expect(onOpenAlbum).toHaveBeenCalled();
+    expect(onOpenAlbum).toHaveBeenCalledWith(albumKey(kind));
   });
 
-  it('gives an untagged album a tile rather than a blank square', () => {
+  it('gives an untagged album a tile rather than a blank square', async () => {
     // Nothing here has an artId, so every tile is generated. A grid of empty
     // squares reads as a failed load. `libraryTileInitials` takes the first
     // letter of each of the first two words, so 'Unknown album' (the
     // `library.unknownAlbum` string this untagged track falls back to)
     // yields 'UA', not 'UN' — see `src/common/library/artwork.ts`.
-    render(
-      <I18nProvider>
-        <LibraryGridView
-          tracks={[track({ title: 'A' })]}
-          browseMode="album"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-          onPlayTrack={jest.fn()}
-        />
-      </I18nProvider>,
-    );
-    expect(screen.getByText('UA')).toBeInTheDocument();
+    showAlbums([track({ title: 'A' })]);
+    expect(await screen.findByText('UA')).toBeInTheDocument();
   });
 });

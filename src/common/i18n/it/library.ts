@@ -102,6 +102,13 @@ const library: Partial<Dictionary> = {
     'Non è stato possibile leggere l’indice della libreria, che è stato ricostruito.',
 
   'library.back': 'Indietro',
+  'library.place.aria': 'Dove sei nella libreria',
+  'library.place.all': 'Tutta la musica',
+  'library.place.allHint':
+    'Esci da questa cartella e mostra tutta la tua libreria',
+  'library.search.near': 'In {folder}',
+  'library.search.nearEmpty': 'Niente in {folder}',
+  'library.search.elsewhere': 'Nel resto della tua libreria',
 
   'library.upNext': 'In coda',
   'library.upNext.empty': 'Niente in coda',

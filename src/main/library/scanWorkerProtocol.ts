@@ -36,7 +36,8 @@ export type IScanWorkerRequest =
       rootId: string;
       rootPath: string;
       userDataDir: string;
-      known: ILibraryTrack[];
+      /** Re-read every file whatever the store holds for it. */
+      force: boolean;
     }
   | { type: 'cancel' }
   | {
@@ -48,10 +49,11 @@ export type IScanWorkerRequest =
 
 export type IScanWorkerResponse =
   | { type: 'progress'; progress: ILibraryScanProgress }
-  | { type: 'tracks'; tracks: readonly ILibraryTrack[] }
+  | { type: 'tracks'; tracks: readonly ILibraryTrack[]; confirmed: boolean }
+  | { type: 'unchanged'; ids: readonly string[] }
   | {
       type: 'done';
-      tracks: ILibraryTrack[];
+      found: number;
       karaokeSkipped: number;
       wasCancelled: boolean;
     }

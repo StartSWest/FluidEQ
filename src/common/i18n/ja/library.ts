@@ -102,6 +102,12 @@ const library: Partial<Dictionary> = {
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 
   'library.back': '戻る',
+  'library.place.aria': 'ライブラリ内の現在地',
+  'library.place.all': 'すべての音楽',
+  'library.place.allHint': 'このフォルダーを出て、ライブラリ全体を表示',
+  'library.search.near': '{folder} 内',
+  'library.search.nearEmpty': '{folder} には該当なし',
+  'library.search.elsewhere': 'ライブラリのその他の場所',
 
   'library.upNext': '次に再生',
   'library.upNext.empty': 'キューは空です',

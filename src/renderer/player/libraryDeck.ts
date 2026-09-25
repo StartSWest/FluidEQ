@@ -4,9 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { ILibraryQueue, TLibraryRepeat } from 'common/library/queue';
 import type { ILibraryTrack } from 'common/library/types';
+import { useLibrary } from '../library/LibraryContext';
 
 /** One song of the Library's play order, as the player's queue lists it. */
 export interface ILibraryDeckItem {
@@ -82,6 +83,30 @@ export interface ILibraryDeck {
  */
 const QUEUE_WINDOW = { before: 200, after: 60 };
 
+/** The play order's positions the deck lists, as a half-open range. */
+const deckRange = (queue: ILibraryQueue | undefined) => {
+  const position = queue?.position ?? 0;
+  return {
+    first: Math.max(0, position - QUEUE_WINDOW.before),
+    last: Math.min(queue?.order.length ?? 0, position + QUEUE_WINDOW.after + 1),
+  };
+};
+
+/**
+ * The songs the deck lists, by id — what the player asks the library for so
+ * the deck can name them. Nothing outside the window is ever asked for.
+ */
+export const deckWindowIds = (queue: ILibraryQueue | undefined): string[] => {
+  if (!queue) {
+    return [];
+  }
+  const { first, last } = deckRange(queue);
+  return queue.order
+    .slice(first, last)
+    .map((index) => queue.trackIds[index])
+    .filter((id): id is string => id !== undefined);
+};
+
 let deck: ILibraryDeck | undefined;
 const listeners = new Set<() => void>();
 
@@ -132,26 +157,67 @@ export const usePublishedLibraryDeck = ({
   addFiles,
   moveUpNext,
 }: IPublishedLibraryDeck) => {
+  const { summary } = useLibrary();
+  /**
+   * How long is still to come, summed by the store over every id from the
+   * playhead on — the queue can run past the window the deck lists, and the
+   * songs past it are never read here. The last sum stands until the next.
+   */
+  const remaining = useMemo(
+    () =>
+      queue
+        ? queue.order
+            .slice(queue.position)
+            .map((index) => queue.trackIds[index])
+            .filter((id): id is string => id !== undefined)
+        : [],
+    [queue],
+  );
+  const remainingKey = remaining.join('\n');
+  const [leftDurationMs, setLeftDurationMs] = useState(0);
+  useEffect(() => {
+    if (remaining.length === 0) {
+      setLeftDurationMs(0);
+      return undefined;
+    }
+    let isCurrent = true;
+    window.electron.ipcRenderer
+      .queryLibrary({ type: 'duration', ids: remaining })
+      .then((total) => {
+        if (isCurrent) {
+          setLeftDurationMs(total);
+        }
+        return undefined;
+      })
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; the last sum stays
+        console.error('Could not sum what is left in the queue', error);
+      });
+    return () => {
+      isCurrent = false;
+    };
+    // `remaining` is what `remainingKey` spells.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingKey, summary.version]);
+
   useEffect(() => {
     const order = queue?.order ?? [];
     const position = queue?.position ?? 0;
-    const first = Math.max(0, position - QUEUE_WINDOW.before);
-    const last = Math.min(order.length, position + QUEUE_WINDOW.after + 1);
+    const { first, last } = deckRange(queue);
     const items: ILibraryDeckItem[] = [];
-    let leftDurationMs = 0;
-    order.forEach((index, at) => {
+    order.slice(first, last).forEach((index, offset) => {
+      const at = first + offset;
       const id = queue?.trackIds[index];
       const song = id === undefined ? undefined : trackById.get(id);
-      if (at >= position) {
-        leftDurationMs += song?.durationMs ?? 0;
-      }
-      if (at < first || at >= last || id === undefined) {
+      if (id === undefined) {
         return;
       }
       items.push({
         position: at,
         trackId: id,
-        title: song?.title ?? id,
+        // Blank for the moment before the library has named it, never its
+        // id: a row of hashes is worse than a row that fills in.
+        title: song?.title ?? '',
         artist: song?.artist,
         durationMs: song?.durationMs,
         artId: song?.artId,
@@ -178,6 +244,7 @@ export const usePublishedLibraryDeck = ({
     moveUpNext,
     isShuffled,
     jumpToQueuePosition,
+    leftDurationMs,
     queue,
     repeat,
     setShuffle,

@@ -42,6 +42,9 @@ interface ILibraryTrackRowProps {
   isFavorite: boolean;
   duration: string;
   onPlay: (trackId: string) => void;
+  /** The second press of a double-press, in place of a second `onPlay`: the
+   * song starts again from the top, as it does in the player's queue. */
+  onRestart: (trackId: string) => void;
   /** Marks the row as the one the reader is on. Called alongside `onPlay`,
    * not instead of it — see the click handler below. */
   onSelect: (trackId: string) => void;
@@ -91,12 +94,25 @@ const LibraryTrackRow = ({
   isFavorite,
   duration,
   onPlay,
+  onRestart,
   onSelect,
   onKeyDown,
   onContextMenu,
 }: ILibraryTrackRowProps) => {
   const { t } = useTranslation();
   const activate = () => onPlay(track.id);
+  /**
+   * A press, counted the way the system counts a double-click (`detail`).
+   * The first press of a double-press has already played the song; the
+   * second asks for it again from the top rather than playing it twice.
+   */
+  const press = (pressCount: number) => {
+    if (pressCount > 1) {
+      onRestart(track.id);
+      return;
+    }
+    activate();
+  };
   const className = [
     'library-list__row',
     isOffline ? 'library-list__row--offline' : '',
@@ -133,8 +149,9 @@ const LibraryTrackRow = ({
       // button — which meant the obvious thing to press on a track did
       // nothing visible at all, and inside the Cover Flow panel there is
       // nowhere else to go. A row in a track list is a thing you press to
-      // hear; `onDoubleClick` is gone with it rather than firing `onPlay`
-      // a second time on the way past.
+      // hear. A double-click is the first press playing it and the second
+      // starting it again (`press`), as the player's queue does — not a
+      // second `onPlay` on the way past.
       onClick={(event) => {
         // Choosing rows and playing one are the same gesture with and without
         // a modifier, so the list is asked first and its answer decides
@@ -148,7 +165,7 @@ const LibraryTrackRow = ({
           return;
         }
         onSelect(track.id);
-        activate();
+        press(event.detail);
       }}
       onKeyDown={(event) => onKeyDown(event, track)}
       onContextMenu={(event) => {
@@ -170,7 +187,7 @@ const LibraryTrackRow = ({
           disabled={!track.isPlayable}
           onClick={(event) => {
             event.stopPropagation();
-            activate();
+            press(event.detail);
           }}
         >
           <LibraryCoverArt artId={track.artId} label={track.title} size="row" />

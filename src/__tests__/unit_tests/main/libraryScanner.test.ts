@@ -6,6 +6,7 @@ import {
   ILibraryTrack,
 } from '../../../common/library/types';
 import {
+  IScanOptions,
   scanLibraryRoot,
   shouldReparse,
   trackIdForPath,
@@ -37,15 +38,107 @@ const folder = (files: Record<string, string>): string => {
   return dir;
 };
 
-const scan = (rootPath: string, known: ILibraryTrack[] = []) =>
+type TScanEvent =
+  | { type: 'progress'; progress: ILibraryScanProgress }
+  | { type: 'tracks'; tracks: readonly ILibraryTrack[]; confirmed: boolean }
+  | { type: 'unchanged'; ids: readonly string[] };
+
+interface IWalkHooks {
+  lookupKnown: IScanOptions['lookupKnown'];
+  onProgress: IScanOptions['onProgress'];
+  onTracks: NonNullable<IScanOptions['onTracks']>;
+  onUnchanged: NonNullable<IScanOptions['onUnchanged']>;
+}
+
+/**
+ * Everything a walk said, in order, and the library it leaves behind.
+ *
+ * The scanner answers with counts alone: its songs go out through `onTracks`
+ * and `onUnchanged` as it walks. This stands in for the store the way the
+ * runner wires it (`libraryScanRunner.ts`): a batch replaces rows by id, and
+ * `lookupKnown` answers from what has landed so far — so the pending row
+ * discovery wrote for a file is what parsing finds for it, as in the app.
+ */
+const recordWalk = (known: readonly ILibraryTrack[] = []) => {
+  const library = new Map<string, ILibraryTrack>(
+    known.map((track) => [track.id, track]),
+  );
+  const events: TScanEvent[] = [];
+  const hooks: IWalkHooks = {
+    lookupKnown: (filePath) =>
+      [...library.values()].find((track) => track.path === filePath),
+    onProgress: (progress) => {
+      events.push({ type: 'progress', progress });
+    },
+    onTracks: (tracks, confirmed) => {
+      events.push({ type: 'tracks', tracks, confirmed });
+      tracks.forEach((track) => library.set(track.id, track));
+    },
+    onUnchanged: (ids) => {
+      events.push({ type: 'unchanged', ids });
+    },
+  };
+  return {
+    events,
+    hooks,
+    songs: (): ILibraryTrack[] => [...library.values()],
+    progress: (): ILibraryScanProgress[] =>
+      events.flatMap((event) =>
+        event.type === 'progress' ? [event.progress] : [],
+      ),
+    /** Ids the walk vouched for: read, or found unchanged. */
+    confirmedIds: (): string[] =>
+      events.flatMap((event) => {
+        if (event.type === 'unchanged') {
+          return [...event.ids];
+        }
+        return event.type === 'tracks' && event.confirmed
+          ? event.tracks.map((track) => track.id)
+          : [];
+      }),
+  };
+};
+
+type TWalkRecord = ReturnType<typeof recordWalk>;
+
+const scan = (
+  rootPath: string,
+  walk: TWalkRecord,
+  extra: Partial<IScanOptions> = {},
+) =>
   scanLibraryRoot({
     rootId: 'r1',
     rootPath,
     userDataDir: rootPath,
-    known,
-    onProgress: () => undefined,
+    force: false,
     isCancelled: () => false,
+    ...walk.hooks,
+    ...extra,
   });
+
+const baseNames = (tracks: readonly ILibraryTrack[]): string[] =>
+  tracks.map((track) => path.basename(track.path)).sort();
+
+/** A song the store already holds for `filePath`, as it stands on disk now. */
+const knownSong = (
+  filePath: string,
+  over: Partial<ILibraryTrack> = {},
+): ILibraryTrack => {
+  const stats = fs.statSync(filePath);
+  return {
+    id: trackIdForPath(filePath),
+    rootId: 'r1',
+    path: filePath,
+    kind: 'audio',
+    isPlayable: true,
+    title: path.basename(filePath, '.mp3').toUpperCase(),
+    artworkChecked: true,
+    sizeBytes: stats.size,
+    mtimeMs: stats.mtimeMs,
+    addedAt: 1,
+    ...over,
+  };
+};
 
 describe('scanning a folder', () => {
   it('finds music at any depth and ignores everything else', async () => {
@@ -56,10 +149,10 @@ describe('scanning a folder', () => {
       'Album/cover.jpg': 'x',
       'Album/Live/c.m4a': 'x',
     });
-    const result = await scan(dir);
-    expect(
-      result.tracks.map((entry) => path.basename(entry.path)).sort(),
-    ).toEqual(['a.mp3', 'b.flac', 'c.m4a']);
+    const walk = recordWalk();
+    const result = await scan(dir, walk);
+    expect(baseNames(walk.songs())).toEqual(['a.mp3', 'b.flac', 'c.m4a']);
+    expect(result.found).toBe(3);
   });
 
   it('reads a cloud placeholder, which Windows reports as a symlink', async () => {
@@ -90,10 +183,9 @@ describe('scanning a folder', () => {
     }) as unknown as typeof fs.promises.readdir);
 
     try {
-      const result = await scan(dir);
-      expect(
-        result.tracks.map((entry) => path.basename(entry.path)).sort(),
-      ).toEqual(['b.mp3', 'cloud.mp3']);
+      const walk = recordWalk();
+      await scan(dir, walk);
+      expect(baseNames(walk.songs())).toEqual(['b.mp3', 'cloud.mp3']);
     } finally {
       readdir.mockRestore();
     }
@@ -101,8 +193,9 @@ describe('scanning a folder', () => {
 
   it('excludes a song that has a lyric file beside it, and counts it', async () => {
     const dir = folder({ 'Song.mp3': 'x', 'Song.lrc': '[00:01.00]hi' });
-    const result = await scan(dir);
-    expect(result.tracks).toHaveLength(0);
+    const walk = recordWalk();
+    const result = await scan(dir, walk);
+    expect(walk.songs()).toHaveLength(0);
     expect(result.karaokeSkipped).toBe(1);
   });
 
@@ -111,8 +204,9 @@ describe('scanning a folder', () => {
     // .txt-adjacent song would pass the test above and quietly lose albums
     // that ship a tracklist.
     const dir = folder({ 'Song.mp3': 'x', 'Song.txt': '1. Intro\n2. Verse\n' });
-    const result = await scan(dir);
-    expect(result.tracks).toHaveLength(1);
+    const walk = recordWalk();
+    const result = await scan(dir, walk);
+    expect(walk.songs()).toHaveLength(1);
     expect(result.karaokeSkipped).toBe(0);
   });
 
@@ -121,15 +215,17 @@ describe('scanning a folder', () => {
       'Song.mp3': 'x',
       'Song.txt': '#TITLE:Song\n#BPM:200\n: 0 4 0 Hel~\n',
     });
-    const result = await scan(dir);
-    expect(result.tracks).toHaveLength(0);
+    const walk = recordWalk();
+    const result = await scan(dir, walk);
+    expect(walk.songs()).toHaveLength(0);
     expect(result.karaokeSkipped).toBe(1);
   });
 
   it('lists a video it cannot play, marked', async () => {
     const dir = folder({ 'clip.mkv': 'x' });
-    const result = await scan(dir);
-    expect(result.tracks[0]).toMatchObject({
+    const walk = recordWalk();
+    await scan(dir, walk);
+    expect(walk.songs()[0]).toMatchObject({
       kind: 'video',
       isPlayable: false,
     });
@@ -145,24 +241,19 @@ describe('scanning a folder', () => {
     // row. That is not a partial answer dressed up as a whole one: the walk
     // genuinely established those files exist, and discarding that would
     // throw away the one fact the run did prove. Nothing here claims to have
-    // read a tag -- every surviving row is `isPending`.
+    // read a tag -- every surviving row is `isPending`, and none of them is
+    // vouched for, so nothing in the store is marked as read by this walk.
     const dir = folder({ 'a.mp3': 'x', 'b.mp3': 'x', 'c.mp3': 'x' });
-    let sawAnEvent = false;
-    const result = await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: () => {
-        sawAnEvent = true;
-      },
-      isCancelled: () => sawAnEvent,
+    const walk = recordWalk();
+    const result = await scan(dir, walk, {
+      isCancelled: () => walk.progress().length > 0,
     });
     expect(result.wasCancelled).toBe(true);
-    // Stopped early, so not the whole folder — and nothing it kept pretends
-    // to have been read.
-    expect(result.tracks.length).toBeLessThan(3);
-    expect(result.tracks.every((track) => track.isPending === true)).toBe(true);
+    // Stopped early, so not the whole folder — but what it found is kept.
+    expect(walk.songs().length).toBeGreaterThan(0);
+    expect(walk.songs().length).toBeLessThan(3);
+    expect(walk.songs().every((track) => track.isPending === true)).toBe(true);
+    expect(walk.confirmedIds()).toEqual([]);
   });
 
   it('keeps whatever parsing had already produced when cancelled mid-parse', async () => {
@@ -171,40 +262,34 @@ describe('scanning a folder', () => {
     // whatever was already built survives, even though the rest of the walk
     // is abandoned.
     const dir = folder({ 'a.mp3': 'x', 'b.mp3': 'x', 'c.mp3': 'x' });
-    let parseEventsSeen = 0;
-    const result = await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: (progress) => {
-        if (progress.parsed > 0) {
-          parseEventsSeen += 1;
-        }
-      },
-      isCancelled: () => parseEventsSeen >= 1,
+    const walk = recordWalk();
+    const result = await scan(dir, walk, {
+      isCancelled: () => walk.progress().some((event) => event.parsed > 0),
     });
     expect(result.wasCancelled).toBe(true);
     // Every file discovery found survives the cancel, but only the ones
     // parsing actually reached claim to have been read. The rest stay
     // provisional and the next scan finishes them — a cancelled scan is a
     // partial library, never a lost one, and never a lying one either.
-    expect(result.tracks).toHaveLength(3);
-    const parsed = result.tracks.filter((track) => track.isPending !== true);
-    const stillPending = result.tracks.filter(
-      (track) => track.isPending === true,
-    );
+    const songs = walk.songs();
+    expect(songs).toHaveLength(3);
+    const parsed = songs.filter((track) => track.isPending !== true);
+    const stillPending = songs.filter((track) => track.isPending === true);
     expect(parsed.length).toBeGreaterThan(0);
     expect(parsed.length + stillPending.length).toBe(3);
+    expect(walk.confirmedIds().sort()).toEqual(
+      parsed.map((track) => track.id).sort(),
+    );
   });
 
-  it('carries forward every known track a cancelled rescan never got back around to', async () => {
-    // Reproduces the data loss directly: six known, unchanged tracks across
-    // two directories, cancelled after only two have been reached. Before
-    // this fix the result held only the two actually confirmed, and
-    // `scanOneRoot` (src/main/ipc/library.ts) replaces a root's tracks with
-    // this result wholesale -- so the other four, which had not changed at
-    // all, would simply vanish from the library the moment Stop was pressed.
+  it('leaves every known track a cancelled rescan never got back around to exactly as it was', async () => {
+    // The data loss this guards: six known, unchanged tracks across two
+    // directories, cancelled after only two have been reached. The runner
+    // sweeps a root's unvouched songs only when a walk says it finished
+    // (`libraryScanRunner.ts`), so the four never reached survive only if
+    // the walk reports the cancel -- and only unharmed if it writes nothing
+    // over them, not even a provisional row that would dim them back to
+    // pending on every Stop.
     const dir = folder({
       'Album A/a.mp3': 'x',
       'Album A/b.mp3': 'x',
@@ -213,49 +298,27 @@ describe('scanning a folder', () => {
       'Album B/e.mp3': 'x',
       'Album B/f.mp3': 'x',
     });
-    const fileNames = ['a', 'b', 'c', 'd', 'e', 'f'];
-    const known: ILibraryTrack[] = fileNames.map((name) => {
-      const filePath = path.join(
-        dir,
-        name <= 'c' ? 'Album A' : 'Album B',
-        `${name}.mp3`,
-      );
-      const stats = fs.statSync(filePath);
-      return {
-        id: trackIdForPath(filePath),
-        rootId: 'r1',
-        path: filePath,
-        kind: 'audio',
-        isPlayable: true,
-        title: name.toUpperCase(),
-        sizeBytes: stats.size,
-        mtimeMs: stats.mtimeMs,
-        addedAt: 1,
-      };
-    });
-
-    let parseEventsSeen = 0;
-    const result = await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known,
-      onProgress: (progress) => {
-        if (progress.parsed > 0) {
-          parseEventsSeen += 1;
-        }
-      },
+    const known = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) =>
+      knownSong(
+        path.join(dir, name <= 'c' ? 'Album A' : 'Album B', `${name}.mp3`),
+      ),
+    );
+    const walk = recordWalk(known);
+    const result = await scan(dir, walk, {
       // Cancels after the second file is confirmed -- two of six reached,
       // four not yet revisited.
-      isCancelled: () => parseEventsSeen >= 2,
+      isCancelled: () =>
+        walk.progress().filter((event) => event.parsed > 0).length >= 2,
     });
 
     expect(result.wasCancelled).toBe(true);
-    // The count assertion the bug would have failed: the array was non-empty
-    // (2 of 6) even when broken, so "some tracks survived" was never enough.
-    expect(result.tracks).toHaveLength(6);
-    expect(result.tracks.map((track) => track.path).sort()).toEqual(
-      known.map((track) => track.path).sort(),
+    // The two it reached are vouched for, unchanged, and nothing else is.
+    expect(walk.confirmedIds()).toHaveLength(2);
+    // The count the old bug would have failed: two of six survived it.
+    expect(walk.songs()).toHaveLength(6);
+    expect(walk.songs()).toEqual(known);
+    expect(walk.events.filter((event) => event.type === 'tracks')).toHaveLength(
+      0,
     );
   });
 
@@ -264,17 +327,11 @@ describe('scanning a folder', () => {
     // together for the same file, so every live progress event had
     // `seen === parsed` and a determinate bar read 100% for the whole scan.
     const dir = folder({ 'a.mp3': 'x', 'b.mp3': 'x', 'c.mp3': 'x' });
-    const events: { seen: number; parsed: number }[] = [];
-    await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: (progress) =>
-        events.push({ seen: progress.seen, parsed: progress.parsed }),
-      isCancelled: () => false,
-    });
-    expect(events.some((event) => event.seen > event.parsed)).toBe(true);
+    const walk = recordWalk();
+    await scan(dir, walk);
+    expect(walk.progress().some((event) => event.seen > event.parsed)).toBe(
+      true,
+    );
   });
 
   it('makes seen a real total before parsed ever climbs, across more than one directory', async () => {
@@ -295,15 +352,9 @@ describe('scanning a folder', () => {
       'Album B/g.mp3': 'x',
       'Album B/h.mp3': 'x',
     });
-    const events: ILibraryScanProgress[] = [];
-    await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: (progress) => events.push(progress),
-      isCancelled: () => false,
-    });
+    const walk = recordWalk();
+    await scan(dir, walk);
+    const events = walk.progress();
 
     const finalSeen = events[events.length - 1].seen;
     expect(finalSeen).toBe(8);
@@ -352,37 +403,59 @@ describe('scanning a folder', () => {
     // the top of the list as if it had just been added.
     const dir = folder({ 'known.mp3': 'x', 'new.mp3': 'y' });
     const knownPath = path.join(dir, 'known.mp3');
-    const stats = fs.statSync(knownPath);
     const knownAddedAt = 12345;
-    const known: ILibraryTrack[] = [
-      {
-        id: trackIdForPath(knownPath),
-        rootId: 'r1',
-        path: knownPath,
-        kind: 'audio',
-        isPlayable: true,
-        title: 'Old title',
-        // Mismatched size forces shouldReparse to trigger a rebuild.
-        sizeBytes: stats.size + 1,
-        mtimeMs: stats.mtimeMs,
-        addedAt: knownAddedAt,
-      },
-    ];
+    const stale = knownSong(knownPath, { title: 'Old title' });
+    // A mismatched size is what makes shouldReparse ask for a rebuild.
+    const walk = recordWalk([
+      { ...stale, sizeBytes: stale.sizeBytes + 1, addedAt: knownAddedAt },
+    ]);
     const before = Date.now();
-    const result = await scan(dir, known);
-    const reparsed = result.tracks.find((entry) => entry.path === knownPath);
-    const fresh = result.tracks.find(
-      (entry) => path.basename(entry.path) === 'new.mp3',
-    );
+    await scan(dir, walk);
+    const reparsed = walk.songs().find((entry) => entry.path === knownPath);
+    const fresh = walk
+      .songs()
+      .find((entry) => path.basename(entry.path) === 'new.mp3');
+    expect(reparsed?.title).toBe('Tagged');
     expect(reparsed?.addedAt).toBe(knownAddedAt);
     expect(fresh?.addedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('re-reads an unchanged file only when forced, keeping the day it joined', async () => {
+    // Forcing is the escape hatch for a tagger that preserves the modified
+    // time, and for covers cleared from the artwork cache behind the app's
+    // back: an ordinary walk trusts an unchanged file and never reads it
+    // again. The known row is still looked up on a forced walk — it used to
+    // be handed nothing, and every song lost the day it was added.
+    const dir = folder({ 'kept.mp3': 'x' });
+    const joined = knownSong(path.join(dir, 'kept.mp3'), {
+      title: 'Old title',
+      addedAt: 12345,
+    });
+
+    // The positive control: the same song, not forced, is confirmed as it is.
+    const ordinary = recordWalk([joined]);
+    await scan(dir, ordinary);
+    expect(ordinary.songs()).toEqual([joined]);
+    expect(ordinary.confirmedIds()).toEqual([joined.id]);
+
+    const forced = recordWalk([joined]);
+    await scan(dir, forced, { force: true });
+    expect(forced.songs()).toEqual([
+      expect.objectContaining({
+        id: joined.id,
+        title: 'Tagged',
+        addedAt: 12345,
+      }),
+    ]);
+    expect(forced.confirmedIds()).toEqual([joined.id]);
   });
 
   it('sets hasMetadataError only when the tag read itself failed', async () => {
     mockedReadLibraryTags.mockResolvedValueOnce({ readFailed: true });
     const dir = folder({ 'broken.mp3': 'x' });
-    const result = await scan(dir);
-    expect(result.tracks[0]).toMatchObject({ hasMetadataError: true });
+    const walk = recordWalk();
+    await scan(dir, walk);
+    expect(walk.songs()[0]).toMatchObject({ hasMetadataError: true });
   });
 
   it('hands embedded artwork to the supplied host cache before publishing the track', async () => {
@@ -397,18 +470,11 @@ describe('scanning a folder', () => {
     );
     const dir = folder({ 'covered.mp3': 'x' });
 
-    const result = await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      storeArtwork,
-      onProgress: () => undefined,
-      isCancelled: () => false,
-    });
+    const walk = recordWalk();
+    await scan(dir, walk, { storeArtwork });
 
     expect(storeArtwork).toHaveBeenCalledWith(picture);
-    expect(result.tracks[0]).toMatchObject({
+    expect(walk.songs()[0]).toMatchObject({
       title: 'Covered',
       artist: 'Tagged artist',
       artId: 'abc123',
@@ -423,21 +489,14 @@ describe('scanning a folder', () => {
     );
     const dir = folder({ 'plain.mp3': 'x', 'cover.jpg': 'folder-cover' });
 
-    const result = await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      storeArtwork,
-      onProgress: () => undefined,
-      isCancelled: () => false,
-    });
+    const walk = recordWalk();
+    await scan(dir, walk, { storeArtwork });
 
     expect(storeArtwork).toHaveBeenCalledTimes(1);
     expect(Buffer.from(storeArtwork.mock.calls[0][0]).toString('utf8')).toBe(
       'folder-cover',
     );
-    expect(result.tracks[0]).toMatchObject({
+    expect(walk.songs()[0]).toMatchObject({
       artId: 'def456',
       artworkChecked: true,
     });
@@ -445,7 +504,7 @@ describe('scanning a folder', () => {
 
   it('publishes parsed tracks in batches before the scan finishes, growing across batches', async () => {
     // Enough files to cross the batch-size threshold at least once, so this
-    // proves batching (more than one onTracks call) rather than "everything
+    // proves batching (more than one read batch) rather than "everything
     // published in one shot at the end" happening to satisfy a looser
     // assertion.
     const files: Record<string, string> = {};
@@ -454,42 +513,29 @@ describe('scanning a folder', () => {
     }
     const dir = folder(files);
 
-    let terminalEventSeen = false;
-    let aTrackWasPublishedBeforeTheTerminalEvent = false;
-    const batchSizes: number[] = [];
+    const walk = recordWalk();
+    await scan(dir, walk);
 
-    await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: (progress) => {
-        if (progress.isDone) {
-          terminalEventSeen = true;
-        }
-      },
-      onTracks: (tracks) => {
-        if (!terminalEventSeen) {
-          aTrackWasPublishedBeforeTheTerminalEvent = true;
-        }
-        // Every file is published twice over a whole scan — once by discovery
-        // as a provisional row so the library is populated before any tag is
-        // read, then again by parsing with its real metadata. Counting only
-        // the parsed half is what makes "nothing lost or double-counted"
-        // still mean something now that the provisional half exists.
-        if (tracks.every((track) => track.isPending !== true)) {
-          batchSizes.push(tracks.length);
-        }
-      },
-      isCancelled: () => false,
-    });
-
-    expect(aTrackWasPublishedBeforeTheTerminalEvent).toBe(true);
+    const doneAt = walk.events.findIndex(
+      (event) => event.type === 'progress' && event.progress.isDone,
+    );
+    // Every file is published twice over a whole scan — once by discovery
+    // as a provisional row so the library is populated before any tag is
+    // read, then again by parsing with its real metadata. Counting only
+    // the read half is what makes "nothing lost or double-counted" still
+    // mean something now that the provisional half exists.
+    const readBatches = walk.events.flatMap((event, at) =>
+      event.type === 'tracks' && event.confirmed
+        ? [{ at, size: event.tracks.length }]
+        : [],
+    );
+    expect(readBatches.length).toBeGreaterThan(0);
+    expect(readBatches[0].at).toBeLessThan(doneAt);
     // More than one batch: the count published keeps growing rather than
     // arriving as a single dump at the end.
-    expect(batchSizes.length).toBeGreaterThan(1);
-    // Nothing lost or double-counted across the parsed batches.
-    expect(batchSizes.reduce((sum, size) => sum + size, 0)).toBe(30);
+    expect(readBatches.length).toBeGreaterThan(1);
+    // Nothing lost or double-counted across the read batches.
+    expect(readBatches.reduce((sum, batch) => sum + batch.size, 0)).toBe(30);
   });
 
   it('publishes every file as a provisional row before it parses any of them', async () => {
@@ -502,28 +548,23 @@ describe('scanning a folder', () => {
       'Album/two.mp3': 'x',
       'Album/three.mp3': 'x',
     });
-    const published: { pending: boolean; title: string; album?: string }[] = [];
-    await scanLibraryRoot({
-      rootId: 'r1',
-      rootPath: dir,
-      userDataDir: dir,
-      known: [],
-      onProgress: () => undefined,
-      onTracks: (tracks) => {
-        tracks.forEach((track) =>
-          published.push({
-            pending: track.isPending === true,
-            title: track.title,
-            album: track.album,
-          }),
-        );
-      },
-      isCancelled: () => false,
-    });
+    const walk = recordWalk();
+    await scan(dir, walk);
 
+    const published = walk.events.flatMap((event) =>
+      event.type === 'tracks'
+        ? event.tracks.map((track) => ({
+            pending: track.isPending === true,
+            confirmed: event.confirmed,
+            album: track.album,
+          }))
+        : [],
+    );
     const firstParsedAt = published.findIndex((entry) => !entry.pending);
     const provisional = published.filter((entry) => entry.pending);
     expect(provisional).toHaveLength(3);
+    // A listed file is not a read one: none of them is vouched for yet.
+    expect(provisional.every((entry) => !entry.confirmed)).toBe(true);
     // All three provisional rows land before the first parsed one.
     expect(firstParsedAt).toBe(3);
     // Grouped by the folder they sit in, so they form a real album rather
@@ -537,26 +578,52 @@ describe('scanning a folder', () => {
     // the time its candidate reaches `fs.promises.stat` -- a download folder
     // tidying itself, a share dropping, a permissions change. Before the fix
     // this was the one unguarded await in the whole scan chain: it rejected
-    // `scanLibraryRoot` outright and the other two files below vanished from
-    // the result along with it, not just the one that was actually gone.
+    // `scanLibraryRoot` outright and the other two files went with it, not
+    // just the one that was actually gone. The file is deleted for real, in
+    // the gap between the phases: once discovery has counted all three, and
+    // before parsing has read the first -- whatever order the disk lists them.
     const dir = folder({ 'a.mp3': 'x', 'gone.mp3': 'x', 'b.mp3': 'x' });
-    const missingPath = path.join(dir, 'gone.mp3');
-    const realStat = fs.promises.stat.bind(fs.promises);
-    const statSpy = jest
-      .spyOn(fs.promises, 'stat')
-      .mockImplementation((target: Parameters<typeof fs.promises.stat>[0]) => {
-        if (target === missingPath) {
-          return Promise.reject(new Error('ENOENT: no such file or directory'));
-        }
-        return realStat(target);
-      });
+    const gonePath = path.join(dir, 'gone.mp3');
+    // The skip is logged, like every other one in the walk; kept off the
+    // run's output so it is not mistaken for a failure of the test itself.
+    const logged = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     try {
-      const result = await scan(dir);
+      const walk = recordWalk();
+      const result = await scan(dir, walk, {
+        onProgress: (progress) => {
+          walk.hooks.onProgress(progress);
+          if (
+            progress.seen === 3 &&
+            progress.parsed === 0 &&
+            fs.existsSync(gonePath)
+          ) {
+            fs.rmSync(gonePath);
+          }
+        },
+      });
+
+      // Finished, not cancelled, and nothing vouches for the vanished file:
+      // the runner's sweep takes away any row the library had for it.
+      expect(result.wasCancelled).toBe(false);
+      expect(result.found).toBe(2);
+      expect(walk.confirmedIds().sort()).toEqual(
+        [path.join(dir, 'a.mp3'), path.join(dir, 'b.mp3')]
+          .map(trackIdForPath)
+          .sort(),
+      );
       expect(
-        result.tracks.map((entry) => path.basename(entry.path)).sort(),
+        baseNames(walk.songs().filter((track) => track.isPending !== true)),
       ).toEqual(['a.mp3', 'b.mp3']);
+      // Matched by its code rather than `expect.any(Error)`: Node builds its
+      // own errors in its own realm, which is not the jsdom one this runs in.
+      expect(logged).toHaveBeenCalledWith(
+        `Could not stat ${gonePath}`,
+        expect.objectContaining({ code: 'ENOENT' }),
+      );
     } finally {
-      statSpy.mockRestore();
+      logged.mockRestore();
     }
   });
 });
@@ -583,6 +650,15 @@ describe('deciding whether a file needs re-reading', () => {
     expect(shouldReparse(known, { size: 101, mtimeMs: 200 })).toBe(true);
     expect(shouldReparse(known, { size: 100, mtimeMs: 201 })).toBe(true);
     expect(shouldReparse(undefined, { size: 100, mtimeMs: 200 })).toBe(true);
+  });
+
+  it('reads a file that was only ever listed, whatever its size and time say', () => {
+    // Parsing asks the live store, where discovery's own pending row for the
+    // file landed moments earlier with the file's real size and time: trusted
+    // as unchanged, it would never be read at all.
+    expect(
+      shouldReparse({ ...known, isPending: true }, { size: 100, mtimeMs: 200 }),
+    ).toBe(true);
   });
 
   it('repairs an unchanged legacy track once when no artwork result was recorded', () => {

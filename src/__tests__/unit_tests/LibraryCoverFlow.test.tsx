@@ -16,15 +16,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { ILibraryTrack } from '../../common/library/types';
+import { type ComponentProps, type ReactElement, useState } from 'react';
+import type {
+  ILibraryTrack,
+  TLibraryBrowseMode,
+} from '../../common/library/types';
 import LibraryCoverFlow, {
   COVER_FLOW_NEIGHBOURS,
   coverFlowTransform,
 } from '../../renderer/library/LibraryCoverFlow';
+import { LibraryProvider } from '../../renderer/library/LibraryContext';
+import { shelfQueryFor } from '../../renderer/library/libraryShelfQuery';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
+import LibraryListOf from '../utils/LibraryListOf';
+import {
+  type ILibraryStoreBridge,
+  installIpcRenderer,
+  libraryTrack,
+  openLibraryStoreBridge,
+} from '../utils/libraryStoreBridge';
 
 // One folder per album, which is what a real library looks like. With every
 // album in a single directory `LibraryDetail` — correctly — lists the other
@@ -32,38 +45,122 @@ import { I18nProvider } from '../../renderer/utils/I18nContext';
 // them together could not tell "the panel shows the right album" from "the
 // panel shows everything".
 const albumTracks = (count: number): ILibraryTrack[] =>
-  Array.from({ length: count }, (_, index) => ({
-    id: `t${index}`,
-    rootId: 'r',
-    path: `C:\\Music\\album-${index}\\${index}.mp3`,
-    kind: 'audio' as const,
-    isPlayable: true,
-    title: `Song ${index}`,
-    album: `Album ${index}`,
-    artist: 'Artist',
-    sizeBytes: 1,
-    mtimeMs: 1,
-    addedAt: 1,
-  }));
+  Array.from({ length: count }, (_, index) =>
+    libraryTrack({
+      id: `t${index}`,
+      path: `C:\\Music\\album-${index}\\${index}.mp3`,
+      title: `Song ${index}`,
+      album: `Album ${index}`,
+      artist: 'Artist',
+    }),
+  );
 
-// A distinct set of albums, so grouping them ahead of `albumTracks`' own in
-// the same tracks array simulates a rescan inserting new albums before the
-// one already centred — same artist, different album keys, different track
-// ids, so nothing here coincides with `albumTracks` by accident.
-const prependedAlbumTracks = (count: number): ILibraryTrack[] =>
-  Array.from({ length: count }, (_, index) => ({
-    id: `p${index}`,
-    rootId: 'r',
-    path: `C:\\Music\\prepended-${index}.mp3`,
-    kind: 'audio' as const,
-    isPlayable: true,
-    title: `Prepended Song ${index}`,
-    album: `Prepended Album ${index}`,
-    artist: 'Artist',
-    sizeBytes: 1,
-    mtimeMs: 1,
-    addedAt: 1,
-  }));
+// A distinct set of albums whose titles sort ahead of `albumTracks`' own on
+// the title order the shelf uses, so adding them simulates a rescan finding
+// albums that land in front of the one already centred — same artist,
+// different album keys, different track ids, so nothing here coincides with
+// `albumTracks` by accident.
+const aheadAlbumTracks = (count: number): ILibraryTrack[] =>
+  Array.from({ length: count }, (_, index) =>
+    libraryTrack({
+      id: `p${index}`,
+      path: `C:\\Music\\ahead-${index}\\${index}.mp3`,
+      title: `Ahead Song ${index}`,
+      album: `Aardvark Album ${index}`,
+      artist: 'Artist',
+    }),
+  );
+
+let bridge: ILibraryStoreBridge | undefined;
+
+afterEach(() => {
+  // Unmounted before the store closes, so nothing asks a closed store.
+  cleanup();
+  bridge?.close();
+  bridge = undefined;
+});
+
+type TCoverFlowProps = Pick<
+  ComponentProps<typeof LibraryCoverFlow>,
+  'onPlayTrack' | 'openId' | 'onOpenChange'
+> & { browseMode: TLibraryBrowseMode };
+
+/** The row the workspace draws for a shelf in Cover Flow, from the store. */
+const ShelfCoverFlow = ({
+  browseMode,
+  onPlayTrack,
+  openId,
+  onOpenChange,
+}: TCoverFlowProps) => (
+  <LibraryListOf
+    query={shelfQueryFor({
+      browseMode,
+      viewMode: 'coverflow',
+      folderPath: undefined,
+      search: '',
+      sort: 'title',
+      direction: 'asc',
+      isTree: false,
+      hasRoots: true,
+      folderLevel: undefined,
+    })}
+  >
+    {(list) => (
+      <LibraryCoverFlow
+        list={list}
+        browseMode={browseMode}
+        onPlayTrack={onPlayTrack}
+        openId={openId}
+        onOpenChange={onOpenChange}
+      />
+    )}
+  </LibraryListOf>
+);
+
+/**
+ * What the workspace does around the row: holds what is open, and closes it
+ * from the place bar's Back, which is the Library's one way out of a record
+ * (`LibraryPlaceBar`). A stand-in for both, so the row can be tested on its
+ * own against the contract the workspace keeps with it.
+ */
+const WithPlaceBar = ({
+  browseMode,
+  onPlayTrack,
+}: Pick<TCoverFlowProps, 'browseMode' | 'onPlayTrack'>) => {
+  const [openId, setOpenId] = useState<string | undefined>(undefined);
+  return (
+    <>
+      <button type="button" onClick={() => setOpenId(undefined)}>
+        Back
+      </button>
+      <ShelfCoverFlow
+        browseMode={browseMode}
+        onPlayTrack={onPlayTrack}
+        openId={openId}
+        onOpenChange={setOpenId}
+      />
+    </>
+  );
+};
+
+/** Renders inside a library holding `tracks`, and hands back the library. */
+const showInLibrary = (
+  tracks: ILibraryTrack[],
+  ui: ReactElement,
+): ILibraryStoreBridge => {
+  const opened = openLibraryStoreBridge({ tracks });
+  bridge = opened;
+  installIpcRenderer(opened.channels);
+  render(
+    <I18nProvider>
+      <LibraryProvider>{ui}</LibraryProvider>
+    </I18nProvider>,
+  );
+  return opened;
+};
+
+/** The centre cover, once the row's first page has come back. */
+const centre = () => screen.findByRole('option', { selected: true });
 
 describe('the cover flow geometry', () => {
   it('leaves the centre cover facing the viewer', () => {
@@ -104,24 +201,17 @@ describe('cover flow', () => {
   it('mounts a window of covers, not the whole library', async () => {
     // 400 albums must animate like 20. Everything past the window is not
     // rendered at all.
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow tracks={albumTracks(400)} browseMode="album" />
-      </I18nProvider>,
-    );
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(
-      COVER_FLOW_NEIGHBOURS * 2 + 1,
-    );
+    showInLibrary(albumTracks(400), <ShelfCoverFlow browseMode="album" />);
+    await centre();
+    const covers = screen.getAllByRole('option');
+    expect(covers.length).toBeGreaterThan(1);
+    expect(covers.length).toBeLessThanOrEqual(COVER_FLOW_NEIGHBOURS * 2 + 1);
   });
 
   it('moves with the arrow keys', async () => {
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="album" />
-      </I18nProvider>,
-    );
-    const stage = screen.getByRole('listbox');
-    stage.focus();
+    showInLibrary(albumTracks(5), <ShelfCoverFlow browseMode="album" />);
+    await centre();
+    screen.getByRole('listbox').focus();
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
       'Album 1',
@@ -133,31 +223,33 @@ describe('cover flow', () => {
     // shows its songs beneath the carousel and the carousel stays. Asserted
     // on the right songs being on screen AND the listbox still being there:
     // either alone would pass a version that swapped one for the other.
-    const [extra] = albumTracks(1);
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow
-          tracks={[
-            ...albumTracks(3),
-            { ...extra, id: 'extra', title: 'Second Track' },
-          ]}
-          browseMode="album"
-          onPlayTrack={jest.fn()}
-        />
-      </I18nProvider>,
+    showInLibrary(
+      [
+        ...albumTracks(3),
+        libraryTrack({
+          id: 'extra',
+          path: 'C:\\Music\\album-0\\extra.mp3',
+          title: 'Second Track',
+          album: 'Album 0',
+          artist: 'Artist',
+        }),
+      ],
+      <ShelfCoverFlow browseMode="album" onPlayTrack={jest.fn()} />,
     );
+    await centre();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
 
     screen.getByRole('listbox').focus();
     await userEvent.keyboard('{Enter}');
 
-    const shown = screen
-      .getAllByRole('row')
-      .map((row) => row.textContent ?? '');
-    expect(shown.some((text) => text.includes('Song 0'))).toBe(true);
-    expect(shown.some((text) => text.includes('Second Track'))).toBe(true);
+    const shown = () =>
+      screen.queryAllByRole('row').map((row) => row.textContent ?? '');
+    await waitFor(() =>
+      expect(shown().some((text) => text.includes('Second Track'))).toBe(true),
+    );
+    expect(shown().some((text) => text.includes('Song 0'))).toBe(true);
     // Album 1's track belongs to a different cover and must not be listed.
-    expect(shown.some((text) => text.includes('Song 1'))).toBe(false);
+    expect(shown().some((text) => text.includes('Song 1'))).toBe(false);
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
@@ -167,21 +259,17 @@ describe('cover flow', () => {
     // nor follows along, because browsing the fan with one album open is the
     // point of putting the detail here at all.
     const shows = (title: string) =>
-      screen.getAllByRole('row').some((r) => r.textContent?.includes(title));
+      screen.queryAllByRole('row').some((r) => r.textContent?.includes(title));
 
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(5)}
-          browseMode="album"
-          onPlayTrack={jest.fn()}
-        />
-      </I18nProvider>,
+    showInLibrary(
+      albumTracks(5),
+      <WithPlaceBar browseMode="album" onPlayTrack={jest.fn()} />,
     );
+    await centre();
     screen.getByRole('listbox').focus();
 
     await userEvent.keyboard('{Enter}');
-    expect(shows('Song 0')).toBe(true);
+    await waitFor(() => expect(shows('Song 0')).toBe(true));
 
     await userEvent.keyboard('{ArrowRight}');
     // Open, unchanged, and the row really did move underneath it.
@@ -202,18 +290,23 @@ describe('cover flow', () => {
     // the whole collection that is not scrolling. Asserted on landing at the
     // right album, and on a letter with nothing under it being disabled
     // rather than silently doing nothing.
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow
-          tracks={[
-            ...albumTracks(2),
-            { ...albumTracks(1)[0], id: 'z1', album: 'Zebra Sessions' },
-          ]}
-          browseMode="album"
-        />
-      </I18nProvider>,
+    showInLibrary(
+      [
+        ...albumTracks(2),
+        libraryTrack({
+          id: 'z1',
+          path: 'C:\\Music\\zebra\\z1.mp3',
+          title: 'Stripes',
+          album: 'Zebra Sessions',
+          artist: 'Artist',
+        }),
+      ],
+      <ShelfCoverFlow browseMode="album" />,
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Z' }));
+    await centre();
+    const zebra = screen.getByRole('button', { name: 'Z' });
+    await waitFor(() => expect(zebra).toBeEnabled());
+    await userEvent.click(zebra);
     expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
       'Zebra Sessions',
     );
@@ -226,15 +319,11 @@ describe('cover flow', () => {
     // or a click on the centre cover was silently inert for every track in
     // song mode, the one cell of the view/browse matrix Cover Flow left dead.
     const onPlayTrack = jest.fn();
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(5)}
-          browseMode="song"
-          onPlayTrack={onPlayTrack}
-        />
-      </I18nProvider>,
+    showInLibrary(
+      albumTracks(5),
+      <ShelfCoverFlow browseMode="song" onPlayTrack={onPlayTrack} />,
     );
+    await centre();
     screen.getByRole('listbox').focus();
     await userEvent.keyboard('{Enter}');
     expect(onPlayTrack).toHaveBeenCalledWith('t0');
@@ -244,50 +333,40 @@ describe('cover flow', () => {
     // The positive control: proof the optional prop is genuinely optional
     // (no test of the other browse modes accidentally relies on it) rather
     // than something that would throw if a future caller forgot it.
-    render(
-      <I18nProvider>
-        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="song" />
-      </I18nProvider>,
-    );
+    showInLibrary(albumTracks(5), <ShelfCoverFlow browseMode="song" />);
+    await centre();
     screen.getByRole('listbox').focus();
     await expect(userEvent.keyboard('{Enter}')).resolves.not.toThrow();
   });
 
   it('keeps the same album centred when new albums are inserted ahead of it', async () => {
-    // A rescan finding new albums does not append — `groupIntoAlbums` keeps
-    // whatever order the tracks arrived in, so an album discovered in a
-    // folder walked first lands ahead of ones already showing. The centre
-    // must follow the album it was showing, not the numeric position that
-    // album used to be at.
+    // A rescan finding new albums does not only append: on the title order
+    // an album discovered later can land ahead of the ones already showing.
+    // The centre must follow the album it was showing, not the numeric
+    // position that album used to be at.
     //
     // Asserted on the selected option's own `id` (`library-coverflow-option-`
-    // plus the grouped album's own key), not on visible text: a text
-    // assertion here is a substring match, and "Album 1" is a substring of
-    // "Prepended Album 1" — so a fixture that inserts differently-numbered
-    // albums ahead of the centred one would pass whether or not identity
-    // tracking actually worked. The id has no such collision, and does not
-    // depend on the two fixtures happening to be named so their titles never
-    // overlap.
-    const { rerender } = render(
-      <I18nProvider>
-        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="album" />
-      </I18nProvider>,
+    // plus the album's own key), not on visible text: a text assertion is a
+    // substring match, and "Album 1" is a substring of "Aardvark Album 1" —
+    // the cover that lands at the old position — so it would pass whether or
+    // not identity tracking worked.
+    const library = showInLibrary(
+      albumTracks(5),
+      <ShelfCoverFlow browseMode="album" />,
     );
-    const stage = screen.getByRole('listbox');
-    stage.focus();
+    await centre();
+    screen.getByRole('listbox').focus();
     await userEvent.keyboard('{ArrowRight}');
     const centredOption = screen.getByRole('option', { selected: true });
     expect(centredOption).toHaveTextContent('Album 1');
     const centredOptionId = centredOption.id;
 
-    rerender(
-      <I18nProvider>
-        <LibraryCoverFlow
-          tracks={[...prependedAlbumTracks(3), ...albumTracks(5)]}
-          browseMode="album"
-        />
-      </I18nProvider>,
-    );
+    // The scan's batch lands in the store and main announces it.
+    library.store.upsertTracks(aheadAlbumTracks(3), 0);
+    act(() => library.announce());
+    // The row has been read again: the new albums are in it.
+    await screen.findByText('Aardvark Album 2');
+
     expect(screen.getByRole('option', { selected: true }).id).toBe(
       centredOptionId,
     );

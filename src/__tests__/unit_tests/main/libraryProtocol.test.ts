@@ -66,7 +66,6 @@ jest.mock('fs', () => ({
 }));
 
 // eslint-disable-next-line import/first -- the mock must be installed first
-import { ILibraryIndex } from '../../../common/library/types';
 // eslint-disable-next-line import/first
 import {
   LIBRARY_MEDIA_SCHEME,
@@ -79,8 +78,6 @@ import {
 } from '../../../main/library/libraryProtocol';
 // eslint-disable-next-line import/first
 import { trackIdForPath } from '../../../main/library/libraryScanner';
-
-const emptyIndex: ILibraryIndex = { version: 1, roots: [], tracks: [] };
 
 beforeEach(() => {
   handlers.clear();
@@ -102,7 +99,7 @@ describe('answering a fluideq-media request for an id the index no longer knows 
       .mockImplementation(() => undefined);
     handleLibraryMedia({
       userDataDir: 'C:\\unused',
-      getIndex: () => emptyIndex,
+      getTrackPath: () => undefined,
     });
     const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
     const id = trackIdForPath('C:\\Music\\gone.mp3');
@@ -124,24 +121,10 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     // rather than refusing every id alike.
     const trackPath = 'C:\\Music\\known.mp3';
     const id = trackIdForPath(trackPath);
-    const index: ILibraryIndex = {
-      version: 1,
-      roots: [],
-      tracks: [
-        {
-          id,
-          rootId: 'r1',
-          path: trackPath,
-          kind: 'audio',
-          isPlayable: true,
-          title: 'Known',
-          sizeBytes: 1,
-          mtimeMs: 1,
-          addedAt: 1,
-        },
-      ],
-    };
-    handleLibraryMedia({ userDataDir: 'C:\\unused', getIndex: () => index });
+    handleLibraryMedia({
+      userDataDir: 'C:\\unused',
+      getTrackPath: (asked) => (asked === id ? trackPath : undefined),
+    });
     const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
     const request = new Request(libraryMediaUrl('track', id));
 
@@ -179,24 +162,10 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     // no `Accept-Ranges` whatever headers it is handed.
     const trackPath = 'C:\\Music\\seekable.mp3';
     const id = trackIdForPath(trackPath);
-    const index: ILibraryIndex = {
-      version: 1,
-      roots: [],
-      tracks: [
-        {
-          id,
-          rootId: 'r1',
-          path: trackPath,
-          kind: 'audio',
-          isPlayable: true,
-          title: 'Seekable',
-          sizeBytes: 1,
-          mtimeMs: 1,
-          addedAt: 1,
-        },
-      ],
-    };
-    handleLibraryMedia({ userDataDir: 'C:\\unused', getIndex: () => index });
+    handleLibraryMedia({
+      userDataDir: 'C:\\unused',
+      getTrackPath: (asked) => (asked === id ? trackPath : undefined),
+    });
     const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
 
     const ranged = await handler?.(

@@ -25,34 +25,33 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type {
-  ILibraryIndex,
-  ILibraryScanProgress,
-  ILibraryTrack,
-} from '../../common/library/types';
+import type { ILibrarySummary } from '../../common/library/query';
+import type { ILibraryScanProgress } from '../../common/library/types';
 
-const EMPTY_INDEX: ILibraryIndex = { version: 1, roots: [], tracks: [] };
+const EMPTY_SUMMARY: ILibrarySummary = {
+  version: -1,
+  roots: [],
+  trackCount: 0,
+  videoCount: 0,
+  wasReset: false,
+};
 
 interface ILibraryContextValue {
-  index: ILibraryIndex;
   /**
-   * Set once, from the first `getLibraryIndex` reply.
-   *
-   * True means the on-disk index could not be read and main rebuilt it from
-   * scratch — a library that silently emptied itself after a bad shutdown.
-   * Worth surfacing even though it never changes again this session: a scan
-   * afterwards repopulates `index`, but nothing else would ever explain why
-   * the folders were still there and the songs were not.
+   * What the window holds of the library at all times: its folders, how many
+   * songs it has, and the version everything else is read at. The songs
+   * themselves are never here — every list asks for the page it draws
+   * (`useLibraryList`), every lookup for the songs it names
+   * (`useLibraryTracks`), and both ask again when `version` moves.
    */
-  wasReset: boolean;
+  summary: ILibrarySummary;
   /**
-   * Whether the first read of the on-disk index has come back.
+   * Whether the first summary has come back.
    *
-   * False for the round-trip after the tab is opened, and the difference
-   * between "no songs" and "not asked yet" for anything drawing an empty
-   * state: an index that starts empty and fills a moment later showed the
-   * "add a folder" panel to everybody with a library, every time they opened
-   * the tab.
+   * The difference between "no songs" and "not asked yet" for anything
+   * drawing an empty state: a library that starts empty and fills a moment
+   * later showed the "add a folder" panel to everybody with a library, every
+   * time they opened the tab.
    */
   isIndexLoaded: boolean;
   isScanning: boolean;
@@ -60,13 +59,13 @@ interface ILibraryContextValue {
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
   /**
-   * Music files dropped straight onto a queue: they join the index and their
-   * ids come back, in the order they were dropped, so the caller can queue
-   * them in the same gesture. A file already known keeps its id.
+   * Music files dropped straight onto a queue: they join the library and
+   * their ids come back, in the order they were dropped, so the caller can
+   * queue them in the same gesture. A file already known keeps its id.
    */
   queueFiles: (paths: string[]) => Promise<string[]>;
   rescan: () => Promise<void>;
-  /** Re-reads every candidate regardless of whether it changed — see
+  /** Re-reads every file whatever its size and time say — see
    * `forceRescanLibrary`'s own comment for why an ordinary rescan cannot
    * substitute for this. */
   forceRescan: () => Promise<void>;
@@ -79,31 +78,44 @@ const LibraryContext = createContext<ILibraryContextValue | undefined>(
 );
 
 /**
+ * The newer of two summaries. The window hears about a change twice — the
+ * reply to its own request and the broadcast every change sends — and in no
+ * guaranteed order, so the one read at the later version wins.
+ */
+const newer = (
+  current: ILibrarySummary,
+  next: ILibrarySummary,
+): ILibrarySummary => (next.version >= current.version ? next : current);
+
+/**
  * One context, not two.
  *
  * `LiveAudioContext` splits frame data from control state because the frame
  * arrives ~22 times a second and re-rendered every consumer that only cared
- * about start/stop. Scan progress here arrives per file, at disk and parser
- * speed — nowhere near frame rate — so a single context is the simpler
- * correct answer until a measurement says otherwise.
+ * about start/stop. Scan progress here arrives per file, coalesced to a
+ * frame, and the summary a few times a second at most — nowhere near frame
+ * rate — so a single context is the simpler correct answer until a
+ * measurement says otherwise.
  */
 export const LibraryProvider = ({ children }: { children: ReactNode }) => {
-  const [index, setIndex] = useState<ILibraryIndex>(EMPTY_INDEX);
-  const [wasReset, setWasReset] = useState(false);
+  const [summary, setSummary] = useState<ILibrarySummary>(EMPTY_SUMMARY);
   const [isIndexLoaded, setIsIndexLoaded] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState<ILibraryScanProgress | undefined>(
     undefined,
   );
 
+  const takeSummary = useCallback((next: ILibrarySummary) => {
+    setSummary((current) => newer(current, next));
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     window.electron.ipcRenderer
-      .getLibraryIndex()
+      .getLibrarySummary()
       .then((result) => {
         if (mounted) {
-          setIndex(result.index);
-          setWasReset(result.wasReset);
+          takeSummary(result);
           setIsIndexLoaded(true);
         }
         return undefined;
@@ -116,19 +128,24 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
           setIsIndexLoaded(true);
         }
       });
+    const unsubscribe = window.electron.ipcRenderer.onLibraryChanged((next) => {
+      if (mounted) {
+        takeSummary(next);
+      }
+    });
     return () => {
       mounted = false;
+      unsubscribe();
     };
-  }, []);
+  }, [takeSummary]);
 
   useEffect(() => {
     // Progress arrives once per file — fifty a second on a warm cache — and
     // every one of them re-renders this provider and everything under it,
-    // rows included. A strip that says "6,712 of 14,077" does not need
-    // fifty updates a second to be read, so they are coalesced onto animation
+    // rows included. A strip that says "6,712 of 14,077" does not need fifty
+    // updates a second to be read, so they are coalesced onto animation
     // frames: the newest is kept, the rest are dropped, and the browser
-    // decides the rate. This was the whole of the list's stutter during a
-    // scan; the list itself was never the problem.
+    // decides the rate.
     //
     // The terminal event is exempt. It is the one the renderer derives "still
     // scanning" from, and dropping it — or delivering it after a frame that
@@ -170,89 +187,38 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
           frame = requestAnimationFrame(flush);
         }
       });
-    const unsubscribeIndex = window.electron.ipcRenderer.onLibraryIndexChanged(
-      (next) => setIndex(next),
-    );
-
-    /**
-     * A scan's batches, merged here and coalesced to a frame.
-     *
-     * Main sends the twenty-five tracks a batch read rather than the whole
-     * library — see `ipc/library.ts` for what that cost. Two things still
-     * have to happen on this side or the saving is given straight back.
-     *
-     * The merge is by id, into a Map, so a rescan that re-reads a track it
-     * already knew replaces it instead of listing it twice; and it is a Map
-     * rather than a filter per batch because filtering fourteen thousand
-     * tracks five hundred times is the same quadratic work in a different
-     * process.
-     *
-     * And the state is written once a frame, not once a batch. Batches arrive
-     * far faster than anything can be drawn — the whole library tree renders
-     * off this — so without the frame the renderer spends the scan rendering
-     * lists nobody sees. Exactly the treatment the progress ticks above get,
-     * and for the same reason.
-     */
-    let pendingTracks: ILibraryTrack[] = [];
-    let mergeFrame = 0;
-    const mergePending = () => {
-      mergeFrame = 0;
-      if (pendingTracks.length === 0) {
-        return;
-      }
-      const batch = pendingTracks;
-      pendingTracks = [];
-      setIndex((current) => {
-        const byId = new Map(current.tracks.map((track) => [track.id, track]));
-        batch.forEach((track) => byId.set(track.id, track));
-        return { ...current, tracks: [...byId.values()] };
-      });
-    };
-    const unsubscribeTracks = window.electron.ipcRenderer.onLibraryTracksAdded(
-      (tracks) => {
-        pendingTracks = pendingTracks.concat(tracks);
-        if (!mergeFrame) {
-          mergeFrame = requestAnimationFrame(mergePending);
-        }
-      },
-    );
     return () => {
       if (frame) {
         cancelAnimationFrame(frame);
       }
-      if (mergeFrame) {
-        cancelAnimationFrame(mergeFrame);
-      }
       unsubscribeProgress();
-      unsubscribeIndex();
-      unsubscribeTracks();
     };
   }, []);
 
   const addFolder = useCallback(async () => {
-    const next = await window.electron.ipcRenderer.addLibraryRoot();
-    setIndex(next);
-  }, []);
+    takeSummary(await window.electron.ipcRenderer.addLibraryRoot());
+  }, [takeSummary]);
 
   /** For a dropped folder; main decides what is really a directory. */
-  const addFolderPaths = useCallback(async (paths: string[]) => {
-    if (!paths.length) {
-      return;
-    }
-    const next = await window.electron.ipcRenderer.addLibraryRootPaths(paths);
-    setIndex(next);
-  }, []);
+  const addFolderPaths = useCallback(
+    async (paths: string[]) => {
+      if (paths.length > 0) {
+        takeSummary(
+          await window.electron.ipcRenderer.addLibraryRootPaths(paths),
+        );
+      }
+    },
+    [takeSummary],
+  );
 
   /** For music dropped on a queue; see the note on the context's own type. */
-  const queueFiles = useCallback(async (paths: string[]) => {
-    if (!paths.length) {
-      return [];
-    }
-    const { index: next, trackIds } =
-      await window.electron.ipcRenderer.queueLibraryFiles(paths);
-    setIndex(next);
-    return trackIds;
-  }, []);
+  const queueFiles = useCallback(
+    (paths: string[]) =>
+      paths.length > 0
+        ? window.electron.ipcRenderer.queueLibraryFiles(paths)
+        : Promise.resolve([]),
+    [],
+  );
 
   const rescan = useCallback(async () => {
     await window.electron.ipcRenderer.rescanLibrary();
@@ -266,15 +232,16 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     window.electron.ipcRenderer.cancelLibraryScan();
   }, []);
 
-  const removeRoot = useCallback(async (rootId: string) => {
-    const next = await window.electron.ipcRenderer.removeLibraryRoot(rootId);
-    setIndex(next);
-  }, []);
+  const removeRoot = useCallback(
+    async (rootId: string) => {
+      takeSummary(await window.electron.ipcRenderer.removeLibraryRoot(rootId));
+    },
+    [takeSummary],
+  );
 
   const value = useMemo<ILibraryContextValue>(
     () => ({
-      index,
-      wasReset,
+      summary,
       isIndexLoaded,
       isScanning,
       progress,
@@ -287,8 +254,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       removeRoot,
     }),
     [
-      index,
-      wasReset,
+      summary,
       isIndexLoaded,
       isScanning,
       progress,

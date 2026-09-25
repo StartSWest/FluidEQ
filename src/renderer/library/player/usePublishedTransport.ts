@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { useEffect } from 'react';
 import { buildSongIdentity } from 'common/songIdentity';
+import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { ILibraryTrack } from '../../../common/library/types';
 import {
   clearTransportSource,
@@ -67,6 +68,13 @@ const usePublishedTransport = (options: {
       owner: 'library',
       title: track.title,
       subtitle: track.artist,
+      // The library's own bar draws its cover from the track; this is for
+      // everything that reads the register instead — the amp without the
+      // Library's deck, and the last-played bar that stands in once the
+      // queue is gone (`lastShown`), for which a URL outlives the page.
+      ...(track.artId === undefined
+        ? {}
+        : { artworkUrl: libraryMediaUrl('art', track.artId) }),
       isPlaying,
       retainWhenHidden: retainWhenHidden || undefined,
       positionMs: publishedPositionMs,

@@ -52,7 +52,21 @@ import {
 export interface IWalkContext {
   rootId: string;
   userDataDir: string;
-  knownByPath: Map<string, ILibraryTrack>;
+  /**
+   * What the library already holds for a file, or nothing for a file it has
+   * never met. Asked one file at a time of the store (`openLibraryReader`);
+   * the walk is never handed a copy of every song the root has, which for a
+   * library under one root was all of them.
+   */
+  lookupKnown: (filePath: string) => ILibraryTrack | undefined;
+  /**
+   * Re-read every file, whatever its size and time say — the escape hatch
+   * for a tagger that preserves the modified time, and for covers cleared
+   * from the artwork cache behind the app's back. The known row is still
+   * asked for: a force rescan used to be handed nothing, so every song lost
+   * the day it was added and flickered back to a pending row mid-walk.
+   */
+  force: boolean;
   /**
    * Turns raw embedded or folder artwork into a cache id. The main-process
    * fallback supplies the Electron implementation directly; the utility
@@ -62,11 +76,14 @@ export interface IWalkContext {
   storeArtwork?: (bytes: Uint8Array) => Promise<string | undefined>;
   onProgress: (progress: ILibraryScanProgress) => void;
   /** Called by both phases: discovery publishes provisional rows for newly
-   * found files (see `discoverDirectory`'s own comment), and phase two
-   * republishes the same ids once resolved (`parseCandidates`' batching in
-   * `libraryScanParse.ts`). Undefined for a caller that only wants the final
-   * result. */
-  onTracks?: (tracks: readonly ILibraryTrack[]) => void;
+   * found files (see `discoverDirectory`'s own comment) — `confirmed` false,
+   * since a file listed is not yet a file read — and phase two republishes
+   * the same ids once resolved, confirmed (`parseCandidates`' batching in
+   * `libraryScanParse.ts`). */
+  onTracks?: (tracks: readonly ILibraryTrack[], confirmed: boolean) => void;
+  /** Known files this walk found unchanged: confirmed by id, not sent again —
+   * a rescan of an unchanged library used to send every song back. */
+  onUnchanged?: (trackIds: readonly string[]) => void;
   isCancelled: () => boolean;
 }
 
@@ -391,19 +408,20 @@ export const discoverDirectory = async (
   // natural unit an album lives in on disk, so one flush reads as a whole
   // provisional album arriving at once instead of trickling in file by file.
   //
-  // A candidate whose path is already known is left out on purpose: a
-  // rescan's `known` list already holds whatever that path last resolved to
-  // -- parsed, or still pending from a previous scan that never got back to
-  // it -- and publishing a fresh provisional over an already-established
-  // track would flip it back to dimmed on every ordinary rescan, which is
-  // exactly the flicker this feature must not cause. `scanOneRoot`'s
-  // incremental merge (`src/main/ipc/library.ts`) only ever replaces a track
-  // that appears in an incoming batch, so a known track this batch never
-  // mentions is simply left exactly as it already was.
+  // A candidate whose path is already known is left out on purpose: the
+  // store already holds whatever that path last resolved to -- parsed, or
+  // still pending from a previous scan that never got back to it -- and
+  // publishing a fresh provisional over an already-established track would
+  // flip it back to dimmed on every ordinary rescan, which is exactly the
+  // flicker this feature must not cause. A known track no batch mentions is
+  // left exactly as it was (`libraryStore.ts`'s upsert touches only what it
+  // is handed).
   if (context.onTracks) {
     const newCandidates = state.candidates
       .slice(candidatesBeforeThisDirectory)
-      .filter((candidate) => !context.knownByPath.has(candidate.filePath));
+      .filter(
+        (candidate) => context.lookupKnown(candidate.filePath) === undefined,
+      );
     if (newCandidates.length > 0) {
       const provisional = (
         await Promise.all(
@@ -413,7 +431,7 @@ export const discoverDirectory = async (
         )
       ).filter((track): track is ILibraryTrack => track !== undefined);
       if (provisional.length > 0) {
-        context.onTracks(provisional);
+        context.onTracks(provisional, false);
       }
     }
   }
