@@ -344,9 +344,22 @@ export const createMainWindowFactory = ({
     applyWindowBackdrop(created);
 
     const rendererUrl = resolveHtmlPath('index.html');
+    // Opened as the player, the page is told so in its address and draws the
+    // player from its first frame: asked over IPC, the answer came after the
+    // window was shown, and the full app flashed squeezed into the player's
+    // corner first. The page keeps the address in step with every switch
+    // after this (`windowModeStore.ts`), so its own reload opens in the mode
+    // the window is in; the first load and recovery's build it here.
+    const appUrl = () => {
+      const address = new URL(rendererUrl);
+      if (windowModes.mode() === 'player') {
+        address.searchParams.set(WINDOW_MODE_PARAM, 'player');
+      }
+      return address.toString();
+    };
     const recoverWindow = installWindowRecovery(
       created,
-      rendererUrl,
+      appUrl,
       async () => {
         const stopped = await Promise.allSettled([
           shutdownNativeInference(),
@@ -640,17 +653,7 @@ export const createMainWindowFactory = ({
         error,
       );
     });
-    // Opened as the player, the page is told so in its address and draws the
-    // player from its first frame: asked over IPC, the answer came after the
-    // window was shown, and the full app flashed squeezed into the player's
-    // corner first. The page keeps the address in step with every switch
-    // after this (`windowModeStore.ts`), so a reload opens in the mode the
-    // window is in.
-    const firstUrl = new URL(rendererUrl);
-    if (player) {
-      firstUrl.searchParams.set(WINDOW_MODE_PARAM, 'player');
-    }
-    await created.loadURL(firstUrl.toString()).catch((error) => {
+    await created.loadURL(appUrl()).catch((error) => {
       log.error('Initial window load failed; handing it to recovery', error);
       return recoverWindow();
     });

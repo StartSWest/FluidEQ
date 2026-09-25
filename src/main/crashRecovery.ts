@@ -55,9 +55,34 @@ const describeError = (error: unknown) =>
 export const describeFailures = () =>
   [...failureJournal, log.transports.file.getFile().path].join('\n\n');
 
+/**
+ * Whether `address` is the app's own document, whatever its query and
+ * fragment say.
+ *
+ * The page carries the window's mode in its query (`?windowMode=player`,
+ * `windowModeStore.ts`), and comparing whole addresses called the player a
+ * foreign page: its crash screen asked for a reload that was refused, and
+ * said "reloading" for good with its Reload button doing nothing (Ivan,
+ * 2026-09-24, a crash in the player).
+ */
+const isAppDocument = (address: string, appUrl: string) => {
+  try {
+    const page = new URL(address);
+    const entry = new URL(appUrl);
+    return page.origin === entry.origin && page.pathname === entry.pathname;
+  } catch {
+    // An address that does not parse (an empty one, before any load) is no
+    // document of ours.
+    return false;
+  }
+};
+
 export const installWindowRecovery = (
   window: BrowserWindow,
-  rendererUrl: string,
+  /** The app's entry point, in the mode the window is in now: a recovered
+   * player opens as the player. Always ours, never an address supplied by
+   * the failed page. */
+  appUrl: () => string,
   stopPlayback: () => Promise<void>,
   /** Debug builds put the failure journal in the dialog instead of the
    * reassurance written for users; the log entries are what a developer needs. */
@@ -90,7 +115,7 @@ export const installWindowRecovery = (
       !available() ||
       contents.isCrashed() ||
       contents.isLoading() ||
-      contents.getURL().split('#')[0] !== rendererUrl.split('#')[0]
+      !isAppDocument(contents.getURL(), appUrl())
     ) {
       return false;
     }
@@ -197,7 +222,7 @@ export const installWindowRecovery = (
         }
         // Always our entry point, never a URL supplied by the failed page.
         loadingApp = true;
-        await contents.loadURL(rendererUrl);
+        await contents.loadURL(appUrl());
       }
     } catch (error) {
       log.error('Window recovery failed; automatic retry stopped', error);
@@ -226,7 +251,7 @@ export const installWindowRecovery = (
       !available() ||
       event.sender !== contents ||
       event.senderFrame !== contents.mainFrame ||
-      contents.getURL().split('#')[0] !== rendererUrl.split('#')[0] ||
+      !isAppDocument(contents.getURL(), appUrl()) ||
       !Array.isArray(args) ||
       args.length !== 1 ||
       (args[0] !== 'automatic' && args[0] !== 'manual')

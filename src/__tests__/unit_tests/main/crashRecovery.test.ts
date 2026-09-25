@@ -32,9 +32,9 @@ import {
 } from '../../../main/crashRecovery';
 
 const url = 'file:///app/index.html';
-const setup = (showFailureLog = false) => {
+const setup = (showFailureLog = false, appUrl = () => url) => {
   const order: string[] = [];
-  const state = { url, crashed: false };
+  const state = { url: appUrl(), crashed: false };
   const contents = Object.assign(new EventEmitter(), {
     mainFrame: {},
     isDestroyed: () => false,
@@ -54,7 +54,7 @@ const setup = (showFailureLog = false) => {
   const stop = jest.fn(async () => {
     order.push('stop');
   });
-  const recover = installWindowRecovery(window, url, stop, showFailureLog);
+  const recover = installWindowRecovery(window, appUrl, stop, showFailureLog);
   return { contents, recover, stop, order, state };
 };
 beforeEach(() => {
@@ -117,6 +117,54 @@ it('ignores unrelated frames and cleans up recovery listeners on destruction', a
   contents.emit('destroyed');
   expect(mockIpc.listenerCount(ChannelEnum.RECOVER_WINDOW)).toBe(0);
   expect(mockApp.listenerCount('before-quit')).toBe(0);
+});
+
+it('recovers the player, whose address carries its mode, and brings it back as the player', async () => {
+  // The player's page is `index.html?windowMode=player`. Compared whole with
+  // the bare entry, it was a foreign page: its crash screen asked for a
+  // reload that was refused, and said "reloading" for good.
+  const player = `${url}?windowMode=player`;
+  const { contents, state } = setup(false, () => player);
+  const reloaded = new Promise<void>((resolve) => {
+    contents.loadURL.mockImplementation(async (next: string) => {
+      state.url = next;
+      if (next === player) {
+        resolve();
+      }
+    });
+  });
+  mockIpc.emit(
+    ChannelEnum.RECOVER_WINDOW,
+    { sender: contents, senderFrame: contents.mainFrame },
+    ['manual'],
+  );
+  await reloaded;
+  expect(contents.loadURL.mock.calls).toEqual([['about:blank'], [player]]);
+});
+
+it("tells the player's own crash screen when its retries run out", async () => {
+  const player = `${url}?windowMode=player`;
+  const { recover, contents } = setup(false, () => player);
+  await recover();
+  await recover();
+  await recover();
+  expect(contents.send).toHaveBeenCalledWith(
+    ChannelEnum.RECOVERY_STATUS,
+    'blocked',
+    '',
+  );
+  expect(mockDialog).not.toHaveBeenCalled();
+});
+
+it('still refuses a request from a page that is not the app', async () => {
+  const { contents, state } = setup();
+  state.url = 'https://example.com/index.html';
+  mockIpc.emit(
+    ChannelEnum.RECOVER_WINDOW,
+    { sender: contents, senderFrame: contents.mainFrame },
+    ['manual'],
+  );
+  expect(contents.loadURL).not.toHaveBeenCalled();
 });
 
 it('does not reload when playback shutdown fails', async () => {
