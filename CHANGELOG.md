@@ -111,8 +111,38 @@ version and in these notes.
   head by ear: all of it is open to everybody.
 - **Bass, Mid and Treble across the whole rack**, the way an amplifier has
   them, on the main equaliser whenever no band is selected. Each moves its own
-  third of the spectrum; Ctrl+click puts that third back to flat. The
-  equaliser now opens with nothing selected, showing the whole rack.
+  third of the spectrum; Ctrl+click puts that third back to flat. They are a
+  curve of their own — drawn in their own colour, with a chip under Also
+  applied, and saved with the profile — so turning them never rewrites bands
+  you tuned by hand. The equaliser now opens with nothing selected, showing
+  the whole rack.
+- **A low cut and a high cut** on the Tone panel, either side of Bass, Mid
+  and Treble: off, 12 or 24 dB per octave, at 20 Hz and at 20 kHz.
+- **The equaliser plays the curve you drew, all the way to the top.** On the
+  FluidEQ Engine a band near the top of the range used to play weaker than the
+  graph showed — nearly 4 dB short at 20 kHz on a 48 kHz output. It now plays
+  as drawn. The EQ mode menu's Treble row keeps the old way as Classic, for
+  your EQ and for headphone corrections separately — Classic is how Equalizer
+  APO builds a band and how AutoEQ tunes a correction — and the graph draws
+  whichever one is playing.
+- **Auto normalize lands on an edit's level at once.** Applying a curve or
+  moving a band used to drop the volume by the most it could ever need and
+  climb back over several seconds. On the FluidEQ Engine it now works out the
+  level the new sound needs from the last ten seconds of music, moves there in
+  one step, and only fine-tunes after that.
+- **Linear phase on your EQ and on the curves shares one delay**, instead of
+  adding the two together.
+- **The graph shows the whole spectrum, on scales that hold still.** With the
+  grid on it starts an octave below 20 Hz, where a low cut does its work; with
+  the grid off it is trimmed to 20 Hz – 16 kHz, where records have sound, so a
+  full-screen picture has no empty strip down the side. The equaliser's ±20 dB
+  scale no longer stretches when a curve runs past it, and the live sound has
+  a scale of its own on the right, 80 dB deep as a studio analyser draws it, so
+  the top octave and a high cut show. Frequencies are labelled 10, 20, 50,
+  100… the way analysers print them.
+- **Double-click the graph to fill the screen, Ctrl+double-click to fill the
+  window**, and double-click again to come back from either. Help lists the
+  graph's keyboard shortcuts.
 - **A twenty-band quick layout**, and every layout moved onto the
   international standard's frequencies: a band labelled 64 Hz is now the
   63 Hz everything else means by it. Bands also open as wide as their spacing
@@ -217,6 +247,25 @@ version and in these notes.
 - **FluidEQ says when it is not reaching the output**, instead of looking
   switched on while nothing goes through it, and the EQ page stops taking
   changes the engine cannot hear, the way it does when FluidEQ is off.
+- **A headset connected after FluidEQ started is no longer reported as out of
+  its reach** while FluidEQ is processing it. A Bluetooth headset switched to
+  mid-session was marked in red, and the EQ page stopped taking changes, over
+  an equaliser that was working.
+- **Switching output keeps the preset you picked.** The new output's profile
+  used to bring back whichever preset it had been saved with, so the preset
+  picker named one preset while its chip under Also applied named another.
+- **Changes no longer click.** Every change the FluidEQ Engine hears — a band
+  moved, a preset picked, the preamp — now fades in over a fiftieth of a
+  second with each band carrying on where it was, where a big move used to
+  click. Dragging a band through 0 dB no longer clicks either.
+- **A headphone correction plays as published**, even where it goes past the
+  sliders' ±20 dB, and the preamp you set by hand now reaches −60 dB to hold
+  it, as Auto normalize already could. A deep preamp is no longer put back to
+  −20 dB after a restart.
+- **The engine does less work.** With no headphone curve on it no longer
+  spends two thirds of its effort on a filter doing nothing, the headphone
+  curve in minimum phase adds about 13 ms of delay instead of 55, and silence
+  from a paused player no longer costs thirteen times what the equaliser does.
 - **The Target button on the EQ page no longer flashes the wrong look for a
   moment at launch.**
 - **Help's pictures point at things, the way a printed manual does.** Each
