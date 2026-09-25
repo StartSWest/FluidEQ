@@ -90,52 +90,72 @@ const warmed = new Set<string>();
  * For the graph's look while the graph is out of sight — a window started in
  * the tray, another tab open. It used to compile only once it was looked at,
  * which for a scene like Alpine is nine seconds of the loading ring in front
- * of somebody who opened the window to see it.
+ * of somebody who opened the window to see it. And for a scene with a 3D
+ * world wherever one is built ahead (`scenePrebuild.ts`): its programs are
+ * three's and the world's own, which only a scene worker builds as they will
+ * be drawn. Resolves once the worker is gone, or at once when there is
+ * nothing to do.
  */
-export const warmSceneProgram = (pack: IScenePack, guarded: boolean): void => {
+export const warmSceneProgram = (
+  pack: IScenePack,
+  guarded: boolean,
+): Promise<void> => {
   const key = sceneProgramKey(pack);
   if (
     warmed.has(key) ||
     typeof Worker === 'undefined' ||
     typeof OffscreenCanvas === 'undefined'
   ) {
-    return;
+    return Promise.resolve();
   }
   warmed.add(key);
-  takeLinkTurn(key)
-    .then((release) => {
-      let worker: Worker;
-      try {
-        worker = startSceneWorker();
-      } catch {
-        release();
-        warmed.delete(key);
-        return undefined;
-      }
-      const end = () => {
-        release();
-        worker.terminate();
-      };
-      worker.onerror = end;
-      worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
-        if (data.kind === 'loaded') {
-          if (data.result.kind !== 'ready') {
+  return takeLinkTurn(key)
+    .then(
+      (release) =>
+        new Promise<void>((resolve) => {
+          let worker: Worker;
+          try {
+            worker = startSceneWorker();
+          } catch {
+            release();
             warmed.delete(key);
+            resolve();
+            return;
           }
-          // Retired rather than ended: see `dispose` below.
-          worker.postMessage({ kind: 'retire' } satisfies TSceneWorkerRequest);
-        } else if (data.kind === 'retired') {
-          end();
-        }
-      };
-      const canvas = new OffscreenCanvas(1, 1);
-      const attach: TSceneWorkerRequest = { kind: 'attach', canvas };
-      worker.postMessage(attach, [canvas]);
-      const load: TSceneWorkerRequest = { kind: 'load', id: 1, pack, guarded };
-      worker.postMessage(load);
-      return undefined;
-    })
-    .catch(() => warmed.delete(key));
+          const end = () => {
+            release();
+            worker.terminate();
+            resolve();
+          };
+          worker.onerror = end;
+          worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
+            if (data.kind === 'loaded') {
+              if (data.result.kind !== 'ready') {
+                warmed.delete(key);
+              }
+              // Retired rather than ended: see `dispose` below.
+              worker.postMessage({
+                kind: 'retire',
+              } satisfies TSceneWorkerRequest);
+            } else if (data.kind === 'retired') {
+              end();
+            }
+          };
+          const canvas = new OffscreenCanvas(1, 1);
+          const attach: TSceneWorkerRequest = { kind: 'attach', canvas };
+          worker.postMessage(attach, [canvas]);
+          const load: TSceneWorkerRequest = {
+            kind: 'load',
+            id: 1,
+            pack,
+            guarded,
+          };
+          worker.postMessage(load);
+        }),
+    )
+    .catch(() => {
+      warmed.delete(key);
+    });
 };
 
 export const createSceneWorkerClient = (
