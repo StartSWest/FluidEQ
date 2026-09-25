@@ -34,8 +34,6 @@ import {
   type TToken,
 } from './worldExpressionLexicon';
 
-export { hash01 } from './worldExpressionLexicon';
-
 export const MAX_EXPRESSION_LENGTH = 400;
 const MAX_DEPTH = 40;
 

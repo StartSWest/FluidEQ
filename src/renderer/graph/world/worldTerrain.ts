@@ -17,7 +17,7 @@ import {
 } from 'three';
 import type { IWorldMaterial, IWorldTerrainNode } from 'common/sceneWorld';
 import { SPECTRUM_TEXELS } from 'common/sceneUniformContract';
-import { hash01 } from 'common/worldExpression';
+import { hash01 } from 'common/worldExpressionLexicon';
 import { createFormula } from './worldFormula';
 import type { IWorldInputs } from './worldInputs';
 import {

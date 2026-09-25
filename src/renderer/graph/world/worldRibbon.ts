@@ -14,7 +14,7 @@ import {
   type Camera,
 } from 'three';
 import type { IWorldRibbonNode } from 'common/sceneWorld';
-import { hash01 } from 'common/worldExpression';
+import { hash01 } from 'common/worldExpressionLexicon';
 import {
   createColourFormula,
   createFormula,

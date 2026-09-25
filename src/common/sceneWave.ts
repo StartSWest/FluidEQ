@@ -36,7 +36,7 @@ const clampWave = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
 /** Values as a slider shows them: whole percents, which is what it sets. */
-const tidy = (value: number) => Math.round(value * 100) / 100;
+const tidyWave = (value: number) => Math.round(value * 100) / 100;
 
 export const sameSceneWave = (a: ISceneWave, b: ISceneWave) =>
   Math.abs(a.height - b.height) < 1e-6 &&
@@ -67,7 +67,7 @@ export const readSceneWave = (raw: unknown): ISceneWave | undefined => {
     return undefined;
   }
   return {
-    height: tidy(clampWave(height, MIN_SCENE_WAVE_HEIGHT, 1)),
-    position: tidy(clampWave(position, 0, 1)),
+    height: tidyWave(clampWave(height, MIN_SCENE_WAVE_HEIGHT, 1)),
+    position: tidyWave(clampWave(position, 0, 1)),
   };
 };

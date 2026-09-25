@@ -39,10 +39,10 @@ const READABLE_EXTENSIONS = new Set([
 
 const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isModelRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const entries = (value: unknown): unknown[] =>
+const listOf = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : [];
 
 /** The glTF's table of contents, if the container is one this can read. */
@@ -69,7 +69,7 @@ const readContents = (bytes: Uint8Array): Record<string, unknown> | null => {
     const contents: unknown = JSON.parse(
       new TextDecoder().decode(bytes.subarray(20, 20 + length)),
     );
-    return isRecord(contents) ? contents : null;
+    return isModelRecord(contents) ? contents : null;
   } catch {
     return null;
   }
@@ -81,22 +81,22 @@ const isSelfContainedModel = (bytes: Uint8Array): boolean => {
   if (!contents) {
     return false;
   }
-  const buffers = entries(contents.buffers);
+  const buffers = listOf(contents.buffers);
   if (
     buffers.length > 1 ||
-    buffers.some((buffer) => !isRecord(buffer) || buffer.uri !== undefined)
+    buffers.some((buffer) => !isModelRecord(buffer) || buffer.uri !== undefined)
   ) {
     return false;
   }
-  const imagesEmbedded = entries(contents.images).every(
+  const imagesEmbedded = listOf(contents.images).every(
     (image) =>
-      isRecord(image) &&
+      isModelRecord(image) &&
       image.uri === undefined &&
       typeof image.bufferView === 'number' &&
       typeof image.mimeType === 'string' &&
       IMAGE_TYPES.has(image.mimeType),
   );
-  const required = entries(contents.extensionsRequired);
+  const required = listOf(contents.extensionsRequired);
   return (
     imagesEmbedded &&
     required.every(

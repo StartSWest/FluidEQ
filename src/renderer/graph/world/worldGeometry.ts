@@ -22,7 +22,7 @@ import {
 } from 'three';
 import type { IWorldGeometry, IWorldLayout } from 'common/sceneWorld';
 import { layoutCount } from 'common/sceneWorldNodes';
-import { hash01 } from 'common/worldExpression';
+import { hash01 } from 'common/worldExpressionLexicon';
 
 /** A world's shapes, and where a set of copies of one starts. */
 

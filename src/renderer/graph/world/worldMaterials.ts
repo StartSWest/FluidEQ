@@ -108,8 +108,6 @@ export const GLOW_MATERIAL: IWorldMaterial = {
   side: 'double',
 };
 
-export const defaultWorldMaterial = (): IWorldMaterial => DEFAULT_MATERIAL;
-
 /** djb2, enough to tell two hook sources apart in three's program cache. */
 const hashText = (text: string): string => {
   let hash = 5381;
