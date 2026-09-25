@@ -44,7 +44,10 @@ import {
  * exactly what an older FluidEQ does with the same pack.
  */
 
-const VAR_NAME = /^[a-z][a-z0-9_]{0,23}$/;
+// Any name a formula can spell (`worldExpressionLexicon.ts`): lower case
+// only, `heroA` was dropped here while every formula naming it compiled, and
+// read as 0 — a lantern meant to rise sat on the water with nothing saying so.
+const VAR_NAME = /^[A-Za-z][A-Za-z0-9_]{0,23}$/;
 const MATERIAL_ID = /^[A-Za-z][A-Za-z0-9_-]{0,31}$/;
 const VERTEX_ENTRY = /\bvec3\s+worldDisplace\s*\(/;
 const FRAGMENT_ENTRY = /\bvoid\s+worldSurface\s*\(/;
