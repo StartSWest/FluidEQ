@@ -142,9 +142,12 @@ const eq: Partial<Dictionary> = {
     'Tutto Ambiente, con il visualizzatore dietro tutta la finestra.',
   'graph.editHint':
     'Trascina i punti · Ctrl/Maiusc per selezionare · Ctrl+rotellina: Q',
-  'graph.backdropVeil': 'Pannelli',
+  'graph.backdropVeil': 'Trasparenza',
   'graph.backdropVeilHint':
-    'Quanto i pannelli coprono il visualizzatore dietro di loro',
+    'Quanto del visualizzatore si vede attraverso i pannelli',
+  'graph.sceneTint.brightness': 'Luminosità',
+  'graph.sceneTint.brightnessHint':
+    'Quanto è chiara o scura la finestra nei colori del visualizzatore',
   'graph.member.mine': 'Creati da te',
   'graph.member.theirs': 'Creati dai membri',
   'graph.member.by': 'di {name}',

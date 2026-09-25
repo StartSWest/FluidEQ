@@ -295,9 +295,36 @@ version and in these notes.
   an update the first time you run 1.8.0: one press in the notice, and Windows
   restarts its audio itself. Until you take it the equaliser keeps working and
   the DSP effects stay off, which is what the "Update engine" card says.
+- **A new look for the whole window.** The panes no longer sit in cards: they
+  stand on one floor, parted by fine lines. On the equaliser's pages the graph
+  stands at the top, under the section tabs and the title, and every band's
+  slider stands under the point on the graph it moves. The header's wave lost
+  its box, the menus lost their rainbow edge, and the tooltips are FluidEQ's
+  own.
+- **Window colours, by name.** The button beside Auto on the graph says what a
+  Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
+  and opens all four, each with a line on what it does. Under the one you
+  choose: Brightness, for how light the window stands in the visualizer's
+  colours, and for the Backdrop, Transparency.
+- **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
+  window, the graph still its frame, and the panes and everything on them let
+  it show through.
+- **A Plus visualizer fills the graph.** It runs up behind the section tabs
+  and the title, and down to the divider, with no band of floor around it.
+- **The title is alive.** When FluidEQ opens, the wave in its logo draws
+  itself and the name rises letter by letter; after that a pulse of light runs
+  along the wave every few seconds. In Rainbow mode the logo and the name are
+  one drifting spectrum.
 
 ### Fixed
 
+- **A Plus visualizer's colours arrive as you choose it**, not after it has
+  loaded — even the first time, before it has ever been measured.
+- **Automatic switching gives every visualizer its whole turn**, counted from
+  its first frame rather than from the moment it was chosen, so a slow one is
+  never passed over before it has shown.
+- **The equaliser's sliders are never cut off at the sides**, with the grid on
+  or off.
 - **A rack with every effect off plays the sound as it came.** Two things
   inside it were never shown on any card: a three-band compressor that every
   factory preset switched on, and a final limiter with a low-cut filter that

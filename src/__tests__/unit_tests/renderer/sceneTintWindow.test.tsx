@@ -21,6 +21,9 @@ import {
 } from '../../../renderer/utils/sceneTint';
 
 let mockLookId = 'premium:bloom';
+// The colours of the scene's picker icon, which every scene the list offers
+// carries — none, unless a test gives it some.
+let mockSwatch: string[] = [];
 const mockMeasureScene = jest.fn();
 const mockMeasureStudio = jest.fn();
 
@@ -28,7 +31,9 @@ jest.mock('../../../renderer/utils/graphStyle', () => ({
   useSelectedLookId: () => mockLookId,
 }));
 jest.mock('../../../renderer/utils/scenePacks', () => ({
-  useUsableScenes: () => [{ id: 'bloom', lookId: 'premium:bloom', version: 3 }],
+  useUsableScenes: () => [
+    { id: 'bloom', lookId: 'premium:bloom', version: 3, swatch: mockSwatch },
+  ],
 }));
 jest.mock('../../../renderer/utils/memberScenes', () => ({
   useUsableMemberScenes: () => [],
@@ -65,6 +70,7 @@ const THEME = `:root { --surface-base: #0d2030; --surface-panel: #1a3a4e; --acce
 
 beforeEach(() => {
   mockLookId = 'premium:bloom';
+  mockSwatch = [];
   mockMeasureScene.mockReset().mockResolvedValue(undefined);
   mockMeasureStudio.mockReset().mockResolvedValue(undefined);
   const style = document.createElement('style');
@@ -116,6 +122,24 @@ describe('the graph’s visualizer', () => {
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
     expect(mockMeasureScene).not.toHaveBeenCalled();
+  });
+
+  // A scene never measured lends its swatch's colour as it is chosen, not
+  // after it has loaded (Ivan, 2026-09-25: "I want the color to change first
+  // then it loads the viz"), and is measured all the same.
+  it('lends a scene never measured its swatch’s colour at once', () => {
+    mockSwatch = ['#3a1060', '#e04f9a', '#ffd0ea'];
+    mount();
+    expect(root).toHaveAttribute('data-scene-tint');
+    expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+  });
+
+  // The control: with no swatch there is nothing to lend before measuring.
+  it('lends nothing before measuring a scene with no swatch', () => {
+    mount();
+    expect(root).not.toHaveAttribute('data-scene-tint');
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
   });
 
   it('measures a version it has not seen, keeping the colour it had meanwhile', () => {

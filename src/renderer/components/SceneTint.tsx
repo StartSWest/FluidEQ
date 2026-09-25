@@ -15,6 +15,7 @@ import {
   type TSkyMeasurement,
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
+import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
@@ -69,13 +70,18 @@ const SceneTint = () => {
   // alone, kept flying over it in the scene's own colours. One answer for
   // both: the switch. With it off the amp is the standard cyan, as it always
   // was.
-  // The version the graph draws, in the same form `SceneCanvas` keys it by.
-  // Undefined until the lists arrive, or for a scene that is not usable.
-  const version = useMemo(() => {
+  // The version the graph draws, in the same form `SceneCanvas` keys it by,
+  // and the swatch its picker row is drawn in (`skyFromSwatch`), as text so
+  // the effect below compares it by value. Undefined until the lists arrive,
+  // or for a scene that is not usable.
+  const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
       : memberScenes.find((entry) => entry.lookId === lookId);
-    return scene && (scene.revision ?? String(scene.version));
+    return {
+      version: scene && (scene.revision ?? String(scene.version)),
+      swatch: scene?.swatch.join(' '),
+    };
   }, [lookId, scenes, memberScenes]);
 
   // A layout effect, so a launch's first frame is already in the remembered
@@ -124,12 +130,19 @@ const SceneTint = () => {
     const remembered = recallSceneSky(lookId);
     if (remembered) {
       showSceneSky(remembered.sky ?? undefined, fade);
+    } else {
+      // Never measured: its swatch's colour as it is chosen, not the last
+      // scene's held until this one has loaded and been measured.
+      const provisional = swatch ? skyFromSwatch(swatch.split(' ')) : undefined;
+      if (provisional) {
+        showSceneSky(provisional, fade);
+      }
     }
     if (version !== undefined && remembered?.version !== version) {
       showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, theme]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, theme]);
 
   return null;
 };

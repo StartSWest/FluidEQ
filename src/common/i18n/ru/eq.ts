@@ -140,8 +140,11 @@ const eq: Partial<Dictionary> = {
     'Всё из «Атмосферы», и визуализатор за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q',
-  'graph.backdropVeil': 'Панели',
-  'graph.backdropVeilHint': 'Насколько панели закрывают визуализатор за ними',
+  'graph.backdropVeil': 'Прозрачность',
+  'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
+  'graph.sceneTint.brightness': 'Яркость',
+  'graph.sceneTint.brightnessHint':
+    'Насколько светлым или тёмным будет окно в цветах визуализатора',
   'graph.member.mine': 'Созданы вами',
   'graph.member.theirs': 'Созданы участниками',
   'graph.member.by': 'автор: {name}',

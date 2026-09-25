@@ -427,11 +427,25 @@ const MainContent = () => {
     // Measured, not derived: the row sits inside the page's padding and the
     // plot does not, and the row's own left edge moves when it goes from even
     // to placed. Its size changes with it, which is what calls this again.
+    // What the page shows of the row: the inside of the scroller it stands
+    // in, between that box's scrollbar gutters, which is where the bands are
+    // clipped.
+    const scroller = bands.closest('.workspace-tab-panel__scroll');
     const place = () => {
-      const offset =
-        plotGeometry.element.getBoundingClientRect().left -
-        bands.getBoundingClientRect().left;
-      const next = placeBandsUnderPlot(frequencies, plotGeometry, offset);
+      const row = bands.getBoundingClientRect().left;
+      const offset = plotGeometry.element.getBoundingClientRect().left - row;
+      let visible: { left: number; right: number } | undefined;
+      if (scroller instanceof HTMLElement) {
+        const left =
+          scroller.getBoundingClientRect().left + scroller.clientLeft - row;
+        visible = { left, right: left + scroller.clientWidth };
+      }
+      const next = placeBandsUnderPlot(
+        frequencies,
+        plotGeometry,
+        offset,
+        visible,
+      );
       setBandPlacement((previous) =>
         isSamePlacement(previous, next) ? previous : next,
       );

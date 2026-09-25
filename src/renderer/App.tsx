@@ -215,7 +215,8 @@ import FeatureTour from './components/featureTour/FeatureTour';
 import HelpMenu from './help/HelpMenu';
 import { featureTourFor } from './components/featureTour/slides';
 import AboutDialog from './components/AboutDialog';
-import BrandMark from './icons/BrandMark';
+import SignalBrandMark from './components/SignalBrandMark';
+import SignalBrandName from './components/SignalBrandName';
 import MiniPlayer from './player/MiniPlayer';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import WindowModeSwitch from './player/WindowModeSwitch';
@@ -2545,12 +2546,15 @@ const AppContent = () => {
               window has them. Nothing on Windows or Linux. */}
           <TrafficLightSlot />
           <div className="workspace-header__identity">
-            <BrandMark />
+            {/* Alive in the header ("Signal", Ivan 2026-09-25): the wave
+                draws itself and a pulse runs along it; still everywhere
+                else the app shows its logo. */}
+            <SignalBrandMark />
             {/* Named, because a narrow window hides this and leaves the mark
                 alone — see `.workspace-header__identity-text`. */}
             <div className="workspace-header__identity-text">
               <div className="workspace-header__name">
-                {PRODUCT_NAME}
+                <SignalBrandName />
                 {/* Inlined at build time from the same package.json
                     electron-builder versions the installer with, so a bug
                     report quoting this is quoting the real build. */}

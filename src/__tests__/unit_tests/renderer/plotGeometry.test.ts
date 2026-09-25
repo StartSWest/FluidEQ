@@ -147,6 +147,58 @@ describe('bands under their graph points', () => {
     ).toBeLessThanOrEqual(gridless.width + 1e-9);
   });
 
+  // The row is clipped by the page it stands in, inside the plot's ends: with
+  // the grid off, 16 kHz stands 12px from the plot's edge, past what a page
+  // inset 20px shows, and its band was cut in half there (Ivan, 2026-09-25:
+  // "EQ never can get trim on the side").
+  describe('inside what the page shows', () => {
+    const gridless: TGeometry = { width: 1245, isGridHidden: true };
+    const shown = { left: 20, right: 1225 };
+
+    it('keeps every band whole, and the row placed', () => {
+      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0, shown);
+      expect(placement).toBeDefined();
+      if (!placement) {
+        return;
+      }
+      const centres = centresOf(placement);
+      expect(centres[0] - placement.slot / 2).toBeGreaterThanOrEqual(
+        shown.left - 1e-9,
+      );
+      expect(
+        centres[centres.length - 1] + placement.slot / 2,
+      ).toBeLessThanOrEqual(shown.right + 1e-9);
+    });
+
+    // The positive control: told only of the plot, the last band runs past
+    // the edge the page clips at — which is the cut this guards against.
+    it('would run past it if told only of the plot', () => {
+      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0);
+      expect(placement).toBeDefined();
+      if (!placement) {
+        return;
+      }
+      const centres = centresOf(placement);
+      expect(centres[centres.length - 1] + placement.slot / 2).toBeGreaterThan(
+        shown.right,
+      );
+    });
+
+    it('stands the bands that fit under their points', () => {
+      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0, shown);
+      expect(placement).toBeDefined();
+      if (!placement) {
+        return;
+      }
+      const points = pointsOf(FIFTEEN, gridless);
+      const centres = centresOf(placement);
+      // All but the outermost, which gives up what the edge takes.
+      centres.slice(1, -2).forEach((centre, index) => {
+        expect(Math.abs(centre - points[index + 1])).toBeLessThan(1);
+      });
+    });
+  });
+
   it('has nothing to place without bands or without a plot', () => {
     expect(placeBandsUnderPlot([], wide, 0)).toBeUndefined();
     expect(

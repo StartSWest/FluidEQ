@@ -67,31 +67,38 @@ export const useGraphAutoCycleSeconds = () =>
   );
 
 /**
- * How many of the graph's pickers are open — the look explorer and the
- * interval list, wherever either is mounted. Each takes a hold while it is
- * open, and the cycle reads the count.
+ * How many things are holding the cycle: the graph's pickers while they are
+ * open — the look explorer and the interval list, wherever either is mounted
+ * — and a Plus scene until its first frame is drawn (`SceneCanvas`). Each
+ * takes a hold while it applies, and the cycle reads the count.
  *
- * The cycle used to find them by asking the document for
+ * The scene's hold is what makes an interval a look's time on screen rather
+ * than time since it was chosen: counted from the choice, a scene that took
+ * seconds to load lost those seconds, and one slower than the interval was
+ * passed over before it had drawn a frame (Ivan, 2026-09-25: "the next auto
+ * starts when the scene is fully loaded").
+ *
+ * The cycle used to find the pickers by asking the document for
  * `.graph-look-menu, .graph-auto-cycle-menu` on every frame: 8.6-11 ms of
  * main-thread time per second in full screen at 1920x1080 and ~100 fps, more
  * than a whole drawn scene costs.
  */
-let openPickers = 0;
+let holds = 0;
 
-/** While `isOpen`, every running cycle waits at the start of its interval. */
-export const useHoldGraphAutoCycle = (isOpen: boolean) => {
+/** While `isHeld`, every running cycle waits at the start of its interval. */
+export const useHoldGraphAutoCycle = (isHeld: boolean) => {
   // Layout, not passive: the cycle runs on animation frames, and a passive
   // effect can land after one — a frame in which the list is on screen and
   // the look can still change underneath it.
   useLayoutEffect(() => {
-    if (!isOpen) {
+    if (!isHeld) {
       return undefined;
     }
-    openPickers += 1;
+    holds += 1;
     return () => {
-      openPickers -= 1;
+      holds -= 1;
     };
-  }, [isOpen]);
+  }, [isHeld]);
 };
 
 /**
@@ -128,13 +135,14 @@ export const useGraphAutoCycle = (
     const tick = (now: number) => {
       const delta = Math.max(0, now - previous);
       previous = now;
-      // A hidden window accrues no time, only the newest cycle counts, and an
+      // A hidden window accrues no time, only the newest cycle counts, an
       // open picker must never have its selection changed underneath the
-      // person choosing from it.
+      // person choosing from it, and a scene still loading has not started
+      // its time on screen.
       if (
         document.hidden ||
         runningCycles[runningCycles.length - 1] !== claim ||
-        openPickers > 0
+        holds > 0
       ) {
         elapsed = 0;
       } else {

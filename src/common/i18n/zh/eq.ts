@@ -132,8 +132,10 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     '包含“氛围”的一切，并把可视化效果铺在整个窗口背后。',
   'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q',
-  'graph.backdropVeil': '面板',
-  'graph.backdropVeilHint': '面板对其后方可视化效果的遮挡程度',
+  'graph.backdropVeil': '透明度',
+  'graph.backdropVeilHint': '透过面板能看到多少可视化效果',
+  'graph.sceneTint.brightness': '亮度',
+  'graph.sceneTint.brightnessHint': '窗口在可视化效果颜色下的明暗',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',
   'graph.member.by': '作者：{name}',

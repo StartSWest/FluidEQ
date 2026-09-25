@@ -193,6 +193,24 @@ describe('automatic visualizer switching', () => {
     expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
   });
 
+  // A scene holds the cycle until its first frame (`SceneCanvas`): the time
+  // counted is its time on screen, never time it spent loading (Ivan,
+  // 2026-09-25: "the next auto starts when the scene is fully loaded").
+  it('counts a scene its whole interval from its first frame', () => {
+    renderHook(() => useGraphAutoCycle(10, false, 'premium:aurora'));
+    const loading = renderHook(({ held }) => useHoldGraphAutoCycle(held), {
+      initialProps: { held: true },
+    });
+    // Longer than the interval, still loading: never passed over.
+    paintAt(25000);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    loading.rerender({ held: false });
+    paintAt(34999);
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
+    paintAt(35000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+  });
+
   it('does not count hidden time or catch up when the window returns', () => {
     renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
     paintAt(8000);

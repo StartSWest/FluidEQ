@@ -34,6 +34,7 @@ import SceneLoading from './SceneLoading';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
+import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { useIsChromeIdle } from '../utils/idleChrome';
 import { createSceneInteraction } from './sceneInteraction';
 import SceneViewReset from './SceneViewReset';
@@ -159,6 +160,9 @@ export default function SceneCanvas({
   // swapped in place and stays settled.
   const [drawnIdentity, setDrawnIdentity] = useState<string>();
   const drawnRef = useRef<string | undefined>(undefined);
+  // The automatic switching counts a look's time from its first frame, not
+  // from the moment it was chosen (`graphAutoCycle.ts`).
+  useHoldGraphAutoCycle(drawnIdentity !== key);
   // The element the scene draws in, once the runner has made it: where the
   // window's pulse starts from.
   const hostRef = useRef<RefObject<Element | null>>(undefined);

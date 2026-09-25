@@ -107,25 +107,22 @@ describe('the graph’s menu', () => {
   it('names the mode on its button and offers all four, each said in a line', async () => {
     const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': 'pulse' });
     fresh.render(<Menu />);
-    const button = fresh.screen.getByRole('menu', {
+    const button = fresh.screen.getByRole('button', {
       name: 'graph.sceneTint.label',
     });
     expect(button).toHaveTextContent('graph.sceneTint.short.pulse');
-    expect(fresh.screen.queryByRole('menuitem')).toBeNull();
+    expect(fresh.screen.queryByRole('radio')).toBeNull();
 
     await userEvent.click(button);
-    const choices = fresh.screen.getAllByRole('menuitem');
-    expect(choices.map((choice) => choice.getAttribute('aria-label'))).toEqual([
-      'graph.sceneTint.short.off',
-      'graph.sceneTint.short.tint',
-      'graph.sceneTint.short.pulse',
-      'graph.sceneTint.short.cover',
-    ]);
+    const choices = fresh.screen.getAllByRole('radio');
+    expect(choices).toHaveLength(4);
+    expect(choices[0]).toHaveTextContent('graph.sceneTint.short.off');
+    expect(choices[3]).toHaveTextContent('graph.sceneTint.short.cover');
     expect(choices[3]).toHaveTextContent('graph.sceneTint.about.cover');
-    expect(choices[2]).toHaveClass('selected');
+    expect(choices[2]).toHaveAttribute('aria-checked', 'true');
   });
 
-  it('puts the window in the mode picked, and remembers it', async () => {
+  it('puts the window in the mode picked, remembers it, and stays open', async () => {
     const {
       Menu,
       store,
@@ -136,18 +133,40 @@ describe('the graph’s menu', () => {
     fresh.render(<Menu />);
     const { result } = fresh.renderHook(() => store.useSceneTintMode());
     await userEvent.click(
-      fresh.screen.getByRole('menu', { name: 'graph.sceneTint.label' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
     );
-    await userEvent.click(
-      fresh.screen.getByRole('menuitem', {
-        name: 'graph.sceneTint.short.cover',
-      }),
-    );
+    await userEvent.click(fresh.screen.getAllByRole('radio')[3]);
     expect(result.current).toBe('cover');
     expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('cover');
     expect(
-      fresh.screen.getByRole('menu', { name: 'graph.sceneTint.label' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
     ).toHaveTextContent('graph.sceneTint.short.cover');
+    // Open still: the chosen mode's sliders are what comes next.
+    expect(fresh.screen.getAllByRole('radio')[3]).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+  });
+
+  // Each mode's own sliders under the list, and nowhere else (Ivan,
+  // 2026-09-25: "for ambient and colors only that slider under that menu …
+  // for fondo 2 slider tansparenty and briness").
+  it.each([
+    ['off', []],
+    ['tint', ['graph.sceneTint.brightness']],
+    ['pulse', ['graph.sceneTint.brightness']],
+    ['cover', ['graph.backdropVeil', 'graph.sceneTint.brightness']],
+  ])('under %s offers %j', async (mode, sliders) => {
+    const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
+    fresh.render(<Menu />);
+    await userEvent.click(
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
+    );
+    expect(
+      fresh.screen
+        .queryAllByRole('slider')
+        .map((slider) => slider.getAttribute('aria-label')),
+    ).toEqual(sliders);
   });
 });
 

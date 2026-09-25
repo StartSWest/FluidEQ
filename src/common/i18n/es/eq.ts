@@ -143,9 +143,12 @@ const eq: Partial<Dictionary> = {
     'Todo lo de Ambiente, con el visualizador detrás de toda la ventana.',
   'graph.editHint':
     'Arrastra los puntos · Ctrl/Mayús selecciona · Ctrl+rueda: Q',
-  'graph.backdropVeil': 'Paneles',
+  'graph.backdropVeil': 'Transparencia',
   'graph.backdropVeilHint':
-    'Cuánto cubren los paneles al visualizador que tienen detrás',
+    'Cuánto del visualizador se ve a través de los paneles',
+  'graph.sceneTint.brightness': 'Brillo',
+  'graph.sceneTint.brightnessHint':
+    'Qué tan clara u oscura queda la ventana con los colores del visualizador',
   'graph.member.mine': 'Hechos por ti',
   'graph.member.theirs': 'Hechos por miembros',
   'graph.member.by': 'por {name}',

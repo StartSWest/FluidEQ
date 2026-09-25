@@ -145,9 +145,11 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     'Alles von Ambiente, mit dem Visualizer hinter dem ganzen Fenster.',
   'graph.editHint': 'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q',
-  'graph.backdropVeil': 'Flächen',
-  'graph.backdropVeilHint':
-    'Wie stark die Flächen den Visualizer dahinter abdecken',
+  'graph.backdropVeil': 'Transparenz',
+  'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
+  'graph.sceneTint.brightness': 'Helligkeit',
+  'graph.sceneTint.brightnessHint':
+    'Wie hell oder dunkel das Fenster in den Farben des Visualizers steht',
   'graph.member.mine': 'Von Ihnen erstellt',
   'graph.member.theirs': 'Von Mitgliedern erstellt',
   'graph.member.by': 'von {name}',

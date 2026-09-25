@@ -2817,6 +2817,28 @@ $tab-bar-inset: 8px;
   container-type: inline-size;
 }
 
+// The Bands page with its bands under the graph's points: the page's side
+// inset moves inside the scroller, so what clips the band row is the
+// column's own edge, where the plot's ends are, and not 20px short of it
+// (Ivan, 2026-09-25: "EQ never can get trim on the side"). With the grid off
+// the plot runs to the column's edge and 16 kHz stands 12px from it: clipped
+// at the panel's padding and the scrollbar's gutter it stood past what the
+// page showed, and its band was pulled 28px off its point into the 10 kHz
+// one. The content keeps its width — 20px of padding where the panel's 12
+// and the gutter's 8 were — so every width query inside reads the same, and
+// with no gutter kept the page stays centred on the column while it does not
+// scroll, which on this page is always.
+.workspace-tab-panel--eq:has(
+  > .workspace-tab-panel__scroll .main-content.is-placed
+) {
+  padding-inline: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding-inline: 20px;
+    scrollbar-gutter: auto;
+  }
+}
+
 // The player is a tab like the others, and was the only one without the card.
 //
 // The tab strip is drawn to butt onto a panel — the active tab shares its top
@@ -3413,27 +3435,30 @@ $tab-bar-inset: 8px;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  // The label and nothing round it (Ivan, 2026-09-25: "make it a link no
+  // button", "no underline, just label button"): a boxed button at the foot
+  // of the pane read as one more action beside the ones above it, when it is
+  // only the way out to the site. The padding stays, as the press's target.
   padding: 7px 14px;
-  // The quiet button, exactly: it was a glowing pill of its own.
   color: $secondary-light;
-  border: 1px solid $border-field;
+  border: 0;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: none;
   box-shadow: none;
   font-size: $text-body;
   font-weight: $weight-bold;
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
-  transition: $transition-control;
+  transition: color 150ms ease;
 
-  &:hover,
+  &:hover {
+    color: $white;
+  }
+
   &:focus-visible {
     color: $white;
-    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-    box-shadow: none;
-    outline: none;
+    @include focus-ring;
   }
 }
 

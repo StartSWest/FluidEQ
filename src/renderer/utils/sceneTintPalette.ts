@@ -100,6 +100,31 @@ const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
  * being something to stand on and becomes something to look at.
  */
 const MAX_SURFACE_CHROMA = 0.07;
+
+/**
+ * The surfaces' lightness, lifted or lowered by the window-colours menu's
+ * Brightness (`sceneTintBrightness.ts`), one step of which is this much
+ * OKLab lightness: fifty steps either way move a surface by 0.16 — the black
+ * theme's floor to about the ocean theme's panes, and the ocean theme's panes
+ * to the ceiling below.
+ */
+export const TINT_LIGHTNESS_PER_STEP = 0.0032;
+
+/**
+ * The lightest a surface may be lifted to: 0.52 in OKLab, where the app's
+ * body text still stands on it at about 5:1. The text stays light whatever
+ * the Brightness, so a surface lifted past this would be a pale ground for
+ * pale words. Lowered, a surface stops at black.
+ */
+const LIFTED_SURFACE_CEILING = 0.52;
+
+const liftedLightness = (lightness: number, lift: number) =>
+  lift === 0
+    ? lightness
+    : Math.min(
+        Math.max(lightness, LIFTED_SURFACE_CEILING),
+        Math.max(0, lightness + lift),
+      );
 /**
  * The edges' chroma. They are drawn at six to twenty-two percent alpha, so
  * this is what keeps them from reading as grey wire on a coloured pane and no
@@ -287,6 +312,8 @@ const activeUnder = (
 export const tintThemePalette = (
   base: Readonly<Record<string, string>>,
   sky: ISceneSky,
+  // OKLab lightness added to every surface (`TINT_LIGHTNESS_PER_STEP`).
+  lift = 0,
 ): TSceneTintPalette => {
   const amount = sceneTintStrength(sky);
   // Under a grey sky the surfaces and edges lose the theme's own tone
@@ -296,7 +323,8 @@ export const tintThemePalette = (
   SCENE_TINT_SURFACES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
-      const lab = rgbToLab(colour.rgb);
+      const own = rgbToLab(colour.rgb);
+      const lab = { ...own, l: liftedLightness(own.l, lift) };
       const chroma = grey
         ? 0
         : Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);

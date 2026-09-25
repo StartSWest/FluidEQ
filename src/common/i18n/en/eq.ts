@@ -143,10 +143,15 @@ const eq = {
     'All of Ambient, with the visualizer behind the whole window.',
   // Over the plot while there are band points to drag.
   'graph.editHint': 'Drag points · Ctrl/Shift select · Ctrl+scroll: Q',
-  // The View menu's slider in the Backdrop: how much the panes cover the scene.
-  'graph.backdropVeil': 'Panels',
+  // The window-colours menu's sliders. The Backdrop's: how much of the scene
+  // shows through the panes.
+  'graph.backdropVeil': 'Transparency',
   'graph.backdropVeilHint':
-    'How much the panels cover the visualizer behind them',
+    'How much of the visualizer shows through the panels',
+  // Under Colours, Ambient and the Backdrop: how light the window's surfaces stand.
+  'graph.sceneTint.brightness': 'Brightness',
+  'graph.sceneTint.brightnessHint':
+    "How light or dark the window stands in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',

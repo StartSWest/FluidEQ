@@ -36,7 +36,6 @@ import {
   TGraphView,
   TWaveOrientation,
 } from '../utils/graphStyle';
-import BackdropVeilSlider from './BackdropVeilSlider';
 import SceneParamMenu from './SceneParamMenu';
 import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
@@ -655,10 +654,6 @@ const GraphViewMenu = ({
                 )}
               </>
             )}
-            {/* The Backdrop's: how much the panes cover the scene behind
-                them. Only in the normal view, the one the Backdrop is drawn
-                in, and only in that mode (it hides itself otherwise). */}
-            {sceneLookId && view === 'normal' && <BackdropVeilSlider />}
             {sceneLookId && (
               <WallpaperMenuAction
                 lookId={sceneLookId}

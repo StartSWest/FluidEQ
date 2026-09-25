@@ -17,6 +17,11 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from './sceneTint';
+import {
+  getTintBrightness,
+  subscribeTintBrightness,
+} from './sceneTintBrightness';
+import { TINT_LIGHTNESS_PER_STEP } from './sceneTintPalette';
 import { getTheme, type TTheme } from './theme';
 
 /**
@@ -373,11 +378,24 @@ export const useRememberedSceneSky = (lookId: string) =>
 
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
-/** What the root carries now, and the theme it was toned against. */
-let painted: { sky: ISceneSky | undefined; theme: TTheme } = {
+/**
+ * What the root carries now, the theme it was toned against, and the
+ * lightness it was lifted by.
+ */
+let painted: { sky: ISceneSky | undefined; theme: TTheme; lift: number } = {
   sky: undefined,
   theme: getTheme(),
+  lift: 0,
 };
+
+/**
+ * The lift the graph's mode asks for (the window-colours menu's Brightness).
+ * None while the Studio holds the window's colour: its switch has no
+ * Brightness, and a lift set for the graph would tone somebody's scene while
+ * they judge it.
+ */
+const wantedLift = () =>
+  studioSource ? 0 : getTintBrightness(setting.get()) * TINT_LIGHTNESS_PER_STEP;
 const wantedListeners = new Set<() => void>();
 
 const SCENE_TINT_TRANSITION = 'scene-tint';
@@ -444,8 +462,9 @@ const readThemeBase = (theme: TTheme) => {
 const paint = () => {
   const { style } = document.documentElement;
   const theme = getTheme();
+  const lift = wantedLift();
   const palette = wanted
-    ? tintThemePalette(readThemeBase(theme), wanted)
+    ? tintThemePalette(readThemeBase(theme), wanted, lift)
     : undefined;
   SCENE_TINT_TOKENS.forEach((token) => {
     const value = palette?.[token];
@@ -462,12 +481,13 @@ const paint = () => {
     'data-scene-tint',
     palette !== undefined,
   );
-  painted = { sky: wanted, theme };
+  painted = { sky: wanted, theme, lift };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
-  (wanted !== undefined && painted.theme !== getTheme());
+  (wanted !== undefined &&
+    (painted.theme !== getTheme() || painted.lift !== wantedLift()));
 
 /**
  * Whether the change can cross-fade.
@@ -545,6 +565,27 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
     paint();
   }
 };
+
+/**
+ * A Brightness moved, or a change of mode that carries another one, lands at
+ * once and at most once a frame: the slider moves under the pointer, and a
+ * cross-fade on every step would be the window lagging behind it. Mid-fade
+ * it waits for the fade, which repaints to whatever is wanted when it ends.
+ */
+let liftFrame = 0;
+const repaintLift = () => {
+  if (liftFrame !== 0 || typeof window === 'undefined') {
+    return;
+  }
+  liftFrame = window.requestAnimationFrame(() => {
+    liftFrame = 0;
+    if (!fading && needsPaint()) {
+      paint();
+    }
+  });
+};
+subscribeTintBrightness(repaintLift);
+setting.subscribe(repaintLift);
 
 const subscribeWanted = (listener: () => void) => {
   wantedListeners.add(listener);

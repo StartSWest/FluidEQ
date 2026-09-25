@@ -6,7 +6,13 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { hueDistance, rgbToLab, smoothstep, type ILab } from './oklab';
+import {
+  hueDistance,
+  parseCssColour,
+  rgbToLab,
+  smoothstep,
+  type ILab,
+} from './oklab';
 
 /**
  * The colour a Plus visualizer lends the rest of the window, as arithmetic.
@@ -378,4 +384,41 @@ export const findSceneSky = (
       ),
   );
   return { ...sky, accent: accent ?? null, active: active ?? null };
+};
+
+/**
+ * How much of a tiny picture each swatch colour covers, first to last.
+ */
+const SWATCH_AREAS = [8, 5, 3, 2];
+
+/**
+ * A scene's colour before it has been measured, from its swatch: the two to
+ * four colours its picker icon is drawn in, which the scene list carries
+ * before the scene itself has been fetched or compiled.
+ *
+ * A scene is measured from its own frames (`sceneSky.ts`), which come only
+ * once it is loaded, so a scene never measured lent the window its colour
+ * after it appeared, not as it was chosen — every Plus scene the first time,
+ * and each one the auto-cycle reached (Ivan, 2026-09-25: "when changing the
+ * viz I want the color to change first then it loads the viz"). Read as a
+ * tiny picture, the first colour covering the most of it, by the rules a
+ * measurement uses; the measurement then takes over and is remembered.
+ */
+export const skyFromSwatch = (
+  swatch: readonly string[],
+): ISceneSky | undefined => {
+  const pixels: number[] = [];
+  swatch.slice(0, SWATCH_AREAS.length).forEach((hex, index) => {
+    const colour = parseCssColour(hex);
+    if (!colour) {
+      return;
+    }
+    const [red, green, blue] = colour.rgb.map((channel) =>
+      Math.round(channel * 255),
+    );
+    for (let pixel = 0; pixel < SWATCH_AREAS[index]; pixel += 1) {
+      pixels.push(red, green, blue, 255);
+    }
+  });
+  return pixels.length > 0 ? findSceneSky(pixels) : undefined;
 };

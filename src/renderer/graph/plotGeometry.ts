@@ -78,13 +78,18 @@ export const MIN_BAND_SLOT = 40;
 export const MAX_BAND_SLOT = 64;
 
 /**
- * How far a band may stand from its point and still read as under it: a
- * quarter of its width, about half its thumb. Past that the bands stay evenly
- * spaced — thirty-one of them a third of an octave apart are about 30px from
- * each other on a wide window, and spread to 40 the ones at the ends would
- * stand a whole band from their points.
+ * How far a band may stand from its point and still read as under it: half
+ * its width, so its own box still stands over the point. Past that the bands
+ * stay evenly spaced — thirty-one of them a third of an octave apart are
+ * about 30px from each other on a wide window, and spread to 40 the ones at
+ * the ends would stand a whole band from their points.
+ *
+ * It was a quarter, and that gave the placement up where it mattered most:
+ * with the grid off, 16 kHz stands 8px past what the page shows, the band
+ * pulled in to stand whole nudges 10 kHz 13px, and the whole row went back
+ * to even spacing, 74px from its points at 1100px.
  */
-const MAX_BAND_SHIFT = 0.25;
+const MAX_BAND_SHIFT = 0.5;
 
 /**
  * The positions nearest `points` (least squares) that keep neighbours at
@@ -138,18 +143,27 @@ const spreadApart = (
  * Each band under its point, or `undefined` where that cannot be done well.
  *
  * `offset` is the plot's left edge in the row's coordinates — the two boxes
- * are in one column, but the row sits inside the page's padding. A band is
- * as wide as the closest pair allows, between `MIN_BAND_SLOT` and
- * `MAX_BAND_SLOT`; where two points are closer than the narrowest band, the
- * bands around them move apart by as little as that takes. The outermost are
- * kept inside the plot's own box, which the column clips, so on a gridless
- * plot (edge to edge, handles 12px from the edge) the first and last give up
- * the few pixels of overhang a band wider than 24px would need.
+ * are in one column, but the row sits inside the page's padding. `visible`
+ * is the stretch of the row the page shows, in the same coordinates: the
+ * scroller the row stands in clips it at its padding and its scrollbar's
+ * gutter, well inside the plot's ends, and a band kept only inside the plot
+ * was cut in half there — the 16 kHz band on the right, squeezed against the
+ * 10 kHz one (Ivan, 2026-09-25: "EQ never can get trim on the side").
+ *
+ * A band is as wide as the closest pair of points allows, and as the room
+ * the outermost points leave to the edges of what is shown, between
+ * `MIN_BAND_SLOT` and `MAX_BAND_SLOT`; where two points are closer than the
+ * narrowest band, the bands around them move apart by as little as that
+ * takes. An outermost band with less room than the narrowest band needs is
+ * pulled in to stand whole, which is its own width and not a neighbour in its
+ * way — on a gridless plot (edge to edge, handles 12px from the edge) the
+ * first and last always are.
  */
 export const placeBandsUnderPlot = (
   frequencies: readonly number[],
   geometry: Pick<IPlotGeometry, 'width' | 'isGridHidden'>,
   offset: number,
+  visible?: { left: number; right: number },
 ): IBandPlacement | undefined => {
   if (frequencies.length === 0 || geometry.width <= 0) {
     return undefined;
@@ -157,12 +171,24 @@ export const placeBandsUnderPlot = (
   const points = frequencies.map(
     (frequency) => offset + bandXInPlot(frequency, geometry),
   );
+  const left = Math.max(offset, visible?.left ?? offset);
+  const right = Math.min(
+    offset + geometry.width,
+    visible?.right ?? offset + geometry.width,
+  );
   const gaps = points.slice(1).map((x, index) => x - points[index]);
-  const slot = Math.max(MIN_BAND_SLOT, Math.min(MAX_BAND_SLOT, ...gaps));
-  const low = offset + slot / 2;
-  const high = offset + geometry.width - slot / 2;
-  // Pulled in from the plot's ends first, as the row always was: that is the
-  // band's own width, not a neighbour in the way, and is not counted below.
+  // Twice the room between each outermost point and its edge, the widest a
+  // band can be and still stand whole and centred on it.
+  const edgeRoom =
+    2 * Math.min(points[0] - left, right - points[points.length - 1]);
+  const slot = Math.max(
+    MIN_BAND_SLOT,
+    Math.min(MAX_BAND_SLOT, edgeRoom, ...gaps),
+  );
+  const low = left + slot / 2;
+  const high = right - slot / 2;
+  // Pulled in from the edges first: that is the band's own width, not a
+  // neighbour in the way, and is not counted below.
   const targets = points.map((x) => Math.min(high, Math.max(low, x)));
   const centres = spreadApart(targets, slot, low, high);
   if (

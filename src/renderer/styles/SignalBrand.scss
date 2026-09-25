@@ -1,0 +1,208 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The header's logo and name, "Signal" (`SignalBrandMark`, `SignalBrandName`;
+// Ivan chose it on 2026-09-25). One clock for both: the wave draws itself in
+// 0.9s from 0.15s, the name rises letter by letter from 0.7s, and from 1.2s a
+// pulse runs along the wave every 5.5s, reaching its end at 22% of the cycle
+// — the moment "EQ" glows. Change one of these and change the others with it.
+
+// *** The logo ****************************************************************
+
+.brand-mark--signal {
+  // For the Rainbow ring below, drawn round the tile's own edge.
+  position: relative;
+
+  // `.brand-mark path` gives both paths the wave's stroke; these are the
+  // wave's drawing-on and the pulse's own light.
+  .brand-mark__wave {
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+    animation: signal-draw 900ms cubic-bezier(0.3, 0.7, 0, 1) 150ms forwards;
+  }
+
+  // A short dash, seven of the wave's sixty, travelling from just before its
+  // start to just past its end, where the seventy-unit gap hides it again.
+  .brand-mark__pulse {
+    stroke: $white;
+    stroke-width: 4.5;
+    stroke-dasharray: 7 70;
+    stroke-dashoffset: 7;
+    filter: drop-shadow(0 0 3px $secondary-light);
+    animation: signal-pulse 5.5s cubic-bezier(0.45, 0, 0.2, 1) 1.2s infinite;
+  }
+}
+
+@keyframes signal-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes signal-pulse {
+  0% {
+    stroke-dashoffset: 7;
+  }
+
+  22%,
+  100% {
+    stroke-dashoffset: -60;
+  }
+}
+
+// *** The name ****************************************************************
+
+// Letters in a row, each its own box so it can rise on its own.
+.signal-name {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.signal-name__letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(5px);
+  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms);
+}
+
+// "EQ": the accent's pale colour, and a glow each time the pulse arrives.
+.signal-name__letter--glow {
+  color: $secondary-light;
+  animation:
+    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
+    signal-glow 5.5s ease-in-out infinite;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms), 1.2s;
+}
+
+@keyframes signal-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes signal-glow {
+  0%,
+  16% {
+    text-shadow: none;
+  }
+
+  22% {
+    text-shadow: 0 0 14px
+      color-mix(in srgb, $secondary-default 80%, transparent);
+  }
+
+  40%,
+  100% {
+    text-shadow: none;
+  }
+}
+
+// *** Rainbow mode ************************************************************
+
+// ONE SPECTRUM, SMOOTH, ON THE TILE AND THROUGH THE NAME. The first cut gave
+// each letter a hue of its own and the tile a thin ring and a small spectrum
+// wave, and Ivan sent both back ("more smooth not per letter and the icon
+// too sucks", 2026-09-25). Now the tile is filled with the spectrum and the
+// wave is drawn in white on it, lit like the pulse, and the name is one
+// gradient running through all its letters; both drift the same way at the
+// same pace, so the mark and the name read as one thing.
+//
+// Twice the box wide and swept by one width, as Rainbow mode's own sweep
+// does, with the first colour again at the end, so the drift never jumps.
+$signal-spectrum: linear-gradient(
+  110deg,
+  #ff4d6d,
+  #ff9f45,
+  #ffd93d,
+  #6bcb77,
+  #36c9d6,
+  #5b8cff,
+  #b06ab3,
+  #ff4d6d
+);
+
+html.is-euphoric {
+  .brand-mark--signal {
+    border-color: color-mix(in srgb, $white 22%, transparent);
+    background: $signal-spectrum;
+    background-size: 200% 200%;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, $white 35%, transparent),
+      0 8px 24px color-mix(in srgb, #b06ab3 30%, transparent);
+    animation: signal-sweep 12s linear infinite;
+
+    .brand-mark__wave {
+      stroke: $white;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+    }
+
+    .brand-mark__pulse {
+      filter: drop-shadow(0 0 4px $white);
+    }
+  }
+
+  // The name clips the same spectrum to its letters. Its letters stand as
+  // plain text here, not as boxes of their own: a letter that is its own
+  // box, or still rising, is painted apart from its parent and the clip
+  // misses it — the whole name vanished that way in the mockup.
+  .signal-name {
+    display: inline;
+    color: transparent;
+    background: $signal-spectrum;
+    background-size: 200% 100%;
+    background-clip: text;
+    animation: signal-sweep 12s linear infinite;
+  }
+
+  .signal-name__letter,
+  .signal-name__letter--glow {
+    display: inline;
+    color: transparent;
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+@keyframes signal-sweep {
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+// *** Still *******************************************************************
+
+// Drawn, risen and quiet: the logo and the name as they stand once the
+// opening is over, with no pulse and nothing turning.
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark--signal .brand-mark__wave {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .brand-mark--signal .brand-mark__pulse {
+    display: none;
+  }
+
+  .signal-name__letter,
+  .signal-name__letter--glow {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  html.is-euphoric {
+    .signal-name,
+    .brand-mark--signal {
+      animation: none;
+    }
+  }
+}

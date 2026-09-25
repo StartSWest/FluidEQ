@@ -142,8 +142,11 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     '環境光に加えて、ウィンドウ全体の背後にビジュアライザー。',
   'graph.editHint': 'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q',
-  'graph.backdropVeil': 'パネル',
-  'graph.backdropVeilHint': 'パネルが背後のビジュアライザーをどれだけ覆うか',
+  'graph.backdropVeil': '透明度',
+  'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
+  'graph.sceneTint.brightness': '明るさ',
+  'graph.sceneTint.brightnessHint':
+    'ビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',
   'graph.member.theirs': 'メンバーが作成',
   'graph.member.by': '作者: {name}',

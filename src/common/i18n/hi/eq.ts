@@ -140,8 +140,11 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     'माहौल का सब कुछ, पूरी विंडो के पीछे विज़ुअलाइज़र के साथ।',
   'graph.editHint': 'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q',
-  'graph.backdropVeil': 'पैनल',
-  'graph.backdropVeilHint': 'पैनल अपने पीछे के विज़ुअलाइज़र को कितना ढकते हैं',
+  'graph.backdropVeil': 'पारदर्शिता',
+  'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
+  'graph.sceneTint.brightness': 'चमक',
+  'graph.sceneTint.brightnessHint':
+    'विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',

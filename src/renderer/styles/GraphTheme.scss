@@ -901,21 +901,22 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// A window mode as the window-colours menu draws it (`SceneTintMenu`): the
-// glyph the Studio's tiles and the player's keys draw for it, its name, and,
-// in the list only, a line on what it does. The same node is the button's
-// face and each choice in the list, so the button reads as the choice it is.
+// The window-colours menu (`SceneTintMenu`): its button, which names the mode
+// the window is in, and the menu, the four modes with what each does and the
+// chosen one's sliders under them.
 //
 // The glyph is the theme's own, a circle half filled, and the filled half is
-// the colour the window takes: `--scene-tint-swatch`, set on the choice from
-// the measured sky and lifted to a lightness that reads at this size. Before
-// a sky is known the half is the ring's ink.
-.scene-tint-choice {
-  display: inline-grid;
-  min-width: 0;
+// the colour the window takes: `--scene-tint-swatch`, set from the measured
+// sky and lifted to a lightness that reads at this size. Before a sky is
+// known the half is the ring's ink.
+.graph-scene-look {
+  display: inline-flex;
+}
+
+.graph-scene-look__trigger {
+  display: inline-flex;
   align-items: center;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 6px;
+  font: inherit;
 }
 
 .scene-tint-choice__glyph {
@@ -945,32 +946,67 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.scene-tint-choice__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+// The menu, portalled to the body (`AnchoredMenu`), in every menu's face.
+// Wide enough for a mode's line to sit on two lines at most in any language.
+.scene-look-menu {
+  @include menu-surface;
+  z-index: 1000;
+  width: 300px;
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
 }
 
-// The button carries the name alone; what the mode does is the list's.
-.dropdown.graph-scene-look > [role='menu'] .scene-tint-choice__about {
-  display: none;
+.scene-look-menu__content {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
 }
 
-// The list: wider than its button, each choice two lines — the name over
-// what it does — with the glyph standing beside both. Portalled to the body,
-// so it is named by the class the menu is given, never by the strip's; the
-// layer's own class as well, to outrank the width every menu is given.
-.dropdown-menu-layer.graph-scene-look-menu .list-wrapper {
-  width: max(var(--dropdown-trigger-width), 17rem);
+.scene-look-menu__heading {
+  padding: 5px 8px 3px;
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
 
-  .list li {
-    padding-block: 7px;
+.scene-look-menu__choices {
+  display: grid;
+  gap: 2px;
+}
+
+// A mode: the glyph beside two lines, its name over what it does. At rest it
+// paints nothing, as a list's row does; the one the window is in carries the
+// selection's face, and the others a wash under the pointer.
+.scene-tint-choice {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 7px 10px;
+  color: $text-primary;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    background: $hover-accent;
+    outline: none;
   }
 
-  .scene-tint-choice {
-    display: grid;
-    column-gap: 10px;
-    row-gap: 2px;
+  &[aria-checked='true'] {
+    color: $secondary-light;
+    border-color: $selected-border;
+    background: $selected-accent;
   }
 
   .scene-tint-choice__glyph {
@@ -978,22 +1014,35 @@ it under the terms of the GNU General Public License version 3 or later.
     height: 16px;
     grid-row: span 2;
   }
+}
 
-  .scene-tint-choice__name {
-    font-weight: $weight-semibold;
-  }
+.scene-tint-choice__name {
+  overflow: hidden;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .scene-tint-choice__about {
-    grid-column: 2;
-    color: $text-muted;
-    font-size: $text-small;
-    line-height: 1.35;
-    white-space: normal;
-  }
+.scene-tint-choice__about {
+  grid-column: 2;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
 
-  .list li.selected .scene-tint-choice__about {
-    color: $text-primary;
-  }
+.scene-tint-choice[aria-checked='true'] .scene-tint-choice__about {
+  color: $text-primary;
+}
+
+// The chosen mode's own sliders, under a hairline: the View menu's slider
+// rows, so a slider reads the same wherever the graph offers one.
+.scene-look-menu__sliders {
+  display: grid;
+  gap: 2px;
+  margin-top: 2px;
+  padding: 6px 4px 2px;
+  border-top: 1px solid $border-subtle;
 }
 
 /**
@@ -1096,8 +1145,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // field rule it replaces is `.dropdown > [role='menu']`; the values are the
 // strip's `button` rule, measured off the View button in the running window.
 .live-output-controls
-  .dropdown:is(.graph-auto-cycle, .graph-scene-look)
-  > [role='menu'] {
+  :is(.dropdown.graph-auto-cycle > [role='menu'], .graph-scene-look__trigger) {
   @include ghost-button;
   min-height: 28px;
   gap: 5px;
@@ -1142,8 +1190,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // Normal, and so is a window in the visualizer's colours; and open, the way
 // every trigger in the row shows its menu is up.
 .live-output-controls
-  .dropdown:is(.graph-auto-cycle, .graph-scene-look):is(.is-on, .dropdown--open)
-  > [role='menu'] {
+  :is(
+    .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+    .graph-scene-look__trigger:is(.is-on, .is-open)
+  ) {
   border-color: $secondary-light;
   background: color-mix(in srgb, $secondary-light 16%, transparent);
   color: $white;

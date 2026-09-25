@@ -35,6 +35,9 @@ import './RichPick.scss';
 import './Games.scss';
 import './App.scss';
 import './Rainbow.scss';
+// The header's logo and name ("Signal"): over `.brand-mark`, and with
+// Rainbow mode's own turn for them.
+import './SignalBrand.scss';
 import './BandMenu.scss';
 import './ArrowButton.scss';
 import './NumberInput.scss';
