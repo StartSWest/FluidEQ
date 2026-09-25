@@ -671,13 +671,7 @@ struct FeqChain {
 
   /* ---------------------------------------------------------- dimension -- */
   FeqDimension dimension{};
-  std::vector<float> dimension_side;
-  /** The mid, (L+R)/2, which the stage never touches. */
-  std::vector<float> dimension_centre;
-  std::vector<float> dimension_low;
-  std::vector<float> dimension_mid;
-  std::vector<float> dimension_high;
-  std::vector<float> dimension_allpass[FEQ_DIMENSION_ALLPASSES];
+  std::vector<float> dimension_allpass[FEQ_DIMENSION_LINES];
   std::vector<float*> dimension_allpass_pointers;
 
   std::vector<float> maximizer_reduction;

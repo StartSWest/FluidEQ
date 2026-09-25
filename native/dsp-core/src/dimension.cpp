@@ -28,6 +28,27 @@ constexpr double kAllPassMs[FEQ_DIMENSION_ALLPASSES] = {4.7, 7.3, 11.1};
 constexpr double kAllPassGain = 0.62;
 constexpr double kLongestAllPassMs = 11.1;
 /**
+ * The centre's network, which makes side out of the mid (see the header).
+ *
+ * Without it the stage could only scale the side a record already has, and on
+ * the 25-song corpus 71 of the 86 chains with Dimension moved side against mid
+ * above 2 kHz by -0.9 to +0.4 dB — nothing anyone hears as wider, and nothing
+ * at all on a mono record (Ivan, 2026-09-25: "we need to improve dimension
+ * filter to really add widening stereo fx"). Delays of its own, prime in
+ * samples at 44.1 and 48 kHz and sharing none with the side's network, or the
+ * made side would be the side's own decorrelation over again and ring at the
+ * same periods. Its instantaneous return, `-gain^3`, is taken off, because a
+ * copy of the centre with no delay added to the left and taken from the right
+ * moves the centre to one side instead of widening it.
+ */
+constexpr double kCentreAllPassMs[FEQ_DIMENSION_CENTRE_ALLPASSES] = {3.1, 5.7,
+                                                                      9.4};
+constexpr double kCentreAllPassGain = 0.6;
+constexpr double kCentreNetworkReturn =
+    -(kCentreAllPassGain * kCentreAllPassGain * kCentreAllPassGain);
+/** How much side a Spread of 1 makes, against the centre it is made from. */
+constexpr double kCentreSpread = 0.8;
+/**
  * How long an all-pass network started empty is left to fill before its
  * decorrelated side is heard.
  *
@@ -123,9 +144,32 @@ double low_pass(double* state, double sample, double gain) {
   return out;
 }
 
-double split_gain(double hz, double sample_rate) {
+/**
+ * One sample through a second-order Butterworth high-pass, in the same
+ * zero-delay-feedback form as `low_pass` (a state-variable filter), so the
+ * corner too moves without a step. `g` is the prewarped `tan(pi·fc/fs)`;
+ * `state` holds the two integrators.
+ */
+double butterworth_high_pass(double* state, double sample, double g) {
+  constexpr double kDamping = 1.4142135623730951;  // 1/Q at Q = 1/sqrt(2)
+  const double high =
+      (sample - (kDamping + g) * state[0] - state[1]) /
+      (1.0 + kDamping * g + g * g);
+  const double band = g * high + state[0];
+  state[0] = g * high + band;
+  const double low = g * band + state[1];
+  state[1] = g * band + low;
+  return high;
+}
+
+/** The corner prewarped for the trapezoidal filters above, `tan(pi·fc/fs)`. */
+double prewarp(double hz, double sample_rate) {
   const double corner = clamp(hz, 10.0, sample_rate * 0.45);
-  const double g = std::tan(kPi * corner / sample_rate);
+  return std::tan(kPi * corner / sample_rate);
+}
+
+double split_gain(double hz, double sample_rate) {
+  const double g = prewarp(hz, sample_rate);
   return g / (1.0 + g);
 }
 
@@ -144,6 +188,30 @@ double all_pass_sample(FeqDimensionAllPass* state, double sample) {
   return delayed - state->gain * stored;
 }
 
+/** The line's delay at this rate, within what its buffer holds; restarts it. */
+void set_delay(FeqDimensionAllPass* state, double milliseconds,
+               double sample_rate) {
+  auto delay = static_cast<uint32_t>(
+      std::floor((milliseconds / 1000.0) * sample_rate + 0.5));
+  if (delay < 1u) {
+    delay = 1u;
+  }
+  if (delay > state->capacity) {
+    delay = state->capacity;
+  }
+  state->delay = delay;
+  state->cursor = 0;
+}
+
+void clear_all_pass(FeqDimensionAllPass* state) {
+  state->cursor = 0;
+  if (state->buffer != nullptr) {
+    for (uint32_t at = 0; at < state->capacity; ++at) {
+      state->buffer[at] = 0.0f;
+    }
+  }
+}
+
 }  // namespace
 
 extern "C" {
@@ -154,20 +222,13 @@ uint32_t feq_dimension_allpass_capacity(double sample_rate) {
   return rounded < 1.0 ? 1u : static_cast<uint32_t>(rounded) + 1u;
 }
 
-void feq_dimension_init(FeqDimension* state, float* side, float* centre,
-                        float* low, float* mid_band, float* high,
-                        float* const* allpass_buffers,
+void feq_dimension_init(FeqDimension* state, float* const* allpass_buffers,
                         uint32_t allpass_capacity) {
   if (state == nullptr) {
     return;
   }
   state->low_split = 0.0;
   state->high_split = 0.0;
-  state->side = side;
-  state->centre = centre;
-  state->low = low;
-  state->mid_band = mid_band;
-  state->high = high;
   for (uint32_t at = 0; at < FEQ_DIMENSION_ALLPASSES; ++at) {
     state->allpasses[at].buffer =
         allpass_buffers != nullptr ? allpass_buffers[at] : nullptr;
@@ -175,6 +236,19 @@ void feq_dimension_init(FeqDimension* state, float* side, float* centre,
     state->allpasses[at].delay = 0;
     state->allpasses[at].cursor = 0;
     state->allpasses[at].gain = kAllPassGain;
+  }
+  for (uint32_t at = 0; at < FEQ_DIMENSION_CENTRE_ALLPASSES; ++at) {
+    state->centre_allpasses[at].buffer =
+        allpass_buffers != nullptr
+            ? allpass_buffers[FEQ_DIMENSION_ALLPASSES + at]
+            : nullptr;
+    state->centre_allpasses[at].capacity = allpass_capacity;
+    state->centre_allpasses[at].delay = 0;
+    state->centre_allpasses[at].cursor = 0;
+    state->centre_allpasses[at].gain = kCentreAllPassGain;
+  }
+  for (double& integrator : state->centre_high_pass) {
+    integrator = 0.0;
   }
   state->low_width = -1.0;
   state->mid_width = -1.0;
@@ -196,12 +270,13 @@ void feq_dimension_reset(FeqDimension* state) {
   state->low_split = 0.0;
   state->high_split = 0.0;
   for (auto& all_pass : state->allpasses) {
-    all_pass.cursor = 0;
-    if (all_pass.buffer != nullptr) {
-      for (uint32_t at = 0; at < all_pass.capacity; ++at) {
-        all_pass.buffer[at] = 0.0f;
-      }
-    }
+    clear_all_pass(&all_pass);
+  }
+  for (auto& all_pass : state->centre_allpasses) {
+    clear_all_pass(&all_pass);
+  }
+  for (double& integrator : state->centre_high_pass) {
+    integrator = 0.0;
   }
   state->correlation = 1.0;
   state->guard = 1.0;
@@ -214,9 +289,7 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
                            const FeqDimensionSettings* settings,
                            double sample_rate) {
   if (state == nullptr || left == nullptr || right == nullptr ||
-      settings == nullptr || frames == 0 || state->side == nullptr ||
-      state->centre == nullptr || state->low == nullptr ||
-      state->mid_band == nullptr || state->high == nullptr ||
+      settings == nullptr || frames == 0 ||
       (settings->enabled == 0 && state->stage_mix <= 0.0)) {
     return;
   }
@@ -228,16 +301,11 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
   if (state->sample_rate != sample_rate) {
     state->sample_rate = sample_rate;
     for (uint32_t at = 0; at < FEQ_DIMENSION_ALLPASSES; ++at) {
-      const double samples = (kAllPassMs[at] / 1000.0) * sample_rate;
-      auto delay = static_cast<uint32_t>(std::floor(samples + 0.5));
-      if (delay < 1u) {
-        delay = 1u;
-      }
-      if (delay > state->allpasses[at].capacity) {
-        delay = state->allpasses[at].capacity;
-      }
-      state->allpasses[at].delay = delay;
-      state->allpasses[at].cursor = 0;
+      set_delay(&state->allpasses[at], kAllPassMs[at], sample_rate);
+    }
+    for (uint32_t at = 0; at < FEQ_DIMENSION_CENTRE_ALLPASSES; ++at) {
+      set_delay(&state->centre_allpasses[at], kCentreAllPassMs[at],
+                sample_rate);
     }
     // New delays over lines that held the old ones: as good as empty.
     state->network_warm_left = -1;
@@ -253,19 +321,8 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
       smoothing(kCorrelationTimeMs, sample_rate);
 
   /**
-   * Both halves are taken once, in a pass of their own: the correlation below
-   * reads the whole block as it came in, and the output loop overwrites
-   * `left` and `right` in place.
-   */
-  for (uint32_t at = 0; at < frames; ++at) {
-    const double l = static_cast<double>(left[at]);
-    const double r = static_cast<double>(right[at]);
-    state->side[at] = static_cast<float>((l - r) * 0.5);
-    state->centre[at] = static_cast<float>((l + r) * 0.5);
-  }
-
-  /**
-   * Correlation over the block, then a slow follower over it.
+   * Correlation over the block, then a slow follower over it — read before
+   * the loop below writes over `left` and `right`.
    *
    * Normalised, so it reports how much the two channels AGREE rather than how
    * loud they are: a quiet passage in phase must open the guard exactly as far
@@ -293,23 +350,6 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
                 (kGuardOpenCorrelation - kGuardShutCorrelation),
             0.0, 1.0);
 
-  /**
-   * The side in three bands that add back to exactly the side: under the low
-   * corner, over the high one, and what is left between them. Where the
-   * widths agree nothing is turned, so the mid needs no turn to stay with it
-   * — see the header for what that turn used to cost.
-   */
-  const double low_gain = split_gain(settings->low_hz, sample_rate);
-  const double high_gain = split_gain(settings->high_hz, sample_rate);
-  for (uint32_t at = 0; at < frames; ++at) {
-    const double side = static_cast<double>(state->side[at]);
-    const double under_low = low_pass(&state->low_split, side, low_gain);
-    const double under_high = low_pass(&state->high_split, side, high_gain);
-    state->low[at] = static_cast<float>(under_low);
-    state->mid_band[at] = static_cast<float>(under_high - under_low);
-    state->high[at] = static_cast<float>(side - under_high);
-  }
-
   // Bass is narrowed or left alone, never widened — see the header.
   const double target_low =
       leaving ? state->low_width : clamp(settings->low_width, 0.0, 1.0);
@@ -327,11 +367,24 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
         state->network_warm_left > 0 ? 0.0 : target_decorrelation;
   }
 
+  const double low_gain = split_gain(settings->low_hz, sample_rate);
+  const double high_gain = split_gain(settings->high_hz, sample_rate);
+  const double low_corner = prewarp(settings->low_hz, sample_rate);
+  /**
+   * The guard only ever closes a widening, never a narrowing.
+   *
+   * Narrowing moves the side toward the mid, which is the direction mono
+   * already goes; there is nothing there to protect against.
+   */
+  const auto guarded = [&state](double width) {
+    return width > 1.0 ? 1.0 + (width - 1.0) * state->guard : width;
+  };
+
   for (uint32_t at = 0; at < frames; ++at) {
     state->low_width += (target_low - state->low_width) * smooth;
     state->mid_width += (target_mid - state->mid_width) * smooth;
     state->high_width += (target_high - state->high_width) * smooth;
-    // Held at none while the network fills (`kNetworkWarmMs`).
+    // Held at none while the networks fill (`kNetworkWarmMs`).
     const double decorrelation_now =
         state->network_warm_left > 0 ? 0.0 : target_decorrelation;
     if (state->network_warm_left > 0) {
@@ -340,26 +393,44 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
     state->decorrelation +=
         (decorrelation_now - state->decorrelation) * smooth;
 
-    /**
-     * The guard only ever closes a widening, never a narrowing.
-     *
-     * Narrowing moves the side toward the mid, which is the direction mono
-     * already goes; there is nothing there to protect against.
-     */
-    const auto guarded = [&state](double width) {
-      return width > 1.0 ? 1.0 + (width - 1.0) * state->guard : width;
-    };
+    const double dry_left = static_cast<double>(left[at]);
+    const double dry_right = static_cast<double>(right[at]);
+    const double mid = (dry_left + dry_right) * 0.5;
 
-    const double widened =
-        static_cast<double>(state->low[at]) * guarded(state->low_width) +
-        static_cast<double>(state->mid_band[at]) * guarded(state->mid_width) +
-        static_cast<double>(state->high[at]) * guarded(state->high_width);
+    // Side made out of the centre above the bass corner, a widening like any
+    // other and closed by the guard like one. The feed is 24 dB/oct, a
+    // Linkwitz-Riley, so the bass under the corner stays mono: -42 dB at
+    // 0.3 of the corner, and within half a decibel of flat an octave above.
+    const double centre_upper = butterworth_high_pass(
+        &state->centre_high_pass[2],
+        butterworth_high_pass(&state->centre_high_pass[0], mid, low_corner),
+        low_corner);
+    double made = centre_upper;
+    for (auto& all_pass : state->centre_allpasses) {
+      made = all_pass_sample(&all_pass, made);
+    }
+    made -= kCentreNetworkReturn * centre_upper;
+    const double side = (dry_left - dry_right) * 0.5 +
+                        made * kCentreSpread * state->decorrelation *
+                            state->guard;
+
+    /**
+     * The side in three bands that add back to exactly the side: under the
+     * low corner, over the high one, and what is left between them. Where
+     * the widths agree nothing is turned, so the mid needs no turn to stay
+     * with it — see the header for what that turn used to cost.
+     */
+    const double under_low = low_pass(&state->low_split, side, low_gain);
+    const double under_high = low_pass(&state->high_split, side, high_gain);
+    const double widened = under_low * guarded(state->low_width) +
+                           (under_high - under_low) * guarded(state->mid_width) +
+                           (side - under_high) * guarded(state->high_width);
 
     double decorrelated = widened;
     for (auto& all_pass : state->allpasses) {
       decorrelated = all_pass_sample(&all_pass, decorrelated);
     }
-    const double side =
+    const double side_out =
         (widened + (decorrelated - widened) * state->decorrelation) *
         blend_correction(state->decorrelation);
 
@@ -372,13 +443,10 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
      */
     state->stage_mix = leaving ? std::fmax(0.0, state->stage_mix - fade_step)
                                : std::fmin(1.0, state->stage_mix + fade_step);
-    const double mid = static_cast<double>(state->centre[at]);
-    const double dry_left = static_cast<double>(left[at]);
-    const double dry_right = static_cast<double>(right[at]);
-    left[at] = static_cast<float>(dry_left +
-                                  (mid + side - dry_left) * state->stage_mix);
-    right[at] = static_cast<float>(dry_right +
-                                   (mid - side - dry_right) * state->stage_mix);
+    left[at] = static_cast<float>(
+        dry_left + (mid + side_out - dry_left) * state->stage_mix);
+    right[at] = static_cast<float>(
+        dry_right + (mid - side_out - dry_right) * state->stage_mix);
   }
 }
 

@@ -69,8 +69,10 @@ const profile = (
  * DECORRELATION rather than level is the other — and the second is what
  * separates a picture that got bigger from one that merely got louder at the
  * edges. Turning `highWidth` up alone raises what the mix already had out
- * there; turning `decorrelation` up makes the sides stop being a louder copy
- * of the middle.
+ * there; turning `decorrelation` (Spread) up makes the sides stop being a
+ * louder copy of the middle, and makes side out of the middle itself, which
+ * is the only thing here that widens a mono record or a voice panned dead
+ * centre.
  *
  * Every one of them leaves the mono sum untouched. That is a property of the
  * processor rather than of these numbers — the stage only ever scales the side
@@ -184,13 +186,23 @@ export const DIMENSION_PRESET_BY_ID = {
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    settings: profile(0.75, 1.25, 1.55, 180, 2_400, 0.55),
+    // Spread makes side out of the centre (engine 2026-09-25), and at 0.55 it
+    // put a centred sound's side 5.8 dB under it between 500 Hz and 2 kHz — a
+    // footstep straight ahead heard as coming from everywhere. At 0.3 the
+    // centre keeps 11 dB, and stereo game audio still widens by 2 to 4 dB.
+    settings: profile(0.75, 1.25, 1.55, 180, 2_400, 0.3),
   },
   movie: {
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
-    settings: profile(0.8, 1.2, 1.65, 160, 2_200, 0.6),
+    // Dialogue is the centre. Once Spread made side out of it, 0.6 of Spread
+    // and 1.2 across the mids left a centred voice with a side 5.1 dB under
+    // it — diffuse, not wide. 1.05 and 0.35 keep 10 dB there, and the top,
+    // where the effects and the score's air are, opens a little further. A
+    // stereo record still comes out about a decibel wider in every band than
+    // the old profile made it (25 songs).
+    settings: profile(0.8, 1.05, 1.7, 160, 2_200, 0.35),
   },
   club: {
     id: 'club',

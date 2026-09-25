@@ -84,6 +84,13 @@ version and in these notes.
   five measured bands in front of the Room so the chain sounds like itself
   through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
   than it went in; those bands are that difference).
+- **Width you can hear, even on a mono record.** Dimension's Spread now makes
+  width out of the middle of the mix, above the bass, so a mono recording or a
+  voice dead centre opens out too; before, the stage could only stretch the
+  width a record already had, and a mono one stayed mono. Someone listening
+  in mono still hears exactly the same, and the bass stays in the centre. The
+  Movie preset and the Dimension card's Gaming profile keep the centre
+  focused, so dialogue and a footstep straight ahead stay where they are.
 - **Every music style explains itself.** Each genre preset has notes: what the
   style asks for, why each point on its curve is where it is, and what every
   effect in its chain does or why it is left off, with how loud it plays

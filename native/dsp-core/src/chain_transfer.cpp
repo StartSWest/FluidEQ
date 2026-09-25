@@ -136,11 +136,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   }
 
   swap(prepared.dimension, previous.dimension);
-  swap(prepared.dimension_side, previous.dimension_side);
-  swap(prepared.dimension_centre, previous.dimension_centre);
-  swap(prepared.dimension_low, previous.dimension_low);
-  swap(prepared.dimension_mid, previous.dimension_mid);
-  swap(prepared.dimension_high, previous.dimension_high);
   swap(prepared.dimension_allpass, previous.dimension_allpass);
   swap(prepared.dimension_allpass_pointers, previous.dimension_allpass_pointers);
 
