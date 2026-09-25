@@ -107,7 +107,8 @@ export interface IWorldMaterial {
   repeat: readonly [number, number];
   /**
    * How much of the world a flat floor reflects, 0..1: wet asphalt under
-   * the neon. Only the first mesh wearing a mirror is one; it must be flat.
+   * the neon. Only the first plane or ring mesh wearing a mirror is one:
+   * the reflection is taken about its flat face.
    */
   mirror: TWorldExpr;
   /** 0 a polished mirror, 1 a reflection softened to a glow. */
@@ -199,6 +200,10 @@ export interface IWorldLight {
   decay: number;
   angle: number;
   penumbra: number;
+  /**
+   * Where a directional or spot light aims, in the space the light is
+   * placed in (the world's, at the top), never relative to the light.
+   */
   target: readonly [number, number, number];
   shadow: boolean;
 }

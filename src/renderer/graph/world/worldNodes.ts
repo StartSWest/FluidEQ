@@ -76,13 +76,17 @@ interface IBuildState {
 const sharedMaterial = (
   state: IBuildState,
   id: string,
+  mirror = false,
 ): IWorldMaterialHandle => {
-  const known = state.materials.get(id);
+  const key = mirror ? `${id}\u0000mirror` : id;
+  const known = state.materials.get(key);
   if (known) {
     return known;
   }
-  const handle = buildWorldMaterial(state.world.materials[id], state.context);
-  state.materials.set(id, handle);
+  const handle = buildWorldMaterial(state.world.materials[id], state.context, {
+    mirror,
+  });
+  state.materials.set(key, handle);
   return handle;
 };
 
@@ -116,7 +120,6 @@ const buildLight = (node: IWorldLightNode, state: IBuildState): Object3D => {
   }
   if (light instanceof DirectionalLight || light instanceof SpotLight) {
     light.target.position.set(...spec.target);
-    light.target.updateMatrixWorld();
   }
   if (
     spec.shadow &&
@@ -145,27 +148,45 @@ const buildLight = (node: IWorldLightNode, state: IBuildState): Object3D => {
   const colour = createColourFormula(spec.colour, runtime, scope);
   const ground = createColourFormula(spec.groundColour, runtime, scope);
   const intensity = createFormula(spec.intensity, runtime, scope);
+  // A light is hidden by going dark, never by leaving the scene: three
+  // builds every lit material for the number of lights it sees, so a light
+  // that came and went rebuilt them all mid-song, synchronously, the first
+  // time each count was seen. Its children keep their own visibility.
+  const shows = createFormula(node.visible, runtime, scope);
   const apply = () => {
     colour.apply(light.color);
     if (light instanceof HemisphereLight) {
       ground.apply(light.groundColor);
     }
-    light.intensity = Math.max(0, intensity.value());
+    light.intensity = shows.value() > 0.5 ? Math.max(0, intensity.value()) : 0;
   };
   apply();
   if (
     !colour.constant ||
     !ground.constant ||
-    intensity.constant === undefined
+    intensity.constant === undefined ||
+    shows.constant === undefined
   ) {
     state.frame.push(apply);
   }
   state.disposers.push(() => light.dispose());
+  return light;
+};
+
+/**
+ * What a directional or spot light aims at stands beside it, in the space
+ * the light itself is placed in — the world, for a light at the top — so a
+ * target of [0, 0, 0] is the middle of the world. It used to be measured
+ * from the light's own place, with the light itself left one metre above
+ * that place (three's default position), so a target of [0, 0, 0] shone
+ * straight down whatever it was written to face, and a designer who wanted
+ * the origin had to write the negative of the light's position.
+ */
+const withTarget = (light: Object3D): Object3D => {
   if (light instanceof DirectionalLight || light instanceof SpotLight) {
-    // The target has to be in the scene for its place to count.
-    const holder = new Group();
-    holder.add(light, light.target);
-    return holder;
+    const beside = new Group();
+    beside.add(light, light.target);
+    return beside;
   }
   return light;
 };
@@ -215,8 +236,16 @@ const buildModel = (node: IWorldModelNode, state: IBuildState): Object3D => {
   return scene;
 };
 
-/** Where a node stands and whether it shows, from its formulas. */
-const placeNode = (object: Object3D, node: TWorldNode, state: IBuildState) => {
+/**
+ * Where a node stands and whether it shows, from its formulas; `hides`
+ * false for a light, which goes dark instead (`buildLight`).
+ */
+const placeNode = (
+  object: Object3D,
+  node: TWorldNode,
+  state: IBuildState,
+  hides: boolean,
+) => {
   const { runtime, scope } = state.inputs;
   const position = createVec3Formula(node.position, runtime, scope);
   const rotation = createVec3Formula(node.rotation, runtime, scope);
@@ -234,14 +263,16 @@ const placeNode = (object: Object3D, node: TWorldNode, state: IBuildState) => {
       rotation.z.value(),
     );
     object.scale.set(scale.x.value(), scale.y.value(), scale.z.value());
-    object.visible = visible.value() > 0.5;
+    if (hides) {
+      object.visible = visible.value() > 0.5;
+    }
   };
   apply();
   if (
     !position.constant ||
     !rotation.constant ||
     !scale.constant ||
-    visible.constant === undefined
+    (hides && visible.constant === undefined)
   ) {
     state.frame.push(apply);
   }
@@ -250,24 +281,33 @@ const placeNode = (object: Object3D, node: TWorldNode, state: IBuildState) => {
 const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
   const { inputs, context } = state;
   let object: Object3D;
+  /** The material a shadow of this object has to be drawn like. */
+  let shaped: IWorldMaterialHandle | undefined;
   switch (node.type) {
     case 'mesh': {
       const geometry = buildWorldGeometry(node.geometry);
-      const material = sharedMaterial(state, node.material);
+      // The reflection is taken about the mesh's own flat face (local +z,
+      // `worldMirror.ts`), which only a plane and a ring have: a box floor
+      // reflected about a wall.
+      const flat =
+        node.geometry.kind === 'plane' || node.geometry.kind === 'ring';
+      const material = sharedMaterial(
+        state,
+        node.material,
+        flat && state.mirror === null,
+      );
       const mesh = new Mesh(geometry, material.material);
-      if (material.reflects && state.mirror === null) {
+      if (material.reflects) {
         state.mirror = mesh;
       }
       object = mesh;
+      shaped = material;
       state.disposers.push(() => geometry.dispose());
       break;
     }
     case 'instances': {
-      const copies = buildInstances(
-        node,
-        inputs,
-        sharedMaterial(state, node.material),
-      );
+      shaped = sharedMaterial(state, node.material);
+      const copies = buildInstances(node, inputs, shaped);
       object = copies.object;
       state.frame.push(copies.update);
       state.disposers.push(copies.dispose);
@@ -287,6 +327,7 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
       });
       const ribbon = buildRibbon(node, inputs, material, state.camera);
       object = ribbon.object;
+      shaped = material;
       state.frame.push(() => {
         material.update();
         ribbon.update();
@@ -302,6 +343,7 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
         context,
       );
       object = terrain.object;
+      shaped = terrain.material;
       state.frame.push(terrain.update);
       state.disposers.push(terrain.dispose);
       break;
@@ -319,11 +361,17 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
     object.castShadow = node.castShadow;
     object.receiveShadow = node.receiveShadow;
   }
-  placeNode(object, node, state);
+  if (node.castShadow && shaped?.shadow) {
+    Object.assign(object, {
+      customDepthMaterial: shaped.shadow.depth,
+      customDistanceMaterial: shaped.shadow.distance,
+    });
+  }
+  placeNode(object, node, state, node.type !== 'light');
   node.children.forEach((child) => {
     object.add(buildNode(child, state));
   });
-  return object;
+  return node.type === 'light' ? withTarget(object) : object;
 };
 
 export const buildWorldNodes = (

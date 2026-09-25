@@ -90,7 +90,11 @@ const buildOnce = async (pack: IScenePack, signal: AbortSignal) => {
   // scene warmed a program nothing draws and paid its whole compile again
   // when first shown. The scene worker builds exactly what will be drawn.
   if (pack.world) {
-    await warmSceneProgram(pack, false);
+    // The warm-up takes no signal, so a stop that came while the pack was
+    // loading is honoured here, before a worker is started for it.
+    if (!signal.aborted) {
+      await warmSceneProgram(pack, false);
+    }
     return;
   }
   const canvas = document.createElement('canvas');

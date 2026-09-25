@@ -49,7 +49,15 @@ export interface IWorldMirror {
   dispose(): void;
 }
 
-export const createWorldMirror = (floatTargets: boolean): IWorldMirror => {
+/**
+ * `pointScale` is the world's `uWorldPointScale`: a point's size comes from
+ * the height of the picture it is drawn into, and the reflection is drawn at
+ * half size, where points came out twice as large as in the world.
+ */
+export const createWorldMirror = (
+  floatTargets: boolean,
+  pointScale: IUniform,
+): IWorldMirror => {
   const target = new WebGLRenderTarget(1, 1, {
     type: floatTargets ? HalfFloatType : UnsignedByteType,
     minFilter: LinearMipmapLinearFilter,
@@ -61,6 +69,9 @@ export const createWorldMirror = (floatTargets: boolean): IWorldMirror => {
   const uniforms: Record<string, IUniform> = {
     uMirror: { value: target.texture },
     uMirrorMatrix: { value: matrix },
+    // 0 when the reflection was not drawn this frame: the floor then shows
+    // none, where it showed the last one, or an empty picture after a rest.
+    uMirrorLive: { value: 0 },
   };
   const mirrored = new PerspectiveCamera();
   const floorPoint = new Vector3();
@@ -85,8 +96,10 @@ export const createWorldMirror = (floatTargets: boolean): IWorldMirror => {
       view.subVectors(floorPoint, eye);
       if (view.dot(normal) > 0) {
         // Seen from underneath: there is nothing to reflect.
+        uniforms.uMirrorLive.value = 0;
         return;
       }
+      uniforms.uMirrorLive.value = 1;
       view.reflect(normal).negate().add(floorPoint);
       rotation.extractRotation(camera.matrixWorld);
       lookAt.set(0, 0, -1).applyMatrix4(rotation).add(eye);
@@ -130,12 +143,15 @@ export const createWorldMirror = (floatTargets: boolean): IWorldMirror => {
       }
       const shown = floor.visible;
       const shadows = renderer.shadowMap.autoUpdate;
+      const fullScale: unknown = pointScale.value;
       floor.visible = false;
       renderer.shadowMap.autoUpdate = false;
+      pointScale.value = h * 0.5;
       renderer.setRenderTarget(target);
       renderer.setClearColor(0x000000, 0);
       renderer.clear(true, true, false);
       renderer.render(scene, mirrored);
+      pointScale.value = fullScale;
       renderer.shadowMap.autoUpdate = shadows;
       floor.visible = shown;
     },

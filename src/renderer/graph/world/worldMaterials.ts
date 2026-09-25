@@ -15,11 +15,14 @@ import {
   FrontSide,
   LinearFilter,
   MeshBasicMaterial,
+  MeshDepthMaterial,
+  MeshDistanceMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   NormalBlending,
   OneFactor,
   PointsMaterial,
+  RGBADepthPacking,
   SRGBColorSpace,
   SrcAlphaFactor,
   ZeroFactor,
@@ -31,6 +34,7 @@ import type {
   IWorldAtlasRegion,
   IWorldMaterial,
   IWorldPointsNode,
+  TWorldExpr,
 } from 'common/sceneWorld';
 import {
   createColourFormula,
@@ -64,13 +68,31 @@ export interface IWorldMaterialHandle {
   dispose(): void;
   /** Whether it shows the floor's reflection: its mesh is the mirror. */
   reflects?: boolean;
+  /**
+   * What a shadow is drawn with when the material moves its vertices (its
+   * own GLSL, or the terrain's): three draws a caster's shadow with a depth
+   * material of its own, which knew nothing of either, so a shape bent by
+   * `worldDisplace` cast the shadow of the shape it was before and darkened
+   * itself with it, and a terrain's ridges cast none.
+   */
+  shadow?: { depth: Material; distance: Material };
 }
 
 export interface IWorldMaterialVariant {
   /** The terrain's own uniforms; the material then builds ground from them. */
   terrain?: Record<string, IUniform>;
   vertexColours?: boolean;
+  /**
+   * The world's one reflecting floor (`worldNodes.ts`). Only it reads the
+   * reflection: anything else wearing the same material drew into the
+   * reflection's picture while sampling it, a feedback loop the driver
+   * refuses every frame, and was missing from its own reflection.
+   */
+  mirror?: boolean;
 }
+
+/** Far below anything visible, and above 0: see `gated`. */
+const FEATURE_FLOOR = 1e-4;
 
 const DEFAULT_MATERIAL: IWorldMaterial = {
   kind: 'standard',
@@ -212,7 +234,7 @@ export const buildWorldMaterial = (
     material.defines = { ...material.defines, WORLD_FOG_TO_BACKDROP: '' };
   }
 
-  const scalars: { formula: IWorldFormula; key: string }[] = [];
+  const scalars: { formula: IWorldFormula; key: string; floor?: number }[] = [];
   if (material instanceof MeshStandardMaterial) {
     Object.assign(material, {
       flatShading: def.flatShading,
@@ -226,19 +248,32 @@ export const buildWorldMaterial = (
   }
   if (material instanceof MeshPhysicalMaterial) {
     material.ior = def.ior;
+    // Each of these switches a part of three's program on as it rises
+    // above 0, and three builds the other program then, synchronously, in
+    // the middle of the song. One that moves is kept a hair above 0, so the
+    // program it needs is the one built before the first frame.
+    const gated = (source: TWorldExpr, key: string) => {
+      const formula = scalar(source);
+      return {
+        formula,
+        key,
+        ...(formula.constant === undefined ? { floor: FEATURE_FLOOR } : {}),
+      };
+    };
     scalars.push(
-      { formula: scalar(def.clearcoat), key: 'clearcoat' },
+      gated(def.clearcoat, 'clearcoat'),
       { formula: scalar(def.clearcoatRoughness), key: 'clearcoatRoughness' },
-      { formula: scalar(def.transmission), key: 'transmission' },
+      gated(def.transmission, 'transmission'),
       { formula: scalar(def.thickness), key: 'thickness' },
-      { formula: scalar(def.iridescence), key: 'iridescence' },
-      { formula: scalar(def.sheen), key: 'sheen' },
+      gated(def.iridescence, 'iridescence'),
+      gated(def.sheen, 'sheen'),
     );
   }
   scalars.push({ formula: opacity, key: 'opacity' });
 
   const mirrorStrength = scalar(def.mirror);
   const reflects =
+    variant.mirror === true &&
     !unlit &&
     context.mirror !== null &&
     (mirrorStrength.constant === undefined || mirrorStrength.constant > 0);
@@ -276,6 +311,37 @@ export const buildWorldMaterial = (
     )}`;
     material.customProgramCacheKey = () => key;
   }
+  const moves = hooks.vertex !== undefined || hooks.terrain;
+  const shadow = moves
+    ? {
+        depth: new MeshDepthMaterial({ depthPacking: RGBADepthPacking }),
+        distance: new MeshDistanceMaterial(),
+      }
+    : undefined;
+  if (shadow) {
+    const shaped = {
+      ...(hooks.vertex ? { vertex: hooks.vertex } : {}),
+      terrain: hooks.terrain,
+      unlit: true,
+      mirror: false,
+    };
+    const uniforms = { ...inputs.uniforms, ...(variant.terrain ?? {}) };
+    const key = `world-shadow:${hashText(
+      `${hooks.terrain}${def.vertex ?? ''}\u0000${context.declarations}`,
+    )}`;
+    [shadow.depth, shadow.distance].forEach((caster) => {
+      /* eslint-disable no-param-reassign -- a material is set up by assigning its hooks; these two are this function's own */
+      caster.onBeforeCompile = (shader) => {
+        Object.assign(shader.uniforms, uniforms);
+        Object.assign(
+          shader,
+          spliceWorldHooks(shader, shaped, context.declarations),
+        );
+      };
+      caster.customProgramCacheKey = () => key;
+      /* eslint-enable no-param-reassign */
+    });
+  }
 
   const glow = def.kind === 'glow';
   const scratch = new Color();
@@ -293,8 +359,11 @@ export const buildWorldMaterial = (
     if (material instanceof MeshStandardMaterial) {
       emissive.apply(material.emissive);
     }
-    scalars.forEach(({ formula, key }) => {
-      Object.assign(material, { [key]: formula.value() });
+    scalars.forEach(({ formula, key, floor }) => {
+      const value = formula.value();
+      Object.assign(material, {
+        [key]: floor === undefined ? value : Math.max(floor, value),
+      });
     });
     if (reflects) {
       mirrorUniforms.uMirrorStrength.value = Math.max(
@@ -308,8 +377,11 @@ export const buildWorldMaterial = (
     material,
     update,
     reflects,
+    ...(shadow ? { shadow } : {}),
     dispose: () => {
       material.dispose();
+      shadow?.depth.dispose();
+      shadow?.distance.dispose();
       map?.dispose();
       emissiveMap?.dispose();
     },

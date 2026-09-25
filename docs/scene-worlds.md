@@ -117,7 +117,11 @@ three), `visible` (shown when above 0.5), `castShadow`, `receiveShadow` and
 - `light` — `light.kind` of `ambient`, `hemisphere`, `directional`, `point`
   or `spot`, with `colour`, `intensity` (physical units: a point light at ten
   metres wants hundreds), `distance`, `decay`, `angle`, `penumbra`, `target`,
-  `shadow`.
+  `shadow`. A directional or spot light aims at `target`, a point in the
+  space the light is placed in — the world's, for a light at the top, so
+  `[0, 0, 0]` is the middle of the world. To aim a moving light the way it
+  faces, put it in a `group` that moves and give it a target in the group's
+  own space.
 - `group` — only its transform and children.
 
 Geometry kinds: `box` (`size`), `sphere`, `icosahedron`, `octahedron`,
@@ -141,8 +145,9 @@ Also `ior`, `transparent`, `wireframe`, `flatShading`, `side`, `additive`,
 `fog`, `map` / `emissiveMap` (`[x, y, width, height]` of the pack's artwork).
 
 `mirror` (0..1, may be a formula) makes a flat floor reflect the world, and
-`mirrorBlur` (0..1) softens the reflection. The first mesh wearing a mirror
-is the floor.
+`mirrorBlur` (0..1) softens the reflection. The first `plane` or `ring` mesh
+wearing a mirror is the floor, and only it reflects: anything else wearing
+the same material is drawn without the reflection.
 
 Colours: `"#rrggbb"`, `{ "hsl": [h, s, l] }` or `{ "rgb": [r, g, b] }`, each
 channel a formula (hue 0..1 wraps).

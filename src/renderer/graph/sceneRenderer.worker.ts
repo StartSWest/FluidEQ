@@ -1,5 +1,4 @@
 import type { IScenePack } from 'common/scenePacks';
-import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
@@ -18,6 +17,8 @@ import {
 } from './sceneGpuClock';
 import { BLAMED_FRAME_MS } from './sceneDrawWatch';
 import { carriedOn } from './sceneFrameCarry';
+import { canvasPlan, scissorBox } from './sceneCanvasPlan';
+import { createSceneDrawClock } from './sceneDrawClock';
 import { createScenePost, needsPresent, type IScenePost } from './scenePost';
 import sameSceneProgramInputs from './sceneProgramInputs';
 import type {
@@ -34,13 +35,6 @@ const scope = globalThis as unknown as {
 };
 
 type TDrawRequest = Extract<TSceneWorkerRequest, { kind: 'draw' }>;
-
-/**
- * The most the scene's clock advances on one frame. A stall longer than this
- * is not motion to catch up on: the page used to clamp its own clock here for
- * the same reason, and the worker filling the stall in makes it moot.
- */
-const MAX_TIME_STEP_MS = 100;
 
 // Driver compilation, texture uploads and first-use shader specialization can
 // all stall. None may share the event loop that handles Studio's controls.
@@ -114,12 +108,8 @@ let latest: TDrawRequest | undefined;
 /** When the page's newest frame arrived, on this worker's clock. */
 let latestAt = 0;
 
-/** When the last frame was drawn, by the worker's own animation clock. */
-let drawnAt: number | undefined;
-/** The clock the scene is drawn on, in seconds, wrapped like the page's was. */
-let sceneTimeS = 0;
-/** The interval frames are actually being drawn at: what the page is told. */
-let drawIntervalMs: number | undefined;
+/** The clock the scene is drawn on (`sceneDrawClock.ts`). */
+const sceneClock = createSceneDrawClock();
 /** The clock's newest reading with a cost in it, and its newest count in hand. */
 let lastReading: ISceneCostReading = { behind: 0 };
 /** The worker's animation frames, running between a `draw` and an `idle`. */
@@ -186,8 +176,7 @@ const load = async (
     // A different scene starts from the beginning of its clock, as the page's
     // own bookkeeping does; a new version of the same one carries on.
     if (pack?.id !== next.id) {
-      sceneTimeS = 0;
-      drawnAt = undefined;
+      sceneClock.restart();
     }
     pack = next;
     guarded = withGuard;
@@ -243,8 +232,7 @@ const stopPacing = () => {
   }
   lastTickAt = undefined;
   latest = undefined;
-  drawnAt = undefined;
-  drawIntervalMs = undefined;
+  sceneClock.pause();
 };
 
 /**
@@ -321,20 +309,6 @@ const attach = (target: OffscreenCanvas) => {
   });
 };
 
-/** A clip in panel fractions as a scissor box on a `width × height` target. */
-const scissorBox = (
-  clip: readonly [number, number, number, number],
-  width: number,
-  height: number,
-): [number, number, number, number] => {
-  const [left, top, right, bottom] = clip;
-  const x = Math.floor(left * width);
-  const y = Math.floor(top * height);
-  const farX = Math.ceil(right * width);
-  const farY = Math.ceil(bottom * height);
-  return [x, height - farY, farX - x, farY - y];
-};
-
 /**
  * Draws one frame from `request` on the worker's own clock and says what it
  * cost. `now` is when it is drawn: the arrival of the page's frame, or the
@@ -368,47 +342,21 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     };
   }
 
-  // The scene's time moves on by what passed since the last frame drawn
-  // here, on the worker's own animation clock: one refresh, or the refreshes
-  // a skipped or held frame spanned, never the page's stumbles.
-  const stepMs =
-    drawnAt === undefined
-      ? Math.min(MAX_TIME_STEP_MS, request.frame.deltaMs ?? 0)
-      : Math.min(MAX_TIME_STEP_MS, Math.max(0, now - drawnAt));
-  sceneTimeS = (sceneTimeS + stepMs / 1000) % SCENE_TIME_WRAP_S;
-  if (drawnAt !== undefined) {
-    drawIntervalMs = now - drawnAt;
-  }
-  drawnAt = now;
   const frame: ISceneFrame = carriedOn(
-    {
-      ...request.frame,
-      timeSeconds: sceneTimeS,
-      deltaMs: stepMs,
-    },
+    { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
     now - latestAt,
   );
 
-  // What the canvas shows: the panel's own pixels when the picture is
-  // brought to them (FSR up, or the supersample average down), or the drawn
-  // size when a smaller picture is left to the compositor to stretch — the
-  // plain scaler, which costs the GPU nothing. A GPU that refuses the
-  // finishing chain draws straight onto a canvas of the drawn size.
-  const smaller = width < output.width || height < output.height;
-  const wanted = smaller && !finish.fsr ? { width, height } : output;
-  const plan = {
-    drawnWidth: width,
-    drawnHeight: height,
-    canvasWidth: wanted.width,
-    canvasHeight: wanted.height,
-    fsr: finish.fsr,
-    fxaa: finish.fxaa,
-  };
+  // A GPU that refuses the finishing chain draws straight onto a canvas of
+  // the drawn size.
+  const plan = canvasPlan(width, height, output, finish);
   if (needsPresent(plan) && post === undefined) {
     post = createScenePost(gl);
   }
   const finishing = needsPresent(plan) && post !== null && post !== undefined;
-  const shown = finishing ? wanted : { width, height };
+  const shown = finishing
+    ? { width: plan.canvasWidth, height: plan.canvasHeight }
+    : { width, height };
   if (canvas.width !== shown.width || canvas.height !== shown.height) {
     canvas.width = shown.width;
     canvas.height = shown.height;
@@ -465,6 +413,7 @@ const tick = (now: number) => {
   if (latest === undefined) {
     return;
   }
+  const drawnAt = sceneClock.drawnAt();
   if (
     drawnAt !== undefined &&
     !isFrameDue(now - drawnAt, latest.paceMs, tickMs)
@@ -486,7 +435,7 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
   if (pacingFrame === undefined) {
     pacingFrame = scope.requestAnimationFrame(tick);
   }
-  if (drawnAt === undefined) {
+  if (sceneClock.drawnAt() === undefined) {
     return render(request, performance.now());
   }
   return {
@@ -494,7 +443,7 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
     accent: program?.musicAccent() ?? 0,
     cost: lastReading,
     skipped: false,
-    intervalMs: drawIntervalMs,
+    intervalMs: sceneClock.intervalMs(),
   };
 };
 
@@ -509,9 +458,11 @@ scope.onmessage = ({ data }) => {
   }
   if (data.kind === 'idle') {
     stopPacing();
-    // Hidden: covered, minimised or on another desktop. What the next frame
-    // makes again is given back meanwhile, the program and its passes kept,
-    // so coming back costs the first frame an allocation and no compile.
+    // Hidden (covered, minimised, on another desktop), out of sight, or
+    // asleep through a long silence with its last picture on the canvas.
+    // What the next frame makes again is given back meanwhile, the program
+    // and its passes kept, so coming back costs the first frame an
+    // allocation and no compile.
     program?.rest?.();
     post?.shed();
     return;

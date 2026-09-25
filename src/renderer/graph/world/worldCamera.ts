@@ -50,9 +50,12 @@ const createWorldCamera = (
     if (yaw !== 0 || pitch !== 0 || zoom !== 1) {
       orbit.setFromVector3(offset.subVectors(camera.position, look));
       orbit.theta += yaw;
+      // Held short of the poles, but never pushed back past where the author
+      // put the camera: one looking almost straight down jumped the moment
+      // the viewer turned it at all, and jumped back at home.
       orbit.phi = Math.min(
-        Math.PI - MIN_POLAR,
-        Math.max(MIN_POLAR, orbit.phi - pitch),
+        Math.max(Math.PI - MIN_POLAR, orbit.phi),
+        Math.max(Math.min(MIN_POLAR, orbit.phi), orbit.phi - pitch),
       );
       orbit.radius /= Math.max(zoom, 1e-3);
       camera.position.setFromSpherical(orbit).add(look);

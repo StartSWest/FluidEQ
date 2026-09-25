@@ -36,6 +36,44 @@ export interface IWorldRibbon {
   dispose(): void;
 }
 
+/**
+ * Sample `i`'s two vertices (its left and right edge) given the same three
+ * numbers, written straight into the attribute. A ribbon is rewritten every
+ * frame, and a literal array per sample was hundreds of small arrays a
+ * frame for the collector.
+ */
+const putBoth = (
+  into: Float32Array,
+  i: number,
+  x: number,
+  y: number,
+  z: number,
+) => {
+  const at = i * 6;
+  into[at] = x;
+  into[at + 1] = y;
+  into[at + 2] = z;
+  into[at + 3] = x;
+  into[at + 4] = y;
+  into[at + 5] = z;
+};
+
+/** Sample `i`'s edges, `side` either way of its centre `c`. */
+const putAcross = (
+  into: Float32Array,
+  i: number,
+  c: Vector3,
+  side: Vector3,
+) => {
+  const at = i * 6;
+  into[at] = c.x - side.x;
+  into[at + 1] = c.y - side.y;
+  into[at + 2] = c.z - side.z;
+  into[at + 3] = c.x + side.x;
+  into[at + 4] = c.y + side.y;
+  into[at + 5] = c.z + side.z;
+};
+
 export const buildRibbon = (
   node: IWorldRibbonNode,
   inputs: IWorldInputs,
@@ -119,7 +157,7 @@ export const buildRibbon = (
       centre[i].set(point.x.value(i), point.y.value(i), point.z.value(i));
       halfWidths[i] = Math.max(0, width.value(i)) / 2;
       colour.apply(tint, i);
-      colours.set([tint.r, tint.g, tint.b, tint.r, tint.g, tint.b], i * 6);
+      putBoth(colours, i, tint.r, tint.g, tint.b);
     }
     // The camera in the ribbon's own space, so a ribbon inside a turning
     // group still faces the viewer.
@@ -140,22 +178,8 @@ export const buildRibbon = (
       }
       side.normalize().multiplyScalar(halfWidths[i]);
       facing.crossVectors(side, along).normalize();
-      const c = centre[i];
-      positions.set(
-        [
-          c.x - side.x,
-          c.y - side.y,
-          c.z - side.z,
-          c.x + side.x,
-          c.y + side.y,
-          c.z + side.z,
-        ],
-        i * 6,
-      );
-      normals.set(
-        [facing.x, facing.y, facing.z, facing.x, facing.y, facing.z],
-        i * 6,
-      );
+      putAcross(positions, i, centre[i], side);
+      putBoth(normals, i, facing.x, facing.y, facing.z);
     }
     positionAttribute.needsUpdate = true;
     normalAttribute.needsUpdate = true;

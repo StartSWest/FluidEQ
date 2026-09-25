@@ -40,26 +40,60 @@ import { WORLD_PASS_VERTEX } from './worldPasses';
  * brightness limiter, FSR, FXAA — sees a scene like any other.
  */
 
+/**
+ * Every name this pass adds to the pack's own source carries this prefix.
+ * The pass is the pack's shader with the world laid over it, in one file,
+ * and three's tone-mapping functions, its exposure uniform and this pass's
+ * own names were plain — `ACESFilmicToneMapping`, `RRTAndODTFit`, `uWorld`
+ * — so a sky that brought its own copy of the common ACES fit failed to
+ * compile as a world and quietly played as its shader.
+ */
+const PREFIX = 'fqw_';
+
+/**
+ * Three's tone mapping (`tonemapping_pars_fragment`) with every name it
+ * declares at the top level prefixed: its functions, its uniform, its
+ * constants and the `saturate` it may define.
+ */
+const prefixedToneMapping = (() => {
+  const chunk = ShaderChunk.tonemapping_pars_fragment;
+  const declared = new Set<string>();
+  const patterns = [
+    /^#define\s+([A-Za-z_]\w*)/gm,
+    /^#ifndef\s+([A-Za-z_]\w*)/gm,
+    /^uniform\s+\w+\s+([A-Za-z_]\w*)/gm,
+    /^(?:const\s+)?(?:vec3|vec4|float|mat3|bool)\s+([A-Za-z_]\w*)\s*[(=]/gm,
+  ];
+  patterns.forEach((pattern) => {
+    [...chunk.matchAll(pattern)].forEach((match) => declared.add(match[1]));
+  });
+  return [...declared].reduce(
+    (text, name) =>
+      text.replace(new RegExp(`\\b${name}\\b`, 'g'), `${PREFIX}${name}`),
+    chunk,
+  );
+})();
+
 const TONE_MAP_CALL: Record<TWorldToneMapping, string> = {
-  aces: 'ACESFilmicToneMapping(c)',
-  agx: 'AgXToneMapping(c)',
-  neutral: 'NeutralToneMapping(c)',
-  none: 'LinearToneMapping(c)',
+  aces: `${PREFIX}ACESFilmicToneMapping(c)`,
+  agx: `${PREFIX}AgXToneMapping(c)`,
+  neutral: `${PREFIX}NeutralToneMapping(c)`,
+  none: `${PREFIX}LinearToneMapping(c)`,
 };
 
 const compositeMain = (world: ISceneWorld) => `
-uniform sampler2D uWorld;
-uniform sampler2D uBloom;
-uniform float uBloomStrength;
-uniform float uVignette;
-uniform vec3 uBackdrop;
-${ShaderChunk.tonemapping_pars_fragment}
-vec3 worldToneMap(vec3 c) { return ${TONE_MAP_CALL[world.toneMapping]}; }
-vec3 worldEncode(vec3 linear) {
+uniform sampler2D fqw_world;
+uniform sampler2D fqw_bloom;
+uniform float fqw_bloomStrength;
+uniform float fqw_vignette;
+uniform vec3 fqw_backdrop;
+${prefixedToneMapping}
+vec3 fqw_toneMap(vec3 c) { return ${TONE_MAP_CALL[world.toneMapping]}; }
+vec3 fqw_encode(vec3 linear) {
   vec3 c = clamp(linear, 0.0, 1.0);
   return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
 }
-vec3 worldDecode(vec3 shown) {
+vec3 fqw_decode(vec3 shown) {
   vec3 c = clamp(shown, 0.0, 1.0);
   return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
 }
@@ -70,36 +104,42 @@ vec3 worldDecode(vec3 shown) {
 // way the GPU shades it, so a shader's texture() and fwidth() still read
 // their neighbours at the edge of a hidden region, and nothing on screen
 // differs from working it out everywhere.
-bool skyHidden() {
-  ivec2 last = textureSize(uWorld, 0) - 1;
+bool fqw_skyHidden() {
+  ivec2 last = textureSize(fqw_world, 0) - 1;
   ivec2 block = ivec2(gl_FragCoord.xy) & ivec2(~1);
   float least = min(
-    min(texelFetch(uWorld, min(block, last), 0).a,
-        texelFetch(uWorld, min(block + ivec2(1, 0), last), 0).a),
-    min(texelFetch(uWorld, min(block + ivec2(0, 1), last), 0).a,
-        texelFetch(uWorld, min(block + ivec2(1, 1), last), 0).a));
+    min(texelFetch(fqw_world, min(block, last), 0).a,
+        texelFetch(fqw_world, min(block + ivec2(1, 0), last), 0).a),
+    min(texelFetch(fqw_world, min(block + ivec2(0, 1), last), 0).a,
+        texelFetch(fqw_world, min(block + ivec2(1, 1), last), 0).a));
   return least >= 1.0;
 }
 void main() {
 ${
   world.backdrop === 'shader'
-    ? '  vec4 back = skyHidden() ? vec4(0.0) : clamp(sceneColour(vUv), 0.0, 1.0);'
-    : '  vec4 back = vec4(uBackdrop, 1.0);'
+    ? '  vec4 back = fqw_skyHidden() ? vec4(0.0) : clamp(sceneColour(vUv), 0.0, 1.0);'
+    : '  vec4 back = vec4(fqw_backdrop, 1.0);'
 }
-  vec4 drawn = texture(uWorld, vUv);
+  vec4 drawn = texture(fqw_world, vUv);
   float cover = clamp(drawn.a, 0.0, 1.0);
-  // In linear light throughout, so an edge half covered is half of each and
-  // a glow over empty sky adds to the sky rather than vanishing with the
-  // coverage it never had.
-  vec3 light = worldToneMap(max(drawn.rgb, vec3(0.0)));
-  vec3 base = light + worldDecode(back.rgb) * (1.0 - cover);
-  vec3 glow = worldToneMap(texture(uBloom, vUv).rgb * uBloomStrength);
-  vec3 shown = worldEncode(1.0 - (1.0 - clamp(base, 0.0, 1.0)) * (1.0 - glow));
+  vec3 rgb = max(drawn.rgb, vec3(0.0));
+  // In linear light throughout, so a glow over empty sky adds to the sky
+  // rather than vanishing with the coverage it never had. The multisampled
+  // picture arrives averaged, and tone mapping a bright edge's average made
+  // it as bright as the object's middle, every sample of its smoothing
+  // lost: an edge covering half a pixel or more is the object's own light,
+  // tone mapped, times its coverage. A glow has no coverage to divide by,
+  // so below half the two are blended towards the plain curve.
+  vec3 solid = fqw_toneMap(rgb / max(cover, 1e-3)) * cover;
+  vec3 light = mix(fqw_toneMap(rgb), solid, smoothstep(0.0, 0.5, cover));
+  vec3 base = light + fqw_decode(back.rgb) * (1.0 - cover);
+  vec3 glow = fqw_toneMap(texture(fqw_bloom, vUv).rgb * fqw_bloomStrength);
+  vec3 shown = fqw_encode(1.0 - (1.0 - clamp(base, 0.0, 1.0)) * (1.0 - glow));
   float alpha = cover + back.a * (1.0 - cover);
   alpha = max(alpha, max(shown.r, max(shown.g, shown.b)));
   vec2 centred = (vUv - 0.5) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
   float corner = smoothstep(0.35, 1.15, length(centred));
-  shown *= 1.0 - uVignette * corner;
+  shown *= 1.0 - fqw_vignette * corner;
   fragColor = clamp(vec4(shown, alpha), 0.0, 1.0) * uSceneFade;
 }
 `;
@@ -135,12 +175,12 @@ export const createWorldComposite = (
     fragmentShader: `${source}${compositeMain(world)}`,
     uniforms: {
       ...inputs.uniforms,
-      uWorld: { value: black },
-      uBloom: { value: black },
-      uBloomStrength: { value: 0 },
-      uVignette: { value: world.vignette },
-      uBackdrop: { value: backdrop },
-      toneMappingExposure: { value: 1 },
+      fqw_world: { value: black },
+      fqw_bloom: { value: black },
+      fqw_bloomStrength: { value: 0 },
+      fqw_vignette: { value: world.vignette },
+      fqw_backdrop: { value: backdrop },
+      fqw_toneMappingExposure: { value: 1 },
     },
     depthTest: false,
     depthWrite: false,
@@ -149,10 +189,10 @@ export const createWorldComposite = (
   return {
     material,
     set: (drawn, bloom, bloomStrength, exposure) => {
-      material.uniforms.uWorld.value = drawn;
-      material.uniforms.uBloom.value = bloom ?? black;
-      material.uniforms.uBloomStrength.value = bloom ? bloomStrength : 0;
-      material.uniforms.toneMappingExposure.value = exposure;
+      material.uniforms.fqw_world.value = drawn;
+      material.uniforms.fqw_bloom.value = bloom ?? black;
+      material.uniforms.fqw_bloomStrength.value = bloom ? bloomStrength : 0;
+      material.uniforms.fqw_toneMappingExposure.value = exposure;
     },
     dispose: () => {
       material.dispose();

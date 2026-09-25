@@ -178,6 +178,7 @@ uniform sampler2D uMirror;
 uniform mat4 uMirrorMatrix;
 uniform float uMirrorStrength;
 uniform float uMirrorBlur;
+uniform float uMirrorLive;
 `;
 
 const MIRROR_BODY = `
@@ -187,7 +188,7 @@ const MIRROR_BODY = `
     float facing = clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0);
     float fresnel = 0.18 + 0.82 * pow(1.0 - facing, 4.0);
     vec3 reflected = textureLod(uMirror, mirrorUv, uMirrorBlur * 6.0).rgb;
-    totalEmissiveRadiance += reflected * uMirrorStrength * fresnel;
+    totalEmissiveRadiance += reflected * uMirrorStrength * uMirrorLive * fresnel;
   }
 `;
 

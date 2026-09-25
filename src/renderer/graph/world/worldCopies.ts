@@ -270,7 +270,7 @@ export const buildPoints = (
   node: IWorldPointsNode,
   inputs: IWorldInputs,
   context: IWorldMaterialContext,
-): IWorldCopies & { material: IWorldMaterialHandle } => {
+): IWorldCopies => {
   const slots = slotsOf(node.layout);
   const count = slots.length;
   const positions = new Float32Array(count * 3);
@@ -331,7 +331,6 @@ export const buildPoints = (
   }
   return {
     object: points,
-    material,
     update: () => {
       material.update();
       if (placesLive || colourLive) {

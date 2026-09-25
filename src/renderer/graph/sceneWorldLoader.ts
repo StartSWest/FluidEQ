@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import { releaseWhenLinked } from './sceneCompile';
 import type { TSceneCompileResult } from './sceneGl';
 import type compileWorld from './world/worldProgram';
 
@@ -83,7 +84,11 @@ const compileWorldScene = async (
     return { ok: false, log: unavailable };
   }
   try {
-    return await compile(gl, pack, artwork, signal, hurry);
+    // The world's bundle has its own copy of any module it imports, so the
+    // worker's one list of links in flight is handed to it, not imported.
+    return await compile(gl, pack, artwork, signal, hurry, (linked, release) =>
+      releaseWhenLinked(gl, linked, release),
+    );
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw error;
