@@ -77,6 +77,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [scale, setScale] = useState(1);
   const [notice, setNotice] = useState<ISharingNotice>();
   const [naming, setNaming] = useState(false);
+  // The bench on screen: the window's colour is the Studio's only then.
+  const benchRef = useRef<HTMLDivElement>(null);
   const feed = useRef<TStageDrawn | undefined>(undefined);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
@@ -114,7 +116,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // this the capture would close and reopen, and the dialog's scene would
   // start on a gap in the music.
   useLiveAudioCapture(playing);
-  useStudioTint(pack, state.activeId, serial, playing);
+  useStudioTint(pack, state.activeId, serial, playing, benchRef);
   // A picture of the scene beside its files, so the member's AI can look at
   // what it just made. Not while the Publish dialog has the stage: it is
   // drawing the same scene for a cover at that moment.
@@ -233,7 +235,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }
 
   return (
-    <div className="studio-bench">
+    <div className="studio-bench" ref={benchRef}>
       <div className="studio-bench__top">
         <StudioProjects
           state={state}

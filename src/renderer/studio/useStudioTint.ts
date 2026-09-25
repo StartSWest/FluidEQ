@@ -6,8 +6,9 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useEffect } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import type { IScenePack } from 'common/scenePacks';
+import observeShown from '../utils/observeShown';
 import {
   setStudioTintSource,
   useStudioTintEnabled,
@@ -26,8 +27,15 @@ import {
  * Each build is its own source — `serial` moves with every save that built —
  * so the colour is measured again whenever the member's AI changes the
  * scene, and a save that breaks keeps the colour of the build still playing.
- * Cleared when the Studio closes, which hands the window back to the graph's
- * choice.
+ *
+ * ONLY WHILE THE BENCH IS ON SCREEN (Ivan, 2026-09-24: "studio override
+ * style only while on studio page"). It was cleared only when the Studio
+ * closed, and the Studio stays mounted behind every other page and behind
+ * the player: going to the player from the Studio, the player wore the
+ * Studio's scene's colours instead of the visualizer it was playing. Now the
+ * claim follows `observeShown` on the bench itself — another page, the
+ * player, a minimised window — and the window goes back to the graph's
+ * choice until the bench is looked at again.
  */
 /**
  * `serial` counts builds from zero every launch, so a remembered colour keyed
@@ -48,11 +56,18 @@ export default function useStudioTint(
   project: string | undefined,
   serial: number,
   playing: boolean,
+  bench: RefObject<HTMLElement | null>,
 ) {
   const isOn = useStudioTintEnabled();
+  const [isShown, setIsShown] = useState(false);
 
   useEffect(() => {
-    if (!isOn || !project) {
+    const element = bench.current;
+    return element ? observeShown(element, setIsShown) : undefined;
+  }, [bench]);
+
+  useEffect(() => {
+    if (!isOn || !project || !isShown) {
       setStudioTintSource(undefined);
       return;
     }
@@ -62,7 +77,7 @@ export default function useStudioTint(
         ? { playing: { build: `${LAUNCH}:${project}#${serial}`, pack } }
         : {}),
     });
-  }, [isOn, playing, pack, project, serial]);
+  }, [isOn, isShown, playing, pack, project, serial]);
 
   // Apart from the effect above, so moving from one build to the next is one
   // change of source rather than a clear and a set.
