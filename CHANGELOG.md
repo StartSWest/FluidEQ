@@ -162,11 +162,10 @@ version and in these notes.
   and Synthwave; LED bars with square segments, Neon bars, 3D bars, Spectrum
   wave and Silk waves; and Mirror bars, Pixel bars, Light beams, Spark bars,
   Glitch bars, Orb, Kaleidoscope, Helix, Mesh and Halftone. Each moves with the
-  bass, the
-  beat and the treble separately, keeps its shape upside down and mirrored,
-  and follows the look editor like every other look: colour by frequency,
-  level or loudness, pieces and gap, filled or outline, opacity, line width,
-  texture, lit peaks and glow.
+  bass, the beat and the treble separately, keeps its shape upside down and
+  mirrored, and follows the look editor like every other look: colour by
+  frequency, level or loudness, pieces and gap, filled or outline, opacity,
+  line width, texture, lit peaks and glow.
 - **The wave's height and position are kept per view.** Set in the graph's
   View menu, they are remembered separately for the pane, the expanded view
   and full screen, and for each Plus visualizer. The Compact player and the
