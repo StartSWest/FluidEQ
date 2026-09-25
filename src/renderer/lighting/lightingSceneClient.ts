@@ -25,8 +25,13 @@ const GPU_REFUSALS = new Set(['gpu-reset', 'too-heavy']);
 const refusedScenes = new Set<string>();
 
 export interface ILightingScene {
-  /** `guarded` for a scene nobody watched before it was shared: a member's. */
+  /**
+   * Draw this scene, `guarded` for one nobody watched before it was shared: a
+   * member's. The scene being drawn carries on until this one is ready.
+   */
   load(pack: IScenePack, guarded: boolean): void;
+  /** Draw nothing: whatever is loading or drawn is let go. */
+  unload(): void;
   /**
    * Draw one frame for the lamps. A frame that arrives while the last is
    * still being drawn is dropped, not queued: the next tick is newer, and a
@@ -36,12 +41,19 @@ export interface ILightingScene {
   close(): void;
 }
 
+interface ILoadSent {
+  id: number;
+  /** The program, for a refusal to be kept by. */
+  key: string;
+}
+
 /** The lighting scene worker, from the window. */
 export const createLightingScene = (
   onGrid: (grid: TGridReply) => void,
+  /** Nothing can be drawn: the scene asked for, or the one being drawn, failed. */
   onFailed: (packId: string) => void,
-  /** The scene is drawn again after `onFailed` for a lost context. */
-  onRecovered: () => void = () => undefined,
+  /** A scene asked for is the one being drawn now, after a lost context too. */
+  onReady: (packId: string) => void = () => undefined,
 ): ILightingScene => {
   const worker = new Worker(
     new URL(
@@ -52,17 +64,22 @@ export const createLightingScene = (
     ),
   );
   let drawing = false;
-  let ready = false;
   let closed = false;
-  /** A load was sent and has not been answered: it may be linking. */
+  /** The newest load posted, which is the scene the worker is to draw. */
+  let sent: ILoadSent | undefined;
+  /** The load the worker is drawing: frames go only while there is one. */
+  let drawn: ILoadSent | undefined;
+  /** The last load posted has not been answered, or a lost context is being given back. */
   let linking = false;
-  /** A lost context's scene is being loaded again. */
-  let recovering = false;
-  /** The newest load asked for; an older one still waiting is not sent. */
+  /** Bumped by every load and unload; a load still waiting for a link turn is not sent once another is asked for. */
   let wanted = 0;
-  /** The program of the scene last sent, for a refusal to be kept by. */
-  let sentKey: string | undefined;
+  let loads = 0;
   const post = (request: TLightingWorkerRequest) => worker.postMessage(request);
+  const refuse = (load: ILoadSent | undefined, reason: string) => {
+    if (load && GPU_REFUSALS.has(reason)) {
+      refusedScenes.add(load.key);
+    }
+  };
 
   worker.onmessage = ({ data }: MessageEvent<TLightingWorkerReply>) => {
     if (data.kind === 'retired') {
@@ -76,28 +93,31 @@ export const createLightingScene = (
       drawing = false;
       onGrid(data);
     } else if (data.kind === 'loaded') {
-      linking = false;
-      ready = true;
-      if (recovering) {
-        recovering = false;
-        onRecovered();
+      if (data.id !== sent?.id) {
+        return;
       }
+      linking = false;
+      drawn = sent;
+      onReady(data.packId);
     } else if (data.kind === 'lost') {
       // Not the scene's doing: the worker loads it again when the context
       // comes back, and until then the lamps take its colours.
-      ready = false;
+      drawn = undefined;
       drawing = false;
       linking = true;
-      recovering = true;
       onFailed(data.packId);
     } else {
-      linking = false;
-      ready = false;
       drawing = false;
-      recovering = false;
-      if (sentKey && GPU_REFUSALS.has(data.reason)) {
-        refusedScenes.add(sentKey);
+      if (data.id === undefined) {
+        // The program being drawn gave up; a load in flight carries on.
+        refuse(drawn, data.reason);
+      } else if (data.id === sent?.id) {
+        linking = false;
+        refuse(sent, data.reason);
+      } else {
+        return;
       }
+      drawn = undefined;
       onFailed(data.packId);
     }
   };
@@ -109,19 +129,28 @@ export const createLightingScene = (
       return;
     }
     console.error('Dynamic lighting scene worker failed:', event.message);
-    ready = false;
+    drawn = undefined;
     drawing = false;
     onFailed('');
   };
 
+  const unload = () => {
+    wanted += 1;
+    sent = undefined;
+    drawn = undefined;
+    // `linking` stays as it was: a link given up on still runs to its end
+    // in the worker (`sceneCompile.ts`), and only retiring waits for it.
+    post({ kind: 'unload' });
+  };
+
   return {
     load: (pack, guarded) => {
-      ready = false;
-      drawing = false;
       wanted += 1;
       const mine = wanted;
       const key = sceneProgramKey(pack);
       if (refusedScenes.has(key)) {
+        // Nor is the scene before it drawn on: it is not the one asked for.
+        unload();
         onFailed(pack.id);
         return;
       }
@@ -131,16 +160,18 @@ export const createLightingScene = (
       afterLinkTurns(key)
         .then(() => {
           if (!closed && mine === wanted) {
+            loads += 1;
+            sent = { id: loads, key };
             linking = true;
-            sentKey = key;
-            post({ kind: 'load', pack, guarded });
+            post({ kind: 'load', pack, guarded, id: loads });
           }
           return undefined;
         })
         .catch(() => undefined);
     },
+    unload,
     draw: (frame) => {
-      if (!ready || drawing) {
+      if (!drawn || drawing) {
         return;
       }
       drawing = true;

@@ -1,9 +1,22 @@
 import { readVersionNote } from './sceneVersionNote';
 
-/** Editing context only. Never included in executable or signed scene packs. */
+/**
+ * Editing context only. Never included in executable or signed scene packs.
+ *
+ * Two different owners in one file. `description` is the member's words from
+ * "Describe your scene", kept exactly as written. `prompt` is Studio's: the
+ * current brief with that description after it, rewritten every time the
+ * scene opens (`useProjectIdea`), so an assistant working in the folder reads
+ * the brief as it is today rather than as it was when the scene was started.
+ * The brief is revised often, which is why it is never treated as kept data.
+ */
 export interface IStudioNotes {
   description: string;
-  prompt: string;
+  /**
+   * Missing or unusable in a file is no reason to lose the description: it is
+   * regenerated on the next open anyway.
+   */
+  prompt?: string;
   /**
    * One line of what changed since the last publication, written by the
    * member's AI as it finishes (see `aiPrompt.ts`) and offered as the note
@@ -27,19 +40,19 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   const { description, prompt, whatsNew } = raw as Record<string, unknown>;
   if (
     typeof description !== 'string' ||
-    description.length > MAX_STUDIO_DESCRIPTION ||
-    typeof prompt !== 'string' ||
-    prompt.length > MAX_STUDIO_PROMPT
+    description.length > MAX_STUDIO_DESCRIPTION
   ) {
     return undefined;
   }
+  const usablePrompt =
+    typeof prompt === 'string' && prompt.length <= MAX_STUDIO_PROMPT;
   // Dropped rather than refused: a line too long or full of invisible
   // characters is a suggestion this version cannot offer, never a reason to
   // lose the description and the prompt beside it.
   const line = whatsNew === undefined ? null : readVersionNote(whatsNew);
   return {
     description,
-    prompt,
+    ...(usablePrompt ? { prompt } : {}),
     ...(line ? { whatsNew: line } : {}),
   };
 };

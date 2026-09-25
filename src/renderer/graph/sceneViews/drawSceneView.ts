@@ -77,10 +77,10 @@ import {
   type IPixelBarsState,
 } from './pixelBars';
 import {
-  createLightBeamsState,
-  drawLightBeams,
-  type ILightBeamsState,
-} from './lightBeams';
+  createBouncingDotsState,
+  drawBouncingDots,
+  type IBouncingDotsState,
+} from './bouncingDots';
 import {
   createSparkBarsState,
   drawSparkBars,
@@ -91,14 +91,17 @@ import {
   drawGlitchBars,
   type IGlitchBarsState,
 } from './glitchBars';
-import { createOrbState, drawOrb, type IOrbState } from './orb';
 import {
-  createKaleidoscopeState,
-  drawKaleidoscope,
-  type IKaleidoscopeState,
-} from './kaleidoscope';
-import { createHelixState, drawHelix, type IHelixState } from './helix';
-import { createMeshState, drawMesh, type IMeshState } from './mesh';
+  createFallingBlocksState,
+  drawFallingBlocks,
+  type IFallingBlocksState,
+} from './fallingBlocks';
+import { createFibersState, drawFibers, type IFibersState } from './fibers';
+import {
+  createAfterglowState,
+  drawAfterglow,
+  type IAfterglowState,
+} from './afterglow';
 import {
   createHalftoneState,
   drawHalftone,
@@ -137,13 +140,12 @@ export interface ISceneViewState {
   silkWaves: ISilkWavesState;
   mirrorBars: IMirrorBarsState;
   pixelBars: IPixelBarsState;
-  lightBeams: ILightBeamsState;
+  bouncingDots: IBouncingDotsState;
   sparkBars: ISparkBarsState;
   glitchBars: IGlitchBarsState;
-  orb: IOrbState;
-  kaleidoscope: IKaleidoscopeState;
-  helix: IHelixState;
-  mesh: IMeshState;
+  fallingBlocks: IFallingBlocksState;
+  fibers: IFibersState;
+  afterglow: IAfterglowState;
   halftone: IHalftoneState;
 }
 
@@ -167,13 +169,12 @@ export const createSceneViewState = (): ISceneViewState => ({
   silkWaves: createSilkWavesState(),
   mirrorBars: createMirrorBarsState(),
   pixelBars: createPixelBarsState(),
-  lightBeams: createLightBeamsState(),
+  bouncingDots: createBouncingDotsState(),
   sparkBars: createSparkBarsState(),
   glitchBars: createGlitchBarsState(),
-  orb: createOrbState(),
-  kaleidoscope: createKaleidoscopeState(),
-  helix: createHelixState(),
-  mesh: createMeshState(),
+  fallingBlocks: createFallingBlocksState(),
+  fibers: createFibersState(),
+  afterglow: createAfterglowState(),
   halftone: createHalftoneState(),
 });
 
@@ -268,13 +269,12 @@ const DRAW: Record<
   silkwaves: (frame, state) => drawSilkWaves(frame, state.silkWaves),
   mirrorbars: (frame, state) => drawMirrorBars(frame, state.mirrorBars),
   pixelbars: (frame, state) => drawPixelBars(frame, state.pixelBars),
-  beams: (frame, state) => drawLightBeams(frame, state.lightBeams),
+  bouncedots: (frame, state) => drawBouncingDots(frame, state.bouncingDots),
   sparkbars: (frame, state) => drawSparkBars(frame, state.sparkBars),
   glitchbars: (frame, state) => drawGlitchBars(frame, state.glitchBars),
-  orb: (frame, state) => drawOrb(frame, state.orb),
-  kaleido: (frame, state) => drawKaleidoscope(frame, state.kaleidoscope),
-  helix: (frame, state) => drawHelix(frame, state.helix),
-  mesh: (frame, state) => drawMesh(frame, state.mesh),
+  fallblocks: (frame, state) => drawFallingBlocks(frame, state.fallingBlocks),
+  fibers: (frame, state) => drawFibers(frame, state.fibers),
+  afterglow: (frame, state) => drawAfterglow(frame, state.afterglow),
   halftone: (frame, state) => drawHalftone(frame, state.halftone),
 };
 

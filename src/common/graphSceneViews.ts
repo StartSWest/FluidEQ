@@ -11,7 +11,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * bars, 3D bars, the spectrum wave and silk waves ("nice standard spectrums
  * and waves with square leds and bars"), and ten more of those (Ivan,
  * 2026-09-25: "10 mas de esos con creatividad pero sin irse a crear scenas
- * solo vizualisers") — visualizers, no scenery.
+ * solo vizualisers") — visualizers, no scenery; four of those he did not
+ * like were replaced the same morning, and the Mesh went into the Waterfall,
+ * which draws the same history against the scale.
  *
  * Filed under Scenes with the ones before them, and drawn apart from them,
  * like the measuring views: each is several paths, layers and lights rather
@@ -33,14 +35,13 @@ export const SCENE_VIEW_STYLES = [
   'silkwaves',
   'mirrorbars',
   'pixelbars',
-  'beams',
   'sparkbars',
   'glitchbars',
-  'orb',
-  'kaleido',
-  'helix',
-  'mesh',
   'halftone',
+  'bouncedots',
+  'fallblocks',
+  'fibers',
+  'afterglow',
 ] as const;
 
 export type TSceneViewStyle = (typeof SCENE_VIEW_STYLES)[number];
@@ -72,14 +73,13 @@ export const SCENE_OWN_COLOURS: Partial<
   silkwaves: ['#00d2ff', '#7b61ff', '#ff5ec8', '#ffb86b'],
   mirrorbars: ['#3ee7ff', '#6a7bff', '#c86bff', '#ff6bd1'],
   pixelbars: ['#29adff', '#00e436', '#ffec27', '#ffa300', '#ff004d'],
-  beams: ['#7df9ff', '#5b8cff', '#b36bff', '#ff7ad9'],
   sparkbars: ['#ff3d00', '#ff9100', '#ffd600', '#fff59d'],
   glitchbars: ['#00f5ff', '#7a5cff', '#ff2ec4'],
-  orb: ['#00e5ff', '#7c4dff', '#ff4081'],
-  kaleido: ['#ffd740', '#ff4081', '#7c4dff', '#00e5ff'],
-  helix: ['#00e5ff', '#2979ff', '#d500f9', '#ff1744'],
-  mesh: ['#00e5ff', '#651fff', '#ff4081'],
   halftone: ['#1de9b6', '#00b0ff', '#651fff', '#ff4081'],
+  bouncedots: ['#00e5ff', '#76ff03', '#ffea00', '#ff4081'],
+  fallblocks: ['#00e5ff', '#00e676', '#ffea00', '#ff9100', '#ff1744'],
+  fibers: ['#00e5ff', '#7c4dff', '#ff4081'],
+  afterglow: ['#00e5ff', '#7c4dff', '#ff2e97', '#ffb300'],
 };
 
 /** The scene's own stops, if it is a scene that has them. */

@@ -156,16 +156,18 @@ version and in these notes.
 - **Twelve ways to read the sound.** The graph's plain drawings gave way to
   the views studio tools use: Analyzer, Before & after, Spectrogram,
   Third-octave RTA, Peak & average, Waterfall, Stereo & loudness,
-  Oscilloscope, Mid & side, Note spectrum, Energy bands and Phase history. A
-  look you saved on one of the old drawings still draws.
-- **Twenty new visualizers under Scenes.** LED wall, Glass towers, Tide, Halo
-  and Synthwave; LED bars with square segments, Neon bars, 3D bars, Spectrum
-  wave and Silk waves; and Mirror bars, Pixel bars, Light beams, Spark bars,
-  Glitch bars, Orb, Kaleidoscope, Helix, Mesh and Halftone. Each moves with the
-  bass, the beat and the treble separately, keeps its shape upside down and
-  mirrored, and follows the look editor like every other look: colour by
-  frequency, level or loudness, pieces and gap, filled or outline, opacity,
-  line width, texture, lit peaks and glow.
+  Oscilloscope, Mid & side, Note spectrum, Energy bands and Phase history. The
+  Waterfall is a wireframe surface of the last second and a half, gliding back
+  from a front edge that follows the music. A look you saved on one of the old
+  drawings still draws.
+- **Nineteen new visualizers under Scenes.** LED wall, Glass towers, Tide,
+  Halo and Synthwave; LED bars with square segments, Neon bars, 3D bars,
+  Spectrum wave and Silk waves; and Mirror bars, Pixel bars, Spark bars, Glitch
+  bars, Halftone, Bouncing dots, Falling blocks, Fiber optics and Afterglow.
+  Each moves with the bass, the beat and the treble separately, keeps its
+  shape upside down and mirrored, and follows the look editor like every
+  other look: colour by frequency, level or loudness, pieces and gap, filled
+  or outline, opacity, line width, texture, lit peaks and glow.
 - **The wave's height and position are kept per view.** Set in the graph's
   View menu, they are remembered separately for the pane, the expanded view
   and full screen, and for each Plus visualizer. The Compact player and the

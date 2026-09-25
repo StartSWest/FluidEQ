@@ -3,6 +3,7 @@ import {
   MAX_MEMBER_LOOPS,
   MAX_MEMBER_PIXEL_WORK,
 } from 'common/memberSceneRules';
+import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
   SCENE_CONTRACT_VERSION,
@@ -52,6 +53,35 @@ import { MOTION_SECTIONS } from './aiPromptMotion';
  * look_at_scene and hear_the_music tools (`main/studioAgent/studioTools.ts`)
  * and the card's switch by their exact names, which change with them.
  */
+/**
+ * The instruments: they read the music rather than picture it, so they are
+ * no fallback for a scene. Everything else still drawn as itself is.
+ */
+const MEASURING_VIEWS: ReadonlySet<GraphStyle> = new Set<GraphStyle>([
+  'analyzer',
+  'compare',
+  'spectrogram',
+  'rta',
+  'average',
+  'waterfall',
+  'loudness',
+  'scope',
+  'midside',
+  'notes',
+  'energy',
+  'phase',
+]);
+
+/**
+ * The fallback forms the brief offers a scene: every form still drawn as
+ * itself, less the measuring views. Derived, not copied: the forms change
+ * often (the plain ones were retired on 2026-09-23, and four visualizers were
+ * swapped two days later), and a copied list told authors to pick forms that
+ * land on the Analyzer or the RTA, or no longer exist at all.
+ */
+export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] =
+  SELECTABLE_GRAPH_STYLES.filter((style) => !MEASURING_VIEWS.has(style));
+
 const promptFor = (
   folder?: string,
   connection?: IPromptConnection,
@@ -112,7 +142,7 @@ pack.json:
   "version": 1,
   "contract": ${SCENE_CONTRACT_VERSION},
   "names": { "en": "Short Name" },
-  "fallbackStyle": "bars",
+  "fallbackStyle": "skyline",
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
   "sourceFile": "scene.frag",
   "params": []
@@ -138,9 +168,8 @@ pack.json:
 - names: English required; add es, pt, fr, de, it, ru, zh, ja, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
-- fallbackStyle: drawn when a computer cannot run the scene. Use one of: bars,
-  line, area, dots, spikes, ridge, skyline, flames, bubbles, rain, starfield,
-  canyon.
+- fallbackStyle: drawn when a computer cannot run the scene. Use one of:
+  ${SCENE_FALLBACK_STYLES.join(', ')}.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
   itself with the names you give them. Add one for each thing my idea is
   worth adjusting - its size, speed, density, glow, colour, how strongly a

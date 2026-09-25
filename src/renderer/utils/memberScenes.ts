@@ -162,6 +162,17 @@ export const getMemberSceneSummary = (
 export const getLockedMemberScenes = (): readonly ILockedMemberScene[] =>
   locked;
 
+/**
+ * A member scene this account may play, whether or not the graph can draw it
+ * right now: the desk lights' question, as `getEntitledScene` is for packs.
+ */
+export const getEntitledMemberScene = (
+  lookId: string,
+): IMemberSceneSummary | undefined =>
+  listing.entitled
+    ? listing.scenes.find((scene) => scene.lookId === lookId)
+    : undefined;
+
 export const useUsableMemberScenes = (): readonly IUsableMemberScene[] =>
   useSyncExternalStore(
     subscribeMemberScenes,

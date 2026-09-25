@@ -15,18 +15,30 @@ import { act, render } from '@testing-library/react';
 import type { ILightingFrame } from 'common/lighting/lightingModel';
 import type { IScenePack } from 'common/scenePacks';
 import { subscribeLightingPreview } from 'renderer/lighting/lightingPreview';
-import type { ILampScenePlay } from 'renderer/lighting/lampScenePlay';
+import type {
+  ILampPlayerOptions,
+  ILampSceneShown,
+} from 'renderer/lighting/lampScenePlay';
 import {
   useLightingDemo,
   type TLightingDemo,
 } from 'renderer/plus/lighting/lightingDemo';
 
-const plays: { play: ILampScenePlay; closed: boolean }[] = [];
+interface IPlayerSeen {
+  options: ILampPlayerOptions;
+  shown: ILampSceneShown[];
+  heard: unknown[];
+  closed: boolean;
+}
+
+const players: IPlayerSeen[] = [];
 jest.mock('renderer/lighting/lampScenePlay', () => ({
-  playLampScene: (play: ILampScenePlay) => {
-    const entry = { play, closed: false };
-    plays.push(entry);
+  createLampPlayer: (options: ILampPlayerOptions) => {
+    const entry: IPlayerSeen = { options, shown: [], heard: [], closed: false };
+    players.push(entry);
     return {
+      show: (scene: ILampSceneShown) => entry.shown.push(scene),
+      hear: (capture: unknown) => entry.heard.push(capture),
       close: () => {
         entry.closed = true;
       },
@@ -90,7 +102,7 @@ const flush = () =>
   });
 
 beforeEach(() => {
-  plays.length = 0;
+  players.length = 0;
   published.length = 0;
   claim.mockClear();
   lightingDemoScene.mockClear();
@@ -117,24 +129,31 @@ it('plays the scene main hands over, on the desk and on the devices, for as long
   expect(lightingDemoScene).toHaveBeenCalledTimes(1);
   expect(latest).toEqual({ state: 'playing', pack: starter });
   expect(claim).toHaveBeenCalledWith('display');
-  expect(plays).toHaveLength(1);
-  const [{ play }] = plays;
-  expect(play.pack).toBe(starter);
-  expect(play.guarded).toBe(false);
+  expect(players).toHaveLength(1);
+  const [player] = players;
+  expect(player.shown).toEqual([
+    {
+      sceneId: 'lantern-night',
+      pack: starter,
+      guarded: false,
+      swatch: starter.swatch,
+    },
+  ]);
+  expect(player.heard).toEqual([capture]);
 
   // Every frame reaches the desk and the devices, well past any taste.
-  act(() => play.onFrame(frameAt(3)));
-  act(() => play.onFrame(frameAt(600)));
+  act(() => player.options.onFrame(frameAt(3)));
+  act(() => player.options.onFrame(frameAt(600)));
   expect(sendLightingDemoFrame).toHaveBeenCalledTimes(2);
   expect(sendLightingDemoFrame).toHaveBeenLastCalledWith(frameAt(600));
   expect(last()).toEqual(frameAt(600));
   expect(latest).toEqual({ state: 'playing', pack: starter });
-  expect(plays[0].closed).toBe(false);
+  expect(player.closed).toBe(false);
 
   unmount();
   // The page gone, the scene stops and the desk and the devices are given
   // back — the devices never keep the last frame.
-  expect(plays[0].closed).toBe(true);
+  expect(player.closed).toBe(true);
   expect(releaseLighting).toHaveBeenCalled();
   expect(last()).toBeUndefined();
 });
@@ -143,21 +162,27 @@ it('holds the desk with the colours until the scene plays, and while it cannot',
   capture = undefined;
   const { rerender } = render(<Demo />);
   await flush();
-  // The scene is there, with nothing to hear: its colours, not a dark desk.
+  // The scene is there, with nothing to hear: its colours, not a dark desk,
+  // and the devices are not left holding anything.
   expect(latest).toEqual({ state: 'still', pack: starter });
   expect(last()?.sceneId).toBe('lantern-night');
   expect(last()?.rgb.some((value) => value > 0)).toBe(true);
-  expect(plays).toHaveLength(0);
+  expect(players).toHaveLength(1);
+  expect(players[0].heard).toEqual([undefined]);
+  expect(releaseLighting).toHaveBeenCalled();
   expect(sendLightingDemoFrame).not.toHaveBeenCalled();
 
+  // The capture comes: the same player hears it, no second one is made.
   capture = { context: {}, source: {} };
   rerender(<Demo />);
-  expect(plays).toHaveLength(1);
+  expect(players).toHaveLength(1);
+  expect(players[0].heard).toEqual([undefined, capture]);
   expect(latest).toEqual({ state: 'playing', pack: starter });
 
   // An output that cannot be listened to: the colours again, devices back.
-  act(() => plays[0].play.onCannotHear());
-  expect(plays[0].closed).toBe(true);
+  releaseLighting.mockClear();
+  act(() => players[0].options.onCannotHear());
+  expect(players[0].closed).toBe(true);
   expect(releaseLighting).toHaveBeenCalled();
   expect(latest).toEqual({ state: 'still', pack: starter });
   expect(last()?.rgb.some((value) => value > 0)).toBe(true);
@@ -168,7 +193,7 @@ it('is dark when main hands no scene over, or the window predates the demo', asy
   const { unmount } = render(<Demo />);
   await flush();
   expect(latest).toEqual({ state: 'dark' });
-  expect(plays).toHaveLength(0);
+  expect(players).toHaveLength(0);
   expect(claim).not.toHaveBeenCalled();
   unmount();
 
