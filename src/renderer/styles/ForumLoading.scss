@@ -104,7 +104,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &--chip {
     width: 72px;
     height: 16px;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
   }
 
   &--byline {
@@ -115,7 +115,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &--stat {
     width: 46px;
     height: 21px;
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
   }
 
   &--post-avatar {

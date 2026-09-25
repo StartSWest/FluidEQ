@@ -118,7 +118,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 4px 10px 4px 7px;
     color: $text-faint;
     border: 1px solid $border-subtle;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     font-size: $text-small;
   }
 
@@ -349,7 +349,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 16px;
   padding: 0 4px;
   color: $white;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $red 78%, $surface-base);
   box-shadow: 0 0 0 2px $block-lift;
   font-size: $text-micro;
@@ -589,7 +589,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 6px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.06em);

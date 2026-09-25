@@ -397,7 +397,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: 0 0 auto;
   padding: 1px 7px;
   border: 1px solid color-mix(in srgb, $secondary-default 50%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 12%, transparent);
   color: $secondary-light;
   font-size: $text-eyebrow;

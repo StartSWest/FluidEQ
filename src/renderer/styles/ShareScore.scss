@@ -43,8 +43,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Sized as a dialog once it is one.
 .share-card-backdrop > .share-score {
-  @include animate(pop-in, $motion-base, $ease-spring);
   @include menu-surface;
+  // A dialog's arrival on the menu's material, out of its own middle as every
+  // dialog does. Included ahead of the surface, as it was, the menu's own
+  // arrival came after it and won.
+  --surface-motion: #{$dialog-arrival};
+  --menu-origin: center;
   width: min(560px, 100%);
   max-height: calc(100vh - #{$spacing-m} * 2);
   padding: 20px;
@@ -207,7 +211,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 5px 14px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: transparent;
   font-size: $text-body;
   font-weight: $weight-bold;

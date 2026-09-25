@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -33,6 +34,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .troubleshoot {
   @include menu-surface;
+  // A dialog, on the menu's material: it arrives as dialogs do, out of its own
+  // middle, not folding down from its top edge like a menu.
+  --surface-motion: #{$dialog-arrival};
+  --menu-origin: center;
   width: min(560px, 100%);
   max-height: 100%;
   padding: 18px 20px 20px;
@@ -150,7 +155,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: 9px;
   padding: 5px 12px;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-light 12%, transparent);
   color: $secondary-light;
   font-size: $text-body;

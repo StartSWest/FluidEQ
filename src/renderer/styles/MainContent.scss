@@ -26,37 +26,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Panel heading and toolbar **********************************************
 
-// Three stacked full-width rows: the heading, the toolbar, the applied-layer
-// chips.
+// Two rows, each read across (layout A, Ivan 2026-09-25: "put it on the right
+// top like in the mockup"):
 //
-// The toolbar used to share a row with the heading, held in a centre track.
-// There are eleven controls in it and no width at which they all fit beside a
-// title, so the track overflowed and the buttons were drawn straight over
-// "Parametric EQ". A row of its own cannot overlap anything, and the toolbar
-// still centres itself on the panel — which is what the shared track was for.
+//   the title                        its tools, against the right edge
+//   the path's delay and game mode   what else is applied, against the right
+//
+// It was three rows stacked and centred — the title with the delay strip in
+// the middle of its line, the eleven tools centred under it, the applied
+// layers centred under those — and on the open floor, above the graph, that
+// read as a column of controls floating in the middle of the page. The tools
+// fit beside the title wherever the page is wider than the container tier
+// below (the title about 230px, the Spanish tools 737, at 24 between); under
+// it the rows stack again as they were.
+//
+// No surface and no inner padding: the page's own 12px inset is the one every
+// tab's heading keeps.
 .main-content-title {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  // No surface of its own. A card here was tried and it made the header look
-  // like a separate panel sitting on the EQ rather than the top of it; the
-  // rows hold together well enough on spacing alone.
-  //
-  // No inner padding either — the workspace panel around every tab pads to
-  // 12px on all sides, and adding another 8px here put the EQ heading further
-  // from the card edge than the headings on Presets, Voicing and Convolution.
-  // One inset for every page.
-  // 8 rather than 11 between the heading and the toolbar under it, and no top
-  // margin at all: the section rail above already ends in a rule and a gap,
-  // and every pixel here is one the parametric editor does not get on a
-  // 1080-tall screen.
-  gap: 8px;
+  grid-template-areas:
+    'title tools'
+    'meta layers';
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 24px;
   margin: 0;
   padding: 0;
 
   > div:first-child {
     position: relative;
     min-width: 0;
+    grid-area: title;
+  }
+
+  > .eq-toolbar {
+    grid-area: tools;
+    justify-content: flex-end;
+  }
+
+  > .engine-strip {
+    grid-area: meta;
+    justify-self: start;
+  }
+
+  // Collapsed into its one button as well: that rule centres it for the
+  // stacked rows (`ActiveLayers.scss`), which this row is not.
+  > .active-layers,
+  > .active-layers.is-collapsed {
+    grid-area: layers;
+    justify-content: flex-end;
   }
 
   // Matches the intro `h2` sizing on every other tab (Presets, Voicing,
@@ -67,31 +86,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The heading and the delay readout beside it (`ListenedLatency`). The
-// heading's own margins move onto the line, so the readout centres on the
-// words rather than on a box 3px taller below them than above; and it wraps
-// under the heading rather than past the card on a narrow panel.
+// The heading: the page's name and the output's rate.
 .main-content-title__heading {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
   margin: 1px 0 4px;
 
-  // The strip sits in the middle of the page, not wherever the title's length
-  // leaves it: the title and an empty counterweight after the strip take an
-  // equal share of what is left, so the two sides are the same width and the
-  // strip lands on the centre line — the same one the toolbar under it is
-  // centred on.
-  //
-  // Both shares start from nothing and grow, and the title's own minimum is
-  // what stops it: on a narrow panel the counterweight gives up its share
-  // first, the strip slides right of centre, the title's words wrap, and only
-  // past that does the strip take the next line. A three-column grid centred
-  // just as well on a wide window and clipped the strip's right end in
-  // Russian at the narrowest one, because a grid track does not wrap.
   > h2 {
-    flex: 1 1 0;
     margin: 0;
 
     // The output's rate, on the title's baseline as on the DSP page, and
@@ -100,10 +101,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       margin-inline-start: 8px;
     }
   }
+}
 
-  &::after {
-    flex: 1 1 0;
-    content: '';
+// Stacked, as the rows were before they met across (`eq-panel` tier and the
+// narrow window below): the title, then the delay strip, the tools and the
+// applied layers each centred on a row of their own.
+@mixin title-stacked {
+  .main-content-title {
+    grid-template-areas:
+      'title'
+      'meta'
+      'tools'
+      'layers';
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    row-gap: 8px;
+  }
+
+  .main-content-title > .eq-toolbar {
+    justify-content: center;
+  }
+
+  .main-content-title > .engine-strip {
+    justify-self: center;
+  }
+
+  .main-content-title > .active-layers,
+  .main-content-title > .active-layers.is-collapsed {
+    justify-content: center;
   }
 }
 
@@ -393,6 +418,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   row-gap: 8px;
   column-gap: 10px;
 
+  // The EQ mode's trigger is a field (`choice-surface`), and fields are
+  // `$control-height` — 38px between buttons 32px tall, the one thing in the
+  // row standing proud of it (Ivan, 2026-09-25: "this button is taller now").
+  // Here it is a button among buttons, and takes their height.
+  .eq-mode-trigger {
+    min-height: $control-height-sm;
+    padding-block: 0;
+  }
+
   // Icon and label are one control. Every button in this row is a verb, and a
   // glyph makes it findable without reading four words in a row.
   .button {
@@ -455,7 +489,7 @@ $eq-caret-width: 24px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
+    border: 1px solid $border-field;
     // The divider, and the only line between them.
     border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
     border-radius: 0 $radius-xs $radius-xs 0;
@@ -519,8 +553,8 @@ $eq-caret-width: 24px;
 .eq-mode.is-subtle {
   .eq-mode__caret {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-light 24%, transparent);
-    border-left-color: color-mix(in srgb, $secondary-light 24%, transparent);
+    border-color: $border-field;
+    border-left-color: $border-field;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
     box-shadow: none;
   }
@@ -574,12 +608,12 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   // A rounded rectangle rather than a pill: a pill radius on a box that is
   // sometimes two lines tall turns into a lozenge, which is what it did.
   border-radius: $radius-s;
-  // The same material as an open menu, opaque. It was cyan at a quarter
-  // alpha with a glow around it, which over the graph came out as a lit
-  // slab with a tail in a different tone: the tail was a second wash at
-  // half the alpha, so where the two overlapped the seam showed. One opaque
-  // colour on both and there is no seam to show.
-  background: $surface-menu-face;
+  // The same material as an open menu, opaque (`$surface-floating`). It was
+  // cyan at a quarter alpha with a glow around it, which over the graph came
+  // out as a lit slab with a tail in a different tone: the tail was a second
+  // wash at half the alpha, so where the two overlapped the seam showed. One
+  // opaque colour on both and there is no seam to show.
+  background: $surface-floating;
   // Barely there. Nothing else in this row casts one — the buttons under it
   // are flat — so a card lifted 20px off the page read as belonging to some
   // other window. Enough to separate it from the graph behind, no more.
@@ -612,7 +646,7 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     border-bottom: 1px solid $border-menu;
     // Softens the point, so it reads as drawn rather than as a clipped square.
     border-bottom-right-radius: 2px;
-    background: $surface-menu-face;
+    background: $surface-floating;
     content: '';
     transform: rotate(45deg);
   }
@@ -830,7 +864,7 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // corners back from the rule above that squares the split button's main half.
 .quick-layouts .button.quick-layouts__trigger {
   gap: 6px;
-  border-right: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
+  border-right: 1px solid $border-field;
   border-top-right-radius: $radius-xs;
   border-bottom-right-radius: $radius-xs;
 
@@ -903,55 +937,25 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;
 
-  // The face the sliders are set into, so the band row is one instrument
-  // rather than a line of separate controls standing on the card.
+  // No face under the sliders: on the open floor (layout A, Ivan 2026-09-25)
+  // the band row stands on the page like everything else, and what it had as
+  // a block — one surface under the scale and the bands — it has as a line up
+  // (the graph's own axis, which each band now stands under) and a hairline
+  // down, between the bands and the row under them (the Tone, or the selected
+  // band's editor).
   //
-  // A pseudo-element spanning both columns rather than a wrapper element around
-  // the scale and the bands. The marquee measures itself against `.bands`'
-  // own box and picks bands out of it by query, so a new box in between is a
-  // second thing that has to stay in step with it for no visual gain.
-  //
-  // Spanning the scale column is the whole point. The dB labels and the
-  // sliders they label were two things that happened to be level with each
-  // other; on one surface they are one scale with its readout at the left.
-  //
-  // Outdented rather than padded, because the row's height is its content's:
-  // padding would push the sliders in and shorten nothing, whereas a few
-  // pixels of overhang gives the topmost caption and the lowest thumb room
-  // inside the face without moving either. The vertical outdent is symmetric,
-  // which is what keeps the 0 dB line below at the same height it has always
-  // been drawn at.
-  //
-  // The sideways overhang stays inside this grid's own padding — 4px against
-  // the 10px here and the 6px the narrow layout drops to. The panel above is a
-  // scroll container, and a face hanging past the padding box would be
-  // horizontal overflow: a scrollbar across the bottom of the workspace, for
-  // the sake of four pixels nobody would have noticed either way.
+  // The dB guides were never the face's: each band draws its own, measured
+  // from its own track (`.bandWrapper .range` in FrequencyBand.scss).
   &::before {
-    // A block cut into the page, like the selected-band editor under it and
-    // the cards in the sidebar: same colour, same edge. It was a frame with
-    // nothing behind it, which was right while the page was the darker of
-    // the two card colours — with the page lit, an unfilled frame left the
-    // instrument standing on the brightest surface in the window and the
-    // editor below it was the only recessed thing on the page.
-    //
-    // The dB guides are not drawn here — a line at this box's midpoint sat
-    // seven pixels off the thumbs' true 0 dB, because the box includes the
-    // caption rows above and below the tracks. Each band draws its own,
-    // measured from its own track; see `.bandWrapper .range` in
-    // FrequencyBand.scss.
-    grid-row: 1;
+    grid-row: 2;
     grid-column: 1 / -1;
-    margin: -6px -4px;
-    border: 1px solid $border-subtle;
-    border-radius: $radius-l;
-    background: $block-lift;
+    align-self: start;
+    height: 1px;
+    background: $border-subtle;
     content: '';
   }
 
-  // Above the face, both of them. Without this the face paints over the row it
-  // is supposed to sit behind — it is a grid item like the others, not a
-  // backdrop.
+  // Over the hairline's row, as they were over the face.
   > .eq-scale {
     position: relative;
     z-index: 1;
@@ -1078,6 +1082,46 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 .bands--wide {
   width: 100%;
   justify-self: stretch;
+}
+
+// Each band under its point on the graph above (layout A; `placed` by
+// `placeBandsUnderPlot` in plotGeometry.ts). A flex row of bands one slot
+// wide, each held off the one before it by its own lead — so the row keeps
+// the height its bands give it, and the marquee and the glow still find the
+// bands in their frequency order.
+.bands.is-placed {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  align-items: center;
+
+  > .bandWrapper {
+    width: var(--band-slot);
+    min-width: 0;
+    flex: 0 0 var(--band-slot);
+    margin-left: var(--band-lead, 0px);
+  }
+}
+
+// The row gives the bands its whole width, and lets the outermost hang into
+// the page's padding where the plot's ends are: the dB scale goes (the graph
+// above carries the scale now), the grid is one column, and nothing clips.
+.main-content.is-placed {
+  padding-inline: 0;
+  grid-template-columns: minmax(0, 1fr);
+
+  > .eq-scale {
+    display: none;
+  }
+
+  > .bands-rail {
+    grid-column: 1;
+  }
+
+  .bands-rail__viewport {
+    overflow: visible;
+  }
 }
 
 // Track length per density. RangeInput publishes the caller's preference as
@@ -1279,9 +1323,10 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   align-content: center;
   justify-self: center;
   gap: 8px;
-  // The same block as the face the bands stand on.
-  @include inset-surface;
-  border-radius: $radius-l;
+  // No block: it stands on the page under the hairline that ends the band row
+  // (`.main-content::before`), as the bands above it stand on the page.
+  border: 0;
+  background: transparent;
 }
 
 // The same row with nothing selected: what is being shaped, then three dials
@@ -1311,10 +1356,24 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // dials claiming to be bigger and rendering identical.
 .eq-flat-editor.eq-flat-editor--tone {
   // Five dials: the three tone dials with a cut either side (`EqCutKnob`).
+  //
+  // The dials are centred on the page, and the row's name stands outside
+  // that, to their left: an empty column the same fraction as the name's
+  // balances it, so Mid is under the middle of the bands and on the line the
+  // player bar's play button stands on (Ivan, 2026-09-25: "centered like the
+  // band setting", "ignoring tone word"). Centred as one group with the name,
+  // the dials stood half the name's width to the right of the bands' middle.
+  width: 100%;
+  justify-self: stretch;
   grid-template-columns:
-    minmax(104px, max-content)
-    repeat(5, minmax(88px, max-content));
+    minmax(max-content, 1fr)
+    repeat(5, minmax(88px, max-content))
+    minmax(0, 1fr);
   gap: 14px;
+
+  > .eq-flat-editor__identity {
+    justify-self: end;
+  }
   padding: 12px 16px;
 
   .eq-flat-editor__identity,
@@ -1680,21 +1739,14 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 
 // *** Responsive *************************************************************
 
-// The toolbar needs roughly 850px on one line. Below that it gets its own row
-// under the heading and stays centred, rather than squeezing the heading out.
-// Measured against the panel, not the window: with both sidebars open the panel
-// is ~600px narrower than the viewport, which is why the old viewport-based
-// breakpoint never fired when it needed to.
+// The title and its tools need about 990px side by side (the Spanish tools
+// are the widest, 737). Below that the rows stack, the tools centred on a row
+// of their own rather than squeezing the heading out. Measured against the
+// panel, not the window: with both sidebars open the panel is ~600px narrower
+// than the viewport, which is why the old viewport-based breakpoint never
+// fired when it needed to.
 @container eq-panel (max-width: 1040px) {
-  .main-content-title {
-    align-items: stretch;
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 8px;
-  }
-
-  .main-content-title > .eq-toolbar {
-    grid-column: 1;
-  }
+  @include title-stacked;
 }
 
 // The delete button is the one cell whose width is set by a translated string,
@@ -1753,15 +1805,7 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 // Two rows of controls read better than six squeezed columns once the EQ card
 // is narrow. The identity and delete rows span the full width.
 @media (max-width: 940px) {
-  // Stacked: heading on its own row, toolbar centred on the next.
-  .main-content-title {
-    align-items: stretch;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .main-content-title > .eq-toolbar {
-    grid-column: 1;
-  }
+  @include title-stacked;
 
   .main-content {
     grid-template-columns: 30px minmax(0, 1fr);
@@ -1805,7 +1849,15 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
   // of it applied and half did not, and the name came out stacked over its
   // value in a cell still holding a 56px line for a dial that is not there.
   .eq-flat-editor.eq-flat-editor--tone {
+    // The name has a line of its own here, so the row is the five dials and
+    // is centred as one again.
+    width: fit-content;
+    justify-self: center;
     grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    > .eq-flat-editor__identity {
+      justify-self: stretch;
+    }
 
     .eq-flat-editor__identity {
       grid-column: 1 / -1;

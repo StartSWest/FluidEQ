@@ -1,0 +1,40 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The app's tooltip (`utils/tooltipLayer.ts`): one element for the whole
+// window, shown for whatever the pointer rests on or Tab reaches.
+//
+// The menus' surface, lighter: the same hairline, corner and face, a shorter
+// shadow, because a tooltip explains something and is not a place to go.
+// It is a popover in the top layer, so the browser's own placement for one —
+// centred in the window, with a border and a canvas-coloured face — is
+// undone here and the layer sets the corner it stands at.
+.app-tooltip {
+  position: fixed;
+  inset: auto;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  max-width: min(280px, calc(100vw - 16px));
+  margin: 0;
+  padding: 5px 9px 6px;
+  overflow: visible;
+  @include floating-surface(0 6px 16px rgba($black, 0.28));
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-regular;
+  line-height: 1.4;
+  // Several titles carry their own line breaks (the graph's keys, a
+  // visualizer's controls); a long one wraps at words, never mid-word.
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  pointer-events: none;
+  user-select: none;
+}

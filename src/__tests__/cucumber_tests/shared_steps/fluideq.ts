@@ -67,13 +67,13 @@ export const givenEnabledState = (
     /^FluidEQ equalizer state is (enabled|disabled)$/,
     async (state: string) => {
       const desiredState = state === 'enabled';
+      // The power is a button now, not a switch: its state is aria-pressed.
       const equalizerSwitch = await requireDriver(webdriver).$(
-        '.side-bar label[class="switch"][for="equalizerEnabler"]',
+        '.side-bar button#equalizerEnabler',
       );
 
-      const switchOn = await equalizerSwitch
-        .$('[aria-checked="true"]')
-        .isExisting();
+      const switchOn =
+        (await equalizerSwitch.getAttribute('aria-pressed')) === 'true';
       if ((desiredState && !switchOn) || (!desiredState && switchOn)) {
         equalizerSwitch.click();
         // wait 1000 ms for the action.

@@ -27,6 +27,7 @@ import {
 import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
@@ -384,6 +385,9 @@ const GraphViewMenu = ({
   const rootRef = useRef<HTMLDivElement>(null);
   /** The list itself, so its height is measured rather than guessed. */
   const menuRef = useRef<HTMLDivElement>(null);
+  // Folds back towards the button when it closes, as every other menu does,
+  // rather than blinking out (`menu-out`).
+  const exit = useExitAnimation(isOpen, 'menu-out', menuRef);
 
   // Measured before the browser paints, so the list never appears in the wrong
   // place and jumps. `useLayoutEffect` is the difference between choosing a
@@ -482,7 +486,7 @@ const GraphViewMenu = ({
         </svg>
       </button>
 
-      {isOpen && (
+      {exit.present && (
         <div
           className={`graph-view-menu__list${
             placement.isAbove ? ' is-above' : ''
@@ -493,6 +497,9 @@ const GraphViewMenu = ({
             overflowY: placement.maxHeight ? 'auto' : 'visible',
           }}
           role="menu"
+          data-closing={exit.closing ? '' : undefined}
+          inert={exit.closing}
+          onAnimationEnd={exit.onAnimationEnd}
         >
           <Group
             title={t(OWN_GROUP_TITLE.graph)}

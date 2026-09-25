@@ -227,8 +227,8 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-self: start;
   padding: 1px 6px;
   color: $secondary-light;
-  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
-  border-radius: $radius-pill;
+  border: 1px solid $border-field;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 12%, transparent);
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;

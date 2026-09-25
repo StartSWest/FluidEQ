@@ -388,7 +388,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 11px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
   background: color-mix(in srgb, $secondary-default 14%, transparent);
 

@@ -160,10 +160,13 @@ version and in these notes.
   grid on it starts an octave below 20 Hz, where a low cut does its work; with
   the grid off it is trimmed to 20 Hz – 16 kHz, where records have sound, so a
   full-screen picture has no empty strip down the side. The equaliser's ±20 dB
-  scale no longer stretches when a curve runs past it, and the live sound has
-  a scale of its own on the right, 80 dB deep as a studio analyser draws it, so
-  the top octave and a high cut show. Frequencies are labelled 10, 20, 50,
-  100… the way analysers print them.
+  scale no longer stretches when a curve runs past it: the last tenth at the
+  top and bottom holds everything out to ±60 dB, compressed, so a curve that
+  goes further — the final output under a deep preamp or Auto normalize — is
+  drawn whole instead of cut off flat. The live sound has a scale of its own
+  on the right, 80 dB deep as a studio analyser draws it, so the top octave
+  and a high cut show. Frequencies are labelled 10, 20, 50, 100… the way
+  analysers print them.
 - **Double-click the graph to fill the screen, Ctrl+double-click to fill the
   window**, and double-click again to come back from either. Help lists the
   graph's keyboard shortcuts.

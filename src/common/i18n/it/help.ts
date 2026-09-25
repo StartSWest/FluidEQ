@@ -84,7 +84,7 @@ const help: Record<keyof typeof en, string> = {
     'Abbassa il livello prima dell’EQ per lasciare spazio ai rinforzi. Normalizza automaticamente se ne occupa per te.',
   'help.window.autoNormalize':
     'Tiene la preamplificazione bassa quanto basta perché nessun rinforzo vada in saturazione.',
-  'help.window.responseGraph': 'Mostra o nasconde il grafico sotto la pagina.',
+  'help.window.responseGraph': 'Mostra o nasconde il grafico di risposta.',
   'help.window.meterName': 'Misuratore di livello',
   'help.window.meter':
     'Il livello di uscita, sinistro e destro, in decibel reali. Premilo per cambiarne lo stile.',
@@ -291,9 +291,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Dispositivi, profili e seconda uscita',
   'help.profiles.intro':
-    'L’EQ segue il dispositivo di uscita. Associazione automatica salva le modifiche sull’uscita corrente; Profili salvati conserva suoni alternativi. Seconda uscita duplica l’audio su altri dispositivi con un livello per ciascuno.',
+    'L’EQ segue il dispositivo di uscita. Le modifiche si salvano nel profilo attivo sull’uscita corrente; Profili conserva suoni alternativi. Seconda uscita duplica l’audio su altri dispositivi con un livello per ciascuno.',
   'help.profiles.steps':
-    'Verifica l’uscita prima di modificare. Nuovo profilo conserva un suono; Aggiorna salva le modifiche e Ripristina recupera le impostazioni salvate.\nApri Seconda uscita, attiva un dispositivo raggiungibile e imposta il livello. Scegli il suo profilo EQ salvato subito sotto di esso.\nUsa Gioco/Video per una riserva iniziale minore o Musica per più margine. Controlla la sincronizzazione sui tuoi dispositivi.',
+    'Verifica l’uscita in cima alla scheda Uscita prima di modificare. Nuovo profilo conserva un suono; Aggiorna salva le modifiche e Ripristina recupera le impostazioni salvate.\nApri Seconda uscita, attiva un dispositivo raggiungibile e imposta il livello. Scegli il suo profilo EQ salvato subito sotto di esso.\nUsa Gioco/Video per una riserva iniziale minore o Musica per più margine. Controlla la sincronizzazione sui tuoi dispositivi.',
   'help.profiles.tip':
     'Ogni uscita duplicata usa il proprio profilo con entrambi i motori. La duplicazione richiede FluidEQ aperto e si ferma cambiando uscita principale. Conta anche la latenza dei dispositivi.',
   'help.profiles.keywords':
@@ -425,7 +425,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Con un visualizzatore Plus',
   'help.graph.tintName': 'Colori della finestra',
   'help.graph.tint':
-    'Il tema dell’app, i colori del visualizzatore o i suoi colori con la luce (Ambiente).',
+    'Il tema dell’app, i colori del visualizzatore, i suoi colori con la luce (Ambiente) o il visualizzatore dietro tutta la finestra (Fondale).',
   'help.graph.lighting': 'Illumina i tuoi dispositivi RGB con questa scena.',
   'help.graph.desktop':
     'Mette questo visualizzatore dietro le icone del desktop.',

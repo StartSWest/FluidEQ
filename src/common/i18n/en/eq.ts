@@ -129,6 +129,22 @@ const eq = {
   'graph.sceneTint.short.off': 'Theme',
   'graph.sceneTint.short.tint': 'Colours',
   'graph.sceneTint.short.pulse': 'Ambient',
+  'graph.sceneTint.short.cover': 'Backdrop',
+  // The menu that button became on the graph: its heading, and a line
+  // under each mode saying what it does to the window.
+  'graph.sceneTint.label': 'Window colours',
+  'graph.sceneTint.about.off': 'The window in your theme.',
+  'graph.sceneTint.about.tint': "The window in the visualizer's colours.",
+  'graph.sceneTint.about.pulse':
+    'Its colours, with the window glowing to the music.',
+  'graph.sceneTint.about.cover':
+    'All of Ambient, with the visualizer behind the whole window.',
+  // Over the plot while there are band points to drag.
+  'graph.editHint': 'Drag points · Ctrl/Shift select · Ctrl+scroll: Q',
+  // The View menu's slider in the Backdrop: how much the panes cover the scene.
+  'graph.backdropVeil': 'Panels',
+  'graph.backdropVeilHint':
+    'How much the panels cover the visualizer behind them',
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',
@@ -360,8 +376,8 @@ const eq = {
   'graph.meter.left': 'L',
   'graph.meter.right': 'R',
   'graph.meter.mono': 'M',
-  'output.eyebrow': 'FOLLOWS YOUR OUTPUT',
-  'output.title': 'Automatic profile',
+  'output.title': 'Output',
+  'output.playing': 'Playing {profile}',
   'output.device': 'Output device',
   'output.active': 'ACTIVE',
   'output.off': 'OFF',
@@ -398,16 +414,14 @@ const eq = {
   'output.mapping': 'Automatic mapping',
   'output.mapping.neutral': 'Neutral output',
   'output.mapping.live': 'Live tuning attached',
-  'output.mapping.hint':
-    'Edit any EQ control to save and attach it automatically to this output.',
   'output.hint':
-    'FluidEQ maps the stable endpoint ID, so this sound follows the device whenever Windows selects it.',
-  'extraOutput.eyebrow': 'PLAYS IN TWO PLACES',
+    'Edits save to the profile that is on and follow this output whenever Windows selects it.',
   'extraOutput.singlePlayer': 'One player at a time',
   'extraOutput.singlePlayerHint':
     'Starting something here pauses the rest of the machine, and the other way round.',
   'extraOutput.title': 'Second output',
   'extraOutput.none': 'No other outputs found',
+  'extraOutput.statusOff': 'Off',
   'extraOutput.volume': 'Volume',
   'extraOutput.mode.title': 'How it keeps up',
   'extraOutput.mode.video.title': 'Game/Video',
@@ -458,15 +472,13 @@ const eq = {
     'Diameter alone does not identify a response error. This shallow, broad trim is optional; it does not replace a measured profile for your exact model.',
   'driver.profile.note.small':
     'This gently reduces upper-bass congestion without adding deep bass. Size does not predict tuning; avoid forcing more bass from a small driver.',
-  'driver.eyebrow': 'WHAT YOU LISTEN ON',
   'driver.title': 'Driver type',
   'driver.none': 'No compensation',
   'driver.none.hint': 'Your bands and preset only',
   'driver.strength': 'Strength',
   'driver.range': '±{db} dB',
-  'profiles.eyebrow': 'YOUR SOUND',
   'app.soundPanel': 'Sound panel',
-  'profiles.title': 'Named profiles',
+  'profiles.title': 'Profiles',
   'profiles.new': 'New profile',
   'profiles.newAria': 'Start a new profile from the current EQ',
   'profiles.untitled': 'Untitled profile',
@@ -708,7 +720,7 @@ const eq = {
   'convolution.eyebrow.fluid': 'Impulse responses',
   'convolution.title': 'Convolution library',
   'convolution.intro':
-    'Download a verified, minimum-phase headphone impulse and apply it before your parametric EQ. The shared response graph below keeps both curves visible.',
+    'Download a verified, minimum-phase headphone impulse and apply it before your parametric EQ. The shared response graph keeps both curves visible.',
   'convolution.import': 'Import a WAV…',
   'convolution.importing': 'Importing…',
   'convolution.applied': 'Applied to this output',

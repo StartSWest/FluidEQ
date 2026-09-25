@@ -37,6 +37,16 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: 0 0 auto;
   }
 
+  // The compact cut of the switch, here and on every output row below: the
+  // standard 50px one beside a two-line name is the size of a control, not
+  // of a setting.
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
+  }
+
   // The sentence under the name wraps here, where an endpoint's profile does
   // not. A profile is a name and a clipped name is still recognisable; this
   // is a sentence, and clipped it read "pauses the rest of the ..." — which
@@ -71,6 +81,17 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: 0 0 auto;
     margin-top: 2px;
   }
+
+  > .device-dot {
+    margin-top: 8px;
+  }
+
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
+  }
 }
 
 // Name over profile. Nothing here may push the row wider than the card, which
@@ -89,38 +110,6 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
   font-size: $text-body;
   line-height: 1.25;
-}
-
-// A folded panel names only outputs that are actually switched on. When none
-// are enabled the header stays compact instead of spending a row saying Off.
-.extra-outputs__enabled {
-  display: grid;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  gap: 5px;
-  list-style: none;
-
-  li {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 8px;
-    color: $text-muted;
-    font-size: $text-small;
-    font-weight: $weight-bold;
-  }
-
-  .device-dot {
-    flex: 0 0 auto;
-  }
-
-  li > span:last-child {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 // The profile this output already carries. Quiet: it is information, not a
@@ -172,7 +161,7 @@ it under the terms of the GNU General Public License version 3 or later.
   vertical-align: middle;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   font-size: $text-micro;
   font-weight: $weight-bold;
 }
@@ -186,16 +175,77 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.35;
 }
 
-// The two buffering cards, borrowed whole from the LAN panel. That panel has
-// the width of a tab; this one has the width of a sidebar, and two cards that
-// each carry a title, a sentence and a figure do not fit side by side in it
-// without the sentence wrapping to four lines. Stacked, each reads in one.
+// The buffering choice as a two-way pick: two halves of one row, the chosen
+// half lit, and one sentence under the row for whichever is chosen. The LAN
+// panel's two cards — a title, a sentence and a figure each — stacked here
+// took a quarter of the sidebar to say what this says in three lines.
 .extra-outputs__mode {
+  display: grid;
+  min-width: 0;
   margin-top: 8px;
+  gap: 6px;
+}
 
-  .remote-audio__stream-options {
-    grid-template-columns: minmax(0, 1fr);
+.extra-outputs__modes {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.extra-outputs__modeOption {
+  @include field-interactive;
+  display: grid;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  padding: 6px 10px;
+  gap: 2px 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  color: $text-muted;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    grid-row: 1 / span 2;
   }
+
+  strong {
+    @include truncate;
+    color: $text-primary;
+    font-size: $text-body;
+  }
+
+  // The figure in the monospace face every readout of this kind uses.
+  em {
+    @include truncate;
+    color: $text-faint;
+    font-family: $font-mono;
+    font-size: $text-micro;
+    font-style: normal;
+  }
+
+  &.is-selected {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+    strong,
+    svg {
+      color: $secondary-light;
+    }
+  }
+}
+
+.extra-outputs__modeHint {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
 }
 
 // The honest cost of the mirror. Deliberately not styled as an error: it is

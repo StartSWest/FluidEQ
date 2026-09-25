@@ -209,7 +209,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 7px;
   padding: 5px 13px 5px 6px;
   color: $white;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 52%, transparent);
   backdrop-filter: blur(10px) saturate(130%);
   -webkit-backdrop-filter: blur(10px) saturate(130%);
@@ -549,7 +549,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .plus-card__badge {
   padding: 1px 8px;
   color: $surface-base;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: $secondary-default;
   font-size: $text-micro;
   font-weight: $weight-bold;

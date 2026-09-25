@@ -70,7 +70,7 @@ import {
   readAccentLightChannels,
   readSurface,
 } from '../utils/theme';
-import { tintedStops, type IRampRole } from '../utils/sceneAccentRamp';
+import type { IRampRole } from '../utils/sceneAccentRamp';
 
 /**
  * The gas, as five shades of the theme's light accent.
@@ -351,8 +351,60 @@ const MIRRORED_RAINBOW_STOPS: ReadonlyArray<{
  * carried by brightness whatever the hue happens to be.
  */
 /** The mode's fixed palette, for every style that does not build its own. */
+/**
+ * A ramp in the theme's own accent, one token per role.
+ *
+ * The meters painted fixed cyans — `#005b7f` up to `#c8fff8` — on every
+ * theme, which on Ocean's teal and Black's mint made them the one control
+ * in a different colour from the switches beside them, and the darkest of
+ * those cyans, at the foot of a lit column, read as unlit. The scene tint
+ * (`sceneAccentRamp`) redefines the same tokens, so a tinted window is
+ * covered by the same read. The literal stays as the fallback for a token
+ * the theme does not define.
+ */
+const RAMP_TOKENS = {
+  darker: '--accent-darker',
+  dark: '--accent-dark',
+  accent: '--accent',
+  light: '--accent-light',
+} as const;
+
+const themeStops = (
+  stops: ReadonlyArray<{ offset: number; colour: string }>,
+  roles: readonly IRampRole[],
+): ReadonlyArray<{ offset: number; colour: string }> =>
+  stops.map((stop, index) => ({
+    offset: stop.offset,
+    colour: readSurface(
+      RAMP_TOKENS[roles[index]?.role ?? 'accent'],
+      stop.colour,
+    ),
+  }));
+
 const modeStops = (isEuphoric: boolean) =>
-  isEuphoric ? RAINBOW_STOPS : tintedStops(CYAN_STOPS, RAMP_ROLES);
+  isEuphoric ? RAINBOW_STOPS : themeStops(CYAN_STOPS, RAMP_ROLES);
+
+/**
+ * How many lamps a ladder style stacks in a strip of this height. Shared
+ * with the scale beside it, whose marks snap to the nearest lamp: a label
+ * between two lamps names neither.
+ */
+const SEGMENT_ROWS = 30;
+const STACK_ROWS = 22;
+const ledRows = (height: number) =>
+  Math.max(6, Math.min(16, Math.floor(height / 12)));
+const ladderRows = (style: MeterStyle, height: number): number | undefined => {
+  if (style === 'segments') {
+    return SEGMENT_ROWS;
+  }
+  if (style === 'stack') {
+    return STACK_ROWS;
+  }
+  if (style === 'leds') {
+    return ledRows(height);
+  }
+  return undefined;
+};
 
 const cyclingStops = (
   nowMs: number,
@@ -431,6 +483,50 @@ interface IChannelRect {
  * than as ten small components: they are all one canvas pass over one rect
  * and the shared setup would be repeated ten times otherwise.
  */
+/**
+ * The held peak as a line across the strip, in the peak's own zone colour.
+ *
+ * The ladders hold their peak as a lamp; the continuous styles held it
+ * nowhere, so a bar said how loud it was this instant and nothing about the
+ * hit a beat ago — the reading a level meter exists to keep. Drawn only
+ * once the peak stands clear of the tip: on the tip it is the tip.
+ */
+const PEAK_LINE_STYLES: ReadonlySet<MeterStyle> = new Set([
+  'bar',
+  'fluid',
+  'mercury',
+  'needle',
+  'pulse',
+  'flow',
+  'center',
+]);
+
+const drawPeakLine = (
+  context: CanvasRenderingContext2D,
+  rect: IChannelRect,
+  channel: IChannelLevel,
+  style: MeterStyle,
+) => {
+  if (!PEAK_LINE_STYLES.has(style) || channel.peak - channel.level < 0.012) {
+    return;
+  }
+  const colour = READING_COLOURS[channel.peakZone];
+  context.save();
+  context.fillStyle = colour;
+  context.shadowColor = colour;
+  context.shadowBlur = 6;
+  if (style === 'center') {
+    const midY = rect.y + rect.height / 2;
+    const reach = (rect.height / 2) * channel.peak;
+    context.fillRect(rect.x, midY - reach - 1, rect.width, 2);
+    context.fillRect(rect.x, midY + reach - 1, rect.width, 2);
+  } else {
+    const y = rect.y + rect.height * (1 - channel.peak);
+    context.fillRect(rect.x, y - 1, rect.width, 2);
+  }
+  context.restore();
+};
+
 const drawChannel = (
   context: CanvasRenderingContext2D,
   rect: IChannelRect,
@@ -449,6 +545,12 @@ const drawChannel = (
       ? cyclingStops(performance.now())
       : modeStops(isEuphoric);
   const paint = paintLevel(context, rect, bodyStops);
+  // The ladders' lit lamps: accent from the first rung up, light at the
+  // top. The body ramp starts a step darker, which is right for a column
+  // that fills from a floor and wrong for a lamp, which is lit or is not.
+  const ladderPaint = isEuphoric
+    ? paint
+    : paintLevel(context, rect, themeStops(LADDER_STOPS, LADDER_ROLES));
 
   // The bead grid, hoisted out of the `dots` case because the peak
   // marker below has to land on it as well.
@@ -470,7 +572,7 @@ const drawChannel = (
   // pitch is the smallest that still leaves a round bead with air round it;
   // below that the ladder simply has fewer rungs, which is what a shorter
   // ladder should be.
-  const dotCount = Math.max(6, Math.min(16, Math.floor(rect.height / 12)));
+  const dotCount = ledRows(rect.height);
   const dotSpacing = rect.height / dotCount;
   // Half the pitch less a little: the gap between beads is what is left
   // over, and it has to survive the smallest pitch the count above allows.
@@ -583,7 +685,7 @@ const drawChannel = (
        * are on — and the peak sits in it as one held lamp rather than as
        * a rule drawn across the reading.
        */
-      const blockCount = 30;
+      const blockCount = SEGMENT_ROWS;
       const blockPitch = rect.height / blockCount;
       const blockGap = Math.max(2, blockPitch * 0.26);
       const blockHeight = blockPitch - blockGap;
@@ -629,6 +731,7 @@ const drawChannel = (
       });
 
       glow(() => {
+        context.fillStyle = ladderPaint;
         for (let i = 0; i < litBlocks; i += 1) {
           lamp(i);
           context.fill();
@@ -638,7 +741,7 @@ const drawChannel = (
             context.globalAlpha = 0.32;
             context.fillStyle = '#ffffff';
             context.fillRect(rect.x + 1, blockAt(i) + 0.5, rect.width - 2, 1.2);
-            context.fillStyle = paint;
+            context.fillStyle = ladderPaint;
             context.globalAlpha = 1;
           }
         }
@@ -693,11 +796,7 @@ const drawChannel = (
         // beads came out dimmer than the ones above them, which reads as
         // half-lit rather than as lit low. Same hues, all of them bright,
         // so what varies across the ladder is colour and not brightness.
-        context.fillStyle = paintLevel(
-          context,
-          rect,
-          isEuphoric ? RAINBOW_STOPS : tintedStops(LADDER_STOPS, LADDER_ROLES),
-        );
+        context.fillStyle = ladderPaint;
         for (let i = 0; i < litDots; i += 1) {
           bead(i);
         }
@@ -894,7 +993,9 @@ const drawChannel = (
       // Wider than it was: with no slot behind it the thermometer is the
       // whole of what the channel draws, and a third of the width left the
       // instrument looking like a thread down the middle of an empty column.
-      const tubeWidth = Math.max(4, rect.width * 0.46);
+      // Wider than the 46% it was: at eighteen pixels of strip that was an
+      // eight-pixel tube, a thread between two scales.
+      const tubeWidth = Math.max(4, rect.width * 0.62);
       // The bulb is a swelling of the tube, not a ball on the end of it.
       //
       // It was half the channel's width against a tube under half of that,
@@ -1128,7 +1229,13 @@ const drawChannel = (
       for (let pass = 0; pass <= spectrum.length * 2; pass += 1) {
         const tint = spectrum[pass % spectrum.length];
         const offset = (pass / (spectrum.length * 2) + bodyShift) % 1;
-        body.addColorStop(offset, `rgba(${tint}, ${0.6 * hazeBeat})`);
+        // Capped: at a loud reading `hazeBeat` passes three, and an alpha
+        // clamped at one made the tube a solid pale slab with the pointer
+        // and the ticks lost in it.
+        body.addColorStop(
+          offset,
+          `rgba(${tint}, ${Math.min(0.42, 0.14 * hazeBeat)})`,
+        );
       }
       context.fillStyle = body;
       context.fillRect(rect.x, rect.y, rect.width, rect.height);
@@ -1162,8 +1269,14 @@ const drawChannel = (
         // makes the nebula bloom outward rather than only glow harder.
         const radius = rect.width * (1.5 + channel.level * 1.4);
         const haze = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
-        haze.addColorStop(0, `rgba(${knot.tint}, ${0.5 * hazeBeat})`);
-        haze.addColorStop(0.45, `rgba(${knot.tint}, ${0.22 * hazeBeat})`);
+        haze.addColorStop(
+          0,
+          `rgba(${knot.tint}, ${Math.min(0.5, 0.16 * hazeBeat)})`,
+        );
+        haze.addColorStop(
+          0.45,
+          `rgba(${knot.tint}, ${Math.min(0.24, 0.07 * hazeBeat)})`,
+        );
         haze.addColorStop(1, `rgba(${knot.tint}, 0)`);
         context.fillStyle = haze;
         context.fillRect(rect.x, rect.y, rect.width, rect.height);
@@ -1185,6 +1298,11 @@ const drawChannel = (
         // which is the side the ticks run from. A line on its own reads
         // as a boundary between two regions; a head makes it point.
         const y = fillTop;
+        // The pointer in the reading's own colour, not the body ramp: a
+        // pointer is the one thing here to be read, and in the ramp's cyan
+        // over a cyan haze it was the hardest thing in the tube to find.
+        context.fillStyle = READING_COLOURS[channel.zone];
+        context.shadowColor = READING_COLOURS[channel.zone];
         const headWidth = Math.max(3, rect.width * 0.34);
         context.fillRect(rect.x, y - 0.9, rect.width, 1.8);
         context.beginPath();
@@ -1413,7 +1531,7 @@ const drawChannel = (
        * the slabs slide sideways like coins shoved off true, and the
        * higher up the pile a slab sits the further it goes.
        */
-      const slabCount = 22;
+      const slabCount = STACK_ROWS;
       const pitch = rect.height / slabCount;
       const slabGap = Math.max(1, pitch * 0.22);
       const slabHeight = pitch - slabGap;
@@ -1536,8 +1654,12 @@ const drawChannel = (
         glow(() => {
           // Body of the current, so the column reads as filled rather
           // than as a few marks floating in a dark gap.
-          context.globalAlpha = 0.32;
+          context.globalAlpha = 0.9;
           context.fillRect(rect.x, columnTop, rect.width, columnHeight);
+          // The streaks are light over the colour, not more colour at a
+          // lower alpha: the zone paint thinned over the slot turned the
+          // amber band olive and the cyan one grey.
+          context.fillStyle = '#ffffff';
 
           const streakCount = 4 + Math.round(channel.level * 7);
           const speed = 0.00022 + channel.level * 0.00075;
@@ -1556,7 +1678,7 @@ const drawChannel = (
               // Squared falloff: a linear tail reads as a solid dash with
               // a soft end, this one reads as something leaving a wake.
               const fade = 1 - s / segments;
-              context.globalAlpha = 0.7 * fade * fade;
+              context.globalAlpha = 0.3 * fade * fade;
               context.fillRect(
                 rect.x,
                 headY + s * segmentHeight,
@@ -1593,7 +1715,7 @@ const drawChannel = (
         { x: 0, y: rect.y + rect.height },
         isEuphoric
           ? MIRRORED_RAINBOW_STOPS
-          : tintedStops(MIRRORED_CYAN_STOPS, RAMP_ROLES),
+          : themeStops(MIRRORED_CYAN_STOPS, RAMP_ROLES),
       );
 
       ghost(() => {
@@ -1651,6 +1773,8 @@ const drawChannel = (
       break;
   }
 
+  drawPeakLine(context, rect, channel, style);
+
   // Peak hold, and only on the bead column.
   //
   // Every other style used to carry a horizontal bar across the strip for
@@ -1689,8 +1813,218 @@ const drawChannel = (
   // fact, and the louder of them covering the reading underneath.
 };
 
-const OutputLevelMeter = () => {
+/** The dB marks the strips are read against, on either side of the pair. */
+const SCALE_GAP = 5;
+const SCALE_MARKS: readonly number[] = [0, -6, -12, -20, -30, -40, -60];
+
+/**
+ * A ruled scale beside the strips: ticks at the marks above, every one
+ * labelled, placed with the same `levelFraction` the strips are drawn with so
+ * a label sits exactly where a reading of that value would reach. The ceiling
+ * is written in the over colour — it is the one number here that is a limit
+ * rather than a place.
+ *
+ * Drawn on both sides of the pair, ticks pointing in at the strips, so the
+ * strips stay centred in the well: with a scale on one side only the pair
+ * sat off to the left, which Ivan read as the meter being off-centre before
+ * he read the numbers.
+ */
+const drawScale = (
+  context: CanvasRenderingContext2D,
+  frame: { x: number; y: number; height: number },
+  side: 'left' | 'right',
+  ink: string,
+  // A ladder's lamp count: the marks then sit on the lamp nearest each
+  // value rather than between two.
+  rows?: number,
+) => {
+  const direction = side === 'right' ? 1 : -1;
+  const snap = (y: number) => {
+    if (!rows) {
+      return y;
+    }
+    const pitch = frame.height / rows;
+    const row = Math.max(
+      0,
+      Math.min(
+        rows - 1,
+        Math.round((frame.y + frame.height - y) / pitch - 0.5),
+      ),
+    );
+    return frame.y + frame.height - (row + 0.5) * pitch;
+  };
+  context.save();
+  context.font = '700 8px system-ui, sans-serif';
+  context.textAlign = side === 'right' ? 'left' : 'right';
+  context.textBaseline = 'middle';
+  context.lineWidth = 1;
+  SCALE_MARKS.forEach((db) => {
+    const y =
+      Math.round(snap(frame.y + (1 - levelFraction(db)) * frame.height)) + 0.5;
+    const isMajor = db === 0 || db === LEVEL_HOT_DB || db === LEVEL_FLOOR_DB;
+    context.globalAlpha = 0.3;
+    context.strokeStyle = ink;
+    context.beginPath();
+    context.moveTo(frame.x, y);
+    context.lineTo(frame.x + direction * (isMajor ? 5 : 3), y);
+    context.stroke();
+    context.globalAlpha = db === 0 ? 0.95 : 0.6;
+    context.fillStyle = db === 0 ? ZONE_COLOURS.over : ink;
+    context.fillText(db === 0 ? '0' : String(db), frame.x + direction * 8, y);
+  });
+  context.restore();
+};
+
+/**
+ * The style's name as a small chip under the strips: a pill with the name
+ * in it, in the same quiet ink as the scale. It was bare 11px capitals, the
+ * loudest text in the column for the one thing there that is furniture.
+ */
+const drawStyleChip = (
+  context: CanvasRenderingContext2D,
+  name: string,
+  centreX: number,
+  bottomY: number,
+  ink: string,
+) => {
+  context.save();
+  context.font = '700 8px system-ui, sans-serif';
+  if ('letterSpacing' in context) {
+    context.letterSpacing = '1px';
+  }
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  const width = context.measureText(name).width + 14;
+  const height = 14;
+  const x = centreX - width / 2;
+  const y = bottomY - height;
+  context.beginPath();
+  context.roundRect(x, y, width, height, height / 2);
+  context.globalAlpha = 0.06;
+  context.fillStyle = ink;
+  context.fill();
+  context.globalAlpha = 0.22;
+  context.strokeStyle = ink;
+  context.lineWidth = 1;
+  context.stroke();
+  context.globalAlpha = 0.7;
+  context.fillStyle = ink;
+  context.fillText(name, centreX, y + height / 2 + 0.5);
+  context.restore();
+};
+
+/** Everything the meter prints around its strips, in CSS pixels of its box. */
+interface IMeterPrint {
+  boxWidth: number;
+  boxHeight: number;
+  startX: number;
+  totalWidth: number;
+  channelWidth: number;
+  channelGap: number;
+  rectY: number;
+  rectHeight: number;
+  /**
+   * Absent for a style with no scale, and while the meter is off; `rows` is
+   * a ladder's lamp count, which the marks snap to.
+   */
+  scale: { rows: number | undefined } | undefined;
+  letters: readonly string[];
+  /** Absent while the meter is off. */
+  styleName: string | undefined;
+  ink: string;
+}
+
+/**
+ * The scale, the channel letters and the style chip, in the order the frame
+ * used to draw them after the strips.
+ */
+const drawMeterPrint = (
+  context: CanvasRenderingContext2D,
+  print: IMeterPrint,
+) => {
+  if (print.scale) {
+    const { rows } = print.scale;
+    drawScale(
+      context,
+      {
+        x: print.startX - SCALE_GAP,
+        y: print.rectY,
+        height: print.rectHeight,
+      },
+      'left',
+      print.ink,
+      rows,
+    );
+    drawScale(
+      context,
+      {
+        x: print.startX + print.totalWidth + SCALE_GAP,
+        y: print.rectY,
+        height: print.rectHeight,
+      },
+      'right',
+      print.ink,
+      rows,
+    );
+  }
+
+  // The channel letters above each strip. Drawn in canvas rather than
+  // as DOM so the whole meter is one image and the labels track the
+  // channel rects exactly.
+  context.font = '700 8px system-ui, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'top';
+  context.fillStyle = print.ink;
+  print.letters.forEach((letter, i) => {
+    const cx =
+      print.startX +
+      i * (print.channelWidth + print.channelGap) +
+      print.channelWidth / 2;
+    context.fillText(letter, cx, 1);
+  });
+
+  /**
+   * The style's name, centred under the strips and always there.
+   *
+   * It used to appear for two seconds after a click and fade out. That is
+   * the wrong shape for this control: the meter is cycled by clicking the
+   * meter itself, with nothing else on it to say what the current style
+   * is, so a label that leaves means the only way to find out is to click
+   * again and change the thing you were asking about.
+   *
+   * Quiet enough to be furniture rather than a reading — it names the
+   * instrument, it is not part of what the instrument says.
+   */
+  if (print.styleName !== undefined) {
+    drawStyleChip(
+      context,
+      print.styleName,
+      print.boxWidth / 2,
+      print.boxHeight - 3,
+      print.ink,
+    );
+  }
+};
+
+interface IOutputLevelMeterProps {
+  /**
+   * The louder channel's held peak, in dB below full scale, whenever the
+   * number printed to one decimal would change; `null` while the meter is off
+   * or nothing is being captured. The side bar prints it beside the meter.
+   *
+   * A callback rather than state: it fires from the draw loop, and a React
+   * render per frame for one number is the thing the canvas exists to avoid.
+   */
+  onReading?: (peakDb: number | null) => void;
+}
+
+const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   const { isClipping, outputLevels } = useLiveAudioFrame();
+  const onReadingRef = useRef(onReading);
+  onReadingRef.current = onReading;
+  const lastReadingRef = useRef('');
+  const isIdleRef = useRef(true);
+  isIdleRef.current = outputLevels.length === 0;
   const { readFrame } = useLiveAudioControl();
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
@@ -1845,6 +2179,18 @@ const OutputLevelMeter = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
+  /**
+   * The scale, letters and chip (`drawMeterPrint`), printed once on a canvas
+   * outside the page and copied onto every frame until one of them changes.
+   *
+   * Lettered on the meter's own canvas they cost ~230 ms of script a second
+   * in Ivan's window (2026-09-24), nearly all of it in the `font` setter: a
+   * canvas in the page brings the page's style up to date before it can
+   * resolve a font, and on the Studio page its meters leave that style
+   * stale every frame. A canvas outside the page has no style to update.
+   */
+  const printSheetRef = useRef<HTMLCanvasElement | null>(null);
+  const printKeyRef = useRef('');
   const drawFrame = useCallback(
     (deltaMs: number) => {
       const textInk = readTextInk();
@@ -1954,6 +2300,10 @@ const OutputLevelMeter = () => {
       const totalWidth =
         channelCount * channelWidth + (channelCount - 1) * channelGap;
       const startX = (boxWidth - totalWidth) / 2;
+      // The dB scale on either side of the pair. Not for the centre-zero
+      // style, whose reading grows from the middle and has no floor to rule
+      // from, and not while the meter is off and there is nothing to read.
+      const hasScale = !isOff && styleRef.current !== 'center';
       // Room at the top for the channel letters, and room at the bottom
       // for the clip rim — that rim is stroked half a pixel outside the
       // strip and carries a ten-pixel glow, so a strip standing on the
@@ -1964,7 +2314,9 @@ const OutputLevelMeter = () => {
       // stroked half a pixel outside the strip and carries a glow — a strip
       // standing on the canvas edge had both sliced flat the moment the
       // warning came up.
-      const footBand = 20;
+      // Twenty-eight, not twenty: the style chip sat three pixels under the
+      // strips' feet and read as part of the reading (Ivan, 2026-09-22).
+      const footBand = 28;
       const rectY = labelBand;
       const rectHeight = Math.max(1, boxHeight - labelBand - footBand);
 
@@ -2187,45 +2539,65 @@ const OutputLevelMeter = () => {
         }
       }
 
-      // The channel letters above each strip. Drawn in canvas rather than
-      // as DOM so the whole meter is one image and the labels track the
-      // channel rects exactly.
-      context.font = '700 8px system-ui, sans-serif';
-      context.textAlign = 'center';
-      context.textBaseline = 'top';
-      context.fillStyle = textInk;
       const isStereo = channelCount > 1;
-      for (let i = 0; i < channelCount; i += 1) {
-        const letter = t(channelNameKey(i, isStereo));
-        const cx = startX + i * (channelWidth + channelGap) + channelWidth / 2;
-        context.fillText(letter, cx, 1);
+      const print: IMeterPrint = {
+        boxWidth,
+        boxHeight,
+        startX,
+        totalWidth,
+        channelWidth,
+        channelGap,
+        rectY,
+        rectHeight,
+        scale: hasScale
+          ? { rows: ladderRows(styleRef.current, rectHeight) }
+          : undefined,
+        letters: easedRef.current.map((_, i) => t(channelNameKey(i, isStereo))),
+        styleName: isOff ? undefined : styleRef.current.toUpperCase(),
+        ink: textInk,
+      };
+      const printKey = `${backingWidth}x${backingHeight}@${ratio} ${JSON.stringify(print)}`;
+      if (printKey !== printKeyRef.current) {
+        printSheetRef.current ??= document.createElement('canvas');
+        const sheet = printSheetRef.current;
+        // Setting the size clears the sheet and its state, even at the
+        // same size.
+        sheet.width = backingWidth;
+        sheet.height = backingHeight;
+        const sheetContext = sheet.getContext('2d');
+        if (sheetContext) {
+          sheetContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+          drawMeterPrint(sheetContext, print);
+          printKeyRef.current = printKey;
+        }
+      }
+      if (printSheetRef.current && printKeyRef.current === printKey) {
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.drawImage(printSheetRef.current, 0, 0);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
       }
 
-      /**
-       * The style's name, centred under the strips and always there.
-       *
-       * It used to appear for two seconds after a click and fade out. That is
-       * the wrong shape for this control: the meter is cycled by clicking the
-       * meter itself, with nothing else on it to say what the current style
-       * is, so a label that leaves means the only way to find out is to click
-       * again and change the thing you were asking about.
-       *
-       * Quiet enough to be furniture rather than a reading — it names the
-       * instrument, it is not part of what the instrument says.
-       */
-      context.save();
-      context.font = '700 11px system-ui, sans-serif';
-      context.textAlign = 'center';
-      context.textBaseline = 'bottom';
-      context.fillStyle = textInk;
-      if (!isOff) {
-        context.fillText(
-          styleRef.current.toUpperCase(),
-          boxWidth / 2,
-          boxHeight - 3,
-        );
+      // What the side bar prints beside the meter: the louder channel's held
+      // peak, and only when the printed number would change. Idle — no
+      // capture at all — is told apart from silence, which is a reading of
+      // the floor and prints as nothing on its own.
+      const report = onReadingRef.current;
+      if (report) {
+        let loudest = LEVEL_FLOOR_DB;
+        if (!isOff && !isIdleRef.current) {
+          followersRef.current.forEach((follower) => {
+            loudest = Math.max(loudest, follower.peakDb);
+          });
+        }
+        const printed =
+          isOff || isIdleRef.current || loudest <= LEVEL_FLOOR_DB
+            ? ''
+            : loudest.toFixed(1);
+        if (printed !== lastReadingRef.current) {
+          lastReadingRef.current = printed;
+          report(printed ? Number(printed) : null);
+        }
       }
-      context.restore();
 
       // Some styles are driven by the clock as well as by the reading — the
       // fluid's surface, the gas's drift, the stack's lean and the flow's

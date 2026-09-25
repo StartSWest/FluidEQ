@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
     'Baisse le niveau avant l’EQ pour que les amplifications aient de la marge. La Normalisation auto le règle pour vous.',
   'help.window.autoNormalize':
     'Garde le préampli juste assez bas pour que rien de ce que vous amplifiez ne sature.',
-  'help.window.responseGraph': 'Affiche ou masque le graphique sous la page.',
+  'help.window.responseGraph': 'Affiche ou masque la courbe de réponse.',
   'help.window.meterName': 'Indicateur de niveau',
   'help.window.meter':
     'Le niveau de sortie des canaux gauche et droit, en décibels réels. Appuyez dessus pour changer son style.',
@@ -291,9 +291,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Appareils, profils et deuxième sortie',
   'help.profiles.intro':
-    'Votre EQ suit le périphérique de sortie. Association automatique enregistre les modifications sur la sortie actuelle, tandis que Profils enregistrés vous permet de garder d’autres sons. Deuxième sortie duplique la lecture vers d’autres appareils, avec un niveau distinct pour chacun.',
+    'Votre EQ suit le périphérique de sortie. Les modifications s’enregistrent dans le profil actif de la sortie actuelle, et Profils vous permet de garder d’autres sons. Deuxième sortie duplique la lecture vers d’autres appareils, avec un niveau distinct pour chacun.',
   'help.profiles.steps':
-    'Vérifiez le Périphérique de sortie avant toute modification. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nOuvrez Deuxième sortie, activez un appareil accessible et réglez son niveau. Choisissez le profil d’égalisation enregistré de cet appareil juste en dessous.\nUtilisez Jeu/Vidéo pour un tampon de départ plus court ou Musique pour plus de réserve. Comparez la synchronisation sur vos appareils.',
+    'Vérifiez la sortie en haut de la carte Sortie avant toute modification. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nOuvrez Deuxième sortie, activez un appareil accessible et réglez son niveau. Choisissez le profil d’égalisation enregistré de cet appareil juste en dessous.\nUtilisez Jeu/Vidéo pour un tampon de départ plus court ou Musique pour plus de réserve. Comparez la synchronisation sur vos appareils.',
   'help.profiles.tip':
     'Chaque sortie dupliquée utilise son propre profil, quel que soit le moteur. La duplication fonctionne tant que FluidEQ est ouvert ; changer la sortie principale arrête les anciennes duplications. La latence des appareils influe toujours sur la synchronisation.',
   'help.profiles.keywords':
@@ -428,7 +428,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Avec un visualiseur Plus',
   'help.graph.tintName': 'Couleurs de la fenêtre',
   'help.graph.tint':
-    'Le thème de l’application, les couleurs du visualiseur, ou ses couleurs avec sa lumière (Ambiance).',
+    'Le thème de l’application, les couleurs du visualiseur, ses couleurs avec sa lumière (Ambiance), ou le visualiseur derrière toute la fenêtre (Toile de fond).',
   'help.graph.lighting': 'Éclaire vos appareils RVB avec cette scène.',
   'help.graph.desktop': 'Place ce visualiseur derrière les icônes du Bureau.',
   'help.graph.viewCaption': 'Le menu Affichage',

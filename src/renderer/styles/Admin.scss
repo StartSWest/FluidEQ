@@ -45,7 +45,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 0 14px 0 10px;
   color: $text-muted;
   border: 0;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: transparent;
   font: inherit;
   font-size: $text-body;
@@ -425,7 +425,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .admin-account__tag {
   padding: 3px 9px;
   color: $text-faint;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $white 6%, transparent);
   font-size: $text-micro;
   font-weight: $weight-bold;

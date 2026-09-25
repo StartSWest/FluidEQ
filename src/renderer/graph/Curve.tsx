@@ -28,9 +28,19 @@ interface ICurveProps {
   xScale: d3.AxisScale<d3.NumberValue>;
   yScale: d3.AxisScale<d3.NumberValue>;
   data: IChartCurveData;
+  /**
+   * How the line takes a change: drawn on and glided by default, at once for
+   * the output curve following the live preamp (`LiveOutputCurve`).
+   */
+  animation?: LineAnimationOptionsEnum;
 }
 
-const Curve = ({ xScale, yScale, data }: ICurveProps) => {
+const Curve = ({
+  xScale,
+  yScale,
+  data,
+  animation = LineAnimationOptionsEnum.LEFT,
+}: ICurveProps) => {
   const { name, line, controlPoint } = data;
 
   return (
@@ -46,10 +56,9 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
         glow={line.glow}
         opacity={line.opacity}
         // Every curve that reaches here is the user's own tuning, so every one
-        // of them is drawn on. The live trace used to arrive here too and had to
-        // opt out of that animation; it is a canvas now and never comes this
-        // way, so there is no longer a second answer to give.
-        animation={LineAnimationOptionsEnum.LEFT}
+        // of them is drawn on — except a step of the live preamp, which moves
+        // the output curve and is not a new tuning to draw.
+        animation={animation}
       />
       {controlPoint && (
         <Point

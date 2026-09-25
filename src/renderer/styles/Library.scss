@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'libraryMetrics' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -288,7 +289,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 9px;
   gap: 5px;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   color: $text-muted;
   font-size: $text-small;
@@ -405,7 +406,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 0;
     padding: 4px 9px;
     border: 1px solid rgba($edge-tint, 0.14);
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
     box-shadow: none;
     color: $text-muted;
@@ -669,7 +670,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 0 18px 42px rgba($black, 0.46);
   animation: library-scan-progress-in $motion-base $ease-out;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
-  border: 1px solid color-mix(in srgb, $secondary-light 31%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-l;
 
   > button {
@@ -906,17 +907,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
 }
 
-// Every row in this list is exactly this tall, and that is a contract, not a
-// coincidence.
-//
-// `LibraryListView` mounts only the rows near the viewport and reserves plain
-// empty space for the rest — space it can only size correctly while every row
-// it has not seen turns out to be the height it reserved. A row that grew to
-// fit a long title would walk the scrollbar away from the content by exactly
-// that much, which is the bug that got an earlier windowed version reverted.
-// The view measures a real row on mount and uses what it finds, so changing
-// this number is safe; letting rows differ from *each other* is not.
-$library-row-height: 46px;
+// `$library-row-height` is the tables' row height, from `_libraryMetrics.scss`
+// — see there for why every kind of row takes it from one place.
 
 // The tab while the index is still being read.
 //
@@ -1691,7 +1683,7 @@ $library-row-height: 46px;
   place-items: center;
   color: $text-faint;
   border: 1px solid rgba($edge-tint, 0.28);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
 }
 
@@ -1826,7 +1818,7 @@ $library-row-height: 46px;
   place-items: center;
   color: $red;
   border: 1px solid rgba($red, 0.28);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
 }
 
@@ -1844,7 +1836,7 @@ $library-row-height: 46px;
   place-items: center;
   color: $text-faint;
   border: 1px solid rgba($edge-tint, 0.28);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
 }
 
@@ -1867,14 +1859,10 @@ $library-row-height: 46px;
   overflow: hidden;
 }
 
+// The Library's one Back, on the place bar over every view
+// (`LibraryPlaceBar`). Named for the drill-in it was first drawn on.
 .library-detail__back {
-  align-self: flex-start;
   flex: 0 0 auto;
-  // `.library-detail` clips, and this sits hard against its top-left corner:
-  // without the inset the button's own border and focus ring were shaved off
-  // by the very edge they touch. Matches the toolbar's own indent above it,
-  // so Back sits on the same left rule the browse chips do.
-  margin: 2px 0 0 2px;
 
   // Same back-chevron recipe as `.video-browser__nav-button` in
   // VideoBrowser.scss, at 13 rather than 14: the chip's box is a 13px line
@@ -1964,16 +1952,6 @@ $library-row-height: 46px;
   flex: 1 1 auto;
   align-content: start;
   gap: $spacing-xxs;
-}
-
-// Back on the left, the path beside it, one line.
-.library-detail__top {
-  position: relative;
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-m;
 }
 
 // Filters this album, folder or artist and nothing else — see the comment in
@@ -2334,7 +2312,7 @@ $library-wave-step: 4ms;
   gap: 6px;
   padding: 0 3px 0 8px;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition:
     border-color 140ms ease,
@@ -2379,10 +2357,12 @@ $library-wave-step: 4ms;
   left: 0;
   overflow: hidden;
   padding: 4px;
-  border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
-  border-radius: $radius-m;
-  background: $surface-menu-face;
-  box-shadow: 0 18px 44px rgba($black, 0.5);
+  // The floating surfaces' own face, like every other menu (Ivan,
+  // 2026-09-25: "all menus", "to much dropshadows").
+  @include floating-surface;
+  // Drops out of the field as every menu does (`menu-in`); it was the one list
+  // that simply appeared.
+  @include menu-motion;
 
   ul {
     margin: 0;
@@ -2569,7 +2549,7 @@ $library-wave-step: 4ms;
   align-items: center;
   padding-right: 5px;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition:
     background 140ms ease,
@@ -2691,27 +2671,33 @@ $library-wave-step: 4ms;
   margin-bottom: 0;
 }
 
-// Where the reader is standing, beside the control that leaves it.
-//
-// This used to be a row of its own above the drill-in, with a second Back of
-// its own on it; there is one Back now and the path sits next to it. Muted,
-// and truncating from the left, because the end of it — the folder itself —
-// is the part worth reading.
-//
-// `flex: 1 1 auto` with a zero floor so it gives way to the filter field on
-// its right rather than pushing it off the line: a long path is the one thing
-// here that has no natural width.
-.library-detail__folder {
+// Where this record lives on disk, under its name. Muted, and truncating from
+// the left, because the end of it — the folder itself — is the part worth
+// reading; the glyph stays whole on the left of it.
+.library-detail__where {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-  margin-inline-end: auto;
+  margin: 0;
   color: $text-muted;
-  direction: rtl;
   font-size: $text-small;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    direction: rtl;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.library-detail__where-icon {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: $text-faint;
 }
 
 // *** Up next *****************************************************************

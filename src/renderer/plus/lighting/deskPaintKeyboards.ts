@@ -13,6 +13,7 @@ import {
   roundRect,
   type TContext,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 
 /**
@@ -130,7 +131,7 @@ export const paintLaptop: TDevicePainter = (c, e, rgb) => {
   const lidHeight = e.height * 0.18;
   // The lid's back, a slim lit edge of screen above the hinge.
   roundRect(c, e.x + e.width * 0.04, e.y, e.width * 0.92, lidHeight, 6);
-  c.fillStyle = '#0f1113';
+  c.fillStyle = tone(0.07);
   c.fill();
   c.strokeStyle = 'rgba(230, 232, 235, 0.18)';
   c.lineWidth = 1;

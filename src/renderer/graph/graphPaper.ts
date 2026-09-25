@@ -51,7 +51,17 @@ const GRID_AXIS_PADDING: IMarginLike = {
    * Wide enough for "-40 dB" at 0.75rem.
    */
   right: 48,
-  bottom: 30,
+  // The frequency labels and nothing under them: they end 21px below the
+  // bottom rule (7 of tick padding and the line of text), and 7px more puts
+  // them in the middle between that rule and the divider's line, which is
+  // the graph's bottom edge now that the divider takes no room (Ivan,
+  // 2026-09-25: "no bg separation from the splitter line"). At 30, with the
+  // plot's own 10px margin below, the graph ended 19px under its labels and
+  // the divider's strip 6px after that: a band of empty picture between the
+  // graph and the bands ("pega más el gráfico abajo para que no exista
+  // gap"). Still more than `HANDLE_INSET`, so a band at -20 dB keeps its
+  // whole handle.
+  bottom: 28,
 };
 
 /**
@@ -253,6 +263,13 @@ export const liveLevelTicksFor = (
 const GAIN_AXIS_ENDS_AND_UNITY = [MIN_GAIN, 0, MAX_GAIN];
 
 /**
+ * Pixels an end of the EQ's axis needs before it takes a label of its own:
+ * two lines of 0.75rem text and the air between them. At 26 (a 300px graph)
+ * "+60 dB" and "+20 dB" read as one smudge; from about 36 they read apart.
+ */
+const OVERFLOW_LABEL_ROOM = 36;
+
+/**
  * The gain labels down the left, thinned the way the live scale's are above.
  *
  * They were all five at every height, and a graph at its floor — which is
@@ -265,13 +282,30 @@ export const gainAxisTicksFor = (
   gain: ScaleLinear<number, number>,
 ): number[] => {
   const span = Math.abs(Number(gain(MAX_GAIN)) - Number(gain(MIN_GAIN)));
-  if (span < 44) {
-    return UNITY_TICKS;
+  const inner = (() => {
+    if (span < 44) {
+      return UNITY_TICKS;
+    }
+    if (span < 88) {
+      return GAIN_AXIS_ENDS_AND_UNITY;
+    }
+    return GAIN_AXIS_TICKS;
+  })();
+  // The EQ's axis compresses what lies past ±20 dB into the plot's ends
+  // (`eqGainScale`); each end is named by how far it reaches, once it is
+  // tall enough to hold a label clear of the ±20 one beside it.
+  const domain = gain.domain().map(Number);
+  const low = Math.min(...domain);
+  const high = Math.max(...domain);
+  const reach = Math.abs(Number(gain(high)) - Number(gain(MAX_GAIN)));
+  if (
+    inner === UNITY_TICKS ||
+    high <= MAX_GAIN ||
+    reach < OVERFLOW_LABEL_ROOM
+  ) {
+    return inner;
   }
-  if (span < 88) {
-    return GAIN_AXIS_ENDS_AND_UNITY;
-  }
-  return GAIN_AXIS_TICKS;
+  return [low, ...inner, high];
 };
 
 /**

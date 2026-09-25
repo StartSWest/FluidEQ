@@ -32,6 +32,11 @@ import {
   liveLevelTicksFor,
   sceneSpectrumRectFor,
 } from '../../../renderer/graph/graphPaper';
+import {
+  GRID_BOTTOM_MARGIN,
+  GRID_SIDE_MARGIN,
+  plotTopMargin,
+} from '../../../renderer/graph/plotMargins';
 import { studioPaper } from '../../../renderer/studio/studioPaper';
 import { studioSpectrumRect } from '../../../renderer/studio/studioWave';
 
@@ -163,9 +168,11 @@ describe("a scene's band on the graph", () => {
       width,
       height,
     });
+    // The gutters: 50 for the gain labels, 48 for the level labels, 28 for
+    // the frequency labels and 14 for a handle at +20 dB.
     expect(left).toBeCloseTo((30 + 50) / 1200);
     expect(right).toBeCloseTo((30 + drawnWidth - 48) / 1200);
-    expect(bottom).toBeCloseTo(1 - (54 + drawnHeight - 30) / 480);
+    expect(bottom).toBeCloseTo(1 - (54 + drawnHeight - 28) / 480);
     expect(top).toBeCloseTo(1 - (54 + 14) / 480);
   });
 });
@@ -211,8 +218,16 @@ describe("the Studio's grid", () => {
     expect(gridded[3]).toBeLessThan(1);
   });
 
-  it('keeps the headroom of a one-row controls strip, which the graph measures', () => {
-    expect(studioPaper(1200, 480, {}, wave).margins.top).toBe(54);
+  it('keeps the margins the ruled graph keeps around its plot', () => {
+    // The controls strip floats inside the graph now, so the graph's
+    // headroom is a constant the stage can share rather than a strip's
+    // measured height it had to stand in for.
+    expect(studioPaper(1200, 480, {}, wave).margins).toEqual({
+      top: plotTopMargin(false),
+      right: GRID_SIDE_MARGIN,
+      bottom: GRID_BOTTOM_MARGIN,
+      left: GRID_SIDE_MARGIN,
+    });
   });
 
   it('follows a scene that reserves its own band', () => {

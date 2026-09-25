@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import HelpGuide from './HelpGuide';
 import { onHelpGuideRequest } from './helpGuideRequests';
@@ -36,6 +37,9 @@ export default function HelpMenu({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+  // Folds back into the button when it closes, as every other menu does,
+  // rather than blinking out (`menu-out`).
+  const exit = useExitAnimation(open, 'menu-out', menu);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -125,7 +129,7 @@ export default function HelpMenu({
             tooltip, as every other glyph in this strip's is. */}
         <MenuIcon name="guide" />
       </button>
-      {open && (
+      {exit.present && (
         <div
           id="help-menu"
           ref={menu}
@@ -133,6 +137,9 @@ export default function HelpMenu({
           role="menu"
           tabIndex={-1}
           aria-label={t('help.menu')}
+          data-closing={exit.closing ? '' : undefined}
+          inert={exit.closing}
+          onAnimationEnd={exit.onAnimationEnd}
           onBlur={(event) => {
             if (!root.current?.contains(event.relatedTarget)) {
               setOpen(false);

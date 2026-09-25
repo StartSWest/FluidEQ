@@ -100,26 +100,23 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     <SidebarSection
       className="extra-outputs"
       defaultOpen={false}
-      eyebrow={t('extraOutput.eyebrow')}
-      title={t('extraOutput.title')}
-      summary={
-        enabled.length > 0 ? (
-          <ul className="extra-outputs__enabled">
-            {enabled.map((target) => (
-              <li key={target.device.guid}>
-                <span
-                  className={
-                    target.isRunning ? 'device-dot active' : 'device-dot'
-                  }
-                  aria-hidden="true"
-                />
-                <span>{target.device.name}</span>
-              </li>
-            ))}
-          </ul>
-        ) : undefined
+      glyph={
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="4" width="7" height="16" rx="2" />
+          <rect x="14" y="4" width="7" height="16" rx="2" />
+          <circle cx="6.5" cy="14" r="2" />
+          <circle cx="17.5" cy="14" r="2" />
+        </svg>
       }
-      summaryWhenCollapsedOnly
+      title={t('extraOutput.title')}
+      // Folded, the header says which outputs are on — or that none is. It
+      // was a list of the enabled outputs under the header, a second row of
+      // names for something the header has room to say.
+      status={
+        enabled.length > 0
+          ? enabled.map((target) => target.device.name).join(' · ')
+          : t('extraOutput.statusOff')
+      }
       // Never folded away with the rest. It is a rule about the sound, not a
       // detail of the list, and the card is closed by default — folded with
       // the endpoints it would be a setting nobody ever meets.
@@ -241,12 +238,16 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
 
       {/* Only once something is switched on. It decides how much sound is held
           back before it plays, and a choice under a list with nothing on it
-          adjusts nothing. The same two cards as the LAN panel, because it is
-          the same choice: keep up with a picture, or never stutter. */}
+          adjusts nothing. The same choice as the LAN panel — keep up with a
+          picture, or never stutter — but as a two-way pick with one line of
+          explanation under it for the chosen side: the LAN panel's two cards
+          stacked here were a quarter of the sidebar, each repeating a
+          sentence the other did not need. */}
       {enabled.length > 0 && (
         <div className="extra-outputs__mode">
+          <span className="eyebrow">{t('extraOutput.mode.title')}</span>
           <div
-            className="remote-audio__stream-options"
+            className="extra-outputs__modes"
             role="radiogroup"
             aria-label={t('extraOutput.mode.title')}
           >
@@ -256,26 +257,20 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                 type="button"
                 role="radio"
                 aria-checked={mode === candidate}
-                className={`remote-audio__stream-option${
+                className={`extra-outputs__modeOption${
                   mode === candidate ? ' is-selected' : ''
                 }`}
                 onClick={() => setMode(candidate)}
               >
-                <span
-                  className="remote-audio__stream-radio"
-                  aria-hidden="true"
-                />
-                <span>
-                  <span className="remote-audio__stream-title">
-                    <MenuIcon name={candidate === 'video' ? 'video' : 'song'} />
-                    <strong>{t(`extraOutput.mode.${candidate}.title`)}</strong>
-                  </span>
-                  <small>{t(`extraOutput.mode.${candidate}.body`)}</small>
-                </span>
+                <MenuIcon name={candidate === 'video' ? 'video' : 'song'} />
+                <strong>{t(`extraOutput.mode.${candidate}.title`)}</strong>
                 <em>{t(`extraOutput.mode.${candidate}.buffer`)}</em>
               </button>
             ))}
           </div>
+          <p className="extra-outputs__modeHint">
+            {t(`extraOutput.mode.${mode}.body`)}
+          </p>
         </div>
       )}
 

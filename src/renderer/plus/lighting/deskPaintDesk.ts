@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   acrossPicture,
   average,
-  BODY,
+  bodyTone,
   BODY_EDGE,
   body,
   colourAt,
@@ -16,6 +16,7 @@ import {
   strip,
   underglow,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 
 /**
@@ -44,8 +45,8 @@ export const paintLaptopStand: TDevicePainter = (c, e, rgb) => {
   c.lineTo(e.x + e.width, e.y + e.height * 0.92);
   c.closePath();
   const face = c.createLinearGradient(0, e.y, 0, e.y + e.height);
-  face.addColorStop(0, '#2a2d30');
-  face.addColorStop(1, '#151719');
+  face.addColorStop(0, tone(0.22));
+  face.addColorStop(1, bodyTone());
   c.fillStyle = face;
   c.fill();
   c.restore();
@@ -86,7 +87,7 @@ export const paintMonitorStand: TDevicePainter = (c, e, rgb) => {
       e.height * 0.66,
       3,
     );
-    c.fillStyle = '#1b1d1f';
+    c.fillStyle = tone(0.15);
     c.fill();
   });
   body(c, e.x, e.y, e.width, e.height * 0.34, 6);
@@ -122,7 +123,7 @@ export const paintDock: TDevicePainter = (c, e, rgb) => {
       e.height * 0.16,
       2,
     );
-    c.fillStyle = '#0a0b0d';
+    c.fillStyle = tone(0.03);
     c.fill();
   }
   strip(
@@ -174,7 +175,7 @@ export const paintLightStrip: TDevicePainter = (c, e, rgb) => {
     e.height * 0.6,
     e.height * 0.3,
   );
-  c.fillStyle = '#16181a';
+  c.fillStyle = tone(0.11);
   c.fill();
   strip(
     c,
@@ -224,7 +225,7 @@ export const paintLightBar: TDevicePainter = (c, e, rgb) => {
     e.height * 0.34,
     3,
   );
-  c.fillStyle = '#1b1d1f';
+  c.fillStyle = tone(0.15);
   c.fill();
 };
 
@@ -252,7 +253,7 @@ export const paintLamp: TDevicePainter = (c, e, rgb) => {
     c.fill();
     c.restore();
   } else {
-    c.fillStyle = '#1d2023';
+    c.fillStyle = tone(0.15);
     c.fill();
   }
   c.strokeStyle = BODY_EDGE;
@@ -268,7 +269,7 @@ export const paintLamp: TDevicePainter = (c, e, rgb) => {
     0,
     Math.PI * 2,
   );
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.stroke();
 };
@@ -282,7 +283,7 @@ export const paintMonitorBase: TDevicePainter = (c, e, rgb) => {
   underglow(c, cx, e.y + e.height, e.width * 0.6, e.height * 1.6, rgb);
   // The neck rising to the screen, over the plain monitor's own.
   roundRect(c, cx - 14, e.y - 16, 28, 24, 4);
-  c.fillStyle = '#2a2d30';
+  c.fillStyle = tone(0.22);
   c.fill();
   c.beginPath();
   c.moveTo(e.x + e.width * 0.06, e.y + e.height * 0.3);
@@ -291,8 +292,8 @@ export const paintMonitorBase: TDevicePainter = (c, e, rgb) => {
   c.lineTo(e.x, e.y + e.height * 0.82);
   c.closePath();
   const face = c.createLinearGradient(0, e.y, 0, e.y + e.height);
-  face.addColorStop(0, '#34373a');
-  face.addColorStop(1, '#17191b');
+  face.addColorStop(0, tone(0.28));
+  face.addColorStop(1, tone(0.11));
   c.fillStyle = face;
   c.fill();
   c.strokeStyle = BODY_EDGE;

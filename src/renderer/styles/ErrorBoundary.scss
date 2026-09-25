@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 .crash-screen {
@@ -21,6 +22,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .crash-screen__card {
   @include menu-surface;
+  // A dialog, on the menu's material: it arrives as dialogs do, out of its own
+  // middle, not folding down from its top edge like a menu.
+  --surface-motion: #{$dialog-arrival};
+  --menu-origin: center;
   display: grid;
   width: min(620px, 100%);
   max-height: calc(100vh - 48px);

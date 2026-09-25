@@ -57,7 +57,7 @@ const target = (
 });
 
 describe('ExtraOutputs', () => {
-  it('starts collapsed and summarizes only enabled outputs', () => {
+  it('starts collapsed and names only the enabled outputs in its header', () => {
     const enabled = target('Enabled speakers', true, true);
     const disabled = target('Disabled speakers', false);
     mockedUseOutputMirror.mockReturnValue({
@@ -77,24 +77,22 @@ describe('ExtraOutputs', () => {
     render(<ExtraOutputs engine="apo" />);
 
     const header = screen.getByRole('button', { name: /Second output/i });
-    const section = header.closest('.sidebar-section') as HTMLElement;
-    const summary = section.querySelector(
-      '.sidebar-section__summary',
-    ) as HTMLElement;
+    const status = header.querySelector('.sidebar-section__status');
 
     expect(header).toHaveAttribute('aria-expanded', 'false');
-    expect(summary).toHaveTextContent('Enabled speakers');
-    expect(summary).not.toHaveTextContent('Disabled speakers');
-    expect(summary).not.toHaveTextContent('Off');
+    expect(status).toHaveTextContent('Enabled speakers');
+    expect(status).not.toHaveTextContent('Disabled speakers');
+    expect(status).not.toHaveTextContent('Off');
 
+    // Open, the list says it in full; the header does not say it twice.
     fireEvent.click(header);
     expect(header).toHaveAttribute('aria-expanded', 'true');
     expect(
-      section.querySelector('.sidebar-section__summary'),
+      header.querySelector('.sidebar-section__status'),
     ).not.toBeInTheDocument();
   });
 
-  it('uses only its header when no second output is enabled', () => {
+  it('says Off in its header when no second output is enabled', () => {
     const disabled = target('Disabled speakers', false);
     mockedUseOutputMirror.mockReturnValue({
       error: '',
@@ -114,6 +112,10 @@ describe('ExtraOutputs', () => {
 
     const header = screen.getByRole('button', { name: /Second output/i });
     expect(header).toHaveAttribute('aria-expanded', 'false');
+    const status = header.querySelector('.sidebar-section__status');
+    expect(status).toHaveTextContent('Off');
+    expect(status).not.toHaveTextContent('Disabled speakers');
+    // The header is the whole of it: no second row under it.
     expect(
       header
         .closest('.sidebar-section')

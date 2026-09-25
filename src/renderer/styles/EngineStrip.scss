@@ -29,7 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: 0 0 auto;
   align-items: stretch;
   padding: 2px;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
 
   // The halves already carry a field's edge and fill of their own, which
   // inside this would be a capsule drawn inside a capsule. They keep their
@@ -38,7 +38,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   > .game-mode-switch,
   > .latency-readout {
     border: 0;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: none;
     // Both halves stretch to the taller one — the switch — so the well runs
     // the full height of the capsule's face and the two share one centre

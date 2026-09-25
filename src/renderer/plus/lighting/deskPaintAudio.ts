@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ILamp } from 'common/lighting/lightingModel';
 import {
   average,
-  BODY,
+  bodyTone,
   BODY_EDGE,
   body,
   colourAt,
@@ -19,6 +19,7 @@ import {
   underglow,
   type TColour,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 
 /**
@@ -31,7 +32,7 @@ export const paintHeadset: TDevicePainter = (c, e, rgb) => {
   const cupWidth = e.width * 0.24;
   const cupHeight = e.height * 0.52;
   const cupsY = e.y + e.height * 0.4;
-  c.strokeStyle = '#282b2e';
+  c.strokeStyle = tone(0.22);
   c.lineWidth = Math.max(6, e.width * 0.07);
   c.lineCap = 'round';
   c.beginPath();
@@ -106,9 +107,9 @@ export const paintHeadsetStand: TDevicePainter = (c, e, rgb) => {
     cx + poleWidth / 2,
     0,
   );
-  metal.addColorStop(0, '#1b1d1f');
-  metal.addColorStop(0.35, '#3a3d40');
-  metal.addColorStop(1, '#17191b');
+  metal.addColorStop(0, tone(0.15));
+  metal.addColorStop(0.35, tone(0.34));
+  metal.addColorStop(1, tone(0.11));
   roundRect(
     c,
     cx - poleWidth / 2,
@@ -120,7 +121,7 @@ export const paintHeadsetStand: TDevicePainter = (c, e, rgb) => {
   c.fillStyle = metal;
   c.fill();
   // The ledge: a shallow arc the headband sits in.
-  c.strokeStyle = '#26292c';
+  c.strokeStyle = tone(0.22);
   c.lineWidth = Math.max(5, e.height * 0.03);
   c.lineCap = 'round';
   c.beginPath();
@@ -148,7 +149,7 @@ export const paintHeadsetStand: TDevicePainter = (c, e, rgb) => {
     0,
     Math.PI * 2,
   );
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   c.beginPath();
@@ -226,13 +227,13 @@ export const paintSpeaker: TDevicePainter = (c, e, rgb) => {
   const radius = e.width * 0.32;
   c.beginPath();
   c.arc(cx, driverY, radius, 0, Math.PI * 2);
-  c.fillStyle = '#090a0c';
+  c.fillStyle = tone(0.03);
   c.fill();
   c.strokeStyle = BODY_EDGE;
   c.stroke();
   c.beginPath();
   c.arc(cx, driverY, radius * 0.35, 0, Math.PI * 2);
-  c.fillStyle = '#1c1e21';
+  c.fillStyle = tone(0.15);
   c.fill();
   // Its foot.
   roundRect(
@@ -243,7 +244,7 @@ export const paintSpeaker: TDevicePainter = (c, e, rgb) => {
     e.height * 0.08,
     3,
   );
-  c.fillStyle = '#1b1d1f';
+  c.fillStyle = tone(0.15);
   c.fill();
 };
 
@@ -302,7 +303,7 @@ export const paintSoundbar: TDevicePainter = (c, e, rgb) => {
       e.height * 0.14,
       3,
     );
-    c.fillStyle = '#1b1d1f';
+    c.fillStyle = tone(0.15);
     c.fill();
   });
 };
@@ -320,7 +321,7 @@ export const paintMicrophone: TDevicePainter = (c, e, rgb) => {
   const footY = e.y + e.height * 0.9;
   c.beginPath();
   c.ellipse(cx, footY, e.width * 0.46, e.height * 0.06, 0, 0, Math.PI * 2);
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.strokeStyle = BODY_EDGE;
   c.stroke();
@@ -332,10 +333,10 @@ export const paintMicrophone: TDevicePainter = (c, e, rgb) => {
     footY - capsuleY - capsuleHeight,
     2,
   );
-  c.fillStyle = '#2a2d30';
+  c.fillStyle = tone(0.22);
   c.fill();
   // Yoke either side of the capsule.
-  c.strokeStyle = '#2a2d30';
+  c.strokeStyle = tone(0.22);
   c.lineWidth = 3;
   c.beginPath();
   c.moveTo(cx - capsuleWidth * 0.62, capsuleY + capsuleHeight * 0.5);

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IPlacedDevice } from './deskGeometry';
+import { readSurface } from '../../utils/theme';
 
 /**
  * The drawing tools every device picture on the desk is made with: dark solid
@@ -23,18 +24,53 @@ export type TDevicePainter = (
   rgb: Uint8Array | undefined,
 ) => void;
 
-// Device discovery does not report the housing finish. Use neutral charcoal
-// silhouettes; thin edges give them definition without implying white hardware.
-export const BODY = '#151719';
+/**
+ * The desk's greys, as steps up from the theme's own floor.
+ *
+ * They were fixed charcoals — #151719 and its neighbours. On the Black theme
+ * that is a dark desk in a dark room; on Ocean it was black cut-outs on
+ * slate, which is what Ivan asked to have made better on both themes
+ * (2026-09-22). Each tone is the floor the stage stands on (`--surface-base`)
+ * blended toward a cool light grey by `t`, so the hardware is always the
+ * same steps lighter than what it stands on, in that floor's own cast:
+ * charcoal on Black, slate grey on Ocean. Cached per floor colour, because
+ * the painters ask on every frame.
+ */
+const NEUTRAL: TColour = [156, 164, 172];
+const BODY_TONE = 0.11;
+let toneFloor = '';
+const tones = new Map<number, TColour>();
+export const toneRgb = (t: number): TColour => {
+  const floor = readSurface('--surface-base', '#050608');
+  if (floor !== toneFloor) {
+    toneFloor = floor;
+    tones.clear();
+  }
+  const known = tones.get(t);
+  if (known) {
+    return known;
+  }
+  const hex = /^#([0-9a-f]{6})$/i.exec(floor)?.[1] ?? '050608';
+  const base = [0, 2, 4].map((at) => parseInt(hex.slice(at, at + 2), 16));
+  const mixed: TColour = [
+    Math.round(base[0] + (NEUTRAL[0] - base[0]) * t),
+    Math.round(base[1] + (NEUTRAL[1] - base[1]) * t),
+    Math.round(base[2] + (NEUTRAL[2] - base[2]) * t),
+  ];
+  tones.set(t, mixed);
+  return mixed;
+};
+export const tone = (t: number): string => css(toneRgb(t));
+export const bodyTone = () => tone(BODY_TONE);
 export const BODY_EDGE = 'rgba(230, 232, 235, 0.22)';
 export const BODY_HIGHLIGHT = 'rgba(230, 232, 235, 0.045)';
-export const UNLIT: TColour = [43, 45, 48];
-const BODY_RGB: TColour = [18, 19, 21];
+/** An unlit lamp: a lens a few steps above the body. */
+const unlit = (): TColour => toneRgb(0.25);
 
 export const colourAt = (rgb: Uint8Array | undefined, lamp: number): TColour =>
   rgb && rgb.length >= (lamp + 1) * 3
     ? [rgb[lamp * 3], rgb[lamp * 3 + 1], rgb[lamp * 3 + 2]]
-    : UNLIT;
+    : unlit();
 
 export const css = ([r, g, b]: TColour, alpha = 1) =>
   `rgba(${r}, ${g}, ${b}, ${alpha})`;
@@ -43,13 +79,13 @@ export const css = ([r, g, b]: TColour, alpha = 1) =>
 export const mixWithBody = (colour: TColour, amount: number) =>
   `rgb(${colour
     .map((channel, index) =>
-      Math.round(Math.min(255, BODY_RGB[index] + channel * amount)),
+      Math.round(Math.min(255, toneRgb(BODY_TONE)[index] + channel * amount)),
     )
     .join(', ')})`;
 
 export const average = (rgb: Uint8Array | undefined): TColour => {
   if (!rgb || rgb.length < 3) {
-    return UNLIT;
+    return unlit();
   }
   let r = 0;
   let g = 0;
@@ -210,7 +246,7 @@ export const body = (
   c.shadowBlur = 14;
   c.shadowOffsetY = 6;
   roundRect(c, x, y, w, h, r);
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   roundRect(c, x, y, w, h, r);

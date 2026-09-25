@@ -28,14 +28,17 @@ it under the terms of the GNU General Public License version 3 or later.
   // condition turns false, so the panel used to arrive with an animation and
   // leave by blinking out. `DESIGNER_EXIT_MS` there holds it mounted for
   // exactly as long as this takes.
-  @include animate(pop-in, $motion-fast, $ease-spring);
+  //
+  // Both as the surface's motion rather than over its `animation`, so
+  // euphoria's rainbow edge keeps them (`surface-motion`).
+  --surface-motion: pop-in #{$motion-fast} #{$ease-spring} 0ms backwards;
   transform-origin: top right;
 
   &.is-closing {
     // The one animation in the app that has to hold its last frame: the panel
     // is still mounted when this ends and must stay invisible until React drops
     // it.
-    @include animate(pop-out, $motion-fast, $ease-out, 0ms, forwards);
+    --surface-motion: pop-out #{$motion-fast} #{$ease-out} 0ms forwards;
   }
   // Whatever every other scrolling surface uses. It stopped taking a size on
   // purpose — a panel with its own slightly narrower scrollbar is the kind of
@@ -396,6 +399,8 @@ it under the terms of the GNU General Public License version 3 or later.
   z-index: 5;
   top: calc(100% + 5px);
   left: 0;
+  // Out of the swatch's corner, which is where it hangs from (`menu-in`).
+  --menu-origin: top left;
   display: grid;
   width: 132px;
   padding: 6px;

@@ -42,7 +42,7 @@
   margin-bottom: 6px;
   padding: 9px 12px 9px 9px;
   color: $text-primary;
-  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
   background:
     radial-gradient(
@@ -201,7 +201,7 @@
   padding: 2px 8px;
   color: $red;
   border: 1px solid rgba($red, 0.45);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   font-size: $text-micro;
   font-weight: $weight-bold;
   @include tracking(0.04em);

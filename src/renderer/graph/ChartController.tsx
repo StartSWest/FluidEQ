@@ -259,6 +259,113 @@ export const gainScale = (height: number, top: number, bottom: number) =>
     .domain([MIN_GAIN, MAX_GAIN])
     .range([height - bottom, top]);
 
+/**
+ * How far past ±20 dB the EQ's own drawing reaches: the preamp's floor, which
+ * the output curve can be carried down to (`PREAMP_MIN_GAIN`).
+ */
+export const EQ_GAIN_REACH = 60;
+
+/**
+ * The share of the plot's height each end gives to what lies past ±20 dB.
+ *
+ * The output curve is every layer plus the preamp, and the preamp reaches
+ * -60 dB; under Auto normalize a curve cut by 10 dB and levelled by 12 lies
+ * at -22 and below. On the plain ±20 scale that part of the curve was cut off
+ * flat at the plot's floor (Ivan, 2026-09-25: "why the curves in graph get
+ * cut like that, it needs to draw completely"). The scale still does not move
+ * — he asked for scales that hold still, 2026-09-23 — so instead the last
+ * tenth at each end holds everything from 20 to 60 dB, compressed rather
+ * than cut: what the compact player's screen already does past its range
+ * (`eqCurvePaint.ts`, 2026-09-22), and the way the preamp dial compresses
+ * its -60 side and keeps 0 in the middle (Ivan, 2026-09-24: "center 0 on
+ * top ... make 60 some how compress").
+ */
+const EQ_OVERFLOW_SHARE = 0.1;
+
+/**
+ * How the overflow is compressed: `ln(1 + dB/k)`, with `k` chosen so the
+ * slope where it leaves ±20 dB is the slope inside — a curve crossing the
+ * line bends into the overflow instead of kinking at it. Solved once here
+ * for `k·ln(1 + reach/k) = share·40 / (1 − 2·share)` by bisection: the left
+ * side grows with `k`.
+ */
+const EQ_OVERFLOW_KNEE = (() => {
+  const inner = MAX_GAIN - MIN_GAIN;
+  const reach = EQ_GAIN_REACH - MAX_GAIN;
+  const wanted = (EQ_OVERFLOW_SHARE * inner) / (1 - 2 * EQ_OVERFLOW_SHARE);
+  let low = 1e-3;
+  let high = reach;
+  for (let step = 0; step < 60; step += 1) {
+    const middle = (low + high) / 2;
+    if (middle * Math.log(1 + reach / middle) < wanted) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+  return (low + high) / 2;
+})();
+
+/**
+ * Where the compressed ends are drawn, as decibels past ±20: denser near the
+ * line, where a curve usually is, so the straight pieces between these
+ * stops follow the logarithm to well under a pixel.
+ */
+const EQ_OVERFLOW_STOPS = [0, 0.5, 1, 2, 3.5, 5, 7.5, 10, 15, 20, 30, 40];
+
+/** Of the overflow's share, how much `beyond` decibels past ±20 takes. */
+const overflowFraction = (beyond: number) =>
+  Math.log(1 + beyond / EQ_OVERFLOW_KNEE) /
+  Math.log(1 + (EQ_GAIN_REACH - MAX_GAIN) / EQ_OVERFLOW_KNEE);
+
+/**
+ * The EQ's gain axis: ±20 dB across the middle eight tenths, exactly as
+ * linear as it always was, and ±20 to ±60 compressed into the tenth at each
+ * end. Beyond ±60 it clamps, so nothing is ever drawn off the plot.
+ *
+ * Only the EQ's own drawing uses it — its curves, handles, gain grid and
+ * labels. The analyser and every scene keep `gainScale`, whose ±20 fills the
+ * plot: the live wave is projected through that one (`liveLevelScaleFor`),
+ * and compressing it would shrink every visualizer by a fifth.
+ */
+export const eqGainScale = (height: number, top: number, bottom: number) => {
+  const plotBottom = height - bottom;
+  const span = plotBottom - top;
+  const inner = span * (1 - 2 * EQ_OVERFLOW_SHARE);
+  const edge = span * EQ_OVERFLOW_SHARE;
+  const lowZero = plotBottom - edge;
+  const highZero = top + edge;
+  const below = [...EQ_OVERFLOW_STOPS].reverse().slice(0, -1);
+  const domain = [
+    ...below.map((beyond) => MIN_GAIN - beyond),
+    MIN_GAIN,
+    MAX_GAIN,
+    ...EQ_OVERFLOW_STOPS.slice(1).map((beyond) => MAX_GAIN + beyond),
+  ];
+  const range = [
+    ...below.map((beyond) => lowZero + edge * overflowFraction(beyond)),
+    lowZero,
+    lowZero - inner,
+    ...EQ_OVERFLOW_STOPS.slice(1).map(
+      (beyond) => highZero - edge * overflowFraction(beyond),
+    ),
+  ];
+  return d3.scaleLinear().domain(domain).range(range).clamp(true);
+};
+
+/**
+ * The same axis with every value moved by `offsetDb` before it is placed —
+ * the output curve under the engine's live preamp. A translation of the
+ * drawn curve stopped being exact once the axis compressed its ends.
+ */
+export const offsetGainScale = (
+  scale: d3.ScaleLinear<number, number>,
+  offsetDb: number,
+) =>
+  offsetDb === 0
+    ? scale
+    : scale.copy().domain(scale.domain().map((value) => value - offsetDb));
+
 // Module scope, so an axis handed one of these keeps the same function from
 // render to render and does not restart its transition every time.
 export const frequencyTickFormat = (domainValue: d3.NumberValue) =>
@@ -283,11 +390,17 @@ const useController = ({
     [height, padding.bottom, padding.top],
   );
 
+  const yScaleEq = useMemo(
+    () => eqGainScale(height, padding.top, padding.bottom),
+    [height, padding.bottom, padding.top],
+  );
+
   return {
     xTickFormat: frequencyTickFormat,
     yTickFormat: gainTickFormat,
     xScaleFreq,
     yScaleGain,
+    yScaleEq,
   };
 };
 

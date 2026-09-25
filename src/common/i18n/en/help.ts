@@ -87,7 +87,7 @@ const help = {
     'Lowers the level before the EQ so boosts have room. Auto normalize sets it for you.',
   'help.window.autoNormalize':
     'Keeps the preamp just low enough that nothing you boost can clip.',
-  'help.window.responseGraph': 'Shows or hides the graph under the page.',
+  'help.window.responseGraph': 'Shows or hides the response graph.',
   'help.window.meterName': 'Level meter',
   'help.window.meter':
     'The output level, left and right, in real decibels. Press it to change its style.',
@@ -284,9 +284,9 @@ const help = {
 
   'help.profiles.title': 'Devices, profiles & second output',
   'help.profiles.intro':
-    'Your EQ follows the output device. Automatic mapping saves edits to the current output, while Named profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.',
+    'Your EQ follows the output device. Edits save to the profile playing on the current output, and Profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.',
   'help.profiles.steps':
-    'Confirm Output device before editing. Use New profile for a sound you want to keep; Update saves changes to that named profile, and Restore brings its saved settings back.\nOpen Second output, enable a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nUse Game/Video for a smaller starting buffer or Music for more reserve. Compare synchronization on your devices.',
+    'Check the output at the top of the Output card before editing. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nOpen Second output, switch on a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nUse Game/Video for a smaller starting buffer or Music for more reserve. Compare synchronization on your devices.',
   'help.profiles.tip':
     'Each mirrored output uses its own profile under either engine. Mirroring runs while FluidEQ is open; switching the main output stops the old mirrors. Device latency still affects synchronization.',
   'help.profiles.keywords':
@@ -414,7 +414,7 @@ const help = {
   'help.graph.plusCaption': 'With a Plus visualizer',
   'help.graph.tintName': 'Window colours',
   'help.graph.tint':
-    "The app's theme, the visualizer's colours, or its colours with light (Ambient).",
+    "The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).",
   'help.graph.lighting': 'Lights your RGB devices with this scene.',
   'help.graph.desktop': 'Puts this visualizer behind your desktop icons.',
   'help.graph.viewCaption': 'The View menu',

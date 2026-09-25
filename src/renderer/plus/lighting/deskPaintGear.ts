@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   acrossPicture,
   average,
-  BODY,
+  bodyTone,
   BODY_EDGE,
   body,
   colourAt,
@@ -18,6 +18,7 @@ import {
   strip,
   underglow,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 
 /**
@@ -44,7 +45,7 @@ export const paintController: TDevicePainter = (c, e, rgb) => {
   c.quadraticCurveTo(x + w * 0.1, y + h, x + w * 0.04, y + h * 0.7);
   c.quadraticCurveTo(x, y + h * 0.18, x + w * 0.2, y + h * 0.12);
   c.closePath();
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   c.strokeStyle = BODY_EDGE;
@@ -56,7 +57,7 @@ export const paintController: TDevicePainter = (c, e, rgb) => {
   ].forEach(([u, v]) => {
     c.beginPath();
     c.arc(x + w * u, y + h * v, h * 0.1, 0, Math.PI * 2);
-    c.fillStyle = '#26292c';
+    c.fillStyle = tone(0.22);
     c.fill();
   });
   [
@@ -67,7 +68,7 @@ export const paintController: TDevicePainter = (c, e, rgb) => {
   ].forEach(([u, v]) => {
     c.beginPath();
     c.arc(x + w * u, y + h * v, h * 0.035, 0, Math.PI * 2);
-    c.fillStyle = '#2f3236';
+    c.fillStyle = tone(0.28);
     c.fill();
   });
   const ordered = acrossPicture(e);
@@ -166,7 +167,7 @@ export const paintMixer: TDevicePainter = (c, e, rgb) => {
       );
     });
     roundRect(c, cx - 2, top, 4, bottom - top, 2);
-    c.fillStyle = '#0a0b0d';
+    c.fillStyle = tone(0.03);
     c.fill();
     // The fader cap, each at its own level.
     roundRect(
@@ -177,7 +178,7 @@ export const paintMixer: TDevicePainter = (c, e, rgb) => {
       9,
       2,
     );
-    c.fillStyle = '#3a3d40';
+    c.fillStyle = tone(0.34);
     c.fill();
   }
 };
@@ -192,7 +193,7 @@ export const paintAccessory: TDevicePainter = (c, e, rgb) => {
   c.shadowBlur = 16;
   c.beginPath();
   c.arc(cx, cy, radius, 0, Math.PI * 2);
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   e.device.lamps.forEach((_lamp, index) => {
@@ -218,7 +219,7 @@ export const paintChair: TDevicePainter = (c, e, rgb) => {
   const { x, y, width: w, height: h } = e;
   underglow(c, x + w / 2, y + h, w * 0.7, h * 0.08, rgb);
   // The base and gas lift under the seat.
-  c.strokeStyle = '#26292c';
+  c.strokeStyle = tone(0.22);
   c.lineWidth = Math.max(3, w * 0.04);
   c.lineCap = 'round';
   c.beginPath();
@@ -241,7 +242,7 @@ export const paintChair: TDevicePainter = (c, e, rgb) => {
   c.quadraticCurveTo(x + w * 0.96, y + h * 0.06, x + w * 0.88, y + h * 0.3);
   c.lineTo(x + w * 0.8, y + h * 0.66);
   c.closePath();
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   c.strokeStyle = BODY_EDGE;
@@ -249,7 +250,7 @@ export const paintChair: TDevicePainter = (c, e, rgb) => {
   c.stroke();
   // The headrest's opening.
   roundRect(c, x + w * 0.38, y + h * 0.08, w * 0.24, h * 0.05, h * 0.02);
-  c.fillStyle = '#0a0b0d';
+  c.fillStyle = tone(0.03);
   c.fill();
   const ordered = acrossPicture(e);
   const half = Math.ceil(ordered.length / 2);

@@ -219,7 +219,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .plus-gifts__status {
   padding: 3px 9px;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   font-size: $text-micro;
   font-weight: $weight-bold;
   @include tracking(0.04em);

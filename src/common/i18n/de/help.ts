@@ -84,8 +84,7 @@ const help: Record<keyof typeof en, string> = {
     'Senkt den Pegel vor dem EQ, damit Anhebungen Spielraum haben. Automatisch normalisieren stellt die Vorverstärkung für Sie ein.',
   'help.window.autoNormalize':
     'Hält die Vorverstärkung gerade so niedrig, dass nichts, was Sie anheben, übersteuern kann.',
-  'help.window.responseGraph':
-    'Blendet das Diagramm unter der Seite ein oder aus.',
+  'help.window.responseGraph': 'Blendet den Frequenzgang ein oder aus.',
   'help.window.meterName': 'Pegelanzeige',
   'help.window.meter':
     'Der Ausgangspegel, links und rechts, in echten Dezibel. Drücken Sie darauf, um den Stil der Anzeige zu ändern.',
@@ -295,9 +294,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Geräte, Profile und zweite Ausgabe',
   'help.profiles.intro':
-    'Ihr EQ folgt dem Ausgabegerät. Automatische Zuordnung speichert Änderungen für den aktuellen Ausgang, während Sie unter Gespeicherte Profile alternative Klänge behalten können. Zweite Ausgabe spiegelt die Wiedergabe auf andere Geräte, mit eigenem Pegel für jedes.',
+    'Ihr EQ folgt dem Ausgabegerät. Änderungen werden im Profil gespeichert, das auf dem aktuellen Ausgang aktiv ist, und unter Profile behalten Sie alternative Klänge. Zweite Ausgabe spiegelt die Wiedergabe auf andere Geräte, mit eigenem Pegel für jedes.',
   'help.profiles.steps':
-    'Prüfen Sie vor dem Bearbeiten das Ausgabegerät. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein erreichbares Gerät und stellen Sie seinen Pegel ein. Wählen Sie direkt darunter das gespeicherte EQ-Profil dieses Geräts.\nNutzen Sie Spiel/Video für einen kleineren Startpuffer oder Musik für mehr Reserve. Vergleichen Sie die Synchronität auf Ihren Geräten.',
+    'Prüfen Sie vor dem Bearbeiten den Ausgang oben auf der Karte Ausgabe. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein erreichbares Gerät und stellen Sie seinen Pegel ein. Wählen Sie direkt darunter das gespeicherte EQ-Profil dieses Geräts.\nNutzen Sie Spiel/Video für einen kleineren Startpuffer oder Musik für mehr Reserve. Vergleichen Sie die Synchronität auf Ihren Geräten.',
   'help.profiles.tip':
     'Jeder gespiegelte Ausgang nutzt mit beiden Engines sein eigenes Profil. Die Spiegelung läuft, solange FluidEQ geöffnet ist; ein Wechsel des Hauptausgangs beendet die alten Spiegelungen. Die Gerätelatenz beeinflusst die Synchronität trotzdem.',
   'help.profiles.keywords':
@@ -429,7 +428,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Mit einem Plus-Visualizer',
   'help.graph.tintName': 'Fensterfarben',
   'help.graph.tint':
-    'Das App-Design, die Farben des Visualizers oder seine Farben mit Licht (Ambiente).',
+    'Das App-Design, die Farben des Visualizers, seine Farben mit Licht (Ambiente) oder der Visualizer hinter dem ganzen Fenster (Kulisse).',
   'help.graph.lighting': 'Beleuchtet Ihre RGB-Geräte mit dieser Szene.',
   'help.graph.desktop': 'Legt diesen Visualizer hinter Ihre Desktopsymbole.',
   'help.graph.viewCaption': 'Das Menü Ansicht',

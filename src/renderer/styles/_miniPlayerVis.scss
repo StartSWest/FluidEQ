@@ -112,7 +112,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// THE TWO CONTROLS THAT CARRY WORDS WEAR THE AMP'S OWN KEY. They arrived in
+// THE CONTROLS THAT CARRY WORDS WEAR THE AMP'S OWN KEY: the look's name, the
+// automatic switching and the window colours' menu. They arrived in
 // the graph's ghost pill — a 7% wash of the accent over whatever is behind it
 // (`ghost-button` in _theme.scss) — which reads as a control over a card and
 // as nothing at all over a picture: the spectrum's bars ran straight through
@@ -120,7 +121,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // them stays bare, because a glyph over a picture carries its own shadow and a
 // name cannot; a name needs a plate, and the plate the player already has is
 // `.player-key`. Qualified by the shell as well as the strip so it outranks
-// `.live-output-controls .dropdown.graph-auto-cycle > [role='menu']`, which
+// `.live-output-controls .dropdown:is(.graph-auto-cycle, .graph-scene-look) > [role='menu']`, which
 // carries the same weight and would otherwise be settled by import order.
 .mini-player .player-vis__bar {
   // A ROW, not a line of text. The trigger is a bare `<button>` here — the
@@ -136,7 +137,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .look-picker__trigger,
-  .dropdown.graph-auto-cycle > [role='menu'] {
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look) > [role='menu'] {
     // The one key face (`player-key-face`), at the row's height and radius.
     @include player-key-face;
     min-height: 26px;
@@ -146,9 +147,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .look-picker__trigger:hover,
-  .dropdown.graph-auto-cycle:hover > [role='menu'],
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look):hover > [role='menu'],
   .dropdown--open > .look-picker__trigger,
-  .dropdown.graph-auto-cycle.dropdown--open > [role='menu'] {
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look).dropdown--open
+    > [role='menu'] {
     border-color: color-mix(in srgb, var(--accent) 50%, transparent);
     background: linear-gradient(
       180deg,
@@ -160,7 +162,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // Switching on is a state worth seeing, and it was said in the graph's
   // colours. Here it is said in the player's ink, like every other lamp.
-  .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look).is-on > [role='menu'] {
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     color: var(--player-ink);
   }
@@ -183,7 +185,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
 
     .look-picker__trigger,
-    .dropdown.graph-auto-cycle > [role='menu'] {
+    .dropdown:is(.graph-auto-cycle, .graph-scene-look) > [role='menu'] {
       border-color: rgba($white, 0.16);
       background: rgba($black, 0.45);
       box-shadow: none;
@@ -192,14 +194,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
 
     .look-picker__trigger:hover,
-    .dropdown.graph-auto-cycle:hover > [role='menu'],
+    .dropdown:is(.graph-auto-cycle, .graph-scene-look):hover > [role='menu'],
     .dropdown--open > .look-picker__trigger,
-    .dropdown.graph-auto-cycle.dropdown--open > [role='menu'] {
+    .dropdown:is(.graph-auto-cycle, .graph-scene-look).dropdown--open
+      > [role='menu'] {
       border-color: color-mix(in srgb, var(--accent) 60%, transparent);
       background: rgba($black, 0.6);
     }
 
-    .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+    .dropdown:is(.graph-auto-cycle, .graph-scene-look).is-on > [role='menu'] {
       border-color: color-mix(in srgb, var(--accent) 55%, transparent);
       color: var(--player-ink-bright);
     }

@@ -107,8 +107,12 @@ const FilterTypeIcon = ({
       // visibly broken one, and that is the failure worth ruling out.
       style={{ overflow: 'visible' }}
       xmlns="http://www.w3.org/2000/svg"
+      // The app's tooltip and a label, where an SVG <title> was the system's
+      // tooltip and the name both (`utils/tooltipLayer.ts`).
+      role="img"
+      aria-label={title}
+      data-tooltip={title}
     >
-      <title>{title}</title>
       <path
         d={shape.d}
         stroke={shape.stroke}

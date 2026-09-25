@@ -35,11 +35,28 @@ $control-height: 38px;
 $control-height-sm: 32px;
 $control-height-lg: 46px;
 
-$radius-xs: 8px;
-$radius-s: 10px;
-$radius-m: 12px;
-$radius-l: 14px;
-$radius-xl: 18px;
+// One scale of corners, small, for the open floor (Ivan, 2026-09-25: "fix all
+// rounded borders in the app so we have the right ones everywhere … I want a
+// clean design"). It ran 8, 10, 12, 14 and 18, with every chip, badge and
+// search box a full pill besides, so the same kind of thing had a different
+// corner on every page and the window read as soft.
+//
+// - `2xs`, 4px: what floats — menus, tooltips (`floating-surface`), and the
+//   small tags and counts set inside a row.
+// - `xs` and `s`, 6px: everything pressed or typed into — buttons, fields,
+//   selects, chips, a group of controls in one tray. Two names for one
+//   corner: they were two sizes of the same thing.
+// - `m`, 8px: a block standing on the floor — an inset tray, a card's box.
+// - `l`, 10px: a card of its own. `xl`, 12px: a dialog.
+// - `pill`: only what is round by nature — a switch, a slider's track, a
+//   progress bar, a dot, a circular button, a scrollbar. A word in a pill
+//   is a chip, and chips take the control corner.
+$radius-2xs: 4px;
+$radius-xs: 6px;
+$radius-s: 6px;
+$radius-m: 8px;
+$radius-l: 10px;
+$radius-xl: 12px;
 $radius-pill: 999px;
 
 $field-padding-inline: 11px;
@@ -277,6 +294,11 @@ $surface-menu-top: var(--surface-menu-top);
 // menu any more and a translucent card over unblurred rows reads as a fault.
 $surface-menu-face: var(--surface-menu-face);
 $border-menu: var(--border-menu);
+// What floats over the open floor — menus, the graph's pins' notes, the
+// Smart EQ bubble — is one step up from the floor and no more: the floor with
+// three tenths of the panel colour in it (`floating-surface`). The select's
+// tint above was a teal slab over the open floor.
+$surface-floating: color-mix(in srgb, $surface-base 70%, $surface-panel);
 // The shade a well is painted in, over a card, at the alpha `inset-surface`
 // uses. Kept next to the shell colour it is derived from.
 $surface-well: var(--surface-well);
@@ -311,8 +333,14 @@ $surface-plot: $surface-panel;
 $track-well: var(--track-well);
 $border-subtle: var(--border-subtle);
 $border-panel: var(--border-panel);
-$border-field: color-mix(in srgb, $secondary-light 24%, transparent);
-$border-field-hover: color-mix(in srgb, $secondary-light 50%, transparent);
+// The quiet control's edge: every outline button, field and select. At 24%
+// it was a bright cyan rule round each of them, and a toolbar of six read as
+// six boxes drawn in ink rather than as controls on the floor (Ivan,
+// 2026-09-25: "the borders of buttons and pills are a bit too much"). The
+// faint fill already says where the control is; the edge only finishes it,
+// and comes up under the pointer.
+$border-field: color-mix(in srgb, $secondary-light 13%, transparent);
+$border-field-hover: color-mix(in srgb, $secondary-light 42%, transparent);
 $border-field-focus: $secondary-light;
 
 // *** Interactive states *****************************************************
@@ -534,6 +562,9 @@ $transition-control:
   background-image: $image;
 }
 
+// The spectrum's drift round a rainbow edge, as an `animation` value.
+$rainbow-drift: rainbow-border-drift 12s linear infinite;
+
 // Clip the spectrum to the actual border. An inner masking fill used to replace
 // every window's own background with the darker menu colour in Rainbow mode.
 @mixin rainbow-border {
@@ -547,22 +578,53 @@ $transition-control:
     auto,
     auto,
     auto;
-  animation: rainbow-border-drift 12s linear infinite;
+  // Beside the surface's own motion, never over it (`surface-motion`): the
+  // drift written alone was every menu and dialog appearing and vanishing
+  // with no animation for as long as euphoria lasted.
+  animation: var(--surface-motion, none), $rainbow-drift;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 }
 
+// Anything that floats over the page: a menu, the graph's options pane. One
+// look for all of them (Ivan, 2026-09-25: "I want the pane to have nice same
+// app style"), so a pane lying over the graph and the list that drops out of
+// one of its buttons are plainly the same material.
+//
+// One quiet hairline, the open floor's own (layout A; Ivan 2026-09-25: "no
+// rainbow border pls I want a pro nice border same as in new theme"). Menus
+// had a lit edge in the accent drawn under a transparent border, and the
+// spectrum in euphoria mode — the one moving outline in a window of still
+// hairlines. A few points brighter than the page's lines, because a floating
+// surface lies over them and has to be told apart from what it covers.
+//
+// One step up from the floor, and no more: the floor with three tenths of the
+// panel colour in it. Menus were the select's own tint (`$surface-menu-face`),
+// which on the open floor was a teal slab — the lightest, bluest thing in the
+// window the moment a list opened ("their color not good"). Opaque, because
+// nothing blurs behind these and a translucent card over unblurred content
+// reads as a fault.
+//
+// Lifted by a soft shadow, with a one-pixel light along the top edge. It was
+// 44px of blur at half black, the one heavy shadow in a flat window ("to much
+// dropshadows"); the hairline says where the surface ends, and the shadow
+// only has to say it floats. `$lift` is that shadow.
+//
+// Corners at `$radius-2xs`, not the cards' old 12px: nothing else on the open
+// floor is rounded that far.
+@mixin floating-surface($lift: 0 8px 20px rgba($black, 0.3)) {
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-2xs;
+  background: $surface-floating;
+  box-shadow:
+    $lift,
+    inset 0 1px 0 rgba($white, 0.05);
+}
+
 @mixin menu-surface {
-  // An edge in the accent, not a grey hairline. At 9% white the rim was all
-  // but invisible over the dark panels, so an open menu had no outline of its
-  // own unless euphoria mode drew its rainbow one, and the one menu with a
-  // border of its own (the tools menu, flat accent) looked like a different
-  // material beside the rest. The width is here; the colour is the lit edge
-  // painted under it, below.
-  border: 1px solid transparent;
-  border-radius: $radius-m;
+  @include floating-surface;
   // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
   // actually available; without somewhere for the overflow to go, that cap
   // would clip the last entries instead of letting them be reached — the exact
@@ -577,56 +639,6 @@ $transition-control:
   // menu is a response to a click that has already happened, so it should
   // feel like it was waiting rather than like it is being fetched.
   @include menu-motion;
-  // Top rung of the ladder, same hue as everything under it. This ran from
-  // #18293e to #141f31 — hue 218° to 225° — so an open menu was the bluest
-  // thing in a window that is slate everywhere else.
-  // The select's own tint, so the list that drops out of a select is the
-  // same material as the select.
-  background: $surface-menu-face;
-  // The edge itself, lit: brightest along the top, where the menu meets the
-  // control it came out of, and settling to a quieter rim down the sides — the
-  // same drawing as euphoria's rainbow edge (`rainbow-border`), in the accent
-  // instead of the spectrum, so turning euphoria off keeps a menu's outline
-  // rather than taking it away. Drawn in the border's own area, under a
-  // transparent border: a surface that replaces `background` replaces this
-  // layer too, and has to give itself a `border-color` as well, as the
-  // support dialog does — and one that sets only a `border-color` paints that
-  // over the lit edge.
-  background-image:
-    linear-gradient(
-      170deg,
-      color-mix(in srgb, $secondary-light 62%, transparent),
-      color-mix(in srgb, $secondary-light 22%, transparent) 38%,
-      color-mix(in srgb, $secondary-default 16%, transparent) 72%,
-      color-mix(in srgb, $secondary-default 30%, transparent)
-    ),
-    none;
-  background-clip: border-area, border-box;
-  background-origin: border-box, padding-box;
-  box-shadow:
-    0 18px 44px rgba($black, 0.5),
-    0 0 28px color-mix(in srgb, $secondary-default 8%, transparent),
-    inset 0 1px 0 rgba($white, 0.06);
-
-  // Euphoria mode reaches anything built on this surface, so a menu opened at
-  // the ceiling belongs to the same moment as the window behind it rather than
-  // arriving as a grey rectangle over a celebration.
-  //
-  // Emitted from the mixin rather than listed selector by selector in
-  // Euphoria.scss, so every surface gets it by construction and a new dropdown
-  // cannot be added that quietly misses out.
-  //
-  // This is the same treatment that was removed from every control in the
-  // window for being too slow, and the difference is how many elements read a
-  // hue that animates every frame. Every button and panel is hundreds; an open
-  // menu is one, and only while it is open.
-  .is-euphoric & {
-    @include rainbow-border;
-    box-shadow:
-      0 18px 44px rgba($black, 0.5),
-      0 0 30px hsl(var(--euphoria-hue, 160deg) 95% 60% / 20%),
-      inset 0 1px 0 rgba($white, 0.06);
-  }
 }
 
 // The exact colour at the top edge of a panel. Anything that has to butt up

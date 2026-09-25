@@ -25,7 +25,6 @@ import {
 import {
   GRID_BOTTOM_MARGIN,
   GRID_SIDE_MARGIN,
-  ONE_ROW_CONTROLS_HEIGHT,
   plotTopMargin,
 } from '../graph/plotMargins';
 import { createFlagSetting } from '../utils/graphStorage';
@@ -40,9 +39,10 @@ import type { IStudioWave } from './studioWave';
  * grid is shown. So a line on the stage is where that line is on the graph,
  * and a peak's height against the level scale reads the same on both.
  *
- * The graph keeps headroom above the plot for its controls strip, measured
- * from the strip. The stage has no strip, so it keeps the headroom a strip of
- * one row gives the graph.
+ * The margins are the ruled graph's own (`plotMargins.ts`): its controls
+ * strip floats inside the plot rather than over a band of its own, so the
+ * headroom above the plot is a constant and the stage, which has no strip,
+ * keeps exactly the same.
  */
 
 export interface IStudioPaper {
@@ -71,7 +71,7 @@ export const studioPaper = (
   wave: IStudioWave,
 ): IStudioPaper => {
   const margins: IMarginLike = {
-    top: plotTopMargin(false, ONE_ROW_CONTROLS_HEIGHT),
+    top: plotTopMargin(false),
     right: GRID_SIDE_MARGIN,
     bottom: GRID_BOTTOM_MARGIN,
     left: GRID_SIDE_MARGIN,

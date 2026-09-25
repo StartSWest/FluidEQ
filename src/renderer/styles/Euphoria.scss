@@ -63,33 +63,9 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow: 0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
   }
 
-  // Soften only this small rim, not the canvas or the whole waveform panel.
-  // One fixed-radius blur avoids stacking shadow passes or adding frame work.
-  // Off and clipping retain their existing status borders.
-  .waveform-visualizer:not(.is-off, .is-clipping) {
-    border-color: transparent;
-    box-shadow: none;
-
-    &::after {
-      @include rainbow-border;
-      position: absolute;
-      inset: -1px;
-      border: 1px solid transparent;
-      border-radius: inherit;
-      filter: blur(0.7px);
-      opacity: 0.85;
-      pointer-events: none;
-      content: '';
-    }
-  }
-
-  // Off remains a stopped instrument even while the rest of the app is in
-  // euphoria. A hue-sweeping rim around a static grid is still a visualiser.
-  .waveform-visualizer.is-off {
-    animation: none;
-    border-color: rgba($edge-tint, 0.16);
-    box-shadow: inset 0 1px 0 rgba($white, 0.04);
-  }
+  // The header's wave takes no rim here either. It had a rainbow one, and
+  // Ivan took the pane's box off on 2026-09-25 — rim, fill and corners — so
+  // the wave is drawn straight on the header; the rainbow is in the trace.
 
   .euphoria-pill {
     animation: euphoria-sweep 3.6s linear infinite;
@@ -486,7 +462,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .euphoria-pill {
   padding: 2px 9px;
   color: $surface-well;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   // The blue part of the sweep used to lose contrast against the dark text.
   // This lightness keeps the label readable throughout the rainbow.
   background: hsl(var(--euphoria-hue, 160deg) 95% 75%);

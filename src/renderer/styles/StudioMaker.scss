@@ -186,7 +186,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 5px 11px;
   color: $text-faint;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
   font-size: $text-small;
@@ -354,7 +354,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 4px 10px;
   margin: 0;
   padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
   background: color-mix(in srgb, $secondary-default 8%, transparent);
   font-size: $text-small;

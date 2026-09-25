@@ -422,7 +422,7 @@ const LookPicker = ({
               />
             ) : (
               <SceneLookIcon
-                className="graph-look-option__icon"
+                className="graph-look-option__icon graph-look-option__icon--scene"
                 swatch={current.swatch}
                 lookId={current.id}
               />

@@ -27,7 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // 18px with its border, the pill's own height: the figure's line and the
   // glyph are both 14px, and 2px more padding stood it taller than the pill.
   padding: 1px 10px;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   color: $text-faint;
   font-size: $text-micro;
   line-height: 1.3;
@@ -133,7 +133,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &__share {
     height: 4px;
     overflow: hidden;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: color-mix(in srgb, $secondary-default 12%, transparent);
 
     > span {

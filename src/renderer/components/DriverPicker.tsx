@@ -152,8 +152,18 @@ const DriverPicker = () => {
     // The section lives here rather than in App because the combo has to stay
     // visible when the section is folded, and the combo's state lives here.
     <SidebarSection
-      eyebrow={t('driver.eyebrow')}
+      glyph={
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 14v-3a8 8 0 0 1 16 0v3" />
+          <rect x="3" y="13" width="4" height="7" rx="1.5" />
+          <rect x="17" y="13" width="4" height="7" rx="1.5" />
+        </svg>
+      }
       title={t('driver.title')}
+      // While folded with a profile chosen, the strength: the picker under
+      // the header already names the profile, so that is the one thing the
+      // fold hides.
+      status={activeProfile ? `${Math.round(intensity * 100)}%` : ''}
       summary={
         // Deliberately not disabled on isBusy. Every step of a strength drag
         // starts and finishes a write, so gating the combo on that made it

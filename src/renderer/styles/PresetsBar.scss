@@ -30,10 +30,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   padding: 0;
   gap: 6px;
-  // Compose row and buttons. The list moved into the section summary so it
-  // survives collapsing, and it owns its own scrolling there — which also put
-  // the old lede paragraph underneath the list it was introducing, so it went.
-  grid-template-rows: repeat(2, min-content);
+  // Label row, the list, the action row. The list owns its own scrolling.
+  grid-template-rows: repeat(3, min-content);
   justify-items: stretch;
   overflow: hidden;
   // Nothing of its own. This sits inside a section that is already a well in
@@ -58,18 +56,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Save and its undo sit together. Equal tracks so neither reads as the
-// dangerous one — restoring is just as normal an action as saving.
-.profile-actions {
-  display: grid;
+// The small caps label over the list, with the count at its other end. It
+// stands where the card's own title used to: the list is the lower half of
+// the Output card now, and a title-sized heading inside a card is a card
+// inside a card.
+.presets-bar__head {
+  display: flex;
   min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.presets-bar__count {
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+// One row of three, Update last and the only loud one. The row wraps rather
+// than clips: the German and Russian labels are half as long again as the
+// English, and a row that had to hold all three at once held them at 9px —
+// which is why Update used to have a whole row to itself. Wrapped, a long
+// locale gets two quiet buttons on one line and Update on the next, full
+// width, which is the old layout exactly where the old layout was needed.
+.profile-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   gap: 6px;
-  // Save is the one you reach for, so it gets a full row. Three across a
-  // 300px sidebar left every label truncated and none of them readable.
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas:
-    'save save'
-    'new restore';
+
+  > .button {
+    flex: 1 1 auto;
+  }
 }
 
 // The rename row: field, then accept and cancel. The buttons keep their own
@@ -206,7 +227,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // from. The cap only exists so a long catalogue does not push the buttons
   // below it out of reach.
   max-height: min(52vh, 420px);
-  border-radius: $radius-l;
+  border-radius: $radius-m;
   overflow: hidden;
 
   .list {
@@ -250,7 +271,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // lime "on", one size, one face.
     padding: 1px 6px;
     color: $surface-base;
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
     background: $active;
     font-size: $text-micro;
     font-weight: $weight-bold;
@@ -309,16 +330,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
-}
-
-.profile-actions__save {
-  grid-area: save;
-}
-
-.profile-actions__new {
-  grid-area: new;
-}
-
-.profile-actions__restore {
-  grid-area: restore;
 }

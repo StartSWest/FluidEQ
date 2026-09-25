@@ -474,7 +474,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: calc(100% - 20px);
   gap: 5px;
   padding: 5px;
-  border: 1px solid color-mix(in srgb, $secondary-light 17%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-l;
   background:
     linear-gradient(
@@ -601,7 +601,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px 10px;
   color: $text-muted;
   border: 1px solid color-mix(in srgb, $secondary-light 15%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-well 24%, transparent);
   font-size: $text-small;
   font-weight: $weight-bold;
@@ -952,7 +952,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     place-items: center;
     color: $secondary-light;
     border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
   }
@@ -1063,7 +1063,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   height: 30px;
   padding: 0 10px 0 8px;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
 
   span {
     font-size: $text-micro;
@@ -1411,7 +1411,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 9px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -1452,7 +1452,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: 0;
   overflow: hidden;
   color: rgba($white, 0.9);
-  border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-m;
   background: $block-lift;
   box-shadow:
@@ -1493,7 +1493,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 13px;
   height: 13px;
   flex: 0 0 auto;
-  border: 2px solid color-mix(in srgb, $secondary-light 18%, transparent);
+  border: 2px solid $border-field;
   border-top-color: $secondary-light;
   border-radius: 50%;
   box-shadow: 0 0 9px color-mix(in srgb, $secondary-default 20%, transparent);
@@ -1827,7 +1827,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: clamp(10px, 1.2vw, 18px);
   margin-top: -2px;
   padding: 8px 11px;
-  border: 1px solid color-mix(in srgb, $secondary-light 18%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-xl;
   background:
     linear-gradient(
@@ -1880,7 +1880,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px;
   padding: 3px;
   border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-well 38%, transparent);
   box-shadow:
     0 5px 16px rgba($black, 0.22),
@@ -2067,7 +2067,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   padding: 4px 7px;
   border: 1px solid color-mix(in srgb, $secondary-light 7%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-well 24%, transparent);
   box-shadow: inset 0 1px 2px rgba($black, 0.24);
 }
@@ -2099,7 +2099,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 26px minmax(56px, 1fr) minmax(42px, 78px);
   padding: 4px 7px 4px 4px;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   // The plot well, flat: a block on a menu, one step down from it, the
   // way every other block in the app sits on its card.
   background: $surface-plot;
@@ -2168,7 +2168,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px;
   padding: 4px;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   // The plot well, flat: a block on a menu, one step down from it, the
   // way every other block in the app sits on its card.
   background: $surface-plot;
@@ -2792,7 +2792,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     place-items: center;
     color: $secondary-light;
     border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
     background: color-mix(in srgb, $secondary-default 6%, transparent);
     font-size: $text-micro;
     font-variant-numeric: tabular-nums;
@@ -2962,7 +2962,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 3px 7px;
     color: $secondary-light;
     border: 1px solid color-mix(in srgb, $secondary-default 24%, transparent);
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
     background: color-mix(in srgb, $secondary-default 6.5%, transparent);
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
@@ -3138,7 +3138,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 3px 7px;
     color: $text-faint;
     border: 1px solid rgba($edge-tint, 0.12);
-    border-radius: $radius-pill;
+    border-radius: $radius-2xs;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
     @include tracking(0.08em);
@@ -4007,7 +4007,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $secondary-default 24%,
     transparent
   ) !important;
-  border-radius: 9px !important;
+  border-radius: $radius-xs !important;
 }
 
 .karaoke-maker__header-back {
@@ -4018,7 +4018,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $secondary-default 19%,
     transparent
   ) !important;
-  border-radius: 10px !important;
+  border-radius: $radius-xs !important;
 }
 
 .karaoke-maker__header-action {
@@ -4119,7 +4119,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted !important;
   background: transparent !important;
   border-color: transparent !important;
-  border-radius: 8px !important;
+  border-radius: $radius-xs !important;
   box-shadow: none !important;
   isolation: isolate;
 
@@ -4296,6 +4296,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-l;
   box-shadow: 0 22px 48px color-mix(in srgb, $surface-base 48%, transparent);
   transform: translateX(-50%);
+  // Pops out of the button it hangs under. A pop, not the menus' fold: the
+  // fold is a `transform`, and this one's transform is what centres it. The
+  // origin is the box before that shift, whose left edge is the middle it is
+  // centred on.
+  transform-origin: top left;
+  @include animate(pop-in, $motion-fast, $ease-spring);
   @include slim-scrollbar;
 }
 
@@ -4623,7 +4629,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1;
   background: $block-lift !important;
   border-color: rgba(91, 177, 190, 0.14) !important;
-  border-radius: 7px !important;
+  border-radius: $radius-xs !important;
   box-shadow: none !important;
 
   &:hover {
@@ -4737,6 +4743,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
   border-radius: $radius-m;
   box-shadow: 0 18px 38px color-mix(in srgb, $surface-base 38%, transparent);
+  // Out of the Export button's corner, and back into it (`menu-in`).
+  --menu-origin: top right;
+  @include menu-motion;
 
   button {
     justify-content: flex-start;
@@ -4782,7 +4791,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: nowrap;
   background: $block-lift;
   border: 1px solid rgba(82, 145, 164, 0.12);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
 
   > span {
     gap: 4px;
@@ -4991,7 +5000,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $secondary-default 20%,
     transparent
   ) !important;
-  border-radius: 9px !important;
+  border-radius: $radius-xs !important;
 
   &::after {
     position: absolute;
@@ -5247,7 +5256,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
 
   > span {
     font-size: $text-eyebrow;
@@ -5293,7 +5302,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $secondary-light 20%,
     transparent
   ) !important;
-  border-radius: $radius-pill !important;
+  border-radius: $radius-xs !important;
   box-shadow:
     inset 0 1px rgba($white, 0.05),
     0 5px 14px rgba($black, 0.18) !important;
@@ -5618,7 +5627,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-body;
     font-weight: $weight-bold;
     background: $block-lift;
-    border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-xs;
     box-shadow: inset 0 -2px rgba($black, 0.22);
   }
@@ -6554,7 +6563,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       font-family: inherit;
       font-size: $text-lead;
       background: color-mix(in srgb, $surface-well 74%, transparent);
-      border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+      border: 1px solid $border-field;
       border-radius: $radius-xs;
     }
 
@@ -7201,7 +7210,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transparent 55%
     ),
     $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 31%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-l;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
@@ -7281,7 +7290,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px 10px;
   font-size: $text-lead;
   background: $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
 
   svg {
@@ -7384,7 +7393,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transparent 58%
     ),
     $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-l;
   box-shadow: 0 18px 44px color-mix(in srgb, $surface-base 46%, transparent);
 }
@@ -7438,7 +7447,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px;
   font-size: $text-title;
   background: $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-m;
 
   // The size the toolbar buttons would otherwise have supplied.
@@ -7462,7 +7471,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__wizard-step-loader {
   width: 14px;
   height: 14px;
-  border: 2px solid color-mix(in srgb, $secondary-light 25%, transparent);
+  border: 2px solid $border-field;
   border-top-color: $secondary-light;
   border-radius: 50%;
   animation: karaoke-wizard-spin 0.8s linear infinite;
@@ -7492,7 +7501,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 4px 8px;
     color: $text-primary;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
-    border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-xs;
   }
 }
@@ -7598,7 +7607,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transparent 55%
     ),
     $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 31%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-l;
 
   > button {
@@ -8015,7 +8024,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   pointer-events: none;
   background: $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
   box-shadow:
     0 14px 34px rgba($black, 0.36),
@@ -8146,7 +8155,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $secondary-default 28%,
     transparent
   ) !important;
-  border-radius: 10px !important;
+  border-radius: $radius-xs !important;
 
   svg {
     width: 15px;
@@ -8684,7 +8693,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transparent 58%
     ),
     $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-light 27%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-m;
 
   strong,

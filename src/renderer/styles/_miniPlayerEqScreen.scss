@@ -224,6 +224,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
       opacity: 0.55;
     }
 
+    .tint-icon__wash {
+      fill: var(--scene-tint-swatch, currentColor);
+      stroke: none;
+      opacity: 0.3;
+    }
+
     &[aria-pressed='true'] .tint-icon__half {
       fill: var(--scene-tint-swatch, currentColor);
       opacity: 1;

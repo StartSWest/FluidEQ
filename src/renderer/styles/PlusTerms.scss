@@ -46,7 +46,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 10px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 8%, transparent);
   font-size: $text-small;
   font-weight: $weight-medium;

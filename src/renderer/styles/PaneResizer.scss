@@ -21,12 +21,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The divider between a pane and the one under it.
 //
-// Exactly the height of the gap the workspace already puts between two cards,
-// so it sits *in* that gap rather than adding to it — see the negative margins
-// in App.scss, which cancel the two gaps this element would otherwise
-// introduce. Mostly empty: the grip is a short bar, but the whole strip is the
-// target, because a three-pixel line is a thing you hunt for.
+// The whole seam between the two panes: on the open floor they meet with no
+// gap, and this strip is the hairline that parts them, drawn across its
+// middle like the lines between the columns. Mostly empty: the grip is a
+// short bar, but the whole strip is the target, because a one-pixel line is a
+// thing you hunt for.
 .pane-resizer {
+  position: relative;
   display: flex;
   height: 12px;
   flex: 0 0 auto;
@@ -36,7 +37,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Without this a drag on a touchscreen scrolls the page instead.
   touch-action: none;
 
+  &::before {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: $border-subtle;
+    content: '';
+  }
+
   span {
+    position: relative;
     width: 44px;
     height: 3px;
     border-radius: $radius-pill;

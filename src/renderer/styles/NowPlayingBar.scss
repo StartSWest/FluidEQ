@@ -60,56 +60,57 @@ $now-playing-seek-width: 340px;
 // faders. The other two have room to spare inside it.
 $now-playing-bar-height: 64px;
 
-// A card, on the same line as every other outermost card in the shell.
-//
-// It used to run edge to edge with a border along its top only, which is the
-// one thing in this window that was not a card — `.side-bar` and
-// `.right-content` are both inset by the shell's gutter and both rounded, and
-// this sat flush against three window edges beside them. The gutter comes
-// from `--shell-gutter`, declared in `App.scss` and consumed by
-// `.app-workspace`: this bar is fixed and portalled to `document.body`, so it
-// cannot inherit that padding and has to be told the same number. One
-// declaration, read from two places, rather than two that drift.
+// Edge to edge along the foot of the window, with a hairline along its top:
+// the open floor (layout A, Ivan 2026-09-25), where nothing in the shell is a
+// card. It was a card inset by the shell's gutter for a while, to match the
+// columns when they were cards; it follows them back. The gutter still comes
+// from `--shell-gutter`, declared in `App.scss` — this bar is fixed and
+// portalled to `document.body`, so it cannot inherit `.app-workspace`'s
+// padding and has to be told the same number, which is now nothing.
 .now-playing-bar {
   position: fixed;
   z-index: 1100;
-  right: var(--shell-gutter, 16px);
-  bottom: var(--shell-gutter-bottom, 18px);
-  left: var(--shell-gutter, 16px);
+  right: var(--shell-gutter, 0px);
+  bottom: var(--shell-gutter-bottom, 0px);
+  left: var(--shell-gutter, 0px);
   display: grid;
   // The side columns have a floor and the middle one does not, so when the
   // window tightens it is the seek line that shortens rather than the title
   // that disappears. Written the other way round — `minmax(0, 1fr)` on the
   // sides — the deck kept its full width and squeezed the track column to
   // the width of half a cover.
-  grid-template-columns: minmax(150px, 1fr) auto minmax(64px, 1fr);
+  //
+  // The deck stands on the middle of the workspace column, not the window's:
+  // the sound panel is wider than the rail, and on the window's centre line
+  // the play button stood 99px to the right of the EQ above it at 1707px
+  // (Ivan, 2026-09-25: "so it falls into the center of the EQ band
+  // settings"). The column publishes how far its middle is from the
+  // window's (`useWorkspaceAxis`), and an empty column takes twice that on
+  // one side — twice, because the two fractions share whatever it takes.
+  // It stands after the track to move the deck right, and at the far end
+  // to move it left, so the fader beside the deck stays beside it. Each
+  // spacer has a gap either side whether it is empty or not, which keeps the
+  // two sides of the deck equal.
+  --axis-lead: max(0px, var(--workspace-axis-shift, 0px) * 2);
+  --axis-trail: max(0px, var(--workspace-axis-shift, 0px) * -2);
+  grid-template-columns:
+    minmax(150px, 1fr) var(--axis-lead) auto minmax(64px, 1fr)
+    var(--axis-trail);
   align-items: center;
   gap: $spacing-l;
   height: $now-playing-bar-height;
   padding: 9px $spacing-l;
-  // The same surface as the workspace card and the right pane, from the same
-  // mixin rather than from numbers that resemble theirs.
+  // The floor, flat — no ramp: its own 64px ramp once made it a bevel, a
+  // glossy strip laid across the foot of a window of matte panels.
   //
-  // What it had was its own 64px ramp, `#163047` down to `#07131f`, and that
-  // ramp is the whole of why this bar looked like a different material: every
-  // other card takes its gradient from `background-attachment: fixed`, measured
-  // against the window, so inside a card the colour is all but flat. Compressed
-  // into 64px the same idea becomes a light top edge over a dark bottom one,
-  // which is a bevel — a glossy strip laid across the foot of a window of matte
-  // panels.
-  @include panel-surface;
-  // The border and the corner come from the mixin above; the colour and the
-  // lift come from `.right-content__footer` in `App.scss`, the strip that
-  // carries the fluideq.com button. Same two stops, same upward cast: both bars
-  // sit at the foot of the window and are the same kind of surface, so they are
-  // drawn the same way rather than nearly the same way.
-  //
-  // `background-color` under the gradient is what keeps it opaque. This bar
-  // floats at `z-index: 1100` over three accelerated canvases, so the
-  // compositor keeps it on a layer of its own, and text on a layer only keeps
-  // its subpixel antialiasing over an opaque background. The footer does not
-  // need this: it is inside a card, painted into the page.
-  background-color: $surface-panel;
+  // OPAQUE, not transparent, though it is the same colour as what is behind
+  // it. This bar floats at `z-index: 1100` over three accelerated canvases, so
+  // the compositor keeps it on a layer of its own, and text on a layer only
+  // keeps its subpixel antialiasing over an opaque background.
+  border: 0;
+  border-top: 1px solid $border-subtle;
+  border-radius: 0;
+  background-color: $surface-base;
   // No shadow, for the reason the titlebar has none: it fell onto the foot
   // of the columns above it as a darker band.
   box-shadow: none;
@@ -118,13 +119,6 @@ $now-playing-bar-height: 64px;
   // painted into it lost their subpixel antialiasing for it. This surface is
   // 94-98% opaque and the shell reserves its height, so there was never
   // anything behind it for the blur to soften.
-}
-
-// Closer to the edge in full screen. The gutter it keeps in a window is the
-// same one every card keeps from the window's sides; over a picture there is
-// no card to line up with, and the bar reads better sitting low.
-.now-playing-bar.is-floating {
-  bottom: 8px;
 }
 
 // Out of the way, once full screen has been still for two seconds.
@@ -149,6 +143,23 @@ $now-playing-bar-height: 64px;
   .now-playing-bar {
     transition: none;
   }
+}
+
+// Each item in its own column, past the spacer that may stand between them.
+// Karaoke's deck and its right-hand side are the bar's items too (see
+// `__adopted`), and go where the library's do.
+.now-playing-bar__track {
+  grid-column: 1;
+}
+
+.now-playing-bar__deck,
+.now-playing-bar__adopted .karaoke-transport__deck {
+  grid-column: 3;
+}
+
+.now-playing-bar__aside,
+.now-playing-bar__adopted .karaoke-transport__rest {
+  grid-column: 4;
 }
 
 // Narrow: a grid that fits, rather than three columns that do not.
@@ -190,6 +201,15 @@ $now-playing-bar-height: 64px;
       auto;
     gap: $spacing-s;
     padding: 8px $spacing-s;
+  }
+
+  // Three columns and no spacers: back to the order the items come in.
+  .now-playing-bar__track,
+  .now-playing-bar__deck,
+  .now-playing-bar__aside,
+  .now-playing-bar__adopted .karaoke-transport__deck,
+  .now-playing-bar__adopted .karaoke-transport__rest {
+    grid-column: auto;
   }
 
   // The seek line gives up most of its length here. Short is still usable for
@@ -518,7 +538,16 @@ $now-playing-bar-height: 64px;
   // the bar, an edge, no shadow. It was a mist wash of its own under a drop
   // shadow, the one control tray drawn as a different material.
   @include inset-surface;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
+}
+
+// The extra 7px on the right is room after the seek line's time. With no
+// seek line — another program's sound that cannot be seeked, the bar before
+// anything has played — the pill ends on a round button at both sides, and
+// even padding puts the play button at its middle: on the column's middle,
+// under the Tone row's Mid dial, rather than 3px to the left of it.
+.now-playing-bar__deck:not(:has(> .now-playing-bar__position)) {
+  padding-right: 3px;
 }
 
 .now-playing-bar__buttons,
@@ -748,7 +777,7 @@ $now-playing-bar-height: 64px;
   padding: 4px 7px 4px 4px;
   // Same block as the deck beside it.
   @include inset-surface;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
 }
 
 // The figure at the end of the fader, in the same grey the format line uses.

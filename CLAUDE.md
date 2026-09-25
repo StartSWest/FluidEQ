@@ -643,7 +643,16 @@ Everything worth knowing about them is available through commands:
   The player's printed scale stands beside the bands it describes rather than
   at the head of the row, where it read as the preamp's as well.
 - **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
-  on the left never stretches (`gainScale`); the analyser gets 80 dB below the
+  on the left never stretches, and never cuts either (Ivan, 2026-09-25: "it
+  needs to draw completely"): `eqGainScale` gives ±20 the middle eight tenths
+  and compresses ±20 to ±60 into the tenth at each end, slope-continuous, so an
+  output curve under a deep preamp is drawn whole. Only the EQ's own drawing
+  uses it — curves, handles, genre pins, the gain grid and labels, Smart EQ's
+  correction limit; the analyser, the presence lines and every scene keep the
+  plain ±20 `gainScale`, which the live wave is projected through, or every
+  visualizer would shrink by a fifth. The output curve under the live preamp
+  is redrawn per step (`LiveOutputCurve`), not translated: a translation is
+  wrong inside the compressed ends. The analyser gets 80 dB below the
   programme's peak on the right (`liveGraphBand.ts`, `graphLevelTickFormat`),
   as professional equalisers draw it, because the top octave of most records
   lies more than 40 dB down and a high cut drew nothing there. The graphs draw

@@ -21,9 +21,27 @@ import Chevron from '../icons/Chevron';
 import '../styles/SidebarSection.scss';
 
 interface ISidebarSectionProps {
-  /** Small caps line above the title. */
-  eyebrow: string;
+  /**
+   * Small caps line above the title.
+   *
+   * Optional. With one the heading is two lines, the shape the OPRA card on
+   * the headphone page keeps; without one the header is a single row — the
+   * glyph, the name, and while folded what is inside — which is what every
+   * card in the sound panel is now. Two lines of heading over a 300px card
+   * were most of what made the panel read as a settings form.
+   */
+  eyebrow?: string;
+  /** The row header's mark: a small line icon, drawn in the accent. */
+  glyph?: ReactNode;
   title: string;
+  /**
+   * What the folded section holds, in a few words at the header's right:
+   * the output that is on, the strength a profile is set to.
+   *
+   * Shown only while folded. Open, the body says it in full, and the same
+   * words twice on one card is what the old two-line heading did.
+   */
+  status?: ReactNode;
   /**
    * The one control that stays put when the section is folded.
    *
@@ -67,7 +85,9 @@ interface ISidebarSectionProps {
  */
 export default function SidebarSection({
   eyebrow,
+  glyph,
   title,
+  status,
   summary,
   summaryWhenCollapsedOnly = false,
   aside,
@@ -80,9 +100,9 @@ export default function SidebarSection({
 
   return (
     <section
-      className={`sidebar-section${isOpen ? ' is-open' : ''}${
-        className ? ` ${className}` : ''
-      }`}
+      className={`sidebar-section${eyebrow ? '' : ' sidebar-section--row'}${
+        isOpen ? ' is-open' : ''
+      }${className ? ` ${className}` : ''}`}
     >
       <button
         type="button"
@@ -91,10 +111,18 @@ export default function SidebarSection({
         aria-controls={contentId}
         onClick={() => setIsOpen((current) => !current)}
       >
+        {glyph && (
+          <span className="sidebar-section__glyph" aria-hidden="true">
+            {glyph}
+          </span>
+        )}
         <span className="sidebar-section__heading">
-          <span className="eyebrow">{eyebrow}</span>
+          {eyebrow && <span className="eyebrow">{eyebrow}</span>}
           <span className="sidebar-section__title">{title}</span>
         </span>
+        {status !== undefined && status !== '' && !isOpen && (
+          <span className="sidebar-section__status">{status}</span>
+        )}
         <Chevron className="sidebar-section__chevron" />
       </button>
 

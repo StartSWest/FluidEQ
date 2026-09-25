@@ -32,7 +32,9 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 @mixin surface($width, $height) {
-  @include animate(pop-in, $motion-base, $ease-spring);
+  // As a surface's motion, so euphoria's rainbow edge below keeps the pop
+  // rather than replacing it (`surface-motion`).
+  @include surface-motion($dialog-arrival);
   position: relative;
   display: grid;
   width: min($width, 100%);

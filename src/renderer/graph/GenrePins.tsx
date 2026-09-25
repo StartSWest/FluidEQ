@@ -59,7 +59,10 @@ interface IGenrePinsProps {
   data: readonly IChartCurveData[];
   xScale: AxisScale<NumberValue>;
   yScale: AxisScale<NumberValue>;
-  /** The wave owns the plot, or the grid is off: no annotations on it. */
+  /**
+   * The wave owns the plot: no annotations on it. Not the grid being off —
+   * the pins belong to the Preset line, and go wherever it is drawn.
+   */
   isHidden: boolean;
 }
 

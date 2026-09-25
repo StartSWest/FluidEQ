@@ -46,7 +46,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
   color: $text-muted;
   border: 1px solid $border-field;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: $surface-field;
   font-size: calc(#{$u} * 0.75);
   gap: calc(#{$u} * 0.4);
@@ -186,7 +186,7 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-self: start;
   padding: calc(#{$u} * 0.32) calc(#{$u} * 0.7);
   color: $surface-base;
-  border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-xs;
   background: $secondary-default;
   font-size: calc(#{$u} * 0.7);

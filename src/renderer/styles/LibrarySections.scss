@@ -1,0 +1,162 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'libraryMetrics' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// A search from inside a folder, split under two headings: that folder's
+// matches, then the rest of the library (`LibrarySectionHeading`).
+//
+// Louder than a folder heading and quieter than a row. A folder heading is
+// small capitals that label a run of songs; this says which half of the
+// answer the reader is in, so it is set in the reader's own case at body
+// size, with the folder's accent on the half that is theirs and a rule that
+// runs to the edge — the eye finds where one half stops without reading.
+.library-section {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $text-muted;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+// In the table: exactly a row tall — see `_libraryMetrics.scss`.
+.library-section--row {
+  height: $library-row-height;
+  flex-shrink: 0;
+  padding: 0 $spacing-s;
+}
+
+.library-section__cell {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-xs;
+  // Stands on the foot of the row, over what it heads, rather than centred
+  // between that and the row above.
+  align-self: flex-end;
+  padding-bottom: 7px;
+}
+
+// In the grid: a band across every column, its height set by the view, which
+// counts it into the grid's windowing.
+.library-section--band {
+  grid-column: 1 / -1;
+  align-items: flex-end;
+  padding: 0 2px 6px;
+}
+
+.library-section__icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: $text-faint;
+}
+
+.library-section__label {
+  @include truncate;
+
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.library-section__count {
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border-radius: $radius-2xs;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  line-height: 17px;
+  background: color-mix(in srgb, $text-faint 12%, transparent);
+}
+
+.library-section__rule {
+  flex: 1 1 auto;
+  min-width: $spacing-m;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, $text-faint 26%, transparent),
+    transparent
+  );
+}
+
+// The reader's own folder: its accent, on the icon, the count and the rule.
+.library-section--near {
+  color: $text-primary;
+
+  .library-section__icon {
+    color: $secondary-light;
+  }
+
+  .library-section__count {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+
+  .library-section__rule {
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, $secondary-light 45%, transparent),
+      transparent
+    );
+  }
+}
+
+// Nothing matched where the reader stands: said, and set back.
+.library-section--nearEmpty {
+  color: $text-faint;
+  font-weight: $weight-semibold;
+}
+
+// A row whose page has not come back yet: the row's own shape in outline, so
+// a fast scroll shows the table filling in rather than blank space.
+.library-list__row--placeholder {
+  pointer-events: none;
+}
+
+.library-list__placeholder-art,
+.library-list__placeholder-text {
+  display: block;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $text-faint 7%, transparent);
+}
+
+.library-list__placeholder-art {
+  width: $control-height-sm;
+  height: $control-height-sm;
+}
+
+.library-list__placeholder-text {
+  width: min(60%, 220px);
+  height: 9px;
+}
+
+// A tile whose page is still out: the tile's own box, its cover a faint
+// square, so a fast scroll shows the grid filling in.
+.library-grid__tile--placeholder {
+  cursor: default;
+  pointer-events: none;
+
+  .library-cover-art {
+    background: color-mix(in srgb, $text-faint 6%, transparent);
+  }
+}
+
+// Over Cover Flow's row, which has no rows to stand a heading between: the
+// half of the search the cover in front of the reader is in, centred over
+// the rail it sits above.
+.library-coverflow__section {
+  flex: 0 0 auto;
+  justify-content: center;
+  margin: $spacing-s $spacing-m 0;
+}

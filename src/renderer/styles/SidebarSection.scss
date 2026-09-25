@@ -25,11 +25,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // title with a chevron off to one side does not read as a control, and people
 // were not finding out these regions fold at all.
 .sidebar-section__header {
-  display: grid;
+  // Flex rather than a grid with a column per part: the glyph and the folded
+  // status are both optional, and a grid track for an absent part still
+  // costs its gap.
+  display: flex;
   min-width: 0;
   align-items: center;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
   padding: 11px 13px;
   color: inherit;
   // No frame of its own. The section around it draws the one border; a
@@ -72,7 +74,48 @@ it under the terms of the GNU General Public License version 3 or later.
 .sidebar-section__heading {
   display: grid;
   min-width: 0;
+  flex: 1 1 auto;
   gap: 1px;
+}
+
+// The row header's mark. Drawn in the accent like an eyebrow was, because it
+// took the eyebrow's job: one glance says which card this is.
+.sidebar-section__glyph {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: $secondary-light;
+  opacity: 0.85;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// One row, one line: the glyph, the name, and while folded what is inside.
+// The title steps down from the two-line heading's size — with the eyebrow
+// gone it no longer has a caps line to stand over, and at the old size it
+// read as a page heading on a 300px card.
+.sidebar-section--row {
+  .sidebar-section__header {
+    padding: 10px 12px;
+  }
+
+  .sidebar-section__title {
+    font-size: $text-lead;
+  }
+}
+
+// What the folded card holds, in a few words. Quiet, and it gives way first:
+// the name keeps its full width and the status truncates.
+.sidebar-section__status {
+  @include truncate;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
 }
 
 .sidebar-section__title {
@@ -89,6 +132,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // open, the same way every select and pick in the app says it. It used to
 // point sideways and swing down, which was a fourth arrow vocabulary.
 .sidebar-section__chevron {
+  flex: 0 0 auto;
   color: $text-faint;
   transition:
     transform 150ms ease,
@@ -147,6 +191,47 @@ it under the terms of the GNU General Public License version 3 or later.
   // Only once open, or the section clips its own dropdown menus.
   padding-bottom: 13px;
   overflow: visible;
+}
+
+// In the sound panel a section is a stretch of the column, not a card in it:
+// no frame, no fill, no corners, a hairline between one section and the next,
+// and the same 18px in from the column's edges as the rest of the page's
+// content (layout A, Ivan 2026-09-25). The line under an open header goes
+// too — on the open floor the title and what it opens onto are one stretch.
+// Elsewhere (the headphone picker on the EQ Presets page) a section is still a
+// block standing on its page.
+.right-content .sidebar-section {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+
+  & + .sidebar-section {
+    border-top: 1px solid $border-subtle;
+  }
+
+  .sidebar-section__header {
+    padding: 14px 18px;
+    border-radius: 0;
+  }
+
+  &.is-open .sidebar-section__header {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  &.is-open .sidebar-section__reveal {
+    border-radius: 0;
+  }
+
+  .sidebar-section__summary,
+  .sidebar-section__aside,
+  .sidebar-section__body {
+    padding-inline: 18px;
+  }
+
+  &.is-open .sidebar-section__body {
+    padding-bottom: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

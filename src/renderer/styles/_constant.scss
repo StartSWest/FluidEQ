@@ -88,16 +88,32 @@ $bp-laptop-height: 900px;
 
 // The left column's width, docked and floating alike.
 //
-// Two figures because the layout narrows it once on the way down, and one
-// place for each because the panel also floats: below the two-column
+// A strip, not a panel (layout A, Ivan 2026-09-25): power, preamp, the two
+// switches and the meter, stacked. 132 is the narrowest that holds every
+// language's longest word that cannot break — Italian "Preamplificazione" at
+// 93px and Spanish "automáticamente" at 92, measured in Segoe UI at the rows'
+// 11.52px semibold — inside the 18px the sound panel keeps either side
+// (Ivan: "same padding as the right one"), and the column's 1px hairline.
+// At 92, the width it was drawn at, those two ran out of the column; at 116
+// they fitted with 10px either side, which read as cramped.
+//
+// Two names because the layout used to narrow it on the way down (164, 150),
+// and one place for each because the panel also floats: below the two-column
 // breakpoint it is a drawer, and a drawer wider than the column it replaces
 // makes crossing that breakpoint look like the panel grew.
-$side-bar-width: 164px;
-$side-bar-width-compact: 150px;
+$side-bar-width: 132px;
+$side-bar-width-compact: 132px;
 
 // The sound panel's width as a drawer. Read twice: by the panel, and by the
 // tab that rides on its edge while it is open.
 $sound-panel-width: min(340px, 90vw);
+
+// The tab each drawer is pulled out by, and the lane the centre column keeps
+// clear for it while it shows (`App.scss`). On the open floor the page runs to
+// the window's edge, and a tab standing on it covered the graph's level labels
+// at 1440 wide — nothing between them any more. A slim handle now, so the
+// lane it costs the page is slim too.
+$drawer-tab-width: 22px;
 
 $band-width: 64px;
 

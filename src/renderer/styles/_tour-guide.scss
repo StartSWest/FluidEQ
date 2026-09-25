@@ -48,7 +48,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
   color: $text-primary;
   border: 1px solid $border-field-focus;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: $surface-field;
   font-size: calc(#{$u} * 0.78);
   gap: calc(#{$u} * 0.4);

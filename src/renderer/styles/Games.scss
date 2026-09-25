@@ -132,7 +132,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .games-row__now {
   padding: 1px 7px;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 18%, transparent);
   color: $secondary-default;
   font-size: $text-micro;

@@ -30,6 +30,13 @@ const english: Translate = (key, vars) => translate('en', key, vars);
 const FILTER_OPTIONS = labelledFilterOptions(english);
 const nameOf = (type: FilterTypeEnum) => english(FILTER_TYPE_NAME_KEYS[type]);
 
+// Each shape's glyph is an image labelled with the shape's name, so the name
+// alone finds the glyph as well as the row that holds it: a row is looked
+// for as a row, and the closed trigger's value by its glyph.
+const itemNamed = (label: string) =>
+  screen.getByRole('menuitem', { name: label });
+const glyphNamed = (label: string) => screen.getByRole('img', { name: label });
+
 describe('Dropdown', () => {
   const name = 'dropdown';
   const handleChange = jest.fn();
@@ -50,14 +57,14 @@ describe('Dropdown', () => {
       />,
     );
 
-    const value = screen.getByTitle(nameOf(filterType));
+    const value = glyphNamed(nameOf(filterType));
     expect(value).toBeInTheDocument();
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
     expect(screen.getByLabelText(`${name}-items`)).toBeInTheDocument();
 
     const newFilterType = FilterTypeEnum.LSC;
-    const newValue = screen.getByLabelText(nameOf(newFilterType));
+    const newValue = itemNamed(nameOf(newFilterType));
     expect(newValue).toBeInTheDocument();
     await user.click(newValue);
     expect(handleChange).toHaveBeenCalledWith(newFilterType);
@@ -77,7 +84,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(nameOf(filterType));
+    const item = itemNamed(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.keyboard('{ArrowDown}{Enter}');
@@ -98,7 +105,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(nameOf(filterType));
+    const item = itemNamed(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.keyboard('{Tab}{Enter}');
@@ -122,7 +129,7 @@ describe('Dropdown', () => {
     // Open the dropdown menu
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const firstItem = screen.getByLabelText(FILTER_OPTIONS[0].label);
+    const firstItem = itemNamed(FILTER_OPTIONS[0].label);
     expect(firstItem).toHaveFocus();
 
     // Use tab to navigate above the dropdown menu
@@ -134,9 +141,7 @@ describe('Dropdown', () => {
       .fill('{ArrowDown}')
       .join('');
     await user.keyboard(tabInstructions);
-    const lastItem = screen.getByLabelText(
-      FILTER_OPTIONS[FILTER_OPTIONS.length - 1].label,
-    );
+    const lastItem = itemNamed(FILTER_OPTIONS[FILTER_OPTIONS.length - 1].label);
     expect(lastItem).toHaveFocus();
   });
 
@@ -157,7 +162,7 @@ describe('Dropdown', () => {
     // Open the dropdown menu
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    let menuItem = screen.getByLabelText(FILTER_OPTIONS[0].label);
+    let menuItem = itemNamed(FILTER_OPTIONS[0].label);
     expect(menuItem).toHaveFocus();
     // Use tab to navigate above the dropdown menu
     await user.keyboard('{Shift>}{Tab}{Tab}{/Shift}'); // Hold Shift down when pressing Tab
@@ -166,7 +171,7 @@ describe('Dropdown', () => {
 
     // Open the dropdown menu
     await user.click(dropdown);
-    menuItem = screen.getByLabelText(FILTER_OPTIONS[0].label);
+    menuItem = itemNamed(FILTER_OPTIONS[0].label);
     expect(menuItem).toHaveFocus();
     // Use tab to navigate below the dropdown menu
     const tabInstructions = Array(FILTER_OPTIONS.length).fill('{Tab}').join('');
@@ -187,11 +192,13 @@ describe('Dropdown', () => {
       />,
     );
 
-    const value = screen.getByTitle(nameOf(filterType));
+    const value = glyphNamed(nameOf(filterType));
     expect(value).toBeInTheDocument();
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    expect(screen.queryByLabelText(nameOf(filterType))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: nameOf(filterType) }),
+    ).not.toBeInTheDocument();
   });
 
   it('should close the dropdown when clicking outside', async () => {
@@ -211,7 +218,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(nameOf(filterType));
+    const item = itemNamed(nameOf(filterType));
     expect(item).toHaveFocus();
 
     await user.click(screen.getByText('Outside'));
@@ -235,7 +242,7 @@ describe('Dropdown', () => {
 
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
-    const item = screen.getByLabelText(nameOf(filterType));
+    const item = itemNamed(nameOf(filterType));
     expect(item).toHaveFocus();
 
     // Need this because the focus triggers a state update and so we need to wait

@@ -7,75 +7,56 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 /**
- * How much room the plot leaves above itself.
+ * How much room the plot leaves above itself: almost none.
  *
- * The controls strip floats over the top of the chart with no surface of its
- * own, and its children take pointer events. So anything of the plot that ends
- * up underneath it is not merely hard to read — it cannot be grabbed at all,
- * which is how the band handles at the top of a boosted curve became
- * unreachable while looking perfectly present.
+ * The controls strip floats INSIDE the graph, over the top of the plot (Ivan,
+ * 2026-09-25: "move the graph a bit up and make the option pane appear inside
+ * the graph"). It used to have a band of its own: the plot kept out from under
+ * the strip by the strip's measured height, so the band handles at the top of
+ * a boosted curve could never land under a button. The price was that band —
+ * 54px of graph with nothing drawn in it, and every visualizer cut off in a
+ * hard straight line along its foot ("some standard viz getting cutted").
  *
- * The old headroom was a flat thirty pixels, chosen so a curve at +20 dB was
- * not shaved off. The strip is taller than that before it wraps — eight pixels
- * down from the card, then a button of at least twenty-eight — and it wraps to
- * a second row whenever the chips do not fit, which happens on a narrow pane
- * with several layers in the chain. A constant cannot follow that.
+ * Handles under the strip stay reachable wherever the strip is not a control:
+ * its container and its hint text let a press through to the plot
+ * (`.live-output-controls`, `.graph-edit-hint`), and the pane sits against
+ * the right, clear of the gain scale.
  */
-
-/** Where the strip starts, matching `top` on `.live-output-controls`. */
-export const CONTROLS_OFFSET = 8;
-
-/**
- * Gap between the bottom of the strip and the top of the plot.
- *
- * A handle is grabbed by its centre but hit by its edge, so leaving zero would
- * put the top row of handles half under a button.
- */
-export const CONTROLS_CLEARANCE = 6;
-
-/** Headroom kept when nothing has been measured, and the floor thereafter. */
-export const MINIMUM_TOP_MARGIN = 30;
-
-/**
- * The strip's height on one row, measured in the running window (2026-09-12,
- * 40px, giving a 54px headroom). For a plot with no strip of its own that must
- * sit where the graph's plot sits — the Studio's grid — since the graph's own
- * figure is only ever measured while the graph is on screen.
- */
-export const ONE_ROW_CONTROLS_HEIGHT = 40;
 
 /**
  * Air either side of a ruled plot, so a curve running off the edge of the
- * plot is not cut flush against the card. A gridless plot has none.
+ * plot is not cut flush against the column's edge. A gridless plot has none.
+ *
+ * It was 30 while the plot stood in a rounded card; on the open floor (layout
+ * A, Ivan 2026-09-25: "the grid padding on the graph be less on the side")
+ * there is no card edge to keep off, only the hairline between the columns,
+ * and the gain and level labels already have gutters of their own inside
+ * this (`getAxisPadding`).
  */
-export const GRID_SIDE_MARGIN = 30;
-
-/** Under a ruled plot, where its frequency labels live. */
-export const GRID_BOTTOM_MARGIN = 10;
+export const GRID_SIDE_MARGIN = 8;
 
 /**
- * Headroom above the plot, in pixels.
- *
- * `controlsHeight` is measured from the live element rather than derived from
- * the stylesheet: the strip's height depends on what is in it and how wide the
- * pane is, and both change without this code being told.
- *
- * A gridless plot gives the headroom up on purpose. With no scale left to read,
- * the pane is a visual stage and the height slider must be able to reach its
- * real top edge. A ruled graph keeps enough room for its controls and handles.
+ * Under a ruled plot: nothing. The frequency labels live inside the plot's
+ * own bottom gutter (`getAxisPadding`), and this margin was a second band of
+ * empty picture under them, between the graph and the divider below it.
  */
-export const plotTopMargin = (
-  isEdgeToEdge: boolean,
-  controlsHeight: number,
-): number => {
-  if (isEdgeToEdge) {
-    return 4;
-  }
-  if (!Number.isFinite(controlsHeight) || controlsHeight <= 0) {
-    return MINIMUM_TOP_MARGIN;
-  }
-  return Math.max(
-    MINIMUM_TOP_MARGIN,
-    Math.ceil(controlsHeight) + CONTROLS_OFFSET + CONTROLS_CLEARANCE,
-  );
-};
+export const GRID_BOTTOM_MARGIN = 0;
+
+/**
+ * Above a ruled plot: enough that the "+20 dB" label, centred on the top rule,
+ * is not cut by the graph's own top edge. The rule itself is a further 14px
+ * down, inside the plot's padding, which is what keeps a handle at +20 dB
+ * whole (`getAxisPadding`).
+ */
+export const RULED_TOP_MARGIN = 6;
+
+/**
+ * A gridless plot gives the headroom up entirely. With no scale left to read,
+ * the pane is a visual stage and the height slider must be able to reach its
+ * real top edge.
+ */
+export const EDGE_TO_EDGE_TOP_MARGIN = 4;
+
+/** Headroom above the plot, in pixels. */
+export const plotTopMargin = (isEdgeToEdge: boolean): number =>
+  isEdgeToEdge ? EDGE_TO_EDGE_TOP_MARGIN : RULED_TOP_MARGIN;

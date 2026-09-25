@@ -12,10 +12,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // A genre's notes: beside the preset lists (`GenreNotesPreview`) and whole in
 // their dialog (`GenreNotesDialog`), with the curve they share (`GenreCurve`).
 //
-// The curve is drawn in the preset line's own violet, `$triadic-1`, which is
-// what the main graph draws the Preset layer in: the curve here and that line
-// are the same thing and should never read as two. Boosts and cuts take the
-// colours the driver's filter list gives them, the accent and the pink.
+// The curve, its fill and its numbered marks are drawn in the app's own
+// accent (Ivan, 2026-09-25: "fix this purple thing not good"). They were the
+// Preset layer's violet, to match the line the main graph draws that layer
+// in; beside a list of presets on the open floor the violet was the one
+// colour on the page that was nobody else's. Boosts and cuts take the colours
+// the driver's filter list gives them, the accent and the pink.
+$notes-ink: $secondary-default;
 
 // *** The curve **************************************************************
 
@@ -43,34 +46,35 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .genre-curve__area {
-  fill: rgba($triadic-1, 0.16);
+  fill: color-mix(in srgb, $notes-ink 16%, transparent);
 }
 
 .genre-curve__line {
   fill: none;
-  stroke: $triadic-1;
+  stroke: $notes-ink;
   stroke-linejoin: round;
   stroke-width: 2.4;
 }
 
 .genre-curve__halo {
-  fill: rgba($triadic-1, 0.2);
+  fill: color-mix(in srgb, $notes-ink 20%, transparent);
   transition: fill 150ms ease;
 }
 
 .genre-curve__dot {
   fill: $surface-menu;
-  stroke: $triadic-1;
+  stroke: $notes-ink;
   stroke-width: 2;
 }
 
 .genre-curve__badge {
-  fill: $triadic-1;
+  fill: $notes-ink;
 }
 
 .genre-curve__pin {
+  // The floor's colour on the accent badge (`.genre-whys__number`).
   text {
-    fill: $white;
+    fill: $surface-base;
     font-size: 9px;
     font-weight: $weight-bold;
     pointer-events: none;
@@ -78,11 +82,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &.is-active {
     .genre-curve__halo {
-      fill: rgba($triadic-1, 0.42);
+      fill: color-mix(in srgb, $notes-ink 42%, transparent);
     }
 
     .genre-curve__dot {
-      fill: $triadic-1;
+      fill: $notes-ink;
     }
   }
 }
@@ -109,7 +113,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transition: background-color 150ms ease;
 
     &.is-active {
-      background: rgba($triadic-1, 0.14);
+      background: color-mix(in srgb, $notes-ink 14%, transparent);
     }
   }
 
@@ -125,8 +129,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   place-items: center;
   align-self: center;
   border-radius: $radius-pill;
-  background: $triadic-1;
-  color: $white;
+  background: $notes-ink;
+  // The floor's colour on the accent, as on every filled accent control:
+  // white on the teal was all but unreadable at 9px.
+  color: $surface-base;
   font-size: 9px;
   font-weight: $weight-bold;
 }
@@ -397,7 +403,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   li {
     padding: 3px 10px;
     border: 1px solid $border-panel;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: $surface-field;
     color: $text-muted;
     font-size: $text-small;
@@ -463,7 +469,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // On the Preset chip, between its strength and its remove button, in the
-// Preset line's violet: it is about that line. Its hover is its own, not the
+// notes' own accent, like the notes it opens. Its hover is its own, not the
 // remove button's red, which the chip's rule for its buttons would give it.
 .active-layer.has-notes {
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -479,15 +485,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
 
     .genre-info-mark__disc {
-      fill: $triadic-1;
+      fill: $notes-ink;
     }
 
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
-      background: rgba($triadic-1, 0.3);
+      background: color-mix(in srgb, $notes-ink 30%, transparent);
 
       .genre-info-mark__disc {
-        fill: color-mix(in srgb, $triadic-1 70%, $white);
+        fill: color-mix(in srgb, $notes-ink 70%, $white);
       }
     }
   }
@@ -501,8 +507,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   cursor: pointer;
   outline: none;
 
+  // The floor's colour on the accent badge, as in the notes.
   text {
-    fill: $white;
+    fill: $surface-base;
     font-size: 9px;
     font-weight: $weight-bold;
     pointer-events: none;
@@ -521,27 +528,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .genre-pin__dot {
   fill: $surface-base;
-  stroke: $triadic-1;
+  stroke: $notes-ink;
   stroke-width: 2;
 }
 
 .genre-pin__badge {
-  fill: $triadic-1;
+  fill: $notes-ink;
 }
 
 .genre-pin.is-active {
   .genre-pin__halo {
-    fill: rgba($triadic-1, 0.32);
+    fill: color-mix(in srgb, $notes-ink 32%, transparent);
   }
 
   .genre-pin__dot {
-    fill: $triadic-1;
+    fill: $notes-ink;
   }
 }
 
 // What a pin says, over the graph. In the window rather than in the plot,
-// which clips, and on the menus' own face.
+// which clips, and on the floating surfaces' own face (`floating-surface`):
+// the hairline, the crisp corner, the soft lift. It had the menus' old teal
+// slab and an edge in the notes' colour.
 .genre-pin-tip {
+  @include floating-surface;
   position: fixed;
   z-index: 1100;
   display: grid;
@@ -549,10 +559,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   max-width: 260px;
   gap: 3px;
   padding: 8px 10px 9px;
-  border: 1px solid rgba($triadic-1, 0.55);
-  border-radius: $radius-s;
-  background: $surface-menu-face;
-  box-shadow: 0 10px 24px rgba($black, 0.5);
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.4;
@@ -564,7 +570,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   b {
-    color: color-mix(in srgb, $triadic-1 55%, $white);
+    color: color-mix(in srgb, $notes-ink 55%, $white);
     font-variant-numeric: tabular-nums;
     font-weight: $weight-bold;
   }

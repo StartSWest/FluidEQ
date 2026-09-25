@@ -76,7 +76,7 @@ const help: Record<keyof typeof en, string> = {
     '在 EQ 之前降低电平，给提升留出余量。“自动归一化”会替你设置它。',
   'help.window.autoNormalize':
     '把前级增益保持在刚好够低的位置，让你的任何提升都不会削波。',
-  'help.window.responseGraph': '显示或隐藏页面下方的图表。',
+  'help.window.responseGraph': '显示或隐藏频响图。',
   'help.window.meterName': '电平表',
   'help.window.meter': '左右声道的输出电平，以真实分贝显示。点击它可更换样式。',
   'help.player.title': '迷你播放器',
@@ -262,9 +262,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': '设备、配置与第二路输出',
   'help.profiles.intro':
-    '你的 EQ 会跟随输出设备。“自动绑定”将修改保存到当前输出，“已命名的配置”则让你保留不同的声音方案。“第二路输出”将播放镜像到其他设备，每个设备有独立音量。',
+    '你的 EQ 会跟随输出设备。修改保存到当前输出上启用的配置，“配置”则让你保留不同的声音方案。“第二路输出”将播放镜像到其他设备，每个设备有独立音量。',
   'help.profiles.steps':
-    '编辑前先确认“输出设备”。想保留的声音用“新建配置”保存；“更新”会把修改保存到该命名配置，“还原”则载回它已保存的设置。\n打开“第二路输出”，启用一个可连接的设备并设置音量。在它正下方直接选择该设备已保存的均衡器配置。\n“游戏/视频”使用较小的初始缓冲，“音乐”保留更多余量。请在你的设备上对比同步效果。',
+    '编辑前先确认“输出”卡片顶部的输出设备。想保留的声音用“新建配置”保存；“更新”会把修改保存到该配置，“还原”则载回它已保存的设置。\n打开“第二路输出”，启用一个可连接的设备并设置音量。在它正下方直接选择该设备已保存的均衡器配置。\n“游戏/视频”使用较小的初始缓冲，“音乐”保留更多余量。请在你的设备上对比同步效果。',
   'help.profiles.tip':
     '无论使用哪个引擎，每个镜像输出都使用自己的配置。镜像需要 FluidEQ 保持打开；切换主输出会停止旧镜像。设备延迟也会影响同步。',
   'help.profiles.keywords':
@@ -384,7 +384,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': '使用 Plus 可视化效果时',
   'help.graph.tintName': '窗口颜色',
   'help.graph.tint':
-    '应用主题、可视化效果的颜色，或它的颜色加上环绕的光（“氛围”）。',
+    '应用主题、可视化效果的颜色、它的颜色加上环绕的光（“氛围”），或铺在整个窗口背后的可视化效果（“背景”）。',
   'help.graph.lighting': '用这个场景点亮你的 RGB 设备。',
   'help.graph.desktop': '把这个可视化效果放到桌面图标后面。',
   'help.graph.viewCaption': '“视图”菜单',

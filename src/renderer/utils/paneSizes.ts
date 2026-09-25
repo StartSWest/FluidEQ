@@ -131,14 +131,25 @@ const measureTransportStrip = () => {
 };
 
 /**
+ * The EQ pages' head — their section pills and the Bands title row — standing
+ * above the graph when the graph is between it and the page (`App.tsx`,
+ * `.center-head`; layout A, 2026-09-25). It is in the column but in neither
+ * pane, so it comes off the room the two of them divide, like the seam.
+ */
+const measureHead = (column: HTMLElement) => {
+  const head = column.querySelector(':scope > .center-head');
+  return head instanceof HTMLElement ? head.offsetHeight : 0;
+};
+
+/**
  * What the divider takes out of the column: itself, the two gaps either side
- * of it, and its own margins, which are negative and give those gaps back
- * (`App.scss`: the seam is the column's gap and no deeper).
+ * of it, and its own margins (`App.scss`). On the open floor the column has no
+ * gap and the divider no margins, so the seam is the divider's own hairline:
+ * its 12px grab strip is drawn over the panes and takes no room.
  *
- * The margins were left out, so the seam was counted as 36 when it is 12. The
- * share was worked out against a column 24px shorter than the real one, and
- * the ceiling held the graph 24px over its own floor: a graph dragged as low
- * as it would go stood at 174, never at `PANE_MIN_HEIGHT`.
+ * The margins were once left out while they were negative, so the seam was
+ * counted as 36 when it was 12, and a graph dragged as low as it would go
+ * stood at 174, never at `PANE_MIN_HEIGHT`.
  */
 const measureSeam = (column: HTMLElement) => {
   const gap = parseFloat(getComputedStyle(column).rowGap) || 0;
@@ -169,7 +180,8 @@ const measureSeam = (column: HTMLElement) => {
  * that clips. That is the graph disappearing when the divider is dragged
  * down.
  *
- * The divider's seam is not part of the split either, so it comes off the top.
+ * The divider's seam is not part of the split either, so it comes off the top,
+ * and nor is the EQ pages' head when it stands above the graph.
  */
 const measureSplittableHeight = (): ISplittable => {
   if (typeof document !== 'undefined') {
@@ -177,7 +189,7 @@ const measureSplittableHeight = (): ISplittable => {
     if (column instanceof HTMLElement && column.clientHeight > 0) {
       const room = Math.max(
         PANE_MIN_HEIGHT * 2,
-        column.clientHeight - measureSeam(column),
+        column.clientHeight - measureSeam(column) - measureHead(column),
       );
       return { room, base: room + measureTransportStrip() };
     }
@@ -292,9 +304,46 @@ export const shortWindowPaneKey = (tab: string) =>
 /** More than the ceiling allows, so the ceiling is what holds it: the floor. */
 const GRAPH_STRIP_SHARE = 1;
 
-const editorShareForTab = (tab: string) =>
-  editorSharesByTab[tab] ??
-  (tab.endsWith(SHORT_WINDOW_SUFFIX) ? GRAPH_STRIP_SHARE : defaultEditorShare);
+const BELOW_GRAPH_SUFFIX = '@below-graph';
+
+/**
+ * An EQ page's split while its graph stands above the page rather than under
+ * it (layout A, 2026-09-25): the pane the divider sets is then the one BELOW
+ * it — the bands and the Tone — and the head with the title row is outside
+ * the split altogether. Remembered apart from the old split, which measured a
+ * different pane (head, title and bands together, above the graph), so a
+ * share chosen for that one does not size this one.
+ */
+export const belowGraphPaneKey = (tab: string) => `${tab}${BELOW_GRAPH_SUFFIX}`;
+
+/**
+ * The bands' height when the graph is above them and nobody has moved the
+ * divider: what the band row and the Tone need, and the graph gets the rest
+ * (Ivan, 2026-09-25: "a default less height for the eq on the bottom").
+ *
+ * A height, not a share like every other default here, because this pane's
+ * content does not scale with the window: below a floor-length track (72px,
+ * `MainContent.scss`) the bands stop giving way and the page scrolls, and
+ * above it more pane is only a longer reach. Any one share was too much on a
+ * tall window and too little on a short one — measured in the full-app
+ * harness, 0.45 left the page scrolling 31px at 1440x852 while 1707x960 had
+ * room to spare. 344px is a track of about 96px at every width down to 1100,
+ * nothing scrolling; the graph takes whatever the window has beyond it.
+ */
+const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
+
+const editorShareForTab = (tab: string) => {
+  const stored = editorSharesByTab[tab];
+  if (stored !== undefined) {
+    return stored;
+  }
+  if (tab.endsWith(SHORT_WINDOW_SUFFIX)) {
+    return GRAPH_STRIP_SHARE;
+  }
+  return tab.endsWith(BELOW_GRAPH_SUFFIX)
+    ? BELOW_GRAPH_DEFAULT_HEIGHT / Math.max(1, cachedSplittable.base)
+    : defaultEditorShare;
+};
 
 const editorListeners = new Set<() => void>();
 const cachedEditorHeights = new Map<string, number>();
@@ -392,7 +441,27 @@ let hasMeasuredMountedWorkspace = false;
  */
 let watchedColumn: Element | undefined;
 let columnObserver: ResizeObserver | undefined;
+let columnChildren: MutationObserver | undefined;
 
+const onColumnResized = () => {
+  if (refreshEditorHeightCache()) {
+    editorListeners.forEach((listener) => listener());
+  }
+};
+
+/**
+ * The column's own size, and the EQ pages' head inside it.
+ *
+ * The head takes its height out of the room the panes divide (`measureHead`),
+ * and it changes that room without the column changing size at all: it
+ * arrives and leaves with the graph and the EQ pages, and while it is there
+ * its title row's tools wrap onto a second line as the window narrows and its
+ * applied-layer chips come and go. So the column's children are watched too —
+ * a head arriving is observed for its size, which also reports once on
+ * `observe`, and a head leaving remeasures there and then. A MutationObserver
+ * reports after the DOM has changed, which is what makes that measurement the
+ * new room rather than the old one.
+ */
 const watchColumn = () => {
   if (typeof ResizeObserver === 'undefined') {
     return;
@@ -402,13 +471,30 @@ const watchColumn = () => {
     return;
   }
   columnObserver?.disconnect();
+  columnChildren?.disconnect();
   watchedColumn = column;
-  columnObserver = new ResizeObserver(() => {
-    if (refreshEditorHeightCache()) {
-      editorListeners.forEach((listener) => listener());
-    }
-  });
+  columnObserver = new ResizeObserver(onColumnResized);
   columnObserver.observe(column);
+  let watchedHead: Element | null = null;
+  const observeHead = () => {
+    const head = column.querySelector(':scope > .center-head');
+    if (head === watchedHead) {
+      return;
+    }
+    if (watchedHead) {
+      columnObserver?.unobserve(watchedHead);
+    }
+    watchedHead = head;
+    if (head) {
+      columnObserver?.observe(head);
+    }
+  };
+  observeHead();
+  columnChildren = new MutationObserver(() => {
+    observeHead();
+    onColumnResized();
+  });
+  columnChildren.observe(column, { childList: true });
 };
 
 const subscribeEditor = (listener: () => void) => {

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import { MAX_GAIN, PREAMP_MIN_GAIN } from 'common/constants';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import SideBarEngine from './components/SideBarEngine';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
@@ -29,7 +29,10 @@ import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { useCurrentEngine } from './utils/audioEngineContext';
 import { useEnginePreamp, useEnginePreampReader } from './utils/enginePreamp';
+import { useGraphMeterHidden } from './utils/graphStyle';
+import writeLiveText from './utils/liveText';
 import GraphViewSwitch from './components/GraphViewSwitch';
+import LiveFigure from './components/LiveFigure';
 import OutputLevelMeter from './graph/OutputLevelMeter';
 import Spinner from './icons/Spinner';
 
@@ -55,6 +58,12 @@ interface SideBarProps {
   onGraphVisibilityChange?: (next: boolean) => void | Promise<void>;
 }
 
+/** What the meter's readout prints while nothing is captured. */
+const NO_READING = '–';
+
+/** The readout at its widest: the meter's floor is -60 dB. */
+const READING_WIDEST = ['-00.0 dB', NO_READING];
+
 const SideBar = ({
   showGraphToggle,
   isGraphVisible,
@@ -71,6 +80,7 @@ const SideBar = ({
   const livePreamp = useEnginePreamp();
   const automaticPreamp = livePreamp?.enabled ? livePreamp.gainDb : 0;
   const displayedPreamp = isFluid && isAutoPreAmpOn ? automaticPreamp : preAmp;
+  const isMeterHidden = useGraphMeterHidden();
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -99,8 +109,21 @@ const SideBar = ({
     [setGlobalError, setPreAmp],
   );
 
+  // The meter's peak, written straight into the readout. The meter reports
+  // from its draw loop, and a state update there would re-render this whole
+  // column at the frame rate for one number.
+  const readingRef = useRef<HTMLSpanElement>(null);
+  const readingTextRef = useRef<HTMLSpanElement>(null);
+  const handleReading = useCallback((peakDb: number | null) => {
+    writeLiveText(
+      readingTextRef.current,
+      peakDb === null ? NO_READING : `${peakDb.toFixed(1)} dB`,
+    );
+    readingRef.current?.classList.toggle('is-idle', peakDb === null);
+  }, []);
+
   return (
-    <div className={`col side-bar center${isOpen ? ' is-open' : ''}`}>
+    <div className={`col side-bar${isOpen ? ' is-open' : ''}`}>
       {isLoading ? (
         <div className="center full row">
           <Spinner />
@@ -111,6 +134,7 @@ const SideBar = ({
             isEngineOnOutput={isEngineOnOutput}
             onAskAboutEngine={onAskAboutEngine}
           />
+          <div className="side-bar__rule" />
           {/* A dial rather than the fader this was.
               The fader wanted three hundred pixels of a column that is one
               hundred and sixty wide — a track, a ceiling caption, a floor
@@ -128,8 +152,8 @@ const SideBar = ({
               into the other, as fine as the top side near 0 and coarser
               towards the floor (`centredSweep`). The field under it is where
               an exact value is typed, and it takes the same range. */}
-          <div className="side-bar__preamp">
-            <h4>{t('sidebar.preamp')}</h4>
+          <section className="side-bar__preamp">
+            <h4 className="side-bar__head">{t('sidebar.preamp')}</h4>
             <Knob
               name={t('sidebar.preampAria')}
               min={PREAMP_MIN_GAIN}
@@ -139,7 +163,12 @@ const SideBar = ({
               centre={0}
               value={displayedPreamp}
               step={0.01}
-              unit="dB"
+              // The label under the number says who set it: AUTO while Auto
+              // normalize owns the dial, the unit while it is yours. It
+              // replaces the two-line note that used to say the same thing
+              // under the dial, and the switch that turns it off is the row
+              // directly beneath.
+              unit={isAutoPreAmpOn ? t('sidebar.autoLabel') : 'dB'}
               // Ctrl-click returns it to unity. Without a default the reset is
               // not merely absent — the gesture works everywhere else in the
               // app, so on the one knob that ignored it the feature read as
@@ -164,37 +193,57 @@ const SideBar = ({
               isDisabled={isAutoPreAmpOn}
               handleSubmit={setGain}
             />
-            {isAutoPreAmpOn ? (
-              /* It says the level moves on its own, because it does. A number
-                 that changes with nothing on screen to explain it reads as a
-                 bug rather than as a feature. */
-              <p className="side-bar__preamp-note">{t('sidebar.preampAuto')}</p>
-            ) : null}
-          </div>
-          <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
-            <span className="control-kicker">
-              {t(isFluid ? 'sidebar.headroom.fluid' : 'sidebar.headroom')}
-            </span>
-            <h4>{t('sidebar.autoPreamp')}</h4>
-            <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
-          </div>
-          {showGraphToggle ? (
-            <div className="col center side-bar__control-card side-bar__response">
-              <span className="control-kicker">{t('sidebar.visualizer')}</span>
-              <h4>{t('sidebar.graphView')}</h4>
-              <GraphViewSwitch
-                id="graphViewEnabler"
-                isOn={isGraphVisible}
-                onToggle={onGraphVisibilityChange}
-              />
-              {/* Under the visualizer switch, because it answers the question
-                  that switch raises: the graph says what the sound is shaped
-                  like, this says how loud it actually is. The same component
-                  as the plot's gutter meter — see its variant prop for why one
-                  and not two. */}
-              <OutputLevelMeter />
+            <div className="side-bar__row">
+              <label htmlFor="autoPreAmpEnabler">
+                {t('sidebar.autoPreamp')}
+              </label>
+              <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
             </div>
+          </section>
+          {showGraphToggle ? (
+            <>
+              <div className="side-bar__rule" />
+              <div className="side-bar__row">
+                <label htmlFor="graphViewEnabler">
+                  {t('sidebar.graphView')}
+                </label>
+                <GraphViewSwitch
+                  id="graphViewEnabler"
+                  isOn={isGraphVisible}
+                  onToggle={onGraphVisibilityChange}
+                />
+              </div>
+            </>
           ) : null}
+          {/* Under the visualizer switch, because it answers the question
+              that switch raises: the graph says what the sound is shaped
+              like, this says how loud it actually is. The heading carries
+              the louder channel's held peak; the well holds the same
+              component as the plot's gutter meter. Gone entirely while the
+              meter is switched off in the graph's own menu: an empty well
+              with a heading over it is a broken instrument, not a hidden
+              one. */}
+          {!isMeterHidden && (
+            <>
+              <div className="side-bar__rule" />
+              <section className="side-bar__meter">
+                <h4 className="side-bar__head">
+                  <span>{t('sidebar.output')}</span>
+                  <LiveFigure
+                    className="side-bar__reading is-idle"
+                    widest={READING_WIDEST}
+                    textRef={readingTextRef}
+                    figureRef={readingRef}
+                  >
+                    {NO_READING}
+                  </LiveFigure>
+                </h4>
+                <div className="side-bar__well">
+                  <OutputLevelMeter onReading={handleReading} />
+                </div>
+              </section>
+            </>
+          )}
         </>
       )}
     </div>

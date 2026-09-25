@@ -58,7 +58,11 @@ const renderProfiles = ({
         engine={engine}
         onConfigureApo={onConfigureApo}
         onAttachFluidEngine={onAttachFluidEngine}
-      />
+      >
+        {/* The profiles block is another component's; the card is what is
+            under test. */}
+        <div data-testid="profiles" />
+      </DeviceProfiles>
     </FluidEqProviderWrapper>,
   );
   return { onConfigureApo, onAttachFluidEngine };
@@ -82,7 +86,9 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
           isNoticeHidden={isNoticeHidden}
           onConfigureApo={jest.fn()}
           onAttachFluidEngine={jest.fn()}
-        />
+        >
+          <div data-testid="profiles" />
+        </DeviceProfiles>
       </FluidEqProviderWrapper>
     );
     const { rerender } = render(profiles(false));
@@ -119,7 +125,9 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
           engine="apo"
           onConfigureApo={jest.fn()}
           onAttachFluidEngine={jest.fn()}
-        />
+        >
+          <div data-testid="profiles" />
+        </DeviceProfiles>
       </FluidEqProviderWrapper>,
     );
     expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
@@ -299,7 +307,9 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
           isNoticeHidden={isNoticeHidden}
           onConfigureApo={jest.fn()}
           onAttachFluidEngine={onAttachFluidEngine}
-        />
+        >
+          <div data-testid="profiles" />
+        </DeviceProfiles>
       </FluidEqProviderWrapper>
     );
     const { rerender } = render(profiles(true));

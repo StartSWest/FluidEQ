@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ILamp } from 'common/lighting/lightingModel';
 import {
   average,
-  BODY,
+  bodyTone,
   BODY_EDGE,
   body,
   colourAt,
@@ -19,6 +19,7 @@ import {
   underglow,
   type TContext,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 
 /**
@@ -33,7 +34,7 @@ export const paintMouse: TDevicePainter = (c, e, rgb) => {
     c.shadowColor = css(average(rgb), 0.8);
     c.shadowBlur = e.width * 0.45;
     roundRect(c, e.x, e.y, e.width, e.height, e.width / 2);
-    c.fillStyle = BODY;
+    c.fillStyle = bodyTone();
     c.fill();
     c.restore();
   }
@@ -77,7 +78,7 @@ export const paintMouseDock: TDevicePainter = (c, e, rgb) => {
   c.shadowBlur = 10;
   c.beginPath();
   c.ellipse(cx, cy, e.width * 0.44, e.height * 0.3, 0, 0, Math.PI * 2);
-  c.fillStyle = BODY;
+  c.fillStyle = bodyTone();
   c.fill();
   c.restore();
   c.beginPath();
@@ -118,7 +119,7 @@ export const paintChargingPad: TDevicePainter = (c, e, rgb) => {
   );
   c.beginPath();
   c.ellipse(cx, cy, e.width * 0.42, e.height * 0.36, 0, 0, Math.PI * 2);
-  c.fillStyle = '#121416';
+  c.fillStyle = tone(0.07);
   c.fill();
   c.strokeStyle = BODY_EDGE;
   c.stroke();
@@ -157,7 +158,7 @@ export const paintMouseBungee: TDevicePainter = (c, e, rgb) => {
     baseHeight * 0.45,
   );
   // The arm: a spring coiled up to the cable clip.
-  c.strokeStyle = '#3a3d40';
+  c.strokeStyle = tone(0.34);
   c.lineWidth = Math.max(2, e.width * 0.05);
   c.lineCap = 'round';
   c.beginPath();
@@ -247,7 +248,7 @@ const cloth = (
   r: number,
 ) => {
   roundRect(c, x, y, w, h, r);
-  c.fillStyle = '#101214';
+  c.fillStyle = tone(0.07);
   c.fill();
   // The weave, so the surface reads as a mat and not a hole.
   c.save();

@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TranslationKey } from 'common/i18n';
 import { sceneOwnColours } from 'common/graphSceneViews';
 import {
@@ -70,6 +77,7 @@ import LookTextureRow from './LookTextureRow';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import Switch from '../widgets/Switch';
 import {
   clearLookDraft,
@@ -212,6 +220,10 @@ const StopPicker = ({
 }: IStopPickerProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  // Folds back into the swatch when it closes, as every other menu does,
+  // rather than blinking out (`menu-out`).
+  const gridRef = useRef<HTMLDivElement>(null);
+  const exit = useExitAnimation(isOpen, 'menu-out', gridRef);
 
   // Anywhere else closes it. Pointer-down rather than click, so the grid is
   // gone by the time whatever was pressed reacts.
@@ -250,8 +262,15 @@ const StopPicker = ({
           ✕
         </button>
       )}
-      {isOpen && (
-        <div className="look-designer__swatch-grid" role="group">
+      {exit.present && (
+        <div
+          ref={gridRef}
+          className="look-designer__swatch-grid"
+          role="group"
+          data-closing={exit.closing ? '' : undefined}
+          inert={exit.closing}
+          onAnimationEnd={exit.onAnimationEnd}
+        >
           {SWATCH_CHOICES.map((choice) => (
             <button
               key={choice}

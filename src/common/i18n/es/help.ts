@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
     'Baja el nivel antes del EQ para que los realces tengan margen. Normalizar automáticamente la ajusta por ti.',
   'help.window.autoNormalize':
     'Mantiene la preamplificación justo lo bastante baja para que nada de lo que realces sature.',
-  'help.window.responseGraph': 'Muestra u oculta la gráfica bajo la página.',
+  'help.window.responseGraph': 'Muestra u oculta la gráfica de respuesta.',
   'help.window.meterName': 'Medidor de nivel',
   'help.window.meter':
     'El nivel de salida, izquierdo y derecho, en decibelios reales. Púlsalo para cambiar su estilo.',
@@ -291,9 +291,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Dispositivos, perfiles y segunda salida',
   'help.profiles.intro':
-    'Tu EQ sigue al dispositivo de salida. Asignación automática guarda los cambios en la salida actual, mientras que Perfiles guardados te permite conservar sonidos alternativos. Segunda salida duplica la reproducción en otros dispositivos, con un nivel independiente para cada uno.',
+    'Tu EQ sigue al dispositivo de salida. Los cambios se guardan en el perfil activo de la salida actual, y Perfiles te permite conservar sonidos alternativos. Segunda salida duplica la reproducción en otros dispositivos, con un nivel independiente para cada uno.',
   'help.profiles.steps':
-    'Confirma el Dispositivo de salida antes de editar. Nuevo perfil conserva un sonido; Actualizar guarda sus cambios y Restaurar recupera los ajustes guardados.\nAbre Segunda salida, activa un dispositivo accesible y ajusta su nivel. Elige justo debajo el perfil de EQ guardado de ese dispositivo.\nElige Juego/Vídeo para una reserva inicial menor o Música para más margen. Comprueba la sincronización real.',
+    'Comprueba la salida en la parte superior de la tarjeta Salida antes de editar. Nuevo perfil conserva un sonido; Actualizar guarda sus cambios y Restaurar recupera los ajustes guardados.\nAbre Segunda salida, activa un dispositivo accesible y ajusta su nivel. Elige justo debajo el perfil de EQ guardado de ese dispositivo.\nElige Juego/Vídeo para una reserva inicial menor o Música para más margen. Comprueba la sincronización real.',
   'help.profiles.tip':
     'Cada salida duplicada usa su propio perfil con cualquiera de los dos motores. La duplicación funciona mientras FluidEQ está abierto; al cambiar la salida principal se detienen las duplicaciones anteriores. La latencia del dispositivo sigue afectando a la sincronización.',
   'help.profiles.keywords':
@@ -426,7 +426,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Con un visualizador Plus',
   'help.graph.tintName': 'Colores de la ventana',
   'help.graph.tint':
-    'El tema de la app, los colores del visualizador o sus colores con luz (Ambiente).',
+    'El tema de la app, los colores del visualizador, sus colores con luz (Ambiente) o el visualizador detrás de toda la ventana (Fondo).',
   'help.graph.lighting': 'Ilumina tus dispositivos RGB con esta escena.',
   'help.graph.desktop':
     'Pone este visualizador detrás de los iconos del escritorio.',

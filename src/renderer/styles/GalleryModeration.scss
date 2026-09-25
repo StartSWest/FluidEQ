@@ -63,7 +63,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-inline-start: 6px;
   padding: 0 4px;
   color: $white;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $red 78%, $surface-base);
   font-size: $text-micro;
   font-weight: $weight-bold;
@@ -89,7 +89,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 1px 3px 1px 8px;
   color: color-mix(in srgb, var(--reason) 55%, $white);
   border: 1px solid color-mix(in srgb, var(--reason) 42%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, var(--reason) 10%, transparent);
   font-size: $text-micro;
   font-weight: $weight-semibold;
@@ -119,7 +119,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 15px;
   padding: 0 4px;
   color: $surface-base;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, var(--reason) 80%, $white);
   font-variant-numeric: tabular-nums;
   line-height: 1;

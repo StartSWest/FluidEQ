@@ -91,10 +91,12 @@ const positionFrom = (
     ...(openUpward
       ? { bottom: window.innerHeight - rect.top + OFFSET }
       : { top: rect.bottom + OFFSET }),
-    // And it comes out of that same edge (`menu-motion` in _motion.scss): the
-    // corner nearest the trigger, since the menu is right-aligned to it.
+    // And it comes out of that same edge (`menu-in` in _motion.scss): popping
+    // from the corner nearest the trigger, since the menu is aligned to it,
+    // and folding open about the edge that meets it.
     '--menu-origin': `${openUpward ? 'bottom' : 'top'} ${align}`,
     '--menu-travel': openUpward ? '6px' : '-6px',
+    '--menu-fold': openUpward ? '1' : '-1',
     maxHeight: Math.max(
       0,
       Math.min(heightLimit, openUpward ? roomAbove : roomBelow),

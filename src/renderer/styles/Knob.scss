@@ -71,12 +71,17 @@ it under the terms of the GNU General Public License version 3 or later.
     stop-color: $surface-field-end;
   }
 
+  // The well the number sits in: one step under the body, and no more. At
+  // 22% and 38% black it was the darkest thing on the Ocean theme's panel —
+  // a hole in the middle of every dial, which is how Ivan described it on the
+  // light theme (2026-09-22). The body's own edge colour is the step; the
+  // rim's shadow does the rest.
   &__stop--face-top {
-    stop-color: color-mix(in oklab, $surface-field-end, $black 22%);
+    stop-color: $surface-field-end;
   }
 
   &__stop--face-edge {
-    stop-color: color-mix(in oklab, $surface-field-end, $black 38%);
+    stop-color: color-mix(in oklab, $surface-field-end, $black 12%);
   }
 
   &__stop--mist {

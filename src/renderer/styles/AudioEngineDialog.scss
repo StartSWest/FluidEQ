@@ -150,7 +150,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .engine-dialog__recommended {
   padding: 2px 7px;
   border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 16%, transparent);
   color: $secondary-light;
   font-size: $text-micro;

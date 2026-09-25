@@ -166,16 +166,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 1 1 0;
     min-width: 0;
     padding: 14px 14px 12px;
+    // Set apart from the list by the hairline alone, on the menu's own face.
+    // It carried a wash of the preset line's violet, which on the open floor
+    // was a purple column in a teal window (Ivan, 2026-09-25: "the bg color
+    // of that right pane is purple no"); the notes in it are in the accent
+    // now too (`GenreNotes.scss`).
     border-left: 1px solid $border-subtle;
-    // The preset line's violet, faintly: this column is about the curve the
-    // graph draws in that colour, and it sets the column apart from the list
-    // without a second surface of its own.
-    background: linear-gradient(
-      180deg,
-      rgba($triadic-1, 0.07),
-      rgba($triadic-1, 0.02) 60%,
-      transparent
-    );
     overflow-y: auto;
     overscroll-behavior: contain;
   }

@@ -31,7 +31,6 @@ import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
-import SidebarSection from './components/SidebarSection';
 import ProfileActionIcon from './icons/ProfileActionIcon';
 import {
   getAudioDevices,
@@ -519,69 +518,78 @@ const PresetsBar = ({
     visiblePresetNames,
   ]);
 
+  // No card of its own: this is the lower half of the Output card, under the
+  // output the profiles play through (DeviceProfiles gives it its place). A
+  // small caps label and the count stand over the list, where the card's
+  // title used to.
   return (
-    <SidebarSection
-      eyebrow={t('profiles.eyebrow')}
-      title={t('profiles.title')}
-      summary={
-        <List
-          name="preset"
-          className="profile-list"
-          options={options}
-          itemClassName="preset-list-item"
-          value={presetName}
-          handleChange={handleChangeSelectedPreset}
-          isDisabled={isBlockingError}
-          emptyOptionsPlaceholder={
-            hasResolvedOutput ? t('profiles.empty') : t('profiles.detecting')
-          }
-        />
-      }
-    >
-      <div className="presets-bar">
-        {/* No name box. Naming happens where the name is: the edit control on
-            the profile row itself. A second place to type it was one more
-            thing to keep in sync with the list, and it made Save ambiguous —
-            you could never tell whether it would create or overwrite. */}
-        <div className="profile-actions">
-          {/* Starting a new profile is its own action. Without it the only way
+    <div className="presets-bar">
+      <div className="presets-bar__head">
+        <span className="eyebrow">{t('profiles.title')}</span>
+        {hasResolvedOutput && (
+          <span className="presets-bar__count">
+            {visiblePresetNames.length}
+          </span>
+        )}
+      </div>
+      <List
+        name="preset"
+        className="profile-list"
+        options={options}
+        itemClassName="preset-list-item"
+        value={presetName}
+        handleChange={handleChangeSelectedPreset}
+        isDisabled={isBlockingError}
+        emptyOptionsPlaceholder={
+          hasResolvedOutput ? t('profiles.empty') : t('profiles.detecting')
+        }
+      />
+      {/* No name box. Naming happens where the name is: the edit control on
+          the profile row itself. A second place to type it was one more
+          thing to keep in sync with the list, and it made Save ambiguous —
+          you could never tell whether it would create or overwrite.
+
+          One row of three, Update last and the only loud one: it is the
+          recommended press. It used to be a full-width button over the other
+          two, which made a save the biggest thing on the panel. */}
+      <div className="profile-actions">
+        {/* Starting a new profile is its own action. Without it the only way
             to create one was to clear the name box by hand, and it was never
             obvious whether Save would make a new profile or overwrite the
             attached one — which is a bad thing to be unsure about. */}
-          <Button
-            ariaLabel={t('profiles.newAria')}
-            className="small subtle profile-actions__new"
-            isDisabled={isBlockingError}
-            handleChange={handleStartNewProfile}
-          >
-            <ProfileActionIcon action="new" />
-            {t('profiles.new')}
-          </Button>
-          {/* Always an update now, never a create — New profile is the only way
-              to make one, so this can say exactly what it does. */}
-          <Button
-            ariaLabel={t('profiles.saveAria')}
-            className="small profile-actions__save"
-            isDisabled={isBlockingError || !presetName}
-            handleChange={handleSavePreset}
-          >
-            <ProfileActionIcon action="save" />
-            {t('profiles.update')}
-          </Button>
-          {/* Every edit auto-saves into the attached profile, so this is the way
+        <Button
+          ariaLabel={t('profiles.newAria')}
+          className="small subtle profile-actions__new"
+          isDisabled={isBlockingError}
+          handleChange={handleStartNewProfile}
+        >
+          <ProfileActionIcon action="new" />
+          {t('profiles.new')}
+        </Button>
+        {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}
-          <Button
-            ariaLabel={t('profiles.restoreAria')}
-            className="small subtle profile-actions__restore"
-            isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
-            handleChange={handleRestoreBaseline}
-          >
-            <ProfileActionIcon action="restore" />
-            {isRestoring ? t('profiles.restoring') : t('profiles.restore')}
-          </Button>
-        </div>
+        <Button
+          ariaLabel={t('profiles.restoreAria')}
+          className="small subtle profile-actions__restore"
+          isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
+          handleChange={handleRestoreBaseline}
+        >
+          <ProfileActionIcon action="restore" />
+          {isRestoring ? t('profiles.restoring') : t('profiles.restore')}
+        </Button>
+        {/* Always an update now, never a create — New profile is the only way
+            to make one, so this can say exactly what it does. */}
+        <Button
+          ariaLabel={t('profiles.saveAria')}
+          className="small profile-actions__save"
+          isDisabled={isBlockingError || !presetName}
+          handleChange={handleSavePreset}
+        >
+          <ProfileActionIcon action="save" />
+          {t('profiles.update')}
+        </Button>
       </div>
-    </SidebarSection>
+    </div>
   );
 };
 

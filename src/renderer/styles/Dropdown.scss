@@ -259,23 +259,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dropdown-menu-layer.dropdown--up .list-wrapper {
   --menu-origin: bottom center;
   --menu-travel: 6px;
+  --menu-fold: 1;
 }
 
 // Beside the trigger rather than under or over it: out of that side, with no
-// vertical travel.
+// vertical travel, folding open about the edge that meets the trigger.
 .dropdown-menu-layer.dropdown--left .list-wrapper {
   --menu-origin: center right;
   --menu-travel: 0px;
+  --menu-fold: 0;
+  --menu-fold-side: -1;
 }
 
 .dropdown-menu-layer.dropdown--right .list-wrapper {
   --menu-origin: center left;
   --menu-travel: 0px;
+  --menu-fold: 0;
+  --menu-fold-side: 1;
 }
 
 // Leaving: the layer is what `useExitAnimation` marks, and the surface inside
 // it is what plays. Said here because the layer is not a surface itself.
 .dropdown-menu-layer[data-closing] .list-wrapper {
-  @include animate(menu-out, 110ms, ease-in, 0ms, forwards);
-  pointer-events: none;
+  @include menu-exit;
 }

@@ -5,10 +5,34 @@
 @use 'theme' as *;
 @use 'dialog' as dialog;
 
+// QUIET, AND NOT A BOX (Ivan, 2026-09-22). It wore the same raised, bordered
+// face the engine's chip wears, so the titlebar's right-hand end read as
+// three machine controls and a creature. Help is not a machine control — it
+// is a word you read when you need it — so it keeps the word and gives up the
+// box, and comes forward on hover like every other quiet trigger in the app.
+// The two that ARE machine controls are in the capsule beside it
+// (`.titlebar-instrument` in App.scss).
 .help-menu__trigger.workspace-header__tools-trigger {
   width: auto;
   min-width: 48px;
+  height: 30px;
+  border: 1px solid transparent;
+  background: none;
+  box-shadow: none;
+  color: $text-muted;
   font-weight: $weight-semibold;
+
+  &::before {
+    display: none;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible,
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, $secondary-light 22%, transparent);
+    background: color-mix(in srgb, $secondary-light 10%, transparent);
+    color: $text-accent;
+  }
 
   // The Forum is open. It has no tab of its own, so the menu it opens from
   // says where it is, lit in the accent a selected tab wears.

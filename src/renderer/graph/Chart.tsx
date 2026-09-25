@@ -19,13 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
-import { MIN_GAIN } from 'common/constants';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
 import { useSmartEqMeasurement } from '../audio/smartEqMeasurement';
 import useController, {
+  EQ_GAIN_REACH,
   GRAPH_END,
   GRAPH_START,
   graphFrequencyRange,
@@ -37,7 +38,7 @@ import useController, {
   IMarginLike,
   OUTPUT_CURVE_ID,
 } from './ChartController';
-import useLiveCurveGroup from './useLiveCurveGroup';
+import LiveOutputCurve from './LiveOutputCurve';
 import {
   getGraphView,
   setGraphView,
@@ -174,6 +175,7 @@ const presenceTint = (allowance: number): string => {
 const CoverageOverlay = ({
   xScale,
   yScale,
+  eqScale,
   top,
   plotHeight,
   isResponseHidden,
@@ -181,6 +183,12 @@ const CoverageOverlay = ({
 }: {
   xScale: AxisScale<NumberValue>;
   yScale: AxisScale<NumberValue>;
+  /**
+   * The EQ's own axis (`eqGainScale`), for the correction limit: that is a
+   * band gain, drawn against the curves, where the presence lines are music
+   * levels drawn against the analyser.
+   */
+  eqScale: AxisScale<NumberValue>;
   top: number;
   plotHeight: number;
   /** No response layers are being presented, so their listening bands go too. */
@@ -237,13 +245,16 @@ const CoverageOverlay = ({
    * reports the union of what it draws — which changes as the lines move, so a
    * drag computed against it would chase itself.
    */
-  const dbAt = (event: { clientY: number; currentTarget: SVGElement }) => {
+  const dbAt = (
+    event: { clientY: number; currentTarget: SVGElement },
+    scale: AxisScale<NumberValue> = yScale,
+  ) => {
     const svg = event.currentTarget.ownerSVGElement;
     if (!svg) {
       return undefined;
     }
     const y = event.clientY - svg.getBoundingClientRect().top;
-    const { invert } = yScale as unknown as { invert?: (v: number) => number };
+    const { invert } = scale as unknown as { invert?: (v: number) => number };
     return typeof invert === 'function' ? invert(y) : undefined;
   };
 
@@ -357,6 +368,9 @@ const CoverageOverlay = ({
             : liveDb > floorDb
               ? 'listening'
               : 'idle';
+        const resetLabel = t('eq.smart.presence.reset', {
+          range: balanceRangeName(region.label, t),
+        });
         return (
           <g key={region.label}>
             {/*
@@ -525,12 +539,11 @@ const CoverageOverlay = ({
                       pointerEvents={isGone ? 'none' : 'all'}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={() => resetPresenceRange(region.label)}
+                      // The app's tooltip, where an SVG <title> was the
+                      // system's (`utils/tooltipLayer.ts`).
+                      data-tooltip={resetLabel}
+                      aria-label={resetLabel}
                     >
-                      <title>
-                        {t('eq.smart.presence.reset', {
-                          range: balanceRangeName(region.label, t),
-                        })}
-                      </title>
                       {/*
                        * No hit pad of its own any more. It had one — a wide
                        * invisible band across the middle of the ramp — for a
@@ -716,7 +729,7 @@ const CoverageOverlay = ({
       {!isWashHidden &&
         ([1, -1] as const).map((side) => {
           const y = clampToPlot(
-            Number(yScale(side * correctionLimit)),
+            Number(eqScale(side * correctionLimit)),
             top,
             plotHeight,
           );
@@ -754,7 +767,7 @@ const CoverageOverlay = ({
                   if (dragging.current !== 'limit') {
                     return;
                   }
-                  const db = dbAt(event);
+                  const db = dbAt(event, eqScale);
                   if (db !== undefined) {
                     // The magnitude, whichever half was grabbed. Dragging the
                     // lower line down and the upper one up both mean "allow
@@ -848,13 +861,17 @@ const Chart = ({
 
   // The whole spectrum with the grid on, trimmed to where records have sound
   // with it off (`graphFrequencyRange`).
-  const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
-    width: svgWidth,
-    height: svgHeight,
-    padding,
-    frequencyRange: graphFrequencyRange(isGridHidden),
-  });
-  const attachOutputCurve = useLiveCurveGroup(outputOffset, yScaleGain);
+  // Two gain axes: the EQ's own (`yScaleEq`), which compresses what is past
+  // ±20 dB into the plot's ends so an output curve carried down by the
+  // preamp is drawn whole, and the plain ±20 one the analyser and the scenes
+  // are projected through (`eqGainScale`).
+  const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain, yScaleEq } =
+    useController({
+      width: svgWidth,
+      height: svgHeight,
+      padding,
+      frequencyRange: graphFrequencyRange(isGridHidden),
+    });
 
   const scene = useSceneLook();
   const hasScene = Boolean(scene);
@@ -901,10 +918,7 @@ const Chart = ({
     () => liveLevelTicksFor(liveLevelScale),
     [liveLevelScale],
   );
-  const gainTickValues = useMemo(
-    () => gainAxisTicksFor(yScaleGain),
-    [yScaleGain],
-  );
+  const gainTickValues = useMemo(() => gainAxisTicksFor(yScaleEq), [yScaleEq]);
   const frequencyLabelTicks = useMemo(
     () => frequencyLabelTicksFor(xScaleFreq),
     [xScaleFreq],
@@ -1004,7 +1018,7 @@ const Chart = ({
       : editablePoints
           .filter((point) => {
             const x = Number(xScaleFreq(point.data.x));
-            const y = Number(yScaleGain(point.data.y));
+            const y = Number(yScaleEq(point.data.y));
             return x >= left && x <= right && y >= top && y <= bottom;
           })
           .map((point) => point.id);
@@ -1162,12 +1176,53 @@ const Chart = ({
             <stop offset="0%" stopColor="#54ff8a" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#ff5a6e" stopOpacity="0.3" />
           </linearGradient>
+          {/* The haze over the EQ axis's compressed ends, thickest at the
+            plot's edge, where the most decibels share a pixel. */}
+          <linearGradient id="chart-overflow-top" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" className="chart-overflow__edge" />
+            <stop offset="100%" className="chart-overflow__line" />
+          </linearGradient>
+          <linearGradient
+            id="chart-overflow-bottom"
+            x1="0"
+            x2="0"
+            y1="1"
+            y2="0"
+          >
+            <stop offset="0%" className="chart-overflow__edge" />
+            <stop offset="100%" className="chart-overflow__line" />
+          </linearGradient>
         </defs>
         {/* The paper, as one group, so it can be taken away as one thing.
           Grouped rather than each line carrying its own class: the hiding is a
           single decision and four grid layers plus two axes agreeing about it
           is four more places for one of them to be forgotten. */}
         <g className="chart-grid">
+          {/* Past ±20 dB, where the EQ's axis is compressed (`eqGainScale`):
+            a band of its own, so a curve carried down there by the preamp is
+            read as far past the grid rather than just under it. */}
+          <rect
+            className="chart-overflow"
+            x={padding.left}
+            y={Number(yScaleEq(EQ_GAIN_REACH))}
+            width={plotWidth}
+            height={Math.max(
+              0,
+              Number(yScaleEq(MAX_GAIN)) - Number(yScaleEq(EQ_GAIN_REACH)),
+            )}
+            fill="url(#chart-overflow-top)"
+          />
+          <rect
+            className="chart-overflow"
+            x={padding.left}
+            y={Number(yScaleEq(MIN_GAIN))}
+            width={plotWidth}
+            height={Math.max(
+              0,
+              Number(yScaleEq(-EQ_GAIN_REACH)) - Number(yScaleEq(MIN_GAIN)),
+            )}
+            fill="url(#chart-overflow-bottom)"
+          />
           <GridLine
             type="vertical"
             scale={xScaleFreq}
@@ -1185,14 +1240,14 @@ const Chart = ({
           />
           <GridLine
             type="horizontal"
-            scale={yScaleGain}
+            scale={yScaleEq}
             tickValues={GAIN_GRID_TICKS}
             size={plotWidth}
             transform={`translate(${padding.left}, 0)`}
           />
           <GridLine
             type="horizontal"
-            scale={yScaleGain}
+            scale={yScaleEq}
             tickValues={UNITY_TICKS}
             size={plotWidth}
             color={UNITY_RULE_INK}
@@ -1211,6 +1266,7 @@ const Chart = ({
         <CoverageOverlay
           xScale={xScaleFreq}
           yScale={yScaleGain}
+          eqScale={yScaleEq}
           top={padding.top}
           plotHeight={plotHeight}
           isResponseHidden={isLiveOutputForeground}
@@ -1232,30 +1288,28 @@ const Chart = ({
           reflect is drawn. */}
         {data.map((e: IChartCurveData) =>
           e.id === OUTPUT_CURVE_ID && outputOffset ? (
-            // Clipped here, outside the move, as well as by the line itself:
-            // the line's own clip travels with the translation, so on its own
-            // a curve carried down would run into the frequency labels.
-            <g key={e.id} clipPath="url(#chart-clip-path)">
-              <g ref={attachOutputCurve}>
-                <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
-              </g>
-            </g>
-          ) : (
-            <Curve
+            <LiveOutputCurve
               key={e.id}
               data={e}
               xScale={xScaleFreq}
-              yScale={yScaleGain}
+              yScale={yScaleEq}
+              offset={outputOffset}
             />
+          ) : (
+            <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleEq} />
           ),
         )}
         {/* A genre's pins on its Preset line: over the lines, under the
-          band handles, so a handle standing on a pin can still be dragged. */}
+          band handles, so a handle standing on a pin can still be dragged.
+          With the grid off too, wherever the line itself is drawn: they
+          went with the grid, and a graph kept gridless showed the preset's
+          line with nothing saying what it was (Ivan, 2026-09-25: "why
+          can't the preset info be seen in the graph"). */}
         <GenrePins
           data={data}
           xScale={xScaleFreq}
-          yScale={yScaleGain}
-          isHidden={isLiveOutputForeground || isGridHidden}
+          yScale={yScaleEq}
+          isHidden={isLiveOutputForeground}
         />
         {editablePoints.map((point) => (
           <EditablePoint
@@ -1263,7 +1317,7 @@ const Chart = ({
             point={point}
             svgRef={svgRef}
             xScale={xScaleFreq}
-            yScale={yScaleGain}
+            yScale={yScaleEq}
           />
         ))}
         <clipPath id="chart-clip-path">
@@ -1286,7 +1340,7 @@ const Chart = ({
         <g className="chart-grid">
           <Axis
             type="left"
-            scale={yScaleGain}
+            scale={yScaleEq}
             transform={`translate(${padding.left}, 0)`}
             tickValues={gainTickValues}
             tickFormat={yTickFormat}

@@ -80,7 +80,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 1px 9px;
   color: color-mix(in srgb, var(--kind) 72%, $white);
   border: 1px solid color-mix(in srgb, var(--kind) 45%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, var(--kind) 10%, transparent);
   font-size: $text-micro;
   font-weight: $weight-semibold;

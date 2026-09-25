@@ -84,7 +84,7 @@ const help: Record<keyof typeof en, string> = {
     'Reduz o nível antes do EQ para que os reforços tenham margem. Normalizar automaticamente faz esse ajuste por você.',
   'help.window.autoNormalize':
     'Mantém a pré-amplificação baixa só o necessário para que nada do que você reforçar sature.',
-  'help.window.responseGraph': 'Mostra ou oculta o gráfico abaixo da página.',
+  'help.window.responseGraph': 'Mostra ou oculta o gráfico de resposta.',
   'help.window.meterName': 'Medidor de nível',
   'help.window.meter':
     'O nível de saída dos canais esquerdo e direito, em decibéis reais. Pressione-o para mudar o estilo.',
@@ -288,9 +288,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Dispositivos, perfis e segunda saída',
   'help.profiles.intro':
-    'Seu EQ acompanha o dispositivo de saída. O Vínculo automático salva as edições na saída atual, e os Perfis salvos permitem manter sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
+    'Seu EQ acompanha o dispositivo de saída. As edições são salvas no perfil ativo da saída atual, e Perfis permite manter sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
   'help.profiles.steps':
-    'Confira o Dispositivo de saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
+    'Confira a saída no topo do cartão Saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
   'help.profiles.tip':
     'Cada saída espelhada usa seu próprio perfil, com qualquer um dos motores. O espelhamento funciona enquanto o FluidEQ está aberto; trocar a saída principal encerra os espelhamentos antigos. A latência do dispositivo ainda afeta a sincronização.',
   'help.profiles.keywords':
@@ -420,7 +420,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Com um visualizador Plus',
   'help.graph.tintName': 'Cores da janela',
   'help.graph.tint':
-    'O tema do app, as cores do visualizador ou as cores dele com luz (Ambiente).',
+    'O tema do app, as cores do visualizador, as cores dele com luz (Ambiente) ou o visualizador atrás de toda a janela (Pano de fundo).',
   'help.graph.lighting': 'Ilumina seus dispositivos RGB com esta cena.',
   'help.graph.desktop':
     'Coloca este visualizador atrás dos ícones da área de trabalho.',

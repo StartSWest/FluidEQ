@@ -213,7 +213,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 46px;
   padding: 2px 8px 2px 7px;
   color: $text-dim;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $white 4%, transparent);
   font-size: $text-small;
   font-weight: $weight-semibold;
@@ -244,7 +244,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 1px 8px 1px 6px;
   color: $text-faint;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
   font-size: $text-micro;

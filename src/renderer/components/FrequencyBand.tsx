@@ -26,6 +26,7 @@ import {
 } from 'common/constants';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
+  CSSProperties,
   ForwardedRef,
   forwardRef,
   useCallback,
@@ -58,6 +59,12 @@ interface IFrequencyBandProps {
   onHover?: (isHovered: boolean) => void;
   colorProgress?: number;
   onGainChange?: (filterId: string, newValue: number) => Promise<void>;
+  /**
+   * Its distance from the band before it, while the row stands each band
+   * under its point on the graph (`placeBandsUnderPlot`); unset, the row
+   * spaces the bands evenly.
+   */
+  lead?: number;
 }
 
 const FrequencyBand = forwardRef(
@@ -73,6 +80,7 @@ const FrequencyBand = forwardRef(
       onHover,
       colorProgress = 0,
       onGainChange,
+      lead,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -199,6 +207,11 @@ const FrequencyBand = forwardRef(
         ref={ref}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
+        style={
+          lead === undefined
+            ? undefined
+            : ({ '--band-lead': `${lead}px` } as CSSProperties)
+        }
         title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}${isBandEnabled(filter) ? '' : ' · off'} · ${t('eq.band.resetGainHint')}`}
         onPointerDownCapture={(event) => {
           const { target } = event;

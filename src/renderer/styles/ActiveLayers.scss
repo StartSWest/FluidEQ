@@ -165,8 +165,12 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   grid-template-columns: minmax(0, 1fr) auto;
   padding: 4px 5px 4px 9px;
-  border: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
-  border-radius: $radius-pill;
+  border: 1px solid $border-field;
+  // The buttons' corner, not a pill: the chips stand on the row under the
+  // title's tools, and a capsule among square-cornered controls read as a
+  // different kind of thing (Ivan, 2026-09-25: "applied filter pills can have
+  // less rounded too").
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 10%, transparent);
   font-size: $text-small;
 }

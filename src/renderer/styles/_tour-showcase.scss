@@ -63,7 +63,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-left: calc(var(--tour-unit) * 0.6);
   padding: 1px calc(var(--tour-unit) * 0.5);
   color: $surface-base;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: $secondary-light;
   font-size: calc(var(--tour-unit) * 0.66);
   @include tracking(0.08em);
@@ -377,8 +377,8 @@ it under the terms of the GNU General Public License version 3 or later.
   li {
     padding: calc(var(--tour-unit) * 0.2) calc(var(--tour-unit) * 0.5);
     color: $text-muted;
-    border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
-    border-radius: $radius-pill;
+    border: 1px solid $border-field;
+    border-radius: $radius-xs;
     background: color-mix(in srgb, $secondary-default 9%, $surface-block);
     font-size: calc(var(--tour-unit) * 0.7);
     font-weight: $weight-semibold;

@@ -23,6 +23,7 @@ import { PRODUCT_NAME } from 'common/branding';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers } from './utils/logger';
+import installTooltipLayer from './utils/tooltipLayer';
 
 // The window title, which `index.ejs` also carries so that something sensible
 // is on the taskbar before any JavaScript runs. Set again from branding
@@ -57,6 +58,10 @@ window.addEventListener(
   },
   { capture: true, passive: false },
 );
+
+// Every `title` in the window is shown by the app's own tooltip rather than
+// the system's (`utils/tooltipLayer.ts`).
+installTooltipLayer();
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);

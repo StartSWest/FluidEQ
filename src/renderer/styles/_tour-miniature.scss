@@ -39,7 +39,7 @@ $u: var(--tour-unit);
   align-items: center;
   padding: calc(#{$u} * 0.22) calc(#{$u} * 0.6);
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   font-size: calc(#{$u} * 0.7);
   font-weight: $weight-semibold;
   line-height: 1.25;

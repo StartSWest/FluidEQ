@@ -136,7 +136,7 @@ $windows-blue: #8ec5ff;
   color: $text-primary;
   font-size: $text-micro;
   border: 1px solid rgba($white, 0.12);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: rgba(#060c12, 0.72);
   backdrop-filter: blur(6px);
   text-wrap: balance;
@@ -264,7 +264,7 @@ $windows-blue: #8ec5ff;
   padding: 4px 10px 4px 8px;
   color: $text-muted;
   border: 1px solid rgba($white, 0.08);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: rgba(#060c12, 0.45);
   font-size: $text-small;
 
@@ -735,7 +735,7 @@ $windows-blue: #8ec5ff;
   padding: 2px 9px;
   color: $text-dim;
   border: 1px solid rgba($white, 0.08);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   font-size: $text-micro;
   white-space: nowrap;
 

@@ -97,45 +97,22 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// How far this range disagrees with where it is being steered, as a fraction of
-// the deadband a write has to clear. The fill beside it says how much has been
-// heard, which alone is the misleading half: a range can be fully heard and
-// still sit there, because being heard is not the same as having something to
-// say. Muted until the deadband is passed, then bright — position is the ratio,
-// brightness is the verdict.
-// Its own track, so an empty one reads as empty rather than as absent. The bar
-// below it says how much of the range has been heard; this one says how much it
-// has to say about what it heard. Both full means the only thing left to wait
-// for is the quiet period between writes.
-// Only once both bars are full, when time really is the only thing left.
-.chart-coverage__countdown {
-  fill: #ffd24a;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.02em);
+// The EQ axis's compressed ends, ±20 to ±60 dB (`eqGainScale`): a haze in the
+// grid's own ink, thickest at the plot's edge where the most decibels share a
+// pixel, and nothing at the ±20 rule, so it reads as the plot's margin rather
+// than as more of the same scale.
+.chart-overflow {
   pointer-events: none;
 }
 
-.chart-coverage__gap-track {
-  fill: rgba(216, 210, 255, 0.1);
+.chart-overflow__edge {
+  stop-color: rgb(214, 233, 247);
+  stop-opacity: 0.075;
 }
 
-.chart-coverage__gap {
-  fill: rgba(255, 210, 74, 0.45);
-  transition:
-    width 400ms ease,
-    fill 200ms ease;
-
-  // Past the deadband: this range now has something worth writing.
-  &.is-past {
-    fill: #ffd24a;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chart-coverage__gap {
-    transition: none;
-  }
+.chart-overflow__line {
+  stop-color: rgb(214, 233, 247);
+  stop-opacity: 0;
 }
 
 // The presence line: below it a range counts as not playing, and is never
@@ -352,10 +329,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // not installed at all. Keep their values visible for context, but make the
 // workspaces unmistakably idle. The graph is deliberately absent from this
 // rule: it remains a fully active live graph and omits the inactive EQ curves.
+//
+// The head those pages stand under while their graph is above them
+// (`.center-head`, layout A) is part of the page and goes with it.
 .workspace-tab-panel--eq.is-engine-disabled,
 .workspace-tab-panel--presets.is-engine-disabled,
 .workspace-tab-panel--config.is-engine-disabled,
-.workspace-tab-panel--convolution.is-engine-disabled {
+.workspace-tab-panel--convolution.is-engine-disabled,
+.center-head--eq.is-engine-disabled,
+.center-head--presets.is-engine-disabled,
+.center-head--config.is-engine-disabled,
+.center-head--convolution.is-engine-disabled {
   // The app's one dim, and no desaturation with it. The filter drained the
   // colour out of a whole page, so a switched-off tab was grey beside tabs
   // that are teal — which reads as broken rather than as idle, and made this
@@ -369,7 +353,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // "no entry" pointer over it would be a lie.
 .workspace-tab-panel--eq.is-engine-disabled,
 .workspace-tab-panel--presets.is-engine-disabled,
-.workspace-tab-panel--convolution.is-engine-disabled {
+.workspace-tab-panel--convolution.is-engine-disabled,
+.center-head--eq.is-engine-disabled .main-content-title {
   cursor: not-allowed;
 }
 
@@ -378,6 +363,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // stopped matching the moment that wrapper appeared — silently, which is the
 // whole reason the note further down this rule exists.
 .workspace-tab-panel--eq.is-engine-disabled .main-content-title,
+.center-head--eq.is-engine-disabled .main-content-title,
 .workspace-tab-panel--eq.is-engine-disabled .main-content,
 // AutoEQ, voicing and convolution each own their whole panel, so the whole
 // panel is what goes inert.
@@ -435,8 +421,8 @@ it under the terms of the GNU General Public License version 3 or later.
   top: 50%;
   left: 50%;
   padding: 9px 18px;
-  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
-  border-radius: $radius-pill;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-menu-top 82%, transparent);
   color: $text-primary;
   font-size: $text-lead;
@@ -534,10 +520,13 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: flex-start;
   gap: 2px;
   padding: 6px;
-  border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
-  border-radius: $radius-m;
-  background: $surface-menu-face;
-  box-shadow: 0 12px 28px rgba($black, 0.5);
+  // The floating surfaces' own face, like every other menu (Ivan,
+  // 2026-09-25: "all menus", "to much dropshadows").
+  @include floating-surface;
+  // Out of the button's corner, as every menu does (`menu-in`): it was the one
+  // on the graph that simply appeared.
+  --menu-origin: top left;
+  @include menu-motion;
 }
 
 // The live-output legend carries the style picker.
@@ -727,24 +716,34 @@ it under the terms of the GNU General Public License version 3 or later.
 // the corner of a graph is a second card inside a card, and it turns a quiet
 // row of captions into a piece of furniture. Discretion wins; the drawing is
 // what this pane is for.
-// The pane the markup has always described and never had.
+// The pane the markup has always described. Everything in here is a caption
+// or a control for the same drawing, and without a surface they were loose
+// glyphs scattered over the plot, held apart from whatever moved underneath
+// by a text shadow alone.
 //
-// Everything in here is a caption or a control for the same drawing, and
-// without a surface they were loose glyphs scattered over the plot — held
-// apart from whatever was moving underneath by a text shadow alone, which is
-// legibility rather than structure. On a pane they read as one instrument
-// panel sitting over the graph, which is what they are.
+// A soft, rounded veil lying inside the graph (layout A, Ivan 2026-09-25: "the
+// pane … nice same app style", "more transparent and no borders", rounded):
+// the floating surfaces' own colour (`floating-surface`), a little under
+// three quarters opaque — enough that the captions stay legible over a
+// moving drawing, little enough that the drawing reads through it — and no
+// edge, no shadow, so it is part of the picture rather than a slab laid on
+// it. It was the lifted block colour with an edge, which on the open floor
+// read as exactly that slab.
 //
-// Deliberately no `backdrop-filter`. It is the obvious way to make a floating
-// panel feel like glass, and it would sit directly over the one thing in this
-// app that repaints continuously — each frame underneath forcing the blur to
-// be sampled and composited again. A flat, mostly opaque surface costs
-// nothing per frame and reads the same at this size.
-// A block on the graph, like the band editor is a block on the EQ card: the
-// same slate, an edge, no shadow. It was a translucent pill with a 26px
-// drop shadow, the one floating thing in a window of flat surfaces.
+// Deliberately no `backdrop-filter`: it would sit over the one thing in this
+// app that repaints continuously, each frame forcing the blur to be sampled
+// again. Full screen's glass (`App.scss`) is the one exception.
 .graph-legend-group {
-  @include inset-surface;
+  border: 0;
+  // The menus' crisp corner (`$radius-2xs`), the one every floating surface
+  // now keeps.
+  border-radius: $radius-2xs;
+  background: color-mix(
+    in srgb,
+    color-mix(in srgb, $surface-base 70%, $surface-panel) 72%,
+    transparent
+  );
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   padding: 5px 9px;
@@ -755,6 +754,18 @@ it under the terms of the GNU General Public License version 3 or later.
   // muddies the letters.
   > * {
     text-shadow: none;
+  }
+
+  // The pane floats inside the plot (`plotTopMargin`), so only its controls
+  // take a press: between them, and on the hint's words, a press goes through
+  // to the band handle underneath. Stated on the pane as well as on the hint,
+  // because a press passing through a child lands on its parent first.
+  .live-output-controls > & {
+    pointer-events: none;
+  }
+
+  > :not(.graph-edit-hint) {
+    pointer-events: auto;
   }
 }
 
@@ -855,25 +866,98 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The tint switch's glyph is the theme's own, a circle half filled, and the
-// filled half is where it says what it does: the ink of the ring while off,
-// and the colour the window is taking while on. `--scene-tint-swatch` is set
-// on the button from the measured sky, lifted to a lightness that reads at
-// this size; before a sky is known the half stays in the ring's ink.
-.live-output-controls .graph-scene-tint {
+// A window mode as the window-colours menu draws it (`SceneTintMenu`): the
+// glyph the Studio's tiles and the player's keys draw for it, its name, and,
+// in the list only, a line on what it does. The same node is the button's
+// face and each choice in the list, so the button reads as the choice it is.
+//
+// The glyph is the theme's own, a circle half filled, and the filled half is
+// the colour the window takes: `--scene-tint-swatch`, set on the choice from
+// the measured sky and lifted to a lightness that reads at this size. Before
+// a sky is known the half is the ring's ink.
+.scene-tint-choice {
+  display: inline-grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 6px;
+}
+
+.scene-tint-choice__glyph {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+
   .tint-icon__half {
-    fill: currentcolor;
+    fill: var(--scene-tint-swatch, currentcolor);
     stroke: none;
-    opacity: 0.45;
   }
 
   .tint-icon__wave {
     opacity: 0.55;
   }
 
-  &[aria-pressed='true'] .tint-icon__half {
+  // The Backdrop's: the scene's colour washed over the whole glyph, as the
+  // scene is over the whole window.
+  .tint-icon__wash {
     fill: var(--scene-tint-swatch, currentcolor);
-    opacity: 1;
+    stroke: none;
+    opacity: 0.3;
+  }
+}
+
+.scene-tint-choice__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The button carries the name alone; what the mode does is the list's.
+.dropdown.graph-scene-look > [role='menu'] .scene-tint-choice__about {
+  display: none;
+}
+
+// The list: wider than its button, each choice two lines — the name over
+// what it does — with the glyph standing beside both. Portalled to the body,
+// so it is named by the class the menu is given, never by the strip's; the
+// layer's own class as well, to outrank the width every menu is given.
+.dropdown-menu-layer.graph-scene-look-menu .list-wrapper {
+  width: max(var(--dropdown-trigger-width), 17rem);
+
+  .list li {
+    padding-block: 7px;
+  }
+
+  .scene-tint-choice {
+    display: grid;
+    column-gap: 10px;
+    row-gap: 2px;
+  }
+
+  .scene-tint-choice__glyph {
+    width: 16px;
+    height: 16px;
+    grid-row: span 2;
+  }
+
+  .scene-tint-choice__name {
+    font-weight: $weight-semibold;
+  }
+
+  .scene-tint-choice__about {
+    grid-column: 2;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .list li.selected .scene-tint-choice__about {
+    color: $text-primary;
   }
 }
 
@@ -895,7 +979,7 @@ it under the terms of the GNU General Public License version 3 or later.
   bottom: 10px;
   padding: 3px 7px;
   color: rgba($white, 0.94);
-  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
+  border: 1px solid $border-field;
   border-radius: 4px;
   background: color-mix(in srgb, $panel-bottom 78%, transparent);
   font-size: $text-eyebrow;
@@ -946,14 +1030,17 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The auto-switch select, in the View button's face.
+// The auto-switch select, and the window-colours menu beside it, in the View
+// button's face.
 //
 // It kept the settings-page select it is made from: 38px of field with bold
 // body text, between two 28px pills, so the strip read as two rows glued
 // together. Qualified by the strip and the dropdown twice over because the
 // field rule it replaces is `.dropdown > [role='menu']`; the values are the
 // strip's `button` rule, measured off the View button in the running window.
-.live-output-controls .dropdown.graph-auto-cycle > [role='menu'] {
+.live-output-controls
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look)
+  > [role='menu'] {
   @include ghost-button;
   min-height: 28px;
   gap: 5px;
@@ -995,9 +1082,10 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Switching on its own is a state worth seeing, like the View button off
-// Normal; and open, the way every trigger in the row shows its menu is up.
+// Normal, and so is a window in the visualizer's colours; and open, the way
+// every trigger in the row shows its menu is up.
 .live-output-controls
-  .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open)
+  .dropdown:is(.graph-auto-cycle, .graph-scene-look):is(.is-on, .dropdown--open)
   > [role='menu'] {
   border-color: $secondary-light;
   background: color-mix(in srgb, $secondary-light 16%, transparent);
@@ -1018,13 +1106,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // painter and the app's own bar never draws. See `html` in App.scss.
   @include slim-scrollbar;
 
-  // The shared floating-menu surface, rather than one built here.
-  //
-  // Which is what gives it the euphoria treatment for free: the mixin carries
-  // its own `.is-euphoric &` rule, so every menu in the app sweeps through the
-  // spectrum at the ceiling without each one having to remember to. A
-  // hand-rolled background was a menu that would have stayed grey through a
-  // celebration.
+  // The shared floating-menu surface, rather than one built here, so this
+  // menu is the same material as every other one — the open floor's hairline
+  // and colour, and no rainbow edge in euphoria (Ivan, 2026-09-25: "all menus
+  // no rainbow border").
   @include menu-surface;
   position: absolute;
   z-index: 60;
@@ -1034,6 +1119,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // about half the time and off the screen the rest of it.
   top: calc(100% + 5px);
   right: 0;
+  // Out of the trigger's corner on whichever side it opened (`menu-in`): the
+  // flips moved the menu and left it unfolding from its top right, so a menu
+  // above the button swung open from the edge furthest from it.
+  --menu-origin: top right;
   // Wide enough for the longest label beside a fixed track and value: the
   // columns are fixed so they line up down the list, so the menu has to
   // carry the widest label rather than the label giving way. Measured on
@@ -1042,13 +1131,21 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 5px;
 
   &.is-above {
+    --menu-origin: bottom right;
+    --menu-travel: 6px;
+    --menu-fold: 1;
     top: auto;
     bottom: calc(100% + 5px);
   }
 
   &.is-left {
+    --menu-origin: top left;
     right: auto;
     left: 0;
+  }
+
+  &.is-above.is-left {
+    --menu-origin: bottom left;
   }
 
   button {
@@ -1476,6 +1573,15 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// The scene's panel on the plot (`SceneCanvas`): nothing drawn, only a box to
+// measure — where the scene is framed and the pointer read, wherever the
+// scene is drawn.
+.chart-scene-panel {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 // A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
 // is about to be, then out of the way once it has faded in over it. Black for
 // a scene whose colour has not been measured, because that is what every
@@ -1493,8 +1599,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // removes the old scene's canvas the moment the new one starts, and a
 // backdrop that faded in over that moment let the chart's own lighter card
 // show through it: a flash between every two visualizers.
+// The app's floor, never black and never the scene's dark ground: a scene
+// arrives on the window it is part of (`SceneLoading`).
 .chart-scene-backdrop {
-  background: var(--scene-sky, #{$black});
+  background: $surface-base;
 
   // After the scene's own fade-in, never before it: the scene takes a quarter
   // second to reach full strength, and the colour behind it has to be the
@@ -1649,7 +1757,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 6px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 12%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -1702,8 +1810,8 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   padding-block: 0;
   padding-inline: 9px;
-  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
-  border-radius: $radius-m;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
   background: none;
   color: $text-muted;
   font-size: $text-micro;
@@ -1715,7 +1823,7 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &:hover {
-    border-color: color-mix(in srgb, $secondary-light 65%, transparent);
+    border-color: $border-field-hover;
     color: $white;
   }
 
@@ -1849,16 +1957,14 @@ it under the terms of the GNU General Public License version 3 or later.
   // card stays as clear as the see-through slider says, and keeps the slider.
   // Solid black here hid the cover entirely.
   #root:not(.has-stage-art) & {
-    // And the card's surface goes with them, all the way to clear.
-    //
-    // With nothing behind it but the workspace, a panel drawn on top of a
-    // panel is a second sheet of the same colour: it flattens the graph and
-    // adds an edge where the eye expects none. It used to go clear here and
-    // float the drawing on the app's own background; that background is a
-    // theme colour — navy on Ocean — and every scene was designed against
-    // black. So the surface stays, solid, and black: a stage, not a panel.
+    // A solid stage under the drawing, in the app's own floor colour (Ivan,
+    // 2026-09-25: "when the app enters in fullscreen it put a black bg I dont
+    // want that it needs to put the app color bg and load the viz on top").
+    // It was black, on the argument that every scene is drawn against black;
+    // on the open floor a black sheet was a second window opening inside the
+    // first, and it showed first and longest — before a scene had painted.
     > .graph-wrapper::before {
-      background: $black;
+      background: $surface-base;
       opacity: 1;
     }
 
@@ -2335,7 +2441,11 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .app-workspace.is-app-full .live-output-controls {
-  transition: top $motion-base ease;
+  // `right` with it: the bar steps out from under the sound panel in step
+  // with the drawer (`App.scss`, `.is-sound-drawer-open`).
+  transition:
+    top $motion-base ease,
+    right 180ms ease-out;
 }
 
 .app-workspace.is-app-full.has-top-bar .live-output-controls {
@@ -2569,11 +2679,12 @@ it under the terms of the GNU General Public License version 3 or later.
       position: absolute;
       z-index: -1;
       border-radius: inherit;
-      // Black, in both of these modes. This carried the card's own gradient so
-      // the graph matched the panels around it; but expanded and full screen
-      // are for watching, the scenes are drawn against black, and a navy or
-      // grey sheet under a night sky or a fire read as a tint on the picture.
-      background: $black;
+      // The app's floor colour, in both of these modes, with the scene drawn
+      // on top of it (Ivan, 2026-09-25: "it needs to put the app color bg
+      // and load the viz on top"). It was black, because the scenes are drawn
+      // against black; on the open floor the black sheet read as a different
+      // window, and it was all there was to see until a scene had painted.
+      background: $surface-base;
 
       // No fade at the edges. The card is a card: it has an edge, and the edge
       // is where it stops.

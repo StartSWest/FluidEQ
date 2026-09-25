@@ -1,0 +1,19 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// Every row in the library's tables is exactly this tall, and that is a
+// contract, not a coincidence.
+//
+// `LibraryListView` mounts only the rows near the viewport and reserves plain
+// empty space for the rest — space it can only size correctly while every row
+// it has not seen turns out to be the height it reserved. A row that grew to
+// fit a long title would walk the scrollbar away from the content by exactly
+// that much, which is the bug that got an earlier windowed version reverted.
+// The view measures a real row on mount and uses what it finds, so changing
+// this number is safe; letting rows differ from *each other* is not — which
+// is why a folder heading, a search section and a row still being read all
+// take it from here.
+$library-row-height: 46px;

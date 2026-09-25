@@ -104,6 +104,9 @@ html.is-euphoric {
 // The shared menu/dialog mixins cover their families. These semantic surfaces
 // include the older custom dialogs and portalled context menus too. Dropdown
 // uses role=menu on its trigger, so that control is explicitly excluded.
+//
+// The floating surfaces' own hairline (`floating-surface`), so a menu built on
+// the mixin and one that is only a `role` look the same. It was 9% white.
 html
   body
   :is(
@@ -114,10 +117,19 @@ html
     [role='menu']:not(.dropdown > [role='menu']),
     .graph-legend-menu__list
   ) {
-  border: 1px solid rgba($white, 0.09);
-  border-radius: $radius-m;
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-2xs;
 }
 
+// Dialogs only. Menus keep their plain hairline in rainbow mode as well (Ivan,
+// 2026-09-25: "the dropdown menus no rainbow border pls I want a pro nice
+// border", then "all menus no rainbow border"): a list dropped out of a control
+// is a tool, and a spectrum drifting round it was the one moving outline among
+// the open floor's still lines. That includes the menus that are dialogs by
+// role — the EQ mode menu holds switches, so a screen reader is told it is a
+// dialog — which is why anything anchored to a control is left out by what it
+// is (`data-anchored-menu`, set by `AnchoredMenu`), not by its role.
+//
 // Not the Karaoke Maker. It is a dialog by role, for what a screen reader says,
 // but on screen it is the whole pane a song is edited in, and a rainbow round
 // its edge read as a frame drawn round the workspace rather than as a window
@@ -125,12 +137,9 @@ html
 html.is-euphoric
   body
   :is(
-    [role='dialog']:not(.karaoke-maker),
-    [role='alertdialog'],
-    dialog,
-    [data-anchored-menu],
-    [role='menu']:not(.dropdown > [role='menu']),
-    .graph-legend-menu__list
+    [role='dialog']:not(.karaoke-maker, [data-anchored-menu]),
+    [role='alertdialog']:not([data-anchored-menu]),
+    dialog:not([data-anchored-menu])
   ) {
   @include rainbow-border;
 }

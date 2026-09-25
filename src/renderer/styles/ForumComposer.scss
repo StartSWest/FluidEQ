@@ -217,7 +217,7 @@ textarea.forum-editor__input {
   padding: 0 14px 0 10px;
   color: $text-faint;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
   font-size: $text-body;

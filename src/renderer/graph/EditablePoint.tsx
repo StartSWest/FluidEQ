@@ -266,6 +266,11 @@ const EditablePoint = ({
       role="slider"
       aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
       aria-valuetext={`${data.x} Hz, ${data.y.toFixed(2)} dB`}
+      // The app's tooltip, where an SVG <title> was the system's
+      // (`utils/tooltipLayer.ts`).
+      data-tooltip={`${point.name}: ${data.x} Hz · ${data.y.toFixed(2)} dB${
+        point.isEnabled ? '' : ' · off'
+      }${selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -296,11 +301,6 @@ const EditablePoint = ({
         className="graph-edit-point__dot"
         r={selected || hovered ? 6.5 : 5}
       />
-      <title>
-        {point.name}: {data.x} Hz · {data.y.toFixed(2)} dB
-        {point.isEnabled ? '' : ' · off'}
-        {selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}
-      </title>
     </g>
   );
 };

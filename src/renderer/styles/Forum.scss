@@ -52,7 +52,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 20px;
   padding: 0 6px;
   color: $text-faint;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $white 6%, transparent);
   font-size: $text-micro;
   font-weight: $weight-semibold;
@@ -278,7 +278,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: $control-height-sm;
   padding: 0 4px 0 10px;
   border: 1px solid $border-field;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition: $transition-control;
 

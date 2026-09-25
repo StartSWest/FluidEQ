@@ -26,38 +26,92 @@ $motion-fast: 160ms;
 $motion-base: 220ms;
 $motion-slow: 300ms;
 
+// How far away a menu's fold is seen from, and how far back it starts
+// (`menu-in`). Nearer, or steeper, and the far edge of a tall menu swings
+// through more of the screen: see the history there before raising either.
+$menu-depth: 1400px;
+$menu-fold-angle: 10deg;
+
+// Gentler than `$ease-out` at the start. On that curve a menu had reached its
+// size and lain flat within 45ms, before its fade was over: the pop and the
+// fold took place where they could not be seen.
+$ease-unfold: cubic-bezier(0.22, 0.61, 0.36, 1);
+
 /**
- * A menu arriving from the control it hangs off, and going back into it.
+ * A menu popping out of the control it hangs off, and folding back into it.
  *
- * It comes a few pixels out of the control's side while it fades in and grows
- * the last few percent from that same edge — the menu reads as unfolding from
- * the button, and a list of forty rows stays a list the whole way, which is
- * what the two effects it replaces did not manage. A paper fold (a rotation in
- * perspective, with an overshoot) looked like a card flipping over on a tall
- * menu, and `pop-in` — a springy scale from the middle — bulged a long list out
- * from its centre, away from the button that opened it.
+ * Two small movements at once (Ivan, 2026-09-22: "all dropdown menus need to
+ * open like pop and fold, subtle"). The pop: it grows out of the corner
+ * nearest the control from 94%, runs a percent past its size and settles
+ * back. The fold: the sheet swings open about the edge that meets the control,
+ * from 10 degrees back and in perspective, passes flat by a degree and settles
+ * with it. The fade is over by a quarter of the way, so both are watched: on
+ * one shared curve the menu reached its size and lay flat while it was still
+ * under half opaque — measured frame by frame, what could be seen was a fade.
  *
- * `--menu-travel` is which way is "out of the control": negative for a menu
- * below it, positive for one above. `transform-origin` names the same edge,
- * and both are set by whatever places the menu (`AnchoredMenu`, the dropdown).
- * Leaving travels back the same way, shorter and quicker: what matters on the
- * way out is that the space is free again.
+ * Both were here before, larger, and came out on 2026-09-13 for what the size
+ * did to a tall menu: a 16 degree fold seen from 900px was a card flipping
+ * over, and `pop-in` — 88% out of the menu's own middle — bulged a forty-row
+ * list away from the button that opened it. At 10 degrees from 1400px the far
+ * edge of a 600px menu starts 8% narrower, and the scale is from the
+ * control's corner, so a long list grows out of the button and never out of
+ * itself.
  *
- * Opacity, `translate` and `scale` only, so the compositor draws every frame.
+ * Whatever places the menu (`AnchoredMenu`, the dropdown, the graph's menu)
+ * says which way is out of the control: `--menu-origin`, the corner it grows
+ * from; `--menu-travel`, the few pixels it comes out of that side (negative
+ * below the control, positive above); `--menu-fold`, which way it swings (-1
+ * below the control, 1 above, 0 beside); `--menu-fold-side`, the same for a
+ * menu beside its control (-1 on the left, 1 on the right, 0 otherwise).
+ * Leaving folds a little way back, quicker: what matters on the way out is
+ * that the space is free again.
+ *
+ * The fold needs `transform` — `perspective()` exists nowhere else — so every
+ * frame of it is written out with the same functions: interpolated towards
+ * `none`, the perspective would weaken with the rotation. No menu rests with a
+ * transform of its own; one that did would lose it for the length of the pop.
  */
 @keyframes menu-in {
   from {
     opacity: 0;
     translate: 0 var(--menu-travel, -6px);
-    scale: 0.97;
+    scale: 0.94;
+    transform: perspective($menu-depth)
+      rotateX(calc(var(--menu-fold, -1) * #{$menu-fold-angle}))
+      rotateY(calc(var(--menu-fold-side, 0) * #{$menu-fold-angle}));
+    animation-timing-function: $ease-unfold;
+  }
+
+  // Every menu rests fully opaque, so this is its resting value too.
+  25% {
+    opacity: 1;
+  }
+
+  60% {
+    scale: 1.01;
+    transform: perspective($menu-depth)
+      rotateX(calc(var(--menu-fold, -1) * #{$menu-fold-angle} * -0.1))
+      rotateY(calc(var(--menu-fold-side, 0) * #{$menu-fold-angle} * -0.1));
+    animation-timing-function: ease-in-out;
+  }
+
+  to {
+    transform: perspective($menu-depth) rotateX(0deg) rotateY(0deg);
   }
 }
 
 @keyframes menu-out {
+  from {
+    transform: perspective($menu-depth) rotateX(0deg) rotateY(0deg);
+  }
+
   to {
     opacity: 0;
     translate: 0 calc(var(--menu-travel, -6px) * 0.5);
-    scale: 0.985;
+    scale: 0.96;
+    transform: perspective($menu-depth)
+      rotateX(calc(var(--menu-fold, -1) * #{$menu-fold-angle} * 0.6))
+      rotateY(calc(var(--menu-fold-side, 0) * #{$menu-fold-angle} * 0.6));
   }
 }
 
@@ -210,23 +264,73 @@ $motion-slow: 300ms;
   }
 }
 
+// A menu's arrival and its leaving, and a dialog's arrival, as whole
+// `animation` values (`surface-motion`). The arrival's curves are its
+// keyframes' own; the leaving eases in, so it is gone before it is watched.
+$menu-arrival: menu-in $motion-base $ease-out 0ms backwards;
+$menu-leaving: menu-out 120ms ease-in 0ms forwards;
+$dialog-arrival: pop-in $motion-base $ease-spring 0ms backwards;
+
+// Not inherited: a surface's motion is its own. Inherited, a menu's arrival
+// would reach every element inside it that euphoria's rainbow edge dresses
+// (`rainbow-border`) — a list with a menu's role inside a menu would fold in a
+// second time, inside the first.
+@property --surface-motion {
+  syntax: '*';
+  inherits: false;
+}
+
+/**
+ * A surface's own animation — a menu arriving or leaving, a dialog popping in —
+ * held in `--surface-motion` and played from there.
+ *
+ * Through a variable because two things want the one `animation` property: the
+ * surface, and euphoria's rainbow edge, whose drift is an animation too. A rule
+ * that set `animation` to the drift took the surface's motion with it, and one
+ * such rule covers every menu and dialog by role (Rainbow.scss): measured in the
+ * running window, every menu but the dropdowns had no animation at all in
+ * euphoria. `rainbow-border` now plays `--surface-motion` beside its drift, so
+ * whatever sets the edge keeps the motion, and changing the motion — a menu
+ * marked closing — is a change of this variable, never of `animation`.
+ *
+ * Reduced motion switches it off; a closing menu then has no exit to wait for,
+ * and `useExitAnimation` removes it at once.
+ */
+@mixin surface-motion($animation) {
+  --surface-motion: #{$animation};
+  animation: var(--surface-motion);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 /**
  * How a menu arrives, and — once it is marked `data-closing` by
  * `useExitAnimation` — how it leaves. The exit holds its last frame because
  * the element is still mounted for the instant between the animation ending
  * and React removing it.
  *
- * Reduced motion switches both off; `useExitAnimation` sees that nothing is
- * playing and removes a closing menu at once.
+ * A dialog drawn on the menu's material arrives as a dialog: it sets its own
+ * `--surface-motion` (`$dialog-arrival`) after the surface.
  */
 @mixin menu-motion {
   transform-origin: var(--menu-origin, top center);
-  @include animate(menu-in, $motion-fast, $ease-out);
+  @include surface-motion($menu-arrival);
 
   &[data-closing] {
-    @include animate(menu-out, 110ms, ease-in, 0ms, forwards);
-    pointer-events: none;
+    @include menu-exit;
   }
+}
+
+/**
+ * A menu leaving. `menu-motion` plays it on a menu marked closing itself; a
+ * menu whose mark is on something around it — the dropdown's layer — asks for
+ * it by name, so the two cannot drift apart.
+ */
+@mixin menu-exit {
+  --surface-motion: #{$menu-leaving};
+  pointer-events: none;
 }
 
 /**

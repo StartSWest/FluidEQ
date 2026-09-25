@@ -1,0 +1,198 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The Backdrop (`SceneCover.tsx`): the graph's Plus visualizer drawn behind
+// the whole window, the graph still its frame (`sceneView.ts`).
+//
+// First in the window's own stacking and under everything in it: the root
+// becomes a stacking context of its own while the layer is in use (below),
+// so -1 is above the floor it paints and below every pane.
+.scene-cover {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+// The EQ head over the picture: the section pills and the title stand on a
+// shade of the floor that is deepest at the top, where the pills are, and
+// gone where the head meets the plot, so the scene flows on into the graph
+// with no edge between them (Ivan, 2026-09-25: "fill up to the top the graph
+// only when plus viz", and "in bg mode also like that"). Lifted over the
+// layer it stands on; inside it the controls keep their own faces.
+@mixin head-over-scene {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, $surface-base 62%, transparent),
+    color-mix(in srgb, $surface-base 30%, transparent) 70%,
+    transparent
+  );
+}
+
+// A veil of the floor over the scene wherever the window is not the graph:
+// the scene is whole and at its own strength in the graph, which is where it
+// is looked at, and the same scene carries on behind the panes a step down,
+// so every word and control on them reads as it does on the floor (Ivan,
+// 2026-09-25: "while the focus of the plus viz stays in the graph").
+//
+// `--backdrop-veil` is how much of the floor that veil is.
+:root {
+  --backdrop-veil: 58%;
+}
+
+$cover-veil: color-mix(
+  in srgb,
+  $surface-base var(--backdrop-veil),
+  transparent
+);
+
+// EVERY SURFACE ON A VEILED PANE IS VEILED WITH IT. The panes' floor goes
+// down to the veil, and the boxes standing on it — a plot's face, a field, a
+// block, a well — kept the theme's opaque rungs, which are the steps up from
+// the floor as the theme paints it. Over a veiled floor they stood out as
+// pale grey slabs: the driver curve's plot, the latency pill, the transport
+// tray and the meter's wells (Ivan, 2026-09-25: "too light not matching
+// theme style"). Veiled by the same amount, each stays the step above its
+// floor that it is everywhere else, whatever the scene is doing behind it.
+//
+// Computed on `#root`, from the root's own tokens, and handed to the panes
+// under the tokens' own names: a custom property that named itself on the
+// element it is declared on would be a cycle, and would be no colour at all.
+@mixin veiled-surfaces {
+  --surface-panel: var(--veiled-surface-panel);
+  --surface-block: var(--veiled-surface-block);
+  --surface-field: var(--veiled-surface-field);
+  --surface-field-end: var(--veiled-surface-field-end);
+  --surface-well: var(--veiled-surface-well);
+  --track-well: var(--veiled-track-well);
+}
+
+// The meter draws its wells itself and reads them from the root
+// (`readSurface`), which knows the Backdrop by this class (`SceneCanvas`).
+:root.is-scene-backdrop {
+  --meter-well: color-mix(
+    in srgb,
+    var(--track-well) var(--backdrop-veil),
+    transparent
+  );
+  --meter-well-pulse: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--surface-base) 55%, var(--surface-panel))
+      var(--backdrop-veil),
+    transparent
+  );
+  --meter-unlit: color-mix(
+    in srgb,
+    color-mix(in srgb, #{$edge-tint} 9%, var(--track-well)) var(--backdrop-veil),
+    transparent
+  );
+}
+
+// Only while a scene is in fact drawn back there: the layer is empty, and
+// the window is its usual floor, until the graph's scene is handed to it —
+// which is when `SceneCanvas` marks the root.
+//
+// On the document's root and not on `#root`: the transport bar is portalled
+// to `body`, outside `#root`, and a rule scoped to `#root` never reached it —
+// it stood opaque across the picture, its tray a pale slab on top.
+:root.is-scene-backdrop {
+  // The root's own stacking, so the layer's -1 lands above the floor the root
+  // paints and not under it. The root is positioned without a z-index, which
+  // puts its background over everything its children stack below zero.
+  #root {
+    z-index: 0;
+  }
+
+  // Computed on `body`, from the root's tokens, and inherited by everything
+  // in the window: the panes in `#root` and the bar beside it.
+  body {
+    --veiled-surface-panel: color-mix(
+      in srgb,
+      var(--surface-panel) var(--backdrop-veil),
+      transparent
+    );
+    --veiled-surface-block: color-mix(
+      in srgb,
+      var(--surface-block) var(--backdrop-veil),
+      transparent
+    );
+    --veiled-surface-field: color-mix(
+      in srgb,
+      var(--surface-field) var(--backdrop-veil),
+      transparent
+    );
+    --veiled-surface-field-end: color-mix(
+      in srgb,
+      var(--surface-field-end) var(--backdrop-veil),
+      transparent
+    );
+    --veiled-surface-well: color-mix(
+      in srgb,
+      var(--surface-well) var(--backdrop-veil),
+      transparent
+    );
+    --veiled-track-well: color-mix(
+      in srgb,
+      var(--track-well) var(--backdrop-veil),
+      transparent
+    );
+  }
+
+  // The two strips across the window take the full screen's glass
+  // (`App.scss`, `is-app-full`): opaque, they cut the picture into a band.
+  .window-titlebar,
+  .now-playing-bar {
+    @include veiled-surfaces;
+    background-color: color-mix(in srgb, $surface-base 72%, transparent);
+    backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  // The docked columns, and the parts of the middle one that are not the
+  // graph. The drawers keep their own floor: they float over the window.
+  .app-workspace:not(.is-app-full) {
+    > .side-bar:not(.is-open),
+    > .right-content:not(.is-open),
+    > .center-workspace > .pane-resizer,
+    > .center-workspace > .middle-content {
+      @include veiled-surfaces;
+      background-color: $cover-veil;
+    }
+
+    // The head above the graph is the graph's, as on the column's layer: the
+    // picture runs up under it rather than under the panes' veil.
+    > .center-workspace.is-graph-first > .center-head {
+      @include veiled-surfaces;
+      @include head-over-scene;
+    }
+  }
+}
+
+// The column's layer (`SceneColumnLayer.tsx`): behind an EQ page's head and
+// its graph, as tall as the two together (measured), and under both. The
+// graph stands at 2 in the column; the head is lifted to 1 while a scene is
+// drawn here, which it has to be — positioned at 0, the layer would paint
+// over a head that is not positioned at all.
+.scene-column-layer {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+:root.is-scene-column .center-workspace.is-graph-first > .center-head {
+  @include head-over-scene;
+}

@@ -73,6 +73,7 @@ import {
   GRID_SIDE_MARGIN,
   plotTopMargin,
 } from './plotMargins';
+import { publishPlotGeometry, withdrawPlotGeometry } from './plotGeometry';
 import {
   useLiveAudioCapture,
   useLiveAudioFrame,
@@ -136,6 +137,7 @@ import {
   useListenerWave,
 } from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
@@ -381,6 +383,10 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
+  // Folds back into the button when it closes, as every other menu does,
+  // rather than blinking out (`menu-out`).
+  const list = useRef<HTMLSpanElement>(null);
+  const exit = useExitAnimation(isOpen, 'menu-out', list);
 
   useEffect(() => {
     if (!isOpen) {
@@ -418,8 +424,14 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
         </svg>
         {t('graph.curves')}
       </button>
-      {isOpen && (
-        <span className="graph-legend-menu__list">
+      {exit.present && (
+        <span
+          ref={list}
+          className="graph-legend-menu__list"
+          data-closing={exit.closing ? '' : undefined}
+          inert={exit.closing}
+          onAnimationEnd={exit.onAnimationEnd}
+        >
           {chips.map((chip) => (
             <CurveLegend
               key={chip.curve}
@@ -896,13 +908,6 @@ const FrequencyResponseChart = ({
   const legendGroup = useRef<HTMLSpanElement>(null);
   const naturalLegendWidth = useRef(0);
   const [areChipsCollapsed, setAreChipsCollapsed] = useState(false);
-  /**
-   * How tall the floating strip actually is, so the plot can keep out from
-   * under it. Measured by the observer that already watches this row, because
-   * what changes the height is the row wrapping — the case no constant could
-   * have covered.
-   */
-  const [controlsHeight, setControlsHeight] = useState(0);
   const chipKey = curveChips.map((chip) => chip.curve).join(',');
 
   useLayoutEffect(() => {
@@ -916,7 +921,6 @@ const FrequencyResponseChart = ({
         naturalLegendWidth.current = group.scrollWidth;
       }
       setAreChipsCollapsed(naturalLegendWidth.current > row.clientWidth);
-      setControlsHeight(row.offsetHeight);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -1296,6 +1300,26 @@ const FrequencyResponseChart = ({
     return () => observer.disconnect();
   }, [updateDimensions]);
 
+  // Where the plot is, for the band row that stands under it on the EQ pages
+  // (layout A): the axis is built from this width and this grid, and
+  // `plotGeometry.ts` rebuilds it from them to put each band's slider under
+  // its handle.
+  useEffect(() => {
+    const element = ref.current;
+    if (element && width > 0) {
+      publishPlotGeometry({ element, width, isGridHidden });
+    }
+  }, [width, isGridHidden]);
+
+  useEffect(() => {
+    const element = ref.current;
+    return () => {
+      if (element) {
+        withdrawPlotGeometry(element);
+      }
+    };
+  }, []);
+
   useLayoutEffect(() => {
     // Compute dimensions on initial render, when graph view is toggled, when
     // the pane grows to fill the window, and on every step of a drag on the
@@ -1488,18 +1512,12 @@ const FrequencyResponseChart = ({
     width,
     height,
     margins: {
-      // Headroom above the plot: enough that a curve at +20 dB is not shaved
-      // off, and enough that the controls strip floating over the top does not
-      // sit on the band handles.
-      //
-      // It was a flat thirty pixels, and the strip is taller than that before
-      // it even wraps — so the top row of handles was underneath a row of
-      // buttons that take pointer events, present on screen and impossible to
-      // grab. See `plotTopMargin` for why this is measured rather than stated.
-      top: plotTopMargin(isDisplayedGridHidden, controlsHeight),
+      // Almost none: the controls strip floats inside the plot rather than
+      // over a band of its own (`plotTopMargin`).
+      top: plotTopMargin(isDisplayedGridHidden),
       // Air at the sides, so a curve running off the edge of the plot is not
-      // cut flush against the card. With the grid hidden there is nothing to
-      // read at the edges and the wave is better for having them.
+      // cut flush against the column. With the grid hidden there is nothing
+      // to read at the edges and the wave is better for having them.
       right: isGridHidden ? 0 : GRID_SIDE_MARGIN,
       // The frequency labels live down here, and with the grid hidden there is
       // nothing to leave room for.
@@ -1707,9 +1725,7 @@ const FrequencyResponseChart = ({
           {!isLiveOutputForeground &&
             !areHandlesHidden &&
             !areChipsCollapsed && (
-              <span className="graph-edit-hint">
-                Drag points · Ctrl/Shift select · Ctrl+scroll: Q
-              </span>
+              <span className="graph-edit-hint">{t('graph.editHint')}</span>
             )}
           {/* Every chip is its curve's switch.
 

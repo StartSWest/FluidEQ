@@ -6,7 +6,14 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   AUTOMATIC_PRESET_PREFIX,
@@ -51,6 +58,17 @@ interface IDeviceProfilesProps {
   isNoticeHidden?: boolean;
   onConfigureApo: () => Promise<boolean>;
   onAttachFluidEngine: (guid: string) => Promise<IEngineSetupResult>;
+  /**
+   * The profiles that play through the output, under its picker.
+   *
+   * The Output card is the output you listen on at the top and the profiles
+   * under it, because the ON pill on a profile only means anything next to
+   * the output it is on. They were two cards — "Automatic profile" and
+   * "Named profiles" — and the pill's meaning sat one card away from it.
+   * The profile list keeps its own state (PresetsBar); this card only gives
+   * it its place.
+   */
+  children: ReactNode;
 }
 
 const DeviceProfiles = ({
@@ -58,6 +76,7 @@ const DeviceProfiles = ({
   isNoticeHidden = false,
   onConfigureApo,
   onAttachFluidEngine,
+  children,
 }: IDeviceProfilesProps) => {
   // Re-read the state, do not raise the loading flag: that flag is the
   // start-up screen, so noticing a headphone plug used to blank the whole
@@ -206,16 +225,25 @@ const DeviceProfiles = ({
     document.addEventListener('keydown', dismissOnEscape);
     return () => document.removeEventListener('keydown', dismissOnEscape);
   }, [selectedDevice, showEngineNotice]);
-  const assignedPreset = selectedDeviceId
-    ? settings.assignments[selectedDeviceId]?.presetName || ''
-    : '';
-  const isAutomaticProfile = assignedPreset.startsWith(AUTOMATIC_PRESET_PREFIX);
-  let mappingLabel = t('output.mapping.neutral');
-  if (assignedPreset) {
-    mappingLabel = isAutomaticProfile
-      ? t('output.mapping.live')
-      : assignedPreset;
-  }
+  /**
+   * What an output plays through, as the line under its name in the picker:
+   * the named profile that is on, the automatic one it keeps by itself, or
+   * nothing. It used to be a block of its own under the picker ("Automatic
+   * mapping / Live tuning attached / Edit any EQ control to…"), three lines
+   * to say what one under the name says.
+   */
+  const describeMapping = useCallback(
+    (deviceId: string) => {
+      const assigned = settings.assignments[deviceId]?.presetName || '';
+      if (!assigned) {
+        return t('output.mapping.neutral');
+      }
+      return assigned.startsWith(AUTOMATIC_PRESET_PREFIX)
+        ? t('output.mapping.live')
+        : t('output.playing', { profile: assigned });
+    },
+    [settings, t],
+  );
 
   const handleDeviceChange = async (deviceId: string) => {
     setIsBusy(true);
@@ -293,67 +321,87 @@ const DeviceProfiles = ({
         };
   };
 
+  // One display for both places the option is drawn. In the list it is a dot
+  // and a name; the picker's own face — the chosen one — also carries the
+  // headphones mark, the line saying what the output plays through, and the
+  // badges. Which parts show where is the stylesheet's: the list hides the
+  // face's extras and the face hides the dot.
   const deviceOptions: IOptionEntry[] = useMemo(
     () =>
-      devices.map((device) => ({
-        value: device.id,
-        label: device.name,
-        display: (
-          <div className="device-option">
-            <span
-              className={device.isDefault ? 'device-dot active' : 'device-dot'}
-            />
-            <span>{device.name}</span>
-          </div>
-        ),
-      })),
-    [devices],
+      devices.map((device) => {
+        // Engine-neutral: the badge says this output is not being
+        // processed, and which piece of software is not processing it is
+        // the engine dialog's business, not a pill's.
+        const isOff = isOutputOff(outputEngineState(device, engine));
+        return {
+          value: device.id,
+          label: device.name,
+          display: (
+            <div className="device-option">
+              <span
+                className={
+                  device.isDefault ? 'device-dot active' : 'device-dot'
+                }
+              />
+              <svg
+                className="device-option__glyph"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M4 14v-3a8 8 0 0 1 16 0v3" />
+                <rect x="3" y="13" width="4" height="7" rx="1.5" />
+                <rect x="17" y="13" width="4" height="7" rx="1.5" />
+              </svg>
+              <span className="device-option__text">
+                <span className="device-option__name">{device.name}</span>
+                <span className={`device-option__sub${isOff ? ' is-off' : ''}`}>
+                  {describeMapping(device.id)}
+                </span>
+              </span>
+              <span className="device-option__badges">
+                {isOff && <span className="apo-badge">{t('output.off')}</span>}
+                {device.isDefault && (
+                  <span className="default-badge">{t('output.active')}</span>
+                )}
+              </span>
+            </div>
+          ),
+        };
+      }),
+    [describeMapping, devices, engine, t],
   );
 
   return (
-    // The picker is the summary, so folding this section hides the mapping
-    // detail but leaves the output you are choosing between on screen.
+    // The picker is the summary, so folding this section hides the profiles
+    // but leaves the output you are choosing between on screen. The picker
+    // is the whole face of the card: the badges that used to sit on a label
+    // above it are on the chosen row itself, because the picker lists every
+    // endpoint and which one Windows is actually playing through is not
+    // otherwise obvious.
     <SidebarSection
       className="device-profiles"
-      defaultOpen={false}
-      eyebrow={t('output.eyebrow')}
+      glyph={
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" />
+          <path d="M16 9.5a3.5 3.5 0 0 1 0 5" />
+          <path d="M18.5 7a7 7 0 0 1 0 10" />
+        </svg>
+      }
       title={t('output.title')}
       summary={
-        <div className="device-profiles__picker">
-          {/* The badge earns its place: the picker lists every endpoint, so
-              which one Windows is actually playing through is not otherwise
-              obvious. */}
-          <span className="device-profiles__label device-profiles__label--row">
-            {t('output.device')}
-            <span className="device-profiles__badges">
-              {/* Engine-neutral: the badge says this output is not being
-                  processed, and which piece of software is not processing it
-                  is the engine dialog's business, not a pill's. */}
-              {isOutputOff(engineState) && (
-                <span className="apo-badge">{t('output.off')}</span>
-              )}
-              {selectedDevice?.isDefault && (
-                <span className="default-badge">{t('output.active')}</span>
-              )}
-            </span>
-          </span>
-          <Dropdown
-            name={t('output.device')}
-            menuClassName="device-profiles-menu"
-            options={deviceOptions}
-            value={selectedDeviceId}
-            handleChange={handleDeviceChange}
-            isDisabled={isBlockingError || isBusy || devices.length === 0}
-            emptyOptionsPlaceholder={t('output.none')}
-          />
-        </div>
+        <Dropdown
+          name={t('output.device')}
+          className="device-profiles__row"
+          menuClassName="device-profiles-menu"
+          options={deviceOptions}
+          value={selectedDeviceId}
+          handleChange={handleDeviceChange}
+          isDisabled={isBlockingError || isBusy || devices.length === 0}
+          emptyOptionsPlaceholder={t('output.none')}
+        />
       }
     >
-      <div className="device-profiles__mapping">
-        <span className="device-profiles__label">{t('output.mapping')}</span>
-        <strong>{mappingLabel}</strong>
-        <span>{t('output.mapping.hint')}</span>
-      </div>
+      {children}
       <p className="device-profiles__hint">{t('output.hint')}</p>
       {showEngineNotice &&
         selectedDevice &&

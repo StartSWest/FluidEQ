@@ -206,19 +206,6 @@ body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__volume {
   background-color: color-mix(in srgb, $surface-block 66%, transparent);
 }
 
-// The header runs to the window's edges, and only in this view.
-//
-// It normally floats on the shell's gutter like a card. In full screen the
-// plot is the window, so that gutter is a 12px strip of moving spectrum
-// above and beside the bar — a band of colour outside the app's own chrome,
-// which is what made the top of the screen look broken.
-#root:has(> .app-workspace.is-app-full) .window-titlebar {
-  top: 0;
-  right: 0;
-  left: 0;
-  border-radius: 0;
-}
-
 // The graph's largest view keeps the app's own floor.
 //
 // It was taken off here, from when this view took the window full screen and
@@ -475,13 +462,14 @@ select option {
 .window-titlebar {
   position: fixed;
   z-index: 100;
-  // A card on the shell's gutter line, like the transport bar at the other end
-  // of the window. Its height is taken out of the strip rather than added to
-  // it, so the seventeen places that position themselves under the titlebar
-  // still clear it without any of them being touched.
-  top: var(--shell-gutter, 16px);
-  right: var(--shell-gutter, 16px);
-  left: var(--shell-gutter, 16px);
+  // Flush with the window's top and sides: the open floor (layout A, Ivan
+  // 2026-09-25 — "def A"). It was a card on the shell's gutter line; the
+  // gutter is 0 now, and the strip it reserves (`$title-bar-height`) is the
+  // bar itself, so the seventeen places that position themselves under the
+  // titlebar still clear it without any of them being touched.
+  top: var(--shell-gutter, 0px);
+  right: var(--shell-gutter, 0px);
+  left: var(--shell-gutter, 0px);
   display: grid;
   // Equal outer tracks keep the middle one optically centred in the window
   // regardless of how wide the brand block or the control cluster get. The
@@ -509,46 +497,20 @@ select option {
   // and a spectrum 3px off centre is the sort of thing that is only ever seen
   // once it cannot be unseen.
   padding: 2px 18px;
-  // The same card as the transport bar at the foot of the window, drawn from
-  // the same mixin and the same two stops, with the cast shadow turned the
-  // other way because this one hangs over the workspace instead of under it.
+  // No card: the window's own floor with one hairline under it, the same line
+  // that parts the columns below (layout A). It was the transport bar's card,
+  // and before that a full-width strip with a hairline — which is where it has
+  // come back to, now that nothing else in the shell is a card either.
   //
-  // It used to be a strip: full width, square, a hairline along the bottom and
-  // nothing else. Three panels and a transport card in a shell, with a strip of
-  // chrome across the top, is the one edge in the window that belonged to a
-  // different design.
-  //
-  // `background-color` under the gradient is what keeps it opaque. This bar
-  // floats at `z-index: 100` over three accelerated canvases, so the compositor
-  // gives it a layer of its own, and text on a layer only keeps its subpixel
-  // antialiasing over an opaque background: at 0.84 the brand, the tab names
-  // and the version all rendered grey and soft.
-  // The whole top band of the window is a drag handle, not just the card.
-  //
-  // The card stands 12px off the top edge and both sides now, and that margin
-  // was dead: the pointer landed on the page behind it and the window would not
-  // move. Windows builds the drag region as the union of the `drag` rectangles
-  // minus the `no-drag` ones, so a rectangle laid over the whole band picks up
-  // the gutter without taking anything away from the controls inside the card,
-  // which subtract themselves.
-  &::before {
-    position: fixed;
-    z-index: -1;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: $title-bar-height;
-    content: '';
-    -webkit-app-region: drag;
-  }
-
-  @include panel-surface;
-  // The pane colour, flat. The ramp the panes carry was tried here and on a
-  // 74px bar it read as a bevel; the block colour was tried and it made the
-  // bar a different material from the columns under it.
-  background-image: none;
-  // No shadow: it fell onto the top of the three columns and read as a
-  // darker band inside each of them. See `panel-surface`.
+  // The floor colour, and OPAQUE, which is not the same as leaving it
+  // transparent: this bar floats at `z-index: 100` over three accelerated
+  // canvases, so the compositor gives it a layer of its own, and text on a
+  // layer only keeps its subpixel antialiasing over an opaque background — at
+  // 0.84 the brand, the tab names and the version all rendered grey and soft.
+  border: 0;
+  border-bottom: 1px solid $border-subtle;
+  border-radius: 0;
+  background: $surface-base;
   box-shadow: none;
   // NO `backdrop-filter` on this bar, or on anything inside it that carries
   // text. A backdrop filter is a compositor layer by definition, and text drawn
@@ -634,9 +596,10 @@ select option {
 // took the difference. They float in the ends now, and this track holds the
 // one element that has to look centred, so that it is.
 //
-// This wrapper is a line, not a box: no outline, no fill, no glow. The pane is
-// the only bordered thing in the titlebar, which is what makes it the thing
-// the eye lands on.
+// This wrapper is a line, not a box: no outline, no fill, no glow — and since
+// 2026-09-25 neither is the pane inside it (`WaveformVisualizer.scss`): the
+// wave is drawn straight on the bar, and the moving drawing is what the eye
+// lands on.
 //
 // THE METER IS NOT TOUCHED BY ANY OF THIS. Its pane, its height and its
 // drawing are exactly what they were; only its width gives way, which is the
@@ -738,15 +701,11 @@ select option {
   -webkit-app-region: no-drag;
 }
 
-// Nothing here strips the meter any more.
-//
-// Its fill, its rim, its lit cyan when there is signal and its rainbow sweep
-// in euphoria are all its own again — `WaveformVisualizer.scss` for the first
-// three, `.is-euphoric .waveform-visualizer` in `Euphoria.scss` for the last.
-// They were suppressed while a wrapper carried them on the meter's behalf: two
-// outlines around one drawing read as a pane inside a pill, so the inner one
-// went. There is no outer one now, and the border on the spectrum is the only
-// border in the titlebar — which is the point of it.
+// Nothing here strips the meter: it has no box to strip. Its fill, its rim,
+// its lit cyan when there is signal and its rainbow sweep in euphoria all went
+// on 2026-09-25 (Ivan: "the pane remove that border", then no fill and no
+// corners either), so the wave is drawn straight on the bar — see
+// `WaveformVisualizer.scss` and `Euphoria.scss`.
 
 // The lit place keeps the app's own cyan, rainbow mode or not. Sweeping it
 // with the rest was tried and taken back out: the pill is where you ARE, and
@@ -754,8 +713,8 @@ select option {
 // happening rather than as a statement of fact.
 
 // Nothing left of the capsule the places used to sit in. They float in the
-// titlebar the way the window controls opposite them do; the only outline up
-// here belongs to the spectrum.
+// titlebar the way the window controls opposite them do, beside a wave that
+// has no outline either.
 .window-titlebar .workspace-tabs-shell {
   position: relative;
   z-index: auto;
@@ -771,7 +730,8 @@ select option {
   // capsule held everything, dividing the spectrum from the words inside a
   // shared outline; with no outline the two hairlines were floating lines in
   // the titlebar, and they made the pane look boxed in by something that was
-  // not there. The pane's own border is what separates it from the names now.
+  // not there. The space either side of the wave is what separates it from
+  // the names now.
 }
 
 .window-titlebar .workspace-tabs {
@@ -1029,7 +989,7 @@ select option {
     top: 50%;
     left: calc(100% + #{$spacing-xs});
     padding: 6px $spacing-s;
-    border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-s;
     background: color-mix(in srgb, $surface-menu-top 96%, transparent);
     box-shadow: 0 10px 26px rgba($black, 0.45);
@@ -1094,7 +1054,7 @@ select option {
   gap: 2px;
   padding: 3px 4px;
   border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-field-end 68%, transparent);
   box-shadow:
     0 8px 22px rgba($black, 0.3),
@@ -1353,8 +1313,8 @@ select option {
   flex: 0 0 auto;
   padding: 1px 6px;
   color: $text-accent;
-  border: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
-  border-radius: $radius-pill;
+  border: 1px solid $border-field;
+  border-radius: $radius-2xs;
   background: color-mix(in srgb, $secondary-default 10%, transparent);
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
@@ -1424,7 +1384,7 @@ select option {
   flex-shrink: 0;
   align-items: stretch;
   padding: 2px;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   -webkit-app-region: no-drag;
 
   // The chip gives up its raised box and becomes the capsule's left half:
@@ -1434,7 +1394,7 @@ select option {
     width: 46px;
     height: 26px;
     border: 0;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: none;
     box-shadow: none;
 
@@ -1461,7 +1421,7 @@ select option {
     height: 26px;
     padding: 0;
     border: 0;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
     background: none;
     box-shadow: none;
 
@@ -2193,13 +2153,16 @@ textarea,
   // the slot it stands in. At the pane colour it was darker than the well
   // and the top of a stack read as a hole in the instrument.
   --meter-unlit: #{color-mix(in srgb, $edge-tint 9%, $track-well)};
-  --shell-gutter: 12px;
-  // Spent twice: once as the gap between the last card and the transport bar,
-  // once as the gap between that bar and the foot of the window.
-  --shell-gutter-bottom: 12px;
-  // The titlebar card, and the strip it reserves (`$title-bar-height`): the
-  // card plus the gutter above it, so a gutter that changes moves the strip and
-  // never the card. Resolved here, where every tier sets the gutter.
+  // No gutter at any width: the open floor (layout A, Ivan 2026-09-25). The
+  // header, the three columns and the transport bar meet edge to edge and are
+  // parted by hairlines, so nothing stands off the window's edge any more.
+  // Kept as variables because the fixed pieces outside `.app-workspace` — the
+  // header, the drawers, the transport bar portalled to `body`, the menus'
+  // `shellInset` — all place themselves by them.
+  --shell-gutter: 0px;
+  --shell-gutter-bottom: 0px;
+  // The titlebar, and the strip it reserves (`$title-bar-height`): the bar
+  // plus the gutter above it, which is nothing now.
   --title-bar-card: 74px;
   --title-bar-height: calc(var(--title-bar-card) + var(--shell-gutter));
   // The meter set into that card, rainbow mode or not (`Euphoria.scss`): the
@@ -2214,18 +2177,11 @@ textarea,
   // free to grow, or the column that grew would push the graph out of view
   // again.
   height: 100%;
-  // The shell's gutter — the margin every outermost card is inset by, and the
-  // line `.side-bar` and `.right-content` are aligned to. Custom properties
-  // rather than plain values because the now-playing bar has to sit on the
-  // same line and cannot inherit it: it is `position: fixed` and portalled to
-  // `document.body`, outside this element entirely. Declared on `:root` below
-  // so that bar can read it, consumed here, and overridden in one place per
-  // breakpoint instead of in two files that would drift.
-  // The same inset on all four sides. With a transport bar the reservation on
-  // `#root` below carries the bar's strip plus one of these, so the gap under
-  // the last card is the same whether there is a bar or not.
-  padding: var(--shell-gutter) var(--shell-gutter) var(--shell-gutter-bottom);
-  gap: 12px;
+  // Edge to edge. The columns used to be cards inset by the shell's gutter and
+  // 12px apart; on the open floor they meet, and the hairline each side column
+  // draws on its inner edge is the whole of what parts them.
+  padding: 0;
+  gap: 0;
   overflow: hidden;
 
   grid-template-areas: 'side-bar center-workspace right-content';
@@ -2362,23 +2318,85 @@ textarea,
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 12px;
+  // No gap: the panes meet, and the divider between them is the seam.
+  // `paneSizes.ts` reads this and the divider's margins, so the split follows
+  // whatever they are.
+  gap: 0;
   // Never scrolls, and never grows. Its height is the row's height, which is
   // the window's — so the split inside it is sharing the viewport, and the
   // graph at its bottom is at the bottom of the view.
   overflow: hidden;
 }
 
-// The divider takes up no more room than the space that was already between
-// the editor and the graph.
-//
-// The column lays its children out with `gap: 12px`, so simply putting an
-// element between two of them costs 12 above it, its own height, and 12 below —
-// the seam under the editor ended up three times deeper than the gap between
-// any other pair of cards. These cancel the two gaps it introduced, leaving a
-// 12px seam with the grip sitting in the middle of it.
+// The divider between the graph and the page is its hairline and nothing
+// else (Ivan, 2026-09-25: "put the viz so there is no bg separation from the
+// splitter line"). It was a 12px strip with the line across its middle, so a
+// visualizer stopped six pixels short of the line on a band of bare floor.
+// The strip is still what a press lands on — a one-pixel line is a thing you
+// hunt for — but it is drawn over the two panes instead of between them,
+// above both: the graph stands at 2 and the page at 1. `paneSizes.ts`
+// measures the divider's box, so the split counts the one pixel it takes.
 .center-workspace > .pane-resizer {
-  margin-block: -12px;
+  z-index: 3;
+  height: 1px;
+
+  &::before {
+    top: 0;
+  }
+
+  &::after {
+    position: absolute;
+    inset: -6px 0;
+    content: '';
+  }
+}
+
+// An EQ page with its graph above it (layout A, `isGraphFirst` in App.tsx):
+// the head — section pills and the Bands title row — then the graph, the
+// divider, and the page, whose bands stand under the graph's points.
+//
+// Put in that order here rather than in the markup, where the page comes
+// first: moving the page's element would move every panel kept alive inside
+// it, and a web view that is moved reloads.
+.center-workspace.is-graph-first {
+  > .center-head {
+    order: 0;
+  }
+
+  > .graph-wrapper {
+    order: 1;
+  }
+
+  > .pane-resizer {
+    order: 2;
+  }
+
+  > .middle-content {
+    order: 3;
+  }
+}
+
+// The page's own inset, so the pills and the title stand exactly where they
+// stood inside it (`.workspace-tab-panel`: 12 at the sides, the rail flush
+// with the top), and no taller than they are — the split below is measured
+// without it (`paneSizes.ts`, `measureHead`).
+.center-head {
+  display: grid;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0 12px 10px;
+  gap: 0;
+
+  // The title row keeps the 10px the page's scroller put above it, and the
+  // width container the page's scroller gives it (`eq-panel`): the row
+  // stacks by that width (`MainContent.scss`), and up here it is the head's.
+  > .center-head__title {
+    container: eq-panel / inline-size;
+  }
+
+  > .center-head__title:not(:empty) {
+    padding-top: 10px;
+  }
 }
 
 .right-content {
@@ -2480,8 +2498,6 @@ textarea,
 // The capsule is why the tabs no longer merge into the card: they are not the
 // top of it any more, they are a control above it. `panel-top()` and the seam
 // that masked the dividing line went with the shape.
-
-$tab-border: color-mix(in srgb, $secondary-light 20%, transparent);
 
 .workspace-tabs {
   position: relative;
@@ -2699,7 +2715,8 @@ $tab-bar-inset: 8px;
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
 .workspace-tab-panel--library {
-  @include panel-surface;
+  // No card: every page stands on the window's floor, between the hairlines
+  // of the columns either side (layout A, Ivan 2026-09-25).
   display: flex;
   flex-direction: column;
   // One padding for every tab, taken from the Media tab: 10px above the first
@@ -2711,7 +2728,6 @@ $tab-bar-inset: 8px;
   // does not get; its bar re-adds the same 12 inline, so the two toolbars sit
   // on the same rule.
   padding: 10px 12px 12px;
-  border-top-color: $tab-border;
 }
 
 // The five EQ pages start with the section rail, and it sits on the card's own
@@ -2742,6 +2758,15 @@ $tab-bar-inset: 8px;
   gap: 0;
 }
 
+// The same, where the rail has gone up above the graph (`.center-head`, layout
+// A): the panel is known by its scroller then. Without this it kept a gutter
+// and a scrollbar of its own around the scroller's — two 8px strips on its
+// right edge, and every control on the page 8px left of the column's middle.
+.workspace-tab-panel:has(> .workspace-tab-panel__scroll) {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
 // Everything on an EQ page except the rail — and the only box on it that
 // scrolls.
 //
@@ -2759,7 +2784,11 @@ $tab-bar-inset: 8px;
   flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-gutter: stable;
+  // On both edges, so what is centred on the page is centred in the column:
+  // the bands, the Tone dials and the player bar's play button all stand on
+  // the column's middle (`useWorkspaceAxis`), and a gutter on one side only
+  // put the page's middle half a scrollbar to the left of it.
+  scrollbar-gutter: stable both-edges;
   gap: 10px;
   // The air the panel's own `padding-top` used to hold, moved inside the
   // scroller so the first row sits where it always did and later rows still
@@ -2926,6 +2955,39 @@ $tab-bar-inset: 8px;
 // positioned against the window, so there is nothing left to escape from — see
 // the head of Dropdown.tsx.
 
+// The handle each drawer is pulled out by: a slim tab of the drawer's own
+// floor and edge, with a chevron that points the way the panel goes (Ivan,
+// 2026-09-25: "better side pane floating, less drop shadow, better handle").
+// It was a 30x56 box of the panel colour under a bright cyan rim, a 16px
+// corner and a heavy shadow, with a gear in it: a button from another kit
+// standing on the window's edge, and "settings" said of a panel that is not.
+@mixin drawer-handle {
+  place-items: center;
+  width: $drawer-tab-width;
+  height: 64px;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid $border-panel;
+  background: $surface-base;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: $border-field-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  .drawer-tab__chevron {
+    width: 12px;
+    height: 12px;
+    opacity: 1;
+  }
+}
+
 // The drawer's summon tab and backdrop. Both exist only below the
 // three-column breakpoint; wide layouts show the column in the grid and
 // these render as nothing at all.
@@ -2940,25 +3002,25 @@ $tab-bar-inset: 8px;
   top: 50%;
   right: 0;
   display: none;
-  place-items: center;
-  width: 30px;
-  height: 56px;
-  padding: 0;
-  color: $text-muted;
-  background: $surface-panel;
-  border: 1px solid rgba(63, 149, 173, 0.35);
+  @include drawer-handle;
   border-right: 0;
-  border-radius: 16px 0 0 16px;
-  box-shadow: -8px 0 22px rgba(0, 0, 0, 0.3);
+  border-radius: $radius-xs 0 0 $radius-xs;
+  box-shadow: -4px 0 12px rgba($black, 0.16);
   transform: translateY(-50%);
-  cursor: pointer;
   animation: drawer-tab-hint 14s $ease-out infinite;
   // Opacity and transform for full screen, where the tab tucks itself off the
   // edge until the pointer comes for it — see `is-side-chrome-awake` below.
   transition:
     right 180ms ease-out,
     opacity $motion-base ease,
-    transform $motion-base ease;
+    transform $motion-base ease,
+    color 150ms ease,
+    border-color 150ms ease;
+
+  // Pull it out: the chevron points the way the panel comes.
+  .drawer-tab__chevron {
+    transform: rotate(90deg);
+  }
 
   // Open, the tab rides on the panel's own edge and travels with it. Left at
   // the window's edge it ended up underneath the panel it opened, and on a
@@ -2967,11 +3029,10 @@ $tab-bar-inset: 8px;
   &.is-open {
     right: $sound-panel-width;
     animation: none;
-  }
 
-  svg {
-    width: 16px;
-    height: 16px;
+    .drawer-tab__chevron {
+      transform: rotate(-90deg);
+    }
   }
 }
 
@@ -2983,7 +3044,9 @@ $tab-bar-inset: 8px;
   z-index: 58;
   inset: 0;
   padding: 0;
-  background: rgba(2, 8, 14, 0.45);
+  // Enough to say the page is behind the panel, not enough to put it out:
+  // at 0.45 the window went dark every time a panel was pulled out.
+  background: rgba(2, 8, 14, 0.24);
   border: 0;
   cursor: pointer;
   // The window darkens over the same 180ms the panel takes to arrive, rather
@@ -3011,35 +3074,33 @@ $tab-bar-inset: 8px;
   top: 50%;
   left: 0;
   display: none;
-  place-items: center;
-  width: 30px;
-  height: 56px;
-  padding: 0;
-  color: $text-muted;
-  background: $surface-panel;
-  border: 1px solid rgba(63, 149, 173, 0.35);
+  @include drawer-handle;
   border-left: 0;
-  border-radius: 0 16px 16px 0;
-  box-shadow: 8px 0 22px rgba(0, 0, 0, 0.3);
+  border-radius: 0 $radius-xs $radius-xs 0;
+  box-shadow: 4px 0 12px rgba($black, 0.16);
   transform: translateY(-50%);
-  cursor: pointer;
   // Offset from the other tab's cycle, so the two never light together and
   // read as one thing flashing across the window.
   animation: drawer-tab-hint 14s $ease-out 7s infinite;
   transition:
     left 180ms ease-out,
     opacity $motion-base ease,
-    transform $motion-base ease;
+    transform $motion-base ease,
+    color 150ms ease,
+    border-color 150ms ease;
+
+  .drawer-tab__chevron {
+    transform: rotate(-90deg);
+  }
 
   // The same, on the other edge.
   &.is-open {
     left: min($side-bar-width-compact, 86vw);
     animation: none;
-  }
 
-  svg {
-    width: 16px;
-    height: 16px;
+    .drawer-tab__chevron {
+      transform: rotate(90deg);
+    }
   }
 }
 
@@ -3165,12 +3226,13 @@ $tab-bar-inset: 8px;
   0%,
   86%,
   100% {
-    border-color: rgba(63, 149, 173, 0.35);
+    border-color: $border-panel;
     color: $text-muted;
   }
 
+  // The hover's own edge, once in a while: a hint, not a flash.
   91% {
-    border-color: color-mix(in srgb, $secondary-light 95%, transparent);
+    border-color: $border-field-hover;
     color: $white;
   }
 }
@@ -3255,9 +3317,13 @@ $tab-bar-inset: 8px;
   width: $sound-panel-width;
   padding: 0;
   overflow: hidden;
-  background: $surface-panel;
-  border-left: 1px solid rgba(63, 149, 173, 0.3);
-  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
+  // The floor it slides over, parted from the page by the same hairline the
+  // docked column draws, and lifted off it by its shadow alone.
+  background: $surface-base;
+  border-left: 1px solid $border-panel;
+  // Lifted off the page, not thrown onto it: the 48px shadow at 0.45 lay a
+  // dark band a hand wide across whatever the panel covered the edge of.
+  box-shadow: -10px 0 28px rgba($black, 0.22);
   transform: translateX(105%);
   transition: transform 180ms ease-out;
 
@@ -3272,10 +3338,6 @@ $tab-bar-inset: 8px;
   @include right-content-drawer;
 
   z-index: 72;
-
-  .right-content__scroll {
-    padding: 14px;
-  }
 }
 
 .app-workspace.is-app-full > .right-content-toggle {
@@ -3284,10 +3346,9 @@ $tab-bar-inset: 8px;
 }
 
 .right-content {
-  // The mixin's own mixture, like every other panel. It carried a different
-  // accent and a different amount, which is half of why the columns never
-  // quite matched.
-  @include panel-surface;
+  // No card: the floor, and a hairline on the edge it shares with the page
+  // (layout A, Ivan 2026-09-25).
+  border-left: 1px solid $border-subtle;
   display: grid;
   min-height: 0;
   padding: 0;
@@ -3297,15 +3358,17 @@ $tab-bar-inset: 8px;
   overflow: hidden;
 }
 
-// The cards scroll; the website does not. Keeping the scrollbar on this inner
-// row makes it end above the footer instead of running behind the link, and the
-// stable gutter stops the cards shifting sideways when overflow first appears.
+// The sections scroll; the website does not. Keeping the scrollbar on this
+// inner row makes it end above the footer instead of running behind the link,
+// and the stable gutter stops the sections shifting sideways when overflow
+// first appears. No gap and no padding: the sections run edge to edge and are
+// parted by their own hairlines (`SidebarSection.scss`).
 .right-content__scroll {
   display: grid;
   min-height: 0;
   align-content: start;
-  gap: 10px;
-  padding: 12px;
+  gap: 0;
+  padding: 0;
   grid-auto-rows: max-content;
   overflow-x: hidden;
   overflow-y: auto;
@@ -3379,19 +3442,8 @@ $tab-bar-inset: 8px;
   // The floor is kept here as well as in the store: whatever a stylesheet
   // elsewhere does to this box, it does not get to collapse it to nothing.
   min-height: 150px;
-  // The same card as the sidebar, the EQ panel and the profile list.
-  //
-  // This had its own border, its own gradient and its own shadow, all close to
-  // the shared ones and none of them equal — so the graph read as a panel from
-  // a slightly different app sitting in the middle of the window. The mixin
-  // exists precisely so these four agree.
-  //
-  // Which it could not while every caller passed a different accent and amount.
-  // Four panels asked for four mixtures — 5%, 6%, 7% and 9%, across two
-  // different accents — and then wondered why they did not match. The argument
-  // is still there for anything that genuinely needs to stand apart; the panels
-  // that make up the window are not that, and they all take the default now.
-  @include panel-surface;
+  // No card: the plot is drawn on the window's floor, under the divider's
+  // hairline, like every other pane on the open floor (layout A).
   // Above the pane it shares the column with.
   //
   // The card's header holds two menus, and both of them open out of the card
@@ -3468,6 +3520,44 @@ $tab-bar-inset: 8px;
     min-height: 28px;
     padding: 5px 9px;
     border-radius: $radius-xs;
+  }
+}
+
+// On a ruled plot the pane stops where the plot does. It floats inside the
+// plot now (`plotTopMargin`), and past the plot's right end are the level
+// labels' 48px (`getAxisPadding`) and 8px of air (`GRID_SIDE_MARGIN`): at its
+// old 10px from the edge the pane lay over "0 dB", the top of that scale.
+.graph-wrapper:not(.is-gridless) > .live-output-controls {
+  right: 56px;
+}
+
+// Out from under the sound panel (Ivan, 2026-09-25: "the options bar on the
+// top needs to move when it opens"). Below the three-column width the panel
+// is a drawer over the right of the page, and it lay over the end of this
+// bar — the View menu and the grid, the switches reached most. The bar is
+// right-aligned and wraps, so it moves in by what the drawer covers of the
+// graph, in step with the drawer, and folds onto a second row if that leaves
+// it too little room.
+.live-output-controls {
+  transition: right 180ms ease-out;
+}
+
+@media (max-width: $bp-three-column) {
+  .app-workspace.is-sound-drawer-open:not(.is-app-full)
+    .graph-wrapper
+    > .live-output-controls {
+    // The drawer covers the page its own width in from the window's edge,
+    // and the graph already stops the tab's lane short of that edge.
+    right: calc(#{$sound-panel-width} - #{$drawer-tab-width} + 12px);
+  }
+}
+
+// Full screen keeps the drawer at the window's edge, over the picture.
+.app-workspace.is-app-full.is-sound-drawer-open {
+  --graph-controls-right: calc(#{$sound-panel-width} + 12px);
+
+  .graph-wrapper > .live-output-controls {
+    right: var(--graph-controls-right);
   }
 }
 
@@ -3588,6 +3678,10 @@ button.graph-legend {
   color: $text-muted;
   font-size: $text-micro;
   @include tracking(0.02em);
+  // Words, not a control: the strip floats inside the plot now
+  // (`plotTopMargin`), and a band handle under the hint must still take the
+  // press that grabs it.
+  pointer-events: none;
 }
 
 // Only appears when the output is actually railing, so it is allowed to be
@@ -3596,7 +3690,7 @@ button.graph-legend {
   padding: 3px 8px;
   color: #ffd9de;
   border: 1px solid rgba($red, 0.7);
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: rgba($red, 0.22);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -3872,11 +3966,6 @@ button.graph-legend {
 
 // Two columns: the profile column moves below the workspace and splits in two.
 @media (max-width: $bp-three-column) {
-  :root {
-    --shell-gutter: 12px;
-    --shell-gutter-bottom: 12px;
-  }
-
   .app-workspace {
     // Two columns only: the sound panel leaves the grid entirely below this
     // breakpoint. Its old fate was a band squashed under the workspace —
@@ -3889,16 +3978,34 @@ button.graph-legend {
 
   // The same panel as a slide-over drawer: summoned from the edge tab,
   // dismissed by its backdrop, scrolling on its own.
+  //
+  // And standing where it stands docked (Ivan, 2026-09-23: "side panes when
+  // collapsed should display in the same position they belong ... no gap to
+  // the header"): under the header and in from the edge by the shell's
+  // gutter, which on the open floor is nothing — so it lies flush against
+  // both, like the docked column. Shut, it travels past the gutter and its
+  // shadow, or both stayed in sight along the edge.
   .right-content {
     @include right-content-drawer;
-  }
-
-  .right-content__scroll {
-    padding: 14px;
+    top: calc(#{$title-bar-height} + var(--shell-gutter, 0px));
+    right: var(--shell-gutter, 0px);
+    transform: translateX(calc(100% + var(--shell-gutter, 0px) + 72px));
   }
 
   .right-content-toggle {
     display: grid;
+  }
+
+  // And the page keeps a lane for the tab (`$drawer-tab-width`), so the tab
+  // stands beside the graph's level labels rather than on them.
+  .app-workspace:not(.is-app-full) > .center-workspace {
+    padding-right: $drawer-tab-width;
+  }
+
+  // Its tab rides on the panel's edge, which is now a gutter in from the
+  // window's. Not over a full screen, whose drawer keeps the edge.
+  .app-workspace:not(.is-app-full) > .right-content-toggle.is-open {
+    right: calc(#{$sound-panel-width} + var(--shell-gutter, 16px));
   }
 }
 
@@ -4053,11 +4160,6 @@ button.graph-legend {
 // last squeeze.
 
 @media (max-width: 760px) {
-  :root {
-    --shell-gutter: 10px;
-    --shell-gutter-bottom: 10px;
-  }
-
   .right-content {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4137,23 +4239,13 @@ button.graph-legend {
 // 1440x852, where the titlebar, the transport and five gutters took 174 of
 // the 852 before any page had a pixel (Ivan, 2026-09-23). The shell's own
 // chrome gives the room back, and only the chrome: the titlebar card 74 -> 56
-// with its meter 65 -> 47, the transport 64 -> 52 (`NowPlayingBar.scss`),
-// and the gutters 12 -> 8 — the gap between the columns with them, because
-// equal all round is what makes the shell read as one grid. Every control
-// keeps its size and its place; what goes is air.
-//
-// After the width tiers, so a window both short and narrow takes this gutter
-// and not the 10 of `760px` above: of two tiers that both apply, the tighter.
+// with its meter 65 -> 47, and the transport 64 -> 52 (`NowPlayingBar.scss`).
+// The gutters went to 8 here too until the open floor took them away at every
+// size. Every control keeps its size and its place; what goes is air.
 @media (max-height: $bp-laptop-height) {
   :root {
-    --shell-gutter: 8px;
-    --shell-gutter-bottom: 8px;
     --title-bar-card: 56px;
     --title-bar-meter: 47px;
-  }
-
-  .app-workspace {
-    gap: var(--shell-gutter);
   }
 
   // The mark comes down with the card, so it keeps air above and below it: at

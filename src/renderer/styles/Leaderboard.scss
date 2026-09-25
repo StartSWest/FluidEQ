@@ -104,7 +104,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 10px;
   color: $text-muted;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
 }
@@ -289,7 +289,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .leaderboard__you {
   padding: 0 7px;
   color: $surface-base;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: $secondary-default;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -441,7 +441,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 140px;
   height: 4px;
   overflow: hidden;
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $white 7%, transparent);
 
   > span {

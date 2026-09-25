@@ -22,130 +22,365 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// Every card is fixed-size and top-aligned, so the column keeps exactly the
-// same shape whatever the workspace next to it is showing.
+// One column, four groups, hairlines between them.
+//
+// The groups used to be four inset cards, and a card inside a 164px column
+// spends eighteen of those pixels on its own border and padding: the dial
+// and the switches had less room than the chrome around them, and every
+// group carried an eyebrow, a title and a control stacked and centred — a
+// settings form, three lines per switch. Now the power is a button, the
+// switches are one-line rows, and only the meter stands in a well, because
+// it is the one thing here that is an instrument.
+//
+// And the column itself is no card either: the window's floor, with a
+// hairline on the edge it shares with the page (layout A, Ivan 2026-09-25).
 .side-bar {
-  // The mixin's own mixture. Nine percent made this column visibly greener
-  // than the panels it stands beside, which is a personality nothing asked it
-  // to have.
-  @include panel-surface;
+  border-right: 1px solid $border-subtle;
   display: flex;
   min-width: 0;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
-  // Tighter than the 22px it was, because the cards below now carry the
-  // separation themselves. Twenty-two pixels of nothing between four
-  // unbounded blocks is not a gap, it is the absence of one — the column read
-  // as a single run of labels and switches with no way to tell where one
-  // concept ended and the next began.
-  gap: 10px;
-  padding: 12px;
-  text-align: center;
+  gap: 0;
+  // The sound panel's 18 either side (Ivan: "same padding as the right
+  // one"), and part of the strip's width budget (`_constant.scss`).
+  padding: 14px 18px 10px;
+  text-align: left;
+}
 
-  // One card per concept: the engine switch, the preamp, the headroom switch,
-  // the visualiser and its meter. `inset-surface` is the same recessed panel
-  // the grid tiles and the library's own cards sit on, so this is the column
-  // joining the app's vocabulary rather than inventing a fifth kind of box.
-  > div {
-    @include inset-surface;
-    width: 100%;
-    flex: 0 0 auto;
-    padding: 10px 8px 12px;
+.side-bar__rule {
+  flex: 0 0 auto;
+  height: 1px;
+  margin: 10px 0;
+  background: $border-panel;
+}
+
+// *** Power *****************************************************************
+
+.side-bar__power {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding-top: 6px;
+  text-align: center;
+}
+
+// A real knob of a button: a domed field-coloured disc with a ring around it
+// that lights in the accent when FluidEQ is on, and in red when the engine
+// is not on the output being listened to.
+.side-bar__power-button {
+  position: relative;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 4px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba($edge-tint, 0.12);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 32%,
+    color-mix(in oklab, $surface-field, $white 9%),
+    $surface-field 45%,
+    $surface-field-end 100%
+  );
+  box-shadow:
+    0 12px 26px rgba($black, 0.55),
+    inset 0 1px 0 rgba($white, 0.08),
+    inset 0 -6px 14px rgba($black, 0.35);
+  cursor: pointer;
+  transition:
+    box-shadow 200ms ease,
+    filter 200ms ease;
+
+  &::before {
+    position: absolute;
+    inset: -6px;
+    border: 2px solid color-mix(in srgb, $secondary-default 22%, transparent);
+    border-radius: 50%;
+    content: '';
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
   }
 
-  h4 {
-    margin: 6px 0 9px;
-    color: rgba($white, 0.84);
+  &.is-on::before {
+    border-color: $secondary-default;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+
+  &.is-broken::before {
+    border-color: color-mix(in srgb, $red 70%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, $red 30%, transparent);
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 12px 26px rgba($black, 0.55),
+      0 0 18px color-mix(in srgb, $secondary-default 20%, transparent),
+      inset 0 1px 0 rgba($white, 0.1),
+      inset 0 -6px 14px rgba($black, 0.35);
+  }
+
+  // ON: the face itself is lit, the way a hardware power key is. A ring and a
+  // glowing glyph on the same dark disc as OFF read as "a little on" — the
+  // difference was a haze, and Ivan asked for colour, not more of it
+  // (2026-09-24: "more vivid so it shows it really on", "not so much glow").
+  // The accent's own three steps dome the face, the glyph is engraved in its
+  // darkest, and the halo stays tight. Not while broken: red owns that state.
+  &.is-on:not(.is-broken) {
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    background: radial-gradient(
+      circle at 50% 30%,
+      color-mix(in oklab, $secondary-default, $white 34%),
+      $secondary-default 50%,
+      $secondary-dark 100%
+    );
+    box-shadow:
+      0 10px 22px rgba($black, 0.5),
+      0 0 12px color-mix(in srgb, $secondary-default 32%, transparent),
+      inset 0 1px 0 rgba($white, 0.4),
+      inset 0 -6px 12px color-mix(in srgb, $secondary-darker 60%, transparent);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.07);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+.side-bar__power-glyph {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: $text-dim;
+  stroke-linecap: round;
+  stroke-width: 2.4;
+  transition:
+    stroke 200ms ease,
+    filter 200ms ease;
+
+  // Engraved in the lit face: the accent's darkest step under a one-pixel
+  // highlight, so it reads as cut into the key rather than glowing on it.
+  .side-bar__power-button.is-on:not(.is-broken) & {
+    stroke: color-mix(in oklab, $secondary-darker, $black 55%);
+    filter: drop-shadow(0 1px 0 rgba($white, 0.35));
+  }
+
+  .side-bar__power-button.is-broken & {
+    stroke: $red;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, $red 70%, transparent));
+  }
+}
+
+.side-bar__power-name {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+}
+
+// Which engine, and whether it is on: what the ENGINE eyebrow and a separate
+// card used to take three lines to not quite say.
+.side-bar__power-state {
+  color: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+  // Two even lines in the strip rather than a full one and an orphan: the
+  // engine's name and its state come to more than the strip's width.
+  text-wrap: balance;
+
+  &.is-off {
+    color: $text-faint;
+  }
+
+  &.is-broken {
+    color: $red;
+  }
+}
+
+// *** Group headings and rows ***********************************************
+
+.side-bar__head {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+// The name is a real label for the switch's checkbox, so pressing the words
+// toggles it too.
+//
+// THE NAME OWNS THE ROW, AND THE CONTROL SITS UNDER IT.
+//
+// Side by side, this column has 140px to share: the switch takes 26 and the
+// gap 10, which leaves the name 104. Measured in the running window at this
+// font, the two names want 108 and 114px in ENGLISH and 206 and 144 in
+// Spanish, 208 and 128 in Italian, 206 and 137 in Portuguese — so every
+// language wrapped, English included, and the long ones broke into two lines
+// squeezed against the switch (Ivan, 2026-09-24, looking at the Spanish:
+// "this cannot be with languages"). Widening the column is not on offer; the
+// sentence is what varies, so the sentence gets the width.
+//
+// One shape in every language: the name across the top, centred, on one line
+// where it fits and two where it does not, and the switch centred under it —
+// the shape the preamp above already has, a name over the control it names
+// (Ivan, 2026-09-24: "center the thing header centred on top, two lines or
+// one line if full text fits, and toggle centred below too"). Left-aligned
+// with the switch off to the right, the two long names sat as a ragged block
+// with a lot of empty card beside them.
+//
+// Not abbreviations: shortening these in ten languages to win pixels costs
+// the sentence that says what the switch does, and an ellipsis costs it
+// outright.
+.side-bar__row {
+  display: grid;
+  width: 100%;
+  gap: 6px;
+  justify-items: center;
+
+  // `:not(.switch)`, because the switch IS a label: without it the switch
+  // took this rule's `stretch` and sat at the panel's edge under the name
+  // rather than under its middle, wearing the name's colour on hover.
+  > label:not(.switch) {
+    justify-self: stretch;
+    min-width: 0;
+    color: $text-primary;
     font-size: $text-body;
     font-weight: $weight-semibold;
+    text-align: center;
+    cursor: pointer;
+    // Two short lines rather than a full one and an orphan: only Spanish,
+    // Italian and Portuguese reach it, and each breaks at its own phrase.
+    text-wrap: balance;
   }
 
-  .slider {
-    align-items: center;
-    gap: $spacing-s;
+  &:hover > label:not(.switch) {
+    color: $secondary-light;
   }
 
-  // The preamp readout is fixed width so the column does not jump between
-  // "-9.5" and "-10.23".
-  .number-input {
-    width: 78px;
-    align-self: center;
-  }
-}
-
-.side-bar__control-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  h4 {
-    margin: 3px 0 8px;
+  // The compact cut of the switch: the standard 50px one is a third of this
+  // column's width, which is the size of a control, not of a setting.
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
   }
 }
 
-/*
- * The visualizer card takes the rest of the column, because it is the only one
- * with something inside that can use it.
- *
- * The others are a switch and a label — fixed things that would only be
- * stretched into whitespace. This one holds the level meter, and a meter is
- * the one control here that is genuinely better tall: more resolution per
- * decibel, and it fills what was otherwise a dead half-column under the
- * switch.
- *
- * The pane itself scrolls, so this card must keep enough height for its label,
- * switch and minimum meter. Letting it collapse to zero made those children
- * overflow upward through Auto normalize before the scrollbar could help.
- */
-// Selected through the parent, because `.side-bar > div` sets `flex: 0 0 auto`
-// on every card and one class alone loses to a class plus an element. The rule
-// was there and simply never applied, which is the least visible way for CSS to
-// be wrong — and it has since gone missing once more, which looks the same from
-// the window: the card shrinks to its contents and the meter drops to its 96px
-// floor with half the column empty under it.
-.side-bar > .side-bar__response {
-  min-height: 158px;
-  flex: 1 0 158px;
-  align-self: stretch;
-}
+// *** Preamp ****************************************************************
 
 .side-bar__preamp {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
 
-  // The preamp track length is a layout decision, not a per-tab one.
-  //
-  // It used to grow when the response graph was hidden, on the reasoning that
-  // the column then had room to spare. That room is no longer spare — the level
-  // meter takes it — so growing here only meant one control resizing whenever
-  // another was switched, which is exactly what it looked like.
-  .range {
-    --range-length: 102px;
+  // Over the middle of the dial it names, like the two switch names under it
+  // (Ivan, 2026-09-24). Centred here and not in `.side-bar__head` itself:
+  // the meter's heading carries its held peak at the other end of the same
+  // line, and centring that would push the two into each other.
+  .side-bar__head {
+    justify-self: stretch;
+    justify-content: center;
   }
 
-  // The "+20 dB" ceiling caption above the track. Not the knob, which is
-  // also a div and also not `.slider` — it draws its own numbers.
-  > div:not(.slider):not(.knob) {
-    color: $text-muted;
-    font-size: $text-eyebrow;
-    font-variant-numeric: tabular-nums;
+  // The readout is fixed width so the column does not jump between "-9.5"
+  // and "-10.23".
+  .number-input {
+    width: 64px;
   }
 
-  // The "-20 dB" floor caption rendered by Slider under the track.
-  .slider > div:not(.range):not(.number-input) {
-    color: $text-muted;
-    font-size: $text-eyebrow;
-    font-variant-numeric: tabular-nums;
+  // Auto normalize owns the dial. It stays a readout in full ink rather than
+  // the greyed control `knob--disabled` makes of every other dial — the value
+  // it shows is live and meaningful — with the arc dimmed and the label under
+  // the number reading AUTO in the accent. That label is what the two-line
+  // note under the dial used to say.
+  .knob--disabled {
+    opacity: 1;
+
+    .knob__value {
+      stroke: color-mix(in srgb, $secondary-default 55%, transparent);
+    }
+
+    .knob__label {
+      fill: $secondary-light;
+    }
   }
 }
 
-// Hiding the graph no longer stretches the preamp. See `.side-bar__preamp`:
-// the space it was reaching into belongs to the meter now, and a slider that
-// changed length whenever the graph was toggled read as a glitch rather than as
-// a layout adapting.
+// *** Meter *****************************************************************
+
+// Takes the rest of the column: a meter is the one control here that is
+// genuinely better tall — more resolution per decibel — and everything above
+// it is a fixed size. The floor keeps its heading, its well and a legible
+// strip on a short window; below that the pane scrolls.
+.side-bar__meter {
+  display: flex;
+  min-height: 220px;
+  flex: 1 1 auto;
+  flex-direction: column;
+  // Twelve, not six: the heading's readout stood on the channel letters at
+  // the top of the strips (Ivan, 2026-09-22).
+  gap: 12px;
+
+  // The name and its held peak share a line where the strip holds both, and
+  // the reading drops under the name, centred, where it does not: "Ausgabe"
+  // and "-60.0 dB" come to 99px in a 95px strip.
+  .side-bar__head {
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+}
+
+// The louder channel's held peak, printed beside the heading. Live while
+// something plays, a dash while nothing is captured. As wide as its widest
+// reading (`LiveFigure`), so a shorter one stands against the column's edge.
+.side-bar__reading {
+  color: $secondary-light;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+
+  &.is-idle {
+    color: $text-faint;
+  }
+}
+
+// The strips stand on the pane itself. They stood in a recessed well for a
+// day — a dark slot behind the whole meter — and on the Ocean theme it was
+// the darkest thing in the window; Ivan asked for it gone (2026-09-22). Each
+// strip draws its own track, which is all the instrument needs.
+.side-bar__well {
+  position: relative;
+  display: flex;
+  min-height: 160px;
+  flex: 1 1 auto;
+  overflow: hidden;
+
+  .output-meter {
+    min-height: 0;
+    height: 100%;
+    margin-block-start: 0;
+  }
+}
 
 // *** Compact shell **********************************************************
 //
@@ -176,14 +411,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Exactly the column it replaces, so crossing the breakpoint moves the
   // panel rather than resizing it.
   width: min($side-bar-width-compact, 86vw);
-  padding: 14px;
+  // The docked strip's padding: 18 either side is part of its width budget.
+  padding: 14px 18px 10px;
   overflow-y: auto;
-  border-right: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
-  // The same card as when it is docked. As a drawer it painted its own
-  // near-black, so opening it slid in a darker panel than the one it had
-  // been a moment before.
-  background: $surface-panel;
-  box-shadow: 18px 0 48px rgba($black, 0.45);
+  border-right: 1px solid $border-panel;
+  // The floor it stands on when docked, lifted off the page by its shadow
+  // alone — the sound panel's drawer on the other edge, mirrored.
+  background: $surface-base;
+  box-shadow: 10px 0 28px rgba($black, 0.22);
   transform: translateX(-105%);
   transition: transform 180ms ease-out;
 
@@ -193,12 +428,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: $bp-two-column) {
+  // Standing where it stands docked: under the header and in from the edge by
+  // the shell's gutter, which on the open floor is nothing — the sound
+  // panel's rule on the other side (`.right-content` in App.scss), mirrored.
+  // Shut, it travels past the gutter and its shadow.
   .side-bar {
     @include side-bar-drawer;
+    top: calc(#{$title-bar-height} + var(--shell-gutter, 0px));
+    left: var(--shell-gutter, 0px);
+    transform: translateX(calc(-100% - var(--shell-gutter, 0px) - 72px));
   }
 
   .side-bar-toggle {
     display: grid;
+  }
+
+  // The page keeps a lane for the tab (`$drawer-tab-width`), as it does on
+  // the right for the sound panel's, so the tab never stands on the page.
+  .app-workspace:not(.is-app-full) > .center-workspace {
+    padding-left: $drawer-tab-width;
+  }
+
+  // Its tab rides on the panel's edge, a gutter in from the window's. Not
+  // over a full screen, whose drawer keeps the edge.
+  .app-workspace:not(.is-app-full) > .side-bar-toggle.is-open {
+    left: calc(
+      min(#{$side-bar-width-compact}, 86vw) + var(--shell-gutter, 16px)
+    );
   }
 }
 
@@ -217,31 +473,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .app-workspace.is-app-full > .side-bar-toggle {
   display: grid;
   z-index: 71;
-}
-
-// Auto normalize owns the preamp, so the slider is a readout rather than a
-// dead control. It keeps the accent — dimmed, not greyed — because the value
-// it shows is live and meaningful; the default disabled grey read as broken.
-.side-bar__preamp .range input[type='range']:disabled {
-  opacity: 1;
-
-  &::-webkit-slider-runnable-track {
-    border-color: color-mix(in srgb, $secondary-light 22%, transparent);
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
-  }
-
-  &::-webkit-slider-thumb {
-    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
-    background: color-mix(in srgb, $secondary-light 72%, transparent);
-    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 35%, transparent);
-  }
-}
-
-// Says why it cannot be dragged, right where the hand goes.
-.side-bar__preamp-note {
-  margin: 2px 0 0;
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  line-height: 1.35;
-  text-align: center;
 }

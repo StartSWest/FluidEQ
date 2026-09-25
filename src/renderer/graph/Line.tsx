@@ -209,7 +209,10 @@ const Line = ({
       .attr('opacity', opacity);
 
     if (animation === AnimationOptionsEnum.NONE) {
-      path.attr('d', d);
+      // A glide still under way would carry on writing its own `d` over this
+      // one until it finished: the output curve takes a new curve by gliding
+      // and the live preamp's next step at once, often within the glide.
+      path.interrupt().attr('d', d);
       return;
     }
 

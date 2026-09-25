@@ -41,6 +41,7 @@ import {
   body,
   type TContext,
   type TDevicePainter,
+  tone,
 } from './deskPaintKit';
 import {
   paintChargingPad,
@@ -193,7 +194,7 @@ const paintMonitor = (
   const { x, y, width, height } = monitor;
   const bezel = 6;
   // Neck and foot.
-  c.fillStyle = '#26292c';
+  c.fillStyle = tone(0.22);
   c.beginPath();
   c.roundRect(x + width / 2 - 10, y + height, 20, 26, 3);
   c.fill();
@@ -202,7 +203,7 @@ const paintMonitor = (
   c.fill();
 
   body(c, x - bezel, y - bezel, width + bezel * 2, height + bezel * 2, 8);
-  c.fillStyle = '#04080c';
+  c.fillStyle = tone(0.02);
   c.fillRect(x, y, width, height);
   if (!grid) {
     return;

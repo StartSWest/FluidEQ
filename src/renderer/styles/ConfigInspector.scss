@@ -146,7 +146,7 @@ $name-column: 34ch;
   align-items: center;
   padding: 5px 12px;
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 14%, transparent);
   color: $secondary-light;
   cursor: pointer;
@@ -285,7 +285,7 @@ $name-column: 34ch;
 .config-card__badge {
   align-self: flex-start;
   padding: 1px 7px;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   margin-top: 3px;
   background: color-mix(in srgb, $active 10%, transparent);
   color: $active;
@@ -381,7 +381,7 @@ $name-column: 34ch;
   align-items: center;
   padding: 2px 8px;
   border: 1px solid color-mix(in srgb, var(--layer-color) 34%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, var(--layer-color) 13%, transparent);
   // Near-white, with the hue left to the swatch and the edge.
   //
@@ -490,7 +490,7 @@ $name-column: 34ch;
 
   button {
     padding: 5px 11px;
-    border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-xs;
     background: color-mix(in srgb, $secondary-default 8%, transparent);
     color: $secondary-light;
@@ -705,7 +705,7 @@ $name-column: 34ch;
 .config-node__badge {
   flex: 0 0 auto;
   padding: 1px 6px;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   // The first badge takes the slack, which is what holds every badge at the
   // right-hand end of its row. The layer pill used to do this with an auto end
   // margin, and that stopped being right the moment a row could carry two
@@ -749,8 +749,8 @@ $name-column: 34ch;
   max-width: 22rem;
   flex: 0 1 auto;
   padding: 1px 8px;
-  border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
-  border-radius: $radius-pill;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $text-muted;
   font-size: $text-micro;
@@ -783,7 +783,7 @@ $name-column: 34ch;
   flex: 0 0 auto;
   padding: 3px 10px;
   border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
-  border-radius: $radius-pill;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 12%, transparent);
   color: $secondary-light;
   cursor: pointer;

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
+import { Dispatch, ReactNode, RefObject, SetStateAction, useRef } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
@@ -15,6 +15,7 @@ import { TKaraokeMakerExportFormat } from '../../common/karaoke/makerExport';
 import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { TDestructiveMakerAction } from './KaraokeMakerConfirmDialog';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import karaokeLanguageName from './karaokeLanguageName';
 import KARAOKE_LANGUAGE_CODES from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
@@ -124,6 +125,10 @@ const KaraokeMakerToolbar = ({
   wordShiftMs,
 }: IKaraokeMakerToolbarProps) => {
   const { t } = useTranslation();
+  // The export menu folds back into its button when it closes, as every other
+  // menu does, rather than blinking out (`menu-out`).
+  const exportMenu = useRef<HTMLDivElement>(null);
+  const exportExit = useExitAnimation(exportOpen, 'menu-out', exportMenu);
   // `karaokeTranslationLanguages` puts this exact expression first in the
   // list it returns — the sentinel is only the fallback for a project that
   // never declared a language, and UltraStar imports populate a real tag
@@ -311,8 +316,14 @@ const KaraokeMakerToolbar = ({
             setExportOpen((open) => !open);
           }}
         />
-        {exportOpen && (
-          <div className="karaoke-maker__export-menu">
+        {exportExit.present && (
+          <div
+            ref={exportMenu}
+            className="karaoke-maker__export-menu"
+            data-closing={exportExit.closing ? '' : undefined}
+            inert={exportExit.closing}
+            onAnimationEnd={exportExit.onAnimationEnd}
+          >
             {/* Which sheet the lyric formats will contain, said before the
                 click rather than discovered in the saved file. The toolbar's
                 own picker is the answer — asking again here would be a second

@@ -147,8 +147,11 @@ import {
   getEditorHeight,
   setEditorHeight,
   shortWindowPaneKey,
+  belowGraphPaneKey,
   useEditorHeight,
 } from './utils/paneSizes';
+import { EqTitleSlotContext } from './utils/eqTitleSlot';
+import useWorkspaceAxis from './utils/workspaceAxis';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import EqPresetsPanel from './EqPresetsPanel';
@@ -172,6 +175,7 @@ import { sameEndpoint } from './audio/engineTrouble';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import useWindowFloor from './utils/windowFloor';
 import MenuIcon from './icons/MenuIcon';
+import Chevron from './icons/Chevron';
 import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
@@ -830,6 +834,24 @@ const AppContent = () => {
         : isGraphViewOn));
 
   /**
+   * The EQ pages put their graph ABOVE the page (layout A, the open floor,
+   * Ivan 2026-09-25): the section pills and the Bands title row on top, the
+   * graph under them, then the bands — each standing under the point on the
+   * graph it moves (`MainContent`, `plotGeometry`). Only while there is a
+   * graph beside the page to put there; off, or filling the column, the page
+   * keeps its pills and its title as it always has.
+   *
+   * Every other page keeps its graph underneath: there the graph is a monitor
+   * of what the page is doing, not the instrument the page is edited on.
+   */
+  const isGraphFirst =
+    isEqGroupTab(activeWorkspaceTab) && showsGraph && !isGraphFullScreen;
+  const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
+  // The player bar's deck stands under this column's middle.
+  const [centerColumn, setCenterColumn] = useState<HTMLDivElement | null>(null);
+  useWorkspaceAxis(centerColumn);
+
+  /**
    * FULL SCREEN IS FULL SCREEN, ON EVERY TAB INCLUDING THE MAKER.
    *
    * This briefly refused to go full screen at all while the editor was open,
@@ -1319,13 +1341,18 @@ const AppContent = () => {
   // screen is the window changing, and without this the reconciliation below
   // would take the window straight back out of the mode it was just put in.
   windowFullScreenClaimRef.current = isAppFullScreen || isPlayerVisFull;
-  // Which split the divider moves: the tab's own, or on a short window and a
-  // page other than the EQ's, that window's (`shortWindowPaneKey`).
+  // Which split the divider moves: the tab's own; on a short window and a
+  // page other than the EQ's, that window's (`shortWindowPaneKey`); and on an
+  // EQ page with its graph above it, the one below the graph
+  // (`belowGraphPaneKey`), which is a different pane from the one the tab's
+  // own share was chosen for.
   const isShortWindow = useMediaQuery(SHORT_WINDOW_QUERY);
-  const paneKey =
-    isShortWindow && !isEqGroupTab(activeWorkspaceTab)
-      ? shortWindowPaneKey(activeWorkspaceTab)
-      : activeWorkspaceTab;
+  let paneKey: string = activeWorkspaceTab;
+  if (isGraphFirst) {
+    paneKey = belowGraphPaneKey(activeWorkspaceTab);
+  } else if (isShortWindow && !isEqGroupTab(activeWorkspaceTab)) {
+    paneKey = shortWindowPaneKey(activeWorkspaceTab);
+  }
   const editorHeight = useEditorHeight(paneKey);
 
   // Watched only in full screen, and stopped on the way out — see the store for
@@ -1631,16 +1658,23 @@ const AppContent = () => {
   /**
    * Move the divider.
    *
-   * What is set is the pane *above* it — the graph below simply takes what is
-   * left. Dragging down gives the editor more and the graph less, which is the
-   * direction the handle is being carried, and both ends of the drag stay live
-   * because the pane being sized is the one whose content can actually vary.
+   * What is set is the page's pane — the graph simply takes what is left.
+   * With the graph under the page, dragging down gives the page more and the
+   * graph less; with the graph above it (`isGraphFirst`) the page is under the
+   * divider, so dragging down gives it LESS. Either way the handle goes where
+   * it is carried, and both ends of the drag stay live because the pane being
+   * sized is the one whose content can actually vary.
    */
   const handleGraphResizeDrag = useCallback(
     (deltaY: number) => {
-      setEditorHeight(clampToWindow(graphDragStart.current + deltaY), paneKey);
+      setEditorHeight(
+        clampToWindow(
+          graphDragStart.current + (isGraphFirst ? -deltaY : deltaY),
+        ),
+        paneKey,
+      );
     },
-    [paneKey],
+    [paneKey, isGraphFirst],
   );
 
   const handleGraphResizeEnd = useCallback(() => {
@@ -2584,7 +2618,9 @@ const AppContent = () => {
             : ''
         }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
-        }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}`}
+        }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}${
+          rightPaneOpen ? ' is-sound-drawer-open' : ''
+        }`}
       >
         {showAudioRestartRecommendation && !suppressAudioNotices && (
           <aside className="audio-restart-notice" role="status">
@@ -2638,9 +2674,12 @@ const AppContent = () => {
           className={`side-bar-toggle${topPaneOpen ? ' is-open' : ''}`}
           aria-expanded={topPaneOpen}
           aria-label={t('app.soundPanel')}
+          title={t('app.soundPanel')}
           onClick={() => setTopPaneOpen((open) => !open)}
         >
-          <MenuIcon name="settings" />
+          {/* Which way the panel goes, not what is in it: the tab is a
+              handle, and the chevron turns over with the panel. */}
+          <Chevron className="drawer-tab__chevron" />
         </button>
         <SideBar
           showGraphToggle
@@ -2652,11 +2691,14 @@ const AppContent = () => {
         />
 
         <div
+          ref={setCenterColumn}
           className={`center-workspace${
             isGraphFullScreen && showsGraph && !isMediaFullScreen
               ? ' is-graph-full'
               : ''
-          }${isResizingPanes ? ' is-resizing' : ''}`}
+          }${isResizingPanes ? ' is-resizing' : ''}${
+            isGraphFirst ? ' is-graph-first' : ''
+          }`}
           onDoubleClickCapture={(event) => {
             if (!isGraphAppFullScreen) {
               return;
@@ -2680,264 +2722,294 @@ const AppContent = () => {
             exitGraphFullScreen();
           }}
         >
-          <div
-            className="middle-content"
-            // What the divider actually sets: the height of everything above
-            // the graph, on every tab. It used to be a ceiling on the EQ tab so
-            // the card could hug its content — see App.scss for why one handle
-            // behaving differently depending on the open tab was not worth what
-            // it bought.
-            style={
-              showsGraph && !isGraphFullScreen
-                ? ({
-                    '--editor-height': `${editorHeight}px`,
-                  } as CSSProperties)
-                : undefined
-            }
+          {/* The EQ pages' head, above their graph (`isGraphFirst`): the
+              section pills, and a slot the Bands page's title row is
+              portalled into. First in the column's DOM as well as on screen,
+              so the keyboard reaches it before the page. The graph and the
+              page are put in order by the stylesheet rather than by moving
+              them here — reordering the page's element moves every panel kept
+              alive in it, and a moved web view reloads. */}
+          {isGraphFirst && (
+            // Dimmed with its page when the engine cannot hear it
+            // (`GraphTheme.scss`), as the pills and the title were while
+            // they stood inside the page.
+            <div
+              className={`center-head center-head--${activeWorkspaceTab}${
+                !isEqReachingSound ? ' is-engine-disabled' : ''
+              }`}
+            >
+              {eqGroupPills}
+              <div className="center-head__title" ref={setEqTitleSlot} />
+            </div>
+          )}
+          <EqTitleSlotContext.Provider
+            value={isGraphFirst ? eqTitleSlot : null}
           >
-            {/* The six places are in the titlebar now, beside the meter —
+            <div
+              className="middle-content"
+              // What the divider actually sets: the height of everything above
+              // the graph, on every tab. It used to be a ceiling on the EQ tab so
+              // the card could hug its content — see App.scss for why one handle
+              // behaving differently depending on the open tab was not worth what
+              // it bought.
+              style={
+                showsGraph && !isGraphFullScreen
+                  ? ({
+                      '--editor-height': `${editorHeight}px`,
+                    } as CSSProperties)
+                  : undefined
+              }
+            >
+              {/* The six places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
-            {isEqGroupTab(activeWorkspaceTab) && (
-              // The shared header must outlive section changes: remounting the
-              // engine label briefly hid it while status loaded and restarted
-              // its rainbow animation. Only the scroll content is keyed.
-              <div
-                key="eq-workspace"
-                className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
-                aria-disabled={
-                  activeWorkspaceTab === 'config' ||
-                  activeWorkspaceTab === 'games'
-                    ? undefined
-                    : !isEqReachingSound
-                }
-              >
-                {eqGroupPills}
+              {isEqGroupTab(activeWorkspaceTab) && (
+                // The shared header must outlive section changes: remounting the
+                // engine label briefly hid it while status loaded and restarted
+                // its rainbow animation. Only the scroll content is keyed.
                 <div
-                  key={activeWorkspaceTab}
-                  className="workspace-tab-panel__scroll"
+                  key="eq-workspace"
+                  className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
+                  aria-disabled={
+                    activeWorkspaceTab === 'config' ||
+                    activeWorkspaceTab === 'games'
+                      ? undefined
+                      : !isEqReachingSound
+                  }
                 >
-                  {activeWorkspaceTab === 'eq' && <MainContent />}
-                  {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
-                  {activeWorkspaceTab === 'convolution' && <ConvolutionPanel />}
-                  {activeWorkspaceTab === 'games' && <GamesPanel />}
-                  {activeWorkspaceTab === 'config' && <ConfigInspector />}
+                  {!isGraphFirst && eqGroupPills}
+                  <div
+                    key={activeWorkspaceTab}
+                    className="workspace-tab-panel__scroll"
+                  >
+                    {activeWorkspaceTab === 'eq' && <MainContent />}
+                    {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
+                    {activeWorkspaceTab === 'convolution' && (
+                      <ConvolutionPanel />
+                    )}
+                    {activeWorkspaceTab === 'games' && <GamesPanel />}
+                    {activeWorkspaceTab === 'config' && <ConfigInspector />}
+                  </div>
                 </div>
-              </div>
-            )}
-            {/* No engine-disabled state, and that is not an oversight. The
+              )}
+              {/* No engine-disabled state, and that is not an oversight. The
                 panels above are inert with the equaliser off because they only
                 write APO's config. This one is a Web Audio graph on FluidEQ's
                 own player — APO is not in its path at all, so it works exactly
                 the same either way, and greying it out would be a lie. */}
-            {activeWorkspaceTab === 'dsp' && (
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--dsp"
-              >
-                <div className="workspace-tab-panel__scroll">
-                  <DspPanel
-                    settings={dspSettings}
-                    onChange={applyDspSettings}
-                    onCommit={persistDspSettings}
-                    engineState={dspEngineState}
-                    onOpenEngineDialog={handleOpenEngineDialog}
+              {activeWorkspaceTab === 'dsp' && (
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--dsp"
+                >
+                  <div className="workspace-tab-panel__scroll">
+                    <DspPanel
+                      settings={dspSettings}
+                      onChange={applyDspSettings}
+                      onCommit={persistDspSettings}
+                      engineState={dspEngineState}
+                      onOpenEngineDialog={handleOpenEngineDialog}
+                    />
+                  </div>
+                </div>
+              )}
+              {activeWorkspaceTab === 'share' && (
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--share"
+                >
+                  <div className="workspace-tab-panel__scroll">
+                    <RemoteAudioPanel />
+                  </div>
+                </div>
+              )}
+              {activeWorkspaceTab === 'community' && (
+                // No `__scroll` wrapper: the gallery, the board and the Studio
+                // each scroll inside themselves beside a rail that stays put.
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--community"
+                >
+                  <CommunityPanel
+                    onSignIn={() => setAccountDialogPage('home')}
+                    onShowGraph={() =>
+                      showGalleryGraph(() => {
+                        setGraphVisibilityByTab((current) => ({
+                          ...current,
+                          eq: true,
+                        }));
+                        selectTopWorkspaceTab('eq');
+                      })
+                    }
                   />
                 </div>
-              </div>
-            )}
-            {activeWorkspaceTab === 'share' && (
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--share"
-              >
-                <div className="workspace-tab-panel__scroll">
-                  <RemoteAudioPanel />
+              )}
+              {activeWorkspaceTab === 'forum' && (
+                // Like Plus: the list and the thread scroll inside
+                // themselves, so the panel does not.
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel workspace-tab-panel--forum"
+                >
+                  <ForumPanel />
                 </div>
-              </div>
-            )}
-            {activeWorkspaceTab === 'community' && (
-              // No `__scroll` wrapper: the gallery, the board and the Studio
-              // each scroll inside themselves beside a rail that stays put.
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--community"
-              >
-                <CommunityPanel
-                  onSignIn={() => setAccountDialogPage('home')}
-                  onShowGraph={() =>
-                    showGalleryGraph(() => {
-                      setGraphVisibilityByTab((current) => ({
-                        ...current,
-                        eq: true,
-                      }));
-                      selectTopWorkspaceTab('eq');
-                    })
+              )}
+              {/* A silent guest off its tab stays only while it is the last
+                thing played; otherwise it is unmounted, which destroys its
+                renderer process. */}
+              {hasOpenedVideo && keepVideoMounted && (
+                <VideoBrowser
+                  isHidden={
+                    !showsMediaGraphBackdrop &&
+                    (!isVideoTab || isGraphBackdropMode)
                   }
+                  isFullScreen={mediaFullScreenOwner === 'video'}
+                  isGraphBackdrop={showsMediaGraphBackdrop}
+                  onRequestFullScreen={() => {
+                    applyMediaFullScreen('video');
+                  }}
+                  onRequestGraphFullScreen={() => {
+                    // With a Plus visualizer on the graph, a double-click on the
+                    // video is the video's own full screen, in and out: the
+                    // visualizer would only have covered it (see the backdrop
+                    // above).
+                    if (isSceneOnGraph) {
+                      applyMediaFullScreen(
+                        isMediaFullScreen ? undefined : 'video',
+                      );
+                      return;
+                    }
+                    // A double-click on the guest is the same command as Ctrl+F.
+                    // If the shared no-graph media surface already owns the OS
+                    // window, transfer it without first bouncing out of full
+                    // screen and making Chromium resize the live video twice.
+                    if (isMediaFullScreen) {
+                      mediaFullScreenRequestedRef.current = false;
+                      setMediaFullScreenOwner(undefined);
+                    }
+                    setActiveTabGraphVisibility(true);
+                    toggleGraphFullScreen();
+                  }}
                 />
-              </div>
-            )}
-            {activeWorkspaceTab === 'forum' && (
-              // Like Plus: the list and the thread scroll inside
-              // themselves, so the panel does not.
-              <div
-                key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--forum"
-              >
-                <ForumPanel />
-              </div>
-            )}
-            {/* A loaded guest gets a five-second silent lease through a tab
-                switch. Playing has no deadline; a silent guest is then
-                unmounted, which destroys its renderer process. */}
-            {hasOpenedVideo && keepVideoMounted && (
-              <VideoBrowser
-                isHidden={
-                  !showsMediaGraphBackdrop &&
-                  (!isVideoTab || isGraphBackdropMode)
-                }
-                isFullScreen={mediaFullScreenOwner === 'video'}
-                isGraphBackdrop={showsMediaGraphBackdrop}
-                onRequestFullScreen={() => {
-                  applyMediaFullScreen('video');
-                }}
-                onRequestGraphFullScreen={() => {
-                  // With a Plus visualizer on the graph, a double-click on the
-                  // video is the video's own full screen, in and out: the
-                  // visualizer would only have covered it (see the backdrop
-                  // above).
-                  if (isSceneOnGraph) {
-                    applyMediaFullScreen(
-                      isMediaFullScreen ? undefined : 'video',
-                    );
-                    return;
-                  }
-                  // A double-click on the guest is the same command as Ctrl+F.
-                  // If the shared no-graph media surface already owns the OS
-                  // window, transfer it without first bouncing out of full
-                  // screen and making Chromium resize the live video twice.
-                  if (isMediaFullScreen) {
-                    mediaFullScreenRequestedRef.current = false;
-                    setMediaFullScreenOwner(undefined);
-                  }
-                  setActiveTabGraphVisibility(true);
-                  toggleGraphFullScreen();
-                }}
-              />
-            )}
-            {/* The bar for karaoke and for the Media page, mounted where
+              )}
+              {/* The bar for karaoke and for the Media page, mounted where
                 nothing can gate it. Its own rule keeps it and the library's
                 bar from ever both being up. */}
-            {/* Faded out with the rest of the chrome once full screen has been
+              {/* Faded out with the rest of the chrome once full screen has been
                 still for a moment, and back on the next movement — the same
                 two seconds the graph's own toolbar waits, from the same
                 store, so the two cannot disagree about when to go. */}
-            <TaskbarTransport tabOwner={TAB_TRANSPORT[activeWorkspaceTab]} />
-            <IdleTransportBarSlot
-              activeTab={activeWorkspaceTab}
-              isFullScreen={isAppFullScreen}
-              onGoToTab={selectTopWorkspaceTab}
-            />
-            <TabTransportBar
-              activeTab={activeWorkspaceTab}
-              isIdle={isAppFullScreen && (!isPointerNearChrome || isChromeIdle)}
-              isFloating={isAppFullScreen}
-              onGoToTab={selectTopWorkspaceTab}
-            />
-            {/* The providers keep a playing deck, or a silent one for the short
-                disposal lease. The shelf is pruned immediately off-tab; after
-                the lease, the providers and native DSP host leave too. */}
-            {hasOpenedLibrary && keepLibraryMounted && (
-              <LibraryProvider>
-                {/* Inside `LibraryProvider` for tidiness rather than
+              <TaskbarTransport tabOwner={TAB_TRANSPORT[activeWorkspaceTab]} />
+              <IdleTransportBarSlot
+                activeTab={activeWorkspaceTab}
+                isFullScreen={isAppFullScreen}
+                onGoToTab={selectTopWorkspaceTab}
+              />
+              <TabTransportBar
+                activeTab={activeWorkspaceTab}
+                isIdle={
+                  isAppFullScreen && (!isPointerNearChrome || isChromeIdle)
+                }
+                isFloating={isAppFullScreen}
+                onGoToTab={selectTopWorkspaceTab}
+              />
+              {/* The providers keep a playing deck, or a silent one while its
+                queue is the last thing played. The shelf is pruned immediately
+                off-tab; otherwise the providers and native DSP host leave too. */}
+              {hasOpenedLibrary && keepLibraryMounted && (
+                <LibraryProvider>
+                  {/* Inside `LibraryProvider` for tidiness rather than
                     necessity — it needs nothing from it — and outside
                     `LibraryPlayerProvider`, which does: a queue built from a
                     playlist is resolved against the index the player reads. */}
-                <PlaylistProvider>
-                  <LibraryPlayerProvider>
-                    <LibraryWorkspace
-                      isHidden={
-                        !showsLibraryGraphBackdrop &&
-                        (!isLibraryTab || isGraphBackdropMode)
-                      }
-                      isGraphBackdrop={showsLibraryGraphBackdrop}
-                      revealRequest={libraryReveal}
-                      isFullScreen={mediaFullScreenOwner === 'library'}
-                      onToggleFullScreen={() => {
-                        applyMediaFullScreen(
-                          mediaFullScreenOwner === 'library'
-                            ? undefined
-                            : 'library',
-                        );
-                      }}
-                    />
-                    {showsLibraryGraphBackdrop && <LibraryStageArt />}
-                    <ConnectedNowPlayingBar
-                      activeTab={activeWorkspaceTab}
-                      isIdle={
-                        isAppFullScreen &&
-                        (!isPointerNearChrome || isChromeIdle)
-                      }
-                      isFloating={isAppFullScreen}
-                      onReveal={revealPlayingTrack}
-                    />
-                  </LibraryPlayerProvider>
-                </PlaylistProvider>
-              </LibraryProvider>
-            )}
-            {/* Outside the Library's providers: the machine's own song needs
+                  <PlaylistProvider>
+                    <LibraryPlayerProvider>
+                      <LibraryWorkspace
+                        isHidden={
+                          !showsLibraryGraphBackdrop &&
+                          (!isLibraryTab || isGraphBackdropMode)
+                        }
+                        isGraphBackdrop={showsLibraryGraphBackdrop}
+                        revealRequest={libraryReveal}
+                        isFullScreen={mediaFullScreenOwner === 'library'}
+                        onToggleFullScreen={() => {
+                          applyMediaFullScreen(
+                            mediaFullScreenOwner === 'library'
+                              ? undefined
+                              : 'library',
+                          );
+                        }}
+                      />
+                      {showsLibraryGraphBackdrop && <LibraryStageArt />}
+                      <ConnectedNowPlayingBar
+                        activeTab={activeWorkspaceTab}
+                        isIdle={
+                          isAppFullScreen &&
+                          (!isPointerNearChrome || isChromeIdle)
+                        }
+                        isFloating={isAppFullScreen}
+                        onReveal={revealPlayingTrack}
+                      />
+                    </LibraryPlayerProvider>
+                  </PlaylistProvider>
+                </LibraryProvider>
+              )}
+              {/* Outside the Library's providers: the machine's own song needs
                 none of them, and inside they are mounted only once the Library
                 has been opened, so after a launch that never visited it an
                 expanded graph showed Spotify's song with no picture. */}
-            {showsSystemGraphBackdrop && <SystemStageArt />}
-            {/* Loaded Karaoke keeps only its audio element and exact shared
-                transport during the silent lease. It then unmounts completely
-                unless playback resumed. */}
-            {hasOpenedKaraoke && keepKaraokeMounted && (
-              <KaraokeWorkspace
-                isHidden={
-                  !showsKaraokeGraphBackdrop &&
-                  (!isKaraokeTab || isGraphBackdropMode)
-                }
-                isFullScreen={isKaraokeSurfaceFullScreen}
-                isGraphOverlay={isKaraokeGraphOverlay}
-                isChromeIdle={isChromeIdle}
-                hasFullScreenTopBar={hasFullScreenTopBar}
-                onToggleFullScreenTopBar={toggleFullScreenTopBar}
-                onToggleFullScreen={() => {
-                  if (isKaraokeGraphFullScreen) {
-                    exitGraphFullScreen();
-                    return;
+              {showsSystemGraphBackdrop && <SystemStageArt />}
+              {/* Loaded Karaoke keeps only its audio element and exact shared
+                transport while it is the last thing played. Otherwise it
+                unmounts completely. */}
+              {hasOpenedKaraoke && keepKaraokeMounted && (
+                <KaraokeWorkspace
+                  isHidden={
+                    !showsKaraokeGraphBackdrop &&
+                    (!isKaraokeTab || isGraphBackdropMode)
                   }
-                  applyMediaFullScreen(
-                    mediaFullScreenOwner === 'karaoke' ? undefined : 'karaoke',
-                  );
-                }}
-              />
-            )}
-            {/* Outside the tab switch for the same class of reason, and more
+                  isFullScreen={isKaraokeSurfaceFullScreen}
+                  isGraphOverlay={isKaraokeGraphOverlay}
+                  isChromeIdle={isChromeIdle}
+                  hasFullScreenTopBar={hasFullScreenTopBar}
+                  onToggleFullScreenTopBar={toggleFullScreenTopBar}
+                  onToggleFullScreen={() => {
+                    if (isKaraokeGraphFullScreen) {
+                      exitGraphFullScreen();
+                      return;
+                    }
+                    applyMediaFullScreen(
+                      mediaFullScreenOwner === 'karaoke'
+                        ? undefined
+                        : 'karaoke',
+                    );
+                  }}
+                />
+              )}
+              {/* Outside the tab switch for the same class of reason, and more
                 strictly: this one renders nothing at all. It hosts both Smart
                 EQ measurements, which used to live in the EQ panel above and so
                 were torn down mid-capture whenever anybody looked at another
                 tab. Mounted once and never unmounted, a continuous measurement
                 keeps its evidence for as long as the window is open. */}
-            <SmartEqEngine />
-            {/* Headless, and mounted beside its sibling for the same reason:
+              <SmartEqEngine />
+              {/* Headless, and mounted beside its sibling for the same reason:
                 the measurement has to run wherever the user happens to be, not
                 only where the response graph is. */}
-            <SmartHeadroomEngine />
-            {/* And the third, for the same reason spelled out again because it
+              <SmartHeadroomEngine />
+              {/* And the third, for the same reason spelled out again because it
                 is the one that surprises: a game profile switches the sound
                 while FluidEQ is BEHIND the game. On the Games page it would
                 only ever work with the page open, which is the one moment
                 nobody is playing. */}
-            <GameSound />
-            {/* A preset's rack across an engine switch, which is made in a
+              <GameSound />
+              {/* A preset's rack across an engine switch, which is made in a
                 dialog over whichever page is open. */}
-            <RackFollowsEngine />
-            {/* And its curve, told to the rack's Maximizer from wherever the
+              <RackFollowsEngine />
+              {/* And its curve, told to the rack's Maximizer from wherever the
                 curve changes: a preset, its chip, the EQ mode menu. */}
-            <PresetToneFeed />
-          </div>
+              <PresetToneFeed />
+            </div>
+          </EqTitleSlotContext.Provider>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}
@@ -2964,9 +3036,10 @@ const AppContent = () => {
           className={`right-content-toggle${rightPaneOpen ? ' is-open' : ''}`}
           aria-expanded={rightPaneOpen}
           aria-label={t('app.soundPanel')}
+          title={t('app.soundPanel')}
           onClick={() => setRightPaneOpen((open) => !open)}
         >
-          <MenuIcon name="settings" />
+          <Chevron className="drawer-tab__chevron" />
         </button>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
             them stacked, each closing only its own, meant a press outside
@@ -2985,20 +3058,24 @@ const AppContent = () => {
         )}
         <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
           <div className="right-content__scroll">
-            <PresetsBar
-              fetchPresets={getPresetListFromFiles}
-              loadPreset={loadPreset}
-              savePreset={savePreset}
-              createPreset={createPreset}
-              renamePreset={renamePreset}
-              deletePreset={deletePreset}
-            />
+            {/* One card: the output you listen on, and under it the profiles
+                that play through it. They were two cards, and the ON pill on
+                a profile sat a card away from the output it was on. */}
             <DeviceProfiles
               engine={engineStatus?.engine ?? null}
               isNoticeHidden={suppressAudioNotices}
               onConfigureApo={handleConfigureEqualizerApo}
               onAttachFluidEngine={handleAttachFluidEngine}
-            />
+            >
+              <PresetsBar
+                fetchPresets={getPresetListFromFiles}
+                loadPreset={loadPreset}
+                savePreset={savePreset}
+                createPreset={createPreset}
+                renamePreset={renamePreset}
+                deletePreset={deletePreset}
+              />
+            </DeviceProfiles>
             {/* Directly under the output picker: it is the same question asked
                 twice over — that one chooses where the sound goes, this one
                 adds a second somewhere. */}

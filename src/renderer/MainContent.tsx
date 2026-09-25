@@ -20,12 +20,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   CSSProperties,
   PointerEvent,
+  ReactElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FilterTypeEnum,
   IFilter,
@@ -54,6 +57,13 @@ import Button from './widgets/Button';
 import AnchoredMenu, { isInsideAnchoredMenu } from './widgets/AnchoredMenu';
 import OverflowArrow from './components/OverflowArrow';
 import { useOverflowScroll } from './utils/useOverflowScroll';
+import { useEqTitleSlot } from './utils/eqTitleSlot';
+import {
+  IBandPlacement,
+  isSamePlacement,
+  placeBandsUnderPlot,
+  usePlotGeometry,
+} from './graph/plotGeometry';
 import {
   addEqualizerSlider,
   removeEqualizerSlider,
@@ -114,6 +124,11 @@ const MainContent = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
+  // Above the graph while the graph stands between the title and the bands
+  // (`eqTitleSlot.ts`); here, above the bands, otherwise.
+  const titleSlot = useEqTitleSlot();
+  const placeTitle = (title: ReactElement) =>
+    titleSlot ? createPortal(title, titleSlot) : title;
   /**
    * What Smart EQ is doing, read from where it is actually happening.
    *
@@ -357,8 +372,63 @@ const MainContent = () => {
   filtersRef.current = filters;
 
   const bandsRef = useRef<HTMLDivElement>(null);
+  // The row as state as well, for the placement below. The row is drawn a
+  // few renders after this component, once the page has what it needs, and
+  // a placement that read only the ref ran before the row existed and was
+  // never asked again: on a fresh start the bands stayed evenly spaced, off
+  // their points on the graph, until the window was resized.
+  const [bandsElement, setBandsElement] = useState<HTMLDivElement | null>(null);
+  const attachBands = useCallback((element: HTMLDivElement | null) => {
+    bandsRef.current = element;
+    setBandsElement(element);
+  }, []);
   // Whether the band rail runs past its viewport, and the way to the rest.
   const canScrollBands = useOverflowScroll(frequencySortedFilters.length);
+
+  /**
+   * Each band under its point on the graph (layout A, Ivan 2026-09-25) —
+   * only while the graph stands directly above the row, which is exactly
+   * when the title has gone up above the graph (`titleSlot`). Placed from the
+   * axis the handles are placed on (`plotGeometry.ts`), measured against
+   * where the plot and the row actually are; too close together for that,
+   * the bands stay evenly spaced.
+   *
+   * Keyed on the frequencies alone: a gain drag changes `filters` twenty
+   * times a second and moves no band sideways, and reading two boxes on
+   * every one of those would be layout work for nothing.
+   */
+  const plotGeometry = usePlotGeometry();
+  const bandFrequencies = frequencySortedFilters
+    .map((filter) => filter.frequency)
+    .join(',');
+  const [bandPlacement, setBandPlacement] = useState<IBandPlacement>();
+  useLayoutEffect(() => {
+    const bands = bandsElement;
+    if (!titleSlot || !plotGeometry || !bands || !bandFrequencies) {
+      setBandPlacement(undefined);
+      return undefined;
+    }
+    const frequencies = bandFrequencies.split(',').map(Number);
+    // Measured, not derived: the row sits inside the page's padding and the
+    // plot does not, and the row's own left edge moves when it goes from even
+    // to placed. Its size changes with it, which is what calls this again.
+    const place = () => {
+      const offset =
+        plotGeometry.element.getBoundingClientRect().left -
+        bands.getBoundingClientRect().left;
+      const next = placeBandsUnderPlot(frequencies, plotGeometry, offset);
+      setBandPlacement((previous) =>
+        isSamePlacement(previous, next) ? previous : next,
+      );
+    };
+    place();
+    if (typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(place);
+    observer.observe(bands);
+    return () => observer.disconnect();
+  }, [titleSlot, plotGeometry, bandsElement, bandFrequencies]);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -918,124 +988,121 @@ const MainContent = () => {
           onClose={() => setBandMenu(undefined)}
         />
       )}
-      <div className="main-content-title">
-        <div>
-          <span className="eyebrow">{t('eq.eyebrow')}</span>
-          {/* The page's name and the delay of everything it configures, on
-              one line: a property of the whole path, not one more verb for
-              the toolbar under it. */}
-          <div className="main-content-title__heading">
-            <h2>
-              {t('eq.title')}
-              <OutputRate />
-            </h2>
-            <ListenedLatency />
+      {placeTitle(
+        <div className="main-content-title">
+          <div>
+            <span className="eyebrow">{t('eq.eyebrow')}</span>
+            <div className="main-content-title__heading">
+              <h2>
+                {t('eq.title')}
+                <OutputRate />
+              </h2>
+            </div>
           </div>
-        </div>
-        <div className="eq-toolbar">
-          <VoicingQuickPick />
-          {/* One button, and it is whichever way of measuring is chosen.
+          <div className="eq-toolbar">
+            <VoicingQuickPick />
+            {/* One button, and it is whichever way of measuring is chosen.
               The two do the same job by different means and only one can be
               running, so a row offering both at once invited pressing both. The
               caret is where the other one lives; picking it changes what this
               button is, and a press then does it. */}
-          <span
-            className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}`}
-            ref={modeMenuHolder}
-          >
-            <Button
-              ariaLabel={
-                isContinuousMode(smartEqMode) ? continuousLabel : smartLabel
-              }
-              // Never greyed out: the measurement opens its own tap on the
-              // source and says in the bubble if it cannot. It used to wait
-              // on the graph's loopback, which is not what it listens to.
-              isDisabled={false}
-              // Running gets the breathing outline and nothing else. It keeps
-              // the Smart EQ button's own look, because it is that button.
-              className={`small eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
-              isPressed={
-                isContinuousMode(smartEqMode) ? isContinuousOn : undefined
-              }
-              // Nothing here runs the measurement — it asks the host that owns
-              // it to. That indirection is what lets a run outlive this panel:
-              // the button is a way of reaching the measurement, not the place
-              // it lives.
-              handleChange={() => {
-                if (isContinuousMode(smartEqMode)) {
-                  toggleContinuousEq();
-                  return;
-                }
-                if (isBalancing) {
-                  // The button is a Cancel while a measurement is running.
-                  cancelSmartEq();
-                  return;
-                }
-                runSmartEq();
-              }}
+            <span
+              className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}`}
+              ref={modeMenuHolder}
             >
-              {isContinuousRunning ? (
-                // A pause bar while it runs, because that is what pressing it
-                // does next.
-                <svg
-                  className="eq-toolbar__icon eq-toolbar__pause"
-                  viewBox="0 0 16 16"
-                  aria-hidden
-                >
-                  <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
+              <Button
+                ariaLabel={
+                  isContinuousMode(smartEqMode) ? continuousLabel : smartLabel
+                }
+                // Never greyed out: the measurement opens its own tap on the
+                // source and says in the bubble if it cannot. It used to wait
+                // on the graph's loopback, which is not what it listens to.
+                isDisabled={false}
+                // Running gets the breathing outline and nothing else. It keeps
+                // the Smart EQ button's own look, because it is that button.
+                className={`small eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
+                isPressed={
+                  isContinuousMode(smartEqMode) ? isContinuousOn : undefined
+                }
+                // Nothing here runs the measurement — it asks the host that owns
+                // it to. That indirection is what lets a run outlive this panel:
+                // the button is a way of reaching the measurement, not the place
+                // it lives.
+                handleChange={() => {
+                  if (isContinuousMode(smartEqMode)) {
+                    toggleContinuousEq();
+                    return;
+                  }
+                  if (isBalancing) {
+                    // The button is a Cancel while a measurement is running.
+                    cancelSmartEq();
+                    return;
+                  }
+                  runSmartEq();
+                }}
+              >
+                {isContinuousRunning ? (
+                  // A pause bar while it runs, because that is what pressing it
+                  // does next.
+                  <svg
+                    className="eq-toolbar__icon eq-toolbar__pause"
+                    viewBox="0 0 16 16"
+                    aria-hidden
+                  >
+                    <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
+                  </svg>
+                ) : (
+                  <MenuIcon name="smart" className="eq-toolbar__icon" />
+                )}
+                {isContinuousMode(smartEqMode)
+                  ? modeLabel(smartEqMode)
+                  : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
+              </Button>
+              <button
+                type="button"
+                className="eq-mode__caret"
+                aria-label={t('eq.smart.modeAria')}
+                aria-expanded={isModeMenuOpen}
+                onClick={() => setIsModeMenuOpen((wasOpen) => !wasOpen)}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden>
+                  <path d="M4 6.5l4 4 4-4" />
                 </svg>
-              ) : (
-                <MenuIcon name="smart" className="eq-toolbar__icon" />
-              )}
-              {isContinuousMode(smartEqMode)
-                ? modeLabel(smartEqMode)
-                : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
-            </Button>
-            <button
-              type="button"
-              className="eq-mode__caret"
-              aria-label={t('eq.smart.modeAria')}
-              aria-expanded={isModeMenuOpen}
-              onClick={() => setIsModeMenuOpen((wasOpen) => !wasOpen)}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M4 6.5l4 4 4-4" />
-              </svg>
-            </button>
-            {/* Rendered outside the panel, because the panel clips. Only the
+              </button>
+              {/* Rendered outside the panel, because the panel clips. Only the
                 modes this button is not: a menu listing what you are already
                 looking at is a row that does nothing. */}
-            <AnchoredMenu
-              anchor={modeMenuHolder.current}
-              isOpen={isModeMenuOpen}
-              className="eq-mode__menu"
-            >
-              {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
-                (entry) => (
-                  <button
-                    key={entry}
-                    type="button"
-                    onClick={() => {
-                      setSmartEqMode(entry);
-                      setIsModeMenuOpen(false);
-                    }}
-                  >
-                    <MenuIcon name="smart" className="eq-toolbar__icon" />
-                    <span className="eq-mode__menu-name">
-                      {modeLabel(entry)}
-                    </span>
-                    {/* Each says what it overrides, because the names alone
+              <AnchoredMenu
+                anchor={modeMenuHolder.current}
+                isOpen={isModeMenuOpen}
+                className="eq-mode__menu"
+              >
+                {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
+                  (entry) => (
+                    <button
+                      key={entry}
+                      type="button"
+                      onClick={() => {
+                        setSmartEqMode(entry);
+                        setIsModeMenuOpen(false);
+                      }}
+                    >
+                      <MenuIcon name="smart" className="eq-toolbar__icon" />
+                      <span className="eq-mode__menu-name">
+                        {modeLabel(entry)}
+                      </span>
+                      {/* Each says what it overrides, because the names alone
                         cannot: three of them do the same job to three different
                         depths, and which depth is the whole choice being made
                         here. */}
-                    <span className="eq-mode__menu-note">
-                      {modeNote(entry)}
-                    </span>
-                  </button>
-                ),
-              )}
-            </AnchoredMenu>
-            {/* What it is doing, said by the pet, from the button itself.
+                      <span className="eq-mode__menu-note">
+                        {modeNote(entry)}
+                      </span>
+                    </button>
+                  ),
+                )}
+              </AnchoredMenu>
+              {/* What it is doing, said by the pet, from the button itself.
                 It was a bare run of text sitting in the row, which put a
                 sentence that changes among a line of controls that do not and
                 made the toolbar reflow every time the wording changed. Hung off
@@ -1043,65 +1110,70 @@ const MainContent = () => {
                 and the creature saying it is the same one that reacts to the
                 music everywhere else in the app, so the app has one voice
                 rather than a label here and a character there. */}
-            {bubbleText && (
-              <span
-                // Green for the second and a half after a write reaches
-                // Equalizer APO, which is the moment the sound changes. It is
-                // the one thing in here that is not a sentence about what will
-                // happen: it means it just did.
-                className={`eq-mode__bubble${
-                  flashedRanges.length > 0 ? ' is-applied' : ''
-                }${bubbleSpot?.isBelow ? ' is-below' : ''}`}
-                role="status"
-                ref={bubbleRef}
-                style={
-                  bubbleSpot
-                    ? ({
-                        left: bubbleSpot.offsetLeft,
-                        top: bubbleSpot.offsetTop,
-                        right: 'auto',
-                        bottom: 'auto',
-                        '--bubble-tail': `${bubbleSpot.tailX}px`,
-                      } as React.CSSProperties)
-                    : undefined
-                }
-              >
-                <span className="eq-mode__bubble-pet" aria-hidden>
-                  <PetArt />
+              {bubbleText && (
+                <span
+                  // Green for the second and a half after a write reaches
+                  // Equalizer APO, which is the moment the sound changes. It is
+                  // the one thing in here that is not a sentence about what will
+                  // happen: it means it just did.
+                  className={`eq-mode__bubble${
+                    flashedRanges.length > 0 ? ' is-applied' : ''
+                  }${bubbleSpot?.isBelow ? ' is-below' : ''}`}
+                  role="status"
+                  ref={bubbleRef}
+                  style={
+                    bubbleSpot
+                      ? ({
+                          left: bubbleSpot.offsetLeft,
+                          top: bubbleSpot.offsetTop,
+                          right: 'auto',
+                          bottom: 'auto',
+                          '--bubble-tail': `${bubbleSpot.tailX}px`,
+                        } as React.CSSProperties)
+                      : undefined
+                  }
+                >
+                  <span className="eq-mode__bubble-pet" aria-hidden>
+                    <PetArt />
+                  </span>
+                  <span className="eq-mode__bubble-text">{bubbleText}</span>
                 </span>
-                <span className="eq-mode__bubble-text">{bubbleText}</span>
-              </span>
-            )}
-          </span>
-          {/* Only while an automatic mode is actually measuring. Saving a song
+              )}
+            </span>
+            {/* Only while an automatic mode is actually measuring. Saving a song
               means filing the Smart EQ layer being refined for it, and nothing
               but that measurement ever writes one — so with the loop stopped
               the switch was a promise the app had no way to keep: it could be
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
-          {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-          <ClearEqButton />
-          <EqModeSelect />
-          <Button
-            ariaLabel={t('eq.addBandAria')}
-            isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
-            className="small subtle"
-            handleChange={addFilter}
-          >
-            <MenuIcon name="plus" className="eq-toolbar__icon" />
-            {t('eq.addBand')}
-          </Button>
-          <BandLayoutMenu />
-        </div>
-        {/* Its own full-width row under the title and the toolbar. The bands
-            below are not the whole chain, and anything else that is live is
-            named here so the graph stops looking wrong. */}
-        <ActiveLayers />
-      </div>
+            {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
+            <ClearEqButton />
+            <EqModeSelect />
+            <Button
+              ariaLabel={t('eq.addBandAria')}
+              isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
+              className="small subtle"
+              handleChange={addFilter}
+            >
+              <MenuIcon name="plus" className="eq-toolbar__icon" />
+              {t('eq.addBand')}
+            </Button>
+            <BandLayoutMenu />
+          </div>
+          {/* The delay of everything this page configures, with the switch
+            that moves it: a property of the whole path, not one more verb for
+            the toolbar. Under the title, facing the applied layers across
+            the row (`MainContent.scss`). */}
+          <ListenedLatency />
+          {/* The bands below are not the whole chain, and anything else that
+            is live is named here so the graph stops looking wrong. */}
+          <ActiveLayers />
+        </div>,
+      )}
       <div
         className={`main-content main-content--${density}${
           bypassed.includes('eq') ? ' is-eq-bypassed' : ''
-        }`}
+        }${bandPlacement ? ' is-placed' : ''}`}
       >
         <div className="eq-scale" aria-hidden="true">
           <span>+20</span>
@@ -1115,7 +1187,11 @@ const MainContent = () => {
             could aim at. Each band keeps a floor of its own instead and the
             row runs past the edge, which is a thing you can scroll. */}
         <div className="bands-rail">
-          {canScrollBands.canScrollBack && (
+          {/* No arrows while the bands stand under their points: every one of
+              them is inside the plot's width by construction, and the few
+              pixels the outermost may hang into the page's padding are not
+              a row to scroll. */}
+          {!bandPlacement && canScrollBands.canScrollBack && (
             <OverflowArrow
               direction="back"
               onPress={() => canScrollBands.scrollBy(-1)}
@@ -1127,8 +1203,10 @@ const MainContent = () => {
             onScroll={canScrollBands.onScroll}
           >
             <div
-              ref={bandsRef}
-              className={`bands bands--${density} bands--${bandLayout}`}
+              ref={attachBands}
+              className={`bands bands--${density} bands--${bandLayout}${
+                bandPlacement ? ' is-placed' : ''
+              }`}
               onPointerDown={handleBandsPointerDown}
               onPointerMove={handleBandsPointerMove}
               onPointerUp={finishBandSelection}
@@ -1136,6 +1214,9 @@ const MainContent = () => {
               style={
                 {
                   '--band-count': frequencySortedFilters.length,
+                  ...(bandPlacement && {
+                    '--band-slot': `${bandPlacement.slot}px`,
+                  }),
                 } as CSSProperties
               }
             >
@@ -1180,11 +1261,12 @@ const MainContent = () => {
                     frequencySortedFilters.length <= MIN_NUM_FILTERS
                   }
                   onGainChange={handleBandGainChange}
+                  lead={bandPlacement?.leads[index]}
                 />
               ))}
             </div>
           </div>
-          {canScrollBands.canScrollForward && (
+          {!bandPlacement && canScrollBands.canScrollForward && (
             <OverflowArrow
               direction="forward"
               onPress={() => canScrollBands.scrollBy(1)}
