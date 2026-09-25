@@ -24,14 +24,23 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.backdrop(1425);
 }
 
-// Two thirds of the window, both ways. The panel is a presentation, not a
-// form: it is sized to the screen rather than to its content, and the content
-// is sized to the panel — every font below is a fraction of the viewport so a
-// 4K window and a laptop show the same layout at different scales.
+// Two thirds of the window wide, and two thirds tall wherever that is 780px
+// or more. The panel is a presentation, not a form: it is sized to the screen
+// rather than to its content, and the content is sized to the panel — every
+// font below is a fraction of the viewport so a 4K window and a laptop show
+// the same layout at different scales.
+//
+// Shorter windows get up to 72% instead. At two thirds the wordier
+// languages ran the 1.8 slides up to 131px past their stage at 1920 x 1080 —
+// German, French and Russian on almost every one, "How to start" under the
+// fold — and a maximised window is 48px shorter still. 72% and the showcase
+// column's proportions (`_tour-showcase.scss`) fit all thirteen new slides in
+// all ten languages there. Taller windows keep two thirds, where the extra
+// height would only be empty stage.
 .feature-tour {
-  @include dialog.surface(66vw, 66vh);
+  @include dialog.surface(66vw, 72vh);
   width: max(66vw, min(920px, 100vw - #{$spacing-l} * 2));
-  height: max(66vh, min(600px, 100vh - #{$spacing-l} * 2));
+  height: max(66vh, min(72vh, 780px), min(600px, 100vh - #{$spacing-l} * 2));
   max-height: calc(100vh - #{$spacing-l} * 2);
   grid-template-rows: auto minmax(0, 1fr) auto;
 
@@ -312,13 +321,17 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-display;
   letter-spacing: -0.01em;
   line-height: 1.08;
+  text-wrap: balance;
 }
 
+// No word left alone on a paragraph's last line, in any of the ten languages
+// ("left." ended the Compact player's lead by itself in English).
 .tour-slide__lead {
   margin: 0;
   color: $text-muted;
   font-size: calc(var(--tour-unit) * 1.15);
   line-height: 1.55;
+  text-wrap: pretty;
 }
 
 .tour-slide__points {
@@ -336,6 +349,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $text-muted;
     font-size: calc(var(--tour-unit) * 0.98);
     line-height: 1.45;
+    text-wrap: pretty;
 
     &::before {
       position: absolute;
@@ -364,6 +378,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $text-muted;
     font-size: calc(var(--tour-unit) * 0.98);
     line-height: 1.45;
+    text-wrap: pretty;
   }
 }
 

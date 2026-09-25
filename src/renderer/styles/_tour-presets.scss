@@ -11,24 +11,32 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'tour-miniature' as *;
 
-// Presets: the picker with Rock chosen, and beside it what a chain is now.
+// Presets: the picker as it opens now, Rock under the pointer in the list and
+// its notes in the column beside it. The notes are the real ones, drawn by
+// their own parts and coloured by GenreNotes.scss; what is restated here is
+// only their size, in tour units, so the picture keeps its proportions from a
+// 1440-wide window to a 4K one.
 
+// One menu, two columns, as RichPick lays out a picker with a preview: the
+// list narrower than the column about the row. The real menu gives them 300
+// and 324 px; here the names are short and the notes are the news, so the
+// list gives up a little more.
 .presets-visual {
-  display: grid;
-  width: 100%;
-  max-width: calc(#{$u} * 36);
-  align-items: start;
-  gap: calc(#{$u} * 0.8);
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
-  @include animate(rise-in, $motion-slow);
-}
-
-.presets-visual__picker {
   @include panel;
 
   display: grid;
-  padding: calc(#{$u} * 0.7);
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  overflow: hidden;
   background: $surface-menu;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  @include animate(rise-in, $motion-slow);
+}
+
+.presets-visual__list {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.7);
   gap: calc(#{$u} * 0.5);
 }
 
@@ -111,100 +119,77 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: currentcolor;
 }
 
-.presets-visual__cards {
-  display: grid;
-  gap: calc(#{$u} * 0.7);
-}
+// The column beside the list, as the picker draws it: a hairline, and the
+// preset line's violet faintly behind (`.rich-pick__preview`). It arrives a
+// beat after the list, the way it follows the pointer onto a row.
+//
+// Two classes, so these sizes win over GenreNotes.scss's own px whichever of
+// the two stylesheets the page happens to load first.
+.presets-visual__notes.genre-preview {
+  align-content: start;
+  padding: calc(#{$u} * 0.9) calc(#{$u} * 0.85) calc(#{$u} * 0.8);
+  border-left: 1px solid $border-subtle;
+  background: linear-gradient(
+    180deg,
+    rgba($triadic-1, 0.07),
+    rgba($triadic-1, 0.02) 60%,
+    transparent
+  );
+  gap: calc(#{$u} * 0.75);
+  @include animate(rise-in, $motion-slow, $delay: 160ms);
 
-.presets-visual__card {
-  @include panel;
+  .genre-preview__head {
+    gap: calc(#{$u} * 0.15);
 
-  display: grid;
-  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.9);
-  gap: calc(#{$u} * 0.45);
-  @include animate(rise-in, $motion-slow);
+    strong {
+      font-size: calc(#{$u} * 1);
+      line-height: 1.2;
+    }
 
-  & + & {
-    animation-delay: 140ms;
+    span {
+      font-size: calc(#{$u} * 0.7);
+      line-height: 1.35;
+      text-wrap: pretty;
+    }
+  }
+
+  .genre-whys {
+    gap: calc(#{$u} * 0.25);
+
+    li {
+      padding: calc(#{$u} * 0.12) calc(#{$u} * 0.25);
+      font-size: calc(#{$u} * 0.7);
+      gap: calc(#{$u} * 0.4);
+      grid-template-columns:
+        calc(#{$u} * 1.05) calc(#{$u} * 3.2) calc(#{$u} * 3)
+        minmax(0, 1fr);
+      @include stagger-in(6, 60ms, 300ms);
+    }
+  }
+
+  .genre-whys__number {
+    width: calc(#{$u} * 1.05);
+    height: calc(#{$u} * 1.05);
+    font-size: calc(#{$u} * 0.58);
+  }
+
+  .genre-figures {
+    font-size: calc(#{$u} * 0.66);
+    gap: calc(#{$u} * 0.1) calc(#{$u} * 0.75);
+    line-height: 1.4;
   }
 }
 
-.presets-visual__name {
-  color: $text-primary;
-  font-size: calc(#{$u} * 1.25);
-  font-weight: $weight-bold;
-  line-height: 1.15;
-
-  &.is-small {
-    font-size: calc(#{$u} * 0.9);
-  }
-}
-
-.presets-visual__note {
-  color: $text-muted;
+// "Full notes", in the filled accent the picker's own button wears
+// (`.button.small`).
+.presets-visual__full {
+  justify-self: start;
+  padding: calc(#{$u} * 0.32) calc(#{$u} * 0.7);
+  color: $surface-base;
+  border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
+  border-radius: $radius-xs;
+  background: $secondary-default;
   font-size: calc(#{$u} * 0.7);
-  line-height: 1.4;
-}
-
-.presets-visual__stages {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0;
-  padding: 0;
-  gap: calc(#{$u} * 0.35);
-  list-style: none;
-
-  li {
-    @include pill;
-
-    color: $text-accent;
-    border-color: color-mix(in srgb, $secondary-light 32%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    @include stagger-in(6, 50ms, 200ms);
-
-    &::before {
-      width: calc(#{$u} * 0.36);
-      height: calc(#{$u} * 0.36);
-      border-radius: 50%;
-      background: $secondary-light;
-      content: '';
-    }
-  }
-}
-
-.presets-visual__levels {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: calc(#{$u} * 0.4);
-  list-style: none;
-
-  li {
-    display: grid;
-    align-items: center;
-    color: $text-muted;
-    font-size: calc(#{$u} * 0.72);
-    gap: calc(#{$u} * 0.6);
-    grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr);
-
-    > span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
-  // One length for all three: the picture's point is that they are level.
-  i {
-    display: block;
-    width: 78%;
-    height: calc(#{$u} * 0.42);
-    border-radius: $radius-pill;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, $secondary-default 55%, transparent),
-      $secondary-light
-    );
-    box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 30%, transparent);
-  }
+  font-weight: $weight-bold;
+  line-height: 1.25;
 }

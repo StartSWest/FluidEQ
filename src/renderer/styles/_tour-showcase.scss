@@ -35,13 +35,27 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-wrap: wrap-reverse;
   align-items: stretch;
 
+  // The words 24 parts to the picture's 27, and a step below the standing
+  // slides' type: at 21 to 30 the ten languages did not fit beside the
+  // picture — at 1920 x 1080 German, French and Russian ran up to 131px past
+  // the stage. The pictures gave up a tenth of their width and none of their
+  // shape.
   > .tour-slide__text {
-    flex: 1 1 calc(var(--tour-unit) * 21);
+    flex: 1.15 1 calc(var(--tour-unit) * 24);
+    gap: calc(var(--tour-unit) * 0.75);
   }
 
   > .tour-showcase__visual {
-    flex: 1.45 1 calc(var(--tour-unit) * 30);
+    flex: 1.3 1 calc(var(--tour-unit) * 27);
   }
+}
+
+.tour-slide--showcase .tour-slide__title {
+  font-size: calc(var(--tour-unit) * 2.2);
+}
+
+.tour-slide--showcase .tour-slide__how p {
+  font-size: calc(var(--tour-unit) * 0.92);
 }
 
 .tour-slide__tag {
@@ -60,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // the two, and at the full size the lead ran a line or two past the stage in
 // a 1440-wide window, pushing "How to start" under the fold.
 .tour-slide--showcase .tour-slide__lead {
-  font-size: calc(var(--tour-unit) * 1.05);
+  font-size: calc(var(--tour-unit) * 1);
   line-height: 1.5;
 }
 
@@ -75,8 +89,9 @@ it under the terms of the GNU General Public License version 3 or later.
     position: relative;
     padding-left: calc(var(--tour-unit) * 1.5);
     color: $text-muted;
-    font-size: calc(var(--tour-unit) * 1);
+    font-size: calc(var(--tour-unit) * 0.95);
     line-height: 1.45;
+    text-wrap: pretty;
 
     &::before {
       position: absolute;

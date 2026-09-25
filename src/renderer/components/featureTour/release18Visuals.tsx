@@ -7,11 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId, type CSSProperties } from 'react';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 import type { TranslationKey } from '../../../common/i18n';
-import {
-  NONE_CHAIN_ID,
-  dspPresetHint,
-  dspPresetName,
-} from '../../dsp/dspPresetCatalog';
+import { dspPresetName } from '../../dsp/dspPresetCatalog';
 import MenuIcon from '../../icons/MenuIcon';
 import VoicingIcon from '../../icons/VoicingIcon';
 import { useTranslation } from '../../utils/I18nContext';
@@ -25,9 +21,10 @@ import sceneAurora from '../../../../assets/tour/scene-aurora.jpg';
  * The Compact player is shown as it is: two real captures of it, one in each
  * of its themes. The rest are the app's own pages in miniature, drawn with
  * the app's own words in the reader's language and its real catalogue — the
- * preset names and the stages a chain switches on come from the presets
- * themselves, so the picture changes when they do. Each is composed to be
- * about as tall as it is wide, the shape the slide gives it beside the text.
+ * preset names come from the presets themselves, so the picture changes when
+ * they do. Each is composed to be about as tall as it is wide, the shape the
+ * slide gives it beside the text. The presets picker, drawn with the genre
+ * notes' own parts, is in `PresetsVisual.tsx`.
  */
 
 const presetById = (id: string) =>
@@ -184,119 +181,6 @@ export function GamesVisual() {
             {t('dsp.latency.gameMode')}
           </span>
         </span>
-      </div>
-    </div>
-  );
-}
-
-/**
- * The picker filed as both pages file it: None on its own above everything,
- * then the chains the listener starred, the classics and the genres, under
- * the equaliser's own headings.
- */
-const PICKER: { group?: TranslationKey; ids: string[] }[] = [
-  { ids: [NONE_CHAIN_ID] },
-  { group: 'dsp.favorites.title', ids: ['rock', 'gaming'] },
-  { group: 'dsp.quick.classics', ids: ['music', 'music-room', 'movie'] },
-  { group: 'voicing.groupGenre', ids: ['metal', 'pop', 'hiphop', 'jazz'] },
-];
-const CHOSEN = 'rock';
-/** Three chains whose levels the picture sets side by side: the same. */
-const LEVELLED = ['empty', 'rock', 'lofi'];
-
-/** The presets picker with Rock chosen, and what a chain is now. */
-export function PresetsVisual() {
-  const { t } = useTranslation();
-  const chosen = presetById(CHOSEN);
-  // The picker's own line under a chain: its stages, joined with a middle
-  // dot that is the same in every language.
-  const stages = chosen ? dspPresetHint(chosen, t).split(' · ') : [];
-  return (
-    <div
-      className="presets-visual"
-      role="img"
-      aria-label={t('tour.presets.imageAlt')}
-    >
-      <div className="presets-visual__picker">
-        <span className="presets-visual__search">
-          <MenuIcon name="configure" />
-          {t('dsp.presets')}
-        </span>
-        {PICKER.map((section) => (
-          <div
-            key={section.group ?? NONE_CHAIN_ID}
-            className="presets-visual__section"
-          >
-            {section.group && (
-              <span className="presets-visual__group">{t(section.group)}</span>
-            )}
-            <ul>
-              {section.ids.map((id) => {
-                const preset = presetById(id);
-                if (!preset) {
-                  return null;
-                }
-                // None is the equaliser's own row: its word and its plain
-                // glyph, never a star.
-                const isNone = id === NONE_CHAIN_ID;
-                return (
-                  <li
-                    key={id}
-                    className={id === CHOSEN ? 'is-chosen' : undefined}
-                  >
-                    <VoicingIcon
-                      profileId={isNone ? undefined : id}
-                      className="presets-visual__icon"
-                    />
-                    <span>
-                      {isNone ? t('voicing.none') : dspPresetName(preset, t)}
-                    </span>
-                    {/* The real list shows a row's star under the pointer
-                        only; the chosen row is drawn as if pointed at. */}
-                    {id === CHOSEN && (
-                      <MenuIcon name="star" className="presets-visual__star" />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      <div className="presets-visual__cards">
-        <div className="presets-visual__card">
-          <span className="presets-visual__name">
-            {chosen ? dspPresetName(chosen, t) : ''}
-          </span>
-          <span className="presets-visual__note">
-            {t('tour.presets.chain')}
-          </span>
-          <ul className="presets-visual__stages">
-            {stages.map((stage) => (
-              <li key={stage}>{stage}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="presets-visual__card">
-          <span className="presets-visual__name is-small">
-            {t('tour.presets.level')}
-          </span>
-          <ul className="presets-visual__levels">
-            {LEVELLED.map((id) => {
-              const preset = presetById(id);
-              return (
-                <li key={id}>
-                  <span>{preset ? dspPresetName(preset, t) : id}</span>
-                  <i />
-                </li>
-              );
-            })}
-          </ul>
-          <span className="presets-visual__note">
-            {t('tour.presets.levelNote')}
-          </span>
-        </div>
       </div>
     </div>
   );

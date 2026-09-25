@@ -71,14 +71,11 @@ const tour: Partial<Dictionary> = {
   'tour.presets.point2':
     '预设的曲线会作为单独的一层显示在图表上，强度可以调低。',
   'tour.presets.point3':
-    '选“无”即可一次关闭所有环节；你加了星标的处理链紧随其后。',
+    '每种音乐流派都有说明：指向其中一个，说明就会在列表旁打开。',
   'tour.presets.how': '打开“均衡器”并按“预设”，或在 DSP 顶部选一条处理链。',
   'tour.presets.open': '打开均衡器',
   'tour.presets.imageAlt':
-    '选中“摇滚”的预设选择器、这条处理链开启的各个环节，以及三条测得响度相同的处理链。',
-  'tour.presets.chain': '整条处理链，而不只是一条曲线',
-  'tour.presets.level': '响度统一',
-  'tour.presets.levelNote': '切换改变的是声音性格，而不是音量。',
+    '选中“摇滚”的预设选择器，以及列表旁它的说明：带编号标记点的曲线、每个标记点的作用，以及它的实测响度。',
   'tour.tone.kicker': '音色控制',
   'tour.tone.title': '低音、中音和高音，像功放一样',
   'tour.tone.subtitle': '三个旋钮，自成一条曲线',

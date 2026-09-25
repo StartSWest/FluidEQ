@@ -6,11 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 import ShowcaseSlide from './ShowcaseSlide';
+import PresetsVisual from './PresetsVisual';
 import {
   GamesVisual,
   GuideVisual,
   PlayerVisual,
-  PresetsVisual,
   StudioVisual,
   ToneVisual,
 } from './release18Visuals';

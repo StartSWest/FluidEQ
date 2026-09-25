@@ -71,16 +71,12 @@ const tour: Partial<Dictionary> = {
   'tour.presets.point2':
     'La curva di un preset compare sul grafico come un livello a sé, con un’intensità che puoi abbassare.',
   'tour.presets.point3':
-    'Nessuno spegne tutti gli stadi con una sola scelta; le catene che segni con la stella vengono subito dopo.',
+    'Ogni stile si spiega da sé: puntane uno e le sue note si aprono accanto all’elenco.',
   'tour.presets.how':
     'Apri EQ e premi Preset, oppure scegli una catena in cima alla scheda DSP.',
   'tour.presets.open': 'Apri l’EQ',
   'tour.presets.imageAlt':
-    'Il selettore dei preset con Rock scelto, gli stadi che la sua catena accende e tre catene misurate allo stesso volume.',
-  'tour.presets.chain': 'Una catena completa, non solo una curva',
-  'tour.presets.level': 'Tutte allo stesso volume',
-  'tour.presets.levelNote':
-    'Passare da un preset all’altro cambia il carattere, non il volume.',
+    'Il selettore dei preset con Rock scelto e le sue note accanto all’elenco: la curva con i punti numerati, a cosa serve ogni punto e a che volume suona.',
   'tour.tone.kicker': 'CONTROLLI DI TONO',
   'tour.tone.title': 'Bassi, Medi e Alti, come su un amplificatore',
   'tour.tone.subtitle': 'Tre manopole con una curva propria',

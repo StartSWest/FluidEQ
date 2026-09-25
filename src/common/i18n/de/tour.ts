@@ -72,16 +72,12 @@ const tour: Partial<Dictionary> = {
   'tour.presets.point2':
     'Die Kurve eines Presets erscheint im Diagramm als eigene Ebene, mit einer Stärke, die Sie herunterdrehen können.',
   'tour.presets.point3':
-    '„Keine“ schaltet mit einem Klick jede Stufe aus; die Ketten, die Sie mit einem Stern markieren, folgen direkt darauf.',
+    'Jeder Stil erklärt sich selbst: Zeigen Sie auf einen, und seine Notizen öffnen sich neben der Liste.',
   'tour.presets.how':
     'Öffnen Sie EQ und drücken Sie Presets, oder wählen Sie oben in DSP eine Kette.',
   'tour.presets.open': 'EQ öffnen',
   'tour.presets.imageAlt':
-    'Die Preset-Auswahl, in der Rock gewählt ist, die Stufen, die seine Kette einschaltet, und drei Ketten, gemessen bei gleicher Lautheit.',
-  'tour.presets.chain': 'Eine ganze Kette, nicht nur eine Kurve',
-  'tour.presets.level': 'Alle gleich laut',
-  'tour.presets.levelNote':
-    'Ein Wechsel ändert den Charakter, nicht die Lautstärke.',
+    'Die Preset-Auswahl, in der Rock gewählt ist, und daneben seine Notizen: seine Kurve mit nummerierten Punkten, wofür jeder Punkt steht und wie laut die Kette spielt.',
   'tour.tone.kicker': 'KLANGREGELUNG',
   'tour.tone.title': 'Bass, Mitten und Höhen wie am Verstärker',
   'tour.tone.subtitle': 'Drei Regler mit eigener Kurve',
@@ -208,11 +204,11 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point1':
     'Eine Auswahl für alles: 28 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualizer nach Kategorien.',
   'tour.visualizers.point2':
-    'Stöbern Sie in der Galerie, testen Sie zehn Sekunden lang die Kostproben von FluidEQ und fügen Sie die Szenen hinzu, die Ihnen gefallen.',
+    'Stöbern Sie in der Galerie, testen Sie Kostproben zehn Sekunden lang und fügen Sie Ihre Lieblingsszenen hinzu.',
   'tour.visualizers.point3':
     'Lassen Sie Darstellungen automatisch wechseln, schalten Sie auf Vollbild und stellen Sie unter Ansicht Attack und Release einer Szene ein.',
   'tour.visualizers.how':
-    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualizer eine Szene, oder sehen Sie sich alle unter Plus → Visualizer an.',
+    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualizer eine Szene – alle finden Sie unter Plus → Visualizer.',
   'tour.visualizers.open': 'EQ öffnen',
   'tour.visualizers.imageAlt':
     'Alpin, ein Plus-Visualizer mit Bergen über einem See bei Nacht, läuft im Diagramm unter den EQ-Kurven, darunter vier weitere Szenen.',
