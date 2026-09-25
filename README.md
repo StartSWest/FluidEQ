@@ -126,8 +126,9 @@ you ask it to, keeps a Light or Dark theme of its own and remembers its own size
 and place. Its volume, like the transport's, is the computer's own. The same
 switch brings the full app back on the page you left.
 
-**Watch the sound, however you like to.** The live spectrum draws in any of
-twenty-eight forms — lines, bars, terraces, a skyline, flames, a fluid. Four
+**Watch the sound, however you like to.** The live spectrum is a measuring
+view — a third-octave RTA, a spectrogram, a waterfall, an oscilloscope — or a
+drawn form: terraces, a skyline, LED and neon bars, glass towers. Four
 palettes, ten different marks for a lit peak, and a designer that opens on the
 look you are using and changes its fill, glow, thickness, piece count and
 spacing without touching the geometry. The stereo output meter has ten looks of
@@ -708,8 +709,8 @@ what you interact with.
   and its clock, the equaliser, a visualizer and Up Next — that shrinks to a
   single line and can stay on top of other windows.
 - **A live spectrum, a response graph and a real level meter**, in three sizes
-  that each remember how you left them, drawn in any of twenty-eight forms and
-  ten meter looks.
+  that each remember how you left them, the spectrum drawn as a measuring view
+  or a drawn form and the meter in any of ten looks.
 - **Ten languages**, with a test that fails the build when one falls behind.
 - **In-app updates** and a What's new dialog rendered from the changelog, with a
   tray icon that keeps the equaliser running when the window is closed.

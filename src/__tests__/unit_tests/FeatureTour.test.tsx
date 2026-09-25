@@ -2,6 +2,8 @@
 
 import '@testing-library/jest-dom';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { isAnalysisStyle } from 'common/graphAnalysis';
+import { SELECTABLE_GRAPH_STYLES } from 'common/graphStyles';
 import FeatureTour from 'renderer/components/featureTour/FeatureTour';
 import { featureTourFor } from 'renderer/components/featureTour/slides';
 import { requestHelpGuide } from 'renderer/help/helpGuideRequests';
@@ -82,5 +84,30 @@ it('quotes the catalogue’s own counts on the presets slide', () => {
   // "nine stages" outlived the tenth.
   expect(
     screen.getByText(/^\d+ chains, \d+ of them music styles/),
+  ).toBeInTheDocument();
+});
+
+it('counts the graph picker’s own looks on the visualizer and Custom looks slides', () => {
+  // Counted here from the picker's list rather than read from the slides'
+  // helper, so a helper that counted the wrong thing would fail. The words
+  // said 28 until nineteen drawn scenes joined the list.
+  const free = SELECTABLE_GRAPH_STYLES.length;
+  const drawn = SELECTABLE_GRAPH_STYLES.filter(
+    (style) => !isAnalysisStyle(style),
+  ).length;
+  expect(drawn).toBeLessThan(free);
+
+  showTour();
+  goTo('Scenes that move with your music');
+  expect(
+    screen.getByText(new RegExp(`: ${free} free styles to shape and colour`)),
+  ).toBeInTheDocument();
+
+  goTo('Custom looks for the graph');
+  expect(
+    screen.getByText(new RegExp(`^${drawn} forms, each with its own controls`)),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(new RegExp(`Pick one of ${drawn} forms, from LED`)),
   ).toBeInTheDocument();
 });

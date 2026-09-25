@@ -201,7 +201,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'Os visualizadores Plus são cenas vivas (montanhas sob as estrelas, cortinas de aurora, uma cidade neon) desenhadas na sua placa de vídeo, por baixo das curvas do seu EQ. Os graves, a batida e os agudos movem, cada um, algo diferente, e a janela em volta pode assumir as cores delas.',
   'tour.visualizers.point1':
-    'Um só seletor para tudo: 28 estilos gratuitos para moldar e colorir, e visualizadores Plus por categoria.',
+    'Um só seletor para tudo: {styles} estilos gratuitos para moldar e colorir, e visualizadores Plus por categoria.',
   'tour.visualizers.point2':
     'Explore a galeria, experimente as amostras do FluidEQ por dez segundos e adicione as cenas de que gostar.',
   'tour.visualizers.point3':
@@ -354,11 +354,11 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',
-  'tour.looks.subtitle': 'Vinte e oito formas, suas cores, seu movimento',
+  'tour.looks.subtitle': 'Suas formas, suas cores, seu movimento',
   'tour.looks.lead':
-    'O espectro abaixo do EQ pode ser desenhado do jeito que você quiser. Escolha uma de vinte e oito formas, de barras e linhas simples a terraços, horizontes e uma ponte à noite com trânsito; pinte com a coloração Auto da própria forma, por frequência, por nível ou por calor; defina a rapidez do ataque e quanto tempo um pico fica no ar; e marque os picos com faíscas, cometas ou ondulações. Salve como um visual seu e compartilhe como arquivo.',
+    'O espectro abaixo do EQ pode ser desenhado do jeito que você quiser. Escolha uma de {forms} formas, de barras de LED e neon a terraços, horizontes e torres de vidro; pinte com a coloração Auto da própria forma, por frequência, por nível ou por calor; defina a rapidez do ataque e quanto tempo um pico fica no ar; e marque os picos com faíscas, cometas ou ondulações. Salve como um visual seu e compartilhe como arquivo.',
   'tour.looks.point1':
-    'Vinte e oito formas, cada uma com seus controles: peças, espaço, preenchimento, espessura, e se é preenchida ou traçada.',
+    '{forms} formas, cada uma com seus controles: peças, espaço, preenchimento, espessura, e se é preenchida ou traçada.',
   'tour.looks.point2':
     'Pinte cada forma com a coloração Auto dela, por frequência, nível ou calor com uma rampa das suas próprias cores, ou com uma única cor chapada.',
   'tour.looks.point3':

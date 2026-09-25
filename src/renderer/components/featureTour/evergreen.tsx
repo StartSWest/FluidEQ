@@ -19,6 +19,7 @@ import { useTheme } from '../../utils/theme';
 import secondOutputShot from '../../../../assets/tour/second-output.png';
 import secondOutputOceanShot from '../../../../assets/tour/second-output-ocean.png';
 import FeatureSlide from './FeatureSlide';
+import { DRAWN_FORM_COUNT } from './lookCounts';
 import type { ISlideActions } from './slides';
 
 /**
@@ -83,6 +84,7 @@ export function CustomLooksSlide({ actions }: ISlideProps) {
       tab="eq"
       art={<CustomLooksArt />}
       actions={actions}
+      values={{ forms: DRAWN_FORM_COUNT }}
     />
   );
 }

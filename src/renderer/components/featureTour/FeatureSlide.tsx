@@ -33,6 +33,8 @@ interface IFeatureSlideProps {
   tab: TTourTab;
   art: ReactNode;
   actions: ISlideActions;
+  /** Numbers the slide's words quote, counted by the app rather than typed. */
+  values?: Record<string, string | number>;
 }
 
 const POINTS = [1, 2, 3, 4] as const;
@@ -55,6 +57,7 @@ export default function FeatureSlide({
   tab,
   art,
   actions,
+  values,
 }: IFeatureSlideProps) {
   const { t } = useTranslation();
   const key = (suffix: TSuffix): TranslationKey => `${prefix}.${suffix}`;
@@ -64,11 +67,11 @@ export default function FeatureSlide({
       <div className="tour-slide__text">
         <span className="tour-slide__kicker">{t(key('kicker'))}</span>
         <h3 className="tour-slide__title">{t(key('title'))}</h3>
-        <p className="tour-slide__lead">{t(key('lead'))}</p>
+        <p className="tour-slide__lead">{t(key('lead'), values)}</p>
 
         <ul className="tour-slide__points">
           {POINTS.map((point) => (
-            <li key={point}>{t(key(`point${point}`))}</li>
+            <li key={point}>{t(key(`point${point}`), values)}</li>
           ))}
         </ul>
 

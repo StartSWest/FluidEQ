@@ -201,7 +201,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'Los visualizadores Plus son escenas vivas, como montañas bajo las estrellas, cortinas de aurora o una ciudad de neón, que tu tarjeta gráfica dibuja detrás de tus curvas de EQ. Los graves, el ritmo y los agudos mueven cada uno algo distinto, y la ventana que las rodea puede tomar sus colores.',
   'tour.visualizers.point1':
-    'Un solo selector para todo: 28 estilos gratuitos que puedes moldear y colorear, y los visualizadores Plus por categorías.',
+    'Un solo selector para todo: {styles} estilos gratuitos que puedes moldear y colorear, y los visualizadores Plus por categorías.',
   'tour.visualizers.point2':
     'Explora la galería, prueba durante diez segundos las muestras de FluidEQ y añade las escenas que te gusten.',
   'tour.visualizers.point3':
@@ -354,11 +354,11 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'TU PROPIO ESTILO',
   'tour.looks.title': 'Estilos propios para la gráfica',
-  'tour.looks.subtitle': 'Veintiocho formas, tus colores, tu movimiento',
+  'tour.looks.subtitle': 'Tus formas, tus colores, tu movimiento',
   'tour.looks.lead':
-    'El espectro bajo el EQ puede dibujarse como quieras. Elige una de veintiocho formas, desde barras y líneas sencillas hasta terrazas, horizontes y un puente nocturno con tráfico; dale su propio coloreado Auto o coloréala por frecuencia, por nivel o por calor; decide con qué rapidez ataca y cuánto se sostiene un pico, y marca los picos con chispas, cometas u ondas expansivas. Guárdalo como un estilo propio y compártelo como archivo.',
+    'El espectro bajo el EQ puede dibujarse como quieras. Elige una de {forms} formas, desde barras LED y neón hasta terrazas, horizontes y torres de cristal; dale su propio coloreado Auto o coloréala por frecuencia, por nivel o por calor; decide con qué rapidez ataca y cuánto se sostiene un pico, y marca los picos con chispas, cometas u ondas expansivas. Guárdalo como un estilo propio y compártelo como archivo.',
   'tour.looks.point1':
-    'Veintiocho formas, cada una con sus controles: piezas, separación, relleno, grosor y si va rellena o trazada.',
+    '{forms} formas, cada una con sus controles: piezas, separación, relleno, grosor y si va rellena o trazada.',
   'tour.looks.point2':
     'Pinta cada forma con su propio coloreado Auto, por frecuencia, nivel o calor con un degradado de tus colores, o de un solo color plano.',
   'tour.looks.point3':

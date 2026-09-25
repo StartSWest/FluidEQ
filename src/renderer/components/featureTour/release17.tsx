@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import EngineFlow from './EngineFlow';
 import LightingVisual from './LightingVisual';
+import { FREE_LOOK_COUNT } from './lookCounts';
 import RoomVisual from './RoomVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import {
@@ -61,6 +62,7 @@ export function VisualizersSlide({ actions }: ISlideProps) {
       prefix="tour.visualizers"
       onOpen={() => actions.openTab('eq')}
       visual={<VisualizersVisual />}
+      values={{ styles: FREE_LOOK_COUNT }}
     />
   );
 }
