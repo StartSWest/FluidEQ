@@ -26,6 +26,8 @@ const wallpaper = {
   'wallpaper.follow': '跟随图表',
   'wallpaper.follow.hint':
     '显示图表上的 Plus 可视化效果并随之切换，无论是你手动选择还是自动切换。当图表显示非 Plus 可视化效果时，此屏幕保留最后一个 Plus 可视化效果。',
+  'wallpaper.follow.choice':
+    '所选显示器会随图表上的 Plus 可视化效果切换，无论是你手动选择还是自动切换；图表显示非 Plus 可视化效果时，它们保留最后一个。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '设置背景',

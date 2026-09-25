@@ -114,6 +114,7 @@ export default function WallpaperManageDialog({
                   monitorName(placement),
                   look ? look.name : t('wallpaper.monitor.ordinary'),
                   screen ? t(screenStatusKey(screen)) : '',
+                  screen?.followsGraph ? t('wallpaper.follow') : '',
                 ]
                   .filter(Boolean)
                   .join(', ')}
@@ -124,6 +125,7 @@ export default function WallpaperManageDialog({
                   screen={screen}
                   faded={false}
                   calm={screen?.motion === 'calm'}
+                  follows={screen?.followsGraph === true}
                 />
               </div>
             );

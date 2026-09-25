@@ -30,6 +30,8 @@ const wallpaper = {
   'wallpaper.follow': 'グラフに合わせる',
   'wallpaper.follow.hint':
     'グラフに表示中の Plus ビジュアライザーを表示し、手動でも自動切り替えでも一緒に切り替わります。グラフに Plus 以外のビジュアライザーが表示されている間は、最後の Plus ビジュアライザーのままです。',
+  'wallpaper.follow.choice':
+    '選んだモニターは、手動でも自動切り替えでも、グラフの Plus ビジュアライザーに合わせて切り替わります。グラフに Plus 以外が表示されている間は、最後の Plus ビジュアライザーのままです。',
   'wallpaper.cancel': 'キャンセル',
   'wallpaper.done': '完了',
   'wallpaper.start': '背景に設定',

@@ -30,6 +30,8 @@ const wallpaper = {
   'wallpaper.follow': 'Diagramm folgen',
   'wallpaper.follow.hint':
     'Zeigt den Plus-Visualizer des Diagramms und wechselt mit ihm – ob Sie ihn wählen oder der automatische Wechsel. Zeigt das Diagramm einen Visualizer ohne Plus, behält dieser Bildschirm den letzten Plus-Visualizer.',
+  'wallpaper.follow.choice':
+    'Die gewählten Monitore wechseln mit dem Plus-Visualizer des Diagramms – ob Sie ihn wählen oder der automatische Wechsel – und behalten den letzten, solange das Diagramm einen Visualizer ohne Plus zeigt.',
   'wallpaper.cancel': 'Abbrechen',
   'wallpaper.done': 'Fertig',
   'wallpaper.start': 'Hintergrund festlegen',

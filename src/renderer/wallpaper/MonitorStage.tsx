@@ -69,6 +69,8 @@ interface IMonitorFaceProps {
   faded: boolean;
   /** Its visualizer plays calm, or will: soft swells on the glass, not bars. */
   calm: boolean;
+  /** It shows whatever Plus visualizer the graph shows, or will. */
+  follows: boolean;
 }
 
 /**
@@ -82,6 +84,7 @@ export function MonitorFace({
   screen,
   faded,
   calm,
+  follows,
 }: IMonitorFaceProps) {
   const { t } = useTranslation();
   const { display, number } = placement;
@@ -126,14 +129,23 @@ export function MonitorFace({
       </span>
       {/* Over a frame of the scene itself, how it moves is a mark in the
           corner: the silhouette that says it on a plain glass would lie across
-          the picture as a set of stripes. */}
-      {shown && (
-        <span
-          className="wallpaper-monitor__motion"
-          data-motion={calm ? 'calm' : 'music'}
-          aria-hidden="true"
-        >
-          <Glyph name={calm ? 'calm' : 'music'} />
+          the picture as a set of stripes. Following the graph is a mark beside
+          it, on any glass, because nothing else on the tile can say it. */}
+      {(shown || follows) && (
+        <span className="wallpaper-monitor__marks" aria-hidden="true">
+          {follows && (
+            <span className="wallpaper-monitor__follow">
+              <Glyph name="link" />
+            </span>
+          )}
+          {shown && (
+            <span
+              className="wallpaper-monitor__motion"
+              data-motion={calm ? 'calm' : 'music'}
+            >
+              <Glyph name={calm ? 'calm' : 'music'} />
+            </span>
+          )}
         </span>
       )}
       <span className="wallpaper-monitor__content" aria-hidden="true">

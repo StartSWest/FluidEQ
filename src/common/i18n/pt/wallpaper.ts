@@ -31,6 +31,8 @@ const wallpaper = {
   'wallpaper.follow': 'Seguir o gráfico',
   'wallpaper.follow.hint':
     'Mostra o visualizador Plus do gráfico e muda junto com ele, seja você a escolher ou a troca automática. Enquanto o gráfico mostrar um visualizador que não é Plus, esta tela mantém o último Plus.',
+  'wallpaper.follow.choice':
+    'Os monitores escolhidos mudam com o visualizador Plus do gráfico, seja você a escolher ou a troca automática, e mantêm o último enquanto o gráfico mostrar um que não é Plus.',
   'wallpaper.cancel': 'Cancelar',
   'wallpaper.done': 'Concluído',
   'wallpaper.start': 'Definir fundo',

@@ -60,6 +60,7 @@ export default function WallpaperDialog({
   const focusRef = useRef<HTMLButtonElement>(null);
   const headingId = useId();
   const batteryId = useId();
+  const followId = useId();
   const motionName = useId();
   const look = lookOf(lookId);
   const primary = displays.find((display) => display.primary) ?? displays[0];
@@ -73,6 +74,14 @@ export default function WallpaperDialog({
     (showing.length > 0 && showing.every((screen) => screen.motion === 'calm')
       ? 'calm'
       : 'music');
+  // Following the graph, read the same way: on when every monitor showing
+  // this visualizer already follows it. What the switch shows is what is
+  // set on the chosen monitors, so the dialog never changes it unseen.
+  const [followChoice, setFollowChoice] = useState<boolean>();
+  const follows =
+    followChoice ??
+    (showing.length > 0 &&
+      showing.every((screen) => screen.followsGraph === true));
   // Until a monitor is pressed, the choice follows what main reports — the
   // monitors already showing this visualizer, or else the primary one — so a
   // dialog opened before the monitors are known still starts with one chosen.
@@ -123,6 +132,7 @@ export default function WallpaperDialog({
       // again on a monitor already showing it moves its band without a restart.
       wave: wave ?? getWatchedGraphWave(),
       motion,
+      followsGraph: follows,
     });
     if (leaving.length > 0) {
       next = await stopWallpaper(leaving);
@@ -244,6 +254,11 @@ export default function WallpaperDialog({
                 width: display.width,
                 height: display.height,
               });
+              // A chosen monitor will follow as the switch says; the rest
+              // keep what they do now.
+              const tileFollows = isChosen
+                ? follows
+                : screen?.followsGraph === true;
               return (
                 <button
                   key={display.id}
@@ -256,6 +271,7 @@ export default function WallpaperDialog({
                     size,
                     display.primary ? t('wallpaper.monitor.primary') : '',
                     current ? current.name : t('wallpaper.monitor.ordinary'),
+                    tileFollows ? t('wallpaper.follow') : '',
                   ]
                     .filter(Boolean)
                     .join(', ')}
@@ -272,6 +288,7 @@ export default function WallpaperDialog({
                     calm={
                       isChosen ? motion === 'calm' : screen?.motion === 'calm'
                     }
+                    follows={tileFollows}
                   />
                 </button>
               );
@@ -315,18 +332,33 @@ export default function WallpaperDialog({
           </div>
         </fieldset>
 
-        <div className="wallpaper-dialog__battery">
-          <span className="wallpaper-dialog__battery-copy">
-            <label htmlFor={batteryId}>{t('wallpaper.pauseOnBattery')}</label>
-            <span>{t('wallpaper.pauseOnBattery.hint')}</span>
-          </span>
-          <Switch
-            id={batteryId}
-            isOn={pauseOnBattery}
-            isDisabled={operation.pending}
-            ariaLabel={t('wallpaper.pauseOnBattery')}
-            handleToggle={() => setBatteryChoice(!pauseOnBattery)}
-          />
+        <div className="wallpaper-dialog__settings">
+          <div className="wallpaper-dialog__setting">
+            <span className="wallpaper-dialog__setting-copy">
+              <label htmlFor={followId}>{t('wallpaper.follow')}</label>
+              <span>{t('wallpaper.follow.choice')}</span>
+            </span>
+            <Switch
+              id={followId}
+              isOn={follows}
+              isDisabled={operation.pending}
+              ariaLabel={t('wallpaper.follow')}
+              handleToggle={() => setFollowChoice(!follows)}
+            />
+          </div>
+          <div className="wallpaper-dialog__setting">
+            <span className="wallpaper-dialog__setting-copy">
+              <label htmlFor={batteryId}>{t('wallpaper.pauseOnBattery')}</label>
+              <span>{t('wallpaper.pauseOnBattery.hint')}</span>
+            </span>
+            <Switch
+              id={batteryId}
+              isOn={pauseOnBattery}
+              isDisabled={operation.pending}
+              ariaLabel={t('wallpaper.pauseOnBattery')}
+              handleToggle={() => setBatteryChoice(!pauseOnBattery)}
+            />
+          </div>
         </div>
 
         {failures.length > 0 && (

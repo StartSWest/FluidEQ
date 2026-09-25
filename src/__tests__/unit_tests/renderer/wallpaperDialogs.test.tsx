@@ -117,6 +117,7 @@ describe('choosing how a background moves', () => {
       pauseOnBattery: false,
       wave: { height: 0.75, position: 0.1 },
       motion: 'calm',
+      followsGraph: false,
     });
     await screen.findByRole('dialog');
   });
@@ -191,6 +192,64 @@ describe('choosing how a background moves', () => {
     withScreens([showing(3), showing(1, { motion: 'music' })]);
     render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
     expect(screen.getByRole('radio', { name: /With the music/ })).toBeChecked();
+  });
+});
+
+// The graph's desktop button and the player's open this dialog, not the
+// Manage one: the switch was only in Manage, where Ivan never looked for it.
+describe('following the graph from the dialog the graph opens', () => {
+  it('sets the chosen monitors to follow the graph, and marks each on its tile', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    // The app's switch is a checkbox underneath, named by its label.
+    const follow = screen.getByRole('checkbox', { name: 'Follow graph' });
+    expect(follow).not.toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: /Y27qf-30/ }),
+    ).not.toHaveAccessibleName(/Follow graph/);
+
+    fireEvent.click(follow);
+    expect(follow).toBeChecked();
+    // The chosen monitor says it will follow; the others do not.
+    expect(
+      screen.getByRole('checkbox', { name: /Y27qf-30/ }),
+    ).toHaveAccessibleName(/Follow graph/);
+    expect(
+      screen.getByRole('checkbox', { name: /Odyssey G5/ }),
+    ).not.toHaveAccessibleName(/Follow graph/);
+    expect(
+      screen.getByRole('dialog').querySelectorAll('.wallpaper-monitor__follow'),
+    ).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [2], followsGraph: true }),
+    );
+  });
+
+  it('opens on when every monitor showing the visualizer already follows', () => {
+    withScreens([
+      showing(3, { followsGraph: true }),
+      showing(1, { followsGraph: true }),
+    ]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Follow graph' }),
+    ).toBeChecked();
+  });
+
+  // Positive control for the case above: one of them not following is off,
+  // and what the switch shows is what setting it sends.
+  it('opens off when any of them does not, and sends what it shows', () => {
+    withScreens([showing(3, { followsGraph: true }), showing(1)]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Follow graph' }),
+    ).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Set on 2 monitors' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [1, 3], followsGraph: false }),
+    );
   });
 });
 

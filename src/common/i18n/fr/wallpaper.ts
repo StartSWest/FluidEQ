@@ -31,6 +31,8 @@ const wallpaper = {
   'wallpaper.follow': 'Suivre le graphique',
   'wallpaper.follow.hint':
     'Affiche le visualiseur Plus du graphique et change avec lui, que vous le choisissiez ou que le défilement automatique le fasse. Tant que le graphique affiche un visualiseur hors Plus, cet écran garde le dernier visualiseur Plus.',
+  'wallpaper.follow.choice':
+    'Les écrans choisis changent avec le visualiseur Plus du graphique, que vous le choisissiez ou que le défilement automatique le fasse, et gardent le dernier tant que le graphique en affiche un hors Plus.',
   'wallpaper.cancel': 'Annuler',
   'wallpaper.done': 'Terminé',
   'wallpaper.start': "Définir l'arrière-plan",

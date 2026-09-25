@@ -340,14 +340,24 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.wallpaper-dialog__battery {
+// The dialog's standing choices, one panel with a hairline between them: two
+// boxes stacked read as two unrelated things.
+.wallpaper-dialog__settings {
+  display: grid;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $block-lift;
+}
+
+.wallpaper-dialog__setting {
   display: flex;
   align-items: center;
   gap: $spacing-m;
   padding: 11px 12px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  background: $block-lift;
+
+  & + & {
+    border-top: 1px solid $border-subtle;
+  }
 
   .switch {
     --switch-width: 42px;
@@ -359,7 +369,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.wallpaper-dialog__battery-copy {
+.wallpaper-dialog__setting-copy {
   display: grid;
   flex: 1 1 auto;
   gap: 2px;

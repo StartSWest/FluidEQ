@@ -178,13 +178,20 @@ it under the terms of the GNU General Public License version 3 or later.
   filter: saturate(0.75) brightness(0.7);
 }
 
-// How the visualizer moves, on the picture's own corner: bars with the music,
-// swells for calm, the same two marks the choice below the monitors carries.
-.wallpaper-monitor__motion {
+// The picture's own corner: how the visualizer moves (bars with the music,
+// swells for calm, the same two marks the choice below the monitors carries),
+// and a link where the monitor follows the graph.
+.wallpaper-monitor__marks {
   position: absolute;
   z-index: 1;
   bottom: 6px;
   inset-inline-end: 7px;
+  display: flex;
+  gap: 4px;
+}
+
+.wallpaper-monitor__motion,
+.wallpaper-monitor__follow {
   display: grid;
   width: 20px;
   height: 20px;
@@ -198,6 +205,15 @@ it under the terms of the GNU General Public License version 3 or later.
     width: 13px;
     height: 13px;
   }
+}
+
+// In the accent, as the switch that set it is: the one mark that says the
+// monitor answers to something other than this dialog.
+.wallpaper-monitor__follow {
+  color: $secondary-light;
+  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+  background: color-mix(in srgb, $surface-base 62%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 35%, transparent);
 }
 
 // Number at the top, words at the bottom, and whatever does not fit in a

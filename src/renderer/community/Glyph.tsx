@@ -41,6 +41,7 @@ export type TCommunityGlyph =
   | 'gift'
   | 'music'
   | 'calm'
+  | 'link'
   | 'sign-out';
 
 interface IGlyphProps {
@@ -345,6 +346,15 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M2.5 8.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" />
             <path d="M2.5 13.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" opacity="0.7" />
+          </>
+        );
+      case 'link':
+        // Two links of a chain: this one goes where something else goes.
+        return (
+          <>
+            <path d="M8.3 11.7l3.4-3.4" />
+            <path d="M9.6 6.1l1.2-1.2a3.3 3.3 0 0 1 4.6 4.6l-1.2 1.2" />
+            <path d="M10.4 13.9l-1.2 1.2a3.3 3.3 0 0 1-4.6-4.6l1.2-1.2" />
           </>
         );
       case 'sign-out':
