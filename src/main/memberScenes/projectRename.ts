@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { MANIFEST_FILE, readManifest, writeInside } from './project';
+import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import { folderNameFor } from './projectFolders';
 import type { TSettingsWrite } from './projectSettings';
 import { queueSettingsWrite, waitForSettingsWrites } from './settingsWrites';

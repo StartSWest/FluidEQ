@@ -132,7 +132,26 @@ export interface IMemberRuleViolation {
   line: number;
 }
 
-const ENTRY_POINT = /\bvec4\s+sceneColour\s*\(\s*vec2\s+\w+\s*\)/;
+/** The function a piece of GLSL must define, and what it is called. */
+interface IEntryPoint {
+  name: string;
+  pattern: RegExp;
+}
+
+const SCENE_ENTRY: IEntryPoint = {
+  name: 'sceneColour',
+  pattern: /\bvec4\s+sceneColour\s*\(\s*vec2\s+\w+\s*\)/,
+};
+
+/**
+ * A 3D world's own GLSL (`sceneWorld.ts`): a vertex's move and a surface's
+ * colour. Each runs per vertex or per pixel exactly as a scene does, so each
+ * is held to every rule a scene is, its budget counted from its own entry.
+ */
+const WORLD_ENTRIES: Record<'vertex' | 'fragment', IEntryPoint> = {
+  vertex: { name: 'worldDisplace', pattern: /\bvec3\s+worldDisplace\s*\(/ },
+  fragment: { name: 'worldSurface', pattern: /\bvoid\s+worldSurface\s*\(/ },
+};
 const IDENTIFIER = /[A-Za-z_][A-Za-z0-9_]*/g;
 /**
  * A decimal integer as GLSL reads it. A leading zero makes a literal octal
@@ -748,6 +767,7 @@ const COSTLY_CALLS = new Map<string, number>([
 const overBudget = (
   source: ISourceIndex,
   loops: ReadonlyMap<number, ILoop>,
+  entry: string,
 ): number | undefined => {
   const { code } = source;
   const bodies = functionBodies(source);
@@ -837,9 +857,7 @@ const overBudget = (
 
   const total = Math.max(
     0,
-    ...(bodies.get('sceneColour') ?? []).map(([start, end]) =>
-      workOf(start, end, 0),
-    ),
+    ...(bodies.get(entry) ?? []).map(([start, end]) => workOf(start, end, 0)),
   );
   return total >= ceiling ? (over ?? 0) : undefined;
 };
@@ -860,8 +878,9 @@ export const MAX_MEMBER_LOOPS = 64;
  * again from a match, or from the top of the file for its line, let a source
  * of the right twenty thousand tokens hold the main process for a second.
  */
-export const checkMemberSceneSource = (
+const checkMemberGlsl = (
   source: string,
+  entry: IEntryPoint,
 ): IMemberRuleViolation[] => {
   const found = new Map<TMemberRuleCode, number>();
 
@@ -997,10 +1016,10 @@ export const checkMemberSceneSource = (
     }
   });
 
-  if (!ENTRY_POINT.test(code)) {
+  if (!entry.pattern.test(code)) {
     note('entry-point', 0);
   } else if (!loopsBroken) {
-    const over = overBudget(index, loops);
+    const over = overBudget(index, loops, entry.name);
     if (over !== undefined) {
       note('loop-budget', over);
     }
@@ -1010,3 +1029,13 @@ export const checkMemberSceneSource = (
     .map(([rule, line]) => ({ code: rule, line }))
     .sort((a, b) => a.line - b.line);
 };
+
+export const checkMemberSceneSource = (
+  source: string,
+): IMemberRuleViolation[] => checkMemberGlsl(source, SCENE_ENTRY);
+
+/** A 3D world material's GLSL, held to a scene's rules from its own entry. */
+export const checkMemberWorldHook = (
+  source: string,
+  stage: 'vertex' | 'fragment',
+): IMemberRuleViolation[] => checkMemberGlsl(source, WORLD_ENTRIES[stage]);

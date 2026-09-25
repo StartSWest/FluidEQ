@@ -1233,6 +1233,28 @@ Out-String` (or any other capture) is what actually waits for it and shows
   measured against a chain with no exciter and every linked stage off,
   because a linked limiter passing the centre's harmonics on to the LFE
   is the design, not the exciter.
+- **A 3D world is a scene program like any shader, on the same context.**
+  A pack's optional `world` (`common/sceneWorld.ts`, format in
+  `docs/scene-worlds.md`) is drawn by three.js from `graph/world/`, a bundle
+  of its own (`scene-world.js`) that a scene worker `importScripts` only when
+  a world arrives, so shader scenes never parse it. `compileScene` builds the
+  world or, failing that, the shader — which is also what every older FluidEQ
+  plays from the same pack, and why a world pack keeps a real shader as its
+  sky. `draw` renders into its own targets and composites into whatever
+  framebuffer and scissor the worker left bound, then leaves the context
+  reset: that is the whole contract, and it is why FSR, supersampling, FXAA
+  and the brightness limiter work on worlds unchanged. Four things measured
+  the hard way: the target wrapping the worker's framebuffer
+  (`setRenderTargetFramebuffer`) must never be disposed, or three deletes the
+  worker's framebuffer; three sizes points from the canvas it was made on,
+  never the drawn size, so points read `uWorldPointScale` and never go under
+  three pixels (smaller, a star field was invisible); the composite works in
+  linear light and adds the world's light to the sky, because keeping only
+  light where geometry covered the pixel threw away every glow over empty
+  sky; and a still drawn band by band reuses the world rendered for the same
+  frame, or each band cost the whole world. A member's world GLSL answers to
+  the scene rules (`checkMemberWorldHook`); a world that breaks one plays its
+  shader.
 - **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
   (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
   at 48 kHz, so a coefficient or a stage that assumed one rate would pass all

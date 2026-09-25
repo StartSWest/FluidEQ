@@ -9,7 +9,7 @@ import {
   readSceneWave,
   type ISceneWave,
 } from '../../common/sceneWave';
-import { MANIFEST_FILE, readManifest, writeInside } from './project';
+import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import { queueSettingsWrite } from './settingsWrites';
 
 /**

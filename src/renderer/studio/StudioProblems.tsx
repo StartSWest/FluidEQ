@@ -10,6 +10,7 @@ const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
   'pack.json': 'studio.file.pack',
   source: 'studio.file.source',
   artwork: 'studio.file.artwork',
+  world: 'studio.file.world',
 };
 
 /** The first driver error line, which is the one worth reading. */
@@ -67,7 +68,12 @@ export default function StudioProblems({
   trouble,
 }: IStudioProblemsProps) {
   const { t } = useTranslation();
-  if (!problems && trouble?.kind !== 'compile' && trouble?.kind !== 'heavy') {
+  if (
+    !problems &&
+    trouble?.kind !== 'compile' &&
+    trouble?.kind !== 'world' &&
+    trouble?.kind !== 'heavy'
+  ) {
     return null;
   }
   return (
@@ -96,6 +102,19 @@ export default function StudioProblems({
         <>
           <span className="studio-problems__title">
             {t('studio.compile.heading')}
+          </span>
+          <code className="studio-problems__log">
+            {firstError(trouble.log)}
+          </code>
+          <span className="studio-problems__hint">
+            {t('studio.compile.hint')}
+          </span>
+        </>
+      )}
+      {trouble?.kind === 'world' && (
+        <>
+          <span className="studio-problems__title">
+            {t('studio.world.heading')}
           </span>
           <code className="studio-problems__log">
             {firstError(trouble.log)}

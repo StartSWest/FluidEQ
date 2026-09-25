@@ -1,6 +1,8 @@
 import { GRAPH_STYLES } from './graphStyles';
 import {
   checkMemberSceneSource,
+  checkMemberWorldHook,
+  type IMemberRuleViolation,
   type TMemberRuleCode,
 } from './memberSceneRules';
 import { normalizeSceneArtwork } from './sceneArtwork';
@@ -141,7 +143,7 @@ export const sanitizeDisplayText = (value: unknown): string | undefined => {
   return cleaned || undefined;
 };
 
-export type TMemberSceneFile = 'pack.json' | 'source' | 'artwork';
+export type TMemberSceneFile = 'pack.json' | 'source' | 'artwork' | 'world';
 
 /**
  * The picture FluidEQ writes into a project folder after each build, for the
@@ -167,6 +169,10 @@ export type TMemberProblemCode =
   | 'bad-param'
   | 'too-many-params'
   | 'bad-ambient'
+  // The 3D world (`sceneWorld.ts`) left nothing to draw, or a model in it
+  // does not carry everything it needs inside itself.
+  | 'bad-world'
+  | 'bad-model'
   // Raised by the project folder reader, never by a pack in memory.
   | 'bad-json'
   | 'missing-file'
@@ -244,6 +250,31 @@ const isWholeParam = (entry: unknown): boolean => {
     Math.max(Math.abs(min), Math.abs(max)) <= MAX_PARAM_MAGNITUDE &&
     (value === undefined || isFiniteNumber(value))
   );
+};
+
+/**
+ * Every rule a 3D world's own GLSL breaks, material by material, each at its
+ * line in the piece the author wrote. A world's GLSL runs per vertex and per
+ * pixel exactly as a scene's does, so it answers to the same rules
+ * (`checkMemberWorldHook`), and a hook that breaks one is never compiled.
+ */
+export const checkWorldHooks = (world: unknown): IMemberRuleViolation[] => {
+  if (!isRecord(world) || !isRecord(world.materials)) {
+    return [];
+  }
+  const violations: IMemberRuleViolation[] = [];
+  Object.values(world.materials).forEach((material) => {
+    if (!isRecord(material)) {
+      return;
+    }
+    (['vertex', 'fragment'] as const).forEach((stage) => {
+      const source = material[stage];
+      if (typeof source === 'string') {
+        violations.push(...checkMemberWorldHook(source, stage));
+      }
+    });
+  });
+  return violations;
 };
 
 /**
@@ -338,6 +369,9 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
       problems.push({ code, file: 'source', line }),
     );
   }
+  checkWorldHooks(raw.world).forEach(({ code, line }) =>
+    problems.push({ code, file: 'world', line }),
+  );
   if (problems.length > 0) {
     return { ok: false, problems };
   }
@@ -347,9 +381,15 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
     names: names as TLocalizedName,
     params: params.params,
   });
-  return pack
-    ? { ok: true, pack }
-    : { ok: false, problems: [{ code: 'not-a-pack', file: 'pack.json' }] };
+  if (!pack) {
+    return { ok: false, problems: [{ code: 'not-a-pack', file: 'pack.json' }] };
+  }
+  // A listener's copy with no world left still plays its shader; the
+  // author's is told, while there is somebody to add what was missing.
+  if (raw.world !== undefined && !pack.world) {
+    return { ok: false, problems: [{ code: 'bad-world', file: 'world' }] };
+  }
+  return { ok: true, pack };
 };
 
 /**
@@ -378,6 +418,12 @@ export const readMemberScene = (raw: unknown): IScenePack | undefined => {
   ) {
     return undefined;
   }
+  // A world whose GLSL breaks a rule is not run, whatever wrote it; the
+  // scene keeps its shader, which is the scene an older FluidEQ plays.
+  const world =
+    raw.world !== undefined && checkWorldHooks(raw.world).length === 0
+      ? { world: raw.world }
+      : {};
   const { names } = cleanNames(raw.names);
   const cut = Object.fromEntries(
     Object.entries(names ?? {}).map(([locale, name]) => [
@@ -385,9 +431,11 @@ export const readMemberScene = (raw: unknown): IScenePack | undefined => {
       name.slice(0, MAX_MEMBER_NAME_LENGTH),
     ]),
   );
+  const { world: dropped, ...rest } = raw;
   return (
     normalizeScenePack({
-      ...raw,
+      ...rest,
+      ...world,
       names: cut,
       params: cleanParams(raw.params).params,
     }) ?? undefined

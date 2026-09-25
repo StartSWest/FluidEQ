@@ -1,6 +1,6 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import fs from 'fs';
-import { readManifest } from '../memberScenes/project';
+import { readManifest } from '../memberScenes/projectFiles';
 import {
   readArtworkRegions,
   type IArtworkRegion,

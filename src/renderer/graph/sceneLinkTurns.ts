@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import { worldFingerprint } from './sceneProgramInputs';
 
 /**
  * One compile of a scene's program at a time across every worker in the
@@ -28,10 +29,14 @@ const turns = new Map<string, Promise<void>>();
 
 /**
  * What makes two packs the same linked program: the uniforms the app declares
- * ahead of the source, which are the pack's parameters, and the source.
+ * ahead of the source, which are the pack's parameters, and the source — and
+ * the 3D world, when there is one, which is a different program altogether
+ * and costs what it costs, not what its sky alone does.
  */
 export const sceneProgramKey = (pack: IScenePack): string =>
-  `${pack.params.map((param) => param.id).join(',')}\n${pack.source}`;
+  `${pack.params.map((param) => param.id).join(',')}\n${pack.source}${
+    pack.world ? `\n${worldFingerprint(pack.world)}` : ''
+  }`;
 
 /**
  * Waits for any compile of the same program already under way in the window,

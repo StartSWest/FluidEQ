@@ -177,3 +177,23 @@ export const assembleFragmentSource = (
     sourceLineOffset: head.split('\n').length - 1,
   };
 };
+
+/**
+ * The pack's `sceneColour` with every declaration it may use, and no `main()`:
+ * what a 3D world finishes its picture around, with the shader as its sky
+ * (`renderer/graph/world/worldComposite.ts`). Without the version line,
+ * which the 3D renderer writes itself.
+ */
+export const assembleSceneFunctions = (
+  pack: IScenePack,
+): IAssembledFragment => {
+  const params = pack.params
+    .map((param) => `uniform float ${uniformNameForParam(param.id)};`)
+    .join('\n');
+  const bare = PREAMBLE_HEAD.replace(/^#version 300 es\n/, '');
+  const head = params ? `${bare}${params}\n` : bare;
+  return {
+    source: `${head}${pack.source}\n`,
+    sourceLineOffset: head.split('\n').length - 1,
+  };
+};

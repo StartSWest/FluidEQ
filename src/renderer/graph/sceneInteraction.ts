@@ -8,7 +8,7 @@ import {
 import { SCENE_TAP_AGE_LIMIT_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
 import { prefersReducedMotion } from '../utils/bandReveal';
-import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneGl';
+import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
 
 /**
  * The viewer's hands on a scene: where the pointer is, a tap, and the camera

@@ -465,6 +465,7 @@ const studio = {
   'studio.file.pack': 'pack.json',
   'studio.file.source': 'シェーダー',
   'studio.file.artwork': '画像',
+  'studio.file.world': '3D ワールド',
   'studio.problem.heading': 'このバージョンはまだ再生できません',
   'studio.problem.line': '{file}、{line} 行目',
   'studio.problem.too-large': 'シェーダーが 256 KB を超えています。',
@@ -503,12 +504,17 @@ const studio = {
     'params に置けるコントロールは 8 個までです。',
   'studio.problem.bad-ambient':
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
+  'studio.problem.bad-world':
+    'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
+  'studio.problem.bad-model':
+    '3D モデルは、すべてのバッファーと画像を内部に含む .glb である必要があります。',
   'studio.problem.bad-json': 'pack.json が正しい JSON ではありません。',
   'studio.problem.missing-file': 'シーンに必要なファイルがありません。',
   'studio.problem.unsafe-path':
     'ファイル名はこのフォルダー内のファイルのシンプルな名前にしてください。',
   'studio.problem.file-too-large':
     'シーンで使える大きさを超えるファイルがあります。',
+  'studio.world.heading': '3D ワールドは描画されず、空だけが表示されています',
   'studio.compile.heading': 'シェーダーをコンパイルできませんでした',
   'studio.compile.hint': '直して保存するか、エラーを AI に貼り付けてください。',
   'studio.heavy.body':
