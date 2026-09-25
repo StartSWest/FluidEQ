@@ -142,7 +142,13 @@ $dsp-rail-offset: 110ms;
 
   // The title keeps its baseline alignment with the rate beside it; a line
   // box one control tall is what centres both on the row.
+  //
+  // And it never gives width up. Every flex item shrinks by default, so a
+  // crowded row took a little off the heading as well — which is why the
+  // presets beside it were pinned to `min-content` instead of being allowed
+  // to fill the row. With the title held, they can be (see `.dsp-presets`).
   > .dsp-title {
+    flex: none;
     line-height: $control-height;
   }
 
@@ -285,10 +291,19 @@ $dsp-rail-offset: 110ms;
   // It is the same preset control as every filter bar, at the rack level. The
   // shared classes keep the arrows, field and label literally identical.
   //
-  // Sized from its widest group, as the processor headers' toolbars are: from
-  // its whole width it wrapped under the title on a narrow panel and pushed
-  // the rack's switch onto a third line of its own, stranded at the left.
-  flex: 1 1 min-content;
+  // ITS WHOLE WIDTH WHEN THE ROW HAS IT, its narrowest when it does not.
+  //
+  // This was `min-content`, which on a wide panel is a box that can never
+  // grow: an `auto` margin — and the switch group after it carries one —
+  // takes ALL of a row's free space before `flex-grow` is offered any. So the
+  // presets stood at their narrowest with four hundred pixels of empty row
+  // beside them and their four file actions broken onto a line of their own,
+  // under the picker (Ivan, 2026-09-21). An `auto` basis is the group's
+  // content on one line; it still shrinks to `min-content` and wraps inside
+  // itself when the row is tight, and the title beside it is pinned so the
+  // shrinking never comes off the heading, which is what `min-content` was
+  // guarding against.
+  flex: 1 1 auto;
   margin-right: auto;
   // The same rule the power group on the right already carried, so the header
   // reads as three groups with two matching separators rather than one
@@ -2998,7 +3013,17 @@ $dsp-pane-columns: 6;
 // accessible name instead of taking it out of one. The hover name is the
 // `title` each of them carries.
 @container dsp-panel (max-width: #{$bp-xl}) {
-  .dsp-chain-transfer {
+  // A word that NAMES a control goes at this width; a word that IS a value
+  // stays. Every one of these keeps its name on its own `title`, so it is
+  // still announced and still appears on hover.
+  //
+  // The equaliser's four join the rack's four, at the same width and by the
+  // same rule (Ivan, 2026-09-21): they were four labelled buttons across the
+  // middle of the card's first row, and the band picker at the end of that
+  // row — the one control there that says what is being edited — was pushed
+  // under them onto a line of its own.
+  .dsp-chain-transfer,
+  .dsp-eq-transfer {
     .button.small {
       padding-right: 9px;
       padding-left: 9px;
@@ -3010,6 +3035,25 @@ $dsp-pane-columns: 6;
       width: 15px;
       height: 15px;
       margin-right: 0;
+    }
+  }
+
+  // The engine capsule keeps its gamepad and its figure and drops the two
+  // captions between them (Ivan, 2026-09-21). They are the longest words in
+  // the header and they are the two that say the least: the glyph is what
+  // the switch is, and a figure carrying `ms` is what the reading is. Left
+  // in, the capsule ran about 300px and the presets beside it broke into
+  // three lines. `font-size: 0` rather than a rule per text node, because
+  // the switch's caption is a bare text node beside its glyph.
+  .engine-strip {
+    .game-mode-switch__label {
+      gap: 0;
+      font-size: 0;
+      letter-spacing: 0;
+    }
+
+    .latency-readout__name {
+      display: none;
     }
   }
 }
@@ -4116,7 +4160,13 @@ $dsp-pane-columns: 6;
   border: 1px solid $border-subtle;
 }
 
+// Every other processor hangs its legend inside `.dsp-eq-plot`, which is
+// positioned; this one hangs it here, and this was not. `.dsp-eq-legend` is
+// `position: absolute`, so with no containing block of its own it measured
+// `top: 6px; left: 50%` off the whole page instead of off the curve, and the
+// three names stood at the top of the DSP page across the header.
 .dsp-dimension-curve {
+  position: relative;
   display: grid;
   gap: 6px;
   min-width: 0;
