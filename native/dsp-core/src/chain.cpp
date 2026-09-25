@@ -347,20 +347,12 @@ FeqChain* feq_chain_create(double sample_rate,
 
   const uint32_t dimension_capacity =
       feq_dimension_allpass_capacity(sample_rate);
-  chain->dimension_side.assign(frames, 0.0f);
-  chain->dimension_centre.assign(frames, 0.0f);
-  chain->dimension_low.assign(frames, 0.0f);
-  chain->dimension_mid.assign(frames, 0.0f);
-  chain->dimension_high.assign(frames, 0.0f);
-  chain->dimension_allpass_pointers.assign(FEQ_DIMENSION_ALLPASSES, nullptr);
-  for (uint32_t at = 0; at < FEQ_DIMENSION_ALLPASSES; ++at) {
+  chain->dimension_allpass_pointers.assign(FEQ_DIMENSION_LINES, nullptr);
+  for (uint32_t at = 0; at < FEQ_DIMENSION_LINES; ++at) {
     chain->dimension_allpass[at].assign(dimension_capacity, 0.0f);
     chain->dimension_allpass_pointers[at] = chain->dimension_allpass[at].data();
   }
-  feq_dimension_init(&chain->dimension, chain->dimension_side.data(),
-                     chain->dimension_centre.data(),
-                     chain->dimension_low.data(), chain->dimension_mid.data(),
-                     chain->dimension_high.data(),
+  feq_dimension_init(&chain->dimension,
                      chain->dimension_allpass_pointers.data(),
                      dimension_capacity);
 

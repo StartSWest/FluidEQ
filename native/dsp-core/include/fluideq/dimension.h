@@ -46,6 +46,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * because the sides stop being a louder copy of the middle — and being confined
  * to the side, it keeps the mono guarantee above.
  *
+ * Neither of those can widen what the record never spread: a mono recording,
+ * or a vocal and a kick panned dead centre, has no side for them to work on.
+ * So Spread also MAKES side out of the centre: the mid above the bass corner
+ * goes through a second network of its own and is added to the side, where
+ * the widths then act on it exactly as they act on the record's own. Added to
+ * the left and taken from the right, it cancels in the mono sum like any other
+ * side, and the network's instantaneous return is taken off first, because a
+ * copy of the centre with no delay in the side is a pan, not a width.
+ *
  * The guard is the last piece. Scaling the side is safe arithmetic, but on
  * material that is ALREADY out of phase it widens a problem: what the stereo
  * listener gains, the mono listener loses. So the correlation is measured and
@@ -69,6 +78,14 @@ extern "C" {
  * factor spread that out into something heard as space instead.
  */
 #define FEQ_DIMENSION_ALLPASSES 3
+/**
+ * The centre's network: three more all-passes at delays of their own, which
+ * make side out of what the two channels share. The lines handed to
+ * `feq_dimension_init` are both networks', the side's first.
+ */
+#define FEQ_DIMENSION_CENTRE_ALLPASSES 3
+#define FEQ_DIMENSION_LINES \
+  (FEQ_DIMENSION_ALLPASSES + FEQ_DIMENSION_CENTRE_ALLPASSES)
 
 typedef struct FeqDimensionAllPass {
   /** Caller-owned, at least `feq_dimension_allpass_capacity` long. */
@@ -94,24 +111,28 @@ typedef struct FeqDimensionSettings {
   double high_width;
   double low_hz;
   double high_hz;
-  /** How much of the side is replaced by its decorrelated self, 0 to 1. */
+  /**
+   * Spread, 0 to 1: how much of the side is replaced by its decorrelated
+   * self, and how much side is made out of the centre (see the header).
+   */
   double decorrelation;
 } FeqDimensionSettings;
 
 typedef struct FeqDimension {
   /**
    * The two first-order low-passes that split the SIDE, one at each corner
-   * (their integrators' state). The mid is never filtered.
+   * (their integrators' state). The mid is never filtered on its way out.
    */
   double low_split;
   double high_split;
   FeqDimensionAllPass allpasses[FEQ_DIMENSION_ALLPASSES];
-  /** Each `frames` long, all caller-owned. */
-  float* side;
-  float* centre;
-  float* low;
-  float* mid_band;
-  float* high;
+  FeqDimensionAllPass centre_allpasses[FEQ_DIMENSION_CENTRE_ALLPASSES];
+  /**
+   * The Linkwitz-Riley high-pass at the low corner that feeds the centre's
+   * network, two Butterworth sections of two integrators each. It filters a
+   * copy of the mid, never the mid itself.
+   */
+  double centre_high_pass[4];
   double low_width;
   double mid_width;
   double high_width;
@@ -135,11 +156,7 @@ typedef struct FeqDimension {
 uint32_t feq_dimension_allpass_capacity(double sample_rate);
 
 void feq_dimension_init(FeqDimension* state,
-                        float* side,
-                        float* centre,
-                        float* low,
-                        float* mid_band,
-                        float* high,
+                        /* `FEQ_DIMENSION_LINES` of them. */
                         float* const* allpass_buffers,
                         uint32_t allpass_capacity);
 

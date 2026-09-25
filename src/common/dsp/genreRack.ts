@@ -96,8 +96,10 @@ export const inGenreChain = (rack: IGenreRack, stage: TGenreStage): boolean =>
 
 /**
  * Dimension's six dials: the width below `lowHz`, between the two corners
- * and above `highHz`, then how much of the top's width is decorrelation
- * rather than level.
+ * and above `highHz`, then Spread — how much of the side is decorrelated,
+ * and how much side is made out of the centre above `lowHz`, which is what
+ * widens a voice panned dead centre (0.05 makes a side 28 dB under it,
+ * 0.5 about 8 dB, as wide as an ordinary stereo mix).
  */
 export const width = (
   lowWidth: number,

@@ -110,4 +110,23 @@ export default {
   'genre.cPop.stage.maximizer': '一个缓慢的上限，照顾抒情歌的动态。',
   'genre.cPop.off':
     '不用低音冲击，也不用低音熔炉：钢琴抒情歌底下不凭空造超低音。',
+
+  'genre.ballad.hook': '慢歌，人声高于一切',
+  'genre.ballad.story':
+    '每个曲库里都有的慢歌，流行、摇滚、灵魂乐和拉丁乐都一样，多在 60 到 85 BPM：《Someone Like You》是 67.5，《November Rain》是 84。主唱最先混，压在一切之上，贴近并加上长长的板式或大厅混响，下面是钢琴、弦乐或收着的乐队；母带比同一张专辑的单曲保留更多动态。',
+  'genre.ballad.pin.125': '人声与钢琴的温暖',
+  'genre.ballad.pin.125.why': '在抒情歌人声和钢琴温暖的地方，稍添一点厚度。',
+  'genre.ballad.pin.500': '减少浑浊',
+  'genre.ballad.pin.500.why':
+    '钢琴和贴近的人声堆积的中低频，压低一些，让歌词保持清楚。',
+  'genre.ballad.pin.3150': '临场感',
+  'genre.ballad.pin.3150.why': '在听得清歌词的地方，把人声稍往前推。',
+  'genre.ballad.pin.8000': '齿音收敛，不提亮',
+  'genre.ballad.pin.8000.why': '贴近的人声把齿音放在这里，一提升每个都会变尖。',
+  'genre.ballad.stage.dimension':
+    '低音向中间收窄，抒情歌就是这样混的；人声、钢琴和弦乐保持摆放时的宽度。',
+  'genre.ballad.stage.maximizer':
+    '轻而慢的上限，用整整一拍来释放，安静的主歌保持安静，最后的副歌仍能升起。',
+  'genre.ballad.off':
+    '不用激励器、低音熔炉和低音冲击：谐波会落在齿音上，抒情歌只有制作人放了超低音的地方才有，也很少有需要塑形的底鼓。',
 };

@@ -84,6 +84,13 @@ version and in these notes.
   five measured bands in front of the Room so the chain sounds like itself
   through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
   than it went in; those bands are that difference).
+- **Width you can hear, even on a mono record.** Dimension's Spread now makes
+  width out of the middle of the mix, above the bass, so a mono recording or a
+  voice dead centre opens out too; before, the stage could only stretch the
+  width a record already had, and a mono one stayed mono. Someone listening
+  in mono still hears exactly the same, and the bass stays in the centre. The
+  Movie preset and the Dimension card's Gaming profile keep the centre
+  focused, so dialogue and a footstep straight ahead stay where they are.
 - **Every music style explains itself.** Each genre preset has notes: what the
   style asks for, why each point on its curve is where it is, and what every
   effect in its chain does or why it is left off, with how loud it plays
@@ -94,6 +101,13 @@ version and in these notes.
   they say: a style mixed with its bass in the centre plays it centred below
   the point that style names, and no curve lifts where its style keeps things
   flat.
+- **A Ballad preset**, with the pop styles: the slow song of every
+  catalogue, pop, rock, soul and Latin alike. The voice stays close and clear — a little
+  warmth and presence, the low-mid mud and the sibilance eased rather than
+  brightened — the bass is centred, and a light, slow ceiling keeps the
+  quiet verses quiet. Nothing is added that the record does not have: no
+  harmonics on the esses, no invented sub. Its notes explain each choice,
+  as every style's do.
 - **None is one choice, first in both pickers.** Picked on the equaliser or on
   the DSP page, it takes the whole preset away — its tone and every stage of
   its chain — and it stands above everything in both lists, the chains you

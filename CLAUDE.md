@@ -705,6 +705,18 @@ Everything worth knowing about them is available through commands:
   160 ms while an empty all-pass network fills. Held by
   `chain_switch_test.cpp` and `graph_crossing_test.cpp`, each case beside
   the same two outputs spliced unsmoothed as its control.
+- **Dimension's Spread makes side out of the centre** (Ivan, 2026-09-25:
+  "really add widening stereo fx"). The widths only scale a record's own
+  side, so a mono record stayed mono under every profile. The mid above the
+  bass corner — through a Linkwitz-Riley high-pass, so the bass stays mono
+  (-45 dB at 60 Hz under a 200 Hz corner) — goes through an all-pass network
+  of its own and joins the side BEFORE the band split, so the widths act on
+  it as on the record's side and the guard closes it; the mono sum stays the
+  input's. The network's instantaneous return is taken off first: a copy of
+  the centre with no delay in the side is a pan, not a width. Spread 0.5 at
+  unity makes a mono record about as wide as an ordinary stereo mix. A
+  profile whose centre carries speech or a position (Movie, Gaming) keeps
+  the made side 10 dB or more under the centre between 500 Hz and 2 kHz.
 - **Auto normalize starts at the curve's own level and climbs back.** The
   app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
   directive so a Preamp in the custom file stays a fixed gain); after 5 s of

@@ -127,6 +127,22 @@ const POP_RACKS: readonly IGenreRack[] = [
     dimension: width(0.75, 0.95, 1.1, 180, 3_600, 0.12),
     maximizer: ceiling(1, -1, 6, beatMs(84)),
   },
+  {
+    // The slow song of every catalogue, pop, rock, soul and Latin alike:
+    // "Someone Like You" at 67.5 BPM, "November Rain" at 84, the lead vocal
+    // mixed first and over everything. Nothing here generates: harmonics
+    // land on the sibilants of a voice this close (SOS, "Psychoacoustic
+    // enhancers"), and a sub is in a modern ballad where its producer chose
+    // one (Capaldi's "Someone You Loved"). A ballad master keeps more of its
+    // dynamics than the same album's singles (Adele's "21": DR8 against DR5),
+    // so the ceiling only lightly drives and lets go over a whole beat.
+    id: 'ballad',
+    // The bass narrowed toward the middle, where it is mixed (SOS: under
+    // about 150 Hz); the voice and the piano or strings left as wide as
+    // they were placed — a wider centre is a vaguer voice.
+    dimension: width(0.7, 1, 1, 150, 3_500, 0),
+    maximizer: ceiling(0.5, -1, 6, beatMs(72)),
+  },
 ];
 
 export default POP_RACKS;

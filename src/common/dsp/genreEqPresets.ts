@@ -160,6 +160,20 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
     ],
   ],
   [
+    // Fitted 2026-09-25 to what the research says a ballad master leans:
+    // its bottom and top as the production left them (tracks with little
+    // percussion carry less bass and treble, and that is the production —
+    // Elowsson & Friberg, 12,345 tracks), the voice's warmth at 125 Hz and
+    // presence at 3 kHz up a little, the low-mid mud a piano and a close
+    // vocal pile up eased, and the sibilance a close vocal carries around
+    // 8 kHz eased rather than brightened. Nearest played row 1.4 dB away.
+    'ballad',
+    [
+      -1.4, 0, 0.1, 0.8, 0.5, -1.1, -1.3, -0.4, -0.2, 0.5, 1.2, 0.6, -1.5, 0.3,
+      -0.2,
+    ],
+  ],
+  [
     'rnb',
     [
       2.1, 2.1, 1.8, 1.1, 0, -1.6, -2.2, -1.7, -1.2, -1.1, -0.9, -0.2, 1.3, 1.5,

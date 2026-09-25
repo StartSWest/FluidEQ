@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
     (preset.family == "chain" ? chains : locals).push_back(preset);
   }
   /**
-   * 107 whole chains, including the worldwide genre catalogue and None.
+   * 108 whole chains, including the worldwide genre catalogue and None.
    *
    * A literal rather than a number the generator declares, because the point
    * is to notice: a catalogue that grows without this file growing with it is
@@ -312,7 +312,7 @@ int main(int argc, char** argv) {
    * It sat at 28 through the two Room copies being added, and the miss only
    * showed when the fixtures were next regenerated.
    */
-  check(chains.size() == 107 && locals.size() > 150,
+  check(chains.size() == 108 && locals.size() > 150,
         "the complete shipped catalogue is present");
   // Positive control for measuring after the curve: the chains' curves came
   // on the wire — all but None, Reference and Expansive, which have none.

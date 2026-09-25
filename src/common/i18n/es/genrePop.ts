@@ -138,4 +138,26 @@ export default {
     'Un techo lento para la dinámica de las baladas.',
   'genre.cPop.off':
     'Sin Pegada de graves ni Forja de graves: ningún sub inventado bajo una balada de piano.',
+
+  'genre.ballad.hook': 'La canción lenta, la voz por encima de todo',
+  'genre.ballad.story':
+    'La canción lenta de todos los catálogos, pop, rock, soul y latino por igual, casi siempre de 60 a 85 BPM: “Someone Like You” va a 67,5 y “November Rain” a 84. La voz principal se mezcla primero y queda por encima de todo, cercana y con una placa o una sala larga, sobre un piano, cuerdas o una banda contenida, y el máster conserva más dinámica que los sencillos del mismo álbum.',
+  'genre.ballad.pin.125': 'Calidez de la voz y el piano',
+  'genre.ballad.pin.125.why':
+    'Un poco de cuerpo, donde la voz y el piano de una balada son cálidos.',
+  'genre.ballad.pin.500': 'Menos barro',
+  'genre.ballad.pin.500.why':
+    'Los medios graves que acumulan un piano y una voz cercana, rebajados para que las palabras sigan claras.',
+  'genre.ballad.pin.3150': 'Presencia',
+  'genre.ballad.pin.3150.why':
+    'La voz un poco más delante, donde se entienden sus palabras.',
+  'genre.ballad.pin.8000': 'Sibilancia suavizada, sin más brillo',
+  'genre.ballad.pin.8000.why':
+    'Una voz cercana lleva aquí sus eses, y un realce afilaría cada una.',
+  'genre.ballad.stage.dimension':
+    'Los graves estrechados hacia el centro, donde las baladas los mezclan; la voz, el piano y las cuerdas tan abiertos como se colocaron.',
+  'genre.ballad.stage.maximizer':
+    'Un techo ligero y lento que suelta a lo largo de un tiempo entero, para que las estrofas suaves sigan suaves y el último estribillo aún crezca.',
+  'genre.ballad.off':
+    'Sin Excitador, Forja de graves ni Pegada de graves: los armónicos caerían sobre las sibilantes, una balada tiene sub solo donde su productor lo puso, y rara vez hay un bombo que moldear.',
 };

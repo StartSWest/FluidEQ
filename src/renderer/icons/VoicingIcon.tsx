@@ -177,6 +177,8 @@ const ALIASES: Record<string, string> = {
   kPop: 'pop',
   jPop: 'pop',
   cPop: 'pop',
+  // The instrument half of the ballads anyone can name are sung over.
+  ballad: 'piano',
   popRock: 'rock',
   classicRock: 'rock',
   alternativeRock: 'rock',

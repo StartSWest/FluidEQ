@@ -82,6 +82,7 @@ const NEVER_LIFTED: Readonly<Record<string, readonly [number, number]>> = {
   opera: [20, 250],
   bhangra: [40, 120],
   bachata: [3_000, 8_000],
+  ballad: [6_000, 10_000],
 };
 
 /** Where a genre's notes say its bass is mono, the corner that makes it so. */
