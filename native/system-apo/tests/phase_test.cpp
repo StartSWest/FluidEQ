@@ -212,6 +212,9 @@ void sampled_curves_keep_magnitude_but_change_phase() {
 void switching_never_drops_a_noise_block() {
   auto chain = correction();
   auto current = std::make_unique<Graph>(chain, kRate, 2, kBlock);
+  // Kept, as the watcher keeps them: a switch that moves the delay crosses
+  // over from the graph it replaces, which plays on until it has.
+  std::vector<std::unique_ptr<Graph>> replaced;
   double minimum_rms = 1;
   uint32_t seed = 123456;
   for (uint32_t block = 0; block < 1200; ++block) {
@@ -221,6 +224,7 @@ void switching_never_drops_a_noise_block() {
       auto next = std::make_unique<Graph>(chain, kRate, 2, kBlock);
       next->request_state_transfer();
       next->adopt_state(current.get());
+      replaced.push_back(std::move(current));
       current = std::move(next);
     }
     std::vector<float> left(kBlock);
@@ -239,7 +243,15 @@ void switching_never_drops_a_noise_block() {
   CHECK(std::isfinite(minimum_rms) && minimum_rms > 0.001);
 }
 
-void switching_latency_explains_the_repeat_without_a_permanent_minimum_delay() {
+/**
+ * Into linear phase, the delay grows by a third of a second, so the graph
+ * crosses over (`graph.h`): the one before plays on, on time, until the new
+ * one's delay has filled, and from then on the new one plays alone. What was
+ * heard before the cross is heard again from the longer delay — the delay
+ * grew by that much, and nothing can be played before it arrives — but only
+ * after the cross, never on top of it, and nothing stays on the short delay.
+ */
+void switching_latency_crosses_over_without_a_permanent_minimum_delay() {
   Chain chain;
   chain.matched = true;
   chain.bands = {{FilterType::PK, 1000, 0, 2, true, false}};
@@ -248,14 +260,19 @@ void switching_latency_explains_the_repeat_without_a_permanent_minimum_delay() {
   Graph linear(chain, kRate, 1, kBlock);
   linear.request_state_transfer();
   linear.adopt_state(&minimum);
-  const uint32_t pulse_at = 30000;
+  CHECK(linear.crossing_from() == &minimum);
+  const uint32_t early = 5000;  // Inside the cross: the short delay has it.
+  const uint32_t late = 30000;  // After it: only the long delay does.
   std::vector<std::vector<float>> samples(1, std::vector<float>(kRate * 2));
-  samples[0][pulse_at] = 0.1f;
+  samples[0][early] = 0.1f;
+  samples[0][late] = 0.1f;
   run_blocks(linear, samples, kBlock);
   CHECK(minimum.latency_frames() == 0);
   CHECK(linear.latency_frames() > kRate / 3);
-  CHECK(std::abs(samples[0][pulse_at] - 0.1f) < 1e-6f);
-  CHECK(std::abs(samples[0][pulse_at + linear.latency_frames()] - 0.1f) < 1e-6f);
+  CHECK(linear.crossing_from() == nullptr);
+  CHECK(std::abs(samples[0][early] - 0.1f) < 1e-6f);
+  CHECK(std::abs(samples[0][late]) < 1e-6f);
+  CHECK(std::abs(samples[0][late + linear.latency_frames()] - 0.1f) < 1e-6f);
   CHECK(std::abs(samples[0].back()) < 1e-6f);
 }
 
@@ -351,7 +368,7 @@ int main() {
   minimum_keeps_original_filters_and_custom_is_not_rephased();
   sampled_curves_keep_magnitude_but_change_phase();
   switching_never_drops_a_noise_block();
-  switching_latency_explains_the_repeat_without_a_permanent_minimum_delay();
+  switching_latency_crosses_over_without_a_permanent_minimum_delay();
   a_layer_leaving_linear_keeps_the_shared_delay();
   impossible_linear_design_falls_back_and_reports_it();
   nonfinite_history_recovers_on_clean_audio();

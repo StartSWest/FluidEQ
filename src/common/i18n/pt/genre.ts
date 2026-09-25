@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': 'Notas do gênero',
   'genre.notes.about': 'Sobre {name}',
   'genre.notes.aboutShort': 'Sobre',
-  'genre.notes.aboutNone': 'As notas são escritas para os presets de gênero',
   'genre.notes.full': 'Notas completas',
   'genre.notes.close': 'Fechar',
   'genre.notes.sound': 'O som',

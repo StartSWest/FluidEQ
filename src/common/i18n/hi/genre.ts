@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': 'शैली नोट्स',
   'genre.notes.about': '{name} के बारे में',
   'genre.notes.aboutShort': 'जानकारी',
-  'genre.notes.aboutNone': 'नोट्स शैली प्रीसेट के लिए लिखे गए हैं',
   'genre.notes.full': 'पूरे नोट्स',
   'genre.notes.close': 'बंद करें',
   'genre.notes.sound': 'ध्वनि',

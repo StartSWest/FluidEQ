@@ -24,7 +24,7 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
-  src/graph_handover.cpp src/iir_cascade.cpp src/curve_stage.cpp
+  src/graph_handover.cpp src/graph_reclaim.cpp src/iir_cascade.cpp src/curve_stage.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
   src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp
   src/input_history.cpp)
@@ -102,6 +102,10 @@ add_executable(fluideq-engine-dsp-chain-test tests/dsp_chain_test.cpp)
 target_link_libraries(fluideq-engine-dsp-chain-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
+add_executable(fluideq-engine-graph-crossing-test tests/graph_crossing_test.cpp)
+target_link_libraries(fluideq-engine-graph-crossing-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-graph-crossing COMMAND fluideq-engine-graph-crossing-test)
 
 # The EQ and the rack measured at 44.1, 48, 96 and 192 kHz: every other
 # measured test builds its graph at 48 kHz, so a rate assumption would pass

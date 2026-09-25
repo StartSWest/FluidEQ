@@ -127,6 +127,23 @@ constexpr double kMaximizerLowReleaseMs = 30.0;
  * 50 Hz sawed on every cycle, its half cycle longer than the hold.
  */
 constexpr double kMaximizerLowWindowMs = 20.0;
+/** Where a Bass Forge fading out is taken as silent and cleared: -80 dB. */
+constexpr double kBassForgeSilentMix = 1e-4;
+/**
+ * How the Maximizer changes without a step (`chain_process_maximizer`).
+ *
+ * Drive follows what is asked with a 5 ms time constant, within a thousandth
+ * of it in 35 ms. Switched off, the reduction in force lets go over 50 ms
+ * and the stage is cleared once it is back within a ten-thousandth of a
+ * decibel of unity, where clearing it is a step of nothing. Before, a preset
+ * switch applied a new drive to every sample at once and a stage switched
+ * off dropped its reduction in one sample: -47 dBFS above 5 kHz under a low
+ * tone programme for a 1 dB drive change (2026-09-25).
+ */
+constexpr double kMaximizerDriveGlideMs = 5.0;
+constexpr double kMaximizerOffReleaseMs = 50.0;
+constexpr double kMaximizerOffSettledGain = 0.99999;
+constexpr double kMaximizerOffSettledDb = -0.0001;
 
 /** Per-domain buffers and single-channel filter state. */
 struct ChainEqSlot {
@@ -501,7 +518,28 @@ struct FeqChain {
   std::vector<float> kernel_difference[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float> share_input[FEQ_CHAIN_MAX_CHANNELS];
 
-  FeqBiquadState side_highpass{};
+  /**
+   * The mono maker (`eq.mono_below_hz`): the side high-passed after the EQ,
+   * crossing from what played to what is asked over `kEqFadeSeconds`
+   * (`chain_mono_maker.cpp`). It used to sit inside the EQ's mid/side
+   * domain, so switching it on or off moved every EQ band from left and
+   * right onto mid and side with their histories still left and right —
+   * -42 dBFS above 5 kHz on a preset switch, measured 2026-09-25.
+   */
+  struct MonoMaker {
+    FeqBiquadCoefficients playing{};
+    FeqBiquadState state{};
+    int playing_on = 0;
+    FeqBiquadCoefficients outgoing{};
+    FeqBiquadState outgoing_state{};
+    int outgoing_on = 0;
+    uint32_t left = 0;
+    uint32_t total = 0;
+    /** Played a block since its stream started: a fresh chain crosses from nothing. */
+    int played = 0;
+    std::vector<float> side;
+    std::vector<float> side_outgoing;
+  } mono_maker;
 
   std::vector<float> eq_dry;
   std::vector<float> eq_wet;
@@ -600,6 +638,16 @@ struct FeqChain {
   uint32_t maximizer_low_look_ahead = 0;
   /* --------------------------------------------------------- bass forge -- */
   FeqBassForge bass_forge{};
+  /**
+   * Whether it is adding, whether the stream has played a block, and what it
+   * was last told: switched off, it fades out on those settings
+   * (). Carried across a handover with the stage.
+   */
+  struct BassForgeRun {
+    int playing = 0;
+    int played = 0;
+    FeqBassForgeSettings last{};
+  } bass_forge_run;
   /** Both at two channels of the largest block: the stage never allocates. */
   std::vector<float> bass_forge_low;
   std::vector<float> bass_forge_scratch;
@@ -642,6 +690,13 @@ struct FeqChain {
    * stage has been shipping all three with no way to see any of it.
    */
   double maximizer_reduction_db = 0.0;
+  /**
+   * The drive being applied, gliding to the one asked for over
+   * `kEqFadeSeconds`. Applied as a step, a preset switch moved every sample
+   * by the difference between two drives in one sample: -47 dBFS above
+   * 5 kHz from 1 dB (2026-09-25). Carried across a handover.
+   */
+  double maximizer_drive_now = 1.0;
 
   /* ------------------------------------------------------ auto headroom -- */
   FeqPostFilterNormalizer post_normalizer{};
@@ -752,6 +807,11 @@ void chain_process_punch_align(FeqChain* chain, float* const* channels,
 /** Point the alignment lines at the restoration's current latency. CONTROL
     thread, after `feq_denoise_configure`; the lines themselves never move. */
 void chain_apply_denoise_alignment(FeqChain* chain);
+
+/** The mono maker after the EQ, and its return to a stream's start. */
+void chain_process_mono_maker(FeqChain* chain, float* const* channels,
+                              uint32_t frames);
+void chain_mono_maker_reset(FeqChain* chain);
 
 void chain_encode_mid_side(float* const* channels, uint32_t frames);
 

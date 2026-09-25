@@ -62,6 +62,10 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   if (sample_rate_ == 0 || channels_ == 0 || max_frames_ == 0) {
     return;
   }
+  // For the graph this one may yet cross over from (`start_crossing`):
+  // the audio thread may not allocate them when it does.
+  source_buffers_.assign(channels_, std::vector<float>(max_frames_, 0.0f));
+  source_planes_.assign(channels_, nullptr);
 
   /**
    * The rack first, and outside the `matched` guard below.
@@ -294,7 +298,38 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       frames > max_frames_) {
     return;
   }
+  if (source_ == nullptr) {
+    run_rack(planar, frames);
+    run_tail(planar, frames);
+    return;
+  }
+  // Crossing over (`graph.h`): the graph before goes on playing this block
+  // too, on a copy of it as it arrived — or, sharing this one's rack, on
+  // what that rack made of it, the rack being run once.
+  const auto copy_in = [&]() {
+    for (uint32_t channel = 0; channel < channels_; ++channel) {
+      source_planes_[channel] =
+          planar[channel] != nullptr ? source_buffers_[channel].data() : nullptr;
+      if (planar[channel] != nullptr) {
+        std::copy(planar[channel], planar[channel] + frames,
+                  source_buffers_[channel].data());
+      }
+    }
+  };
+  if (source_shares_rack_) {
+    run_rack(planar, frames);
+    copy_in();
+    source_->run_tail(source_planes_.data(), frames);
+  } else {
+    copy_in();
+    source_->process(source_planes_.data(), frames);
+    run_rack(planar, frames);
+  }
+  run_tail(planar, frames);
+  mix_crossing(planar, frames);
+}
 
+void Graph::run_rack(float* const* planar, uint32_t frames) noexcept {
   /**
    * The rack, before the EQ and across the channels together.
    *
@@ -329,7 +364,9 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       }
     }
   }
+}
 
+void Graph::run_tail(float* const* planar, uint32_t frames) noexcept {
   // The music as it reaches the EQ, for Auto normalize to replay through the
   // next edit's EQ before that EQ is heard (`level_prediction.h`).
   if (history_ != nullptr) history_->record(planar, frames);

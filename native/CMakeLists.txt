@@ -119,6 +119,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
   dsp-core/src/chain_eq_fade.cpp
+  dsp-core/src/chain_mono_maker.cpp
   dsp-core/src/chain_eq_linear.cpp
   dsp-core/src/chain_exciter.cpp
   dsp-core/src/chain_stages.cpp
@@ -222,6 +223,9 @@ add_test(NAME chain-meters COMMAND fluideq-chain-meters-test)
 add_executable(fluideq-chain-transfer-test dsp-core/tests/chain_transfer_test.cpp)
 target_link_libraries(fluideq-chain-transfer-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
+add_executable(fluideq-chain-switch-test dsp-core/tests/chain_switch_test.cpp)
+target_link_libraries(fluideq-chain-switch-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-switch COMMAND fluideq-chain-switch-test)
 
 # The Master's loudness target with no track analysis behind it, which is
 # every stream the system engine plays: measured as the loudness of what
