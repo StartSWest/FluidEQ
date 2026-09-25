@@ -128,7 +128,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   );
 
   let status: TranslationKey = 'studio.status.waiting';
-  if (pack && (problems || trouble?.kind === 'compile')) {
+  if (
+    pack &&
+    (problems || trouble?.kind === 'compile' || trouble?.kind === 'world')
+  ) {
     status = 'studio.status.problem';
   } else if (pack) {
     status = 'studio.status.live';

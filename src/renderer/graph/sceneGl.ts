@@ -8,6 +8,7 @@ import {
 } from 'common/sceneUniformContract';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
+import compileWorldScene from './sceneWorldLoader';
 
 /**
  * The GL side of a scene: one program, audio textures, optional artwork, one triangle.
@@ -57,7 +58,16 @@ export interface ISceneProgram {
 }
 
 export type TSceneCompileResult =
-  { ok: true; program: ISceneProgram } | { ok: false; log: string };
+  | {
+      ok: true;
+      program: ISceneProgram;
+      /**
+       * What a 3D world left out and why — a model it could not read, or the
+       * whole world when it fell back to its shader — for the scene's author.
+       */
+      notes?: string[];
+    }
+  | { ok: false; log: string };
 
 export const createSceneContext = (
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -105,7 +115,7 @@ const createDataTexture = (
   return texture;
 };
 
-export const compileScene = async (
+const compileShaderScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
   artwork?: ImageBitmap,
@@ -338,4 +348,29 @@ export const compileScene = async (
       musicAccent: () => lastAccent,
     },
   };
+};
+
+/**
+ * The scene's program: its 3D world when it has one and this GPU can build
+ * it (`world/worldProgram.ts`), and its shader otherwise — which is the scene
+ * every FluidEQ before worlds draws from the same pack, so a world that
+ * cannot be built here still leaves the scene its author made for that case.
+ */
+export const compileScene = async (
+  gl: WebGL2RenderingContext,
+  pack: IScenePack,
+  artwork?: ImageBitmap,
+  signal?: AbortSignal,
+): Promise<TSceneCompileResult> => {
+  if (!pack.world) {
+    return compileShaderScene(gl, pack, artwork, signal);
+  }
+  const world = await compileWorldScene(gl, pack, artwork, signal);
+  if (world.ok) {
+    return world;
+  }
+  const shader = await compileShaderScene(gl, pack, artwork, signal);
+  return shader.ok
+    ? { ...shader, notes: [`The 3D world was not drawn: ${world.log}`] }
+    : shader;
 };

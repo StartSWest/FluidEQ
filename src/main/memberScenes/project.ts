@@ -13,6 +13,8 @@ import {
 import { MAX_MEMBER_SOURCE_BYTES } from '../../common/memberSceneRules';
 import { isWholeSceneAmbient } from '../../common/sceneAmbient';
 import { MAX_SCENE_ARTWORK_BYTES } from '../../common/sceneArtwork';
+import { WORLD_LIMITS } from '../../common/sceneWorld';
+import isSelfContainedModel from '../../common/worldModelCheck';
 import {
   SCENE_PACK_SCHEMA,
   type IScenePack,
@@ -71,6 +73,7 @@ const FILE_KINDS: Record<TMemberSceneFile, RegExp> = {
   'pack.json': /^pack\.json$/,
   source: /\.(?:frag|glsl)$/i,
   artwork: /\.webp$/i,
+  world: /\.(?:frag|vert|glsl|glb)$/i,
 };
 
 /** A name `pack.json` may give a file: plain, in this folder, never a path. */
@@ -206,6 +209,75 @@ const locateSource = async (
   return { name, real: await resolveInside(folder, name, 'source') };
 };
 
+/**
+ * The manifest's 3D world with the files it names read in: a material's
+ * `vertexFile` and `fragmentFile` become its GLSL, a model's `file` its
+ * bytes. Each is found the way the source is — a plain name, in this folder —
+ * and bounded before it is read, so a world is as safe to build from a
+ * stranger's folder as the rest of the project.
+ */
+const readWorldFiles = async (
+  folder: string,
+  world: unknown,
+): Promise<unknown> => {
+  if (!isRecord(world)) {
+    return world;
+  }
+  const materials: Record<string, unknown> = {};
+  const models: Record<string, unknown> = {};
+  const read = async (name: unknown, limit: number) => {
+    if (typeof name !== 'string') {
+      throw new ProjectProblem('unsafe-path', 'world');
+    }
+    const real = await resolveInside(folder, name, 'world');
+    return readBounded(real, limit, 'world');
+  };
+  const materialEntries = isRecord(world.materials)
+    ? Object.entries(world.materials)
+    : [];
+  for (let i = 0; i < materialEntries.length; i += 1) {
+    const [id, material] = materialEntries[i];
+    if (isRecord(material)) {
+      const { vertexFile, fragmentFile, ...rest } = material;
+      materials[id] = {
+        ...rest,
+        ...(vertexFile === undefined
+          ? {}
+          : {
+              vertex: (await read(vertexFile, WORLD_LIMITS.hookBytes)).toString(
+                'utf8',
+              ),
+            }),
+        ...(fragmentFile === undefined
+          ? {}
+          : {
+              fragment: (
+                await read(fragmentFile, WORLD_LIMITS.hookBytes)
+              ).toString('utf8'),
+            }),
+      };
+    } else {
+      materials[id] = material;
+    }
+  }
+  const modelEntries = isRecord(world.models)
+    ? Object.entries(world.models)
+    : [];
+  for (let i = 0; i < modelEntries.length; i += 1) {
+    const [id, model] = modelEntries[i];
+    if (isRecord(model) && model.file !== undefined) {
+      const bytes = await read(model.file, WORLD_LIMITS.modelBytes);
+      if (!isSelfContainedModel(bytes)) {
+        throw new ProjectProblem('bad-model', 'world');
+      }
+      models[id] = { data: bytes.toString('base64') };
+    } else {
+      models[id] = model;
+    }
+  }
+  return { ...world, materials, models };
+};
+
 const buildRawPack = async (folder: string) => {
   const manifest = await readManifest(folder);
   const { real: sourcePath } = await locateSource(folder, manifest);
@@ -262,6 +334,9 @@ const buildRawPack = async (folder: string) => {
       // in whatever room the listener's own wave made.
       ...(manifest.wave === undefined ? {} : { wave: manifest.wave }),
       ...(manifest.ambient === undefined ? {} : { ambient: manifest.ambient }),
+      ...(manifest.world === undefined
+        ? {}
+        : { world: await readWorldFiles(folder, manifest.world) }),
     },
     artworkHash,
   };

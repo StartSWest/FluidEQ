@@ -54,7 +54,12 @@ export type TSceneWorkerRequest =
   | { kind: 'idle' };
 
 export type TSceneBuildResult =
-  | { kind: 'ready'; rebuilt: boolean }
+  | {
+      kind: 'ready';
+      rebuilt: boolean;
+      /** What a 3D world left out, or why it fell back to its shader. */
+      notes?: string[];
+    }
   | { kind: 'compile'; log: string }
   | { kind: 'unavailable' }
   | { kind: 'cancelled' };

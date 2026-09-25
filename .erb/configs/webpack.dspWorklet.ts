@@ -87,6 +87,14 @@ export const dspWorkletConfig = (
       webpackPaths.srcRendererPath,
       'lighting/lightingScene.worker.ts',
     ),
+    // The 3D engine: three.js and the world renderer, fetched by the three
+    // scene workers above with `importScripts` only once a scene with a
+    // world arrives, so a shader scene never parses a megabyte it does not
+    // use (`graph/sceneWorldLoader.ts`).
+    'scene-world': path.join(
+      webpackPaths.srcRendererPath,
+      'graph/world/worldEngine.ts',
+    ),
   },
 
   output: {

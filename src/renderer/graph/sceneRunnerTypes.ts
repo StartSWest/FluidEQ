@@ -55,6 +55,12 @@ export interface ISceneSource {
   /** Too slow even at the ladder's floor. */
   tooSlow(): void;
   /**
+   * What a 3D world left out, or why it was drawn as its shader instead —
+   * for the Studio, where its author can fix it. Elsewhere the scene simply
+   * plays as well as this machine can play it.
+   */
+  reportNotes?(notes: readonly string[]): void;
+  /**
    * `top` is the largest scale the ladder may reach: 1 for the panel's own
    * pixels, more when `best` smoothing draws the scene larger than the panel.
    * `floor` is the smallest the listener allows (`autoFloor`): below it the

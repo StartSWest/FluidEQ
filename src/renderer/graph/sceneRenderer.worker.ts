@@ -18,7 +18,7 @@ import {
 } from './sceneGpuClock';
 import { BLAMED_FRAME_MS } from './sceneDrawWatch';
 import { createScenePost, needsPresent, type IScenePost } from './scenePost';
-import { sameSceneProgramInputs } from './sceneProgramInputs';
+import sameSceneProgramInputs from './sceneProgramInputs';
 import type {
   TSceneBuildResult,
   TSceneWorkerReply,
@@ -204,7 +204,11 @@ const load = async (
       guard?.dispose();
       guard = null;
     }
-    return { kind: 'ready', rebuilt: true };
+    return {
+      kind: 'ready',
+      rebuilt: true,
+      ...(result.notes ? { notes: result.notes } : {}),
+    };
   } catch (error) {
     // A lost first compile has no last-good pack to restore. Report it so
     // Studio leaves loading and the next save can start a fresh worker.

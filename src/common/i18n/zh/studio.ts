@@ -383,6 +383,7 @@ const studio = {
   'studio.file.pack': 'pack.json',
   'studio.file.source': '着色器',
   'studio.file.artwork': '图片',
+  'studio.file.world': '3D 世界',
   'studio.problem.heading': '这个版本还不能播放',
   'studio.problem.line': '{file}，第 {line} 行',
   'studio.problem.too-large': '着色器超过 64 KB。',
@@ -411,10 +412,14 @@ const studio = {
   'studio.problem.too-many-params': '一个场景的 params 最多只能有 8 个控件。',
   'studio.problem.bad-ambient':
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
+  'studio.problem.bad-world':
+    '这个 3D 世界里没有此版本能绘制的内容。请检查它的节点、材质和公式。',
+  'studio.problem.bad-model': '3D 模型必须是自带全部缓冲区和图片的 .glb 文件。',
   'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
   'studio.problem.missing-file': '缺少场景需要的文件。',
   'studio.problem.unsafe-path': '文件名必须是本文件夹中文件的普通名称。',
   'studio.problem.file-too-large': '有一个文件超过了场景允许的大小。',
+  'studio.world.heading': '3D 世界没有绘制，只显示了天空',
   'studio.compile.heading': '着色器编译失败',
   'studio.compile.hint': '修正后保存，或把错误粘贴给你的 AI。',
   'studio.heavy.body':
