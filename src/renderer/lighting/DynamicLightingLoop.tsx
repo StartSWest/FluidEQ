@@ -11,6 +11,7 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import { usePlusEntitled } from '../plus/GalleryParts';
+import useLampIdleClock from './lampIdleClock';
 import { createLampPlayer, type ILampPlayer } from './lampScenePlay';
 import { loadLampScene, useLampScene } from './lampScene';
 import { publishLightingPreview } from './lightingPreview';
@@ -31,13 +32,15 @@ import { useLighting } from './lightingStore';
  * else starts them again either: the scene the graph can or cannot draw this
  * moment, the capture Windows restarts and a new version of the scene are all
  * taken in by the one player (`lampScenePlay.ts`). Silence keeps the scene
- * flowing at the member's idle settings.
+ * flowing at the member's idle settings, and so does having no capture at
+ * all: the lamps then follow a silence of their own (`lampIdleClock.ts`), so
+ * the desk lights up as FluidEQ opens, music or not, window shown or not.
  */
 export default function DynamicLightingLoop() {
   const { state, loaded } = useLighting();
   const entitled = usePlusEntitled();
   const scene = useLampScene();
-  const { capture, error, isPaused } = useLiveAudioControl();
+  const { capture, isPaused } = useLiveAudioControl();
   const wanted =
     loaded &&
     state.supported &&
@@ -45,6 +48,7 @@ export default function DynamicLightingLoop() {
     entitled &&
     scene !== null;
   useLiveAudioCapture(wanted, 'work');
+  const idleClock = useLampIdleClock(wanted && !capture);
 
   const pausedRef = useRef(isPaused);
   pausedRef.current = isPaused;
@@ -129,15 +133,13 @@ export default function DynamicLightingLoop() {
     };
   }, [player, identity]);
 
-  // A capture that is only being opened again keeps the desk on its last
-  // frame; one that failed gives the devices back until it comes.
+  // The music while it can be heard, the lamps' own silence while it cannot.
+  // A capture that failed used to give the devices back until it came, and
+  // one refused attempt after attempt while the window was hidden left the
+  // desk dark until the window was shown.
   useEffect(() => {
-    player?.hear(capture);
-    if (player && !capture && error) {
-      window.electron?.ipcRenderer?.releaseLighting?.();
-      publishLightingPreview(undefined);
-    }
-  }, [player, capture, error]);
+    player?.hear(capture ?? idleClock);
+  }, [player, capture, idleClock]);
 
   return null;
 }

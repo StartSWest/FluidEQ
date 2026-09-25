@@ -17,7 +17,6 @@ import {
   readAbsoluteLevels,
 } from '../utils/autoBalanceCapture';
 import { createSoundHearing } from '../graph/liveSound';
-import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import {
   FFT_SIZE,
   NO_POINTS,
@@ -73,6 +72,16 @@ export interface ILightingListener {
   close(): void;
 }
 
+/**
+ * What the lamps listen to, and whose audio clock draws them: the output's
+ * capture, or a silent sound of their own while there is none
+ * (`lampIdleClock.ts`).
+ */
+export interface ILampSound {
+  context: AudioContext;
+  source: AudioNode;
+}
+
 export interface IHeardFrame {
   frame: ILightingSceneFrame;
   /** Nothing is playing: the output measured below the silence floor. */
@@ -84,24 +93,27 @@ const blockFramesAt = (rate: number) =>
   Math.min(8_192, Math.max(128, Math.round((rate * HOP_MS) / 1_000)));
 
 export const startLightingListener = async (
-  capture: ICaptureGraph,
+  sound: ILampSound,
   accent: [number, number, number],
   isPaused: () => boolean,
   onHeard: (heard: IHeardFrame) => void,
   signal?: AbortSignal,
 ): Promise<ILightingListener> => {
-  const { context, source } = capture;
+  const { context, source } = sound;
   const assertCurrent = () => {
     signal?.throwIfAborted();
     if (context.state === 'closed') {
-      throw new DOMException('The lighting capture was closed', 'AbortError');
+      throw new DOMException(
+        'The sound the lamps follow was closed',
+        'AbortError',
+      );
     }
   };
   assertCurrent();
-  // Loaded into the capture's own context. A context that already has the
+  // Loaded into the sound's own context. A context that already has the
   // bundle (the output mirror uses it) resolves at once.
   await context.audioWorklet.addModule(workletUrl().href);
-  // A capture or scene can be replaced while its worklet module is loading.
+  // A sound or scene can be replaced while its worklet module is loading.
   assertCurrent();
 
   const rate = context.sampleRate;

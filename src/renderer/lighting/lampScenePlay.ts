@@ -11,12 +11,12 @@ import {
 } from 'common/lighting/lightingModel';
 import type { ILightingProfile } from 'common/lighting/lightingProfiles';
 import type { IScenePack } from 'common/scenePacks';
-import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import { parseAccent } from '../graph/sceneUniforms';
 import { createLightingAtmosphere } from './lightingAtmosphere';
 import {
   startLightingListener,
   type IHeardFrame,
+  type ILampSound,
   type ILightingListener,
 } from './lightingListener';
 import { createLightingScene } from './lightingSceneClient';
@@ -32,9 +32,10 @@ import { fillSwatchGrid, swatchColours } from './swatchGrid';
  * times a second — and differ only in what they do with the frame. So the
  * drawing lives here and each caller says where its frames go.
  *
- * ONE PLAYER FOR AS LONG AS THE LAMPS ARE LIT. The scene and the capture
- * each change underneath it, and neither starts it again: a capture Windows
- * restarts is listened to afresh while the worker keeps its scene, and a new
+ * ONE PLAYER FOR AS LONG AS THE LAMPS ARE LIT. The scene and the sound each
+ * change underneath it, and neither starts it again: a capture Windows
+ * restarts, or the lamps' own silence standing in while there is none, is
+ * listened to afresh while the worker keeps its scene, and a new
  * scene, or a new version of the one playing, is linked while the old one
  * keeps the desk (`lightingScene.worker.ts`). Both used to end the player and
  * make another, and the desk went dark for a new worker and a whole link.
@@ -60,15 +61,15 @@ export interface ILampPlayerOptions {
   /** Read per frame: tuning changes while the scene plays. */
   profile: () => ILightingProfile;
   onFrame: (frame: ILightingFrame, image?: ImageBitmap) => void;
-  /** This capture cannot be listened to: no frame will come from it. */
+  /** This sound cannot be listened to: no frame will come from it. */
   onCannotHear: () => void;
 }
 
 export interface ILampPlayer {
   /** The scene to light the desk with; the one on it stays until this one is ready. */
   show(scene: ILampSceneShown): void;
-  /** The capture to follow, or none: the desk holds its last frame meanwhile. */
-  hear(capture: ICaptureGraph | undefined): void;
+  /** The sound to follow, or none: the desk holds its last frame meanwhile. */
+  hear(sound: ILampSound | undefined): void;
   close(): void;
 }
 
@@ -91,7 +92,7 @@ export const createLampPlayer = ({
    * flash of colour bars ahead of every scene read as the scene failing.
    */
   let failed = false;
-  let heardCapture: ICaptureGraph | undefined;
+  let heardSound: ILampSound | undefined;
   let listener: ILightingListener | undefined;
   let listening: AbortController | undefined;
   const atmosphere = createLightingAtmosphere();
@@ -182,15 +183,15 @@ export const createLampPlayer = ({
       looks.set(pack.id, sceneId);
       scene.load(pack, guarded);
     },
-    hear: (capture) => {
-      if (closed || capture === heardCapture) {
+    hear: (sound) => {
+      if (closed || sound === heardSound) {
         return;
       }
-      heardCapture = capture;
+      heardSound = sound;
       listening?.abort();
       listener?.close();
       listener = undefined;
-      if (!capture) {
+      if (!sound) {
         return;
       }
       const abort = new AbortController();
@@ -198,7 +199,7 @@ export const createLampPlayer = ({
       const accent = parseAccent(
         getComputedStyle(document.documentElement).getPropertyValue('--accent'),
       );
-      startLightingListener(capture, accent, isPaused, heard, abort.signal)
+      startLightingListener(sound, accent, isPaused, heard, abort.signal)
         .then((started) => {
           if (closed || abort.signal.aborted) {
             started.close();
