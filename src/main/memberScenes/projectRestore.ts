@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
+import type { ISceneWorld } from '../../common/sceneWorld';
 import { folderNameFor } from './projectFolders';
-import { MANIFEST_FILE, readManifest } from './project';
+import { MANIFEST_FILE, readManifest } from './projectFiles';
 
 /**
  * A member's own scene, from a file they exported, made a Studio project
@@ -21,6 +22,7 @@ import { MANIFEST_FILE, readManifest } from './project';
 
 export const RESTORED_SOURCE_FILE = 'scene.frag';
 export const RESTORED_ARTWORK_FILE = 'artwork.webp';
+export const RESTORED_WORLD_FILE = 'world.json';
 
 /** Folders tried after the plain name: "Alpine 2" up to "Alpine 99". */
 const MAX_NAME_SUFFIX = 99;
@@ -55,10 +57,58 @@ export const restoredManifest = (pack: IScenePack) =>
       // different room from the one it was published in.
       ...(pack.wave ? { wave: pack.wave } : {}),
       ...(pack.ambient ? { ambient: pack.ambient } : {}),
+      ...(pack.world ? { worldFile: RESTORED_WORLD_FILE } : {}),
     },
     null,
     2,
   )}\n`;
+
+/**
+ * A world as the files a build of the folder reads it back from: each
+ * material's GLSL in a file of its own, where an editor can highlight it and
+ * the Studio's rules point at a line, each model as the `.glb` it arrived as,
+ * and everything else in `world.json` naming them. Material ids are already
+ * plain names (`sceneWorldRead.ts`), so every file name here is one too.
+ */
+export const restoredWorldFiles = (
+  world: ISceneWorld,
+): Array<[string, string | Buffer]> => {
+  const files: Array<[string, string | Buffer]> = [];
+  const materials = Object.fromEntries(
+    Object.entries(world.materials).map(
+      ([id, { vertex, fragment, ...rest }]) => {
+        const vertexFile = `world-${id}.vert`;
+        const fragmentFile = `world-${id}.frag`;
+        if (vertex !== undefined) {
+          files.push([vertexFile, vertex]);
+        }
+        if (fragment !== undefined) {
+          files.push([fragmentFile, fragment]);
+        }
+        return [
+          id,
+          {
+            ...rest,
+            ...(vertex === undefined ? {} : { vertexFile }),
+            ...(fragment === undefined ? {} : { fragmentFile }),
+          },
+        ];
+      },
+    ),
+  );
+  const models = Object.fromEntries(
+    Object.entries(world.models).map(([id, model]) => {
+      const file = `model-${id}.glb`;
+      files.push([file, Buffer.from(model.data, 'base64')]);
+      return [id, { file }];
+    }),
+  );
+  files.push([
+    RESTORED_WORLD_FILE,
+    `${JSON.stringify({ ...world, materials, models }, null, 2)}\n`,
+  ]);
+  return files;
+};
 
 /**
  * Whichever of `folders` already holds the scene `packId`, by the id its own
@@ -135,6 +185,12 @@ export const writeRestoredProject = async (
       RESTORED_ARTWORK_FILE,
       Buffer.from(pack.artwork.data, 'base64'),
     );
+  }
+  if (pack.world) {
+    const worldFiles = restoredWorldFiles(pack.world);
+    for (let i = 0; i < worldFiles.length; i += 1) {
+      await write(...worldFiles[i]);
+    }
   }
   // The manifest last: a folder without one is not a project yet, so an
   // interrupted restore never passes for a finished one.

@@ -23,7 +23,7 @@ import {
   readManifest,
   resolveInside,
   writeInside,
-} from './project';
+} from './projectFiles';
 
 /**
  * The pictures a member's scene asks for, as the Studio shows and fills them.

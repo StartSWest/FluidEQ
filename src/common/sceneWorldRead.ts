@@ -25,14 +25,15 @@ import {
 } from './sceneWorld';
 import { readWorldNodes } from './sceneWorldNodes';
 import {
-  clamp,
-  isRecord,
+  clampWorld,
+  isWorldRecord,
   readBoolean,
   readChoice,
   readColour,
   readExpr,
   readNumber,
   readVec3,
+  WORLD_HEX,
   type IWorldScopes,
 } from './sceneWorldValues';
 
@@ -45,7 +46,6 @@ import {
 
 const VAR_NAME = /^[a-z][a-z0-9_]{0,23}$/;
 const MATERIAL_ID = /^[A-Za-z][A-Za-z0-9_-]{0,31}$/;
-const HEX = /^#[0-9a-f]{6}$/i;
 const VERTEX_ENTRY = /\bvec3\s+worldDisplace\s*\(/;
 const FRAGMENT_ENTRY = /\bvoid\s+worldSurface\s*\(/;
 
@@ -64,13 +64,13 @@ const RESERVED = new Set<string>([
 const variableEntries = (value: unknown): [string, unknown][] => {
   if (Array.isArray(value)) {
     return value
-      .filter(isRecord)
+      .filter(isWorldRecord)
       .map((entry): [string, unknown] => [
         typeof entry.name === 'string' ? entry.name : '',
         entry.value,
       ]);
   }
-  return isRecord(value) ? Object.entries(value) : [];
+  return isWorldRecord(value) ? Object.entries(value) : [];
 };
 
 const readVars = (
@@ -104,7 +104,7 @@ const readVars = (
 };
 
 const readCamera = (value: unknown, scopes: IWorldScopes): IWorldCamera => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   const near = readNumber(raw.near, 0.1, 0.001, 100);
   return {
     fov: readExpr(raw.fov, scopes.global, 50),
@@ -117,13 +117,13 @@ const readCamera = (value: unknown, scopes: IWorldScopes): IWorldCamera => {
 };
 
 const readFog = (value: unknown): IWorldFog | undefined => {
-  if (!isRecord(value)) {
+  if (!isWorldRecord(value)) {
     return undefined;
   }
   const near = readNumber(value.near, 20, 0, WORLD_LIMITS.extent);
   return {
     colour:
-      typeof value.colour === 'string' && HEX.test(value.colour)
+      typeof value.colour === 'string' && WORLD_HEX.test(value.colour)
         ? value.colour.toLowerCase()
         : '#000000',
     near,
@@ -136,7 +136,7 @@ const readBloom = (
   value: unknown,
   scopes: IWorldScopes,
 ): IWorldBloom | undefined => {
-  if (!isRecord(value)) {
+  if (!isWorldRecord(value)) {
     return undefined;
   }
   return {
@@ -151,7 +151,7 @@ const regionNumbers = (value: unknown): unknown[] | undefined => {
   if (Array.isArray(value)) {
     return value.length === 4 ? value : undefined;
   }
-  return isRecord(value)
+  return isWorldRecord(value)
     ? [value.x, value.y, value.width, value.height]
     : undefined;
 };
@@ -207,7 +207,7 @@ const readMaterial = (
   scopes: IWorldScopes,
   artwork: { width: number; height: number } | undefined,
 ): IWorldMaterial => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   const expr = (field: unknown, fallback: TWorldExpr) =>
     readExpr(field, scopes.global, fallback);
   const repeat: [number, number] = Array.isArray(raw.repeat)
@@ -257,7 +257,7 @@ const readMaterials = (
   artwork: { width: number; height: number } | undefined,
 ): Record<string, IWorldMaterial> => {
   const materials: Record<string, IWorldMaterial> = {};
-  if (!isRecord(value)) {
+  if (!isWorldRecord(value)) {
     return materials;
   }
   Object.entries(value)
@@ -272,7 +272,7 @@ const readMaterials = (
 /** Base64 of the size a decoded model can be, and nothing else. */
 const readModels = (value: unknown): Record<string, IWorldModel> => {
   const models: Record<string, IWorldModel> = {};
-  if (!isRecord(value)) {
+  if (!isWorldRecord(value)) {
     return models;
   }
   let bytes = 0;
@@ -280,7 +280,7 @@ const readModels = (value: unknown): Record<string, IWorldModel> => {
     .filter(([id]) => MATERIAL_ID.test(id))
     .slice(0, WORLD_LIMITS.models)
     .forEach(([id, raw]) => {
-      if (!isRecord(raw) || typeof raw.data !== 'string') {
+      if (!isWorldRecord(raw) || typeof raw.data !== 'string') {
         return;
       }
       const { data } = raw;
@@ -317,7 +317,7 @@ const normalizeSceneWorld = (
   paramIds: readonly string[],
   artwork?: { width: number; height: number },
 ): ISceneWorld | undefined => {
-  if (!isRecord(raw)) {
+  if (!isWorldRecord(raw)) {
     return undefined;
   }
   const vars = readVars(raw.vars, paramIds);
@@ -335,7 +335,7 @@ const normalizeSceneWorld = (
   const fog = readFog(raw.fog);
   const bloom = readBloom(raw.bloom, scopes);
   const backdrop =
-    typeof raw.backdrop === 'string' && HEX.test(raw.backdrop)
+    typeof raw.backdrop === 'string' && WORLD_HEX.test(raw.backdrop)
       ? raw.backdrop.toLowerCase()
       : 'shader';
   return {
@@ -348,7 +348,7 @@ const normalizeSceneWorld = (
     exposure: readExpr(raw.exposure, scopes.global, 1),
     toneMapping: readChoice(raw.toneMapping, TONE_MAPPINGS, 'aces'),
     ...(bloom ? { bloom } : {}),
-    vignette: clamp(readNumber(raw.vignette, 0.25, 0, 1), 0, 1),
+    vignette: clampWorld(readNumber(raw.vignette, 0.25, 0, 1), 0, 1),
     materials,
     models,
     nodes,

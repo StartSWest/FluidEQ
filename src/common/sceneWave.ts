@@ -32,7 +32,7 @@ export const MIN_SCENE_WAVE_HEIGHT = 0.05;
 /** What the graph starts with: the full height, standing on the bottom. */
 export const DEFAULT_SCENE_WAVE: ISceneWave = { height: 1, position: 0 };
 
-const clamp = (value: number, low: number, high: number) =>
+const clampWave = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
 /** Values as a slider shows them: whole percents, which is what it sets. */
@@ -67,7 +67,7 @@ export const readSceneWave = (raw: unknown): ISceneWave | undefined => {
     return undefined;
   }
   return {
-    height: tidy(clamp(height, MIN_SCENE_WAVE_HEIGHT, 1)),
-    position: tidy(clamp(position, 0, 1)),
+    height: tidy(clampWave(height, MIN_SCENE_WAVE_HEIGHT, 1)),
+    position: tidy(clampWave(position, 0, 1)),
   };
 };

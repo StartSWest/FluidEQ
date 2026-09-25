@@ -132,6 +132,60 @@ describe('reading a project folder', () => {
     expect(await codes()).toEqual(['unsafe-path']);
   });
 
+  describe('a world in a file of its own', () => {
+    const WORLD = {
+      materials: {
+        glow: { kind: 'glow', colour: '#00e5cf', fragmentFile: 'glow.frag' },
+      },
+      nodes: [{ type: 'mesh', geometry: { kind: 'box' }, material: 'glow' }],
+    };
+    const GLOW =
+      'void worldSurface(inout vec4 colour, inout vec3 emissive, WorldSurface s) {\n  emissive *= 1.0 + uLevel;\n}\n';
+
+    beforeEach(() => {
+      write('scene.frag', SOURCE);
+      write('glow.frag', GLOW);
+    });
+
+    it('reads it, and the files it names, as though it were inline', async () => {
+      write('world.json', JSON.stringify(WORLD));
+      write('pack.json', JSON.stringify(manifest({ worldFile: 'world.json' })));
+      const fromFile = await readProject(project);
+      write('pack.json', JSON.stringify(manifest({ world: WORLD })));
+      const inline = await readProject(project);
+
+      expect(fromFile.ok && fromFile.pack.world?.materials.glow.fragment).toBe(
+        GLOW,
+      );
+      expect(fromFile).toEqual(inline);
+    });
+
+    // Either choice would build a scene other than the one the author sees.
+    it('refuses a manifest that names both', async () => {
+      write('world.json', JSON.stringify(WORLD));
+      write(
+        'pack.json',
+        JSON.stringify(manifest({ world: WORLD, worldFile: 'world.json' })),
+      );
+      expect(await codes()).toEqual(['bad-world']);
+    });
+
+    it.each([['../world.json'], ['world.txt'], ['pack.json.bak']])(
+      'refuses a world file named %s',
+      async (worldFile) => {
+        fs.writeFileSync(path.join(root, 'world.json'), JSON.stringify(WORLD));
+        write('pack.json', JSON.stringify(manifest({ worldFile })));
+        expect(await codes()).toEqual(['unsafe-path']);
+      },
+    );
+
+    it('says the world is wrong when its file is not JSON', async () => {
+      write('world.json', '{ "nodes": [');
+      write('pack.json', JSON.stringify(manifest({ worldFile: 'world.json' })));
+      expect(await codes()).toEqual(['bad-world']);
+    });
+  });
+
   it('names what is wrong with its controls, and builds once they are whole', async () => {
     const control = (id: string, over: Record<string, unknown> = {}) => ({
       id,

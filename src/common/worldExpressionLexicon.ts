@@ -49,7 +49,7 @@ export const CONSTANTS: Readonly<Record<string, number>> = {
 };
 
 const fract = (x: number) => x - Math.floor(x);
-const clamp = (x: number, low: number, high: number) =>
+const clampRange = (x: number, low: number, high: number) =>
   Math.min(high, Math.max(low, x));
 
 /** A repeatable 0..1 from any number: the same input, the same answer. */
@@ -68,7 +68,7 @@ const smoothstep = (low: number, high: number, x: number) => {
   if (high === low) {
     return x < low ? 0 : 1;
   }
-  const t = clamp((x - low) / (high - low), 0, 1);
+  const t = clampRange((x - low) / (high - low), 0, 1);
   return t * t * (3 - 2 * t);
 };
 
@@ -77,8 +77,8 @@ export const PURE: Readonly<Record<string, (...args: number[]) => number>> = {
   sin: Math.sin,
   cos: Math.cos,
   tan: Math.tan,
-  asin: (x) => Math.asin(clamp(x, -1, 1)),
-  acos: (x) => Math.acos(clamp(x, -1, 1)),
+  asin: (x) => Math.asin(clampRange(x, -1, 1)),
+  acos: (x) => Math.acos(clampRange(x, -1, 1)),
   atan: Math.atan,
   atan2: Math.atan2,
   abs: Math.abs,
@@ -93,8 +93,8 @@ export const PURE: Readonly<Record<string, (...args: number[]) => number>> = {
   pow: (x, y) => Math.abs(x) ** y,
   min: Math.min,
   max: Math.max,
-  clamp,
-  saturate: (x) => clamp(x, 0, 1),
+  clamp: clampRange,
+  saturate: (x) => clampRange(x, 0, 1),
   mix: (a, b, t) => a + (b - a) * t,
   step: (edge, x) => (x < edge ? 0 : 1),
   smoothstep,

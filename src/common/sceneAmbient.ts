@@ -202,7 +202,7 @@ const PATH_COMMAND = /[MmLlHhVvCcSsQqTtZz]/g;
 const PATH_NUMBER = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g;
 const MAX_PATH_COMMANDS = 64;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isAmbientRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const clamp = (value: number, min: number, max: number) =>
@@ -355,7 +355,7 @@ const readElement = (
   value: unknown,
   artwork: IAmbientArtworkSize | undefined,
 ): IAmbientElement | undefined => {
-  if (!isRecord(value)) {
+  if (!isAmbientRecord(value)) {
     return undefined;
   }
   const id = typeof value.id === 'string' ? value.id : '';
@@ -424,7 +424,7 @@ const readTarget = (
   value: unknown,
   elementIds: ReadonlySet<string>,
 ): IAmbientTarget | undefined => {
-  if (!isRecord(value) || typeof value.element !== 'string') {
+  if (!isAmbientRecord(value) || typeof value.element !== 'string') {
     return undefined;
   }
   const field = oneOf(AMBIENT_FIELDS, value.field);
@@ -445,10 +445,10 @@ const readParam = (
   elementIds: ReadonlySet<string>,
 ): IAmbientParam | undefined => {
   if (
-    !isRecord(value) ||
+    !isAmbientRecord(value) ||
     typeof value.id !== 'string' ||
     !PARAM_ID.test(value.id) ||
-    !isRecord(value.names)
+    !isAmbientRecord(value.names)
   ) {
     return undefined;
   }
@@ -486,7 +486,7 @@ export const normalizeSceneAmbient = (
   raw: unknown,
   artwork?: IAmbientArtworkSize,
 ): ISceneAmbient | undefined => {
-  if (!isRecord(raw) || !Array.isArray(raw.elements)) {
+  if (!isAmbientRecord(raw) || !Array.isArray(raw.elements)) {
     return undefined;
   }
   const seen = new Set<string>();
@@ -544,13 +544,13 @@ export const isWholeSceneAmbient = (
     return true;
   }
   const ambient = normalizeSceneAmbient(raw, artwork);
-  if (!ambient || !isRecord(raw) || !Array.isArray(raw.elements)) {
+  if (!ambient || !isAmbientRecord(raw) || !Array.isArray(raw.elements)) {
     return false;
   }
   const rawParams = Array.isArray(raw.params) ? raw.params : [];
   const rawTotal = raw.elements.reduce<number>(
     (sum, element) =>
-      sum + (isRecord(element) ? numberOr(element.count, 6) : 0),
+      sum + (isAmbientRecord(element) ? numberOr(element.count, 6) : 0),
     0,
   );
   return (
@@ -560,7 +560,7 @@ export const isWholeSceneAmbient = (
     ambient.params.every(
       (param, index) =>
         param.targets.length ===
-        (isRecord(rawParams[index]) &&
+        (isAmbientRecord(rawParams[index]) &&
         Array.isArray((rawParams[index] as Record<string, unknown>).targets)
           ? ((rawParams[index] as Record<string, unknown>).targets as unknown[])
               .length

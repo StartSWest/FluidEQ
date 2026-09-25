@@ -18,11 +18,14 @@ import {
   type ISceneAmbient,
 } from '../../../common/sceneAmbient';
 import type { IScenePack } from '../../../common/scenePacks';
+import type { ISceneWorld } from '../../../common/sceneWorld';
+import normalizeSceneWorld from '../../../common/sceneWorldRead';
 import { readProject } from '../../../main/memberScenes/project';
 import {
   folderHoldingScene,
   RESTORED_ARTWORK_FILE,
   RESTORED_SOURCE_FILE,
+  RESTORED_WORLD_FILE,
   writeRestoredProject,
 } from '../../../main/memberScenes/projectRestore';
 import { memberPack } from '../../utils/memberSceneFixtures';
@@ -87,6 +90,55 @@ const ambient = () =>
   }) as ISceneAmbient;
 
 /**
+ * The smallest binary glTF the model check accepts: its header and a JSON
+ * chunk naming the format, padded to four bytes as the format requires.
+ */
+const glb = () => {
+  const json = Buffer.from('{"asset":{"version":"2.0"}} ', 'utf8');
+  const bytes = Buffer.alloc(20 + json.length);
+  bytes.write('glTF', 0, 'ascii');
+  bytes.writeUInt32LE(2, 4);
+  bytes.writeUInt32LE(bytes.length, 8);
+  bytes.writeUInt32LE(json.length, 12);
+  bytes.write('JSON', 16, 'ascii');
+  json.copy(bytes, 20);
+  return bytes;
+};
+
+const MODEL = glb();
+
+/**
+ * A 3D world with both kinds of GLSL and a model, the three things a
+ * restored project keeps in files of their own. Normalized for the same
+ * reason as the flying things.
+ */
+const world = () =>
+  normalizeSceneWorld(
+    {
+      materials: {
+        core: {
+          kind: 'physical',
+          colour: '#11111a',
+          vertex:
+            'vec3 worldDisplace(vec3 p, vec3 n, WorldVertex v) {\n  return p + n * uBands.x * 0.2;\n}\n',
+          fragment:
+            'void worldSurface(inout vec4 colour, inout vec3 emissive, WorldSurface s) {\n  emissive += colour.rgb * uLevel;\n}\n',
+        },
+      },
+      models: { ship: { data: MODEL.toString('base64') } },
+      nodes: [
+        {
+          type: 'mesh',
+          geometry: { kind: 'icosahedron', radius: 2 },
+          material: 'core',
+        },
+        { type: 'model', model: 'ship' },
+      ],
+    },
+    ['glow'],
+  ) as ISceneWorld;
+
+/**
  * A pack using every part the manifest has to carry. Every optional field
  * belongs here: a manifest that quietly dropped one still built a pack, and
  * the round trip below could only see the fields this fixture has — which is
@@ -116,6 +168,7 @@ const fullPack = (): IScenePack =>
     },
     spectrumRange: [0.1, 0.85],
     response: { sensitivity: 1.5, threshold: 0.1, attack: 40, release: 600 },
+    world: world(),
   });
 
 let root: string;
@@ -148,12 +201,24 @@ describe('restoring an own scene as a project', () => {
     expect(path.dirname(folder)).toBe(projects);
     expect(path.basename(folder)).toBe('Neon City');
     expect(fs.readdirSync(folder).sort()).toEqual(
-      [RESTORED_ARTWORK_FILE, 'pack.json', RESTORED_SOURCE_FILE].sort(),
+      [
+        RESTORED_ARTWORK_FILE,
+        'pack.json',
+        RESTORED_SOURCE_FILE,
+        RESTORED_WORLD_FILE,
+        'world-core.vert',
+        'world-core.frag',
+        'model-ship.glb',
+      ].sort(),
     );
-    // The picture comes back byte for byte, not re-encoded.
+    // The picture and the model come back byte for byte, not re-encoded.
     expect(fs.readFileSync(path.join(folder, RESTORED_ARTWORK_FILE))).toEqual(
       PICTURE,
     );
+    expect(fs.readFileSync(path.join(folder, 'model-ship.glb'))).toEqual(MODEL);
+    expect(
+      fs.readFileSync(path.join(folder, 'world-core.vert'), 'utf8'),
+    ).toContain('worldDisplace');
 
     expect(await readProject(folder)).toEqual({
       ok: true,
@@ -274,6 +339,10 @@ describe('an interrupted restore', () => {
     expect(written).toEqual([
       RESTORED_SOURCE_FILE,
       RESTORED_ARTWORK_FILE,
+      'world-core.vert',
+      'world-core.frag',
+      'model-ship.glb',
+      RESTORED_WORLD_FILE,
       'pack.json',
     ]);
   });

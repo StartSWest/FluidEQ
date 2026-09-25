@@ -40,16 +40,16 @@ painting them a flat colour.
 
 Any number may instead be a formula in a string. Values:
 
-| name | meaning |
-| --- | --- |
-| `time`, `dt` | seconds, and seconds since the last frame |
-| `level`, `beat` | loudness 0..1; 1 on a beat, falling |
-| `bass`, `mid`, `treble` | the three bands, 0..1 |
-| `accent`, `accentId` | the rare big moment's envelope, and its number |
-| `run`, `runSpeed` | the flywheel the music winds, in turns, and its speed |
-| `aspect` | width / height of the picture |
-| `p.<id>` | a pack parameter |
-| any `vars` name | a variable; each may use those before it |
+| name                    | meaning                                               |
+| ----------------------- | ----------------------------------------------------- |
+| `time`, `dt`            | seconds, and seconds since the last frame             |
+| `level`, `beat`         | loudness 0..1; 1 on a beat, falling                   |
+| `bass`, `mid`, `treble` | the three bands, 0..1                                 |
+| `accent`, `accentId`    | the rare big moment's envelope, and its number        |
+| `run`, `runSpeed`       | the flywheel the music winds, in turns, and its speed |
+| `aspect`                | width / height of the picture                         |
+| `p.<id>`                | a pack parameter                                      |
+| any `vars` name         | a variable; each may use those before it              |
 
 Per copy (instances, points, ribbons) also: `i`, `n`, `u` (0..1 along the
 set), `rand`, `rand2`, `rand3` (repeatable per copy), `x`, `y`, `z` (the
@@ -146,7 +146,10 @@ Both see the shader contract's uniforms (`uTime`, `uLevel`, `uBeat`,
 `uSpectrumSlow`, `uWaveform`), the pack's `uParam_<id>` and the world's
 variables as `uVar_<name>`. In a Studio project, write them in their own
 files and name them from `pack.json` as `vertexFile` / `fragmentFile`; a
-model is `{ "file": "ship.glb" }`.
+model is `{ "file": "ship.glb" }`. A world too big for `pack.json` (64 KB)
+goes in a file of its own, named as `"worldFile": "world.json"` in place of
+`"world"`; the names inside it are read from the same folder. A scene opened
+in the Studio from a file or from FluidEQ's own is written out that way.
 
 Use `fwidth` for lines that stay a pixel or two wide at every distance:
 

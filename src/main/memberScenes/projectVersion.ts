@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { versionToPublish } from '../../common/sceneVersionNote';
-import { MANIFEST_FILE, readManifest, writeInside } from './project';
+import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import type { TSettingsWrite } from './projectSettings';
 import { queueSettingsWrite } from './settingsWrites';
 

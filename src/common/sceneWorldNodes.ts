@@ -19,7 +19,7 @@ import {
   type TWorldVec3,
 } from './sceneWorld';
 import {
-  isRecord,
+  isWorldRecord,
   readBoolean,
   readChoice,
   readColour,
@@ -75,7 +75,7 @@ const EXTENT = WORLD_LIMITS.extent;
 const SEGMENTS = WORLD_LIMITS.geometrySegments;
 
 const readGeometry = (value: unknown): IWorldGeometry => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   const segments: [number, number] = Array.isArray(raw.segments)
     ? [
         readCount(raw.segments[0], 32, 1, SEGMENTS),
@@ -111,7 +111,7 @@ const readGeometry = (value: unknown): IWorldGeometry => {
 };
 
 const readLayout = (value: unknown, room: number): IWorldLayout => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   const kind = readChoice(raw.kind, LAYOUT_KINDS, 'line');
   let count: [number, number, number];
   if (kind === 'grid' && Array.isArray(raw.count)) {
@@ -151,7 +151,7 @@ const readMotion = (
   value: unknown,
   scopes: IWorldScopes,
 ): IWorldInstanceMotion => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   return {
     position: readVec3(raw.position, scopes.instance, PLACED),
     rotation: readVec3(raw.rotation, scopes.instance, [0, 0, 0]),
@@ -165,7 +165,7 @@ const readMotion = (
 };
 
 const readLight = (value: unknown, scopes: IWorldScopes): IWorldLight => {
-  const raw = isRecord(value) ? value : {};
+  const raw = isWorldRecord(value) ? value : {};
   return {
     kind: readChoice(raw.kind, LIGHT_KINDS, 'point'),
     colour: readColour(raw.colour, scopes.global, { hex: '#ffffff' }),
@@ -206,7 +206,7 @@ const readNode = (
   materials: Readonly<Record<string, IWorldMaterial>>,
   models: Readonly<Record<string, IWorldModel>>,
 ): TWorldNode | null => {
-  if (!isRecord(value) || state.nodes >= WORLD_LIMITS.nodes) {
+  if (!isWorldRecord(value) || state.nodes >= WORLD_LIMITS.nodes) {
     return null;
   }
   const scope = scopes.global;

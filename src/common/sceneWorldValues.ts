@@ -16,10 +16,12 @@ export interface IWorldScopes {
   instance: IExpressionScope;
 }
 
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
+export const isWorldRecord = (
+  value: unknown,
+): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-export const clamp = (value: number, min: number, max: number): number =>
+export const clampWorld = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
 /** A finite number kept inside its bounds, or the fallback. */
@@ -30,7 +32,7 @@ export const readNumber = (
   max: number,
 ): number =>
   typeof value === 'number' && Number.isFinite(value)
-    ? clamp(value, min, max)
+    ? clampWorld(value, min, max)
     : fallback;
 
 /** A whole number kept inside its bounds, or the fallback. */
@@ -98,7 +100,8 @@ export const readTriple = (
   ];
 };
 
-const HEX = /^#[0-9a-f]{6}$/i;
+/** A fixed sRGB colour as a world writes one. */
+export const WORLD_HEX = /^#[0-9a-f]{6}$/i;
 
 /** A hex, `{ hsl: [...] }` or `{ rgb: [...] }`; the fallback otherwise. */
 export const readColour = (
@@ -107,14 +110,16 @@ export const readColour = (
   fallback: TWorldColour,
 ): TWorldColour => {
   if (typeof value === 'string') {
-    return HEX.test(value) ? { hex: value.toLowerCase() } : fallback;
+    return WORLD_HEX.test(value) ? { hex: value.toLowerCase() } : fallback;
   }
-  if (!isRecord(value)) {
+  if (!isWorldRecord(value)) {
     return fallback;
   }
   // The form this reader writes, so a world read twice is the same world.
   if (typeof value.hex === 'string') {
-    return HEX.test(value.hex) ? { hex: value.hex.toLowerCase() } : fallback;
+    return WORLD_HEX.test(value.hex)
+      ? { hex: value.hex.toLowerCase() }
+      : fallback;
   }
   if (Array.isArray(value.hsl)) {
     return { hsl: readVec3(value.hsl, scope, [0, 0, 1]) };
