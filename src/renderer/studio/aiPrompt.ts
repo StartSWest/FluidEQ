@@ -3,7 +3,7 @@ import {
   MAX_MEMBER_LOOPS,
   MAX_MEMBER_PIXEL_WORK,
 } from 'common/memberSceneRules';
-import type { GraphStyle } from 'common/graphStyles';
+import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
   SCENE_CONTRACT_VERSION,
@@ -54,43 +54,33 @@ import { MOTION_SECTIONS } from './aiPromptMotion';
  * and the card's switch by their exact names, which change with them.
  */
 /**
- * The fallback forms the brief offers a scene: every form that is still drawn
- * as itself, less the measuring views. Most plain forms were retired on
- * 2026-09-23 and a pack naming one lands on the Analyzer or the RTA
- * (`canonicalGraphStyle`), which is not what an author choosing "flames" for
- * a fire meant. The brief listed ten of those until then; the unit test holds
- * this list to the forms that really draw.
+ * The instruments: they read the music rather than picture it, so they are
+ * no fallback for a scene. Everything else still drawn as itself is.
  */
-export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] = [
-  'terrace',
-  'skyline',
-  'truss',
-  'slope',
-  'bubbles',
-  'ecg',
-  'echo',
-  'invaders',
-  'ledwall',
-  'towers',
-  'tide',
-  'halo',
-  'synthwave',
-  'ledbars',
-  'neonbars',
-  'bars3d',
-  'spectrumwave',
-  'silkwaves',
-  'mirrorbars',
-  'pixelbars',
-  'beams',
-  'sparkbars',
-  'glitchbars',
-  'orb',
-  'kaleido',
-  'helix',
-  'mesh',
-  'halftone',
-];
+const MEASURING_VIEWS: ReadonlySet<GraphStyle> = new Set<GraphStyle>([
+  'analyzer',
+  'compare',
+  'spectrogram',
+  'rta',
+  'average',
+  'waterfall',
+  'loudness',
+  'scope',
+  'midside',
+  'notes',
+  'energy',
+  'phase',
+]);
+
+/**
+ * The fallback forms the brief offers a scene: every form still drawn as
+ * itself, less the measuring views. Derived, not copied: the forms change
+ * often (the plain ones were retired on 2026-09-23, and four visualizers were
+ * swapped two days later), and a copied list told authors to pick forms that
+ * land on the Analyzer or the RTA, or no longer exist at all.
+ */
+export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] =
+  SELECTABLE_GRAPH_STYLES.filter((style) => !MEASURING_VIEWS.has(style));
 
 const promptFor = (
   folder?: string,

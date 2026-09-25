@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { canonicalGraphStyle, GRAPH_STYLES } from '../../../common/graphStyles';
+import {
+  canonicalGraphStyle,
+  GRAPH_STYLES,
+  SELECTABLE_GRAPH_STYLES,
+} from '../../../common/graphStyles';
 import {
   promptWithIdea,
   SCENE_FALLBACK_STYLES,
@@ -18,6 +22,27 @@ describe('the fallback forms the scene brief offers', () => {
       expect(GRAPH_STYLES).toContain(style);
       expect(canonicalGraphStyle(style)).toBe(style);
     });
+  });
+
+  it('leave out the measuring views and nothing else', () => {
+    // Every other selectable form is offered, so a visualizer added to the
+    // app is offered to scene authors without anybody editing the brief.
+    const offered = new Set(SCENE_FALLBACK_STYLES);
+    const leftOut = SELECTABLE_GRAPH_STYLES.filter((s) => !offered.has(s));
+    expect(leftOut).toEqual([
+      'analyzer',
+      'compare',
+      'spectrogram',
+      'rta',
+      'average',
+      'waterfall',
+      'loudness',
+      'scope',
+      'midside',
+      'notes',
+      'energy',
+      'phase',
+    ]);
   });
 
   it('are exactly the ones the brief lists', () => {
