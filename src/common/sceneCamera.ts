@@ -47,7 +47,7 @@ export const MAX_CAMERA_PITCH = 1.45;
 export const MIN_CAMERA_ZOOM = 0.25;
 export const MAX_CAMERA_ZOOM = 4;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isCameraRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
@@ -87,7 +87,7 @@ const moves = ([from, to]: readonly [number, number]) => to - from > 1e-3;
 export const readSceneCamera = (
   raw: unknown,
 ): ISceneCameraLimits | undefined => {
-  if (!isRecord(raw)) {
+  if (!isCameraRecord(raw)) {
     return undefined;
   }
   const limits: ISceneCameraLimits = {
