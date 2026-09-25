@@ -158,6 +158,16 @@ export const getScenePackSummary = (
 ): IScenePackSummary | undefined =>
   listing.packs.find((pack) => pack.id === packId);
 
+/**
+ * A pack this account may play, whether or not the graph can draw it right
+ * now: the desk lights draw the member's choice in a worker of their own, so
+ * a scene the graph set aside for this session is still theirs to light.
+ */
+export const getEntitledScene = (
+  packId: string,
+): IScenePackSummary | undefined =>
+  listing.entitled ? getScenePackSummary(packId) : undefined;
+
 export const useUsableScenes = (): readonly IUsableScene[] =>
   useSyncExternalStore(subscribeScenePacks, getUsableScenes, getUsableScenes);
 

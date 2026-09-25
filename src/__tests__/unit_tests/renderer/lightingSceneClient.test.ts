@@ -23,13 +23,13 @@ class FakeWorker {
 
   onerror: ((event: ErrorEvent) => void) | null = null;
 
-  sent: { kind: string }[] = [];
+  sent: { kind: string; id?: number }[] = [];
 
   constructor() {
     FakeWorker.made.push(this);
   }
 
-  postMessage(request: { kind: string }) {
+  postMessage(request: { kind: string; id?: number }) {
     this.sent.push(request);
   }
 
@@ -61,6 +61,11 @@ const load = () => {
   });
   return () => client;
 };
+
+/** The number the newest load this worker was sent carries. */
+const lastLoadId = (worker: FakeWorker): number =>
+  worker.sent.filter((request) => request.kind === 'load').slice(-1)[0]?.id ??
+  -1;
 
 const loadsSent = () =>
   FakeWorker.made
@@ -94,6 +99,7 @@ it('forgets a gpu-reset refusal on a fresh module load; nothing is written anywh
     kind: 'failed',
     packId: 'storm',
     reason: 'gpu-reset',
+    id: lastLoadId(FakeWorker.made[0]),
   });
   lamps.close();
 
@@ -108,20 +114,21 @@ it('forgets a gpu-reset refusal on a fresh module load; nothing is written anywh
 it('draws a scene again once a lost context it was not blamed for comes back', async () => {
   const { createLightingScene } = load()();
   const failed = jest.fn();
-  const recovered = jest.fn();
-  const lamps = createLightingScene(jest.fn(), failed, recovered);
+  const ready = jest.fn();
+  const lamps = createLightingScene(jest.fn(), failed, ready);
   lamps.load(packOf('alpine'), false);
   await settle();
   const [worker] = FakeWorker.made;
-  worker.reply({ kind: 'loaded', packId: 'alpine' });
+  worker.reply({ kind: 'loaded', packId: 'alpine', id: lastLoadId(worker) });
   worker.reply({ kind: 'lost', packId: 'alpine' });
   // The lamps take the scene's colours while nothing can draw it.
   expect(failed).toHaveBeenCalledWith('alpine');
   lamps.draw({} as never);
   expect(worker.sent.filter((request) => request.kind === 'frame')).toEqual([]);
   // The worker loads it again with the context: frames go out again.
-  worker.reply({ kind: 'loaded', packId: 'alpine' });
-  expect(recovered).toHaveBeenCalledTimes(1);
+  worker.reply({ kind: 'loaded', packId: 'alpine', id: lastLoadId(worker) });
+  // Ready at the first load, and ready again with the context back.
+  expect(ready).toHaveBeenCalledTimes(2);
   lamps.draw({} as never);
   expect(
     worker.sent.filter((request) => request.kind === 'frame'),
@@ -145,7 +152,12 @@ it.each(['too-heavy', 'gpu-reset'])(
     first.load(packOf('storm'), true);
     await settle();
     expect(loadsSent()).toHaveLength(1);
-    FakeWorker.made[0].reply({ kind: 'failed', packId: 'storm', reason });
+    FakeWorker.made[0].reply({
+      kind: 'failed',
+      packId: 'storm',
+      reason,
+      id: lastLoadId(FakeWorker.made[0]),
+    });
     expect(failed).toHaveBeenCalledWith('storm');
     first.close();
 
@@ -174,6 +186,7 @@ it('tries a scene again that only failed to compile', async () => {
     kind: 'failed',
     packId: 'bloom',
     reason: 'compile',
+    id: lastLoadId(FakeWorker.made[0]),
   });
   first.close();
   const again = createLightingScene(jest.fn(), jest.fn());
@@ -181,4 +194,108 @@ it('tries a scene again that only failed to compile', async () => {
   await settle();
   expect(loadsSent()).toHaveLength(2);
   again.close();
+});
+
+const framesSent = (worker: FakeWorker) =>
+  worker.sent.filter((request) => request.kind === 'frame').length;
+
+// A new version of the member's scene, or the next scene chosen, used to put
+// the desk out for the whole link. The scene on the desk now carries on.
+it('keeps drawing the scene on the desk while the next one links, and takes the next once it is ready', async () => {
+  const { createLightingScene } = load()();
+  const ready = jest.fn();
+  const lamps = createLightingScene(jest.fn(), jest.fn(), ready);
+  lamps.load(packOf('alpine'), false);
+  await settle();
+  const [worker] = FakeWorker.made;
+  worker.reply({ kind: 'loaded', packId: 'alpine', id: lastLoadId(worker) });
+  expect(ready).toHaveBeenLastCalledWith('alpine');
+
+  lamps.load(packOf('aurora'), false);
+  await settle();
+  expect(loadsSent()).toHaveLength(2);
+  // Linking: frames still go out, drawn with the scene already there.
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(1);
+  worker.reply({ kind: 'grid' } as TLightingWorkerReply);
+  worker.reply({ kind: 'loaded', packId: 'aurora', id: lastLoadId(worker) });
+  expect(ready).toHaveBeenLastCalledWith('aurora');
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(2);
+  lamps.close();
+});
+
+it('ignores the answer to a load that a newer one replaced', async () => {
+  const { createLightingScene } = load()();
+  const ready = jest.fn();
+  const lamps = createLightingScene(jest.fn(), jest.fn(), ready);
+  lamps.load(packOf('alpine'), false);
+  await settle();
+  const [worker] = FakeWorker.made;
+  const first = lastLoadId(worker);
+  lamps.load(packOf('aurora'), false);
+  await settle();
+  worker.reply({ kind: 'loaded', packId: 'alpine', id: first });
+  expect(ready).not.toHaveBeenCalled();
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(0);
+  worker.reply({ kind: 'loaded', packId: 'aurora', id: lastLoadId(worker) });
+  expect(ready).toHaveBeenCalledWith('aurora');
+  lamps.close();
+});
+
+// A new version of a scene carries its pack id, so the answers are told apart
+// by the load's number, never by the id.
+it('lets the scene being drawn fail without refusing the one linking', async () => {
+  const { createLightingScene } = load()();
+  const failed = jest.fn();
+  const ready = jest.fn();
+  const lamps = createLightingScene(jest.fn(), failed, ready);
+  lamps.load(packOf('storm'), false);
+  await settle();
+  const [worker] = FakeWorker.made;
+  worker.reply({ kind: 'loaded', packId: 'storm', id: lastLoadId(worker) });
+  lamps.load(packOf('calm'), false);
+  await settle();
+  // The program on the desk holds the GPU even at its smallest size.
+  worker.reply({ kind: 'failed', packId: 'storm', reason: 'too-heavy' });
+  expect(failed).toHaveBeenCalledWith('storm');
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(0);
+  worker.reply({ kind: 'loaded', packId: 'calm', id: lastLoadId(worker) });
+  expect(ready).toHaveBeenLastCalledWith('calm');
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(1);
+  lamps.close();
+
+  // The refusal went to the scene that held the GPU, not the one after it.
+  const again = createLightingScene(jest.fn(), jest.fn());
+  again.load(packOf('calm'), false);
+  await settle();
+  expect(loadsSent()).toHaveLength(3);
+  const refused = jest.fn();
+  const third = createLightingScene(jest.fn(), refused);
+  third.load(packOf('storm'), false);
+  await settle();
+  expect(refused).toHaveBeenCalledWith('storm');
+  expect(loadsSent()).toHaveLength(3);
+  again.close();
+  third.close();
+});
+
+it('draws nothing once unloaded, whatever answers are still on their way', async () => {
+  const { createLightingScene } = load()();
+  const ready = jest.fn();
+  const lamps = createLightingScene(jest.fn(), jest.fn(), ready);
+  lamps.load(packOf('alpine'), false);
+  await settle();
+  const [worker] = FakeWorker.made;
+  const id = lastLoadId(worker);
+  lamps.unload();
+  expect(worker.sent[worker.sent.length - 1]).toEqual({ kind: 'unload' });
+  worker.reply({ kind: 'loaded', packId: 'alpine', id });
+  expect(ready).not.toHaveBeenCalled();
+  lamps.draw({} as never);
+  expect(framesSent(worker)).toBe(0);
+  lamps.close();
 });

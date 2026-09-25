@@ -5,57 +5,39 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
-import { isMemberLookId } from 'common/memberScenes';
-import type { IScenePack } from 'common/scenePacks';
 import { lightingProfile } from 'common/lighting/lightingProfiles';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import type { TDrawableScene } from '../graph/SceneCanvas';
 import { usePlusEntitled } from '../plus/GalleryParts';
-import { useSceneLook } from '../utils/graphStyle';
-import {
-  loadMemberScene,
-  type IUsableMemberScene,
-} from '../utils/memberScenes';
-import { loadScenePack } from '../utils/scenePacks';
-import { playLampScene } from './lampScenePlay';
+import { createLampPlayer, type ILampPlayer } from './lampScenePlay';
+import { loadLampScene, useLampScene } from './lampScene';
 import { publishLightingPreview } from './lightingPreview';
 import { useLighting } from './lightingStore';
 
-const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
-  'kind' in scene && scene.kind === 'member';
-
-const sceneKey = (scene: TDrawableScene) =>
-  isMemberScene(scene) ? scene.lookId : scene.id;
-
-const loadDrawable = (
-  scene: TDrawableScene,
-): Promise<IScenePack | undefined> =>
-  isMemberScene(scene)
-    ? loadMemberScene(scene.lookId)
-    : loadScenePack(scene.id);
-
 /**
  * The lamps' loop: while a Plus member has dynamic lighting on and a Plus
- * scene is on the graph, the scene is drawn small for the devices on every
- * tick of the audio clock and the picture sent to the main process.
+ * look chosen, the scene is drawn small for the devices on the audio clock
+ * and the picture sent to the main process.
  *
  * Mounted once, at the root, and renders nothing — it has to run whichever tab
  * is open and while the window is minimised, which is the whole point of a lit
  * desk. It holds the capture as work rather than display for the same reason:
  * hiding the window must not take the music away from the lamps.
  *
- * Every way out gives the devices back: the scene becoming a free look, the
- * membership lapsing, the switch going off, a failed producer, or the window
- * closing. Silence keeps the scene flowing at the member's idle settings.
+ * The lamps go out for exactly four things: the look chosen is not a Plus one,
+ * the membership lapses, the switch goes off, or the window closes. Nothing
+ * else starts them again either: the scene the graph can or cannot draw this
+ * moment, the capture Windows restarts and a new version of the scene are all
+ * taken in by the one player (`lampScenePlay.ts`). Silence keeps the scene
+ * flowing at the member's idle settings.
  */
 export default function DynamicLightingLoop() {
   const { state, loaded } = useLighting();
   const entitled = usePlusEntitled();
-  const scene = useSceneLook();
-  const { capture, isPaused } = useLiveAudioControl();
+  const scene = useLampScene();
+  const { capture, error, isPaused } = useLiveAudioControl();
   const wanted =
     loaded &&
     state.supported &&
@@ -66,24 +48,12 @@ export default function DynamicLightingLoop() {
 
   const pausedRef = useRef(isPaused);
   pausedRef.current = isPaused;
-
-  const identity = scene
-    ? `${sceneKey(scene)}@${scene.revision ?? scene.version}`
-    : '';
-  const [loadedScene, setLoadedScene] = useState<{
-    pack: IScenePack;
-    sceneId: string;
-  }>();
-  const swatch = scene?.swatch;
-  const swatchRef = useRef(swatch);
-  swatchRef.current = swatch;
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
   const profileRef = useRef(
-    lightingProfile(state.settings.profiles, loadedScene?.sceneId),
+    lightingProfile(state.settings.profiles, scene?.lookId),
   );
-  profileRef.current = lightingProfile(
-    state.settings.profiles,
-    loadedScene?.sceneId,
-  );
+  profileRef.current = lightingProfile(state.settings.profiles, scene?.lookId);
 
   useEffect(() => {
     const release = () => {
@@ -100,51 +70,15 @@ export default function DynamicLightingLoop() {
     return release;
   }, [wanted]);
 
-  useEffect(() => {
-    if (!wanted || !scene) {
-      setLoadedScene(undefined);
-      return undefined;
-    }
-    let cancelled = false;
-    const load = async () => {
-      let loadedPack: IScenePack | undefined;
-      try {
-        loadedPack = await loadDrawable(scene);
-      } catch {
-        // The bridge failed, not the scene: nothing to light with.
-        loadedPack = undefined;
-      }
-      if (!cancelled) {
-        setLoadedScene(
-          loadedPack ? { pack: loadedPack, sceneId: scene.lookId } : undefined,
-        );
-      }
-    };
-    load().catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-    // `identity` is the scene and its version; the object itself is rebuilt
-    // on unrelated store changes and must not reload the pack.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the scene's identity, see above
-  }, [wanted, identity]);
-
+  const [player, setPlayer] = useState<ILampPlayer>();
   useEffect(() => {
     const api = window.electron?.ipcRenderer;
-    if (!wanted || !capture || !loadedScene || !api?.sendLightingFrame) {
-      api?.releaseLighting?.();
-      publishLightingPreview(undefined);
+    if (!wanted || !api?.sendLightingFrame) {
       return undefined;
     }
-    const { sceneId, pack } = loadedScene;
-    const player = playLampScene({
-      pack,
-      sceneId,
-      guarded: isMemberLookId(sceneId),
-      capture,
+    const created = createLampPlayer({
       isPaused: () => pausedRef.current,
       profile: () => profileRef.current,
-      swatch: swatchRef.current ?? [],
       onFrame: (frame, image) => {
         api.sendLightingFrame(frame);
         publishLightingPreview(frame, image);
@@ -154,8 +88,56 @@ export default function DynamicLightingLoop() {
         publishLightingPreview(undefined);
       },
     });
-    return () => player.close();
-  }, [wanted, capture, loadedScene]);
+    setPlayer(created);
+    return () => {
+      created.close();
+      setPlayer(undefined);
+    };
+  }, [wanted]);
+
+  // Keyed on the scene's identity — the look and the content it is at — so
+  // a store refresh that rebuilds the same summary loads nothing.
+  const identity = scene?.identity;
+  useEffect(() => {
+    const shown = sceneRef.current;
+    if (!player || !shown) {
+      return undefined;
+    }
+    let cancelled = false;
+    const show = (pack?: Parameters<ILampPlayer['show']>[0]['pack']) =>
+      player.show({
+        sceneId: shown.lookId,
+        pack,
+        guarded: shown.guarded,
+        swatch: shown.swatch,
+      });
+    loadLampScene(shown)
+      .then((pack) => {
+        if (!cancelled) {
+          show(pack);
+        }
+        return undefined;
+      })
+      .catch(() => {
+        // The bridge failed, not the scene: its colours light the desk.
+        if (!cancelled) {
+          show(undefined);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [player, identity]);
+
+  // A capture that is only being opened again keeps the desk on its last
+  // frame; one that failed gives the devices back until it comes.
+  useEffect(() => {
+    player?.hear(capture);
+    if (player && !capture && error) {
+      window.electron?.ipcRenderer?.releaseLighting?.();
+      publishLightingPreview(undefined);
+    }
+  }, [player, capture, error]);
 
   return null;
 }
