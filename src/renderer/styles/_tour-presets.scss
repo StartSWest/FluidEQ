@@ -1,0 +1,210 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Presets: the picker with Rock chosen, and beside it what a chain is now.
+
+.presets-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  align-items: start;
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  @include animate(rise-in, $motion-slow);
+}
+
+.presets-visual__picker {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.7);
+  background: $surface-menu;
+  gap: calc(#{$u} * 0.5);
+}
+
+.presets-visual__search {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-size: calc(#{$u} * 0.75);
+  gap: calc(#{$u} * 0.4);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+  }
+}
+
+.presets-visual__section {
+  display: grid;
+  gap: calc(#{$u} * 0.15);
+
+  ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    gap: 1px;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    padding: calc(#{$u} * 0.28) calc(#{$u} * 0.45);
+    color: $text-primary;
+    border-radius: $radius-s;
+    font-size: calc(#{$u} * 0.78);
+    gap: calc(#{$u} * 0.45);
+
+    > span {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  li.is-chosen {
+    color: $text-accent;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    font-weight: $weight-semibold;
+  }
+}
+
+.presets-visual__group {
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.45) calc(#{$u} * 0.1);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+.presets-visual__icon {
+  flex: none;
+  width: calc(#{$u} * 1);
+  height: calc(#{$u} * 1);
+  color: $secondary-light;
+}
+
+// Lit, in the Library's favourite yellow, as the real list lights it.
+.presets-visual__star {
+  flex: none;
+  width: calc(#{$u} * 0.85);
+  height: calc(#{$u} * 0.85);
+  color: $neon-yellow;
+  fill: currentcolor;
+}
+
+.presets-visual__cards {
+  display: grid;
+  gap: calc(#{$u} * 0.7);
+}
+
+.presets-visual__card {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.9);
+  gap: calc(#{$u} * 0.45);
+  @include animate(rise-in, $motion-slow);
+
+  & + & {
+    animation-delay: 140ms;
+  }
+}
+
+.presets-visual__name {
+  color: $text-primary;
+  font-size: calc(#{$u} * 1.25);
+  font-weight: $weight-bold;
+  line-height: 1.15;
+
+  &.is-small {
+    font-size: calc(#{$u} * 0.9);
+  }
+}
+
+.presets-visual__note {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.7);
+  line-height: 1.4;
+}
+
+.presets-visual__stages {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.35);
+  list-style: none;
+
+  li {
+    @include pill;
+
+    color: $text-accent;
+    border-color: color-mix(in srgb, $secondary-light 32%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+    @include stagger-in(6, 50ms, 200ms);
+
+    &::before {
+      width: calc(#{$u} * 0.36);
+      height: calc(#{$u} * 0.36);
+      border-radius: 50%;
+      background: $secondary-light;
+      content: '';
+    }
+  }
+}
+
+.presets-visual__levels {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.4);
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: center;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.72);
+    gap: calc(#{$u} * 0.6);
+    grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr);
+
+    > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // One length for all three: the picture's point is that they are level.
+  i {
+    display: block;
+    width: 78%;
+    height: calc(#{$u} * 0.42);
+    border-radius: $radius-pill;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 55%, transparent),
+      $secondary-light
+    );
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 30%, transparent);
+  }
+}

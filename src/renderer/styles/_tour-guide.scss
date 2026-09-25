@@ -1,0 +1,202 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The guide, searched: the answers ranked with the words marked, and the
+// first one open with a picture's control numbered.
+
+.guide-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  overflow: hidden;
+  border-radius: $radius-l;
+  background: $surface-base;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  @include framed;
+  @include animate(rise-in, $motion-slow);
+
+  mark {
+    padding: 0 1px;
+    color: $text-primary;
+    border-radius: 3px;
+    background: color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+}
+
+.guide-visual__rail {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.8);
+  border-right: 1px solid rgba($edge-tint, 0.08);
+  background: rgba($white, 0.02);
+  gap: calc(#{$u} * 0.55);
+}
+
+.guide-visual__search {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.6);
+  color: $text-primary;
+  border: 1px solid $border-field-focus;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-size: calc(#{$u} * 0.78);
+  gap: calc(#{$u} * 0.4);
+
+  svg {
+    width: calc(#{$u} * 0.95);
+    height: calc(#{$u} * 0.95);
+    fill: none;
+    stroke: $text-muted;
+    stroke-linecap: round;
+    stroke-width: 2;
+  }
+}
+
+.guide-visual__hits {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.3);
+  list-style: none;
+
+  li {
+    display: grid;
+    padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
+    border-left: 2px solid transparent;
+    border-radius: $radius-s;
+    gap: calc(#{$u} * 0.15);
+    @include stagger-in(3, 70ms, 160ms);
+  }
+
+  li.is-active {
+    border-left-color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.8);
+    line-height: 1.3;
+  }
+}
+
+.guide-visual__found {
+  display: -webkit-box;
+  overflow: hidden;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.66);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.guide-visual__page {
+  display: grid;
+  align-content: start;
+  padding: calc(#{$u} * 0.9);
+  gap: calc(#{$u} * 0.6);
+}
+
+.guide-visual__title {
+  color: $text-primary;
+  font-size: calc(#{$u} * 1.02);
+  line-height: 1.25;
+}
+
+// A picture of a page, with one control numbered and ringed.
+.guide-visual__figure {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  padding-left: 22%;
+}
+
+.guide-visual__window {
+  display: grid;
+  height: 100%;
+  align-content: start;
+  padding: calc(#{$u} * 0.55);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  background: $surface-panel;
+  gap: calc(#{$u} * 0.4);
+
+  i {
+    display: block;
+    height: calc(#{$u} * 0.45);
+    border-radius: $radius-pill;
+    background: rgba($edge-tint, 0.14);
+  }
+
+  .is-short {
+    width: 55%;
+  }
+
+  .is-wide {
+    height: calc(#{$u} * 1.2);
+    border-radius: $radius-s;
+    background: $surface-plot;
+  }
+}
+
+.guide-visual__window .guide-visual__control {
+  width: 62%;
+  height: calc(#{$u} * 1.1);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  outline: 2px solid $secondary-light;
+  outline-offset: 2px;
+  box-shadow: 0 0 14px color-mix(in srgb, $secondary-light 45%, transparent);
+}
+
+.guide-visual__lead {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  path {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.guide-visual__number {
+  position: absolute;
+  top: 52%;
+  left: 0;
+  display: grid;
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  place-items: center;
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-light;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-bold;
+  transform: translateY(-50%);
+}
+
+.guide-visual__passage {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.72);
+  line-height: 1.5;
+
+  // The mark the search lands on, as the guide draws its current one.
+  mark:first-of-type {
+    outline: 1px solid $secondary-light;
+  }
+}
