@@ -8,13 +8,10 @@ import type { IScenePack } from 'common/scenePacks';
 import type { ISceneRhythm } from 'common/sceneRhythm';
 
 /**
- * What the window and the lighting scene worker say to each other, and the
- * names the audio clock and the worker are registered under. Plain values
- * only: the worklet and the worker both import this file, and neither scope
- * has the window's globals.
+ * What the window and the lighting scene worker say to each other. Plain
+ * values only: the worker imports this file, and has none of the window's
+ * globals.
  */
-
-export const LIGHTING_CLOCK_PROCESSOR = 'fluideq-lighting-clock';
 
 /** Ticks per second of audio. Past thirty, lamps are faster than the devices. */
 export const LIGHTING_TICKS_PER_SECOND = 30;
@@ -41,24 +38,30 @@ export interface ILightingSceneFrame {
 }
 
 export type TLightingWorkerRequest =
-  /** `guarded`: a member's scene, drawn through the flash limiter. */
-  | { kind: 'load'; pack: IScenePack; guarded: boolean }
+  /**
+   * `guarded`: a member's scene, drawn through the flash limiter. `id`
+   * numbers the load, so its answer is told apart from one about the
+   * program still being drawn — a new version of a scene has its pack id.
+   */
+  | { kind: 'load'; pack: IScenePack; guarded: boolean; id: number }
   | { kind: 'frame'; frame: ILightingSceneFrame }
   /** Give up any load, free everything, then answer `retired`. */
   | { kind: 'retire' }
   | { kind: 'unload' };
 
 export type TLightingWorkerReply =
-  | { kind: 'loaded'; packId: string }
+  | { kind: 'loaded'; packId: string; id: number }
   /** Nothing is linking and nothing is held: the worker may be ended. */
   | { kind: 'retired' }
   /**
    * The scene cannot be drawn here; the lamps fall back to its swatch.
    * `gpu-reset` (its own frame held the GPU when the context was lost) and
    * `too-heavy` (holding it even at the smallest size) are the GPU refusing
-   * it, and it is not loaded again this session.
+   * it, and it is not loaded again this session. With `id`, the load of
+   * that number failed; without, the program that was being drawn did.
+   * Either way nothing is drawn any more.
    */
-  | { kind: 'failed'; packId: string; reason: string }
+  | { kind: 'failed'; packId: string; reason: string; id?: number }
   /**
    * The context was lost for a reason that was not the scene's: nothing is
    * drawn until it comes back, and then the scene is loaded again and

@@ -456,6 +456,7 @@ const studio = {
   'studio.file.pack': 'pack.json',
   'studio.file.source': 'शेडर',
   'studio.file.artwork': 'चित्र',
+  'studio.file.world': '3D दुनिया',
   'studio.problem.heading': 'यह संस्करण अभी नहीं चल सकता',
   'studio.problem.line': '{file}, पंक्ति {line}',
   'studio.problem.too-large': 'शेडर 256 KB से बड़ा है।',
@@ -493,11 +494,16 @@ const studio = {
     'एक सीन के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
   'studio.problem.bad-ambient':
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
+  'studio.problem.bad-world':
+    'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
+  'studio.problem.bad-model':
+    '3D मॉडल एक ऐसी .glb फ़ाइल होनी चाहिए जिसमें सारे बफ़र और चित्र शामिल हों।',
   'studio.problem.bad-json': 'pack.json मान्य JSON नहीं है।',
   'studio.problem.missing-file': 'सीन के लिए ज़रूरी एक फ़ाइल गायब है।',
   'studio.problem.unsafe-path':
     'फ़ाइल नाम इसी फ़ोल्डर की फ़ाइलों के सादे नाम होने चाहिए।',
   'studio.problem.file-too-large': 'एक फ़ाइल सीन की अनुमति से बड़ी है।',
+  'studio.world.heading': '3D दुनिया नहीं बनी, केवल उसका आकाश दिख रहा है',
   'studio.compile.heading': 'शेडर कंपाइल नहीं हुआ',
   'studio.compile.hint':
     'उसे ठीक करके सेव करें, या त्रुटि अपने AI में चिपकाएँ।',

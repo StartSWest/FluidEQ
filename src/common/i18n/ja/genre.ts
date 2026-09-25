@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': 'ジャンル解説',
   'genre.notes.about': '{name}について',
   'genre.notes.aboutShort': '解説',
-  'genre.notes.aboutNone': '解説はジャンルのプリセット用です',
   'genre.notes.full': '詳しい解説',
   'genre.notes.close': '閉じる',
   'genre.notes.sound': 'サウンド',

@@ -16,7 +16,10 @@ import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from '../../audio/LiveAudioContext';
-import { playLampScene } from '../../lighting/lampScenePlay';
+import {
+  createLampPlayer,
+  type ILampPlayer,
+} from '../../lighting/lampScenePlay';
 import { publishLightingPreview } from '../../lighting/lightingPreview';
 import { fillSwatchGrid, swatchColours } from '../../lighting/swatchGrid';
 
@@ -135,31 +138,44 @@ export const useLightingDemo = (): TLightingDemo => {
     [],
   );
 
+  const [player, setPlayer] = useState<ILampPlayer>();
   useEffect(() => {
-    if (!pack || unheard || !capture) {
+    if (!pack || unheard) {
       return undefined;
     }
     const api = window.electron?.ipcRenderer;
-    const player = playLampScene({
-      pack,
-      sceneId: pack.id,
-      guarded: false,
-      capture,
+    const created = createLampPlayer({
       isPaused: () => pausedRef.current,
       profile: () => DEFAULT_LIGHTING_PROFILE,
-      swatch: pack.swatch,
       onFrame: (frame, image) => {
         publishLightingPreview(frame, image);
         api?.sendLightingDemoFrame?.(frame);
       },
       onCannotHear: () => setUnheard(true),
     });
+    created.show({
+      sceneId: pack.id,
+      pack,
+      guarded: false,
+      swatch: pack.swatch,
+    });
+    setPlayer(created);
     return () => {
-      player.close();
+      created.close();
+      setPlayer(undefined);
       // The scene stopped: the devices are not left holding its last frame.
       api?.releaseLighting?.();
     };
-  }, [pack, unheard, capture]);
+  }, [pack, unheard]);
+
+  // The page's capture comes and goes with the window being seen (a display
+  // claim): with none, the devices are given back rather than left holding.
+  useEffect(() => {
+    player?.hear(capture);
+    if (player && !capture) {
+      window.electron?.ipcRenderer?.releaseLighting?.();
+    }
+  }, [player, capture]);
 
   if (!pack) {
     return { state: 'dark' };

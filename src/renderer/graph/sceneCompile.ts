@@ -16,15 +16,22 @@ import { SCENE_VERTEX_SOURCE } from 'common/sceneUniformContract';
  */
 const unsettled = new Set<Promise<void>>();
 
-const deleteWhenLinked = (
+/**
+ * Runs `release` once `linked` says every link it cares about is done, or
+ * the context is gone, checked on animation frames; `linksSettled` waits for
+ * it. For a 3D world given up on mid-link as well as a shader: three's
+ * programs are deleted by disposing their materials, and deleting one still
+ * linking is the same freeze.
+ */
+export const releaseWhenLinked = (
   gl: WebGL2RenderingContext,
-  program: WebGLProgram,
-  completion: number,
-) => {
+  linked: () => boolean,
+  release: () => void,
+): void => {
   const settled = new Promise<void>((resolve) => {
     const check = () => {
-      if (gl.isContextLost() || gl.getProgramParameter(program, completion)) {
-        gl.deleteProgram(program);
+      if (gl.isContextLost() || linked()) {
+        release();
         resolve();
       } else {
         requestAnimationFrame(check);
@@ -37,6 +44,17 @@ const deleteWhenLinked = (
     .then(() => unsettled.delete(settled))
     .catch(() => unsettled.delete(settled));
 };
+
+const deleteWhenLinked = (
+  gl: WebGL2RenderingContext,
+  program: WebGLProgram,
+  completion: number,
+) =>
+  releaseWhenLinked(
+    gl,
+    () => Boolean(gl.getProgramParameter(program, completion)),
+    () => gl.deleteProgram(program),
+  );
 
 /** Resolves once every program given up on mid-link has been deleted. */
 export const linksSettled = async (): Promise<void> => {

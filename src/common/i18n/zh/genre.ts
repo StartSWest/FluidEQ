@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': '流派说明',
   'genre.notes.about': '关于{name}',
   'genre.notes.aboutShort': '说明',
-  'genre.notes.aboutNone': '说明只为流派预设而写',
   'genre.notes.full': '完整说明',
   'genre.notes.close': '关闭',
   'genre.notes.sound': '声音',

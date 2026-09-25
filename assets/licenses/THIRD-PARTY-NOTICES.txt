@@ -148,8 +148,14 @@ react-router-dom    Copyright (c) React Training LLC 2015-2019
                     Copyright (c) Shopify Inc. 2022-2023
 regedit             Copyright (c) 2014 ironSource
 swift-f0 (weights)  Copyright (c) 2025-2026 Lars Nieradzik
+three               Copyright (c) 2010-2026 three.js authors
 uid                 Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
 FidelityFX-FSR 1.0  Copyright (c) 2021 Advanced Micro Devices, Inc.
+
+three.js is the 3D engine behind visualizers that carry a 3D world: their
+models, lights, materials and shadows, with its glTF loader, room environment
+and skeleton utilities from the same package. It ships as its own file and is
+loaded only when such a visualizer is shown (src/renderer/graph/world).
 
 FidelityFX Super Resolution 1.0 is the pair of filters (EASU and RCAS) that
 bring a visualizer drawn smaller than its panel up to size. They are ported to

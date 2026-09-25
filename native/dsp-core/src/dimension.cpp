@@ -27,6 +27,19 @@ constexpr double kParameterSmoothingMs = 18.0;
 constexpr double kAllPassMs[FEQ_DIMENSION_ALLPASSES] = {4.7, 7.3, 11.1};
 constexpr double kAllPassGain = 0.62;
 constexpr double kLongestAllPassMs = 11.1;
+/**
+ * How long an all-pass network started empty is left to fill before its
+ * decorrelated side is heard.
+ *
+ * Started empty under a playing programme, the network's delayed taps land
+ * one after another as its lines fill, each a step in the side: -57 dBFS
+ * above 5 kHz 32 to 56 ms after Dimension came on at a preset switch
+ * (2026-09-25), well after its 12 ms fade-in had finished. What an empty start
+ * leaves decays by the longest loop's gain once per its delay, 0.62 every
+ * 11.1 ms, so under a thousandth after 160 ms; the widths are heard at once
+ * and the decorrelation glides in after that.
+ */
+constexpr double kNetworkWarmMs = 160.0;
 
 /**
  * How much of itself the network hands straight back, and why the blend below
@@ -173,6 +186,7 @@ void feq_dimension_init(FeqDimension* state, float* side, float* centre,
   state->guard = 1.0;
   state->stage_mix = 0.0;
   state->sample_rate = 0.0;
+  state->network_warm_left = -1;
 }
 
 void feq_dimension_reset(FeqDimension* state) {
@@ -192,6 +206,7 @@ void feq_dimension_reset(FeqDimension* state) {
   state->correlation = 1.0;
   state->guard = 1.0;
   state->stage_mix = 0.0;
+  state->network_warm_left = -1;
 }
 
 void feq_dimension_process(FeqDimension* state, float* left, float* right,
@@ -224,6 +239,12 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
       state->allpasses[at].delay = delay;
       state->allpasses[at].cursor = 0;
     }
+    // New delays over lines that held the old ones: as good as empty.
+    state->network_warm_left = -1;
+  }
+  if (state->network_warm_left < 0) {
+    state->network_warm_left =
+        static_cast<int64_t>(std::floor((kNetworkWarmMs / 1000.0) * sample_rate + 0.5));
   }
 
   const double smooth = smoothing(kParameterSmoothingMs, sample_rate);
@@ -302,15 +323,22 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
     state->low_width = target_low;
     state->mid_width = target_mid;
     state->high_width = target_high;
-    state->decorrelation = target_decorrelation;
+    state->decorrelation =
+        state->network_warm_left > 0 ? 0.0 : target_decorrelation;
   }
 
   for (uint32_t at = 0; at < frames; ++at) {
     state->low_width += (target_low - state->low_width) * smooth;
     state->mid_width += (target_mid - state->mid_width) * smooth;
     state->high_width += (target_high - state->high_width) * smooth;
+    // Held at none while the network fills (`kNetworkWarmMs`).
+    const double decorrelation_now =
+        state->network_warm_left > 0 ? 0.0 : target_decorrelation;
+    if (state->network_warm_left > 0) {
+      state->network_warm_left -= 1;
+    }
     state->decorrelation +=
-        (target_decorrelation - state->decorrelation) * smooth;
+        (decorrelation_now - state->decorrelation) * smooth;
 
     /**
      * The guard only ever closes a widening, never a narrowing.

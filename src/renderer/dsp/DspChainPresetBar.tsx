@@ -331,27 +331,22 @@ const DspChainPresetBar = ({
             <path d="m6 3 5 5-5 5" />
           </svg>
         </button>
-        <button
-          type="button"
-          className="genre-about"
-          aria-label={
-            notesName
-              ? t('genre.notes.about', { name: notesName })
-              : t('genre.notes.aboutNone')
-          }
-          title={
-            notesName
-              ? t('genre.notes.about', { name: notesName })
-              : t('genre.notes.aboutNone')
-          }
-          disabled={!notes}
-          onClick={() => openGenreNotes(settings.presetId)}
-        >
-          <InfoMark />
-          <span className="genre-about__label">
-            {t('genre.notes.aboutShort')}
-          </span>
-        </button>
+        {/* Only where there are notes to open: a greyed button beside every
+            chain that has none read as broken (Ivan, 2026-09-25). */}
+        {notesName !== undefined && (
+          <button
+            type="button"
+            className="button small subtle genre-about"
+            aria-label={t('genre.notes.about', { name: notesName })}
+            title={t('genre.notes.about', { name: notesName })}
+            onClick={() => openGenreNotes(settings.presetId)}
+          >
+            <InfoMark />
+            <span className="genre-about__label">
+              {t('genre.notes.aboutShort')}
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="dsp-eq-transfer dsp-chain-transfer">

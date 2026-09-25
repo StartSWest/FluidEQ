@@ -76,7 +76,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // bands; with what it played, the new chain's first block finds each band
   // its own and crosses from the old rack to its own.
   chain_eq_fade_transfer(prepared, previous);
-  swap(prepared.side_highpass, previous.side_highpass);
+  swap(prepared.mono_maker, previous.mono_maker);
   // With the Maximizer's ring below: the ring holds audio the curve was
   // played on, and the inverse that follows it has to pick up where it was.
   chain_tone_transfer(prepared, previous);
@@ -87,6 +87,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.maximizer_delay_pointers, previous.maximizer_delay_pointers);
   swap(prepared.maximizer_reduction, previous.maximizer_reduction);
   swap(prepared.maximizer_reduction_db, previous.maximizer_reduction_db);
+  swap(prepared.maximizer_drive_now, previous.maximizer_drive_now);
   feq_linked_limiter_set_look_ahead(&prepared.maximizer,
                                     prepared.maximizer_look_ahead);
   swap(prepared.maximizer_low, previous.maximizer_low);
@@ -101,6 +102,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
                                   prepared.maximizer_low_look_ahead);
 
   swap(prepared.bass_forge, previous.bass_forge);
+  swap(prepared.bass_forge_run, previous.bass_forge_run);
   swap(prepared.bass_forge_low, previous.bass_forge_low);
   swap(prepared.bass_forge_scratch, previous.bass_forge_scratch);
   swap(prepared.bass_punch, previous.bass_punch);

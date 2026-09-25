@@ -3,13 +3,14 @@ import { SILENT_RHYTHM, type ISceneRhythm } from 'common/sceneRhythm';
 import { getEaseFactor } from 'common/smoothing';
 import {
   assembleFragmentSource,
-  SCENE_TAP_AGE_LIMIT_S,
   SPECTRUM_TEXELS,
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
+import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
+import compileWorldScene from './sceneWorldLoader';
 
 /**
  * The GL side of a scene: one program, audio textures, optional artwork, one triangle.
@@ -80,19 +81,6 @@ export interface ISceneFrame {
   musicSeconds?: number;
 }
 
-/** Where the pointer is taken to be when nobody is pointing: nowhere near. */
-export const NO_POINTER: readonly [number, number, number, number] = [
-  0.5, 0.5, 0, 0,
-];
-/** No tap yet: as long ago as a tap is ever said to be. */
-export const NO_TAP: readonly [number, number, number, number] = [
-  0.5,
-  0.5,
-  SCENE_TAP_AGE_LIMIT_S,
-  0,
-];
-export const HOME_CAMERA: readonly [number, number, number] = [0, 0, 1];
-
 export interface ISceneProgram {
   /** Upload this frame's measurement and draw one triangle. */
   draw(frame: ISceneFrame, width: number, height: number): void;
@@ -102,11 +90,27 @@ export interface ISceneProgram {
    * derived here, not in the frame, so the Studio's meter reads it from here.
    */
   musicAccent(): number;
+  /**
+   * Gives back what the next frame can make again, while the window cannot
+   * be seen: a 3D world's pictures are its largest use of the GPU's memory,
+   * from 70 MB at 1080p to several hundred at 4K. A shader has nothing worth
+   * giving back and leaves this out.
+   */
+  rest?(): void;
   dispose(): void;
 }
 
 export type TSceneCompileResult =
-  { ok: true; program: ISceneProgram } | { ok: false; log: string };
+  | {
+      ok: true;
+      program: ISceneProgram;
+      /**
+       * What a 3D world left out and why — a model it could not read, or the
+       * whole world when it fell back to its shader — for the scene's author.
+       */
+      notes?: string[];
+    }
+  | { ok: false; log: string };
 
 export const createSceneContext = (
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -154,7 +158,7 @@ const createDataTexture = (
   return texture;
 };
 
-export const compileScene = async (
+const compileShaderScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
   artwork?: ImageBitmap,
@@ -424,4 +428,31 @@ export const compileScene = async (
       musicAccent: () => lastAccent,
     },
   };
+};
+
+/**
+ * The scene's program: its 3D world when it has one and this GPU can build
+ * it (`world/worldProgram.ts`), and its shader otherwise — which is the scene
+ * every FluidEQ before worlds draws from the same pack, so a world that
+ * cannot be built here still leaves the scene its author made for that case.
+ */
+export const compileScene = async (
+  gl: WebGL2RenderingContext,
+  pack: IScenePack,
+  artwork?: ImageBitmap,
+  signal?: AbortSignal,
+  /** Fired when no window is on screen to poll the link on (`linkSceneProgram`). */
+  hurry?: AbortSignal,
+): Promise<TSceneCompileResult> => {
+  if (!pack.world) {
+    return compileShaderScene(gl, pack, artwork, signal, hurry);
+  }
+  const world = await compileWorldScene(gl, pack, artwork, signal, hurry);
+  if (world.ok) {
+    return world;
+  }
+  const shader = await compileShaderScene(gl, pack, artwork, signal, hurry);
+  return shader.ok
+    ? { ...shader, notes: [`The 3D world was not drawn: ${world.log}`] }
+    : shader;
 };

@@ -390,11 +390,12 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
    *
    * Mid is what both speakers share and side is what they differ by, so
    * neither exists in one channel: the sum and the difference have to be taken
-   * across the pair before anything is filtered, and undone after.
+   * across the pair before anything is filtered, and undone after. Only the
+   * EQ's own stereo setting decides it; the mono maker has its own, after
+   * (`chain_mono_maker.cpp`).
    */
   const bool mid_side =
-      (eq.stereo != FEQ_STEREO_STEREO || eq.mono_below_hz > 0.0) &&
-      chain->channels >= 2;
+      eq.stereo != FEQ_STEREO_STEREO && chain->channels >= 2;
   if (mid_side) {
     chain_encode_mid_side(channels, frames);
   }
@@ -463,21 +464,8 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
 
   chain_settle_convolvers(chain, frames);
 
-  /**
-   * The phase-cancellation fix, applied to the side channel only.
-   *
-   * Bass out of phase between the two channels vanishes the moment they are
-   * summed — a phone speaker, a mono PA and most Bluetooth speakers all do
-   * that — so a mix can sound enormous on headphones and gutless everywhere
-   * else. High-passing the SIDE removes the part that can cancel and leaves
-   * the middle whole. Above the corner the image is untouched: width is worth
-   * keeping wherever it cannot cancel.
-   */
-  if (mid_side && chain->active->has_mono_below != 0) {
-    feq_biquad_process(&chain->side_highpass, channels[1], frames,
-                       &chain->active->mono_below);
-  }
   if (mid_side) {
     chain_decode_mid_side(channels, frames);
   }
+  chain_process_mono_maker(chain, channels, frames);
 }

@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { assembleFragmentSource } from 'common/sceneUniformContract';
 import type { IScenePack } from 'common/scenePacks';
 import { linkSceneProgram } from './sceneCompile';
+import { warmSceneProgram } from './sceneWorkerClient';
 import {
   getUsableMemberScenes,
   loadMemberScene,
@@ -84,6 +85,18 @@ const keyOf = (packId: string, version: number, revision?: string) =>
  * collector gets round to it.
  */
 const buildOnce = async (pack: IScenePack, signal: AbortSignal) => {
+  // A world draws its sky inside a pass of its own, beside three's programs,
+  // none of which is this link of the bare shader: built here, a world's
+  // scene warmed a program nothing draws and paid its whole compile again
+  // when first shown. The scene worker builds exactly what will be drawn.
+  if (pack.world) {
+    // The warm-up takes no signal, so a stop that came while the pack was
+    // loading is honoured here, before a worker is started for it.
+    if (!signal.aborted) {
+      await warmSceneProgram(pack, false);
+    }
+    return;
+  }
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;

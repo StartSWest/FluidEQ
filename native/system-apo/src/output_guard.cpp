@@ -145,6 +145,23 @@ void OutputGuard::shift_level(double db, double curve_level_db,
   quiet_seconds_ = 0;
 }
 
+void OutputGuard::take_level(const OutputGuard& from) noexcept {
+  curve_level_db_ = from.curve_level_db_;
+  armed_ = from.armed_;
+  quiet_seconds_ = from.quiet_seconds_;
+  target_db_ = from.target_db_;
+  overload_age_ = from.overload_age_;
+  settling_frames_ = from.settling_frames_;
+  reassess_frames_ = from.reassess_frames_;
+  reassess_peak_ = from.reassess_peak_;
+  edit_goal_db_ = from.edit_goal_db_;
+  edit_recovery_ = from.edit_recovery_;
+  state_.limiter.gain = from.state_.limiter.gain;
+  state_.limiter.detector_gain = from.state_.limiter.detector_gain;
+  state_.limiter.platform_db = from.state_.limiter.platform_db;
+  state_.limiter.release_hold_remaining = from.state_.limiter.release_hold_remaining;
+}
+
 void OutputGuard::set_curve_level(double db) noexcept {
   const double level = std::min(0.0, db);
   if (!armed_ && level < curve_level_db_) {

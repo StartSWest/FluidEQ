@@ -471,6 +471,7 @@ const studio = {
   'studio.file.pack': 'pack.json',
   'studio.file.source': 'Le shader',
   'studio.file.artwork': 'L’image',
+  'studio.file.world': 'Le monde 3D',
   'studio.problem.heading': 'Cette version ne peut pas encore jouer',
   'studio.problem.line': '{file}, ligne {line}',
   'studio.problem.too-large': 'Le shader dépasse 256 Ko.',
@@ -512,12 +513,17 @@ const studio = {
     'Une scène peut avoir au plus 8 contrôles dans params.',
   'studio.problem.bad-ambient':
     'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
+  'studio.problem.bad-world':
+    'Le monde 3D ne contient rien que cette version puisse dessiner. Vérifiez ses nœuds, matériaux et formules.',
+  'studio.problem.bad-model':
+    'Un modèle 3D doit être un .glb qui contient tous ses tampons et images.',
   'studio.problem.bad-json': 'pack.json n’est pas un JSON valide.',
   'studio.problem.missing-file': 'Il manque un fichier dont la scène a besoin.',
   'studio.problem.unsafe-path':
     'Les noms de fichier doivent être de simples noms de fichiers de ce dossier.',
   'studio.problem.file-too-large':
     'Un fichier dépasse la taille permise pour une scène.',
+  'studio.world.heading': 'Le monde 3D n’a pas été dessiné, seulement son ciel',
   'studio.compile.heading': 'Le shader ne s’est pas compilé',
   'studio.compile.hint':
     'Corrigez-le et enregistrez, ou collez l’erreur dans votre IA.',

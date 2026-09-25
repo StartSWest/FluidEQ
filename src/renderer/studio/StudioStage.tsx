@@ -36,6 +36,8 @@ export type TStudioSize = 'graph' | 'narrow' | 'wide' | 'full';
 
 export type TStageTrouble =
   | { kind: 'compile'; log: string }
+  /** The 3D world was not built, and the stage shows its shader instead. */
+  | { kind: 'world'; log: string }
   | { kind: 'heavy' }
   | { kind: 'unavailable' };
 
@@ -224,6 +226,8 @@ export default function StudioStage({
             : { kind: 'unavailable' },
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
+      reportNotes: (notes) =>
+        troubleRef.current({ kind: 'world', log: notes.join('\n') }),
       // The author is at the machine looking at their own work, which is the
       // watching the brightness limiter exists for (`sceneRules.ts`).
       madeBy: 'listener',

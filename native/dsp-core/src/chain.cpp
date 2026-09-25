@@ -287,7 +287,9 @@ FeqChain* feq_chain_create(double sample_rate,
     chain->linked_middle[channel].assign(static_cast<size_t>(frames) * 2,
                                          0.0f);
   }
-  feq_biquad_reset(&chain->side_highpass);
+  chain->mono_maker.side.assign(frames, 0.0f);
+  chain->mono_maker.side_outgoing.assign(frames, 0.0f);
+  chain_mono_maker_reset(chain);
   // One path per channel, and Mid and Side only where there is a pair to
   // encode: each path is twenty-odd blocks of scratch, so the ones a chain
   // cannot reach are left unallocated rather than bought for nothing.
@@ -687,13 +689,19 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   chain_eq_fade_stop(chain);
   feq_denoise_reset(chain->denoise);
   feq_live_normalizer_reset(chain->live_normalizer);
-  feq_biquad_reset(&chain->side_highpass);
+  chain_mono_maker_reset(chain);
+  // A stream starts at the drive asked for; only a change glides.
+  chain->maximizer_drive_now =
+      chain->settings.maximizer.enabled != 0
+          ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0)
+          : 1.0;
   feq_linked_limiter_reset_control(&chain->maximizer);
   feq_bass_limiter_reset_control(&chain->maximizer_low);
   // A seek or a new source must not arrive with the previous passage's bloom
   // tail still decaying under it, which is what these two hold that no filter
   // history above does.
   feq_bass_forge_reset(&chain->bass_forge);
+  chain->bass_forge_run = FeqChain::BassForgeRun{};
   feq_bass_punch_reset(&chain->bass_punch);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {

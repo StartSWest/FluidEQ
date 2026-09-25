@@ -177,3 +177,38 @@ describe('the usual chains', () => {
     );
   });
 });
+
+describe('the notes button beside the rack’s picker', () => {
+  const showBar = (presetId: string) =>
+    render(
+      <FluidEqProviderWrapper value={context}>
+        <DspChainPresetBar
+          settings={{ ...DSP_DEFAULTS, enabled: true, presetId }}
+          disabled={false}
+          onChange={jest.fn()}
+          onCommit={jest.fn()}
+        />
+      </FluidEqProviderWrapper>,
+    );
+
+  it('wears the quiet button every action beside it wears, on a genre chain', () => {
+    showBar('rock');
+    const about = screen.getByRole('button', {
+      name: en['genre.notes.about'].replace('{name}', 'Rock'),
+    });
+    // Without the classes it drew as a grey browser button with its mark
+    // stacked over its word (Ivan's screenshot, 2026-09-25).
+    expect(about).toHaveClass('button', 'small', 'subtle', 'genre-about');
+    expect(about).toHaveTextContent(en['genre.notes.aboutShort']);
+    expect(about).toBeEnabled();
+  });
+
+  it('is not there at all on a chain with no notes', () => {
+    showBar('balanced');
+    expect(document.querySelector('.genre-about')).toBeNull();
+    // The control: the rest of the bar is.
+    expect(
+      screen.getByRole('button', { name: en['dsp.eqPreset.reset'] }),
+    ).toBeInTheDocument();
+  });
+});

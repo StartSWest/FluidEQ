@@ -45,6 +45,13 @@ class OutputGuard {
    */
   void shift_level(double db, double curve_level_db,
                    uint32_t settling_frames) noexcept;
+  /**
+   * Where `from` has the level, taken as this guard's own: its target and
+   * where it is in getting there, and the gain its limiter is applying. The
+   * look-ahead line stays this guard's, empty. For a graph crossing over
+   * from `from` (`graph.h`), which plays on meanwhile, so nothing is moved.
+   */
+  void take_level(const OutputGuard& from) noexcept;
  private:
   double curve_level_db_ = 0;
   double last_input_peak_ = 0;

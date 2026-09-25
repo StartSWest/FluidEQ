@@ -462,6 +462,7 @@ const studio = {
   'studio.file.pack': 'pack.json',
   'studio.file.source': 'Шейдер',
   'studio.file.artwork': 'Изображение',
+  'studio.file.world': '3D-мир',
   'studio.problem.heading': 'Эта версия пока не может играть',
   'studio.problem.line': '{file}, строка {line}',
   'studio.problem.too-large': 'Шейдер больше 256 КБ.',
@@ -500,11 +501,16 @@ const studio = {
     'В params может быть не больше 8 элементов управления.',
   'studio.problem.bad-ambient':
     'Часть элементов или регуляторов ambient в pack.json пропущена. Проверьте формы, движения, цвета, количество и то, чем управляет каждый регулятор.',
+  'studio.problem.bad-world':
+    'В 3D-мире нет ничего, что эта версия может нарисовать. Проверьте узлы, материалы и формулы.',
+  'studio.problem.bad-model':
+    '3D-модель должна быть файлом .glb, в котором есть все буферы и изображения.',
   'studio.problem.bad-json': 'pack.json — не корректный JSON.',
   'studio.problem.missing-file': 'Не хватает файла, нужного сцене.',
   'studio.problem.unsafe-path':
     'Имена файлов должны быть простыми именами файлов из этой папки.',
   'studio.problem.file-too-large': 'Файл больше, чем допускает сцена.',
+  'studio.world.heading': '3D-мир не нарисован, показано только небо',
   'studio.compile.heading': 'Шейдер не скомпилировался',
   'studio.compile.hint': 'Исправьте и сохраните или вставьте ошибку в свой ИИ.',
   'studio.heavy.body':

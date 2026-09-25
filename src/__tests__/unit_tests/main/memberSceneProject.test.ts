@@ -132,6 +132,101 @@ describe('reading a project folder', () => {
     expect(await codes()).toEqual(['unsafe-path']);
   });
 
+  describe('a world in a file of its own', () => {
+    const WORLD = {
+      materials: {
+        glow: { kind: 'glow', colour: '#00e5cf', fragmentFile: 'glow.frag' },
+      },
+      nodes: [{ type: 'mesh', geometry: { kind: 'box' }, material: 'glow' }],
+    };
+    const GLOW =
+      'void worldSurface(inout vec4 colour, inout vec3 emissive, WorldSurface s) {\n  emissive *= 1.0 + uLevel;\n}\n';
+
+    beforeEach(() => {
+      write('scene.frag', SOURCE);
+      write('glow.frag', GLOW);
+    });
+
+    it('reads it, and the files it names, as though it were inline', async () => {
+      write('world.json', JSON.stringify(WORLD));
+      write('pack.json', JSON.stringify(manifest({ worldFile: 'world.json' })));
+      const fromFile = await readProject(project);
+      write('pack.json', JSON.stringify(manifest({ world: WORLD })));
+      const inline = await readProject(project);
+
+      expect(fromFile.ok && fromFile.pack.world?.materials.glow.fragment).toBe(
+        GLOW,
+      );
+      expect(fromFile).toEqual(inline);
+    });
+
+    // Either choice would build a scene other than the one the author sees.
+    it('refuses a manifest that names both', async () => {
+      write('world.json', JSON.stringify(WORLD));
+      write(
+        'pack.json',
+        JSON.stringify(manifest({ world: WORLD, worldFile: 'world.json' })),
+      );
+      expect(await codes()).toEqual(['bad-world']);
+    });
+
+    it.each([['../world.json'], ['world.txt'], ['pack.json.bak']])(
+      'refuses a world file named %s',
+      async (worldFile) => {
+        fs.writeFileSync(path.join(root, 'world.json'), JSON.stringify(WORLD));
+        write('pack.json', JSON.stringify(manifest({ worldFile })));
+        expect(await codes()).toEqual(['unsafe-path']);
+      },
+    );
+
+    it('refuses models past the world total before reading them', async () => {
+      // Each file under the one-model limit, together past it: the second
+      // is refused by its size, not read and cut down afterwards. A real
+      // binary glTF each, its JSON padded out to five megabytes.
+      const json = Buffer.alloc(5 * 1024 * 1024 - 20, ' ');
+      json.write('{"asset":{"version":"2.0"}}');
+      const half = Buffer.alloc(20 + json.length);
+      half.write('glTF', 0, 'ascii');
+      half.writeUInt32LE(2, 4);
+      half.writeUInt32LE(half.length, 8);
+      half.writeUInt32LE(json.length, 12);
+      half.write('JSON', 16, 'ascii');
+      json.copy(half, 20);
+      write('a.glb', half);
+      write('b.glb', half);
+      write(
+        'pack.json',
+        JSON.stringify(
+          manifest({
+            world: {
+              ...WORLD,
+              models: { a: { file: 'a.glb' }, b: { file: 'b.glb' } },
+            },
+          }),
+        ),
+      );
+      expect(await codes()).toEqual(['file-too-large']);
+    });
+
+    it('holds a model written inline to the test a model file meets', async () => {
+      write(
+        'pack.json',
+        JSON.stringify(
+          manifest({
+            world: { ...WORLD, models: { ship: { data: 'AAAA' } } },
+          }),
+        ),
+      );
+      expect(await codes()).toEqual(['bad-model']);
+    });
+
+    it('says the world is wrong when its file is not JSON', async () => {
+      write('world.json', '{ "nodes": [');
+      write('pack.json', JSON.stringify(manifest({ worldFile: 'world.json' })));
+      expect(await codes()).toEqual(['bad-world']);
+    });
+  });
+
   it('names what is wrong with its controls, and builds once they are whole', async () => {
     const control = (id: string, over: Record<string, unknown> = {}) => ({
       id,

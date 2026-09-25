@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ISongJournal } from 'common/songJournal';
 import { soundHistorySamples } from 'common/soundHops';
+import { keepNewestSamples, readCaptureBlock } from '../audio/captureBlocks';
 import { CAPTURE_PROCESSOR } from '../audio/outputMirror';
 import { createSoundHearing } from '../graph/liveSound';
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
@@ -33,31 +34,6 @@ import workletUrl from '../remoteAudio/workletUrl';
 export interface ISongListener {
   close(): void;
 }
-
-interface IBlock {
-  channels: number;
-  frames: number;
-  pcm: Float32Array;
-}
-
-/** The processor's block, as `pcmCapture.worklet.ts` posts it; or nothing. */
-const readBlock = (data: unknown): IBlock | undefined => {
-  if (typeof data !== 'object' || data === null) {
-    return undefined;
-  }
-  const { channels, frames, pcm } = data as Record<string, unknown>;
-  if (
-    (channels !== 1 && channels !== 2) ||
-    typeof frames !== 'number' ||
-    !Number.isInteger(frames) ||
-    frames <= 0 ||
-    !(pcm instanceof ArrayBuffer) ||
-    pcm.byteLength !== channels * frames * Float32Array.BYTES_PER_ELEMENT
-  ) {
-    return undefined;
-  }
-  return { channels, frames, pcm: new Float32Array(pcm) };
-};
 
 /**
  * Starts hearing `capture` into `journal`. Refuses, as an AbortError, a
@@ -112,22 +88,12 @@ export const startSongListener = async (
   let heardFrames = 0;
   let closed = false;
   tap.port.onmessage = ({ data }: MessageEvent<unknown>) => {
-    const block = closed ? undefined : readBlock(data);
+    const block = closed ? undefined : readCaptureBlock(data);
     if (!block) {
       return;
     }
-    const { channels, frames, pcm } = block;
-    // The latest `size` samples of each channel, oldest first, as an
-    // analyser holds them (`soundHops.ts`).
-    const kept = Math.min(frames, size);
-    left.copyWithin(0, kept);
-    right.copyWithin(0, kept);
-    for (let frame = frames - kept; frame < frames; frame += 1) {
-      const at = size - frames + frame;
-      left[at] = pcm[frame * channels];
-      right[at] = pcm[frame * channels + channels - 1];
-    }
-    heardFrames += frames;
+    keepNewestSamples(left, right, block);
+    heardFrames += block.frames;
     hearing.update(left, right, (heardFrames / rate) * 1_000);
     hearing.music();
   };

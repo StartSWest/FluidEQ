@@ -39,7 +39,7 @@ import {
 import { sceneRulesFor } from './sceneRules';
 import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
-import { sameSceneProgramInputs } from './sceneProgramInputs';
+import sameSceneProgramInputs from './sceneProgramInputs';
 import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
 import { createStereoFollower } from './stereoImage';
 import {
@@ -810,6 +810,9 @@ export default function useSceneRunner({
           if (proved !== undefined) {
             ladderRef.current.resume(proved);
           }
+        }
+        if (result.notes) {
+          sourceRef.current.reportNotes?.(result.notes);
         }
         loadedRef.current?.(pack);
         kick();

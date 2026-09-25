@@ -77,7 +77,7 @@ export const versionToPublish = (local: unknown, held?: number): number => {
  * built from code points: none of them draws anything, and each can hide text
  * or turn the line around it backwards.
  */
-const INVISIBLE = new RegExp(
+const NOTE_INVISIBLE = new RegExp(
   `[${[
     [0x00, 0x1f],
     [0x7f, 0x9f],
@@ -123,7 +123,7 @@ export const readVersionNote = (value: unknown): string | null | undefined => {
   const cleaned = value
     .normalize('NFC')
     .replace(/\s+/g, ' ')
-    .replace(INVISIBLE, '')
+    .replace(NOTE_INVISIBLE, '')
     .replace(/ {2,}/g, ' ')
     .trim();
   if (cleaned.length === 0) {

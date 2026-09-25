@@ -7,13 +7,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
+import { HOP_MS, soundHistorySamples } from 'common/soundHops';
 import { holdEnergy, type ISpectrumEnergy } from 'common/spectrumEnergy';
+import { CAPTURE_PROCESSOR } from '../audio/outputMirror';
+import { keepNewestSamples, readCaptureBlock } from '../audio/captureBlocks';
 import workletUrl from '../remoteAudio/workletUrl';
 import {
   createAxisCells,
   readAbsoluteLevels,
 } from '../utils/autoBalanceCapture';
-import { connectSoundAnalysers, createLiveSound } from '../graph/liveSound';
+import { createSoundHearing } from '../graph/liveSound';
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import {
   FFT_SIZE,
@@ -34,7 +37,7 @@ import {
   fillWaveformTexels,
 } from '../graph/sceneUniforms';
 import {
-  LIGHTING_CLOCK_PROCESSOR,
+  LIGHTING_TICKS_PER_SECOND,
   type ILightingSceneFrame,
 } from './lightingSceneMessages';
 
@@ -44,10 +47,26 @@ import {
  * The same measurement the graph's scene gets — the same analyser settings,
  * the same track-referenced decibel window, the same sound read every ten
  * milliseconds (`liveSound.ts`) — so the lamps move with the music the way
- * the picture does. Its own analyser on the
- * capture's source rather than the graph's frames, because the graph publishes
- * nothing while the window is hidden, and the desk is lit exactly when the
- * window is not being looked at.
+ * the picture does. Its own analyser on the capture's source rather than the
+ * graph's frames, because the graph publishes nothing while the window is
+ * hidden, and the desk is lit exactly when the window is not being looked at.
+ *
+ * EVERY SAMPLE, HANDED OVER BY THE AUDIO THREAD. The audio thread gives the
+ * capture's blocks to this page as they play (`CAPTURE_PROCESSOR`), and each
+ * is heard when it arrives, in order: the rhythm, the drums and the energy
+ * never lose a moment of the song, however late the page gets to them. A
+ * clock worklet telling the page when to read its analysers was the first
+ * way, and whatever played between two late ticks was never heard — an
+ * analyser holds its last third of a second — while Chromium held the page
+ * back behind a busy UI, or a hidden renderer sat at Windows' idle priority
+ * (measured: ticks up to 5.4 s apart in a hidden window on a loaded machine).
+ *
+ * A LATE PAGE DRAWS THE NEWEST MOMENT. A frame is a picture, and pictures of
+ * moments already past would reach the devices together and be seen as none.
+ * So while another block is already waiting — the audio clock says how far
+ * ahead of this page it is — no frame is made; the frame made at the newest
+ * block stands for all the time since the last one, and its picture (the
+ * spectrum and the waveform, read from the analyser) is the music as it is.
  */
 
 export interface ILightingListener {
@@ -59,6 +78,10 @@ export interface IHeardFrame {
   /** Nothing is playing: the output measured below the silence floor. */
   silent: boolean;
 }
+
+/** About one hop of sound a block: 480 frames at 48 kHz, 960 at 96. */
+const blockFramesAt = (rate: number) =>
+  Math.min(8_192, Math.max(128, Math.round((rate * HOP_MS) / 1_000)));
 
 export const startLightingListener = async (
   capture: ICaptureGraph,
@@ -81,6 +104,7 @@ export const startLightingListener = async (
   // A capture or scene can be replaced while its worklet module is loading.
   assertCurrent();
 
+  const rate = context.sampleRate;
   const analyser = context.createAnalyser();
   analyser.fftSize = FFT_SIZE;
   analyser.minDecibels = -100;
@@ -88,28 +112,44 @@ export const startLightingListener = async (
   // The graph's own value, and for the same reason: see useLiveOutputSpectrum.
   analyser.smoothingTimeConstant = 0.2;
 
-  const clock = new AudioWorkletNode(context, LIGHTING_CLOCK_PROCESSOR, {
+  // Two channels always, as the drawings hear them (`connectSoundAnalysers`):
+  // a single one spread to both, more than two folded down as speakers fold
+  // them.
+  const input = context.createGain();
+  input.channelCount = 2;
+  input.channelCountMode = 'explicit';
+  input.channelInterpretation = 'speakers';
+  const tap = new AudioWorkletNode(context, CAPTURE_PROCESSOR, {
     numberOfInputs: 1,
     numberOfOutputs: 1,
     outputChannelCount: [1],
   });
   // Silent, and connected all the way to the destination: a node the graph
-  // does not pull toward an output is not guaranteed to be processed at all,
-  // and an unprocessed clock never ticks.
+  // does not pull toward an output is not guaranteed to be processed at all.
   const mute = context.createGain();
   mute.gain.value = 0;
   source.connect(analyser);
-  source.connect(clock);
-  // The sound itself, for the energy and the rhythm: read on this clock's
-  // ticks, which come whether or not the window is on screen.
-  const soundAnalysers = connectSoundAnalysers(context, source);
-  const sound = createLiveSound(soundAnalysers);
-  clock.connect(mute).connect(context.destination);
+  source.connect(input);
+  input.connect(tap);
+  tap.connect(mute);
+  mute.connect(context.destination);
+  // Blocks of about a hop: the frame made at a block is at most that late.
+  const blockFrames = blockFramesAt(rate);
+  const blocks = new MessageChannel();
+  tap.port.postMessage({ kind: 'attach', port: blocks.port1, blockFrames }, [
+    blocks.port1,
+  ]);
+
+  const historySize = soundHistorySamples(rate);
+  const left = new Float32Array(historySize);
+  const right = new Float32Array(historySize);
+  const hearing = createSoundHearing(rate);
+  const tickFrames = Math.round(rate / LIGHTING_TICKS_PER_SECOND);
 
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
   const samples = new Float32Array(FFT_SIZE);
-  const axis = createFrequencyAxis(context.sampleRate);
-  const cells = createAxisCells(axis, context.sampleRate, FFT_SIZE);
+  const axis = createFrequencyAxis(rate);
+  const cells = createAxisCells(axis, rate, FFT_SIZE);
   const levels = new Float64Array(axis.length);
   const buffers = createFrameBuffers();
   const waveformPoints = new Array<number>(WAVEFORM_POINT_COUNT).fill(0);
@@ -120,12 +160,23 @@ export const startLightingListener = async (
   let timeSeconds = 0;
   let fade = 0;
   let closed = false;
+  /** Frames of sound handed over so far, and where the last picture was made. */
+  let heardFrames = 0;
+  let framedAt = 0;
+  let nextTick = tickFrames;
+  /**
+   * The fewest frames the audio thread has ever been ahead of this page: the
+   * handover itself and the delivery. A part-filled block and the clock's
+   * render quantum add up to a block more on time; two blocks more, and a
+   * newer block is waiting behind this one.
+   */
+  let handover: number | undefined;
+  /** The first frame put off for a waiting block, and how far behind it was. */
+  let skipped: { at: number; ahead: number } | undefined;
 
-  clock.port.onmessage = ({ data }: MessageEvent<unknown>) => {
-    if (closed || typeof data !== 'number' || !Number.isFinite(data)) {
-      return;
-    }
-    const deltaMs = data;
+  const makeFrame = () => {
+    const deltaMs = ((heardFrames - framedAt) / rate) * 1_000;
+    framedAt = heardFrames;
     let points = NO_POINTS;
     let peak: number | undefined;
     if (!isPaused()) {
@@ -133,7 +184,7 @@ export const startLightingListener = async (
       readAbsoluteLevels(frequencyData, cells, levels);
       peak = getPeakLevel(frequencyData);
       if (peak !== undefined) {
-        // The pump's follower, scaled from its tick to this one.
+        // The pump's follower, scaled from its tick to this frame.
         const release =
           (TRACK_REFERENCE_RELEASE_DB * deltaMs) / UPDATE_INTERVAL_MS;
         reference =
@@ -152,7 +203,7 @@ export const startLightingListener = async (
     }
 
     // Paused, the lamps hold what they last showed, as the picture does.
-    const heard = isPaused() && last ? holdEnergy(last) : sound.music();
+    const heard = isPaused() && last ? holdEnergy(last) : hearing.music();
     last = heard;
     fillSpectrumTexels(points, spectrum, MIN_GAIN, MAX_GAIN);
     fillWaveformTexels(waveformPoints, waveform);
@@ -179,6 +230,40 @@ export const startLightingListener = async (
     });
   };
 
+  blocks.port2.onmessage = ({ data }: MessageEvent<unknown>) => {
+    const block = closed ? undefined : readCaptureBlock(data);
+    if (!block) {
+      return;
+    }
+    keepNewestSamples(left, right, block);
+    heardFrames += block.frames;
+    hearing.update(left, right, (heardFrames / rate) * 1_000);
+    const ahead = Math.round(context.currentTime * rate) - heardFrames;
+    handover = handover === undefined ? ahead : Math.min(handover, ahead);
+    if (heardFrames < nextTick) {
+      return;
+    }
+    while (nextTick <= heardFrames) {
+      nextTick += tickFrames;
+    }
+    if (ahead - handover > 2 * blockFrames) {
+      skipped ??= { at: heardFrames, ahead };
+      // A backlog is worked through block by block, each nearer the audio
+      // than the last. A distance that has held for a second of sound is
+      // not one: the tap counted nothing while its source was silent to it,
+      // and this is where the handover is now. Without this the lamps would
+      // wait on a backlog that will never clear.
+      const held =
+        heardFrames - skipped.at >= rate && skipped.ahead - ahead < blockFrames;
+      if (!held) {
+        return;
+      }
+      handover = ahead;
+    }
+    skipped = undefined;
+    makeFrame();
+  };
+
   /**
    * Each connection this made, and only those: the capture's source feeds the
    * graph and the meters too. A capture that stopped first has already
@@ -203,13 +288,19 @@ export const startLightingListener = async (
 
   return {
     close: () => {
+      if (closed) {
+        return;
+      }
       closed = true;
-      clock.port.onmessage = null;
-      clock.port.close();
+      blocks.port2.onmessage = null;
+      blocks.port2.close();
+      // A processor that keeps answering `true` is kept alive by its
+      // context; told to close, it answers `false` once and goes.
+      tap.port.postMessage({ kind: 'close' });
       disconnect(source, analyser);
-      disconnect(source, soundAnalysers.input);
-      disconnect(source, clock);
-      disconnect(clock);
+      disconnect(source, input);
+      disconnect(input);
+      disconnect(tap);
       disconnect(mute);
     },
   };

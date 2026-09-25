@@ -122,6 +122,13 @@ typedef struct FeqDimension {
   /** How far the stage is in: see `FEQ_SPLIT_FADE_MS`. */
   double stage_mix;
   double sample_rate;
+  /**
+   * Samples left before the all-pass network, started empty, has settled
+   * enough for its decorrelated side to be heard; -1 for "started empty,
+   * not yet counted". The network runs meanwhile and the decorrelation is
+   * held at none (`dimension.cpp`).
+   */
+  int64_t network_warm_left;
 } FeqDimension;
 
 /** Longest all-pass delay in samples at this rate, which sizes every buffer. */

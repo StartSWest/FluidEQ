@@ -678,6 +678,33 @@ Everything worth knowing about them is available through commands:
   sample: +6 → −6 → 0 leaves -90 dBFS (`graph_test.cpp`,
   `an_edit_landing_mid_fade_on_zero_does_not_click`). The rack's EQ fades
   the same way (`chain_eq_fade.cpp`).
+- **A preset switch never steps, and one that moves the delay crosses
+  over** (Ivan, 2026-09-25: "make sure the engine when switch preset doesnt
+  sound crac and is smooth"). Measured under four low tones through the
+  engine's own graph, every factory chain to the next and back, to None and
+  to Default: 534 of 636
+  switches moved the delay — each preset carries its own Maximizer
+  look-ahead, None drops the rack, Game mode and the curves stage change it
+  too — and landed at -24 to -30 dBFS above 5 kHz; now none passes -80. Such
+  a graph takes nothing from the one before: that one plays on, fed the same
+  input, while the new one fills from silence, and after its delay and 40 ms
+  the sound crosses over 30 ms (`graph.h`, `start_crossing`; sharing a rack,
+  the rack runs once and the old graph plays from after it). A graph still
+  filling when the next switch lands is passed over, so held arrows never
+  play more than two graphs. The watcher frees no graph a kept one is still
+  crossing from (`graph_reclaim.cpp`), and a test that hands over has to keep
+  the replaced graph alive the same way (`phase_test.cpp`). Into a longer
+  delay, what was heard just before the cross is heard again after it — the
+  delay grew by that much — never on top of it. A switch that keeps the delay
+  still carries the state, and the rack's stages no longer step there: the
+  mono maker runs after the EQ on its own mid/side and crosses in 20 ms (it
+  sat inside the EQ's, so turning it on moved every band from left/right to
+  mid/side: -42 dBFS), the Maximizer's drive glides and a stage switched off
+  lets its reduction go over 50 ms, Bass Forge fades out until its level
+  normaliser is back at unity, and Dimension holds its decorrelation off for
+  160 ms while an empty all-pass network fills. Held by
+  `chain_switch_test.cpp` and `graph_crossing_test.cpp`, each case beside
+  the same two outputs spliced unsmoothed as its control.
 - **Auto normalize starts at the curve's own level and climbs back.** The
   app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
   directive so a Preamp in the custom file stays a fixed gain); after 5 s of
@@ -1221,6 +1248,28 @@ Out-String` (or any other capture) is what actually waits for it and shows
   measured against a chain with no exciter and every linked stage off,
   because a linked limiter passing the centre's harmonics on to the LFE
   is the design, not the exciter.
+- **A 3D world is a scene program like any shader, on the same context.**
+  A pack's optional `world` (`common/sceneWorld.ts`, format in
+  `docs/scene-worlds.md`) is drawn by three.js from `graph/world/`, a bundle
+  of its own (`scene-world.js`) that a scene worker `importScripts` only when
+  a world arrives, so shader scenes never parse it. `compileScene` builds the
+  world or, failing that, the shader — which is also what every older FluidEQ
+  plays from the same pack, and why a world pack keeps a real shader as its
+  sky. `draw` renders into its own targets and composites into whatever
+  framebuffer and scissor the worker left bound, then leaves the context
+  reset: that is the whole contract, and it is why FSR, supersampling, FXAA
+  and the brightness limiter work on worlds unchanged. Four things measured
+  the hard way: the target wrapping the worker's framebuffer
+  (`setRenderTargetFramebuffer`) must never be disposed, or three deletes the
+  worker's framebuffer; three sizes points from the canvas it was made on,
+  never the drawn size, so points read `uWorldPointScale` and never go under
+  three pixels (smaller, a star field was invisible); the composite works in
+  linear light and adds the world's light to the sky, because keeping only
+  light where geometry covered the pixel threw away every glow over empty
+  sky; and a still drawn band by band reuses the world rendered for the same
+  frame, or each band cost the whole world. A member's world GLSL answers to
+  the scene rules (`checkMemberWorldHook`); a world that breaks one plays its
+  shader.
 - **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
   (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
   at 48 kHz, so a coefficient or a stage that assumed one rate would pass all

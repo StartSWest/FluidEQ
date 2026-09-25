@@ -4,24 +4,22 @@ import type { ICaptureGraph } from 'renderer/graph/useLiveOutputSpectrum';
 function setup() {
   let finish: () => void = () => undefined;
   const source = { connect: jest.fn(), disconnect: jest.fn() };
-  // The lamps' spectrum, and the two channels the sound is read from
-  // (`connectSoundAnalysers`), which hang off their own clock.
-  const analyser = {
-    frequencyBinCount: 1024,
-    fftSize: 2048,
-    context: { sampleRate: 48000, currentTime: 0 },
-    getFloatTimeDomainData: jest.fn(),
-  };
-  const splitter = { connect: jest.fn() };
+  const analyser = { frequencyBinCount: 1024 };
   const mute = {
     gain: { value: 1 },
     connect: jest.fn(),
     disconnect: jest.fn(),
   };
+  // The capture tap: an audio-thread node that hands blocks of samples over
+  // a port of their own, and is told to close rather than closing its port.
   const clock = {
-    port: { close: jest.fn() },
+    port: { postMessage: jest.fn(), close: jest.fn() },
     connect: jest.fn(() => mute),
     disconnect: jest.fn(),
+  };
+  const blocks = {
+    port1: {},
+    port2: { onmessage: null as unknown, close: jest.fn() },
   };
   const context = {
     state: 'running',
@@ -37,24 +35,32 @@ function setup() {
     },
     createAnalyser: jest.fn(() => analyser),
     createGain: jest.fn(() => mute),
-    createChannelSplitter: jest.fn(() => splitter),
   };
   const construct = jest.fn(() => clock);
   Object.defineProperty(window, 'AudioWorkletNode', {
     configurable: true,
     value: construct,
   });
+  // jsdom has no MessageChannel.
+  Object.defineProperty(window, 'MessageChannel', {
+    configurable: true,
+    value: jest.fn(() => blocks),
+  });
   return {
     capture: { context, source } as unknown as ICaptureGraph,
     context,
     source,
     clock,
+    blocks,
     construct,
     finish: () => finish(),
   };
 }
 
-afterEach(() => Reflect.deleteProperty(window, 'AudioWorkletNode'));
+afterEach(() => {
+  Reflect.deleteProperty(window, 'AudioWorkletNode');
+  Reflect.deleteProperty(window, 'MessageChannel');
+});
 
 it('does not build or connect nodes after the capture closes during worklet loading', async () => {
   const fixture = setup();
@@ -108,9 +114,22 @@ it('connects a valid producer and closes its own clock and connections', async (
   fixture.finish();
   const listener = await pending;
   expect(fixture.construct).toHaveBeenCalledTimes(1);
-  // The spectrum, the clock, and the sound's two channels.
-  expect(fixture.source.connect).toHaveBeenCalledTimes(3);
+  expect(fixture.source.connect).toHaveBeenCalledTimes(2);
+  // The tap is handed its own port for the blocks.
+  expect(fixture.clock.port.postMessage).toHaveBeenCalledWith(
+    expect.objectContaining({ kind: 'attach', port: fixture.blocks.port1 }),
+    [fixture.blocks.port1],
+  );
   listener.close();
-  expect(fixture.clock.port.close).toHaveBeenCalledTimes(1);
-  expect(fixture.source.disconnect).toHaveBeenCalledTimes(3);
+  // Told to close, a processor answers false once and goes; a closed port
+  // alone would leave it answering true, kept alive by its context.
+  expect(fixture.clock.port.postMessage).toHaveBeenLastCalledWith({
+    kind: 'close',
+  });
+  expect(fixture.blocks.port2.close).toHaveBeenCalledTimes(1);
+  expect(fixture.blocks.port2.onmessage).toBeNull();
+  expect(fixture.source.disconnect).toHaveBeenCalledTimes(2);
+  // Closed twice is closed once.
+  listener.close();
+  expect(fixture.blocks.port2.close).toHaveBeenCalledTimes(1);
 });

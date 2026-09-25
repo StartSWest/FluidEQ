@@ -9,6 +9,8 @@ import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
 import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import { readSceneWave, type ISceneWave } from './sceneWave';
+import type { ISceneWorld } from './sceneWorld';
+import normalizeSceneWorld from './sceneWorldRead';
 import {
   isNeutralResponse,
   readResponse,
@@ -128,6 +130,12 @@ export interface IScenePack {
    * (`sceneAmbient.ts`). Absent means none.
    */
   ambient?: ISceneAmbient;
+  /**
+   * A 3D world drawn in front of the shader (`sceneWorld.ts`). The shader is
+   * its sky here and the whole scene on a FluidEQ that predates worlds, which
+   * ignores this field. Absent means the shader alone, as before.
+   */
+  world?: ISceneWorld;
   /**
    * How far the viewer may turn, tilt and zoom a 3D scene by dragging it
    * (`sceneCamera.ts`). Absent means the scene cannot be turned.
@@ -406,6 +414,17 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
   // pushed past its end is still the author's meaning.
   const response =
     raw.response === undefined ? undefined : readResponse(raw.response);
+  // Dropped rather than refused, like the artwork: a world this version
+  // cannot build leaves the shader, which is the scene every older FluidEQ
+  // plays from the same pack.
+  const world =
+    raw.world === undefined
+      ? undefined
+      : normalizeSceneWorld(
+          raw.world,
+          params.map((param) => param.id),
+          artwork,
+        );
   // Dropped rather than refused, like a response: the scene plays without it.
   const ambient =
     raw.ambient === undefined
@@ -428,6 +447,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     ...(response && !isNeutralResponse(response) ? { response } : {}),
     ...(wave ? { wave } : {}),
     ...(ambient ? { ambient } : {}),
+    ...(world ? { world } : {}),
     ...(camera ? { camera } : {}),
   };
 };

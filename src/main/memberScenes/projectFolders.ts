@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../common/memberScenes';
-import { MANIFEST_FILE, writeStarterProject } from './project';
+import { writeStarterProject } from './project';
+import { MANIFEST_FILE } from './projectFiles';
 
 /**
  * New Studio projects, made where the member keeps them.

@@ -31,6 +31,17 @@ namespace {
 
 constexpr double kPi = 3.14159265358979323846;
 
+/**
+ * The crossover's two times (`graph.h`). The settle is what a graph started
+ * from silence needs, once its delay has filled, for the transient of the
+ * music arriving to die out of its filters: a 30 Hz shelf's decays to a
+ * hundredth in 35 ms. The fade is the rack's EQ fade and a half — the two
+ * versions of the music it crosses between can be up to 20 ms apart, and a
+ * longer cross spreads the comb that overlap makes more thinly.
+ */
+constexpr double kCrossingSettleSeconds = 0.04;
+constexpr double kCrossingFadeSeconds = 0.03;
+
 /** Either both absent, or both present with the same response. */
 template <typename Stage>
 bool same_stage(const std::unique_ptr<Stage>& current,
@@ -72,9 +83,106 @@ double Graph::current_preamp() const noexcept {
   return preamp_from_ + weight * (preamp_linear_ - preamp_from_);
 }
 
+bool Graph::start_crossing(Graph* previous) noexcept {
+  if (passthrough_ || previous->passthrough_ ||
+      source_buffers_.size() != channels_) {
+    return false;
+  }
+  // A graph still filling, never yet heard, is passed over: the one it was
+  // crossing from is what is playing, so that is what this crosses from.
+  // A switch made while the arrows are held lands here, and so never plays
+  // more than two graphs at once.
+  Graph* source = previous;
+  if (previous->source_ != nullptr &&
+      previous->crossing_elapsed_ < previous->crossing_prime_) {
+    source = previous->source_;
+  }
+  const bool shared = rack_ != nullptr && rack_ == source->rack_;
+  // Sharing the rack, the graph before is played from after it, and a graph
+  // itself mid-crossing cannot be played from there.
+  if (shared && source->source_ != nullptr) {
+    return false;
+  }
+  source_ = source;
+  source_shares_rack_ = shared;
+  crossing_hold_.store(source, std::memory_order_release);
+  // Only this graph writes what the window reads from here on.
+  source->history_ = nullptr;
+  source->output_gain_ = nullptr;
+  source->output_enabled_ = nullptr;
+  source->output_active_ = nullptr;
+  source->meter_activity_ = nullptr;
+  if (!shared && source->rack_ != nullptr) {
+    feq_chain_set_meters(source->rack_.get(), nullptr);
+  }
+  crossing_elapsed_ = 0;
+  crossing_prime_ =
+      latency_frames_ +
+      static_cast<uint64_t>(std::lround(kCrossingSettleSeconds * sample_rate_));
+  crossing_fade_ = std::max<uint32_t>(
+      1u, static_cast<uint32_t>(std::lround(kCrossingFadeSeconds * sample_rate_)));
+
+  // The level Auto normalize is holding comes across; its delay line starts
+  // empty with the rest of this graph.
+  if (output_guard_ && source->output_guard_) {
+    output_guard_->take_level(*source->output_guard_);
+    const uint32_t settling =
+        std::max(latency_frames_, source->latency_frames_) + sample_rate_ / 20;
+    if (auto_preamp_ && level_basis_ != nullptr && level_basis_ == previous) {
+      output_guard_->shift_level(level_shift_db_, curve_level_db_, settling);
+    } else {
+      output_guard_->set_curve_level(curve_level_db_);
+      if (auto_preamp_) {
+        output_guard_->reassess(settling);
+      }
+    }
+  }
+  return true;
+}
+
+void Graph::mix_crossing(float* const* planar, uint32_t frames) noexcept {
+  const uint64_t fade_from = crossing_prime_;
+  const uint64_t fade_until = crossing_prime_ + crossing_fade_;
+  for (uint32_t channel = 0; channel < channels_; ++channel) {
+    float* own = planar[channel];
+    const float* before = source_planes_[channel];
+    if (own == nullptr || before == nullptr) {
+      continue;
+    }
+    for (uint32_t at = 0; at < frames; ++at) {
+      const uint64_t position = crossing_elapsed_ + at;
+      double weight = 1.0;
+      if (position < fade_from) {
+        weight = 0.0;
+      } else if (position < fade_until) {
+        weight = 0.5 - 0.5 * std::cos(kPi * static_cast<double>(position - fade_from) /
+                                      static_cast<double>(crossing_fade_));
+      }
+      own[at] = static_cast<float>(static_cast<double>(before[at]) +
+                                   weight * (static_cast<double>(own[at]) -
+                                             static_cast<double>(before[at])));
+    }
+  }
+  crossing_elapsed_ += frames;
+  if (crossing_elapsed_ >= fade_until) {
+    // After the last block that touched it, and with release: the watcher
+    // may free it the moment it reads this.
+    source_ = nullptr;
+    crossing_hold_.store(nullptr, std::memory_order_release);
+  }
+}
+
 void Graph::adopt_state(Graph* previous) noexcept {
   if (!transfer_state_ || previous == nullptr || sample_rate_ != previous->sample_rate_ ||
       channels_ != previous->channels_ || max_frames_ != previous->max_frames_) {
+    return;
+  }
+  // A graph that moves the sound in time crosses over instead of taking the
+  // state: see `graph.h`. So does one replacing a graph still crossing over,
+  // whatever its delay: what is heard there is not that graph's alone, and
+  // taking its state would jump from what is heard to what it holds.
+  if ((latency_frames_ != previous->latency_frames_ || previous->source_ != nullptr) &&
+      start_crossing(previous)) {
     return;
   }
   const bool same_bands = same_stage(plain_, previous->plain_);

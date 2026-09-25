@@ -56,6 +56,12 @@ export interface ISceneSource {
   /** Too slow even at the ladder's floor. */
   tooSlow(): void;
   /**
+   * What a 3D world left out, or why it was drawn as its shader instead —
+   * for the Studio, where its author can fix it. Elsewhere the scene simply
+   * plays as well as this machine can play it.
+   */
+  reportNotes?(notes: readonly string[]): void;
+  /**
    * Who made the scene (`sceneMaker.ts`): FluidEQ, the listener, or another
    * member. Its size ladder, its brightness limiter and whether it is
    * compiled ahead follow from this alone (`sceneRules.ts`).

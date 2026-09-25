@@ -62,7 +62,7 @@ let lost = false;
  * The scene the window last asked for, to load again when a lost context
  * comes back; null once its own frame is blamed for the loss.
  */
-let wanted: { pack: IScenePack; guarded: boolean } | null = null;
+let wanted: { pack: IScenePack; guarded: boolean; id: number } | null = null;
 /** How long the last frame held the GPU, for a loss right after it. */
 let lastCostMs = 0;
 /**
@@ -76,35 +76,52 @@ let compilation: AbortController | undefined;
 /** Loads still running: the worker is ended only once none are. */
 const running = new Set<Promise<void>>();
 
-const fail = (packId: string, reason: string) =>
-  scope.postMessage({ kind: 'failed', packId, reason });
+/** `id`: the load that failed; none when it is the program being drawn. */
+const fail = (packId: string, reason: string, id?: number) =>
+  scope.postMessage({
+    kind: 'failed',
+    packId,
+    reason,
+    ...(id === undefined ? {} : { id }),
+  });
 
-const load = async (next: IScenePack, guarded: boolean) => {
-  generation += 1;
-  const mine = generation;
-  wanted = { pack: next, guarded };
-  compilation?.abort();
-  const controller = new AbortController();
-  compilation = controller;
+/** Nothing drawn any more: the program, its limiter and what it was of. */
+const drop = () => {
   program?.dispose();
   program = null;
   pack = null;
   guard?.dispose();
   guard = null;
-  pacing = createLampPacing();
-  tuner.reset();
+};
+
+/**
+ * The scene asked for, linked beside the one being drawn, which keeps drawing
+ * until this one can take over. A new version of the member's scene, or the
+ * next scene chosen, used to put the desk out for the whole link — seconds for
+ * a heavy scene, and the lamps then light nothing at all.
+ */
+const load = async (next: IScenePack, guarded: boolean, id: number) => {
+  generation += 1;
+  const mine = generation;
+  wanted = { pack: next, guarded, id };
+  compilation?.abort();
+  const controller = new AbortController();
+  compilation = controller;
   if (!gl || lost) {
     // A lost context loads the scene when it comes back.
     if (!gl) {
-      fail(next.id, 'no-context');
+      drop();
+      fail(next.id, 'no-context', id);
     }
     return;
   }
+  let nextGuard: IFlashGuard | null = null;
   if (guarded) {
-    guard = createFlashGuard(gl);
-    if (!guard) {
+    nextGuard = createFlashGuard(gl);
+    if (!nextGuard) {
       // No limiter, no member's scene on the lamps: the swatch instead.
-      fail(next.id, 'no-guard');
+      drop();
+      fail(next.id, 'no-guard', id);
       return;
     }
   }
@@ -112,6 +129,7 @@ const load = async (next: IScenePack, guarded: boolean) => {
   try {
     artwork = await decodeSceneArtwork(next);
     if (mine !== generation) {
+      nextGuard?.dispose();
       return;
     }
     // Awaited whether the compile answers at once or later: the scene
@@ -126,21 +144,31 @@ const load = async (next: IScenePack, guarded: boolean) => {
       if (result.ok) {
         result.program.dispose();
       }
+      nextGuard?.dispose();
       return;
     }
     if (!result.ok) {
-      fail(next.id, 'compile');
+      nextGuard?.dispose();
+      drop();
+      fail(next.id, 'compile', id);
       return;
     }
+    drop();
     program = result.program;
+    guard = nextGuard;
     pack = next;
     params = Object.fromEntries(
       next.params.map((param) => [param.id, param.value]),
     );
-    scope.postMessage({ kind: 'loaded', packId: next.id });
+    // A program of its own costs what it costs: the size is found afresh.
+    pacing = createLampPacing();
+    tuner.reset();
+    scope.postMessage({ kind: 'loaded', packId: next.id, id });
   } catch {
+    nextGuard?.dispose();
     if (mine === generation) {
-      fail(next.id, 'artwork');
+      drop();
+      fail(next.id, 'artwork', id);
     }
   } finally {
     artwork?.close();
@@ -164,7 +192,7 @@ canvas.addEventListener('webglcontextlost', (event) => {
   // scene's (reported by that frame, `gpu-reset`); it does not come back.
   // Any other — sleep, a driver update, another program's crash — is not,
   // and the scene is loaded again once the context returns.
-  if (lastCostMs > BLAMED_FRAME_MS) {
+  if (lastCostMs > BLAMED_FRAME_MS && wanted?.pack === pack) {
     wanted = null;
   }
   if (wanted) {
@@ -176,7 +204,7 @@ canvas.addEventListener('webglcontextrestored', () => {
   lost = false;
   lastCostMs = 0;
   if (wanted) {
-    track(load(wanted.pack, wanted.guarded));
+    track(load(wanted.pack, wanted.guarded, wanted.id));
   }
 });
 
@@ -224,8 +252,11 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   if (gl.isContextLost()) {
     if (lastCostMs > BLAMED_FRAME_MS && pack) {
       // Lost while its own frame held the GPU: the reset was the scene's.
-      // `lightingSceneClient.ts` keeps this session-only, by program.
-      wanted = null;
+      // `lightingSceneClient.ts` keeps this session-only, by program. A
+      // different scene asked for meanwhile is not to blame, and comes back.
+      if (wanted?.pack === pack) {
+        wanted = null;
+      }
       fail(pack.id, 'gpu-reset');
     }
     // Otherwise the loss event says so, and the scene comes back with the
@@ -276,7 +307,7 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
 
 scope.onmessage = ({ data }) => {
   if (data.kind === 'load') {
-    track(load(data.pack, data.guarded));
+    track(load(data.pack, data.guarded, data.id));
   } else if (data.kind === 'retire') {
     // Ended mid-link, this context would take the link down on the GPU
     // process's main thread and freeze the graph's scene with it
@@ -300,10 +331,6 @@ scope.onmessage = ({ data }) => {
     generation += 1;
     wanted = null;
     compilation?.abort();
-    program?.dispose();
-    program = null;
-    pack = null;
-    guard?.dispose();
-    guard = null;
+    drop();
   }
 };

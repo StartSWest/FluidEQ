@@ -288,6 +288,13 @@ export interface IScenePost {
   input(width: number, height: number): WebGLFramebuffer;
   /** Finish what was drawn onto the canvas. */
   present(options: IPresentOptions): void;
+  /**
+   * Frees the pictures between the passes, which `input` and `present` make
+   * again at the size they are asked for; the passes themselves stay linked.
+   * For a window nobody can see: three pictures of the output's size are up
+   * to 100 MB at 4K.
+   */
+  shed(): void;
   dispose(): void;
 }
 
@@ -386,6 +393,15 @@ export const createScenePost = (
     return made;
   };
 
+  const shed = () => {
+    release(source);
+    release(a);
+    release(b);
+    source = undefined;
+    a = undefined;
+    b = undefined;
+  };
+
   return {
     input: (width, height) => {
       source = fit(source, width, height);
@@ -464,13 +480,9 @@ export const createScenePost = (
       gl.scissor(x, y, w, h);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
+    shed,
     dispose: () => {
-      release(source);
-      release(a);
-      release(b);
-      source = undefined;
-      a = undefined;
-      b = undefined;
+      shed();
       fsr.dispose();
       downsample.dispose();
       fxaa.dispose();
