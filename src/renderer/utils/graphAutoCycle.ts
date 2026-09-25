@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
 import { cycleGraphLookUnattended } from './graphStyle';
 
 export const GRAPH_AUTO_CYCLE_INTERVALS = [0, 10, 20, 30, 60, 120] as const;
@@ -10,6 +10,9 @@ const STORAGE_KEY = 'fluideq-graph-auto-cycle-seconds';
  */
 export const DEFAULT_GRAPH_AUTO_CYCLE = 120;
 
+const isInterval = (seconds: number) =>
+  GRAPH_AUTO_CYCLE_INTERVALS.some((value) => value === seconds);
+
 export const readGraphAutoCycle = (): number => {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -17,21 +20,51 @@ export const readGraphAutoCycle = (): number => {
       return DEFAULT_GRAPH_AUTO_CYCLE;
     }
     const seconds = Number(stored);
-    return GRAPH_AUTO_CYCLE_INTERVALS.some((value) => value === seconds)
-      ? seconds
-      : 0;
+    return isInterval(seconds) ? seconds : 0;
   } catch {
     return DEFAULT_GRAPH_AUTO_CYCLE;
   }
 };
 
+/**
+ * The interval every control shows, one value for the window.
+ *
+ * The graph's toolbar and the player's visualizer both offer it, and the
+ * graph's stays mounted, out of sight, while the window is the player: kept
+ * in each control's own state, a change made in the player came back to the
+ * full app as the old interval, still running.
+ */
+let shownSeconds: number | undefined;
+const intervalListeners = new Set<() => void>();
+
+const currentSeconds = () => {
+  if (shownSeconds === undefined) {
+    shownSeconds = readGraphAutoCycle();
+  }
+  return shownSeconds;
+};
+
 export const saveGraphAutoCycle = (seconds: number) => {
+  shownSeconds = isInterval(seconds) ? seconds : 0;
   try {
     window.localStorage.setItem(STORAGE_KEY, String(seconds));
   } catch {
     // The current session can still cycle when storage is unavailable.
   }
+  intervalListeners.forEach((listener) => listener());
 };
+
+export const useGraphAutoCycleSeconds = () =>
+  useSyncExternalStore(
+    (listener) => {
+      intervalListeners.add(listener);
+      return () => {
+        intervalListeners.delete(listener);
+      };
+    },
+    currentSeconds,
+    () => DEFAULT_GRAPH_AUTO_CYCLE,
+  );
 
 /**
  * How many of the graph's pickers are open — the look explorer and the
@@ -61,6 +94,18 @@ export const useHoldGraphAutoCycle = (isOpen: boolean) => {
   }, [isOpen]);
 };
 
+/**
+ * The cycles running, newest last; only the newest counts time.
+ *
+ * Two can be mounted at once — the graph's, kept out of sight while the
+ * window is the player, and the player's own — and each counts to the same
+ * interval from the same look change, so both reached it on the same frame
+ * and the second step landed before either had seen the first: every other
+ * look was skipped. The newest is the one on screen, because a surface that
+ * is opened mounts its control after the one it covers.
+ */
+const runningCycles: symbol[] = [];
+
 /** One visible interval per look, including after a manual selection or edit. */
 export const useGraphAutoCycle = (
   seconds: number,
@@ -71,6 +116,8 @@ export const useGraphAutoCycle = (
     if (seconds <= 0 || suspended) {
       return undefined;
     }
+    const claim = Symbol('graph auto cycle');
+    runningCycles.push(claim);
     let elapsed = 0;
     let previous = performance.now();
     let frame: number;
@@ -81,9 +128,14 @@ export const useGraphAutoCycle = (
     const tick = (now: number) => {
       const delta = Math.max(0, now - previous);
       previous = now;
-      // A hidden window accrues no time, and an open picker must never have
-      // its selection changed underneath the person choosing from it.
-      if (document.hidden || openPickers > 0) {
+      // A hidden window accrues no time, only the newest cycle counts, and an
+      // open picker must never have its selection changed underneath the
+      // person choosing from it.
+      if (
+        document.hidden ||
+        runningCycles[runningCycles.length - 1] !== claim ||
+        openPickers > 0
+      ) {
         elapsed = 0;
       } else {
         elapsed += delta;
@@ -102,6 +154,7 @@ export const useGraphAutoCycle = (
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener('visibilitychange', reset);
+      runningCycles.splice(runningCycles.indexOf(claim), 1);
     };
   }, [seconds, suspended, selectedLookId]);
 };

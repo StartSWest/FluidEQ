@@ -90,6 +90,24 @@ describe('automatic visualizer switching', () => {
     expect(frames.size).toBe(0);
   });
 
+  // The graph's cycle stays mounted, out of sight, while the player runs its
+  // own. Both counting stepped twice on one frame and skipped every other
+  // look; the one step here is also the control that the newest does count.
+  it('lets only the newest running cycle count, and hands the count back when it stops', () => {
+    renderHook(() => useGraphAutoCycle(10, false, 'bars-signal'));
+    const player = renderHook(() =>
+      useGraphAutoCycle(10, false, 'bars-signal'),
+    );
+    paintAt(10000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+    paintAt(15000);
+    player.unmount();
+    paintAt(24999);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+    paintAt(25000);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(2);
+  });
+
   // The first test is the control: unheld, the same cycle switches at 10 s,
   // so nothing by 30 s here is the hold and not a cycle that never runs.
   it('does not advance while a picker holds it open, and starts a fresh interval once it closes', () => {

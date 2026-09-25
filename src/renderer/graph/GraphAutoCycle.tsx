@@ -3,9 +3,9 @@ import Dropdown from '../widgets/Dropdown';
 import { useTranslation } from '../utils/I18nContext';
 import {
   GRAPH_AUTO_CYCLE_INTERVALS,
-  readGraphAutoCycle,
   saveGraphAutoCycle,
   useGraphAutoCycle,
+  useGraphAutoCycleSeconds,
   useHoldGraphAutoCycle,
 } from '../utils/graphAutoCycle';
 
@@ -31,7 +31,7 @@ const GraphAutoCycle = ({
   isEditing,
 }: IGraphAutoCycleProps) => {
   const { t } = useTranslation();
-  const [seconds, setSeconds] = useState(readGraphAutoCycle);
+  const seconds = useGraphAutoCycleSeconds();
   const [isChoosing, setIsChoosing] = useState(false);
   useGraphAutoCycle(seconds, isWaveHidden || isEditing, selectedLookId);
   useHoldGraphAutoCycle(isChoosing);
@@ -57,11 +57,7 @@ const GraphAutoCycle = ({
       isDisabled={isWaveHidden}
       placement="down"
       onOpenChange={setIsChoosing}
-      handleChange={(value) => {
-        const next = Number(value);
-        setSeconds(next);
-        saveGraphAutoCycle(next);
-      }}
+      handleChange={(value) => saveGraphAutoCycle(Number(value))}
     />
   );
 };
