@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import { DatabaseSync } from 'node:sqlite';
+import { albumKey } from '../../common/library/grouping';
 import type { ILibraryTrack } from '../../common/library/types';
 import { GROUP_SCHEMA, rebuildGroups } from './libraryGroups';
 import { libraryIndexPath, loadLibraryIndex } from './libraryIndex';
@@ -45,6 +46,52 @@ const schemaVersionOf = (database: DatabaseSync): number | undefined => {
   return row === undefined ? undefined : Number(row.value);
 };
 
+const writeSchemaVersion = (database: DatabaseSync): void => {
+  database
+    .prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema', ?)")
+    .run(String(SCHEMA_VERSION));
+};
+
+const textOrUndefined = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
+
+/**
+ * Brings a store an earlier build wrote to this build's schema, in one
+ * transaction, before anything reads it.
+ *
+ * 1 → 2: every song's album key written again from its own album and artist
+ * (`albumKey`, joined with U+001F where it was NUL), and the shelves'
+ * summaries rebuilt from the new keys. Worked out from those columns, never
+ * by reading the old key back: a NUL read out of SQLite is exactly what
+ * Node 22's node:sqlite gets wrong.
+ */
+const migrateStore = (database: DatabaseSync): void => {
+  const version = schemaVersionOf(database);
+  if (version === undefined || version >= SCHEMA_VERSION) {
+    return;
+  }
+  inTransaction(database, () => {
+    const rewrite = database.prepare(
+      'UPDATE tracks SET album_key = ? WHERE seq = ?',
+    );
+    database
+      .prepare('SELECT seq, album, album_artist, artist FROM tracks')
+      .all()
+      .forEach((row) => {
+        rewrite.run(
+          albumKey({
+            album: textOrUndefined(row.album),
+            albumArtist: textOrUndefined(row.album_artist),
+            artist: textOrUndefined(row.artist),
+          }),
+          Number(row.seq),
+        );
+      });
+    rebuildGroups(database);
+    writeSchemaVersion(database);
+  });
+};
+
 /**
  * The JSON index this replaced, read once and moved in.
  *
@@ -64,9 +111,7 @@ const importJsonIndex = (
   // Mark zero: nothing is confirmed until a scan says so, which is the same
   // as every track the JSON held — the launch rescan confirms or sweeps them.
   store.upsertTracks(loaded.index.tracks, 0);
-  database
-    .prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema', ?)")
-    .run(String(SCHEMA_VERSION));
+  writeSchemaVersion(database);
   // The upsert above summed every group it touched, which is all of them.
   database
     .prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('groups', '1')")
@@ -158,6 +203,7 @@ export const openLibraryStore = (userDataDir: string): IOpenedLibraryStore => {
   if (!opened.isInMemory && schemaVersionOf(database) === undefined) {
     wasReset = importJsonIndex(store, database, userDataDir) || wasReset;
   }
+  migrateStore(database);
   // The shelves' summaries, built whole once for a store that has none — a
   // file an earlier build wrote, or one whose summaries were lost. Every write
   // after this keeps them current (`libraryGroups.ts`).

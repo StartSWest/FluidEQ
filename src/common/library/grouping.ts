@@ -112,12 +112,30 @@ export const normalizeForGrouping = (value: string): string =>
     .replace(GROUPING_SPACES, ' ')
     .trim();
 
-export const albumKey = (track: ILibraryTrack): string => {
+/**
+ * Album and artist joined with U+001F, the unit separator, which
+ * `normalizeForGrouping` strips from both, so two albums can never meet in
+ * one key.
+ *
+ * Never NUL, which it was. The key is stored in the Library's SQLite store
+ * (`album_key`) and read back into JavaScript to name the albums to sum, and
+ * Node 22's node:sqlite cuts TEXT at an embedded NUL on the way back: read
+ * truncated, no album key matched the rows it came from, and every album
+ * shelf was empty (CI, Node 22.23.2). Electron 43's Node 24 reads it whole,
+ * which is why the app never showed it. A store written with NUL keys is
+ * moved to these on open (`libraryStoreOpen.ts`, schema 2).
+ */
+export const ALBUM_KEY_SEPARATOR = '\u001f';
+
+export const albumKey = (
+  track: Pick<ILibraryTrack, 'album' | 'albumArtist' | 'artist'>,
+): string => {
   const artist = track.albumArtist ?? track.artist ?? '';
-  return `${normalizeForGrouping(album(track))}\u0000${normalizeForGrouping(artist)}`;
+  return `${normalizeForGrouping(album(track))}${ALBUM_KEY_SEPARATOR}${normalizeForGrouping(artist)}`;
 };
 
-const album = (track: ILibraryTrack): string => track.album ?? '';
+const album = (track: Pick<ILibraryTrack, 'album'>): string =>
+  track.album ?? '';
 
 /**
  * Which artist a track belongs to, for grouping and for filtering alike —

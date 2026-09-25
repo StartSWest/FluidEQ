@@ -11,9 +11,11 @@ export const STORE_FILENAME = 'library.sqlite';
 /**
  * Written once the JSON index has been moved in (`openLibraryStore`); a store
  * without it has not been, and is. Raise it with a change to the tables below
- * that an existing file needs moving to.
+ * that an existing file needs moving to, and move it in `migrateStore`.
+ *
+ * 2: album keys joined with U+001F, not NUL (`albumKey`).
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS meta (

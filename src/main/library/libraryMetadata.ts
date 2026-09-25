@@ -60,11 +60,11 @@ const NUL = String.fromCharCode(0);
  * ID3v2.4 legitimately delimits multi-valued text frames with U+0000, and
  * measured against music-metadata 11.14.0, at least one common field (TALB,
  * TIT2 under ID3v2.3) passes it straight through undecoded rather than
- * splitting on it. albumKey() in common/library/grouping.ts joins album and
- * artist with that exact character to build its map key and does not
- * sanitise its inputs — a raw NUL reaching it would let
- * {album:"A", artist:"B\0C"} collide with {album:"A\0B", artist:"C"} and
- * silently merge two unrelated albums.
+ * splitting on it. albumKey() in common/library/grouping.ts once joined album
+ * and artist with that exact character, and a raw NUL reaching it would have
+ * let {album:"A", artist:"B\0C"} collide with {album:"A\0B", artist:"C"} and
+ * silently merged two unrelated albums. It joins them with U+001F now, which
+ * its grouping strips from both parts; a NUL is still no part of a title.
  */
 const sanitizeText = (value: string | undefined): string | undefined =>
   value === undefined ? undefined : value.split(NUL).join('');

@@ -7,11 +7,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import {
+  ALBUM_KEY_SEPARATOR,
+  albumKey,
+} from '../../../common/library/grouping';
 import type {
   ILibraryIndex,
   ILibraryRoot,
   ILibraryTrack,
 } from '../../../common/library/types';
+import { SCHEMA_VERSION } from '../../../main/library/libraryStoreSchema';
 import {
   libraryStorePath,
   openLibraryReader,
@@ -322,5 +327,87 @@ describe('the library store', () => {
     store.addRoots([root()]);
     store.setRoot('r1', { trackCount: 1 });
     expect(store.version()).toBe(before + 3);
+  });
+});
+
+describe('a store an earlier build wrote', () => {
+  /** The keys schema 1 wrote: album and artist joined with NUL. */
+  const nulKey = (song: ILibraryTrack): string =>
+    albumKey(song).replace(ALBUM_KEY_SEPARATOR, String.fromCharCode(0));
+
+  const albumIds = (store: ILibraryStore): string[] =>
+    (
+      store.database
+        .prepare('SELECT id FROM album_groups ORDER BY id')
+        .all() as TStoreRow[]
+    ).map((row) => String(row.id));
+
+  it('joins every album key again without NUL, and sums its albums from them', () => {
+    const dir = temp();
+    const songs = [
+      track({ album: 'Blue', artist: 'Miles' }),
+      track({ album: 'Blue', artist: 'Miles' }),
+      track({ album: 'Kind of Blue', artist: 'Miles' }),
+    ];
+    const written = open(dir);
+    written.store.addRoots([root()]);
+    written.store.upsertTracks(songs, 0);
+    // The file as schema 1 left it: NUL keys, and summaries that are not of
+    // the new ones (a NUL cannot be read back on every Node to build them).
+    const legacy = written.store.database.prepare(
+      'UPDATE tracks SET album_key = ? WHERE id = ?',
+    );
+    songs.forEach((song) => legacy.run(nulKey(song), song.id));
+    written.store.database.exec('DELETE FROM album_groups');
+    written.store.database
+      .prepare("UPDATE meta SET value = '1' WHERE key = 'schema'")
+      .run();
+    opened.pop()?.close();
+
+    const { store } = open(dir);
+    const expected = [...new Set(songs.map(albumKey))].sort();
+    expect(albumIds(store)).toEqual(expected);
+    expect(
+      (
+        store.database
+          .prepare('SELECT DISTINCT album_key FROM tracks ORDER BY album_key')
+          .all() as TStoreRow[]
+      ).map((row) => String(row.album_key)),
+    ).toEqual(expected);
+    expect(
+      store.database
+        .prepare("SELECT value FROM meta WHERE key = 'schema'")
+        .get(),
+    ).toEqual({ value: String(SCHEMA_VERSION) });
+  });
+
+  it('leaves a current store as it is (the control)', () => {
+    const dir = temp();
+    const song = track({ album: 'Blue', artist: 'Miles' });
+    const written = open(dir);
+    written.store.addRoots([root()]);
+    written.store.upsertTracks([song], 0);
+    opened.pop()?.close();
+
+    const { store } = open(dir);
+    expect(albumIds(store)).toEqual([albumKey(song)]);
+  });
+});
+
+describe('an album key', () => {
+  it('holds no NUL, which some Nodes cut a stored text at', () => {
+    expect(albumKey(track({ album: 'Blue', artist: 'Miles' }))).not.toContain(
+      String.fromCharCode(0),
+    );
+  });
+
+  it('cannot be made the same by a separator in a title', () => {
+    const joined = albumKey(
+      track({ album: `A${ALBUM_KEY_SEPARATOR}B`, artist: 'C' }),
+    );
+    const split = albumKey(
+      track({ album: 'A', artist: `B${ALBUM_KEY_SEPARATOR}C` }),
+    );
+    expect(joined).not.toBe(split);
   });
 });

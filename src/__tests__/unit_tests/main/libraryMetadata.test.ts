@@ -96,11 +96,9 @@ describe('reading tags off a file', () => {
   it('strips an embedded NUL from a tag string', async () => {
     // ID3v2.4 legitimately delimits multi-valued text frames with the NUL
     // codepoint. Measured against this project's real ID3v2.3 fixture, TIT2
-    // passes one straight through undecoded rather than splitting on it.
-    // albumKey() in common/library/grouping.ts joins album and artist with
-    // that exact character to build its map key, and does not sanitise its
-    // inputs -- a raw NUL surviving into a track record would let two
-    // differently-named album-plus-artist pairs collide on the same key.
+    // passes one straight through undecoded rather than splitting on it. A
+    // NUL is no part of a title, and one kept in a record is stored in the
+    // Library's SQLite file, which some Nodes read back cut at the NUL.
     const nulChar = String.fromCharCode(0);
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
     const file = path.join(dir, 'embedded-nul.mp3');
