@@ -4,10 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  canonicalGraphStyle,
-  GRAPH_STYLES,
-} from '../../../common/graphStyles';
+import { canonicalGraphStyle, GRAPH_STYLES } from '../../../common/graphStyles';
 import {
   promptWithIdea,
   SCENE_FALLBACK_STYLES,
@@ -17,10 +14,10 @@ describe('the fallback forms the scene brief offers', () => {
   it('are forms the app still draws as themselves', () => {
     // A retired form still loads but lands on the Analyzer or the RTA, so a
     // brief offering one would have authors choose what nobody ever sees.
-    for (const style of SCENE_FALLBACK_STYLES) {
+    SCENE_FALLBACK_STYLES.forEach((style) => {
       expect(GRAPH_STYLES).toContain(style);
       expect(canonicalGraphStyle(style)).toBe(style);
-    }
+    });
   });
 
   it('are exactly the ones the brief lists', () => {
