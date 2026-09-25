@@ -44,17 +44,24 @@ import {
   IFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import playFor from '__tests__/utils/playerReports';
 import {
+  endSongEqNotice,
   forgetCurrentSongEq,
   getSongEqSaveOn,
   noteSmartEqWrite,
   resetSongEqSession,
   setSongEqSaveOn,
   undoSongEqLoan,
+  useSongEqClock,
   useSongEqNotice,
   useSongEqRecording,
   useSongEqSessionHost,
 } from 'renderer/audio/songEqSession';
+import {
+  resetTransportSource,
+  setTransportSource,
+} from 'renderer/audio/transportSource';
 import { setSmartEqMode } from 'renderer/utils/smartEqMode';
 
 jest.mock('renderer/utils/equalizerApi');
@@ -92,6 +99,13 @@ const entryOf = (title: string, settings: ISmartEqSettings): ISongEqEntry => ({
   updatedAt: 0,
 });
 
+/** The clock rides beside the host in the window (`SongEqNotice`), so it
+ * rides beside it here: nothing settles or counts without it. */
+const SongEqClock = () => {
+  useSongEqClock();
+  return null;
+};
+
 describe('songEqSession', () => {
   // Stands in for the live `smartEq` a real FluidEqProvider would hold in
   // state — mutated either by the shell's own `setSmartEq` call (mirroring a
@@ -109,6 +123,7 @@ describe('songEqSession', () => {
     };
     return (
       <FluidEqProviderWrapper value={context}>
+        <SongEqClock />
         {children}
       </FluidEqProviderWrapper>
     );
@@ -124,6 +139,7 @@ describe('songEqSession', () => {
     // comment — so every test starts from a session-free, notice-free,
     // save-off module rather than whatever the previous test left behind.
     resetSongEqSession();
+    resetTransportSource();
     jest.clearAllMocks();
     contextSmartEq = undefined;
     setSmartEqSpy = jest.fn((next?: ISmartEqSettings) => {
@@ -236,13 +252,7 @@ describe('songEqSession', () => {
       setSongEqSaveOn(true);
     });
 
-    await act(async () => {
-      jest.advanceTimersByTime(
-        SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000,
-      );
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000);
 
     expect(api.checkpointSongEq).toHaveBeenCalled();
 
@@ -282,11 +292,7 @@ describe('songEqSession', () => {
       { wrapper },
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
 
     expect(api.lookupSongEq).toHaveBeenCalledWith('device-a', song);
     expect(result.current).toBeUndefined();
@@ -321,13 +327,107 @@ describe('songEqSession', () => {
       { wrapper },
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
 
-    expect(result.current).toEqual({ identity: song, entry });
+    expect(result.current).toEqual(
+      expect.objectContaining({ identity: song, entry }),
+    );
+  });
+
+  /**
+   * The notice goes when its own linger animation ends, reported by id — not
+   * when a clock says so. Time alone leaves it up (the null; a six-second
+   * timer used to take it down, and nothing may be scheduled now), an end
+   * reported for some other notice leaves it up, and its own end takes it
+   * down (the positive control).
+   */
+  it('keeps the notice up until its own linger reports its end', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'lingering-song',
+      'Lingering Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(
+      entryOf('Lingering Song', layerOf(3)),
+    );
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+    const { result } = renderHook(
+      () => {
+        useSongEqSessionHost();
+        return useSongEqNotice();
+      },
+      { wrapper },
+    );
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
+    const shown = result.current;
+    if (!shown) {
+      throw new Error('no notice was raised to linger');
+    }
+
+    act(() => {
+      jest.advanceTimersByTime(60_000);
+    });
+    expect(jest.getTimerCount()).toBe(0);
+    expect(result.current).toBe(shown);
+
+    act(() => {
+      endSongEqNotice(shown.id + 1);
+    });
+    expect(result.current).toBe(shown);
+
+    act(() => {
+      endSongEqNotice(shown.id);
+    });
+    expect(result.current).toBeUndefined();
+  });
+
+  /**
+   * The clock is the players' own reports of playing. With none, an hour
+   * passes and nothing settles — nothing is scheduled to make it (the null,
+   * which the one-second interval this replaced fails); one report, and the
+   * song that held still is looked up (the positive control).
+   */
+  it('moves only when a player reports that it is playing', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'reported-song',
+      'Reported Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+    renderHook(() => useSongEqSessionHost(), { wrapper });
+
+    act(() => {
+      jest.advanceTimersByTime(60 * 60 * 1000);
+    });
+    expect(jest.getTimerCount()).toBe(0);
+    expect(api.lookupSongEq).not.toHaveBeenCalled();
+
+    act(() => {
+      setTransportSource({
+        owner: 'library',
+        title: 'Reported Song',
+        isPlaying: true,
+        positionMs: 1000,
+        durationMs: 200_000,
+        toggle: () => undefined,
+      });
+    });
+    expect(api.lookupSongEq).toHaveBeenCalledWith('device-a', song);
   });
 
   it('keeps the loan through its own write landing back in context', async () => {
@@ -353,11 +453,7 @@ describe('songEqSession', () => {
 
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
 
     // The match applied the stored layer through context, exactly as
     // ActiveLayers and SmartEqEngine do for every other Smart EQ write.
@@ -403,11 +499,7 @@ describe('songEqSession', () => {
 
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
     rerender();
 
     const callsAfterMatch = (api.setSmartEq as jest.Mock).mock.calls.length;
@@ -462,11 +554,7 @@ describe('songEqSession', () => {
 
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
     rerender();
 
     // The continuous engine writes a refinement, exactly as `SmartEqEngine`
@@ -515,12 +603,10 @@ describe('songEqSession', () => {
       { wrapper },
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    expect(result.current).toEqual({ identity: song, entry });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
+    expect(result.current).toEqual(
+      expect.objectContaining({ identity: song, entry }),
+    );
 
     act(() => {
       forgetCurrentSongEq();
@@ -572,13 +658,7 @@ describe('songEqSession', () => {
       setSongEqSaveOn(true);
     });
 
-    await act(async () => {
-      jest.advanceTimersByTime(
-        SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000,
-      );
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await playFor(SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000);
 
     // Positive control: this is what the bug would have kept showing.
     expect(result.current.willSave).toBe(true);

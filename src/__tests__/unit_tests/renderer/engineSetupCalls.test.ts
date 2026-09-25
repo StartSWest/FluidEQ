@@ -7,9 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The engine's setup commands are the calls that wait on a person — a Windows
  * permission prompt — before main can answer. The ten-second deadline every
- * other request has used to reject them while the prompt was still on screen,
- * and the unhandled rejection replaced the whole window with the crash screen.
- * These pin that they wait however long it takes and never reject at all.
+ * request had used to reject them while the prompt was still on screen, and
+ * the unhandled rejection replaced the whole window with the crash screen.
+ * No request has a deadline now; these pin that the setup commands wait
+ * however long it takes and never reject at all.
  */
 
 import { ErrorCode } from 'common/errors';
@@ -117,15 +118,20 @@ describe('the engine update', () => {
   });
 });
 
-it('leaves every other request its ten-second deadline', async () => {
-  // A positive control: the deadline itself still works, so the checks above
-  // are about the engine calls opting out and not about timers being broken.
+it('settles any request the moment main answers, however late', async () => {
+  // A positive control: the checks above see a request still waiting, and
+  // this one sees a request settle, so "still waiting" is not simply a
+  // harness in which nothing ever settles.
   const pending = getMainPreAmp();
-  const rejected = jest.fn();
-  pending.catch(rejected);
-  jest.advanceTimersByTime(10_000);
+  const settled = jest.fn();
+  pending.then(settled, settled);
+  jest.advanceTimersByTime(5 * 60 * 1000);
   await Promise.resolve();
-  expect(rejected).toHaveBeenCalled();
+  expect(settled).not.toHaveBeenCalled();
+  expect(jest.getTimerCount()).toBe(0);
+
+  answerLatest({ result: -6 });
+  await expect(pending).resolves.toBe(-6);
 });
 
 describe('isAwaitingApoInstall', () => {

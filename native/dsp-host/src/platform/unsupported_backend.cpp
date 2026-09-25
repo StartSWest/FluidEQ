@@ -47,9 +47,8 @@ class UnsupportedBackend final : public IAudioOutputBackend {
 
 }  // namespace
 
-std::unique_ptr<IAudioOutputBackend> create_audio_backend(FeqRenderFn render,
-                                                          void* context) {
-  (void)render;
-  (void)context;
+std::unique_ptr<IAudioOutputBackend> create_audio_backend(
+    const FeqBackendHooks& hooks) {
+  (void)hooks;
   return std::make_unique<UnsupportedBackend>();
 }

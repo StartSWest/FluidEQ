@@ -25,7 +25,7 @@ import {
 } from 'common/disclaimer';
 import { AUTHOR_NAME } from 'common/branding';
 import en from 'common/i18n/en';
-import { LocaleCode, LOCALES, translate } from 'common/i18n';
+import { LocaleCode, LOCALES, loadLocale, translate } from 'common/i18n';
 
 /** The whole notice as one string, the way a reader meets it. */
 const read = (locale: LocaleCode) =>
@@ -104,6 +104,10 @@ describe('the disclaimer text in English', () => {
  * which languages to ask about first.
  */
 describe('the disclaimer in every shipped language', () => {
+  // Every language but English is a chunk of its own, loaded when it is
+  // first chosen; these read all ten, so all ten are loaded first.
+  beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
+
   const translated = LOCALES.filter(({ code }) => code !== 'en');
   const allKeys = [...DISCLAIMER_PARAGRAPH_KEYS, DISCLAIMER_LANGUAGE_KEY];
 

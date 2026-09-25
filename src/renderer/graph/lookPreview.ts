@@ -26,10 +26,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * glance and cannot answer how the thing moves.
  *
  * So changing look plays one frame of a plausible spectrum and then lets go.
- * The rise, the second it holds and the fall are not animated here — the canvas
- * already eases its points toward whatever it is handed, so handing it a shape
- * and later handing it silence again *is* the animation, and it decays exactly
- * the way a track ending decays because it is the same code path.
+ * The rise and the fall are not animated here — the canvas already eases its
+ * points toward whatever it is handed, so handing it a shape and then handing
+ * it silence again *is* the animation, and it decays exactly the way a track
+ * ending decays because it is the same code path.
+ *
+ * Let go once the new look has painted it. It was held for a second on a
+ * timer, which ran whether or not anything was drawn: a window in the
+ * background, or a canvas still crossfading from the old look, spent the
+ * preview before the new look had shown it whole. Now the trace says when it
+ * has painted the preview in the new look on its own, crossfade over
+ * (`noteLookPreviewPainted`), and the fall starts from there — from a shape
+ * somebody could see.
  *
  * ONLY WHEN THERE IS NOTHING PLAYING. With audio running the look is already on
  * screen doing the one thing this exists to demonstrate, and a second of frozen
@@ -66,8 +74,22 @@ export const resolveLookWaveform = (
   });
 };
 
-/** How long the frame stays up before it is allowed to fall away. */
-const PREVIEW_HOLD_MS = 1000;
+type TPaintedListener = (drawn: readonly IChartPointData[]) => void;
+
+/** The previews waiting to be painted, one per trace showing one. */
+const paintedListeners = new Set<TPaintedListener>();
+
+/**
+ * The trace's word that it has painted `drawn` in full: the frame after the
+ * new look's crossfade from the old one has finished, so what is on the canvas
+ * is the new look alone. Called from the trace's frame loop with the points
+ * `useLookPreviewPoints` handed it; a preview lets go when these are its own.
+ */
+export const noteLookPreviewPainted = (
+  drawn: readonly IChartPointData[],
+): void => {
+  paintedListeners.forEach((listener) => listener(drawn));
+};
 
 /**
  * How close to the floor every point must sit for the output to count as
@@ -165,8 +187,8 @@ export const useLookPreviewPoints = (
    *
    * The effect below has to ask whether anything is playing, and it must not
    * re-run when the answer changes — it re-runs on a change of look and on
-   * nothing else. Reading the frame through a dependency would restart the
-   * hold timer thirty times a second and the preview would never expire.
+   * nothing else. Reading the frame through a dependency would start the
+   * preview again thirty times a second and it would never let go.
    */
   const liveRef = useRef(live);
   liveRef.current = live;
@@ -176,15 +198,35 @@ export const useLookPreviewPoints = (
   useEffect(() => {
     if (!hasMountedRef.current) {
       hasMountedRef.current = true;
-      return undefined;
+      return;
     }
-    if (!isSilent(liveRef.current)) {
-      return undefined;
+    if (isSilent(liveRef.current)) {
+      setPreview(buildPreviewFrame(liveRef.current));
     }
-    setPreview(buildPreviewFrame(liveRef.current));
-    const timer = setTimeout(() => setPreview(undefined), PREVIEW_HOLD_MS);
-    return () => clearTimeout(timer);
   }, [lookId]);
+
+  /*
+   * Let go once it has been painted — see `noteLookPreviewPainted`.
+   *
+   * Compared by identity, so a frame the trace painted before this preview
+   * reached it cannot release it. The trace paints nothing behind a hidden
+   * window, so a preview started there waits for the window to be shown and
+   * is seen then.
+   */
+  useEffect(() => {
+    if (!preview) {
+      return undefined;
+    }
+    const onPainted: TPaintedListener = (drawn) => {
+      if (drawn === preview) {
+        setPreview(undefined);
+      }
+    };
+    paintedListeners.add(onPainted);
+    return () => {
+      paintedListeners.delete(onPainted);
+    };
+  }, [preview]);
 
   /*
    * Dropped the moment anything starts playing.

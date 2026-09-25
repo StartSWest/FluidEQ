@@ -216,10 +216,16 @@ describe('the tray icon and what it advertises', () => {
     expect(labels()).toContain('Install update and restart');
   });
 
-  it('does not lose the update item when the language changes', () => {
+  it('does not lose the update item when the language changes', async () => {
     const tray = loadTray();
     setUpWorkingTray(tray);
     tray.setTrayUpdateReady(true, deps);
+    // Loaded before it is spoken, as the language picker's IPC does: every
+    // language but English is a chunk of its own. Required after `loadTray`,
+    // from the registry the tray was loaded into.
+    await (
+      require('../../../common/i18n') as typeof import('../../../common/i18n')
+    ).loadLocale('es');
 
     tray.setTrayLocale('es', deps);
 

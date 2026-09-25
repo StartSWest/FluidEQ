@@ -187,9 +187,16 @@ body {
 // Two elements, both of them a single strip, neither of them redrawn per
 // frame: the compositor blurs each once and reuses it until the picture
 // under it changes.
-#root:has(> .app-workspace.is-app-full) .window-titlebar,
-#root:has(> .app-workspace.is-app-full) .graph-legend-group,
-body:has(> #root > .app-workspace.is-app-full) .now-playing-bar {
+//
+// Full screen is `data-app-full` on `<html>` (`useAppFullMark`), published
+// with the workspace's `is-app-full`. These rules asked the root and the body
+// with `:has()` instead, which kept both answering for their children after
+// every change there. `#root` stays in the selectors of what lives inside it,
+// so each rule keeps the weight it had; the transport bar is portalled beside
+// the root, and nothing else that styles it carries an id.
+:root[data-app-full] #root .window-titlebar,
+:root[data-app-full] #root .graph-legend-group,
+:root[data-app-full] .now-playing-bar {
   background-color: color-mix(in srgb, $surface-panel 80%, transparent);
   backdrop-filter: blur(22px) saturate(130%);
   -webkit-backdrop-filter: blur(22px) saturate(130%);
@@ -201,8 +208,8 @@ body:has(> #root > .app-workspace.is-app-full) .now-playing-bar {
 // read as two cut-outs laid on the glass rather than as part of it. At two
 // thirds they still hold their controls apart from whatever is moving
 // underneath, and the blur carries through them.
-body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__deck,
-body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__volume {
+:root[data-app-full] .now-playing-bar__deck,
+:root[data-app-full] .now-playing-bar__volume {
   background-color: color-mix(in srgb, $surface-block 66%, transparent);
 }
 
@@ -212,7 +219,7 @@ body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__volume {
 // plot is the window, so that gutter is a 12px strip of moving spectrum
 // above and beside the bar — a band of colour outside the app's own chrome,
 // which is what made the top of the screen look broken.
-#root:has(> .app-workspace.is-app-full) .window-titlebar {
+:root[data-app-full] #root .window-titlebar {
   top: 0;
   right: 0;
   left: 0;
@@ -232,7 +239,7 @@ body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__volume {
 // between the drawing and the system's backdrop, and it flickered. Nothing of
 // it was visible anyway: it only ever showed in the gutters between panes,
 // and this is the view with no gutters.
-#root:has(> .app-workspace.is-app-full) {
+:root[data-app-full] #root {
   // Solid, and only here.
   //
   // The window drops its backdrop material for the length of full screen —
@@ -2401,6 +2408,18 @@ textarea,
 .right-content {
   align-self: stretch;
   min-width: 0;
+}
+
+// Read by `.middle-content` alone, and written on it on every pointer move of
+// a divider drag. Registered as not inherited, so each write restyles that one
+// element: as an ordinary custom property it was inherited by every element of
+// the open page, and each pixel of a drag restyled all of them.
+//
+// No initial value: unset, it stays the guaranteed-invalid value, so the
+// `auto` fallback below still applies wherever the divider has not set it.
+@property --editor-height {
+  syntax: '*';
+  inherits: false;
 }
 
 // The top half of the split. `--editor-height` is what the divider sets.

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, ReactNode } from 'react';
+import { DragEvent, memo, ReactNode, useMemo } from 'react';
 import {
   IKaraokePlaylistItem,
   karaokeFileExtension,
@@ -122,7 +122,10 @@ const KaraokePlaylist = ({
   isCollapsed = false,
 }: IKaraokePlaylistProps) => {
   const { t } = useTranslation();
-  const tree = groupByFolder ? buildKaraokePlaylistFolderTree(items) : [];
+  const tree = useMemo(
+    () => (groupByFolder ? buildKaraokePlaylistFolderTree(items) : []),
+    [groupByFolder, items],
+  );
 
   const onDropItem = (
     event: DragEvent<HTMLButtonElement>,
@@ -265,4 +268,7 @@ const KaraokePlaylist = ({
   );
 };
 
-export default KaraokePlaylist;
+// Beside a stage that re-renders for its own reasons, and a saved session holds
+// up to 5,000 files. The workspace hands it stable callbacks, so only a change
+// to the list, the selection, the grouping or the fold re-draws its rows.
+export default memo(KaraokePlaylist);

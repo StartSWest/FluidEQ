@@ -17,11 +17,28 @@ import {
   getDeviceProfileSettings,
 } from 'renderer/utils/equalizerApi';
 
-jest.mock('renderer/utils/equalizerApi', () => ({
-  getAudioDevices: jest.fn(),
-  getDeviceProfileSettings: jest.fn(),
-  setDefaultAudioDevice: jest.fn(),
-}));
+// What main pushes when Windows says the outputs moved (`outputWatch.ts`).
+let mockPushOutputs:
+  ((reading: Promise<Record<string, unknown>[]>) => void) | undefined;
+
+jest.mock('renderer/utils/equalizerApi', () => {
+  const getAudioDevices = jest.fn();
+  return {
+    getAudioDevices,
+    // Open-time readers take the kept list; here it is the same answer.
+    readKnownAudioDevices: () => getAudioDevices(),
+    getDeviceProfileSettings: jest.fn(),
+    setDefaultAudioDevice: jest.fn(),
+    subscribeAudioDevices: (
+      listener: (reading: Promise<Record<string, unknown>[]>) => void,
+    ) => {
+      mockPushOutputs = listener;
+      return () => {
+        mockPushOutputs = undefined;
+      };
+    },
+  };
+});
 
 const missingApoDevice = {
   id: 'speakers',
@@ -417,5 +434,151 @@ describe('DeviceProfiles on an output Windows runs no effects on', () => {
     expect(
       screen.getByRole('button', { name: en['output.enable'] }),
     ).toBeInTheDocument();
+  });
+});
+
+/*
+ * The panel read every output on the machine every three seconds while the
+ * window was on screen — an IPC round trip and a PowerShell run each time —
+ * and main, which learned of a new output only through that read, never
+ * followed one while the window was hidden. Main now hears Windows itself and
+ * pushes the list it read; the panel reads for itself only when mounted and
+ * when the window is come back to.
+ */
+describe('DeviceProfiles reading the outputs', () => {
+  const speakers = {
+    ...missingApoDevice,
+    name: 'Desk Speakers',
+    isEqualizerApoAttached: true,
+  };
+  const headset = {
+    ...speakers,
+    id: 'headset',
+    name: 'Gaming Headset',
+    guid: '{HEADSET}',
+  };
+
+  const mount = (setGlobalError = jest.fn()) => {
+    (getAudioDevices as jest.Mock).mockResolvedValue([speakers]);
+    (getDeviceProfileSettings as jest.Mock).mockResolvedValue({
+      version: 1,
+      assignments: {},
+    });
+    render(
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, setGlobalError }}
+      >
+        <DeviceProfiles
+          engine="apo"
+          onConfigureApo={jest.fn()}
+          onAttachFluidEngine={jest.fn()}
+        />
+      </FluidEqProviderWrapper>,
+    );
+    return { setGlobalError };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('reads once when mounted and never again on a clock', async () => {
+    jest.useFakeTimers();
+    mount();
+    expect(await screen.findByText('Desk Speakers')).toBeInTheDocument();
+    expect(getAudioDevices).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+    expect(getAudioDevices).toHaveBeenCalledTimes(1);
+
+    // Positive control: the window being come back to is what reads.
+    await act(async () => {
+      window.dispatchEvent(new FocusEvent('focus'));
+    });
+    expect(getAudioDevices).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the list main pushed, without reading it a second time', async () => {
+    mount();
+    await screen.findByText('Desk Speakers');
+    const changes: unknown[] = [];
+    const heard = (event: Event) =>
+      changes.push((event as CustomEvent<unknown>).detail);
+    window.addEventListener('fluideq-output-changed', heard);
+
+    await act(async () => {
+      mockPushOutputs?.(
+        Promise.resolve([headset, { ...speakers, isDefault: false }]),
+      );
+    });
+
+    expect(await screen.findByText('Gaming Headset')).toBeInTheDocument();
+    expect(getAudioDevices).toHaveBeenCalledTimes(1);
+    expect(changes).toEqual([{ deviceId: 'headset' }]);
+
+    // Null beside it: a push that moves nothing announces nothing.
+    await act(async () => {
+      mockPushOutputs?.(
+        Promise.resolve([headset, { ...speakers, isDefault: false }]),
+      );
+    });
+    expect(changes).toHaveLength(1);
+    window.removeEventListener('fluideq-output-changed', heard);
+  });
+
+  it('reads once for a window shown and focused together', async () => {
+    mount();
+    await screen.findByText('Desk Speakers');
+    expect(getAudioDevices).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(new FocusEvent('focus'));
+    });
+    expect(getAudioDevices).toHaveBeenCalledTimes(2);
+
+    // Positive control: a later return is a read of its own.
+    await act(async () => {
+      window.dispatchEvent(new FocusEvent('focus'));
+    });
+    expect(getAudioDevices).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps the list when a control inside the window takes focus', async () => {
+    mount();
+    await screen.findByText('Desk Speakers');
+    const control = document.createElement('button');
+    document.body.append(control);
+
+    await act(async () => {
+      control.dispatchEvent(new FocusEvent('focus'));
+    });
+
+    expect(getAudioDevices).toHaveBeenCalledTimes(1);
+    control.remove();
+  });
+
+  it("shows main's refusal, then asks for the list it still owes", async () => {
+    const { setGlobalError } = mount();
+    await screen.findByText('Desk Speakers');
+    (getAudioDevices as jest.Mock).mockResolvedValue([
+      headset,
+      { ...speakers, isDefault: false },
+    ]);
+    const refusal = { shortError: 'cannot adopt', action: '', code: 0 };
+
+    await act(async () => {
+      mockPushOutputs?.(Promise.reject(refusal));
+    });
+
+    expect(setGlobalError).toHaveBeenCalledWith(refusal);
+    expect(await screen.findByText('Gaming Headset')).toBeInTheDocument();
+    expect(getAudioDevices).toHaveBeenCalledTimes(2);
   });
 });

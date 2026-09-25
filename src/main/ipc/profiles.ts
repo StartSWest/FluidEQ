@@ -41,16 +41,12 @@ import {
   fetchPresetBaseline,
   renamePreset,
   renamePresetBaseline,
-  save,
   savePreset,
   savePresetBaseline,
-  checkConfigFile,
-  updateConfig,
 } from '../flush';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
-  flushDeviceProfiles,
   getCustomFileNameForDevice,
   getStateForAudioDevice,
   removeAssignmentForPreset,
@@ -60,11 +56,11 @@ import {
   setDefaultAudioDevice,
   TPresetDirForDevice,
 } from '../deviceProfiles';
-import { getConfigPath } from '../registry';
 import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
 import onWindowMessage from './windowMessages';
+import { createOutputFollower } from './followOutputs';
 import { IOutputFormatChange, createOutputFormats } from '../outputFormat';
 import { readRoomHeadText } from '../roomHead';
 import { ROOM_HEADS } from '../../common/dsp/chain';
@@ -143,8 +139,12 @@ export interface IProfilesIpcDeps {
     syncActiveProfile?: boolean,
     useActiveSessionOverride?: boolean,
   ) => Promise<void>;
+  /**
+   * Replies with the failure on whatever `event` is — a request's event, or
+   * the sink an answer nobody asked for is pushed through (`followOutputs`).
+   */
   handleError: (
-    event: Electron.IpcMainEvent,
+    event: IReplySink,
     channel: ChannelEnum | string,
     errorCode: ErrorCode,
     message?: string,
@@ -167,16 +167,33 @@ export interface IProfilesIpcDeps {
   captureCurrentLayout: () => void;
   /** Tell the renderer which output is live now. */
   notifyOutputStateChanged: () => void;
-  /** Device enumeration is racy just after a driver change; this retries it. */
-  retryHelper: (attempts: number, work: () => unknown) => Promise<unknown>;
   /**
    * Given the outputs just read, keeps one engine in Windows' effect lists —
    * `createApoGuard`. Here because this is the one place in the app that
-   * learns, every few seconds, what is registered on every output; the engine
-   * switch cannot be that place, since Equalizer APO's own Device Selector
-   * can be run long after it.
+   * learns what is registered on every output — whenever Windows says an
+   * output's effects changed (`outputWatch.ts`), and whenever the window
+   * asks; the engine switch cannot be that place, since Equalizer APO's own
+   * Device Selector can be run long after it.
    */
   guardAgainstApo: (devices: readonly IAudioDevice[]) => Promise<void>;
+}
+
+/** Where an answer goes: a request's own event, or a push to the window. */
+export interface IReplySink {
+  reply: (channel: string, ...args: unknown[]) => void;
+}
+
+export interface IProfilesIpc {
+  /**
+   * Follows a reading of the outputs nobody in the window asked for — the
+   * output watcher's (`outputWatch.ts`) — exactly as the window's own request
+   * is followed, and hands `send` the answer on AUDIO_DEVICES_CHANGED in the
+   * shape GET_AUDIO_DEVICES would have replied with, a failure included.
+   */
+  followOutputs: (
+    devices: IAudioDevice[],
+    send: (channel: string, payload: unknown) => void,
+  ) => Promise<void>;
 }
 
 /**
@@ -186,33 +203,32 @@ export interface IProfilesIpcDeps {
  * devices and deciding which profile each one plays through. Splitting those
  * was tried and produced two modules that each reached into the other.
  */
-export const registerProfilesIpc = ({
-  state,
-  userDataDir,
-  presetDirForDevice,
-  activePresetDir,
-  activeBaselineDir,
-  deviceProfileSettings,
-  session,
-  handleUpdate,
-  handleUpdateHelper,
-  handleError,
-  runProfileMutation,
-  attachPresetToActiveDevice,
-  clearCurrentLayoutSettings,
-  createEmptyProfileForActiveDevice,
-  getCurrentPreset,
-  hydrateActiveConvolution,
-  isAutomaticPresetName,
-  availableProfileNameForActiveDevice,
-  resetStateToDefaults,
-  adoptExistingApoConfig,
-  applyDeviceState,
-  captureCurrentLayout,
-  notifyOutputStateChanged,
-  retryHelper,
-  guardAgainstApo,
-}: IProfilesIpcDeps) => {
+export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
+  const {
+    state,
+    userDataDir,
+    presetDirForDevice,
+    activePresetDir,
+    activeBaselineDir,
+    deviceProfileSettings,
+    session,
+    handleUpdate,
+    handleUpdateHelper,
+    handleError,
+    runProfileMutation,
+    attachPresetToActiveDevice,
+    clearCurrentLayoutSettings,
+    createEmptyProfileForActiveDevice,
+    getCurrentPreset,
+    hydrateActiveConvolution,
+    isAutomaticPresetName,
+    availableProfileNameForActiveDevice,
+    resetStateToDefaults,
+    applyDeviceState,
+    notifyOutputStateChanged,
+  } = deps;
+  const followOutputs = createOutputFollower(deps);
+
   onWindowMessage(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_PRESET;
     const presetName = arg[0];
@@ -539,91 +555,12 @@ export const registerProfilesIpc = ({
     }
   });
 
+  // What main does with the list is `followOutputs`, shared with the output
+  // watcher's reading; this is only the window asking for one.
   onWindowMessage(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     const channel = ChannelEnum.GET_AUDIO_DEVICES;
     try {
-      const devices = await discoverAudioDevices();
-      const activeDevice = devices.find((device) => device.isDefault);
-      if (activeDevice && activeDevice.id !== session.activeAudioDeviceId) {
-        session.activeAudioDeviceId = activeDevice.id;
-        session.activeAudioDevice = activeDevice;
-        // A device switch always starts from that device's attached profile or
-        // a clean neutral state. Never carry a previous output's transient EQ.
-        session.hasActiveSessionOverride = false;
-        applyDeviceState(
-          getStateForAudioDevice(
-            deviceProfileSettings,
-            activeDevice.id,
-            presetDirForDevice,
-            // The preset keeps playing across the switch: it is the machine's
-            // choice, like the rack it comes with. See `voicingForDevice`.
-            { voicing: state.voicing },
-          ),
-        );
-        // Every output keeps at least one named profile, so there is always
-        // somewhere for an edit to land and always something in the list to
-        // select. Only for outputs the user actually lands on — creating one
-        // eagerly for every endpoint Windows reports would fill the list with
-        // profiles for devices nobody has used.
-        if (!deviceProfileSettings.assignments[activeDevice.id]) {
-          createEmptyProfileForActiveDevice();
-        }
-        // The first moment the config can be read back: there is now an endpoint
-        // to look up, and the state beside it is that endpoint's. It has to
-        // happen before the save and the flush below, both of which write this
-        // state over whatever the file was saying.
-        if (adoptExistingApoConfig() === false) {
-          notifyOutputStateChanged();
-          handleError(
-            event,
-            channel,
-            ErrorCode.FAILURE,
-            'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
-          );
-          return;
-        }
-        save(state, userDataDir);
-        captureCurrentLayout();
-
-        // A Windows output change must immediately replace the APO rules. This
-        // prevents the previous device's profile from remaining active until a
-        // later EQ edit is made in FluidEQ.
-        try {
-          if (!session.configPath) {
-            session.configPath = await getConfigPath(
-              session.audioEngine ?? 'apo',
-            );
-          }
-          if (!checkConfigFile(session.configPath)) {
-            updateConfig(session.configPath);
-          }
-          await retryHelper(5, () => {
-            return flushDeviceProfiles(
-              deviceProfileSettings,
-              presetDirForDevice,
-              session.configPath,
-              undefined,
-              state.isEnabled,
-              undefined,
-              state.eqCuts,
-            );
-          });
-        } catch (error) {
-          log.error('Failed to flush the profile for the active output', error);
-        }
-
-        // Last, and outside the try: the config write can fail without making the
-        // swap any less real, and the panels must never be left describing the
-        // output the user just moved away from.
-        notifyOutputStateChanged();
-      }
-      const reply: TSuccess<IAudioDevice[]> = { result: devices };
-      event.reply(channel, reply);
-      // After the reply, never before it: the window is waiting for this
-      // list, and switching Equalizer APO off restarts Windows audio.
-      guardAgainstApo(devices).catch((error) =>
-        log.error('The Equalizer APO guard failed', error),
-      );
+      await followOutputs(await discoverAudioDevices(), event, channel);
     } catch (e) {
       log.error('Failed to enumerate Windows audio endpoints', e);
       handleError(event, channel, ErrorCode.FAILURE);
@@ -834,4 +771,18 @@ export const registerProfilesIpc = ({
     }
     await handleUpdate(event, channel);
   });
+
+  return {
+    followOutputs: async (devices, send) => {
+      const channel = ChannelEnum.AUDIO_DEVICES_CHANGED;
+      const sink: IReplySink = { reply: send };
+      try {
+        await followOutputs(devices, sink, channel);
+      } catch (e) {
+        // What the window's request would have replied with, pushed instead.
+        log.error('Failed to follow the outputs Windows reported', e);
+        handleError(sink, channel, ErrorCode.FAILURE);
+      }
+    },
+  };
 };

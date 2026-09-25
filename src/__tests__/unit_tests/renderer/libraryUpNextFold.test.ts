@@ -52,12 +52,14 @@ describe('how the Up next panel folds', () => {
     );
     // The drag is excluded in this very selector: a separate override would
     // be outranked by its chain of `:not()`s, which is how it first shipped.
+    // The card says it is being resized (`LibraryWorkspace`) rather than the
+    // stylesheet asking its subtree with `:has()`.
     expect(shelf?.selectors.join()).toContain(
-      ':not(:has(.library-up-next__splitter .is-dragging))',
+      '.library-workspace:not(.is-resizing-up-next)',
     );
     expect(
       declarations(
-        '.library-workspace:has(.library-up-next__splitter .is-dragging) .library-up-next',
+        '.library-workspace.is-resizing-up-next .library-up-next',
         'transition',
       ),
     ).toEqual(['none']);
@@ -68,9 +70,7 @@ describe('how the Up next panel folds', () => {
       ({ selectors, declarations: declared }) =>
         declared.has('transition') &&
         selectors.some((selector) =>
-          selector.startsWith(
-            '.library-workspace:has(.library-video-stage.is-fullscreen)',
-          ),
+          selector.startsWith('.library-workspace.is-video-full'),
         ),
     );
     expect(chrome.length).toBeGreaterThan(0);

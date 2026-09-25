@@ -15,7 +15,7 @@ import {
 } from 'common/convolution';
 import { ErrorDescription } from 'common/errors';
 import { suggestSearches } from 'common/searchHistory';
-import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { useCurrentEngine } from './utils/audioEngineContext';
 import {
@@ -34,7 +34,7 @@ import './styles/Convolution.scss';
 
 const ConvolutionPanel = () => {
   const { convolution, isEnabled, refreshState, setGlobalError } =
-    useFluidEqContext();
+    useFluidEqLayers();
   const { t } = useTranslation();
   const isFluid = useCurrentEngine() === 'fluid';
   const [query, setQuery] = useState('');
@@ -51,35 +51,72 @@ const ConvolutionPanel = () => {
   // Clearing unconditionally also dismissed unrelated failures such as
   // "Equalizer APO is not installed", hiding the prerequisite modal.
   const ownsGlobalError = useRef(false);
+  /**
+   * Which request is the newest; only its answer is drawn.
+   *
+   * Every change of the query asks at once. A 220 ms timer stood in front of
+   * each ask instead — the first one included, so every visit to this page
+   * showed "Loading" for that long before anything was asked — and it still
+   * let an older answer that came back late replace a newer one. Main filters
+   * a catalogue it holds in memory, so an answer per keystroke costs nothing
+   * worth waiting for; what matters is that only the last one lands.
+   */
+  const latestRequest = useRef(0);
 
   const loadCatalog = useCallback(
     async (search: string) => {
+      latestRequest.current += 1;
+      const request = latestRequest.current;
       setIsLoading(true);
       try {
-        setEntries(await getConvolutionCatalog(search));
+        const found = await getConvolutionCatalog(search);
+        if (request !== latestRequest.current) {
+          return;
+        }
+        setEntries(found);
         if (ownsGlobalError.current) {
           ownsGlobalError.current = false;
           setGlobalError(undefined);
         }
       } catch (error) {
+        if (request !== latestRequest.current) {
+          return;
+        }
         ownsGlobalError.current = true;
         setGlobalError(error as ErrorDescription);
       } finally {
-        setIsLoading(false);
+        if (request === latestRequest.current) {
+          setIsLoading(false);
+        }
       }
     },
     [setGlobalError],
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (query.trim()) {
-        addConvolutionSearchToHistory(query);
-      }
-      loadCatalog(query).catch(() => undefined);
-    }, 220);
-    return () => window.clearTimeout(timer);
+    loadCatalog(query).catch(() => undefined);
   }, [loadCatalog, query]);
+
+  // Dropped on the way out, so an answer for this page cannot land on a page
+  // that is no longer there.
+  useEffect(
+    () => () => {
+      latestRequest.current += 1;
+    },
+    [],
+  );
+
+  /**
+   * A search goes into the history when it is finished with — Enter, leaving
+   * the field, or a recent one picked — rather than when typing pauses. The
+   * pause was a timer, and every pause in the middle of a name went into the
+   * history as a search of its own.
+   */
+  const rememberQuery = (search: string) => {
+    if (search.trim()) {
+      addConvolutionSearchToHistory(search);
+    }
+  };
 
   const handleApply = async (entry: IConvolutionCatalogEntry) => {
     setDownloadingId(entry.id);
@@ -193,8 +230,16 @@ const ConvolutionPanel = () => {
                   setQuery(event.target.value);
                   setIsSearchFocused(true);
                 }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    rememberQuery(query);
+                  }
+                }}
                 onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
+                onBlur={() => {
+                  setIsSearchFocused(false);
+                  rememberQuery(query);
+                }}
                 placeholder={t('convolution.searchPlaceholder')}
                 autoComplete="off"
               />
@@ -238,6 +283,7 @@ const ConvolutionPanel = () => {
                         onMouseDown={(event) => {
                           event.preventDefault();
                           setQuery(search);
+                          rememberQuery(search);
                         }}
                       >
                         <svg viewBox="0 0 16 16" aria-hidden>
@@ -257,8 +303,12 @@ const ConvolutionPanel = () => {
           <div className="convolution-notice">
             {t(isFluid ? 'convolution.notice.fluid' : 'convolution.notice')}
           </div>
+          {/* The rows in hand stay up while the next answer is on its way:
+              answers come with every key now, and blanking the list to say
+              "Loading" for each one flashed it on every key. "Loading" is
+              for the wait before there is anything to show. */}
           <div className="convolution-results" aria-live="polite">
-            {isLoading && (
+            {isLoading && entries.length === 0 && (
               <div className="convolution-empty">
                 {t('convolution.loading')}
               </div>
@@ -266,44 +316,43 @@ const ConvolutionPanel = () => {
             {!isLoading && entries.length === 0 && (
               <div className="convolution-empty">{t('convolution.empty')}</div>
             )}
-            {!isLoading &&
-              entries.map((entry) => {
-                const isApplied = convolution?.sourceUrl === entry.sourceUrl;
-                const isDownloading = downloadingId === entry.id;
-                let actionLabel = t('convolution.apply');
-                if (isDownloading) {
-                  actionLabel = t('convolution.downloading');
-                } else if (isApplied) {
-                  actionLabel = t('convolution.isApplied');
-                }
-                return (
-                  <article className="convolution-result" key={entry.id}>
-                    <div className="convolution-result__details">
-                      <strong>{entry.name}</strong>
-                      <span>
-                        {entry.provider} · {entry.phase} phase ·{' '}
-                        {entry.sampleRate / 1000} kHz WAV
-                      </span>
-                    </div>
-                    <a
-                      className="convolution-result__link"
-                      href={entry.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {t('convolution.source')}
-                    </a>
-                    <button
-                      type="button"
-                      className={`convolution-button${isApplied ? ' is-applied' : ''}`}
-                      disabled={!isEnabled || isDownloading || isApplied}
-                      onClick={() => handleApply(entry)}
-                    >
-                      {actionLabel}
-                    </button>
-                  </article>
-                );
-              })}
+            {entries.map((entry) => {
+              const isApplied = convolution?.sourceUrl === entry.sourceUrl;
+              const isDownloading = downloadingId === entry.id;
+              let actionLabel = t('convolution.apply');
+              if (isDownloading) {
+                actionLabel = t('convolution.downloading');
+              } else if (isApplied) {
+                actionLabel = t('convolution.isApplied');
+              }
+              return (
+                <article className="convolution-result" key={entry.id}>
+                  <div className="convolution-result__details">
+                    <strong>{entry.name}</strong>
+                    <span>
+                      {entry.provider} · {entry.phase} phase ·{' '}
+                      {entry.sampleRate / 1000} kHz WAV
+                    </span>
+                  </div>
+                  <a
+                    className="convolution-result__link"
+                    href={entry.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('convolution.source')}
+                  </a>
+                  <button
+                    type="button"
+                    className={`convolution-button${isApplied ? ' is-applied' : ''}`}
+                    disabled={!isEnabled || isDownloading || isApplied}
+                    onClick={() => handleApply(entry)}
+                  >
+                    {actionLabel}
+                  </button>
+                </article>
+              );
+            })}
           </div>
         </>
       ) : null}

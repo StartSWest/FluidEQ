@@ -18,14 +18,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { IKaraokeChordSegment } from '../../common/karaoke/chords';
 import { useTranslation } from '../utils/I18nContext';
+import { IKaraokeLiveValue, useKaraokeLiveValue } from './karaokeLiveValue';
 import { TKaraokeChordAnalysisStatus } from './useKaraokeChordAnalysis';
 
 interface IKaraokeChordGuideProps {
   status: TKaraokeChordAnalysisStatus;
   chords: readonly IKaraokeChordSegment[];
-  progress: number;
+  progress: IKaraokeLiveValue<number>;
   playheadMs: number;
 }
+
+/** The one thing a step of the analysis changes, and all it re-renders. */
+const ChordAnalysisProgress = ({
+  progress,
+}: {
+  progress: IKaraokeLiveValue<number>;
+}) => {
+  const { t } = useTranslation();
+  const fraction = useKaraokeLiveValue(progress);
+  return (
+    <span>
+      {t('karaoke.chords.analyzing', {
+        percent: Math.round(fraction * 100),
+      })}
+    </span>
+  );
+};
 
 const KaraokeChordGuide = ({
   status,
@@ -45,11 +63,7 @@ const KaraokeChordGuide = ({
         aria-label={t('karaoke.chords.aria')}
       >
         <span className="karaoke-chords__scan" aria-hidden="true" />
-        <span>
-          {t('karaoke.chords.analyzing', {
-            percent: Math.round(progress * 100),
-          })}
-        </span>
+        <ChordAnalysisProgress progress={progress} />
       </div>
     );
   }

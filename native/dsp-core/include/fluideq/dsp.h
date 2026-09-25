@@ -173,6 +173,16 @@ uint32_t feq_engine_latency_frames(const FeqEngine* engine);
 /** Drains one accumulated record. False when there is nothing new. */
 bool feq_engine_try_read_telemetry(FeqEngine* engine, FeqTelemetryV1* out);
 
+/**
+ * How many telemetry records this engine has published, about forty for
+ * every second of audio it processes. Any thread; one atomic load.
+ *
+ * What the host's callback compares across blocks to know that the telemetry
+ * thread has something to drain, so that thread sleeps until there is a
+ * record rather than waking on a clock of its own.
+ */
+uint64_t feq_engine_reports_published(const FeqEngine* engine);
+
 bool feq_engine_try_read_diagnostic(FeqEngine* engine, FeqDiagnosticV1* out);
 
 /** Build identity, for the handshake and for support reports. */

@@ -22,12 +22,17 @@ import en, { TranslationKey } from '../../../common/i18n/en';
 import {
   DEFAULT_LOCALE,
   getCoverage,
+  loadLocale,
   LOCALES,
   resolveLocale,
   translate,
 } from '../../../common/i18n';
 
 describe('i18n', () => {
+  // Every language but English is loaded when it is first asked for, and a
+  // dictionary nobody has loaded counts as nothing translated.
+  beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
+
   it('ships every locale fully translated', () => {
     // Not a style preference: an English line in the middle of a Japanese
     // panel is the sort of thing nobody reports and everybody notices. The

@@ -27,7 +27,7 @@ import {
   buildAcceptance,
 } from 'common/disclaimer';
 import { AUTHOR_NAME } from 'common/branding';
-import { LocaleCode, translate } from 'common/i18n';
+import { LOCALES, LocaleCode, loadLocale, translate } from 'common/i18n';
 import DisclaimerGate from 'renderer/components/DisclaimerGate';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
@@ -42,6 +42,11 @@ const showIn = (locale: LocaleCode) => {
     </I18nProvider>,
   );
 };
+
+// The app loads the stored language before its first frame
+// (renderer/index.tsx), and every language but English is its own
+// chunk, so these load theirs first too.
+beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
 
 beforeEach(() => {
   window.localStorage.clear();

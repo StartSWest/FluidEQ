@@ -21,7 +21,7 @@ import {
   type IEngineLatency,
   type IEngineOutputHealth,
 } from 'common/engineHealth';
-import { getAudioDevices } from './equalizerApi';
+import { readKnownAudioDevices } from './equalizerApi';
 import { reportError } from './logger';
 import {
   IPlayerProcessingLatency,
@@ -95,7 +95,7 @@ export const useListenedOutput = (isFluid: boolean): IListenedOutput => {
         session,
         defaultGuid: undefined,
       }));
-      getAudioDevices()
+      readKnownAudioDevices()
         .then((devices) => {
           if (isLive && request === deviceRequest) {
             const guid = devices.find((device) => device.isDefault)?.guid;

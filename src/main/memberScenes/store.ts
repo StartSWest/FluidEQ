@@ -18,6 +18,7 @@ import {
 import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
+import { createSceneSummaryCache } from '../sceneSummaryCache';
 
 /**
  * Members' scenes, as they sit on this computer.
@@ -123,6 +124,10 @@ export const createMemberSceneStore = ({
 
   let blocked = new Set<string>();
 
+  /** Each file's summary while it is unchanged (`sceneSummaryCache.ts`). The
+   * block list is applied as the list is made, never kept in here. */
+  const summaries = createSceneSummaryCache<IMemberSceneSummary>();
+
   const isBlocked = (authorId: string, packId: string) =>
     blocked.has(memberSceneFingerprint(authorId, packId));
 
@@ -213,17 +218,24 @@ export const createMemberSceneStore = ({
 
   return {
     list: () => {
+      // Read before the block list is asked, blocked or not: reading is what
+      // moves a legacy copy to the encrypted format, blocked copies included.
       const own = held(ownRoot).flatMap(({ authorId, packId }) => {
-        const pack = readOwn(authorId, packId);
-        return pack && !isBlocked(authorId, packId)
-          ? [summarise(authorId, pack)]
-          : [];
+        const summary = summaries.get(ownFile(authorId, packId), () => {
+          const pack = readOwn(authorId, packId);
+          return pack && summarise(authorId, pack);
+        });
+        return summary && !isBlocked(authorId, packId) ? [summary] : [];
       });
       const imported = held(importedRoot).flatMap(({ authorId, packId }) => {
-        const found = readImported(authorId, packId);
-        return found && !isBlocked(authorId, packId)
-          ? [summarise(authorId, found.pack, { authorName: found.authorName })]
-          : [];
+        const summary = summaries.get(importedFile(authorId, packId), () => {
+          const found = readImported(authorId, packId);
+          return (
+            found &&
+            summarise(authorId, found.pack, { authorName: found.authorName })
+          );
+        });
+        return summary && !isBlocked(authorId, packId) ? [summary] : [];
       });
       return [...own, ...imported];
     },
@@ -245,6 +257,7 @@ export const createMemberSceneStore = ({
             .join(', ')}`,
         );
       }
+      summaries.forget(ownFile(authorId, pack.id));
       writeSceneCache(
         ownFile(authorId, pack.id),
         `own/${authorId}/${pack.id}`,
@@ -267,6 +280,7 @@ export const createMemberSceneStore = ({
       if (!validRef(author.id, pack.id)) {
         throw new Error('Not a member scene id.');
       }
+      summaries.forget(importedFile(author.id, pack.id));
       writeSceneCache(
         importedFile(author.id, pack.id),
         `imported/${author.id}/${pack.id}`,
@@ -282,6 +296,7 @@ export const createMemberSceneStore = ({
         ownFile(authorId, packId),
         importedFile(authorId, packId),
       ];
+      targets.forEach((target) => summaries.forget(target));
       const existing = targets.filter((target) => fs.existsSync(target));
       existing.forEach((target) => fs.rmSync(target));
       return existing.length > 0;

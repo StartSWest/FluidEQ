@@ -17,7 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IFilter } from 'common/constants';
-import { RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
+import latestCall from 'common/latestCall';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
 export const getMaxIntegerDigitCount = (num: number) => {
   const absNum = Math.round(Math.abs(num));
@@ -44,81 +45,26 @@ export const formatPresetName = (s: string) => {
 
 // *** CUSTOM HOOKS ***
 
-// https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-export const useInterval = (callback: () => void, delay?: number) => {
-  const savedCallback = useRef<(() => void) | undefined>(undefined);
-
-  useEffect(() => {
-    savedCallback.current = callback;
-  });
-
-  useEffect(() => {
-    function tick() {
-      savedCallback.current?.();
-    }
-
-    if (delay !== undefined) {
-      const id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-    return () => {};
-  }, [delay]);
-};
-
-export const useThrottle = <T extends (...args: any[]) => unknown>(
-  fn: T,
-  delay: number,
-) => {
-  const lastCalled = useRef<number>(0);
-  const throttledFunction = useCallback(
-    (...args: Parameters<T>) => {
-      const now = new Date().getTime();
-      if (now - lastCalled.current < delay) {
-        return false;
-      }
-      lastCalled.current = now;
-      fn(...args);
-      return true;
-    },
-    [delay, fn],
+/**
+ * `latestCall` for a component: one call of `fn` in flight, the newest of the
+ * rest waiting behind it, and the waiting one sent the moment the first
+ * settles (see `common/latestCall.ts`).
+ *
+ * What replaced the throttle that guarded every write here. It wrote at most
+ * once per `delay` and put the last call on a timer so it was not lost; a
+ * write already says when it is done, and that is the moment the next one can
+ * go. The function called is always the latest one rendered, so a caller need
+ * not keep it stable.
+ */
+export const useLatestCall = <Args extends unknown[]>(
+  fn: (...args: Args) => Promise<void> | void,
+): ((...args: Args) => Promise<void>) => {
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
+  const [call] = useState(() =>
+    latestCall<Args>((...args) => fnRef.current(...args)),
   );
-  return throttledFunction;
-};
-
-// This hook throttles any call to function fn. It will also rmb
-// the latest call so in the event that subsequent calls to fn stop,
-// a node interval will execute the latest call.
-export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number,
-) => {
-  const throttleFunction = useThrottle(fn, delay);
-  const lastCalledValues = useRef<unknown[] | undefined>(undefined);
-  const timeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
-
-  return useCallback(
-    async (...args: Parameters<T>) => {
-      if (throttleFunction(...args)) {
-        // fn was called, remove future call
-        clearTimeout(timeoutId.current);
-        timeoutId.current = undefined;
-      } else {
-        // remember latest input and setup timer to execute fn
-        if (!timeoutId.current) {
-          timeoutId.current = setTimeout(async () => {
-            if (lastCalledValues.current) {
-              await fn(...lastCalledValues.current);
-            }
-            timeoutId.current = undefined;
-          }, delay);
-        }
-        lastCalledValues.current = args;
-      }
-    },
-    [delay, fn, throttleFunction],
-  );
+  return call;
 };
 
 /**

@@ -47,12 +47,11 @@ import { execFile } from 'child_process';
 import { createHash } from 'crypto';
 import { redact } from '../common/bugReport';
 import {
-  checkConfigFile,
+  CONFIG_FILENAME,
   stateToApoFiles,
   getResolvedPreAmp,
   fetchSettings,
   save,
-  updateConfig,
   savePreset,
   fetchPreset,
   doesPresetExist,
@@ -63,9 +62,12 @@ import {
 import {
   flushPendingWrites,
   hasUnsettledWrites,
+  peekScheduled,
   scheduleWrite,
+  sweepAbandonedWrites,
 } from './asyncWriter';
 import {
+  forgetApoInstall,
   getConfigPath,
   getFluidEngineDllPath,
   isEngineInstalled,
@@ -98,10 +100,10 @@ import gatherBugReportFacts from './bugReportFacts';
 import { writeBugReportMark } from './bugReportMark';
 import { openSupportEmail } from './safeExternal';
 import ChannelEnum from '../common/channels';
+import coalesceRequests from '../common/coalescedRequest';
 import { compressChainToLimit } from '../common/response';
 import {
   AutoEqFormat,
-  FilterTypeEnum,
   IState,
   IPresetV2,
   MAX_GAIN,
@@ -122,11 +124,9 @@ import {
   TApoLayer,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
-import {
-  getFixedBandSizeForCount,
-  ILayoutSnapshot,
-  snapshotFilters,
-} from '../common/layouts';
+import type { ILayoutSnapshot } from '../common/layouts';
+import { createLayoutSettingsStore } from './layoutSettings';
+import { createConfigInclude } from './configInclude';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
@@ -140,6 +140,7 @@ import {
   setTrayUpdatesEnabled,
   setUpTray,
 } from './tray';
+import watchTraceSentinels from './traceSentinels';
 import {
   createNativeUpdatePrompt,
   INativeUpdatePrompt,
@@ -175,9 +176,14 @@ import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
-import { registerKaraokeSeparation } from './karaokeSeparation';
+import {
+  karaokeStemsDir,
+  registerKaraokeSeparation,
+} from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
+import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { registerProfilesIpc } from './ipc/profiles';
+import { IOutputWatch, startOutputWatch } from './outputWatch';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
 import {
   createApoGuard,
@@ -242,7 +248,7 @@ import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
 import {
   handleLibraryMedia,
-  registerLibraryMediaScheme,
+  registerPrivilegedSchemes,
 } from './library/libraryProtocol';
 import {
   adoptApoFeatureText,
@@ -272,8 +278,8 @@ import {
 } from './systemMedia';
 import {
   claimInstance,
-  describeInstanceMarker,
-  isAnotherInstanceLive,
+  describeInstanceHolder,
+  instanceLockPath,
 } from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
@@ -282,6 +288,7 @@ import {
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
 import onWindowMessage from './ipc/windowMessages';
+import { declineDefaultMenu } from './menu';
 
 /**
  * Declares the `fluideq-media:` scheme's privileges before the app is ready.
@@ -294,7 +301,11 @@ import onWindowMessage from './ipc/windowMessages';
  * ordinary untrusted one, which reads exactly like a CSP bug and nothing
  * points back here. See the doc comment on the function itself.
  */
-registerLibraryMediaScheme();
+registerPrivilegedSchemes();
+
+// Before `ready` for the same reason: Electron builds its default menu then,
+// for an app that has not said it wants none. See `declineDefaultMenu`.
+declineDefaultMenu();
 
 /**
  * The updater exists only after Windows verifies which release channel this
@@ -324,45 +335,56 @@ let hasAttemptedAutoUpdates = false;
  * guest page. Written to the log so a session can be read back afterwards
  * instead of watched live.
  *
- * Never in a shipped build: it is a timer and a log line every fifteen seconds
- * in aid of a question only a developer is asking.
+ * Taken at the moments somebody marks — the window opening, and every start
+ * and stop of the memory trace below, which is how a developer says "now" —
+ * and never on a clock. It used to be a reading every fifteen seconds, a timer
+ * in aid of a question only a developer is asking; the trace is the tool that
+ * answers "what grew between here and there", and Chromium takes its dumps
+ * on its own cadence.
  */
+const logMemorySnapshot = (moment: string) => {
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    !mainWindow ||
+    mainWindow.isDestroyed()
+  ) {
+    return;
+  }
+  const appRendererPid = mainWindow.webContents.getOSProcessId();
+  const rows = app
+    .getAppMetrics()
+    .map((metric) => {
+      const mb = Math.round(metric.memory.workingSetSize / 1024);
+      const mine = metric.pid === appRendererPid ? '*' : '';
+      return `${metric.type}${mine}:${metric.pid}=${mb}MB`;
+    })
+    .join(' ');
+  // The JS heap alongside the process size, because the two answer different
+  // questions and only the pair narrows anything. A renderer at a gigabyte
+  // with a hundred-megabyte heap is not leaking objects — it is leaking
+  // something the garbage collector never sees, which means DOM nodes,
+  // decoded images, canvas backing stores or retained paint. The opposite
+  // points straight back at our own code.
+  mainWindow.webContents
+    .executeJavaScript(
+      // Node count alongside the heap, because "process grows, heap flat" has
+      // two very different explanations and this tells them apart: DOM piling
+      // up inside the document, or something the page never sees — detached
+      // nodes, retained paint, decoded images.
+      '(() => { const m = performance.memory; const h = m ? Math.round(m.usedJSHeapSize / 1048576) + "/" + Math.round(m.totalJSHeapSize / 1048576) : "n/a"; return h + "MB nodes=" + document.getElementsByTagName("*").length; })()',
+      true,
+    )
+    .then((heap) => log.info(`[mem] ${moment}: ${rows} jsHeap*=${heap}`))
+    .catch(() => log.info(`[mem] ${moment}: ${rows}`));
+};
+
+/** The window's renderer by pid, and the first reading. */
 const startMemoryProbe = () => {
   if (process.env.NODE_ENV !== 'development' || !mainWindow) {
     return;
   }
-  const appRendererPid = mainWindow.webContents.getOSProcessId();
-  log.info(`[mem] app renderer pid=${appRendererPid}`);
-  const probe = setInterval(() => {
-    const rows = app
-      .getAppMetrics()
-      .map((metric) => {
-        const mb = Math.round(metric.memory.workingSetSize / 1024);
-        const mine = metric.pid === appRendererPid ? '*' : '';
-        return `${metric.type}${mine}:${metric.pid}=${mb}MB`;
-      })
-      .join(' ');
-    // The JS heap alongside the process size, because the two answer different
-    // questions and only the pair narrows anything. A renderer at a gigabyte
-    // with a hundred-megabyte heap is not leaking objects — it is leaking
-    // something the garbage collector never sees, which means DOM nodes,
-    // decoded images, canvas backing stores or retained paint. The opposite
-    // points straight back at our own code.
-    mainWindow?.webContents
-      .executeJavaScript(
-        // Node count alongside the heap, because "process grows, heap flat" has
-        // two very different explanations and this tells them apart: DOM piling
-        // up inside the document, or something the page never sees — detached
-        // nodes, retained paint, decoded images.
-        '(() => { const m = performance.memory; const h = m ? Math.round(m.usedJSHeapSize / 1048576) + "/" + Math.round(m.totalJSHeapSize / 1048576) : "n/a"; return h + "MB nodes=" + document.getElementsByTagName("*").length; })()',
-        true,
-      )
-      .then((heap) => log.info(`[mem] ${rows} jsHeap*=${heap}`))
-      .catch(() => log.info(`[mem] ${rows}`));
-  }, 15000);
-  // The window can go before the app does, and a probe reporting on a renderer
-  // that no longer exists is noise in the one log being read to find a leak.
-  mainWindow.on('closed', () => clearInterval(probe));
+  log.info(`[mem] app renderer pid=${mainWindow.webContents.getOSProcessId()}`);
+  logMemorySnapshot('window open');
 };
 
 /**
@@ -376,9 +398,14 @@ const startMemoryProbe = () => {
  * reports into a periodic dump, and the row that grows between the first dump
  * and the last is the answer.
  *
- * Bound rather than left running. The dumps are expensive enough that
- * Chromium's own documentation calls the category high-overhead, and a trace
- * left recording would change the thing it is measuring.
+ * Stopped by whoever started it — the button, the sentinel file below — or by
+ * the app quitting, which writes what was recorded rather than losing it
+ * (`before-quit`). There used to be a five-minute deadline as well, for a
+ * trace nobody remembered to stop; the buffer is a ring (below), so a
+ * forgotten one costs its dumps' overhead until it is stopped, and never the
+ * disk. The dumps are expensive enough that Chromium's own documentation
+ * calls the category high-overhead, which is why it is never started at
+ * launch.
  *
  * Toggled from the keyboard rather than started at launch, because the
  * question is never "what does the app allocate" — it is "what does the app
@@ -395,7 +422,6 @@ const startMemoryProbe = () => {
  * enough that five seconds resolves it just as well.
  */
 const TRACE_DUMP_INTERVAL_MS = 5000;
-const TRACE_MAX_MS = 5 * 60 * 1000;
 
 /**
  * Keep the end of the recording, not the beginning.
@@ -414,7 +440,6 @@ const TRACE_RECORD_MODE = 'record-continuously' as const;
 /** The default is 100MB, and 100MB of this category is about two minutes. */
 const TRACE_BUFFER_KB = 800 * 1024;
 
-let traceStopTimer: NodeJS.Timeout | undefined;
 let isTracing = false;
 /**
  * True while a start or a stop is still in flight.
@@ -430,9 +455,9 @@ let isTraceBusy = false;
 /**
  * Tell the window what the recording is doing.
  *
- * Pushed rather than returned, because the recording can also end without
- * anybody asking — the five-minute guard below stops it — and a button whose
- * label only updates when it is pressed would sit there claiming to be
+ * Pushed rather than returned, because the recording can also be started and
+ * stopped without the button — by the sentinel files below — and a button
+ * whose label only updates when it is pressed would sit there claiming to be
  * recording long after the trace had been written.
  */
 const publishTraceState = (detail?: string) => {
@@ -447,10 +472,7 @@ const stopMemoryTrace = async () => {
   }
   isTraceBusy = true;
   isTracing = false;
-  if (traceStopTimer) {
-    clearTimeout(traceStopTimer);
-    traceStopTimer = undefined;
-  }
+  logMemorySnapshot('trace stop');
   try {
     const target = path.join(
       app.getPath('userData'),
@@ -495,16 +517,10 @@ const startMemoryTrace = async () => {
       },
     });
     log.info(
-      `[trace] recording memory-infra — press again to stop, or it ends in ${
-        TRACE_MAX_MS / 1000
-      }s`,
+      '[trace] recording memory-infra — press again, or drop trace.stop, to stop',
     );
+    logMemorySnapshot('trace start');
     publishTraceState('Recording');
-    // A trace nobody remembers to stop is a trace that fills the disk and
-    // distorts the measurement it was opened for.
-    traceStopTimer = setTimeout(() => {
-      stopMemoryTrace();
-    }, TRACE_MAX_MS);
   } catch (e) {
     isTracing = false;
     log.info(`[trace] failed to start: ${(e as Error).message}`);
@@ -526,45 +542,24 @@ onWindowMessage(ChannelEnum.TOGGLE_MEMORY_TRACE, () => {
 });
 
 /**
- * Started and stopped by dropping a file next to the log.
- *
- * A keyboard shortcut was the obvious way and it does not survive contact with
- * this app. `before-input-event` never fires while focus is inside the video
- * guest, which is one of the two places worth measuring; and on Windows
- * Ctrl+Alt is AltGr, so the key reported for Ctrl+Alt+M is not `m` on every
- * layout. A global shortcut would work and would take the combination away
- * from every other application on the machine, for a developer diagnostic.
- *
- * A sentinel file has none of those problems, works no matter where focus is,
- * and can be driven from a shell — which matters, because the person timing
- * the recording is usually not the person driving the window.
+ * The trace's other switch: files dropped next to the log
+ * (`traceSentinels.ts`), for when focus is somewhere the button cannot be
+ * pressed from.
  */
-const TRACE_POLL_MS = 1000;
-
 const setUpMemoryTraceTrigger = () => {
   if (process.env.NODE_ENV !== 'development' || !mainWindow) {
     return;
   }
-  const logsDir = path.join(app.getPath('userData'), 'logs');
-  const startFile = path.join(logsDir, 'trace.start');
-  const stopFile = path.join(logsDir, 'trace.stop');
-
-  const poll = setInterval(() => {
-    // Consumed rather than merely read, so one file is one recording and a
-    // sentinel left behind cannot restart the trace on the next tick.
-    if (fs.existsSync(startFile)) {
-      fs.rmSync(startFile, { force: true });
-      startMemoryTrace();
-      return;
-    }
-    if (fs.existsSync(stopFile)) {
-      fs.rmSync(stopFile, { force: true });
-      stopMemoryTrace();
-    }
-  }, TRACE_POLL_MS);
-
-  mainWindow.on('closed', () => clearInterval(poll));
-  log.info(`[trace] drop trace.start / trace.stop in ${logsDir}`);
+  const stopWatching = watchTraceSentinels(
+    path.join(app.getPath('userData'), 'logs'),
+    {
+      start: startMemoryTrace,
+      stop: stopMemoryTrace,
+      isBusy: () => isTraceBusy,
+      log: (line) => log.info(line),
+    },
+  );
+  mainWindow.on('closed', stopWatching);
 };
 
 /**
@@ -706,6 +701,12 @@ const setUpAutoUpdates = async () => {
 let mainWindow: BrowserWindow | null = null;
 
 /**
+ * Windows' own output notifications, followed by a helper for as long as the
+ * app runs; replaces the device list read every three seconds.
+ */
+let outputWatch: IOutputWatch | undefined;
+
+/**
  * The full app and the player it turns into, and the floor each keeps. What
  * happens after a switch is attached beside `sendWindowState`, below.
  */
@@ -713,13 +714,7 @@ const windowModes = createWindowModes();
 
 const WINDOW_STATE_FILENAME = 'window-state.json';
 
-/**
- * How long to wait for that signal before showing anyway.
- *
- * Long enough for a normal first paint, short enough that a renderer which
- * never reports still produces a window rather than an app that appears not to
- * have started.
- */
+/** What `window-state.json` holds. */
 interface IWindowState {
   /** The full app's normal bounds, whichever mode the window was left in. */
   width?: number;
@@ -749,10 +744,15 @@ const workAreaFor = (rect: Partial<IRect>) =>
  * a player, on a second screen — and opening centred every launch undoes that
  * decision for them daily.
  */
+const windowStatePath = () => path.join(userDataDir, WINDOW_STATE_FILENAME);
+
 const loadWindowState = (): IWindowState => {
   try {
+    // What the writer last accepted, when a write is still on its way: the
+    // file behind it is a drag behind (see `saveWindowState`).
+    const file = windowStatePath();
     const parsed = JSON.parse(
-      fs.readFileSync(path.join(userDataDir, WINDOW_STATE_FILENAME), 'utf8'),
+      peekScheduled(file) ?? fs.readFileSync(file, 'utf8'),
     ) as IWindowState;
 
     const isSize = (value: unknown): value is number =>
@@ -813,6 +813,11 @@ const loadWindowState = (): IWindowState => {
  * Maximized and full-screen windows report the size of the screen, not the size
  * the user chose, so the normal bounds are saved instead — that is what should
  * come back when they un-maximize.
+ *
+ * Asked for on every frame of a move or a resize, and never blocking: the
+ * coalescing writer keeps one write in flight and the newest waiting, skips
+ * contents already on disk, and is flushed by `before-quit`. It used to be a
+ * synchronous write 400 ms after the last event (`mainWindow.ts`).
  */
 const saveWindowState = () => {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -846,10 +851,8 @@ const saveWindowState = () => {
       ...(isUsableRect(player) ? { player } : {}),
       isPinned: modes.isPinned,
     };
-    fs.writeFileSync(
-      path.join(userDataDir, WINDOW_STATE_FILENAME),
-      JSON.stringify(state, null, 2),
-      'utf8',
+    scheduleWrite(windowStatePath(), JSON.stringify(state, null, 2)).catch(
+      (error: unknown) => log.warn('Unable to save the window position', error),
     );
   } catch (error) {
     // Losing the window position is not worth an error on screen.
@@ -894,7 +897,14 @@ const syncDatabasesOnStartup = async () => {
   });
 };
 
-if (process.platform !== 'win32') {
+// A sandbox for running from a checkout on macOS or Linux, where neither engine
+// can be installed. Only there: a packaged build took it too and kept every
+// setting, profile and cache in the temp folder, which Linux empties at boot
+// and macOS purges, so a start after a reboot began from nothing. Nothing is
+// copied over from it: no macOS or Linux build has been published (releases
+// carry only the Windows installer), and this is the folder development
+// writes to, which a copy would pour into an installed app.
+if (process.platform !== 'win32' && !app.isPackaged) {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
@@ -1104,95 +1114,25 @@ const hydrateActiveConvolution = () => {
   return false;
 };
 
-const LAYOUT_SETTINGS_FILENAME = 'layout-frequencies.json';
-interface ILayoutSettingsFile {
-  version: 1;
-  devices: Record<string, Record<string, ILayoutSnapshot>>;
-}
-
-const layoutSettingsPath = path.join(userDataDir, LAYOUT_SETTINGS_FILENAME);
-
-const loadLayoutSettings = (): ILayoutSettingsFile => {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(layoutSettingsPath, 'utf8')) as
-      Partial<ILayoutSettingsFile> | undefined;
-    if (parsed?.version !== 1 || !parsed.devices) {
-      throw new Error('Invalid layout settings');
-    }
-    return {
-      version: 1,
-      devices:
-        typeof parsed.devices === 'object'
-          ? (parsed.devices as ILayoutSettingsFile['devices'])
-          : {},
-    };
-  } catch {
-    return { version: 1, devices: {} };
-  }
-};
-
 // Deferred until after the per-output folders exist, since that is where the
 // profiles it repairs now live. See runStartupProfileMaintenance.
 
-const layoutSettings = loadLayoutSettings();
-
-const saveLayoutSettings = () => {
-  try {
-    fs.writeFileSync(
-      layoutSettingsPath,
-      JSON.stringify(layoutSettings, null, 2),
-      'utf8',
-    );
-  } catch (error) {
-    log.warn('Unable to save per-layout frequencies', error);
-  }
-};
+const layoutSettings = createLayoutSettingsStore(userDataDir);
 
 const getLayoutDeviceKey = () => session.activeAudioDeviceId || 'global';
 
-const getCurrentLayoutSize = () =>
-  getFixedBandSizeForCount(Object.keys(state.filters).length);
-
 const captureCurrentLayout = () => {
-  const size = getCurrentLayoutSize();
-  if (!size) {
-    return;
-  }
-  const deviceKey = getLayoutDeviceKey();
-  if (!layoutSettings.devices[deviceKey]) {
-    layoutSettings.devices[deviceKey] = {};
-  }
-  layoutSettings.devices[deviceKey][String(size)] = snapshotFilters(
-    state.filters,
-  );
-  saveLayoutSettings();
+  layoutSettings.capture(getLayoutDeviceKey(), state.filters);
 };
 
 const clearCurrentLayoutSettings = () => {
-  delete layoutSettings.devices[getLayoutDeviceKey()];
-  saveLayoutSettings();
+  layoutSettings.clear(getLayoutDeviceKey());
 };
 
 const getStoredLayout = (
   size: FixedBandSizeEnum,
-): ILayoutSnapshot | undefined => {
-  const snapshot = layoutSettings.devices[getLayoutDeviceKey()]?.[String(size)];
-  if (!Array.isArray(snapshot) || snapshot.length !== size) {
-    return undefined;
-  }
-  if (
-    !snapshot.every(
-      (band) =>
-        Number.isFinite(band.frequency) &&
-        Number.isFinite(band.gain) &&
-        Number.isFinite(band.quality) &&
-        Object.values(FilterTypeEnum).includes(band.type),
-    )
-  ) {
-    return undefined;
-  }
-  return snapshot;
-};
+): ILayoutSnapshot | undefined =>
+  layoutSettings.stored(getLayoutDeviceKey(), size);
 
 const getAutomaticPresetName = (deviceId: string) =>
   `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
@@ -1653,38 +1593,6 @@ if (process.platform === 'win32') {
   );
 }
 
-/** Base wait between attempts, plus up to the same again as jitter. */
-const RETRY_DELAY_MS = 500;
-
-/**
- * Retry something that fails because someone else is holding the file.
- *
- * Flat, not exponential, and that is deliberate rather than unfinished. The
- * only thing this guards is two config writes landing at once — a lock held
- * for a few milliseconds, not a service asking to be backed off. Doubling the
- * wait each time would turn a two-second worst case into eight, and every one
- * of those seconds is a user watching their EQ fail to apply.
- *
- * The jitter is the part that matters. Two writers that collide once are on
- * the same cadence by definition, so a fixed delay marches them into the next
- * collision together; spreading the wait is what breaks the lockstep.
- */
-const retryHelper = async (attempts: number, f: () => unknown) => {
-  for (let i = 0; i < attempts; i += 1) {
-    try {
-      await f();
-      return;
-    } catch (e) {
-      if (i === attempts - 1) {
-        throw new Error(`Failed to perform action after ${attempts} retries`);
-      }
-      await new Promise((resolve) => {
-        setTimeout(resolve, RETRY_DELAY_MS + Math.random() * RETRY_DELAY_MS);
-      });
-    }
-  }
-};
-
 /**
  * Everything the update path uses an IPC event for, which is one method.
  *
@@ -1764,11 +1672,10 @@ const updateConfigPath = async (
     // this is a computed path; under 'apo' it is the registry lookup, which
     // throws when Equalizer APO is not installed.
     session.configPath = await getConfigPath(engine);
-    // Overwrite the config file if necessary
-    if (!checkConfigFile(session.configPath)) {
-      updateConfig(session.configPath);
-    }
+    // Watching before the include is read, so a change to config.txt after
+    // the read is one the watcher reports.
     startApoConfigWatcher();
+    configInclude.ensure(session.configPath);
   } catch (e) {
     handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
     return false;
@@ -1802,7 +1709,8 @@ const handleUpdateHelperCore = async <T>(
   // can be uninstalled while the app is running. Under 'fluid' this is a file
   // check plus the helper's last word on the registration, and no registry
   // probe: Equalizer APO being absent is not a failure when it is not the
-  // engine being written to.
+  // engine being written to. Under 'apo' it is a file check too, once the
+  // registry has answered for the session (`registry.ts`).
   const engine = session.audioEngine;
   if (engine === null) {
     handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
@@ -1824,9 +1732,7 @@ const handleUpdateHelperCore = async <T>(
       session.configPath = await getConfigPath(engine);
     }
     startApoConfigWatcher();
-    if (!checkConfigFile(session.configPath)) {
-      updateConfig(session.configPath);
-    }
+    configInclude.ensure(session.configPath);
     // Keep the root state, the disabled slider and the generated APO line on
     // the same automatic value. The writer derives this independently as its
     // final safety check; synchronizing here prevents the stored manual preamp
@@ -1889,8 +1795,8 @@ const handleUpdateHelperCore = async <T>(
             state,
           }
         : undefined;
-    // Flush changes to EqualizerAPO with a retry in case several requests to
-    // write are occuring at the same time.
+    // Flush changes to the engine's config. Once: overlapping requests are
+    // the writer's to coalesce, not a race to retry (see `followOutputs.ts`).
     //
     // Skipped mid-switch: `session.configPath` still points at the engine
     // being left, whose directory has just been neutralised, and writing the
@@ -1899,16 +1805,14 @@ const handleUpdateHelperCore = async <T>(
     // reply is a success — because the state is real; only its destination is
     // in doubt, and the reflush that ends the switch settles that.
     if (!session.engineSwitching) {
-      await retryHelper(5, () => {
-        return flushDeviceProfiles(
-          deviceProfileSettings,
-          presetDirForDevice,
-          session.configPath,
-          activeOverride,
-          state.isEnabled,
-          sessionHeadroom(),
-        );
-      });
+      await flushDeviceProfiles(
+        deviceProfileSettings,
+        presetDirForDevice,
+        session.configPath,
+        activeOverride,
+        state.isEnabled,
+        sessionHeadroom(),
+      );
     }
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE);
@@ -2068,17 +1972,30 @@ const {
  *
  * `fs.watch` is only a wake-up signal. A single FluidEQ update touches more
  * than one file and APO itself may also cause duplicate notifications, so the
- * callback never treats an event as a change. After a short debounce it reads
- * the complete active chain and compares each feature's parsed audible shape
- * with what the current state would write. FluidEQ's own writes therefore
- * compare equal and stop here; an external edit is adopted once, persisted,
- * canonicalized, and the canonical write compares equal on the next event.
+ * callback never treats an event as a change. Each wake-up reads the complete
+ * active chain and compares each feature's parsed audible shape with what the
+ * current state would write. FluidEQ's own writes therefore compare equal and
+ * stop here (or wait for the writer to settle first — see the guard at the top
+ * of the sync); an external edit is adopted once, persisted, canonicalized,
+ * and the canonical write compares equal on the next event.
+ *
+ * Coalesced, not debounced (`coalesceRequests`): one sync runs at a time,
+ * and every wake-up that arrives while it runs shares a single sync after it,
+ * which reads whatever the folder holds by then. It used to wait for 180 ms of
+ * quiet, a guess at how long a burst of notifications lasts; the last
+ * notification of a burst is still always followed by a read made after it,
+ * which is what the guess was for.
  */
-const APO_WATCH_DEBOUNCE_MS = 180;
 let apoConfigWatcher: fs.FSWatcher | undefined;
 let watchedApoConfigPath = '';
-let apoWatchTimer: ReturnType<typeof setTimeout> | undefined;
-let apoSyncQueue: Promise<void> = Promise.resolve();
+/** Set at quit: nothing reads the folder after that. */
+let apoSyncStopped = false;
+
+/** Read once per folder the watcher below is on (`configInclude.ts`). */
+const configInclude = createConfigInclude(
+  (configPath) =>
+    apoConfigWatcher !== undefined && watchedApoConfigPath === configPath,
+);
 
 const persistExternallyAdoptedState = () => {
   save(state, userDataDir);
@@ -2209,34 +2126,26 @@ const syncActiveApoFilesFromDisk = async () => {
   // cannot represent: preserving the user's APO work is more important than
   // normalizing the other files in that same pass.
   if (generatedChanged && !containsUnsupportedCommands) {
-    await retryHelper(5, () => {
-      return flushDeviceProfiles(
-        deviceProfileSettings,
-        presetDirForDevice,
-        session.configPath,
-        undefined,
-        state.isEnabled,
-        sessionHeadroom(),
-      );
-    });
+    await flushDeviceProfiles(
+      deviceProfileSettings,
+      presetDirForDevice,
+      session.configPath,
+      undefined,
+      state.isEnabled,
+      sessionHeadroom(),
+    );
   }
 
   notifyOutputStateChanged();
 };
 
-const queueApoDiskSync = () => {
-  if (apoWatchTimer !== undefined) {
-    clearTimeout(apoWatchTimer);
-  }
-  apoWatchTimer = setTimeout(() => {
-    apoWatchTimer = undefined;
-    apoSyncQueue = apoSyncQueue
-      .then(syncActiveApoFilesFromDisk)
-      .catch((error) =>
+const queueApoDiskSync = coalesceRequests(() =>
+  apoSyncStopped
+    ? Promise.resolve()
+    : syncActiveApoFilesFromDisk().catch((error) =>
         log.warn('Unable to synchronize Equalizer APO file edits', error),
-      );
-  }, APO_WATCH_DEBOUNCE_MS);
-};
+      ),
+);
 
 function startApoConfigWatcher() {
   if (!session.configPath || watchedApoConfigPath === session.configPath) {
@@ -2249,10 +2158,14 @@ function startApoConfigWatcher() {
       session.configPath,
       { persistent: false },
       (_eventType, fileName) => {
+        const name = fileName?.toString();
+        if (!name || name.toLowerCase() === CONFIG_FILENAME) {
+          configInclude.forget();
+        }
         if (
-          !fileName ||
+          !name ||
           /^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:driver|headphone|eq|voicing|smart|custom))?\.txt$/i.test(
-            fileName.toString(),
+            name,
           )
         ) {
           queueApoDiskSync();
@@ -2264,6 +2177,10 @@ function startApoConfigWatcher() {
       apoConfigWatcher?.close();
       apoConfigWatcher = undefined;
       watchedApoConfigPath = '';
+      configInclude.forget();
+      // A folder that cannot be watched any more is usually a folder that is
+      // gone, and the registry is what says where Equalizer APO's is now.
+      forgetApoInstall();
     });
   } catch (error) {
     apoConfigWatcher = undefined;
@@ -2381,9 +2298,10 @@ onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
 // rather than fixed.
 /**
  * One engine in Windows' effect lists, kept that way for the whole session —
- * see `createApoGuard`. Fed by the device list below, which the window
- * re-reads every few seconds, so Equalizer APO's Device Selector being run
- * while FluidEQ is open is noticed like anything else.
+ * see `createApoGuard`. Fed by the device list below, re-read on every output
+ * change Windows reports and whenever the window is come back to, so
+ * Equalizer APO's Device Selector being run while FluidEQ is open is noticed
+ * on the way back from it.
  */
 /**
  * The one gate every automatic elevated run passes through: the two halves
@@ -2398,7 +2316,7 @@ const apoGuard = createApoGuard({
   automatic: automaticSetup,
 });
 
-registerProfilesIpc({
+const profilesIpc = registerProfilesIpc({
   state,
   userDataDir,
   activeBaselineDir,
@@ -2422,7 +2340,6 @@ registerProfilesIpc({
   applyDeviceState,
   captureCurrentLayout,
   notifyOutputStateChanged,
-  retryHelper,
   guardAgainstApo: apoGuard.check,
 });
 
@@ -2448,6 +2365,10 @@ registerAudioEngineIpc({
     // send the next flush — the reflush this switch is about to run — into
     // the folder the app has just finished neutralising.
     session.configPath = '';
+    // And Equalizer APO's installation is asked of the registry again: the
+    // session keeps it between switches (`registry.ts`), and a switch is
+    // where somebody who has just installed or moved it comes back to it.
+    forgetApoInstall();
   },
   setSwitching: (isSwitching) => {
     session.engineSwitching = isSwitching;
@@ -3485,7 +3406,15 @@ const engineHealth = registerEngineHealthIpc({
   onHealth: songProgramme.onHealth,
 });
 
-if (process.env.NODE_ENV === 'production') {
+// Only in the build that has source maps: DEBUG_PROD is the one production
+// build the main webpack config gives a `devtool`, and every other one has its
+// maps deleted. Installed without them it still read the whole of main.js into
+// its cache on the first stack it formatted, and kept it, to map nothing. Both
+// halves of the test fold at build time, so a release does not bundle it.
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.DEBUG_PROD === 'true'
+) {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
 }
@@ -3629,6 +3558,7 @@ const resetActiveEngineForQuit = async (): Promise<void> => {
 };
 
 const resetActiveEngineAtSessionEnd = (): void => {
+  outputWatch?.stop();
   if (session.configPath) {
     resetEngineAtSessionEnd(session.configPath);
   }
@@ -3770,7 +3700,11 @@ app.on('before-quit', (event) => {
   // once FluidEQ is gone; the next launch writes it back.
   if (!pendingWritesFlushed) {
     event.preventDefault();
-    flushPendingWrites()
+    // The window's geometry joins the queue first, so the write the close
+    // handler asks for later finds it on disk and has nothing left to do; and
+    // a memory trace still recording is written rather than lost.
+    saveWindowState();
+    Promise.all([flushPendingWrites(), stopMemoryTrace()])
       .catch(() => undefined)
       .then(resetActiveEngineForQuit)
       .catch((error) => log.error('Resetting the audio engine failed', error))
@@ -3821,10 +3755,8 @@ app.on('before-quit', (event) => {
   // and an endpoint held by a process whose parent has gone is one Windows
   // reclaims only when it notices.
   shutdownDspHost().catch(() => undefined);
-  if (apoWatchTimer !== undefined) {
-    clearTimeout(apoWatchTimer);
-    apoWatchTimer = undefined;
-  }
+  // No sync after the one in flight: nothing reads the folder from here on.
+  apoSyncStopped = true;
   apoConfigWatcher?.close();
   apoConfigWatcher = undefined;
 });
@@ -3845,60 +3777,92 @@ app.on('before-quit', (event) => {
  * clicked the shortcut.
  */
 /**
- * Beside both data directories rather than inside either, because the whole
- * point is that development and the installed build do not share one.
+ * Named for the folder both data directories sit in rather than either one,
+ * because the whole point is that development and the installed build do not
+ * share one (`singleInstance.ts`).
  */
-const INSTANCE_MARKER_PATH = path.join(
-  app.getPath('appData'),
-  'fluideq-running.json',
-);
+const INSTANCE_LOCK_PATH = instanceLockPath(app.getPath('appData'));
 
-let releaseInstanceMarker: (() => void) | undefined;
+let releaseInstanceLock: (() => void) | undefined;
 
-if (!app.requestSingleInstanceLock()) {
-  // Another copy of THIS build holds Electron's lock, so this one hands its
-  // launch over and goes. It used to go without a word, and that is the single
-  // reason "the installer opens FluidEQ and it closes again" could not be
-  // answered from a bug report: this is the one path out of the whole start-up
-  // that wrote nothing anywhere, so the log of such a launch was indis-
-  // tinguishable from the app never having been started at all. What the
-  // marker can see goes with it, because the copy still holding the lock is
-  // usually one an installer has just killed.
-  log.warn(
-    `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${describeInstanceMarker(
-      INSTANCE_MARKER_PATH,
-    )}`,
-  );
-  app.quit();
-} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
-  // Electron's lock did not catch this one, so it is the other build: dev
-  // started while the installed copy is running, or the other way round. Said
-  // out loud rather than quitting blankly — a window that never appears is the
-  // sort of thing somebody spends an evening on.
-  log.warn(
-    `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${describeInstanceMarker(
-      INSTANCE_MARKER_PATH,
-    )}`,
-  );
-  app.quit();
-} else {
+/**
+ * This copy holds the app, once the cross-build lock says so. Asked before
+ * anything is made: `onAppReady` waits for it, so a copy on its way out never
+ * builds a window, a tray or a pipe of its own.
+ */
+const becomesTheOnlyCopy = async (): Promise<boolean> => {
+  if (!app.requestSingleInstanceLock()) {
+    // Another copy of THIS build holds Electron's lock, so this one hands its
+    // launch over and goes. It used to go without a word, and that is the
+    // single reason "the installer opens FluidEQ and it closes again" could
+    // not be answered from a bug report: this was the one path out of the
+    // whole start-up that wrote nothing anywhere, so the log of such a launch
+    // was indistinguishable from the app never having been started at all.
+    // Who holds the cross-build lock goes with it, because the copy still
+    // holding Electron's is usually one an installer has just killed.
+    const holder = await describeInstanceHolder(INSTANCE_LOCK_PATH);
+    log.warn(
+      `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${holder}`,
+    );
+    app.quit();
+    return false;
+  }
+  const claim = await claimInstance(INSTANCE_LOCK_PATH);
+  if (claim.status === 'taken') {
+    // Electron's lock did not catch this one, so it is the other build: dev
+    // started while the installed copy is running, or the other way round.
+    // Said out loud rather than quitting blankly — a window that never
+    // appears is the sort of thing somebody spends an evening on.
+    log.warn(
+      `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${claim.holder}`,
+    );
+    app.quit();
+    return false;
+  }
   // One FluidEQ at a time, whatever build or checkout it comes from: two
   // copies write the same engine config and adopt each other's writes.
-  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
-  app.on('second-instance', () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return;
-    }
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore();
-    }
-    mainWindow.show();
-    mainWindow.focus();
-  });
-}
+  releaseInstanceLock = claim.release;
+  // Temporary files an earlier run was killed in the middle of writing. The
+  // library index, the Karaoke session, the band layout, the stems and the
+  // Karaoke Maker's drafts are written beside themselves and renamed over,
+  // each temporary named for its own write, so none is ever overwritten by
+  // the next save: End task, a crash, a power cut or a logoff mid-write left
+  // each one for good — tens of megabytes for the index or a stem. Swept
+  // here, once this copy holds the app, so a second launch handing over can
+  // never sweep a write the first is still making; not waited for. The
+  // engine's folder is swept by `engineOwnerPipe.ts`.
+  [userDataDir, karaokeStemsDir(), karaokeMakerDraftDir(userDataDir)].forEach(
+    (directory) => {
+      sweepAbandonedWrites(directory)
+        .then((swept) => {
+          if (swept > 0) {
+            log.info(
+              `Swept ${swept} unfinished write(s) an earlier run left in ${directory}.`,
+            );
+          }
+          return swept;
+        })
+        .catch(() => undefined);
+    },
+  );
+  return true;
+};
+
+const isTheOnlyCopy = becomesTheOnlyCopy();
+
+app.on('second-instance', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.show();
+  mainWindow.focus();
+});
 
 app.on('will-quit', () => {
-  releaseInstanceMarker?.();
+  releaseInstanceLock?.();
 });
 
 /**
@@ -3972,7 +3936,7 @@ const onAppReady = async () => {
   // contents run under are in place by the time one can be attached.
   setUpVideoBrowser();
   // Needs the session to exist, which is why this is here and not beside
-  // `registerLibraryMediaScheme` at the top of the file — that call only
+  // `registerPrivilegedSchemes` at the top of the file — that call only
   // declares the scheme's privileges and has to run before `whenReady`;
   // this one answers its requests and has to run after.
   handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
@@ -4049,6 +4013,19 @@ const onAppReady = async () => {
   } catch (error) {
     log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
   }
+  if (process.platform === 'win32') {
+    outputWatch = startOutputWatch({
+      onOutputs: (devices) =>
+        profilesIpc.followOutputs(devices, (channel, payload) => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send(channel, payload);
+          }
+        }),
+    });
+    // Stopped at the first quit pass, before the engine is reset: the
+    // helper's last report would otherwise rewrite a config being neutralised.
+    app.on('before-quit', () => outputWatch?.stop());
+  }
   app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -4060,4 +4037,8 @@ const onAppReady = async () => {
   });
 };
 
-app.whenReady().then(onAppReady).catch(log.error);
+app
+  .whenReady()
+  .then(() => isTheOnlyCopy)
+  .then((isOnly) => (isOnly ? onAppReady() : undefined))
+  .catch(log.error);

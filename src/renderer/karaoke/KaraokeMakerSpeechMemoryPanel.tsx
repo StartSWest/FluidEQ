@@ -28,9 +28,6 @@ import {
 /** The three answers to "what should happen to the model when idle". */
 const POLICIES = ['ask', 'auto', 'keep'] as const;
 
-/** How long "idle" is allowed to mean, in minutes. */
-const IDLE_CHOICES = [5, 10, 30] as const;
-
 interface INativeModelStatus {
   separation: { loaded: boolean; bytes: number };
   pitch: { loaded: boolean; bytes: number; downloadedBytes: number };
@@ -73,6 +70,13 @@ interface IKaraokeMakerSpeechMemoryPanelProps {
   session: IKaraokeWhisperSessionSnapshot;
   /** Resolved by the caller: ready in RAM, cached on disk, or not downloaded. */
   statusKey: TranslationKey;
+  /**
+   * A model job — a split, a pitch trace, a transcription — is running here.
+   *
+   * Main loads its models inside such a job and says nothing until it ends,
+   * so the job starting and ending are what can change main's rows.
+   */
+  isModelWorking: boolean;
   onRelease: () => void;
   onSettingsChange: (settings: IKaraokeWhisperMemorySettings) => void;
 }
@@ -82,54 +86,62 @@ interface IKaraokeMakerSpeechMemoryPanelProps {
  *
  * The one part of the Maker's advanced tools that is not a button: a status
  * light, a release control that only appears when there is something to
- * release, and two rows of choices about when to let the model go. Sixty-five
+ * release, and a row of choices about when to let the model go. Sixty-five
  * lines that had no reason to be interleaved with four toolbar buttons beyond
  * both appearing in the same popover.
  *
- * Four props, because the session snapshot arrives whole. Splitting it into
- * `inMemory`, `busy`, `policy` and `idleMinutes` would double the list to say
- * exactly the same thing, and the store already publishes it as one value.
+ * The session snapshot arrives whole. Splitting it into `inMemory`, `busy` and
+ * `policy` would lengthen the list to say exactly the same thing, and the
+ * store already publishes it as one value.
  */
 const KaraokeMakerSpeechMemoryPanel = ({
   session,
   statusKey,
+  isModelWorking,
   onRelease,
   onSettingsChange,
 }: IKaraokeMakerSpeechMemoryPanelProps) => {
   const { t } = useTranslation();
-  // Main's sessions are invisible from here, so the panel asks — on mount and
-  // every few seconds while open — and offers one release for everything
-  // resident: the whisper worker plus whatever main is holding.
+  // Main's sessions are invisible from here, so the panel asks — and offers
+  // one release for everything resident: the whisper worker plus whatever
+  // main is holding. It asked every four seconds for as long as it was open,
+  // an IPC round and a walk of the whole model cache each time, whether or
+  // not anything could have changed. Now it asks when it opens and after each
+  // thing that can change an answer: a model job starting or ending (main
+  // loads inside one and frees only when told to, and a release is answered
+  // here at once below), and the speech session moving — loaded, downloaded,
+  // released — which is what changes the cache.
   const [native, setNative] = useState<INativeModelStatus>();
   const [whisperBytes, setWhisperBytes] = useState(0);
   useEffect(() => {
     let cancelled = false;
-    const poll = () => {
-      window.electron?.ipcRenderer
-        .getKaraokeModelStatus?.()
-        .then((status) => {
-          if (!cancelled) {
-            setNative(status);
-          }
-          return null;
-        })
-        .catch(() => undefined);
-      karaokeWhisperCachedBytes()
-        .then((bytes) => {
-          if (!cancelled) {
-            setWhisperBytes(bytes);
-          }
-          return null;
-        })
-        .catch(() => undefined);
-    };
-    poll();
-    const timer = window.setInterval(poll, 4_000);
+    window.electron?.ipcRenderer
+      .getKaraokeModelStatus?.()
+      .then((status) => {
+        if (!cancelled) {
+          setNative(status);
+        }
+        return null;
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
-  }, []);
+  }, [isModelWorking]);
+  useEffect(() => {
+    let cancelled = false;
+    karaokeWhisperCachedBytes()
+      .then((bytes) => {
+        if (!cancelled) {
+          setWhisperBytes(bytes);
+        }
+        return null;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [session.status, session.downloaded]);
   const nativeInMemory = Boolean(
     native?.separation.loaded || native?.pitch.loaded,
   );
@@ -152,10 +164,10 @@ const KaraokeMakerSpeechMemoryPanel = ({
       bytes: native?.separation.bytes ?? 0,
     },
   ];
-  // Answered here rather than waited for. Main is told to let the weights go
-  // and says nothing back; the only thing that would notice is the next poll,
-  // up to four seconds later, and until it lands the release button is still
-  // on screen offering to free what was just freed.
+  // Answered here rather than asked again. Main is told to let the weights go
+  // and says nothing back, so nothing would ever say the rows changed, and
+  // the release button would stay on screen offering to free what was just
+  // freed.
   //
   // Residency is all that is cleared. The weights stay on disk, so the byte
   // figures are still true and the rows drop from resident to cached rather
@@ -227,26 +239,6 @@ const KaraokeMakerSpeechMemoryPanel = ({
           </button>
         ))}
       </div>
-      {/* Nothing to delay when the answer is "never let it go". */}
-      {session.settings.policy !== 'keep' && (
-        <div className="karaoke-maker__memory-delay" role="group">
-          <span>{t('karaoke.maker.memoryAfter')}</span>
-          {IDLE_CHOICES.map((idleMinutes) => (
-            <button
-              key={idleMinutes}
-              type="button"
-              className={
-                session.settings.idleMinutes === idleMinutes ? 'is-active' : ''
-              }
-              onClick={() =>
-                onSettingsChange({ ...session.settings, idleMinutes })
-              }
-            >
-              {t('karaoke.maker.memoryMinutes', { count: idleMinutes })}
-            </button>
-          ))}
-        </div>
-      )}
     </section>
   );
 };

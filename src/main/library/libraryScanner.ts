@@ -24,6 +24,7 @@ import {
   buildProvisionalTrack,
   discoverDirectory,
   IDiscoverState,
+  IKnownTrack,
   IWalkContext,
 } from './libraryScanDiscovery';
 import {
@@ -38,12 +39,15 @@ import {
 // `libraryScanDiscovery.ts` (see that file's own comment on why) and
 // re-exported through `libraryScanParse.ts` in turn.
 export { shouldReparse, trackIdForPath } from './libraryScanParse';
+export type { IKnownTrack } from './libraryScanDiscovery';
 
-export interface IScanOptions {
+export interface IScanOptions<TKnown extends IKnownTrack = ILibraryTrack> {
   rootId: string;
   rootPath: string;
   userDataDir: string;
-  known: readonly ILibraryTrack[];
+  /** Every track this root already had. Each one that comes back unchanged
+   * comes back as the same object (see `IScanResult.tracks`). */
+  known: readonly TKnown[];
   /** See `IWalkContext.storeArtwork`. Optional for pure discovery callers. */
   storeArtwork?: (bytes: Uint8Array) => Promise<string | undefined>;
   onProgress: (progress: ILibraryScanProgress) => void;
@@ -52,18 +56,28 @@ export interface IScanOptions {
    * (`discoverDirectory` in libraryScanDiscovery.ts) with provisional rows
    * for newly found files, `isPending: true`, flushed once per directory;
    * phase two (`parseCandidates` in libraryScanParse.ts) with the same ids
-   * once resolved -- freshly parsed tracks and known ones carried forward
-   * unchanged alike, `isPending` unset either way -- batched by size or time,
+   * once resolved -- every file it read, `isPending` unset; a known track
+   * carried forward unchanged is not sent again -- batched by size or time,
    * whichever comes first. A caller that upserts by id, as `scanOneRoot` in
    * `src/main/ipc/library.ts` does, sees a provisional row replaced in place
    * by its resolved self; nothing here sends the same id twice within one
    * phase. */
   onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
+  /**
+   * Aborts with the scan's cancel, for a host that has to pass the cancel on
+   * as it happens: the worker's host (`scanHost.ts`) tells its worker at once
+   * rather than on the worker's next message, which only comes now and then.
+   * The walk itself asks `isCancelled`.
+   */
+  signal?: AbortSignal;
 }
 
-export interface IScanResult {
-  tracks: ILibraryTrack[];
+export interface IScanResult<TKnown extends IKnownTrack = ILibraryTrack> {
+  /** A track read by this walk, or one of `IScanOptions.known` carried
+   * forward as the very object it was given — which is how a caller can tell
+   * an unchanged root from a changed one without comparing a single field. */
+  tracks: Array<ILibraryTrack | TKnown>;
   karaokeSkipped: number;
   wasCancelled: boolean;
 }
@@ -107,13 +121,13 @@ export interface IScanResult {
  * rescan as "these are the only tracks left" and delete everything this run
  * had not yet revisited or confirmed, even files that had not changed at all.
  */
-export const scanLibraryRoot = async (
-  options: IScanOptions,
-): Promise<IScanResult> => {
-  const knownByPath = new Map<string, ILibraryTrack>();
+export const scanLibraryRoot = async <TKnown extends IKnownTrack>(
+  options: IScanOptions<TKnown>,
+): Promise<IScanResult<TKnown>> => {
+  const knownByPath = new Map<string, TKnown>();
   options.known.forEach((track) => knownByPath.set(track.path, track));
 
-  const context: IWalkContext = {
+  const context: IWalkContext<TKnown> = {
     rootId: options.rootId,
     userDataDir: options.userDataDir,
     knownByPath,
@@ -131,7 +145,7 @@ export const scanLibraryRoot = async (
   };
   await discoverDirectory(options.rootPath, context, discovered);
 
-  const parseState: IParseState = { tracks: [], parsed: 0 };
+  const parseState: IParseState<TKnown> = { tracks: [], parsed: 0 };
   // Discovery cancelling before parsing ever starts is the same "reached
   // nothing" outcome parseCandidates itself reports when it is asked to stop
   // before its own first iteration -- stated as a literal here rather than a

@@ -413,8 +413,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': '询问我',
   'karaoke.maker.memoryPolicy.auto': '自动释放',
   'karaoke.maker.memoryPolicy.keep': '保持加载',
-  'karaoke.maker.memoryAfter': '经过',
-  'karaoke.maker.memoryMinutes': '{count} 分钟',
   'karaoke.maker.memoryPromptTitle': '释放语音模型内存？',
   'karaoke.maker.memoryPromptBody':
     '本地语音模型处于空闲状态。释放它可以节省内存；文件仍会缓存，以便更快重新加载。',

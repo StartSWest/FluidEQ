@@ -54,6 +54,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
 import { sendRequest, simpleResponseHandler } from '../utils/ipcRequest';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import VideoSearch from './VideoSearch';
 import {
   claimPlayback,
@@ -201,9 +202,6 @@ const Webview = 'webview' as unknown as FC<IWebviewProps>;
 const VIDEO_WEB_PREFERENCES =
   'autoplayPolicy=document-user-activation-required';
 
-/** How long "Signed out" stays up before the button goes back to offering it. */
-const SIGN_OUT_NOTICE_MS = 4000;
-
 const formatDownloadBytes = (bytes: number) => {
   if (bytes < 1024 * 1024) {
     return `${Math.max(0, bytes / 1024).toFixed(1)} KB`;
@@ -255,11 +253,15 @@ const readStoredUrl = () => {
  */
 const VIDEO_RESUME_KEY = 'fluideq.videoResume';
 
-/** How often to note the position, in milliseconds. */
-const RESUME_SAMPLE_MS = 5000;
-
 /** Four bar updates a second; visual guest work remains stopped off-tab. */
 const TRANSPORT_CLOCK_SAMPLE_MS = 250;
+
+/**
+ * How far the playhead moves, in the video's own seconds, before where it is
+ * gets written down as this site's resume mark. The five the old sample
+ * interval allowed a crash to lose, counted in the video now, not the clock.
+ */
+const NOTE_PLAYHEAD_EVERY_S = 5;
 
 /**
  * How many times one document is told the app's level again before it wins.
@@ -379,13 +381,13 @@ const VideoBrowser = ({
   /** The track the page says it is playing, where it says so at all. */
   const nowPlayingRef = useRef<{ title?: string; artist?: string }>({});
   /**
-   * The ask, held where the sampler can reach it.
+   * The ask, held where the handlers declared ahead of it can reach it.
    *
    * The probe closes over the `describe` that belongs to the effect holding
-   * the guest's own listeners, and that effect runs once; the position
-   * sampler is a different effect with a different lifetime. A ref is the
-   * seam between them, and the alternative — moving `describe` up — would
-   * re-register the guest's listeners on every render that touches it.
+   * the guest's own listeners, and it is asked from that effect's playing
+   * handler and its playback clock, both written before it. A ref is the seam,
+   * and the alternative — moving `describe` up — would re-register the guest's
+   * listeners on every render that touches it.
    */
   const nowPlayingProbeRef = useRef<() => void>(() => {});
   /** The last frame taken of the guest, as a `data:` URL, for the bar's
@@ -449,24 +451,43 @@ const VideoBrowser = ({
     isSceneBehind,
   );
 
-  // Held in a ref rather than in state. Nothing renders from it, and a sample
-  // every five seconds that re-rendered the pane would be five seconds of work
-  // to change nothing on screen.
+  // Held in a ref rather than in state. Nothing renders from it, and a note
+  // taken several times a second while a video plays that re-rendered the pane
+  // would be that much work to change nothing on screen.
   const marksRef = useRef<TPlaybackMarks>(readStoredMarks());
+  /**
+   * Where the playing video is, handed over by the transport's clock.
+   *
+   * The clock belongs to the effect holding the guest's own listeners, which
+   * runs once; whether a position is worth noting belongs to the effect below,
+   * which lives only while this tab is on screen. A no-op outside that.
+   */
+  const notePlayingPositionRef = useRef<(seconds: number) => void>(() => {});
   // A position waiting for a page to grow a player. Consumed once, by the next
   // guest that becomes ready — put in a ref because it is a message to a later
   // effect, not a thing the interface has an opinion about.
   const pendingResumeRef = useRef(0);
 
   /**
-   * Note where this site is, over and over, while it plays.
+   * Note where this site is, whenever the page says it moved.
    *
-   * Sampled rather than captured on the way out, and that is the whole design.
-   * Reading the position at the moment of leaving is one call racing a document
-   * that is being torn down, and it gets nothing at all when the way out is the
-   * window closing or the app crashing — which, for an equalizer that gets
-   * restarted to bounce the audio service, is most of the time. A cheap sample
-   * on a timer is already correct when any of those happen.
+   * Kept as it goes rather than captured on the way out, and that is the whole
+   * design. Reading the position at the moment of leaving is one call racing a
+   * document that is being torn down, and it gets nothing at all when the way
+   * out is the window closing or the app crashing — which, for an equalizer
+   * that gets restarted to bounce the audio service, is most of the time.
+   *
+   * It was a sample on a five-second interval. What the interval stood for is
+   * the playhead moving, and the page reports exactly that: while a video
+   * plays, the bar's own clock reads the position four times a second
+   * (`samplePlaybackClock`), and a reading is noted here once the playhead has
+   * moved `NOTE_PLAYHEAD_EVERY_S` from the last mark — so a crash loses what it
+   * lost before, and nothing waits on a clock. Not every reading: each note is
+   * a synchronous address read and a storage write on the window's thread.
+   * The moments a video stops or starts, the guest's own `media-paused` and
+   * `media-started-playing`, are read and noted directly, which is where
+   * somebody leaving a video leaves it; and a page arriving, or this tab
+   * coming back, is read once.
    *
    * Only while the tab is on screen. A player left running in the background is
    * still playing and its position still moves, but so does the position of the
@@ -474,59 +495,70 @@ const VideoBrowser = ({
    * overwrite is the one they are not looking at.
    */
   useEffect(() => {
-    if (isHidden || !isGuestReady || !activeSite) {
+    const view = webviewRef.current;
+    if (!view || isHidden || !isGuestReady || !activeSite) {
       return undefined;
     }
 
-    const sample = () => {
-      const view = webviewRef.current;
-      if (!view) {
-        return;
+    // The site is worked out from the page, at the moment the page is read,
+    // and never carried in from outside.
+    //
+    // It used to be the `activeSite` this effect closed over, which is a
+    // different thing by one render: a reading landing between the navigation
+    // and the interface noticing filed the new site's page under the old
+    // site's name, and the button then went to the wrong site every time from
+    // then on. Reading both halves of the pair from the same source at the same
+    // instant is what makes them agree — `rememberPlayback` checks the pairing
+    // too, but this is where it stops being wrong in the first place.
+    let notedSeconds = Number.NEGATIVE_INFINITY;
+    const note = (seconds: number) => {
+      notedSeconds = seconds;
+      try {
+        const url = view.getURL();
+        const site = findSiteForUrl(url);
+        if (!site) {
+          return;
+        }
+        marksRef.current = rememberPlayback(
+          marksRef.current,
+          site.id,
+          url,
+          seconds,
+        );
+        writeStoredMarks(marksRef.current);
+      } catch {
+        // Throws when the guest has gone. The next reading finds the new one,
+        // or there is no next reading.
       }
-      // The queue can move without the document changing — a Suno playlist,
-      // a YouTube Music queue — and this is the only thing already ticking
-      // while it does.
-      nowPlayingProbeRef.current();
+    };
+
+    const read = () => {
       try {
         view
           .executeJavaScript(READ_POSITION)
           .then((position) => {
-            // The site is worked out from the page, at the moment the page is
-            // read, and never carried in from outside this callback.
-            //
-            // It used to be the `activeSite` this effect closed over, which is
-            // a different thing by one render: a tick landing between the
-            // navigation and the interface noticing filed the new site's page
-            // under the old site's name, and the button then went to the wrong
-            // site every time from then on. Reading both halves of the pair
-            // from the same source at the same instant is what makes them
-            // agree — `rememberPlayback` checks the pairing too, but this is
-            // where it stops being wrong in the first place.
-            const url = view.getURL();
-            const site = findSiteForUrl(url);
-            if (!site) {
-              return 0;
-            }
-            const seconds = typeof position === 'number' ? position : 0;
-            marksRef.current = rememberPlayback(
-              marksRef.current,
-              site.id,
-              url,
-              seconds,
-            );
-            writeStoredMarks(marksRef.current);
-            return seconds;
+            note(typeof position === 'number' ? position : 0);
+            return position;
           })
           .catch(() => undefined);
       } catch {
-        // Throws rather than rejects when the guest has gone. The next sample
-        // finds the new one, or there is no next sample.
+        // Throws rather than rejects when the guest has gone.
       }
     };
 
-    sample();
-    const timer = window.setInterval(sample, RESUME_SAMPLE_MS);
-    return () => window.clearInterval(timer);
+    read();
+    notePlayingPositionRef.current = (seconds) => {
+      if (Math.abs(seconds - notedSeconds) >= NOTE_PLAYHEAD_EVERY_S) {
+        note(seconds);
+      }
+    };
+    view.addEventListener('media-paused', read);
+    view.addEventListener('media-started-playing', read);
+    return () => {
+      notePlayingPositionRef.current = () => {};
+      view.removeEventListener('media-paused', read);
+      view.removeEventListener('media-started-playing', read);
+    };
   }, [activeSite, isGuestReady, isHidden]);
 
   /**
@@ -776,6 +808,8 @@ const VideoBrowser = ({
                 return clock;
               }
               const record = (clock ?? {}) as Record<string, unknown>;
+              const previousPositionMs = playbackClockPositionMs;
+              const previousDurationMs = playbackClockDurationMs;
               playbackClockPositionMs =
                 typeof record.positionMs === 'number' &&
                 Number.isFinite(record.positionMs)
@@ -786,6 +820,21 @@ const VideoBrowser = ({
                 Number.isFinite(record.durationMs)
                   ? record.durationMs
                   : 0;
+              // A queue moving on inside one document — a Suno playlist, a
+              // YouTube Music queue — changes no address and fires no
+              // navigation. What it does change is this clock: another
+              // length, or the playhead back near the start. That is when
+              // the page is asked what it is playing now; it was asked every
+              // five seconds on a timer instead.
+              if (
+                playbackClockDurationMs !== previousDurationMs ||
+                playbackClockPositionMs < previousPositionMs
+              ) {
+                nowPlayingProbeRef.current();
+              }
+              // The same reading is where this site's video was left, if the
+              // window closes or crashes before the next one.
+              notePlayingPositionRef.current(playbackClockPositionMs / 1000);
               describe(true);
               return clock;
             })
@@ -967,9 +1016,10 @@ const VideoBrowser = ({
      * What the page says is playing, asked of the page.
      *
      * Cheap and idempotent, so it runs anywhere the answer could have moved:
-     * on navigation with the rest of the probe, and on the position sample,
-     * which is the one thing already ticking while a queue advances without
-     * the document changing at all — a Suno playlist, a YouTube Music queue.
+     * on navigation with the rest of the probe, when playback starts, and when
+     * the playback clock reads another track's length or a playhead gone
+     * back — a queue advancing without the document changing at all, as a
+     * Suno playlist or a YouTube Music queue does.
      */
     const probeNowPlaying = () => {
       try {
@@ -1569,8 +1619,8 @@ const VideoBrowser = ({
    *
    * A request rather than a standing listener: the reply belongs to the press
    * that asked for it, and a listener that outlived the press would answer a
-   * later one with an earlier result. No deadline, because main answers every
-   * press, however long the store takes to empty.
+   * later one with an earlier result. Waited on however long the store takes
+   * to empty, because main answers every press.
    */
   const handleSignOut = useCallback(() => {
     setSignOutState('clearing');
@@ -1578,28 +1628,11 @@ const VideoBrowser = ({
       ChannelEnum.CLEAR_VIDEO_SESSION,
       [],
       simpleResponseHandler<boolean>(),
-      {
-        timeout: null,
-      },
     ).then(
       (cleared) => setSignOutState(cleared ? 'done' : 'failed'),
       () => setSignOutState('failed'),
     );
   }, []);
-
-  // The confirmation clears itself. Left up, "Signed out" would still be on
-  // screen the next time somebody looked to check whether they were — which is
-  // the one question this control exists to answer, answered wrongly.
-  useEffect(() => {
-    if (signOutState !== 'done' && signOutState !== 'failed') {
-      return undefined;
-    }
-    const timer = window.setTimeout(
-      () => setSignOutState('idle'),
-      SIGN_OUT_NOTICE_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [signOutState]);
 
   const blockedHost = (() => {
     try {
@@ -1773,8 +1806,23 @@ const VideoBrowser = ({
             )}
           >
             {/* Announced through the button's own label, so the drawing is
-              hidden from anything that reads rather than looks. */}
-            <svg viewBox="0 0 16 16" aria-hidden>
+              hidden from anything that reads rather than looks.
+
+              The tick or the cross clears itself: left up, "Signed out"
+              would still be on screen the next time somebody looked to check
+              whether they were — the one question this control exists to
+              answer, answered wrongly. How long it stays is the glyph's own
+              hold (`video-sign-out-said`), whose end brings the door back; it
+              was a timer, which ran on behind a covered window. */}
+            <svg
+              viewBox="0 0 16 16"
+              aria-hidden
+              onAnimationEnd={(event) => {
+                if (isOwnAnimationEnd(event, 'video-sign-out-said')) {
+                  setSignOutState('idle');
+                }
+              }}
+            >
               {signOutState === 'done' && <path d="M3.5 8.4l3 3 6-6.6" />}
               {signOutState === 'failed' && (
                 <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />

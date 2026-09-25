@@ -10,7 +10,7 @@ import { EQ_CUT_SLOPES, TEqCut } from 'common/eqCuts';
 import type { TranslationKey } from 'common/i18n';
 import SteppedKnob from '../widgets/SteppedKnob';
 import { setEqCut } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 
 const LABELS: Readonly<
@@ -39,7 +39,7 @@ const LABELS: Readonly<
 export default function EqCutKnob({ cut }: { cut: TEqCut }) {
   const { t } = useTranslation();
   const { eqCuts, isBlockingError, refreshState, setGlobalError } =
-    useFluidEqContext();
+    useFluidEqLayers();
   const [turnedTo, setTurnedTo] = useState<number>();
   const wanted = useRef<number | undefined>(undefined);
   const writing = useRef(false);

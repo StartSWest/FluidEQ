@@ -122,28 +122,6 @@ const fakeSocket = (): IFakeSocket => {
   return socket;
 };
 
-/**
- * A deadline the test fires itself, in place of the platform's.
- *
- * Production uses `AbortSignal.timeout`, which is native and which no test
- * clock can reach — advancing Jest's timers does nothing to it. So the tests
- * that prove a silent client is dropped hand the listener a signal of their
- * own and abort it where they used to advance the clock. It is the same
- * deadline arriving; only who says "now" has changed.
- */
-const deadlines = () => {
-  const controllers: AbortController[] = [];
-  return {
-    after: () => {
-      const controller = new AbortController();
-      controllers.push(controller);
-      return controller.signal;
-    },
-    /** Every deadline handed out so far expires at once. */
-    expire: () => controllers.forEach((controller) => controller.abort()),
-  };
-};
-
 describe('LAN listener authentication limits', () => {
   beforeEach(() => {
     mockServers.length = 0;
@@ -162,14 +140,18 @@ describe('LAN listener authentication limits', () => {
 
   afterEach(() => jest.useRealTimers());
 
-  it('limits pending sockets per address and times silent clients out', async () => {
-    const deadline = deadlines();
+  /**
+   * A silent connection is let go when a newer one needs its slot, not after
+   * five seconds on a timer: the one that has waited longest makes room, from
+   * its own address or over all. A peer that answers its challenge is only
+   * ever pending for one round trip, so it is never the one let go.
+   */
+  it('makes room for a ninth connection from one address by letting the oldest go', async () => {
     const lan = createRemoteAudioLan(
       jest.fn(),
       jest.fn(),
       jest.fn(),
       jest.fn(),
-      deadline.after,
     );
     await lan.startHost();
     const server = mockServers[0];
@@ -182,17 +164,43 @@ describe('LAN listener authentication limits', () => {
       });
     });
 
-    expect(candidates[0].close).not.toHaveBeenCalled();
-    expect(candidates[8].close).toHaveBeenCalledWith(
+    expect(candidates[0].close).toHaveBeenCalledWith(
       1008,
       'Too many unauthenticated connections',
     );
+    candidates.slice(1).forEach((candidate) => {
+      expect(candidate.close).not.toHaveBeenCalled();
+    });
+    lan.stop();
+  });
 
-    deadline.expire();
+  it('makes room over all addresses by letting the longest-waiting go', async () => {
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    await lan.startHost();
+    const server = mockServers[0];
+    // Sixty-four fill the room, eight from each of eight addresses; the
+    // sixty-fifth comes from a ninth, which holds nothing to give up.
+    const candidates = Array.from({ length: 65 }, (_, index) => {
+      const candidate = fakeSocket();
+      server.clients.add(candidate);
+      server.emit('connection', candidate, {
+        socket: { remoteAddress: `192.168.1.${10 + Math.floor(index / 8)}` },
+      });
+      return candidate;
+    });
+
     expect(candidates[0].close).toHaveBeenCalledWith(
       1008,
-      'Authentication timed out',
+      'Too many unauthenticated connections',
     );
+    expect(
+      candidates.filter((candidate) => candidate.close.mock.calls.length > 0),
+    ).toHaveLength(1);
     lan.stop();
   });
 
@@ -342,15 +350,13 @@ describe('LAN listener authentication limits', () => {
     lan.stop();
   });
 
-  it('cannot attach a peer after its acknowledgement timed out', async () => {
+  it('cannot attach a peer let go while its acknowledgement was on its way', async () => {
     const emitSignal = jest.fn();
-    const deadline = deadlines();
     const lan = createRemoteAudioLan(
       emitSignal,
       jest.fn(),
       jest.fn(),
       jest.fn(),
-      deadline.after,
     );
     const session = await lan.startHost();
     const server = mockServers[0];
@@ -369,13 +375,24 @@ describe('LAN listener authentication limits', () => {
         {
           challenge,
           deviceName: 'SOURCE-PC',
-          peerId: 'timed-out-peer',
+          peerId: 'let-go-peer',
         },
         key,
       ),
     );
 
-    deadline.expire();
+    // Eight newer connections from the same address: the oldest, this one,
+    // makes room while its acknowledgement is still being sent.
+    Array.from({ length: 8 }, () => fakeSocket()).forEach((newer) => {
+      server.clients.add(newer);
+      server.emit('connection', newer, {
+        socket: { remoteAddress: '192.168.1.91' },
+      });
+    });
+    expect(candidate.close).toHaveBeenCalledWith(
+      1008,
+      'Too many unauthenticated connections',
+    );
     const acknowledge = candidate.send.mock.calls[1][1] as
       ((error?: Error) => void) | undefined;
     acknowledge?.();
@@ -402,7 +419,6 @@ describe('LAN listener authentication limits', () => {
   });
 
   it('can abort a connecting client without an uncaught WebSocket error', async () => {
-    const deadline = deadlines();
     const socket = fakeSocket();
     socket.readyState = 0;
     socket.close.mockImplementation((code?: number, reason?: string) => {
@@ -418,7 +434,6 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
-      deadline.after,
     );
     const pairingCode = encodePairingCode(
       '192.168.1.20',
@@ -427,13 +442,14 @@ describe('LAN listener authentication limits', () => {
       'LISTENER-PC',
     );
 
+    // A join has no deadline: it ends on the socket's own close or error, or
+    // on stop, which is what cancelling the pairing calls.
     const joining = lan.restoreJoin(pairingCode);
-    deadline.expire();
     await Promise.resolve();
     lan.stop();
 
-    await expect(joining).rejects.toThrow('LAN authentication timed out.');
-    expect(socket.close).toHaveBeenCalledWith(1008, 'Authentication timed out');
+    await expect(joining).rejects.toThrow();
+    expect(socket.close).toHaveBeenCalled();
   });
 
   it('does not start discovery after a pending restore was manually stopped', async () => {

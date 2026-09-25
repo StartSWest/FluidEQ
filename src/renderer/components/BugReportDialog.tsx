@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   IGatheredFacts,
   buildBugReport,
@@ -107,35 +114,49 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     };
   }, []);
 
+  // Escape reads whichever `onClose` is current. The listener used to be
+  // re-added with it, and focus moved to Close with it: the window hands this
+  // dialog a new `onClose` on every render of its own, which is several times
+  // a second while anything plays, so the caret was pulled out of the
+  // description mid-sentence and the next Space pressed Close.
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  });
+
   useEffect(() => {
     closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+    const onKeyDown = (event: KeyboardEvent) => closeOnEscape(event);
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, []);
 
-  const generatedReport = facts
-    ? buildBugReport({ ...facts, description })
-    : buildBugReport({
-        appVersion: '',
-        platform: '',
-        arch: '',
-        electron: '',
-        audioEngine: null,
-        isEqualizerApoInstalled: false,
-        fluidEngineInstalled: false,
-        description,
-        appLog: '',
-        installLog: '',
-        engineReport: '',
-        engineLog: '',
-        helperLog: '',
-        gatheredAt: '',
-      });
+  // Built once per change of what goes into it, not on every render: it is
+  // up to a couple of thousand log lines a section, and the window around
+  // this dialog renders on its own schedule.
+  const generatedReport = useMemo(
+    () =>
+      facts
+        ? buildBugReport({ ...facts, description })
+        : buildBugReport({
+            appVersion: '',
+            platform: '',
+            arch: '',
+            electron: '',
+            audioEngine: null,
+            isEqualizerApoInstalled: false,
+            fluidEngineInstalled: false,
+            description,
+            appLog: '',
+            installLog: '',
+            engineReport: '',
+            engineLog: '',
+            helperLog: '',
+            gatheredAt: '',
+          }),
+    [facts, description],
+  );
   const report = reportOverride ?? generatedReport;
 
   const say = useCallback((kind: TNoticeKind) => {

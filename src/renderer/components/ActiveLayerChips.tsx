@@ -22,7 +22,7 @@ import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { InfoMark } from '../dsp/GenreNotesParts';
 import { genreNotesFor } from '../dsp/genreNotesModel';
 import { openGenreNotes } from '../dsp/genreNotesStore';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
@@ -38,8 +38,10 @@ import type { TActiveLayers } from './useActiveLayers';
 const ActiveLayerChips = ({ active }: { active: TActiveLayers }) => {
   const { layers, isBypassed, voicingGlyph, toggle, setStrength } = active;
   const { t } = useTranslation();
+  // The layers' slice (`useFluidEqLayers`), which carries the shell's state
+  // too: the chips are the layers, and `voicing` is one of them.
   const { isBlockingError, isEnabled, setGlobalError, voicing } =
-    useFluidEqContext();
+    useFluidEqLayers();
   // The Preset layer of a genre's chain opens that genre's notes. Only a
   // `dsp:` voicing: an older voicing can share a genre's name and not its
   // curve, and the notes would describe a line the graph is not drawing.

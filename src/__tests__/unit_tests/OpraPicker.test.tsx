@@ -21,6 +21,8 @@ import {
   getOpraProductList,
   checkOpraUpdate,
 } from 'renderer/utils/equalizerApi';
+import { OPRA_UPDATED_EVENT } from 'renderer/components/OpraLibraryStatus';
+import { resetOpraProducts } from 'renderer/opraProducts';
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   getOpraProductList: jest.fn(),
@@ -63,9 +65,16 @@ const actAndSettle = (body: () => void) =>
     await settle();
   });
 
+/** What main has pushed to the window, by channel, as the preload hands it. */
+let pushListeners: { channel: string; listener: () => void }[] = [];
+
 describe('OpraPicker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // The list is kept for the window, not the picker; every case starts in
+    // a window that has read nothing.
+    resetOpraProducts();
+    pushListeners = [];
     mockProducts.mockResolvedValue([PRODUCT]);
     mockCheckUpdate.mockRejectedValue(new Error('offline'));
 
@@ -74,7 +83,14 @@ describe('OpraPicker', () => {
       get: () => ({
         ipcRenderer: {
           sendMessage: () => {},
-          on: () => () => {},
+          on: (channel: string, listener: () => void) => {
+            pushListeners.push({ channel, listener });
+            return () => {
+              pushListeners = pushListeners.filter(
+                (one) => one.listener !== listener,
+              );
+            };
+          },
           removeListener: () => {},
         },
       }),
@@ -170,5 +186,70 @@ describe('OpraPicker', () => {
     expect(
       screen.getByText(/Applied: Sennheiser HD 650 · oratory1990 \(over-ear\)/),
     ).toBeInTheDocument();
+  });
+
+  /*
+   * The whole index is 6,229 products and every curve's name, about 2.1 MB
+   * over IPC. It used to cross on every visit to Presets and again every time
+   * the applied headset changed, for a list that changes only when the
+   * library on disk is replaced.
+   */
+  describe('the library, read once for the window', () => {
+    const APPLIED = {
+      headset: PRODUCT_ID,
+      headsetTarget: CURVE_ID,
+      headsetSource: 'opra',
+    };
+
+    it('asks main nothing on a second visit, or when the headset changes', async () => {
+      const first = await renderPanel({});
+      expect(mockProducts).toHaveBeenCalledTimes(1);
+      first.unmount();
+
+      const second = await renderPanel({});
+      await actAndSettle(() => second.rerender(panelWith(APPLIED)));
+
+      expect(mockProducts).toHaveBeenCalledTimes(1);
+      // What is applied still lights up, from the list in hand.
+      expect(
+        within(screen.getByRole('menu', { name: 'Audio device' })).getByText(
+          'HD 600',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('lights what is applied on the first frame of a second visit', async () => {
+      (await renderPanel(APPLIED)).unmount();
+
+      // Rendered without letting anything settle: no answer is awaited.
+      render(panelWith(APPLIED));
+
+      expect(
+        within(screen.getByRole('menu', { name: 'Audio device' })).getByText(
+          'HD 600',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('reads it again once the update button has replaced it', async () => {
+      (await renderPanel({})).unmount();
+
+      window.dispatchEvent(new Event(OPRA_UPDATED_EVENT));
+      await renderPanel({});
+
+      expect(mockProducts).toHaveBeenCalledTimes(2);
+    });
+
+    it('reads it again, on screen, once the sync at launch has replaced it', async () => {
+      await renderPanel({});
+
+      await actAndSettle(() =>
+        pushListeners
+          .filter((one) => one.channel === 'databases-synced')
+          .forEach((one) => one.listener()),
+      );
+
+      expect(mockProducts).toHaveBeenCalledTimes(2);
+    });
   });
 });

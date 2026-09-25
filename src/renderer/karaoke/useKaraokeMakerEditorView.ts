@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   IKaraokeMakerEditorView,
   writeKaraokeMakerEditorView,
@@ -47,10 +47,10 @@ export const initialPreviewOpen = (): boolean => {
  * Where the editor was looking when you last closed it.
  *
  * Seven values that are one thing: they are written together, read together at
- * mount, and persisted by the same two effects. In the component they were
- * seven `useState` calls in a row, three effects four hundred lines below them,
- * and a module-level storage key three hundred lines above — related only by
- * a reader noticing.
+ * mount, and persisted together when the editor stops being looked at. In the
+ * component they were seven `useState` calls in a row, three effects four
+ * hundred lines below them, and a module-level storage key three hundred lines
+ * above — related only by a reader noticing.
  *
  * `editorViewRef` is filled by the caller rather than here, because the
  * snapshot that gets written also carries the current selection and a viewport
@@ -64,7 +64,6 @@ export const initialPreviewOpen = (): boolean => {
  */
 export const useKaraokeMakerEditorView = (
   projectId: string,
-  selection: IKaraokeMakerEditorView['selection'],
   /**
    * Read by the caller, not here.
    *
@@ -109,41 +108,47 @@ export const useKaraokeMakerEditorView = (
     }
   }, [previewOpen]);
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      if (editorViewRef.current) {
-        writeKaraokeMakerEditorView(projectId, editorViewRef.current);
-      }
-    }, 150);
-    return () => window.clearTimeout(timeout);
-  }, [
-    followViewport,
-    previewOpen,
-    previewHeight,
-    previewTextSize,
-    projectId,
-    selection,
-    timingScope,
-    viewDurationMs,
-    viewStartMs,
-  ]);
+  /**
+   * Write where the editor is looking, under the song it was looking at.
+   *
+   * Only read when the editor opens, so it is written when it stops being
+   * looked at: the editor closing, the window hidden or going away, and a
+   * project file opened over this one (`useMakerProjectFiles`, before it
+   * reads the new one's). It was a 150 ms debounce after every change, which
+   * guessed at when a pan or a zoom had finished and wrote the whole store
+   * again each time it guessed — through every follow page of a song
+   * playing. What it cannot cover is a crash, which now keeps the view from
+   * the last time the window was hidden instead of from a moment before.
+   */
+  const flushEditorView = useCallback(() => {
+    if (editorViewRef.current) {
+      writeKaraokeMakerEditorView(
+        editorProjectIdRef.current,
+        editorViewRef.current,
+      );
+    }
+  }, []);
 
-  useEffect(
-    () => () => {
-      if (editorViewRef.current) {
-        writeKaraokeMakerEditorView(
-          editorProjectIdRef.current,
-          editorViewRef.current,
-        );
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushEditorView();
       }
-    },
-    [],
-  );
+    };
+    window.addEventListener('pagehide', flushEditorView);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', flushEditorView);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      flushEditorView();
+    };
+  }, [flushEditorView]);
 
   return {
     /** Filled by the caller each render; see the note on this hook. */
     editorViewRef,
     editorProjectIdRef,
+    flushEditorView,
     viewStartMs,
     setViewStartMs,
     viewDurationMs,

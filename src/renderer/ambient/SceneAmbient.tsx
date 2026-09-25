@@ -29,6 +29,8 @@ import {
   useStudioTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
+import { displayTickMs, isFrameDue } from '../utils/framePace';
+import { getFrameBudget } from '../utils/useSmoothFrames';
 import {
   createAmbientField,
   resizeAmbientField,
@@ -258,7 +260,29 @@ export default function SceneAmbient() {
     window.addEventListener('resize', onResize);
 
     let animation = 0;
+    // The display's frame, measured from this loop's own animation frames,
+    // which is what the budget is judged against (`framePace.ts`).
+    let lastTickAt: number | undefined;
+    let tickMs = 1000 / 60;
     const draw = (now: number) => {
+      tickMs = displayTickMs(now, lastTickAt, tickMs);
+      lastTickAt = now;
+      // Held to the 2D graph's budget (`getFrameBudget`): thirty frames a
+      // second, and every frame the display offers while the window is
+      // euphoric. This layer used to draw on every frame the display offered,
+      // up to 144 a second — a window-sized canvas cleared, drawn and screened
+      // over the whole window by the page itself, where the graph beside it,
+      // drawn by the same page, is held to thirty. A Plus scene runs at the
+      // display's rate because the GPU draws it in a worker; this is not one.
+      if (
+        last !== undefined &&
+        !isFrameDue(now - last, getFrameBudget(), tickMs)
+      ) {
+        // Too soon for the budget. Still asked for, so the next frame is
+        // considered: skipping is how the rate is held, without a timer.
+        animation = requestAnimationFrame(draw);
+        return;
+      }
       const elapsed = last === undefined ? 16 : now - last;
       last = now;
       const wanted = wantedRef.current;

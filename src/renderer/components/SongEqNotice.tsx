@@ -18,11 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import MenuIcon from '../icons/MenuIcon';
 import {
+  endSongEqNotice,
   forgetCurrentSongEq,
   undoSongEqLoan,
+  useSongEqClock,
   useSongEqNotice,
 } from '../audio/songEqSession';
 import { useTranslation } from '../utils/I18nContext';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
+import { useNoticeClaim } from '../utils/noticeTurn';
 import '../styles/SongEqNotice.scss';
 
 /**
@@ -38,12 +42,17 @@ import '../styles/SongEqNotice.scss';
  * fade and the next match — not just at launch — so the guard below is on
  * the render path, not a one-time mount check.
  *
- * Fading is not undoing. `songEqSession.ts`'s own linger timer clears
- * `notice` after `SONG_EQ_NOTICE_LINGER_MS`; it never dispatches an `undo`,
- * so the loaned layer keeps playing after the toast is gone exactly as if
- * the user had pressed neither button. Undo and Forget are the only two
- * things that hand the loan back — the timer here draws nothing and touches
- * nothing.
+ * It lingers for its own animation (`song-eq-notice-linger`, six seconds)
+ * and goes when that ends, reported back by id (`endSongEqNotice`) so a
+ * second match while the first is still up keeps its own full six seconds.
+ * It used to be a timer in `songEqSession.ts`, which ran whether or not the
+ * window was painting, so a match behind a minimised window raised a notice
+ * and took it down again unseen.
+ *
+ * Fading is not undoing. The end of the linger only stops saying it; it
+ * never dispatches an `undo`, so the loaned layer keeps playing after the
+ * toast is gone exactly as if the user had pressed neither button. Undo and
+ * Forget are the only two things that hand the loan back.
  *
  * Neither button is the recommendation: doing nothing is, which is what the
  * auto-fade already expresses. Both therefore wear `button small subtle`
@@ -60,6 +69,8 @@ import '../styles/SongEqNotice.scss';
 const SongEqNotice = () => {
   const { t } = useTranslation();
   const notice = useSongEqNotice();
+  // Shares its corner with the Plus notices, which step aside for it.
+  useNoticeClaim('songEq', Boolean(notice));
 
   if (!notice) {
     return null;
@@ -73,7 +84,15 @@ const SongEqNotice = () => {
 
   return (
     <div
+      // Keyed on the match, so a second one while this is still up starts its
+      // linger over rather than inheriting what was left of the first.
+      key={notice.id}
       className="song-eq-notice"
+      onAnimationEnd={(event) => {
+        if (isOwnAnimationEnd(event, 'song-eq-notice-linger')) {
+          endSongEqNotice(notice.id);
+        }
+      }}
       role="dialog"
       aria-labelledby="song-eq-notice-title"
       aria-describedby="song-eq-notice-body"
@@ -103,4 +122,26 @@ const SongEqNotice = () => {
   );
 };
 
-export default SongEqNotice;
+/**
+ * The song memory's clock, which draws nothing.
+ *
+ * `useSongEqClock` redraws whatever calls it on every position a player
+ * reports, so it has a component that is nothing else. It rides with the
+ * notice because the notice is the part of the song memory mounted at the
+ * window's root for the whole session, which is the lifetime the clock needs;
+ * the host has that lifetime too, but the host is the root itself, where a
+ * redraw per position would be the whole window's.
+ */
+const SongEqClock = () => {
+  useSongEqClock();
+  return null;
+};
+
+const SongEqNoticeWithClock = () => (
+  <>
+    <SongEqClock />
+    <SongEqNotice />
+  </>
+);
+
+export default SongEqNoticeWithClock;

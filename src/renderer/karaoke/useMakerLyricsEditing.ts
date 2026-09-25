@@ -12,6 +12,7 @@ import {
   resizeKaraokeMakerTokenBoundary,
 } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
+import { TWhenPlayheadReaches } from './karaokeMediaCue';
 import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { TSelection } from './useKaraokeMakerSelection';
 import {
@@ -46,12 +47,14 @@ export interface IMakerLyricsEditingParams extends Pick<
   onSeek: (positionMs: number) => void;
   cancelAudibleInteractions: (pause?: boolean) => void;
   /**
-   * Stops the audition after one word.
+   * The cancel of the word audition playing, while one is.
    *
    * Owned by the component because cancelAudibleInteractions clears it too, and
    * that runs on unmount as well as from here.
    */
-  wordAuditionTimerRef: MutableRefObject<number | undefined>;
+  wordAuditionRef: MutableRefObject<(() => void) | undefined>;
+  /** What says the word has been heard. */
+  whenPlayheadReaches: TWhenPlayheadReaches;
 
   /** The view follows the word being edited. */
   effectiveDurationMs: number;
@@ -75,7 +78,8 @@ export const useMakerLyricsEditing = ({
   t,
   tokens,
   visibleViewDurationMs,
-  wordAuditionTimerRef,
+  whenPlayheadReaches,
+  wordAuditionRef,
 }: IMakerLyricsEditingParams) => {
   const noteKindLabel = (kind: IKaraokeMakerNote['kind']): string => {
     if (kind === 'normal') {
@@ -197,10 +201,13 @@ export const useMakerLyricsEditing = ({
       );
       onSeek(startMs);
       Promise.resolve(onPlay()).catch(() => undefined);
-      wordAuditionTimerRef.current = window.setTimeout(() => {
-        wordAuditionTimerRef.current = undefined;
+      // Stopped when the playhead reaches the word's end. It was a timer of
+      // the word's length started at the seek, so the seek and the element's
+      // start-up came out of the word and its tail was never heard.
+      wordAuditionRef.current = whenPlayheadReaches(endMs, () => {
+        wordAuditionRef.current = undefined;
         onPause();
-      }, endMs - startMs);
+      });
     },
     [
       cancelAudibleInteractions,
@@ -208,7 +215,8 @@ export const useMakerLyricsEditing = ({
       onPause,
       onPlay,
       onSeek,
-      wordAuditionTimerRef,
+      whenPlayheadReaches,
+      wordAuditionRef,
     ],
   );
 

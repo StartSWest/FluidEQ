@@ -1899,7 +1899,13 @@ const OutputLevelMeter = () => {
           followersRef.current[index] = follower;
           // Sound keeps the loop drawing: stopping between two readings
           // would put the pump's cadence back in front of the next hit.
-          moving ||= follower.levelDb > LEVEL_FLOOR_DB;
+          //
+          // And so does a peak still held or falling. The capture stops
+          // publishing once its own meter is at rest, so nothing would wake
+          // a loop that stopped while this one's peak sat out its hold, and
+          // the mark would hang there until the music came back. The peak is
+          // never under the level, so this covers both.
+          moving ||= follower.peakDb > LEVEL_FLOOR_DB;
           return {
             level: levelFraction(follower.levelDb),
             peak: levelFraction(follower.peakDb),

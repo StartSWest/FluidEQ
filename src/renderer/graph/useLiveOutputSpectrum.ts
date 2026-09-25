@@ -38,31 +38,36 @@ import {
   shouldFinishBalanceCapture,
 } from '../utils/autoBalanceCapture';
 import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
+import {
+  IAudioClock,
+  loadAudioClock,
+  startAudioClock,
+} from '../audio/audioClock';
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
+import readDefaultOutputKey from './defaultOutputKey';
 import {
   CLIP_HOLD_MS,
-  DEVICE_LOST_GRACE_MS,
   FFT_SIZE,
   LEVEL_FFT_SIZE,
   MAX_START_RETRIES,
+  MEASUREMENT_AUDIO_LIMIT_MS,
   METER_CHANNELS,
   NO_LEVELS,
   NO_POINTS,
   NO_WAVEFORM,
-  OUTPUT_SWITCH_SETTLE_MS,
   SILENCE_ABORT_MS,
   SILENCE_HINT_MS,
-  START_RETRY_MS,
+  SILENT_WAVEFORM,
   TRACK_REFERENCE_RELEASE_DB,
   UPDATE_INTERVAL_MS,
-  WATCHDOG_MS,
   captureSystemOutput,
   createFrameBuffers,
   createFrequencyAxis,
   detectClipping,
   getPeakLevel,
+  isMeterAtRest,
   writeChannelWaveformPoints,
   writeFrequencyPoints,
   SPECTRUM_SMOOTHING,
@@ -96,10 +101,10 @@ export interface IBalanceCaptureOptions extends IBalanceListenBounds {
    * it, so every restart would put all nine regions back to zero together,
    * which is the one thing this mode is trying not to do.
    *
-   * Silence does not end it either, and neither does the watchdog. Both exist
-   * to stop a measurement somebody is waiting on from hanging; nobody is
-   * waiting on this one, and music stopping for a while is an ordinary evening
-   * rather than a failure.
+   * Silence does not end it either, and neither does the limit on how much
+   * audio a measurement may listen to. Both exist to stop a measurement
+   * somebody is waiting on from hanging; nobody is waiting on this one, and
+   * music stopping for a while is an ordinary evening rather than a failure.
    */
   isContinuous?: boolean;
   /**
@@ -137,14 +142,18 @@ interface IBalanceSession {
    * What this caller asked for instead of the defaults.
    *
    * Held on the session rather than read from the options at each tick,
-   * because the tick runs from an interval that outlives the call.
+   * because the tick runs from the audio clock, which outlives the call.
    */
   bounds: IBalanceListenBounds;
   isContinuous: boolean;
   onReport?: (report: IBalanceReport) => number[] | void;
   getChainGainDb?: (axis: number[]) => number[];
   detachAbort: () => void;
-  watchdog: ReturnType<typeof setTimeout> | undefined;
+  /**
+   * The audio that has gone past the capture since the session began, from
+   * the audio clock's own ticks — see `MEASUREMENT_AUDIO_LIMIT_MS`.
+   */
+  audioMs: number;
   lastAcceptedWallMs: number;
   lastPercent: number;
   /**
@@ -243,14 +252,25 @@ const useLiveOutputSpectrum = () => {
   const isClippingRef = useRef(false);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
-  const pumpRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  // The device-lost timer and the listeners that arm it, on refs so that
-  // `stop()` can reach them — see where they are installed for what happened
-  // when they were locals of `start()`.
-  const muteTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  // What drives the pump: the capture context's own audio clock.
+  const clockRef = useRef<IAudioClock | undefined>(undefined);
+  // The capture's audio track, so a device change can ask whether it is muted.
+  const audioTrackRef = useRef<MediaStreamTrack | undefined>(undefined);
+  // The track's listeners, on a ref so that `stop()` can take them off — see
+  // where they are installed for what happened when they were locals.
   const detachTrackRef = useRef<(() => void) | undefined>(undefined);
+  /**
+   * The output the running capture was taken on, as `readDefaultOutputKey`
+   * read it just before the capture was asked for.
+   */
+  const boundOutputKeyRef = useRef('');
+  /**
+   * A device came or went and the capture has heard no sound since.
+   *
+   * Half of how a lost device is told from a pause: see the track's `mute`
+   * listener, which is the other half.
+   */
+  const deviceChangedUnheardRef = useRef(false);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | undefined>(
     undefined,
   );
@@ -260,11 +280,24 @@ const useLiveOutputSpectrum = () => {
   const splitterNodeRef = useRef<ChannelSplitterNode | undefined>(undefined);
   // What a drawing reads at the moment it draws — see `liveFrameReader.ts`.
   const frameReaderRef = useRef<ILiveFrameReader | undefined>(undefined);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  /**
+   * A failed start, waiting for something that could make the next one work.
+   *
+   * It used to wait on a doubling timer (2.5 s, 5 s, 10 s…), which guessed how
+   * long Windows takes to finish handing a device over. What ends that wait is
+   * an event: a device arriving or leaving, the output changing, the window
+   * being come back to or shown. Each of those retries a pending start.
+   */
+  const isRetryPendingRef = useRef(false);
+  /**
+   * One of those events arrived while a start was still negotiating, so if
+   * that start fails the reason it failed may already have passed.
+   */
+  const changedDuringStartRef = useRef(false);
   const retriesRef = useRef(0);
   const isStartingRef = useRef(false);
+  // The start in flight, so a restart asked for meanwhile can follow it.
+  const startPromiseRef = useRef<Promise<boolean> | undefined>(undefined);
   const autoStartRef = useRef(true);
   const isPausedRef = useRef(false);
   /**
@@ -320,7 +353,6 @@ const useLiveOutputSpectrum = () => {
       return;
     }
     session.settled = true;
-    clearTimeout(session.watchdog);
     setBalanceProgress(undefined);
     session.detachAbort();
     sessionRef.current = undefined;
@@ -339,18 +371,14 @@ const useLiveOutputSpectrum = () => {
   const stop = useCallback(() => {
     // A capture must never outlive the stream it is measuring.
     abortBalance(tRef.current('eq.smart.error.streamStopped'));
-    if (pumpRef.current !== undefined) {
-      clearInterval(pumpRef.current);
-      pumpRef.current = undefined;
-    }
+    clockRef.current?.close();
+    clockRef.current = undefined;
     // The device-lost watch, which outlives the track it was watching unless it
     // is taken down here.
-    if (muteTimerRef.current !== undefined) {
-      clearTimeout(muteTimerRef.current);
-      muteTimerRef.current = undefined;
-    }
     detachTrackRef.current?.();
     detachTrackRef.current = undefined;
+    audioTrackRef.current = undefined;
+    deviceChangedUnheardRef.current = false;
     // Explicit, rather than left to `close()` to collect. Closing the context
     // does release the graph, but only on the path where closing happens — and
     // an analyser holding an FFT buffer is worth disconnecting on every path.
@@ -422,10 +450,7 @@ const useLiveOutputSpectrum = () => {
         isReleased = true;
         claims.current -= 1;
         if (!isCaptureWanted()) {
-          if (retryTimerRef.current !== undefined) {
-            clearTimeout(retryTimerRef.current);
-            retryTimerRef.current = undefined;
-          }
+          isRetryPendingRef.current = false;
           stop();
         }
       };
@@ -526,6 +551,24 @@ const useLiveOutputSpectrum = () => {
     [abortBalance, settleBalance],
   );
 
+  /**
+   * Start again, once whatever start is in flight has settled.
+   *
+   * A start still negotiating holds the in-flight guard, and a restart asked
+   * for meanwhile would be turned away by it and lost. The restart used to be
+   * pushed out of the way with a zero-millisecond timer, which only hoped the
+   * start would be done by then; this waits on that start's own promise.
+   */
+  const restartCapture = useCallback(() => {
+    const inFlight = startPromiseRef.current;
+    const again = () => scheduleStartRef.current();
+    if (inFlight) {
+      inFlight.then(again, again);
+      return;
+    }
+    again();
+  }, []);
+
   const start = useCallback(async (): Promise<boolean> => {
     if (
       !autoStartRef.current ||
@@ -537,10 +580,16 @@ const useLiveOutputSpectrum = () => {
     }
 
     isStartingRef.current = true;
+    changedDuringStartRef.current = false;
     setError('');
     let stream: MediaStream | undefined;
     let audioContext: AudioContext | undefined;
     try {
+      // Read BEFORE the capture is asked for, never after. The loopback binds
+      // to whatever Windows plays through when it is granted; a key read
+      // afterwards could already name an output the capture missed, and the
+      // `devicechange` that should have moved it would then compare equal.
+      const outputKey = await readDefaultOutputKey();
       stream = await captureSystemOutput(tRef.current);
       // STOPPED, not disabled — and the difference is gigabytes.
       //
@@ -568,8 +617,8 @@ const useLiveOutputSpectrum = () => {
       // refs still undefined and so cleared nothing at all.
       //
       // Carrying on from here would then install a live loopback stream, an
-      // AudioContext, an analyser and a thirty-millisecond interval that
-      // nothing holds a reference to and nothing will ever stop — publishing
+      // AudioContext, an analyser and a clock ticking thirty times a second
+      // that nothing holds a reference to and nothing will ever stop — publishing
       // frames into a dead hook for as long as the window is open. Once is a
       // leak; in development it is once per hot reload, which is how a renderer
       // reaches several gigabytes in an afternoon.
@@ -594,14 +643,34 @@ const useLiveOutputSpectrum = () => {
       // its own when an output changes underneath it, so the one resume at
       // startup is not enough - it is resumed again whenever it says it has
       // stopped, on the context's own event rather than by asking on a timer.
+      //
+      // The context's clock is also the pump's now, so a context that will not
+      // run again is a capture that has ended: a refused resume, or a close
+      // nobody here asked for, ends it the way a track ending does. A two-
+      // minute timer used to be all that noticed a measurement stuck behind
+      // a stopped context.
+      const onContextLost = () => {
+        if (audioContextRef.current !== activeAudioContext) {
+          return;
+        }
+        abortBalance(tRef.current('eq.smart.error.deviceChanged'));
+        stop();
+        restartCapture();
+      };
       activeAudioContext.addEventListener('statechange', () => {
         if (activeAudioContext.state === 'suspended') {
-          activeAudioContext.resume().catch(() => undefined);
+          activeAudioContext.resume().catch(onContextLost);
+        } else if (activeAudioContext.state === 'closed') {
+          onContextLost();
         }
       });
       await activeAudioContext.resume();
-      // And again, for the same reason: `resume()` is a second await, and the
-      // context it just started is a hardware stream nobody would ever close.
+      // The clock's processor, into this context. A third await, and the same
+      // question after it.
+      await loadAudioClock(activeAudioContext);
+      // And again, for the same reason: `resume()` and the module are more
+      // awaits, and the context just started is a hardware stream nobody would
+      // ever close.
       if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
         activeAudioContext.close().catch(() => undefined);
@@ -720,6 +789,9 @@ const useLiveOutputSpectrum = () => {
 
       streamRef.current = stream;
       audioContextRef.current = activeAudioContext;
+      audioTrackRef.current = audioTrack;
+      boundOutputKeyRef.current = outputKey;
+      deviceChangedUnheardRef.current = false;
       setIsActive(true);
       // Published so a mirror can branch off this same capture. Windows only
       // hands out loopback through `getDisplayMedia`, so a second consumer
@@ -780,6 +852,14 @@ const useLiveOutputSpectrum = () => {
       // changed identity to re-render, so the frame it is holding must not be
       // the one being overwritten. Two channels of two numbers is not much to
       // allocate, but it would be allocated thirty times a second forever.
+      //
+      // The waveform's pair and these share `levelSlot`, which says which one
+      // React holds and flips only when a frame is published. Resting in
+      // silence publishes nothing, so flipping every tick would have written
+      // the first loud frame into the array React already held and handed it
+      // back under the same identity: no render, and sound returning unseen.
+      let levelSlot = 0;
+      let isMeterResting = false;
       const meterFrames: [IOutputLevel[], IOutputLevel[]] = [
         meterAnalysers.map(() => ({
           levelDb: LEVEL_FLOOR_DB,
@@ -793,15 +873,30 @@ const useLiveOutputSpectrum = () => {
         })),
       ];
       // Wall clock rather than a frame count, because the fall rates are per
-      // second and this interval runs late whenever the renderer is busy.
+      // second and a tick is handled late whenever the renderer is busy.
       let lastMeterMs = performance.now();
 
-      const pump = () => {
-        const session = sessionRef.current;
+      // `audioMs` is the audio this tick stands for — see `audioClock.ts`.
+      const pump = (audioMs: number) => {
+        let session = sessionRef.current;
+        if (session) {
+          // Counted before anything can return, so a paused or hidden
+          // measurement is held to it as well.
+          session.audioMs += audioMs;
+          if (
+            !session.isContinuous &&
+            session.audioMs >= MEASUREMENT_AUDIO_LIMIT_MS
+          ) {
+            abortBalance(tRef.current('eq.smart.error.timedOut'));
+            session = undefined;
+          }
+        }
         // Nothing to draw on and nothing to measure: the entire frame is
         // waste, down to the FFT the analyser only computes when it is read.
         // A running measurement is deliberately exempt — surviving a minimised
-        // window is why this is an interval rather than requestAnimationFrame.
+        // window is why this runs on the audio clock rather than on animation
+        // frames, which stop there, or on a timer, which is throttled there to
+        // once a second and then once a minute.
         const isHidden = isHiddenRef.current;
         if (isHidden && !session) {
           return;
@@ -827,16 +922,20 @@ const useLiveOutputSpectrum = () => {
 
         let reference: number | undefined;
         if (peak !== undefined) {
+          // Heard, so whatever device came or went since was not this one.
+          deviceChangedUnheardRef.current = false;
           // Instant attack, slow release: follows the track, ignores the
           // volume knob, and never lets a transient push the curve off-scale.
           // Kept running while hidden so the curve is already referenced
-          // correctly the moment the window comes back.
+          // correctly the moment the window comes back. The release is per
+          // tick, scaled by the audio this tick actually stands for.
           trackReference.current =
             trackReference.current === undefined
               ? peak
               : Math.max(
                   peak,
-                  trackReference.current - TRACK_REFERENCE_RELEASE_DB,
+                  trackReference.current -
+                    (TRACK_REFERENCE_RELEASE_DB * audioMs) / UPDATE_INTERVAL_MS,
                 );
           reference = trackReference.current;
         }
@@ -902,7 +1001,8 @@ const useLiveOutputSpectrum = () => {
             Math.max(0, meterNowMs - lastMeterMs),
           );
           lastMeterMs = meterNowMs;
-          const meterFrame = meterFrames[bufferSlot];
+          const nextLevelSlot = levelSlot === 0 ? 1 : 0;
+          const meterFrame = meterFrames[nextLevelSlot];
           let anyChannelClipping = false;
           for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
             const channelSamples = meterSamples[channel];
@@ -933,13 +1033,39 @@ const useLiveOutputSpectrum = () => {
             isClippingRef.current = anyChannelClipping;
             setIsClipping(anyChannelClipping);
           }
-          setWaveform(
-            writeChannelWaveformPoints(
-              buffers.waveform[bufferSlot],
-              meterSamples,
-            ),
+          const waveformFrame = writeChannelWaveformPoints(
+            buffers.waveform[nextLevelSlot],
+            meterSamples,
           );
-          setOutputLevels(meterFrame);
+          /*
+           * Silence is published once, and then not again until sound returns.
+           *
+           * A visible window never went idle: silence was published here
+           * thirty times a second for as long as it was open, a new waveform
+           * and level pair every tick, so every consumer of the frame
+           * re-rendered and both meters cleared and redrew the same rest. Now
+           * the frame that brings the last reading down to rest goes out as
+           * `SILENT_WAVEFORM`, and nothing after it, which is the rule
+           * `points` already follows. Every tick until then still goes out,
+           * so the meters reach the floor on the frames they always did; a
+           * reading counted in frames finishes on its own clock from there.
+           *
+           * A measurement keeps them coming. Smart EQ's countdown on the graph
+           * (`Chart.tsx`) is worked out again on each frame, and in a quiet
+           * gap between songs they are the only clock it has. Its levels go
+           * out every tick; the waveform is `SILENT_WAVEFORM` all the same,
+           * because that array is also how the graph learns the output has
+           * come to rest (`SilenceWatch`), and a measurement running through
+           * the quiet must not hide the quiet from it. The same array every
+           * tick is no new frame to anything that reads the waveform alone.
+           */
+          const isAtRest = isMeterAtRest(waveformFrame, meterFrame);
+          if (session || !isAtRest || !isMeterResting) {
+            levelSlot = nextLevelSlot;
+            setWaveform(isAtRest ? SILENT_WAVEFORM : waveformFrame);
+            setOutputLevels(meterFrame);
+          }
+          isMeterResting = isAtRest;
         }
 
         if (!session) {
@@ -1025,19 +1151,26 @@ const useLiveOutputSpectrum = () => {
         evaluateSession(session, performance.now());
       };
 
-      // An interval rather than requestAnimationFrame: rAF stops completely
-      // while the window is minimised, which is exactly what a user does
-      // during a long measurement.
-      pumpRef.current = setInterval(pump, UPDATE_INTERVAL_MS);
+      // On the capture context's audio clock, not a timer and not animation
+      // frames. Animation frames stop completely while the window is
+      // minimised, which is exactly what a user does during a long
+      // measurement; the thirty-three millisecond interval that replaced them
+      // was throttled there to one tick a second, and to one a minute after
+      // five, so a measurement left running behind the window listened to one
+      // frame in thirty and then one in eighteen hundred. The audio thread
+      // renders whether or not anyone is looking.
+      clockRef.current = startAudioClock(activeAudioContext, pump);
 
       audioTrack.addEventListener(
         'ended',
         () => {
           abortBalance(tRef.current('eq.smart.error.deviceChanged'));
           stop();
-          // Let the current capture promise finish before retrying. This
-          // avoids the in-flight guard suppressing the restart.
-          setTimeout(() => scheduleStartRef.current(), 0);
+          // After any start in flight has settled, which is what the
+          // zero-millisecond timer here stood for: a start still negotiating
+          // holds the in-flight guard, and a restart asked for then was
+          // dropped. `restartCapture` waits on that start's own promise.
+          restartCapture();
         },
         { once: true },
       );
@@ -1056,49 +1189,38 @@ const useLiveOutputSpectrum = () => {
        * Which is why the trace simply stopped moving and nothing recovered it:
        * the one event being listened for was the one that never fired.
        *
-       * `mute` is what does fire. It is also fired for ordinary gaps, so the
-       * restart waits — a source that comes back on its own sends `unmute` and
-       * cancels it, and only a mute that persists is treated as a device that
-       * has gone.
+       * `mute` is what does fire, and it is also fired for ordinary gaps — a
+       * track change, a stream buffering, Equalizer APO reloading its config.
+       * It used to be given two and a half seconds to come back, a guess at
+       * how long an ordinary gap lasts. What tells the two apart is a device
+       * coming or going: every one of the causes above reaches Chromium as a
+       * `devicechange`, and a pause does not. So a muted track is restarted
+       * when a device changes while it is muted (the hook's `devicechange`
+       * listener), or when it mutes after a device changed and before it heard
+       * another sound (here). An `unmute` needs no listener any more: there is
+       * no wait for it to cancel.
        */
       // Held on a ref rather than in this closure, so `stop()` can reach it.
       //
-      // It was a local, which meant nothing outside this call could clear it: a
-      // restart cycle left the previous track's pending timer running, and when
-      // it fired it called `stop()` on whatever stream had replaced it and
-      // scheduled another restart. On a flapping endpoint that compounds — each
-      // cycle leaving another timer behind to trigger the next — and what looks
-      // like a device problem is the app restarting itself in a loop, opening
-      // an AudioContext every time.
-      muteTimerRef.current = undefined;
+      // Its timer was a local once, which meant nothing outside this call
+      // could clear it: a restart cycle left the previous track's pending
+      // timer running, and when it fired it called `stop()` on whatever stream
+      // had replaced it and scheduled another restart. On a flapping endpoint
+      // that compounds — and what looks like a device problem is the app
+      // restarting itself in a loop, opening an AudioContext every time.
       const onMute = () => {
-        if (muteTimerRef.current !== undefined) {
-          return;
-        }
-        muteTimerRef.current = setTimeout(() => {
-          muteTimerRef.current = undefined;
-          // Still muted after the wait, so this is not a gap in the audio.
-          if (audioTrack.muted && streamRef.current) {
-            stop();
-            setTimeout(() => scheduleStartRef.current(), 0);
-          }
-        }, DEVICE_LOST_GRACE_MS);
-      };
-      const onUnmute = () => {
-        if (muteTimerRef.current !== undefined) {
-          clearTimeout(muteTimerRef.current);
-          muteTimerRef.current = undefined;
+        if (streamRef.current === stream && deviceChangedUnheardRef.current) {
+          stop();
+          restartCapture();
         }
       };
       audioTrack.addEventListener('mute', onMute);
-      audioTrack.addEventListener('unmute', onUnmute);
-      // Taken off the track when the capture ends. The `ended` listener below
-      // uses `{ once: true }` and needs no such thing; these two fire many
-      // times over a track's life, so they have to be removed by hand or every
-      // restart leaves another pair attached to a track nobody is reading.
+      // Taken off the track when the capture ends. The `ended` listener above
+      // uses `{ once: true }` and needs no such thing; this one fires many
+      // times over a track's life, so it has to be removed by hand or every
+      // restart leaves another attached to a track nobody is reading.
       detachTrackRef.current = () => {
         audioTrack.removeEventListener('mute', onMute);
-        audioTrack.removeEventListener('unmute', onUnmute);
       };
 
       return true;
@@ -1115,7 +1237,33 @@ const useLiveOutputSpectrum = () => {
     } finally {
       isStartingRef.current = false;
     }
-  }, [abortBalance, evaluateSession, isCaptureWanted, stop]);
+  }, [abortBalance, evaluateSession, isCaptureWanted, restartCapture, stop]);
+
+  /**
+   * `start`, with the promise kept while it is in flight — see
+   * `restartCapture`, which is what waits on it.
+   *
+   * `start` sets its in-flight flag before its first await, so the flag says
+   * straight after the call whether this call is the one negotiating or was
+   * turned away by a start already doing so.
+   */
+  const launchStart = useCallback((): Promise<boolean> => {
+    const inFlight = startPromiseRef.current;
+    if (isStartingRef.current && inFlight) {
+      return inFlight;
+    }
+    const pending = start();
+    if (isStartingRef.current) {
+      startPromiseRef.current = pending;
+      const forget = () => {
+        if (startPromiseRef.current === pending) {
+          startPromiseRef.current = undefined;
+        }
+      };
+      pending.then(forget, forget);
+    }
+    return pending;
+  }, [start]);
 
   /**
    * Listen until every frequency region has been heard well enough to correct,
@@ -1166,15 +1314,11 @@ const useLiveOutputSpectrum = () => {
           getChainGainDb: options.getChainGainDb,
           detachAbort: () =>
             options.signal?.removeEventListener('abort', onAbort),
-          // No backstop on a continuous session. The watchdog exists so a
-          // measurement somebody is waiting on cannot hang; this one is meant
-          // to run for as long as the mode is switched on.
-          watchdog: options.isContinuous
-            ? undefined
-            : setTimeout(
-                () => abortBalance(tRef.current('eq.smart.error.timedOut')),
-                WATCHDOG_MS,
-              ),
+          // Counted on every session and enforced only on one that ends: the
+          // limit exists so a measurement somebody is waiting on cannot hang,
+          // and a continuous one is meant to run for as long as the mode is
+          // switched on. See `MEASUREMENT_AUDIO_LIMIT_MS`.
+          audioMs: 0,
           lastAcceptedWallMs: performance.now(),
           lastPercent: 0,
           wasSilent: false,
@@ -1185,16 +1329,37 @@ const useLiveOutputSpectrum = () => {
           reject,
         };
       }),
-    [abortBalance, settleBalance],
+    [settleBalance],
   );
+
+  /**
+   * Whether the running capture is still on the output Windows plays through,
+   * and a fresh one if it is not — see `readDefaultOutputKey`.
+   */
+  const followDefaultOutput = useCallback(() => {
+    const stream = streamRef.current;
+    if (!stream) {
+      return;
+    }
+    const boundKey = boundOutputKeyRef.current;
+    readDefaultOutputKey().then((key) => {
+      // The same capture still, or whatever replaced it was taken since and
+      // read its own key.
+      if (streamRef.current === stream && key !== boundKey) {
+        stop();
+        retriesRef.current = 0;
+        scheduleStartRef.current();
+      }
+      return key;
+    });
+  }, [stop]);
 
   const scheduleStart = useCallback(() => {
     if (
       !autoStartRef.current ||
       !isCaptureWanted() ||
       streamRef.current ||
-      isStartingRef.current ||
-      retryTimerRef.current !== undefined
+      isStartingRef.current
     ) {
       return;
     }
@@ -1206,9 +1371,16 @@ const useLiveOutputSpectrum = () => {
       return;
     }
 
-    start().then((didStart) => {
+    isRetryPendingRef.current = false;
+    launchStart().then((didStart) => {
       if (didStart) {
         retriesRef.current = 0;
+        // The output may have moved while this was negotiating, after the
+        // key it was taken against had been read.
+        if (changedDuringStartRef.current) {
+          changedDuringStartRef.current = false;
+          followDefaultOutput();
+        }
         return didStart;
       }
       if (
@@ -1220,16 +1392,33 @@ const useLiveOutputSpectrum = () => {
       }
 
       retriesRef.current += 1;
-      retryTimerRef.current = setTimeout(
-        () => {
-          retryTimerRef.current = undefined;
-          scheduleStartRef.current();
-        },
-        START_RETRY_MS * 2 ** (retriesRef.current - 1),
-      );
+      // A device or the output changed while this start was negotiating, so
+      // what it lost to may already be over: the event that would have been
+      // waited for has come and gone.
+      if (changedDuringStartRef.current) {
+        changedDuringStartRef.current = false;
+        scheduleStartRef.current();
+        return didStart;
+      }
+      isRetryPendingRef.current = true;
       return didStart;
     });
-  }, [isCaptureWanted, start]);
+  }, [followDefaultOutput, isCaptureWanted, launchStart]);
+
+  /**
+   * The next attempt at a start that failed, on an event that can make it
+   * succeed — see `isRetryPendingRef`. A start still negotiating is only told
+   * that something changed underneath it.
+   */
+  const retryStart = useCallback(() => {
+    if (isStartingRef.current) {
+      changedDuringStartRef.current = true;
+      return;
+    }
+    if (isRetryPendingRef.current) {
+      scheduleStartRef.current();
+    }
+  }, []);
 
   /**
    * Assigned while rendering, not in an effect, because a claim beats it there.
@@ -1258,16 +1447,25 @@ const useLiveOutputSpectrum = () => {
         scheduleStartRef.current();
         return;
       }
-      if (retryTimerRef.current !== undefined) {
-        clearTimeout(retryTimerRef.current);
-        retryTimerRef.current = undefined;
-      }
+      isRetryPendingRef.current = false;
       stop();
     };
+    // The window's own focus, not a control's: focus does not bubble but it
+    // is captured, so only an event whose target is the window itself is
+    // somebody coming back to it — from Sound settings, say, where the
+    // device the failed start lost to may have been put right.
+    const onWindowFocus = (event: FocusEvent) => {
+      if (event.target === window) {
+        retryStart();
+      }
+    };
     document.addEventListener('visibilitychange', trackVisibility);
-    return () =>
+    window.addEventListener('focus', onWindowFocus);
+    return () => {
       document.removeEventListener('visibilitychange', trackVisibility);
-  }, [isCaptureWanted, stop]);
+      window.removeEventListener('focus', onWindowFocus);
+    };
+  }, [isCaptureWanted, retryStart, stop]);
 
   /**
    * Follow the output, because the capture cannot notice that it moved.
@@ -1285,35 +1483,69 @@ const useLiveOutputSpectrum = () => {
    *
    * So the switch itself is the signal: tear the capture down and take a new
    * one, which arrives bound to whatever the output is now.
+   *
+   * At once. It used to wait 450 ms first, a guess at how long Windows takes
+   * to finish handing the endpoint over after main has said it changed — a
+   * capture taken before then binds to the output being left. What says
+   * Windows has finished is Windows' own notification, which reaches the
+   * window as `devicechange`, and the listener below then compares the output
+   * this capture was taken on with the one Chromium names now and takes it
+   * again if they differ. A capture that loses the race is moved when the
+   * switch completes, instead of every capture waiting on a guess.
    */
   useEffect(() => {
-    let settleTimer: ReturnType<typeof setTimeout> | undefined;
     const rebind = () => {
-      // Nothing running is nothing to move. A capture that was never started,
-      // or that gave up, is not restarted by somebody changing device.
+      // Nothing running is nothing to move. A capture that failed and is
+      // waiting for its next try gets it now — a new output is one of the
+      // things it was waiting for — and one that gave up is not restarted by
+      // somebody changing device.
       if (!streamRef.current) {
+        retryStart();
         return;
       }
       stop();
       // A fresh endpoint deserves a fresh set of attempts: the count that was
       // spent failing against the previous device says nothing about this one.
       retriesRef.current = 0;
-      if (settleTimer !== undefined) {
-        clearTimeout(settleTimer);
-      }
-      settleTimer = setTimeout(
-        () => scheduleStartRef.current(),
-        OUTPUT_SWITCH_SETTLE_MS,
-      );
+      scheduleStartRef.current();
     };
     window.addEventListener('fluideq-output-changed', rebind);
     return () => {
       window.removeEventListener('fluideq-output-changed', rebind);
-      if (settleTimer !== undefined) {
-        clearTimeout(settleTimer);
-      }
     };
-  }, [stop]);
+  }, [retryStart, stop]);
+
+  /**
+   * A device came or went, which is the event three things here wait on.
+   *
+   * - A muted capture: its device is the one that went (see the track's
+   *   `mute` listener for how that is told from a pause). Taken again.
+   * - A capture on the output Windows has just moved away from: taken again
+   *   on the new one (`followDefaultOutput`).
+   * - A failed start waiting for its next try: tried again.
+   */
+  useEffect(() => {
+    const { mediaDevices } = navigator;
+    if (!mediaDevices?.addEventListener) {
+      return undefined;
+    }
+    const onDeviceChange = () => {
+      if (!streamRef.current) {
+        retryStart();
+        return;
+      }
+      if (audioTrackRef.current?.muted) {
+        stop();
+        restartCapture();
+        return;
+      }
+      deviceChangedUnheardRef.current = true;
+      followDefaultOutput();
+    };
+    mediaDevices.addEventListener('devicechange', onDeviceChange);
+    return () =>
+      mediaDevices.removeEventListener('devicechange', onDeviceChange);
+  }, [followDefaultOutput, restartCapture, retryStart, stop]);
 
   useEffect(() => {
     autoStartRef.current = true;
@@ -1338,10 +1570,7 @@ const useLiveOutputSpectrum = () => {
 
     return () => {
       autoStartRef.current = false;
-      if (retryTimerRef.current !== undefined) {
-        clearTimeout(retryTimerRef.current);
-        retryTimerRef.current = undefined;
-      }
+      isRetryPendingRef.current = false;
       abortBalance(tRef.current('eq.smart.error.closed'));
       stop();
     };
@@ -1395,7 +1624,7 @@ const useLiveOutputSpectrum = () => {
       // something has changed, and it is worth believing them.
       retry: () => {
         retriesRef.current = 0;
-        return start();
+        return launchStart();
       },
     }),
     [
@@ -1405,8 +1634,8 @@ const useLiveOutputSpectrum = () => {
       error,
       isActive,
       isPaused,
+      launchStart,
       readFrame,
-      start,
       togglePaused,
     ],
   );

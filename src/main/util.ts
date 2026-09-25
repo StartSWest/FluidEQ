@@ -20,54 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */
 import { URL } from 'url';
 import path from 'path';
-import http from 'http';
 
 export let resolveHtmlPath: (htmlFileName: string) => string;
 
-/**
- * The renderer and Electron main process are started in parallel during
- * development. Wait for webpack-dev-server to accept connections before
- * asking BrowserWindow to load the page, avoiding a noisy connection-refused
- * error during normal startup.
- */
-export const waitForRenderer = async (
-  rendererUrl: string,
-  // A cold webpack-dev-server bundle of this app takes well over half a minute
-  // on a slower machine, and the old 30s ceiling turned that into a hard
-  // failure rather than a wait.
-  timeoutMs = 120000,
-): Promise<void> => {
-  if (!rendererUrl.startsWith('http')) {
-    return;
-  }
-
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    const isReady = await new Promise<boolean>((resolve) => {
-      const request = http.get(rendererUrl, { timeout: 750 }, (response) => {
-        response.resume();
-        resolve((response.statusCode || 500) < 500);
-      });
-
-      request.once('error', () => resolve(false));
-      request.once('timeout', () => {
-        request.destroy();
-        resolve(false);
-      });
-    });
-
-    if (isReady) {
-      return;
-    }
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    });
-  }
-
-  throw new Error(`Renderer did not become available at ${rendererUrl}`);
-};
-
+// In development the page comes from webpack-dev-server, which starts this
+// process only once it is listening (`onListening` in
+// webpack.config.renderer.dev.ts) and holds a request until the bundle is
+// built. Nothing waits for it here any more: this module used to poll it
+// every 100 ms for up to two minutes, racing a server started alongside.
 if (process.env.NODE_ENV === 'development') {
   const port = process.env.PORT || 1212;
   resolveHtmlPath = (htmlFileName: string) => {

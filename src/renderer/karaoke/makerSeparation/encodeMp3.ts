@@ -4,8 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Mp3Encoder } from '@breezystack/lamejs';
-
 /**
  * MP3 alongside the WAV a split produces.
  *
@@ -21,6 +19,8 @@ import { Mp3Encoder } from '@breezystack/lamejs';
  * given. The MP3 is for carrying around — a fifth of the size and playable on
  * anything. Neither replaces the other, so both are written.
  */
+
+import nextTask from '../../../common/nextTask';
 
 /**
  * 192 kbps joint stereo.
@@ -41,6 +41,16 @@ const MP3_KBPS = 192;
  * block for no reason when the loop can simply walk in the right stride.
  */
 const LAME_BLOCK = 1152;
+
+/**
+ * LAME itself, loaded the first time an MP3 is asked for.
+ *
+ * 162 KB of the window's script, which it parsed at every launch for the one
+ * export in the Maker that writes an MP3. A chunk of its own beside the
+ * window's script; the first export waits for it once.
+ */
+const loadLame = () =>
+  import(/* webpackChunkName: "lamejs" */ '@breezystack/lamejs');
 
 /**
  * How many blocks to encode before letting the window breathe.
@@ -65,12 +75,6 @@ const toInt16 = (samples: Float32Array): Int16Array => {
   return out;
 };
 
-/** Give the event loop a turn, so the window keeps painting mid-encode. */
-const yieldToRenderer = () =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
-
 export interface IEncodeMp3Options {
   /** 0..1, called as blocks complete, for a caller that shows progress. */
   onProgress?: (fraction: number) => void;
@@ -91,6 +95,7 @@ export const encodeChannelsAsMp3 = async (
   { onProgress, signal }: IEncodeMp3Options = {},
 ): Promise<File> => {
   const isStereo = Boolean(right && right !== left);
+  const { Mp3Encoder } = await loadLame();
   const encoder = new Mp3Encoder(isStereo ? 2 : 1, sampleRate, MP3_KBPS);
   const leftPcm = toInt16(left);
   const rightPcm = isStereo && right ? toInt16(right) : undefined;
@@ -108,10 +113,15 @@ export const encodeChannelsAsMp3 = async (
     }
     if (block % BLOCKS_PER_YIELD === BLOCKS_PER_YIELD - 1) {
       onProgress?.(block / totalBlocks);
+      // A task, not a zero-delay timer: a hidden window runs timers once a
+      // second at best, so a four-minute stem — about 140 of these — took two
+      // minutes or more to encode behind a minimised window, holding every
+      // sample of it. A task comes next whatever is painted, and at once when
+      // the encode is cancelled.
       // eslint-disable-next-line no-await-in-loop -- the yield is the point:
       // this loop is deliberately paced so the renderer can paint between
       // batches, which parallelising would defeat.
-      await yieldToRenderer();
+      await nextTask(signal);
       if (signal?.aborted) {
         throw new DOMException('MP3 encoding cancelled.', 'AbortError');
       }

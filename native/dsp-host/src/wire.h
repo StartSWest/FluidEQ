@@ -362,18 +362,19 @@ typedef struct FeqWireTelemetryFrame {
  * chain, and it is also the one Task Manager files away from the FluidEQ group
  * entirely, being a different binary.
  *
- * Its own clock rather than telemetry's. A telemetry frame exists per audio
- * callback and therefore only while something is playing, which is exactly
- * when a memory question is least interesting; this one is sent on a fixed
- * interval whether or not a device is open, and is small enough that doing so
- * costs nothing. See `process_stats.h` for what the two fields measure.
+ * Sent every half second of audio while something plays, and after any work
+ * the host does with nothing playing — a model loaded, a device closed — so
+ * the memory an idle host holds is on the list. Never on a clock: an idle
+ * host changes nothing, and the CPU field is a running total that goes on
+ * reading as idle without another frame. See `process_stats.h`.
  */
 typedef struct FeqWireStatsFrame {
   uint32_t magic;
-  /** Zero. Present so `cpu_percent` lands on an eight-byte boundary. */
+  /** Zero. Present so `cpu_seconds` lands on an eight-byte boundary. */
   uint32_t reserved;
   uint64_t working_set_bytes;
-  double cpu_percent;
+  /** A running total since the host started, not a percentage. */
+  double cpu_seconds;
 } FeqWireStatsFrame;
 
 /**

@@ -238,7 +238,12 @@ const registryScan = async (): Promise<IRegistryScan> => {
   const known = (source: unknown): source is IGameProgram['source'] =>
     typeof source === 'string';
   try {
-    const { stdout } = await execFileAsync(
+    // Ended by the script finishing, never by a clock: it used to be killed
+    // after 20 s, which on a machine whose registry or disk answered slowly
+    // threw away every launcher-registered game for that scan. Its input is
+    // closed at once, so nothing it might read can keep it waiting; the
+    // process's own exit (or its failure to start) is what settles this.
+    const running = execFileAsync(
       POWERSHELL_PATH,
       [
         '-NoLogo',
@@ -249,8 +254,10 @@ const registryScan = async (): Promise<IRegistryScan> => {
         '-File',
         scriptPath(),
       ],
-      { windowsHide: true, timeout: 20000, maxBuffer: 4 * 1024 * 1024 },
+      { windowsHide: true, maxBuffer: 4 * 1024 * 1024 },
     );
+    running.child.stdin?.end();
+    const { stdout } = await running;
     const line = stdout
       .split(/\r?\n/)
       .map((one) => one.trim())

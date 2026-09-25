@@ -4524,8 +4524,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // 7px was unreadable. These are uppercase tracked labels, which lose legibility
 // faster than body text as they shrink, so they sit at the same size as the
 // group headings above them rather than half of it.
-.karaoke-maker__memory-label,
-.karaoke-maker__memory-delay > span {
+.karaoke-maker__memory-label {
   color: $text-muted;
   font-size: $text-body;
   font-weight: $weight-bold;
@@ -4533,8 +4532,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-transform: uppercase;
 }
 
-.karaoke-maker__memory-options,
-.karaoke-maker__memory-delay {
+.karaoke-maker__memory-options {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -4561,10 +4559,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-color: color-mix(in srgb, $secondary-default 34%, transparent);
     }
   }
-}
-
-.karaoke-maker__memory-delay > span {
-  margin-right: 3px;
 }
 
 .karaoke-maker__timing-popover {
@@ -7147,6 +7141,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
   border-radius: $radius-m;
   box-shadow: 0 14px 34px color-mix(in srgb, $surface-base 32%, transparent);
+  // How long it stays: the Maker takes it down on this animation's end. It
+  // changes nothing on screen — the notice looks as it always has for the
+  // five seconds it was given by a timer before.
+  animation: karaoke-maker-notice-linger 5s linear;
 
   &.is-error {
     color: #ffd8dc;
@@ -7157,6 +7155,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 190px;
     accent-color: $secondary-default;
   }
+}
+
+@keyframes karaoke-maker-notice-linger {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+// The stand-down in App.scss shortens every animation to 1 ms, which would
+// take the notice down the moment it went up. Its linger is a hold that does
+// not move, and it has to stay long enough to read, so it keeps its length.
+:root[data-motion='reduced'] .karaoke-maker__notice {
+  animation-duration: 5s !important;
 }
 
 // The idle-release prompt used to live here, pinned above the Maker's dock.
@@ -8021,7 +8033,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 14px 34px rgba($black, 0.36),
     0 0 18px color-mix(in srgb, $secondary-default 9%, transparent),
     inset 0 1px rgba($white, 0.05);
-  animation: karaoke-maker-toast 2.6s ease both;
+  // Two animations on one timeline, so it looks as the single one did: the
+  // fade is the toast's lifetime — the Maker takes it down on that one's
+  // end — and the drift is only motion, which reduced motion may cut.
+  animation:
+    karaoke-maker-toast 2.6s ease both,
+    karaoke-maker-toast-drift 2.6s ease both;
 
   svg {
     width: 14px;
@@ -8037,19 +8054,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @keyframes karaoke-maker-toast {
   0% {
     opacity: 0;
-    transform: translateY(-5px) scale(0.98);
   }
 
   10%,
   82% {
     opacity: 1;
-    transform: none;
   }
 
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes karaoke-maker-toast-drift {
+  0% {
+    transform: translateY(-5px) scale(0.98);
+  }
+
+  10%,
+  82% {
+    transform: none;
+  }
+
+  100% {
     transform: translateY(-4px);
   }
+}
+
+// The stand-down in App.scss shortens every animation to 1 ms: the drift
+// may go, but the fade is how long the toast is up, and at 1 ms it ended
+// faded out before anyone saw it. The fade does not move, so it keeps its
+// length; the drift keeps the stand-down's.
+:root[data-motion='reduced'] .karaoke-maker__toast {
+  animation-duration: 2.6s, 1ms !important;
 }
 
 .karaoke-maker__modal-backdrop {

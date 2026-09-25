@@ -19,6 +19,7 @@ import {
 } from '../account/plusTermsNoticeStore';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import '../styles/PlusTermsNotice.scss';
 
 const CHANGES_ID = 'plus-terms-notice-changes';
@@ -57,7 +58,11 @@ const PlusTermsNotice = () => {
   // process can run an older copy of `common` than the renderer until it
   // restarts, and a date or a sentence for the wrong version is worse than
   // waiting for the two to agree.
-  if (!notice || notice.version !== PLUS_TERMS_VERSION) {
+  const wants = notice !== null && notice.version === PLUS_TERMS_VERSION;
+  // Steps aside for every prompt that reaches this corner, anything modal,
+  // the song EQ toast and full screen (`noticeTurn.ts`).
+  const isShown = useNoticeTurn('plusTerms', wants);
+  if (!notice || !isShown) {
     return null;
   }
 

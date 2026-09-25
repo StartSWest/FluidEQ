@@ -41,6 +41,17 @@ it under the terms of the GNU General Public License version 3 or later.
   &::before {
     @include aurora;
   }
+
+  // Held where it is while a scene is coming or playing: the scene's still
+  // covers the band from edge to edge from the first frame (and the drawing
+  // then covers the still), so the drift went on under an opaque picture for
+  // as long as the panel was open. Paused rather than stopped, so the frame
+  // or two before the still has decoded shows the aurora exactly where its
+  // drift begins, and a scene that fails and takes the still away hands the
+  // band back to a drift that carries on from there.
+  &.is-scene::before {
+    animation-play-state: paused;
+  }
 }
 
 /**

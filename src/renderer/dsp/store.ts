@@ -668,12 +668,22 @@ export const setDspNormalizerMeter = (next: IDspNormalizerMeter): void => {
 export const readDspNormalizerMeter = (): IDspNormalizerMeter =>
   normalizerMeter;
 
-export const useDspNormalizerMeter = (): IDspNormalizerMeter =>
-  useSyncExternalStore(
-    subscribeNormalizerMeter,
-    readDspNormalizerMeter,
-    readDspNormalizerMeter,
-  );
+/**
+ * One value from the Normalizer meter, re-rendering only when it changes.
+ *
+ * The meter is a new object with every host frame, and a figure that read it
+ * whole redrew with each one whether or not the tenth of a decibel it shows
+ * had moved. `read` returns what is shown — a number, or the text itself — so
+ * equal readings are the same snapshot and render nothing.
+ */
+export const useDspNormalizerMeterValue = <
+  T extends string | number | undefined,
+>(
+  read: (meter: IDspNormalizerMeter) => T,
+): T => {
+  const snapshot = () => read(normalizerMeter);
+  return useSyncExternalStore(subscribeNormalizerMeter, snapshot, snapshot);
+};
 
 /** Real chain-boundary analysers, read directly inside each canvas frame. */
 export interface IDspAnalyser {

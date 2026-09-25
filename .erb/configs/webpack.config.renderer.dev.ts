@@ -47,6 +47,48 @@ if (
   execSync('pnpm postinstall');
 }
 
+/** The dev session's own processes: the preload builder and the main process. */
+const devChildren: ChildProcess[] = [];
+let devShuttingDown = false;
+
+/**
+ * Run a CLI on its own node process. Not `pnpm <script>`: pnpm and every
+ * `node_modules/.bin` entry are `.cmd` shims on Windows, and Ctrl+C inside a
+ * batch file stops cmd.exe to ask "Terminate batch job (Y/N)?".
+ */
+const spawnNode = (bin: string, args: string[], env: NodeJS.ProcessEnv) => {
+  const child = spawn(process.execPath, [require.resolve(bin), ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, ...env },
+  });
+  devChildren.push(child);
+  return child;
+};
+
+/** One Ctrl+C takes the whole dev session down, orphaning nothing. */
+const shutdownDevSession = () => {
+  if (devShuttingDown) return;
+  devShuttingDown = true;
+
+  devChildren.forEach((child) => {
+    if (!child.pid || child.exitCode !== null) return;
+    try {
+      if (process.platform === 'win32') {
+        // Electron is a grandchild of electronmon; /T reaches it.
+        execFileSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+          stdio: 'ignore',
+        });
+      } else {
+        child.kill('SIGKILL');
+      }
+    } catch {
+      // Already gone.
+    }
+  });
+
+  process.exit(0);
+};
+
 const configuration: webpack.Configuration = {
   devtool: 'inline-source-map',
 
@@ -254,56 +296,9 @@ const configuration: webpack.Configuration = {
     // one before it lets go, and the point is to leave nothing running.
     setupExitSignals: false,
     setupMiddlewares(middlewares) {
-      const children: ChildProcess[] = [];
-      let shuttingDown = false;
-
-      /**
-       * Run a CLI on its own node process. Not `pnpm <script>`: pnpm and every
-       * `node_modules/.bin` entry are `.cmd` shims on Windows, and Ctrl+C
-       * inside a batch file stops cmd.exe to ask "Terminate batch job (Y/N)?".
-       */
-      const spawnNode = (
-        bin: string,
-        args: string[],
-        env: NodeJS.ProcessEnv,
-      ) => {
-        const child = spawn(process.execPath, [require.resolve(bin), ...args], {
-          stdio: 'inherit',
-          env: { ...process.env, ...env },
-        });
-        children.push(child);
-        return child;
-      };
-
-      /** One Ctrl+C takes the whole dev session down, orphaning nothing. */
-      const shutdown = () => {
-        if (shuttingDown) return;
-        shuttingDown = true;
-
-        children.forEach((child) => {
-          if (!child.pid || child.exitCode !== null) return;
-          try {
-            if (process.platform === 'win32') {
-              // Electron is a grandchild of electronmon; /T reaches it.
-              execFileSync(
-                'taskkill',
-                ['/pid', String(child.pid), '/T', '/F'],
-                { stdio: 'ignore' },
-              );
-            } else {
-              child.kill('SIGKILL');
-            }
-          } catch {
-            // Already gone.
-          }
-        });
-
-        process.exit(0);
-      };
-
       // Prepended so it beats webpack-cli's own graceful-shutdown handler.
       (['SIGINT', 'SIGTERM', 'SIGBREAK'] as NodeJS.Signals[]).forEach(
-        (signal) => process.prependListener(signal, shutdown),
+        (signal) => process.prependListener(signal, shutdownDevSession),
       );
 
       console.log('Starting preload.js builder...');
@@ -313,21 +308,33 @@ const configuration: webpack.Configuration = {
         { NODE_ENV: 'development', TS_NODE_TRANSPILE_ONLY: 'true' },
       )
         .on('close', () => {
-          if (!shuttingDown) shutdown();
+          if (!devShuttingDown) shutdownDevSession();
         })
         .on('error', (spawnError) => console.error(spawnError));
-
+      return middlewares;
+    },
+    /**
+     * The main process, once the server is listening and not before.
+     *
+     * It used to start from `setupMiddlewares` above, which runs before the
+     * server has bound its port, and then poll the port every 100 ms for up to
+     * two minutes before loading the window (`waitForRenderer`, gone). From
+     * here the address answers the moment main asks: the server is listening,
+     * and webpack-dev-middleware holds each request until the bundle it asks
+     * for is built. The bundle still compiles alongside main's own start-up,
+     * as before — the server listens a moment after the compile begins.
+     */
+    onListening() {
       console.log('Starting Main Process...');
       spawnNode('electronmon/bin/cli.js', ['dev-main.cjs', '--no-sandbox'], {
         NODE_ENV: 'development',
         FLUIDEQ_EXIT_DEV_SESSION_ON_QUIT: '1',
       })
         .on('close', () => {
-          if (shuttingDown) return;
-          shutdown();
+          if (devShuttingDown) return;
+          shutdownDevSession();
         })
         .on('error', (spawnError) => console.error(spawnError));
-      return middlewares;
     },
   },
 };

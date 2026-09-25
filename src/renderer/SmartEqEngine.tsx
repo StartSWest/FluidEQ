@@ -166,21 +166,6 @@ const quietWindowFor = (largestDb: number) => {
 };
 
 /**
- * How long the bubble stays up after the last thing it had to say.
- *
- * It is a remark, not a readout. These modes run for hours and are silent for
- * most of that — nothing is written once a correction has settled — so a bubble
- * that stayed put would be a stale sentence hanging over the toolbar all
- * evening, describing something that finished long ago.
- *
- * Long enough to read twice, and reset by anything new, so a measurement
- * reporting progress every second keeps it up for as long as it is working. An
- * unchanged message does not reset it: saying the same thing again is not news,
- * and by then the correction has stopped moving.
- */
-const STATUS_LINGER_MS = 6000;
-
-/**
  * Every Smart EQ measurement there is, hosted where no tab can end one.
  *
  * Renders nothing. It is mounted once, above the workspace tabs, and the EQ
@@ -232,8 +217,8 @@ const SmartEqEngine = () => {
   const { t } = useTranslation();
   const tRef = useRef(t);
   tRef.current = t;
-  /** What the page shows, and the flag the loop stands down for. */
-  const { status, isRunning } = useSmartEqRun();
+  /** The flag the loop stands down for. */
+  const { isRunning } = useSmartEqRun();
   // A run outlives being looked at. It gathers evidence region by region over
   // tens of seconds — all evening, in the continuous mode — and `stop()` aborts
   // the session outright, so letting a minimised window release the capture
@@ -433,18 +418,6 @@ const SmartEqEngine = () => {
    * earlier — and throwing it away meant a minute of rebuilding, audibly, every
    * time somebody tried a different flavour.
    */
-  // Said, then gone. See `STATUS_LINGER_MS`.
-  useEffect(() => {
-    if (!status) {
-      return undefined;
-    }
-    const timer = window.setTimeout(
-      () => setSmartEqStatus(''),
-      STATUS_LINGER_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [status]);
-
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *

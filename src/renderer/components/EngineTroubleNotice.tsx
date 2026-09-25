@@ -10,14 +10,12 @@ import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
 import type { TEngineTrouble } from '../audio/engineTrouble';
 import { useTranslation } from '../utils/I18nContext';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 // The output notice's look, which this shares: it is the same message — this
 // output is not being processed — for a different reason.
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineTroubleNotice.scss';
-
-const OTHER_NOTICE =
-  '.device-apo-notice:not(.engine-trouble-notice):not(.engine-update-notice)';
 
 const PROBLEM_TEXT: Record<TEngineProblem, TranslationKey> = {
   convolution: 'engineHealth.problem.convolution',
@@ -105,7 +103,9 @@ const EngineTroubleNotice = ({
     setDismissed((current) =>
       current.includes(which) ? current : [...current, which],
     );
-  const isShown = key !== undefined && !isHidden && !dismissed.includes(key);
+  const wants = key !== undefined && !isHidden && !dismissed.includes(key);
+  // Behind the output notice and the Room's 7.1 offer, which share the spot.
+  const isShown = useNoticeTurn('engineTrouble', wants);
 
   // Asked for again from outside: whatever was put away this session comes
   // back. Not on the first render — the count starts where it starts — so a
@@ -118,16 +118,14 @@ const EngineTroubleNotice = ({
     }
   }, [reopenCount]);
 
+  // Only while it is on screen: an Escape meant for the notice in front of it
+  // must not put this one away unseen.
   useEffect(() => {
-    if (!isShown) {
+    if (!isShown || key === undefined) {
       return undefined;
     }
     const dismissOnEscape = (event: KeyboardEvent) => {
-      if (
-        event.key !== 'Escape' ||
-        event.defaultPrevented ||
-        document.querySelector(OTHER_NOTICE) !== null
-      ) {
+      if (event.key !== 'Escape' || event.defaultPrevented) {
         return;
       }
       putAway(key);

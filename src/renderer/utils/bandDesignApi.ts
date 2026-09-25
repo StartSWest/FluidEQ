@@ -13,7 +13,6 @@ const request = <Result extends IBandDesign | IBandDesign[] | boolean>(
       channel,
       args,
       buildResponseHandler<Result>((result, resolve) => resolve(result)),
-      { timeout: null },
     );
   const response = pending.then(send, send);
   pending = response.then(

@@ -12,12 +12,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <cerrno>
 #include <csignal>
 #include <unistd.h>
 #if defined(__linux__)
+#include <poll.h>
 #include <sys/prctl.h>
+#include <sys/syscall.h>
+#elif defined(__APPLE__)
+#include <sys/event.h>
 #endif
-#include <chrono>
 #endif
 
 namespace {
@@ -72,6 +76,60 @@ void feq_watch_parent(uint32_t parent_pid, void (*on_exit)()) {
 
 #else
 
+/**
+ * Blocks until the process `parent_pid` ends. False when that cannot be
+ * waited on at all; true once it has ended, or when it was already gone.
+ *
+ * It was a loop asking `kill(pid, 0)` once a second, on the argument that
+ * POSIX has no way to block on a process that is not our child. Both kernels
+ * this runs on do have one: Linux hands out a descriptor for a process that
+ * becomes readable when it exits (`pidfd_open`, 5.3 and later), and macOS
+ * reports the exit through kqueue (`EVFILT_PROC` with `NOTE_EXIT`). Either
+ * way the wait returns the moment the parent is gone, as Windows' handle
+ * wait always did, and nothing wakes in between.
+ */
+static bool wait_for_exit(pid_t parent_pid) {
+#if defined(__linux__)
+#if defined(SYS_pidfd_open)
+  const long descriptor = ::syscall(SYS_pidfd_open, parent_pid, 0);
+  if (descriptor < 0) {
+    // Already gone is an answer; a kernel without the call is not.
+    return errno == ESRCH;
+  }
+  pollfd watched{static_cast<int>(descriptor), POLLIN, 0};
+  while (::poll(&watched, 1, -1) < 0 && errno == EINTR) {
+  }
+  ::close(static_cast<int>(descriptor));
+  return true;
+#else
+  (void)parent_pid;
+  return false;
+#endif
+#elif defined(__APPLE__)
+  const int queue = ::kqueue();
+  if (queue < 0) {
+    return false;
+  }
+  struct kevent change;
+  EV_SET(&change, static_cast<uintptr_t>(parent_pid), EVFILT_PROC,
+         EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, nullptr);
+  if (::kevent(queue, &change, 1, nullptr, 0, nullptr) < 0) {
+    const bool is_gone = errno == ESRCH;
+    ::close(queue);
+    return is_gone;
+  }
+  struct kevent fired;
+  while (::kevent(queue, nullptr, 0, &fired, 1, nullptr) < 0 &&
+         errno == EINTR) {
+  }
+  ::close(queue);
+  return true;
+#else
+  (void)parent_pid;
+  return false;
+#endif
+}
+
 void feq_watch_parent(uint32_t parent_pid, void (*on_exit)()) {
   if (parent_pid == 0) {
     return;
@@ -79,24 +137,22 @@ void feq_watch_parent(uint32_t parent_pid, void (*on_exit)()) {
   g_on_exit = on_exit;
 #if defined(__linux__)
   /**
-   * Linux can do this without a thread at all.
+   * The kernel's own signal as well, for a kernel older than `pidfd_open`.
    *
    * `PR_SET_PDEATHSIG` has the kernel signal this process when its parent
    * dies. It is not inherited across `exec` and it fires on the death of the
-   * thread that forked us rather than the process, so the poll below stays as
-   * the backstop rather than being replaced by it.
+   * thread that forked us rather than the process, so on its own it can fire
+   * early and never late; the wait below is the exact answer where there is
+   * one.
    */
   ::prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
   std::thread([parent_pid] {
-    for (;;) {
-      // A second is not a race being papered over — it is how often a dead
-      // parent needs noticing, and there is no POSIX way to block on another
-      // process that is not our child.
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      if (::kill(static_cast<pid_t>(parent_pid), 0) != 0) {
-        leave();
-      }
+    // Where nothing can be waited on, the pipes are the net that is left:
+    // stdin reaching EOF ends the read loop, and a write to a stdout nobody
+    // reads fails rather than blocks once the reader is gone.
+    if (wait_for_exit(static_cast<pid_t>(parent_pid))) {
+      leave();
     }
   }).detach();
 }

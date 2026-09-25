@@ -85,7 +85,8 @@ export interface IDragState {
   auditionStartMs?: number;
   auditionEndMs?: number;
   auditionStarted?: boolean;
-  auditionTimerId?: number;
+  /** Stops the pass of the range that is playing, while one is. */
+  cancelAudition?: () => void;
   finalAuditionMidi?: number;
   finalAuditionDurationMs?: number;
 }

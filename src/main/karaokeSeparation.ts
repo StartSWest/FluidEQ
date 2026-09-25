@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { app, ipcMain } from 'electron';
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
@@ -23,7 +24,9 @@ import {
   separationPackedRow,
   separationStft,
 } from '../common/karaoke/separationDsp';
+import { scheduleWriteOperation } from './asyncWriter';
 import onWindowMessage from './ipc/windowMessages';
+import { saveDownload } from './modelDownload';
 
 /**
  * Vocal separation, with native ONNX calls isolated in a utility process.
@@ -50,6 +53,10 @@ const WEIGHTS_FILE = `${MODEL_FILE}.data`;
 
 /** Where the two model files live on disk, downloaded once and kept. */
 const modelDir = () => path.join(app.getPath('userData'), 'karaoke-models');
+
+/** Where separated songs' stems are kept, two WAVs per song. */
+export const karaokeStemsDir = () =>
+  path.join(app.getPath('userData'), 'karaoke-stems');
 
 type TOnnxSession = {
   release?: () => Promise<void> | void;
@@ -91,10 +98,11 @@ let running = false;
 /**
  * Fetch one model file to disk if it is not already there.
  *
- * Read whole and then written, never streamed through `pipeline` — fetch +
- * pipeline crashes inside Node's HTTP parser when the disk is slower than the
- * socket, and the failure arrives after every byte has been received, which
- * looks exactly like a flaky mirror and is not.
+ * Written chunk by chunk as it arrives, never streamed through `pipeline` —
+ * fetch + pipeline crashes inside Node's HTTP parser when the disk is slower
+ * than the socket, and the failure arrives after every byte has been
+ * received, which looks exactly like a flaky mirror and is not. See
+ * `modelDownload.ts` for how, and for why it is not read whole any more.
  */
 const ensureFile = async (
   name: string,
@@ -105,32 +113,64 @@ const ensureFile = async (
   if (fs.existsSync(target)) {
     return target;
   }
-  fs.mkdirSync(modelDir(), { recursive: true });
+  await fs.promises.mkdir(modelDir(), { recursive: true });
   const response = await fetch(`${MODEL_BASE}/${name}`, { signal });
   if (!response.ok || !response.body) {
     throw new Error(`Separation model download failed (${response.status}).`);
   }
-  const total = Number(response.headers.get('content-length') ?? 0);
-  const reader = response.body.getReader();
-  const parts: Uint8Array[] = [];
-  let received = 0;
-  for (;;) {
-    // eslint-disable-next-line no-await-in-loop
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    parts.push(value);
-    received += value.length;
-    onBytes(received, total);
-  }
-  // Written to a temporary name and renamed, so a crash mid-write cannot
-  // leave a truncated file that looks cached forever after.
-  const temporary = `${target}.download`;
-  fs.writeFileSync(temporary, Buffer.concat(parts));
-  fs.renameSync(temporary, target);
+  await saveDownload({
+    body: response.body,
+    total: Number(response.headers.get('content-length') ?? 0),
+    target,
+    onBytes,
+  });
   return target;
 };
+
+/**
+ * Where one song's two stems live, keyed by the song's stable id made safe for
+ * a file name.
+ */
+const stemFiles = (key: unknown) => {
+  const dir = karaokeStemsDir();
+  const safe = String(key)
+    .replace(/[^a-z0-9-]/gi, '_')
+    .slice(0, 80);
+  return {
+    dir,
+    vocals: path.join(dir, `${safe}-vocals.wav`),
+    instrumental: path.join(dir, `${safe}-instrumental.wav`),
+  };
+};
+
+/**
+ * One stem, written beside its file and renamed over it, so a stem is never
+ * half there.
+ *
+ * In turn with any other save of the same file, and inside the quit's wait
+ * (`scheduleWriteOperation`, `flushPendingWrites`): stems used to be written
+ * synchronously, which a quit right after a split could not cut short, and an
+ * asynchronous write it could. Its temporary is named the way `asyncWriter`
+ * names its own, so one left by a run killed mid-write — End task, a crash, a
+ * power cut — is swept at the next launch (`sweepAbandonedWrites`) instead of
+ * staying behind, tens of megabytes at a time.
+ */
+const writeStem = (file: string, bytes: ArrayBuffer): Promise<void> =>
+  scheduleWriteOperation(file, async () => {
+    const temporary = `${file}.${process.pid}-${randomUUID()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporary, Buffer.from(bytes));
+      await fs.promises.rename(temporary, file);
+    } finally {
+      await fs.promises.rm(temporary, { force: true });
+    }
+  });
+
+const isMissingFile = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  'code' in error &&
+  (error as { code: unknown }).code === 'ENOENT';
 
 /**
  * The inference session, created once and kept.
@@ -345,40 +385,39 @@ export const registerKaraokeSeparation = () => {
   // is the one thing that must never be pulled out from under itself.
   // The stems a split produces are kept on disk and handed back on the next
   // launch, so a refresh does not cost forty seconds of GPU work the machine
-  // already did. Keyed by the song's stable id; two small WAVs per song.
+  // already did. Keyed by the song's stable id; two WAVs per song — tens of
+  // megabytes each for a long one, which is why they are written and read
+  // without holding main while the disk works.
   ipcMain.handle(
     'karaoke-stems-save',
-    (
+    async (
       _event,
       request: { key: string; vocals: ArrayBuffer; instrumental: ArrayBuffer },
     ) => {
-      const dir = path.join(app.getPath('userData'), 'karaoke-stems');
-      fs.mkdirSync(dir, { recursive: true });
-      const safe = request.key.replace(/[^a-z0-9-]/gi, '_').slice(0, 80);
-      fs.writeFileSync(
-        path.join(dir, `${safe}-vocals.wav`),
-        Buffer.from(request.vocals),
-      );
-      fs.writeFileSync(
-        path.join(dir, `${safe}-instrumental.wav`),
-        Buffer.from(request.instrumental),
-      );
+      const files = stemFiles(request.key);
+      await fs.promises.mkdir(files.dir, { recursive: true });
+      await Promise.all([
+        writeStem(files.vocals, request.vocals),
+        writeStem(files.instrumental, request.instrumental),
+      ]);
     },
   );
-  ipcMain.handle('karaoke-stems-load', (_event, key: string) => {
-    const dir = path.join(app.getPath('userData'), 'karaoke-stems');
-    const safe = String(key)
-      .replace(/[^a-z0-9-]/gi, '_')
-      .slice(0, 80);
-    const vocalsPath = path.join(dir, `${safe}-vocals.wav`);
-    const instrumentalPath = path.join(dir, `${safe}-instrumental.wav`);
-    if (!fs.existsSync(vocalsPath) || !fs.existsSync(instrumentalPath)) {
-      return null;
+  ipcMain.handle('karaoke-stems-load', async (_event, key: string) => {
+    const files = stemFiles(key);
+    try {
+      const [vocals, instrumental] = await Promise.all([
+        fs.promises.readFile(files.vocals),
+        fs.promises.readFile(files.instrumental),
+      ]);
+      return { vocals, instrumental };
+    } catch (error) {
+      // A song with either stem missing has not been split here; anything
+      // else is a failure the window is told about.
+      if (isMissingFile(error)) {
+        return null;
+      }
+      throw error;
     }
-    return {
-      vocals: fs.readFileSync(vocalsPath),
-      instrumental: fs.readFileSync(instrumentalPath),
-    };
   });
   onWindowMessage('karaoke-separate-release', () => {
     if (running || !session) {

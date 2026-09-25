@@ -33,6 +33,7 @@ import {
   FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   IApoChainFiles,
+  readPresetText,
   safePresetFileName,
   savePreset,
   stateToApoFiles,
@@ -335,24 +336,44 @@ const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
 export const getCustomFileNameForDevice = (deviceId: string) =>
   customFileName(deviceSlug(deviceId));
 
-/** Read the measurable EQ portion of an output's user-owned custom file. */
-const readCustomFx = (
+/** The text of an output's user-owned custom file, if it has one. */
+const readCustomText = (
   configDirPath: string | undefined,
   deviceId: string,
-): ICustomFxSettings | undefined => {
+): string | undefined => {
   if (!configDirPath || !deviceId) {
     return undefined;
   }
-  const fileName = getCustomFileNameForDevice(deviceId);
   try {
-    return parseCustomFx(
-      fileName,
-      readTextCached(addFileToPath(configDirPath, fileName)),
+    return readTextCached(
+      addFileToPath(configDirPath, getCustomFileNameForDevice(deviceId)),
     );
   } catch {
     return undefined;
   }
 };
+
+/** The measurable EQ portion of that text. */
+const parseCustomText = (
+  deviceId: string,
+  text: string | undefined,
+): ICustomFxSettings | undefined => {
+  if (text === undefined) {
+    return undefined;
+  }
+  try {
+    return parseCustomFx(getCustomFileNameForDevice(deviceId), text);
+  } catch {
+    return undefined;
+  }
+};
+
+/** Read the measurable EQ portion of an output's user-owned custom file. */
+const readCustomFx = (
+  configDirPath: string | undefined,
+  deviceId: string,
+): ICustomFxSettings | undefined =>
+  parseCustomText(deviceId, readCustomText(configDirPath, deviceId));
 
 /** What a custom file says before anybody has put anything in it. */
 const CUSTOM_FILE_TEMPLATE = [
@@ -508,6 +529,123 @@ export type TApoConfigFiles = Map<string, string>;
  */
 export type TPresetDirForDevice = (deviceId: string) => string;
 
+/**
+ * One attached output's share of the config, rendered from its profile, and
+ * whether it can be kept: a profile with an impulse writes its WAV and
+ * migrates its analysis as it renders, so it is rendered every time, as it
+ * always was.
+ */
+const renderAssignedDevice = (
+  assignment: IDeviceProfileAssignment,
+  dir: string,
+  configDirPath: string | undefined,
+  customText: string | undefined,
+  headroom: ISessionHeadroom | undefined,
+  includesCuts: boolean,
+): { device?: IDeviceFiles; keepable: boolean } => {
+  const preset = fetchPreset(assignment.presetName, dir);
+  if (configDirPath && preset.convolution?.fileName) {
+    try {
+      const hydrated = hydrateConvolutionAnalysis(
+        preset.convolution,
+        configDirPath,
+      );
+      if (hydrated !== preset.convolution) {
+        preset.convolution = hydrated;
+        savePreset(
+          assignment.presetName,
+          preset,
+          dir,
+          'convolution-analysis-migration',
+        );
+      }
+    } catch {
+      // Keep the profile usable if a legacy WAV cannot be analyzed. APO
+      // will report an unreadable convolution independently.
+    }
+  }
+  let convolutionFileName: string | undefined;
+  if (configDirPath && preset.convolution) {
+    convolutionFileName = getConvolutionFileName(assignment.deviceId);
+    if (
+      preset.convolution.fileName &&
+      isSafeConvolutionFileName(preset.convolution.fileName)
+    ) {
+      convolutionFileName = preset.convolution.fileName;
+    }
+  }
+  if (configDirPath && preset.convolution && convolutionFileName) {
+    if (!preset.convolution.fileName) {
+      writeConvolutionWav(
+        addFileToPath(configDirPath, convolutionFileName),
+        preset.convolution.filters,
+      );
+    }
+  }
+  const chain = presetForDeviceChain(
+    preset,
+    convolutionFileName,
+    parseCustomText(assignment.deviceId, customText),
+    headroom,
+  );
+  return {
+    device: chain
+      ? chainToFiles(
+          chain,
+          `${assignment.deviceName} -> ${assignment.presetName}`,
+          assignment.deviceGuid || assignment.deviceName,
+          assignment.deviceId,
+          includesCuts,
+        )
+      : undefined,
+    keepable: !preset.convolution,
+  };
+};
+
+/** Everything an attached output's rendered chain is made from. */
+interface IRenderedDeviceInputs {
+  presetDir: string;
+  presetText: string;
+  customText: string | undefined;
+  headroom: string;
+  configDirPath: string | undefined;
+  includesCuts: boolean;
+  deviceName: string;
+  devicePattern: string;
+  presetName: string;
+}
+
+/**
+ * Each attached output's last render, by output, beside what it was made from.
+ *
+ * Every edit rendered every attached output again — read its profile, parse
+ * it, validate it twice, build its layers and size its preamp — although an
+ * edit changes one output, and the others' profiles and custom files come
+ * back from `readTextCached` as the very strings they were last time. When
+ * every input is identical the render would be too, so it is taken as it was.
+ */
+const renderedDevices = new Map<
+  string,
+  { inputs: IRenderedDeviceInputs; device: IDeviceFiles | undefined }
+>();
+
+const sameRenderInputs = (
+  left: IRenderedDeviceInputs,
+  right: IRenderedDeviceInputs,
+) =>
+  (Object.keys(left) as Array<keyof IRenderedDeviceInputs>).every(
+    (key) => left[key] === right[key],
+  );
+
+const readPresetTextIfAny = (presetName: string, dir: string) => {
+  try {
+    return readPresetText(presetName, dir);
+  } catch {
+    // Unreadable is not remembered: `fetchPreset` reads it again and says why.
+    return undefined;
+  }
+};
+
 export const deviceProfilesToFiles = (
   settings: IDeviceProfileSettings,
   presetDirForDevice: TPresetDirForDevice,
@@ -531,25 +669,24 @@ export const deviceProfilesToFiles = (
   }
 
   const blocks: string[] = [];
+  const addDeviceFiles = (device: IDeviceFiles | undefined) => {
+    if (!device) {
+      return;
+    }
+    device.files.forEach(([name, contents]) => files.set(name, contents));
+    blocks.push(device.block);
+  };
   const addDevice = (
     chain: IApoChainFiles | undefined,
     subject: string,
     devicePattern: string,
     deviceKey: string,
-  ) => {
-    if (!chain) {
-      return;
-    }
-    const device = chainToFiles(
-      chain,
-      subject,
-      devicePattern,
-      deviceKey,
-      includesCuts,
+  ) =>
+    addDeviceFiles(
+      chain
+        ? chainToFiles(chain, subject, devicePattern, deviceKey, includesCuts)
+        : undefined,
     );
-    device.files.forEach(([name, contents]) => files.set(name, contents));
-    blocks.push(device.block);
-  };
 
   // Equalizer APO accumulates: every block whose `Device:` line matches the
   // output contributes its commands, and a later block does NOT reset an
@@ -575,63 +712,57 @@ export const deviceProfilesToFiles = (
     .forEach((assignment) => {
       try {
         const dir = presetDirForDevice(assignment.deviceId);
-        const preset = fetchPreset(assignment.presetName, dir);
-        if (configDirPath && preset.convolution?.fileName) {
-          try {
-            const hydrated = hydrateConvolutionAnalysis(
-              preset.convolution,
-              configDirPath,
-            );
-            if (hydrated !== preset.convolution) {
-              preset.convolution = hydrated;
-              savePreset(
-                assignment.presetName,
-                preset,
-                dir,
-                'convolution-analysis-migration',
-              );
-            }
-          } catch {
-            // Keep the profile usable if a legacy WAV cannot be analyzed. APO
-            // will report an unreadable convolution independently.
-          }
+        // Only the output it was measured on. Handing another endpoint this
+        // evidence would reserve its headroom from music that never went
+        // through it.
+        const headroom =
+          sessionHeadroom?.deviceId &&
+          sessionHeadroom.deviceId === assignment.deviceId
+            ? sessionHeadroom
+            : undefined;
+        const customText = readCustomText(configDirPath, assignment.deviceId);
+        const presetText = readPresetTextIfAny(assignment.presetName, dir);
+        const inputs: IRenderedDeviceInputs | undefined =
+          presetText === undefined
+            ? undefined
+            : {
+                presetDir: dir,
+                presetText,
+                customText,
+                headroom: headroom
+                  ? JSON.stringify([headroom.programme, headroom.trimDb])
+                  : '',
+                configDirPath,
+                includesCuts,
+                deviceName: assignment.deviceName,
+                devicePattern: assignment.deviceGuid || assignment.deviceName,
+                presetName: assignment.presetName,
+              };
+        const remembered = renderedDevices.get(assignment.deviceId);
+        if (
+          inputs &&
+          remembered &&
+          sameRenderInputs(remembered.inputs, inputs)
+        ) {
+          addDeviceFiles(remembered.device);
+          return;
         }
-        let convolutionFileName: string | undefined;
-        if (configDirPath && preset.convolution) {
-          convolutionFileName = getConvolutionFileName(assignment.deviceId);
-          if (
-            preset.convolution.fileName &&
-            isSafeConvolutionFileName(preset.convolution.fileName)
-          ) {
-            convolutionFileName = preset.convolution.fileName;
-          }
-        }
-        if (configDirPath && preset.convolution && convolutionFileName) {
-          if (!preset.convolution.fileName) {
-            writeConvolutionWav(
-              addFileToPath(configDirPath, convolutionFileName),
-              preset.convolution.filters,
-            );
-          }
-        }
-        const customFx = readCustomFx(configDirPath, assignment.deviceId);
-        addDevice(
-          presetForDeviceChain(
-            preset,
-            convolutionFileName,
-            customFx,
-            // Only the output it was measured on. Handing another endpoint this
-            // evidence would reserve its headroom from music that never went
-            // through it.
-            sessionHeadroom?.deviceId &&
-              sessionHeadroom.deviceId === assignment.deviceId
-              ? sessionHeadroom
-              : undefined,
-          ),
-          `${assignment.deviceName} -> ${assignment.presetName}`,
-          assignment.deviceGuid || assignment.deviceName,
-          assignment.deviceId,
+        renderedDevices.delete(assignment.deviceId);
+        const rendered = renderAssignedDevice(
+          assignment,
+          dir,
+          configDirPath,
+          customText,
+          headroom,
+          includesCuts,
         );
+        if (inputs && rendered.keepable) {
+          renderedDevices.set(assignment.deviceId, {
+            inputs,
+            device: rendered.device,
+          });
+        }
+        addDeviceFiles(rendered.device);
       } catch (e) {
         // A profile we cannot read is one this device simply does not get —
         // the config is still written for every other output rather than one
@@ -651,6 +782,16 @@ export const deviceProfilesToFiles = (
         log.error(e);
       }
     });
+
+  // An output that is no longer attached leaves no render behind.
+  const attached = new Set(
+    Object.values(settings.assignments).map(({ deviceId }) => deviceId),
+  );
+  renderedDevices.forEach((_render, deviceId) => {
+    if (!attached.has(deviceId)) {
+      renderedDevices.delete(deviceId);
+    }
+  });
 
   if (activeOverride) {
     let activeState = activeOverride.state;

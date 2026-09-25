@@ -445,8 +445,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': '確認する',
   'karaoke.maker.memoryPolicy.auto': '自動的に解放',
   'karaoke.maker.memoryPolicy.keep': '読み込み状態を維持',
-  'karaoke.maker.memoryAfter': '経過時間',
-  'karaoke.maker.memoryMinutes': '{count} 分',
   'karaoke.maker.memoryPromptTitle': '音声モデルのメモリを解放しますか？',
   'karaoke.maker.memoryPromptBody':
     'ローカル音声モデルはアイドル状態です。解放すると RAM を節約でき、ファイルは高速な再読み込みのためキャッシュに残ります。',

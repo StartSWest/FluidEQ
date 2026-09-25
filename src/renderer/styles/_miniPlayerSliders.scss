@@ -100,9 +100,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   );
 }
 
+// The clock's blink stands down in `_miniPlayerParts.scss`, beside it.
 @media (prefers-reduced-motion: reduce) {
-  .player-marquee.is-running .player-marquee__track,
-  .player-clock.is-paused .led-clock .is-lit {
+  .player-marquee.is-running .player-marquee__track {
     animation: none;
   }
 }

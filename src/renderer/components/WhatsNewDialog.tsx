@@ -20,6 +20,7 @@ import {
   Fragment,
   type ReactElement,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from 'react';
@@ -164,16 +165,23 @@ export default function WhatsNewDialog({
   // makes Enter dismiss the notes without hunting for anything.
   const confirmRef = useRef<HTMLButtonElement>(null);
 
+  // Escape reads whichever `onClose` is current, and focus is placed once. Both
+  // used to re-run with `onClose`, which the window hands over new on every
+  // render of its own — several times a second while anything plays — so a
+  // reader scrolling the notes had focus yanked back to OK, where the next
+  // Space closed them.
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  });
+
   useEffect(() => {
     confirmRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+    const onKeyDown = (event: KeyboardEvent) => closeOnEscape(event);
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     window.electron.ipcRenderer

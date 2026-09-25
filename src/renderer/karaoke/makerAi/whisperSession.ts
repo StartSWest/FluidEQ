@@ -6,13 +6,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { WHISPER_MODEL } from './audio';
 
+/**
+ * What happens to the speech model once nothing needs it: ask, let it go, or
+ * keep it.
+ *
+ * "Nothing needs it" is a moment, not a length of time. It used to be five,
+ * ten or thirty minutes of a timer, which asked the question — or took the
+ * gigabyte back — in the middle of an editing session that simply had not
+ * transcribed anything for a while, and held it for the whole wait after the
+ * Maker had closed. The model is now idle when the Maker, the one thing that
+ * runs it, has closed and no transcription is still finishing
+ * (`holdKaraokeWhisperModel`). The karaoke tab going out of sight frees it
+ * outright, whatever the choice, as it always has (`KaraokeWorkspace`).
+ *
+ * The window being hidden is not counted. With the Maker open, the next
+ * transcription is one press away when the window comes back, and minimising
+ * is not a decision to stop editing.
+ */
 export type TKaraokeWhisperMemoryPolicy = 'ask' | 'auto' | 'keep';
 export type TKaraokeWhisperSessionStatus =
   'unloaded' | 'loading' | 'ready' | 'working' | 'releasing' | 'error';
 
 export interface IKaraokeWhisperMemorySettings {
   policy: TKaraokeWhisperMemoryPolicy;
-  idleMinutes: 5 | 10 | 30;
 }
 
 export interface IKaraokeWhisperSessionSnapshot {
@@ -29,7 +45,6 @@ const WHISPER_DOWNLOADED_KEY =
 const WHISPER_MEMORY_SETTINGS_KEY = 'fluideq.karaoke.whisperMemory.v1';
 const DEFAULT_WHISPER_MEMORY_SETTINGS: IKaraokeWhisperMemorySettings = {
   policy: 'ask',
-  idleMinutes: 10,
 };
 
 const readWhisperDownloaded = (): boolean => {
@@ -46,13 +61,11 @@ export const readKaraokeWhisperMemorySettings =
       const parsed = JSON.parse(
         window.localStorage.getItem(WHISPER_MEMORY_SETTINGS_KEY) ?? 'null',
       ) as Partial<IKaraokeWhisperMemorySettings> | null;
+      // A stored `idleMinutes` from before is read past: there is no wait.
       const policy = ['ask', 'auto', 'keep'].includes(parsed?.policy ?? '')
         ? (parsed?.policy as TKaraokeWhisperMemoryPolicy)
         : DEFAULT_WHISPER_MEMORY_SETTINGS.policy;
-      const idleMinutes = [5, 10, 30].includes(parsed?.idleMinutes ?? 0)
-        ? (parsed?.idleMinutes as 5 | 10 | 30)
-        : DEFAULT_WHISPER_MEMORY_SETTINGS.idleMinutes;
-      return { policy, idleMinutes };
+      return { policy };
     } catch {
       return DEFAULT_WHISPER_MEMORY_SETTINGS;
     }
@@ -60,7 +73,8 @@ export const readKaraokeWhisperMemorySettings =
 
 let whisperWorker: Worker | undefined;
 let whisperActiveRecognitionTasks = 0;
-let whisperIdleTimer: number | undefined;
+/** Open Makers: while there is one, the model may be asked for at any time. */
+let whisperHolders = 0;
 const whisperSessionListeners = new Set<() => void>();
 let whisperSessionSnapshot: IKaraokeWhisperSessionSnapshot = {
   status: 'unloaded',
@@ -76,13 +90,6 @@ export const emitWhisperSession = (
 ) => {
   whisperSessionSnapshot = { ...whisperSessionSnapshot, ...update };
   whisperSessionListeners.forEach((listener) => listener());
-};
-
-export const clearWhisperIdleTimer = () => {
-  if (whisperIdleTimer !== undefined) {
-    window.clearTimeout(whisperIdleTimer);
-    whisperIdleTimer = undefined;
-  }
 };
 
 export const getKaraokeWhisperSessionSnapshot =
@@ -193,7 +200,6 @@ export const releaseKaraokeWhisperModel = async (): Promise<boolean> => {
   ) {
     return false;
   }
-  clearWhisperIdleTimer();
   const worker = whisperWorker;
   whisperWorker = undefined;
   emitWhisperSession({
@@ -207,28 +213,56 @@ export const releaseKaraokeWhisperModel = async (): Promise<boolean> => {
   return true;
 };
 
-export const scheduleWhisperIdleAction = () => {
-  clearWhisperIdleTimer();
+/**
+ * The model is loaded and nothing will ask for it: do what the setting says.
+ *
+ * Called at the two moments that can make it so — the last Maker closing, and
+ * a transcription finishing — and at a change of setting. A loaded model with
+ * a Maker still open, or still working, is left alone.
+ */
+export const settleWhisperIdle = () => {
   if (
     !whisperWorker ||
     whisperActiveRecognitionTasks > 0 ||
-    whisperSessionSnapshot.settings.policy === 'keep'
+    whisperHolders > 0
   ) {
     return;
   }
-  whisperIdleTimer = window.setTimeout(() => {
-    whisperIdleTimer = undefined;
-    if (whisperSessionSnapshot.settings.policy === 'auto') {
-      releaseKaraokeWhisperModel().catch(() => undefined);
-      return;
-    }
+  const { policy } = whisperSessionSnapshot.settings;
+  if (policy === 'auto') {
+    releaseKaraokeWhisperModel().catch(() => undefined);
+  } else if (policy === 'ask') {
     emitWhisperSession({ releasePrompt: true });
-  }, whisperSessionSnapshot.settings.idleMinutes * 60_000);
+  }
 };
 
+/**
+ * A Maker is open, so the model is needed; returns the let-go, for when it
+ * closes. The question from the last time it was idle is withdrawn: the model
+ * is about to be used again.
+ */
+export const holdKaraokeWhisperModel = (): (() => void) => {
+  whisperHolders += 1;
+  if (whisperSessionSnapshot.releasePrompt) {
+    emitWhisperSession({ releasePrompt: false });
+  }
+  let isHeld = true;
+  return () => {
+    if (!isHeld) {
+      return;
+    }
+    isHeld = false;
+    whisperHolders -= 1;
+    settleWhisperIdle();
+  };
+};
+
+/**
+ * "Keep loaded" on the question: kept until it is idle again — the next time
+ * a Maker closes — rather than asked again after a wait.
+ */
 export const keepKaraokeWhisperModelForNow = () => {
   emitWhisperSession({ releasePrompt: false });
-  scheduleWhisperIdleAction();
 };
 
 export const writeKaraokeWhisperMemorySettings = (
@@ -243,12 +277,11 @@ export const writeKaraokeWhisperMemorySettings = (
     // Apply the setting for this app session even when it cannot be persisted.
   }
   emitWhisperSession({ settings, releasePrompt: false });
-  scheduleWhisperIdleAction();
+  settleWhisperIdle();
 };
 
 export const beginWhisperRecognition = () => {
   whisperActiveRecognitionTasks += 1;
-  clearWhisperIdleTimer();
   emitWhisperSession({
     status: 'working',
     inMemory: true,
@@ -264,7 +297,7 @@ export const finishWhisperRecognition = () => {
   );
   if (whisperActiveRecognitionTasks === 0 && whisperWorker) {
     emitWhisperSession({ status: 'ready', inMemory: true, busy: false });
-    scheduleWhisperIdleAction();
+    settleWhisperIdle();
   }
 };
 
@@ -277,8 +310,9 @@ export const finishWhisperRecognition = () => {
  * stay owned here and the writes come back through these.
  *
  * Deliberately not a mutable object passed around: the lifetime rules for this
- * worker (idle release, keep-for-now, refuse while busy) all live in this file,
- * and handing out the reference would put them nowhere.
+ * worker (held while a Maker is open, released or asked about when idle,
+ * keep-for-now, refuse while busy) all live in this file, and handing out the
+ * reference would put them nowhere.
  */
 export const getWhisperWorker = (): Worker | undefined => whisperWorker;
 

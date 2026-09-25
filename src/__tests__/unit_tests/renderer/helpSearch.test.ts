@@ -1,7 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { HELP_CHAPTERS } from 'common/helpGuide';
-import type { LocaleCode } from 'common/i18n';
+import { LOCALES, loadLocale, type LocaleCode } from 'common/i18n';
 import {
   buildHelpIndex,
   foldHelpWord,
@@ -9,6 +9,10 @@ import {
   searchHelp,
   type IHelpIndex,
 } from 'renderer/help/helpSearch';
+
+// Every language but English is a chunk of its own, loaded when it is first
+// chosen; these search all ten, so all ten are loaded first.
+beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
 
 // The guide is indexed once per language, as the Help reader does.
 const indexes = new Map<LocaleCode, IHelpIndex>();

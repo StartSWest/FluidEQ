@@ -43,7 +43,7 @@ import {
 } from '../dsp/store';
 import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { GAME_PROFILES_CHANGED, readGameProfiles } from './gameProfiles';
 import { requestGameWatch } from './gameWatchRequest';
 
@@ -128,7 +128,7 @@ export const useSoundingGame = (): IGameProfile | undefined => {
   const profiles = useGameProfiles();
   const now = useSounding();
   const settings = useDspSettings();
-  const { voicing } = useFluidEqContext();
+  const { voicing } = useFluidEqLayers();
   const ours =
     now !== undefined &&
     now.presetId === (activeDspPresetId(settings, voicing) ?? '');
@@ -189,7 +189,7 @@ export const useGameSound = ({
 }: { applies?: boolean; always?: boolean } = {}): IGameSound => {
   const profiles = useGameProfiles();
   const settings = useDspSettings();
-  const { voicing } = useFluidEqContext();
+  const { voicing } = useFluidEqLayers();
   // Under Equalizer APO a picked preset's rack is off and its curve is what
   // plays, so the rack alone would name no preset there.
   const presetNow = activeDspPresetId(settings, voicing) ?? '';

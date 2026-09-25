@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   IDspSettings,
   IEqSettings,
@@ -22,7 +22,11 @@ import {
   readFavouriteDspPresets,
 } from './favouriteDspPresets';
 import { genreHookKey } from './genreNotesModel';
-import { findUserDspPreset, readUserDspPresets } from './userDspPresets';
+import {
+  IUserDspPreset,
+  findUserDspPreset,
+  readUserDspPresets,
+} from './userDspPresets';
 
 /**
  * The chains most people come for, in the order both pickers lead with them:
@@ -76,13 +80,19 @@ export interface IDspCatalogEntry {
   group: string;
 }
 
-export const dspPresetCatalog = (t: Translate): IDspCatalogEntry[] => [
-  ...readUserDspPresets().map((preset) => ({ ...preset, group: 'saved' })),
+const catalogOf = (
+  t: Translate,
+  saved: readonly IUserDspPreset[],
+): IDspCatalogEntry[] => [
+  ...saved.map((preset) => ({ ...preset, group: 'saved' })),
   ...DSP_PRESETS.map((preset) => ({
     ...preset,
     name: dspPresetName(preset, t),
   })),
 ];
+
+export const dspPresetCatalog = (t: Translate): IDspCatalogEntry[] =>
+  catalogOf(t, readUserDspPresets());
 
 /**
  * What a chain does, in the names of its stages. Its tone counts as EQ
@@ -201,10 +211,27 @@ export const presetLayerName = (
   return factory ? dspPresetName(factory, t) : t('dsp.eqPreset.custom');
 };
 
+/** What the listener has saved and starred, as storage holds it now. */
+const readSaved = () => ({
+  chains: readUserDspPresets(),
+  starred: readFavouriteDspPresets(),
+});
+
+/**
+ * The catalogue and the starred chains, read from storage when what is saved
+ * changes rather than on every render.
+ *
+ * Every render used to read every saved chain out of storage, parse and
+ * clamp it, and build the catalogue again — and the pickers that hold this
+ * render with the rack, the layers and the engine, the band drag's frames
+ * among them. Both writers announce a change (`DSP_PRESETS_CHANGED`), and
+ * another window's is a `storage` event, so a read that waits for one of
+ * those misses nothing.
+ */
 export const useDspPresetCatalog = (t: Translate) => {
-  const [, invalidate] = useState(0);
+  const [saved, setSaved] = useState(readSaved);
   useEffect(() => {
-    const changed = () => invalidate((revision) => revision + 1);
+    const changed = () => setSaved(readSaved());
     window.addEventListener(DSP_PRESETS_CHANGED, changed);
     window.addEventListener('storage', changed);
     return () => {
@@ -212,12 +239,14 @@ export const useDspPresetCatalog = (t: Translate) => {
       window.removeEventListener('storage', changed);
     };
   }, []);
-  const catalog = dspPresetCatalog(t);
-  // None stands above the starred ones already; a star it was given before
-  // it did is not a second place for it.
-  const favorites = readFavouriteDspPresets().flatMap((id) => {
-    const preset = catalog.find((one) => one.id === id);
-    return preset && id !== NONE_CHAIN_ID ? [preset] : [];
-  });
-  return { catalog, favorites };
+  return useMemo(() => {
+    const catalog = catalogOf(t, saved.chains);
+    // None stands above the starred ones already; a star it was given before
+    // it did is not a second place for it.
+    const favorites = saved.starred.flatMap((id) => {
+      const preset = catalog.find((one) => one.id === id);
+      return preset && id !== NONE_CHAIN_ID ? [preset] : [];
+    });
+    return { catalog, favorites };
+  }, [t, saved]);
 };

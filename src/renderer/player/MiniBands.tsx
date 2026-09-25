@@ -18,18 +18,16 @@ import { getBandColor } from '../utils/bandColors';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreamp, useEnginePreampReader } from '../utils/enginePreamp';
 import { setGain, setMainPreAmp } from '../utils/equalizerApi';
-import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
+import {
+  FilterActionEnum,
+  useFluidEqContext,
+  useFluidEqShell,
+} from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { sortHelper, useThrottleAndExecuteLatest } from '../utils/utils';
+import { sortHelper, useLatestCall } from '../utils/utils';
 import PlayerFader from './PlayerFader';
 import useAutoPreAmp from '../components/useAutoPreAmp';
 import { isDenseBands } from './playerLayout';
-
-/**
- * The cadence a band's writes go out at while it is dragged: the EQ page's
- * own, so a drag here reaches the engine as a drag there does.
- */
-const WRITE_EVERY_MS = 50;
 
 /** The preamp's key among the faders, for the screen's read-out. */
 export const PREAMP_FOCUS = 'preamp';
@@ -55,7 +53,7 @@ interface IMiniBandProps {
 
 /** One band: the player's own fader in the band's colour, its frequency. */
 const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
-  const { dispatchFilter, setGlobalError } = useFluidEqContext();
+  const { dispatchFilter, setGlobalError } = useFluidEqShell();
   // The screen first, then the engine — the order the EQ page keeps, so the
   // slider does not jitter while the write is on its way.
   const write = useCallback(
@@ -69,7 +67,9 @@ const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
     },
     [band.id, dispatchFilter],
   );
-  const throttled = useThrottleAndExecuteLatest(write, WRITE_EVERY_MS);
+  // One write in flight and the newest position waiting behind it: the EQ
+  // page's own pace, so a drag here reaches the engine as a drag there does.
+  const throttled = useLatestCall(write);
   const setValue = useCallback(
     async (gain: number) => {
       try {

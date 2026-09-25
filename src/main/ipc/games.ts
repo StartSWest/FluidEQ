@@ -54,21 +54,35 @@ const programName = (file: string): string =>
  * forty identical gamepads. A failure is silent: the row draws a glyph.
  *
  * Bounded at the width a list is worth showing, because each one is a file
- * read and a machine with a hundred games would spend a second of them.
+ * read and a machine with a hundred games would spend a second of them. And
+ * each one read is kept by the program's path for the session (`known`): the
+ * same programs are listed on every visit, and finding a folder's program is
+ * itself a directory walk on this process. A failure is not kept — a game
+ * still installing has no program to draw yet.
  */
 const withIcons = async (
   programs: readonly IGameProgram[],
+  known: Map<string, string>,
 ): Promise<IGameProgram[]> => {
   const drawn = programs.slice(0, 80);
   const icons = await Promise.all(
     drawn.map(async (one) => {
+      const kept = known.get(one.path);
+      if (kept) {
+        return kept;
+      }
       const file = gameIconSource(one.path);
       if (!file || !app?.getFileIcon) {
         return undefined;
       }
       try {
         const image = await app.getFileIcon(file, { size: 'normal' });
-        return image.isEmpty() ? undefined : image.toDataURL();
+        if (image.isEmpty()) {
+          return undefined;
+        }
+        const icon = image.toDataURL();
+        known.set(one.path, icon);
+        return icon;
       } catch {
         return undefined;
       }
@@ -130,19 +144,48 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
     (pid) => toWindow(GAME_ENDED_CHANNEL, pid),
   );
 
+  const icons = new Map<string, string>();
+  /**
+   * What the launchers said at the last scan, icons and all, until the window
+   * has lost the front since.
+   *
+   * Every visit to the Games page ran the PowerShell registry scan, read every
+   * store's manifests and drew an icon per game — moving between the app's own
+   * pages included, where nothing can have been installed in between. A game
+   * is installed from its launcher, with this window behind it, so losing the
+   * front is when the answer can go stale: a player who installs a game and
+   * comes back finds it as before, and one who only moves between pages is
+   * answered from here. A scan that failed is not kept; the next visit asks
+   * again. What is running is asked every time, as it always was.
+   */
+  let installed: Promise<IGameProgram[]> | undefined;
+  const readInstalled = (): Promise<IGameProgram[]> => {
+    if (!installed) {
+      const reading = scan().then((found) => withIcons(found, icons));
+      installed = reading;
+      reading.catch(() => {
+        if (installed === reading) {
+          installed = undefined;
+        }
+      });
+    }
+    return installed.catch((error) => {
+      log.info('Game profiles: the libraries could not be read', error);
+      return [] as IGameProgram[];
+    });
+  };
+  app?.on?.('browser-window-blur', (_event, window) => {
+    if (window === deps.getMainWindow()) {
+      installed = undefined;
+    }
+  });
+
   ipcMain.handle(
     GAME_PROGRAMS_CHANNEL,
     async (): Promise<IGameProgramsAnswer> => {
-      const [installed, running] = await Promise.all([
-        scan().catch((error) => {
-          log.info('Game profiles: the libraries could not be read', error);
-          return [] as IGameProgram[];
-        }),
-        watch.running(),
-      ]);
       const [withInstalled, withRunning] = await Promise.all([
-        withIcons(installed),
-        withIcons(running),
+        readInstalled(),
+        watch.running().then((running) => withIcons(running, icons)),
       ]);
       return { installed: withInstalled, running: withRunning };
     },

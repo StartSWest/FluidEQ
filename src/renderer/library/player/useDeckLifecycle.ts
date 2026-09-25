@@ -37,9 +37,11 @@ const useDeckLifecycle = (options: {
   // fresh element starts a second song over the top of the orphan. Two tracks
   // at once, and no control on screen governs either.
   //
-  // `hasOpenedLibrary` in `App.tsx` is one-way, so this should not fire in a
-  // packaged build; it fires constantly in development, which is where the
-  // overlap was found.
+  // It fires in a packaged build too: `useIdlePlayerMount` in `App.tsx`
+  // unmounts this provider once nothing on screen uses it and nothing is
+  // playing, and a hot reload unmounts it on every save in development, which
+  // is where the overlap was found. The blob URLs behind the decks are
+  // `useDeckAudio`'s, and it revokes them in its own teardown.
   useEffect(() => {
     isDisposedRef.current = false;
     return () => {

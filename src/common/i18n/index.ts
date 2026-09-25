@@ -29,24 +29,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *  - Plural rules. Where a count changes the wording, the two forms get their
  *    own keys. Getting Russian plurals subtly wrong is worse than spelling
  *    both cases out.
- *  - Lazy loading. Ten dictionaries of a couple of hundred short strings is a
- *    few tens of kilobytes; splitting them would cost a flash of English on
- *    every language switch to save nothing anyone would notice.
+ *  - Keep every language in memory. See `loadLocale`: only English is part
+ *    of the bundle, and each other language is loaded when it is first asked
+ *    for — before anything is drawn in it, so there is no flash of English.
  *  - Right-to-left. Arabic, Hebrew and Persian are missing from the locale
  *    list for exactly that reason: this layout has not been mirrored or
  *    tested, and shipping a broken Arabic is worse than shipping none.
  */
 
 import en, { Dictionary, TranslationKey } from './en';
-import es from './es';
-import pt from './pt';
-import fr from './fr';
-import de from './de';
-import it from './it';
-import ru from './ru';
-import zh from './zh';
-import ja from './ja';
-import hi from './hi';
 
 export type { Dictionary, TranslationKey };
 
@@ -83,23 +74,77 @@ export const LOCALES: ILocale[] = [
 export const DEFAULT_LOCALE: LocaleCode = 'en';
 
 /**
- * Every dictionary but English is partial.
+ * Every dictionary but English is partial, and held only once it is loaded.
  *
  * A key with no translation yet falls back to English rather than rendering
  * the key itself. A user who sees one English line in an otherwise translated
  * app has lost nothing; a user who sees `profiles.restoreAria` has.
  */
-const DICTIONARIES: Record<LocaleCode, Partial<Dictionary>> = {
-  en,
-  es,
-  pt,
-  fr,
-  de,
-  it,
-  ru,
-  zh,
-  ja,
-  hi,
+const DICTIONARIES: Partial<Record<LocaleCode, Partial<Dictionary>>> = { en };
+
+type TDictionaryModule = { default: Partial<Dictionary> };
+
+/**
+ * Where each language lives: a chunk of its own, named after it.
+ *
+ * All ten used to be imported here, on the reasoning that ten dictionaries of
+ * a couple of hundred short strings came to a few tens of kilobytes. By
+ * 2026-09 they were ≈4,560 keys each, and the nine besides English were
+ * 3.75 MB of each built bundle: the window's script went from 7.0 MB to
+ * 3.3 MB without them and the main process's from 5.4 MB to 1.7 MB. Both
+ * processes parsed every one and built it into objects at every launch,
+ * before anything was on screen, then kept nine languages nobody was reading
+ * in memory for the life of the app. English stays in the bundle because it
+ * is every other dictionary's fallback, and so is never waited for.
+ */
+const LOADERS: Record<
+  Exclude<LocaleCode, 'en'>,
+  () => Promise<TDictionaryModule>
+> = {
+  es: () => import(/* webpackChunkName: "locale-es" */ './es'),
+  pt: () => import(/* webpackChunkName: "locale-pt" */ './pt'),
+  fr: () => import(/* webpackChunkName: "locale-fr" */ './fr'),
+  de: () => import(/* webpackChunkName: "locale-de" */ './de'),
+  it: () => import(/* webpackChunkName: "locale-it" */ './it'),
+  ru: () => import(/* webpackChunkName: "locale-ru" */ './ru'),
+  zh: () => import(/* webpackChunkName: "locale-zh" */ './zh'),
+  ja: () => import(/* webpackChunkName: "locale-ja" */ './ja'),
+  hi: () => import(/* webpackChunkName: "locale-hi" */ './hi'),
+};
+
+const loading = new Map<LocaleCode, Promise<void>>();
+
+/** Whether `translate` can answer in this language rather than in English. */
+export const isLocaleLoaded = (code: LocaleCode): boolean =>
+  DICTIONARIES[code] !== undefined;
+
+/**
+ * Have a language's dictionary ready to translate with.
+ *
+ * Resolves at once for English and for a dictionary already held; two asks
+ * for the same language while it loads share one load. The window waits on
+ * this before its first render and before a language switch takes effect, so
+ * nothing is ever drawn in English on the way to another language. A load
+ * that fails rejects, and the language keeps translating as English — the
+ * fallback every missing key already has — until a later ask succeeds.
+ */
+export const loadLocale = (code: LocaleCode): Promise<void> => {
+  if (code === 'en' || isLocaleLoaded(code)) {
+    return Promise.resolve();
+  }
+  const pending = loading.get(code);
+  if (pending) {
+    return pending;
+  }
+  const load = (async () => {
+    try {
+      DICTIONARIES[code] = (await LOADERS[code]()).default;
+    } finally {
+      loading.delete(code);
+    }
+  })();
+  loading.set(code, load);
+  return load;
 };
 
 /**
@@ -158,11 +203,12 @@ export const translate = (
  * How much of a locale is actually translated, 0 to 1.
  *
  * Not shown in the UI; it exists so a test can fail when a dictionary drifts
- * far enough behind English to be worth someone's attention.
+ * far enough behind English to be worth someone's attention. A language that
+ * has not been loaded counts as nothing translated, so the test loads first.
  */
 export const getCoverage = (locale: LocaleCode): number => {
   const keys = Object.keys(en) as TranslationKey[];
-  const dictionary = DICTIONARIES[locale];
+  const dictionary = DICTIONARIES[locale] ?? {};
   const translated = keys.filter((key) => dictionary[key] !== undefined).length;
   return translated / keys.length;
 };

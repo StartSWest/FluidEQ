@@ -1,6 +1,6 @@
 /* FluidEQ Karaoke Maker export notice. GPL-3.0-or-later. */
 
-import { translate } from '../../../common/i18n';
+import { loadLocale, translate } from '../../../common/i18n';
 import { IKaraokeMakerExport } from '../../../common/karaoke/makerExport';
 import { karaokeExportNotice } from '../../../renderer/karaoke/useMakerProjectFiles';
 
@@ -74,7 +74,9 @@ describe('the sentence an export ends on', () => {
     );
   });
 
-  it('speaks the reader’s language rather than English', () => {
+  it('speaks the reader’s language rather than English', async () => {
+    // Every language but English loads when it is first chosen.
+    await loadLocale('ja');
     expect(
       karaokeExportNotice(
         written({ droppedLines: 2 }),

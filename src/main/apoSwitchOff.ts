@@ -67,8 +67,8 @@ export const isApoOnAnyOutput = async (): Promise<boolean> => {
  *
  * Once a session, for the same reason the other two automatic repairs are:
  * it asks Windows for administrator rights, and the device list is re-read
- * every few seconds — asking again on every read would put that prompt back
- * on screen forever. A refusal leaves Equalizer APO where it is, which is
+ * on every output change and every return to the window — asking again on
+ * every read would put that prompt back on screen forever. A refusal leaves Equalizer APO where it is, which is
  * where every version before this left it.
  */
 export interface IApoGuardDeps {

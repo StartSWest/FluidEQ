@@ -47,6 +47,9 @@ const layoutBox = (element: HTMLElement) => {
   };
 };
 
+/** The picture behind the graph, portalled to the body by either backdrop. */
+const PICTURE = '.library-stage-art';
+
 /**
  * The box the picture stands in, measured and published to the stylesheet.
  *
@@ -60,43 +63,60 @@ const layoutBox = (element: HTMLElement) => {
  * Clamped to what is on screen. The library column is as tall as the list
  * inside it — 2618px against a 1440px window is a measured case — so the raw
  * rectangle would centre the record a screen and a half below the fold.
+ *
+ * Written on the elements that read it, never on the document. A custom
+ * property on the document is inherited by every element in the window, so
+ * each write restyled all of it — on every frame of a window being resized
+ * or a side pane opening. The card over the picture, and a video standing
+ * behind the graph in its place, are inside the column and read the column's
+ * two numbers from it. The picture is portalled to the body, `#root`'s
+ * *sibling*, where nothing written inside `#root` reaches (measured once, as
+ * the record covering the sidebars in expanded mode while the card sat
+ * correctly in the column), so it is given its four numbers itself — and a
+ * picture put up after the last measurement, when the song arrives or a video
+ * gives way to one, is given them as it is inserted, before it is painted.
  */
 const useStageBox = () => {
   useEffect(() => {
-    // On the document, not on `#root`. The picture is portalled to the body
-    // and is therefore `#root`'s *sibling*: custom properties inherit down the
-    // tree and never sideways, so written there the card read them and the
-    // record did not — measured, as the record still covering the sidebars in
-    // expanded mode while the card sat correctly in the column.
-    const host = document.documentElement;
     const column = document.querySelector('.center-workspace');
     if (!(column instanceof HTMLElement)) {
       return undefined;
     }
 
+    let pictureBox: Array<[string, string]> = [];
+    const placePicture = (picture: HTMLElement) => {
+      pictureBox.forEach(([name, value]) =>
+        picture.style.setProperty(name, value),
+      );
+    };
+    // Written only when they change: they restyle everything in the column,
+    // and a pane opening at the side moves the column's left edge and width,
+    // which only the picture reads, and not these.
+    let columnBox = '';
+
     const publish = () => {
       const rect = layoutBox(column);
       const top = Math.max(rect.top, 0);
       const bottom = Math.min(rect.bottom, window.innerHeight);
-      host.style.setProperty('--stage-art-left', `${Math.round(rect.left)}px`);
-      host.style.setProperty(
-        '--stage-art-width',
-        `${Math.round(rect.width)}px`,
-      );
-      host.style.setProperty('--stage-art-top', `${Math.round(top)}px`);
+      const height = `${Math.round(Math.max(0, bottom - top))}px`;
       // The same clamp, expressed from the column's own top edge. The card is
       // fixed *inside* the column — `.center-workspace` carries `will-change:
       // transform`, which makes it the containing block for fixed children —
       // so it needs the offset, not the viewport coordinate. Zero whenever the
       // column starts on screen, which is both of these modes today.
-      host.style.setProperty(
-        '--stage-art-shift',
-        `${Math.round(top - rect.top)}px`,
-      );
-      host.style.setProperty(
-        '--stage-art-height',
-        `${Math.round(Math.max(0, bottom - top))}px`,
-      );
+      const shift = `${Math.round(top - rect.top)}px`;
+      if (`${shift} ${height}` !== columnBox) {
+        columnBox = `${shift} ${height}`;
+        column.style.setProperty('--stage-art-shift', shift);
+        column.style.setProperty('--stage-art-height', height);
+      }
+      pictureBox = [
+        ['--stage-art-left', `${Math.round(rect.left)}px`],
+        ['--stage-art-width', `${Math.round(rect.width)}px`],
+        ['--stage-art-top', `${Math.round(top)}px`],
+        ['--stage-art-height', height],
+      ];
+      document.querySelectorAll<HTMLElement>(PICTURE).forEach(placePicture);
     };
 
     publish();
@@ -109,14 +129,25 @@ const useStageBox = () => {
     observer.observe(document.documentElement);
     window.addEventListener('resize', publish);
 
+    // Portals are the body's own children, so its children are all there is
+    // to watch for a picture arriving.
+    const arrivals = new MutationObserver((records) => {
+      records.forEach((record) => {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement && node.matches(PICTURE)) {
+            placePicture(node);
+          }
+        });
+      });
+    });
+    arrivals.observe(document.body, { childList: true });
+
     return () => {
       observer.disconnect();
+      arrivals.disconnect();
       window.removeEventListener('resize', publish);
-      host.style.removeProperty('--stage-art-left');
-      host.style.removeProperty('--stage-art-width');
-      host.style.removeProperty('--stage-art-top');
-      host.style.removeProperty('--stage-art-shift');
-      host.style.removeProperty('--stage-art-height');
+      column.style.removeProperty('--stage-art-shift');
+      column.style.removeProperty('--stage-art-height');
     };
   }, []);
 };

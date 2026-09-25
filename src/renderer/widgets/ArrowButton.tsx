@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  AnimationEvent,
   KeyboardEvent,
   MouseEvent,
   useCallback,
@@ -24,7 +25,7 @@ import {
   useState,
 } from 'react';
 import ArrowIcon from '../icons/ArrowIcon';
-import { useInterval } from '../utils/utils';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/ArrowButton.scss';
 
@@ -42,7 +43,6 @@ const ArrowButton = ({
   handleChange,
 }: IArrowButtonProps) => {
   const { t } = useTranslation();
-  const INTERVAL = 200;
 
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const [isChanging, setIsChanging] = useState(false);
@@ -51,8 +51,15 @@ const ArrowButton = ({
     handleChange();
   }, [handleChange]);
 
-  // Hooks for continuously increasing/decreasing gain
-  useInterval(() => handleDeltaChangeGain(), isChanging ? INTERVAL : undefined);
+  // Held down, the arrow repeats once per turn of its `arrow-repeat`
+  // animation (`ArrowButton.scss`), which runs only while it is held. It was
+  // an interval beside the button, which kept stepping while nothing was drawn
+  // to show it; the animation's own turn is the step.
+  const onAnimationIteration = (event: AnimationEvent<HTMLDivElement>) => {
+    if (isOwnAnimationEnd(event, 'arrow-repeat')) {
+      handleDeltaChangeGain();
+    }
+  };
 
   // Handlers for pausing continous change of the gain
   const stopChange = useCallback(() => {
@@ -68,7 +75,7 @@ const ArrowButton = ({
     // Manually alter gain once to simulate click
     handleDeltaChangeGain();
 
-    // Begin timer for continous adjustment
+    // Repeat for as long as it is held
     setIsChanging(true);
     buttonRef.current?.addEventListener('mouseleave', stopChange);
   }, [handleDeltaChangeGain, isDisabled, stopChange]);
@@ -93,9 +100,10 @@ const ArrowButton = ({
       aria-label={t(type === 'up' ? 'common.increase' : 'common.decrease', {
         item: name,
       })}
-      className={`center arrow-${type}`}
+      className={`center arrow-${type}${isChanging ? ' is-repeating' : ''}`}
       onMouseDown={onMouseDown}
       onMouseUp={stopChange}
+      onAnimationIteration={onAnimationIteration}
       onKeyDown={onKeyDown}
       tabIndex={isDisabled ? -1 : 0}
       aria-disabled={isDisabled}

@@ -105,6 +105,24 @@ describe('live Equalizer APO feature-file adoption', () => {
     expect(state.isFlat).toBe(true);
   });
 
+  it('leaves a file emptied mid-save alone rather than clearing the layer', () => {
+    // An editor empties the file and then writes it; the watcher can read in
+    // between. The comment-only file above is the positive control: a file
+    // with anything in it that names no filter is still a cleared layer.
+    const state = getDefaultState();
+    Object.values(state.filters)[0].gain = 6;
+
+    expect(adoptApoFeatureText(state, 'eq', '')).toEqual({
+      changed: false,
+      unsupported: 0,
+    });
+    expect(adoptApoFeatureText(state, 'eq', '\r\n')).toEqual({
+      changed: false,
+      unsupported: 0,
+    });
+    expect(Object.values(state.filters)[0].gain).toBe(6);
+  });
+
   it.each<TApoFeature>(['driver', 'headphone', 'voicing', 'smart'])(
     'keeps an external %s edit in that layer instead of flattening it into EQ',
     (feature) => {

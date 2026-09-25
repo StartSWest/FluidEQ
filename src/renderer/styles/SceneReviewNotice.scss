@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // layer): one visual language for "something to know about Plus". The two
 // never stand in the corner together — the terms notice is about the
 // account's agreement and goes first; this one steps aside for it and comes
-// back when it is put away (the last rule here).
+// back when it is put away (`noticeTurn.ts`).
 //
 // What makes it this notice rather than that one is the edge: the scene's own
 // swatch runs down its left side, so a maker with several scenes knows which
@@ -153,26 +153,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // One thing at a time: the terms notice first, and every prompt the terms
-// notice steps aside for, for the same reasons.
-body:has(
-    .plus-terms-notice,
-    [aria-modal='true'],
-    .device-apo-notice,
-    .audio-restart-notice,
-    .prereq-notice,
-    .song-eq-notice,
-    .app-workspace.is-app-full
-  )
-  .scene-review-notice {
-  display: none;
-}
-
-// The month running out borrows this corner and this card
-// (`MakerMonthNotice.tsx`), and the two can want it in the same moment: both
-// are news about a maker's own scenes. They would then stand in exactly the
-// same place, one over the other. A scene just decided is the newer thing
-// and goes first; the month is a week's warning and can wait for the corner
-// to clear, which it does the moment the other is put away.
-body:has(.scene-review-notice:not(.maker-month-notice)) .maker-month-notice {
-  display: none;
-}
+// notice steps aside for, for the same reasons. The month running out
+// (`MakerMonthNotice.tsx`) borrows this corner and this card, and a scene
+// just decided goes before it. Decided in React, not here: `noticeTurn.ts`.

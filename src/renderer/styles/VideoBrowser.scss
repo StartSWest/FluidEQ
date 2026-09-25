@@ -552,6 +552,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: 0;
 }
 
+// How long the sign-out button says what it did before offering it again.
+$video-sign-out-said: 4s;
+
 .video-browser__match,
 .video-browser__sign-out {
   display: grid;
@@ -597,8 +600,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: $disabled-opacity;
   }
 
-  // What it did, in the only currency a glyph has. Held for a few seconds by
-  // the component, then back to the door.
+  // What it did, in the only currency a glyph has. Held for four seconds by
+  // the glyph's own hold below, whose end brings the door back.
   // The app's own accent rather than a green, because there is no green in this
   // palette and inventing one for a four-second tick is how a palette stops
   // being one.
@@ -608,6 +611,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-failed {
     color: $red;
+  }
+
+  &.is-done svg,
+  &.is-failed svg {
+    animation: video-sign-out-said $video-sign-out-said linear;
+  }
+}
+
+// The tick or the cross, for its moment. `visibility`, which the glyph already
+// has, so the hold draws nothing: it is only how long the answer stays up.
+// Not a movement, and it has to end for the door to come back, so it stays
+// under reduced motion — against the stand-down's 1ms (`App.scss`) with a
+// class more than its `*` and `!important` to meet its own.
+:root[data-motion='reduced']
+  .video-browser__sign-out:is(.is-done, .is-failed)
+  svg {
+  animation: video-sign-out-said $video-sign-out-said linear !important;
+}
+
+@keyframes video-sign-out-said {
+  from,
+  to {
+    visibility: visible;
   }
 }
 

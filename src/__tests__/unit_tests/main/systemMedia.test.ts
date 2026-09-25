@@ -17,18 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The line between PowerShell and the transport bar.
+ * The line between the media helper and the transport bar.
  *
- * Everything else on this path is fixed — the script is a literal, the
- * arguments are a list, the channel carries one shape — so the question worth
- * asking is what the parser makes of a line. It is reading the output of a
- * child process that talks to Windows about other programs' players, which is
- * three things this app does not control, and a bar that shows a song title
- * of `undefined` because a browser published none is the failure this guards.
+ * Everything else on this path is fixed — the helper's lines are pinned in
+ * native/media-watch/tests/media_line_test.cpp, the arguments are a list, the
+ * channel carries one shape — so the question worth asking is what the parser
+ * makes of a line. It is reading the output of a child process that talks to
+ * Windows about other programs' players, which is three things this app does
+ * not control, and a bar that shows a song title of `undefined` because a
+ * browser published none is the failure this guards.
  */
 
 import { EventEmitter } from 'events';
+import { StringDecoder } from 'string_decoder';
 import { spawn } from 'child_process';
+import log from 'electron-log';
+import { APP_ID } from '../../../common/branding';
+import { POWERSHELL_PATH } from '../../../main/powershell';
 import {
   getSystemMediaCover,
   isSystemMediaCoverLine,
@@ -39,12 +44,39 @@ import {
 } from '../../../main/systemMedia';
 
 jest.mock('child_process', () => ({ spawn: jest.fn() }));
+jest.mock('electron-log', () => ({ info: jest.fn(), warn: jest.fn() }));
 
-/** A watcher child: stdout to push lines into, and an exit to fire. */
+const HELPER = 'C:\\FluidEQ\\resources\\native\\FluidEQ-Media.exe';
+/** Where the tests say the helper is; the app looks where the build puts it. */
+const found = () => HELPER;
+
+/**
+ * The helper's stdout as the module uses it: bytes arrive in reads, and once
+ * `setEncoding` has been asked for they are decoded the way a real stream
+ * decodes them — across reads, never one read at a time.
+ */
+const fakeStdout = () => {
+  const emitter = new EventEmitter();
+  let decoder: StringDecoder | undefined;
+  return Object.assign(emitter, {
+    setEncoding: jest.fn((encoding: BufferEncoding) => {
+      decoder = new StringDecoder(encoding);
+    }),
+    /** One read's worth of what the helper wrote. */
+    arrive: (text: string | Buffer) => {
+      const bytes = typeof text === 'string' ? Buffer.from(text, 'utf8') : text;
+      emitter.emit('data', decoder ? decoder.write(bytes) : bytes);
+    },
+  });
+};
+
+/** A watcher child: stdout to push lines into, an input to close, an exit. */
 const fakeChild = () => {
-  const stdout = new EventEmitter();
+  const stdout = fakeStdout();
+  const stdin = Object.assign(new EventEmitter(), { end: jest.fn() });
   const child = Object.assign(new EventEmitter(), {
     kill: jest.fn(),
+    stdin,
     stdout,
   });
   (spawn as jest.Mock).mockReturnValue(child);
@@ -53,6 +85,13 @@ const fakeChild = () => {
 
 const PLAYING_LINE =
   '{"app":"Chrome","title":"Kura Kura","artist":"TWICE","isPlaying":true,"positionMs":1000,"durationMs":200000,"canNext":false,"canPrevious":false,"canSeek":true}';
+
+/**
+ * A line exactly as FluidEQ-Media.exe writes it — the reference reading
+ * media_line_test.cpp holds the native formatter to, byte for byte. Change the
+ * two together.
+ */
+const NATIVE_READING = String.raw`{"app":"Spotify.exe","title":"夜に駆ける \"Live\" \\ Tab\t","artist":"YOASOBI\u0001","isPlaying":true,"positionMs":61500,"durationMs":261000,"canNext":true,"canPrevious":false,"canSeek":true,"playing":["Spotify.exe","Chrome"],"coverId":"0123456789abcdef"}`;
 
 describe('what the machine is playing', () => {
   it('reads a session the way the watcher prints it', () => {
@@ -80,8 +119,24 @@ describe('what the machine is playing', () => {
     });
   });
 
+  it('reads the line the native helper writes, escapes and all', () => {
+    expect(parseSystemMediaLine(NATIVE_READING)).toEqual({
+      app: 'Spotify.exe',
+      title: '夜に駆ける "Live" \\ Tab\t',
+      artist: 'YOASOBI\u0001',
+      isPlaying: true,
+      positionMs: 61500,
+      durationMs: 261000,
+      canNext: true,
+      canPrevious: false,
+      canSeek: true,
+      playing: ['Spotify.exe', 'Chrome'],
+      coverId: '0123456789abcdef',
+    });
+  });
+
   it('treats nothing playing as nothing playing', () => {
-    // What the script prints for no session at all, and for a session that
+    // What the helper prints for no session at all, and for a session that
     // threw while being read: there is no third state on the bar.
     expect(parseSystemMediaLine('null')).toBeUndefined();
     expect(parseSystemMediaLine('')).toBeUndefined();
@@ -140,6 +195,129 @@ describe('what the machine is playing', () => {
 });
 
 /**
+ * TOLD BY WINDOWS, NOT POLLED. The watcher was a PowerShell loop reading every
+ * session every 700 ms, because PowerShell cannot subscribe to WinRT events;
+ * it is now a helper of our own that can, and prints the same lines.
+ */
+describe('the helper', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    stopWatchingSystemMedia();
+  });
+
+  afterEach(() => stopWatchingSystemMedia());
+
+  it('runs the helper, told whose sessions to look past, and never PowerShell', () => {
+    fakeChild();
+    watchSystemMedia(jest.fn(), found);
+
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(spawn).toHaveBeenCalledWith(
+      HELPER,
+      [APP_ID],
+      expect.objectContaining({ windowsHide: true }),
+    );
+    expect(spawn).not.toHaveBeenCalledWith(
+      POWERSHELL_PATH,
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it('reports nothing without a helper, says so once, and polls nothing', () => {
+    const listener = jest.fn();
+    watchSystemMedia(listener, () => undefined);
+    watchSystemMedia(listener, () => undefined);
+
+    expect(spawn).not.toHaveBeenCalled();
+    expect(listener).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledTimes(1);
+
+    // The control: the same subscribe with a helper to run does run it, so
+    // the silence above is the missing helper and not a spawn that never
+    // happens.
+    fakeChild();
+    watchSystemMedia(listener, found);
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(log.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads a title whose character is split between two reads', () => {
+    const { stdout } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+    const bytes = Buffer.from(`${NATIVE_READING}\n`, 'utf8');
+    // Inside 夜, the first character of the title: three bytes in UTF-8.
+    const cut = bytes.indexOf(Buffer.from('夜', 'utf8')) + 1;
+
+    stdout.arrive(bytes.subarray(0, cut));
+    stdout.arrive(bytes.subarray(cut));
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ title: '夜に駆ける "Live" \\ Tab\t' }),
+    );
+  });
+
+  it('reads the same title in one read, as the control', () => {
+    const { stdout } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+
+    stdout.arrive(`${NATIVE_READING}\n`);
+
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ title: '夜に駆ける "Live" \\ Tab\t' }),
+    );
+  });
+
+  it('closes the helper’s input to stop it', () => {
+    const { child } = fakeChild();
+    watchSystemMedia(jest.fn(), found);
+
+    stopWatchingSystemMedia();
+
+    expect(child.stdin.end).toHaveBeenCalledTimes(1);
+  });
+
+  it('says nothing is playing when the helper cannot start', () => {
+    const { child } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+
+    child.emit('error', new Error('spawn EACCES'));
+
+    expect(listener).toHaveBeenCalledWith(undefined);
+    expect(log.info).toHaveBeenCalled();
+    // Gone from the module, so the next subscribe starts it again.
+    fakeChild();
+    watchSystemMedia(listener, found);
+    expect(spawn).toHaveBeenCalledTimes(2);
+  });
+
+  it('hands on nothing a stopped helper prints on its way out', () => {
+    const first = fakeChild();
+    watchSystemMedia(jest.fn(), found);
+    stopWatchingSystemMedia();
+
+    const second = fakeChild();
+    const reloaded = jest.fn();
+    watchSystemMedia(reloaded, found);
+
+    // Its input is closed, but an event that landed as it closed can still
+    // come out before it is gone.
+    first.stdout.arrive(`${PLAYING_LINE}\n`);
+    expect(reloaded).not.toHaveBeenCalled();
+
+    // The helper that is running is heard.
+    second.stdout.arrive(`${NATIVE_READING}\n`);
+    expect(reloaded).toHaveBeenCalledWith(
+      expect.objectContaining({ app: 'Spotify.exe' }),
+    );
+  });
+});
+
+/**
  * THE WATCHER OUTLIVES THE WINDOW THAT STARTED IT.
  *
  * Reported as "it says nothing is playing while I am playing a video in
@@ -159,8 +337,8 @@ describe('watching across a reload', () => {
 
   it('starts one child however many times it is asked', () => {
     fakeChild();
-    watchSystemMedia(jest.fn());
-    watchSystemMedia(jest.fn());
+    watchSystemMedia(jest.fn(), found);
+    watchSystemMedia(jest.fn(), found);
 
     expect(spawn).toHaveBeenCalledTimes(1);
   });
@@ -168,13 +346,13 @@ describe('watching across a reload', () => {
   it('sends readings to the window that subscribed last', () => {
     const { stdout } = fakeChild();
     const gone = jest.fn();
-    watchSystemMedia(gone);
+    watchSystemMedia(gone, found);
     const reloaded = jest.fn();
-    watchSystemMedia(reloaded);
+    watchSystemMedia(reloaded, found);
     gone.mockClear();
     reloaded.mockClear();
 
-    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    stdout.arrive(`${PLAYING_LINE}\n`);
 
     expect(reloaded).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Kura Kura', isPlaying: true }),
@@ -190,11 +368,11 @@ describe('watching across a reload', () => {
    */
   it('hands a fresh window what is playing without waiting for a change', () => {
     const { stdout } = fakeChild();
-    watchSystemMedia(jest.fn());
-    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    watchSystemMedia(jest.fn(), found);
+    stdout.arrive(`${PLAYING_LINE}\n`);
 
     const reloaded = jest.fn();
-    watchSystemMedia(reloaded);
+    watchSystemMedia(reloaded, found);
 
     expect(reloaded).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Kura Kura' }),
@@ -203,13 +381,13 @@ describe('watching across a reload', () => {
 
   it('does not hand on a reading from a watcher that has been stopped', () => {
     const { stdout } = fakeChild();
-    watchSystemMedia(jest.fn());
-    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    watchSystemMedia(jest.fn(), found);
+    stdout.arrive(`${PLAYING_LINE}\n`);
     stopWatchingSystemMedia();
 
     fakeChild();
     const later = jest.fn();
-    watchSystemMedia(later);
+    watchSystemMedia(later, found);
 
     // A new child, so nothing is replayed: the old reading would have named
     // whatever was playing when the watcher was last switched off.
@@ -219,7 +397,7 @@ describe('watching across a reload', () => {
   it('says nothing is playing when the watcher dies', () => {
     const { child } = fakeChild();
     const listener = jest.fn();
-    watchSystemMedia(listener);
+    watchSystemMedia(listener, found);
     listener.mockClear();
 
     child.emit('exit');
@@ -229,24 +407,24 @@ describe('watching across a reload', () => {
 
   /**
    * A window reload stops the watcher and starts it again at once, and the
-   * old PowerShell's exit is delivered only once it has actually died — after
+   * old helper's exit is delivered only once it has actually gone — after
    * the new one is already running. That late exit is the OLD child's news.
    * Taken as the current child's, it wiped the new child out of the module
-   * while it kept polling, told the fresh window nothing was playing in the
-   * middle of a song, and made the next subscribe start a third PowerShell,
+   * while it kept running, told the fresh window nothing was playing in the
+   * middle of a song, and made the next subscribe start a third watcher,
    * with the second one left running until the app quit: stop only ever
-   * kills the one it knows about.
+   * reaches the one it knows about.
    */
   it('ignores the exit of a watcher it has already replaced', () => {
     const first = fakeChild();
-    watchSystemMedia(jest.fn());
+    watchSystemMedia(jest.fn(), found);
     stopWatchingSystemMedia();
-    expect(first.child.kill).toHaveBeenCalled();
+    expect(first.child.stdin.end).toHaveBeenCalled();
 
     const second = fakeChild();
     const reloaded = jest.fn();
-    watchSystemMedia(reloaded);
-    second.stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    watchSystemMedia(reloaded, found);
+    second.stdout.arrive(`${PLAYING_LINE}\n`);
     reloaded.mockClear();
 
     // The first child's death, delivered late.
@@ -256,14 +434,14 @@ describe('watching across a reload', () => {
     // Still the second child: a further subscribe is handed its reading and
     // starts nothing new.
     fakeChild();
-    watchSystemMedia(reloaded);
+    watchSystemMedia(reloaded, found);
     expect(spawn).toHaveBeenCalledTimes(2);
     expect(reloaded).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Kura Kura', isPlaying: true }),
     );
     // And stopping reaches the child that is actually running.
     stopWatchingSystemMedia();
-    expect(second.child.kill).toHaveBeenCalled();
+    expect(second.child.stdin.end).toHaveBeenCalled();
   });
 });
 
@@ -283,6 +461,14 @@ describe('who else is playing', () => {
     expect(
       parseSystemMediaLine(
         '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":"Chrome"}',
+      )?.playing,
+    ).toEqual(['Chrome']);
+  });
+
+  it('reads one of them as the helper writes it, a list of one', () => {
+    expect(
+      parseSystemMediaLine(
+        '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":["Chrome"]}',
       )?.playing,
     ).toEqual(['Chrome']);
   });
@@ -319,6 +505,15 @@ describe("the player's cover", () => {
     expect(
       parseSystemMediaCover(
         coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES }),
+      ),
+    ).toEqual({ id: COVER_ID, url: `data:image/png;base64,${PNG_BYTES}` });
+  });
+
+  it('reads the cover line the native helper writes', () => {
+    // media_line_test.cpp's reference cover line, byte for byte.
+    expect(
+      parseSystemMediaCover(
+        '{"cover":{"id":"0123456789abcdef","type":"image/png","data":"iVBORw0KGgo="}}',
       ),
     ).toEqual({ id: COVER_ID, url: `data:image/png;base64,${PNG_BYTES}` });
   });
@@ -366,15 +561,11 @@ describe("the player's cover", () => {
   it('keeps the cover for the window without passing it on as a reading', () => {
     const { stdout } = fakeChild();
     const listener = jest.fn();
-    watchSystemMedia(listener);
+    watchSystemMedia(listener, found);
     listener.mockClear();
 
-    stdout.emit(
-      'data',
-      Buffer.from(
-        `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n`,
-        'utf8',
-      ),
+    stdout.arrive(
+      `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n`,
     );
 
     // Read as a reading it would be "nothing playing", and the bar would go
@@ -390,13 +581,9 @@ describe("the player's cover", () => {
 
   it('keeps the last good cover when a bad one arrives, and none past a stop', () => {
     const { stdout } = fakeChild();
-    watchSystemMedia(jest.fn());
-    stdout.emit(
-      'data',
-      Buffer.from(
-        `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n${coverLine({ id: 'nope' })}\n`,
-        'utf8',
-      ),
+    watchSystemMedia(jest.fn(), found);
+    stdout.arrive(
+      `${coverLine({ id: COVER_ID, type: 'image/png', data: PNG_BYTES })}\n${coverLine({ id: 'nope' })}\n`,
     );
 
     expect(getSystemMediaCover(COVER_ID)).toBe(

@@ -48,6 +48,21 @@ import {
   setGraphContents,
   setGraphView,
 } from '../../renderer/utils/graphStyle';
+import { preloadTab } from '../../renderer/workspacePages';
+import type { TWorkspaceTab } from '../../renderer/workspaceTabs';
+
+/**
+ * A press on a tab, and the arrival of its page's code, which the shell waits
+ * for before it switches (`selectTopWorkspaceTab`). Awaited on the same fetch
+ * the press started, so a test asserts on the page it opened whether or not
+ * an earlier test in this file had already fetched it.
+ */
+const pressTab = async (name: string, tab: TWorkspaceTab) => {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('tab', { name }));
+    await preloadTab(tab);
+  });
+};
 
 jest.mock('../../renderer/community/CommunityPanel', () => ({
   __esModule: true,
@@ -61,6 +76,18 @@ jest.mock('../../renderer/community/CommunityPanel', () => ({
 }));
 
 describe('App', () => {
+  // The pages the tests open, fetched once before any test runs: they used to
+  // be compiled with App at import, outside every test's time limit, and the
+  // first test to open one would otherwise pay for compiling it.
+  beforeAll(
+    () =>
+      Promise.all(
+        (['karaoke', 'library', 'video', 'dsp', 'community'] as const).map(
+          preloadTab,
+        ),
+      ),
+    120_000,
+  );
   afterEach(async () => {
     await act(async () => {
       cleanup();
@@ -268,7 +295,7 @@ describe('App', () => {
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
     karaokeTab.focus();
     expect(karaokeTab).toHaveFocus();
-    fireEvent.click(karaokeTab);
+    await pressTab('Karaoke', 'karaoke');
 
     expect(karaokeTab).toHaveAttribute('aria-selected', 'true');
     expect(
@@ -298,7 +325,7 @@ describe('App', () => {
 
     expect(container.querySelector('.graph-wrapper')).toBeNull();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
 
     // Presets is a pill inside the EQ page now rather than a tab of its own,
@@ -307,7 +334,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
+    await pressTab('EQ Presets', 'presets');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     await act(async () => Promise.resolve());
   });
@@ -322,7 +349,7 @@ describe('App', () => {
     setGraphContents('curves');
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Plus' }));
+    await pressTab('Plus', 'community');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Play gallery scene' }));
     expect(screen.getByRole('tab', { name: 'EQ' })).toHaveAttribute(
@@ -351,7 +378,7 @@ describe('App', () => {
   it('uses the media surface for its control and graph fullscreen for Ctrl+F', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
 
     fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
     await waitFor(() =>
@@ -489,9 +516,9 @@ describe('App', () => {
     async (owner, tabName, ownerSelector) => {
       const { container } = render(<App />);
       await act(async () => Promise.resolve());
-      fireEvent.click(screen.getByRole('tab', { name: tabName }));
+      await pressTab(tabName, owner);
       act(() => claimPlayback(owner));
-      fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+      await pressTab('Online Media', 'video');
 
       fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
       await waitFor(() =>
@@ -517,7 +544,7 @@ describe('App', () => {
   it('restores a Library graph fullscreen double-click that passes through the graph', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+    await pressTab('Library', 'library');
     act(() => claimPlayback('library'));
 
     fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
@@ -549,7 +576,7 @@ describe('App', () => {
     async (_mode, key, code, expectedFullScreenCalls) => {
       const { container } = render(<App />);
       await act(async () => Promise.resolve());
-      fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+      await pressTab('Online Media', 'video');
       act(() => claimPlayback('media'));
 
       fireEvent.keyDown(window, { key, code, ctrlKey: true });
@@ -559,7 +586,7 @@ describe('App', () => {
         ),
       );
 
-      fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+      await pressTab('Library', 'library');
       await waitFor(() =>
         expect(container.querySelector('.center-workspace')).not.toHaveClass(
           'is-graph-full',
@@ -586,14 +613,14 @@ describe('App', () => {
   it('leaves player fullscreen whenever the workspace tab changes', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
     fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
 
     setWindowFullScreen.mockClear();
-    fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+    await pressTab('Library', 'library');
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
@@ -604,23 +631,23 @@ describe('App', () => {
     // The other playback tab, and a tab outside the group entirely: the owner
     // is compared to the open tab, not to a list of tabs, so both leave.
     setWindowFullScreen.mockClear();
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
     fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+    await pressTab('Online Media', 'video');
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
 
     setWindowFullScreen.mockClear();
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
     fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'DSP' }));
+    await pressTab('DSP', 'dsp');
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
@@ -629,7 +656,7 @@ describe('App', () => {
   it('promotes an Online Media HTML-fullscreen request to the shared app surface', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+    await pressTab('Online Media', 'video');
 
     const view = container.querySelector('webview');
     if (!view) {
@@ -659,7 +686,7 @@ describe('App', () => {
   it('turns a guest video double-click into graph fullscreen', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+    await pressTab('Online Media', 'video');
     act(() => claimPlayback('media'));
 
     const view = container.querySelector('webview');
@@ -730,7 +757,7 @@ describe('App', () => {
   it('drops the media surface when the window reports it left full screen', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    await pressTab('Karaoke', 'karaoke');
     fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),

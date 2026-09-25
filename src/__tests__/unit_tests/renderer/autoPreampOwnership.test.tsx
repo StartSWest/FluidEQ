@@ -1,7 +1,7 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import AutoPreAmpEnablerSwitch from 'renderer/components/AutoPreAmpEnablerSwitch';
 import { useCurrentEngine } from 'renderer/utils/audioEngineContext';
-import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
+import { useFluidEqShell } from 'renderer/utils/FluidEqContext';
 import {
   disableAutoPreAmp,
   enableAutoPreAmp,
@@ -17,12 +17,12 @@ describe('automatic/manual preamp ownership', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useCurrentEngine).mockReturnValue('fluid');
-    jest.mocked(useFluidEqContext).mockReturnValue({
+    jest.mocked(useFluidEqShell).mockReturnValue({
       isAutoPreAmpOn: true,
       setPreAmp,
       setAutoPreAmpOn,
       setGlobalError: jest.fn(),
-    } as unknown as ReturnType<typeof useFluidEqContext>);
+    } as unknown as ReturnType<typeof useFluidEqShell>);
   });
 
   it('does not overwrite a manual reset with a late disable response', async () => {
@@ -48,12 +48,12 @@ describe('automatic/manual preamp ownership', () => {
     'only APO publishes a calculated value when enabled (%s)',
     async (engine) => {
       jest.mocked(useCurrentEngine).mockReturnValue(engine);
-      jest.mocked(useFluidEqContext).mockReturnValue({
+      jest.mocked(useFluidEqShell).mockReturnValue({
         isAutoPreAmpOn: false,
         setPreAmp,
         setAutoPreAmpOn,
         setGlobalError: jest.fn(),
-      } as unknown as ReturnType<typeof useFluidEqContext>);
+      } as unknown as ReturnType<typeof useFluidEqShell>);
       jest.mocked(enableAutoPreAmp).mockResolvedValue(-4);
       const view = render(<AutoPreAmpEnablerSwitch id="auto" />);
       await act(async () => fireEvent.click(view.getByRole('checkbox')));

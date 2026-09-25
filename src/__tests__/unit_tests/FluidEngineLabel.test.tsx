@@ -24,11 +24,15 @@ const status = (
   fluid: { installed: installed.fluid ?? false },
 });
 
+// The label reads what the window already holds, and never asks main itself:
+// it is remounted with every page of the equaliser's group.
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
-  useAudioEngineStatus: () => ({ status: mockWorld.status }),
+  useKnownAudioEngineStatus: () => mockWorld.status,
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({ isEngineUsable: mockWorld.isEngineUsable }),
+  ...jest
+    .requireActual('__tests__/utils/fluidEqHookMocks')
+    .eqHooksFrom(() => ({ isEngineUsable: mockWorld.isEngineUsable })),
 }));
 
 it('shows the rainbow label only for the installed, enabled Fluid engine', () => {

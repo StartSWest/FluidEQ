@@ -133,7 +133,9 @@ struct FeqEngine {
   uint64_t report_frames = 0;
   float window_peak[2] = {0.0f, 0.0f};
   uint32_t timing[kTimingBins + 1] = {};
-  uint64_t sequence = 0;
+  /** Written by the audio thread alone; read by anyone asking whether a new
+   *  record exists (`feq_engine_reports_published`). */
+  std::atomic<uint64_t> sequence{0};
 
   SpscRing<FeqTelemetryV1, 32> telemetry;
   SpscRing<FeqDiagnosticV1, 32> diagnostics;
@@ -165,7 +167,8 @@ double percentile_us(const uint32_t* bins, uint64_t total, double fraction) {
 void publish_telemetry(FeqEngine* engine) {
   FeqTelemetryV1 record{};
   record.abi_version = FEQ_ABI_VERSION;
-  record.sequence = ++engine->sequence;
+  record.sequence =
+      engine->sequence.load(std::memory_order_relaxed) + 1;
   record.frames_processed =
       engine->frames_processed.load(std::memory_order_relaxed);
   record.applied_revision =
@@ -188,6 +191,8 @@ void publish_telemetry(FeqEngine* engine) {
   if (!engine->telemetry.push(record)) {
     engine->drops.fetch_add(1, std::memory_order_relaxed);
   }
+  // After the push, so whoever sees the count move finds the record there.
+  engine->sequence.store(record.sequence, std::memory_order_release);
 
   engine->report_frames = 0;
   engine->window_peak[0] = 0.0f;
@@ -389,6 +394,11 @@ uint32_t feq_engine_latency_frames(const FeqEngine* engine) {
   return engine == nullptr
              ? 0
              : engine->latency_frames.load(std::memory_order_relaxed);
+}
+
+uint64_t feq_engine_reports_published(const FeqEngine* engine) {
+  return engine == nullptr ? 0
+                           : engine->sequence.load(std::memory_order_acquire);
 }
 
 bool feq_engine_try_read_telemetry(FeqEngine* engine, FeqTelemetryV1* out) {

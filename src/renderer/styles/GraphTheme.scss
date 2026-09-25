@@ -465,6 +465,41 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The same moment with the rise taken out, for somebody who asked for less
+// motion. Its end is what takes the caption away (`endGraphModeAnnouncement`),
+// so it must still run its length: reduced motion's 1ms (`App.scss`) had the
+// caption faded out before its first frame, which is to say never shown. A
+// fade in place is not the movement that setting spares. `!important` and a
+// class to meet the stand-down's own; the named keyframes differ, so the
+// component's check on the name has to accept either.
+@keyframes graph-mode-announce-still {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  18%,
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-mode-announce {
+    animation: graph-mode-announce-still 1.1s ease forwards;
+  }
+}
+
+:root[data-motion='reduced'] .graph-mode-announce {
+  animation: graph-mode-announce-still 1.1s ease forwards !important;
+}
+
 // No EQ curve, so no handles on it.
 //
 // Set whenever the bands' own line is hidden — from the legend chip, or from
@@ -913,6 +948,20 @@ it under the terms of the GNU General Public License version 3 or later.
   &.is-visible {
     opacity: 1;
     transform: translateY(0);
+    // How long the name stays up: its end takes the class away
+    // (`useMomentaryHold`), and the transitions above fade it out. It was a
+    // two-second timer in the component.
+    animation: graph-look-announcement-hold 2s linear;
+  }
+}
+
+// Holds the name visible and changes nothing it draws. Not opacity: an
+// animation on a property stops that property's transition from starting, and
+// the fade in is the transition's.
+@keyframes graph-look-announcement-hold {
+  from,
+  to {
+    visibility: visible;
   }
 }
 
@@ -920,6 +969,14 @@ it under the terms of the GNU General Public License version 3 or later.
   .graph-look-announcement {
     transition: none;
   }
+}
+
+// The hold runs its length under reduced motion as well. It moves nothing,
+// and at the stand-down's 1ms (`App.scss`) the name would be gone before
+// anybody could read it. `!important` and two classes, to beat the stand-down's
+// own on `*`.
+:root[data-motion='reduced'] .graph-look-announcement.is-visible {
+  animation-duration: 2s !important;
 }
 
 // *** The view menu ***********************************************************
@@ -2312,7 +2369,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // space for it to sit above rather than over. With it gone the picture runs
 // the full height and the bar lies on top of it, which is what its translucent
 // gradient and its blur were built for and never previously used.
-#root:has(.app-workspace.is-app-full) {
+//
+// Read from `data-app-full` on `<html>` (`useAppFullMark`), as App.scss's
+// rules on the same flag are. It was `#root:has(> .app-workspace.is-app-full)`,
+// which kept the root answering for its children after every change there —
+// and written as a descendant, for a change anywhere in the window.
+:root[data-app-full] #root {
   padding-top: 0;
 }
 

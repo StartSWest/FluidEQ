@@ -24,6 +24,12 @@ import {
   revealBands,
 } from 'renderer/utils/bandReveal';
 
+/**
+ * Every timer this replaced would still be pending here. A helper, so the
+ * check can run after each test without being an `expect` in a hook.
+ */
+const expectNothingScheduled = () => expect(jest.getTimerCount()).toBe(0);
+
 const band = (
   frequency: number,
   gain: number,
@@ -186,5 +192,104 @@ describe('revealBands', () => {
     // The caller uses the answer to decide whether to assert the final value,
     // so "drew everything, then was superseded" still has to read as false.
     expect(finished).toBe(false);
+  });
+});
+
+/**
+ * Paced by the frames that draw it, not by a timer.
+ *
+ * Each step lands on the first painted frame at least a step after the last
+ * one: a frame too soon holds it (the null), the next one late enough brings
+ * it (the positive control) — which the timer this replaced, with no timer
+ * advanced, never did. And a window nobody can see does not wait at all.
+ */
+describe('revealBands pacing', () => {
+  let frames: FrameRequestCallback[] = [];
+  const paint = async (at: number) => {
+    const due = frames;
+    frames = [];
+    due.forEach((callback) => callback(at));
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+  let visibility: DocumentVisibilityState = 'visible';
+
+  beforeEach(() => {
+    frames = [];
+    visibility = 'visible';
+    jest.useFakeTimers();
+    jest.spyOn(performance, 'now').mockReturnValue(1000);
+    jest
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+    jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => visibility,
+    });
+  });
+
+  afterEach(() => {
+    expectNothingScheduled();
+    Reflect.deleteProperty(document, 'visibilityState');
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
+  const three = [
+    [{ id: 'a', gain: 1 }],
+    [{ id: 'b', gain: 2 }],
+    [{ id: 'c', gain: 3 }],
+  ];
+
+  it('holds each step until a painted frame a step later', async () => {
+    const seen: string[] = [];
+    const finished = revealBands(
+      three,
+      (bands) => bands.forEach((entry) => seen.push(entry.id)),
+      { isCurrent: () => true, stepMs: 40 },
+    );
+    expect(seen).toEqual(['a']);
+
+    await paint(1020);
+    expect(seen).toEqual(['a']);
+    await paint(1041);
+    expect(seen).toEqual(['a', 'b']);
+    await paint(1060);
+    expect(seen).toEqual(['a', 'b']);
+    await paint(1090);
+    await expect(finished).resolves.toBe(true);
+    expect(seen).toEqual(['a', 'b', 'c']);
+  });
+
+  it('goes straight through behind a hidden window', async () => {
+    visibility = 'hidden';
+    const seen: string[] = [];
+    await expect(
+      revealBands(
+        three,
+        (bands) => bands.forEach((entry) => seen.push(entry.id)),
+        { isCurrent: () => true, stepMs: 40 },
+      ),
+    ).resolves.toBe(true);
+    expect(seen).toEqual(['a', 'b', 'c']);
+    expect(frames).toHaveLength(0);
+  });
+
+  it('stops waiting the moment the window is hidden', async () => {
+    const seen: string[] = [];
+    const finished = revealBands(
+      three,
+      (bands) => bands.forEach((entry) => seen.push(entry.id)),
+      { isCurrent: () => true, stepMs: 40 },
+    );
+    expect(seen).toEqual(['a']);
+    visibility = 'hidden';
+    document.dispatchEvent(new Event('visibilitychange'));
+    await expect(finished).resolves.toBe(true);
+    expect(seen).toEqual(['a', 'b', 'c']);
   });
 });

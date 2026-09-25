@@ -23,10 +23,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
   DEFAULT_LOCALE,
+  isLocaleLoaded,
+  loadLocale,
   LocaleCode,
   resolveLocale,
   Translate,
@@ -34,6 +37,7 @@ import {
   TranslateVars,
   TranslationKey,
 } from 'common/i18n';
+import { reportError } from './logger';
 
 const STORAGE_KEY = 'fluideq.locale';
 
@@ -71,6 +75,39 @@ export const readInitialLocale = (): LocaleCode => {
 
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocaleState] = useState<LocaleCode>(readInitialLocale);
+  // The language `t` answers in: the chosen one once its dictionary is held,
+  // and English — every dictionary's fallback — until then. The window loads
+  // its language before its first render (`index.tsx`) and a pick loads
+  // before it switches, so the two agree from the first frame; a mount that
+  // did not wait for the load catches up when the dictionary lands.
+  const [speaking, setSpeaking] = useState<LocaleCode>(() =>
+    isLocaleLoaded(locale) ? locale : DEFAULT_LOCALE,
+  );
+  // The last language asked for. Two picks in quick succession end on the
+  // second even when the first one's dictionary is the one that lands last.
+  const requested = useRef(locale);
+
+  useEffect(() => {
+    if (speaking === locale) {
+      return undefined;
+    }
+    let current = true;
+    const catchUp = async () => {
+      try {
+        await loadLocale(locale);
+      } catch (error) {
+        reportError('Loading the interface language', error);
+        return;
+      }
+      if (current) {
+        setSpeaking(locale);
+      }
+    };
+    catchUp();
+    return () => {
+      current = false;
+    };
+  }, [locale, speaking]);
 
   // Assistive tech and the browser's own hyphenation both read this, and CJK
   // font fallback depends on it.
@@ -95,14 +132,32 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
       ?.catch(() => undefined);
   }, [locale]);
 
+  // Loaded first and switched second, so a pick lands in one frame in the new
+  // language instead of passing through English. A dictionary that cannot be
+  // loaded leaves the window in the language it was in, which says the pick
+  // did not take rather than half-taking it.
   const setLocale = useCallback((next: LocaleCode) => {
-    setLocaleState(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // The language still changes for this session; it just will not be
-      // remembered. Better than refusing to switch at all.
-    }
+    requested.current = next;
+    const switchTo = async () => {
+      try {
+        await loadLocale(next);
+      } catch (error) {
+        reportError('Loading the interface language', error);
+        return;
+      }
+      if (requested.current !== next) {
+        return;
+      }
+      setLocaleState(next);
+      setSpeaking(next);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // The language still changes for this session; it just will not be
+        // remembered. Better than refusing to switch at all.
+      }
+    };
+    switchTo();
   }, []);
 
   const value = useMemo<II18nContext>(
@@ -110,9 +165,9 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
       locale,
       setLocale,
       t: (key: TranslationKey, vars?: TranslateVars) =>
-        translate(locale, key, vars),
+        translate(speaking, key, vars),
     }),
-    [locale, setLocale],
+    [locale, setLocale, speaking],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

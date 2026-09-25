@@ -33,13 +33,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import crypto from 'crypto';
+import type { ILibraryTrack } from '../../common/library/types';
 import {
   IScanWorkerRequest,
   IScanWorkerResponse,
   postToHost,
   onHostMessage,
 } from './scanWorkerProtocol';
-import { scanLibraryRoot } from './libraryScanner';
+import { scanLibraryRoot, type IKnownTrack } from './libraryScanner';
+import { gateScanProgress } from './scanProgressGate';
 
 let cancelRequested = false;
 let nextArtworkRequestId = 0;
@@ -71,6 +73,34 @@ const storeArtworkInHost = (bytes: Uint8Array): Promise<string | undefined> => {
   return request;
 };
 
+/**
+ * The result as the host needs it back: the tracks this walk read, and every
+ * known one it carried forward named by its place in the request.
+ *
+ * The host sent only the few fields a walk reads (`IKnownTrack`) and keeps
+ * the tracks themselves, so a place is all it needs to put its own object
+ * back — and getting its own object back is how it sees that nothing changed.
+ * Sent whole, the result was the whole root cloned into main again after
+ * every scan: 45-180 ms of V8 deserialising on main for fourteen thousand
+ * tracks (measured on a synthetic root; the high end is tracks carrying noise
+ * profiles), almost all of it for tracks that had not moved.
+ */
+const encodeResult = (
+  tracks: ReadonlyArray<ILibraryTrack | IKnownTrack>,
+  known: readonly IKnownTrack[],
+): { tracks: ILibraryTrack[]; knownAt: number[] } => {
+  const placeOf = new Map<IKnownTrack, number>(
+    known.map((track, place) => [track, place]),
+  );
+  // Anything the walk returns that it was not given, it built.
+  const isRead = (track: ILibraryTrack | IKnownTrack): track is ILibraryTrack =>
+    !placeOf.has(track);
+  return {
+    tracks: tracks.filter(isRead),
+    knownAt: tracks.map((track) => placeOf.get(track) ?? -1),
+  };
+};
+
 onHostMessage((message: IScanWorkerRequest) => {
   if (message.type === 'artwork-stored') {
     const resolve = artworkReplies.get(message.requestId);
@@ -88,20 +118,27 @@ onHostMessage((message: IScanWorkerRequest) => {
     return;
   }
   cancelRequested = false;
+  const { known } = message;
+  const gate = gateScanProgress((progress) =>
+    send({ type: 'progress', progress }),
+  );
   scanLibraryRoot({
     rootId: message.rootId,
     rootPath: message.rootPath,
     userDataDir: message.userDataDir,
-    known: message.known,
+    known,
     storeArtwork: storeArtworkInHost,
-    onProgress: (progress) => send({ type: 'progress', progress }),
-    onTracks: (tracks) => send({ type: 'tracks', tracks }),
+    onProgress: gate.progress,
+    onTracks: (tracks) => {
+      send({ type: 'tracks', tracks });
+      gate.tracksSent();
+    },
     isCancelled: () => cancelRequested,
   })
     .then((result) =>
       send({
         type: 'done',
-        tracks: result.tracks,
+        ...encodeResult(result.tracks, known),
         karaokeSkipped: result.karaokeSkipped,
         wasCancelled: result.wasCancelled,
       }),

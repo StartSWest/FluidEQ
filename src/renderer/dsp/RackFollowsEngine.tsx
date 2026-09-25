@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef } from 'react';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
-import { useFluidEqContext } from '../utils/FluidEqContext';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { resolveDspPreset } from './dspPresetCatalog';
 import {
   holdRackForApo,
@@ -36,8 +36,9 @@ import { applyDspSettings, persistDspSettings, readDspSettings } from './store';
  * a dialog over any page.
  */
 const RackFollowsEngine = () => {
-  const { status } = useAudioEngineStatus();
-  const { voicing } = useFluidEqContext();
+  // Follows the answer `AppContent` holds rather than asking again.
+  const status = useKnownAudioEngineStatus();
+  const { voicing } = useFluidEqLayers();
   const engine = status?.engine ?? null;
   const previous = useRef(engine);
 
