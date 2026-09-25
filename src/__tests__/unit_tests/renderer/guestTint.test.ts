@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import {
+  buildGuestGlassCss,
   buildGuestTintCss,
   type IGuestTintKnowledge,
 } from '../../../renderer/video/guestTint';
@@ -118,4 +119,114 @@ it('trusts nothing from the page that is not a plain variable and three bytes', 
     }).greys,
   ).toEqual([['--fine', 15, 15, 15, 1]]);
   expect(parseGuestTintReport(undefined).greys).toEqual([]);
+});
+
+describe('what the page stands on, and what keeps its colour', () => {
+  /**
+   * YouTube Music, as its stylesheets said: its page, a card above it, its
+   * Sign in label in the page's exact grey, a grey that is both a surface and
+   * the label of a white chip, and one nobody has seen used yet.
+   */
+  const MUSIC: IGuestTintKnowledge = {
+    greys: [
+      ['--ytm-page', 3, 3, 3, 1],
+      ['--ytm-label', 3, 3, 3, 1],
+      ['--ytm-both', 3, 3, 3, 1],
+      ['--ytm-card', 33, 33, 33, 1],
+      ['--ytm-unread', 3, 3, 3, 1],
+    ],
+    paints: new Map<string, IGuestPaint>([
+      ['--ytm-page', { text: false, surface: true }],
+      ['--ytm-label', { text: true, surface: false }],
+      ['--ytm-both', { text: true, surface: true }],
+      ['--ytm-card', { text: true, surface: true }],
+    ]),
+    keeps: [
+      ['.chip-text', '--ytm-both'],
+      ['.card-title', '--ytm-card'],
+      ['.pill', '--ytm-label'],
+    ],
+  };
+
+  it('never changes a grey that only paints text, in either mode', () => {
+    [
+      buildGuestGlassCss('youtube-music', PANEL, MUSIC),
+      buildGuestTintCss('youtube-music', PANEL, MUSIC),
+    ].forEach((css) => {
+      expect(css).toContain('--ytm-label: rgb(3, 3, 3) !important;');
+      // A grey whose use is not known yet is kept the same way.
+      expect(css).toContain('--ytm-unread: rgb(3, 3, 3) !important;');
+    });
+  });
+
+  it('over a scene, clears the page and makes what stands above it glass of its own grey', () => {
+    const css = buildGuestGlassCss('youtube-music', PANEL, MUSIC) ?? '';
+    expect(css).toContain('--ytm-page: transparent !important;');
+    expect(css).toContain('--ytm-card: rgba(33, 33, 33, 0.88) !important;');
+    // One even wash on the root, not one per nested surface.
+    expect(css).toContain(
+      'html:not(#fluideq-guest-tint) {\n  background-color: rgba(0, 0, 0, 0.35) !important;\n}',
+    );
+    // YouTube Music paints its page on the body as a colour.
+    expect(css).toContain(
+      'body:not(#fluideq-guest-tint) {\n  background-color: transparent !important;\n}',
+    );
+    // Its bars in the interface's colour, nearly solid.
+    expect(css).toContain(
+      '#nav-bar-background:not(#fluideq-guest-tint),\nytmusic-player-bar:not(#fluideq-guest-tint) {\n  background-color: color-mix(in srgb, #001309 92%, transparent) !important;\n}',
+    );
+  });
+
+  it('over a scene, gives a label back its colour where the page writes text in a cleared grey', () => {
+    const css = buildGuestGlassCss('youtube-music', PANEL, MUSIC) ?? '';
+    expect(css).toContain('--ytm-both: transparent !important;');
+    expect(css).toContain(
+      ':is(:root:not(#fluideq-guest-tint)) :is(.chip-text):not(#fluideq-guest-tint) {\n  --ytm-both: #001309 !important;\n}',
+    );
+    // At the grey's own darkness when it stands above the page.
+    expect(css).toContain(
+      ':is(.card-title):not(#fluideq-guest-tint) {\n  --ytm-card: color-mix(in srgb, #001309, #ffffff 11.90%) !important;\n}',
+    );
+    // A grey that was never changed needs nothing put back.
+    expect(css).not.toContain(':is(.pill)');
+  });
+
+  it('without a scene, colours a grey that is both everywhere, and keeps no rules', () => {
+    const css = buildGuestTintCss('youtube-music', PANEL, MUSIC) ?? '';
+    expect(css).toContain(`--ytm-both: ${PANEL} !important;`);
+    expect(css).not.toContain(':is(');
+  });
+
+  it("leaves YouTube's root to the wash, and makes its search box glass", () => {
+    const css = buildGuestGlassCss('youtube', PANEL, PAGE) ?? '';
+    // Written again on the root it would be the more specific rule and take
+    // the wash away.
+    expect(css).not.toMatch(
+      /html\[dark\]:not\(#fluideq-guest-tint\) \{\s*background-color/,
+    );
+    expect(css).toContain(
+      '.ytSearchboxComponentInputBoxDark:not(#fluideq-guest-tint) {\n  background-color: rgba(18, 18, 18, 0.63) !important;\n}',
+    );
+  });
+
+  it('builds nothing when every grey it knows is text', () => {
+    const text: IGuestTintKnowledge = {
+      greys: [['--ytm-label', 3, 3, 3, 1]],
+      paints: new Map([['--ytm-label', { text: true, surface: false }]]),
+      keeps: [],
+    };
+    expect(buildGuestGlassCss('youtube-music', PANEL, text)).toBeUndefined();
+    expect(buildGuestTintCss('youtube-music', PANEL, text)).toBeUndefined();
+    // The same page with one surface grey beside it is coloured.
+    const withPage: IGuestTintKnowledge = {
+      ...text,
+      greys: [...text.greys, ['--ytm-page', 3, 3, 3, 1]],
+      paints: new Map([
+        ...text.paints,
+        ['--ytm-page', { text: false, surface: true }],
+      ]),
+    };
+    expect(buildGuestGlassCss('youtube-music', PANEL, withPage)).toBeDefined();
+    expect(buildGuestTintCss('youtube-music', PANEL, withPage)).toBeDefined();
+  });
 });
