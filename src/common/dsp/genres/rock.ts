@@ -57,8 +57,8 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     // stage adds harmonics: not over a bright vocal, and not over guitars
     // that make their own. The guitars are doubled hard left and right, so
     // nothing widens them. The kick keeps its hit with a tail as short as
-    // pop's under a bass line that moves, the bottom goes mono as pop masters
-    // are made, and the ceiling only catches.
+    // pop's under a bass line that moves, the bottom narrowed, and the ceiling
+    // only catches.
     id: 'popRock',
     bassPunch: punch(105, 0.25, -0.35, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_000, 0.05),
@@ -88,14 +88,16 @@ const ROCK_RACKS: readonly IGenreRack[] = [
   },
   {
     // A live kit in a room, warm and often deliberately dark. The room is
-    // the record, so nothing narrows it and nothing shapes the drums.
+    // the record, so nothing narrows it but the bass and nothing shapes the
+    // drums.
     id: 'indieRock',
     dimension: width(0.8, 1, 1, 170, 3_200, 0.08),
     maximizer: ceiling(1, -1, 6, sixteenthMs(115)),
   },
   {
     // Long pieces that build from near silence (DR 10-14), panned in detail.
-    // A slow ceiling that touches only the climax, and the picture as mixed.
+    // A slow ceiling that touches only the climax, and the picture as mixed
+    // above the bass.
     id: 'progressiveRock',
     dimension: width(0.85, 1, 1.05, 170, 3_200, 0.05),
     maximizer: ceiling(1, -1, 12, beatMs(110)),
@@ -112,9 +114,10 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     // Double-kick runs at up to 220 BPM, each hit wanted on its own: a
     // shorter tail rather than a harder attack, because the click that makes
     // a hit read lives at 4-8 kHz, in the curve, and a harder low attack is
-    // only a peak for the ceiling to take back. The loudest genre there is
-    // (-8.4 LUFS median), so the ceiling barely drives. Its Exciter is
-    // offered and left off, for the fizz.
+    // only a peak for the ceiling to take back — so the attack is left as
+    // played (it was lifted 0.35, the most in the family, until 2026-09-24).
+    // The loudest genre there is (-8.4 LUFS median), so the ceiling barely
+    // drives. Its Exciter is offered and left off, for the fizz.
     id: 'metal',
     exciter: exciterProfile(
       [
@@ -125,7 +128,7 @@ const ROCK_RACKS: readonly IGenreRack[] = [
       {},
       { enabled: true, amount: 0.35 },
     ),
-    bassPunch: punch(100, 0.35, -0.6, 0, 40, 0),
+    bassPunch: punch(100, 0, -0.6, 0, 40, 0),
     dimension: width(0.6, 1, 1, 150, 3_000, 0),
     maximizer: ceiling(0.5, -1, 2.5, sixteenthMs(170)),
     offered: ['exciter'],

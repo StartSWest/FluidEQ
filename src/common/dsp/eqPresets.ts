@@ -169,7 +169,10 @@ const PROTECTED: IEqPresetSetup = { subsonicHz: 20, monoBelowHz: 40 };
  *    jazz and orchestra, acoustic's boom and 4-6 kHz brittleness left in and
  *    classical coloured. Each changed row kept the loudness it had, measured
  *    through its model's bands — which is how the Preset layer plays them now
- *    (`presetVoicing.ts`).
+ *    (`presetVoicing.ts`). On 2026-09-24 the genre notes, which quote that
+ *    research to the listener, found metal still lifted under 75 Hz, trap
+ *    and drum & bass at 50 and the orchestra's bass: each is level or under
+ *    there now, and the loudness that took is not paid back elsewhere.
  */
 /*        32   50   80  125  200  315  500  800  1k2  2k   3k1  5k   8k  12k5 16k */
 const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
@@ -226,7 +229,10 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       2.1, 1.2, 1.5, 0.6, -1.3, -2.9, -2.4, -0.9, -0.4, 0.3, 1.3, 1.6, 1.5, 1,
       0.3,
     ],
-    setup: { ...PROTECTED, model: 'proportional' },
+    // Mono under 140 Hz, as pop masters are made (the research's "side mono
+    // <140 Hz"): Dimension's low width alone only narrows the side there, and
+    // through a one-pole split that still leaves most of it at 50 Hz.
+    setup: { ...PROTECTED, model: 'proportional', monoBelowHz: 140 },
   },
   {
     // The upright's warmth at 125-200 and the ride cymbal's air above 8k,
@@ -265,7 +271,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     gains: [
       2, 1.5, 1.2, -0.2, -1.8, -2.2, -2, -1.3, -0.4, 0, 0.3, 1.1, 1.7, 1.3, 0.5,
     ],
-    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
+    // Mono under 150 Hz, where a club system sums everything anyway.
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 150 },
   },
   {
     // 30-80 is where the kick and the 808 live, the 3k lift keeps the vocal
@@ -274,16 +281,14 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
-    // The sub is held where the catalogue's +6 dB below 60 Hz allows once
-    // Bass Forge's own octave is counted: this chain runs both, and the two
-    // measured together once reached +6.5.
     gains: [
       1.9, 1.1, 1.1, 1.1, -0.5, -2.4, -2.2, -0.9, -0.6, 0.3, 1.2, 0.4, -1, -1.7,
       -2.2,
     ],
-    // Sub-bass this heavy is where cancellation actually costs something,
-    // so the mono corner sits above the fundamental rather than under it.
-    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
+    // Mono under 120 Hz, as the research has it: kick, snare, bass and voice
+    // are mixed in the middle, and sub-bass this heavy is where cancellation
+    // actually costs something.
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 120 },
   },
   {
     // The boom under 50 eased and the soundboard's body at 125 kept, the
@@ -729,15 +734,16 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
   },
   {
     // A hall recorded from the audience, which is what most orchestral
-    // recordings are: the basses, the timpani and the room they sit in
-    // lifted up to 200, the 500-1k25 a full hall already fills eased back,
-    // and a little air. A concert recording is already balanced, so none of
-    // it goes past a couple of decibels.
+    // recordings are: the 500-1k25 a full hall already fills eased back, and
+    // a little air. Nothing under 250 is lifted — the research's "no bass
+    // boost", because a timpani roll or a gran cassa lifted is only pushed
+    // into the ceiling — where until 2026-09-24 the basses and the room
+    // under them were a decibel up to 200.
     id: 'orchestra',
     labelKey: 'dsp.eqPreset.orchestra',
     group: 'genre',
     gains: [
-      0.5, 0.5, 0.7, 0.7, 0.9, -0.2, -0.8, -1, -0.8, -0.4, -0.2, -0.1, 0.7, 1.1,
+      0, 0.1, -0.6, -0.3, 0.2, -0.3, -0.8, -1, -0.8, -0.4, -0.2, -0.1, 0.7, 1.1,
       1.1,
     ],
     setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
@@ -745,13 +751,17 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
   {
     // The 315-500 scoop is where a wall of distorted guitar turns to mud, and
     // the 2-5k lift is pick attack — the thing that makes a riff readable
-    // rather than merely loud. The kick keeps its 80 Hz; the rumble under it
-    // comes out, so the low end stays tight at speed.
+    // rather than merely loud. Nothing under 75 Hz is lifted — the
+    // research's own line, because down-tuned guitars already own the bottom
+    // and a lifted sub blurs a double kick into one note — so the rumble
+    // comes down and the kick's weight is left level at 80. The bands are
+    // too broad to lift 80 and hold 75, and the 80 Hz lift of up to
+    // 2026-09-24 put +0.7 dB at 63.
     id: 'metal',
     labelKey: 'dsp.eqPreset.metal',
     group: 'genre',
     gains: [
-      -1.7, -0.1, 2, 0.6, -2.3, -4.4, -3.8, -1.5, 0.3, 1.8, 3, 2.6, 0.7, -0.2,
+      -1.5, -3.1, 0.7, 1.1, -2.3, -4.4, -3.8, -1.5, 0.3, 1.8, 3, 2.6, 0.7, -0.2,
       -0.8,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
@@ -826,7 +836,9 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       -2.4, -1.3, 0.5, 1.6, 1.6, 1, 0.3, -0.2, -0.8, -1.3, -1.8, -1, -1.5, -1.8,
       -1.8,
     ],
-    setup: { ...PROTECTED, model: 'wide' },
+    // Mono under 120 Hz, as the research has it for a filtered bass under a
+    // modest stereo picture.
+    setup: { ...PROTECTED, model: 'wide', monoBelowHz: 120 },
   },
   {
     // Nothing here is a transient, so nothing needs presence. Sub and air,
@@ -844,30 +856,34 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
   {
     // An 808 is a sine wave with a long tail, and it lives below where most
     // speakers stop. The 200-500 cut clears the space between it and the
-    // voice, and the hi-hats get their 8-12k.
+    // voice, and the hi-hats get their 8-12k. Nothing from 20 to 60 Hz is
+    // lifted: the research says never to boost 30-60 on a full-range system,
+    // where the 808 is already the loudest thing in the record, and a small
+    // speaker gets its note from Bass Forge's overtones instead. Until
+    // 2026-09-24 this lifted 50 Hz by 1.5 dB.
     id: 'trap',
     labelKey: 'dsp.eqPreset.trap',
     group: 'genre',
-    // The sub is held where the catalogue's +6 dB below 60 Hz allows once
-    // Bass Forge's own octave under the 808 is counted: the two together
-    // once measured +7.8 — a small speaker's excursion, and everything above
-    // it losing headroom.
     gains: [
-      0.7, 0.7, 1.4, 0.1, -1.5, -2.4, -1.9, -0.8, -0.2, -0.1, 0.4, 1.5, 1.2,
-      1.2, 2,
+      -0.9, 0, 0.7, 0.4, -1.2, -2.5, -1.9, -0.7, -0.3, -0.1, 0.4, 1.5, 1.2, 1.2,
+      2,
     ],
-    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
+    // Mono under 120 Hz, as trap is mixed: the hats and synths are wide, the
+    // 808 never.
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 120 },
   },
   {
     // Two things at once: a sub that has to be felt and a break that has to
     // be heard. The 3-5k lift is the break, the 315-500 cut is what stops the
-    // two fighting.
+    // two fighting. The sine sub is left level, never lifted — the research's
+    // "sub mono not boosted", which the 1.7 dB at 50 Hz of up to 2026-09-24
+    // was not.
     id: 'drumBass',
     labelKey: 'dsp.eqPreset.drumBass',
     group: 'genre',
     gains: [
-      0.9, 0.9, 1.1, 0.3, -1.1, -2.4, -2.7, -1.6, 0, 0.7, 1.3, 2, 0.9, -0.2,
-      -1.2,
+      -0.6, 0.1, 0.4, 0.3, -0.6, -2.5, -2.7, -1.6, -0.1, 0.9, 1.1, 2.1, 0.9,
+      -0.2, -1.2,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },

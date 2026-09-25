@@ -207,6 +207,9 @@ export interface IEditableChartPoint {
 /** The curve that adds the whole chain up, preamp included. */
 export const OUTPUT_CURVE_ID = 'Total Response';
 
+/** The voicing layer's own line, a preset's tone among them. */
+export const VOICING_CURVE_ID = 'Voicing';
+
 /**
  * A gain the output curve is moved by after it is built, read and watched
  * outside React — the FluidEQ Engine's automatic preamp (`liveEnginePreamp`).

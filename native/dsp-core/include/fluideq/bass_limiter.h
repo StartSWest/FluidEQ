@@ -81,6 +81,15 @@ typedef struct FeqBassLimiter {
   /** The gain the peaks are asking for, before the look-ahead's fade. */
   double detector_gain;
   int64_t release_hold_remaining;
+  /**
+   * The deepest gain asked for in the window running now and in the one
+   * before it: together, the last `window_samples` to twice that. Recovery
+   * aims there rather than at the sample in hand, which between two peaks of
+   * a bass note asks for nothing at all.
+   */
+  double window_asked;
+  double previous_window_asked;
+  int64_t window_elapsed;
   /** The low band's gain on the most recently emitted frame, for a meter. */
   double gain;
 } FeqBassLimiter;
@@ -102,6 +111,13 @@ typedef struct FeqBassLimiterOptions {
   double release_coefficient;
   /** Samples a reduction is held before it may recover. */
   double release_hold_samples;
+  /**
+   * Samples a peak's reduction stays the recovery's aim: at least half a
+   * cycle of the lowest bass note, or recovery starts in the trough between
+   * two of its peaks and the gain moves inside every cycle. 0 aims at the
+   * sample in hand.
+   */
+  double window_samples;
   /** Finish a recovery once its remaining gap is this fraction of it. */
   double release_snap_ratio;
   double sample_rate;

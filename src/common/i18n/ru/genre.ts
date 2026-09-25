@@ -1,0 +1,28 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+export default {
+  'genre.notes.eyebrow': 'О жанре',
+  'genre.notes.about': 'О жанре «{name}»',
+  'genre.notes.aboutShort': 'О жанре',
+  'genre.notes.aboutNone': 'Заметки написаны для жанровых пресетов',
+  'genre.notes.full': 'Подробнее',
+  'genre.notes.close': 'Закрыть',
+  'genre.notes.sound': 'Звучание',
+  'genre.notes.curve': 'Почему такая кривая',
+  'genre.notes.rack': 'Что делает цепочка DSP',
+  'genre.notes.on': 'Вкл',
+  'genre.notes.leftOff': 'Не используются',
+  'genre.notes.measured': 'Измерено на {count} песнях',
+  'genre.notes.louder': 'громче, чем без DSP',
+  'genre.notes.quieter': 'тише, чем без DSP',
+  'genre.notes.peak': 'наивысший пик, без клиппинга',
+  'genre.notes.none': 'Нет',
+  'genre.notes.distortion': 'добавленных искажений',
+  'genre.notes.byDesign': 'Намеренно',
+  'genre.notes.harmonics': 'гармоники от модуля «{stage}»',
+  'genre.notes.listen': 'Послушайте в',
+  'genre.notes.research': 'Источники: {sources}',
+  'genre.notes.curveLabel': 'Кривая пресета «{name}»',
+  'genre.notes.pinOpen': 'Нажмите, чтобы открыть заметки о жанре «{name}»',
+  'genre.notes.hint': 'Наведите на жанр, чтобы узнать, почему он так звучит.',
+};

@@ -80,6 +80,18 @@ interface IRichPickProps {
    * the entries is the caller's, and the arrows beside the pill walk it too.
    */
   favourites?: IRichPickFavourites;
+  /**
+   * A column beside the list about the row being pointed at — the chosen one
+   * until the pointer or the arrows reach another — handed the menu's own
+   * close, as `renderFooter` is, for an action that opens something of its
+   * own. The genre notes are what it was made for (`GenreNotesPreview`): a
+   * preset is valued before it is picked, or never.
+   *
+   * The caller answers for every row, including one it has nothing to say
+   * about, so the column keeps its place instead of the menu changing width
+   * under the pointer.
+   */
+  renderPreview?: (id: string | undefined, close: () => void) => ReactNode;
 }
 
 export interface IRichPickFavourites {
@@ -170,9 +182,13 @@ const RichPick = ({
   children,
   renderFooter,
   favourites,
+  renderPreview,
 }: IRichPickProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  // The row the preview describes: the chosen one on opening, then whichever
+  // the pointer or the arrows last reached.
+  const [previewId, setPreviewId] = useState<string>();
   // A DSP source change can disable the trigger while its portaled menu is
   // open. The menu must stop accepting selections in that same render.
   if (disabled && isOpen) {
@@ -296,6 +312,143 @@ const RichPick = ({
     onPick(id);
   };
 
+  // The search, the list and the actions: the whole menu, or its first column
+  // when there is a preview beside it.
+  const menuBody = (
+    <>
+      <div className="rich-pick__search">
+        <svg viewBox="0 0 16 16" aria-hidden>
+          <circle cx="7" cy="7" r="4.5" />
+          <path d="M10.5 10.5L14 14" />
+        </svg>
+        <input
+          ref={searchRef}
+          type="text"
+          value={query}
+          placeholder={t('common.search')}
+          aria-label={t('common.search')}
+          onChange={(event) => setQuery(event.target.value)}
+          // Enter picks the only thing left, which is how a search that has
+          // narrowed to one entry is expected to end. Without it the last
+          // step of every search was reaching for the mouse.
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && matches.length === 1) {
+              pick(matches[0].id);
+            }
+          }}
+        />
+        {query.length > 0 && (
+          <button
+            type="button"
+            className="menu-search__clear"
+            aria-label={t('common.clearSearch')}
+            title={t('common.clearSearch')}
+            // Pressing a button focuses it, and this one unmounts on the
+            // very next render, so without this the caret would land on
+            // the body and the next keystroke would go nowhere.
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setQuery('');
+              searchRef.current?.focus();
+            }}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+              <path d="M3 3l6 6M9 3l-6 6" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* The only part that scrolls. The search above and the actions below
+          stay where they are, so neither has to be scrolled back to — which
+          with forty projects was most of the way down a list to reach "New
+          project…". Marked so AnchoredMenu can still measure how tall the
+          menu wants to be, which the menu itself no longer overflows to
+          report. */}
+      <div className="rich-pick__list" ref={arrive} data-anchored-menu-scroll>
+        {matches.length === 0 && (
+          <p className="rich-pick__empty">{t('common.noMatches')}</p>
+        )}
+
+        {matches.map((entry, index) => {
+          const heading = groupLabel(entry.group);
+          const item = (
+            <button
+              ref={entry.id === activeId ? activeRef : undefined}
+              type="button"
+              role="menuitemradio"
+              aria-checked={entry.id === activeId}
+              className={`rich-pick__item${
+                entry.id === activeId ? ' is-active' : ''
+              }${entry.locked ? ' is-locked' : ''}`}
+              title={entry.locked}
+              onClick={() => pick(entry.id)}
+              onPointerEnter={
+                renderPreview ? () => setPreviewId(entry.id) : undefined
+              }
+              onFocus={renderPreview ? () => setPreviewId(entry.id) : undefined}
+            >
+              {entry.icon}
+              <span>
+                <strong>{entry.name}</strong>
+                <small>{entry.hint}</small>
+              </span>
+              {entry.locked && (
+                <Glyph name="lock" className="rich-pick__item-lock" />
+              )}
+            </button>
+          );
+          const isFavourite = favourites?.ids.includes(entry.id) === true;
+          return (
+            <Fragment key={entry.id}>
+              {/* A heading at each change of group, rather than a fixed set
+                  of sections, so adding an entry to any of them cannot leave
+                  it filed under the wrong header — and so a filtered list
+                  shows headings only for the groups that still have
+                  something in them. */}
+              {heading && entry.group !== matches[index - 1]?.group && (
+                <span className="rich-pick__group" role="presentation">
+                  {heading}
+                </span>
+              )}
+              {favourites && !favourites.exclude?.includes(entry.id) ? (
+                // Beside the row, never inside it: a button cannot hold a
+                // button, and a press on the star must not choose the row.
+                // The menu stays open — starring is a thing done to several
+                // rows in one visit.
+                <div className="rich-pick__row">
+                  {item}
+                  <button
+                    type="button"
+                    className={`rich-pick__star${isFavourite ? ' is-on' : ''}`}
+                    aria-pressed={isFavourite}
+                    aria-label={`${
+                      isFavourite ? favourites.removeLabel : favourites.addLabel
+                    }: ${entry.name}`}
+                    title={
+                      isFavourite ? favourites.removeLabel : favourites.addLabel
+                    }
+                    onClick={() => favourites.onToggle(entry.id)}
+                  >
+                    <MenuIcon name="star" />
+                  </button>
+                </div>
+              ) : (
+                item
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+
+      {renderFooter && (
+        <div className="rich-pick__footer">
+          {renderFooter(() => setIsOpen(false))}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div
       className={`rich-pick${className ? ` ${className}` : ''}`}
@@ -312,7 +465,13 @@ const RichPick = ({
         aria-label={triggerAriaLabel}
         title={triggerTitle}
         disabled={disabled}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => {
+          // Opening, the preview starts at the chosen row.
+          if (!isOpen) {
+            setPreviewId(activeId || undefined);
+          }
+          setIsOpen(!isOpen);
+        }}
       >
         {active ? active.icon : placeholderIcon}
         <span>
@@ -333,138 +492,23 @@ const RichPick = ({
       <AnchoredMenu
         anchor={rootRef.current}
         isOpen={isOpen}
-        className={`rich-pick__menu${menuClassName ? ` ${menuClassName}` : ''}`}
+        className={`rich-pick__menu${renderPreview ? ' has-preview' : ''}${
+          menuClassName ? ` ${menuClassName}` : ''
+        }`}
         maxHeight={menuMaxHeight}
       >
-        <div className="rich-pick__search">
-          <svg viewBox="0 0 16 16" aria-hidden>
-            <circle cx="7" cy="7" r="4.5" />
-            <path d="M10.5 10.5L14 14" />
-          </svg>
-          <input
-            ref={searchRef}
-            type="text"
-            value={query}
-            placeholder={t('common.search')}
-            aria-label={t('common.search')}
-            onChange={(event) => setQuery(event.target.value)}
-            // Enter picks the only thing left, which is how a search that has
-            // narrowed to one entry is expected to end. Without it the last
-            // step of every search was reaching for the mouse.
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && matches.length === 1) {
-                pick(matches[0].id);
-              }
-            }}
-          />
-          {query.length > 0 && (
-            <button
-              type="button"
-              className="menu-search__clear"
-              aria-label={t('common.clearSearch')}
-              title={t('common.clearSearch')}
-              // Pressing a button focuses it, and this one unmounts on the
-              // very next render, so without this the caret would land on
-              // the body and the next keystroke would go nowhere.
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => {
-                setQuery('');
-                searchRef.current?.focus();
-              }}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
-          )}
-        </div>
-
-        {/* The only part that scrolls. The search above and the actions below
-            stay where they are, so neither has to be scrolled back to — which
-            with forty projects was most of the way down a list to reach "New
-            project…". Marked so AnchoredMenu can still measure how tall the
-            menu wants to be, which the menu itself no longer overflows to
-            report. */}
-        <div className="rich-pick__list" ref={arrive} data-anchored-menu-scroll>
-          {matches.length === 0 && (
-            <p className="rich-pick__empty">{t('common.noMatches')}</p>
-          )}
-
-          {matches.map((entry, index) => {
-            const heading = groupLabel(entry.group);
-            const item = (
-              <button
-                ref={entry.id === activeId ? activeRef : undefined}
-                type="button"
-                role="menuitemradio"
-                aria-checked={entry.id === activeId}
-                className={`rich-pick__item${
-                  entry.id === activeId ? ' is-active' : ''
-                }${entry.locked ? ' is-locked' : ''}`}
-                title={entry.locked}
-                onClick={() => pick(entry.id)}
-              >
-                {entry.icon}
-                <span>
-                  <strong>{entry.name}</strong>
-                  <small>{entry.hint}</small>
-                </span>
-                {entry.locked && (
-                  <Glyph name="lock" className="rich-pick__item-lock" />
-                )}
-              </button>
-            );
-            const isFavourite = favourites?.ids.includes(entry.id) === true;
-            return (
-              <Fragment key={entry.id}>
-                {/* A heading at each change of group, rather than a fixed set
-                    of sections, so adding an entry to any of them cannot leave
-                    it filed under the wrong header — and so a filtered list
-                    shows headings only for the groups that still have
-                    something in them. */}
-                {heading && entry.group !== matches[index - 1]?.group && (
-                  <span className="rich-pick__group" role="presentation">
-                    {heading}
-                  </span>
-                )}
-                {favourites && !favourites.exclude?.includes(entry.id) ? (
-                  // Beside the row, never inside it: a button cannot hold a
-                  // button, and a press on the star must not choose the row.
-                  // The menu stays open — starring is a thing done to several
-                  // rows in one visit.
-                  <div className="rich-pick__row">
-                    {item}
-                    <button
-                      type="button"
-                      className={`rich-pick__star${isFavourite ? ' is-on' : ''}`}
-                      aria-pressed={isFavourite}
-                      aria-label={`${
-                        isFavourite
-                          ? favourites.removeLabel
-                          : favourites.addLabel
-                      }: ${entry.name}`}
-                      title={
-                        isFavourite
-                          ? favourites.removeLabel
-                          : favourites.addLabel
-                      }
-                      onClick={() => favourites.onToggle(entry.id)}
-                    >
-                      <MenuIcon name="star" />
-                    </button>
-                  </div>
-                ) : (
-                  item
-                )}
-              </Fragment>
-            );
-          })}
-        </div>
-
-        {renderFooter && (
-          <div className="rich-pick__footer">
-            {renderFooter(() => setIsOpen(false))}
-          </div>
+        {renderPreview ? (
+          // The list keeps its own column and its width, so a picker with a
+          // preview reads the same as one without, and the column beside it
+          // scrolls on its own when a short window cuts it.
+          <>
+            <div className="rich-pick__main">{menuBody}</div>
+            <aside className="rich-pick__preview">
+              {renderPreview(previewId, () => setIsOpen(false))}
+            </aside>
+          </>
+        ) : (
+          menuBody
         )}
       </AnchoredMenu>
     </div>

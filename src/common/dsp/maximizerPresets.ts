@@ -194,7 +194,10 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
     group: 'scene',
-    settings: profile(1.5, -1, 5, 100),
+    // At the group's 1.5 the chain sat +0.53 LU over DSP Off on the song
+    // corpus and read +1.7 dB on the level gate's song, heard with its curve,
+    // past the gate's +1.6. At 1.2: +0.40 and +1.4 (2026-09-25).
+    settings: profile(1.2, -1, 5, 100),
   },
   car: {
     id: 'car',

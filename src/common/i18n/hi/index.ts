@@ -47,6 +47,16 @@ import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
 import player from './player';
+import genre from './genre';
+import genrePop from './genrePop';
+import genreRock from './genreRock';
+import genreCountry from './genreCountry';
+import genreUrban from './genreUrban';
+import genreJazzClassical from './genreJazzClassical';
+import genreElectronic from './genreElectronic';
+import genreReggae from './genreReggae';
+import genreLatin from './genreLatin';
+import genreWorld from './genreWorld';
 
 const hi: Partial<Dictionary> = {
   ...karaoke,
@@ -78,6 +88,16 @@ const hi: Partial<Dictionary> = {
   ...bugReport,
   ...review,
   ...player,
+  ...genre,
+  ...genrePop,
+  ...genreRock,
+  ...genreCountry,
+  ...genreUrban,
+  ...genreJazzClassical,
+  ...genreElectronic,
+  ...genreReggae,
+  ...genreLatin,
+  ...genreWorld,
 };
 
 export default hi;

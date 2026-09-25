@@ -28,8 +28,8 @@ import {
  * warm the bass rather than brightening the top, and never widen. The urban
  * styles — reggaeton, Latin pop, tumbados — are programmed on a kick every
  * beat over a mono 808, and get the treatment the rest of the catalogue
- * gives that sound: the sub deepened by the curve, in mono, and nothing
- * generated under an 808 that is saturated already.
+ * gives that sound: the sub deepened by the curve and summed to mono under
+ * it, and nothing generated under an 808 that is saturated already.
  */
 const LATIN_RACKS: readonly IGenreRack[] = [
   {
@@ -57,8 +57,8 @@ const LATIN_RACKS: readonly IGenreRack[] = [
   },
   {
     // A kick on every beat at about 95 BPM over a long, tuned, saturated
-    // 808. The mono sub deepened a little by the curve, Forge offered and
-    // left off — its octave and harmonics under an 808 distorted already
+    // 808. The sub deepened by the curve and mono under 150 Hz, Forge
+    // offered and left off — its octave and harmonics under an 808 distorted already
     // came to 13% of the note — and a ceiling that hardly pushes a DR 5
     // master.
     id: 'reggaeton',
@@ -172,8 +172,8 @@ const LATIN_RACKS: readonly IGenreRack[] = [
   },
   {
     // A steel-string requinto over tuba, felt at about 105, and in the
-    // tumbados an 808 doubling the tuba. The tuba warmed and the sub kept
-    // mono by the curve, Forge offered and left off — the 808 brings its own
+    // tumbados an 808 doubling the tuba. The tuba warmed by the curve and
+    // the sub mono under 120 Hz, Forge offered and left off — the 808 brings its own
     // sub — and the pick attack left to the ceiling's look-ahead.
     id: 'corridos',
     bassForge: forge(85, 0, 0.6, 0.4, 0.9, 0.25),

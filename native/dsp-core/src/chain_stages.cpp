@@ -404,6 +404,10 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
                             chain->sample_rate))
          : 0.0;
   low.release_hold_samples = options.release_hold_samples;
+  low.window_samples =
+      on ? std::floor((kMaximizerLowWindowMs / 1000.0) * chain->sample_rate +
+                      0.5)
+         : 0.0;
   low.release_snap_ratio = options.release_snap_ratio;
   low.sample_rate = chain->sample_rate;
   feq_bass_limiter_process(&chain->maximizer_low, channels, frames, &low);

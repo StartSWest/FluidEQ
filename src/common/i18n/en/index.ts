@@ -32,6 +32,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * keys were added, which meant one Karaoke string could be in any of four of
  * them and adding five keys touched twelve files.
  *
+ * One exception, by size: the genre notes are all `genre.` keys, nearly a
+ * thousand of them, so they are one file per family of genres (`genrePop.ts`
+ * and the rest, in the order the preset list files them) beside `genre.ts`,
+ * which holds the words around them.
+ *
  * Placeholders are `{name}` and are substituted positionally by name.
  */
 import karaoke from './karaoke';
@@ -63,6 +68,16 @@ import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
 import player from './player';
+import genre from './genre';
+import genrePop from './genrePop';
+import genreRock from './genreRock';
+import genreCountry from './genreCountry';
+import genreUrban from './genreUrban';
+import genreJazzClassical from './genreJazzClassical';
+import genreElectronic from './genreElectronic';
+import genreReggae from './genreReggae';
+import genreLatin from './genreLatin';
+import genreWorld from './genreWorld';
 
 const en = {
   ...karaoke,
@@ -94,6 +109,16 @@ const en = {
   ...bugReport,
   ...review,
   ...player,
+  ...genre,
+  ...genrePop,
+  ...genreRock,
+  ...genreCountry,
+  ...genreUrban,
+  ...genreJazzClassical,
+  ...genreElectronic,
+  ...genreReggae,
+  ...genreLatin,
+  ...genreWorld,
 };
 
 export type TranslationKey = keyof typeof en;

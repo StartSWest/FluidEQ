@@ -35,7 +35,11 @@ import type { IEqPreset } from './eqPresets';
  *   bhangra had each been lifted on records mastered with plenty of it, and
  *   the world row imposed a tilt on recordings that want none. Those shapes
  *   were changed and each row kept the loudness it had, measured through its
- *   model's bands.
+ *   model's bands. Held again on 2026-09-24 against the genre notes, which
+ *   quote that research to the listener: EDM's and techno's sub, K-pop's
+ *   under 50 Hz, the dhol's boom, bachata's 3 kHz and opera's bass were
+ *   still lifted by up to 1.7 dB. Each is now level or under there, as the
+ *   pins read it, and the loudness that took is not paid back elsewhere.
  *
  * Re-tune a row by measuring its chain again, not by hand: a hand edit moves
  * its loudness and its distance from its neighbours with it.
@@ -139,7 +143,7 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   ],
   [
     'kPop',
-    [0.2, 0.8, 1.7, 0.5, -1.2, -2.4, -2.2, -1, 0.1, 0.6, 1.3, 1.4, 1, 0, 0],
+    [-0.9, -0.1, 1.7, 0.6, -1.2, -2.4, -2.2, -1, 0.1, 0.6, 1.3, 1.4, 1, 0, 0],
   ],
   [
     'jPop',
@@ -218,8 +222,8 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   [
     'bachata',
     [
-      2.2, 1.2, 0.9, 0.5, -0.8, -2.1, -1.3, -0.3, 1, 1.1, 0.2, -0.3, -0.8, -1.3,
-      -2.2,
+      2.2, 1.2, 0.9, 0.5, -0.8, -2.1, -1.3, -0.3, 1.1, 0.9, -0.1, -0.5, -0.8,
+      -1.3, -2.2,
     ],
   ],
   [
@@ -334,7 +338,7 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   [
     'techno',
     [
-      0.7, 0.9, 1.6, 0.6, -0.3, -0.6, -1.3, -1.4, -1, -0.5, -0.1, 0.3, 0.3,
+      -0.8, -0.6, 1.1, 0.9, -0.3, -0.6, -1.3, -1.4, -1, -0.5, -0.1, 0.3, 0.3,
       -0.1, -0.8,
     ],
   ],
@@ -361,7 +365,10 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   ],
   [
     'edm',
-    [1, 1.3, 1.7, 0.1, -2.1, -3.3, -2.8, -1.3, -0.5, 0, 1, 2.3, 1.7, 1.7, 1.3],
+    [
+      -0.7, -0.4, 1, 0.5, -2.1, -3.3, -2.8, -1.3, -0.5, 0, 1, 2.3, 1.7, 1.7,
+      1.3,
+    ],
   ],
   [
     'downtempo',
@@ -387,7 +394,7 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   [
     'bhangra',
     [
-      0.9, 1.2, 0.7, 0.5, 0.3, -1.6, -2.1, -1.1, 0.3, 1.4, 0.9, -0.2, -0.8,
+      0.6, -0.3, -0.2, 0.1, 0.4, -1.6, -2.1, -1.1, 0.3, 1.4, 0.9, -0.2, -0.8,
       -1.4, -1.9,
     ],
   ],
@@ -421,7 +428,7 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   ],
   [
     'opera',
-    [-1, -0.3, 0.3, 0.5, -0.3, -1.4, -1, 1, 1, 0.4, -0.2, 0.4, 0.7, 0.9, 0.9],
+    [-0.9, -0.5, 0.1, 0.1, -0.2, -1.4, -1, 1, 1, 0.4, -0.2, 0.4, 0.7, 0.9, 0.9],
   ],
   [
     'newAge',
@@ -459,12 +466,42 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
     ],
   ],
 ];
+
+/**
+ * Where a row's research says its low end is mono, the corner that makes it
+ * so (the rack's mono-maker, a second-order high pass on the side). The
+ * chain's Dimension narrows the same region to half its width at most, and
+ * through a one-pole split, so on its own it left most of the side at 50 Hz
+ * — while every one of these genres is mixed with nothing there at all: a club
+ * or a sound system sums everything under about 150 Hz, and a sine sub or
+ * an 808 is mixed in the middle. At 150 where the research names the club
+ * low end, at 120 where it names the sub (dubstep, dancehall, the log
+ * drum's sub, the tuba and 808 of corridos) or says so (trance).
+ */
+const MONO_BELOW_HZ: Readonly<Record<string, number>> = {
+  edm: 150,
+  house: 150,
+  techno: 150,
+  trance: 120,
+  dubstep: 120,
+  afrobeats: 150,
+  amapiano: 120,
+  reggaeton: 150,
+  latinPop: 150,
+  dub: 150,
+  dancehall: 120,
+  corridos: 120,
+};
 export const WORLD_GENRE_EQ_PRESETS: readonly IEqPreset[] = STYLES.map(
   ([id, gains]) => ({
     id,
     labelKey: `dsp.eqPreset.${id}`,
     group: 'genre',
     gains: [...gains],
-    setup: { subsonicHz: 20, monoBelowHz: 0, phase: 'minimum' },
+    setup: {
+      subsonicHz: 20,
+      monoBelowHz: MONO_BELOW_HZ[id] ?? 0,
+      phase: 'minimum',
+    },
   }),
 );

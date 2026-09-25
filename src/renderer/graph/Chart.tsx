@@ -71,6 +71,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
+import GenrePins from './GenrePins';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import SceneCanvas from './SceneCanvas';
 import {
@@ -1333,6 +1334,14 @@ const Chart = ({
             />
           ),
         )}
+        {/* A genre's pins on its Preset line: over the lines, under the
+          band handles, so a handle standing on a pin can still be dragged. */}
+        <GenrePins
+          data={data}
+          xScale={xScaleFreq}
+          yScale={yScaleGain}
+          isHidden={isLiveOutputForeground || isGridHidden}
+        />
         {editablePoints.map((point) => (
           <EditablePoint
             key={point.id}

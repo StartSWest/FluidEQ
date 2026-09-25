@@ -17,6 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ErrorDescription } from 'common/errors';
+import type { TranslationKey } from '../../common/i18n/en';
+import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
+import { InfoMark } from '../dsp/GenreNotesParts';
+import { genreNotesFor } from '../dsp/genreNotesModel';
+import { openGenreNotes } from '../dsp/genreNotesStore';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
@@ -33,7 +38,13 @@ import type { TActiveLayers } from './useActiveLayers';
 const ActiveLayerChips = ({ active }: { active: TActiveLayers }) => {
   const { layers, isBypassed, voicingGlyph, toggle, setStrength } = active;
   const { t } = useTranslation();
-  const { isBlockingError, isEnabled, setGlobalError } = useFluidEqContext();
+  const { isBlockingError, isEnabled, setGlobalError, voicing } =
+    useFluidEqContext();
+  // The Preset layer of a genre's chain opens that genre's notes. Only a
+  // `dsp:` voicing: an older voicing can share a genre's name and not its
+  // curve, and the notes would describe a line the graph is not drawing.
+  const presetId = dspVoicingPresetId(voicing);
+  const genre = presetId ? genreNotesFor(presetId) : undefined;
   return (
     <>
       {layers.map((layer) => (
@@ -42,7 +53,9 @@ const ActiveLayerChips = ({ active }: { active: TActiveLayers }) => {
             (layer.feature && isBypassed(layer.feature)) || layer.isInactive
               ? ' is-bypassed'
               : ''
-          }${layer.strength !== undefined ? ' has-strength' : ''}`}
+          }${layer.strength !== undefined ? ' has-strength' : ''}${
+            layer.isVoicing && genre ? ' has-notes' : ''
+          }`}
           key={layer.key}
         >
           {/* The body of the chip is the A/B switch.
@@ -188,6 +201,23 @@ const ActiveLayerChips = ({ active }: { active: TActiveLayers }) => {
                 setStrength(layer, Number(event.target.value) / 100)
               }
             />
+          )}
+          {/* Before the remove button, so the one that takes the layer away
+                stays the last thing on every chip. */}
+          {layer.isVoicing && genre && presetId && (
+            <button
+              type="button"
+              className="active-layer__info"
+              aria-label={t('genre.notes.about', {
+                name: t(genre.labelKey as TranslationKey),
+              })}
+              title={t('genre.notes.about', {
+                name: t(genre.labelKey as TranslationKey),
+              })}
+              onClick={() => openGenreNotes(presetId)}
+            >
+              <InfoMark />
+            </button>
           )}
           <button
             type="button"

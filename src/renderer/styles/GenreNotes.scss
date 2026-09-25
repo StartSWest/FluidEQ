@@ -1,0 +1,587 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// A genre's notes: beside the preset lists (`GenreNotesPreview`) and whole in
+// their dialog (`GenreNotesDialog`), with the curve they share (`GenreCurve`).
+//
+// The curve is drawn in the preset line's own violet, `$triadic-1`, which is
+// what the main graph draws the Preset layer in: the curve here and that line
+// are the same thing and should never read as two. Boosts and cuts take the
+// colours the driver's filter list gives them, the accent and the pink.
+
+// *** The curve **************************************************************
+
+.genre-curve {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.genre-curve__grid line {
+  stroke: rgba($edge-tint, 0.07);
+  stroke-width: 1;
+}
+
+.genre-curve__grid .genre-curve__zero {
+  stroke: rgba($edge-tint, 0.24);
+  stroke-dasharray: 3 3;
+}
+
+.genre-curve__labels text {
+  fill: $text-dim;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.genre-curve__area {
+  fill: rgba($triadic-1, 0.16);
+}
+
+.genre-curve__line {
+  fill: none;
+  stroke: $triadic-1;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.genre-curve__halo {
+  fill: rgba($triadic-1, 0.2);
+  transition: fill 150ms ease;
+}
+
+.genre-curve__dot {
+  fill: $surface-menu;
+  stroke: $triadic-1;
+  stroke-width: 2;
+}
+
+.genre-curve__badge {
+  fill: $triadic-1;
+}
+
+.genre-curve__pin {
+  text {
+    fill: $white;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    pointer-events: none;
+  }
+
+  &.is-active {
+    .genre-curve__halo {
+      fill: rgba($triadic-1, 0.42);
+    }
+
+    .genre-curve__dot {
+      fill: $triadic-1;
+    }
+  }
+}
+
+// *** The pins as a list ****************************************************
+
+.genre-whys {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 16px 54px 52px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 6px;
+    padding: 2px 4px;
+    border-radius: $radius-xs;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.35;
+    transition: background-color 150ms ease;
+
+    &.is-active {
+      background: rgba($triadic-1, 0.14);
+    }
+  }
+
+  &.has-why li {
+    font-size: $text-body;
+  }
+}
+
+.genre-whys__number {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  align-self: center;
+  border-radius: $radius-pill;
+  background: $triadic-1;
+  color: $white;
+  font-size: 9px;
+  font-weight: $weight-bold;
+}
+
+.genre-whys__hz {
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+}
+
+.genre-whys__db {
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+
+  &.is-up {
+    color: $secondary-light;
+  }
+
+  &.is-down {
+    color: $analogous-1;
+  }
+
+  &.is-flat {
+    color: $text-faint;
+  }
+}
+
+.genre-whys__what {
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  small {
+    display: block;
+    color: $text-faint;
+    font-size: $text-small;
+  }
+}
+
+// *** What it measured ******************************************************
+
+.genre-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+
+  b {
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-bold;
+  }
+}
+
+.genre-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.genre-tiles__tile {
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 1px solid $border-panel;
+  border-radius: $radius-s;
+  background: $surface-well;
+
+  b {
+    color: $text-primary;
+    font-size: $text-lead;
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-bold;
+  }
+
+  span {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+}
+
+// *** Beside the preset list ************************************************
+
+.genre-preview {
+  display: grid;
+  gap: 10px;
+
+  > .button {
+    justify-self: start;
+  }
+}
+
+.genre-preview__head {
+  display: grid;
+  gap: 2px;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+  }
+
+  span {
+    color: $secondary-light;
+    font-size: $text-small;
+  }
+}
+
+// Centred in the column the preview keeps open, so a row with nothing to say
+// leaves a quiet column rather than an empty one.
+.genre-preview__hint {
+  margin: auto 0;
+  padding: 0 8px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+  text-align: center;
+}
+
+// *** The notes, whole ******************************************************
+
+// The DSP dialogs' own panel, wider for a curve and a table, and scrolling
+// inside itself under a head that stays put.
+.dsp-import.genre-notes {
+  width: min(620px, 100%);
+  gap: 14px;
+  padding: 18px 20px 20px;
+}
+
+.genre-notes__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  h2 {
+    margin: 2px 0 0;
+    color: $text-primary;
+    font-size: 1.15rem;
+    font-weight: $weight-bold;
+    line-height: 1.15;
+  }
+}
+
+.genre-notes__eyebrow {
+  color: $secondary-light;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+}
+
+.genre-notes__hook {
+  margin: 4px 0 0;
+  color: $secondary-light;
+  font-size: $text-body;
+}
+
+.genre-notes__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  color: $text-faint;
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover {
+    border-color: $border-menu;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.genre-notes__body {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  margin-right: -8px;
+  padding-right: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.genre-notes__section {
+  display: grid;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    color: $secondary-light;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.1em);
+    text-transform: uppercase;
+  }
+
+  p {
+    max-width: 64ch;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.55;
+  }
+}
+
+.genre-rack {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(84px, max-content) 34px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 8px;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.4;
+  }
+}
+
+.genre-rack__stage {
+  color: $text-primary;
+  font-weight: $weight-bold;
+}
+
+.genre-rack__state {
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+
+  &.is-on {
+    color: $active;
+  }
+}
+
+.genre-listen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 3px 10px;
+    border: 1px solid $border-panel;
+    border-radius: $radius-pill;
+    background: $surface-field;
+    color: $text-muted;
+    font-size: $text-small;
+  }
+}
+
+.genre-notes__sources {
+  margin: 0;
+  color: $text-dim;
+  font-size: $text-small;
+}
+
+// *** The doors to the notes *************************************************
+
+// The "i" the About button and the Preset chip wear (`InfoMark`): a disc in
+// the colour of where it stands, and the letter cut out of it in the shell's
+// own dark, which reads on both.
+.genre-info-mark {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.genre-info-mark__disc {
+  fill: $secondary-default;
+  transition: fill 130ms ease;
+}
+
+.genre-info-mark__glyph {
+  fill: $surface-base;
+}
+
+.genre-info-mark__stem {
+  fill: none;
+  stroke: $surface-base;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+// Beside the DSP page's preset picker. The quiet button every file action in
+// that header wears; laid out here only because it carries a glyph, as they
+// are in `Dsp.scss`.
+.genre-about.button.small {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding-left: 8px;
+}
+
+// Where the file actions drop their words (`Dsp.scss`, the panel at
+// `$bp-xl`), this drops its word too and keeps the mark; its name stays on
+// its own `title` and `aria-label`.
+@container dsp-panel (max-width: #{$bp-xl}) {
+  .genre-about.button.small {
+    padding-right: 8px;
+  }
+
+  .genre-about__label {
+    display: none;
+  }
+}
+
+// On the Preset chip, between its strength and its remove button, in the
+// Preset line's violet: it is about that line. Its hover is its own, not the
+// remove button's red, which the chip's rule for its buttons would give it.
+.active-layer.has-notes {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+
+  &.has-strength {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  button.active-layer__info {
+    .genre-info-mark {
+      width: 14px;
+      height: 14px;
+    }
+
+    .genre-info-mark__disc {
+      fill: $triadic-1;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background: rgba($triadic-1, 0.3);
+
+      .genre-info-mark__disc {
+        fill: color-mix(in srgb, $triadic-1 70%, $white);
+      }
+    }
+  }
+}
+
+// *** On the main graph *****************************************************
+
+// The pins on the Preset line (`GenrePins`), drawn like the notes' own curve
+// draws them so the two read as one set.
+.genre-pin {
+  cursor: pointer;
+  outline: none;
+
+  text {
+    fill: $white;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    pointer-events: none;
+  }
+
+  &:focus-visible .genre-pin__badge {
+    stroke: $white;
+    stroke-width: 1.5;
+  }
+}
+
+.genre-pin__halo {
+  fill: transparent;
+  transition: fill 150ms ease;
+}
+
+.genre-pin__dot {
+  fill: $surface-base;
+  stroke: $triadic-1;
+  stroke-width: 2;
+}
+
+.genre-pin__badge {
+  fill: $triadic-1;
+}
+
+.genre-pin.is-active {
+  .genre-pin__halo {
+    fill: rgba($triadic-1, 0.32);
+  }
+
+  .genre-pin__dot {
+    fill: $triadic-1;
+  }
+}
+
+// What a pin says, over the graph. In the window rather than in the plot,
+// which clips, and on the menus' own face.
+.genre-pin-tip {
+  position: fixed;
+  z-index: 1100;
+  display: grid;
+  width: max-content;
+  max-width: 260px;
+  gap: 3px;
+  padding: 8px 10px 9px;
+  border: 1px solid rgba($triadic-1, 0.55);
+  border-radius: $radius-s;
+  background: $surface-menu-face;
+  box-shadow: 0 10px 24px rgba($black, 0.5);
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.4;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+
+  &.is-above {
+    transform: translate(-50%, -100%);
+  }
+
+  b {
+    color: color-mix(in srgb, $triadic-1 55%, $white);
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-bold;
+  }
+
+  span {
+    color: $text-primary;
+  }
+
+  small {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+
+  em {
+    margin-top: 2px;
+    color: $text-dim;
+    font-size: $text-micro;
+    font-style: normal;
+  }
+}

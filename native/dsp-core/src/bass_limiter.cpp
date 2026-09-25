@@ -45,7 +45,9 @@ double split_gain(double hz, double sample_rate) {
 /**
  * The limiter's own law: down at once, held, then back toward the gain that
  * is still asked for rather than toward unity, which would saw between the
- * cycles of one bass note.
+ * cycles of one bass note. "Still asked for" is the caller's to make true:
+ * the sample in hand asks for nothing between two peaks, so it passes what
+ * the last half cycle or more asked for.
  */
 void follow(double required,
             double* gain,
@@ -106,6 +108,9 @@ void feq_bass_limiter_reset_control(FeqBassLimiter* state) {
   state->detector_gain = 1.0;
   state->gain = 1.0;
   state->release_hold_remaining = 0;
+  state->window_asked = 1.0;
+  state->previous_window_asked = 1.0;
+  state->window_elapsed = 0;
   for (uint32_t at = 0; at < state->capacity; ++at) {
     state->gain_db[at] = 0.0f;
   }
@@ -164,6 +169,10 @@ void feq_bass_limiter_process(FeqBassLimiter* state,
           : 0;
   const double snap_ratio =
       options->release_snap_ratio > 0.0 ? options->release_snap_ratio : 0.0;
+  const int64_t window_samples =
+      options->window_samples >= 1.0
+          ? static_cast<int64_t>(options->window_samples)
+          : 0;
 
   for (uint32_t at = 0; at < frames; ++at) {
     const int64_t position = state->position;
@@ -201,7 +210,29 @@ void feq_bass_limiter_process(FeqBassLimiter* state,
       required = floor_gain;
     }
 
-    follow(required, &state->detector_gain, &state->release_hold_remaining,
+    // What the last half cycle or more of the note asked for, not this
+    // sample: between two peaks of a bass note the sample asks for nothing,
+    // and aiming the recovery there sawed the gain once a cycle — 0.6% of
+    // harmonics on a held 60 Hz note that wavered by a tenth of a percent,
+    // and on every cycle of anything under 50 Hz, whose half cycle outlasted
+    // the hold. A new peak still lands at once: the window holds this sample.
+    double aim = required;
+    if (window_samples > 0) {
+      if (required < state->window_asked) {
+        state->window_asked = required;
+      }
+      aim = state->window_asked < state->previous_window_asked
+                ? state->window_asked
+                : state->previous_window_asked;
+      state->window_elapsed += 1;
+      if (state->window_elapsed >= window_samples) {
+        state->previous_window_asked = state->window_asked;
+        state->window_asked = 1.0;
+        state->window_elapsed = 0;
+      }
+    }
+
+    follow(aim, &state->detector_gain, &state->release_hold_remaining,
            hold_samples, release, snap_ratio);
     const double reduction_db = state->detector_gain < 1.0
                                     ? 20.0 * std::log10(state->detector_gain)

@@ -84,6 +84,16 @@ version and in these notes.
   five measured bands in front of the Room so the chain sounds like itself
   through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
   than it went in; those bands are that difference).
+- **Every music style explains itself.** Each genre preset has notes: what the
+  style asks for, why each point on its curve is where it is, and what every
+  effect in its chain does or why it is left off, with how loud it plays
+  against DSP Off. They open from About on the DSP page, from the i on the
+  preset's chip under Also applied, and beside the list while you point at a
+  preset in either picker, and the points they explain stand on the preset's
+  curve on the graph. Every preset was checked against its notes and does what
+  they say: a style mixed with its bass in the centre plays it centred below
+  the point that style names, and no curve lifts where its style keeps things
+  flat.
 - **None is one choice, first in both pickers.** Picked on the equaliser or on
   the DSP page, it takes the whole preset away — its tone and every stage of
   its chain — and it stands above everything in both lists, the chains you
@@ -254,6 +264,8 @@ version and in these notes.
   another page from the Studio, the window takes the colours of the
   visualizer that is playing instead of the Studio's scene.
 - **Scene icons show in the player's look picker**, where they were blank.
+- **The desk lights switch on the graph shows its light only while it is
+  on.** Switched off, it drew the same rays as on.
 - **FluidEQ fits a screen scaled to 200%**, such as a Mac showing it at
   1440 × 852: the title bar and the playback bar are shorter, the DSP pages'
   pictures fit beside their controls, the cover flow shows more songs, and

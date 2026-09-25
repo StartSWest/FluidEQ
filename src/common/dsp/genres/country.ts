@@ -41,8 +41,8 @@ const COUNTRY_RACKS: readonly IGenreRack[] = [
   },
   {
     // Pop production with a steel guitar in it: 808-style kicks already fill
-    // the sub, and the masters sit at DR 5-6. Nothing generated, a mono
-    // bottom, and a ceiling that hardly drives.
+    // the sub, and the masters sit at DR 5-6. Nothing generated, a
+    // narrowed bottom, and a ceiling that hardly drives.
     id: 'modernCountry',
     dimension: width(0.6, 1, 1.1, 150, 3_200, 0.1),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(100)),

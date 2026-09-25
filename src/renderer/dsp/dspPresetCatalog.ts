@@ -21,6 +21,7 @@ import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
 } from './favouriteDspPresets';
+import { genreHookKey } from './genreNotesModel';
 import { findUserDspPreset, readUserDspPresets } from './userDspPresets';
 
 /**
@@ -106,6 +107,20 @@ export const dspPresetHint = (
   ]
     .filter(Boolean)
     .join(' · ');
+
+/**
+ * The line under a chain in a preset list. A genre's says what the genre is,
+ * from its notes; any other chain's, what it runs. Eighty-two genres share a
+ * handful of stage lists, so their rows said the same few things over and
+ * over, and the notes beside the list say the rest.
+ */
+export const dspPresetRowHint = (
+  entry: Pick<IDspCatalogEntry, 'id' | 'settings' | 'curve'>,
+  t: Translate,
+): string => {
+  const hook = genreHookKey(entry.id);
+  return hook ? t(hook) : dspPresetHint(entry, t);
+};
 
 /** Both pickers resolve the same saved chain, preserving listener preferences. */
 export const resolveDspPreset = (

@@ -61,14 +61,16 @@ const POP_RACKS: readonly IGenreRack[] = [
   {
     // Drum machines and sequenced bass under wide chorused pads. The 80s
     // masters lean bright and are dynamic (DR 12-13), so the only colour is
-    // a little low-mid body, the one direction those mixes welcome.
+    // a little low-mid body, the one direction those mixes welcome, and a
+    // ceiling that lets go over a whole beat, which leaves those dynamics in
+    // (it let go within a sixteenth until 2026-09-24).
     id: 'synthPop',
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.12, focusHz: 350, range: 0.3 },
     ),
     dimension: width(0.65, 1, 1.15, 150, 3_000, 0.15),
-    maximizer: ceiling(1, -1, 5, sixteenthMs(118)),
+    maximizer: ceiling(1, -1, 5, beatMs(118)),
   },
   {
     // Up-tempo, choppy guitars and synths over a lean bottom, mastered with
@@ -91,7 +93,7 @@ const POP_RACKS: readonly IGenreRack[] = [
     // Among the loudest masters made (-10 to -6 LUFS, true peaks over full
     // scale), a vocal already lifted at 3-5 kHz and 12 kHz, and a kick with
     // its sub punch built in. Everything a stage could add is already there,
-    // so the row is a mono bottom and a ceiling that barely drives.
+    // so the row is a narrowed bottom and a ceiling that barely drives.
     id: 'kPop',
     dimension: width(0.55, 1, 1.1, 150, 3_000, 0.1),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(122)),
@@ -115,14 +117,15 @@ const POP_RACKS: readonly IGenreRack[] = [
     // Ballad-led, the vocal front and centre and warm, with consonants that
     // want de-essing rather than excitement. The console warmth of the
     // classic Mandopop sound, the mids a shade narrower so the voice holds
-    // the middle, and a slow ceiling for the ballads' dynamics.
+    // the middle, and a slow ceiling for the ballads' dynamics: a whole beat
+    // of release, where until 2026-09-24 it let go within a sixteenth.
     id: 'cPop',
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 400, range: 0.32 },
     ),
     dimension: width(0.75, 0.95, 1.1, 180, 3_600, 0.12),
-    maximizer: ceiling(1, -1, 6, sixteenthMs(84)),
+    maximizer: ceiling(1, -1, 6, beatMs(84)),
   },
 ];
 

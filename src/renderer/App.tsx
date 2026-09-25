@@ -75,6 +75,7 @@ import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
 import WallpaperTuning from './wallpaper/WallpaperTuning';
 import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
+import { GenreNotesHost } from './dsp/GenreNotesDialog';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -3313,6 +3314,9 @@ export default function App() {
             <WallpaperAudio />
             <WallpaperTuning />
             <WallpaperDialogHost />
+            {/* A genre's notes, for the same reason: two of the places that
+                open them are menus, which close when pressed. */}
+            <GenreNotesHost />
             <Router>
               <Routes>
                 <Route path="/" element={<AppContent />} />
