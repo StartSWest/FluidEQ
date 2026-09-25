@@ -27,6 +27,7 @@ import {
   getDefaultState,
 } from '../../../common/constants';
 import type { IProfilesIpcDeps } from '../../../main/ipc/profiles';
+import { flushPendingWrites } from '../../../main/asyncWriter';
 
 type THandler = (
   event: { reply: jest.Mock },
@@ -132,7 +133,11 @@ describe('following the outputs Windows reported', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // A switch saves the state file in the background. Deleting the folder
+    // under that write made its rename fail after the file's tests had
+    // finished, and Jest fails a run that logs then, every test green.
+    await flushPendingWrites();
     fs.rmSync(root, { recursive: true, force: true });
   });
 
