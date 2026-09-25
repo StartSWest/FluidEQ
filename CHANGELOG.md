@@ -284,8 +284,18 @@ version and in these notes.
   player.
 - **Smart EQ's speech bubble no longer covers Game mode, the delay or the page
   title.** It finds room above or below its button at any window width.
-- **The phase meters on the EQ and Dimension cards** are drawn in the card's
-  own colour instead of a darker box, in both themes.
+- **Each DSP card is one colour.** Every box of controls or readings on a
+  card, the phase meters on the EQ and Dimension cards among them, wears the
+  card's own colour with a thin edge, in both themes, instead of two or three
+  shades of slate; the graphs keep their darker ground. The scopes' trails
+  fade into the card instead of leaving the dial's ghost behind them, and the
+  line under the DSP title is one strip with its button at the end.
+- **The Denoise graph shows its numbers.** It printed {{count}} and {{hz}}
+  instead of how many clicks it repaired and the hum's frequency, in every
+  language.
+- **The DSP page's header keeps to one row** on a window 1100 pixels wide and
+  up: the presets no longer leave their file actions on a line of their own,
+  and the Dimension card's legend no longer stands across the header.
 - **Renaming a profile says why a name was refused in your language**, and the
   Config page calls the preset's layer a preset, not a voicing.
 - **FluidEQ says when it is not reaching the output**, instead of looking
