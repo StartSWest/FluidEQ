@@ -26,14 +26,14 @@ import {
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import type { TranslationKey } from 'common/i18n/en';
-import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
 import ProfileActionIcon from './icons/ProfileActionIcon';
 import {
-  getAudioDevices,
+  readKnownAudioDevices,
   getDeviceProfileSettings,
   getPresetBaselineNames,
   restorePresetBaseline,
@@ -120,7 +120,7 @@ const PresetsBar = ({
    * bands only need new numbers.
    */
   const { isBlockingError, isCaseSensitiveFs, refreshState, setGlobalError } =
-    useFluidEqContext();
+    useFluidEqShell();
   const { t } = useTranslation();
 
   const [presetName, setPresetName] = useState<string>('');
@@ -152,7 +152,7 @@ const PresetsBar = ({
   const refreshOutputProfiles = useCallback(async () => {
     try {
       const [devices, settings, baselines] = await Promise.all([
-        getAudioDevices(),
+        readKnownAudioDevices(),
         getDeviceProfileSettings(),
         getPresetBaselineNames(),
       ]);

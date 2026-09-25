@@ -33,9 +33,7 @@ const failedWith = (code: ErrorCode) => ({
  * Replies used to be matched to requests by channel alone. Every request
  * waiting on a channel heard the first reply to arrive on it, so two
  * overlapping writes on one channel — a slider dragged, a value typed twice —
- * could both be told the outcome of whichever main finished first, and a
- * request that had already timed out left its late reply to be taken as the
- * answer to the next request on that channel.
+ * could both be told the outcome of whichever main finished first.
  */
 describe('matching replies to the requests that asked', () => {
   afterEach(() => {
@@ -60,22 +58,27 @@ describe('matching replies to the requests that asked', () => {
     expect(await refusedOutcome).toEqual(failedWith(ErrorCode.FAILURE));
   });
 
-  it('does not hand a timed-out request’s late reply to the next request on its channel', async () => {
+  /**
+   * No deadline: main answers every request, so the answer is what is waited
+   * for. An hour passes with nothing scheduled and the request still waiting
+   * (the null — the ten-second deadline this replaced failed it), and the
+   * answer, when it comes, is the request's own (the positive control).
+   */
+  it('waits for main however long it takes, with nothing scheduled', async () => {
     jest.useFakeTimers();
     const bridge = installFakeIpcRenderer();
 
-    const staleOutcome = settle(getMainPreAmp());
-    jest.advanceTimersByTime(10_000);
-    expect(await staleOutcome).toEqual(failedWith(ErrorCode.TIMEOUT));
+    const outcome = settle(getMainPreAmp());
+    const settled = jest.fn();
+    outcome.then(settled, settled);
+    expect(jest.getTimerCount()).toBe(0);
+    jest.advanceTimersByTime(60 * 60 * 1000);
+    await Promise.resolve();
+    expect(settled).not.toHaveBeenCalled();
 
-    const fresh = getMainPreAmp();
-    const [staleMessage, freshMessage] = bridge.sentOn(ChannelEnum.GET_PREAMP);
-    // The reply to the request that gave up arrives only now, ahead of the
-    // reply to the request that is still waiting.
-    bridge.answer(staleMessage, { result: -12 });
-    bridge.answer(freshMessage, { result: -6 });
-
-    await expect(fresh).resolves.toBe(-6);
+    const [message] = bridge.sentOn(ChannelEnum.GET_PREAMP);
+    bridge.answer(message, { result: -12 });
+    expect(await outcome).toEqual({ value: -12 });
   });
 
   it('leaves a request waiting when a reply names some other request', async () => {
@@ -114,13 +117,13 @@ describe('matching replies to the requests that asked', () => {
     expect(bridge.listenerCount(ChannelEnum.GET_PREAMP)).toBe(0);
   });
 
-  it('stops listening for a request that timed out', async () => {
-    jest.useFakeTimers();
+  it('stops listening once the request that failed has its answer', async () => {
     const bridge = installFakeIpcRenderer();
 
     const outcome = settle(getMainPreAmp());
-    jest.advanceTimersByTime(10_000);
-    expect(await outcome).toEqual(failedWith(ErrorCode.TIMEOUT));
+    const [message] = bridge.sentOn(ChannelEnum.GET_PREAMP);
+    bridge.answer(message, { errorCode: ErrorCode.FAILURE });
+    expect(await outcome).toEqual(failedWith(ErrorCode.FAILURE));
 
     expect(bridge.listenerCount(ChannelEnum.GET_PREAMP)).toBe(0);
   });

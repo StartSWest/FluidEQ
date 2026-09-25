@@ -22,7 +22,10 @@ import RemoteAudioContext, {
 import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
 import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
-import { resetAudioEngineStatus } from '../../renderer/utils/useAudioEngineStatus';
+import {
+  refreshAudioEngineStatus,
+  resetAudioEngineStatus,
+} from '../../renderer/utils/useAudioEngineStatus';
 import {
   TDspEngineState,
   setDspNativeState,
@@ -73,6 +76,9 @@ const renderPanel = (
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
+  // The shell's own question, asked once at launch (`AppContent`): the page
+  // reads that answer and asks main nothing itself.
+  refreshAudioEngineStatus();
   // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
   // role alone, from its own context.
   const view = render(

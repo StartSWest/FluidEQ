@@ -215,11 +215,11 @@ describe('the Library’s own transport', () => {
         toggle: jest.fn(),
       });
     });
-    expect(nowBars()).toHaveClass('is-still');
+    expect(nowBars()).toHaveClass('is-paused');
 
     // The control: the same bars move once the Library itself sounds.
     act(() => setTransportSource(libraryTransport({ isPlaying: true })));
-    expect(nowBars()).not.toHaveClass('is-still');
+    expect(nowBars()).not.toHaveClass('is-paused');
   });
 
   it('starts the Library on a press, even with another player sounding', async () => {

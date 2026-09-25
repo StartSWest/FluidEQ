@@ -66,7 +66,8 @@ const HISTORY_LIMIT = 80;
  *    places: the waveform decode, which is not an edit, and a whole-project
  *    import, which clears history instead.
  *  - Autosave fires on `updatedAt` changing and nothing else, so a render that
- *    did not edit anything cannot write to disk.
+ *    did not edit anything cannot write to disk. One save is on the wire at a
+ *    time and the newest project waits behind it (`saveDraft`).
  *  - `HISTORY_LIMIT` used to be the number 79 written out at six call sites,
  *    each as `slice(-79)` on a stack capped at 80. It is one constant now.
  */
@@ -85,6 +86,10 @@ const useKaraokeMakerProject = ({
   const projectRef = useRef(project);
   const draftDecisionReadyRef = useRef(false);
   const persistedDraftUpdatedAtRef = useRef<string | undefined>(undefined);
+  const draftWriterRef = useRef<{
+    isSaving: boolean;
+    next?: IKaraokeMakerProject;
+  }>({ isSaving: false });
 
   // Read by the unmount flush, which cannot see the current render's state.
   projectRef.current = project;
@@ -134,11 +139,50 @@ const useKaraokeMakerProject = ({
     });
   }, []);
 
-  // Flush a genuine edit that the autosave debounce did not reach.
+  /**
+   * Write `snapshot` as the draft: now, or once the save on the wire lands.
+   *
+   * It was a 450 ms debounce, which guessed at when an edit was finished: a
+   * slider dragged for longer than that saved nothing until it stopped, and
+   * the Maker closing inside the wait left the last edit to a second write on
+   * the way out. Now one save is in flight at a time and only the newest
+   * project waits behind it: a slider drag is saved as often as the disk
+   * keeps up, never as a queue of stale projects, and the draft on disk
+   * always ends as the last edit.
+   */
+  const saveDraft = useCallback((snapshot: IKaraokeMakerProject) => {
+    const writer = draftWriterRef.current;
+    if (writer.isSaving) {
+      writer.next = snapshot;
+      return;
+    }
+    writer.isSaving = true;
+    window.electron.ipcRenderer
+      .saveKaraokeMakerDraft(snapshot)
+      .then(() => {
+        persistedDraftUpdatedAtRef.current = snapshot.updatedAt;
+        return undefined;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        writer.isSaving = false;
+        const { next } = writer;
+        writer.next = undefined;
+        // By identity, not by `updatedAt`: two edits inside one millisecond
+        // carry the same stamp, and the second is still news.
+        if (next && next !== snapshot) {
+          saveDraft(next);
+        }
+      });
+  }, []);
+
+  // Flush a genuine edit that has not been written yet.
   //
-  // A playlist can advance while the 450ms timer is pending. Flush real edits,
-  // but never overwrite a recoverable draft merely because the user opened the
-  // current player source — which is what `draftDecisionReadyRef` guards.
+  // A playlist can advance while a save is still on the wire. Flush real
+  // edits, but never overwrite a recoverable draft merely because the user
+  // opened the current player source — which is what `draftDecisionReadyRef`
+  // guards. Through the writer, so it follows a save in flight rather than
+  // racing it to the file.
   useEffect(
     () => () => {
       const latest = projectRef.current;
@@ -146,16 +190,10 @@ const useKaraokeMakerProject = ({
         draftDecisionReadyRef.current &&
         latest.updatedAt !== persistedDraftUpdatedAtRef.current
       ) {
-        window.electron.ipcRenderer
-          .saveKaraokeMakerDraft(latest)
-          .then(() => {
-            persistedDraftUpdatedAtRef.current = latest.updatedAt;
-            return undefined;
-          })
-          .catch(() => undefined);
+        saveDraft(latest);
       }
     },
-    [],
+    [saveDraft],
   );
 
   useEffect(() => {
@@ -236,33 +274,19 @@ const useKaraokeMakerProject = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!restoreToast) {
-      return undefined;
-    }
-    const timeout = window.setTimeout(() => setRestoreToast(undefined), 2_600);
-    return () => window.clearTimeout(timeout);
-  }, [restoreToast]);
+  // The toast's own animation says when it has been read: the Maker clears it
+  // on `animationend` (`dismissRestoreToast`). It was a 2.6 s timer beside an
+  // animation of the same length, two clocks agreeing by coincidence.
+  const dismissRestoreToast = useCallback(() => setRestoreToast(undefined), []);
 
   useEffect(() => {
     if (
-      !draftReady ||
-      project.updatedAt === persistedDraftUpdatedAtRef.current
+      draftReady &&
+      project.updatedAt !== persistedDraftUpdatedAtRef.current
     ) {
-      return undefined;
+      saveDraft(project);
     }
-    const snapshot = project;
-    const timeout = window.setTimeout(() => {
-      window.electron.ipcRenderer
-        .saveKaraokeMakerDraft(snapshot)
-        .then(() => {
-          persistedDraftUpdatedAtRef.current = snapshot.updatedAt;
-          return undefined;
-        })
-        .catch(() => undefined);
-    }, 450);
-    return () => window.clearTimeout(timeout);
-  }, [draftReady, project]);
+  }, [draftReady, project, saveDraft]);
 
   /**
    * Push a snapshot onto the undo stack without going through `commit`.
@@ -330,6 +354,7 @@ const useKaraokeMakerProject = ({
     restoreOriginal,
     draftReady,
     restoreToast,
+    dismissRestoreToast,
   };
 };
 

@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useContinuousEq } from './continuousEq';
-import { useFluidEqContext } from './FluidEqContext';
+import { useFluidEqLayers } from './FluidEqContext';
 import { isContinuousMode, useSmartEqMode } from './smartEqMode';
 
 /**
@@ -39,7 +39,7 @@ import { isContinuousMode, useSmartEqMode } from './smartEqMode';
  * ever writes the layer a save is made of.
  */
 const useIsAutoEqRunning = (): boolean => {
-  const { bypassed } = useFluidEqContext();
+  const { bypassed } = useFluidEqLayers();
   const smartEqMode = useSmartEqMode();
   const isContinuousOn = useContinuousEq();
   return (

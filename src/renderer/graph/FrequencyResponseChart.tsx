@@ -54,7 +54,6 @@ import {
   useFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
 import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
-import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import {
   liveEnginePreamp,
@@ -76,8 +75,10 @@ import {
 import { publishPlotGeometry, withdrawPlotGeometry } from './plotGeometry';
 import {
   useLiveAudioCapture,
+  useLiveAudioControl,
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
+import { SILENT_WAVEFORM } from './liveSpectrumFrames';
 import { getBandColor } from '../utils/bandColors';
 import {
   cycleGraphLook,
@@ -105,6 +106,7 @@ import {
   useGraphWaveHidden,
   useHiddenCurves,
   useGraphModeAnnouncement,
+  endGraphModeAnnouncement,
   useGraphEqQuiet,
   toggleGraphCurve,
   TGraphCurve,
@@ -131,13 +133,14 @@ import {
   useOverlayOpacity,
 } from '../utils/graphOverlay';
 import { useCustomLooks } from '../utils/customLooks';
+import useMomentaryHold from '../utils/useMomentaryHold';
+import useExitAnimation from '../utils/useExitAnimation';
 import {
   clearListenerWave,
   setListenerWave,
   useListenerWave,
 } from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
-import useExitAnimation from '../utils/useExitAnimation';
 import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
@@ -151,6 +154,7 @@ import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
 import useMatchedDesign from './useMatchedDesign';
 import useOutputRate from '../utils/useOutputRate';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import LookPicker from './LookPicker';
 import liveTraceCurves from './liveTraceCurves';
 import { useWindowMode } from '../player/windowModeStore';
@@ -181,21 +185,10 @@ type PendingPointEdit = Partial<
  */
 
 /**
- * How long silence has to last before the graph believes the music stopped.
- *
- * Long enough to ride out a track change or a stream stalling, short enough
- * that pausing something and looking back at the EQ does not feel like waiting.
+ * The keyframes the look designer leaves by (`.is-closing` in
+ * LookDesigner.scss), whose end is what takes it out of the tree.
  */
-const SILENCE_GRACE_MS = 2000;
-
-/**
- * How long the look designer is kept mounted after being told to close.
- *
- * Must match the exit animation in LookDesigner.scss. Shorter and the panel
- * disappears mid-flight; longer and there is a pause between the animation
- * finishing and the panel going, which reads as the app hesitating.
- */
-const DESIGNER_EXIT_MS = 170;
+const DESIGNER_EXIT = 'pop-out';
 
 /**
  * What each palette is called, for the toggle that cycles them.
@@ -211,8 +204,13 @@ const PALETTE_LABEL_KEYS: Record<GraphPalette, TranslationKey> = {
   auto: 'look.palette.auto',
 };
 
-/** How long the look's name stays up after it changes. */
-const LOOK_ANNOUNCEMENT_MS = 2000;
+/**
+ * The keyframes that hold the look's name up, in GraphTheme.scss.
+ *
+ * The name used to come down on a two-second timer; it comes down when this
+ * animation ends, and the stylesheet is the one place its length is written.
+ */
+const LOOK_ANNOUNCEMENT_HOLD = 'graph-look-announcement-hold';
 
 /**
  * The look's name, shown for a moment whenever it changes.
@@ -230,9 +228,13 @@ const LookAnnouncement = () => {
   const { t } = useTranslation();
   const look = useGraphLook();
   const [shown, setShown] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
+  const {
+    ref: holderRef,
+    isShown: isVisible,
+    show,
+    onAnimationEnd,
+  } = useMomentaryHold<HTMLSpanElement>(LOOK_ANNOUNCEMENT_HOLD);
   const knownRef = useRef<string | null>(null);
-  const timerRef = useRef<number | null>(null);
 
   const name = look.isCustom
     ? look.label
@@ -253,34 +255,20 @@ const LookAnnouncement = () => {
     }
     knownRef.current = name;
     // The name stays through the fade, or there would be nothing left to
-    // fade away — clearing it when the timer fires cuts the animation at
-    // the instant it starts.
+    // fade away — clearing it when the hold ends cuts the fade at the
+    // instant it starts.
     setShown(name);
-    setIsVisible(true);
-    if (timerRef.current !== null) {
-      window.clearTimeout(timerRef.current);
-    }
-    timerRef.current = window.setTimeout(() => {
-      setIsVisible(false);
-      timerRef.current = null;
-    }, LOOK_ANNOUNCEMENT_MS);
+    show();
     return undefined;
-  }, [name]);
-
-  useEffect(
-    () => () => {
-      if (timerRef.current !== null) {
-        window.clearTimeout(timerRef.current);
-      }
-    },
-    [],
-  );
+  }, [name, show]);
 
   return (
     <span
+      ref={holderRef}
       className={`graph-look-announcement${isVisible ? ' is-visible' : ''}`}
       role="status"
       aria-hidden={!isVisible}
+      onAnimationEnd={onAnimationEnd}
     >
       {shown}
     </span>
@@ -478,50 +466,43 @@ const LiveClipWarning = () => {
  * moment there is a frame there is a trace, and delaying *that* would be a graph
  * that lags the music.
  *
+ * Believed when the capture says the output has come to rest: the one frame it
+ * publishes once the meters are down on the floor, `SILENT_WAVEFORM`, after
+ * which it publishes nothing until sound returns. That is the output's own
+ * account of having stopped, where the two-second timer this replaces was a
+ * guess at how long a dip lasts, counted by a clock that knew nothing about
+ * the music. A capture that has failed will send no such frame, so no capture
+ * with its failure standing is believed as well — nothing is coming.
+ *
  * Renders nothing and reports upward, because the answer is needed by the chart
  * — it decides whether the EQ curves are drawn — while the question can only be
  * answered by watching every frame. Mounted only in solo, which is the only mode
  * where the answer changes anything, and it reports `false` on the way out so
  * that a stale "yes" cannot outlive the subscription and leave the graph empty
- * for two seconds the next time solo is switched on in a quiet room.
+ * the next time solo is switched on in a quiet room.
  */
 const SilenceWatch = ({
   onChange,
 }: {
   onChange: (hasRecentAudio: boolean) => void;
 }) => {
-  const { points } = useLiveAudioFrame();
+  const { points, waveform } = useLiveAudioFrame();
+  const { error } = useLiveAudioControl();
   const hasFrame = points.length > 0;
-  const silenceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  const isAtRest =
+    waveform === SILENT_WAVEFORM || (waveform.length === 0 && error !== '');
 
   useEffect(() => {
     if (hasFrame) {
-      if (silenceTimer.current !== undefined) {
-        clearTimeout(silenceTimer.current);
-        silenceTimer.current = undefined;
-      }
       onChange(true);
       return;
     }
-    if (silenceTimer.current === undefined) {
-      silenceTimer.current = setTimeout(() => {
-        silenceTimer.current = undefined;
-        onChange(false);
-      }, SILENCE_GRACE_MS);
-    }
-  }, [hasFrame, onChange]);
-
-  useEffect(
-    () => () => {
-      if (silenceTimer.current !== undefined) {
-        clearTimeout(silenceTimer.current);
-      }
+    if (isAtRest) {
       onChange(false);
-    },
-    [onChange],
-  );
+    }
+  }, [hasFrame, isAtRest, onChange]);
+
+  useEffect(() => () => onChange(false), [onChange]);
 
   return null;
 };
@@ -572,51 +553,41 @@ const FrequencyResponseChart = ({
   const selectedMemberScene = isMemberLookId(selectedLookId)
     ? memberScenes.find((scene) => scene.lookId === selectedLookId)
     : undefined;
-  const [isDesignerOpen, setIsDesignerOpen] = useState(false);
+  // Whether somebody wants the designer; `isDesignerOpen` below is whether it
+  // is on screen, which lasts through its way out.
+  const [isDesignerWanted, setIsDesignerWanted] = useState(false);
   /**
-   * Closing, but not yet gone.
+   * Open, and closing but not yet gone.
    *
    * React unmounts the moment the condition turns false, which is why the panel
    * arrived with an animation and left by vanishing. Nothing in CSS can hold an
    * element that is no longer in the tree, so the wait has to live here: the
    * class goes on, the panel plays its exit, and only then is it dropped.
+   *
+   * Dropped by the exit's own `animationend`. It was a 170 ms timer that had
+   * to be kept equal to the stylesheet's duration by hand, and ran on whether
+   * or not the panel had finished — or even started — leaving.
    */
-  const [isDesignerClosing, setIsDesignerClosing] = useState(false);
-  const designerExitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  const designerHolderRef = useRef<HTMLDivElement>(null);
+  const {
+    present: isDesignerOpen,
+    closing: isDesignerClosing,
+    onAnimationEnd: onDesignerAnimationEnd,
+  } = useExitAnimation(isDesignerWanted, DESIGNER_EXIT, designerHolderRef);
 
-  const closeDesigner = useCallback(() => {
-    setIsDesignerClosing(true);
-    clearTimeout(designerExitTimer.current);
-    designerExitTimer.current = setTimeout(() => {
-      designerExitTimer.current = undefined;
-      setIsDesignerClosing(false);
-      setIsDesignerOpen(false);
-    }, DESIGNER_EXIT_MS);
-  }, []);
+  const closeDesigner = useCallback(() => setIsDesignerWanted(false), []);
 
-  const openDesigner = useCallback(() => {
-    // A reopen mid-exit is somebody changing their mind, and it must not be
-    // followed a moment later by the timer that was closing it.
-    clearTimeout(designerExitTimer.current);
-    designerExitTimer.current = undefined;
-    setIsDesignerClosing(false);
-    setIsDesignerOpen(true);
-  }, []);
-
-  // A pending close must not fire into an unmounted component, and leaving the
-  // graph is itself a reason for the panel to be gone.
-  useEffect(() => () => clearTimeout(designerExitTimer.current), []);
+  // A reopen mid-exit is somebody changing their mind, and shows the panel
+  // again at once (`useExitAnimation`).
+  const openDesigner = useCallback(() => setIsDesignerWanted(true), []);
 
   // The standard editor rebases a selection onto 2D geometry. Keeping it open
-  // on a Plus scene silently replaces that scene with a fallback draft.
+  // on a Plus scene silently replaces that scene with a fallback draft. The
+  // panel leaves the tree at once on the render condition below, so there is
+  // no exit to wait for and it is dropped straight away.
   useEffect(() => {
     if (isPremiumSceneSelected) {
-      clearTimeout(designerExitTimer.current);
-      designerExitTimer.current = undefined;
-      setIsDesignerClosing(false);
-      setIsDesignerOpen(false);
+      setIsDesignerWanted(false);
     }
   }, [isPremiumSceneSelected]);
 
@@ -958,9 +929,6 @@ const FrequencyResponseChart = ({
   filtersRef.current = filters;
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
   const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});
-  const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
-    {},
-  );
   /**
    * What a drag is measured from: the pointer, and every band's starting value.
    *
@@ -1019,33 +987,56 @@ const FrequencyResponseChart = ({
     [filters, nextFilterSelection, setSelectedFilterIds],
   );
 
+  /**
+   * A drag's writes: one in flight per band, and the newest values waiting.
+   *
+   * A drag moves a band on every pointer event, and each write ends in main
+   * rewriting the engine's config, so they cannot all go. They used to be
+   * gathered for 90 ms and sent together — a guess at how often the writer
+   * keeps up, which was too slow on a quick machine (the sound trailed the
+   * handle by up to a tenth of a second) and too fast on a busy one (writes
+   * queued behind each other in main). Now the first edit goes at once, and
+   * everything that arrives while it is on the wire is merged and sent the
+   * moment it lands — main's own reply, after the config is written, is what
+   * says the next one may go.
+   */
+  const pointEditsInFlight = useRef(new Set<string>());
+
   const flushPointEdit = useCallback(
     async (filterId: string) => {
-      const timer = pointEditTimers.current[filterId];
-      if (timer) {
-        clearTimeout(timer);
-        delete pointEditTimers.current[filterId];
-      }
-      const edit = pendingPointEdits.current[filterId];
-      if (!edit) {
+      const inFlight = pointEditsInFlight.current;
+      if (inFlight.has(filterId)) {
+        // The write on the wire takes these up when it lands.
         return;
       }
-      delete pendingPointEdits.current[filterId];
-
+      inFlight.add(filterId);
       try {
-        // Send the latest values in one ordered batch so APO never sees a
-        // half-updated point while it is being dragged.
-        if (edit.frequency !== undefined) {
-          await setFrequency(filterId, edit.frequency);
+        let edit = pendingPointEdits.current[filterId];
+        while (edit) {
+          delete pendingPointEdits.current[filterId];
+          try {
+            // Send the latest values in one ordered batch so APO never sees
+            // a half-updated point while it is being dragged.
+            if (edit.frequency !== undefined) {
+              // eslint-disable-next-line no-await-in-loop -- one write in flight is the point: each batch waits for the one before it to land
+              await setFrequency(filterId, edit.frequency);
+            }
+            if (edit.gain !== undefined) {
+              // eslint-disable-next-line no-await-in-loop -- as above
+              await setGain(filterId, edit.gain);
+            }
+            if (edit.quality !== undefined) {
+              // eslint-disable-next-line no-await-in-loop -- as above
+              await setQuality(filterId, edit.quality);
+            }
+          } catch (error) {
+            setGlobalError(error as ErrorDescription);
+          }
+          // Whatever the drag did while that was on the wire, merged into one.
+          edit = pendingPointEdits.current[filterId];
         }
-        if (edit.gain !== undefined) {
-          await setGain(filterId, edit.gain);
-        }
-        if (edit.quality !== undefined) {
-          await setQuality(filterId, edit.quality);
-        }
-      } catch (error) {
-        setGlobalError(error as ErrorDescription);
+      } finally {
+        inFlight.delete(filterId);
       }
     },
     [setGlobalError],
@@ -1057,11 +1048,7 @@ const FrequencyResponseChart = ({
         ...pendingPointEdits.current[filterId],
         ...edit,
       };
-      if (!pointEditTimers.current[filterId]) {
-        pointEditTimers.current[filterId] = setTimeout(() => {
-          flushPointEdit(filterId);
-        }, 90);
-      }
+      flushPointEdit(filterId);
     },
     [flushPointEdit],
   );
@@ -1284,15 +1271,13 @@ const FrequencyResponseChart = ({
     }
   }, []);
 
-  const throttle = useThrottleAndExecuteLatest(updateDimensions, 100);
-
-  useEffect(() => {
-    window.addEventListener('resize', throttle);
-    return () => window.removeEventListener('resize', throttle);
-  }, [throttle]);
-
   /**
    * Watch the box itself, not the things thought to change it.
+   *
+   * The window's own `resize` used to be listened for as well, through a
+   * 100 ms throttle timer. A window resized is a box resized, which this
+   * already hears on the frame it happens, so that listener only ever
+   * repeated a measurement late.
    *
    * The graph takes the height the editor above it does not want, so its box
    * moves whenever that content does — folding the reference picker, switching
@@ -2093,12 +2078,22 @@ const FrequencyResponseChart = ({
           impossible to learn: the drawing changes and nothing says which of the
           five you are now in. Keyed on the announcement rather than its words,
           so cycling back to a mode you were in a second ago animates again
-          instead of reusing an element whose entrance is already over. */}
+          instead of reusing an element whose entrance is already over. Its
+          own animation is how long it stays: the end of it takes it away. */}
       {modeAnnouncement.label && (
         <div
           key={modeAnnouncement.id}
           className="graph-mode-announce"
           role="status"
+          onAnimationEnd={(event) => {
+            // The still one is the same moment under reduced motion.
+            if (
+              isOwnAnimationEnd(event, 'graph-mode-announce') ||
+              isOwnAnimationEnd(event, 'graph-mode-announce-still')
+            ) {
+              endGraphModeAnnouncement(modeAnnouncement.id);
+            }
+          }}
         >
           {modeAnnouncement.label}
         </div>
@@ -2135,9 +2130,17 @@ const FrequencyResponseChart = ({
       {/* Inside the graph card, alongside the plot rather than over in a
           dialog of its own — what the panel is for is watching this chart
           change while the sliders move. Unmounted when closed, so the draft it
-          holds is dropped with it. */}
+          holds is dropped with it. The holder is only where the panel's exit
+          is heard ending: `display: contents` gives it no box, so the panel is
+          laid out and positioned against the card exactly as before. */}
       {isDesignerOpen && !isPremiumSceneSelected && (
-        <LookDesigner onClose={closeDesigner} isClosing={isDesignerClosing} />
+        <div
+          ref={designerHolderRef}
+          style={{ display: 'contents' }}
+          onAnimationEnd={onDesignerAnimationEnd}
+        >
+          <LookDesigner onClose={closeDesigner} isClosing={isDesignerClosing} />
+        </div>
       )}
     </div>
   ) : null;

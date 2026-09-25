@@ -32,18 +32,23 @@ struct FeqProcessStats {
    */
   uint64_t working_set_bytes;
   /**
-   * Share of ONE core since the previous sample, which is also Chromium's
-   * convention for `percentCPUUsage` — a host pinning two cores reads 200.
+   * CPU time since the process started, kernel and user, in seconds.
+   *
+   * A running total rather than a percentage. A percentage is a difference
+   * between two samples, which made the host sample on a half-second clock
+   * whether or not it did anything, so that an idle host would still send
+   * the reading that said it was idle. A total that has not moved says so
+   * without being sent again, and the process list already fits a rate
+   * through totals (`processReadings.ts`), as it does for the meter's.
    */
-  double cpu_percent;
+  double cpu_seconds;
 };
 
 /**
  * Sample this process. False when the platform has no implementation.
  *
- * Not thread-safe: the CPU figure is a difference against the previous call
- * and the previous call's numbers are kept in the implementation. One caller
- * only — the host's telemetry thread.
+ * Keeps no state. The host calls it on its telemetry thread only, because
+ * that thread writes the frame it goes into.
  */
 bool feq_sample_process_stats(FeqProcessStats* out);
 

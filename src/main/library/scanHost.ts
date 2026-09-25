@@ -31,7 +31,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { app, utilityProcess } from 'electron';
-import { IScanOptions, IScanResult, scanLibraryRoot } from './libraryScanner';
+import type { IScanOptions, IScanResult } from './libraryScanner';
+import { gateScanProgress } from './scanProgressGate';
 import { storeArtwork as cacheArtwork } from './libraryArtwork';
 import { IScanWorkerRequest, IScanWorkerResponse } from './scanWorkerProtocol';
 import { LIBRARY_SCAN_PROCESS_NAME } from '../utilityProcessNames';
@@ -80,14 +81,43 @@ const UNFINISHED: IScanResult = {
   wasCancelled: true,
 };
 
-/** The fallback still runs inside Electron, so it can cache covers directly. */
-const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> =>
-  scanLibraryRoot({
+/**
+ * The fallback still runs inside Electron, so it can cache covers directly.
+ *
+ * The scanner is loaded here, on first use, and not imported at the top of
+ * the file: it brings the tag reader with it (`music-metadata`, and
+ * `file-type` and `strtok3` under that), all of which a static import
+ * evaluated in main at every launch, for a path that only runs when the worker
+ * cannot start. `import()`ed, so webpack puts it in a chunk of its own and
+ * `main.js` no longer carries it either. The walk therefore begins a moment
+ * after the call rather than within it — the chunk is read from disk first —
+ * which nothing depends on: the call's answer is its promise.
+ *
+ * Its reports go through the same gate the worker's do (`scanProgressGate.ts`),
+ * because from here each one is a message to the window.
+ */
+const scanLibraryRootInMain = async (
+  options: IScanOptions,
+): Promise<IScanResult> => {
+  const { scanLibraryRoot } = await import('./libraryScanner');
+  const gate = gateScanProgress(options.onProgress);
+  const { onTracks } = options;
+  return scanLibraryRoot({
     ...options,
     storeArtwork:
       options.storeArtwork ??
       ((bytes) => cacheArtwork(options.userDataDir, bytes)),
+    onProgress: gate.progress,
+    // Left undefined when the caller gave none: discovery only builds its
+    // provisional rows for somebody who will receive them.
+    onTracks:
+      onTracks &&
+      ((tracks, confirmed) => {
+        onTracks(tracks, confirmed);
+        gate.tracksSent();
+      }),
   });
+};
 
 const scanLibraryRootOffThread = (
   options: IScanOptions,
@@ -99,14 +129,34 @@ const scanLibraryRootOffThread = (
   return new Promise<IScanResult>((resolve) => {
     let settled = false;
     let fallbackStarted = false;
+    let child: ReturnType<typeof utilityProcess.fork>;
+
+    // The worker cannot be asked to stop through a return value, so a cancel
+    // is passed on as a message: the moment the caller's `signal` aborts, and
+    // otherwise on the worker's next message, for a caller that gave only
+    // `isCancelled`. It used to be the next message alone, which was enough
+    // while the worker reported every file; it now reports only now and then
+    // (`scanProgressGate.ts`), and Stop must not wait out a slow folder.
+    let cancelSent = false;
+    const forwardCancel = () => {
+      if (cancelSent || settled || fallbackStarted || !options.isCancelled()) {
+        return;
+      }
+      cancelSent = true;
+      const cancel: IScanWorkerRequest = { type: 'cancel' };
+      child.postMessage(cancel);
+    };
+
     const finish = (result: IScanResult) => {
+      // One signal serves every root of a rescan; a finished root's worker
+      // must not be written to when a later root is cancelled.
+      options.signal?.removeEventListener('abort', forwardCancel);
       if (!settled) {
         settled = true;
         resolve(result);
       }
     };
 
-    let child: ReturnType<typeof utilityProcess.fork>;
     try {
       /**
        * Written for a human reading a process list, not for a grep.
@@ -132,21 +182,7 @@ const scanLibraryRootOffThread = (
       scanLibraryRootInMain(options).then(finish, () => finish(UNFINISHED));
       return;
     }
-
-    // The worker cannot be asked to stop through a return value, so the
-    // caller's own `isCancelled` is forwarded as a message. Checked against
-    // the worker's own traffic rather than on a timer: it reports every file
-    // it touches, so the cancel goes out on the next one — and a scan that
-    // has stopped reporting has nothing left to cancel.
-    let cancelSent = false;
-    const forwardCancel = () => {
-      if (cancelSent || !options.isCancelled()) {
-        return;
-      }
-      cancelSent = true;
-      const cancel: IScanWorkerRequest = { type: 'cancel' };
-      child.postMessage(cancel);
-    };
+    options.signal?.addEventListener('abort', forwardCancel, { once: true });
 
     const stop = () => {
       child.kill();

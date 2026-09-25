@@ -4,7 +4,7 @@ import { useId } from 'react';
 import { engineSupportsGameMode } from '../../common/engineHealth';
 import { setGameMode, useDspSettings } from '../dsp/store';
 import VoicingIcon from '../icons/VoicingIcon';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import '../styles/GameModeSwitch.scss';
@@ -19,7 +19,7 @@ const GameModeSwitch = ({
   const supported = engineSupportsGameMode(installedVersion, reportedGameMode);
   const id = useId();
   const { gameMode } = useDspSettings();
-  const { isEnabled, isBlockingError } = useFluidEqContext();
+  const { isEnabled, isBlockingError } = useFluidEqShell();
   const { t } = useTranslation();
   return (
     <div

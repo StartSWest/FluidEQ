@@ -139,8 +139,8 @@ export const createProcessReadings = (cores: number): IProcessReadings => {
       const previous = new Map(shown.map((row) => [row.pid, row]));
       const next = rows.map((row): IAppProcess => {
         const last = previous.get(row.pid);
-        // A row that has no running total (the DSP host reports its own
-        // half-second percentage) keeps the percentage it arrived with.
+        // A row that has no running total keeps the percentage it arrived
+        // with.
         const oneCore =
           row.cpuSeconds === undefined
             ? row.cpuPercent

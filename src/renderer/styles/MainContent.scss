@@ -152,7 +152,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   );
   background-size: 200% 100%;
   background-clip: text;
-  animation: eq-engine-flow 4s linear infinite;
+  // One pass, and then the name rests lit, which is what the working state
+  // says it does (`FluidEngineLabel.tsx`). It drifted for ever: a background
+  // moving under `background-clip: text` is repainted on the main thread
+  // every frame, so the name cost a paint a frame for as long as the EQ was
+  // open, and went on under `visibility: hidden` while the graph was
+  // expanded over it. The pass ends where it began — the image is twice the
+  // box, so -200% is one whole image along — and stopping leaves no jump.
+  animation: eq-engine-flow 4s linear;
 
   .is-euphoric & {
     background-image: linear-gradient(
@@ -293,11 +300,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * `eq-engine-flow` has to be named again here because a second `animation`
  * declaration replaces the first, and losing it would stop the rainbow
- * drifting for the length of the arrival.
+ * drifting for the length of the arrival. Timed exactly as the base rule's:
+ * an animation kept by name keeps running when the arrival's class comes off,
+ * so the one pass started here finishes there and the name comes to rest.
  */
 .eq-engine-label.is-riding {
   animation:
-    eq-engine-flow 4s linear infinite,
+    eq-engine-flow 4s linear,
     eq-engine-arrive 640ms cubic-bezier(0.22, 1, 0.36, 1) both,
     eq-engine-crest 760ms ease-out both;
   mask-image: linear-gradient(
@@ -572,6 +581,8 @@ $eq-caret-width: 24px;
 // The face for the moment a correction lands: the "on" colour at a fifth into
 // the menu slate, opaque like the face it replaces.
 $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
+// And how long that moment is. Long enough to catch, short enough to miss.
+$eq-bubble-applied-hold: 1.5s;
 
 // What the correction is doing, said from the button that is doing it.
 //
@@ -670,8 +681,12 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
       background: $eq-bubble-applied-face;
     }
 
+    // How long the bubble stays landed: the text's own hold, whose end
+    // clears the flash (`MainContent.tsx`). A second and a half, as the
+    // timer it replaces held it — see `eq-bubble-applied` below.
     .eq-mode__bubble-text {
       color: $active;
+      animation: eq-bubble-applied $eq-bubble-applied-hold linear;
     }
   }
 
@@ -692,6 +707,45 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
     border-top-color: color-mix(in srgb, $active 50%, transparent);
     border-left-color: color-mix(in srgb, $active 50%, transparent);
   }
+}
+
+// The landed moment, as an animation of the text that shows it, so the end of
+// the moment is an event of the element on screen (`endCorrectionFlash`).
+//
+// `visibility`, which the text already has, and nothing else: the hold changes
+// nothing that can be seen, only how long the colour above it stays. An
+// opacity hold would have put the text on a compositor layer of its own for
+// the length of it, where it loses subpixel antialiasing (`_motion.scss`).
+@keyframes eq-bubble-applied {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// Not a movement, and it has to end for the flash to end: reduced motion's
+// 1ms (`App.scss`) would take the colour down before it could be seen. A class
+// more than that rule's `*`, and `!important` to meet its own.
+:root[data-motion='reduced'] .eq-mode__bubble.is-applied .eq-mode__bubble-text {
+  animation: eq-bubble-applied $eq-bubble-applied-hold linear !important;
+}
+
+// A remark's moment (`smartEqRun.ts`), held the same way and for the same
+// reasons: its end is what takes the remark down, it changes nothing that can
+// be seen, and reduced motion must not cut it to a millisecond.
+.eq-mode__bubble-status {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear;
+}
+
+@keyframes smart-eq-status-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+:root[data-motion='reduced'] .eq-mode__bubble .eq-mode__bubble-status {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear !important;
 }
 
 // Barely anything, and deliberately: two pixels over three and a half seconds
@@ -726,9 +780,9 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
 
   // The pet's frame (`PetArt`) takes the bubble's size, and the drawing the
   // frame's: a share of a frame sized by its own contents has nothing to be
-  // a share of.
+  // a share of. Her layers fill the drawing's square by themselves.
   .support-pet__frame,
-  svg {
+  .support-pet__art {
     width: 100%;
     height: 100%;
   }

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { useDspPresetCatalog } from '../dsp/dspPresetCatalog';
+import { dspPresetCatalog } from '../dsp/dspPresetCatalog';
 import { useTranslation } from '../utils/I18nContext';
 import { useGameSound } from './useGameSound';
 
@@ -61,19 +61,24 @@ const windowColours = (): Record<string, string> => {
  */
 const GameSound = () => {
   const { t } = useTranslation();
-  const { catalog } = useDspPresetCatalog(t);
   const { switched, forgetSwitch, playing } = useGameSound({ applies: true });
-  // Read when a switch arrives rather than closed over: a listener renames
-  // nothing, but the catalogue is rebuilt whenever their saved chains change.
-  const latest = useRef({ catalog, t });
-  latest.current = { catalog, t };
+  // Read when a switch arrives rather than closed over, so a change of
+  // language does not run the effect again.
+  const latest = useRef(t);
+  latest.current = t;
 
   useEffect(() => {
     if (!switched) {
       return;
     }
-    const { catalog: known, t: say } = latest.current;
-    const named = known.find((one) => one.id === switched.presetId)?.name;
+    const say = latest.current;
+    // The catalogue is read here, when a switch arrives, and not held: this is
+    // mounted for the life of the window and re-renders with it, and holding
+    // the catalogue read every saved chain out of storage, parsed and clamped
+    // it, on each of those renders, for a card that names one chain per game.
+    const named = dspPresetCatalog(say).find(
+      (one) => one.id === switched.presetId,
+    )?.name;
     const back = switched.kind === 'restored';
     // A restore to nothing is the rack going off, which has no name in the
     // catalogue: "Custom" there would be the card inventing a chain.

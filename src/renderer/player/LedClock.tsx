@@ -51,47 +51,45 @@ const SIGN = { g: across(1.4, 12.6, MIDDLE) };
 const DIGIT_X = [16, 42, 76, 102];
 const COLON_X = 66;
 
+const VIEW_BOX = `-3 -2 ${102 + W + 7} ${H + 4}`;
+const SLANT = 'skewX(-7) translate(4 0)';
+
 /**
- * A seven-segment clock: minutes and seconds, with a minus for time left.
- *
- * Every segment is drawn, the unlit ones as a ghost, the way a real display
- * shows its eights — it is what makes the digits read as a display and not
- * as a font. Drawn rather than typeset for the same reason: no face the app
- * ships has these shapes, and bundling one for five characters is not a
- * trade worth making.
- *
- * `text` is five characters: the sign, then minutes and seconds with no
- * colon. Dashes where the source reports no position.
+ * One layer of the display: of the sign, the four digits and the colon, the
+ * shapes `isShown` picks, each classed `shapeClass`.
  */
-const LedClock = ({ text }: { text: string }) => {
-  const chars = [...text.padEnd(5, ' ')].slice(0, 5);
+const Layer = ({
+  chars,
+  className,
+  shapeClass,
+  isShown,
+}: {
+  chars: string[];
+  className: string;
+  shapeClass: string;
+  isShown: (lit: string, name: string) => boolean;
+}) => {
   const cell = (char: string, x: number, isSign: boolean) => {
     const lit = LIT[char] ?? '';
     const shapes = isSign ? SIGN : SEGMENTS;
     return (
       <g transform={`translate(${x} 0)`} key={x}>
-        {Object.entries(shapes).map(([name, points]) => (
-          <polygon
-            key={name}
-            points={points}
-            className={lit.includes(name) ? 'is-lit' : 'is-ghost'}
-          />
-        ))}
+        {Object.entries(shapes)
+          .filter(([name]) => isShown(lit, name))
+          .map(([name, points]) => (
+            <polygon key={name} points={points} className={shapeClass} />
+          ))}
       </g>
     );
   };
   return (
-    <svg
-      className="led-clock"
-      viewBox={`-3 -2 ${102 + W + 7} ${H + 4}`}
-      aria-hidden="true"
-    >
-      <g transform="skewX(-7) translate(4 0)">
+    <svg className={className} viewBox={VIEW_BOX} aria-hidden="true">
+      <g transform={SLANT}>
         {cell(chars[0], 0, true)}
         {chars.slice(1).map((char, i) => cell(char, DIGIT_X[i], false))}
         <g transform={`translate(${COLON_X} 0)`}>
           <rect
-            className="is-lit led-clock__colon"
+            className={`${shapeClass} led-clock__colon`}
             x="0.5"
             y="8.8"
             width="4.4"
@@ -99,7 +97,7 @@ const LedClock = ({ text }: { text: string }) => {
             rx="1"
           />
           <rect
-            className="is-lit led-clock__colon"
+            className={`${shapeClass} led-clock__colon`}
             x="0.5"
             y="22.8"
             width="4.4"
@@ -109,6 +107,54 @@ const LedClock = ({ text }: { text: string }) => {
         </g>
       </g>
     </svg>
+  );
+};
+
+const litShape = (lit: string, name: string) => lit.includes(name);
+
+/**
+ * The face: every segment and the colon, all unlit, whatever the time. One
+ * element for good, so a tick of the clock leaves it alone.
+ */
+const FACE = (
+  <Layer
+    chars={['8', '8', '8', '8', '8']}
+    className="led-clock__face"
+    shapeClass="is-ghost"
+    isShown={() => true}
+  />
+);
+
+/**
+ * A seven-segment clock: minutes and seconds, with a minus for time left.
+ *
+ * Every segment is drawn, the unlit ones as a ghost, the way a real display
+ * shows its eights — it is what makes the digits read as a display and not
+ * as a font. Drawn rather than typeset for the same reason: no face the app
+ * ships has these shapes, and bundling one for five characters is not a
+ * trade worth making.
+ *
+ * Two layers, so the paused blink is the compositor's: the face, every
+ * segment and the colon as a ghost, which never changes; and over it the lit
+ * segments, in ink and glow, whose opacity is all the blink moves
+ * (`_miniPlayerParts.scss`). Blinked off, the lit ones show the ghost under
+ * them, which is what they turned into when the blink restyled them.
+ *
+ * `text` is five characters: the sign, then minutes and seconds with no
+ * colon. Dashes where the source reports no position.
+ */
+const LedClock = ({ text }: { text: string }) => {
+  const chars = [...text.padEnd(5, ' ')].slice(0, 5);
+  return (
+    <span className="led-clock">
+      {FACE}
+      <Layer
+        chars={chars}
+        className="led-clock__lit"
+        shapeClass="is-lit"
+        isShown={litShape}
+      />
+    </span>
   );
 };
 

@@ -20,7 +20,7 @@ import {
 } from '../remoteAudioCapture';
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
-import createRemoteAudioLan from '../remoteAudioLan';
+import type { IRemoteAudioLan } from '../remoteAudioLanTypes';
 import { decodePairingCode } from '../remoteAudioLanProtocol';
 import createRemoteAudioPorts from '../remoteAudioPorts';
 import onWindowMessage from './windowMessages';
@@ -81,30 +81,55 @@ export const registerRemoteAudioIpc = ({
   );
   const playback = registerRemoteAudioPlayback(getMainWindow);
   const streaming = new Set<string>();
-  const lan = createRemoteAudioLan(
-    (signal) => {
-      if (signal.signal.kind === 'stop') {
-        playback.remove(signal.peerId);
-        streaming.delete(signal.peerId);
-      }
-      ports.signal(signal);
-      sendToWindow(LAN_SIGNAL_CHANNEL, signal);
-    },
-    (chunk) => {
-      if (process.platform !== 'win32') {
-        ports.audio(chunk);
-        return;
-      }
-      playback.push(chunk);
-      ports.analyze(chunk);
-      if (!streaming.has(chunk.peerId)) {
-        streaming.add(chunk.peerId);
-        sendToWindow('remote-audio-lan-streaming', chunk.peerId);
-      }
-    },
-    () => sendToWindow(LAN_ERROR_CHANNEL, undefined),
-    (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
-  );
+  let link: IRemoteAudioLan | undefined;
+  /**
+   * The LAN link, built the first time anything asks for it.
+   *
+   * `remoteAudioLan` brings `ws`, and `ws` brings Node's TLS, HTTPS and zlib
+   * with it: imported at the top of this file, all of that was evaluated at
+   * every launch for a feature most sessions never open. It is still in the
+   * bundle; none of it runs until somebody shares audio or pairs a machine.
+   */
+  const lanLink = (): IRemoteAudioLan => {
+    if (!link) {
+      const { default: createRemoteAudioLan } =
+        // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- deferred to first use, see above
+        require('../remoteAudioLan') as typeof import('../remoteAudioLan');
+      link = createRemoteAudioLan(
+        (signal) => {
+          if (signal.signal.kind === 'stop') {
+            playback.remove(signal.peerId);
+            streaming.delete(signal.peerId);
+          }
+          ports.signal(signal);
+          sendToWindow(LAN_SIGNAL_CHANNEL, signal);
+        },
+        (chunk) => {
+          if (process.platform !== 'win32') {
+            ports.audio(chunk);
+            return;
+          }
+          playback.push(chunk);
+          ports.analyze(chunk);
+          if (!streaming.has(chunk.peerId)) {
+            streaming.add(chunk.peerId);
+            sendToWindow('remote-audio-lan-streaming', chunk.peerId);
+          }
+        },
+        () => sendToWindow(LAN_ERROR_CHANNEL, undefined),
+        (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
+      );
+    }
+    return link;
+  };
+  const lan: IRemoteAudioLan = {
+    startHost: (hostCredentials) => lanLink().startHost(hostCredentials),
+    restoreJoin: (code) => lanLink().restoreJoin(code),
+    sendSignal: (message) => lanLink().sendSignal(message),
+    sendAudio: (chunk) => lanLink().sendAudio(chunk),
+    setStreamMode: (peerId, mode) => lanLink().setStreamMode(peerId, mode),
+    stop: () => lanLink().stop(),
+  };
   const credentials = createRemoteAudioCredentialStore(userDataDir);
   let capture: IRemoteAudioCapture | undefined;
   let lastMeterAt = 0;
@@ -389,7 +414,9 @@ export const registerRemoteAudioIpc = ({
     beginSessionOperation();
     stopCapture();
     closeRawSource();
-    lan.stop();
+    // A link never built has nothing to stop, and quitting is no reason to
+    // load it.
+    link?.stop();
     ports.close();
     playback.close().catch(() => undefined);
   };

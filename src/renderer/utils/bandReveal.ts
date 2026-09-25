@@ -193,9 +193,57 @@ export const planBandReveal = (
   };
 };
 
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
+/**
+ * The painted frame the next step belongs on: the first one at least
+ * `stepMs` after the frame the last step was drawn in, answered with that
+ * frame's time.
+ *
+ * A reveal is a drawing, so it is paced by the frames it is drawn in. It was
+ * paced by a timer, which went on handing steps to a window that was not
+ * painting them — in a minimised one, where timers are throttled to one a
+ * second and then one a minute, a 600 ms reveal took most of a minute, and
+ * `refreshState` waited on it all that time for a picture nobody could see.
+ *
+ * So a window nobody can see does not wait at all: the steps go straight
+ * through, the reveal ends where it would have, and the answer is on screen
+ * whenever the window next is. The page being hidden mid-wait ends the wait
+ * for the same reason. Where there are no frames at all — Jest's jsdom has
+ * them, a Node test does not — there is nothing to pace by either.
+ */
+const nextStepFrame = (lastDrawnAt: number, stepMs: number) =>
+  new Promise<number>((resolve) => {
+    if (
+      typeof document === 'undefined' ||
+      typeof requestAnimationFrame !== 'function' ||
+      document.visibilityState === 'hidden'
+    ) {
+      resolve(lastDrawnAt);
+      return;
+    }
+    let frame = 0;
+    const listening = new AbortController();
+    const finish = (at: number) => {
+      cancelAnimationFrame(frame);
+      listening.abort();
+      resolve(at);
+    };
+    const onFrame = (at: number) => {
+      if (at - lastDrawnAt >= stepMs) {
+        finish(at);
+        return;
+      }
+      frame = requestAnimationFrame(onFrame);
+    };
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.visibilityState === 'hidden') {
+          finish(lastDrawnAt);
+        }
+      },
+      { signal: listening.signal },
+    );
+    frame = requestAnimationFrame(onFrame);
   });
 
 /**
@@ -211,12 +259,14 @@ export const revealBands = async (
   onStep: (bands: IBandRevealBand[]) => void,
   { isCurrent, stepMs = getBandRevealStepMs(steps.length) }: IBandRevealOptions,
 ): Promise<boolean> => {
+  let lastDrawnAt = performance.now();
   for (let index = 0; index < steps.length; index += 1) {
     if (index > 0) {
       // The pacing is the whole point, so it is an explicit wait rather than
-      // the incidental cost of an IPC round trip per band.
+      // the incidental cost of an IPC round trip per band — and a wait on the
+      // frames that draw it (`nextStepFrame`).
       // eslint-disable-next-line no-await-in-loop
-      await wait(stepMs);
+      lastDrawnAt = await nextStepFrame(lastDrawnAt, stepMs);
     }
     if (!isCurrent()) {
       return false;

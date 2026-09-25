@@ -63,6 +63,13 @@ export interface IScanOptions {
   /** Known files found unchanged, by id: confirmed, not sent again. */
   onUnchanged?: (trackIds: readonly string[]) => void;
   isCancelled: () => boolean;
+  /**
+   * Aborts with the scan's cancel, for a host that has to pass the cancel on
+   * as it happens: the worker's host (`scanHost.ts`) tells its worker at once
+   * rather than on the worker's next message, which only comes now and then.
+   * The walk itself asks `isCancelled`.
+   */
+  signal?: AbortSignal;
 }
 
 export interface IScanResult {

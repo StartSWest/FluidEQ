@@ -33,7 +33,13 @@ import {
   REFERENCE_SLOPE_DB_PER_DECADE,
   getReferenceShape,
 } from 'common/referenceCurve';
-import { LocaleCode, Translate, TranslationKey, translate } from 'common/i18n';
+import {
+  LocaleCode,
+  Translate,
+  TranslationKey,
+  loadLocale,
+  translate,
+} from 'common/i18n';
 
 /**
  * A translator bound to one language, which is what the describers take.
@@ -208,7 +214,9 @@ describe('autoBalance', () => {
       );
     });
 
-    it('takes the whole clause from the dictionary, not a verb and a noun', () => {
+    it('takes the whole clause from the dictionary, not a verb and a noun', async () => {
+      // Every language but English loads when it is first chosen.
+      await loadLocale('de');
       // The one thing a translated readout can get wrong that an English one
       // cannot. German writes this range-first — "Luft: angehoben" — and the
       // only way the output can come out in that order is if the clause was

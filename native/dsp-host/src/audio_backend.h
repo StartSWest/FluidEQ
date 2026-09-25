@@ -50,6 +50,33 @@ struct FeqBackendFormat {
 using FeqRenderFn = void (*)(void* context, float* const* planar,
                              uint32_t frames);
 
+/**
+ * Called on the device thread once a period has been handed to the device.
+ *
+ * The render callback may not make a system call, so the threads its block
+ * gave work to — the decoder, the voice worker, telemetry — are only ARMED
+ * inside it (`fluideq/doorbell.h`). This is where they are rung: between two
+ * periods, the one just produced already the device's. A wake here is a
+ * system call and costs no deadline; it must still not block, allocate or
+ * take a lock, because the next period is coming.
+ */
+using FeqPeriodDoneFn = void (*)(void* context);
+
+/**
+ * Called from any thread — a Windows notification, the device thread on its
+ * way out — when `needs_reopen()` has just become true. Wakes whoever acts on
+ * it, and nothing more: it must not block.
+ */
+using FeqReopenWantedFn = void (*)(void* context);
+
+/** What the backend calls back, all with the same context. */
+struct FeqBackendHooks {
+  FeqRenderFn render = nullptr;
+  FeqPeriodDoneFn period_done = nullptr;
+  FeqReopenWantedFn reopen_wanted = nullptr;
+  void* context = nullptr;
+};
+
 /** Counters the device thread keeps, read by the control thread. */
 struct FeqBackendStats {
   uint64_t underruns = 0;
@@ -137,17 +164,26 @@ class IAudioOutputBackend {
   virtual void clear_reopen() {}
 
   /**
-   * Ask for another attempt, because the last one did not succeed.
+   * The open about to be tried is a reopen: until one succeeds, any change to
+   * the outputs is a reason to try again.
    *
    * A reopen is acknowledged BEFORE it is tried, so a change arriving during
    * the attempt is not lost. That leaves nothing holding the request when the
    * attempt itself fails — and an endpoint that has just gone away is exactly
    * when opening fails, so the one case this whole mechanism exists for was
    * also the one it gave up on: closed, silent, and nothing scheduled to try
-   * again. Putting the request back is what makes it wait for the device to
-   * come back rather than for the user to restart the app.
+   * again. The fix put the request straight back, and the telemetry thread's
+   * 25 ms tick retried it forty times a second for the length of the outage.
+   * The tick is gone: from this call until an open succeeds, a device
+   * arriving, leaving or changing state, the default moving, or the audio
+   * service coming back raises `needs_reopen` and calls `reopen_wanted` —
+   * which is what makes the host wait for the device rather than for a clock,
+   * and never for the user to restart the app. Called before the attempt, so
+   * a device that arrives while it is failing is not missed either.
+   *
+   * A backend with no notifications ignores it: it never reopens at all.
    */
-  virtual void request_reopen() {}
+  virtual void await_endpoint() {}
 
   /** A human-readable name for the handshake and for support reports. */
   virtual const char* name() const = 0;
@@ -162,7 +198,7 @@ class IAudioOutputBackend {
  * an unsupported platform reports itself through the same channel a broken
  * device would.
  */
-std::unique_ptr<IAudioOutputBackend> create_audio_backend(FeqRenderFn render,
-                                                          void* context);
+std::unique_ptr<IAudioOutputBackend> create_audio_backend(
+    const FeqBackendHooks& hooks);
 
 #endif /* FLUIDEQ_HOST_AUDIO_BACKEND_H */

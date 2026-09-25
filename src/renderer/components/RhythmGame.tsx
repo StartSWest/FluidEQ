@@ -47,6 +47,7 @@ import {
 import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import ShareScoreCard from './ShareScoreCard';
 import '../styles/RhythmGame.scss';
 
@@ -67,9 +68,6 @@ const LEAD_MS = 420;
 const WINDOW_MS = LEAD_MS * 2;
 /** Always the middle, by construction. */
 const TARGET_PERCENT = 50;
-
-/** How long a verdict stays up after the tap that earned it. */
-const VERDICT_HOLD_MS = 900;
 
 /** The multiplier ceiling, as a joy value. At this point the run plays itself. */
 const EUPHORIA_AT = 1;
@@ -133,9 +131,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const [hasSignal, setHasSignal] = useState(false);
   // Where each detected hit currently sits, as a percentage across the trace.
   const [peakMarks, setPeakMarks] = useState<number[]>([]);
-  const verdictResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
   // The newest peak the automatic run has already played.
   const lastAutoRef = useRef(-Infinity);
   // Two, alternating. See the fill below for why one is not enough.
@@ -155,18 +150,13 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
    * earned it.
    */
   const scoreHit = useCallback((hit: IRhythmHit, record = true) => {
-    setLastHit(hit);
-    setHitSeq((seq) => seq + 1);
     // The verdict is feedback on a tap, so it goes away when the tap is over.
     // Left up it becomes a label, and the panel sits there claiming "GOOD"
-    // about something the player did ten seconds ago.
-    if (verdictResetRef.current !== undefined) {
-      clearTimeout(verdictResetRef.current);
-    }
-    verdictResetRef.current = setTimeout(() => {
-      verdictResetRef.current = undefined;
-      setLastHit(undefined);
-    }, VERDICT_HOLD_MS);
+    // about something the player did ten seconds ago. How long it stays is
+    // the verdict's own hold (`rhythm-verdict-hold`), whose end clears it —
+    // see the verdict below.
+    setLastHit(hit);
+    setHitSeq((seq) => seq + 1);
 
     // The automatic run is theatre, not play. It shows the perfect and it keeps
     // the mode alive, but it must not add a single point: a score that climbs
@@ -360,15 +350,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const shareScore = run.score;
   const shareMultiplier = getStreakMultiplier(run.streak);
 
-  useEffect(
-    () => () => {
-      if (verdictResetRef.current !== undefined) {
-        clearTimeout(verdictResetRef.current);
-      }
-    },
-    [],
-  );
-
   return (
     <>
       <div className="rhythm-game">
@@ -485,11 +466,20 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
             sharing a key is undefined behaviour in React: rather than replacing
             the previous verdict it left it mounted and appended the next, so a
             run of taps built a row of every verdict earned so far. */}
+          {/* Held while a tap's verdict is up: the hold is the verdict's
+            moment, and its end is what takes the verdict down. It was a
+            timer beside it, which ran on behind a covered window and cleared
+            verdicts nobody had seen. */}
           <span
             key={`verdict-${hitSeq}`}
             className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
               lastHit && hasPeaks ? lastHit.verdict : 'idle'
-            }`}
+            }${lastHit ? ' is-held' : ''}`}
+            onAnimationEnd={(event) => {
+              if (isOwnAnimationEnd(event, 'rhythm-verdict-hold')) {
+                setLastHit(undefined);
+              }
+            }}
           >
             {/* Tell the truth about why nothing is happening. A dead trace with a
               live score reads as broken; "put something on" does not. */}

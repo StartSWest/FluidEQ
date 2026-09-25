@@ -140,12 +140,13 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
   }, [takeSummary]);
 
   useEffect(() => {
-    // Progress arrives once per file — fifty a second on a warm cache — and
-    // every one of them re-renders this provider and everything under it,
-    // rows included. A strip that says "6,712 of 14,077" does not need fifty
-    // updates a second to be read, so they are coalesced onto animation
-    // frames: the newest is kept, the rest are dropped, and the browser
-    // decides the rate.
+    // Progress used to arrive once per file — fifty a second on a warm cache
+    // — and main now sends it per folder, per whole percent or per 32 files
+    // (`scanProgressGate.ts`); each one re-renders this provider and
+    // everything under it. A strip that says "6,712 of 14,077" does not need
+    // more than a frame's worth, so they are coalesced onto animation frames:
+    // the newest is kept, the rest are dropped, and the browser decides the
+    // rate.
     //
     // The terminal event is exempt. It is the one the renderer derives "still
     // scanning" from, and dropping it — or delivering it after a frame that

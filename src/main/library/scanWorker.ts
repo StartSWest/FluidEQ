@@ -41,6 +41,7 @@ import {
 } from './scanWorkerProtocol';
 import { scanLibraryRoot } from './libraryScanner';
 import { openLibraryReader } from './libraryStoreOpen';
+import { gateScanProgress } from './scanProgressGate';
 
 let cancelRequested = false;
 let nextArtworkRequestId = 0;
@@ -105,6 +106,11 @@ onHostMessage((message: IScanWorkerRequest) => {
     });
     return;
   }
+  // Only the reports worth a message go to the host (`scanProgressGate.ts`):
+  // the walk reports every file, which was a message per file both ways.
+  const gate = gateScanProgress((progress) =>
+    send({ type: 'progress', progress }),
+  );
   scanLibraryRoot({
     rootId: message.rootId,
     rootPath: message.rootPath,
@@ -112,9 +118,11 @@ onHostMessage((message: IScanWorkerRequest) => {
     lookupKnown: reader.trackByPath,
     force: message.force,
     storeArtwork: storeArtworkInHost,
-    onProgress: (progress) => send({ type: 'progress', progress }),
-    onTracks: (tracks, confirmed) =>
-      send({ type: 'tracks', tracks, confirmed }),
+    onProgress: gate.progress,
+    onTracks: (tracks, confirmed) => {
+      send({ type: 'tracks', tracks, confirmed });
+      gate.tracksSent();
+    },
     onUnchanged: (ids) => send({ type: 'unchanged', ids }),
     isCancelled: () => cancelRequested,
   })

@@ -489,6 +489,18 @@ if (isWindows) {
   if (!existsSync(volumeWatchPath)) {
     fail(`the system volume helper was not produced at ${volumeWatchPath}`);
   }
+  // The output watcher, packaged beside them: without it the app hears of a
+  // headset plugged in only when its window is next come back to.
+  const outputWatchPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Outputs.exe');
+  if (!existsSync(outputWatchPath)) {
+    fail(`the output watcher was not produced at ${outputWatchPath}`);
+  }
+  // What other programs are playing, packaged beside them: without it the
+  // transport bar never hears of Spotify, a browser tab or VLC.
+  const mediaWatchPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Media.exe');
+  if (!existsSync(mediaWatchPath)) {
+    fail(`the media helper was not produced at ${mediaWatchPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

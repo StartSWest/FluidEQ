@@ -37,6 +37,11 @@ $menu-fold-angle: 10deg;
 // fold took place where they could not be seen.
 $ease-unfold: cubic-bezier(0.22, 0.61, 0.36, 1);
 
+// How long a Smart EQ remark stays said (`smartEqRun.ts`): long enough to read
+// twice. The EQ page's bubble and the player's line both hold it this long,
+// and the end of either hold is what ends the remark.
+$smart-eq-status-hold: 6s;
+
 /**
  * A menu popping out of the control it hangs off, and folding back into it.
  *

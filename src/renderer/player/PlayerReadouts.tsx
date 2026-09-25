@@ -9,9 +9,9 @@ import { engineSupportsGameMode } from 'common/engineHealth';
 import { useLiveAudioControl } from '../audio/LiveAudioContext';
 import { formatLatencyMs } from '../components/LatencyReadout';
 import { setGameMode, useDspSettings } from '../dsp/store';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import {
   useListenedDelay,
   useListenedOutput,
@@ -36,8 +36,11 @@ const FLOOR_DB = -60;
  */
 const PlayerReadouts = () => {
   const { t } = useTranslation();
-  const { status } = useAudioEngineStatus();
-  const { isEnabled, isBlockingError } = useFluidEqContext();
+  // What the window already holds (`AppContent` asks for the life of the
+  // window): asking on mount ran the engine helper and a registry probe
+  // every time the player was opened.
+  const status = useKnownAudioEngineStatus();
+  const { isEnabled, isBlockingError } = useFluidEqShell();
   const isFluid = status?.engine === 'fluid';
   const listened = useListenedOutput(isFluid && isEnabled);
   const delay = useListenedDelay(listened);

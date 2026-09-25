@@ -71,3 +71,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @extend %arrow;
   clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
 }
+
+// How fast an arrow held down repeats: one step per turn of this animation,
+// counted by the button's `animationiteration` (`ArrowButton.tsx`). Five a
+// second, as the interval it replaces stepped. It changes nothing that can be
+// seen — `visibility`, which the arrow already has.
+.is-repeating {
+  animation: arrow-repeat 200ms linear infinite;
+}
+
+@keyframes arrow-repeat {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// Reduced motion cuts every animation to a millisecond, which here would be a
+// thousand steps a second; this is a pace, not a movement, so it keeps its own.
+:root[data-motion='reduced'] .is-repeating {
+  animation: arrow-repeat 200ms linear infinite !important;
+}

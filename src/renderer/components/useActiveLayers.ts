@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
+import latestCall from 'common/latestCall';
 import { AutoEqFormat, OPRA_SOURCE_ID, TApoLayer } from 'common/constants';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
@@ -37,8 +38,10 @@ import { presetLayerName } from '../dsp/dspPresetCatalog';
 import { collectLayers } from './activeLayerList';
 import type { IActiveLayer } from './activeLayerList';
 
-/** How long a strength drag settles before it is written. */
-const STRENGTH_WRITE_DEBOUNCE_MS = 250;
+type TStrengthWriter = (
+  write: (intensity: number) => Promise<void>,
+  intensity: number,
+) => Promise<void>;
 
 /**
  * What is shaping the sound besides the bands on screen, and the three
@@ -50,7 +53,7 @@ const STRENGTH_WRITE_DEBOUNCE_MS = 250;
  * about what switching one off means.
  */
 const useActiveLayers = () => {
-  const strengthTimers = useRef<Record<string, number>>({});
+  const strengthWriters = useRef(new Map<string, TStrengthWriter>());
   const {
     filters,
     eqBandDesign,
@@ -140,23 +143,26 @@ const useActiveLayers = () => {
    */
 
   /**
-   * Strength, applied at once and written a moment later.
+   * Strength, applied at once and written as fast as the writes come back.
    *
-   * The same debounce the two owning tabs use on their own sliders, and for the
-   * same reason: dragging across the track fires a change per step, and each one
-   * is a config rewrite that Equalizer APO then reloads. The state moves
-   * immediately so the chip and the graph follow the thumb, and only the last
-   * value reaches disk.
+   * Dragging across the track fires a change per step, and each one is a
+   * config rewrite that Equalizer APO then reloads. The state moves
+   * immediately so the chip and the graph follow the thumb; the writes go one
+   * at a time, and the steps that arrive while one is on its way are folded
+   * into the newest (`latestCall`), so the value the drag ends on is the one on
+   * disk. It was a debounce — a timer restarted by every step, writing a
+   * quarter of a second after the thumb stopped — which heard nothing of the
+   * drag until it was over, and guessed at how long "over" takes.
    *
-   * ONE TIMER PER LAYER, keyed, and not one timer shared between them.
+   * ONE WRITER PER LAYER, keyed, and not one shared between them.
    *
-   * Sharing looked harmless — nobody drags two sliders at once — and is not:
-   * the point of a debounce is that the write happens *after* you stop moving,
-   * so a pending write outlives the drag that scheduled it. Reach for the second
-   * slider inside that window and the shared timer is cleared, the first layer's
-   * write never happens, and it sits showing a value that was never written. The
-   * next state refresh pulls the old one back and the slider appears to move on
-   * its own, on a chip nobody touched.
+   * Sharing looks harmless — nobody drags two sliders at once — and is not: a
+   * waiting value outlives the drag that left it. Reach for the second slider
+   * while the first layer's last value is still waiting and a shared writer
+   * replaces it with the second layer's; the first layer's write never happens,
+   * and it sits showing a value that was never written. The next state refresh
+   * pulls the old one back and the slider appears to move on its own, on a chip
+   * nobody touched.
    */
   const setLayerStrength = (
     key: string,
@@ -165,14 +171,16 @@ const useActiveLayers = () => {
     intensity: number,
   ) => {
     apply(intensity);
-    const pending = strengthTimers.current[key];
-    if (pending !== undefined) {
-      window.clearTimeout(pending);
+    let writer = strengthWriters.current.get(key);
+    if (!writer) {
+      writer = latestCall<Parameters<TStrengthWriter>>((send, value) =>
+        send(value),
+      );
+      strengthWriters.current.set(key, writer);
     }
-    strengthTimers.current[key] = window.setTimeout(() => {
-      delete strengthTimers.current[key];
-      write(intensity).catch((e) => setGlobalError(e as ErrorDescription));
-    }, STRENGTH_WRITE_DEBOUNCE_MS);
+    writer(write, intensity).catch((e) =>
+      setGlobalError(e as ErrorDescription),
+    );
   };
 
   const setVoicingStrength = (intensity: number) =>

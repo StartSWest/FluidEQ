@@ -35,7 +35,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <new>
@@ -45,6 +44,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "denoise_internal.h"
 #include "fluideq/convolver.h"
+#include "fluideq/doorbell.h"
 #include "fluideq/resampler.h"
 
 #if defined(_WIN32)
@@ -210,6 +210,11 @@ struct VoiceRuntime {
   std::atomic<bool> running{false};
   std::atomic<uint32_t> underruns{0};
   uint32_t channel_count = 2;
+  /**
+   * Armed by the callback each block it pushes input or takes output, rung
+   * after the block by `denoise_voice_wake`, and slept on by the worker.
+   */
+  FeqDoorbell bell;
 };
 
 void* load_symbol(VoiceRuntime& runtime, const char* name) {
@@ -230,6 +235,22 @@ void close_library(VoiceRuntime& runtime) {
   dlclose(runtime.library);
 #endif
   runtime.library = nullptr;
+}
+
+/**
+ * True when an ONNX Runtime call succeeded, releasing its status either way.
+ *
+ * A failed call hands back an `OrtStatus` the caller owns. Dropped on the
+ * floor it is a small leak per failure, and GCC refuses to build the tree at
+ * all over it (the header marks each of these results must-use; MSVC reads
+ * the same mark as an annotation and says nothing).
+ */
+bool ort_ok(const OrtApi* api, OrtStatus* status) {
+  if (status == nullptr) {
+    return true;
+  }
+  api->ReleaseStatus(status);
+  return false;
 }
 
 /**
@@ -261,7 +282,8 @@ bool read_initial_state(VoiceRuntime& runtime) {
       return false;
     }
     out.assign(value);
-    api->AllocatorFree(allocator, value);
+    // The value is already copied out; a refused free is not a failed read.
+    ort_ok(api, api->AllocatorFree(allocator, value));
     return true;
   };
 
@@ -484,9 +506,26 @@ bool resample_output(VoiceRuntime& runtime) {
   return consumed > 0 || produced > 0;
 }
 
-/** The worker converts to 48 kHz, runs the model, then converts back. */
+/**
+ * The worker converts to 48 kHz, runs the model, then converts back.
+ *
+ * It sleeps until a block has given it something: input to take, or room in
+ * the output the callback has just emptied. It used to sleep a millisecond
+ * and look again, which is a thousand wake-ups a second for as long as a
+ * model is loaded — with the Library stopped, all of them for nothing — and
+ * still up to a millisecond late on the block that did bring work. The ring
+ * after each block (`denoise_voice_wake`) is at most microseconds late, and
+ * the four hops of scheduling headroom the latency carries are untouched.
+ *
+ * The count is read before the rings are looked at, so a block that lands
+ * between the look and the sleep is a ring the sleep returns on at once.
+ */
 void worker_loop(VoiceRuntime* runtime) {
-  while (runtime->running.load(std::memory_order_acquire)) {
+  for (;;) {
+    const uint32_t seen = runtime->bell.rung();
+    if (!runtime->running.load(std::memory_order_acquire)) {
+      return;
+    }
     bool worked = resample_input(*runtime);
     while (process_model_hop(*runtime)) {
       worked = true;
@@ -495,9 +534,7 @@ void worker_loop(VoiceRuntime* runtime) {
       worked = true;
     }
     if (!worked) {
-      // Nothing ready. Yielding rather than spinning: the callback refills
-      // every few milliseconds and a busy loop would take a core from it.
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      runtime->bell.wait(seen);
     }
   }
 }
@@ -557,6 +594,9 @@ void destroy_runtime(VoiceRuntime* runtime) {
     return;
   }
   runtime->running.store(false, std::memory_order_release);
+  // The worker is asleep until rung, and the next ring would have been a block
+  // that is never coming.
+  runtime->bell.ring();
   if (runtime->worker.joinable()) {
     runtime->worker.join();
   }
@@ -706,8 +746,22 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
     }
   }
   runtime->dry_cursor = (runtime->dry_cursor + frames) % dry_ring;
+  // Input pushed, output taken: either is work. Rung after the block.
+  runtime->bell.arm();
   denoise->voice_readers.fetch_sub(1, std::memory_order_release);
   return underruns;
+}
+
+void denoise_voice_wake(FeqDenoise* denoise) {
+  // Counted as a reader like the callback, so a model swapped on the control
+  // thread cannot be retired between the load and the ring.
+  denoise->voice_readers.fetch_add(1, std::memory_order_acq_rel);
+  auto* runtime = static_cast<VoiceRuntime*>(
+      denoise->voice.load(std::memory_order_acquire));
+  if (runtime != nullptr) {
+    runtime->bell.ring_if_armed();
+  }
+  denoise->voice_readers.fetch_sub(1, std::memory_order_release);
 }
 
 int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
@@ -754,8 +808,10 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
     // One thread each. The worker is already off the audio thread and ORT
     // spawning its own pool would put unpredictable scheduling next to a
     // real-time callback for no throughput this needs.
-    api->SetIntraOpNumThreads(runtime->options, 1);
-    api->SetInterOpNumThreads(runtime->options, 1);
+    // A refusal here leaves ORT's default pool, which still runs the model,
+    // so it is released and not treated as a failed load.
+    ort_ok(api, api->SetIntraOpNumThreads(runtime->options, 1));
+    ort_ok(api, api->SetInterOpNumThreads(runtime->options, 1));
   }
 #if defined(_WIN32)
   std::wstring wide;

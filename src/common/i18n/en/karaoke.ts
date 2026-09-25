@@ -441,8 +441,6 @@ const karaoke = {
   'karaoke.maker.memoryPolicy.ask': 'Ask me',
   'karaoke.maker.memoryPolicy.auto': 'Release automatically',
   'karaoke.maker.memoryPolicy.keep': 'Keep loaded',
-  'karaoke.maker.memoryAfter': 'After',
-  'karaoke.maker.memoryMinutes': '{count} min',
   'karaoke.maker.memoryPromptTitle': 'Free speech-model memory?',
   'karaoke.maker.memoryPromptBody':
     'The local speech model is idle. Freeing it saves RAM; its files stay cached for a faster reload.',

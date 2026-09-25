@@ -173,9 +173,3 @@ SPDX-License-Identifier: GPL-3.0-or-later
     margin-top: -2px;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .player-queue__bars span {
-    animation: none;
-  }
-}

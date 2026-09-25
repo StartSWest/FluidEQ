@@ -46,9 +46,11 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   const library = useLibraryDeck();
   // THE LIBRARY'S OWN TRANSPORT, not whichever player the deck above is
   // showing. This list is the Library's queue, so its bars say whether the
-  // Library is sounding, and a press starts the Library: asking the deck's
-  // player instead, a press with a browser tab playing moved the Library's
-  // playhead and started nothing.
+  // Library is sounding — not the player's source, which is whatever else is
+  // making sound when a video or a browser tab plays over a paused Library —
+  // and a press starts the Library: asking the deck's player instead, a press
+  // with a browser tab playing moved the Library's playhead and started
+  // nothing.
   const transport = useTransportSources().library;
   const isSounding = transport?.isPlaying === true;
   const listRef = useRef<HTMLOListElement>(null);
@@ -377,7 +379,7 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
                     {isNow ? (
                       <span
                         className={`player-queue__bars${
-                          isSounding ? '' : ' is-still'
+                          isSounding ? '' : ' is-paused'
                         }`}
                       >
                         <span />

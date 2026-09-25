@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useMemo } from 'react';
 import { presetToneOf } from '../../common/dsp/presetTone';
 import useMatchedDesign from '../graph/useMatchedDesign';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { setDspPresetTone } from './store';
 
 /**
@@ -30,7 +30,7 @@ const PresetToneFeed = () => {
     isEqDoubleOn,
     eqBandQ,
     curveBandQ,
-  } = useFluidEqContext();
+  } = useFluidEqLayers();
   const matchedDesign = useMatchedDesign();
   const tone = useMemo(
     () =>

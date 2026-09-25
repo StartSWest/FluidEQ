@@ -3,9 +3,14 @@ import useSystemMeters from '../../../renderer/dsp/useSystemMeters';
 import { getAudioDevices } from '../../../renderer/utils/equalizerApi';
 import { createNativeMeters } from '../../../renderer/dsp/nativeMeters';
 
-jest.mock('../../../renderer/utils/equalizerApi', () => ({
-  getAudioDevices: jest.fn(),
-}));
+jest.mock('../../../renderer/utils/equalizerApi', () => {
+  const getAudioDevices = jest.fn();
+  return {
+    getAudioDevices,
+    // Open-time readers take the kept list; here it is the same answer.
+    readKnownAudioDevices: () => getAudioDevices(),
+  };
+});
 jest.mock('../../../renderer/dsp/nativeMeters', () => ({
   createNativeMeters: jest.fn(),
 }));

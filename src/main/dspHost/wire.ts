@@ -177,15 +177,19 @@ export interface IHostAck {
  *
  * Electron's `getAppMetrics` knows only Electron's own children and the host is
  * a separate executable, so this is the only place either number exists. It
- * arrives on its own half-second clock rather than with telemetry, because
- * telemetry stops when the audio does and an idle process holding memory is
- * exactly the thing somebody opens the process list to find.
+ * arrives every half second of audio while something plays, and after any
+ * work the host does with nothing playing — never on a clock of its own.
  */
 export interface IHostStats {
   /** The same measure Electron reports for its own rows: the working set. */
   workingSetBytes: number;
-  /** Share of one core since the previous sample, as Chromium counts it. */
-  cpuPercent: number;
+  /**
+   * CPU time the host has used since it started, in seconds — a running
+   * total, so the process list fits a rate over whatever span it chooses, and
+   * a host that has done nothing since its last sample reads as idle without
+   * sending another.
+   */
+  cpuSeconds: number;
 }
 
 export interface IHostTelemetry {
@@ -398,7 +402,7 @@ export const decodeStats = (frame: Buffer): IHostStats | undefined => {
   return {
     // Offset 4 is the padding word that aligns the double at 16.
     workingSetBytes: Number(view.getBigUint64(8, true)),
-    cpuPercent: view.getFloat64(16, true),
+    cpuSeconds: view.getFloat64(16, true),
   };
 };
 

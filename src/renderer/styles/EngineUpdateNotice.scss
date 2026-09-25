@@ -13,12 +13,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // Last in line. Every other notice in this spot is about sound the EQ is not
 // reaching right now; this one is about an engine that is working and has a
-// newer build waiting, which keeps until those are answered. The engine
-// trouble notice's own rule lets this one through, so the two never hide
-// each other at once.
-body:has(.device-apo-notice:not(.engine-update-notice)) .engine-update-notice {
-  display: none;
-}
+// newer build waiting, which keeps until those are answered. Decided in
+// React (`noticeTurn.ts`).
 
 // The accent, not red: nothing is wrong. The accent is a theme colour, so
 // every alpha of it goes through color-mix — see the note in _color.scss.

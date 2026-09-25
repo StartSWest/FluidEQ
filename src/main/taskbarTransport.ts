@@ -8,7 +8,12 @@ import path from 'path';
 import { BrowserWindow, ipcMain, nativeImage, nativeTheme } from 'electron';
 import log from 'electron-log';
 import allowTaskbarMessages from './taskbarMessages';
-import { resolveLocale, translate } from '../common/i18n';
+import {
+  isLocaleLoaded,
+  loadLocale,
+  resolveLocale,
+  translate,
+} from '../common/i18n';
 import {
   ITaskbarTransportState,
   isTaskbarTransportState,
@@ -31,12 +36,32 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
   if (process.platform !== 'win32') {
     return;
   }
-  try {
-    allowTaskbarMessages(window.getNativeWindowHandle());
-    log.info('Taskbar command delivery ready');
-  } catch (error) {
-    log.error('Could not enable taskbar command delivery', error);
-  }
+  /**
+   * Let Explorer's clicks through, the first time the buttons can be put up.
+   *
+   * It loads koffi's native module (20 ms to require, measured on a warm
+   * disk) and two system DLLs to ask whether the process is elevated, and
+   * nothing needs it until the window has a taskbar entry for the buttons to
+   * be on — its first `show`, or its first `minimize` when it starts that way
+   * — which is when `update` first gets past its check. Done ahead of the
+   * buttons, never after: a button put up before the filter is lifted is one
+   * whose click an elevated FluidEQ never hears. It used to run as the page
+   * was asked for, on every launch, including the ones that never show a
+   * window at all. Once, whether or not it worked.
+   */
+  let isDeliveryAllowed = false;
+  const allowDelivery = () => {
+    if (isDeliveryAllowed) {
+      return;
+    }
+    isDeliveryAllowed = true;
+    try {
+      allowTaskbarMessages(window.getNativeWindowHandle());
+      log.info('Taskbar command delivery ready');
+    } catch (error) {
+      log.error('Could not enable taskbar command delivery', error);
+    }
+  };
   let state = EMPTY;
   let applied: string | undefined;
   const icons = new Map<string, Electron.NativeImage>();
@@ -77,12 +102,24 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     ) {
       return;
     }
+    allowDelivery();
     const dark = nativeTheme.shouldUseDarkColorsForSystemIntegratedUI;
-    const signature = JSON.stringify([state, dark]);
+    const locale = resolveLocale(state.locale);
+    // This process holds only English until a language is asked for, and the
+    // window can publish its state before it has named its language to the
+    // tray. The buttons go up in English for the moment the dictionary takes
+    // to load and are written again once it has — which is why whether it
+    // was loaded is part of what they were written from.
+    const translated = isLocaleLoaded(locale);
+    if (!translated) {
+      loadLocale(locale).then(update, (error: unknown) => {
+        log.warn(`Could not load the ${locale} dictionary`, error);
+      });
+    }
+    const signature = JSON.stringify([state, dark, translated]);
     if (applied === signature) {
       return;
     }
-    const locale = resolveLocale(state.locale);
     const toggleIcon = state.isPlaying ? 'pause' : 'play';
     const buttons: Electron.ThumbarButton[] = [
       {

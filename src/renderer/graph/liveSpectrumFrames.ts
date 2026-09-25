@@ -18,8 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { Translate } from 'common/i18n';
+// The constant alone, from the module the clock's worklet shares with the
+// window: the frames module is imported far and wide and must not pull the
+// worklet's loader in with it.
+import { AUDIO_CLOCK_TICKS_PER_SECOND } from '../audio/audioClockNames';
 import { IChartPointData } from './ChartController';
-import { IOutputLevel } from './outputLevel';
+import { IOutputLevel, LEVEL_FLOOR_DB } from './outputLevel';
 
 /**
  * One frame of the live spectrum: what it is measured with, and how it is read.
@@ -63,19 +67,22 @@ export const WAVEFORM_POINT_COUNT = 96;
  *
  * Safe to shorten because the measurement is driven by elapsed time rather than
  * by frame count: it reads `timestampMs` and clamps the real delta, so more
- * frames give it the same answer in more pieces. The constant stays where it is
- * and keeps doing its other job, which is bounding a stalled tick.
+ * frames give it the same answer in more pieces.
  *
  * Thirty a second rather than fifty, and the difference is not taste. Every
  * tick publishes into a context and re-renders the chart, so the tick is also a
  * render budget: at twenty milliseconds a render that overruns means the next
  * tick lands before the queue has drained, the chain never breaks, and React
- * gives up with "Maximum update depth exceeded" — which it did. Thirty-three
- * leaves room for a slow frame to catch up, and against the forty-five this
- * replaced it still takes a quarter off the delay before the smoothing below
- * takes its own share.
+ * gives up with "Maximum update depth exceeded" — which it did.
+ *
+ * Kept by the audio clock now, not by a timer (`audio/audioClock.ts`): the
+ * capture's own context ticks every thirtieth of a second of audio it renders.
+ * The interval this was the period of was throttled to once a second behind a
+ * minimised window, and to once a minute after five, which is where a Smart EQ
+ * measurement is usually left to run. This is the tick's length, and every
+ * rate written per tick is scaled from it.
  */
-export const UPDATE_INTERVAL_MS = 33;
+export const UPDATE_INTERVAL_MS = 1000 / AUDIO_CLOCK_TICKS_PER_SECOND;
 
 /**
  * The spectrum analyser's averaging, per `UPDATE_INTERVAL_MS` tick. Why it is
@@ -191,51 +198,24 @@ export const detectClipping = (timeDomainData: ArrayLike<number>): boolean => {
 };
 
 /**
- * How soon a failed capture is tried again, and how many times.
+ * How many failed captures in a row are tried again.
  *
- * Doubling, and finite. A capture that fails once has usually lost a race —
- * the endpoint is mid-switch, Windows has not finished handing the device
- * over — and trying again shortly afterwards is exactly right.
+ * A capture that fails once has usually lost a race — the endpoint is
+ * mid-switch, Windows has not finished handing the device over — and the next
+ * attempt is made on the event that can make it succeed: a device arriving or
+ * leaving, the output changing, the window being come back to. Never on a
+ * timer, which guessed how long Windows takes and was wrong in both directions.
  *
- * A capture that fails forever is a different situation and used to get the
- * same answer: every 2.5 seconds, for as long as the window stayed open.
+ * Finite, because a capture that fails forever used to be tried forever.
  * Windows Graphics Capture denies the window on some setups — `CreateForWindow
  * failed with hr: -2147024891`, which is E_ACCESSDENIED — and each attempt
  * negotiated a fresh capture session, was refused, and logged two errors on
  * the way out. Nothing about the tenth attempt was more likely to succeed than
- * the second; it just made the log unreadable and kept Chromium busy.
- *
- * Six attempts over roughly a minute and a half covers every transient cause,
- * and stopping after that is the honest answer: the wave has no data, which
- * the graph already says by drawing nothing.
+ * the second; it just made the log unreadable and kept Chromium busy. After
+ * six, only somebody asking again starts another: a new owner, the window
+ * shown again, the notice's button.
  */
-export const START_RETRY_MS = 2500;
 export const MAX_START_RETRIES = 6;
-
-/**
- * How long a muted capture is given before it is treated as a lost device.
- *
- * Long enough that ordinary gaps — a track change, a stream buffering, the
- * moment Equalizer APO reloads its config — pass without a restart, and short
- * enough that somebody who has just reinstalled the audio engine does not sit
- * watching a flat line wondering whether the app noticed.
- */
-export const DEVICE_LOST_GRACE_MS = 2500;
-
-/**
- * How long to let an output switch settle before grabbing the loopback again.
- *
- * Main says the endpoint changed as soon as it has loaded that output's
- * profile, which is earlier than Windows finishes handing the endpoint over.
- * Re-grabbing immediately can bind the new capture to the device being left —
- * the same race the start retry exists for, except that this one *succeeds*,
- * so nothing retries and the trace sits flat on an output nobody is listening
- * to any more.
- *
- * Short enough not to be seen as a gap, long enough to be on the other side of
- * the switch.
- */
-export const OUTPUT_SWITCH_SETTLE_MS = 450;
 
 /** Log-spaced analysis frequencies. Constant for a given sample rate. */
 export const createFrequencyAxis = (sampleRate: number): number[] => {
@@ -278,6 +258,41 @@ export const createFrameBuffers = (): IFrameBuffers => {
 /** Shared empties, so silence and teardown never mint a fresh array. */
 export const NO_POINTS: IChartPointData[] = [];
 export const NO_WAVEFORM: number[] = [];
+
+/**
+ * The waveform the capture publishes once when the output comes to rest, and
+ * after which it publishes nothing until sound returns (`isMeterAtRest`).
+ *
+ * Its own array rather than one of the pair, so a drawing can tell the last
+ * frame from one more of a stream. Anything that was letting go of a reading
+ * a step per published frame — the titlebar's held peak — has to finish that
+ * on its own clock from here, because no further frame is coming to count.
+ */
+export const SILENT_WAVEFORM: number[] = Array.from(
+  { length: WAVEFORM_POINT_COUNT },
+  () => 0,
+);
+
+/**
+ * Whether a frame of the meters has nothing left to show: every sample of the
+ * window a digital zero, and each channel's level and held peak down on the
+ * floor with no clip warning standing.
+ *
+ * Exactly zero, not quiet. A waveform with anything in it still draws, and
+ * the titlebar reads a peak down to -70 dBFS, ten decibels under the meter's
+ * floor, so only digital silence is a frame every drawing agrees is at rest.
+ */
+export const isMeterAtRest = (
+  waveform: readonly number[],
+  levels: readonly IOutputLevel[],
+): boolean =>
+  waveform.every((sample) => sample === 0) &&
+  levels.every(
+    (level) =>
+      !level.isClipping &&
+      level.levelDb <= LEVEL_FLOOR_DB &&
+      level.peakDb <= LEVEL_FLOOR_DB,
+  );
 
 /**
  * The shape of silence: the analyser's own axis, every band at the floor.

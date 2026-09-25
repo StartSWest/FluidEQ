@@ -273,10 +273,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 100%;
 }
 
+// The face and the lit segments over it (`LedClock.tsx`). The face is in
+// the flow and gives the clock its width, from its height and its drawing's
+// proportions; the lit layer is laid over it at the same size, so the two
+// draw the same segments in the same place.
 .led-clock {
-  width: auto;
+  position: relative;
+  display: block;
   height: 100%;
-  overflow: visible;
 
   .is-ghost {
     fill: var(--player-lcd-ghost);
@@ -288,15 +292,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Paused part-way, the clock blinks, as a deck's did.
-.player-clock.is-paused .led-clock .is-lit {
+.led-clock__face {
+  display: block;
+  width: auto;
+  height: 100%;
+  overflow: visible;
+}
+
+.led-clock__lit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+// Paused part-way, the clock blinks, as a deck's did: lit for half a second,
+// a ghost for the next.
+//
+// One animation, of the lit layer's opacity, which the compositor runs. It
+// was a registered number the lit segments' fill and glow were mixed from,
+// animated on the clock: neither fill nor filter is anything the compositor
+// can animate, so the clock was restyled on the main thread on every frame of
+// the pause, however long the pause, for a picture that changed twice a
+// second. Blinked off, the lit layer is simply not there, and every lit
+// segment shows the face's ghost of itself under it: exactly the ghost's fill
+// under a shadow of nothing, which is what the mix came to at 0.
+.player-clock.is-paused .led-clock__lit {
   animation: player-led-blink 1s steps(1) infinite;
 }
 
 @keyframes player-led-blink {
   50% {
-    fill: var(--player-lcd-ghost);
-    filter: none;
+    opacity: 0;
+  }
+}
+
+// Lit and still.
+@media (prefers-reduced-motion: reduce) {
+  .player-clock.is-paused .led-clock__lit {
+    animation: none;
   }
 }
 

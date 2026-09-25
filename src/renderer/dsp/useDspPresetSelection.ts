@@ -3,9 +3,9 @@
 import { useRef, useState } from 'react';
 import type { IDspSettings } from '../../common/dsp/chain';
 import type { ErrorDescription } from '../../common/errors';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { setVoicing as setVoicingApi } from '../utils/equalizerApi';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { resolveDspPreset, resolveDspPresetCurve } from './dspPresetCatalog';
 import { holdRackForApo, releaseRackHold } from './rackHeldForApo';
 import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
@@ -31,8 +31,12 @@ export const useDspPresetSelection = (
   onCommit: () => void,
   quick = false,
 ) => {
-  const { voicing, setVoicing, setGlobalError } = useFluidEqContext();
-  const { status } = useAudioEngineStatus();
+  const { voicing, setVoicing, setGlobalError } = useFluidEqLayers();
+  // Read at the press, from the answer the window keeps current. Asking main
+  // on mount instead ran the engine helper again every time a picker holding
+  // this mounted — the equaliser's toolbar, the DSP page's bar, a game's row —
+  // and a mount's answer is no fresher at the press than the window's.
+  const status = useKnownAudioEngineStatus();
   const [selecting, setSelecting] = useState(false);
   const selection = useRef(0);
   const apply = async (id: string) => {

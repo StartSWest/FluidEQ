@@ -86,7 +86,7 @@ describe('process diagnostics IPC', () => {
       getNativeHostPid: () => 99,
       getNativeHostStats: () => ({
         workingSetBytes: 64 * 1024 * 1024,
-        cpuPercent: 1.25,
+        cpuSeconds: 3.5,
       }),
     });
 
@@ -103,7 +103,7 @@ describe('process diagnostics IPC', () => {
           pid: 99,
           role: 'engine',
           memoryMb: 64,
-          cpuPercent: 1.3,
+          cpuSeconds: 3.5,
         },
       ]);
     } finally {

@@ -1,0 +1,46 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/*
+ * Task Manager's Name column for the output watcher, which runs for as long
+ * as FluidEQ does on Windows and should say what it is doing rather than read
+ * "FluidEQ" beside nine other rows.
+ */
+
+#include <winver.h>
+
+#ifndef FEQ_OUTPUTS_VERSION_STRING
+#define FEQ_OUTPUTS_VERSION_STRING "0.0.0"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Ivan Carmenates Garcia"
+      VALUE "FileDescription", "FluidEQ Output Watcher"
+      VALUE "FileVersion", FEQ_OUTPUTS_VERSION_STRING
+      VALUE "InternalName", "FluidEQ-Outputs"
+      VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
+      VALUE "OriginalFilename", "FluidEQ-Outputs.exe"
+      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductVersion", FEQ_OUTPUTS_VERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

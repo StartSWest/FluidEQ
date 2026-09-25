@@ -27,12 +27,14 @@ import {
 import { resetRhythmRun, setRhythmRun } from 'renderer/utils/rhythmRun';
 
 // The audio half mounts only while the mode is running, and all it wants is a
-// band list and a filter count. Neither has anything to do with the switch.
+// band list and a band count. Neither has anything to do with the switch.
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioFrame: () => ({ points: [] }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({ filters: {} }),
+  ...jest
+    .requireActual('__tests__/utils/fluidEqHookMocks')
+    .eqHooksFrom(() => ({ filters: {}, bandCount: 0 })),
 }));
 
 const isRootEuphoric = () =>

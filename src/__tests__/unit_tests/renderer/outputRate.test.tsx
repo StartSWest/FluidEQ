@@ -18,9 +18,14 @@ import OutputRate from '../../../renderer/components/OutputRate';
 import { formatRateKhz } from '../../../renderer/components/TitleRate';
 import { getAudioDevices } from '../../../renderer/utils/equalizerApi';
 
-jest.mock('../../../renderer/utils/equalizerApi', () => ({
-  getAudioDevices: jest.fn(),
-}));
+jest.mock('../../../renderer/utils/equalizerApi', () => {
+  const getAudioDevices = jest.fn();
+  return {
+    getAudioDevices,
+    // Open-time readers take the kept list; here it is the same answer.
+    readKnownAudioDevices: () => getAudioDevices(),
+  };
+});
 
 const outputs = (defaultRate: number | undefined): IAudioDevice[] => [
   {

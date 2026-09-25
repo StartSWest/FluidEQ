@@ -198,6 +198,23 @@ const buildReader = (
         analyser.disconnect(),
       );
       nodes.forEach((node) => node.disconnect());
+      // The edge INTO the splitter as well, and only that one: the capture's
+      // source feeds the graph and the meters too. Disconnecting the reader's
+      // own outputs left the source holding the splitter, so every rebuild —
+      // a look switched between Joined and Left & right — hung one more
+      // splitter off the live capture for as long as it ran.
+      try {
+        source.disconnect(splitter);
+      } catch (error) {
+        // A capture that stopped first has already disconnected its source
+        // from everything, and a second disconnect answers InvalidAccessError:
+        // the work is done.
+        if (!(
+          error instanceof DOMException && error.name === 'InvalidAccessError'
+        )) {
+          throw error;
+        }
+      }
     },
   };
 };

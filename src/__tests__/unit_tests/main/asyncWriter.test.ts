@@ -10,6 +10,7 @@ import {
   forgetPath,
   hasUnsettledWrites,
   peekScheduled,
+  replaceFileNow,
   scheduleWrite,
   scheduleWriteOperation,
   sweepAbandonedWrites,
@@ -115,6 +116,32 @@ describe('background file writes', () => {
     expect(fs.readFileSync(file, 'utf8')).toBe('kept');
   });
 
+  // The library index is written whole or not at all: half an index written
+  // in place, cut short by a crash, reads as corrupt at the next launch and
+  // resets the library. The control is the test above, where the same refusal
+  // is written in place.
+  it('keeps a file whole when its whole-file replacement is refused', async () => {
+    fs.writeFileSync(file, 'the library as it was');
+    const blocked = Object.assign(new Error('operation not permitted'), {
+      code: 'EPERM',
+    });
+    jest.spyOn(fs.promises, 'rename').mockRejectedValueOnce(blocked);
+
+    await expect(replaceFileNow(file, 'the library now')).rejects.toBe(blocked);
+
+    expect(fs.readFileSync(file, 'utf8')).toBe('the library as it was');
+    expect(fs.readdirSync(directory)).toEqual(['profile.txt']);
+  });
+
+  it('replaces a file whole when nothing refuses it', async () => {
+    fs.writeFileSync(file, 'the library as it was');
+
+    await replaceFileNow(file, 'the library now');
+
+    expect(fs.readFileSync(file, 'utf8')).toBe('the library now');
+    expect(fs.readdirSync(directory)).toEqual(['profile.txt']);
+  });
+
   it('coalesces a drag to its latest value while a write is in flight', async () => {
     const gate = deferred();
     const original = fs.promises.writeFile.bind(fs.promises);
@@ -202,6 +229,59 @@ describe('background file writes', () => {
     expect(skipped).not.toHaveBeenCalled();
     expect(fs.readFileSync(file, 'utf8')).toBe('last');
     expect(hasUnsettledWrites()).toBe(false);
+  });
+
+  /**
+   * An operation that threw used to end the queue, and whatever was queued
+   * behind it was dropped unwritten — at quit too. The library index goes
+   * through here: a folder removed while a failed index write was on its way
+   * came back at the next launch.
+   */
+  it('writes what was queued behind an operation that failed', async () => {
+    const report = jest.spyOn(log, 'error').mockImplementation(() => undefined);
+    const gate = deferred();
+    const started = deferred();
+    const first = scheduleWriteOperation(directory, async () => {
+      started.resolve();
+      await gate.promise;
+      throw new Error('the index is held open');
+    });
+    await started.promise;
+    const second = scheduleWriteOperation(directory, async () => {
+      await scheduleWrite(file, 'a folder removed');
+    });
+    gate.resolve();
+
+    // The last snapshot landed, so the file holds the latest state and
+    // neither caller is told of a failure it no longer has.
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      undefined,
+      undefined,
+    ]);
+    await flushPendingWrites();
+    expect(fs.readFileSync(file, 'utf8')).toBe('a folder removed');
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it('still reports an operation whose last write failed', async () => {
+    jest.spyOn(log, 'error').mockImplementation(() => undefined);
+    const failure = new Error('disk full');
+    const gate = deferred();
+    const started = deferred();
+    const first = scheduleWriteOperation(directory, async () => {
+      started.resolve();
+      await gate.promise;
+      await scheduleWrite(file, 'written');
+    });
+    await started.promise;
+    const second = scheduleWriteOperation(directory, async () => {
+      throw failure;
+    });
+    gate.resolve();
+
+    await expect(first).rejects.toBe(failure);
+    await expect(second).rejects.toBe(failure);
+    expect(fs.readFileSync(file, 'utf8')).toBe('written');
   });
 
   it('finishes other pending saves before reporting a shutdown write failure', async () => {

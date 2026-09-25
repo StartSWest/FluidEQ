@@ -9,6 +9,7 @@ import {
   makerMonthDaysLeft,
   makerMonthEndsToday,
   makerMonthState,
+  type IMakerMonth,
 } from 'common/makerMonth';
 import Glyph from '../community/Glyph';
 import { useAccount } from '../account/accountStore';
@@ -16,6 +17,7 @@ import { loadMakerMonth, useMakerMonth } from '../plus/makerMonthStore';
 import { openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import '../styles/SceneReviewNotice.scss';
 
 /**
@@ -59,6 +61,32 @@ const rememberSaid = (accountId: string, which: TShown) => {
   }
 };
 
+/**
+ * What the notice has to say now, if anything. `putAway` is the `seenKey` of
+ * what was put away, so it names the account as well as the state.
+ */
+const toSay = (
+  accountId: string | undefined,
+  month: IMakerMonth | undefined,
+  asked: string | undefined,
+  putAway: string | undefined,
+): TShown | undefined => {
+  if (!accountId || !month || asked !== accountId || !month.maker) {
+    return undefined;
+  }
+  const state = makerMonthState(month, Date.now());
+  const which: TShown | undefined =
+    state === 'ending' || state === 'ended' ? state : undefined;
+  if (
+    !which ||
+    putAway === seenKey(accountId, which) ||
+    alreadySaid(accountId, which)
+  ) {
+    return undefined;
+  }
+  return which;
+};
+
 export default function MakerMonthNotice() {
   const { t } = useTranslation();
   const { identity, status } = useAccount();
@@ -76,17 +104,12 @@ export default function MakerMonthNotice() {
     }
   }, [accountId]);
 
-  if (!accountId || !month || asked !== accountId || !month.maker) {
-    return null;
-  }
-  const state = makerMonthState(month, Date.now());
-  const which: TShown | undefined =
-    state === 'ending' || state === 'ended' ? state : undefined;
-  if (
-    !which ||
-    putAway === seenKey(accountId, which) ||
-    alreadySaid(accountId, which)
-  ) {
+  const which = toSay(accountId, month, asked, putAway);
+  // The corner is the review news' first: a scene just decided is the newer
+  // thing, and this is a week's warning that can wait for it to be put away
+  // (`noticeTurn.ts`).
+  const isShown = useNoticeTurn('makerMonth', which !== undefined);
+  if (!accountId || !month || !which || !isShown) {
     return null;
   }
 

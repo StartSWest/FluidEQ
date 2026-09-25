@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  DragEvent,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
@@ -24,6 +31,7 @@ import { useLibraryTracks } from './useLibraryTracks';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
 import Switch from '../widgets/Switch';
+import { ROW_HEIGHT, SCROLL_STEP, upNextWindowFor } from './upNextWindow';
 
 /**
  * How long the queue really is, as the header and the folded chip both say it.
@@ -95,12 +103,8 @@ export const LibraryUpNextChip = ({
   );
 };
 
-/** A track row: 30px of picture with 6px either side of it. */
-const ROW_HEIGHT = 42;
 /** An album heading: one small line and the space above it. */
 const HEADING_HEIGHT = 26;
-/** Entries kept mounted beyond the scrollport, either side. */
-const OVERSCAN = 6;
 
 /**
  * A queued song, and its PLACE in the run.
@@ -227,7 +231,18 @@ const LibraryUpNext = ({
   } = useLibraryPlayerSession();
 
   const listRef = useRef<HTMLDivElement | null>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  /** Where the list is scrolled to, rounded down to a `SCROLL_STEP`. */
+  const [scrolledTo, setScrolledTo] = useState(0);
+  /** The same value, for a scroll handler that must not re-render to find out
+   * whether it has to. */
+  const scrolledToRef = useRef(0);
+  const followScroll = useCallback((scrollTop: number) => {
+    const step = Math.floor(scrollTop / SCROLL_STEP) * SCROLL_STEP;
+    if (step !== scrolledToRef.current) {
+      scrolledToRef.current = step;
+      setScrolledTo(step);
+    }
+  }, []);
   const [paneHeight, setPaneHeight] = useState(0);
   const [draggingAt, setDraggingAt] = useState<number | undefined>(undefined);
 
@@ -273,8 +288,8 @@ const LibraryUpNext = ({
     if (listRef.current) {
       listRef.current.scrollTop = 0;
     }
-    setScrollTop(0);
-  }, [firstTrackId]);
+    followScroll(0);
+  }, [firstTrackId, followScroll]);
 
   /**
    * The songs the queue names, and only those: asked of the library by id
@@ -336,35 +351,10 @@ const LibraryUpNext = ({
     return { offsets, height: y };
   }, [entries]);
 
-  const rowWindow = useMemo(() => {
-    const viewport = paneHeight || ROW_HEIGHT * 12;
-    // CLAMPED TO THE LIST AS IT IS NOW, not as it was when this offset was
-    // last read.
-    //
-    // The queue shortens under this panel all the time — choosing a song
-    // drops everything above it, removing a row drops one — and the offset
-    // held here is from before that happened. Left alone, the arithmetic ran
-    // off the end: `start` landed past the last entry, so nothing mounted and
-    // both spacers came out zero, and the panel went blank while the
-    // scrollbar still claimed a list. That is the "it stops filling" and it
-    // is intermittent because it needs the list to shrink under a scroll that
-    // was already deep.
-    const clamped = Math.max(
-      0,
-      Math.min(scrollTop, Math.max(0, layout.height - viewport)),
-    );
-    const top = clamped - OVERSCAN * ROW_HEIGHT;
-    const bottom = clamped + viewport + OVERSCAN * ROW_HEIGHT;
-    let start = 0;
-    while (start < entries.length && layout.offsets[start] + ROW_HEIGHT < top) {
-      start += 1;
-    }
-    let end = start;
-    while (end < entries.length && layout.offsets[end] < bottom) {
-      end += 1;
-    }
-    return { start, end };
-  }, [entries.length, layout.height, layout.offsets, paneHeight, scrollTop]);
+  const rowWindow = useMemo(
+    () => upNextWindowFor(layout, paneHeight, scrolledTo),
+    [layout, paneHeight, scrolledTo],
+  );
 
   /**
    * BOTH NUMBERS, because either one alone lies.
@@ -461,7 +451,7 @@ const LibraryUpNext = ({
         <div
           ref={listRef}
           className="library-up-next__list"
-          onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+          onScroll={(event) => followScroll(event.currentTarget.scrollTop)}
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => onDrop(event)}
         >

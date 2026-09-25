@@ -245,15 +245,15 @@ describe('a root added while another is already scanning', () => {
       return { found: 1, karaokeSkipped: 0, wasCancelled: false };
     });
 
-    // Returns as soon as A is added and its walk is started -- B is added
-    // from inside A's walk, which starts synchronously, not from this line.
+    // Returns as soon as A is added. Its walk begins a moment later -- the
+    // scanner is loaded on first use (`scanHost.ts`) -- and B is added from
+    // inside it, not from this line.
     const afterAddingA = handler('library-root-add-paths')({}, [dirA]);
-    expect(afterAddingA).toMatchObject({
-      roots: [{ path: dirA }, { path: dirB }],
-    });
+    expect(afterAddingA).toMatchObject({ roots: [{ path: dirA }] });
 
     await walksDone();
     const final = summaryNow();
+    expect(final.roots.map((root) => root.path)).toEqual([dirA, dirB]);
     expect(rootAt(final, dirA)?.trackCount).toBe(1);
     expect(rootAt(final, dirB)?.trackCount).toBe(1);
     expect(final.trackCount).toBe(2);

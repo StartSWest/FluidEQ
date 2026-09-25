@@ -224,8 +224,15 @@ window.addEventListener(
   true,
 );
 
-/** How often to sweep the page, in milliseconds. ClearTube's own cadence. */
-const SWEEP_INTERVAL_MS = 350;
+/** What a media element says as an ad starts on it, or takes it back. */
+const AD_START_MEDIA_EVENTS = [
+  'loadeddata',
+  'durationchange',
+  'play',
+  'playing',
+  'ratechange',
+  'volumechange',
+] as const;
 
 interface IAdSession {
   player: HTMLElement | null;
@@ -490,7 +497,11 @@ const processPage = () => {
  *
  * YouTube's player rewrites a great deal of DOM per second, and running the
  * sweep on every record was enough work to be visible in a frame budget that
- * also has a spectrum analyser in it.
+ * also has a spectrum analyser in it — so one pass per frame while the page is
+ * on screen. Off screen there are no frames to wait for: the Media tab hides
+ * its player with `display: none` and the music carries on, and an ad that
+ * starts there has to be caught all the same. There the pass runs as soon as
+ * the current task is done, which coalesces the burst that task made.
  */
 const scheduleProcess = () => {
   if (scheduled) {
@@ -498,7 +509,30 @@ const scheduleProcess = () => {
   }
 
   scheduled = true;
-  requestAnimationFrame(processPage);
+  if (document.visibilityState === 'visible') {
+    requestAnimationFrame(processPage);
+  } else {
+    queueMicrotask(processPage);
+  }
+};
+
+/**
+ * The same for what a media element says, which never waits on a frame.
+ *
+ * These are few — a handful per video — and they are the moment an ad starts
+ * playing, including in a player that is not being painted, where a frame
+ * would never come. Coalesced within the task that fired them.
+ */
+let mediaPassQueued = false;
+const scheduleMediaPass = () => {
+  if (mediaPassQueued) {
+    return;
+  }
+  mediaPassQueued = true;
+  queueMicrotask(() => {
+    mediaPassQueued = false;
+    processPage();
+  });
 };
 
 const start = async () => {
@@ -518,9 +552,22 @@ const start = async () => {
     subtree: true,
   });
 
-  // Belt as well as braces: an ad can begin without mutating anything this
-  // observer watches, and a fixed sweep catches those.
-  setInterval(processPage, SWEEP_INTERVAL_MS);
+  // An ad can begin without mutating anything the observer watches: the
+  // player swaps the source of the same <video> and starts it again. What it
+  // cannot do without is the element itself saying so — a new source's data
+  // and length (`loadeddata`, `durationchange`), a start (`play`, `playing`)
+  // — and the same element saying its speed or sound was put back under the
+  // ad (`ratechange`, `volumechange`), which the bypass then takes again.
+  // None of them bubbles, so each is caught on its way down, in capture, for
+  // every media element the page has now or makes later. ClearTube swept the
+  // page every 350 ms for these instead; a pass per event, coalesced within
+  // the task that fired it, is the same work only when something happened.
+  AD_START_MEDIA_EVENTS.forEach((type) =>
+    document.addEventListener(type, scheduleMediaPass, true),
+  );
+  // A pass waiting on a frame when the page went off screen would wait for
+  // good; going either way runs it now.
+  document.addEventListener('visibilitychange', processPage);
   processPage();
 };
 
@@ -530,7 +577,7 @@ ipcRenderer.on(VIDEO_AD_BLOCK_CHANGED, (_event, enabled: boolean) => {
 });
 
 // The stylesheet goes in now, before the page has run a line of its own script.
-// This is the half that has to be early: the sweep below can afford to arrive
+// This is the half that has to be early: the passes below can afford to arrive
 // late, but CSS that lands after first paint is a visible flash of the ad slot
 // it was supposed to hide.
 webFrame.insertCSS(AD_BLOCK_CSS);

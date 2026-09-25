@@ -1,6 +1,6 @@
 /* FluidEQ karaoke import notices. GPL-3.0-or-later. */
 
-import { translate } from '../../../common/i18n';
+import { loadLocale, translate } from '../../../common/i18n';
 import { IKaraokePlaylistSelection } from '../../../common/karaoke/files';
 import {
   karaokeLyricWarningSentence,
@@ -71,7 +71,9 @@ describe('the set-aside sentences', () => {
     expect(sentences[0]).not.toContain('more');
   });
 
-  it('stops naming files once a folder import runs away with the strip', () => {
+  it('stops naming files once a folder import runs away with the strip', async () => {
+    // Every language but English loads when it is first chosen.
+    await loadLocale('es');
     const found = karaokeSetAsideFiles(
       selection({ unpairedLyrics: names(50, 'lrc') }),
     );

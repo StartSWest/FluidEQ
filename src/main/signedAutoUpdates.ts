@@ -218,7 +218,7 @@ const inspectAuthenticodeSignature: SignatureInspector = (executablePath) =>
         '-Command',
         buildPowershellScript(executablePath),
       ],
-      { encoding: 'utf8', timeout: 20_000, windowsHide: true },
+      { encoding: 'utf8', windowsHide: true },
       (error, stdout, stderr) => {
         if (error) {
           reject(error);
@@ -497,6 +497,13 @@ export const setUpReleaseAutoUpdates = async (
   let isMandatoryPending = false;
   let hasDownloaded = false;
   let isInstallerAuthorized = false;
+  /**
+   * The installer has been handed over and the app is on its way out. An
+   * `error` from here on is the install failing — the installer not starting,
+   * or not there — and is the one thing that can take the mandatory dialog's
+   * "Installing…" down now that it no longer gives up on a clock.
+   */
+  let isInstalling = false;
 
   /**
    * Whether a check the user started is still waiting for its verdict.
@@ -597,6 +604,16 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   updater.on('error', (error) => {
+    if (isInstalling) {
+      isInstalling = false;
+      logger.error(
+        `The update installer did not start: ${(error as Error).message}`,
+      );
+      if (isMandatoryPending) {
+        sendStatus({ phase: 'failed', isMandatory: true, failure: 'install' });
+      }
+      return;
+    }
     logger.info('Update check failed', error);
     settleManualCheck('failed');
     if (isMandatoryPending && !hasDownloaded) {
@@ -680,6 +697,7 @@ export const setUpReleaseAutoUpdates = async (
       // fails to replace a still-open executable. See the note on
       // `beforeQuit` in IReleaseAutoUpdateOptions above.
       beforeQuit?.();
+      isInstalling = true;
       updater.quitAndInstall(isSilent, isForceRunAfter);
     },
     isReadyToInstall: () => isInstallerAuthorized,

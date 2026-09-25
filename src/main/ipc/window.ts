@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { release } from 'os';
 import { BrowserWindow, ipcMain, systemPreferences } from 'electron';
-import { resolveLocale } from '../../common/i18n';
+import log from 'electron-log';
+import { loadLocale, resolveLocale } from '../../common/i18n';
 import {
   PLAYER_HEIGHT_LIMIT_CHANNEL,
   PLAYER_WIDTH_FLOOR_CHANNEL,
@@ -113,11 +114,24 @@ export const registerWindowIpc = ({
    * picker changes it. Re-resolved here rather than trusted: this arrives over
    * IPC as a string, and `resolveLocale` is what turns anything at all into
    * one of the ten shipped codes.
+   *
+   * The dictionary is loaded before the tray takes the language, because this
+   * process holds only English until asked (`loadLocale`) and everything that
+   * translates here — the tray, its notifications, the recovery dialog — reads
+   * the tray's language. Only the latest ask applies: two quick switches must
+   * end on the second even if the first one's dictionary lands last.
    */
-  ipcMain.handle('window-set-locale', (_event, next: unknown) => {
-    setTrayLocale(resolveLocale(typeof next === 'string' ? next : null), {
-      getMainWindow,
+  let localeAsks = 0;
+  ipcMain.handle('window-set-locale', async (_event, next: unknown) => {
+    const ask = localeAsks + 1;
+    localeAsks = ask;
+    const locale = resolveLocale(typeof next === 'string' ? next : null);
+    await loadLocale(locale).catch((error: unknown) => {
+      log.warn(`Could not load the ${locale} dictionary for the tray`, error);
     });
+    if (ask === localeAsks) {
+      setTrayLocale(locale, { getMainWindow });
+    }
   });
 
   /**

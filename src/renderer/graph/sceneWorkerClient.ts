@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
@@ -78,7 +79,12 @@ const startSceneWorker = () =>
     ),
   );
 
-/** Programs compiled ahead of being seen this session, by `sceneProgramKey`. */
+/**
+ * Programs compiled ahead of being seen this session, by a digest of their
+ * `sceneProgramKey`: that key carries the whole shader source, up to 256 KB
+ * for a member scene, and nothing leaves this set — every Studio save warmed
+ * kept a copy of its source for the rest of the session.
+ */
 const warmed = new Set<string>();
 
 /**
@@ -101,14 +107,15 @@ export const warmSceneProgram = (
   guarded: boolean,
 ): Promise<void> => {
   const key = sceneProgramKey(pack);
+  const warmedKey = textDigest(key);
   if (
-    warmed.has(key) ||
+    warmed.has(warmedKey) ||
     typeof Worker === 'undefined' ||
     typeof OffscreenCanvas === 'undefined'
   ) {
     return Promise.resolve();
   }
-  warmed.add(key);
+  warmed.add(warmedKey);
   return takeLinkTurn(key)
     .then(
       (release) =>
@@ -118,7 +125,7 @@ export const warmSceneProgram = (
             worker = startSceneWorker();
           } catch {
             release();
-            warmed.delete(key);
+            warmed.delete(warmedKey);
             resolve();
             return;
           }
@@ -131,7 +138,7 @@ export const warmSceneProgram = (
           worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
             if (data.kind === 'loaded') {
               if (data.result.kind !== 'ready') {
-                warmed.delete(key);
+                warmed.delete(warmedKey);
               }
               // Retired rather than ended: see `dispose` below.
               worker.postMessage({
@@ -154,7 +161,7 @@ export const warmSceneProgram = (
         }),
     )
     .catch(() => {
-      warmed.delete(key);
+      warmed.delete(warmedKey);
     });
 };
 

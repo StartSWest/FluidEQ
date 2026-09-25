@@ -14,6 +14,11 @@ jest.mock('electron-log', () => ({
   __esModule: true,
   default: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }));
+// The module keeps the script's compiled helper in the app's data folder.
+// Nothing here runs the script, but loading the module reaches for `app`.
+jest.mock('electron', () => ({
+  app: { getPath: () => 'userData' },
+}));
 
 const device = (over: Partial<IAudioDevice>): IAudioDevice => ({
   id: 'id',

@@ -178,6 +178,30 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// "Copied", for its moment: the hold's end is what puts the button's own label
+// back (`ShareScoreCard.tsx`), where a timer beside it used to. The same 1.6s.
+//
+// `visibility`, which the word already has, so the hold changes nothing on
+// screen. Not a movement, and it has to end for the label to come back, so it
+// stays under reduced motion — against the stand-down's 1ms (`App.scss`) with
+// a class more than its `*` and `!important` to meet its own.
+$share-score-copied: 1.6s;
+
+.share-score__confirmed {
+  animation: share-score-copied $share-score-copied linear;
+}
+
+:root[data-motion='reduced'] .share-score__confirmed {
+  animation: share-score-copied $share-score-copied linear !important;
+}
+
+@keyframes share-score-copied {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
 .share-score__networks {
   display: grid;
   gap: 8px;

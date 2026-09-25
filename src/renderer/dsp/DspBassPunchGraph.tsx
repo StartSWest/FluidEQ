@@ -7,11 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import { readTextInk } from '../utils/theme';
 import { IBassPunchSettings } from '../../common/dsp/chain';
+import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassPunchActivity } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS, baseCurveInk, SKY_CSS, skyInk } from './dspInks';
 import writeLiveText from '../utils/liveText';
+import useCanvasSize from './useCanvasSize';
 
 /**
  * The last three seconds of what Punch did, on a time axis.
@@ -125,6 +127,15 @@ const readout = (db: number, running: boolean): string => {
     : `${db > 0 ? '+' : ''}${db.toFixed(1)} dB`;
 };
 
+/**
+ * Each lane's figure at its widest, for the box it is laid out in on its own
+ * (`LiveFigure`): the attack and the sustain share the low lane's span, the
+ * duck only ever cuts to its own. A stage that is off prints the dash alone,
+ * in no box, so it keeps the narrow chip it always had.
+ */
+const LOW_WIDEST = [readout(-LOW_SPAN_DB, true)];
+const DUCK_WIDEST = [readout(-DUCK_SPAN_DB, true)];
+
 interface IDspBassPunchGraphProps {
   bassPunch: IBassPunchSettings;
 }
@@ -156,6 +167,13 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
   const heldTransient = useRef(0);
   /** The running loop's way in, for a render that has to reach the canvas. */
   const redraw = useRef<(() => void) | undefined>(undefined);
+  /**
+   * A frame drawn at once, for a new box: it is reported before the frame it
+   * arrived in is painted, and a frame asked for instead would show the old
+   * picture stretched over the new box until the next one.
+   */
+  const paintNow = useRef<(() => void) | undefined>(undefined);
+  const size = useCanvasSize(canvasRef, () => paintNow.current?.());
 
   const { enabled } = bassPunch;
 
@@ -208,21 +226,19 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
           ? transientDb
           : heldTransient.current * RELEASE_PER_FRAME;
 
-      if (transientRef.current) {
-        writeLiveText(
-          transientRef.current,
-          readout(heldTransient.current, enabled),
-        );
-      }
-      if (sustainRef.current) {
-        writeLiveText(sustainRef.current, readout(sustainDb, enabled));
-      }
-      if (duckRef.current) {
-        writeLiveText(duckRef.current, readout(duckDb, enabled));
-      }
+      writeLiveText(
+        transientRef.current,
+        readout(heldTransient.current, enabled),
+      );
+      writeLiveText(sustainRef.current, readout(sustainDb, enabled));
+      writeLiveText(duckRef.current, readout(duckDb, enabled));
 
-      const width = Math.max(1, canvas.clientWidth);
-      const height = Math.max(1, canvas.clientHeight);
+      // The box from the observer, never read here: see `useCanvasSize`.
+      // Nothing to draw into until it has reported one.
+      const { width, height } = size.current;
+      if (width < 1 || height < 1) {
+        return;
+      }
       const ratio = Math.max(1, window.devicePixelRatio || 1);
       const pixelWidth = Math.round(width * ratio);
       const pixelHeight = Math.round(height * ratio);
@@ -435,11 +451,13 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       },
     });
     redraw.current = loop.schedule;
+    paintNow.current = () => paint({ schedule: loop.schedule });
     return () => {
       redraw.current = undefined;
+      paintNow.current = undefined;
       loop.stop();
     };
-  }, [enabled, t]);
+  }, [enabled, size, t]);
 
   // Repaint when anything drawn changes. The loop only turns while the engine
   // is publishing, so the split and the dials reach the canvas through here
@@ -464,19 +482,57 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       />
       {/* Live numbers as text rather than as canvas glyphs: these are the
           readings somebody quotes when they report what the stage did, and
-          text can be selected, translated and read aloud. */}
+          text can be selected, translated and read aloud. Each rewritten one
+          is laid out on its own (`LiveFigure`): the row they stand in is
+          placed by its auto size, so new text there laid the window out. */}
       <div className="dsp-master-status dsp-bass-punch-status" aria-live="off">
         <span className="is-attack">
           {t('dsp.bassPunch.attack')}
-          <b ref={transientRef}>—</b>
+          <b>
+            {enabled ? (
+              <LiveFigure
+                className="dsp-status-figure"
+                widest={LOW_WIDEST}
+                textRef={transientRef}
+              >
+                —
+              </LiveFigure>
+            ) : (
+              '—'
+            )}
+          </b>
         </span>
         <span className="is-sustain">
           {t('dsp.bassPunch.sustain')}
-          <b ref={sustainRef}>—</b>
+          <b>
+            {enabled ? (
+              <LiveFigure
+                className="dsp-status-figure"
+                widest={LOW_WIDEST}
+                textRef={sustainRef}
+              >
+                —
+              </LiveFigure>
+            ) : (
+              '—'
+            )}
+          </b>
         </span>
         <span className="is-duck">
           {t('dsp.bassPunch.duck')}
-          <b ref={duckRef}>—</b>
+          <b>
+            {enabled ? (
+              <LiveFigure
+                className="dsp-status-figure"
+                widest={DUCK_WIDEST}
+                textRef={duckRef}
+              >
+                —
+              </LiveFigure>
+            ) : (
+              '—'
+            )}
+          </b>
         </span>
       </div>
       <ul className="dsp-eq-legend dsp-master-legend">

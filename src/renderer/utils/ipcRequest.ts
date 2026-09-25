@@ -58,21 +58,17 @@ import type { IEngineSetupResult } from 'main/engineSetup';
  * either resolves or is turned into an error the UI can show. None of it
  * knows what any particular call means.
  *
- * Separated so the transport can be read on its own. The timeout in particular
- * is subtle — it survives the machine sleeping, because a laptop that wakes
- * after twenty minutes must not find every request already failed — and that
- * reasoning was buried under sixty wrappers that each say one thing.
+ * NO DEADLINE. Main answers every request it is sent — a reply, or an error
+ * the UI can show (`onWindowMessage`) — so the answer is what is waited for,
+ * however long it takes. Each request used to give up after ten seconds,
+ * which is a guess at how long another machine takes to enumerate its
+ * devices, read a disk or restart its audio: a slow machine was told the
+ * request failed while main was still doing it, and the answer that followed
+ * was thrown away. The guess needed a second one to survive the machine
+ * sleeping (a deadline that passed during a suspend fired on waking), and the
+ * slow calls each carried a longer guess of their own; all of that went with
+ * it.
  */
-export const TIMEOUT = 10000;
-
-/**
- * How much longer than the timeout the wall clock must have moved before the
- * wait is treated as suspended rather than slow.
- *
- * Twice over is comfortably outside anything scheduling jitter or a busy main
- * process produces, and comfortably inside the shortest sleep anybody takes.
- */
-export const SLEEP_ELAPSED_FACTOR = 2;
 
 export interface TSuccess<Type> {
   result: Type;
@@ -158,8 +154,9 @@ const waitForReply = (
   const stopListening = window.electron.ipcRenderer.on(
     replyChannel,
     (payload: unknown, repliedTo: unknown) => {
-      // A reply naming no request still waiting is one whose request gave up,
-      // or one sent to nobody in particular; neither is anybody's answer.
+      // A reply naming no request still waiting is one sent to nobody in
+      // particular, or one a copy of this module left behind by a hot reload
+      // is waiting for; neither is this copy's answer.
       if (!isRequestId(repliedTo)) {
         return;
       }
@@ -187,13 +184,6 @@ export interface IRequestOptions {
    * a band's writes are answered on a channel named after the band.
    */
   replyChannel?: string;
-  /**
-   * `null` is no deadline at all: the reply is waited for however long it
-   * takes. For requests that wait on a person before main can answer — a
-   * Windows permission prompt — where any number of seconds is a guess at how
-   * long somebody takes to read one, and main answers every one of them.
-   */
-  timeout?: number | null;
 }
 
 /**
@@ -207,58 +197,16 @@ export const sendRequest = <Type>(
   channel: string,
   args: unknown[],
   responseHandler: TResponseHandler<Type>,
-  { replyChannel = channel, timeout = TIMEOUT }: IRequestOptions = {},
+  { replyChannel = channel }: IRequestOptions = {},
 ): Promise<Type> => {
   lastRequestId += 1;
   const requestId = lastRequestId;
   window.electron.ipcRenderer.sendMessage(channel, args, requestId);
 
   return new Promise<Type>((resolve, reject) => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
     waitForReply(replyChannel, requestId, (payload) => {
-      clearTimeout(timer);
       responseHandler(payload as TResult<Type>, resolve, reject);
     });
-
-    /**
-     * A timeout has to survive the machine going to sleep.
-     *
-     * `setTimeout` is a deadline in wall-clock time, and Chromium fires timers
-     * whose deadline passed while the computer was suspended the moment it
-     * wakes. So a request in flight when the lid closed used to reject the
-     * instant you came back — "Timeout waiting for a response" for a main
-     * process that was never asked to answer anything, because nothing ran at
-     * all in between.
-     *
-     * The tell is the clock itself. Ten seconds of waiting cannot take an hour
-     * of wall-clock time unless the wait was suspended, so an elapsed time far
-     * beyond the timeout is evidence of sleep rather than of a slow reply. In
-     * that case the request is given its full window again, once. A second
-     * overrun is a real timeout: after a resume the process is awake, and a
-     * reply that still has not arrived is genuinely missing.
-     */
-    let startedAt = Date.now();
-    let allowedSleepRecovery = true;
-
-    const arm = () => {
-      if (timeout === null) {
-        return;
-      }
-      timer = setTimeout(() => {
-        const elapsed = Date.now() - startedAt;
-        if (allowedSleepRecovery && elapsed > timeout * SLEEP_ELAPSED_FACTOR) {
-          allowedSleepRecovery = false;
-          startedAt = Date.now();
-          arm();
-          return;
-        }
-        stopWaiting(replyChannel, requestId);
-        reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
-      }, timeout);
-    };
-
-    arm();
   });
 };
 

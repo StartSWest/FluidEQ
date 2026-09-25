@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
+@use 'motion' as *;
 
 // The equalizer's screen: what is applied along the top, the curve across
 // the middle, the status line along the foot.
@@ -306,6 +307,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// A Smart EQ remark, held for its moment; the hold's end is what takes it
+// down (`smartEqRun.ts`). Visibility only, so it changes nothing on screen,
+// and exempt from reduced motion, whose 1ms would end it unread.
+.player-eq-screen__remark {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear;
+}
+
+@keyframes smart-eq-status-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+:root[data-motion='reduced']
+  .player-eq-screen__smart
+  .player-eq-screen__remark {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear !important;
 }
 
 .player-eq-screen__corner {

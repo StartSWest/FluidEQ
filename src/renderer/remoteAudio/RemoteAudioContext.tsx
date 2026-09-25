@@ -20,7 +20,7 @@ import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import type { IPcmMixer } from './pcmMixer';
 import { createPcmSender, IPcmSender } from './pcmSender';
 import { measureRemoteAudioChunk } from './meter';
@@ -53,7 +53,7 @@ import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
 
 const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { capture, setSharingAudio } = useLiveAudioControl();
-  const { activeDeviceId } = useFluidEqContext();
+  const { activeDeviceId } = useFluidEqShell();
   const [role, setRoleState] = useState<TRemoteAudioRole | undefined>(
     undefined,
   );

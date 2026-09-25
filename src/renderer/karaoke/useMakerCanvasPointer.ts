@@ -39,6 +39,7 @@ import {
 } from './useKaraokeMakerSelection';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
 import { flattenTokens, replaceNote } from './makerProjectEdits';
+import { TWhenPlayheadReaches } from './karaokeMediaCue';
 
 /**
  * Everything the pointer does on the Maker canvas.
@@ -88,6 +89,8 @@ export interface IMakerCanvasPointerParams
   onSeek: (positionMs: number) => void;
   cancelAudibleInteractions: (pause?: boolean) => void;
   setScrubAuditionAnchorMs: Dispatch<SetStateAction<number | undefined>>;
+  /** What says an audition's stretch of the song has been heard. */
+  whenPlayheadReaches: TWhenPlayheadReaches;
 
   /** What the canvas is showing, and how to make it show it again. */
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -155,6 +158,7 @@ export const useMakerCanvasPointer = ({
   setViewStartMs,
   viewStartMs,
   visibleViewDurationMs,
+  whenPlayheadReaches,
 }: IMakerCanvasPointerParams) => {
   const canvasPoint = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -209,10 +213,15 @@ export const useMakerCanvasPointer = ({
     drag.auditionStartMs = Math.max(0, startMs);
     drag.auditionEndMs = Math.max(drag.auditionStartMs + 20, endMs);
     setScrubAuditionAnchorMs(drag.audioAnchorMs);
-    if (drag.auditionTimerId !== undefined) {
+    if (drag.cancelAudition !== undefined) {
+      // A pass is playing; the next one plays the range as it is by then.
       return;
     }
+    // Round and round while the word is dragged, each pass ending when the
+    // playhead reaches the range's end. It was a timer of the range's length
+    // from the seek, which lost the seek and the start-up off every pass.
     const playCurrentRange = () => {
+      drag.cancelAudition = undefined;
       if (
         gesture.drag.current !== drag ||
         drag.auditionStartMs === undefined ||
@@ -223,9 +232,9 @@ export const useMakerCanvasPointer = ({
       drag.auditionStarted = true;
       onSeek(drag.auditionStartMs);
       Promise.resolve(onPlay()).catch(() => undefined);
-      drag.auditionTimerId = window.setTimeout(
+      drag.cancelAudition = whenPlayheadReaches(
+        drag.auditionEndMs,
         playCurrentRange,
-        Math.max(20, drag.auditionEndMs - drag.auditionStartMs),
       );
     };
     playCurrentRange();
@@ -233,27 +242,28 @@ export const useMakerCanvasPointer = ({
 
   const auditionWordScrubGrain = (scrub: ICanvasScrubState) => {
     if (!scrub.auditionWordGrain) {
-      if (scrub.grainTimerId !== undefined) {
-        window.clearTimeout(scrub.grainTimerId);
-        scrub.grainTimerId = undefined;
+      if (scrub.cancelGrain !== undefined) {
+        scrub.cancelGrain();
+        scrub.cancelGrain = undefined;
         onPause();
         onSeek(scrub.anchorMs);
       }
       return;
     }
-    if (scrub.grainTimerId !== undefined) {
-      window.clearTimeout(scrub.grainTimerId);
-    }
+    scrub.cancelGrain?.();
     onSeek(scrub.anchorMs);
     Promise.resolve(onPlay()).catch(() => undefined);
-    scrub.grainTimerId = window.setTimeout(() => {
+    // 90 ms of the song as played, not 90 ms from the seek: a timer counted
+    // the seek and the element's start-up into the grain, and a grain that
+    // short was left with little or nothing of the word in it.
+    scrub.cancelGrain = whenPlayheadReaches(scrub.anchorMs + 90, () => {
+      scrub.cancelGrain = undefined;
       if (gesture.scrub.current !== scrub) {
         return;
       }
       onPause();
       onSeek(scrub.anchorMs);
-      scrub.grainTimerId = undefined;
-    }, 90);
+    });
   };
 
   const moveViewport = (requestedStartMs: number) => {
@@ -984,9 +994,8 @@ export const useMakerCanvasPointer = ({
     }
     if (gesture.scrub.current?.pointerId === event.pointerId) {
       const scrub = gesture.scrub.current;
-      if (scrub.grainTimerId !== undefined) {
-        window.clearTimeout(scrub.grainTimerId);
-      }
+      scrub.cancelGrain?.();
+      scrub.cancelGrain = undefined;
       if (scrub.auditionWordGrain) {
         onPause();
         onSeek(scrub.anchorMs);
@@ -1003,9 +1012,8 @@ export const useMakerCanvasPointer = ({
     if (!drag) {
       return;
     }
-    if (drag.auditionTimerId !== undefined) {
-      window.clearTimeout(drag.auditionTimerId);
-    }
+    drag.cancelAudition?.();
+    drag.cancelAudition = undefined;
     if (drag.auditionStarted && drag.audioAnchorMs !== undefined) {
       onPause();
       onSeek(drag.audioAnchorMs);

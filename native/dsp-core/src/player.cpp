@@ -17,8 +17,6 @@ using feq_player::Deck;
 
 namespace {
 
-/** Decoded in one go, before resampling. A block, not a buffer. */
-constexpr uint32_t kDecodeChunk = 4096;
 /**
  * A deck is primed once it holds this much, or once its decoder is done.
  *
@@ -63,7 +61,11 @@ void post_switch(FeqPlayer* player, Deck& deck) {
  * Move one chunk from the decoder into the ring, converting on the way.
  *
  * Returns device-rate frames written. Zero means either the ring is full or
- * the file is finished, and the caller distinguishes them by `exhausted`.
+ * the file is finished — flushed to its last frame — and the caller
+ * distinguishes them by `exhausted`. Never zero with room left and more of
+ * the file to go: the decoder thread sleeps on a zero until the audio thread
+ * takes frames. Recurses at most twice to keep that promise (a converter
+ * window filled without output, then a file that ended on a chunk boundary).
  */
 uint32_t fill_deck(FeqPlayer* player, Deck& deck) {
   if (deck.handle == nullptr || deck.resampler == nullptr) {
@@ -91,14 +93,17 @@ uint32_t fill_deck(FeqPlayer* player, Deck& deck) {
       deck.decoded.fetch_add(written, std::memory_order_acq_rel);
       return written;
     }
-    deck.pending = player->ops.read(player->ops.user, deck.handle,
-                                    deck.decoded_pointers.data(), kDecodeChunk);
+    deck.pending =
+        player->ops.read(player->ops.user, deck.handle,
+                         deck.decoded_pointers.data(), FEQ_PLAYER_DECODE_CHUNK);
     deck.pending_at = 0;
-    if (deck.pending < kDecodeChunk) {
+    if (deck.pending < FEQ_PLAYER_DECODE_CHUNK) {
       deck.exhausted.store(1, std::memory_order_release);
     }
     if (deck.pending == 0) {
-      return 0;
+      // The file ended on a chunk boundary: straight on to the converter's
+      // flush above, rather than zero and a sleep with the tail still inside.
+      return fill_deck(player, deck);
     }
   }
 
@@ -117,7 +122,15 @@ uint32_t fill_deck(FeqPlayer* player, Deck& deck) {
       &consumed);
   deck.pending_at += consumed;
   if (produced == 0) {
-    return 0;
+    /**
+     * Frames taken into the converter's window without one coming out: the
+     * tail of a chunk too short to centre the next output on, or the first
+     * half-window of a file. The next chunk finishes the job, so this is not
+     * "nothing to do" — and zero is what tells the decoder thread to sleep
+     * until the audio thread takes frames, with room in the ring and the
+     * file unfinished. It used to be rescued by the next 5 ms poll.
+     */
+    return consumed > 0 ? fill_deck(player, deck) : 0;
   }
   const auto* const* converted =
       reinterpret_cast<const float* const*>(deck.converted_pointers.data());
@@ -162,7 +175,7 @@ FeqPlayer* feq_player_create(double output_rate,
     Deck& deck = player->decks[index];
     deck.ring.reset(channels, player->read_ahead);
     plan_buffers(deck.decoded_storage, deck.decoded_pointers, channels,
-                 kDecodeChunk);
+                 FEQ_PLAYER_DECODE_CHUNK);
     // The converter can emit more frames than it consumes when upsampling, so
     // its output buffer is sized for the block rather than for the chunk.
     plan_buffers(deck.converted_storage, deck.converted_pointers, channels,
@@ -309,6 +322,19 @@ uint32_t feq_player_pump(FeqPlayer* player) {
     }
   }
   return total;
+}
+
+uint64_t feq_player_frames_taken(const FeqPlayer* player) {
+  if (player == nullptr) {
+    return 0;
+  }
+  // Read cursors only ever move forward, a seek's discard included, so the
+  // sum changes exactly when the decks' read-ahead has room it did not have.
+  uint64_t taken = 0;
+  for (const auto& deck : player->decks) {
+    taken += deck.ring.read_cursor();
+  }
+  return taken;
 }
 
 double feq_player_position_seconds(const FeqPlayer* player, uint32_t deck) {

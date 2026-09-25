@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback } from 'react';
 import type { ErrorDescription } from 'common/errors';
 import { disableEqualizer, enableEqualizer } from './equalizerApi';
-import { useFluidEqContext } from './FluidEqContext';
+import { useFluidEqShell } from './FluidEqContext';
 
 /**
  * FluidEQ's own on/off switch, for anything that offers it.
@@ -19,7 +19,7 @@ import { useFluidEqContext } from './FluidEqContext';
  */
 const useEqualizerPower = () => {
   const { isBlockingError, isEnabled, setGlobalError, setIsEnabled } =
-    useFluidEqContext();
+    useFluidEqShell();
 
   const toggle = useCallback(async () => {
     try {

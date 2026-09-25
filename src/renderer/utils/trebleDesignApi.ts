@@ -20,9 +20,6 @@ const request = (
     channel,
     args,
     buildResponseHandler<ITrebleDesigns>((result, resolve) => resolve(result)),
-    // A choice is answered once its file has landed, behind whatever else
-    // the writer has queued: the reply is the signal, not a deadline.
-    { timeout: null },
   );
 
 export const getTrebleDesigns = (): Promise<ITrebleDesigns> =>

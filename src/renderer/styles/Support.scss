@@ -922,3 +922,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
 }
+
+// TWO MOMENTS, HELD BY THE ELEMENTS THAT SHOW THEM.
+//
+// "Copied" on an address's button, and the face a tap earned the creature.
+// Each was a timer beside the thing on screen; each is now a hold on it, and
+// the hold's end is what ends the moment (`SupportDialog.tsx`) — so a window
+// that stops painting stops the moment with it, instead of ending it unseen.
+//
+// Both hold `visibility`, which neither changes, so nothing is drawn by them:
+// an opacity hold would have put each on a compositor layer of its own for its
+// length, where text loses subpixel antialiasing (`_motion.scss`). Neither is
+// a movement, and each has to end for its moment to, so both stay under
+// reduced motion — against the stand-down's 1ms (`App.scss`) with a class
+// more than its `*` and `!important` to meet its own.
+$support-copied: 2s;
+$support-pet-mood: 700ms;
+
+.support-method__confirmed {
+  animation: support-copied $support-copied linear;
+}
+
+// Nothing to see: the face is the button's classes (`SupportPet.scss`). This
+// is only how long they stay, so it takes no room and no pointer.
+.support-pet-tap__mood {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  animation: support-pet-mood $support-pet-mood linear;
+}
+
+:root[data-motion='reduced'] .support-method__confirmed {
+  animation: support-copied $support-copied linear !important;
+}
+
+:root[data-motion='reduced'] .support-pet-tap__mood {
+  animation: support-pet-mood $support-pet-mood linear !important;
+}
+
+@keyframes support-copied {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+@keyframes support-pet-mood {
+  from,
+  to {
+    visibility: visible;
+  }
+}

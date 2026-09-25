@@ -25,9 +25,7 @@ import {
   MANDATORY_UPDATE_FIELD,
   MANDATORY_UPDATE_VALUE,
 } from 'common/mandatoryUpdate';
-import MandatoryUpdateModal, {
-  REMINDER_INTERVAL_MS,
-} from 'renderer/components/MandatoryUpdateModal';
+import MandatoryUpdateModal from 'renderer/components/MandatoryUpdateModal';
 import UpdateNotice from 'renderer/components/UpdateNotice';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
@@ -74,8 +72,32 @@ const show = () =>
 const installButton = () =>
   screen.getByRole('button', { name: /Install and restart|Installing/ });
 
+/**
+ * The window put away and brought back, as the page sees it.
+ *
+ * jsdom's `visibilityState` is a getter on the document's prototype, so the
+ * document gets its own for the length of a test and gives it back after.
+ */
+let visibility: DocumentVisibilityState = 'visible';
+const setVisibility = (next: DocumentVisibilityState) => {
+  visibility = next;
+  act(() => {
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+};
+beforeAll(() => {
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    get: () => visibility,
+  });
+});
+afterAll(() => {
+  Reflect.deleteProperty(document, 'visibilityState');
+});
+
 beforeEach(() => {
   mountElectron();
+  visibility = 'visible';
 });
 
 /**
@@ -87,8 +109,8 @@ beforeEach(() => {
  *     correct response to exactly one signal and the wrong response to a bug, a
  *     truthy value, a dropped connection, or a check that never ran;
  *   - the ones about the reminder. It closes now, so "cannot be forgotten" is
- *     carried entirely by a timer, and a timer is the sort of thing that works
- *     until somebody adds a second one;
+ *     carried entirely by the window coming back, and nothing else may bring
+ *     it back early or leave a timer behind to;
  *   - the ones about the failure path, which survived the change from a gate to
  *     a notice and is now reachable from a dialog the user can also close.
  */
@@ -331,56 +353,65 @@ describe('the mandatory update notice', () => {
       );
     });
 
-    it('explains itself when the install request never settles', async () => {
-      // The failure a `catch` cannot see: `quitAndInstall` returning without
-      // quitting and without throwing, which is what a downloaded file that
-      // fails verification actually does. Without the timeout this is a dialog
-      // reading "Installing…" forever.
+    /**
+     * Installing waits on the updater's word, not on a clock.
+     *
+     * A request that was answered hands the installer over; what can still go
+     * wrong after that — the installer not starting — is the updater's own
+     * error, which main sends as a failed status. It used to be a twenty-
+     * second deadline, which called a slow install a failure. So: nothing
+     * scheduled, still installing however long it takes (the null), and the
+     * failure shown the moment the updater says so (its positive control).
+     */
+    it('waits for the updater to say an answered install failed', async () => {
       jest.useFakeTimers();
       try {
         show();
         emit({ phase: 'ready', version: '1.3.0', isMandatory: true });
         installResult = () =>
           new Promise<void>(() => {
-            // Never settles, which is the whole point.
+            // Main handed the installer over and the app has not gone yet.
           });
         await userEvent
           .setup({ advanceTimers: jest.advanceTimersByTime })
           .click(installButton());
+        expect(jest.getTimerCount()).toBe(0);
+        act(() => {
+          jest.advanceTimersByTime(60_000);
+        });
         expect(screen.getByRole('alertdialog').textContent).toContain(
           'Installing…',
         );
-        act(() => {
-          jest.advanceTimersByTime(20000);
-        });
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+        emit({ phase: 'failed', isMandatory: true, failure: 'install' });
         expect(releaseLink()).toHaveAttribute('href', LATEST_RELEASE_URL);
+        expect(screen.getByRole('alertdialog').textContent).toContain(
+          'the installer did not start',
+        );
+        // The button is back, so it can be tried again.
+        expect(installButton()).toHaveTextContent('Install and restart');
       } finally {
         jest.useRealTimers();
       }
     });
 
     it('is still closable, and still comes back with the failure intact', () => {
-      jest.useFakeTimers();
-      try {
-        show();
-        emit({ phase: 'failed', isMandatory: true, failure: 'download' });
-        act(() => {
-          screen.getByRole('button', { name: 'Not now' }).click();
-        });
-        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      show();
+      emit({ phase: 'failed', isMandatory: true, failure: 'download' });
+      act(() => {
+        screen.getByRole('button', { name: 'Not now' }).click();
+      });
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
 
-        act(() => {
-          jest.advanceTimersByTime(REMINDER_INTERVAL_MS);
-        });
-        // The reason and the manual route survive the round trip; they are
-        // state, not something the open dialog computed once.
-        expect(screen.getByRole('alertdialog').textContent).toContain(
-          'The update could not be downloaded',
-        );
-        expect(releaseLink()).toHaveAttribute('href', LATEST_RELEASE_URL);
-      } finally {
-        jest.useRealTimers();
-      }
+      setVisibility('hidden');
+      setVisibility('visible');
+      // The reason and the manual route survive the round trip; they are
+      // state, not something the open dialog computed once.
+      expect(screen.getByRole('alertdialog').textContent).toContain(
+        'The update could not be downloaded',
+      );
+      expect(releaseLink()).toHaveAttribute('href', LATEST_RELEASE_URL);
     });
 
     it('clears the complaint if a later check gets further', () => {
@@ -394,10 +425,10 @@ describe('the mandatory update notice', () => {
   /**
    * Closable, but not forgettable.
    *
-   * This is what replaces the lock. Everything here runs on fake timers, and
-   * the two assertions that matter most are the ones about a timer that must
-   * *not* exist: one while the dialog is already open, and one after the
-   * component has gone.
+   * This is what replaces the lock. A dismissal lasts until the window is next
+   * brought back — hidden, then visible — and not a moment longer or shorter;
+   * and nothing is left counting down anywhere, while the dialog is open,
+   * dismissed, or gone.
    */
   describe('coming back after a dismissal', () => {
     const dismiss = () =>
@@ -413,24 +444,27 @@ describe('the mandatory update notice', () => {
       jest.useRealTimers();
     });
 
-    it('re-opens once the interval has passed', () => {
+    it('re-opens when the window comes back', () => {
       show();
       emit({ phase: 'available', version: '1.3.0', isMandatory: true });
       dismiss();
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
 
-      act(() => {
-        jest.advanceTimersByTime(REMINDER_INTERVAL_MS);
-      });
+      setVisibility('hidden');
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      setVisibility('visible');
       expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     });
 
-    it('stays closed until the interval has actually passed', () => {
+    it('stays closed for as long as the window does not go and come back', () => {
+      // The fifteen minutes it used to wait, and four times that: time alone
+      // brings nothing back, and nothing is scheduled to.
       show();
       emit({ phase: 'available', version: '1.3.0', isMandatory: true });
       dismiss();
+      expect(jest.getTimerCount()).toBe(0);
       act(() => {
-        jest.advanceTimersByTime(REMINDER_INTERVAL_MS - 1);
+        jest.advanceTimersByTime(60 * 60 * 1000);
       });
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
@@ -441,47 +475,50 @@ describe('the mandatory update notice', () => {
       for (let round = 0; round < 3; round += 1) {
         dismiss();
         expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-        act(() => {
-          jest.advanceTimersByTime(REMINDER_INTERVAL_MS);
-        });
+        setVisibility('hidden');
+        setVisibility('visible');
         expect(screen.getByRole('alertdialog')).toBeInTheDocument();
       }
     });
 
     it('does not stack a reminder on a dialog that is already open', () => {
-      // The timer exists only while dismissed, so an open dialog has nothing
-      // pending that could fire into it. Left running for four intervals to
-      // prove no queue of them built up while it was on screen.
+      // Nothing listens while it is open, so coming back four times over an
+      // open dialog leaves exactly the one.
       show();
       emit({ phase: 'available', version: '1.3.0', isMandatory: true });
-      act(() => {
-        jest.advanceTimersByTime(REMINDER_INTERVAL_MS * 4);
-      });
+      for (let round = 0; round < 4; round += 1) {
+        setVisibility('hidden');
+        setVisibility('visible');
+      }
       expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
     });
 
-    it('schedules nothing at all before a mandatory release has been seen', () => {
+    it('brings nothing up before a mandatory release has been seen', () => {
       show();
       emit({ phase: 'available', version: '1.3.0' });
-      act(() => {
-        jest.advanceTimersByTime(REMINDER_INTERVAL_MS * 4);
-      });
+      setVisibility('hidden');
+      setVisibility('visible');
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       expect(jest.getTimerCount()).toBe(0);
     });
 
-    it('stops once the component is gone', () => {
-      // A window closed fourteen minutes into a wait must not leave a timer
-      // that sets state on a component that no longer exists.
-      const { unmount } = show();
-      emit({ phase: 'available', version: '1.3.0', isMandatory: true });
-      dismiss();
-      expect(jest.getTimerCount()).toBe(1);
-      unmount();
-      expect(jest.getTimerCount()).toBe(0);
-      act(() => {
-        jest.advanceTimersByTime(REMINDER_INTERVAL_MS * 2);
-      });
+    it('stops listening once the component is gone', () => {
+      // A window closed while dismissed must not leave a listener that sets
+      // state on a component that no longer exists.
+      const removed = jest.spyOn(document, 'removeEventListener');
+      try {
+        const { unmount } = show();
+        emit({ phase: 'available', version: '1.3.0', isMandatory: true });
+        dismiss();
+        unmount();
+        expect(removed).toHaveBeenCalledWith(
+          'visibilitychange',
+          expect.any(Function),
+        );
+        expect(jest.getTimerCount()).toBe(0);
+      } finally {
+        removed.mockRestore();
+      }
     });
 
     it('comes straight back when the download finishes, without waiting', () => {

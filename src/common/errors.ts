@@ -21,7 +21,6 @@ import { PRODUCT_NAME } from './branding';
 export enum ErrorCode {
   EQUALIZER_APO_NOT_INSTALLED,
   CONFIG_NOT_FOUND,
-  TIMEOUT,
   INVALID_PARAMETER,
   FAILURE,
   PRESET_FILE_ERROR,
@@ -79,12 +78,6 @@ export const errors: Record<ErrorCode, ErrorDescription> = {
     action:
       'Please check whether the config.txt file exists in the config folder of EqualizerAPO.',
     code: ErrorCode.CONFIG_NOT_FOUND,
-  },
-  [ErrorCode.TIMEOUT]: {
-    shortError: 'Timeout waiting for a response.',
-    action:
-      'Please restart the application. If the error persists, try reaching out to the developers to resolve the issue.',
-    code: ErrorCode.TIMEOUT,
   },
   [ErrorCode.INVALID_PARAMETER]: {
     shortError: 'Internal Error: Invalid parameter.',

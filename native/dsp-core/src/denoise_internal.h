@@ -432,5 +432,7 @@ int denoise_voice_load_model(FeqDenoise* denoise,
                              const char* runtime_path);
 void denoise_voice_unload(FeqDenoise* denoise);
 uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise);
+/** Rings the worker if a block armed it. After the block, never inside it. */
+void denoise_voice_wake(FeqDenoise* denoise);
 
 #endif /* FLUIDEQ_DENOISE_INTERNAL_H */

@@ -17,6 +17,7 @@ import { requestPlusTab } from '../plus/plusTabRequest';
 import { REJECT_REASON_LABELS } from '../plus/ReviewDecision';
 import { markSceneReviewSeen, useSceneReview } from '../plus/sceneReviewStore';
 import { useTranslation } from '../utils/I18nContext';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import '../styles/SceneReviewNotice.scss';
 
 const MARKS: Record<TSceneReviewNotice['kind'], TCommunityGlyph> = {
@@ -44,8 +45,11 @@ const MARKS: Record<TSceneReviewNotice['kind'], TCommunityGlyph> = {
 export default function SceneReviewNotice() {
   const { t, locale } = useTranslation();
   const { notice } = useSceneReview();
+  // After the terms notice, and after everything that notice steps aside for
+  // (`noticeTurn.ts`).
+  const isShown = useNoticeTurn('sceneReview', Boolean(notice));
 
-  if (!notice) {
+  if (!notice || !isShown) {
     return null;
   }
 

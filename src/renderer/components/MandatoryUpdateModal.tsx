@@ -24,40 +24,6 @@ import MenuIcon from '../icons/MenuIcon';
 import '../styles/OverlayCard.scss';
 
 /**
- * How long "Installing…" is allowed to mean anything before it stops.
- *
- * `quitAndInstall` normally ends this window, so a timer that fires is a timer
- * whose process should not have been alive to run it. It exists for the case
- * where the call returns without throwing and without quitting — a downloaded
- * file that failed verification does exactly that — which would otherwise leave
- * the dialog spinning on a promise that will never settle either way.
- */
-const INSTALL_TIMEOUT_MS = 20000;
-
-/**
- * How long a dismissal lasts.
- *
- * Fifteen minutes, and the number was argued rather than picked:
- *
- *   - **Shorter than the hourly re-check.** Main asks GitHub once an hour, so
- *     anything longer than that would mean the reminder was routinely staler
- *     than the information behind it, and a user could dismiss once and work an
- *     entire afternoon without being asked again. Forgettable is the failure
- *     this interval exists to prevent.
- *   - **Longer than a piece of work in this app.** Importing a curve, tuning
- *     it, A/B-ing it against the old one and saving is a few minutes. At five
- *     minutes the dialog would land in the middle of that, repeatedly, which is
- *     the cruelty the decision to make it closable was meant to avoid — and a
- *     dialog people learn to swat without reading has stopped being a warning.
- *   - **Often enough to be a presence.** Over a three-hour session it appears
- *     about a dozen times. "Later" stays available and stops being comfortable.
- *   - **Not a round hour.** It never drifts into sync with the hourly check, so
- *     the reminder and a fresh failure notice do not arrive together as one
- *     burst and then leave a long silence.
- */
-export const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
-
-/**
  * The notice for a release that said it must be taken.
  *
  * ## Insistent, not blocking
@@ -66,14 +32,31 @@ export const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
  * instrument. A one-person paid application that can remotely make an
  * installation unusable has a worst case worse than most of the faults it would
  * be reached for, and the person it strands is someone who paid. So it closes —
- * and then it comes back, every {@link REMINDER_INTERVAL_MS}, for as long as
- * the update is still pending. The user can finish what they are doing. They
+ * and then it comes back, every time the window does, for as long as the
+ * update is still pending. The user can finish what they are doing. They
  * cannot forget.
  *
  * The text carries that distinction rather than leaving it to the chrome: the
  * failure mode of a dismissable notice is that it reads like an ordinary update
  * banner, so it says in as many words that this release is not optional and
  * that closing it is a postponement.
+ *
+ * ## Back when the window comes back
+ *
+ * A dismissal lasts until the window is next brought back to somebody: shown
+ * from the tray, restored from the taskbar, or uncovered after something else
+ * had the whole screen — the page going from hidden to visible. That is the
+ * moment a piece of work starts rather than the middle of one, which is what
+ * the reminder was always aiming at. It also comes back straight away for news
+ * (the download finishing, something failing), and on the next launch, since
+ * the latch below is in memory.
+ *
+ * It was a fifteen-minute timer, argued as shorter than the hourly check and
+ * longer than a piece of work. Main no longer checks on a clock either — it
+ * checks when a person comes back to the machine (`checkIfDue`) — and a timer
+ * running while nobody is looking reopens the dialog to an empty room: the
+ * window hidden in the tray, the dialog up behind it, seen next as a thing
+ * that was always there rather than as a reminder.
  *
  * ## Latched, in memory, for the session
  *
@@ -100,11 +83,10 @@ export const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
  *
  * Every path out of "downloading" leads somewhere that says something:
  *
- *   - the updater errors — main forwards it and the reason appears here;
+ *   - the updater errors — main forwards it and the reason appears here, and
+ *     that includes an installer that did not start after the request was
+ *     answered: the updater reports it as an `error` of its own;
  *   - the install call rejects — caught, and the same treatment;
- *   - the install call neither rejects nor quits — the timeout above catches
- *     it, because a promise that never settles is the one failure a `catch`
- *     cannot see;
  *   - anything at all — the release page is a link from the moment the failure
  *     is shown, so there is always a way to finish the job by hand.
  *
@@ -116,25 +98,12 @@ export const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
 const MandatoryUpdateModal = () => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const installTimerRef = useRef<number | undefined>(undefined);
-
-  // The install timeout is the one timer here not owned by an effect, because
-  // it starts from a press rather than from state. It still has to die with the
-  // component.
-  useEffect(
-    () => () => {
-      if (installTimerRef.current !== undefined) {
-        window.clearTimeout(installTimerRef.current);
-      }
-    },
-    [],
-  );
   const [isMandatory, setIsMandatory] = useState(false);
   const [status, setStatus] = useState<IAppUpdateStatus>();
   const [isInstalling, setIsInstalling] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  // Set locally when the install attempt fails in a way main cannot see: a
-  // rejected invoke, or a call that returned and did not quit.
+  // Set locally when the install request itself is refused — the one failure
+  // that arrives as an answer to the press rather than as a status.
   const [localFailure, setLocalFailure] = useState<'install'>();
 
   useEffect(() => {
@@ -164,6 +133,13 @@ const MandatoryUpdateModal = () => {
         if (next.phase === 'ready' || next.phase === 'failed') {
           setIsDismissed(false);
         }
+        // "Installing…" ends on the updater's own word. A failed status is
+        // that word when the installer did not start, and the button comes
+        // back so the attempt can be made again; success needs no word,
+        // because the window is closed by it.
+        if (next.phase === 'failed') {
+          setIsInstalling(false);
+        }
       },
     );
     return () => {
@@ -174,24 +150,26 @@ const MandatoryUpdateModal = () => {
   const isOpen = isMandatory && !isDismissed;
 
   /**
-   * Bring it back after a dismissal.
+   * Bring it back after a dismissal, when the window next comes back.
    *
-   * The timer exists only while dismissed, which is what stops it stacking: an
-   * open dialog has no pending timer to fire into it, and re-opening clears the
-   * one that was running by changing the dependency. It is also gated on the
-   * update still being pending, so nothing is scheduled before a mandatory
-   * release has been seen — and the cleanup runs on unmount, so a window closed
-   * fourteen minutes into a wait cannot set state on a component that is gone.
+   * Listening only while dismissed, which is what stops it stacking: an open
+   * dialog has nothing listening that could reopen it. It is also gated on the
+   * update still being pending, so nothing listens before a mandatory release
+   * has been seen — and the cleanup runs on unmount, so a window closed while
+   * dismissed leaves nothing behind to set state on a component that is gone.
    */
   useEffect(() => {
     if (!isMandatory || !isDismissed) {
       return undefined;
     }
-    const timer = window.setTimeout(
-      () => setIsDismissed(false),
-      REMINDER_INTERVAL_MS,
-    );
-    return () => window.clearTimeout(timer);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setIsDismissed(false);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [isMandatory, isDismissed]);
 
   const handleClose = useCallback(() => setIsDismissed(true), []);
@@ -227,25 +205,26 @@ const MandatoryUpdateModal = () => {
   const hasFailed = failure !== undefined;
   const isReady = status?.phase === 'ready';
 
+  /**
+   * Run the installer, and wait for what the updater says about it.
+   *
+   * A resolved request means main handed the installer over and the app is
+   * quitting; nothing is left to do here. A rejected one is the installer
+   * refused outright. Anything that goes wrong after the hand-over — the
+   * installer not starting, not being there — is the updater's own `error`,
+   * and arrives as a failed status like every other failure (the listener
+   * above), which is what takes "Installing…" down.
+   *
+   * It used to take itself down after twenty seconds instead, on the theory
+   * that a call which returned without quitting would otherwise spin forever.
+   * Twenty seconds is a guess at somebody else's disk, and on the slow one it
+   * called an install that was working a failure, and offered the manual
+   * route over the top of it.
+   */
   const handleInstall = () => {
     setIsInstalling(true);
     setLocalFailure(undefined);
-    const timer = window.setTimeout(() => {
-      setIsInstalling(false);
-      setLocalFailure('install');
-    }, INSTALL_TIMEOUT_MS);
-    installTimerRef.current = timer;
-    // Cleared on the way out however it goes, not only when it rejects. A
-    // resolved call means the app is quitting, and the timer that outlives it
-    // would land on a dismissed dialog and mark an install failed while the
-    // user is somewhere else entirely — the one timer in this file that could
-    // fire after its component was gone.
-    const clearInstallTimer = () => {
-      window.clearTimeout(timer);
-      installTimerRef.current = undefined;
-    };
-    window.electron.ipcRenderer.installUpdate().then(clearInstallTimer, () => {
-      clearInstallTimer();
+    window.electron.ipcRenderer.installUpdate().catch(() => {
       setIsInstalling(false);
       setLocalFailure('install');
     });

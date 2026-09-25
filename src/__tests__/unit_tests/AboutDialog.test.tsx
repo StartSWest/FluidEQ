@@ -34,7 +34,7 @@ import {
   DISCLAIMER_LANGUAGE_KEY,
   DISCLAIMER_PARAGRAPH_KEYS,
 } from 'common/disclaimer';
-import { LocaleCode, translate } from 'common/i18n';
+import { LOCALES, LocaleCode, loadLocale, translate } from 'common/i18n';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import AboutDialog from '../../renderer/components/AboutDialog';
 
@@ -52,6 +52,11 @@ import AboutDialog from '../../renderer/components/AboutDialog';
  * that no single-node matcher can span.
  */
 describe('AboutDialog', () => {
+  // The app loads the stored language before its first frame
+  // (renderer/index.tsx), and every language but English is its own
+  // chunk, so these load theirs first too.
+  beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
+
   const openAndRead = () => {
     render(<AboutDialog onClose={() => undefined} />);
     return screen.getByRole('dialog').textContent ?? '';

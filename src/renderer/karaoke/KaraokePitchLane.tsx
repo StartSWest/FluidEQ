@@ -20,6 +20,7 @@ import {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -38,6 +39,7 @@ import {
 } from '../../common/karaoke/pitch';
 import { TKaraokePitchTarget } from '../../common/karaoke/types';
 import MenuIcon from '../icons/MenuIcon';
+import observeShown from '../utils/observeShown';
 import {
   IKaraokePitchIssue,
   IKaraokePitchPoint,
@@ -107,7 +109,8 @@ interface IKaraokePitchLaneProps {
   pitch?: IKaraokeLivePitch;
   analysisStatus: TKaraokePitchAnalysisStatus;
   target?: TKaraokePitchTarget;
-  playheadMs: number;
+  /** The song's clock where there is no `readPlayheadMs` to ask instead. */
+  playheadMs?: number;
   durationMs?: number;
   readPlayheadMs?: () => number;
   microphoneStatus?: TKaraokeMicrophoneStatus;
@@ -145,7 +148,7 @@ const KaraokePitchLane = ({
   pitch,
   analysisStatus,
   target,
-  playheadMs,
+  playheadMs = 0,
   durationMs = 0,
   readPlayheadMs,
   microphoneStatus = 'off',
@@ -166,6 +169,17 @@ const KaraokePitchLane = ({
   const viewportRef = useRef<IKaraokePitchViewportState | undefined>(undefined);
   const lastTraceSampleRef = useRef(0);
   const scrubStateRef = useRef<IKaraokePitchScrubState | undefined>(undefined);
+  /**
+   * The click that ends a scrub, which is not a click on what it lands on.
+   *
+   * A press that moved is a drag, and the `click` the pointer's release sends
+   * after it would otherwise practise whatever issue the drag ended over. Set
+   * by the release and spent by that click; a new press clears it, because
+   * whatever click comes after that press belongs to it. It was cleared by a
+   * zero-delay timer, which relied on the click being dispatched in the same
+   * task as the release — true, but a guess about the browser rather than a
+   * reading of the events themselves.
+   */
   const suppressCanvasClickRef = useRef(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [performanceIssues, setPerformanceIssues] = useState<
@@ -180,6 +194,28 @@ const KaraokePitchLane = ({
   const isMicrophoneBusy = microphoneStatus === 'requesting';
   const isMicrophoneUnavailable = microphoneStatus === 'unavailable';
   const canScrub = durationMs > 0 && Boolean(onScrub);
+  // Read by the frame loop, never listed as what it depends on. The pitch
+  // changes about twenty-one times a second and the playhead twenty, and as
+  // dependencies each change tore the loop and its ResizeObserver down and
+  // built them again; the review below changes while somebody sings as well,
+  // and a reader handed over as a fresh function each render would do the
+  // same on every pitch.
+  const pitchRef = useRef(pitch);
+  pitchRef.current = pitch;
+  const playheadMsRef = useRef(playheadMs);
+  playheadMsRef.current = playheadMs;
+  const readPlayheadMsRef = useRef(readPlayheadMs);
+  readPlayheadMsRef.current = readPlayheadMs;
+  const performanceIssuesRef = useRef(performanceIssues);
+  performanceIssuesRef.current = performanceIssues;
+
+  /** The media element's own clock where there is one; the prop otherwise. */
+  const readSongTimeMs = useCallback((): number => {
+    const directPlayheadMs = readPlayheadMsRef.current?.();
+    return directPlayheadMs !== undefined && Number.isFinite(directPlayheadMs)
+      ? directPlayheadMs
+      : playheadMsRef.current;
+  }, []);
 
   useEffect(() => {
     traceRef.current = [];
@@ -199,8 +235,81 @@ const KaraokePitchLane = ({
       return undefined;
     }
 
-    let animationFrame = 0;
+    let animationFrame: number | undefined;
+    // 30ms, down from 45. The curve is drawn through the points this
+    // produces, so the sampling interval is the resolution of the line
+    // itself — at 45ms it was twenty-two points a second and a fast run
+    // between notes came out as visible corners no amount of easing could
+    // round off. The detector already publishes faster than either rate, so
+    // this is throwing away less rather than asking for more.
+    const recordSinger = (
+      now: number,
+      synchronizedPlayheadMs: number,
+      centerMidi: number,
+    ) => {
+      if (!isMicrophoneLive || now - lastTraceSampleRef.current < 30) {
+        return;
+      }
+      const currentPitch = pitchRef.current;
+      const lastVoiced = [...traceRef.current]
+        .reverse()
+        .find((point) => point.voiced);
+      const heldMidi =
+        lastVoiced && now - lastVoiced.wallTimeMs < 320
+          ? lastVoiced.midi
+          : centerMidi;
+      const sample: IKaraokePitchPoint = {
+        midi: currentPitch?.midi ?? heldMidi,
+        songTimeMs: synchronizedPlayheadMs,
+        wallTimeMs: now,
+        energy: currentPitch?.rms ?? 0,
+        confidence: currentPitch?.confidence ?? 0.25,
+        voiced: Boolean(currentPitch),
+      };
+      traceRef.current.push(sample);
+      traceRef.current = traceRef.current
+        .filter((point) => now - point.wallTimeMs <= LIVE_WINDOW_MS + 1_000)
+        // Sized from the window above rather than left at a round number.
+        // It was 180, which held nine seconds at the old 45ms interval and
+        // only five and a half at 30ms — the cap, not the time filter beside
+        // it, would have decided how much trace survived, and the tail of
+        // the curve would have started disappearing while still on screen.
+        .slice(-Math.ceil((LIVE_WINDOW_MS + 1_000) / 30));
+      if (isPlaying && target?.kind === 'notes') {
+        // One latest sample per song-time bucket. Re-singing after a rewind
+        // naturally replaces the previous attempt over that same range.
+        performanceTraceRef.current.set(
+          Math.round(synchronizedPlayheadMs / PERFORMANCE_BUCKET_MS),
+          sample,
+        );
+        if (
+          now - performanceIssueUpdateRef.current >=
+          PERFORMANCE_ISSUE_REFRESH_MS
+        ) {
+          const nextIssues = findKaraokePitchIssues(
+            Array.from(performanceTraceRef.current.values()),
+            target.notes,
+            target.octavePolicy,
+          );
+          const signature = nextIssues
+            .map(
+              (issue) =>
+                `${issue.id}-${issue.averageCents}-${issue.sampleCount}`,
+            )
+            .join('|');
+          if (signature !== performanceIssueSignatureRef.current) {
+            performanceIssueSignatureRef.current = signature;
+            setPerformanceIssues(nextIssues);
+          }
+          performanceIssueUpdateRef.current = now;
+        }
+      }
+      lastTraceSampleRef.current = now;
+    };
+
     const draw = () => {
+      const currentPitch = pitchRef.current;
+      const currentIssues = performanceIssuesRef.current;
       const textInk = readTextInk();
       const bounds = canvas.getBoundingClientRect();
       const width = Math.max(1, bounds.width);
@@ -238,10 +347,7 @@ const KaraokePitchLane = ({
       );
       const plotHeight = Math.max(1, height - plotTop - plotBottom);
       const now = performance.now();
-      const directPlayheadMs = readPlayheadMs?.();
-      const synchronizedPlayheadMs = Number.isFinite(directPlayheadMs)
-        ? (directPlayheadMs as number)
-        : playheadMs;
+      const synchronizedPlayheadMs = readSongTimeMs();
       const windowStartMs = synchronizedPlayheadMs - WINDOW_PAST_MS;
       const windowEndMs = synchronizedPlayheadMs + WINDOW_FUTURE_MS;
       const visibleNotes =
@@ -262,7 +368,7 @@ const KaraokePitchLane = ({
         .sort((left, right) => left - right);
       const targetViewport = karaokePitchViewportForTargets(
         targetMidis,
-        pitch?.midi ?? KARAOKE_CANONICAL_CENTER_MIDI,
+        currentPitch?.midi ?? KARAOKE_CANONICAL_CENTER_MIDI,
         MINIMUM_VISIBLE_SEMITONES,
         VIEWPORT_PADDING_SEMITONES,
       );
@@ -499,68 +605,7 @@ const KaraokePitchLane = ({
         }
       }
 
-      // 30ms, down from 45. The curve is drawn through the points this
-      // produces, so the sampling interval is the resolution of the line
-      // itself — at 45ms it was twenty-two points a second and a fast run
-      // between notes came out as visible corners no amount of easing could
-      // round off. The detector already publishes faster than either rate, so
-      // this is throwing away less rather than asking for more.
-      if (isMicrophoneLive && now - lastTraceSampleRef.current >= 30) {
-        const lastVoiced = [...traceRef.current]
-          .reverse()
-          .find((point) => point.voiced);
-        const heldMidi =
-          lastVoiced && now - lastVoiced.wallTimeMs < 320
-            ? lastVoiced.midi
-            : centerMidi;
-        const sample: IKaraokePitchPoint = {
-          midi: pitch?.midi ?? heldMidi,
-          songTimeMs: synchronizedPlayheadMs,
-          wallTimeMs: now,
-          energy: pitch?.rms ?? 0,
-          confidence: pitch?.confidence ?? 0.25,
-          voiced: Boolean(pitch),
-        };
-        traceRef.current.push(sample);
-        traceRef.current = traceRef.current
-          .filter((point) => now - point.wallTimeMs <= LIVE_WINDOW_MS + 1_000)
-          // Sized from the window above rather than left at a round number.
-          // It was 180, which held nine seconds at the old 45ms interval and
-          // only five and a half at 30ms — the cap, not the time filter beside
-          // it, would have decided how much trace survived, and the tail of
-          // the curve would have started disappearing while still on screen.
-          .slice(-Math.ceil((LIVE_WINDOW_MS + 1_000) / 30));
-        if (isPlaying && target?.kind === 'notes') {
-          // One latest sample per song-time bucket. Re-singing after a rewind
-          // naturally replaces the previous attempt over that same range.
-          performanceTraceRef.current.set(
-            Math.round(synchronizedPlayheadMs / PERFORMANCE_BUCKET_MS),
-            sample,
-          );
-          if (
-            now - performanceIssueUpdateRef.current >=
-            PERFORMANCE_ISSUE_REFRESH_MS
-          ) {
-            const nextIssues = findKaraokePitchIssues(
-              Array.from(performanceTraceRef.current.values()),
-              target.notes,
-              target.octavePolicy,
-            );
-            const signature = nextIssues
-              .map(
-                (issue) =>
-                  `${issue.id}-${issue.averageCents}-${issue.sampleCount}`,
-              )
-              .join('|');
-            if (signature !== performanceIssueSignatureRef.current) {
-              performanceIssueSignatureRef.current = signature;
-              setPerformanceIssues(nextIssues);
-            }
-            performanceIssueUpdateRef.current = now;
-          }
-        }
-        lastTraceSampleRef.current = now;
-      }
+      recordSinger(now, synchronizedPlayheadMs, centerMidi);
       // Only as far back as the lane can actually show. With the trace trailing
       // the cursor rather than the right-hand edge, the visible past is the
       // 1.6 seconds behind the playhead; keeping six seconds of it meant three
@@ -966,7 +1011,7 @@ const KaraokePitchLane = ({
         );
         const reviewLabel = t('karaoke.pitch.review');
         const reviewCount = t('karaoke.pitch.reviewCount', {
-          count: performanceIssues.length,
+          count: currentIssues.length,
         });
         const reviewY = height - 22;
         const reviewTrackHeight = 11;
@@ -1083,7 +1128,7 @@ const KaraokePitchLane = ({
         context.fill();
         context.stroke();
 
-        performanceIssues.forEach((issue) => {
+        currentIssues.forEach((issue) => {
           const issueStart = Math.max(
             0,
             Math.min(1, issue.startMs / performanceDurationMs),
@@ -1271,11 +1316,39 @@ const KaraokePitchLane = ({
       draw();
       animationFrame = requestAnimationFrame(animate);
     };
+    // Unseen, the lane still listens. What is sung under the amp reaches the
+    // review as it did while every hidden frame was painted; only the
+    // painting stops.
+    const listen = () => {
+      recordSinger(
+        performance.now(),
+        readSongTimeMs(),
+        viewportRef.current?.viewport.centerMidi ??
+          KARAOKE_CANONICAL_CENTER_MIDI,
+      );
+      animationFrame = requestAnimationFrame(listen);
+    };
     const observer = new ResizeObserver(draw);
     observer.observe(canvas);
-    animationFrame = requestAnimationFrame(animate);
+    // Painted only while it can be seen. Mounted is not seen: the amp hides
+    // the whole app with `display: none` and the lane stayed mounted under
+    // it, redrawing every frame for nobody for as long as the amp was up.
+    const stopWatching = observeShown(canvas, (shown) => {
+      if (animationFrame !== undefined) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = undefined;
+      }
+      if (shown) {
+        animationFrame = requestAnimationFrame(animate);
+      } else if (isMicrophoneLive) {
+        animationFrame = requestAnimationFrame(listen);
+      }
+    });
     return () => {
-      cancelAnimationFrame(animationFrame);
+      stopWatching();
+      if (animationFrame !== undefined) {
+        cancelAnimationFrame(animationFrame);
+      }
       observer.disconnect();
     };
   }, [
@@ -1284,10 +1357,7 @@ const KaraokePitchLane = ({
     isActive,
     isMicrophoneLive,
     isPlaying,
-    pitch,
-    playheadMs,
-    performanceIssues,
-    readPlayheadMs,
+    readSongTimeMs,
     target,
     t,
   ]);
@@ -1368,13 +1438,11 @@ const KaraokePitchLane = ({
   };
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    suppressCanvasClickRef.current = false;
     if (!canScrub || event.button !== 0) {
       return;
     }
-    const directPlayheadMs = readPlayheadMs?.();
-    const startTimeMs = Number.isFinite(directPlayheadMs)
-      ? (directPlayheadMs as number)
-      : playheadMs;
+    const startTimeMs = readSongTimeMs();
     scrubStateRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -1398,10 +1466,8 @@ const KaraokePitchLane = ({
       return;
     }
     setIsScrubbing(false);
-    suppressCanvasClickRef.current = true;
-    window.setTimeout(() => {
-      suppressCanvasClickRef.current = false;
-    }, 0);
+    // A cancelled pointer sends no click, so there is nothing to swallow.
+    suppressCanvasClickRef.current = event.type === 'pointerup';
     event.currentTarget.style.cursor = 'grab';
     event.currentTarget.title = t('karaoke.pitch.scrubHint');
     onScrubEnd?.(scrub.lastTimeMs);
@@ -1424,10 +1490,11 @@ const KaraokePitchLane = ({
   };
 
   const onCanvasKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
+    const songTimeMs = readSongTimeMs();
     if (canScrub && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
       event.preventDefault();
       const direction = event.key === 'ArrowLeft' ? -1 : 1;
-      const nextTimeMs = clamp(playheadMs + direction * 1_000, 0, durationMs);
+      const nextTimeMs = clamp(songTimeMs + direction * 1_000, 0, durationMs);
       onScrubStart?.();
       onScrub?.(nextTimeMs);
       onScrubEnd?.(nextTimeMs);
@@ -1444,9 +1511,9 @@ const KaraokePitchLane = ({
     const issue =
       performanceIssues.find(
         (candidate) =>
-          candidate.startMs <= playheadMs && candidate.endMs >= playheadMs,
+          candidate.startMs <= songTimeMs && candidate.endMs >= songTimeMs,
       ) ??
-      performanceIssues.find((candidate) => candidate.startMs > playheadMs) ??
+      performanceIssues.find((candidate) => candidate.startMs > songTimeMs) ??
       performanceIssues[0];
     onPracticeIssue(issue);
   };

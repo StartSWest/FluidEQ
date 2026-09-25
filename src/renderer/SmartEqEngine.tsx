@@ -65,21 +65,6 @@ import {
 } from './utils/smartEqRun';
 
 /**
- * How long the bubble stays up after the last thing it had to say.
- *
- * It is a remark, not a readout. These modes run for hours and are silent for
- * most of that — nothing is written once a correction has settled — so a bubble
- * that stayed put would be a stale sentence hanging over the toolbar all
- * evening, describing something that finished long ago.
- *
- * Long enough to read twice, and reset by anything new, so a measurement
- * reporting progress every second keeps it up for as long as it is working. An
- * unchanged message does not reset it: saying the same thing again is not news,
- * and by then the correction has stopped moving.
- */
-const STATUS_LINGER_MS = 6000;
-
-/**
  * How far a band has to move for its range to be named and lit as "moved"
  * when a running mode writes, in dB. Below it the write is a refinement of a
  * range that was already right, and lighting it would say something changed
@@ -146,8 +131,8 @@ const SmartEqEngine = () => {
   const { t } = useTranslation();
   const tRef = useRef(t);
   tRef.current = t;
-  /** What the page shows, and the flag the loop stands down for. */
-  const { status, isRunning } = useSmartEqRun();
+  /** The flag the loop stands down for. */
+  const { isRunning } = useSmartEqRun();
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
   const smartEqMode = useSmartEqMode();
@@ -203,9 +188,10 @@ const SmartEqEngine = () => {
   /**
    * What the capture is still waiting to hear, for the bubble's resting state.
    *
-   * Published separately from the status, which is a remark with a timer on it:
-   * this one is a condition, true for as long as it is true, and it must not be
-   * cleared by a timeout that exists to stop a sentence going stale.
+   * Published separately from the status, which is a remark held on screen for
+   * a moment (`useSmartEqStatus`): this one is a condition, true for as long as
+   * it is true, and it must not end with a hold that exists to stop a sentence
+   * going stale.
    *
    * Written only when the answer CHANGES, which is a handful of times per
    * capture rather than once a second — the EQ page lays out every band in
@@ -355,18 +341,6 @@ const SmartEqEngine = () => {
     // then — the one transition that cannot make the output jump, since
     // nothing is cleared.
   }, [smartEqMode]);
-
-  // Said, then gone. See `STATUS_LINGER_MS`.
-  useEffect(() => {
-    if (!status) {
-      return undefined;
-    }
-    const timer = window.setTimeout(
-      () => setSmartEqStatus(''),
-      STATUS_LINGER_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [status]);
 
   /**
    * The running continuous session, so the manual button can end it.

@@ -39,7 +39,12 @@ import { useCurrentEngine } from '../utils/audioEngineContext';
 import { liveEnginePreamp } from '../utils/enginePreamp';
 import { useTranslation } from '../utils/I18nContext';
 import { useShownSceneSky } from '../utils/sceneTintStore';
-import { useSmartEqRun } from '../utils/smartEqRun';
+import {
+  endSmartEqStatus,
+  useSmartEqRun,
+  useSmartEqStatus,
+} from '../utils/smartEqRun';
+import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { sortHelper } from '../utils/utils';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import SceneKeys from './SceneKeys';
@@ -117,7 +122,8 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
   // The visualizer's colour as the window is wearing it — what the curve's
   // own tint resolves from.
   const sky = useShownSceneSky();
-  const { status, listeningFor } = useSmartEqRun();
+  const { listeningFor } = useSmartEqRun();
+  const status = useSmartEqStatus();
   const isMeasuring = useIsAutoEqRunning();
   const isSaveOn = useSongEqSaveOn();
   const recording = useSongEqRecording();
@@ -249,7 +255,7 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
     return () => observer.disconnect();
   }, [isVisHere]);
 
-  const smartLine = status || (isMeasuring ? listeningFor : '');
+  const smartLine = isMeasuring ? listeningFor : '';
   /**
    * What the corner is saying, and therefore what the line beside it names.
    *
@@ -428,17 +434,33 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
           how it hides. */}
       <div className="player-eq-screen__status">
         <span className="player-eq-screen__smart" role="status">
-          {smartLine ||
-            (isLookNamed && (
-              <>
-                {t('sidebar.visualizer')}
-                {isPlusLook && (
-                  <b className="player-eq-screen__plus">
-                    {t('graph.scene.badge')}
-                  </b>
-                )}
-              </>
-            ))}
+          {status && (
+            // Held for its moment and ended by that hold's end, keyed on the
+            // remark so each new one gets a full moment of its own.
+            <span
+              key={status.id}
+              className="player-eq-screen__remark"
+              onAnimationEnd={(event) => {
+                if (isOwnAnimationEnd(event, 'smart-eq-status-hold')) {
+                  endSmartEqStatus(status.id);
+                }
+              }}
+            >
+              {status.text}
+            </span>
+          )}
+          {!status &&
+            (smartLine ||
+              (isLookNamed && (
+                <>
+                  {t('sidebar.visualizer')}
+                  {isPlusLook && (
+                    <b className="player-eq-screen__plus">
+                      {t('graph.scene.badge')}
+                    </b>
+                  )}
+                </>
+              )))}
         </span>
         <span className="player-eq-screen__corner">{corner}</span>
       </div>

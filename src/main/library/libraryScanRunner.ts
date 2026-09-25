@@ -54,7 +54,14 @@ export const createLibraryScanRunner = (
 ): ILibraryScanRunner => {
   const { store } = deps;
   let isScanning = false;
-  let cancelRequested = false;
+  /**
+   * The running walk's cancel: a signal and not a flag, because the worker's
+   * host passes it on the moment it aborts (`scanHost.ts`) — the worker
+   * reports only now and then (`scanProgressGate.ts`), and Stop must not wait
+   * for its next message.
+   */
+  let abort: AbortController | undefined;
+  const isCancelled = () => abort?.signal.aborted === true;
   /** The walk running now, for a request that joins it rather than starts. */
   let walk: Promise<void> = Promise.resolve();
   /**
@@ -121,7 +128,8 @@ export const createLibraryScanRunner = (
             store.confirmTracks(trackIds, mark);
           }
         },
-        isCancelled: () => cancelRequested,
+        isCancelled,
+        signal: abort?.signal,
       });
       if (!isKept()) {
         return;
@@ -168,18 +176,18 @@ export const createLibraryScanRunner = (
       return;
     }
     isScanning = true;
-    cancelRequested = false;
+    abort = new AbortController();
     try {
       let batch: string[] = [...rootIds];
       while (batch.length > 0) {
         for (let index = 0; index < batch.length; index += 1) {
-          if (cancelRequested) {
+          if (isCancelled()) {
             break;
           }
           // eslint-disable-next-line no-await-in-loop -- one root walked at a time by design; see the module comment.
           await scanOneRoot(batch[index], force);
         }
-        if (cancelRequested || pending.size === 0) {
+        if (isCancelled() || pending.size === 0) {
           break;
         }
         batch = Array.from(pending);
@@ -187,7 +195,7 @@ export const createLibraryScanRunner = (
       }
     } finally {
       isScanning = false;
-      cancelRequested = false;
+      abort = undefined;
     }
   };
 
@@ -225,8 +233,9 @@ export const createLibraryScanRunner = (
         force,
       );
     },
+    // Nothing to cancel between walks: the next one starts on its own signal.
     cancel: () => {
-      cancelRequested = true;
+      abort?.abort();
     },
   };
 };

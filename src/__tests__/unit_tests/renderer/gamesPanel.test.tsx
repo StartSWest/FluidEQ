@@ -34,17 +34,17 @@ jest.mock('renderer/dsp/systemChain', () => ({
   subscribeSystemDspChainResult: () => () => undefined,
 }));
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
-  useAudioEngineStatus: () => ({ status: { engine: 'fluid' } }),
+  useKnownAudioEngineStatus: () => ({ engine: 'fluid' }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({ setVoicing: jest.fn() }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({
+  ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isEnabled: true,
     isBlockingError: false,
     voicing: undefined,
     setVoicing: () => undefined,
     setGlobalError: () => undefined,
-  }),
+  })),
 }));
 
 /** A few bytes that pass for what Windows draws for the program. */
@@ -419,5 +419,31 @@ describe('the Games page', () => {
     expect(
       offered.filter((name) => name.includes(en['dsp.preset.speech'])).length,
     ).toBe(1);
+  });
+});
+
+/*
+ * The switcher is mounted for the life of the window and re-renders with it.
+ * It held the chain catalogue for the card a game raises, and holding it read
+ * every saved chain and the stars out of storage on each of those renders.
+ */
+describe('the window’s own switcher', () => {
+  it('reads no saved chain while it only renders', () => {
+    const view = render(<GameSound />);
+    const getItem = jest.spyOn(Storage.prototype, 'getItem');
+
+    view.rerender(<GameSound />);
+    view.rerender(<GameSound />);
+
+    expect(
+      getItem.mock.calls.filter(([key]) =>
+        [
+          'fluideq.dsp.userChainPresets.v1',
+          'fluideq.dsp.favouritePresets.v1',
+        ].includes(key),
+      ),
+    ).toEqual([]);
+    getItem.mockRestore();
+    view.unmount();
   });
 });

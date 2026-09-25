@@ -436,8 +436,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': 'मुझसे पूछें',
   'karaoke.maker.memoryPolicy.auto': 'अपने आप खाली करें',
   'karaoke.maker.memoryPolicy.keep': 'लोड रखा जाए',
-  'karaoke.maker.memoryAfter': 'इसके बाद',
-  'karaoke.maker.memoryMinutes': '{count} मिनट',
   'karaoke.maker.memoryPromptTitle': 'वाणी मॉडल की मेमोरी खाली करें?',
   'karaoke.maker.memoryPromptBody':
     'स्थानीय वाणी मॉडल निष्क्रिय है। उसे हटाने से RAM बचती है; तेज़ पुनः लोड के लिए फ़ाइलें कैश में रहती हैं।',

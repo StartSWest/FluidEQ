@@ -396,6 +396,30 @@ export const useTransportSources = (): Partial<
     () => EMPTY,
   );
 
+/**
+ * Whether one player is playing, as a plain yes or no.
+ *
+ * For a component that reads nothing else of the register: a boolean snapshot
+ * only changes when the answer does, where `useTransportSources` changes with
+ * every position tick — four a second from the Library and Media, twenty from
+ * Karaoke. The window's root read the machine's own player that way and
+ * re-rendered the whole app on each tick for two flags.
+ */
+export const useIsTransportPlaying = (owner: TPlaybackOwner): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => sources[owner]?.isPlaying === true,
+    () => false,
+  );
+
+/** Whether one player has a song title to show — see `useIsTransportPlaying`. */
+export const useHasTransportTitle = (owner: TPlaybackOwner): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => Boolean(sources[owner]?.title),
+    () => false,
+  );
+
 /** Song identity and play state, stable across position-only publications. */
 export const useTransportIdentitySources = (): TTransportIdentitySources =>
   useSyncExternalStore(

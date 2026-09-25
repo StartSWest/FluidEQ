@@ -5,17 +5,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Processes list asks for new figures once each answer has reached a
- * frame, instead of on a one-second timer: one request in flight, the next
- * sent from `requestAnimationFrame`, so it keeps up while looked at and stops
- * by itself where no frames run. What is held here is the chain — it goes on
- * after a failed answer, and it ends when the dialog closes.
+ * The Processes list asks for new figures once each answer has had
+ * `ASK_EVERY_FRAMES` frames, instead of on a one-second timer: one request in
+ * flight, the next sent from `requestAnimationFrame`, so it keeps up while
+ * looked at and stops by itself where no frames run. It used to ask on the
+ * very next frame — sixty times a second, each a process snapshot on main, so
+ * the dialog mostly measured itself. What is held here is the chain and its
+ * pace — it goes on after a failed answer, and it ends when the dialog closes.
  */
 
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import type { IAppProcess } from '../../../main/ipc/processes';
-import ProcessesDialog from '../../../renderer/components/ProcessesDialog';
+import ProcessesDialog, {
+  ASK_EVERY_FRAMES,
+} from '../../../renderer/components/ProcessesDialog';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -41,6 +45,14 @@ const nextFrame = async () => {
   await act(async () => {
     queued.forEach((callback) => callback(performance.now()));
   });
+};
+
+/** Runs `count` frames, one after another, as the screen would. */
+const runFrames = async (count: number) => {
+  for (let frame = 0; frame < count; frame += 1) {
+    // eslint-disable-next-line no-await-in-loop -- each frame is asked for by the one before it
+    await nextFrame();
+  }
 };
 
 beforeEach(() => {
@@ -75,11 +87,14 @@ it('asks again once each answer is in, one request at a time', async () => {
     render(<ProcessesDialog onClose={jest.fn()} />);
   });
   expect(appProcesses).toHaveBeenCalledTimes(1);
-  // Nothing more until the frame the answer asked for runs.
+  // Nothing more while the answer's frames pass...
   expect(frames).toHaveLength(1);
+  await runFrames(ASK_EVERY_FRAMES);
+  expect(appProcesses).toHaveBeenCalledTimes(1);
+  // ...and the next question on the frame after them.
   await nextFrame();
   expect(appProcesses).toHaveBeenCalledTimes(2);
-  await nextFrame();
+  await runFrames(ASK_EVERY_FRAMES + 1);
   expect(appProcesses).toHaveBeenCalledTimes(3);
 });
 
@@ -89,7 +104,7 @@ it('goes on after an answer that failed', async () => {
     render(<ProcessesDialog onClose={jest.fn()} />);
   });
   expect(frames).toHaveLength(1);
-  await nextFrame();
+  await runFrames(ASK_EVERY_FRAMES + 1);
   expect(appProcesses).toHaveBeenCalledTimes(2);
   expect(screen.getByText('app.processes.name.models')).toBeInTheDocument();
 });

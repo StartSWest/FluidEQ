@@ -51,7 +51,10 @@ import RemoteAudioContext, {
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import { getAudioEngineStatus } from '../../../renderer/utils/audioEngineApi';
 import { FluidEqProviderWrapper } from '../../../renderer/utils/FluidEqContext';
-import { resetAudioEngineStatus } from '../../../renderer/utils/useAudioEngineStatus';
+import {
+  refreshAudioEngineStatus,
+  resetAudioEngineStatus,
+} from '../../../renderer/utils/useAudioEngineStatus';
 
 const mockRenders = { rail: 0, dials: 0 };
 
@@ -130,8 +133,11 @@ function RemoteAudioHarness({ children }: { children: ReactNode }) {
   );
 }
 
-const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) =>
-  render(
+const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) => {
+  // The shell's own question, asked once at launch (`AppContent`): the page
+  // reads that answer and asks main nothing itself.
+  refreshAudioEngineStatus();
+  return render(
     <RemoteAudioHarness>
       <FluidEqProviderWrapper
         value={{ ...defaultFluidEqContext, isEnabled: true }}
@@ -145,6 +151,7 @@ const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) =>
       </FluidEqProviderWrapper>
     </RemoteAudioHarness>,
   );
+};
 
 /** Twenty updates, each a new object, as the engine or the session sends them. */
 const hostFrames = (publish: (frame: number) => void) => {

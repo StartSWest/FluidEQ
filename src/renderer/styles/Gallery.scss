@@ -958,6 +958,8 @@ $gallery-card-lead: 120ms;
 // on the computer draws in a couple of hundred milliseconds, so nothing under
 // this ever puts a ring on screen.
 $wait-hold: 500ms;
+// How long the wait takes to leave once the scene draws.
+$wait-fade: 520ms;
 
 .gallery-preview__wait {
   gap: 8px;
@@ -981,8 +983,8 @@ $wait-hold: 500ms;
   // than with the opacity so the words leave the screen reader only once they
   // have left the screen.
   transition:
-    opacity 520ms $ease-out,
-    visibility 0s linear 520ms;
+    opacity $wait-fade $ease-out,
+    visibility 0s linear $wait-fade;
 
   &.is-done {
     // The entrance is cancelled outright, or a scene that drew inside the
@@ -991,6 +993,21 @@ $wait-hold: 500ms;
     opacity: 0;
     visibility: hidden;
     animation: none;
+    // Faded is not gone: the veil stays in the page for as long as the scene
+    // plays, and it kept its blur — a backdrop filter over a picture that is
+    // drawn anew every frame — and its ring kept turning, both for nobody.
+    // Both are let go once the fade is over, the blur here and the ring
+    // below, so the fade itself is what it was.
+    backdrop-filter: none;
+    transition:
+      opacity $wait-fade $ease-out,
+      visibility 0s linear $wait-fade,
+      backdrop-filter 0s linear $wait-fade;
+
+    .gallery-preview__wait-mark::before {
+      display: none;
+      transition: display 0s linear $wait-fade allow-discrete;
+    }
   }
 }
 

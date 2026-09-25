@@ -17,6 +17,7 @@ import {
 } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
+import { useNoticeClaim } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 
 interface IRoomOutputNoticeProps {
@@ -87,17 +88,23 @@ const RoomOutputNotice = ({
     };
   }, [isStereoRoom, deviceId, format?.deviceId]);
 
-  if (!device || !deviceId || isHidden || dismissedId === deviceId) {
-    return null;
-  }
-  const current = format?.deviceId === deviceId ? format.value : undefined;
+  const current =
+    deviceId && format?.deviceId === deviceId ? format.value : undefined;
   const offer =
     isStereoRoom &&
     current !== undefined &&
     current.channels < 8 &&
     current.takesEightChannels === true &&
     phase !== 'done';
-  if (!offer && phase !== 'done') {
+  const isUp =
+    Boolean(device && deviceId) &&
+    !isHidden &&
+    dismissedId !== deviceId &&
+    (offer || phase === 'done');
+  // In the engine's spot, in front of the engine's own notices and of the
+  // corner's (`noticeTurn.ts`).
+  useNoticeClaim('room', isUp);
+  if (!device || !deviceId || !isUp) {
     return null;
   }
 

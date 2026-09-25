@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import '@testing-library/jest-dom';
 import { ReactElement } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import { IKaraokeWhisperSessionSnapshot } from 'renderer/karaoke/makerAi';
 import KaraokeMakerToolbarButton from 'renderer/karaoke/KaraokeMakerToolbarButton';
@@ -38,7 +38,7 @@ const session = (
   inMemory: false,
   busy: false,
   releasePrompt: false,
-  settings: { policy: 'ask', idleMinutes: 10 },
+  settings: { policy: 'ask' },
   ...over,
 });
 
@@ -369,6 +369,7 @@ describe('the Maker speech memory panel', () => {
       <KaraokeMakerSpeechMemoryPanel
         session={session({ inMemory: false })}
         statusKey="karaoke.maker.speechMemoryCached"
+        isModelWorking={false}
         onRelease={() => {}}
         onSettingsChange={() => {}}
       />,
@@ -382,6 +383,7 @@ describe('the Maker speech memory panel', () => {
         <KaraokeMakerSpeechMemoryPanel
           session={session({ inMemory: true })}
           statusKey="karaoke.maker.speechMemoryReady"
+          isModelWorking={false}
           onRelease={() => {}}
           onSettingsChange={() => {}}
         />
@@ -395,6 +397,7 @@ describe('the Maker speech memory panel', () => {
       <KaraokeMakerSpeechMemoryPanel
         session={session({ inMemory: true, busy: true })}
         statusKey="karaoke.maker.speechMemoryReady"
+        isModelWorking={false}
         onRelease={() => {}}
         onSettingsChange={() => {}}
       />,
@@ -402,12 +405,13 @@ describe('the Maker speech memory panel', () => {
     expect(screen.getByRole('button', { name: 'Free RAM now' })).toBeDisabled();
   });
 
-  it('changes one setting without disturbing the other', () => {
+  it('changes what happens once the model is idle', () => {
     const onSettingsChange = jest.fn();
     show(
       <KaraokeMakerSpeechMemoryPanel
-        session={session({ settings: { policy: 'ask', idleMinutes: 30 } })}
+        session={session({ settings: { policy: 'ask' } })}
         statusKey="karaoke.maker.speechMemoryCached"
+        isModelWorking={false}
         onRelease={() => {}}
         onSettingsChange={onSettingsChange}
       />,
@@ -416,23 +420,49 @@ describe('the Maker speech memory panel', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Release automatically' }),
     );
-    // The idle delay is carried through rather than reset to a default.
-    expect(onSettingsChange).toHaveBeenCalledWith({
-      policy: 'auto',
-      idleMinutes: 30,
-    });
+    expect(onSettingsChange).toHaveBeenCalledWith({ policy: 'auto' });
+    // Idle is a moment — the Maker closing — and not a number of minutes.
+    expect(screen.queryByText('After')).not.toBeInTheDocument();
   });
 
-  it('hides the delay when the answer is never to release', () => {
-    show(
-      <KaraokeMakerSpeechMemoryPanel
-        session={session({ settings: { policy: 'keep', idleMinutes: 10 } })}
-        statusKey="karaoke.maker.speechMemoryReady"
-        onRelease={() => {}}
-        onSettingsChange={() => {}}
-      />,
+  it('asks main when it opens and when a model job starts or ends, never on a clock', async () => {
+    // It asked every four seconds for as long as it was open.
+    const intervals = jest.spyOn(window, 'setInterval');
+    const getKaraokeModelStatus = jest.fn().mockResolvedValue({
+      separation: { loaded: false, bytes: 0 },
+      pitch: { loaded: false, bytes: 0, downloadedBytes: 0 },
+    });
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: { ipcRenderer: { getKaraokeModelStatus } },
+    });
+    const panel = (isModelWorking: boolean) => (
+      <I18nProvider>
+        <KaraokeMakerSpeechMemoryPanel
+          session={session()}
+          statusKey="karaoke.maker.speechMemoryCached"
+          isModelWorking={isModelWorking}
+          onRelease={() => {}}
+          onSettingsChange={() => {}}
+        />
+      </I18nProvider>
     );
-    // There is nothing to delay when the model is never let go.
-    expect(screen.queryByText('After')).not.toBeInTheDocument();
+    try {
+      const { rerender } = render(panel(false));
+      await act(async () => undefined);
+      expect(getKaraokeModelStatus).toHaveBeenCalledTimes(1);
+      expect(intervals).not.toHaveBeenCalled();
+      rerender(panel(false));
+      expect(getKaraokeModelStatus).toHaveBeenCalledTimes(1);
+
+      // The control: the job starting and ending are each a reason to ask.
+      rerender(panel(true));
+      rerender(panel(false));
+      await act(async () => undefined);
+      expect(getKaraokeModelStatus).toHaveBeenCalledTimes(3);
+    } finally {
+      intervals.mockRestore();
+      Reflect.deleteProperty(window, 'electron');
+    }
   });
 });

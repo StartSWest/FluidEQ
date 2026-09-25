@@ -216,15 +216,22 @@ const LibraryTrackRow = ({
                   it read as a smudge: the curve crossed the bars at their own
                   weight and neither could be made out. Four bars at twice the
                   width, no overlay, each on its own period so they never fall
-                  into step and pulse as one block. */}
-              <svg viewBox="0 0 14 12" aria-hidden="true">
-                <g className="library-list__playing-bars">
-                  <rect x="0.5" y="1" width="2.2" height="10" rx="1.1" />
-                  <rect x="4.1" y="1" width="2.2" height="10" rx="1.1" />
-                  <rect x="7.7" y="1" width="2.2" height="10" rx="1.1" />
-                  <rect x="11.3" y="1" width="2.2" height="10" rx="1.1" />
-                </g>
-              </svg>
+                  into step and pulse as one block.
+
+                  In a frame of its own, like the titlebar pet's drawing
+                  (`PetArt`): the bars move every frame the song plays, a
+                  drawing that moves is laid out again, and as the item of
+                  the row's flex boxes it took the list's layout with it. */}
+              <span className="library-list__playing-frame">
+                <svg viewBox="0 0 14 12" aria-hidden="true">
+                  <g className="library-list__playing-bars">
+                    <rect x="0.5" y="1" width="2.2" height="10" rx="1.1" />
+                    <rect x="4.1" y="1" width="2.2" height="10" rx="1.1" />
+                    <rect x="7.7" y="1" width="2.2" height="10" rx="1.1" />
+                    <rect x="11.3" y="1" width="2.2" height="10" rx="1.1" />
+                  </g>
+                </svg>
+              </span>
             </span>
           )}
           {/* The number the record was pressed with, where the tags carry

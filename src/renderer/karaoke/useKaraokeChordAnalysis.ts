@@ -16,29 +16,44 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   analyzeKaraokeChords,
   IKaraokeChordSegment,
   KARAOKE_CHORD_ANALYSIS_SAMPLE_RATE,
 } from '../../common/karaoke/chords';
+import nextTask from '../../common/nextTask';
 import { IKaraokeSong } from '../../common/karaoke/types';
+import { recallRecent, rememberRecent } from '../utils/recentMap';
+import { createKaraokeLiveValue, IKaraokeLiveValue } from './karaokeLiveValue';
 
 export type TKaraokeChordAnalysisStatus =
   'idle' | 'analyzing' | 'ready' | 'unsupported' | 'error';
 
-export interface IKaraokeChordAnalysisState {
+interface IKaraokeChordAnalysisResult {
   status: TKaraokeChordAnalysisStatus;
   chords: IKaraokeChordSegment[];
-  progress: number;
 }
 
-const chordCache = new Map<string, IKaraokeChordSegment[]>();
+export interface IKaraokeChordAnalysisState extends IKaraokeChordAnalysisResult {
+  /**
+   * 0 to 1 while analysing, and 1 once done.
+   *
+   * A live value rather than state: it moves some sixty times in one
+   * analysis, and as the hook's state each step re-rendered the whole karaoke
+   * workspace — playlist, stage and an open Maker — to change one number in
+   * the chord guide. Only the percentage the guide prints reads it now.
+   */
+  progress: IKaraokeLiveValue<number>;
+}
 
-const yieldToRenderer = (): Promise<void> =>
-  new Promise((resolve) => {
-    window.setTimeout(resolve, 0);
-  });
+/**
+ * Chords already worked out, by song, so going back to a song does not decode
+ * it again. Capped: kept for every song ever opened, it grew for as long as
+ * the window was open; a returning singer's recent songs stay.
+ */
+const chordCache = new Map<string, IKaraokeChordSegment[]>();
+const CACHED_SONGS = 32;
 
 /** Downmix and resample in bounded chunks after Chromium decodes the file. */
 const audioBufferToChordPcm = async (
@@ -76,15 +91,17 @@ const audioBufferToChordPcm = async (
       });
       output[index] = channels.length ? mono / channels.length : 0;
     }
-    await yieldToRenderer();
+    // A task, not a zero-delay timer: a hidden window runs timers once a
+    // second at best, so a four-minute song — about twenty chunks — took
+    // twenty seconds or more to convert, holding the whole decoded song.
+    await nextTask();
   }
   return output;
 };
 
-const initialState: IKaraokeChordAnalysisState = {
+const initialState: IKaraokeChordAnalysisResult = {
   status: 'idle',
   chords: [],
-  progress: 0,
 };
 
 /** Decode and analyze the selected backing track entirely on this machine. */
@@ -92,33 +109,39 @@ export const useKaraokeChordAnalysis = (
   song: IKaraokeSong | undefined,
   isActive: boolean,
 ): IKaraokeChordAnalysisState => {
-  const [state, setState] = useState<IKaraokeChordAnalysisState>(initialState);
+  const [state, setState] = useState<IKaraokeChordAnalysisResult>(initialState);
+  const [progress] = useState(() => createKaraokeLiveValue(0));
   const songId = song?.id;
   const audioFile = song?.assets.find((asset) => asset.role === 'audio')?.file;
 
   useEffect(() => {
     if (!songId) {
       setState(initialState);
+      progress.write(0);
       return undefined;
     }
-    const cached = chordCache.get(songId);
+    const cached = recallRecent(chordCache, songId);
     if (cached) {
-      setState({ status: 'ready', chords: cached, progress: 1 });
+      setState({ status: 'ready', chords: cached });
+      progress.write(1);
       return undefined;
     }
     if (!isActive) {
       setState(initialState);
+      progress.write(0);
       return undefined;
     }
     if (!audioFile || typeof AudioContext === 'undefined') {
-      setState({ status: 'unsupported', chords: [], progress: 0 });
+      setState({ status: 'unsupported', chords: [] });
+      progress.write(0);
       return undefined;
     }
 
     let cancelled = false;
     let context: AudioContext | undefined;
     const shouldCancel = () => cancelled;
-    setState({ status: 'analyzing', chords: [], progress: 0.02 });
+    progress.write(0.02);
+    setState({ status: 'analyzing', chords: [] });
 
     const analyze = async () => {
       try {
@@ -134,28 +157,25 @@ export const useKaraokeChordAnalysis = (
         if (cancelled) {
           return;
         }
-        setState((current) => ({ ...current, progress: 0.08 }));
+        progress.write(0.08);
         const pcm = await audioBufferToChordPcm(decoded, shouldCancel);
         if (cancelled || !pcm.length) {
           return;
         }
-        setState((current) => ({ ...current, progress: 0.12 }));
+        progress.write(0.12);
         let reportedProgress = 0;
         const chords = await analyzeKaraokeChords(
           pcm,
           KARAOKE_CHORD_ANALYSIS_SAMPLE_RATE,
           {
             shouldCancel,
-            onProgress: (progress) => {
+            onProgress: (analysed) => {
               if (
                 !cancelled &&
-                (progress - reportedProgress >= 0.015 || progress === 1)
+                (analysed - reportedProgress >= 0.015 || analysed === 1)
               ) {
-                reportedProgress = progress;
-                setState((current) => ({
-                  ...current,
-                  progress: 0.12 + progress * 0.88,
-                }));
+                reportedProgress = analysed;
+                progress.write(0.12 + analysed * 0.88);
               }
             },
           },
@@ -163,11 +183,13 @@ export const useKaraokeChordAnalysis = (
         if (cancelled) {
           return;
         }
-        chordCache.set(songId, chords);
-        setState({ status: 'ready', chords, progress: 1 });
+        rememberRecent(chordCache, songId, chords, CACHED_SONGS);
+        progress.write(1);
+        setState({ status: 'ready', chords });
       } catch {
         if (!cancelled) {
-          setState({ status: 'error', chords: [], progress: 0 });
+          progress.write(0);
+          setState({ status: 'error', chords: [] });
         }
       } finally {
         context?.close().catch(() => undefined);
@@ -179,7 +201,7 @@ export const useKaraokeChordAnalysis = (
       cancelled = true;
       context?.close().catch(() => undefined);
     };
-  }, [audioFile, isActive, songId]);
+  }, [audioFile, isActive, progress, songId]);
 
-  return state;
+  return useMemo(() => ({ ...state, progress }), [progress, state]);
 };

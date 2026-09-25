@@ -55,7 +55,6 @@ import type {
 const MAX_PENDING_SOCKETS = 64;
 const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
 const MAX_AUTHENTICATED_SOCKETS = 32;
-const AUTHENTICATION_TIMEOUT_MS = 5_000;
 /**
  * How many times the network is asked who is listening, each sent once the
  * last has left the socket. A datagram can be dropped; a listener that comes
@@ -126,13 +125,6 @@ const createRemoteAudioLan = (
   emitAudio: (chunk: ILanRemoteAudioChunk) => void,
   emitError: () => void,
   emitNetwork: (stats: ILanRemoteAudioNetworkStats) => void,
-  /**
-   * How the authentication deadline is made. The default is the platform's
-   * own, which is what runs; it is a parameter because `AbortSignal.timeout`
-   * is native and no test clock can reach it, so the tests that prove a
-   * silent client is dropped have to bring a signal they can fire themselves.
-   */
-  deadlineAfter: (ms: number) => AbortSignal = (ms) => AbortSignal.timeout(ms),
 ): IRemoteAudioLan => {
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
@@ -200,7 +192,34 @@ const createRemoteAudioLan = (
     });
     server = nextServer;
     key = nextKey;
-    const pendingSocketsByAddress = new Map<string, number>();
+    /**
+     * Connections that have not authenticated yet, oldest first, over all and
+     * per address.
+     *
+     * A socket that never authenticates has to be let go of, or somebody on
+     * the network holds the few pending slots open for good. It used to be
+     * dropped five seconds after it arrived, on a timer. What actually needs
+     * it gone is a newer connection wanting its slot, so that is when it
+     * goes: a connection arriving to a full room makes room by closing the
+     * one that has waited longest — over all, or from its own address. An
+     * honest peer answers its challenge in one round trip, so it is never
+     * the oldest for long; a silent one is, and is the one let go.
+     */
+    const pendingCandidates = new Map<WebSocket, () => void>();
+    const pendingByAddress = new Map<string, Set<WebSocket>>();
+    const makeRoom = (waiting: Iterable<WebSocket>) => {
+      const [oldest] = waiting;
+      if (oldest) {
+        // Released at once, not on its close event: the newcomer is counted
+        // next.
+        pendingCandidates.get(oldest)?.();
+        closeWebSocketSafely(
+          oldest,
+          1008,
+          'Too many unauthenticated connections',
+        );
+      }
+    };
 
     nextServer.on('connection', (candidate, request) => {
       if (lifecycleGeneration !== operation || server !== nextServer) {
@@ -219,52 +238,31 @@ const createRemoteAudioLan = (
         );
         return;
       }
-      if (nextServer.clients.size - transport.size() > MAX_PENDING_SOCKETS) {
-        closeWebSocketSafely(
-          candidate,
-          1008,
-          'Too many unauthenticated connections',
-        );
-        return;
+      const fromAddress =
+        pendingByAddress.get(remoteAddress) ?? new Set<WebSocket>();
+      if (fromAddress.size >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
+        makeRoom(fromAddress);
       }
-      const pendingForAddress = pendingSocketsByAddress.get(remoteAddress) ?? 0;
-      if (pendingForAddress >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
-        closeWebSocketSafely(
-          candidate,
-          1008,
-          'Too many unauthenticated connections',
-        );
-        return;
+      if (pendingCandidates.size >= MAX_PENDING_SOCKETS) {
+        makeRoom(pendingCandidates.keys());
       }
-      pendingSocketsByAddress.set(remoteAddress, pendingForAddress + 1);
+      fromAddress.add(candidate);
+      pendingByAddress.set(remoteAddress, fromAddress);
       let isPending = true;
       const releasePending = () => {
         if (!isPending) {
           return;
         }
         isPending = false;
-        const remaining = (pendingSocketsByAddress.get(remoteAddress) ?? 1) - 1;
-        if (remaining > 0) {
-          pendingSocketsByAddress.set(remoteAddress, remaining);
-        } else {
-          pendingSocketsByAddress.delete(remoteAddress);
+        pendingCandidates.delete(candidate);
+        fromAddress.delete(candidate);
+        if (fromAddress.size === 0) {
+          pendingByAddress.delete(remoteAddress);
         }
       };
+      pendingCandidates.set(candidate, releasePending);
       candidate.once('close', releasePending);
       const challenge = createAuthChallenge();
-      // A socket that never authenticates has to be let go of, or an attacker
-      // on the network holds one of the few pending slots open for good. The
-      // deadline is a real one — nothing here is being waited on and guessed
-      // at — and it is spelled as an `AbortSignal`, which is how this project
-      // spells waiting; a hand-rolled `setTimeout` is not allowed anywhere in
-      // it.
-      const deadline = deadlineAfter(AUTHENTICATION_TIMEOUT_MS);
-      const onDeadline = () =>
-        closeWebSocketSafely(candidate, 1008, 'Authentication timed out');
-      deadline.addEventListener('abort', onDeadline, { once: true });
-      candidate.once('close', () =>
-        deadline.removeEventListener('abort', onDeadline),
-      );
       const onPendingError = () => {
         closeWebSocketSafely(candidate, 1008, 'Authentication failed');
       };
@@ -308,7 +306,6 @@ const createRemoteAudioLan = (
                 return;
               }
               candidate.removeListener('close', releasePending);
-              deadline.removeEventListener('abort', onDeadline);
               releasePending();
               transport.attach(message.peerId, candidate, sessionKey);
               candidate.removeListener('error', onPendingError);
@@ -489,20 +486,16 @@ const createRemoteAudioLan = (
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
       let challenge: string | undefined;
       let settled = false;
-      // The joining end's half of the same deadline, spelled the same way.
-      const deadline = deadlineAfter(AUTHENTICATION_TIMEOUT_MS);
-      const onDeadline = () => {
-        finishError(new Error('LAN authentication timed out.'));
-        closeWebSocketSafely(socket, 1008, 'Authentication timed out');
-      };
-      deadline.addEventListener('abort', onDeadline, { once: true });
+      // No deadline on this end either. The join ends on the socket's own
+      // close or error — a listener that is not there fails to connect, one
+      // that lets it go closes it — or on `stop`, which is what cancelling
+      // the pairing calls, and which closes this socket.
       const releasePendingSocket = () => {
         if (pendingSocket === socket) {
           pendingSocket = undefined;
         }
       };
       const cleanup = () => {
-        deadline.removeEventListener('abort', onDeadline);
         socket.removeListener('close', onClose);
         socket.removeListener('error', onError);
         socket.removeListener('message', onHandshake);

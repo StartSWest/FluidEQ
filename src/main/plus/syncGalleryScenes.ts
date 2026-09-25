@@ -36,6 +36,14 @@ export const createGallerySceneSync = ({
     if (!me || !access.entitled()) {
       return;
     }
+    // Settled already for this revision, this session. Asked before the scene
+    // is read: every check between here and the download only returns, and
+    // reading one decrypts and verifies it — for every installed gallery
+    // scene, at every focus of the window, to find each one settled.
+    const stamp = `${me}:${scene.updatedAt}:${scene.version}`;
+    if (checked.get(scene.lookId) === stamp) {
+      return;
+    }
     const official = scene.authorId === FLUIDEQ_CREATOR_ID;
     const load = () =>
       official
@@ -51,10 +59,6 @@ export const createGallerySceneSync = ({
       scene.authorId !== me &&
       store.list().some((entry) => entry.lookId === scene.lookId && entry.own)
     ) {
-      return;
-    }
-    const stamp = `${me}:${scene.updatedAt}:${scene.version}`;
-    if (checked.get(scene.lookId) === stamp) {
       return;
     }
     // Nothing replaces an installed scene except a HIGHER version of it

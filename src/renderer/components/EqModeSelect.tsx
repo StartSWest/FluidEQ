@@ -14,7 +14,7 @@ import {
   TEqModeScope,
 } from '../../common/eqMode';
 import { ErrorDescription } from '../../common/errors';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { resetEqMode, setEqMode, setEqShape } from '../utils/equalizerApi';
 import AnchoredMenu from '../widgets/AnchoredMenu';
@@ -68,7 +68,7 @@ interface IPendingChoice {
 
 export default function EqModeSelect() {
   const { t } = useTranslation();
-  const state = useFluidEqContext();
+  const state = useFluidEqLayers();
   const phase = useCurvePhase();
   const engineStatus = useKnownAudioEngineStatus();
   const treble = useTrebleDesigns();

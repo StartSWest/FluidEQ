@@ -234,6 +234,17 @@ void feq_denoise_process(FeqDenoise* denoise,
                          float* const* channels,
                          uint32_t frames);
 
+/**
+ * Wake the neural module's worker if the last block gave it work.
+ *
+ * `feq_denoise_process` only notes that there is work — it makes no system
+ * call — so whoever calls it rings the worker once the block has been handed
+ * on: the device thread after the period, or an offline loop after each
+ * block. Not called, the worker sleeps and every block passes dry as an
+ * underrun. Never from inside the callback; it may enter the kernel.
+ */
+void feq_denoise_wake_workers(FeqDenoise* denoise);
+
 /** Added delay in samples, which the spectral module dominates. */
 uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise);
 

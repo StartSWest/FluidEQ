@@ -213,6 +213,32 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 1;
     transform: translateY(0);
   }
+
+  // How long a cycled-to name stays up: its end takes the class away
+  // (`useMomentaryHold`), and the transitions above fade it out. It was a
+  // two-second timer in the component. Its own class rather than
+  // `.is-visible`, which Off also wears and holds for as long as it is off.
+  &.is-announcing {
+    animation: waveform-visualizer-announcement-hold 2s linear;
+  }
+}
+
+// Holds the name visible and changes nothing it draws. Not opacity: an
+// animation on a property stops that property's transition from starting, and
+// the fade in is the transition's.
+@keyframes waveform-visualizer-announcement-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// The hold runs its length under reduced motion as well. It moves nothing,
+// and at the stand-down's 1ms (`App.scss`) the name would be gone before
+// anybody could read it. `!important` and two classes, to beat the stand-down's
+// own on `*`.
+:root[data-motion='reduced'] .waveform-visualizer__announcement.is-announcing {
+  animation-duration: 2s !important;
 }
 
 .waveform-visualizer__stage {

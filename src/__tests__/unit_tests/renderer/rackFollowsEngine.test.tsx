@@ -26,9 +26,8 @@ jest.mock('renderer/dsp/systemChain', () => ({
 }));
 let mockEngine: TAudioEngine | null = null;
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
-  useAudioEngineStatus: () => ({
-    status: mockEngine === null ? undefined : { engine: mockEngine },
-  }),
+  useKnownAudioEngineStatus: () =>
+    mockEngine === null ? undefined : { engine: mockEngine },
 }));
 
 const GAMING = dspPresetSettings('gaming', DSP_DEFAULTS) as IDspSettings;

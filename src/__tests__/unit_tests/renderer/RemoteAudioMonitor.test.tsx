@@ -134,7 +134,8 @@ describe('remote audio connection monitor', () => {
       />,
     );
 
-    act(() => paint?.(0));
+    // A frame's own time, which comes after the moment it was asked for.
+    act(() => paint?.(performance.now()));
 
     expect(screen.getByText('Send queue 37 ms')).toBeTruthy();
   });

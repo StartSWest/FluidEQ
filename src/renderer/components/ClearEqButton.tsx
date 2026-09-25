@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { clearGains, setTone as setToneApi } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
@@ -10,7 +10,7 @@ import '../styles/RestartAudioDialog.scss';
 
 function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const { refreshState, activeDeviceId } = useFluidEqContext();
+  const { refreshState, activeDeviceId } = useFluidEqShell();
   const surface = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const pending = useRef(false);

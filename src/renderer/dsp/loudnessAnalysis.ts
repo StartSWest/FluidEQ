@@ -12,16 +12,17 @@ import { createTruePeakState, truePeakOfSample } from './truePeak';
  * The measurement half of input normalization, with no decoding in it.
  *
  * It was inside `analyzeInputTrack`, which needs an `AudioContext` to decode
- * and a `requestAnimationFrame` to yield — neither of which exists outside a
- * renderer. That put the arithmetic somewhere no test could reach it and,
+ * and a task boundary to yield at (`nextTask`) — the one a hidden window
+ * still runs, where an animation frame never comes — and neither belongs in
+ * the arithmetic. That put the arithmetic somewhere no test could reach it and,
  * during the native port, somewhere the parity fixtures could not call either.
  * Splitting the loop out is what lets one function be the reference for both
  * the TypeScript player and `loudness.cpp`.
  *
  * Streaming rather than whole-buffer so the caller keeps its own yield
  * boundary: `feed` is arithmetic only and never yields, and feeding a track in
- * one call or in one-second chunks produces bit-identical results because all
- * the state lives here.
+ * one call or in chunks of any size produces bit-identical results because
+ * all the state lives here.
  */
 
 export const SILENCE_DB = -120;

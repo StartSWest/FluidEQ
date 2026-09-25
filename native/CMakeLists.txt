@@ -97,6 +97,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/loudness.cpp
   dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
+  dsp-core/src/doorbell.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/room.cpp
   dsp-core/src/room_kernels.cpp
@@ -326,6 +327,12 @@ add_executable(fluideq-output-quality-test dsp-core/tests/output_quality_test.cp
 target_link_libraries(fluideq-output-quality-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME output-quality COMMAND fluideq-output-quality-test)
 
+# A hang is this test's failure — a ring lost is a waiter that never wakes —
+# so it gets a ceiling rather than the default of waiting for ever.
+add_executable(fluideq-doorbell-test dsp-core/tests/doorbell_test.cpp)
+target_link_libraries(fluideq-doorbell-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME doorbell COMMAND fluideq-doorbell-test)
+set_tests_properties(doorbell PROPERTIES TIMEOUT 60)
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player COMMAND fluideq-player-test)
@@ -389,6 +396,9 @@ set_source_files_properties(dsp-host/src/decoders/vendor/vendor.cpp
 if(WIN32)
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/windows/wasapi_backend.cpp
+    # What Windows says about the outputs and the audio service, which is
+    # what a failed reopen waits on instead of a retry clock.
+    dsp-host/src/platform/windows/device_watch.cpp
     # The version resource, which is what Task Manager's Name column reads.
     # Without it this is one more row saying "FluidEQ" in a tree of eight, and
     # none of them says which is holding the memory.
@@ -413,8 +423,10 @@ if(WIN32)
   # Windows 7 and later the header redirects it into kernel32 and this import
   # library goes unused, which costs nothing and keeps the link honest about
   # what the code asked for.
+  # `advapi32` is the service control manager, which the device watch asks to
+  # be told when Windows Audio is running again.
   target_link_libraries(fluideq-dsp-host PRIVATE
-    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi)
+    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi advapi32)
 
 else()
   target_sources(fluideq-dsp-host PRIVATE
@@ -528,6 +540,57 @@ if(WIN32)
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
   )
 endif()
+
+# The outputs: when an output is plugged in, pulled out, made the default or
+# has its effects changed, told by Windows itself (output-watch/src/main.cpp),
+# so the app follows a new headset with its window hidden and nothing polls.
+# Runs for as long as the app does, and exits when its input closes.
+if(WIN32)
+  add_executable(fluideq-output-watch
+    output-watch/src/main.cpp
+    output-watch/src/output-watch.rc)
+  target_link_libraries(fluideq-output-watch PRIVATE feq_strict ole32 advapi32)
+  set_source_files_properties(output-watch/src/output-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_OUTPUTS_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-output-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Outputs"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
+# What the rest of the machine is playing, for the transport bar: Windows'
+# media sessions, told by Windows itself through their WinRT events
+# (media-watch/src/main.cpp) where a PowerShell loop used to read them every
+# 700 ms. Runs while the window asks for it, and exits when its input closes.
+# C++/WinRT from the SDK like the lighting helper, its headers compiled as
+# external so /W4 /WX holds for this code and not for Microsoft's projection.
+if(WIN32)
+  add_executable(fluideq-media-watch
+    media-watch/src/main.cpp
+    media-watch/src/media-watch.rc)
+  target_link_libraries(fluideq-media-watch PRIVATE feq_strict WindowsApp bcrypt)
+  target_compile_options(fluideq-media-watch PRIVATE
+    /external:anglebrackets /external:W0 /bigobj)
+  set_source_files_properties(media-watch/src/media-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_MEDIA_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-media-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Media"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
+# The media helper's lines, held byte for byte against the app's parser. Plain
+# C++ with no Windows in it, so it runs wherever the tree builds.
+add_executable(fluideq-media-line-test media-watch/tests/media_line_test.cpp)
+target_link_libraries(fluideq-media-line-test PRIVATE feq_strict)
+target_include_directories(fluideq-media-line-test PRIVATE media-watch/src)
+add_test(NAME media-line COMMAND fluideq-media-line-test)
 
 # The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
 # executable in the tree with Windows package identity (see

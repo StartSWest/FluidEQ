@@ -16,7 +16,9 @@ jest.mock('renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({ isEnabled: true, isBlockingError: false }),
+  ...jest
+    .requireActual('__tests__/utils/fluidEqHookMocks')
+    .eqHooksFrom(() => ({ isEnabled: true, isBlockingError: false })),
 }));
 
 beforeEach(() => {

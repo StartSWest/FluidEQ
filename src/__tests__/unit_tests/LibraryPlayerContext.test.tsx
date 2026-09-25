@@ -737,8 +737,22 @@ describe('crossfade transport ownership', () => {
       expect(latestPlayer?.track?.id).toBe(next.id);
       expect(readDspInputAnalysis().trackId).toBe(first.id);
 
+      // The overlap ends when the incoming deck's own playhead has played the
+      // fade's length, not on a clock: time alone hands nothing over.
       act(() => {
         jest.advanceTimersByTime(301);
+      });
+      expect(readDspInputAnalysis().trackId).toBe(first.id);
+      act(() => {
+        createdAudio
+          .filter((element) => element !== outgoing)
+          .forEach((incoming) => {
+            Object.defineProperty(incoming, 'currentTime', {
+              configurable: true,
+              get: () => 0.3,
+            });
+            incoming.dispatchEvent(new Event('timeupdate'));
+          });
       });
       expect(readDspInputAnalysis().trackId).toBe(next.id);
       expect(warning).toHaveBeenCalledTimes(1);

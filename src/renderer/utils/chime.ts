@@ -31,13 +31,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- * Created on first use and kept.
+ * Created on first use, shared by every note sounding at once, and closed once
+ * the last of them has ended.
  *
  * A context per beep would leak one hardware audio stream per press, and
- * browsers cap how many can exist. It is only ever built inside a user gesture,
- * which is what lets it start unsuspended.
+ * browsers cap how many can exist. Kept for the session, as it was, it held
+ * the output stream open and ran its render thread whether or not anything
+ * played: one press of a chord nobody repeats kept a live stream on the
+ * default output until the window closed. The next press makes another. It is
+ * only ever built inside a user gesture, which is what lets it start
+ * unsuspended.
  */
 let context: AudioContext | undefined;
+/** Notes scheduled on `context` whose `ended` has not arrived yet. */
+let sounding = 0;
+
+/** Closes `audio` once nothing scheduled on it is left to end. */
+const releaseWhenSilent = (audio: AudioContext): void => {
+  if (audio !== context || sounding > 0) {
+    return;
+  }
+  context = undefined;
+  audio.close().catch(() => undefined);
+};
 
 const getContext = (): AudioContext | undefined => {
   if (context) {
@@ -92,6 +108,19 @@ const playNote = (
   gain.connect(audio.destination);
   oscillator.start(startAt);
   oscillator.stop(startAt + NOTE_SECONDS + 0.02);
+  // Counted once its start and stop are scheduled, so a note that threw on
+  // the way cannot hold the context open waiting for an `ended` never sent.
+  sounding += 1;
+  oscillator.addEventListener(
+    'ended',
+    () => {
+      if (audio === context) {
+        sounding -= 1;
+      }
+      releaseWhenSilent(audio);
+    },
+    { once: true },
+  );
 };
 
 /** A fifth apart, which reads as an interval rather than as two random pips. */
@@ -123,7 +152,9 @@ const playChime = (direction: 'up' | 'down'): void => {
     playNote(audio, first, startAt);
     playNote(audio, second, startAt + NOTE_SECONDS * 0.85);
   } catch {
-    // As above.
+    // As above — and a context with no note on it would never hear an `ended`
+    // to be closed by.
+    releaseWhenSilent(audio);
   }
 };
 

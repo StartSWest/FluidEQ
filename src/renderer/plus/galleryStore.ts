@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import type { IGalleryQuery, IGalleryScene } from 'common/plusGallery';
 import type { TGalleryListOutcome } from 'main/ipc/plusGallery';
+import { recallRecent, rememberRecent } from '../utils/recentMap';
 
 /**
  * The gallery's lists, as the renderer holds them: one per question asked —
@@ -71,6 +72,15 @@ export const GALLERY_REFRESH_AFTER_MS = 60_000;
 const lists = new Map<string, IListEntry>();
 const listeners = new Set<() => void>();
 
+/**
+ * Lists kept at once. The key holds the search text, and the search asks for
+ * each text it settles on as the member types, so without a ceiling this held
+ * a page of scenes for every search ever made, for as long as the window was
+ * open. Far more than the handful a member goes back to; the list let go is
+ * the one shown or loaded longest ago, and seeing it again asks for it again.
+ */
+const KEPT_LISTS = 32;
+
 const bridge = () => window.electron?.ipcRenderer;
 
 export const galleryListKey = (query: TListQuery) =>
@@ -84,7 +94,7 @@ export const galleryListKey = (query: TListQuery) =>
 const notify = () => listeners.forEach((listener) => listener());
 
 const put = (key: string, entry: IListEntry) => {
-  lists.set(key, entry);
+  rememberRecent(lists, key, entry, KEPT_LISTS);
   notify();
 };
 
@@ -175,6 +185,10 @@ export const useGalleryList = (query: TListQuery) => {
   useEffect(() => {
     if (needsLoad) {
       load(query, 0).catch(() => undefined);
+    } else {
+      // Shown again from memory: the newest, so `KEPT_LISTS` lets go of a
+      // list nobody has come back to rather than the one on screen.
+      recallRecent(lists, key);
     }
     // The key is the query written out: it changes exactly when the query
     // does, which the object itself — new on every render — cannot say.

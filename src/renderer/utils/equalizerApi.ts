@@ -52,13 +52,14 @@ import type { ISongIdentity } from 'common/songIdentity';
 import type { ITone } from 'common/tone';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 
+import coalesceRequests from 'common/coalescedRequest';
 import {
   buildResponseHandler,
   sendRequest,
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
-import coalesceRequests from './coalescedRequest';
+import type { TError, TSuccess } from './ipcRequest';
 
 // Re-exported: TSuccess and TError are the reply shapes the main process
 // builds, and every IPC module imports them from here.
@@ -144,7 +145,6 @@ export const openSupportEmail = (url: string): Promise<boolean> => {
     channel,
     [url],
     buildResponseHandler<boolean>((result, resolve) => resolve(result)),
-    { timeout: null },
   );
 };
 
@@ -326,13 +326,113 @@ export const importDeviceChain = (): Promise<IChainImport> => {
 };
 
 /**
+ * The list as the window last read it — see `readKnownAudioDevices`.
+ */
+let knownDevices: IAudioDevice[] | undefined;
+let isWatchingForChanges = false;
+
+/**
  * Coalesced: every panel that names an output re-reads this list on the same
  * output change, and each read is a PowerShell enumeration in main.
  */
-export const getAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
+const requestAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   return sendRequest(channel, [], simpleResponseHandler<IAudioDevice[]>());
 });
+
+/** Ask main for the list now — for the output panel's own refresh. */
+export const getAudioDevices = async (): Promise<IAudioDevice[]> => {
+  const devices = await requestAudioDevices();
+  knownDevices = devices;
+  return devices;
+};
+
+const settleAudioDevices = simpleResponseHandler<IAudioDevice[]>();
+
+const isAudioDevicesReply = (
+  payload: unknown,
+): payload is TSuccess<IAudioDevice[]> | TError =>
+  typeof payload === 'object' &&
+  payload !== null &&
+  ('errorCode' in payload ||
+    ('result' in payload && Array.isArray(payload.result)));
+
+/**
+ * The list main read by itself because Windows said the outputs moved
+ * (`outputWatch.ts`), pushed once main has followed it — which is what the
+ * output panel used to poll for every three seconds.
+ *
+ * Each push reaches `listener` as the reading a request would have been: the
+ * list, or the error main would have replied with. The kept list takes the
+ * list first, exactly as `getAudioDevices` does, because nothing the window
+ * read is newer.
+ */
+export const subscribeAudioDevices = (
+  listener: (reading: Promise<IAudioDevice[]>) => void,
+): (() => void) => {
+  const off = window.electron?.ipcRenderer.on(
+    ChannelEnum.AUDIO_DEVICES_CHANGED,
+    (payload: unknown) => {
+      // Main builds this in one place (`followOutputs`) with the reply's own
+      // type; anything else is not an answer about the outputs.
+      if (!isAudioDevicesReply(payload)) {
+        return;
+      }
+      const reading = new Promise<IAudioDevice[]>((resolve, reject) => {
+        settleAudioDevices(payload, resolve, reject);
+      }).then((devices) => {
+        knownDevices = devices;
+        return devices;
+      });
+      listener(reading);
+    },
+  );
+  return off ?? (() => undefined);
+};
+
+/**
+ * The list the window already holds, asked for only when it may have moved.
+ *
+ * The output panel reads the list when it mounts and when the window is come
+ * back to, and main pushes it whenever Windows says the outputs moved
+ * (`subscribeAudioDevices`); every page that names an output — the EQ's
+ * rate and the graph's, the DSP meters, the output being listened to — asked
+ * main again each time it was opened: one more PowerShell run per visit, for
+ * the list the panel had just read. The kept list is dropped whenever
+ * something says the outputs may have moved — an output change announced, a
+ * device plugged in or pulled out, or the window being come back to, where
+ * Sound settings may have been used — so a reader after any of them asks main
+ * exactly as before. Dropped in the capture phase, ahead of the readers' own
+ * listeners for the same events: the extra-outputs mirror re-reads the list
+ * on `devicechange`, and read after this it got the list from before the
+ * change.
+ *
+ * The window's own focus only. Focus does not bubble but it is captured, so a
+ * capturing listener on the window hears every control that takes focus — a
+ * tab pressed was enough to drop the list, and the page it opened asked main
+ * again, the run this exists to save.
+ */
+export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
+  if (!isWatchingForChanges) {
+    isWatchingForChanges = true;
+    const forget = () => {
+      knownDevices = undefined;
+    };
+    window.addEventListener('fluideq-output-changed', forget, true);
+    window.addEventListener(
+      'focus',
+      (event) => {
+        if (event.target === window) {
+          forget();
+        }
+      },
+      true,
+    );
+    document.addEventListener('visibilitychange', forget, true);
+    navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
+  }
+  return knownDevices ? Promise.resolve(knownDevices) : getAudioDevices();
+};
 
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
@@ -464,15 +564,12 @@ export const getConvolutionCatalog = (
     channel,
     [query],
     simpleResponseHandler<IConvolutionCatalogEntry[]>(),
-    { timeout: 60 * 1000 },
   );
 };
 
 export const downloadConvolution = (entryId: string): Promise<void> => {
   const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
-  return sendRequest(channel, [entryId], setterResponseHandler, {
-    timeout: 5 * 60 * 1000,
-  });
+  return sendRequest(channel, [entryId], setterResponseHandler);
 };
 
 /**
@@ -493,15 +590,6 @@ export const clearConvolution = (): Promise<void> => {
 };
 
 /**
- * How long an import may sit waiting.
- *
- * The whole call is spent with a native file picker open, and browsing to a
- * folder is not something to put a stopwatch on. The default ten seconds would
- * reliably "time out" while the user was still choosing.
- */
-const FILE_PICKER_TIMEOUT = 10 * 60 * 1000;
-
-/**
  * Import an EQ from a file the user picks.
  *
  * Resolves with a short description of what was applied, or an empty string if
@@ -509,9 +597,7 @@ const FILE_PICKER_TIMEOUT = 10 * 60 * 1000;
  */
 export const importEqFile = (): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_FILE;
-  return sendRequest(channel, [], simpleResponseHandler<string>(), {
-    timeout: FILE_PICKER_TIMEOUT,
-  });
+  return sendRequest(channel, [], simpleResponseHandler<string>());
 };
 
 /** Apply EQ text pasted or read by the Squiglink import panel. */
@@ -531,9 +617,7 @@ export const importEqText = (
 /** Import a WAV impulse response the user picks. Same contract as above. */
 export const importConvolutionFile = (): Promise<string> => {
   const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
-  return sendRequest(channel, [], simpleResponseHandler<string>(), {
-    timeout: FILE_PICKER_TIMEOUT,
-  });
+  return sendRequest(channel, [], simpleResponseHandler<string>());
 };
 
 export const checkOpraUpdate = (): Promise<IOpraUpdateStatus> => {
@@ -543,9 +627,7 @@ export const checkOpraUpdate = (): Promise<IOpraUpdateStatus> => {
 
 export const updateOpraDatabase = (): Promise<IOpraUpdateStatus> => {
   const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
-  return sendRequest(channel, [], simpleResponseHandler<IOpraUpdateStatus>(), {
-    timeout: 5 * 60 * 1000,
-  });
+  return sendRequest(channel, [], simpleResponseHandler<IOpraUpdateStatus>());
 };
 
 /**

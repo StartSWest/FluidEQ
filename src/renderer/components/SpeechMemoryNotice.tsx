@@ -19,13 +19,13 @@ import '../styles/SpeechMemoryNotice.scss';
 /**
  * Asks whether the idle speech model may give its RAM back.
  *
- * Mounted at the app root, not inside the Karaoke workspace where the model
- * lives. The idle timer that raises this runs for as long as the model is
- * loaded, and the user is very unlikely to still be looking at the Maker ten
- * minutes after they stopped using it — so drawn inside that tab, the question
- * was asked to an empty room and the gigabyte stayed held until they wandered
- * back. The session store is a module-level store with its own subscription,
- * so nothing about the model has to move for the question to follow the user.
+ * Asked the moment the Maker closes with nothing left transcribing — that is
+ * what idle means now, not a wait (`whisperSession.ts`). Mounted at the app
+ * root rather than inside the Karaoke workspace where the model lives, because
+ * the Maker closes over whatever is behind it and the question has to be
+ * where the user is. The session store is a module-level store with its own
+ * subscription, so nothing about the model has to move for the question to
+ * follow the user.
  *
  * Nothing when there is nothing to ask: the prompt is only raised under the
  * `ask` policy, and `auto` releases silently while `keep` never asks at all.
@@ -67,7 +67,7 @@ const SpeechMemoryNotice = () => {
           {t('karaoke.maker.keepLoaded')}
         </button>
         {/* Loud, because it is the recommendation: the question is only asked
-            after the model has sat unused for the whole idle window. */}
+            once the Maker, the one thing that runs the model, has closed. */}
         <button
           type="button"
           className="button small"

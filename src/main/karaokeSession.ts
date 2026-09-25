@@ -19,6 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
+import {
+  forgetPath,
+  scheduleWrite,
+  scheduleWriteOperation,
+  settlePath,
+} from './asyncWriter';
 import { isLocalRendererPath } from './rendererPaths';
 import {
   IKaraokeRestoredFile,
@@ -37,6 +44,11 @@ import { decodeKaraokeText } from '../common/karaoke/textEncoding';
 
 const SESSION_FILENAME = 'karaoke-session.json';
 const MAX_FILES = 5_000;
+/**
+ * How many of a saved session's files are asked about at once: not 5,000 round
+ * trips one after another, nor a thread pool every other read in main waits on.
+ */
+const STAT_CONCURRENCY = 32;
 
 /**
  * The largest file handed back whole when a session is restored. The same
@@ -171,32 +183,76 @@ const resolveReferencePath = (
   return reference.localPath;
 };
 
+/**
+ * Whether a path is one a session may keep, before the disk is asked.
+ *
+ * Not a path on another machine, whatever else it is: `stat` on
+ * `\\host\share` authenticates outbound as this user, and the path arrived
+ * over IPC (`rendererPaths.ts`).
+ */
+const isKeepablePath = (localPath: unknown): localPath is string =>
+  isLocalRendererPath(localPath) &&
+  path.isAbsolute(localPath) &&
+  roleForPath(localPath) !== undefined;
+
+const storedFileFrom = (
+  localPath: string,
+  relativePath: unknown,
+  stats: fs.Stats,
+): IKaraokeStoredFile | undefined =>
+  stats.isFile()
+    ? {
+        localPath,
+        relativePath: safeRelativePath(relativePath, path.basename(localPath)),
+      }
+    : undefined;
+
 const validateStoredFile = (
   localPath: unknown,
   relativePath: unknown,
 ): IKaraokeStoredFile | undefined => {
-  // Not a path on another machine, whatever else it is: `stat` on
-  // `\\host\share` authenticates outbound as this user, and the path arrived
-  // over IPC (`rendererPaths.ts`).
-  if (
-    !isLocalRendererPath(localPath) ||
-    !path.isAbsolute(localPath) ||
-    !roleForPath(localPath)
-  ) {
+  if (!isKeepablePath(localPath)) {
     return undefined;
   }
   try {
-    const stats = fs.statSync(localPath);
-    if (!stats.isFile()) {
-      return undefined;
-    }
-    return {
-      localPath,
-      relativePath: safeRelativePath(relativePath, path.basename(localPath)),
-    };
+    return storedFileFrom(localPath, relativePath, fs.statSync(localPath));
   } catch {
     return undefined;
   }
+};
+
+interface IKaraokeFileCandidate {
+  localPath: string | undefined;
+  relativePath: unknown;
+}
+
+// What the disk still has of the candidates, in order: asked about
+// `STAT_CONCURRENCY` at a time, and never on main's own thread.
+const validateStoredFiles = async (
+  candidates: readonly IKaraokeFileCandidate[],
+): Promise<IKaraokeStoredFile[]> => {
+  const found: (IKaraokeStoredFile | undefined)[] = [];
+  let next = 0;
+  const askInTurn = async () => {
+    while (next < candidates.length) {
+      const at = next;
+      next += 1;
+      const { localPath, relativePath } = candidates[at];
+      if (isKeepablePath(localPath)) {
+        found[at] = await fs.promises.stat(localPath).then(
+          (stats) => storedFileFrom(localPath, relativePath, stats),
+          () => undefined,
+        );
+      }
+    }
+  };
+  await Promise.all(
+    Array.from(
+      { length: Math.min(STAT_CONCURRENCY, candidates.length) },
+      askInTurn,
+    ),
+  );
+  return found.filter((file): file is IKaraokeStoredFile => file !== undefined);
 };
 
 const normalizeStoredSession = (value: unknown): IKaraokeStoredSession => {
@@ -247,46 +303,105 @@ const activateTokens = (files: readonly IKaraokeStoredFile[]) => {
   });
 };
 
+/**
+ * What each session file was last written from, so a snapshot that asks for
+ * exactly that again is neither checked against the disk nor written.
+ */
+const lastWritten = new Map<string, string>();
+/**
+ * Each session file's saves and clears, one at a time and the newest waiting
+ * one replacing any older (`scheduleWriteOperation`). A restore waits for them.
+ */
+const sessionWork = new Map<string, Promise<void>>();
+
+const inTurn = (filePath: string, work: () => Promise<void>): Promise<void> => {
+  const done = scheduleWriteOperation(filePath, work);
+  sessionWork.set(filePath, done);
+  return done;
+};
+
+/**
+ * Keep a snapshot of the Karaoke workspace for the next launch.
+ *
+ * Every save stood on main's own thread: a `statSync` for each of up to 5,000
+ * playlist files, then a `writeFileSync`, changed or not. Now the files are
+ * asked about off that thread, the file goes through the writer (temporary
+ * file, then rename), a snapshot identical to the last one written costs
+ * nothing, a save superseded before it started is skipped, and quitting waits
+ * for what is on its way (`flushPendingWrites`).
+ */
 export const saveKaraokeSession = (
   userDataDir: string,
   snapshot: IKaraokeSessionSnapshot,
-): void => {
-  const storedFiles = snapshot.files
+): Promise<void> => {
+  const filePath = sessionPath(userDataDir);
+  // Resolved as the save arrives, which is what the synchronous save saw: a
+  // clear sent after it empties the token map before this runs.
+  const candidates: IKaraokeFileCandidate[] = snapshot.files
     .slice(0, MAX_FILES)
-    .map((reference) => {
-      const localPath = resolveReferencePath(reference);
-      return validateStoredFile(localPath, reference.relativePath);
-    })
-    .filter((file): file is IKaraokeStoredFile => Boolean(file));
-  const stored: IKaraokeStoredSession = {
-    version: 1,
-    files: storedFiles,
-    playlistOrder: safeStringArray(snapshot.playlistOrder),
-    selectedPlaylistId:
-      typeof snapshot.selectedPlaylistId === 'string'
-        ? snapshot.selectedPlaylistId
-        : undefined,
-    playheadMs:
-      Number.isFinite(snapshot.playheadMs) && snapshot.playheadMs > 0
-        ? snapshot.playheadMs
-        : 0,
-  };
-  fs.mkdirSync(userDataDir, { recursive: true });
-  fs.writeFileSync(sessionPath(userDataDir), JSON.stringify(stored, null, 2));
-  // DELIBERATELY NOT `activateTokens(stored.files)`.
-  //
-  // A token is `sha256(path)`, so a caller that names a path can work out its
-  // own token — and activating on save made this pair of channels an arbitrary
-  // read of any media file on the machine in one round trip: save a session
-  // naming somebody's photo, then ask for its bytes. The window has the file
-  // it just saved; it does not need main to read it back. Only a session
-  // RESTORED from disk hands out tokens, which is the case the read-back
-  // exists for: files the window no longer holds because the app was closed.
+    .map((reference) => ({
+      localPath: resolveReferencePath(reference),
+      relativePath: reference.relativePath,
+    }));
+  const playlistOrder = safeStringArray(snapshot.playlistOrder);
+  const selectedPlaylistId =
+    typeof snapshot.selectedPlaylistId === 'string'
+      ? snapshot.selectedPlaylistId
+      : undefined;
+  const playheadMs =
+    Number.isFinite(snapshot.playheadMs) && snapshot.playheadMs > 0
+      ? snapshot.playheadMs
+      : 0;
+  const asked = JSON.stringify([
+    candidates,
+    playlistOrder,
+    selectedPlaylistId,
+    playheadMs,
+  ]);
+  return inTurn(filePath, async () => {
+    if (lastWritten.get(filePath) === asked) {
+      return;
+    }
+    const stored: IKaraokeStoredSession = {
+      version: 1,
+      files: await validateStoredFiles(candidates),
+      playlistOrder,
+      selectedPlaylistId,
+      playheadMs,
+    };
+    // A failure is thrown to the window, which forgets what it last sent and
+    // sends the same snapshot again at its next save, and it is not
+    // remembered as written here either. The queue goes on past it
+    // (`scheduleWriteOperation`), so a save asked for behind it still lands.
+    try {
+      await fs.promises.mkdir(userDataDir, { recursive: true });
+      await scheduleWrite(filePath, JSON.stringify(stored, null, 2));
+    } catch (error) {
+      log.warn('The Karaoke session could not be saved', error);
+      throw error;
+    }
+    lastWritten.set(filePath, asked);
+    // DELIBERATELY NOT `activateTokens(stored.files)`.
+    //
+    // A token is `sha256(path)`, so a caller that names a path can work out
+    // its own token — and activating on save made this pair of channels an
+    // arbitrary read of any media file on the machine in one round trip: save
+    // a session naming somebody's photo, then ask for its bytes. The window
+    // has the file it just saved; it does not need main to read it back. Only
+    // a session RESTORED from disk hands out tokens, which is the case the
+    // read-back exists for: files the window no longer holds because the app
+    // was closed.
+  });
 };
 
-export const restoreKaraokeSession = (
+export const restoreKaraokeSession = async (
   userDataDir: string,
-): IKaraokeRestoredSession | undefined => {
+): Promise<IKaraokeRestoredSession | undefined> => {
+  // After every save and clear asked before it, whatever became of them (a
+  // failure is logged where it happened): they land after their handler
+  // returns now, and a restore reading first — the tab left with a save on
+  // its way and opened again — would bring back the playlist before it.
+  await sessionWork.get(sessionPath(userDataDir))?.catch(() => undefined);
   const stored = readStoredSession(userDataDir);
   if (!stored.files.length) {
     tokenPaths.clear();
@@ -361,11 +476,19 @@ export const readRestoredKaraokeFile = (
     .catch(() => undefined);
 };
 
-export const clearKaraokeSession = (userDataDir: string): void => {
+export const clearKaraokeSession = (userDataDir: string): Promise<void> => {
   tokenPaths.clear();
-  try {
-    fs.rmSync(sessionPath(userDataDir), { force: true });
-  } catch {
-    // A locked profile should not prevent the user from clearing the UI.
-  }
+  const filePath = sessionPath(userDataDir);
+  // In turn with the saves, so a save asked for before the clear cannot land
+  // after it and bring the cleared playlist back at the next launch.
+  return inTurn(filePath, async () => {
+    lastWritten.delete(filePath);
+    await settlePath(filePath).catch(() => undefined);
+    try {
+      await fs.promises.rm(filePath, { force: true });
+    } catch {
+      // A locked profile should not prevent the user from clearing the UI.
+    }
+    forgetPath(filePath);
+  });
 };

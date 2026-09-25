@@ -24,6 +24,11 @@ import {
   medianPitch,
 } from '../../common/karaoke/pitch';
 import pitchWorkletUrl from './pitch-worklet.worklet';
+import {
+  createKaraokeLiveValue,
+  IKaraokeLiveValue,
+  useKaraokeLiveValue,
+} from './karaokeLiveValue';
 
 const MICROPHONE_STORAGE_KEY = 'fluideq.karaoke.microphoneId';
 const MICROPHONE_GAIN_STORAGE_KEY = 'fluideq.karaoke.microphoneGain';
@@ -162,8 +167,14 @@ interface IKaraokeMicrophoneResources {
  * No request occurs on mount. A user action opens one input, the graph is used
  * only for a local level reading, and no node is connected to the speakers.
  * Leaving Karaoke releases every track and never reopens it automatically.
+ *
+ * The pitch and the level are handed out as live values rather than state:
+ * the detector reports about twenty-one times a second at 48 kHz and the meter
+ * twenty, and as state of the workspace that holds this hook each report
+ * re-rendered the whole of it. `useKaraokeMicrophone` below subscribes to both
+ * for a component small enough not to mind.
  */
-export const useKaraokeMicrophone = (isActive: boolean) => {
+export const useKaraokeMicrophoneInput = (isActive: boolean) => {
   const [devices, setDevices] = useState<IKaraokeMicrophoneDevice[]>([
     { deviceId: DEFAULT_MICROPHONE_ID, label: '' },
   ]);
@@ -171,9 +182,11 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
     readSelectedMicrophone,
   );
   const [status, setStatus] = useState<TKaraokeMicrophoneStatus>('off');
-  const [level, setLevel] = useState(0);
+  const [liveLevel] = useState(() => createKaraokeLiveValue(0));
   const [inputGain, setInputGainState] = useState(readMicrophoneGain);
-  const [pitch, setPitch] = useState<IKaraokeLivePitch>();
+  const [livePitch] = useState(() =>
+    createKaraokeLiveValue<IKaraokeLivePitch | undefined>(undefined),
+  );
   const [pitchAnalysisStatus, setPitchAnalysisStatus] =
     useState<TKaraokePitchAnalysisStatus>('idle');
   const resourcesRef = useRef<IKaraokeMicrophoneResources>({});
@@ -218,11 +231,11 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
       resources.context.close().catch(() => undefined);
     }
     if (mountedRef.current) {
-      setLevel(0);
-      setPitch(undefined);
+      liveLevel.write(0);
+      livePitch.write(undefined);
       setPitchAnalysisStatus('idle');
     }
-  }, []);
+  }, [liveLevel, livePitch]);
 
   const startPitchAnalysis = useCallback(
     async (
@@ -274,7 +287,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
           ) {
             recentFrequencies.length = 0;
             if (performance.now() - lastPitchAtRef.current > PITCH_HOLD_MS) {
-              setPitch(undefined);
+              livePitch.write(undefined);
             }
             return;
           }
@@ -290,7 +303,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
           );
           if (estimate) {
             lastPitchAtRef.current = performance.now();
-            setPitch({
+            livePitch.write({
               ...estimate,
               capturedAtMs: frame.capturedAtMs,
               processingMs: frame.processingMs,
@@ -315,7 +328,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
         }
       }
     },
-    [],
+    [livePitch],
   );
 
   const refreshDevices = useCallback(async () => {
@@ -395,7 +408,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
               energy += samples[index] * samples[index];
             }
             const rms = Math.sqrt(energy / samples.length);
-            setLevel(Math.min(1, rms * 3.2));
+            liveLevel.write(Math.min(1, rms * 3.2));
             lastPaint = now;
 
             if (now - lastFallbackPitch >= FALLBACK_PITCH_INTERVAL_MS) {
@@ -424,7 +437,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
                 );
                 if (smoothed) {
                   lastPitchAtRef.current = now;
-                  setPitch({
+                  livePitch.write({
                     ...smoothed,
                     capturedAtMs: now,
                     processingMs: performance.now() - startedAt,
@@ -432,7 +445,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
                 }
               } else if (now - lastPitchAtRef.current > PITCH_HOLD_MS) {
                 fallbackFrequencies.length = 0;
-                setPitch(undefined);
+                livePitch.write(undefined);
               }
               lastFallbackPitch = now;
             }
@@ -447,7 +460,7 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
         return false;
       }
     },
-    [inputGain, startPitchAnalysis],
+    [inputGain, liveLevel, livePitch, startPitchAnalysis],
   );
 
   const stop = useCallback(() => {
@@ -607,9 +620,9 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
     devices,
     selectedDeviceId,
     status,
-    level,
+    liveLevel: liveLevel as IKaraokeLiveValue<number>,
     inputGain,
-    pitch,
+    livePitch: livePitch as IKaraokeLiveValue<IKaraokeLivePitch | undefined>,
     pitchAnalysisStatus,
     selectDevice,
     setInputGain,
@@ -617,6 +630,19 @@ export const useKaraokeMicrophone = (isActive: boolean) => {
   };
 };
 
-export type TKaraokeMicrophoneController = ReturnType<
-  typeof useKaraokeMicrophone
+export type TKaraokeMicrophoneInput = ReturnType<
+  typeof useKaraokeMicrophoneInput
 >;
+
+/** What the settings panel draws: the input, with its level as a number. */
+export type TKaraokeMicrophoneController = TKaraokeMicrophoneInput & {
+  level: number;
+};
+
+/** The same microphone with its pitch and level as state. */
+export const useKaraokeMicrophone = (isActive: boolean) => {
+  const input = useKaraokeMicrophoneInput(isActive);
+  const pitch = useKaraokeLiveValue(input.livePitch);
+  const level = useKaraokeLiveValue(input.liveLevel);
+  return { ...input, pitch, level };
+};
