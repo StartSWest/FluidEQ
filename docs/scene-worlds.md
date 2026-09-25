@@ -51,6 +51,32 @@ Any number may instead be a formula in a string. Values:
 | `p.<id>`                | a pack parameter                                      |
 | any `vars` name         | a variable; each may use those before it              |
 
+The music's time and shape, the listener's hands and the viewer's camera
+(contract 8; the shader's `uRhythm`, `uDrums`, `uSong`, `uStereo`, `uVoice`,
+`uPointer`, `uTap` and `uCamera`, which a material's GLSL sees too):
+
+| name                                                 | meaning                                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------------------- |
+| `beatPhase`, `barPhase`                              | 0 on a beat (the first of a bar), rising evenly to 1 at the next       |
+| `tempo`, `tempoSure`                                 | beats a minute (0 until heard), and how sure, 0..1                     |
+| `drumKick`, `drumSnare`, `drumHat`                   | each drum, 1 at its hit and falling away                               |
+| `songIntensity`, `songBuild`                         | this part against the rest of the song; 0..1 while building            |
+| `songDrop`, `songDrops`                              | 1 as a drop lands, falling; how many so far                            |
+| `stereoPan`, `stereoWidth`                           | where the music leans, -1..1; how wide, 0..1                           |
+| `voiceOpen`, `voiceNote`, `voiceSure`                | the singing voice: how open, the note (80 Hz..1 kHz as 0..1), how sure |
+| `pointerX`, `pointerY`, `pointerHeld`, `pointerOver` | the pointer over the panel, in uv                                      |
+| `tapX`, `tapY`, `tapAge`, `taps`                     | the last tap, seconds since, how many                                  |
+| `viewYaw`, `viewPitch`, `viewZoom`                   | the viewer's turn of the camera                                        |
+
+They are named with their group because a variable named like a signal is
+dropped: `kick` stays yours.
+
+A pack's `camera` (`src/common/sceneCamera.ts`) lets the viewer drag the
+scene round: the world's camera is then turned about what it looks at, raised
+to look down and moved in or out, after its own formulas, the way a shader is
+told to read `uCamera`, so the world and its sky turn together. Allow only
+what looks designed from every angle it reaches.
+
 Per copy (instances, points, ribbons) also: `i`, `n`, `u` (0..1 along the
 set), `rand`, `rand2`, `rand3` (repeatable per copy), `x`, `y`, `z` (the
 layout's place) and `angle` (round the vertical axis).

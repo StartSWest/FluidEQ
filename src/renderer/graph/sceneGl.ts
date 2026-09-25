@@ -3,11 +3,11 @@ import { SILENT_RHYTHM, type ISceneRhythm } from 'common/sceneRhythm';
 import { getEaseFactor } from 'common/smoothing';
 import {
   assembleFragmentSource,
-  SCENE_TAP_AGE_LIMIT_S,
   SPECTRUM_TEXELS,
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
+import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
 import compileWorldScene from './sceneWorldLoader';
@@ -80,19 +80,6 @@ export interface ISceneFrame {
    */
   musicSeconds?: number;
 }
-
-/** Where the pointer is taken to be when nobody is pointing: nowhere near. */
-export const NO_POINTER: readonly [number, number, number, number] = [
-  0.5, 0.5, 0, 0,
-];
-/** No tap yet: as long ago as a tap is ever said to be. */
-export const NO_TAP: readonly [number, number, number, number] = [
-  0.5,
-  0.5,
-  SCENE_TAP_AGE_LIMIT_S,
-  0,
-];
-export const HOME_CAMERA: readonly [number, number, number] = [0, 0, 1];
 
 export interface ISceneProgram {
   /** Upload this frame's measurement and draw one triangle. */

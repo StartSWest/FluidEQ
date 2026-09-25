@@ -357,6 +357,39 @@ export const WORLD_SIGNALS = [
   'run',
   'runSpeed',
   'aspect',
+  // Contract 8, as the shader has them in uRhythm, uDrums, uSong, uStereo,
+  // uVoice, uPointer, uTap and uCamera. Each is named with its group because
+  // a variable named like a signal is dropped (`RESERVED`): `kick`, `drop` and
+  // `pan` are what worlds already call their own variables, and a signal that
+  // took one of those names would silently empty a world's GLSL of it. Each
+  // group runs in its uniform's own order, and is set as one run.
+  'beatPhase',
+  'barPhase',
+  'tempo',
+  'tempoSure',
+  'drumKick',
+  'drumSnare',
+  'drumHat',
+  'songIntensity',
+  'songBuild',
+  'songDrop',
+  'songDrops',
+  'stereoPan',
+  'stereoWidth',
+  'voiceOpen',
+  'voiceNote',
+  'voiceSure',
+  'pointerX',
+  'pointerY',
+  'pointerHeld',
+  'pointerOver',
+  'tapX',
+  'tapY',
+  'tapAge',
+  'taps',
+  'viewYaw',
+  'viewPitch',
+  'viewZoom',
 ] as const;
 
 /** What a formula evaluated once per copy may name besides. */

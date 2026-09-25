@@ -23,6 +23,7 @@ import {
   worldScopeNames,
   worldVarUniform,
 } from 'common/sceneWorld';
+import { SILENT_RHYTHM } from 'common/sceneRhythm';
 import { getEaseFactor } from 'common/smoothing';
 import {
   SPECTRUM_TEXELS,
@@ -34,6 +35,7 @@ import type {
   IExpressionScope,
 } from 'common/worldExpression';
 import type { ISceneFrame } from '../sceneGl';
+import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
 import { createFormula, type IWorldFormula } from './worldFormula';
 
 /**
@@ -59,6 +61,8 @@ export interface IWorldInputs {
   instanceScope: IExpressionScope;
   /** The spectrum as last given, 0..255, for anything that keeps history. */
   spectrumBytes: Uint8Array;
+  /** The viewer's turn of the camera as last given: yaw, pitch, zoom. */
+  view: [number, number, number];
   update(frame: ISceneFrame, width: number, height: number): void;
   settled(): boolean;
   dispose(): void;
@@ -149,6 +153,14 @@ export const createWorldInputs = (
     uWaveform: { value: waveform },
     uArtwork: { value: artwork ?? blank },
     uSpectrumRect: { value: new Vector4(0, 1, 0, 1) },
+    uRhythm: { value: new Vector4() },
+    uDrums: { value: new Vector3() },
+    uSong: { value: new Vector4() },
+    uStereo: { value: new Vector2() },
+    uVoice: { value: new Vector3() },
+    uPointer: { value: new Vector4(...NO_POINTER) },
+    uTap: { value: new Vector4(...NO_TAP) },
+    uCamera: { value: new Vector3(...HOME_CAMERA) },
     // Half the drawn height, for a point's size at a distance
     // (`buildPointsMaterial`).
     uWorldPointScale: { value: 1 },
@@ -176,22 +188,18 @@ export const createWorldInputs = (
     index: names.indexOf(worldParamName(param.id)),
     uniform: uniforms[uniformNameForParam(param.id)],
   }));
-  const signal = (name: (typeof WORLD_SIGNALS)[number]) => names.indexOf(name);
-  const slots = {
-    time: signal('time'),
-    dt: signal('dt'),
-    level: signal('level'),
-    beat: signal('beat'),
-    bass: signal('bass'),
-    mid: signal('mid'),
-    treble: signal('treble'),
-    accent: signal('accent'),
-    accentId: signal('accentId'),
-    run: signal('run'),
-    runSpeed: signal('runSpeed'),
-    aspect: signal('aspect'),
+  const slots = Object.fromEntries(
+    WORLD_SIGNALS.map((name) => [name, names.indexOf(name)]),
+  ) as Record<(typeof WORLD_SIGNALS)[number], number>;
+  /** Consecutive signals from `first`, set from `values` in order. */
+  const setRun = (
+    first: (typeof WORLD_SIGNALS)[number],
+    values: readonly number[],
+  ) => {
+    env.set(values, slots[first]);
   };
 
+  const view: [number, number, number] = [...HOME_CAMERA];
   let previousTime: number | undefined;
   let isSettled = true;
 
@@ -222,6 +230,7 @@ export const createWorldInputs = (
     scope,
     instanceScope: { names: instanceNames },
     spectrumBytes,
+    view,
     update: (frame, width, height) => {
       const elapsed =
         previousTime === undefined
@@ -254,6 +263,35 @@ export const createWorldInputs = (
       (uniforms.uSpectrumRect.value as Vector4).set(
         ...(frame.spectrumRect ?? [0, 1, 0, 1]),
       );
+      // As the shader-only path fills them (`sceneGl.ts`): nothing heard,
+      // nobody pointing and the author's own view where the frame is silent.
+      const rhythm = frame.rhythm ?? SILENT_RHYTHM;
+      const time = [
+        rhythm.beatPhase,
+        rhythm.barPhase,
+        rhythm.tempo,
+        rhythm.confidence,
+      ] as const;
+      const drums = [rhythm.kick, rhythm.snare, rhythm.hat] as const;
+      const song = [
+        rhythm.intensity,
+        rhythm.build,
+        rhythm.drop,
+        rhythm.dropSerial,
+      ] as const;
+      const stereo = frame.stereo ?? [0, 0];
+      const voice = frame.voice ?? [0, 0, 0];
+      const pointer = frame.pointer ?? NO_POINTER;
+      const tap = frame.tap ?? NO_TAP;
+      [view[0], view[1], view[2]] = frame.camera ?? HOME_CAMERA;
+      (uniforms.uRhythm.value as Vector4).set(...time);
+      (uniforms.uDrums.value as Vector3).set(...drums);
+      (uniforms.uSong.value as Vector4).set(...song);
+      (uniforms.uStereo.value as Vector2).set(...stereo);
+      (uniforms.uVoice.value as Vector3).set(...voice);
+      (uniforms.uPointer.value as Vector4).set(...pointer);
+      (uniforms.uTap.value as Vector4).set(...tap);
+      (uniforms.uCamera.value as Vector3).set(...view);
 
       const dt = elapsed / 1000;
       runtime.dt = dt;
@@ -266,6 +304,14 @@ export const createWorldInputs = (
       [env[slots.accent], env[slots.accentId]] = frame.musicAccent;
       [env[slots.run], env[slots.runSpeed]] = frame.musicRun;
       env[slots.aspect] = width / Math.max(1, height);
+      setRun('beatPhase', time);
+      setRun('drumKick', drums);
+      setRun('songIntensity', song);
+      setRun('stereoPan', stereo);
+      setRun('voiceOpen', voice);
+      setRun('pointerX', pointer);
+      setRun('tapX', tap);
+      setRun('viewYaw', view);
       paramSlots.forEach((param) => {
         const value = frame.params[param.id] ?? param.fallback;
         env[param.index] = value;

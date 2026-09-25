@@ -92,6 +92,14 @@ uniform vec2 uMusicRun;
 uniform sampler2D uSpectrum;
 uniform sampler2D uSpectrumSlow;
 uniform sampler2D uWaveform;
+uniform vec4 uRhythm;
+uniform vec3 uDrums;
+uniform vec4 uSong;
+uniform vec2 uStereo;
+uniform vec3 uVoice;
+uniform vec4 uPointer;
+uniform vec4 uTap;
+uniform vec3 uCamera;
 `;
 
 export interface IWorldHookSource {
