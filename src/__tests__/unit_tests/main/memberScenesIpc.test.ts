@@ -486,6 +486,28 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
+  it('lets publishing reach the project a maker keeps without Plus, and nobody else', async () => {
+    status = { state: 'none' };
+    asMaker();
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
+    // Publishing asks this (`plusPublishing.ts`): it is how a maker earns
+    // their next month, so the project they keep has to be able to go out.
+    expect(registration.mayUseActive()).toBe(true);
+    // With Plus, whatever the server says about approvals.
+    setKnownMaker(path.join(root, 'userData'), ME, false);
+    status = { state: 'active' };
+    listeners.forEach((listener) => listener(status));
+    expect(registration.mayUseActive()).toBe(true);
+    // Neither — Plus gone, the approval taken back by a takedown — and there
+    // is no project left to publish from, as there is none left to open.
+    status = { state: 'none' };
+    listeners.forEach((listener) => listener(status));
+    expect(registration.mayUseActive()).toBe(false);
+    registration.dispose();
+  });
+
   it('opens the first of a folder of several without Plus, and lists the rest locked', async () => {
     status = { state: 'none' };
     asMaker();

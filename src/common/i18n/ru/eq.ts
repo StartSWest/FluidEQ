@@ -95,6 +95,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.expanded': 'Расширенный',
   'graph.view.fullscreen': 'Полный экран',
   'graph.view.expand': 'Расширить вид',
+  'graph.scene.resetView': 'Сбросить вид',
   'graph.showing': 'Показано: {content}',
   'graph.contents.everything': 'Всё',
   'graph.contents.layers': 'Слои поверх волны',

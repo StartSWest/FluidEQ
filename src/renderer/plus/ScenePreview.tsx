@@ -4,6 +4,8 @@ import type { IScenePack } from 'common/scenePacks';
 import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
+import { createSceneInteraction } from '../graph/sceneInteraction';
+import SceneViewReset from '../graph/SceneViewReset';
 import { studioSpectrumRect } from '../studio/studioWave';
 import useSceneRunner, {
   type ISceneSource,
@@ -135,6 +137,12 @@ export default function ScenePreview({
     [pack, waveHeight, wavePosition],
   );
 
+  // The viewer's hands: turned and tapped wherever a preview can be reached
+  // at all. Where one only decorates - a banner under its own overlay, a
+  // backdrop that takes no pointer - no press ever arrives, and nothing here
+  // needs telling so.
+  const interaction = useMemo(createSceneInteraction, []);
+
   const sceneRef = useSceneRunner({
     source,
     width: box.width,
@@ -143,7 +151,21 @@ export default function ScenePreview({
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: drawn,
+    interaction,
   });
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const host = sceneRef.current;
+    if (!frame || !host) {
+      return undefined;
+    }
+    return interaction.attach(frame, {
+      frame: () => host.getBoundingClientRect(),
+      turns: () => true,
+      grabs: () => true,
+    });
+  }, [interaction, sceneRef]);
 
   return (
     <div ref={frameRef} className="gallery-preview__frame">
@@ -153,6 +175,10 @@ export default function ScenePreview({
         role="img"
         aria-label={label}
         style={{ width: box.width, height: box.height }}
+      />
+      <SceneViewReset
+        interaction={interaction}
+        className="gallery-preview__reset"
       />
     </div>
   );

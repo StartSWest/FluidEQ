@@ -73,6 +73,7 @@ import {
   type ILiveFrame,
   type ILiveFrameReader,
 } from './liveFrameReader';
+import { connectSoundAnalysers, createLiveSound } from './liveSound';
 import { createLiveGraphBand } from './liveGraphBand';
 import {
   ILevelFollower,
@@ -757,6 +758,9 @@ const useLiveOutputSpectrum = () => {
         // The display pump skips hidden windows unless a measurement needs
         // it. Wallpaper reads still need a reference that follows quieter music.
         releaseReference: () => isHiddenRef.current && !sessionRef.current,
+        sound: createLiveSound(
+          connectSoundAnalysers(activeAudioContext, source),
+        ),
       });
 
       // One block of samples, read into again per channel per tick, and the

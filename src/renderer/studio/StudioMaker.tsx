@@ -1,56 +1,34 @@
-import { useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import type { IStudioAgentDoor } from 'common/studioAgent';
 import type { IStudioProject } from 'main/ipc/memberScenes';
 import useProjectIdea from './useProjectIdea';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { AI_IDEAS } from './aiPrompt';
+import { AI_IDEAS, promptWithIdea } from './aiPrompt';
+import type { IPromptConnection } from './aiPromptConnect';
 import { showStudioFolder } from './studioStore';
+import StudioAgentLink from './StudioAgentLink';
+import {
+  openStudioAgentDoorForPrompt,
+  useStudioAgentDoor,
+} from './studioAgentDoorStore';
+import { markStudioAgentWorking } from './studioAgentSession';
+import { shownKey } from './studioAgentSetup';
 import { MAX_IDEA_LENGTH } from './studioIdea';
+import { selectAll, useStudioCopy } from './useStudioCopy';
+
+/** What the prompt needs of the door: its address and key, while it is open. */
+const connectionOf = (
+  door: IStudioAgentDoor | undefined,
+): IPromptConnection | undefined =>
+  door?.open && door.url && door.key
+    ? { url: door.url, key: door.key }
+    : undefined;
 
 interface IStudioMakerProps {
   /** The open project; none before the first one. */
   project?: IStudioProject;
 }
-
-/** Puts every character of `element` in the selection, for Ctrl+C. */
-const selectAll = (element: HTMLElement | null) => {
-  const selection = window.getSelection();
-  if (element && selection) {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-};
-
-/**
- * Copies `text`, and says so for exactly as long as it is still what would
- * be copied. A clipboard that refuses selects `fallback` instead, so Ctrl+C
- * does what the button could not.
- */
-const useCopy = (text: string, fallback: RefObject<HTMLElement | null>) => {
-  const [copied, setCopied] = useState<string>();
-  const [refused, setRefused] = useState(false);
-  const copy = () => {
-    const refuse = () => {
-      setRefused(true);
-      selectAll(fallback.current);
-    };
-    const write = navigator.clipboard?.writeText(text);
-    if (!write) {
-      refuse();
-      return;
-    }
-    write
-      .then(() => {
-        setCopied(text);
-        setRefused(false);
-        return undefined;
-      })
-      .catch(refuse);
-  };
-  return { done: copied === text, refused, copy };
-};
 
 /**
  * How a scene gets made, in the order it happens: say what it should be,
@@ -70,8 +48,40 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
   const [promptShown, setPromptShown] = useState(false);
   const promptRef = useRef<HTMLPreElement>(null);
   const pathRef = useRef<HTMLSpanElement>(null);
-  const prompt = useCopy(notes.prompt, promptRef);
-  const path = useCopy(project?.path ?? '', pathRef);
+  // The folder FluidEQ made and is watching, named in the prompt so the
+  // member's AI writes into it rather than guessing at one of its own.
+  const folder = project?.path;
+  const connection = connectionOf(useStudioAgentDoor());
+  // The copy carries the door's connection so the AI connects itself (Ivan:
+  // "they just copy the prompt once and that's it"); what the Studio shows of
+  // it has the key cut short, as the card shows it.
+  const whole = promptWithIdea(idea, folder, connection);
+  const shown = promptWithIdea(
+    idea,
+    folder,
+    connection && { ...connection, key: shownKey(connection.key) },
+  );
+  const prompt = useStudioCopy(whole, promptRef);
+  const path = useStudioCopy(project?.path ?? '', pathRef);
+
+  // The door is asked for first, and opened unless the member switched it
+  // off; the copy carries whatever it answers, and the prompt without a
+  // connection when there is no answer to wait for.
+  const copyPrompt = () => {
+    notes.save();
+    // The member handing the project to their AI: from here the Studio hears
+    // the music for it (`useSongListening.ts`).
+    markStudioAgentWorking();
+    openStudioAgentDoorForPrompt()
+      .catch(() => undefined)
+      .then((door) => {
+        prompt.copyText(
+          promptWithIdea(idea, folder, door ? connectionOf(door) : connection),
+        );
+        return undefined;
+      })
+      .catch(() => undefined);
+  };
 
   // A refused copy of the prompt opens it, so there is something to select.
   useEffect(() => {
@@ -207,10 +217,7 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
               <button
                 type="button"
                 className="button small studio-maker__copy"
-                onClick={() => {
-                  notes.save();
-                  prompt.copy();
-                }}
+                onClick={copyPrompt}
               >
                 <Glyph name={prompt.done ? 'check' : 'copy'} />
                 {t(
@@ -249,12 +256,15 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
                 tabIndex={0}
                 aria-label={t('studio.prompt.label')}
               >
-                {notes.prompt}
+                {/* Whole only when the clipboard refused and Ctrl+C is the
+                    way it gets copied. */}
+                {prompt.refused ? whole : shown}
               </pre>
             )}
           </div>
         </li>
       </ol>
+      <StudioAgentLink />
     </section>
   );
 }

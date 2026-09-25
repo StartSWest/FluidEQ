@@ -81,16 +81,11 @@ export const getEaseFactor = (deltaMs: number, halfLifeMs: number): number => {
  *
  * Zero means "every frame the display offers", which is sixty on most screens
  * and more on some. The cap is a floor on the interval rather than a target
- * rate, so a 144Hz display is not held to 60 during euphoria.
+ * rate, so a 144Hz display is not held to 60 during euphoria. When a frame
+ * held to one of these is due is `framePace.ts`'s, on the display's own beat.
  */
 export const SMOOTH_FRAME_MS = 1000 / 30;
 export const EUPHORIA_FRAME_MS = 0;
-
-/** Whether enough time has passed to be worth drawing again. */
-export const shouldDrawFrame = (
-  elapsedMs: number,
-  minFrameMs: number,
-): boolean => elapsedMs >= minFrameMs;
 
 /**
  * Move `current` toward `target` in place, and say whether it is still going.

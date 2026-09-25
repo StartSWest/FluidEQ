@@ -24,8 +24,6 @@ const studio = {
   'studio.rail.blurb': 'Создавайте свои сцены',
 
   'studio.plus.title': 'С Plus',
-  'studio.plus.body':
-    'Ваша сцена остаётся на этом компьютере. С Plus она попадёт на график, на рабочий стол, в галерею или в файл, который можно отправить.',
   'studio.plus.locked': 'Только с Plus',
   'studio.locked.title': 'Студия входит в Plus',
   'studio.locked.body':
@@ -166,7 +164,9 @@ const studio = {
   'studio.publish.rateLimited':
     'Слишком много публикаций за час. Попробуйте позже.',
   'studio.publish.tooManyThisMonth':
-    'Это ваши две сцены за этот месяц. Опубликовать снова можно будет в следующем месяце.',
+    'Вы отправили столько сцен, сколько можно за месяц. Опубликовать снова можно будет в следующем месяце.',
+  'studio.publish.tooManyScenes':
+    'У вас {count} сцен в галерее или на проверке — это предел для одного участника. Снимите одну с публикации в разделе «Ваши сцены», чтобы опубликовать новую.',
   'studio.publish.signedOut': 'Войдите, чтобы опубликовать сцену.',
   'studio.publish.failed': 'Не удалось опубликовать сцену. Попробуйте ещё раз.',
   'studio.publish.officialCopy':
@@ -282,11 +282,27 @@ const studio = {
 
   'studio.hears.level': 'общая громкость',
   'studio.hears.beat': 'импульс на каждом ударе',
-  'studio.hears.bass': 'нижние частоты отдельно',
+  'studio.hears.bass': 'басовая партия и бочка',
   'studio.hears.mid': 'голоса и аккорды',
   'studio.hears.treble': 'тарелки и воздух',
+  'studio.hears.voice': 'поющий голос: насколько открыт и какая нота',
   'studio.hears.spectrum': 'каждая частота, быстро или плавно',
   'studio.hears.accent': 'яркий момент раз в несколько секунд',
+  'studio.hears.balance': 'куда смещена музыка, влево или вправо',
+  'studio.hears.width': 'насколько широкое стерео',
+  'studio.hears.tempo':
+    'часы музыки: четыре доли такта, текущая доля и темп в BPM',
+  'studio.hears.sure':
+    'насколько часы уверены в ритме; танцы затихают, когда она падает',
+  'studio.hears.kick': 'бочка, на каждом ударе',
+  'studio.hears.snare': 'малый барабан и хлопки, на каждом ударе',
+  'studio.hears.hats': 'хай-хэты и тарелки, на каждом ударе',
+  'studio.hears.momentum':
+    'колесо, которое крутит музыка: бочка и громкие места разгоняют его, а потом оно само замедляется',
+  'studio.hears.intensity': 'насколько напряжённа эта часть трека',
+  'studio.hears.build': 'трек нарастает к чему-то',
+  'studio.hears.drop':
+    'наступает дроп; число считает их, чтобы каждый выглядел по-своему',
 
   'studio.status.live': 'Обновлено после последнего сохранения',
   'studio.status.problem': 'Последняя рабочая версия продолжает играть',
@@ -306,15 +322,32 @@ const studio = {
     'Создайте проект, и FluidEQ подготовит его папку со сценой, которая уже движется. Дальше её меняет ваш ИИ.',
 
   'studio.meters.title': 'Что она слышит сейчас',
+  'studio.meters.sound': 'Звук',
+  'studio.meters.rhythm': 'Ритм',
+  'studio.meters.song': 'Трек',
   'studio.meter.level': 'Уровень',
   'studio.meter.beat': 'Удар',
   'studio.meter.bass': 'Басы',
   'studio.meter.mid': 'Средние',
   'studio.meter.treble': 'Высокие',
+  'studio.meter.voice': 'Голос',
+  'studio.meter.voiceNotes': 'До До♯ Ре Ре♯ Ми Фа Фа♯ Соль Соль♯ Ля Ля♯ Си',
   'studio.meter.accent': 'Акцент',
+  'studio.meter.balance': 'Баланс',
+  'studio.meter.width': 'Ширина',
+  'studio.meter.tempo': 'Темп',
+  'studio.meter.sure': 'Уверенность',
+  'studio.meter.kick': 'Бочка',
+  'studio.meter.snare': 'Малый',
+  'studio.meter.hats': 'Хай-хэт',
+  'studio.meter.momentum': 'Вращение',
+  'studio.meter.intensity': 'Накал',
+  'studio.meter.build': 'Нарастание',
+  'studio.meter.drop': 'Дроп',
 
   'studio.test.title': 'Проверка сцены',
   'studio.ship.title': 'Когда готова',
+  'studio.ship.makerTitle': 'Публиковать вы можете и дальше',
   'studio.signals.title': 'Звук для предпросмотра',
   'studio.signals.hint':
     'У каждого пользователя сцена реагирует на его собственную музыку. Тестовые сигналы работают только в предпросмотре: они не сохраняются, не публикуются и не меняют ваш звук.',
@@ -431,7 +464,7 @@ const studio = {
   'studio.file.artwork': 'Изображение',
   'studio.problem.heading': 'Эта версия пока не может играть',
   'studio.problem.line': '{file}, строка {line}',
-  'studio.problem.too-large': 'Шейдер больше 64 КБ.',
+  'studio.problem.too-large': 'Шейдер больше 256 КБ.',
   'studio.problem.unterminated-comment': 'Комментарий /* не закрыт.',
   'studio.problem.preprocessor':
     'Строки, начинающиеся с #, запрещены. Используйте const вместо #define.',
@@ -446,7 +479,8 @@ const studio = {
   'studio.problem.loop-shape':
     'Цикл должен считать от одного фиксированного числа до другого.',
   'studio.problem.loop-bound': 'Цикл выполняется больше 128 раз.',
-  'studio.problem.loop-assign': 'Цикл меняет собственный счётчик внутри себя.',
+  'studio.problem.loop-assign':
+    'Цикл меняет собственный счётчик или передаёт его в функцию с параметром out или inout. Передайте копию.',
   'studio.problem.loop-budget':
     'Вложенные циклы и вызываемые из них функции выполняются слишком много раз на пиксель. Уменьшите вложенность или число повторов.',
   'studio.problem.entry-point': 'Нет функции vec4 sceneColour(vec2 uv).',
@@ -507,6 +541,35 @@ const studio = {
     '{name} отправлена на проверку. Вам сообщат, когда её одобрят.',
   'studio.publish.submittedUpdate':
     'Новая версия {name} отправлена на проверку. У всех остаётся текущая версия, пока её не одобрят.',
+  // The switch that lets the member's own AI look at the stage over MCP, and
+  // its one-time setup. The assistants' names are theirs, in every language.
+  'studio.agent.title': 'Дайте вашему ИИ видеть сцену',
+  'studio.agent.body':
+    'Ваш ИИ-ассистент смотрит на сцену, которую пишет, — FluidEQ рисует её точно так, как она играет, — и читает причины от самого FluidEQ, когда она не может играть. Ещё он узнаёт, как движется песня, которую вы включаете, — но не сам звук и не её название. Скопированный промпт подключает его сам. Только на этом компьютере, только с вашим ключом и только ваши проекты Студии.',
+  'studio.agent.failed':
+    'FluidEQ не смог это включить. Выключите и включите снова.',
+  'studio.agent.setupTitle': 'Подключите ваш ИИ один раз',
+  'studio.agent.byHand': 'Подключить ИИ вручную',
+  'studio.agent.assistant': 'Ваш ИИ-ассистент',
+  'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
+  'studio.agent.other': 'Другой',
+  'studio.agent.claudeHint':
+    'Выполните это в терминале, затем начните новый сеанс Claude Code.',
+  'studio.agent.codexHint':
+    'Добавьте это в конец .codex/config.toml в папке пользователя, затем начните новый сеанс Codex.',
+  'studio.agent.otherHint':
+    'Большинство ИИ-инструментов принимают это в настройках MCP-серверов. После добавления начните новый сеанс.',
+  'studio.agent.copy': 'Скопировать настройку',
+  'studio.agent.copyFailed':
+    'Компьютер не дал скопировать. Текст показан полностью и выделен ниже; нажмите Ctrl+C.',
+  'studio.agent.newKey': 'Новый ключ',
+  'studio.agent.keyHint':
+    'Ключ пускает только ваш ИИ. Новый ключ закрывает доступ всем ИИ со старым.',
+  // The Studio hearing the music for the member's AI, on the same card.
+  'studio.agent.hearing': 'Слушает для вашего ИИ',
+  'studio.agent.hearingIdle': 'Включите песню, для которой нужна сцена.',
+  'studio.agent.hearingSong': 'Услышано {time} этой песни',
 } as const;
 
 export default studio;

@@ -90,6 +90,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.expanded': '展开',
   'graph.view.fullscreen': '全屏',
   'graph.view.expand': '展开视图',
+  'graph.scene.resetView': '重置视角',
   'graph.showing': '当前显示：{content}',
   'graph.contents.everything': '全部',
   'graph.contents.layers': '波形上的图层',

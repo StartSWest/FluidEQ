@@ -6,6 +6,7 @@ import type { TNewProjectResult } from 'main/ipc/memberScenes';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { chooseStudioProjectsRoot, createStudioProject } from './studioStore';
+import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
 const REFUSALS: Record<
@@ -38,6 +39,8 @@ export default function StudioNewProjectDialog({
   onClose,
 }: IStudioNewProjectDialogProps) {
   const { t } = useTranslation();
+  // Open on the Studio's project: its AI may not switch the Studio under it.
+  useStudioAgentHold(true);
   const nameId = useId();
   const [name, setName] = useState('');
   const [running, setRunning] = useState(false);

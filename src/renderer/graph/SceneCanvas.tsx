@@ -32,6 +32,9 @@ import SceneLoading from './SceneLoading';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
+import { useIsChromeIdle } from '../utils/idleChrome';
+import { createSceneInteraction } from './sceneInteraction';
+import SceneViewReset from './SceneViewReset';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -41,6 +44,14 @@ interface ISceneCanvasProps {
   width: number;
   height: number;
   spectrumRect: readonly [number, number, number, number];
+  /**
+   * Whether a plain drag on the plot turns a scene that can be turned: only
+   * while it is not the band marquee. A right or middle drag turns it
+   * whichever it is.
+   */
+  dragTurns: boolean;
+  /** How far in from the panel's right and bottom the ruled plot stands. */
+  inset: { right: number; bottom: number };
 }
 
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
@@ -70,6 +81,8 @@ export default function SceneCanvas({
   width,
   height,
   spectrumRect,
+  dragTurns,
+  inset,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
@@ -184,6 +197,12 @@ export default function SceneCanvas({
     [lookId, authorId],
   );
 
+  // The viewer's hands on the scene: a camera to turn where the scene has
+  // one, the pointer and taps where it answers them.
+  const interaction = useMemo(createSceneInteraction, []);
+  const dragTurnsRef = useRef(dragTurns);
+  dragTurnsRef.current = dragTurns;
+
   const sceneRef = useSceneRunner({
     source,
     width,
@@ -192,8 +211,33 @@ export default function SceneCanvas({
     tuning,
     onDrawn,
     onLoaded,
+    interaction,
   });
   hostRef.current = sceneRef;
+
+  // On the plot, not on the scene's own layer, which takes no pointer: the
+  // drawing and its handles lie over it. Heard before them, in the capture,
+  // and every press that is not the scene's goes on to them untouched.
+  useEffect(() => {
+    const host = sceneRef.current;
+    const plot = host?.closest<HTMLElement>('.graph-plot');
+    if (!host || !plot) {
+      return undefined;
+    }
+    return interaction.attach(plot, {
+      frame: () => host.getBoundingClientRect(),
+      turns: (event) =>
+        event.button === 1 ||
+        event.button === 2 ||
+        (event.button === 0 && dragTurnsRef.current),
+      grabs: () => dragTurnsRef.current,
+      owns: (target) =>
+        Boolean(
+          target.closest('.graph-edit-point, .chart-limit, .chart-presence'),
+        ),
+    });
+  }, [interaction, sceneRef]);
+  const isChromeIdle = useIsChromeIdle();
 
   return (
     <>
@@ -209,6 +253,12 @@ export default function SceneCanvas({
         className="chart-scene-canvas"
         aria-hidden="true"
         style={{ width, height }}
+      />
+      <SceneViewReset
+        interaction={interaction}
+        className={isChromeIdle ? 'is-idle' : ''}
+        // In the drawing's own corner, clear of the axes' labels.
+        style={{ right: inset.right + 8, bottom: inset.bottom + 8 }}
       />
     </>
   );

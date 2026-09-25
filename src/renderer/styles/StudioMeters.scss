@@ -1,0 +1,319 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// "What it hears now" (`StudioMeters.tsx`, `StudioMeterRows.tsx`).
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Each group's rows share one grid, so the bars line up under its longest
+// label however a language words it: a fixed label column cut German and
+// Russian names off. The label gives way first where the card is narrow.
+.studio-meters__rows {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) auto;
+  align-items: center;
+  gap: 9px $spacing-s;
+}
+
+.studio-meter {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.studio-meter__label {
+  color: $text-faint;
+  font-size: $text-small;
+  @include truncate;
+}
+
+.studio-meter__track {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 7%, transparent);
+}
+
+// Moved every frame by transform, never by width: a transform is composited,
+// a width is laid out, and a card of meters laid out sixty times a second is
+// work the scene beside them needs more.
+.studio-meter__fill {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+// The music as played, under what the scene got from it: shown only while a
+// response bends one into the other.
+.studio-meter__heard {
+  position: absolute;
+  inset: 0;
+  display: none;
+  border-radius: inherit;
+  background: color-mix(in srgb, $white 22%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+
+  .is-bent & {
+    display: block;
+  }
+}
+
+// Where the threshold cuts in, on the music's scale.
+.studio-meter__gate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: $amber;
+  box-shadow: 0 0 6px color-mix(in srgb, $amber 70%, transparent);
+}
+
+.studio-meters__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.studio-meters__swatch {
+  width: 14px;
+  height: 5px;
+  margin-left: 4px;
+  border-radius: $radius-pill;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+
+  &.is-heard {
+    margin-left: 0;
+    background: color-mix(in srgb, $white 22%, transparent);
+  }
+}
+
+// The hits and the big moments in the pink the beat has always had; the
+// build in the amber of something about to happen.
+.studio-meter--beat .studio-meter__fill,
+.studio-meter--accent .studio-meter__fill,
+.studio-meter--drop .studio-meter__fill {
+  background: linear-gradient(90deg, $analogous-1, $neon-pink);
+}
+
+.studio-meter--build .studio-meter__fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $amber 55%, transparent),
+    $amber
+  );
+}
+
+.studio-meter__value {
+  min-width: 30px;
+  color: $text-dim;
+  font-size: $text-micro;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-meters__spectrum {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 30px;
+  margin-top: 2px;
+
+  i {
+    flex: 1 1 0;
+    height: 100%;
+    border-radius: 1px;
+    background: linear-gradient(
+      0deg,
+      color-mix(in srgb, $secondary-default 30%, transparent),
+      $secondary-light
+    );
+    transform: scaleY(0.03);
+    transform-origin: center bottom;
+  }
+}
+
+// The balance: a bar from the middle, left or right, with the middle marked.
+.studio-meter__track--centred::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: color-mix(in srgb, $white 28%, transparent);
+}
+
+.studio-meter__half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform: scaleX(0);
+
+  &.is-left {
+    right: 50%;
+    border-radius: $radius-pill 0 0 $radius-pill;
+    background: linear-gradient(270deg, $secondary-dark, $secondary-light);
+    transform-origin: right center;
+  }
+
+  &.is-right {
+    left: 50%;
+    border-radius: 0 $radius-pill $radius-pill 0;
+    background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+    transform-origin: left center;
+  }
+}
+
+// The music's clock (`StudioBeatClock`): the bar's four beats, the one it is
+// in lit, and a playhead gliding across the bar. Clipped, so the playhead's
+// layer — as wide as the bar, and slid along by its own width — never widens
+// the column into a sideways scroll.
+.studio-clock {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  height: 10px;
+  overflow: hidden;
+}
+
+// No transition: the beat lights on the frame it is heard. A fade put every
+// beat a fade's length behind the music.
+.studio-clock__beat {
+  border-radius: 2px;
+  background: color-mix(in srgb, $white 8%, transparent);
+
+  // The first beat of the bar, where the heaviest kick falls.
+  &:first-child {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-light 45%, transparent);
+  }
+
+  &.is-now {
+    background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+  }
+}
+
+.studio-clock__head {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
+    border-radius: 1px;
+    background: $white;
+    box-shadow: 0 0 6px color-mix(in srgb, $white 60%, transparent);
+  }
+}
+
+// The drums, as lamps that light on their hits.
+.studio-drums {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.studio-drum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 8px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+}
+
+.studio-drum__name {
+  min-width: 0;
+  @include truncate;
+}
+
+.studio-drum__lamp {
+  position: relative;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, $white 12%, transparent);
+}
+
+// Lit by its opacity alone, which the compositor moves without a repaint.
+.studio-drum__light {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+}
+
+.studio-drum--kick .studio-drum__light {
+  background: $secondary-light;
+  box-shadow: 0 0 8px 1px $secondary-light;
+}
+
+.studio-drum--snare .studio-drum__light {
+  background: $neon-pink;
+  box-shadow: 0 0 8px 1px $neon-pink;
+}
+
+.studio-drum--hat .studio-drum__light {
+  background: $amber;
+  box-shadow: 0 0 8px 1px $amber;
+}
+
+// The flywheel's dial, turning as the music winds it.
+.studio-meter__dial {
+  position: relative;
+  justify-self: end;
+  width: 14px;
+  height: 14px;
+  border: 1px solid color-mix(in srgb, $white 22%, transparent);
+  border-radius: 50%;
+}
+
+.studio-meter__hand {
+  position: absolute;
+  inset: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    width: 2px;
+    height: 5px;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: $secondary-light;
+  }
+}

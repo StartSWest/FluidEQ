@@ -1133,6 +1133,15 @@ const Chart = ({
             width={width}
             height={height}
             spectrumRect={sceneSpectrumRect}
+            // A plain drag is the band marquee wherever there are bands to
+            // select, and turning a scene must never cost the equaliser that.
+            dragTurns={!onMarqueeSelect}
+            // Clear of the axes: their labels live in the padding inside the
+            // drawing, not in its margins.
+            inset={{
+              right: margins.right + padding.right,
+              bottom: margins.bottom + padding.bottom,
+            }}
           />
         ) : (
           <LiveTraceCanvas

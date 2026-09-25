@@ -2,6 +2,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from './sceneGl';
 import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
 import type {
+  TSceneStillRefusal,
   TSceneStillReply,
   TSceneStillRequest,
 } from './sceneStillMessages';
@@ -33,7 +34,13 @@ const waiting = new Map<
   (reply: TSceneStillReply | undefined) => void
 >();
 
+/** Tells the worker whether the page can be seen, whenever that changes. */
+const tellVisibility = () => {
+  worker?.postMessage({ kind: 'visibility', hidden: document.hidden });
+};
+
 const letGo = () => {
+  document.removeEventListener('visibilitychange', tellVisibility);
   worker?.terminate();
   worker = undefined;
   waiting.forEach((resolve) => resolve(undefined));
@@ -96,6 +103,8 @@ const started = (): Worker | undefined => {
     letGo();
   };
   worker = next;
+  document.addEventListener('visibilitychange', tellVisibility);
+  tellVisibility();
   return worker;
 };
 
@@ -112,7 +121,7 @@ const pageAccent = () =>
  * every card that scrolls back into view asks for its picture again, each ask
  * the same reset of the display.
  */
-const refusedScenes = new Set<string>();
+const refusedScenes = new Map<string, TSceneStillRefusal>();
 const refusalKey = (pack: IScenePack) =>
   `${pack.version}
 ${sceneProgramKey(pack)}`;
@@ -121,8 +130,14 @@ const ask = <K extends TSceneStillRequest['kind']>(
   request: Omit<Extract<TSceneStillRequest, { kind: K }>, 'id'>,
 ): Promise<TReplyOf<K> | undefined> => {
   const key = refusalKey(request.pack);
-  if (refusedScenes.has(key)) {
-    return Promise.resolve(undefined);
+  const already = refusedScenes.get(key);
+  if (already) {
+    // The kinds that say why tell it; the others answer nothing, as before.
+    return Promise.resolve(
+      request.kind === 'agent'
+        ? ({ kind: 'agent', id: 0, refused: already } as TReplyOf<K>)
+        : undefined,
+    );
   }
   const running = started();
   if (!running) {
@@ -141,7 +156,7 @@ const ask = <K extends TSceneStillRequest['kind']>(
       // again, which is exactly when the GPU can have changed; this is the
       // page's half of the same rule.
       if (reply?.refused && reply.refused !== 'too-heavy') {
-        refusedScenes.add(key);
+        refusedScenes.set(key, reply.refused);
       }
       resolve(
         reply?.kind === request.kind ? (reply as TReplyOf<K>) : undefined,
@@ -170,6 +185,59 @@ export const drawStillInWorker = async (
     })
   )?.blob;
 };
+
+/**
+ * `pack` drawn for the member's AI (`studio/studioAgentDraw.ts`): the shape,
+ * sound and moment it asked for, where the member's wave stands.
+ *
+ * While the window cannot be seen nothing waits on the stage's own compile:
+ * the stage does not compile then, and one it started before the window was
+ * covered waits on animation frames that no longer come.
+ */
+export const drawForAgentInWorker = async (
+  request: Omit<
+    Extract<TSceneStillRequest, { kind: 'agent' }>,
+    'id' | 'kind' | 'accent'
+  >,
+): Promise<TReplyOf<'agent'> | undefined> => {
+  if (!request.unseen) {
+    // Other workers' links wait on frames too, and stop with them when the
+    // window is hidden: the turn is given up on then rather than waited for.
+    const racing = new AbortController();
+    await Promise.race([
+      afterLinkTurns(sceneProgramKey(request.pack)),
+      untilHidden(racing.signal),
+    ]);
+    racing.abort();
+  }
+  return ask<'agent'>({
+    kind: 'agent',
+    ...request,
+    unseen: request.unseen || document.hidden,
+    accent: pageAccent(),
+  });
+};
+
+/**
+ * Settles once the page cannot be seen - at once when it already cannot - and
+ * stops listening when `done` fires, whichever comes first.
+ */
+const untilHidden = (done: AbortSignal): Promise<void> =>
+  new Promise((resolve) => {
+    if (document.hidden) {
+      resolve();
+      return;
+    }
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) {
+          resolve();
+        }
+      },
+      { signal: done },
+    );
+  });
 
 /** `pack`'s showcase frames, drawn small and read back as RGBA. */
 export const sampleSceneInWorker = async (

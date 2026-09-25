@@ -24,8 +24,6 @@ const studio = {
   'studio.rail.blurb': '自分だけのシーンを作る',
 
   'studio.plus.title': 'Plus なら',
-  'studio.plus.body':
-    'シーンはこのコンピューターに残ります。Plus ならグラフやデスクトップ、ギャラリー、送れるファイルにできます。',
   'studio.plus.locked': 'Plus のみ',
   'studio.locked.title': 'スタジオは Plus の一部です',
   'studio.locked.body':
@@ -170,7 +168,9 @@ const studio = {
   'studio.publish.rateLimited':
     '1 時間の公開回数が多すぎます。しばらくしてからお試しください。',
   'studio.publish.tooManyThisMonth':
-    '今月の 2 つのシーンはこれで終わりです。来月また公開できます。',
+    '今月送れるシーンはすべて送りました。来月また公開できます。',
+  'studio.publish.tooManyScenes':
+    'ギャラリーと審査中を合わせて {count} 個のシーンがあり、1 人あたりの上限に達しています。新しいシーンを公開するには、「あなたのシーン」でどれかの公開を停止してください。',
   'studio.publish.signedOut': 'シーンを公開するにはサインインしてください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
@@ -287,11 +287,27 @@ const studio = {
 
   'studio.hears.level': '全体の音量',
   'studio.hears.beat': 'ビートごとのパルス',
-  'studio.hears.bass': '低域だけ',
+  'studio.hears.bass': 'ベースラインとキック',
   'studio.hears.mid': '声とコード',
   'studio.hears.treble': 'シンバルと空気感',
+  'studio.hears.voice': '歌声：口の開きと音程',
   'studio.hears.spectrum': 'すべての周波数、速くもなめらかにも',
   'studio.hears.accent': '数秒おきの大きな山場',
+  'studio.hears.balance': '音が左右どちらに寄っているか',
+  'studio.hears.width': 'ステレオの広がり',
+  'studio.hears.tempo':
+    '音楽の時計：小節の4拍、いまどの拍か、BPMで表したテンポ',
+  'studio.hears.sure':
+    '時計がビートをどれだけ確かにつかんでいるか。下がると踊りは静まる',
+  'studio.hears.kick': 'キック、打つたびに',
+  'studio.hears.snare': 'スネアとクラップ、打つたびに',
+  'studio.hears.hats': 'ハイハットとシンバル、打つたびに',
+  'studio.hears.momentum':
+    '音楽が回す車輪：キックや大きな音で速くなり、止むと自然に遅くなる',
+  'studio.hears.intensity': '曲のこの部分がどれだけ盛り上がっているか',
+  'studio.hears.build': '曲が何かに向けて盛り上がっていく',
+  'studio.hears.drop':
+    'ドロップが来たこと。数字は回数で、毎回ちがう見せ方ができる',
 
   'studio.status.live': '最後の保存で更新されました',
   'studio.status.problem': '最後に動いたバージョンを再生中です',
@@ -312,15 +328,32 @@ const studio = {
     'プロジェクトを作ると、FluidEQ がすでに動くシーン入りのフォルダーを用意します。そこから先は AI が変えていきます。',
 
   'studio.meters.title': 'いま聞いているもの',
+  'studio.meters.sound': 'サウンド',
+  'studio.meters.rhythm': 'リズム',
+  'studio.meters.song': '曲',
   'studio.meter.level': 'レベル',
   'studio.meter.beat': 'ビート',
   'studio.meter.bass': '低音',
   'studio.meter.mid': '中音',
   'studio.meter.treble': '高音',
+  'studio.meter.voice': '歌声',
+  'studio.meter.voiceNotes': 'C C♯ D D♯ E F F♯ G G♯ A A♯ B',
   'studio.meter.accent': 'アクセント',
+  'studio.meter.balance': 'バランス',
+  'studio.meter.width': '広がり',
+  'studio.meter.tempo': 'テンポ',
+  'studio.meter.sure': '確信度',
+  'studio.meter.kick': 'キック',
+  'studio.meter.snare': 'スネア',
+  'studio.meter.hats': 'ハイハット',
+  'studio.meter.momentum': '回転',
+  'studio.meter.intensity': '盛り上がり',
+  'studio.meter.build': 'ビルドアップ',
+  'studio.meter.drop': 'ドロップ',
 
   'studio.test.title': 'シーンを試す',
   'studio.ship.title': '仕上がったら',
+  'studio.ship.makerTitle': 'シーンの公開は引き続きできます',
   'studio.signals.title': 'プレビューの音声',
   'studio.signals.hint':
     'シーンは各ユーザー自身の音楽に反応します。テスト信号はこのプレビュー専用で、保存・公開されず、再生中の音声も変えません。',
@@ -434,7 +467,7 @@ const studio = {
   'studio.file.artwork': '画像',
   'studio.problem.heading': 'このバージョンはまだ再生できません',
   'studio.problem.line': '{file}、{line} 行目',
-  'studio.problem.too-large': 'シェーダーが 64 KB を超えています。',
+  'studio.problem.too-large': 'シェーダーが 256 KB を超えています。',
   'studio.problem.unterminated-comment': '/* のコメントが閉じられていません。',
   'studio.problem.preprocessor':
     '# で始まる行は使えません。#define の代わりに const を使ってください。',
@@ -449,7 +482,7 @@ const studio = {
     'ループは決まった数から決まった数まで数える必要があります。',
   'studio.problem.loop-bound': '128 回を超えて回るループがあります。',
   'studio.problem.loop-assign':
-    'ループの中で自分のカウンターを書き換えています。',
+    'ループが自分のカウンターを書き換えているか、out または inout 引数を持つ関数に渡しています。コピーを渡してください。',
   'studio.problem.loop-budget':
     'ループの入れ子と、そこから呼ぶ関数が 1 ピクセルあたりに回る回数が多すぎます。入れ子か回数を減らしてください。',
   'studio.problem.entry-point': 'vec4 sceneColour(vec2 uv) 関数がありません。',
@@ -512,6 +545,35 @@ const studio = {
     '{name} を審査に送りました。承認されたらお知らせします。',
   'studio.publish.submittedUpdate':
     '{name} の新しいバージョンを審査に送りました。承認されるまで、全員が今のバージョンのままです。',
+  // The switch that lets the member's own AI look at the stage over MCP, and
+  // its one-time setup. The assistants' names are theirs, in every language.
+  'studio.agent.title': 'AI にステージを見せる',
+  'studio.agent.body':
+    'AI アシスタントが、書いているシーンを見られるようになります。FluidEQ が再生そのままに描いた絵と、再生できないときは FluidEQ 自身が示す理由を受け取ります。あなたが流す曲の流れも伝わりますが、音そのものや曲名が伝わることはありません。コピーしたプロンプトで、AI が自分で接続します。このコンピューターだけ、あなたのキーだけ、あなたのスタジオのプロジェクトだけです。',
+  'studio.agent.failed':
+    'FluidEQ でオンにできませんでした。オフにしてからもう一度オンにしてください。',
+  'studio.agent.setupTitle': 'AI を一度だけ接続する',
+  'studio.agent.byHand': 'AI を手動で接続',
+  'studio.agent.assistant': 'AI アシスタント',
+  'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
+  'studio.agent.other': 'その他',
+  'studio.agent.claudeHint':
+    'ターミナルで実行してから、Claude Code の新しいセッションを始めてください。',
+  'studio.agent.codexHint':
+    'ユーザーフォルダーの .codex/config.toml の末尾に追加してから、Codex の新しいセッションを始めてください。',
+  'studio.agent.otherHint':
+    'ほとんどの AI ツールは MCP サーバーの設定でこれを受け付けます。追加したら新しいセッションを始めてください。',
+  'studio.agent.copy': '設定をコピー',
+  'studio.agent.copyFailed':
+    'コンピューターがコピーを拒否しました。下に全文を表示して選択したので Ctrl+C を押してください。',
+  'studio.agent.newKey': '新しいキー',
+  'studio.agent.keyHint':
+    'キーはあなたの AI だけを通します。新しいキーにすると、古いキーを持つ AI はすべて入れなくなります。',
+  // The Studio hearing the music for the member's AI, on the same card.
+  'studio.agent.hearing': 'AI のために聴いています',
+  'studio.agent.hearingIdle': 'シーンを作りたい曲を再生してください。',
+  'studio.agent.hearingSong': 'この曲をここまで {time}',
 } as const;
 
 export default studio;

@@ -10,8 +10,10 @@ import Chevron from '../icons/Chevron';
 import { createFlagSetting } from '../utils/graphStorage';
 
 /**
- * One of the four groups the Studio's card is arranged in, foldable on its
- * own (`common/settingsGroups.ts`).
+ * One of the groups a Studio card is arranged in, foldable on its own: the
+ * four the test card shares with the graph's View menu
+ * (`common/settingsGroups.ts`), and the three "What it hears now" reads the
+ * music in (`StudioMeters.tsx`).
  *
  * Everything a scene is tried and tuned with is one card, in the order the
  * graph's View menu shows the same settings in — which makes the card as
@@ -26,16 +28,25 @@ import { createFlagSetting } from '../utils/graphStorage';
  * invisible.
  */
 
+/** The meters card's groups: the sound, its rhythm, and where the song is. */
+type TMetersGroup = 'sound' | 'rhythm' | 'song';
+
 /** Where each group's fold is kept. The menu keeps its own under its key. */
-const SETTINGS: Record<TSettingsGroup, ReturnType<typeof createFlagSetting>> = {
+const SETTINGS: Record<
+  TSettingsGroup | TMetersGroup,
+  ReturnType<typeof createFlagSetting>
+> = {
   own: createFlagSetting('fluideq.studioGroupFold.own', true),
   picture: createFlagSetting('fluideq.studioGroupFold.picture', true),
   visualizer: createFlagSetting('fluideq.studioGroupFold.visualizer', true),
   drawing: createFlagSetting('fluideq.studioGroupFold.drawing', true),
+  sound: createFlagSetting('fluideq.studioGroupFold.sound', true),
+  rhythm: createFlagSetting('fluideq.studioGroupFold.rhythm', true),
+  song: createFlagSetting('fluideq.studioGroupFold.song', true),
 };
 
 interface IStudioCardGroupProps {
-  group: TSettingsGroup;
+  group: TSettingsGroup | TMetersGroup;
   /** The group's name, the same word the graph's menu heads it with. */
   title: string;
   children: ReactNode;

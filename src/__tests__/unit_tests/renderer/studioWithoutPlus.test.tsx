@@ -29,6 +29,8 @@ import { memberPack } from '../../utils/memberSceneFixtures';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+  // No capture running: nothing is heard for the member's AI.
+  useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
 }));
 
 jest.mock('../../../renderer/studio/StudioStage', () => ({
@@ -106,12 +108,22 @@ it('gives the whole editor to a member without Plus', async () => {
   ).toBeEnabled();
 });
 
-it('shows the four ways out locked, and opens Plus instead of doing them', async () => {
+it('keeps Publish open to a maker, and the other ways out locked, opening Plus', async () => {
+  // Publishing is how a maker earns their Plus back. This card once showed
+  // it locked, which shut the one way back while the server would have
+  // taken the scene (`is_scene_maker`).
   render(<StudioBench view={view()} />);
   await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  const publish = screen.getByRole('button', {
+    name: 'studio.action.publish',
+  });
+  expect(publish).not.toHaveAttribute('title');
+  expect(publish).toHaveClass('button', 'small');
+  expect(publish).not.toHaveClass('subtle');
+  expect(screen.getByText('studio.ship.makerTitle')).toBeInTheDocument();
+  expect(screen.getByText('studio.locked.earn')).toBeInTheDocument();
   const locked = [
     'studio.action.addToLooks',
-    'studio.action.publish',
     'studio.action.export',
     'studio.action.desktop',
   ];
@@ -125,7 +137,6 @@ it('shows the four ways out locked, and opens Plus instead of doing them', async
   }, Promise.resolve());
   expect(requestAccountPanel).toHaveBeenCalledTimes(locked.length);
   expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
-  expect(screen.getByText('studio.plus.body')).toBeInTheDocument();
 });
 
 it('locks no desktop on a computer that cannot have one, as Plus offers none there', async () => {
@@ -149,7 +160,7 @@ it('offers those four for real once there is Plus', async () => {
   expect(add).not.toHaveAttribute('title');
   await userEvent.click(add);
   expect(requestAccountPanel).not.toHaveBeenCalled();
-  expect(screen.queryByText('studio.plus.body')).not.toBeInTheDocument();
+  expect(screen.queryByText('studio.ship.makerTitle')).not.toBeInTheDocument();
 });
 
 it('says what a FluidEQ scene opened to look inside is for, whatever the membership', async () => {

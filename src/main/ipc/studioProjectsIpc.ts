@@ -19,6 +19,10 @@ import {
   findProjectFolders,
 } from '../memberScenes/projectFolders';
 import { renameProjectFolder } from '../memberScenes/projectRename';
+import {
+  findAgentProject,
+  type TAgentProject,
+} from '../studioAgent/agentProject';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import {
   readProjectList,
@@ -44,10 +48,7 @@ import {
 } from './studioProjectTypes';
 import { createProjectBench } from './studioProjectBench';
 import { createProjectMaking } from './studioProjectMaking';
-import { registerStudioNotesIpc } from './studioNotes';
-import { registerStudioPicturesIpc } from './studioPictures';
-import { registerStudioPreviewIpc } from './studioPreview';
-import { registerStudioSettingsIpc } from './studioSettings';
+import { registerStudioProjectPanes } from './studioProjectPanes';
 
 /**
  * The Studio's projects, as the renderer sees them.
@@ -100,10 +101,20 @@ export interface IStudioProjectsIpcRegistration {
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
   activeIsInspection(): boolean;
+  /**
+   * Whether the open project may be used by who is asking: any with Plus,
+   * the one a maker keeps without it (`projectAccess.ts`). Publishing asks
+   * it, because publishing is how a maker earns their next month — the
+   * server's `is_scene_maker` holds the same door open, and a window that
+   * asked for Plus alone refused what the server would have taken.
+   */
+  mayUseActive(): boolean;
   /** The member's own imported scene, back on the Studio's list. */
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
   /** One of FluidEQ's own, written out as a project to look inside. */
   openInspection(pack: IScenePack): Promise<TInspection>;
+  /** The project the member's AI names by folder, or the open one (`agentProject.ts`). */
+  agentProject(folder?: string): TAgentProject;
   /**
    * Plus came or went. Losing it moves the bench off a FluidEQ scene opened
    * to look inside and stops its watcher; gaining it (with the Studio open)
@@ -167,6 +178,12 @@ export const registerStudioProjectsIpc = ({
     project !== undefined && mayUseProject(project, projects, asking());
 
   const mayUseActive = () => usable(activeProject());
+
+  /** The project the page names, when the member may use it. */
+  const usableProject = (id: string) => {
+    const project = projects.projects.find((entry) => entry.id === id);
+    return usable(project) ? project : undefined;
+  };
 
   const settled = (list: IProjectList): IProjectList =>
     settledList(list, asking());
@@ -445,55 +462,30 @@ export const registerStudioProjectsIpc = ({
     },
   );
 
-  // The Pictures card, and the scene's settings.
-  const disposeNotes = registerStudioNotesIpc({
-    // The folder of the project named, when that project may be used: the
-    // notes are about one project, whichever is on the bench.
-    folderFor: (id) => {
-      const project = projects.projects.find((entry) => entry.id === id);
-      return usable(project) ? project?.folder : undefined;
-    },
-  });
-  const disposePictures = registerStudioPicturesIpc({
+  // The notes, the Pictures card, the picture for the member's AI and the
+  // scene's settings: `studioProjectPanes.ts`.
+  const disposePanes = registerStudioProjectPanes({
     getMainWindow,
-    mayEdit: mayUseActive,
+    usableProject,
+    mayUseActive,
     activeFolder,
-    dialogImpl,
-    ...(logger ? { logger } : {}),
-  });
-  // A picture of the scene beside its files, for the member's AI to look at.
-  // Only into a project that may be edited: one of FluidEQ's own, opened to
-  // look inside, gains no file from being watched.
-  const disposePreview = registerStudioPreviewIpc({
-    // Decided about the project NAMED, never about the open one: asking
-    // whether the OPEN project is an inspection would answer for the wrong
-    // folder the moment the page names another, which is the same mistake
-    // the notes reader carries a comment about.
-    folderFor: (id) => {
-      const project = projects.projects.find((entry) => entry.id === id);
-      return usable(project) && project?.official === undefined
-        ? project?.folder
-        : undefined;
-    },
-    ...(logger ? { logger } : {}),
-  });
-  const disposeSettings = registerStudioSettingsIpc({
-    mayEdit: mayUseActive,
     // The look a settings save refreshes is one Plus added; refreshing it is
     // adding it again, and adding is Plus's.
     mayUpdateLook: () => entitled() && !activeIsInspection(),
-    activeFolder,
     accountId,
     store,
     announceScenes,
+    dialogImpl,
     ...(logger ? { logger } : {}),
   });
 
   return {
     activeFolder,
     activeIsInspection,
+    mayUseActive,
     restoreOwnProject,
     openInspection,
+    agentProject: (folder) => findAgentProject(projects, folder, usable),
     entitlementChanged: () => {
       adopt(projects);
       bench.start();
@@ -501,10 +493,7 @@ export const registerStudioProjectsIpc = ({
     },
     dispose: () => {
       bench.stop();
-      disposeNotes();
-      disposePictures();
-      disposePreview();
-      disposeSettings();
+      disposePanes();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },
   };

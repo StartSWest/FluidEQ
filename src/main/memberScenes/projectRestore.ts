@@ -55,6 +55,7 @@ export const restoredManifest = (pack: IScenePack) =>
       // different room from the one it was published in.
       ...(pack.wave ? { wave: pack.wave } : {}),
       ...(pack.ambient ? { ambient: pack.ambient } : {}),
+      ...(pack.camera ? { camera: pack.camera } : {}),
     },
     null,
     2,

@@ -95,6 +95,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.expanded': 'विस्तृत',
   'graph.view.fullscreen': 'पूर्ण स्क्रीन',
   'graph.view.expand': 'दृश्य फैलाएँ',
+  'graph.scene.resetView': 'दृश्य रीसेट करें',
   'graph.showing': 'दिखाया जा रहा है: {content}',
   'graph.contents.everything': 'सब कुछ',
   'graph.contents.layers': 'तरंग के ऊपर परतें',

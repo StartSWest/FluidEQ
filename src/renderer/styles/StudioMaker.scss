@@ -252,3 +252,194 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $secondary-default 18%, transparent);
   white-space: pre-wrap;
 }
+
+// The member's AI looking at the stage: the card's last part, set apart from
+// the three steps because it is set up once, not done for every scene. Quiet
+// while it is off; lit in the steps' own colour while an assistant can reach
+// the Studio, so "on" can be seen from across the room.
+.studio-agent {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $surface-well;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &.is-open {
+    border-color: color-mix(in srgb, $secondary-light 36%, transparent);
+    background:
+      radial-gradient(
+        120% 90% at 0% 0%,
+        color-mix(in srgb, $secondary-default 12%, transparent),
+        transparent 60%
+      ),
+      $surface-well;
+  }
+}
+
+// The glyph and the switch stand at the title's line, not in the middle of
+// the paragraph: in German or Russian at a narrow column the text runs to
+// five lines, and centred they floated beside nothing in particular.
+.studio-agent__head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+
+  > .switch {
+    margin-top: 4px;
+  }
+}
+
+.studio-agent__glyph {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: 50%;
+  background: color-mix(in srgb, $white 3%, transparent);
+  transition:
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .is-open & {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+}
+
+.studio-agent__words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.studio-agent__title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+}
+
+.studio-agent__text,
+.studio-agent__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// The Studio hearing the music for the member's AI: the Studio's live dot
+// (`.studio-projects__live`, its keyframes in Studio.scss) in the card's own
+// colour - the green beside the switch's teal read as two cards' worth of
+// accent - pulsing while sound comes in and still while it rests, then how
+// much of the song is kept. Seconds in tabular figures, so the count does
+// not shuffle the line.
+.studio-agent__hearing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+.studio-agent__hearing-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $secondary-light;
+  opacity: 0.45;
+  transition:
+    opacity $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  .is-sounding > & {
+    opacity: 1;
+    box-shadow: 0 0 8px $secondary-light;
+    animation: studio-watching 2.4s $ease-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+.studio-agent__hearing-title {
+  color: $text-primary;
+  font-weight: $weight-semibold;
+}
+
+.studio-agent__hearing-detail {
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-agent__setup {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+}
+
+.studio-agent__setup-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.studio-agent__setup-title {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.studio-agent__assistants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// A command or a settings block, as it will be pasted: its own lines, and
+// sideways scrolling rather than a rewrap that would put a line break in it.
+.studio-agent__code {
+  max-height: 160px;
+  color: $text-primary;
+}
+
+.studio-agent__key {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    margin-top: 2px;
+    color: $secondary-light;
+  }
+}

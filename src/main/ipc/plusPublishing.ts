@@ -20,13 +20,15 @@ import {
   listPublished,
   listVersionFloors,
   MAX_PICTURE_BYTES,
-  publishScene,
-  unpublishScene,
   type IAuthorised,
   type TGalleryFailure,
-  type TPublishFailure,
 } from '../plus/galleryApi';
 import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
+import {
+  publishScene,
+  unpublishScene,
+  type TPublishFailure,
+} from '../plus/galleryPublishApi';
 
 /**
  * The member's own side of the gallery, over IPC: Publish from the Studio,
@@ -34,8 +36,10 @@ import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
  *
  * Publish reads the Studio's open project from disk in this process, never a
  * pack the page holds; the only bytes the page sends are the picture, which
- * must be a small WebP by its own header. The list and unpublishing need only
- * the account, not Plus: a membership that ended must still be able to take
+ * must be a small WebP by its own header. It asks what the Studio asks of
+ * that project rather than for Plus: a maker keeps one project without Plus
+ * because publishing is how they earn it back. The list and unpublishing
+ * need only the account: a membership that ended must still be able to take
  * its work out of the gallery.
  */
 
@@ -86,6 +90,14 @@ export interface IPlusPublishingIpcDeps {
   activeFolder: () => string | undefined;
   /** Whether that project is a FluidEQ scene, opened only to look inside. */
   activeIsInspection: () => boolean;
+  /**
+   * Whether that project may be published by who is asking: any with Plus,
+   * and without it the one a maker keeps (`projectAccess.ts`). Asked in
+   * place of Plus, which refused the one publication that earns a maker's
+   * next month — the server takes it (`is_scene_maker`), and says no itself
+   * to anybody this lets through by mistake.
+   */
+  mayPublishActive: () => boolean;
   /** A publication recorded an agreement to this version of the Plus terms. */
   onTermsAgreed?: (version: number) => void;
   onPublished?: () => void;
@@ -135,6 +147,7 @@ export const registerPlusPublishingIpc = ({
   userDataDir,
   activeFolder,
   activeIsInspection,
+  mayPublishActive,
   onTermsAgreed,
   onPublished,
 }: IPlusPublishingIpcDeps) => {
@@ -232,7 +245,7 @@ export const registerPlusPublishingIpc = ({
       category2?: unknown,
       rawNote?: unknown,
     ): Promise<TPublishOutcome> => {
-      if (!access.entitled()) {
+      if (!mayPublishActive()) {
         return { ok: false, reason: 'not-entitled' };
       }
       // Cleaned here as the server cleans it; one it would refuse is refused
@@ -276,7 +289,7 @@ export const registerPlusPublishingIpc = ({
       if (!auth || !me || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
-      if (!access.entitled()) {
+      if (!mayPublishActive()) {
         return { ok: false, reason: 'not-entitled' };
       }
       if (activeFolder() !== folder) {

@@ -104,11 +104,18 @@ export const AMBIENT_CEILING = 0.42;
 
 /**
  * What an element's own `opacity` is worth asking for, as the prompt puts it
- * to the member's AI. Anything above the top of this is not stronger — the
- * ceiling above holds it — it only spends the scene's whole allowance on one
- * element, and anything under the bottom is invisible on a bright desktop.
+ * to the member's AI: its strength inside the layer, which carries the
+ * ceiling above as a whole (`ambientField.ts`), so 1 is as strong as the
+ * layer lets anything be and no number can hide the app's words. Under the
+ * bottom a shape is lost on a bright desktop.
+ *
+ * The top was 0.7, from when the ceiling was each shape's and a higher number
+ * only spent the scene's allowance on one element. Once it moved to the
+ * layer that stopped being true, and FluidEQ's own starter asks for 1 and 0.9
+ * so its petals can be found on a 2560 px window — the brief told the member's
+ * AI the opposite of what the starter in front of it did, and it noticed.
  */
-export const AMBIENT_OPACITY_ADVISED: readonly [number, number] = [0.2, 0.7];
+export const AMBIENT_OPACITY_ADVISED: readonly [number, number] = [0.3, 1];
 /** Across every element: past this, counts are brought down in proportion. */
 export const MAX_AMBIENT_TOTAL = 40;
 export const MIN_AMBIENT_SIZE = 4;

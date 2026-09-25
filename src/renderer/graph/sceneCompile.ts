@@ -53,6 +53,7 @@ const waitForLink = (
   program: WebGLProgram,
   completion: number,
   signal?: AbortSignal,
+  hurry?: AbortSignal,
 ): Promise<void> =>
   new Promise((resolve, reject) => {
     let animation: number | undefined;
@@ -61,15 +62,25 @@ const waitForLink = (
         cancelAnimationFrame(animation);
       }
       signal?.removeEventListener('abort', abort);
+      hurry?.removeEventListener('abort', rush);
     };
     const abort = () => {
       stop();
       reject(new DOMException('Scene compilation cancelled.', 'AbortError'));
     };
+    // No more frames are coming to poll on: done waiting, and the caller
+    // reads the link to its end.
+    const rush = () => {
+      stop();
+      resolve();
+    };
     const check = () => {
       if (signal?.aborted || gl.isContextLost()) {
         abort();
-      } else if (gl.getProgramParameter(program, completion)) {
+      } else if (
+        hurry?.aborted ||
+        gl.getProgramParameter(program, completion)
+      ) {
         stop();
         resolve();
       } else {
@@ -77,15 +88,29 @@ const waitForLink = (
       }
     };
     signal?.addEventListener('abort', abort, { once: true });
+    hurry?.addEventListener('abort', rush, { once: true });
     check();
   });
 
-/** Link completion, never COMPILE_STATUS, is the nonblocking readiness signal. */
+/**
+ * Link completion, never COMPILE_STATUS, is the nonblocking readiness signal.
+ *
+ * `hurry`: fired when the window cannot be seen, so no animation frame will
+ * come to poll on — Chromium stops them for a covered or minimised window —
+ * and a wait for one lasts until the member looks at FluidEQ again. Fired
+ * already, or at any moment of the wait, and the link is read to its end in
+ * one call, which holds the GPU process until the driver is done: the freeze
+ * the polling exists to avoid, taken only when there is no window on screen
+ * to freeze. Only the member's AI asking for a picture (`studioAgentDraw.ts`)
+ * passes it, because that is the one caller that is expected to ask while
+ * the member is looking at something else - or to be hidden mid-link.
+ */
 export const linkSceneProgram = async (
   gl: WebGL2RenderingContext,
   source: string,
   sourceLineOffset: number,
   signal?: AbortSignal,
+  hurry?: AbortSignal,
 ): Promise<
   { ok: true; program: WebGLProgram } | { ok: false; log: string }
 > => {
@@ -118,8 +143,17 @@ export const linkSceneProgram = async (
     gl.linkProgram(program);
     linking = true;
     // Reading either shader's status here made Alpine block the shared GPU
-    // process for eight seconds. Only query logs/status after completion.
-    await waitForLink(gl, program, parallel.COMPLETION_STATUS_KHR, signal);
+    // process for eight seconds. Only query logs/status after completion —
+    // unless no frame will come to wait on (see `hurry` above).
+    if (!hurry?.aborted) {
+      await waitForLink(
+        gl,
+        program,
+        parallel.COMPLETION_STATUS_KHR,
+        signal,
+        hurry,
+      );
+    }
     linking = false;
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       const log =

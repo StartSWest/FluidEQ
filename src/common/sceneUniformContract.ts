@@ -26,8 +26,12 @@ import type { IScenePack } from './scenePacks';
  * FluidEQ, or a modified version of it, under any licence other than this one.
  */
 
-/** Bumped when a uniform is added, removed or changes meaning. */
-export const SCENE_CONTRACT_VERSION = 7;
+/**
+ * Bumped when a uniform is added, removed or changes meaning. 8 added the
+ * music's time, the drums, the song's shape, stereo, the singing voice, the
+ * pointer, taps and the viewer's camera.
+ */
+export const SCENE_CONTRACT_VERSION = 8;
 
 /**
  * Texture widths. The 320 log-spaced spectrum points resample to 512 texels;
@@ -47,6 +51,13 @@ export const WAVEFORM_TEXELS = 128;
  * where in the hour it is.
  */
 export const SCENE_TIME_WRAP_S = 3600;
+
+/**
+ * `uTap.z` stops counting here, and "no tap yet" reads as this old: a ripple
+ * sixty seconds on is long gone, and a scene needs no larger number to know
+ * that nothing is happening.
+ */
+export const SCENE_TAP_AGE_LIMIT_S = 60;
 
 export const uniformNameForParam = (id: string): string => `uParam_${id}`;
 
@@ -82,7 +93,7 @@ uniform vec3 uBands;
 uniform vec3 uAccent;
 // Multiplied into the result: the app's own fade across look changes.
 uniform float uSceneFade;
-// Spectrum: u = 0 is 16 Hz, u = 1 is 25 kHz, log-uniform. Red channel, 0..1.
+// Spectrum: u = 0 is 20 Hz, u = 1 is 20 kHz, log-uniform. Red channel, 0..1.
 uniform sampler2D uSpectrum;
 // Contract 5: the same calibrated spectrum, eased with 180 ms attack and
 // 420 ms release half-lives. Independent of the immediate musical accents.
@@ -107,6 +118,33 @@ uniform sampler2D uArtwork;
 // Spectrum 0..1 maps exactly to these positions on the live right-hand axis.
 // Includes plot gutters and the live curve's height/position transform.
 uniform vec4 uSpectrumRect;
+// Contract 8: the music's time. x beat phase, 0 on a beat rising evenly to 1
+// where the next is expected; y bar phase, the same over a bar of four; z the
+// tempo in beats a minute, 0 until heard; w how sure it is, 0..1.
+uniform vec4 uRhythm;
+// Contract 8: the drums, each 1 at its hit and falling away: x kick, y snare,
+// z hats.
+uniform vec3 uDrums;
+// Contract 8: the song's shape. x how intense this part is against the rest
+// of the song, y building towards something, z a drop landing (1, falling),
+// w how many drops so far.
+uniform vec4 uSong;
+// Contract 8: x where the music leans, -1 left to 1 right; y how wide it is,
+// 0 for mono to 1.
+uniform vec2 uStereo;
+// Contract 8: the singing voice. x how open a singer's mouth is now, 0..1,
+// syllable by syllable; y the note being sung, 0 at 80 Hz to 1 at 1 kHz on a
+// log scale, held between notes; z how sure it is that a voice is singing.
+uniform vec3 uVoice;
+// Contract 8: the pointer over the panel. xy where, in uv; z held down, 0..1;
+// w over the panel, 0..1, fading after it leaves.
+uniform vec4 uPointer;
+// Contract 8: the last tap. xy where, in uv; z seconds since, up to
+// ${SCENE_TAP_AGE_LIMIT_S}; w how many so far.
+uniform vec4 uTap;
+// Contract 8: the viewer's camera, turned by dragging within pack.json's
+// camera limits. x yaw and y pitch in radians, z zoom (1 as authored).
+uniform vec3 uCamera;
 in vec2 vUv;
 out vec4 fragColor;
 `;

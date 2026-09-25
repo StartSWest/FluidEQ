@@ -89,7 +89,8 @@ export const MIRROR_BLOCK_FRAMES = 256;
 /** The one source the playback worklet files these samples under. */
 const MIRROR_PEER_ID = 'second-output';
 
-const CAPTURE_PROCESSOR = 'fluideq-remote-audio-capture';
+/** The processor that hands the capture's blocks over (`pcmCapture.worklet.ts`). */
+export const CAPTURE_PROCESSOR = 'fluideq-remote-audio-capture';
 const PLAYBACK_PROCESSOR = 'fluideq-remote-audio';
 
 /**

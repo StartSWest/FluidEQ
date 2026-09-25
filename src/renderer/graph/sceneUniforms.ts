@@ -9,7 +9,8 @@ import { SPECTRUM_TEXELS, WAVEFORM_TEXELS } from 'common/sceneUniformContract';
  * extension. A scene sampling a nearest-only float texture would stair-step
  * in a way that looks like a bug in the scene, on some machines only.
  *
- * The spectrum points arrive log-spaced BY INDEX over 16 Hz – 25 kHz, so an
+ * The spectrum points arrive log-spaced BY INDEX over 20 Hz – 20 kHz
+ * (`liveSpectrumFrames.ts`, MIN_FREQUENCY to MAX_FREQUENCY), so an
  * index-linear resample keeps the frequency axis log-uniform in the texture,
  * which is what `u = 0.5` meaning "about 630 Hz" in the shader contract relies
  * on. The endpoints land exactly.

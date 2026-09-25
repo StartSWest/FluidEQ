@@ -23,8 +23,6 @@ const studio = {
   'studio.rail.blurb': '创作你自己的场景',
 
   'studio.plus.title': '有 Plus 时',
-  'studio.plus.body':
-    '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、图库里，或导出成可发送的文件。',
   'studio.plus.locked': '仅限 Plus',
   'studio.locked.title': '工作室属于 Plus',
   'studio.locked.body': 'FluidEQ 的场景在这里诞生，你的场景也可以。',
@@ -153,7 +151,9 @@ const studio = {
   'studio.publish.offline': '发布需要网络连接。请联网后重试。',
   'studio.publish.rateLimited': '一小时内发布次数太多。请稍后再试。',
   'studio.publish.tooManyThisMonth':
-    '这是你本月的两个场景。下个月可以再次发布。',
+    '本月可以提交的场景你已经全部提交了。下个月可以再次发布。',
+  'studio.publish.tooManyScenes':
+    '你在画廊中和审核中的场景共有 {count} 个，已达到每位成员的上限。请在“你的场景”中取消发布一个，才能发布新的场景。',
   'studio.publish.signedOut': '请登录后发布你的场景。',
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
@@ -252,11 +252,25 @@ const studio = {
 
   'studio.hears.level': '整体响度',
   'studio.hears.beat': '每个节拍一次脉冲',
-  'studio.hears.bass': '单独的低频部分',
+  'studio.hears.bass': '贝斯线和底鼓',
   'studio.hears.mid': '人声与和弦',
   'studio.hears.treble': '镲片与空气感',
+  'studio.hears.voice': '歌声：张口大小与音高',
   'studio.hears.spectrum': '每个频率，快速或平滑',
   'studio.hears.accent': '每隔几秒一次的高光时刻',
+  'studio.hears.balance': '音乐偏向哪一边，左或右',
+  'studio.hears.width': '立体声有多宽',
+  'studio.hears.tempo':
+    '音乐的时钟：一小节的四拍、当前在哪一拍，以及以 BPM 计的速度',
+  'studio.hears.sure': '时钟对节拍有多大把握；它下降时，舞蹈会平静下来',
+  'studio.hears.kick': '底鼓，每次敲击',
+  'studio.hears.snare': '军鼓和拍手，每次敲击',
+  'studio.hears.hats': '踩镲和镲片，每次敲击',
+  'studio.hears.momentum':
+    '由音乐转动的轮子：底鼓和响亮的段落让它加速，之后它会自己慢下来',
+  'studio.hears.intensity': '这段歌曲有多强烈',
+  'studio.hears.build': '歌曲正在为某个时刻铺垫',
+  'studio.hears.drop': 'Drop 到来；数字为它们计数，让每一次都能不同',
 
   'studio.status.live': '已按你最近一次保存更新',
   'studio.status.problem': '上一个可用版本仍在播放',
@@ -275,15 +289,32 @@ const studio = {
     '新建一个项目，FluidEQ 会为它准备好文件夹，里面已有一个会动的场景。之后由你的 AI 来修改它。',
 
   'studio.meters.title': '它此刻听到的',
+  'studio.meters.sound': '声音',
+  'studio.meters.rhythm': '节奏',
+  'studio.meters.song': '歌曲',
   'studio.meter.level': '音量',
   'studio.meter.beat': '节拍',
   'studio.meter.bass': '低音',
   'studio.meter.mid': '中音',
   'studio.meter.treble': '高音',
+  'studio.meter.voice': '人声',
+  'studio.meter.voiceNotes': 'C C♯ D D♯ E F F♯ G G♯ A A♯ B',
   'studio.meter.accent': '重音',
+  'studio.meter.balance': '平衡',
+  'studio.meter.width': '宽度',
+  'studio.meter.tempo': '速度',
+  'studio.meter.sure': '置信度',
+  'studio.meter.kick': '底鼓',
+  'studio.meter.snare': '军鼓',
+  'studio.meter.hats': '踩镲',
+  'studio.meter.momentum': '旋转',
+  'studio.meter.intensity': '强度',
+  'studio.meter.build': '铺垫',
+  'studio.meter.drop': 'Drop',
 
   'studio.test.title': '试听场景',
   'studio.ship.title': '完成之后',
+  'studio.ship.makerTitle': '你仍然可以发布场景',
   'studio.signals.title': '预览音频',
   'studio.signals.hint':
     '场景始终随每位用户自己的音乐变化。测试信号仅用于当前预览，不会保存或发布，也不会改变你的音频。',
@@ -385,7 +416,7 @@ const studio = {
   'studio.file.artwork': '图片',
   'studio.problem.heading': '这个版本还不能播放',
   'studio.problem.line': '{file}，第 {line} 行',
-  'studio.problem.too-large': '着色器超过 64 KB。',
+  'studio.problem.too-large': '着色器超过 256 KB。',
   'studio.problem.unterminated-comment': '有一个 /* 注释没有闭合。',
   'studio.problem.preprocessor':
     '不允许以 # 开头的行。请用 const 代替 #define。',
@@ -395,7 +426,8 @@ const studio = {
   'studio.problem.main': '场景不能定义 main()，它由 FluidEQ 编写。',
   'studio.problem.loop-shape': '循环必须从一个固定数字数到另一个固定数字。',
   'studio.problem.loop-bound': '有一个循环超过 128 次。',
-  'studio.problem.loop-assign': '有一个循环在内部修改了自己的计数器。',
+  'studio.problem.loop-assign':
+    '有一个循环修改了自己的计数器，或把它传给了带有 out 或 inout 参数的函数。请传入它的副本。',
   'studio.problem.loop-budget':
     '嵌套的循环及其调用的函数在每个像素上运行次数过多。请减少嵌套或循环次数。',
   'studio.problem.entry-point': '缺少 vec4 sceneColour(vec2 uv) 函数。',
@@ -448,6 +480,34 @@ const studio = {
   'studio.publish.submitted': '{name} 已提交审核。审核通过时会通知你。',
   'studio.publish.submittedUpdate':
     '{name} 的新版本已提交审核。在它通过前，所有人保留当前版本。',
+  // The switch that lets the member's own AI look at the stage over MCP, and
+  // its one-time setup. The assistants' names are theirs, in every language.
+  'studio.agent.title': '让你的 AI 看到舞台',
+  'studio.agent.body':
+    '你的 AI 助手可以查看它正在编写的场景：由 FluidEQ 按实际播放效果绘制；无法播放时，它会读到 FluidEQ 给出的原因。它还能了解你播放的歌曲如何起伏，但听不到声音本身，也不知道歌名。你复制的提示词会让它自动连接。仅限这台电脑、仅凭你的密钥、仅限你的工作室项目。',
+  'studio.agent.failed': 'FluidEQ 无法开启它。请关闭后再重新开启。',
+  'studio.agent.setupTitle': '连接你的 AI（只需一次）',
+  'studio.agent.byHand': '手动连接 AI',
+  'studio.agent.assistant': '你的 AI 助手',
+  'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
+  'studio.agent.other': '其他',
+  'studio.agent.claudeHint':
+    '在终端中运行这条命令，然后开启一个新的 Claude Code 会话。',
+  'studio.agent.codexHint':
+    '把这段加到用户文件夹里 .codex/config.toml 的末尾，然后开启一个新的 Codex 会话。',
+  'studio.agent.otherHint':
+    '大多数 AI 工具都可以在 MCP 服务器设置中添加它。添加后开启一个新会话。',
+  'studio.agent.copy': '复制配置',
+  'studio.agent.copyFailed':
+    '电脑拒绝了复制。下方已完整显示并选中，请按 Ctrl+C。',
+  'studio.agent.newKey': '新密钥',
+  'studio.agent.keyHint':
+    '密钥只让你的 AI 进入。换成新密钥后，所有拿着旧密钥的 AI 都会被拒之门外。',
+  // The Studio hearing the music for the member's AI, on the same card.
+  'studio.agent.hearing': '正在为你的 AI 聆听',
+  'studio.agent.hearingIdle': '请播放你想为其制作场景的歌曲。',
+  'studio.agent.hearingSong': '这首歌已听 {time}',
 } as const;
 
 export default studio;

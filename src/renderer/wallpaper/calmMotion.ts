@@ -3,6 +3,7 @@ import {
   SPECTRUM_TEXELS,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
+import type { ISceneRhythm } from 'common/sceneRhythm';
 import type { TWallpaperMotion } from 'common/wallpaper';
 import type { ISceneFrame } from '../graph/sceneGl';
 
@@ -184,6 +185,33 @@ export const fillCalmWaveform = (
  */
 const HANDOFF_MS = 1500;
 
+/**
+ * How fast the music's flywheel (`uMusicRun`) turns while calm: a turn in
+ * fifty seconds, the quiet end of what music winds it to (it is capped at
+ * 0.085 turns a second), so a scene carried by it keeps moving, unhurried.
+ */
+export const CALM_RUN_TURNS = 0.02;
+
+/**
+ * The music's time as a calm background hears it: nothing kicks, builds or
+ * drops, the song has no intensity, and the beat is sure of nothing — so a
+ * dancer weighted by that certainty comes to rest rather than freezing mid
+ * step. `keep` is how much of the music is left. The clocks run on untouched.
+ */
+const quietened = (rhythm: ISceneRhythm, keep: number): ISceneRhythm => ({
+  ...rhythm,
+  confidence: rhythm.confidence * keep,
+  kick: rhythm.kick * keep,
+  snare: rhythm.snare * keep,
+  hat: rhythm.hat * keep,
+  intensity: rhythm.intensity * keep,
+  build: rhythm.build * keep,
+  drop: rhythm.drop * keep,
+});
+
+/** `turns` brought inside -0.5..0.5: the shorter way round. */
+const nearestTurn = (turns: number) => turns - Math.round(turns);
+
 export interface ICalmShaper {
   /** Which the scene should be hearing; the change eases in. */
   setMotion(motion: TWallpaperMotion): void;
@@ -206,6 +234,35 @@ export const createCalmShaper = (initial: TWallpaperMotion): ICalmShaper => {
   const calmWaveform = new Uint8Array(WAVEFORM_TEXELS);
   const mixedSpectrum = new Uint8Array(SPECTRUM_TEXELS);
   const mixedWaveform = new Uint8Array(WAVEFORM_TEXELS);
+  // The flywheel is shown as the music's own angle plus this offset, which
+  // only calm moves: the angle never jumps as calm comes in or as the music
+  // takes it back, and it stays wherever calm left it relative to the music.
+  let runOffset = 0;
+  let lastRun: number | undefined;
+
+  /** The flywheel as shown: the music's while it plays, calm's pace in calm. */
+  const followRun = (
+    heard: ISceneFrame['musicRun'],
+    presence: number,
+    elapsedMs: number,
+  ): ISceneFrame['musicRun'] => {
+    const [angle, speed] = heard;
+    // How far the music turned it since the last frame; nothing while it is
+    // paused, which is when a calm background still has to keep turning.
+    const turned = lastRun === undefined ? 0 : nearestTurn(angle - lastRun);
+    lastRun = angle;
+    runOffset = nearestTurn(
+      runOffset + presence * ((CALM_RUN_TURNS * elapsedMs) / 1000 - turned),
+    );
+    if (runOffset === 0 && presence === 0) {
+      return heard;
+    }
+    const shown = angle + runOffset;
+    return [
+      shown - Math.floor(shown),
+      speed + (CALM_RUN_TURNS - speed) * presence,
+    ];
+  };
 
   const mixInto = (
     out: Uint8Array,
@@ -224,20 +281,36 @@ export const createCalmShaper = (initial: TWallpaperMotion): ICalmShaper => {
       target = motion === 'calm' ? 1 : 0;
     },
     shape: (heard) => {
-      const step = Math.max(0, heard.deltaMs ?? 0) / HANDOFF_MS;
+      const elapsedMs = Math.max(0, heard.deltaMs ?? 0);
       progress =
         target > progress
-          ? Math.min(target, progress + step)
-          : Math.max(target, progress - step);
+          ? Math.min(target, progress + elapsedMs / HANDOFF_MS)
+          : Math.max(target, progress - elapsedMs / HANDOFF_MS);
+      // Eased at both ends, so neither the music nor the calm motion is left
+      // or reached with a visible kink.
+      const presence = progress * progress * (3 - 2 * progress);
+      const musicRun = followRun(heard.musicRun, presence, elapsedMs);
       if (progress === 0) {
-        return heard;
+        return musicRun === heard.musicRun ? heard : { ...heard, musicRun };
       }
       const bands = calmBands(heard.timeSeconds);
       fillCalmSpectrum(bands, heard.timeSeconds, calmSpectrum);
       fillCalmWaveform(bands, heard.timeSeconds, calmWaveform);
+      // The music's events have no calm counterpart; they only fade. The
+      // accent keeps its count, which is only a seed.
+      const keep = 1 - presence;
+      const events: Partial<ISceneFrame> = {
+        musicAccent: [heard.musicAccent[0] * keep, heard.musicAccent[1]],
+        musicRun,
+        ...(heard.rhythm ? { rhythm: quietened(heard.rhythm, keep) } : {}),
+        ...(heard.stereo
+          ? { stereo: [heard.stereo[0] * keep, heard.stereo[1] * keep] }
+          : {}),
+      };
       if (progress === 1) {
         return {
           ...heard,
+          ...events,
           // Nothing is played to a calm background: it rests, as any scene
           // played nothing does (`sceneRest.ts`), and its slow swells read
           // the same at thirty frames a second.
@@ -249,15 +322,12 @@ export const createCalmShaper = (initial: TWallpaperMotion): ICalmShaper => {
           waveform: calmWaveform,
         };
       }
-      // Eased at both ends, so neither the music nor the calm motion is left
-      // or reached with a visible kink.
-      const presence = progress * progress * (3 - 2 * progress);
       const mix = (from: number, to: number) => from + (to - from) * presence;
       return {
         ...heard,
+        ...events,
         level: mix(heard.level, bands.level),
-        // A beat has no calm counterpart; it only fades.
-        beat: heard.beat * (1 - presence),
+        beat: heard.beat * keep,
         bands: [
           mix(heard.bands[0], bands.bass),
           mix(heard.bands[1], bands.mid),

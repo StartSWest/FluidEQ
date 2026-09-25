@@ -15,6 +15,7 @@ import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
 import StudioPublishCovers from './StudioPublishCovers';
 import type { IPublishDraft } from './useStudioPublish';
+import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/Gallery.scss';
 import '../styles/StudioPublish.scss';
 
@@ -72,6 +73,8 @@ export default function StudioPublishDialog({
   onCancel,
 }: IStudioPublishDialogProps) {
   const { t } = useTranslation();
+  // Open on the Studio's project: its AI may not switch the Studio under it.
+  useStudioAgentHold(true);
   const moderation = useModeration();
   const me = useAccount().identity?.id;
   // Asked again on opening: an answer that failed earlier — offline at

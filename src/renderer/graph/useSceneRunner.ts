@@ -9,7 +9,13 @@ import {
 } from 'common/scenePerformance';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
-import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
+import {
+  advanceEnergy,
+  createEnergyState,
+  holdEnergy,
+  turnRun,
+  type ISpectrumEnergy,
+} from 'common/spectrumEnergy';
 import { isOnBattery } from 'renderer/utils/batteryPower';
 import observeShown from 'renderer/utils/observeShown';
 import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
@@ -35,6 +41,7 @@ import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
 import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
+import { createStereoFollower } from './stereoImage';
 import {
   createSceneWorkerClient,
   warmSceneProgram,
@@ -102,9 +109,11 @@ export default function useSceneRunner({
   tuning,
   performance: chosenPerformance,
   asleep,
+  onHeard,
   onDrawn,
   onLoaded,
   onWaiting,
+  interaction,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
   // The listener's frame rate and resolution, from this window's store unless
@@ -121,6 +130,12 @@ export default function useSceneRunner({
   const rendererRef = useRef<ISceneWorkerClient | undefined>(undefined);
   const packRef = useRef<IScenePack | null>(null);
   const drawnAtRef = useRef<number | undefined>(undefined);
+  /**
+   * When the music was last read, on the real clock. Not forgotten when the
+   * loop stops, as `drawnAtRef` is: the music plays on while the window is
+   * covered, and the beat clock has to be told how long it went unheard.
+   */
+  const heardAtRef = useRef<number | undefined>(undefined);
   const visibleRef = useRef(true);
   const asleepRef = useRef(asleep === true);
   asleepRef.current = asleep === true;
@@ -130,7 +145,14 @@ export default function useSceneRunner({
   const generationRef = useRef(0);
   const buildingRef = useRef(false);
 
+  // The music measured here, for music that arrives as points alone (sent
+  // from another computer, relayed to a desktop background); the window's
+  // own is read once for every drawing (`liveSound.ts`).
   const energyRef = useRef(createEnergyState());
+  /** The last reading, held while nothing is measured. */
+  const lastEnergyRef = useRef<ISpectrumEnergy | undefined>(undefined);
+  /** The flywheel's angle, turned in the scene's own time. */
+  const runRef = useRef(0);
   const spectrumRef = useRef(createSpectrumTexels());
   const waveformRef = useRef(createWaveformTexels());
   const ladderRef = useRef<ICostLadder>(
@@ -146,6 +168,8 @@ export default function useSceneRunner({
   const heldScaleRef = useRef<number | undefined>(undefined);
   const heldFramesRef = useRef(0);
   const clockRef = useRef(0);
+  /** `musicSeconds`: the same clock at the music's own, unslowed pace. */
+  const musicClockRef = useRef(0);
   const fadeRef = useRef(0);
   const accentRef = useRef(parseAccent(''));
   const paramsRef = useRef<Record<string, number>>({});
@@ -159,6 +183,10 @@ export default function useSceneRunner({
   const tuningRef = useRef(tuning);
   tuningRef.current = tuning;
   const tunerRef = useRef(createSceneTuner());
+  const heardRef = useRef(onHeard);
+  heardRef.current = onHeard;
+  /** The musical accent's envelope as the scene last drew it. */
+  const drawnAccentRef = useRef(0);
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const loadedRef = useRef(onLoaded);
@@ -187,6 +215,10 @@ export default function useSceneRunner({
   waveformSamplesRef.current = isPaused ? NO_WAVEFORM : waveform;
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
+  const interactionRef = useRef(interaction);
+  interactionRef.current = interaction;
+  /** Where the music stands between the speakers, eased (`uStereo`). */
+  const stereoRef = useRef(createStereoFollower());
   const sizeRef = useRef({ width, height });
   sizeRef.current = { width, height };
   const spectrumRectRef = useRef(spectrumRect);
@@ -263,6 +295,12 @@ export default function useSceneRunner({
         ? fresh.waveform
         : waveformSamplesRef.current;
       const isPlaying = currentPoints.length > 0;
+      // The viewer's hand, read on the real clock: a drag glides and a tap
+      // ages at the speed the hand moved, not at a reduced-motion quarter.
+      const scenePack = packRef.current;
+      const hands = interactionRef.current;
+      hands?.setLimits(scenePack.camera);
+      const handed = hands?.read(realDeltaMs);
 
       // Sized inside the loop, as the 2D canvas is, because the pixel ratio is
       // not only a property of the element: dragging the window onto a display
@@ -337,13 +375,45 @@ export default function useSceneRunner({
         fxaa: smoothing !== 'off' && !supersampled,
       };
 
-      const energy = advanceEnergy(
-        energyRef.current,
-        currentPoints,
-        MIN_GAIN,
-        MAX_GAIN,
-        deltaMs,
-        isPlaying,
+      const heardGapMs =
+        heardAtRef.current === undefined
+          ? realDeltaMs
+          : now - heardAtRef.current;
+      heardAtRef.current = now;
+      // The music as this window hears it, read once for every drawing in it;
+      // music sent from elsewhere, as points, measured here - in the music's
+      // own time, never slowed time, and across any stretch nothing was
+      // drawn; and with nothing measured at all (paused) the last reading
+      // held, as a paused song holds its picture.
+      let energy: ISpectrumEnergy;
+      if (fresh?.sound) {
+        energy = fresh.sound.music();
+      } else if (isPlaying) {
+        energy = advanceEnergy(
+          energyRef.current,
+          currentPoints,
+          MAX_GAIN,
+          heardGapMs,
+          true,
+        );
+      } else {
+        energy = holdEnergy(
+          lastEnergyRef.current ??
+            advanceEnergy(
+              energyRef.current,
+              currentPoints,
+              MAX_GAIN,
+              heardGapMs,
+              false,
+            ),
+        );
+      }
+      lastEnergyRef.current = energy;
+      // The wheel turns in the scene's own time, which reduced motion slows.
+      runRef.current = turnRun(runRef.current, energy.runSpeed, deltaMs);
+      const stereo = stereoRef.current(
+        isPlaying ? fresh?.stereo : undefined,
+        realDeltaMs,
       );
       fillSpectrumTexels(
         currentPoints,
@@ -358,6 +428,9 @@ export default function useSceneRunner({
       // the scene is drawn on is the worker's, which keeps running through a
       // stall of this thread that this one clamps away. Ambient travel
       // continues through silence; visibility stops it before any work.
+      musicClockRef.current =
+        (musicClockRef.current + Math.min(100, realDeltaMs) / 1000) %
+        SCENE_TIME_WRAP_S;
       clockRef.current =
         (clockRef.current + Math.min(100, deltaMs) / 1000) % SCENE_TIME_WRAP_S;
       // The scene fades in over its first quarter second rather than popping,
@@ -366,12 +439,13 @@ export default function useSceneRunner({
 
       const heard: ISceneFrame = {
         timeSeconds: clockRef.current,
+        musicSeconds: musicClockRef.current,
         deltaMs,
         level: energy.level,
         beat: energy.beat,
         bands: [energy.bass, energy.mid, energy.treble],
         musicAccent: [energy.accent, energy.accentSerial],
-        musicRun: [energy.run, energy.runSpeed],
+        musicRun: [runRef.current, energy.runSpeed],
         accent: accentRef.current,
         fade: fadeRef.current,
         playing: isPlaying && !isSilentWaveform(currentWaveform),
@@ -379,13 +453,25 @@ export default function useSceneRunner({
         spectrumRect: spectrumRectRef.current,
         waveform: waveformRef.current,
         params: paramsRef.current,
+        rhythm: energy.rhythm,
+        stereo,
+        voice: [energy.voice.open, energy.voice.pitch, energy.voice.sure],
+        ...(handed
+          ? {
+              pointer: handed.pointer,
+              tap: handed.tap,
+              camera: handed.camera,
+            }
+          : {}),
       };
       const shaped = shapeRef.current ? shapeRef.current(heard) : heard;
       // Every scene rests the same way, wherever it plays, judged on what it
       // is played once its place has had its say — the Studio's made-up music
       // is played, a desktop's calm motion is not — and before the pace is
       // read below, so the first frame with sound in it is drawn at full rate.
-      restRef.current.frame(now, !shaped.playing);
+      // A scene somebody is turning or pointing at never rests, or the camera
+      // would move at half the rate of the hand moving it.
+      restRef.current.frame(now, !shaped.playing && !handed?.busy);
       const frame = tunerRef.current.apply(
         shaped,
         deltaMs,
@@ -393,6 +479,7 @@ export default function useSceneRunner({
         paramsRef.current,
         tuningRef.current,
       );
+      heardRef.current?.(frame, shaped, drawnAccentRef.current);
       const ladder = ladderRef.current;
       const drawnGeneration = readyGenerationRef.current;
       // The pace this loop is keeping, so the worker can tell a page that
@@ -447,6 +534,7 @@ export default function useSceneRunner({
           if (result.skipped) {
             return;
           }
+          drawnAccentRef.current = result.accent;
           // A size held for a run of frames is one this program draws: the
           // next ladder made for it starts there, not from the bottom.
           if (scale === heldScaleRef.current) {
@@ -749,11 +837,20 @@ export default function useSceneRunner({
   }, [source.identity, startRenderer, dropProgram]);
 
   // A different scene starts from the beginning: clock, fade, energy, and a
-  // limiter only if who made it calls for one.
+  // limiter only if who made it calls for one. Not the music's time, which is
+  // the music's: a new look dances from its first frame instead of listening
+  // for the tempo all over again.
   useEffect(() => {
     fadeRef.current = 0;
     clockRef.current = 0;
-    energyRef.current = createEnergyState();
+    musicClockRef.current = 0;
+    energyRef.current = {
+      ...createEnergyState(),
+      rhythm: energyRef.current.rhythm,
+    };
+    runRef.current = 0;
+    // And from its author's view, whatever the last one was turned to.
+    interactionRef.current?.home();
     tunerRef.current.reset();
     cadenceRef.current.reset();
     restRef.current.reset();

@@ -24,8 +24,6 @@ const studio = {
   'studio.rail.blurb': 'अपने खुद के सीन बनाएँ',
 
   'studio.plus.title': 'Plus के साथ',
-  'studio.plus.body':
-    'आपका सीन इसी कंप्यूटर पर रहता है। Plus के साथ वह ग्राफ़ पर, डेस्कटॉप पर, गैलरी में या भेजने लायक फ़ाइल में जाता है।',
   'studio.plus.locked': 'सिर्फ़ Plus के साथ',
   'studio.locked.title': 'स्टूडियो Plus का हिस्सा है',
   'studio.locked.body':
@@ -167,7 +165,9 @@ const studio = {
   'studio.publish.rateLimited':
     'एक घंटे में यह बहुत ज़्यादा प्रकाशन है। बाद में कोशिश करें।',
   'studio.publish.tooManyThisMonth':
-    'इस महीने के आपके दोनों सीन हो गए। अगले महीने फिर प्रकाशित कर सकते हैं।',
+    'एक महीने में जितने सीन भेजे जा सकते हैं, उतने आप भेज चुके हैं। अगले महीने फिर प्रकाशित कर सकते हैं।',
+  'studio.publish.tooManyScenes':
+    'गैलरी में और समीक्षा में आपके {count} सीन हैं — एक सदस्य के लिए यही सीमा है। नया सीन प्रकाशित करने के लिए “आपके सीन” में किसी एक का प्रकाशन हटाएँ।',
   'studio.publish.signedOut': 'अपना सीन प्रकाशित करने के लिए साइन इन करें।',
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
   'studio.publish.officialCopy':
@@ -279,11 +279,26 @@ const studio = {
 
   'studio.hears.level': 'कुल आवाज़',
   'studio.hears.beat': 'हर बीट पर एक धड़कन',
-  'studio.hears.bass': 'निचला हिस्सा, अलग से',
+  'studio.hears.bass': 'बेस लाइन और किक ड्रम',
   'studio.hears.mid': 'आवाज़ें और कॉर्ड',
   'studio.hears.treble': 'झाँझ और हवा',
+  'studio.hears.voice': 'गाती आवाज़: कितनी खुली, और कौन-सा सुर',
   'studio.hears.spectrum': 'हर आवृत्ति, तेज़ या सहज',
   'studio.hears.accent': 'हर कुछ सेकंड में एक बड़ा पल',
+  'studio.hears.balance': 'संगीत किस ओर झुका है, बाएँ या दाएँ',
+  'studio.hears.width': 'स्टीरियो कितना चौड़ा है',
+  'studio.hears.tempo':
+    'संगीत की घड़ी: ताल की चार बीट, अभी कौन-सी चल रही है, और BPM में टेम्पो',
+  'studio.hears.sure': 'घड़ी को बीट पर कितना भरोसा है; घटने पर नाच थम जाता है',
+  'studio.hears.kick': 'किक ड्रम, हर चोट पर',
+  'studio.hears.snare': 'स्नेयर और तालियाँ, हर चोट पर',
+  'studio.hears.hats': 'हाई-हैट और झाँझ, हर चोट पर',
+  'studio.hears.momentum':
+    'संगीत से घूमने वाला पहिया: किक और तेज़ हिस्से इसे तेज़ करते हैं, फिर यह अपने आप धीमा हो जाता है',
+  'studio.hears.intensity': 'गीत का यह हिस्सा कितना तीव्र है',
+  'studio.hears.build': 'गीत किसी पल की ओर उठ रहा है',
+  'studio.hears.drop':
+    'ड्रॉप आया; संख्या उन्हें गिनती है, ताकि हर एक अलग दिख सके',
 
   'studio.status.live': 'आपके पिछले सेव से अपडेट हुआ',
   'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
@@ -303,15 +318,32 @@ const studio = {
     'प्रोजेक्ट बनाइए, और FluidEQ उसका फ़ोल्डर एक ऐसे सीन के साथ तैयार कर देगा जो पहले से चलता है। वहाँ से आपका AI उसे बदलता है।',
 
   'studio.meters.title': 'यह अभी क्या सुन रहा है',
+  'studio.meters.sound': 'ध्वनि',
+  'studio.meters.rhythm': 'ताल',
+  'studio.meters.song': 'गीत',
   'studio.meter.level': 'लेवल',
   'studio.meter.beat': 'बीट',
   'studio.meter.bass': 'बेस',
   'studio.meter.mid': 'मिड्स',
   'studio.meter.treble': 'ट्रेबल',
+  'studio.meter.voice': 'आवाज़',
+  'studio.meter.voiceNotes': 'C C♯ D D♯ E F F♯ G G♯ A A♯ B',
   'studio.meter.accent': 'उभार',
+  'studio.meter.balance': 'संतुलन',
+  'studio.meter.width': 'चौड़ाई',
+  'studio.meter.tempo': 'टेम्पो',
+  'studio.meter.sure': 'भरोसा',
+  'studio.meter.kick': 'किक',
+  'studio.meter.snare': 'स्नेयर',
+  'studio.meter.hats': 'हाई-हैट',
+  'studio.meter.momentum': 'घुमाव',
+  'studio.meter.intensity': 'तीव्रता',
+  'studio.meter.build': 'उठान',
+  'studio.meter.drop': 'ड्रॉप',
 
   'studio.test.title': 'सीन आज़माएँ',
   'studio.ship.title': 'जब तैयार हो',
+  'studio.ship.makerTitle': 'आप प्रकाशित करना जारी रख सकते हैं',
   'studio.signals.title': 'प्रीव्यू का ऑडियो',
   'studio.signals.hint':
     'सीन हमेशा हर उपयोगकर्ता के अपने संगीत पर प्रतिक्रिया करता है। परीक्षण संकेत केवल इस प्रीव्यू को चलाते हैं: वे सहेजे या प्रकाशित नहीं होते और आपका ऑडियो नहीं बदलते।',
@@ -426,7 +458,7 @@ const studio = {
   'studio.file.artwork': 'चित्र',
   'studio.problem.heading': 'यह संस्करण अभी नहीं चल सकता',
   'studio.problem.line': '{file}, पंक्ति {line}',
-  'studio.problem.too-large': 'शेडर 64 KB से बड़ा है।',
+  'studio.problem.too-large': 'शेडर 256 KB से बड़ा है।',
   'studio.problem.unterminated-comment': 'एक /* टिप्पणी कभी बंद नहीं होती।',
   'studio.problem.preprocessor':
     '# से शुरू होने वाली पंक्तियों की अनुमति नहीं है। #define की जगह const इस्तेमाल करें।',
@@ -440,7 +472,8 @@ const studio = {
   'studio.problem.loop-shape':
     'लूप को एक तय संख्या से दूसरी तय संख्या तक गिनना चाहिए।',
   'studio.problem.loop-bound': 'एक लूप 128 से ज़्यादा बार चलता है।',
-  'studio.problem.loop-assign': 'एक लूप अपने अंदर अपना ही काउंटर बदलता है।',
+  'studio.problem.loop-assign':
+    'एक लूप अपना ही काउंटर बदलता है, या उसे ऐसे फ़ंक्शन को देता है जिसमें out या inout पैरामीटर है। उसकी कॉपी दें।',
   'studio.problem.loop-budget':
     'लूप के अंदर लूप, और उनसे बुलाए गए फ़ंक्शन, हर पिक्सेल पर बहुत बार चलते हैं। नेस्टिंग या दोहराव कम करें।',
   'studio.problem.entry-point': 'vec4 sceneColour(vec2 uv) फ़ंक्शन नहीं है।',
@@ -503,6 +536,35 @@ const studio = {
     '{name} समीक्षा के लिए भेजा गया। मंज़ूर होने पर आपको बताया जाएगा।',
   'studio.publish.submittedUpdate':
     '{name} का नया संस्करण समीक्षा के लिए भेजा गया। मंज़ूर होने तक सबके पास मौजूदा संस्करण रहेगा।',
+  // The switch that lets the member's own AI look at the stage over MCP, and
+  // its one-time setup. The assistants' names are theirs, in every language.
+  'studio.agent.title': 'अपने AI को स्टेज देखने दें',
+  'studio.agent.body':
+    'आपका AI असिस्टेंट वह सीन देखता है जो वह लिख रहा है, FluidEQ द्वारा ठीक वैसा ही बनाया गया जैसा वह चलता है, और जब वह नहीं चल पाता तो FluidEQ के अपने कारण पढ़ता है। वह यह भी जानता है कि आप जो गाना चलाते हैं वह कैसे आगे बढ़ता है — असली आवाज़ या गाने का नाम कभी नहीं। आप जो प्रॉम्प्ट कॉपी करते हैं, वही उसे अपने आप जोड़ देता है। सिर्फ़ इसी कंप्यूटर पर, सिर्फ़ आपकी कुंजी से, और सिर्फ़ आपके स्टूडियो प्रोजेक्ट।',
+  'studio.agent.failed':
+    'FluidEQ इसे चालू नहीं कर सका। इसे बंद करके फिर से चालू करें।',
+  'studio.agent.setupTitle': 'अपने AI को एक बार जोड़ें',
+  'studio.agent.byHand': 'किसी AI को मैन्युअल रूप से जोड़ें',
+  'studio.agent.assistant': 'आपका AI असिस्टेंट',
+  'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
+  'studio.agent.other': 'अन्य',
+  'studio.agent.claudeHint':
+    'इसे टर्मिनल में चलाएँ, फिर Claude Code का नया सेशन शुरू करें।',
+  'studio.agent.codexHint':
+    'इसे अपने यूज़र फ़ोल्डर में .codex/config.toml के अंत में जोड़ें, फिर Codex का नया सेशन शुरू करें।',
+  'studio.agent.otherHint':
+    'ज़्यादातर AI टूल इसे अपनी MCP सर्वर सेटिंग्स में लेते हैं। जोड़ने के बाद नया सेशन शुरू करें।',
+  'studio.agent.copy': 'सेटअप कॉपी करें',
+  'studio.agent.copyFailed':
+    'आपके कंप्यूटर ने कॉपी नहीं होने दिया। यह नीचे पूरा दिखाया गया है और चुना हुआ है; Ctrl+C दबाएँ।',
+  'studio.agent.newKey': 'नई कुंजी',
+  'studio.agent.keyHint':
+    'कुंजी सिर्फ़ आपके AI को अंदर आने देती है। नई कुंजी पुरानी कुंजी वाले हर AI को बाहर कर देती है।',
+  // The Studio hearing the music for the member's AI, on the same card.
+  'studio.agent.hearing': 'आपके AI के लिए सुन रहा है',
+  'studio.agent.hearingIdle': 'वह गाना चलाएँ जिसके लिए आप सीन चाहते हैं।',
+  'studio.agent.hearingSong': 'इस गाने का अब तक {time}',
 } as const;
 
 export default studio;

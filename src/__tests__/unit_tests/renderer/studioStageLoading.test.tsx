@@ -6,6 +6,18 @@ import useSceneRunner from '../../../renderer/graph/useSceneRunner';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+  // No capture running: nothing is heard for the member's AI.
+  useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
+}));
+// The window's sound, which the stage's Bass, Mids and Treble hear their
+// part of; none here.
+jest.mock('../../../renderer/audio/SceneAudioContext', () => ({
+  useSceneAudio: () => ({
+    points: [],
+    waveform: [],
+    isPaused: false,
+    readFrame: () => undefined,
+  }),
 }));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),

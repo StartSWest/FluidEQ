@@ -91,6 +91,7 @@ const eq = {
   'graph.view.expanded': 'Expanded',
   'graph.view.fullscreen': 'Full screen',
   'graph.view.expand': 'Expand view',
+  'graph.scene.resetView': 'Reset view',
   'graph.showing': 'Showing: {content}',
   'graph.contents.everything': 'Everything',
   'graph.contents.layers': 'Layers over wave',

@@ -16,13 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  EUPHORIA_FRAME_MS,
-  SMOOTH_FRAME_MS,
-  easeTowards,
-  getEaseFactor,
-  shouldDrawFrame,
-} from 'common/smoothing';
+import { easeTowards, getEaseFactor } from 'common/smoothing';
 
 describe('getEaseFactor', () => {
   it('covers half the distance in one half-life', () => {
@@ -91,21 +85,6 @@ describe('easeTowards', () => {
     const current = [10];
     easeTowards(current, [0], 0.5);
     expect(current[0]).toBeCloseTo(5);
-  });
-});
-
-describe('the frame budget', () => {
-  it('caps ordinary use at thirty a second', () => {
-    expect(shouldDrawFrame(10, SMOOTH_FRAME_MS)).toBe(false);
-    expect(shouldDrawFrame(34, SMOOTH_FRAME_MS)).toBe(true);
-  });
-
-  it('lets euphoria run at whatever the display offers', () => {
-    // Zero is a floor on the interval, not a target rate — so a 144Hz screen
-    // is not held down to 60 during the one moment that is meant to look
-    // expensive.
-    expect(shouldDrawFrame(7, EUPHORIA_FRAME_MS)).toBe(true);
-    expect(shouldDrawFrame(0, EUPHORIA_FRAME_MS)).toBe(true);
   });
 });
 

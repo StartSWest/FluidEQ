@@ -5,7 +5,10 @@ import {
   type IPublishedScene,
   type TPlusCategory,
 } from 'common/plusGallery';
-import { PLUS_TERMS_VERSION } from 'common/plusTerms';
+import {
+  PLUS_MAX_PUBLISHED_SCENES,
+  PLUS_TERMS_VERSION,
+} from 'common/plusTerms';
 import { requestAccountPanel } from '../account/accountPanel';
 import { getAccountSnapshot, useAccount } from '../account/accountStore';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -28,6 +31,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   banned: 'studio.export.banned',
   'rate-limited': 'studio.publish.rateLimited',
   'too-many-this-month': 'studio.publish.tooManyThisMonth',
+  'too-many-scenes': 'studio.publish.tooManyScenes',
   refused: 'studio.export.refused',
   'signed-out': 'studio.publish.signedOut',
   'no-build': 'studio.export.refused',
@@ -38,6 +42,11 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',
   server: 'studio.publish.failed',
+};
+
+/** The numbers a refusal's sentence names, where it names one. */
+const PUBLISH_FAILURE_VARS: Partial<Record<string, Record<string, string>>> = {
+  'too-many-scenes': { count: String(PLUS_MAX_PUBLISHED_SCENES) },
 };
 
 /**
@@ -141,6 +150,11 @@ export default function useStudioPublish(
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
   const { pack } = view;
+  // With Plus, or as a maker on the one project the Studio keeps for them:
+  // publishing is how a maker earns their next month, so a page that asked
+  // for Plus alone shut the one way back to it. The bench only ever holds a
+  // project the member may use, and the main process asks the same of it.
+  const mayPublish = view.state.entitled || view.state.maker;
 
   // Event handlers can run twice before React commits; refs also keep pending
   // captures and the bytes being published in the same synchronous draft.
@@ -172,7 +186,7 @@ export default function useStudioPublish(
     pack,
     view.serial,
     view.state.activeId,
-    view.state.entitled,
+    mayPublish,
     view.problems,
     accountId,
   ]);
@@ -191,7 +205,7 @@ export default function useStudioPublish(
       currentDraft.current ||
       !playing ||
       !pack ||
-      !view.state.entitled ||
+      !mayPublish ||
       view.problems
     ) {
       return;
@@ -273,7 +287,7 @@ export default function useStudioPublish(
     playing,
     pack,
     view.state.activeId,
-    view.state.entitled,
+    mayPublish,
     view.problems,
     isCurrent,
     setDraft,
@@ -377,7 +391,7 @@ export default function useStudioPublish(
         !mine ||
         !cover?.picture ||
         publishingRef.current ||
-        !view.state.entitled ||
+        !mayPublish ||
         view.problems
       ) {
         return;
@@ -386,7 +400,7 @@ export default function useStudioPublish(
       publishingRef.current = true;
       setNotice(undefined);
       setPublishing(true);
-      const failed = (key: TranslationKey) => {
+      const failed = (key: TranslationKey, vars?: Record<string, string>) => {
         // Show the error on the bench, keeping completed covers for the next
         // Publish click. Pending captures cannot be resumed once closed.
         retryDraft.current = {
@@ -398,7 +412,7 @@ export default function useStudioPublish(
         setDraft(undefined);
         publishingRef.current = false;
         setPublishing(false);
-        setNotice({ ok: false, key });
+        setNotice({ ok: false, key, ...(vars ? { vars } : {}) });
       };
       publishStudioScene(
         PLUS_TERMS_VERSION,
@@ -440,7 +454,10 @@ export default function useStudioPublish(
             requestAccountPanel('subscribe');
             return undefined;
           }
-          failed(PUBLISH_FAILURES[outcome.reason] ?? 'studio.publish.failed');
+          failed(
+            PUBLISH_FAILURES[outcome.reason] ?? 'studio.publish.failed',
+            PUBLISH_FAILURE_VARS[outcome.reason],
+          );
           return undefined;
         })
         .catch(() => {
@@ -449,14 +466,7 @@ export default function useStudioPublish(
           }
         });
     },
-    [
-      name,
-      view.state.entitled,
-      view.problems,
-      isCurrent,
-      setDraft,
-      onPublished,
-    ],
+    [name, mayPublish, view.problems, isCurrent, setDraft, onPublished],
   );
 
   return {

@@ -24,8 +24,6 @@ const studio = {
   'studio.rail.blurb': 'Crie suas próprias cenas',
 
   'studio.plus.title': 'Com o Plus',
-  'studio.plus.body':
-    'Sua cena fica neste computador. Com o Plus ela vai para o gráfico, para a área de trabalho, para a galeria ou para um arquivo para enviar.',
   'studio.plus.locked': 'Só com o Plus',
   'studio.locked.title': 'O Estúdio faz parte do Plus',
   'studio.locked.body':
@@ -168,7 +166,9 @@ const studio = {
   'studio.publish.rateLimited':
     'São muitas publicações em uma hora. Tente mais tarde.',
   'studio.publish.tooManyThisMonth':
-    'Estas são suas duas cenas deste mês. Você pode publicar de novo no próximo mês.',
+    'Você já enviou todas as cenas que um mês permite. Você pode publicar de novo no próximo mês.',
+  'studio.publish.tooManyScenes':
+    'Você tem {count} cenas na galeria ou em revisão, o máximo por membro. Despublique uma em “Suas cenas” para publicar uma nova.',
   'studio.publish.signedOut': 'Entre para publicar sua cena.',
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.officialCopy':
@@ -281,11 +281,27 @@ const studio = {
 
   'studio.hears.level': 'o volume geral',
   'studio.hears.beat': 'um pulso a cada batida',
-  'studio.hears.bass': 'a parte grave, sozinha',
+  'studio.hears.bass': 'a linha de baixo e o bumbo',
   'studio.hears.mid': 'vozes e acordes',
   'studio.hears.treble': 'pratos e ar',
+  'studio.hears.voice': 'a voz que canta: o quanto se abre e a nota',
   'studio.hears.spectrum': 'cada frequência, rápida ou suave',
   'studio.hears.accent': 'um grande momento, a cada poucos segundos',
+  'studio.hears.balance': 'para onde a música pende, esquerda ou direita',
+  'studio.hears.width': 'o quanto o estéreo é largo',
+  'studio.hears.tempo':
+    'o relógio da música: os quatro tempos do compasso, em qual está, e o andamento em BPM',
+  'studio.hears.sure':
+    'o quanto o relógio tem certeza do ritmo; as danças se acalmam quando ela cai',
+  'studio.hears.kick': 'o bumbo, a cada batida',
+  'studio.hears.snare': 'a caixa e as palmas, a cada batida',
+  'studio.hears.hats': 'chimbais e pratos, a cada batida',
+  'studio.hears.momentum':
+    'uma roda que a música faz girar: o bumbo e as partes fortes a aceleram, e ela desacelera sozinha',
+  'studio.hears.intensity': 'o quanto esta parte da música é intensa',
+  'studio.hears.build': 'a música subindo para algo',
+  'studio.hears.drop':
+    'um drop chegando; o número os conta, para que cada um pareça diferente',
 
   'studio.status.live': 'Atualizado com seu último salvamento',
   'studio.status.problem': 'A última versão que funciona continua tocando',
@@ -305,15 +321,32 @@ const studio = {
     'Crie um projeto e o FluidEQ prepara a pasta dele com uma cena que já se mexe. Sua IA a muda a partir daí.',
 
   'studio.meters.title': 'O que ela ouve agora',
+  'studio.meters.sound': 'Som',
+  'studio.meters.rhythm': 'Ritmo',
+  'studio.meters.song': 'Música',
   'studio.meter.level': 'Nível',
   'studio.meter.beat': 'Batida',
   'studio.meter.bass': 'Graves',
   'studio.meter.mid': 'Médios',
   'studio.meter.treble': 'Agudos',
+  'studio.meter.voice': 'Voz',
+  'studio.meter.voiceNotes': 'Dó Dó♯ Ré Ré♯ Mi Fá Fá♯ Sol Sol♯ Lá Lá♯ Si',
   'studio.meter.accent': 'Acento',
+  'studio.meter.balance': 'Balanço',
+  'studio.meter.width': 'Largura',
+  'studio.meter.tempo': 'Andamento',
+  'studio.meter.sure': 'Confiança',
+  'studio.meter.kick': 'Bumbo',
+  'studio.meter.snare': 'Caixa',
+  'studio.meter.hats': 'Chimbal',
+  'studio.meter.momentum': 'Giro',
+  'studio.meter.intensity': 'Intensidade',
+  'studio.meter.build': 'Subida',
+  'studio.meter.drop': 'Drop',
 
   'studio.test.title': 'Testar a cena',
   'studio.ship.title': 'Quando estiver pronta',
+  'studio.ship.makerTitle': 'Você pode continuar publicando',
   'studio.signals.title': 'Áudio da prévia',
   'studio.signals.hint':
     'Os usuários sempre veem a cena reagir à própria música. Os sinais de teste só movem esta prévia: não são salvos nem publicados e nunca alteram seu áudio.',
@@ -430,7 +463,7 @@ const studio = {
   'studio.file.artwork': 'A imagem',
   'studio.problem.heading': 'Esta versão ainda não pode tocar',
   'studio.problem.line': '{file}, linha {line}',
-  'studio.problem.too-large': 'O shader passa de 64 KB.',
+  'studio.problem.too-large': 'O shader passa de 256 KB.',
   'studio.problem.unterminated-comment': 'Um comentário /* nunca é fechado.',
   'studio.problem.preprocessor':
     'Linhas que começam com # não são permitidas. Use const em vez de #define.',
@@ -446,7 +479,7 @@ const studio = {
     'Um laço deve contar de um número fixo até outro.',
   'studio.problem.loop-bound': 'Um laço se repete mais de 128 vezes.',
   'studio.problem.loop-assign':
-    'Um laço altera o próprio contador dentro dele.',
+    'Um laço altera o próprio contador, ou o passa para uma função que tem um parâmetro out ou inout. Passe uma cópia.',
   'studio.problem.loop-budget':
     'Laços dentro de laços, e as funções que eles chamam, rodam vezes demais por pixel. Aninhe menos ou use menos voltas.',
   'studio.problem.entry-point': 'Não há uma função vec4 sceneColour(vec2 uv).',
@@ -508,6 +541,35 @@ const studio = {
     '{name} foi enviada para revisão. Você será avisado quando for aprovada.',
   'studio.publish.submittedUpdate':
     'A nova versão de {name} foi enviada para revisão. Todos continuam com a versão atual até ela ser aprovada.',
+  // The switch that lets the member's own AI look at the stage over MCP, and
+  // its one-time setup. The assistants' names are theirs, in every language.
+  'studio.agent.title': 'Deixe sua IA ver o palco',
+  'studio.agent.body':
+    'Seu assistente de IA olha a cena que está escrevendo, desenhada pelo FluidEQ exatamente como ela toca, e lê os motivos do próprio FluidEQ quando ela não pode tocar. Ele também fica sabendo como a música que você toca se move, nunca o som em si nem o nome dela. O prompt que você copia já faz a conexão sozinho. Só neste computador, só com a sua chave e só os seus projetos do Estúdio.',
+  'studio.agent.failed':
+    'O FluidEQ não conseguiu ativar. Desative e ative de novo.',
+  'studio.agent.setupTitle': 'Conecte sua IA uma vez',
+  'studio.agent.byHand': 'Conectar uma IA manualmente',
+  'studio.agent.assistant': 'Seu assistente de IA',
+  'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
+  'studio.agent.other': 'Outro',
+  'studio.agent.claudeHint':
+    'Execute isto em um terminal e depois abra uma nova sessão do Claude Code.',
+  'studio.agent.codexHint':
+    'Adicione isto no fim de .codex/config.toml na sua pasta de usuário e depois abra uma nova sessão do Codex.',
+  'studio.agent.otherHint':
+    'A maioria das ferramentas de IA aceita isto nas configurações de servidores MCP. Abra uma nova sessão depois de adicionar.',
+  'studio.agent.copy': 'Copiar configuração',
+  'studio.agent.copyFailed':
+    'Seu computador não deixou copiar. Está mostrado por inteiro e selecionado abaixo; pressione Ctrl+C.',
+  'studio.agent.newKey': 'Nova chave',
+  'studio.agent.keyHint':
+    'A chave deixa entrar só a sua IA. Uma nova chave bloqueia toda IA que recebeu a antiga.',
+  // The Studio hearing the music for the member's AI, on the same card.
+  'studio.agent.hearing': 'Ouvindo para a sua IA',
+  'studio.agent.hearingIdle': 'Toque a música para a qual você quer a cena.',
+  'studio.agent.hearingSong': '{time} desta música até agora',
 } as const;
 
 export default studio;

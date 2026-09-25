@@ -7,14 +7,17 @@ import { renderScenePreview } from '../graph/sceneStill';
  *
  * The assistant that writes a member's shader never sees what it made: it has
  * the files and the member has the eyes, so a scene can go several rounds with
- * its subject a grey smudge in a corner nobody described. It cannot be given a
- * way into the running app to look for itself — the scene is drawn on the
- * member's GPU inside FluidEQ, and a packaged app has no door into that and
- * should not grow one.
+ * its subject a grey smudge in a corner nobody described. An assistant the
+ * member has connected to the Studio's agent door asks FluidEQ for a picture
+ * itself (`main/studioAgent/`); this is for every other one, and for a member
+ * who keeps the door shut.
  *
  * So the picture goes the other way, and this is that half: FluidEQ draws the
  * scene it is already playing and puts the picture in the folder the assistant
  * is already editing (`ipc/studioPreview.ts`). The assistant opens a file.
+ * Only while the Studio shows that project: an assistant working on another
+ * one sees the last picture this wrote, which is what a member's Codex saw
+ * for thirteen minutes, and why the door exists.
  *
  * Once per build, never on a timer: a build is exactly the moment the picture
  * became wrong. It is drawn in the still worker like the gallery's cover, so

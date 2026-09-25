@@ -156,6 +156,7 @@ import { plusWelcomeBridge } from './plusWelcomeBridge';
 import { plusTrialBridge } from './plusTrialBridge';
 import { plusReviewBridge } from './plusReviewBridge';
 import { makerMonthBridge } from './makerMonthBridge';
+import { studioAgentBridge } from './studioAgentBridge';
 
 export type Channels = string;
 
@@ -1652,6 +1653,7 @@ export default {
     ...plusTrialBridge,
     ...plusReviewBridge,
     ...makerMonthBridge,
+    ...studioAgentBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,

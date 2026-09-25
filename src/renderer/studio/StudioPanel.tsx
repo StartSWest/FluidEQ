@@ -19,8 +19,9 @@ import '../styles/StudioMaker.scss';
  * The Studio is Plus's, reached first through the free trial. A member with
  * neither Plus nor a scene of their own already approved is met by what it
  * is and how to get in (`StudioLocked`), not by a bench that refuses every
- * press. A maker whose month has run out keeps one project, with everything
- * that would take a scene out of this window locked (`StudioShipLocked`,
+ * press. A maker whose month has run out keeps one project and Publish,
+ * which is how they earn the next month, with everything else that would
+ * take a scene out of this window locked (`StudioShipMaker`,
  * `StudioProjects`) — a thing to try, not a wall to read. What each member
  * may actually do is the main process's answer, never this page's: it says
  * what is locked, and refuses anyway.

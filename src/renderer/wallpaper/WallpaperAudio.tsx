@@ -32,9 +32,14 @@ export default function WallpaperAudio() {
         .then((heard) => {
           const active =
             latest.current.wanted && !latest.current.control.isPaused;
+          const stereo = active ? heard?.stereo : undefined;
+          // Everything the graph's own scenes hear, the stereo image included:
+          // a desktop background is the same visualizer, and one that heard
+          // less stood still where the graph's leaned with the mix.
           api.sendWallpaperAudio(requestId, {
             points: active ? (heard?.points ?? []) : [],
             waveform: active ? (heard?.waveform ?? []) : [],
+            ...(stereo ? { stereo } : {}),
           });
           return undefined;
         })

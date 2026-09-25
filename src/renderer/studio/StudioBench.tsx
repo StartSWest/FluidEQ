@@ -14,7 +14,7 @@ import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
-import StudioShipLocked from './StudioShipLocked';
+import StudioShipMaker from './StudioShipMaker';
 import StudioShipSection from './StudioShipSection';
 import StudioTestCard from './StudioTestCard';
 import StudioFramingDialog from './StudioFramingDialog';
@@ -36,7 +36,7 @@ import useStudioTint from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import StudioStage, {
-  type TStageDrawn,
+  type TStageHeard,
   type TStageTrouble,
 } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
@@ -77,9 +77,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [scale, setScale] = useState(1);
   const [notice, setNotice] = useState<ISharingNotice>();
   const [naming, setNaming] = useState(false);
+  const feed = useRef<TStageHeard | undefined>(undefined);
   // The bench on screen: the window's colour is the Studio's only then.
   const benchRef = useRef<HTMLDivElement>(null);
-  const feed = useRef<TStageDrawn | undefined>(undefined);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
   // How many times this bench has published, so the scene just published
@@ -96,7 +96,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setNotice(undefined);
   }, [serial, state.activeId]);
 
-  const { readingRef, stageReadingRef, onDrawn } = useStudioReading(feed);
+  const { readingRef, stageReadingRef, onHeard, onDrawn } = useStudioReading(
+    feed,
+    setScale,
+  );
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
   const folderName = project?.folderName;
@@ -165,10 +168,17 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   };
 
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
-  // inside says what it is for instead; without Plus the same actions are
-  // shown locked. Three insides, chosen here, rather than one with two flags;
-  // the card around them (`StudioShipSection`) is the same for all three.
-  let shipCard = <StudioShipLocked />;
+  // inside says what it is for instead; without Plus — which on the bench
+  // means a maker — Publish stays open and the rest are shown locked. Three
+  // insides, chosen here, rather than one with two flags; the card around
+  // them (`StudioShipSection`) is the same for all three.
+  let shipCard = (
+    <StudioShipMaker
+      unfit={unfit}
+      publishing={publishing.preparing}
+      onPublish={publishing.begin}
+    />
+  );
   if (project?.official) {
     shipCard = <StudioShipInspect />;
   } else if (state.entitled) {
@@ -227,6 +237,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         percent={Math.round(scale * 100)}
         readingRef={stageReadingRef}
         onTrouble={setTrouble}
+        onHeard={onHeard}
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
@@ -301,11 +312,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </div>
 
         <div className="studio-bench__side">
-          <StudioMeters
-            feed={feed}
-            onScale={setScale}
-            response={tuner.response}
-          />
+          <StudioMeters feed={feed} response={tuner.response} />
           <StudioTestCard
             readingRef={readingRef}
             signal={signal}

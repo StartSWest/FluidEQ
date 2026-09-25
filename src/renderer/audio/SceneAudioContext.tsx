@@ -5,7 +5,16 @@ export interface ISceneAudio {
   points: ILiveFrame['points'];
   waveform: ILiveFrame['waveform'];
   isPaused: boolean;
-  readFrame(): Pick<ILiveFrame, 'points' | 'waveform'> | undefined;
+  /**
+   * The music as it is now. `stereo` wherever the capture it comes from is
+   * in stereo — this window's own, or the window's relayed to a desktop
+   * background; a remote sender has none.
+   */
+  readFrame():
+    | (Pick<ILiveFrame, 'points' | 'waveform' | 'sound'> & {
+        stereo?: readonly [number, number];
+      })
+    | undefined;
 }
 
 const SceneAudioContext = createContext<ISceneAudio | undefined>(undefined);

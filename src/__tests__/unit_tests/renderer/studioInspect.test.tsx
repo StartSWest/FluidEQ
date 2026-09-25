@@ -38,6 +38,8 @@ import { memberPack } from '../../utils/memberSceneFixtures';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+  // No capture running: nothing is heard for the member's AI.
+  useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
 }));
 
 jest.mock('../../../renderer/studio/StudioStage', () => ({

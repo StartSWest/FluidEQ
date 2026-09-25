@@ -17,24 +17,10 @@ const MAX_FRAMES = 720;
 /** The runner's own cap on how far one frame moves the clock. */
 const MAX_FRAME_MS = 100;
 
-interface IMomentSlot {
-  timeSeconds: number;
-  deltaMs: number;
-  level: number;
-  beat: number;
-  bands: readonly [number, number, number];
-  musicAccent: readonly [number, number];
-  musicRun: readonly [number, number];
-  accent: readonly [number, number, number];
-  fade: number;
-  spectrum: Uint8Array;
-  spectrumRect?: readonly [number, number, number, number];
-  waveform: Uint8Array;
-  params: Readonly<Record<string, number>>;
-}
+type TMomentSlot = ISceneFrame & { deltaMs: number };
 
 export interface IMomentRecorder {
-  /** Keeps a copy of a frame just drawn. Allocates nothing once warm. */
+  /** Keeps a copy of a frame just drawn. Allocates no buffers once warm. */
   record(frame: ISceneFrame): void;
   /**
    * Copies of the frames drawn over the last three seconds, oldest first; the
@@ -44,7 +30,7 @@ export interface IMomentRecorder {
   moment(): ISceneFrame[];
 }
 
-const copyOf = (slot: IMomentSlot): ISceneFrame => ({
+const copyOf = (slot: TMomentSlot): ISceneFrame => ({
   ...slot,
   spectrum: slot.spectrum.slice(),
   waveform: slot.waveform.slice(),
@@ -53,42 +39,39 @@ const copyOf = (slot: IMomentSlot): ISceneFrame => ({
 /**
  * What a scene heard, frame by frame, for as long as a capture needs, so the
  * moment a member picks on screen can be drawn again off screen at full
- * quality (see `renderCapturedStill`). A ring of slots reused in place: the
- * frame's spectrum and waveform are buffers the runner overwrites every
- * frame, so a slot keeps arrays of its own and copies into them.
+ * quality (see `renderCapturedStill`). A ring of slots whose buffers are
+ * reused: the frame's spectrum and waveform are buffers the runner overwrites
+ * every frame, so a slot keeps arrays of its own and copies into them.
+ *
+ * Everything else in the frame is kept whole, by spreading it, never field by
+ * field: the reused slots once copied a list of fields that had stopped at
+ * the params, and every capture after the first three seconds replayed the
+ * accent and the flywheel from whenever the slot was first filled.
  */
 export const createMomentRecorder = (): IMomentRecorder => {
-  const slots: IMomentSlot[] = [];
+  const slots: TMomentSlot[] = [];
   let next = 0;
   let count = 0;
 
   return {
     record: (frame) => {
       const slot = slots[next];
-      if (
+      const reused =
         slot &&
         slot.spectrum.length === frame.spectrum.length &&
-        slot.waveform.length === frame.waveform.length
-      ) {
-        slot.spectrum.set(frame.spectrum);
-        slot.waveform.set(frame.waveform);
-        slot.timeSeconds = frame.timeSeconds;
-        slot.deltaMs = frame.deltaMs ?? 0;
-        slot.level = frame.level;
-        slot.beat = frame.beat;
-        slot.bands = frame.bands;
-        slot.accent = frame.accent;
-        slot.fade = frame.fade;
-        slot.spectrumRect = frame.spectrumRect;
-        slot.params = frame.params;
-      } else {
-        slots[next] = {
-          ...frame,
-          deltaMs: frame.deltaMs ?? 0,
-          spectrum: frame.spectrum.slice(),
-          waveform: frame.waveform.slice(),
-        };
+        slot.waveform.length === frame.waveform.length;
+      const spectrum = reused ? slot.spectrum : frame.spectrum.slice();
+      const waveform = reused ? slot.waveform : frame.waveform.slice();
+      if (reused) {
+        spectrum.set(frame.spectrum);
+        waveform.set(frame.waveform);
       }
+      slots[next] = {
+        ...frame,
+        deltaMs: frame.deltaMs ?? 0,
+        spectrum,
+        waveform,
+      };
       next = (next + 1) % MAX_FRAMES;
       count = Math.min(count + 1, MAX_FRAMES);
     },

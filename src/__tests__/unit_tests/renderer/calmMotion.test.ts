@@ -157,18 +157,37 @@ describe('a desktop background’s shaper', () => {
     expect(Array.from(over.spectrum)).toEqual(Array.from(spectrumAt(11.5)));
   });
 
-  it('hands back to the music, until the music passes through untouched again', () => {
+  it('hands back to the music, the flywheel carrying on from where calm left it', () => {
     const shaper = createCalmShaper('calm');
     shaper.setMotion('music');
-    const heard = heardFrame(20);
+    // The music's wheel turning at a tenth of a turn a second.
+    const turning = (frame: number): ISceneFrame => ({
+      ...heardFrame(20 + frame / 60),
+      musicRun: [(frame * 0.1) / 60 - Math.floor((frame * 0.1) / 60), 0.1],
+    });
+    const heard = turning(0);
     expect(shaper.shape(heard)).not.toBe(heard);
+    const angles: number[] = [];
     let last: ISceneFrame | undefined;
     let passed: ISceneFrame | undefined;
     for (let frame = 1; frame <= 90; frame += 1) {
-      passed = heardFrame(20 + frame / 60);
+      passed = turning(frame);
       last = shaper.shape(passed);
+      angles.push(last.musicRun[0]);
     }
-    expect(last).toBe(passed);
+    if (!last || !passed) {
+      throw new Error('no frames shaped');
+    }
+    // Everything the music says passes through as it said it, and the wheel
+    // turns at the music's own speed...
+    expect({ ...last, musicRun: passed.musicRun }).toEqual(passed);
+    expect(last.musicRun[1]).toBe(passed.musicRun[1]);
+    // ...from the angle calm left it at, never jumping back to the music's:
+    // a scene carried by the wheel would leap through the difference.
+    const steps = angles
+      .slice(1)
+      .map((angle, at) => Math.abs(angle - angles[at]));
+    expect(Math.max(...steps)).toBeLessThan(0.01);
   });
 
   it('turns round smoothly when switched back before the handoff is over', () => {

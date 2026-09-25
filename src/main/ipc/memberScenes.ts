@@ -17,7 +17,10 @@ import {
 } from '../memberScenes/visibleScenes';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import { isKnownMaker } from '../account/knownMakers';
-import { registerStudioProjectsIpc } from './studioProjectsIpc';
+import {
+  registerStudioProjectsIpc,
+  type IStudioProjectsIpcRegistration,
+} from './studioProjectsIpc';
 import type { TInspection, TProjectRestore } from './studioProjectTypes';
 
 /**
@@ -81,10 +84,14 @@ export interface IMemberScenesIpcRegistration {
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
   activeIsInspection(): boolean;
+  /** Whether the open project may be used; what publishing asks. */
+  mayUseActive(): boolean;
   /** The member's own imported scene, back on the Studio's list. */
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
   /** One of FluidEQ's own, written out as a project to look inside. */
   openInspection(pack: IScenePack): Promise<TInspection>;
+  /** The Studio's list, as far as the member's AI may reach it. */
+  agentProject: IStudioProjectsIpcRegistration['agentProject'];
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
   /**
@@ -219,8 +226,10 @@ export const registerMemberScenesIpc = ({
     reportFailure,
     activeFolder: studio.activeFolder,
     activeIsInspection: studio.activeIsInspection,
+    mayUseActive: studio.mayUseActive,
     restoreOwnProject: studio.restoreOwnProject,
     openInspection: studio.openInspection,
+    agentProject: studio.agentProject,
     announce: announceScenes,
     // The same settling as an entitlement change, for the same reason.
     makerChanged: studio.entitlementChanged,

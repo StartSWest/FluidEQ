@@ -262,6 +262,9 @@ const buildRawPack = async (folder: string) => {
       // in whatever room the listener's own wave made.
       ...(manifest.wave === undefined ? {} : { wave: manifest.wave }),
       ...(manifest.ambient === undefined ? {} : { ambient: manifest.ambient }),
+      // How far the viewer may turn a 3D scene; checked and kept in range by
+      // the pack's own reader, like the wave above.
+      ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
     },
     artworkHash,
   };

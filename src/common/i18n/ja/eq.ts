@@ -97,6 +97,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.expanded': '拡大',
   'graph.view.fullscreen': '全画面',
   'graph.view.expand': '表示を拡大',
+  'graph.scene.resetView': '視点をリセット',
   'graph.showing': '表示中：{content}',
   'graph.contents.everything': 'すべて',
   'graph.contents.layers': '波形上のレイヤー',

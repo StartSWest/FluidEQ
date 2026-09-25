@@ -204,6 +204,32 @@ version and in these notes.
   new version is published above the highest number that scene was ever out
   at, so a number can never come back around. A scene you find wrong can be
   reported from the looks menu.
+- **Your AI can see your scene, and hear the song.** Copy the AI prompt in
+  the Studio and your AI assistant — Claude Code, Codex or another that
+  speaks MCP — connects to FluidEQ on this computer by itself. It can draw
+  your scene at any shape and moment, with music or in silence, read why a
+  scene cannot play, and hear how the song you are playing moves — its
+  sections, builds, drops, drums and tempo — as numbers, never the sound and
+  never which song. The switch is on the Studio's card, and nothing of it
+  leaves your computer.
+- **Scenes can dance to the song.** A scene now hears the tempo and where
+  each beat and bar falls — a clock that lands on the beat instead of
+  answering after it — the kick, the snare and the hi-hats apart, how intense
+  the song is, when it builds and when it drops, where the music sits between
+  the speakers, and the singer's voice. The AI prompt teaches all of it, so a
+  scene written from one line can step on the kick and leap at the drop.
+- **Turn a 3D scene with your mouse.** Where its maker allows, drag a scene to
+  see it from another side, Ctrl+scroll or pinch to move in and out, and press
+  Reset view for the view it was made with — on the graph, in the Studio and
+  in the gallery. On the graph a plain drag still selects bands; the right or
+  middle button turns the scene there. A scene can also answer where you
+  point and tap.
+- **The Studio's meters follow the rhythm and the song**: the tempo and how
+  sure it is, a lamp each for the kick, the snare and the hats, a spin the
+  music winds up, intensity, build and drop, the voice and its note, and
+  where the music stands left to right. The test music plays a song's shape —
+  a verse, a build and a drop, the kick on one and three and the snare on two
+  and four — so a scene's answer to each can be tried.
 - **The equaliser shows the output's rate** beside its name, as the DSP page
   does: the rate Windows runs the output you are listening to at, read again
   when the output changes or you come back to the window.
@@ -214,11 +240,6 @@ version and in these notes.
   is prepared, pauses while windows cover its whole monitor or a game is in
   front, gives the desktop its own wallpaper back while it waits on battery,
   and follows the visualizer's settings from the window as you change them.
-- **A monitor can follow the graph.** Switch on Follow graph for it in the
-  desktop background's Manage dialog, and it changes to whichever Plus
-  visualizer the graph shows, whether you picked it or the graph changed looks
-  by itself. When the graph shows a standard look, the monitor keeps the last
-  Plus visualizer it had. Each monitor has its own switch.
 - **The FluidEQ Engine has a new build.** The copy on your machine is offered
   an update the first time you run 1.8.0: one press in the notice, and Windows
   restarts its audio itself. Until you take it the equaliser keeps working and
@@ -269,16 +290,6 @@ version and in these notes.
   another page from the Studio, the window takes the colours of the
   visualizer that is playing instead of the Studio's scene.
 - **Scene icons show in the player's look picker**, where they were blank.
-- **A visualizer looks the same wherever it plays.** Your own scene on the
-  desktop was treated as another member's and left a ghost of each frame
-  behind it, while the Studio showed it clean. The graph, the gallery, the
-  Studio, the player and the desktop now play every scene by the same rules.
-  The desktop also follows the music on every frame it draws, where it used
-  to move in steps thirty times a second.
-- **Another member's scene that flashes is calmed, not smeared.** The flash
-  protection used to blend the previous picture into fast motion, which showed
-  as a double image. Now it only dims the patches that flash, and everything
-  else moves as drawn.
 - **The desk lights switch on the graph shows its light only while it is
   on.** Switched off, it drew the same rays as on.
 - **FluidEQ fits a screen scaled to 200%**, such as a Mac showing it at
@@ -299,18 +310,8 @@ version and in these notes.
   player.
 - **Smart EQ's speech bubble no longer covers Game mode, the delay or the page
   title.** It finds room above or below its button at any window width.
-- **Each DSP card is one colour.** Every box of controls or readings on a
-  card, the phase meters on the EQ and Dimension cards among them, wears the
-  card's own colour with a thin edge, in both themes, instead of two or three
-  shades of slate; the graphs keep their darker ground. The scopes' trails
-  fade into the card instead of leaving the dial's ghost behind them, and the
-  line under the DSP title is one strip with its button at the end.
-- **The Denoise graph shows its numbers.** It printed {{count}} and {{hz}}
-  instead of how many clicks it repaired and the hum's frequency, in every
-  language.
-- **The DSP page's header keeps to one row** on a window 1100 pixels wide and
-  up: the presets no longer leave their file actions on a line of their own,
-  and the Dimension card's legend no longer stands across the header.
+- **The phase meters on the EQ and Dimension cards** are drawn in the card's
+  own colour instead of a darker box, in both themes.
 - **Renaming a profile says why a name was refused in your language**, and the
   Config page calls the preset's layer a preset, not a voicing.
 - **FluidEQ says when it is not reaching the output**, instead of looking
@@ -375,8 +376,16 @@ version and in these notes.
   where the list used to start at fourth.
 - **Plus given as a gift is not described as a subscription**, and a maker
   with another earned month waiting keeps Plus the moment one runs out.
-- **Sending more than two scenes in a month says exactly that**, and when you
-  can send again; a server answer nobody can read no longer shuts the Studio.
+- **Sending more scenes than a month allows says so**, and when you can send
+  again; a server answer nobody can read no longer shuts the Studio. A member
+  with as many scenes out as one member can have is told that, and to
+  unpublish one, instead of being asked to fix a scene with nothing wrong in
+  it.
+- **The Studio's meters keep time with the music.** They move the moment the
+  sound reaches you, where they came a drawn frame behind it; Bass follows the
+  bass line and the kick, where a man's singing lit it; the beat lamp flashes
+  on every beat once the tempo is found; and the stage keeps one steady frame
+  rate instead of stumbling between two.
 - **A scene's colours reach the rest of the window**, and the Library stops
   blurring FluidEQ's own scenes as though they were a stranger's; on a scene's
   page the picture fills the height of the panel beside it instead of leaving

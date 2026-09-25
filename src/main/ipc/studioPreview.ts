@@ -10,10 +10,10 @@ import { PREVIEW_FILE } from '../../common/memberScenes';
  * The assistant a member builds a scene with never sees the scene. It writes
  * `scene.frag`, FluidEQ plays it, and the member is the only pair of eyes in
  * the loop — which is how a scene goes three rounds with its subject a grey
- * smudge in the corner of a frame nobody described. It cannot be given a way
- * into the app to look for itself: the scene is drawn by the running FluidEQ,
- * on the member's GPU, and in a packaged build there is no door into that and
- * should not be.
+ * smudge in the corner of a frame nobody described. An assistant the member
+ * has connected to the Studio's agent door asks for its pictures there
+ * (`studioAgent/`); this file is for every other one, and for a member who
+ * keeps that door shut.
  *
  * So the picture goes the other way. FluidEQ already draws a still of a scene
  * for the gallery's cover; after each save that builds, it writes one here,

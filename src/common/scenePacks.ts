@@ -7,6 +7,7 @@ import {
 import type { LocaleCode } from './i18n';
 import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
+import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import { readSceneWave, type ISceneWave } from './sceneWave';
 import {
   isNeutralResponse,
@@ -127,6 +128,11 @@ export interface IScenePack {
    * (`sceneAmbient.ts`). Absent means none.
    */
   ambient?: ISceneAmbient;
+  /**
+   * How far the viewer may turn, tilt and zoom a 3D scene by dragging it
+   * (`sceneCamera.ts`). Absent means the scene cannot be turned.
+   */
+  camera?: ISceneCameraLimits;
 }
 
 /**
@@ -405,6 +411,8 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     raw.ambient === undefined
       ? undefined
       : normalizeSceneAmbient(raw.ambient, artwork);
+  // Kept in range rather than refused, as a wave is.
+  const camera = readSceneCamera(raw.camera);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -420,6 +428,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     ...(response && !isNeutralResponse(response) ? { response } : {}),
     ...(wave ? { wave } : {}),
     ...(ambient ? { ambient } : {}),
+    ...(camera ? { camera } : {}),
   };
 };
 

@@ -17,10 +17,13 @@ import type { IStudioView } from '../../../renderer/studio/studioStore';
 import { memberPack } from '../../utils/memberSceneFixtures';
 import { resetStudioIdea } from '../../../renderer/studio/studioIdea';
 import { resetStudioStore } from '../../../renderer/studio/studioStore';
+import { resetStudioAgentDoorStore } from '../../../renderer/studio/studioAgentDoorStore';
 
 // The empty Studio does not request audio; capture is owned by the app shell.
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+  // No capture running: nothing is heard for the member's AI.
+  useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
 }));
 
 jest.mock('../../../renderer/studio/StudioStage', () => ({
@@ -55,16 +58,23 @@ const bridge = {
 
 let clipboard: string | undefined;
 
+/** The Studio's agent door, as main answers the prompt's copy. */
+const DOOR_URL = 'http://127.0.0.1:47391/mcp';
+const DOOR_KEY = 'AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE';
+
 beforeEach(() => {
   jest.clearAllMocks();
   resetStudioIdea();
   resetStudioStore();
+  resetStudioAgentDoorStore();
   clipboard = undefined;
   bridge.showStudioFolder.mockResolvedValue(undefined);
   bridge.closeStudio.mockResolvedValue(undefined);
+  // A copy per test: what one test adds to the bridge (notes, the door) must
+  // not answer for the next.
   Object.defineProperty(window, 'electron', {
     configurable: true,
-    value: { ipcRenderer: bridge },
+    value: { ipcRenderer: { ...bridge } },
   });
   Object.defineProperty(navigator, 'clipboard', {
     configurable: true,
@@ -190,6 +200,85 @@ describe('making a scene with your AI', () => {
     ).toBeInTheDocument();
   });
 
+  it('copies a prompt that connects the AI by itself, with its key off screen and out of the notes', async () => {
+    // Ivan, 2026-09-24: "they just copy the prompt once and that's it".
+    const save = jest.fn(async () => true);
+    const openDoor = jest.fn(async () => ({
+      open: true,
+      url: DOOR_URL,
+      key: DOOR_KEY,
+    }));
+    Object.assign(window.electron.ipcRenderer, {
+      readStudioNotes: jest.fn(async () => ({
+        description: 'A neon city',
+        prompt: '',
+      })),
+      saveStudioNotes: save,
+      openStudioAgentDoorForPrompt: openDoor,
+    });
+    render(<StudioMaker project={project} />);
+    const field = await screen.findByRole('textbox', {
+      name: 'studio.maker.describe',
+    });
+    await waitFor(() => expect(field).toHaveValue('A neon city'));
+    await userEvent.type(field, ' at night');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
+    );
+    await waitFor(() =>
+      expect(clipboard).toBe(
+        promptWithIdea('A neon city at night', project.path, {
+          url: DOOR_URL,
+          key: DOOR_KEY,
+        }),
+      ),
+    );
+    expect(openDoor).toHaveBeenCalled();
+    // The AI connects itself, for every kind of assistant, and can look in
+    // this very session through the same tool called directly.
+    expect(clipboard).toContain(
+      `claude mcp add --transport http --scope user fluideq ${DOOR_URL} --header "Authorization: Bearer ${DOOR_KEY}"`,
+    );
+    expect(clipboard).toContain('[mcp_servers.fluideq]');
+    expect(clipboard).toContain(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: 'look_at_scene', arguments: { folder: project.path } },
+      }),
+    );
+    expect(clipboard).not.toContain('if I turn on');
+    // On screen the key is cut short, as the card shows it.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.maker.showPrompt' }),
+    );
+    const shown =
+      screen.getByRole('region', { name: 'studio.prompt.label' }).textContent ??
+      '';
+    expect(shown).toContain('AbCd…');
+    expect(shown).not.toContain(DOOR_KEY);
+    // And the notes kept in the project's folder never carry it.
+    expect(save).toHaveBeenCalled();
+    expect(JSON.stringify(save.mock.calls)).not.toContain(DOOR_KEY);
+  });
+
+  it('copies the prompt without a connection when the member switched the door off', async () => {
+    Object.assign(window.electron.ipcRenderer, {
+      openStudioAgentDoorForPrompt: jest.fn(async () => ({ open: false })),
+    });
+    render(<StudioMaker project={project} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
+    );
+    await waitFor(() =>
+      expect(clipboard).toBe(promptWithIdea('', project.path)),
+    );
+    expect(clipboard).not.toContain('claude mcp add');
+    // It tells the AI the switch exists, as it always did.
+    expect(clipboard).toContain('Let your AI see the');
+  });
+
   it('keeps the idea when the Studio is left and opened again', async () => {
     const { unmount } = render(<StudioMaker />);
     await userEvent.type(
@@ -233,8 +322,9 @@ describe('making a scene with your AI', () => {
     expect(
       await screen.findByText('studio.notice.copyFailed'),
     ).toBeInTheDocument();
+    // Opened by the refusal itself, a render after the notice.
     expect(
-      screen.getByRole('region', { name: 'studio.prompt.label' }),
+      await screen.findByRole('region', { name: 'studio.prompt.label' }),
     ).toBeInTheDocument();
   });
 });

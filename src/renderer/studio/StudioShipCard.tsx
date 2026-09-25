@@ -17,7 +17,7 @@ interface IStudioShipCardProps {
 /**
  * What to do with the scene once it plays: keep it in the member's looks,
  * publish it to the gallery, send it as a file, play it on the desktop.
- * With Plus; the bench shows `StudioShipLocked` without it, and
+ * With Plus; the bench shows `StudioShipMaker` without it, and
  * `StudioShipInspect` for one of FluidEQ's scenes opened to look inside.
  */
 export default function StudioShipCard({

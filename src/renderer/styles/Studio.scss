@@ -529,17 +529,20 @@ $studio-scrollbar: 8px;
   text-wrap: pretty;
 }
 
-// Without Plus, where the actions would be: the same ones, each shown
-// locked, over the one button that opens them (`StudioShipLocked.tsx`). The
-// quiet style on the locked ones and the loud one on Plus, since taking
-// Plus is the only thing this card can actually do.
-.studio-ship--locked {
+// Without Plus, which on the bench is a maker (`StudioShipMaker.tsx`):
+// Publish, in the loud style because it is how they earn Plus back, over
+// the other actions each shown locked in the quiet one.
+.studio-ship--maker {
   display: grid;
   gap: $spacing-s;
 }
 
+// One row each in the side column; side by side once the card is folded
+// under the stage and runs the panel's width, where rows the full width
+// stood mostly empty and made the pinned card a quarter of the window.
 .studio-ship__locked-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
@@ -549,7 +552,7 @@ $studio-scrollbar: 8px;
 // The name on the left, the lock on the right: a row that reads as a thing
 // that would be pressed, rather than as a line of text with an icon.
 //
-// The name wraps rather than holding one line: in Russian the four names are
+// The name wraps rather than holding one line: in Russian the names are
 // long enough that a row which cannot wrap makes the whole side column nine
 // pixels wider than it has, and a column that wide crushes the cards under it.
 // Doubled with `.button` on purpose: that class sets the three things undone

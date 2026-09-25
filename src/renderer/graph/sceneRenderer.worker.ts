@@ -1,6 +1,6 @@
 import type { IScenePack } from 'common/scenePacks';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
-import { shouldDrawFrame } from 'common/smoothing';
+import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { createFlashGuard, type IFlashGuard } from './sceneFlashGuard';
@@ -17,6 +17,7 @@ import {
   type ISceneGpuClock,
 } from './sceneGpuClock';
 import { BLAMED_FRAME_MS } from './sceneDrawWatch';
+import { carriedOn } from './sceneFrameCarry';
 import { createScenePost, needsPresent, type IScenePost } from './scenePost';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
 import type {
@@ -35,24 +36,11 @@ const scope = globalThis as unknown as {
 type TDrawRequest = Extract<TSceneWorkerRequest, { kind: 'draw' }>;
 
 /**
- * The share of the pace the listener chose that must have passed before the
- * worker's next animation frame draws. Under one, because animation frames
- * arrive a fraction of a millisecond either side of the display's beat, and
- * a pace of exactly one display frame judged against exactly one would skip
- * every other frame on a jittery one.
- */
-const PACE_SLACK = 0.9;
-
-/**
  * The most the scene's clock advances on one frame. A stall longer than this
  * is not motion to catch up on: the page used to clamp its own clock here for
  * the same reason, and the worker filling the stall in makes it moot.
  */
 const MAX_TIME_STEP_MS = 100;
-
-/** Faster than 250 Hz or slower than 10 Hz is a measurement error, not a display. */
-const SHORTEST_TICK_MS = 4;
-const LONGEST_TICK_MS = 100;
 
 // Driver compilation, texture uploads and first-use shader specialization can
 // all stall. None may share the event loop that handles Studio's controls.
@@ -123,6 +111,9 @@ let blamedSource: string | undefined;
 // seconds and a worker pacing itself none.
 /** The page's last frame: what every frame drawn here is made of. */
 let latest: TDrawRequest | undefined;
+/** When the page's newest frame arrived, on this worker's clock. */
+let latestAt = 0;
+
 /** When the last frame was drawn, by the worker's own animation clock. */
 let drawnAt: number | undefined;
 /** The clock the scene is drawn on, in seconds, wrapped like the page's was. */
@@ -385,11 +376,14 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     drawIntervalMs = now - drawnAt;
   }
   drawnAt = now;
-  const frame: ISceneFrame = {
-    ...request.frame,
-    timeSeconds: sceneTimeS,
-    deltaMs: stepMs,
-  };
+  const frame: ISceneFrame = carriedOn(
+    {
+      ...request.frame,
+      timeSeconds: sceneTimeS,
+      deltaMs: stepMs,
+    },
+    now - latestAt,
+  );
 
   // What the canvas shows: the panel's own pixels when the picture is
   // brought to them (FSR up, or the supersample average down), or the drawn
@@ -462,18 +456,15 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
  */
 const tick = (now: number) => {
   pacingFrame = scope.requestAnimationFrame(tick);
-  if (lastTickAt !== undefined) {
-    tickMs = Math.min(
-      LONGEST_TICK_MS,
-      Math.max(SHORTEST_TICK_MS, now - lastTickAt),
-    );
-  }
+  tickMs = displayTickMs(now, lastTickAt, tickMs);
   lastTickAt = now;
   if (latest === undefined) {
     return;
   }
-  const dueMs = Math.max(latest.paceMs, tickMs) * PACE_SLACK;
-  if (drawnAt !== undefined && !shouldDrawFrame(now - drawnAt, dueMs)) {
+  if (
+    drawnAt !== undefined &&
+    !isFrameDue(now - drawnAt, latest.paceMs, tickMs)
+  ) {
     return;
   }
   render(latest, now);
@@ -487,6 +478,7 @@ const tick = (now: number) => {
  */
 const draw = (request: TDrawRequest): TSceneWorkerReply => {
   latest = request;
+  latestAt = performance.now();
   if (pacingFrame === undefined) {
     pacingFrame = scope.requestAnimationFrame(tick);
   }
