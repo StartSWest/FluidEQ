@@ -126,7 +126,71 @@ describe('making a scene with your AI', () => {
     // for the member's AI to follow.
     expect(clipboard).toBe(promptWithIdea('A neon city', project.path));
     expect(clipboard).not.toContain('Saved editing prompt');
-    expect(save).not.toHaveBeenCalledWith('second', expect.anything());
+    // The first project's edit never lands in the second; the second only
+    // gets its own notes back with today's prompt in place of its stale one.
+    expect(save).not.toHaveBeenCalledWith(
+      'second',
+      expect.objectContaining({ description: 'A mountain lake at night' }),
+    );
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith('second', {
+        description: 'A neon city',
+        prompt: promptWithIdea('A neon city', project.path),
+      }),
+    );
+  });
+
+  it('rewrites the prompt in the notes with the current brief every time the scene opens', async () => {
+    const save = jest.fn(async () => true);
+    Object.assign(window.electron.ipcRenderer, {
+      readStudioNotes: jest.fn(async () => ({
+        description: 'A mountain lake',
+        prompt: 'The brief as it was a week ago',
+        whatsNew: 'The aurora moves more slowly.',
+      })),
+      saveStudioNotes: save,
+    });
+    render(<StudioMaker project={project} />);
+    // The member's description and their AI's release line are kept; only
+    // the prompt, which is Studio's, is replaced.
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(project.id, {
+        description: 'A mountain lake',
+        prompt: promptWithIdea('A mountain lake', project.path),
+        whatsNew: 'The aurora moves more slowly.',
+      }),
+    );
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves notes alone when their prompt is already current or they could not be read', async () => {
+    const save = jest.fn(async () => true);
+    const current = {
+      description: 'A mountain lake',
+      prompt: promptWithIdea('A mountain lake', project.path),
+    };
+    Object.assign(window.electron.ipcRenderer, {
+      readStudioNotes: jest.fn(async () => current),
+      saveStudioNotes: save,
+    });
+    const view = render(<StudioMaker project={project} />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', { name: 'studio.maker.describe' }),
+      ).toHaveValue('A mountain lake'),
+    );
+    view.unmount();
+    // Unreadable — missing, or half-written by an AI — must not be replaced
+    // by notes with an empty description.
+    Object.assign(window.electron.ipcRenderer, {
+      readStudioNotes: jest.fn(async () => undefined),
+    });
+    render(<StudioMaker project={{ ...project, id: 'unreadable' }} />);
+    await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('keeps exactly one stage when cycling through projects', () => {

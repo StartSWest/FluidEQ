@@ -58,6 +58,24 @@ export default function useProjectIdea(project?: IStudioProject) {
           if (!disposed && !pending.current) {
             setIdea(notes?.description ?? '');
             setLoading(false);
+            // The prompt in the notes is Studio's, not the member's: rewrite
+            // it with today's brief every time the scene opens, so an
+            // assistant working in the folder never follows a brief that has
+            // since been revised. Only notes that were read — a file that
+            // could not be read (missing, or half-written by an AI) is left
+            // alone rather than replaced, which would lose the description.
+            // Unchanged notes are not rewritten: the file already says it.
+            if (notes) {
+              const fresh = promptWithIdea(notes.description, folder);
+              if (fresh !== notes.prompt) {
+                pending.current = {
+                  description: notes.description,
+                  prompt: fresh,
+                  ...(notes.whatsNew ? { whatsNew: notes.whatsNew } : {}),
+                };
+                save();
+              }
+            }
           }
           return undefined;
         })
@@ -75,7 +93,7 @@ export default function useProjectIdea(project?: IStudioProject) {
       disposed = true;
       save();
     };
-  }, [projectId, save]);
+  }, [projectId, folder, save]);
   const update = (text: string) => {
     setIdea(text);
     if (!project) {
