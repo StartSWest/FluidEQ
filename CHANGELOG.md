@@ -120,8 +120,8 @@ version and in these notes.
   pictures are shown in Light when the window is Light and in Dark when it is
   Dark. Help itself is now the book in the title bar, beside the actions menu.
 - **The Studio is part of Plus, and opens with a free trial.** Fifteen days,
-  no card, nothing charged when it ends — **for an account created after the
-  offer opened on 20 September 2026**. Somebody without Plus meets a page that
+  no card, nothing charged when it ends — **for an account created on or after
+  20 September 2026, the day the offer opened**. Somebody without Plus meets a page that
   says what the Studio is and how to get in, and names the folder any project
   of theirs is sitting in, whole and untouched, for the day they come back to
   it.
@@ -137,8 +137,9 @@ version and in these notes.
 - **The equaliser shows the output's rate** beside its name, as the DSP page
   does: the rate Windows runs the output you are listening to at, read again
   when the output changes or you come back to the window.
-- **Start with Windows.** A switch in the actions menu starts FluidEQ when you
-  sign in.
+- **Start with Windows.** A switch in the actions menu, under Animations,
+  starts FluidEQ when you sign in. It needs no administrator, and it says so
+  when Windows' own Startup apps has FluidEQ switched off.
 - **A desktop background keeps its place.** It plays on while its replacement
   is prepared, pauses while windows cover its whole monitor or a game is in
   front, gives the desktop its own wallpaper back while it waits on battery,
@@ -224,18 +225,21 @@ version and in these notes.
 - **Shared audio is sent as it was recorded**, with the processing delay and
   the presets answered the same way on both machines, and Share Audio no
   longer asks the sender to pick Music or Game/Video.
-- **The leaderboard shows real people**, from first place down; the invented
-  names it was built with are gone from every build.
+- **The leaderboard lists every place from first down.** The three on the
+  podium are in the list under it too, their ranks in gold, silver and bronze,
+  where the list used to start at fourth.
 - **Plus given as a gift is not described as a subscription**, and a maker
   with another earned month waiting keeps Plus the moment one runs out.
 - **Sending more than two scenes in a month says exactly that**, and when you
   can send again; a server answer nobody can read no longer shuts the Studio.
 - **A scene's colours reach the rest of the window**, and the Library stops
-  blurring FluidEQ's own scenes as though they were a stranger's; the gallery's
-  pictures fill their panel.
+  blurring FluidEQ's own scenes as though they were a stranger's; on a scene's
+  page the picture fills the height of the panel beside it instead of leaving
+  an empty band under it.
 - **Signing out asks through a clear card**, the Animations switch takes effect
   at once, and the player bar no longer says nothing is playing after the
-  window reloads mid-song.
+  window reloads mid-song, nor leaves a second copy of what it watches the
+  rest of the machine with running in the background.
 - **The Processes list names every program FluidEQ starts.** The helpers that
   follow Windows' volume, tell FluidEQ which game is in front and play audio
   another FluidEQ shares with you each have a row saying what they do, and
