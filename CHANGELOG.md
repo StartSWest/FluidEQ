@@ -53,6 +53,15 @@ version and in these notes.
 - **The Compact player keeps a theme of its own.** Light or Dark, chosen in its
   menu, apart from the full app's, so the app can stay Dark while the player
   sits Light beside your work.
+- **The player's visualizer has the graph's switches.** Changing looks by
+  itself, a scene's colours on the window, the desk lights and the desktop
+  background, in the same order as on the graph: beside the picture when the
+  player is two columns wide, and in the corner of the equaliser's screen
+  when it is one.
+- **On a Mac, FluidEQ looks like a Mac app.** The Mac's own close, minimise
+  and zoom buttons stand in the title bar and in the player's strip, with the
+  Mac's corner and edge, text drawn the way the Mac draws it, and the green
+  button and a double-click on the title bar doing what your Mac is set to do.
 - **The volume is your computer's own.** FluidEQ's separate volume level is
   gone: the slider on the player, on both bars and in Karaoke is Windows'
   volume, so it sets the level of everything the computer plays and stays
@@ -169,6 +178,24 @@ version and in these notes.
   instant, and the seek bar no longer jumps back and forth after you drag it.
   Getting the next song ready used to reset the effects under the song that
   was playing twice a track — a small hiccup mid-song — and no longer does.
+- **Up Next keeps the order you give it.** A song dragged to a new place went
+  back to its old one when the next song started, and a song taken out came
+  back; and after taking any song out, the whole queue was gone at the next
+  launch.
+- **Switching to the player and back no longer shows a stretched window**, and
+  neither does the player's picture going to full screen: the window changes
+  size out of sight and comes back drawn, full screen fades in from black,
+  and a view that measures the sound keeps its grid there.
+- **The Compact player recovers from an error.** Its recovery screen said it
+  was reloading and never did; it now reloads, and comes back as the player.
+- **The Studio's colours stay on the Studio's page.** Going to the player or
+  another page from the Studio, the window takes the colours of the
+  visualizer that is playing instead of the Studio's scene.
+- **Scene icons show in the player's look picker**, where they were blank.
+- **FluidEQ fits a screen scaled to 200%**, such as a Mac showing it at
+  1440 × 852: the title bar and the playback bar are shorter, the DSP pages'
+  pictures fit beside their controls, the cover flow shows more songs, and
+  Karaoke's pitch lane keeps its notes readable.
 - **Repeat One repeats the song again** in the Library.
 - **An EQ switched off from its chip comes back on when you clear its bands.**
   Switched off from Also applied and then cleared with Clear EQ, the chip's ×
