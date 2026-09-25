@@ -1,6 +1,7 @@
 import { useId, type ReactNode, type RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
+import LiveFigure from '../components/LiveFigure';
 import ScenePerformanceMenu from '../graph/ScenePerformanceMenu';
 import { useTranslation } from '../utils/I18nContext';
 import StudioCardGroup from './StudioCardGroup';
@@ -11,6 +12,7 @@ import StudioGridSwitch from './StudioGridSwitch';
 import StudioTintSwitch from './StudioTintSwitch';
 import StudioWaveControls from './StudioWaveControls';
 import type { IStudioWave } from './studioWave';
+import { widestStudioReadings } from './useStudioReading';
 
 const SIZES: readonly TStudioSize[] = ['graph', 'narrow', 'wide', 'full'];
 
@@ -209,7 +211,11 @@ export default function StudioTestCard({
         <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
           <span className="studio-cost__dot" aria-hidden="true" />
           {t(cost, { percent })}
-          <span className="studio-cost__reading" ref={readingRef} />
+          <LiveFigure
+            className="studio-cost__reading"
+            widest={widestStudioReadings(t)}
+            textRef={readingRef}
+          />
         </span>
       )}
     </section>

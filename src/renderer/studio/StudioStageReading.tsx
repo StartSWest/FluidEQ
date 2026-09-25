@@ -1,6 +1,8 @@
 import type { RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
+import { widestStudioReadings } from './useStudioReading';
 
 interface IStudioStageReadingProps {
   /** How the scene is keeping up: the same verdict the card under it shows. */
@@ -46,7 +48,11 @@ export default function StudioStageReading({
     >
       <span className="studio-cost__dot" />
       {t(cost, { percent })}
-      <span className="studio-cost__reading" ref={readingRef} />
+      <LiveFigure
+        className="studio-cost__reading"
+        widest={widestStudioReadings(t)}
+        textRef={readingRef}
+      />
     </span>
   );
 }

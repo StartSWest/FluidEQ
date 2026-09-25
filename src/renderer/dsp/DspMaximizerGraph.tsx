@@ -11,6 +11,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { readDspMaximizerReduction, readDspPeak } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS, baseCurveInk } from './dspInks';
+import writeLiveText from '../utils/liveText';
 
 /**
  * What the Maximizer did to the last six seconds of the record.
@@ -162,20 +163,26 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
           : Math.max(heldDepth.current, peakHold.current - PEAK_HOLD_FALL_DB);
 
       if (reductionRef.current) {
-        reductionRef.current.textContent =
+        writeLiveText(
+          reductionRef.current,
           heldDepth.current < 0.05
             ? '0.0 dB'
-            : `-${heldDepth.current.toFixed(1)} dB`;
+            : `-${heldDepth.current.toFixed(1)} dB`,
+        );
       }
       if (holdRef.current) {
-        holdRef.current.textContent =
+        writeLiveText(
+          holdRef.current,
           peakHold.current < 0.05
             ? '0.0 dB'
-            : `-${peakHold.current.toFixed(1)} dB`;
+            : `-${peakHold.current.toFixed(1)} dB`,
+        );
       }
       if (outputRef.current) {
-        outputRef.current.textContent =
-          levelDb <= -119.5 ? '—' : `${levelDb.toFixed(1)} dBFS`;
+        writeLiveText(
+          outputRef.current,
+          levelDb <= -119.5 ? '—' : `${levelDb.toFixed(1)} dBFS`,
+        );
       }
 
       const width = Math.max(1, canvas.clientWidth);

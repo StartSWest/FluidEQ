@@ -1,7 +1,18 @@
 import { useCallback, useRef, type RefObject } from 'react';
+import type { Translate } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import writeLiveText from '../utils/liveText';
 import type { TStageDrawn } from './StudioStage';
 import { createStudioReadingSettler } from './studioReading';
+
+/**
+ * The reading at its widest, for the box it is written into (`LiveFigure`):
+ * two figures for the GPU's milliseconds, three for the rate and the size.
+ * The rate-only line is the same words less the milliseconds, so never wider.
+ */
+export const widestStudioReadings = (t: Translate) => [
+  t('studio.cost.reading', { ms: '00.0', fps: '000', size: '000' }),
+];
 
 /**
  * The stage's frame callback: each frame goes on to the meters, and what it
@@ -48,11 +59,9 @@ export default function useStudioReading(
       // the stage's corner comes and goes with the stage, and a single
       // remembered value left a corner that had just appeared blank until the
       // reading happened to change — over a scene that was plainly playing.
-      [readingRef.current, stageReadingRef.current].forEach((node) => {
-        if (node && node.textContent !== reading) {
-          node.textContent = reading;
-        }
-      });
+      [readingRef.current, stageReadingRef.current].forEach((node) =>
+        writeLiveText(node, reading),
+      );
     },
     [feed, t],
   );

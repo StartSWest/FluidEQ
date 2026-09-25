@@ -102,6 +102,7 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
+import LiveFigure from './components/LiveFigure';
 import type { IChartPointData } from './graph/ChartController';
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
@@ -117,6 +118,9 @@ import { tintedSpectrumHue, tintedStops } from './utils/sceneAccentRamp';
 import './styles/WaveformVisualizer.scss';
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
+
+/** The held peak at its widest: it is let go below `SILENCE_DB`, -70. */
+const PEAK_WIDEST = ['-00.0 dB', '—'];
 
 const WAVEFORM_CYCLE: readonly TWaveformCycleStyle[] = [
   ...WAVEFORM_STYLES,
@@ -902,9 +906,12 @@ const WaveformVisualizer = () => {
                   {t('waveform.clip')}
                 </span>
               )}
-              <span className="waveform-visualizer__peak">
+              <LiveFigure
+                className="waveform-visualizer__peak"
+                widest={PEAK_WIDEST}
+              >
                 {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
-              </span>
+              </LiveFigure>
             </span>
           </span>
         )}

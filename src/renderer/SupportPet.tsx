@@ -328,101 +328,110 @@ export const buildEyeWave = (centreX: number, centreY: number) => {
 /**
  * The creature itself. Shared by the titlebar button and the dialog's hero, so
  * the two can never drift apart.
+ *
+ * In a frame of its own because it moves every frame while music plays — it
+ * breathes, and the wave scrolls in its eyes — and a drawing that moves has to
+ * be laid out again. Standing straight in the grid that centres it, it had
+ * the browser lay out the whole window with it each time: a grid's item is
+ * never laid out on its own. Inside the frame the drawing is, so the moving
+ * creature costs its own few shapes and nothing around it.
  */
 export function PetArt() {
   return (
-    <svg
-      className="support-pet__art"
-      viewBox="0 0 40 40"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        {/* Its colours come from two tokens (`SupportPet.scss`): its own mint
+    <span className="support-pet__frame">
+      <svg
+        className="support-pet__art"
+        viewBox="0 0 40 40"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          {/* Its colours come from two tokens (`SupportPet.scss`): its own mint
             at rest, the scene's colours while a Plus scene tints the window. */}
-        <linearGradient id="pet-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" className="support-pet__tone-top" />
-          <stop offset="1" className="support-pet__tone-bottom" />
-        </linearGradient>
-        {/* The pupils, as clips. The waveform inside each eye runs well past
+          <linearGradient id="pet-body" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" className="support-pet__tone-top" />
+            <stop offset="1" className="support-pet__tone-bottom" />
+          </linearGradient>
+          {/* The pupils, as clips. The waveform inside each eye runs well past
             the iris so it can scroll without its ends ever coming into view. */}
-        <clipPath id="pet-eye-left">
-          <circle cx="15.4" cy="22" r="3.4" />
-        </clipPath>
-        <clipPath id="pet-eye-right">
-          <circle cx="24.6" cy="22" r="3.4" />
-        </clipPath>
-      </defs>
+          <clipPath id="pet-eye-left">
+            <circle cx="15.4" cy="22" r="3.4" />
+          </clipPath>
+          <clipPath id="pet-eye-right">
+            <circle cx="24.6" cy="22" r="3.4" />
+          </clipPath>
+        </defs>
 
-      {/* Ears double as a little EQ curve - the creature is made of the thing
+        {/* Ears double as a little EQ curve - the creature is made of the thing
           the app does. Kept chunky so they survive at 40px. */}
-      <g className="support-pet__ears">
-        <path
-          d="M11 12 L14 6 L17 12"
-          fill="none"
-          stroke="url(#pet-body)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        <path
-          d="M23 12 L26 8 L29 12"
-          fill="none"
-          stroke="url(#pet-body)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-      </g>
+        <g className="support-pet__ears">
+          <path
+            d="M11 12 L14 6 L17 12"
+            fill="none"
+            stroke="url(#pet-body)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d="M23 12 L26 8 L29 12"
+            fill="none"
+            stroke="url(#pet-body)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </g>
 
-      <g className="support-pet__body">
-        <circle cx="20" cy="24" r="12.5" fill="url(#pet-body)" />
+        <g className="support-pet__body">
+          <circle cx="20" cy="24" r="12.5" fill="url(#pet-body)" />
 
-        {/* Eyes carry almost all of the personality, so they are large and
+          {/* Eyes carry almost all of the personality, so they are large and
             maximum contrast. */}
-        <g className="support-pet__eyes">
-          <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
-          <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
+          <g className="support-pet__eyes">
+            <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
+            <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
 
-          {/* Sound reflected in the eye: a little waveform scrolling across
+            {/* Sound reflected in the eye: a little waveform scrolling across
               each pupil, clipped to it so it reads as something seen IN the eye
               rather than drawn over it. Invisible at rest and brightening with
               the streak — see `--pet-joy`. Always in the markup rather than
               mounted on demand, so nothing re-renders mid-run to make it
               appear. */}
-          <g className="support-pet__eye-waves">
-            <g clipPath="url(#pet-eye-left)">
-              <path d={buildEyeWave(15.4, 22)} />
+            <g className="support-pet__eye-waves">
+              <g clipPath="url(#pet-eye-left)">
+                <path d={buildEyeWave(15.4, 22)} />
+              </g>
+              <g clipPath="url(#pet-eye-right)">
+                <path d={buildEyeWave(24.6, 22)} />
+              </g>
             </g>
-            <g clipPath="url(#pet-eye-right)">
-              <path d={buildEyeWave(24.6, 22)} />
-            </g>
+
+            <circle cx="16.4" cy="21" r="1.15" fill="#ffffff" />
+            <circle cx="25.6" cy="21" r="1.15" fill="#ffffff" />
           </g>
 
-          <circle cx="16.4" cy="21" r="1.15" fill="#ffffff" />
-          <circle cx="25.6" cy="21" r="1.15" fill="#ffffff" />
+          <path
+            className="support-pet__mouth"
+            d="M16.6 28.4 Q20 31.4 23.4 28.4"
+            fill="none"
+            stroke="#06131d"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
         </g>
 
+        {/* Only ever drawn for a supporter. */}
         <path
-          className="support-pet__mouth"
-          d="M16.6 28.4 Q20 31.4 23.4 28.4"
-          fill="none"
-          stroke="#06131d"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
+          className="support-pet__star"
+          d="M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z"
+          fill="#ffe66d"
         />
-      </g>
-
-      {/* Only ever drawn for a supporter. */}
-      <path
-        className="support-pet__star"
-        d="M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z"
-        fill="#ffe66d"
-      />
-    </svg>
+      </svg>
+    </span>
   );
 }
 

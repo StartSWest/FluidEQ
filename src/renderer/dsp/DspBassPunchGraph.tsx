@@ -11,6 +11,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { readDspBassPunchActivity } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS, baseCurveInk, SKY_CSS, skyInk } from './dspInks';
+import writeLiveText from '../utils/liveText';
 
 /**
  * The last three seconds of what Punch did, on a time axis.
@@ -208,16 +209,16 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
           : heldTransient.current * RELEASE_PER_FRAME;
 
       if (transientRef.current) {
-        transientRef.current.textContent = readout(
-          heldTransient.current,
-          enabled,
+        writeLiveText(
+          transientRef.current,
+          readout(heldTransient.current, enabled),
         );
       }
       if (sustainRef.current) {
-        sustainRef.current.textContent = readout(sustainDb, enabled);
+        writeLiveText(sustainRef.current, readout(sustainDb, enabled));
       }
       if (duckRef.current) {
-        duckRef.current.textContent = readout(duckDb, enabled);
+        writeLiveText(duckRef.current, readout(duckDb, enabled));
       }
 
       const width = Math.max(1, canvas.clientWidth);

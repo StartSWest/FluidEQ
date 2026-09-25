@@ -12,6 +12,7 @@ import type {
 import { useTranslation } from '../utils/I18nContext';
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
 import type { IRemoteAudioComputer } from './remoteAudioState';
+import writeLiveText from '../utils/liveText';
 
 interface IRemoteAudioMonitorProps {
   active: boolean;
@@ -182,29 +183,39 @@ const RemoteAudioMeterLane = ({
       }
       if (valueRef.current) {
         const decibels = peak > 0 ? 20 * Math.log10(peak) : -60;
-        valueRef.current.textContent = t('remoteAudio.monitor.peak', {
-          decibels: Math.max(-60, decibels).toFixed(1),
-        });
+        writeLiveText(
+          valueRef.current,
+          t('remoteAudio.monitor.peak', {
+            decibels: Math.max(-60, decibels).toFixed(1),
+          }),
+        );
       }
       if (bufferRef.current) {
         const playbackMilliseconds = meter.bufferedMs;
         const sendMilliseconds = networkRef.current?.queuedMilliseconds;
         if (playbackMilliseconds !== undefined) {
-          bufferRef.current.textContent = t('remoteAudio.monitor.buffer', {
-            milliseconds: Math.round(playbackMilliseconds),
-          });
+          writeLiveText(
+            bufferRef.current,
+            t('remoteAudio.monitor.buffer', {
+              milliseconds: Math.round(playbackMilliseconds),
+            }),
+          );
         } else if (meterKey === null && sendMilliseconds !== undefined) {
-          bufferRef.current.textContent = t('remoteAudio.monitor.sendQueue', {
-            milliseconds: Math.round(sendMilliseconds),
-          });
+          writeLiveText(
+            bufferRef.current,
+            t('remoteAudio.monitor.sendQueue', {
+              milliseconds: Math.round(sendMilliseconds),
+            }),
+          );
         } else {
-          bufferRef.current.textContent = '';
+          writeLiveText(bufferRef.current, '');
         }
       }
       if (activityRef.current) {
-        activityRef.current.textContent = transmitting
-          ? activeState
-          : idleState;
+        writeLiveText(
+          activityRef.current,
+          transmitting ? activeState : idleState,
+        );
       }
       activityDotRef.current?.classList.toggle('is-active', transmitting);
       frameId = window.requestAnimationFrame(paint);

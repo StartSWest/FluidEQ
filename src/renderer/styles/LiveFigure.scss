@@ -1,0 +1,42 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// A figure that changes while it is looked at, laid out on its own
+// (`LiveFigure.tsx`).
+
+.live-figure {
+  display: block;
+}
+
+// Every text the figure can show, for its width alone: each one a line of no
+// height, never painted, never read out. No height rather than clipped, so
+// the first of them still gives the figure the baseline its text would have
+// — a clipped box has none, and a reading in a row lined up on baselines
+// dropped a whole line lower. The lines spill into the text's own line, so
+// they add no overflow to anything.
+.live-figure__room {
+  display: block;
+  height: 0;
+
+  > span {
+    display: block;
+    height: 0;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+}
+
+// Its size decided outside it — the width its box is given, one line tall —
+// so new text is laid out here and nowhere else. Paint is left uncontained:
+// a glyph standing past its advance is drawn whole rather than cut.
+.live-figure__text {
+  display: block;
+  height: 1lh;
+  white-space: nowrap;
+  contain: size layout style;
+}

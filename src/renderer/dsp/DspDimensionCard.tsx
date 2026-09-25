@@ -11,6 +11,7 @@ import { Dial, ProcessorCard } from './DspControls';
 import DspDimensionBar from './DspDimensionBar';
 import DspDimensionGraph from './DspDimensionGraph';
 import { readDspDimensionGuard, useDspSampleRate } from './store';
+import writeLiveText from '../utils/liveText';
 
 interface IDspDimensionCardProps {
   dimension: IDimensionSettings;
@@ -49,7 +50,7 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
         barRef.current.style.width = '0%';
       }
       if (valueRef.current) {
-        valueRef.current.textContent = '—';
+        writeLiveText(valueRef.current, '—');
       }
       return undefined;
     }
@@ -60,7 +61,7 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
         barRef.current.style.width = `${(guard * 100).toFixed(1)}%`;
       }
       if (valueRef.current) {
-        valueRef.current.textContent = `${Math.round(guard * 100)}%`;
+        writeLiveText(valueRef.current, `${Math.round(guard * 100)}%`);
       }
       frame = requestAnimationFrame(paint);
     };

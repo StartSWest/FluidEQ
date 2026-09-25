@@ -58,8 +58,9 @@ it('changes a readout in the text node it already has', () => {
   if (!draw) {
     throw new Error('the meters did not take the feed');
   }
+  // The readout's own text, in the box it is laid out alone in (`LiveFigure`).
   const value = container.querySelector(
-    '.studio-meter--level .studio-meter__value',
+    '.studio-meter--level .studio-meter__value .live-figure__text',
   );
   if (!value) {
     throw new Error('no level readout');

@@ -2,8 +2,10 @@ import { useEffect, useRef, type MutableRefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { isNeutralResponse, type ISceneResponse } from 'common/sceneResponse';
 import { SPECTRUM_TEXELS } from 'common/sceneUniformContract';
+import LiveFigure from '../components/LiveFigure';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { useTranslation } from '../utils/I18nContext';
+import writeLiveText from '../utils/liveText';
 import type { TStageDrawn } from './StudioStage';
 
 type TMeterKey = 'level' | 'beat' | 'bass' | 'mid' | 'treble' | 'accent';
@@ -64,6 +66,9 @@ const SPECTRUM_BARS = 32;
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
+/** A value from 0 to 1, as its readout writes it: every one is this wide. */
+const VALUE_WIDEST = ['0.00'];
+
 interface IStudioMetersProps {
   /** The stage calls this after every frame it draws. */
   feed: MutableRefObject<TStageDrawn | undefined>;
@@ -85,7 +90,8 @@ interface IStudioMetersProps {
  * Written straight to the elements, not through React state: a meter that
  * re-rendered its component sixty times a second would cost more than the
  * scene it describes. React draws the rows once; the stage's frame callback
- * moves the bars.
+ * moves the bars, and writes readouts laid out on their own
+ * (`LiveFigure.tsx`) — never the page around them.
  */
 export default function StudioMeters({
   feed,
@@ -116,21 +122,7 @@ export default function StudioMeters({
       if (ghost) {
         ghost.style.transform = `scaleX(${clamp01(heard)})`;
       }
-      if (text) {
-        const shown = clamp01(value).toFixed(2);
-        // The text node's data, never `textContent`: replacing the node every
-        // frame is an insertion into the document, and the page's `:has()`
-        // rules on its outermost boxes answer every insertion by restyling
-        // from the top.
-        const { firstChild } = text;
-        if (firstChild instanceof Text) {
-          if (firstChild.data !== shown) {
-            firstChild.data = shown;
-          }
-        } else {
-          text.textContent = shown;
-        }
-      }
+      writeLiveText(text ?? null, clamp01(value).toFixed(2));
     };
     feed.current = (frame, scale, musicAccent, heard) => {
       METERS.forEach(({ key, read }) => {
@@ -192,14 +184,15 @@ export default function StudioMeters({
               />
             )}
           </span>
-          <span
+          <LiveFigure
             className="studio-meter__value"
-            ref={(element) => {
+            widest={VALUE_WIDEST}
+            textRef={(element) => {
               values.current[key] = element;
             }}
           >
             0.00
-          </span>
+          </LiveFigure>
         </div>
       ))}
       <div

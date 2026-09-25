@@ -17,6 +17,7 @@ import {
   useListenedOutput,
 } from '../utils/useListenedOutput';
 import useSmoothFrames from '../utils/useSmoothFrames';
+import writeLiveText from '../utils/liveText';
 
 /** How often the level figure changes: often enough to live, not to flicker. */
 const LEVEL_EVERY_MS = 250;
@@ -64,7 +65,7 @@ const PlayerReadouts = () => {
       : [];
     const loudest = peaks.reduce((max, peak) => Math.max(max, peak), 0);
     const db = loudest > 0 ? 20 * Math.log10(loudest) : -Infinity;
-    cell.textContent = db > FLOOR_DB ? db.toFixed(1) : '−∞';
+    writeLiveText(cell, db > FLOOR_DB ? db.toFixed(1) : '−∞');
     return activeRef.current;
   }, []);
   const kick = useSmoothFrames(showLevel, {

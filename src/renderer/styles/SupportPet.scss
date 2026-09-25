@@ -247,7 +247,16 @@ $pet-hop-duration: 520ms;
   }
 }
 
+// What the button, the hero and the bubble centre, in place of the drawing:
+// as the item of their grid the drawing was never laid out alone, and it is
+// laid out every frame it moves (`PetArt`). As wide and tall as the drawing,
+// which is a block in it, so it sits exactly where the drawing did.
+.support-pet__frame {
+  display: block;
+}
+
 .support-pet__art {
+  display: block;
   width: 36px;
   height: 36px;
   overflow: visible;

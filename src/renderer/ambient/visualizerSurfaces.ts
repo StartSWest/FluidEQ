@@ -18,6 +18,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * scrolled, a page swapped, a stage dragged taller all move a visualizer with
  * nothing to observe, and a box measured even a few frames earlier let a bird
  * across the edge of a picture that had moved.
+ *
+ * A box costs nothing to read while the window has not changed since it was
+ * last laid out, and the whole of that layout when it has: the read is where
+ * the browser does it. So whatever changes every frame must change without
+ * laying the window out — transforms and opacities, a readout's text in a
+ * box of its own (`LiveFigure.tsx`) written into its node (`liveText.ts`),
+ * the titlebar pet's drawing in its frame (`PetArt`). Before they did, on
+ * the Studio with a scene playing, this read carried 105 ms of every second
+ * and the window restyled 375 ms and laid out 110 more, busy the whole second
+ * at 34 frames; after, the read 1.4 ms, restyling 25 and layout 10.
  */
 
 export interface IVisualizerBox {
