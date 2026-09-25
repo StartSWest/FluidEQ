@@ -62,34 +62,57 @@ const HELPER_PREFIX = 'audio-devices-';
  * removed. Undefined — the script then compiles in memory, as every run used
  * to — when the folder cannot be made; the script does the same on its own
  * for a helper that is missing, half written or refused.
+ *
+ * The hash is taken again whenever the script's size or modified time moves.
+ * `pnpm dev` does not restart main for an edit under `assets`, and a helper
+ * named by the hash taken at launch went on running the old C# under the new
+ * script — its changes silently ignored, or a member the script now calls
+ * missing and the output list coming back empty.
  */
-let helperAssembly: Promise<string | undefined> | undefined;
-const getHelperAssemblyPath = (): Promise<string | undefined> => {
-  helperAssembly ??= (async () => {
-    try {
-      const script = await fs.promises.readFile(getAudioDeviceScriptPath());
-      const digest = createHash('sha256')
-        .update(script)
-        .digest('hex')
-        .slice(0, 16);
-      const folder = path.join(app.getPath('userData'), 'helpers');
-      await fs.promises.mkdir(folder, { recursive: true });
-      const name = `${HELPER_PREFIX}${digest}.dll`;
-      const stale = (await fs.promises.readdir(folder)).filter(
-        (file) => file.startsWith(HELPER_PREFIX) && file !== name,
-      );
-      // A helper still loaded by a run in flight cannot be removed yet; the
-      // next launch removes it.
-      await Promise.allSettled(
-        stale.map((file) => fs.promises.rm(path.join(folder, file))),
-      );
-      return path.join(folder, name);
-    } catch (error) {
-      log.warn('Output list: compiling its helper on every read', error);
-      return undefined;
-    }
-  })();
-  return helperAssembly;
+let helperAssembly:
+  { stamp: string; assembly: Promise<string | undefined> } | undefined;
+
+const keepHelperFor = async (
+  scriptPath: string,
+): Promise<string | undefined> => {
+  try {
+    const script = await fs.promises.readFile(scriptPath);
+    const digest = createHash('sha256')
+      .update(script)
+      .digest('hex')
+      .slice(0, 16);
+    const folder = path.join(app.getPath('userData'), 'helpers');
+    await fs.promises.mkdir(folder, { recursive: true });
+    const name = `${HELPER_PREFIX}${digest}.dll`;
+    const stale = (await fs.promises.readdir(folder)).filter(
+      (file) => file.startsWith(HELPER_PREFIX) && file !== name,
+    );
+    // A helper still loaded by a run in flight cannot be removed yet; the
+    // next launch removes it.
+    await Promise.allSettled(
+      stale.map((file) => fs.promises.rm(path.join(folder, file))),
+    );
+    return path.join(folder, name);
+  } catch (error) {
+    log.warn('Output list: compiling its helper on every read', error);
+    return undefined;
+  }
+};
+
+const getHelperAssemblyPath = async (): Promise<string | undefined> => {
+  const scriptPath = getAudioDeviceScriptPath();
+  let stamp: string;
+  try {
+    const { mtimeMs, size } = await fs.promises.stat(scriptPath);
+    stamp = `${mtimeMs}:${size}`;
+  } catch (error) {
+    log.warn('Output list: its script could not be read', error);
+    return undefined;
+  }
+  if (helperAssembly?.stamp !== stamp) {
+    helperAssembly = { stamp, assembly: keepHelperFor(scriptPath) };
+  }
+  return helperAssembly.assembly;
 };
 
 const helperArguments = async (): Promise<string[]> => {

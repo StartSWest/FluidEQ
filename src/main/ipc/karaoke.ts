@@ -65,9 +65,11 @@ export const registerKaraokeIpc = ({
     'karaoke-session-save',
     (_event, snapshot: IKaraokeSessionSnapshot) => {
       if (snapshot?.version !== 1 || !Array.isArray(snapshot.files)) {
-        return;
+        return undefined;
       }
-      saveKaraokeSession(userDataDir, snapshot);
+      // Returned so a save that failed reaches the window, which sends the
+      // snapshot again rather than taking it as written.
+      return saveKaraokeSession(userDataDir, snapshot);
     },
   );
 

@@ -24,7 +24,7 @@ import {
   ILibraryRoot,
   ILibraryTrack,
 } from '../../common/library/types';
-import { scheduleWriteOperation, writeFileNow } from '../asyncWriter';
+import { replaceFileNow, scheduleWriteOperation } from '../asyncWriter';
 
 const INDEX_FILENAME = 'library-index.json';
 
@@ -262,10 +262,14 @@ export const serializeLibraryIndex = (index: ILibraryIndex): string => {
  * (`flushPendingWrites`). Compact rather than indented: the one reader is
  * `JSON.parse`, and the indentation was a third to half of the file.
  *
- * `writeFileNow`, not `scheduleWrite`: the operation already coalesces, and
+ * `replaceFileNow`, not `scheduleWrite`: the operation already coalesces, and
  * `scheduleWrite` keeps each path's last text in memory to skip identical
  * writes — the whole index again, for a check `ipc/library.ts` makes before it
- * asks (a rescan that changed nothing asks for no write at all).
+ * asks (a rescan that changed nothing asks for no write at all). And not
+ * `writeFileNow`, whose refused rename falls back to writing over the file
+ * where it stands: a crash in the middle of that leaves half an index, which
+ * the next launch reads as corrupt and resets. A write that fails is thrown;
+ * the queue goes on past it, and the next change writes the index again.
  */
 export const writeLibraryIndexSoon = (
   userDataDir: string,
@@ -274,7 +278,7 @@ export const writeLibraryIndexSoon = (
   const target = libraryIndexPath(userDataDir);
   return scheduleWriteOperation(target, async () => {
     await fs.promises.mkdir(userDataDir, { recursive: true });
-    await writeFileNow(target, serializeLibraryIndex(current()));
+    await replaceFileNow(target, serializeLibraryIndex(current()));
   });
 };
 

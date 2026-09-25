@@ -63,6 +63,7 @@ import {
   flushPendingWrites,
   hasUnsettledWrites,
   scheduleWrite,
+  sweepAbandonedWrites,
 } from './asyncWriter';
 import {
   forgetApoInstall,
@@ -172,7 +173,10 @@ import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
-import { registerKaraokeSeparation } from './karaokeSeparation';
+import {
+  karaokeStemsDir,
+  registerKaraokeSeparation,
+} from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
@@ -3835,6 +3839,27 @@ if (!app.requestSingleInstanceLock()) {
   // One FluidEQ at a time, whatever build or checkout it comes from: two
   // copies write the same engine config and adopt each other's writes.
   releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
+  // Temporary files an earlier run was killed in the middle of writing. The
+  // library index, the Karaoke session, the band layout and the stems are
+  // written beside themselves and renamed over, each temporary named for its
+  // own write, so none is ever overwritten by the next save: End task, a
+  // crash, a power cut or a logoff mid-write left each one for good — tens of
+  // megabytes for the index or a stem. Swept here, once this copy holds the
+  // app, so a second launch handing over can never sweep a write the first is
+  // still making; not waited for. The engine's folder is swept by
+  // `engineOwnerPipe.ts`.
+  [userDataDir, karaokeStemsDir()].forEach((directory) => {
+    sweepAbandonedWrites(directory)
+      .then((swept) => {
+        if (swept > 0) {
+          log.info(
+            `Swept ${swept} unfinished write(s) an earlier run left in ${directory}.`,
+          );
+        }
+        return swept;
+      })
+      .catch(() => undefined);
+  });
   app.on('second-instance', () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       return;

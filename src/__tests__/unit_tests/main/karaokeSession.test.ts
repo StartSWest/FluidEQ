@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import log from 'electron-log';
 import {
   clearKaraokeSession,
   readRestoredKaraokeFile,
@@ -171,6 +172,31 @@ describe('saving the Karaoke session', () => {
     expect(writesOfSession(rename)).toBe(2);
     expect(JSON.parse(fs.readFileSync(sessionFile, 'utf8')).playheadMs).toBe(
       2_000,
+    );
+  });
+
+  /**
+   * A save that fails is said to the window, which forgets what it last sent
+   * and sends the same snapshot again — and main does not count it as written
+   * either. It used to be swallowed here: the window took it as saved and
+   * never sent that snapshot again.
+   */
+  it('reports a save that failed, and writes the same snapshot when asked again', async () => {
+    jest.spyOn(log, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(log, 'error').mockImplementation(() => undefined);
+    const full = Object.assign(new Error('no space left on device'), {
+      code: 'ENOSPC',
+    });
+    jest.spyOn(fs.promises, 'rename').mockRejectedValueOnce(full);
+
+    await expect(saveKaraokeSession(directory, snapshot(5_000))).rejects.toBe(
+      full,
+    );
+    expect(fs.existsSync(sessionFile)).toBe(false);
+
+    await saveKaraokeSession(directory, snapshot(5_000));
+    expect(JSON.parse(fs.readFileSync(sessionFile, 'utf8')).playheadMs).toBe(
+      5_000,
     );
   });
 

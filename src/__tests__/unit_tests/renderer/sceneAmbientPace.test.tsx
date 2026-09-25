@@ -124,20 +124,22 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it('draws no more than thirty frames a second', async () => {
+it('draws thirty frames a second on a 60 Hz display: every other frame', async () => {
   await layerDrawn();
+  // Frame times as a 60 Hz display hands them out, rounded to a tenth of a
+  // millisecond: two frames measure 33.3 ms, a hair under 1000 / 30.
   frameAt(1000);
   expect(paintAmbient).toHaveBeenCalledTimes(1);
 
-  // A 60 Hz display's next two frames fall inside the 33.3 ms budget...
-  frameAt(1016);
-  frameAt(1033);
+  // The next frame falls inside the budget, and is still asked for...
+  frameAt(1016.7);
   expect(paintAmbient).toHaveBeenCalledTimes(1);
-  // ...and are still asked for, so the one that is due is drawn.
-  frameAt(1034);
+  // ...so the one after it is drawn. Compared exactly, 33.3 against 33.33
+  // refused it too, and the layer drew every third frame.
+  frameAt(1033.3);
   expect(paintAmbient).toHaveBeenCalledTimes(2);
-  frameAt(1051);
-  frameAt(1068);
+  frameAt(1050);
+  frameAt(1066.7);
   expect(paintAmbient).toHaveBeenCalledTimes(3);
 });
 

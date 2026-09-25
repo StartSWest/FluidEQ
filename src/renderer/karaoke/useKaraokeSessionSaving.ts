@@ -40,6 +40,13 @@ interface IKaraokeSessionSavingOptions {
   isHidden: boolean;
 }
 
+/**
+ * How far behind the song the renderer's own record of its place may fall
+ * while it plays, in seconds of the song: a restart after a crash picks up
+ * within this much of where the singer was.
+ */
+const PROGRESS_STEP_S = 5;
+
 const persistedFileReference = (
   file: File,
 ): IKaraokeSessionFileReference | undefined => {
@@ -74,6 +81,7 @@ const persistedFileReference = (
  * Seeks go to the renderer's own record only (`writeKaraokeProgress`), which
  * the restore prefers for the song it names. A drag along a seek line is
  * dozens of seeks a second, and main is not asked to stat a library for each.
+ * So does the place in a song while it plays, every `PROGRESS_STEP_S` of it.
  */
 const useKaraokeSessionSaving = ({
   readyRef,
@@ -100,19 +108,26 @@ const useKaraokeSessionSaving = ({
     | undefined
   >(undefined);
 
-  const saveProgress = useCallback(() => {
-    if (!readyRef.current) {
-      return;
-    }
-    const selected = selectedPlaylistIdRef.current;
-    const playheadMs = playheadRef.current;
-    const key = `${selected ?? ''}\u0000${playheadMs}`;
-    if (key === lastProgressRef.current) {
-      return;
-    }
-    lastProgressRef.current = key;
-    writeKaraokeProgress(selected, playheadMs);
-  }, [playheadRef, readyRef, selectedPlaylistIdRef]);
+  const writeProgressAt = useCallback(
+    (playheadMs: number) => {
+      if (!readyRef.current) {
+        return;
+      }
+      const selected = selectedPlaylistIdRef.current;
+      const key = `${selected ?? ''}\u0000${playheadMs}`;
+      if (key === lastProgressRef.current) {
+        return;
+      }
+      lastProgressRef.current = key;
+      writeKaraokeProgress(selected, playheadMs);
+    },
+    [readyRef, selectedPlaylistIdRef],
+  );
+
+  const saveProgress = useCallback(
+    () => writeProgressAt(playheadRef.current),
+    [playheadRef, writeProgressAt],
+  );
 
   const saveSession = useCallback(() => {
     const bridge = window.electron?.ipcRenderer;
@@ -198,6 +213,28 @@ const useKaraokeSessionSaving = ({
     audio.addEventListener('seeked', saveProgress);
     return () => audio.removeEventListener('seeked', saveProgress);
   }, [audioRef, saveProgress]);
+
+  // While a song plays, its place in the renderer's own record once every
+  // `PROGRESS_STEP_S` of the song. Nothing else writes during continuous
+  // playback, so a crash, End task or a power cut three minutes into a song
+  // came back to where the song was chosen or last paused. Driven by the
+  // element's own `timeupdate`, never a clock, and main is asked nothing.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) {
+      return undefined;
+    }
+    let step: number | undefined;
+    const followPlayback = () => {
+      const next = Math.floor(audio.currentTime / PROGRESS_STEP_S);
+      if (next !== step) {
+        step = next;
+        writeProgressAt(Math.round(audio.currentTime * 1_000));
+      }
+    };
+    audio.addEventListener('timeupdate', followPlayback);
+    return () => audio.removeEventListener('timeupdate', followPlayback);
+  }, [audioRef, writeProgressAt]);
 
   // The stage going out of sight: another tab, or the amp over the window.
   useEffect(() => {

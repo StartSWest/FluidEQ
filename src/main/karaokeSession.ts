@@ -369,22 +369,18 @@ export const saveKaraokeSession = (
       selectedPlaylistId,
       playheadMs,
     };
-    // Settled here rather than thrown: a work item that throws ends the
-    // writer's run for this file and loses the save queued behind it. A
-    // failure is not remembered as written, so the same snapshot tries again.
-    const landed = await fs.promises
-      .mkdir(userDataDir, { recursive: true })
-      .then(() => scheduleWrite(filePath, JSON.stringify(stored, null, 2)))
-      .then(
-        () => true,
-        (error: unknown) => {
-          log.warn('The Karaoke session could not be saved', error);
-          return false;
-        },
-      );
-    if (landed) {
-      lastWritten.set(filePath, asked);
+    // A failure is thrown to the window, which forgets what it last sent and
+    // sends the same snapshot again at its next save, and it is not
+    // remembered as written here either. The queue goes on past it
+    // (`scheduleWriteOperation`), so a save asked for behind it still lands.
+    try {
+      await fs.promises.mkdir(userDataDir, { recursive: true });
+      await scheduleWrite(filePath, JSON.stringify(stored, null, 2));
+    } catch (error) {
+      log.warn('The Karaoke session could not be saved', error);
+      throw error;
     }
+    lastWritten.set(filePath, asked);
     // DELIBERATELY NOT `activateTokens(stored.files)`.
     //
     // A token is `sha256(path)`, so a caller that names a path can work out

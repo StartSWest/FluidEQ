@@ -86,11 +86,24 @@ export const getEaseFactor = (deltaMs: number, halfLifeMs: number): number => {
 export const SMOOTH_FRAME_MS = 1000 / 30;
 export const EUPHORIA_FRAME_MS = 0;
 
+/**
+ * How early a frame may land and still count as due.
+ *
+ * Frame times come from the display's clock, rounded to a tenth of a
+ * millisecond, so two frames of a 60 Hz screen measure 33.3 ms — a hair
+ * under 1000 / 30. Compared exactly, the second of every pair was refused and
+ * the drawing waited for the third: measured in Chromium at 22 frames a
+ * second, in uneven steps of 33 and 50 ms, where thirty were asked for. Two
+ * milliseconds is under half a frame of the fastest displays (240 Hz,
+ * 4.2 ms), so no frame is ever let in a whole frame early.
+ */
+const FRAME_SLACK_MS = 2;
+
 /** Whether enough time has passed to be worth drawing again. */
 export const shouldDrawFrame = (
   elapsedMs: number,
   minFrameMs: number,
-): boolean => elapsedMs >= minFrameMs;
+): boolean => elapsedMs >= minFrameMs - FRAME_SLACK_MS;
 
 /**
  * Move `current` toward `target` in place, and say whether it is still going.

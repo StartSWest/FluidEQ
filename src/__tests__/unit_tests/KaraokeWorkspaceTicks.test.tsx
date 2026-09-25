@@ -205,6 +205,43 @@ describe('KaraokeWorkspace while a song moves', () => {
     expect(published).toEqual([2_250, 5_000]);
   });
 
+  /*
+   * Nothing writes during continuous playback otherwise, so a crash three
+   * minutes into a song came back to where it was chosen. The place follows
+   * the element's own time, once per five seconds of the song, into the
+   * renderer's record only.
+   */
+  it('keeps its place in the renderer’s own record while a song plays, and asks main nothing', async () => {
+    getPathForFile.mockImplementation(
+      (file: File) => `C:\\Music\\${file.name}`,
+    );
+    const audio = await openSong('Remember');
+    await waitFor(() => expect(saveKaraokeSession).toHaveBeenCalled());
+    const saved = saveKaraokeSession.mock.calls.length;
+    const place = () =>
+      JSON.parse(
+        window.localStorage.getItem('fluideq.karaoke.current-progress.v1') ??
+          '{}',
+      ).playheadMs;
+
+    fireEvent.playing(audio);
+    audio.currentTime = 6.2;
+    fireEvent.timeUpdate(audio);
+    expect(place()).toBe(6_200);
+
+    // Within the same five seconds of the song: not written again.
+    audio.currentTime = 8.9;
+    fireEvent.timeUpdate(audio);
+    expect(place()).toBe(6_200);
+
+    // The next five: written.
+    audio.currentTime = 10.1;
+    fireEvent.timeUpdate(audio);
+    expect(place()).toBe(10_100);
+
+    expect(saveKaraokeSession).toHaveBeenCalledTimes(saved);
+  });
+
   it('saves the session on a pause, never on a clock, and never the same one twice', async () => {
     getPathForFile.mockImplementation(
       (file: File) => `C:\\Music\\${file.name}`,

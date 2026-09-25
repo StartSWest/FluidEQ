@@ -21,6 +21,13 @@ jest.mock('renderer/utils/ipcRequest', () => ({
   sendRequest: () => mockSend(),
 }));
 
+// jsdom has no media devices; the window's own is an event target that says
+// `devicechange` when something is plugged in or pulled out.
+Object.defineProperty(navigator, 'mediaDevices', {
+  configurable: true,
+  value: new EventTarget(),
+});
+
 // eslint-disable-next-line import/first
 import {
   getAudioDevices,
@@ -64,6 +71,10 @@ it.each([
     'the window is shown again',
     () => document.dispatchEvent(new Event('visibilitychange')),
   ],
+  [
+    'a device is plugged in or pulled out',
+    () => navigator.mediaDevices.dispatchEvent(new Event('devicechange')),
+  ],
 ])('asks main again once %s', async (_when, happen) => {
   await readKnownAudioDevices();
   expect(mockSend).not.toHaveBeenCalled();
@@ -72,6 +83,24 @@ it.each([
   await readKnownAudioDevices();
 
   expect(mockSend).toHaveBeenCalledTimes(1);
+});
+
+/*
+ * Focus does not bubble, but a capturing listener on the window hears every
+ * control that takes it: a tab pressed dropped the list, and the page it
+ * opened asked main again. The window's own focus is the case above.
+ */
+it('keeps the list when a control inside the window takes focus', async () => {
+  const tab = document.createElement('button');
+  document.body.append(tab);
+  await readKnownAudioDevices();
+
+  tab.focus();
+  await readKnownAudioDevices();
+
+  expect(document.activeElement).toBe(tab);
+  expect(mockSend).not.toHaveBeenCalled();
+  tab.remove();
 });
 
 it('keeps what the output panel read last', async () => {

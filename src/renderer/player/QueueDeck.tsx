@@ -9,6 +9,7 @@ import type { CSSProperties, DragEvent } from 'react';
 import { libraryFileKind } from 'common/library/files';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import { formatDuration } from '../library/player/NowPlayingBar';
+import { useIsTransportPlaying } from '../audio/transportSource';
 import { useTranslation } from '../utils/I18nContext';
 import PlayerIcon from './PlayerIcon';
 import { useLibraryDeck } from './libraryDeck';
@@ -45,6 +46,10 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   const { t } = useTranslation();
   const library = useLibraryDeck();
   const source = usePlayerSource();
+  // The queue is the Library's, so its bars follow the Library's own playing
+  // — not the player's source, which is whatever else is making sound when a
+  // video or a browser tab plays over a paused Library.
+  const isLibraryPlaying = useIsTransportPlaying('library');
   const listRef = useRef<HTMLOListElement>(null);
   // True while a drag carrying files is over the deck, so it can say it will
   // take them.
@@ -352,7 +357,7 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
                     {isNow ? (
                       <span
                         className={`player-queue__bars${
-                          source?.isPlaying ? '' : ' is-paused'
+                          isLibraryPlaying ? '' : ' is-paused'
                         }`}
                       >
                         <span />

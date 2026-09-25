@@ -529,11 +529,11 @@ const discoverRoutes = async (cdp: ICdp): Promise<IRoute[]> => {
   const routes: IRoute[] = [];
   const top = await inPage(cdp, listTabs, TOP);
   // Sequential on purpose: each tab has to be open to list its own pills.
-  // eslint-disable-next-line no-restricted-syntax
+  // eslint-disable-next-line no-restricted-syntax -- each tab has to be open to list its own pills
   for (const label of top) {
-    // eslint-disable-next-line no-await-in-loop
+    // eslint-disable-next-line no-await-in-loop -- one tab open at a time
     await inPage(cdp, openTab, TOP, label, QUIET_FRAMES, SETTLE_LIMIT);
-    // eslint-disable-next-line no-await-in-loop
+    // eslint-disable-next-line no-await-in-loop -- the pills of the tab just opened
     const pills = await inPage(cdp, listTabs, PILLS);
     if (pills.length > 0) {
       pills.forEach((pill) =>
@@ -728,13 +728,13 @@ const measureVisits = async (
   const start = await readCounters(cdp);
   let end = start;
   // Sequential on purpose: one window, one page at a time.
-  // eslint-disable-next-line no-restricted-syntax
+  // eslint-disable-next-line no-restricted-syntax -- sequential on purpose: one window, one page at a time
   for (const round of Array.from({ length: rounds }, (_, i) => i + 1)) {
-    // eslint-disable-next-line no-restricted-syntax
+    // eslint-disable-next-line no-restricted-syntax -- sequential on purpose: one window, one page at a time
     for (const [index, route] of pages.entries()) {
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- each page is measured only after the one before it has settled
       const primed = await visitAndMeasure(route);
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- each page is measured only after the one before it has settled
       const measured = await visitAndMeasure(route);
       visits[index].openMs.push(measured.opened.openMs);
       visits[index].settled = visits[index].settled && measured.opened.settled;
@@ -829,9 +829,9 @@ const main = async () => {
 
     const reports: IRouteReport[] = [];
     // Sequential on purpose: one window, one page at a time.
-    // eslint-disable-next-line no-restricted-syntax
+    // eslint-disable-next-line no-restricted-syntax -- sequential on purpose: one window, one page at a time
     for (const route of routes) {
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- each page is measured only after the one before it has settled
       reports.push(await measureRoute(cdp, route, options.idleFrames));
     }
     printRoutes(reports);

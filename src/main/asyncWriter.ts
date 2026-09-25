@@ -133,11 +133,15 @@ const overwriteInPlace = async (
   }
 };
 
-/** Publish a complete file. The native engine reads concurrently with saves;
- * truncating the live file briefly turns a device's EQ into pass-through. */
-const writeAtomically = async (
+/**
+ * `contents` written whole to a fresh temporary beside `filePath` — same
+ * directory, so the replacement stays on the same filesystem — then handed to
+ * `publish`, and the temporary removed whatever became of it.
+ */
+const viaTemporary = async (
   filePath: string,
   contents: string,
+  publish: (temporary: string) => Promise<void>,
 ): Promise<void> => {
   const temporary = `${filePath}.${process.pid}-${randomUUID()}.tmp`;
   const handle = await fs.promises.open(temporary, 'wx');
@@ -147,7 +151,16 @@ const writeAtomically = async (
     } finally {
       await handle.close();
     }
-    // Same directory, so the replacement stays on the same filesystem.
+    await publish(temporary);
+  } finally {
+    await fs.promises.rm(temporary, { force: true });
+  }
+};
+
+/** Publish a complete file. The native engine reads concurrently with saves;
+ * truncating the live file briefly turns a device's EQ into pass-through. */
+const writeAtomically = (filePath: string, contents: string): Promise<void> =>
+  viaTemporary(filePath, contents, async (temporary) => {
     // Readers with an open handle finish reading the previous complete file.
     try {
       await fs.promises.rename(temporary, filePath);
@@ -157,10 +170,7 @@ const writeAtomically = async (
       }
       await overwriteInPlace(filePath, contents);
     }
-  } finally {
-    await fs.promises.rm(temporary, { force: true });
-  }
-};
+  });
 
 const drain = (filePath: string, entry: IPathState): void => {
   if (entry.inFlight || entry.pending === undefined) {
@@ -267,6 +277,29 @@ export const writeFileNow = async (
   // A failed earlier write is not this write's failure.
   await settlePath(filePath).catch(() => undefined);
   await writeAtomically(filePath, contents);
+  paths.delete(filePath);
+};
+
+/**
+ * Replace a file whole or not at all: `writeFileNow` without the in-place
+ * fallback, so a refused rename is a failed write and the file keeps what it
+ * held.
+ *
+ * For a file nothing holds open and that is worth more intact than current.
+ * The fallback exists for the engine's config files, which its watcher opens
+ * the moment anything in their folder changes; the library index is tens of
+ * megabytes, and a crash in the middle of writing it in place would leave half
+ * a file that the next launch reads as corrupt and resets — every folder
+ * somebody added, gone. A refused rename waits for the next change instead.
+ */
+export const replaceFileNow = async (
+  filePath: string,
+  contents: string,
+): Promise<void> => {
+  await settlePath(filePath).catch(() => undefined);
+  await viaTemporary(filePath, contents, (temporary) =>
+    fs.promises.rename(temporary, filePath),
+  );
   paths.delete(filePath);
 };
 
@@ -398,7 +431,15 @@ export const flushPendingWrites = async (): Promise<void> => {
 
 /** Serialize dependent config snapshots while coalescing queued slider edits.
  * The shutdown and APO watcher barriers include the whole operation, including
- * files whose writes have not started yet. */
+ * files whose writes have not started yet.
+ *
+ * An operation that throws does not end the queue. It used to: the run
+ * rejected and whatever had been queued behind the failure was dropped with
+ * it, never written, not even at quit — a library folder removed while a
+ * failed index write was on its way came back at the next launch. The promise
+ * reports the last operation's outcome, because every caller here queues a
+ * complete snapshot that supersedes the ones before it: a failure followed by
+ * a write that landed is a file that holds the latest state. */
 export const scheduleWriteOperation = (
   key: string,
   work: () => Promise<void>,
@@ -418,15 +459,23 @@ export const scheduleWriteOperation = (
   };
   operations.set(key, entry);
   const run = async () => {
+    let failure: { error: unknown } | undefined;
     try {
       while (entry.pending) {
         const next = entry.pending;
         entry.pending = undefined;
-        await next();
+        try {
+          await next();
+          failure = undefined;
+        } catch (error) {
+          failure = { error };
+        }
       }
-      return undefined;
     } finally {
       operations.delete(key);
+    }
+    if (failure) {
+      throw failure.error;
     }
   };
   entry.inFlight = Promise.resolve().then(run);

@@ -100,6 +100,15 @@ describe('the frame budget', () => {
     expect(shouldDrawFrame(34, SMOOTH_FRAME_MS)).toBe(true);
   });
 
+  it('draws every other frame of a 60 Hz display, which is thirty', () => {
+    // Frame times are the display's, rounded to a tenth of a millisecond:
+    // two frames measure 33.3, a hair under 1000 / 30. Compared exactly, the
+    // pair was refused and the drawing waited for a third frame — 20 to 22 a
+    // second, unevenly. One frame is still too soon.
+    expect(shouldDrawFrame(33.3, SMOOTH_FRAME_MS)).toBe(true);
+    expect(shouldDrawFrame(16.7, SMOOTH_FRAME_MS)).toBe(false);
+  });
+
   it('lets euphoria run at whatever the display offers', () => {
     // Zero is a floor on the interval, not a target rate — so a 144Hz screen
     // is not held down to 60 during the one moment that is meant to look

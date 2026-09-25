@@ -162,7 +162,7 @@ describe('a rescan of a library that has not changed', () => {
     await asyncWriter.flushPendingWrites();
     const changesAfterFirstWalk = indexChanges();
     expect(changesAfterFirstWalk).toBe(1);
-    const writes = jest.spyOn(asyncWriter, 'writeFileNow');
+    const writes = jest.spyOn(asyncWriter, 'replaceFileNow');
 
     // Found as it was: the walk hands back the very tracks it was given,
     // which is what an unchanged file comes back as.
@@ -263,7 +263,7 @@ describe('the index writer', () => {
 
   it('writes once more, with the newest index, for any number of requests made while a write is under way', async () => {
     const userDataDir = tempDir('fluideq-writer-');
-    const { writeFileNow } = asyncWriter;
+    const { replaceFileNow } = asyncWriter;
     let started: () => void = () => undefined;
     const firstStarted = new Promise<void>((resolve) => {
       started = resolve;
@@ -273,11 +273,11 @@ describe('the index writer', () => {
       release = resolve;
     });
     const writes = jest
-      .spyOn(asyncWriter, 'writeFileNow')
+      .spyOn(asyncWriter, 'replaceFileNow')
       .mockImplementationOnce(async (file, text) => {
         started();
         await firstHeld;
-        return writeFileNow(file, text);
+        return replaceFileNow(file, text);
       });
 
     let index = indexOf(['a']);

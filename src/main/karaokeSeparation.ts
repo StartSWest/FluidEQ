@@ -24,6 +24,7 @@ import {
   separationPackedRow,
   separationStft,
 } from '../common/karaoke/separationDsp';
+import { scheduleWriteOperation } from './asyncWriter';
 import onWindowMessage from './ipc/windowMessages';
 import { saveDownload } from './modelDownload';
 
@@ -52,6 +53,10 @@ const WEIGHTS_FILE = `${MODEL_FILE}.data`;
 
 /** Where the two model files live on disk, downloaded once and kept. */
 const modelDir = () => path.join(app.getPath('userData'), 'karaoke-models');
+
+/** Where separated songs' stems are kept, two WAVs per song. */
+export const karaokeStemsDir = () =>
+  path.join(app.getPath('userData'), 'karaoke-stems');
 
 type TOnnxSession = {
   release?: () => Promise<void> | void;
@@ -127,7 +132,7 @@ const ensureFile = async (
  * a file name.
  */
 const stemFiles = (key: unknown) => {
-  const dir = path.join(app.getPath('userData'), 'karaoke-stems');
+  const dir = karaokeStemsDir();
   const safe = String(key)
     .replace(/[^a-z0-9-]/gi, '_')
     .slice(0, 80);
@@ -140,18 +145,26 @@ const stemFiles = (key: unknown) => {
 
 /**
  * One stem, written beside its file and renamed over it, so a stem is never
- * half there. A fresh temporary name each time, because the same song can be
- * saved again while an earlier save of it is still being written.
+ * half there.
+ *
+ * In turn with any other save of the same file, and inside the quit's wait
+ * (`scheduleWriteOperation`, `flushPendingWrites`): stems used to be written
+ * synchronously, which a quit right after a split could not cut short, and an
+ * asynchronous write it could. Its temporary is named the way `asyncWriter`
+ * names its own, so one left by a run killed mid-write — End task, a crash, a
+ * power cut — is swept at the next launch (`sweepAbandonedWrites`) instead of
+ * staying behind, tens of megabytes at a time.
  */
-const writeStem = async (file: string, bytes: ArrayBuffer): Promise<void> => {
-  const temporary = `${file}.${randomUUID()}.tmp`;
-  try {
-    await fs.promises.writeFile(temporary, Buffer.from(bytes));
-    await fs.promises.rename(temporary, file);
-  } finally {
-    await fs.promises.rm(temporary, { force: true });
-  }
-};
+const writeStem = (file: string, bytes: ArrayBuffer): Promise<void> =>
+  scheduleWriteOperation(file, async () => {
+    const temporary = `${file}.${process.pid}-${randomUUID()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporary, Buffer.from(bytes));
+      await fs.promises.rename(temporary, file);
+    } finally {
+      await fs.promises.rm(temporary, { force: true });
+    }
+  });
 
 const isMissingFile = (error: unknown): boolean =>
   typeof error === 'object' &&

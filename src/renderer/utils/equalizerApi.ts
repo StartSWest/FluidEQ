@@ -355,10 +355,18 @@ export const getAudioDevices = async (): Promise<IAudioDevice[]> => {
  * rate and the graph's, the DSP meters, the output being listened to — asked
  * main again each time it was opened: one more PowerShell run per visit, for
  * the list the panel had just read. The kept list is dropped whenever
- * something says the outputs may have moved — an output change announced, or
- * the window being come back to, where Sound settings may have been used — so
- * a reader after either asks main exactly as before. Dropped in the capture
- * phase, ahead of the readers' own listeners for the same events.
+ * something says the outputs may have moved — an output change announced, a
+ * device plugged in or pulled out, or the window being come back to, where
+ * Sound settings may have been used — so a reader after any of them asks main
+ * exactly as before. Dropped in the capture phase, ahead of the readers' own
+ * listeners for the same events: the extra-outputs mirror re-reads the list
+ * on `devicechange`, and read after this it got the list from before the
+ * change.
+ *
+ * The window's own focus only. Focus does not bubble but it is captured, so a
+ * capturing listener on the window hears every control that takes focus — a
+ * tab pressed was enough to drop the list, and the page it opened asked main
+ * again, the run this exists to save.
  */
 export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
   if (!isWatchingForChanges) {
@@ -367,8 +375,17 @@ export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
       knownDevices = undefined;
     };
     window.addEventListener('fluideq-output-changed', forget, true);
-    window.addEventListener('focus', forget, true);
+    window.addEventListener(
+      'focus',
+      (event) => {
+        if (event.target === window) {
+          forget();
+        }
+      },
+      true,
+    );
     document.addEventListener('visibilitychange', forget, true);
+    navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
   }
   return knownDevices ? Promise.resolve(knownDevices) : getAudioDevices();
 };
