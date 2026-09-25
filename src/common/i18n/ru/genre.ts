@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': 'О жанре',
   'genre.notes.about': 'О жанре «{name}»',
   'genre.notes.aboutShort': 'О жанре',
-  'genre.notes.aboutNone': 'Заметки написаны для жанровых пресетов',
   'genre.notes.full': 'Подробнее',
   'genre.notes.close': 'Закрыть',
   'genre.notes.sound': 'Звучание',

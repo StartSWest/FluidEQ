@@ -203,13 +203,41 @@ void chain_process_bass_forge(FeqChain* chain, float* const* channels,
   if (chain->channels < 2) {
     return;
   }
+  FeqChain::BassForgeRun& run = chain->bass_forge_run;
   if (chain->settings.bass_forge.enabled == 0) {
+    if (run.playing != 0) {
+      // Switched off while it was adding: what it adds goes out through the
+      // stage's own 18 ms smoothing of its mix rather than in one sample —
+      // -57 dBFS above 5 kHz from Trap's to Rap's rack before (2026-09-25).
+      FeqBassForgeSettings leaving = run.last;
+      leaving.mix = 0.0;
+      leaving.meters = feq_meters_enabled(chain->meters);
+      feq_bass_forge_process(&chain->bass_forge, channels, chain->channels,
+                             frames, &leaving, chain->sample_rate);
+      run.played = 1;
+      // Out once nothing is added AND its level normaliser, which holds the
+      // whole band down by what was added over the last 250 ms, is back at
+      // unity: stopped on the mix alone, that gain let go in one sample,
+      // -55 dBFS above 5 kHz at the end of Laptop's fade.
+      if (chain->bass_forge.mix > kBassForgeSilentMix ||
+          std::fabs(chain->bass_forge.gain - 1.0) > kBassForgeSilentMix) {
+        return;
+      }
+      run.playing = 0;
+    }
     // Reset every block it is off for, not left settled: switching the stage
     // back on must not replay a crossover and a set of meter followers holding
     // a minute-old signal, and `chain.cpp` publishes the bands unconditionally
     // so a stage that kept them would hold a stale reading on screen.
     feq_bass_forge_reset(&chain->bass_forge);
+    run.played = 1;
     return;
+  }
+  if (run.playing == 0 && run.played != 0) {
+    // Switched on under audio that is already playing: from nothing added,
+    // rather than at whatever mix it last had.
+    feq_bass_forge_reset(&chain->bass_forge);
+    chain->bass_forge.mix = 0.0;
   }
   FeqBassForgeSettings settings{};
   settings.enabled = 1;
@@ -226,6 +254,9 @@ void chain_process_bass_forge(FeqChain* chain, float* const* channels,
   settings.mix = chain->settings.bass_forge.mix;
   feq_bass_forge_process(&chain->bass_forge, channels, chain->channels, frames,
                          &settings, chain->sample_rate);
+  run.playing = 1;
+  run.played = 1;
+  run.last = settings;
 }
 
 /**
@@ -324,11 +355,27 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
    */
   chain_tone_forward(chain, channels, frames);
   const bool on = chain->settings.maximizer.enabled != 0;
-  if (!on) {
+  /**
+   * Switched off, the reduction in force lets go rather than vanishing.
+   *
+   * It used to be reset at the first block off, a step of however deep the
+   * limiter was working — a preset without the stage after one driven into
+   * it. Now the stage runs on with nothing to hold (`HUGE_VAL` below) and
+   * recovers over `kMaximizerOffReleaseMs`, and only once it is back at
+   * unity is it cleared, which is then a step of nothing.
+   */
+  const bool recovering =
+      !on && (chain->maximizer.detector_gain < kMaximizerOffSettledGain ||
+              chain->maximizer.platform_db < kMaximizerOffSettledDb ||
+              chain->maximizer_low.detector_gain < kMaximizerOffSettledGain);
+  if (!on && !recovering) {
     feq_linked_limiter_reset_control(&chain->maximizer);
     feq_bass_limiter_reset_control(&chain->maximizer_low);
     chain->maximizer_reduction_db = 0.0;
   }
+  const bool running = on || recovering;
+  const double off_release =
+      std::exp(-1.0 / ((kMaximizerOffReleaseMs / 1000.0) * chain->sample_rate));
 
   /**
    * Drive, which is the half of a maximizer this stage did not have.
@@ -342,18 +389,31 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
    * same control: the ceiling is where the output is allowed to reach and Drive
    * is how hard the programme is pushed at it. Folding them would mean asking
    * for more loudness by asking for a lower ceiling, which is backwards.
+   *
+   * It glides to what is asked (`maximizer_drive_now`), so a new preset's
+   * drive, or the stage switched on or off, is never a step in every sample.
    */
-  const double drive =
+  const double drive_target =
       on ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0) : 1.0;
-  if (drive != 1.0) {
-    for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-      float* samples = channels[channel];
-      for (uint32_t at = 0; at < frames; ++at) {
-        samples[at] = static_cast<float>(static_cast<double>(samples[at]) *
-                                         drive);
+  double drive = chain->maximizer_drive_now;
+  if (drive != drive_target || drive != 1.0) {
+    const double glide =
+        1.0 - std::exp(-1.0 / ((kMaximizerDriveGlideMs / 1000.0) *
+                               chain->sample_rate));
+    for (uint32_t at = 0; at < frames; ++at) {
+      if (drive != drive_target) {
+        drive += (drive_target - drive) * glide;
+        if (std::fabs(drive - drive_target) < 1e-9) {
+          drive = drive_target;
+        }
+      }
+      for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+        channels[channel][at] = static_cast<float>(
+            static_cast<double>(channels[channel][at]) * drive);
       }
     }
   }
+  chain->maximizer_drive_now = drive;
 
   FeqLimiterOptions options{};
   options.ceiling = on ? std::pow(10.0, chain->settings.maximizer.ceiling_db /
@@ -368,9 +428,11 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   options.release_coefficient =
       on ? std::exp(-1.0 / ((chain->settings.maximizer.release_ms / 1000.0) *
                             chain->sample_rate))
-         : 0.0;
+         : (recovering ? off_release : 0.0);
   options.limiting_release_coefficient = options.release_coefficient;
   options.knee_db = on ? kMaximizerSoftKneeDb : 0.0;
+  // No snap while it lets go after being switched off: the last 2% would be
+  // a step, and the stage is cleared once it is back anyway.
   options.release_snap_ratio = on ? kMaximizerReleaseSnapRatio : 0.0;
   options.release_hold_samples =
       on ? std::floor((kMaximizerReleaseHoldMs / 1000.0) * chain->sample_rate +
@@ -383,11 +445,11 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   options.platform_attack_coefficient =
       on ? std::exp(-1.0 / ((kMaximizerPlatformAttackMs / 1000.0) *
                             chain->sample_rate))
-         : 0.0;
+         : (recovering ? off_release : 0.0);
   options.platform_release_coefficient =
       on ? std::exp(-1.0 / ((kMaximizerPlatformReleaseMs / 1000.0) *
                             chain->sample_rate))
-         : 0.0;
+         : (recovering ? off_release : 0.0);
 
   // The low band first (`bass_limiter.h`): a peak the bass put over the
   // ceiling comes out of the bass before the limiter hears it. Read against
@@ -400,9 +462,9 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   low.floor_gain = std::pow(10.0, kMaximizerLowFloorDb / 20.0);
   low.split_hz = kMaximizerLowSplitHz;
   low.release_coefficient =
-      on ? std::exp(-1.0 / ((kMaximizerLowReleaseMs / 1000.0) *
-                            chain->sample_rate))
-         : 0.0;
+      running ? std::exp(-1.0 / ((kMaximizerLowReleaseMs / 1000.0) *
+                                 chain->sample_rate))
+              : 0.0;
   low.release_hold_samples = options.release_hold_samples;
   low.window_samples =
       on ? std::floor((kMaximizerLowWindowMs / 1000.0) * chain->sample_rate +
@@ -417,7 +479,7 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   // The deepest point of the block rather than its mean: a meter that averaged
   // would read almost nothing on exactly the dense material this stage is for,
   // where the reduction is short and frequent.
-  if (on) {
+  if (running) {
     double deepest = 0.0;
     // The whole ring, and NOT the first `frames` slots of it. The ring is the
     // reduction in flight and its length is the look-ahead, which has nothing

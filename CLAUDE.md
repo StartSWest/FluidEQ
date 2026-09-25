@@ -678,6 +678,33 @@ Everything worth knowing about them is available through commands:
   sample: +6 → −6 → 0 leaves -90 dBFS (`graph_test.cpp`,
   `an_edit_landing_mid_fade_on_zero_does_not_click`). The rack's EQ fades
   the same way (`chain_eq_fade.cpp`).
+- **A preset switch never steps, and one that moves the delay crosses
+  over** (Ivan, 2026-09-25: "make sure the engine when switch preset doesnt
+  sound crac and is smooth"). Measured under four low tones through the
+  engine's own graph, every factory chain to the next and back, to None and
+  to Default: 534 of 636
+  switches moved the delay — each preset carries its own Maximizer
+  look-ahead, None drops the rack, Game mode and the curves stage change it
+  too — and landed at -24 to -30 dBFS above 5 kHz; now none passes -80. Such
+  a graph takes nothing from the one before: that one plays on, fed the same
+  input, while the new one fills from silence, and after its delay and 40 ms
+  the sound crosses over 30 ms (`graph.h`, `start_crossing`; sharing a rack,
+  the rack runs once and the old graph plays from after it). A graph still
+  filling when the next switch lands is passed over, so held arrows never
+  play more than two graphs. The watcher frees no graph a kept one is still
+  crossing from (`graph_reclaim.cpp`), and a test that hands over has to keep
+  the replaced graph alive the same way (`phase_test.cpp`). Into a longer
+  delay, what was heard just before the cross is heard again after it — the
+  delay grew by that much — never on top of it. A switch that keeps the delay
+  still carries the state, and the rack's stages no longer step there: the
+  mono maker runs after the EQ on its own mid/side and crosses in 20 ms (it
+  sat inside the EQ's, so turning it on moved every band from left/right to
+  mid/side: -42 dBFS), the Maximizer's drive glides and a stage switched off
+  lets its reduction go over 50 ms, Bass Forge fades out until its level
+  normaliser is back at unity, and Dimension holds its decorrelation off for
+  160 ms while an empty all-pass network fills. Held by
+  `chain_switch_test.cpp` and `graph_crossing_test.cpp`, each case beside
+  the same two outputs spliced unsmoothed as its control.
 - **Auto normalize starts at the curve's own level and climbs back.** The
   app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
   directive so a Preamp in the custom file stays a fixed gain); after 5 s of

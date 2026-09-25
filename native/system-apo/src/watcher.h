@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
+#include "graph_reclaim.h"
 #include "log.h"
 #include "owner_link.h"
 #include "status_file.h"
@@ -221,12 +222,6 @@ class Watcher {
   void say_it_carried() noexcept;
 
  private:
-  /** A graph this object owns, and the block count when it was superseded. */
-  struct Retired {
-    Graph* graph;
-    uint64_t blocks_at_publish;
-  };
-
   static unsigned __stdcall thread_entry(void* self);
   void run();
   /**
@@ -308,7 +303,7 @@ class Watcher {
 
   // Watcher-thread state (plus `load_initial`, which runs before the thread
   // exists — never both at once).
-  std::vector<Retired> owned_;
+  std::vector<OwnedGraph> owned_;
   std::string signature_;
   bool have_signature_ = false;
   std::vector<std::string> logged_ignored_;

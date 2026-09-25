@@ -315,7 +315,54 @@ class Graph {
     return silenced_blocks_.load(std::memory_order_relaxed);
   }
 
+  /**
+   * Any thread: the graph this one is still playing while it crosses over
+   * from it (`adopt_state`), or null once it has crossed. The watcher keeps
+   * alive whatever a graph it keeps names here (`Watcher::reclaim`).
+   */
+  const Graph* crossing_from() const noexcept {
+    return crossing_hold_.load(std::memory_order_acquire);
+  }
+
  private:
+  /**
+   * THE CROSSOVER, for a handover that moves the sound in time.
+   *
+   * A graph that delays the sound by a different amount than the one before
+   * it cannot take that graph's place sample for sample: its first sample out
+   * is some other moment of the music, and every preset switch that changed
+   * the Maximizer's look-ahead, the curves stage, Game mode or the rack's
+   * presence jumped that far — -24 to -30 dBFS above 5 kHz under a low tone
+   * programme on 534 of the 636 switches measured (2026-09-25). Such a graph
+   * takes nothing from the one before: that one goes on playing, fed the
+   * same input, while this one fills its own lines from silence, and once
+   * this one's whole delay and `kCrossingSettleSeconds` have passed the sound
+   * crosses to it over `kCrossingFadeSeconds`. Two versions of the music a
+   * few milliseconds apart then overlap for 30 ms — heard as nothing much —
+   * where they used to meet in one sample. A handover that keeps the delay
+   * carries state across as it always did.
+   *
+   * `source_` is the audio thread's; `crossing_hold_` is what the watcher
+   * reads, cleared with release only after the last block that touched it.
+   */
+  Graph* source_ = nullptr;
+  bool source_shares_rack_ = false;
+  std::atomic<const Graph*> crossing_hold_{nullptr};
+  uint64_t crossing_elapsed_ = 0;
+  uint64_t crossing_prime_ = 0;
+  uint32_t crossing_fade_ = 0;
+  /** The input as it arrived, for the graph still playing; `max_frames_` each. */
+  std::vector<std::vector<float>> source_buffers_;
+  std::vector<float*> source_planes_;
+
+  /** Whether the crossover can start from `previous`; starts it if so. */
+  bool start_crossing(Graph* previous) noexcept;
+  /** The rack and the channels it holds back; then everything after it. */
+  void run_rack(float* const* planar, uint32_t frames) noexcept;
+  void run_tail(float* const* planar, uint32_t frames) noexcept;
+  /** The two graphs' outputs, from the one still playing to this one. */
+  void mix_crossing(float* const* planar, uint32_t frames) noexcept;
+
   std::atomic<bool>* meter_activity_ = nullptr;
   std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;

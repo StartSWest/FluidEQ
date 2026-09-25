@@ -4,7 +4,6 @@ export default {
   'genre.notes.eyebrow': 'Genre-Notizen',
   'genre.notes.about': 'Über {name}',
   'genre.notes.aboutShort': 'Info',
-  'genre.notes.aboutNone': 'Notizen gibt es für die Genre-Presets',
   'genre.notes.full': 'Alle Notizen',
   'genre.notes.close': 'Schließen',
   'genre.notes.sound': 'Der Klang',

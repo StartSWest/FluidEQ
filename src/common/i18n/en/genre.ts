@@ -8,7 +8,6 @@ const genre = {
   'genre.notes.eyebrow': 'Genre notes',
   'genre.notes.about': 'About {name}',
   'genre.notes.aboutShort': 'About',
-  'genre.notes.aboutNone': 'Notes are written for the genre presets',
   'genre.notes.full': 'Full notes',
   'genre.notes.close': 'Close',
   'genre.notes.sound': 'The sound',

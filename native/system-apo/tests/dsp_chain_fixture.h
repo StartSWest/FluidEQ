@@ -69,6 +69,7 @@ inline constexpr size_t kEqPhase = 34;
 inline constexpr size_t kMaximizerEnabled = 65;
 inline constexpr size_t kMaximizerDriveDb = 66;
 inline constexpr size_t kMaximizerCeilingDb = 67;
+inline constexpr size_t kMaximizerLookAheadMs = 68;
 inline constexpr size_t kDenoiseEnabled = 77;
 // The room's switch, first of its forty-two scalars, which sit just
 // before the surround switch.

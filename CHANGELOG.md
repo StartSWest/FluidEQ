@@ -379,9 +379,12 @@ version and in these notes.
   used to bring back whichever preset it had been saved with, so the preset
   picker named one preset while its chip under Also applied named another.
 - **Changes no longer click.** Every change the FluidEQ Engine hears — a band
-  moved, a preset picked, the preamp — now fades in over a fiftieth of a
-  second with each band carrying on where it was, where a big move used to
-  click. Dragging a band through 0 dB no longer clicks either.
+  moved, the preamp — now fades in over a fiftieth of a second with each band
+  carrying on where it was, where a big move used to click. Dragging a band
+  through 0 dB no longer clicks either, and switching presets no longer
+  crackles: where a preset holds the sound back by a different amount, the
+  sound crosses from the old preset to the new one, and the effects a preset
+  switches on or off glide in and out.
 - **A headphone correction plays as published**, even where it goes past the
   sliders' ±20 dB, and the preamp you set by hand now reaches −60 dB to hold
   it, as Auto normalize already could. A deep preamp is no longer put back to

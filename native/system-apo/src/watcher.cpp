@@ -25,17 +25,6 @@ namespace fluideq_engine {
 
 namespace {
 
-// Blocks the audio thread must complete after a publish before the graphs
-// older than it can be destroyed.
-//
-// Two, not one. The block in flight when the new graph was stored may already
-// have read the previous `pending` and be about to run the old graph; only
-// the block after that one is guaranteed to have started after the store was
-// visible. Counting completed blocks, `blocks >= at + 2` means both of them
-// are finished and every block from here on runs the new graph or a later
-// one.
-constexpr uint64_t kGraceBlocks = 2;
-
 /**
  * The change-notification handle, closed on every way out of `run()`.
  *
@@ -279,7 +268,7 @@ void Watcher::stop() noexcept {
   report_status(false);
   // Only now: until the thread has joined it is still the owner of these.
   slot_.clear();
-  for (const Retired& retired : owned_) {
+  for (const OwnedGraph& retired : owned_) {
     delete retired.graph;
   }
   owned_.clear();
@@ -587,7 +576,7 @@ void Watcher::publish(std::unique_ptr<Graph> graph) {
   // Ownership is recorded before the graph becomes reachable: if this
   // allocation throws, the unique_ptr still holds the only reference and
   // frees it, and the audio thread never saw it.
-  owned_.push_back(Retired{graph.get(), 0});
+  owned_.push_back(OwnedGraph{graph.get(), 0});
   Graph* const raw = graph.release();
   last_published_ = raw;
 
@@ -604,7 +593,7 @@ void Watcher::publish(std::unique_ptr<Graph> graph) {
     // up a graph per frame until the stream starts.
     const auto found = std::find_if(
         owned_.begin(), owned_.end(),
-        [unconsumed](const Retired& at) { return at.graph == unconsumed; });
+        [unconsumed](const OwnedGraph& at) { return at.graph == unconsumed; });
     if (found != owned_.end()) {
       delete found->graph;
       owned_.erase(found);
@@ -613,24 +602,6 @@ void Watcher::publish(std::unique_ptr<Graph> graph) {
   reclaim();
 }
 
-void Watcher::reclaim() {
-  const uint64_t blocks = slot_.blocks();
-  // Entries are in publish order and their block counts never decrease, so
-  // the newest entry whose grace period has elapsed is a boundary: every
-  // entry before it was superseded by something the audio thread has already
-  // taken up, and cannot be reached again.
-  size_t boundary = 0;
-  for (size_t at = owned_.size(); at > 0; --at) {
-    if (blocks >= owned_[at - 1].blocks_at_publish + kGraceBlocks) {
-      boundary = at - 1;
-      break;
-    }
-  }
-  for (size_t at = 0; at < boundary; ++at) {
-    delete owned_[at].graph;
-  }
-  owned_.erase(owned_.begin(),
-               owned_.begin() + static_cast<ptrdiff_t>(boundary));
-}
+void Watcher::reclaim() { reclaim_graphs(owned_, slot_.blocks()); }
 
 }  // namespace fluideq_engine
