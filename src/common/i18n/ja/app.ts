@@ -81,9 +81,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'デスクトップ ビジュアライザーの補助',
   'app.processes.what.desktopHost':
     'そのモニターのデスクトップ ビジュアライザーをアイコンの後ろに置き、ウィンドウが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',
-  'app.processes.name.shareCapture': '音声共有のキャプチャ',
+  'app.processes.name.shareCapture': '音声のキャプチャ',
   'app.processes.what.shareCapture':
-    'この PC で鳴っている音をイコライザーの前でキャプチャし、別の FluidEQ に送ります。音声を共有している間だけ動作します。',
+    'この PC で鳴っている音をイコライザーの前でキャプチャし、「音声を共有」タブ、2 つめの出力、スマート EQ に渡します。これらのどれかを使っている間だけ動作します。',
   'app.processes.name.sharePlayback': '共有された音声の再生',
   'app.processes.what.sharePlayback':
     '別の FluidEQ がこの PC に共有している音を再生します。聴いている間だけ動作します。',

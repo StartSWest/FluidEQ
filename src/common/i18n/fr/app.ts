@@ -82,9 +82,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'Assistant du visualiseur du Bureau',
   'app.processes.what.desktopHost':
     "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche un.",
-  'app.processes.name.shareCapture': "Capture pour partager l'audio",
+  'app.processes.name.shareCapture': 'Capture audio',
   'app.processes.what.shareCapture':
-    "Capture ce que joue ce PC, avant l'égaliseur, pour l'envoyer à un autre FluidEQ. Ne tourne que pendant que vous partagez votre audio.",
+    "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et l'Égalisation auto. Ne tourne que pendant que l'un d'eux est utilisé.",
   'app.processes.name.sharePlayback': 'Lecture de l’audio partagé',
   'app.processes.what.sharePlayback':
     'Joue le son qu’un autre FluidEQ partage avec ce PC. Ne tourne que pendant que vous l’écoutez.',
