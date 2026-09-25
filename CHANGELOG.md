@@ -101,6 +101,13 @@ version and in these notes.
   they say: a style mixed with its bass in the centre plays it centred below
   the point that style names, and no curve lifts where its style keeps things
   flat.
+- **A Ballad preset**, with the pop styles: the slow song of every
+  catalogue, pop, rock, soul and Latin alike. The voice stays close and clear — a little
+  warmth and presence, the low-mid mud and the sibilance eased rather than
+  brightened — the bass is centred, and a light, slow ceiling keeps the
+  quiet verses quiet. Nothing is added that the record does not have: no
+  harmonics on the esses, no invented sub. Its notes explain each choice,
+  as every style's do.
 - **None is one choice, first in both pickers.** Picked on the equaliser or on
   the DSP page, it takes the whole preset away — its tone and every stage of
   its chain — and it stands above everything in both lists, the chains you

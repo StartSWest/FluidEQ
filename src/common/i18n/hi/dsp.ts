@@ -278,6 +278,7 @@ const dsp = {
   'dsp.eqPreset.vShape': 'V आकार',
   'dsp.eqPreset.rock': 'रॉक',
   'dsp.eqPreset.pop': 'पॉप',
+  'dsp.eqPreset.ballad': 'बैलेड',
   'dsp.eqPreset.jazz': 'जैज़',
   'dsp.eqPreset.classical': 'शास्त्रीय',
   'dsp.eqPreset.electronic': 'इलेक्ट्रॉनिक',

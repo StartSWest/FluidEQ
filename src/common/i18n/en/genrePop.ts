@@ -128,6 +128,28 @@ const genrePop = {
   'genre.cPop.stage.maximizer': 'A slow ceiling for the ballads’ dynamics.',
   'genre.cPop.off':
     'No Bass Punch or Bass Forge: no invented sub under a piano ballad.',
+
+  'genre.ballad.hook': 'The slow song, the voice over everything',
+  'genre.ballad.story':
+    'The slow song of every catalogue, pop, rock, soul and Latin alike, mostly 60 to 85 BPM: “Someone Like You” moves at 67.5 and “November Rain” at 84. The lead vocal is mixed first and sits over everything, close and on a long plate or hall, above a piano, strings or a band held back, and the master keeps more of its dynamics than the same album’s singles.',
+  'genre.ballad.pin.125': 'Warmth of the voice and the piano',
+  'genre.ballad.pin.125.why':
+    'A little body, where a ballad’s voice and piano are warm.',
+  'genre.ballad.pin.500': 'Mud eased',
+  'genre.ballad.pin.500.why':
+    'The low-mids a piano and a close vocal pile up, taken down so the words stay clear.',
+  'genre.ballad.pin.3150': 'Presence',
+  'genre.ballad.pin.3150.why':
+    'The voice a little forward, where its words are understood.',
+  'genre.ballad.pin.8000': 'Sibilance eased, not brightened',
+  'genre.ballad.pin.8000.why':
+    'A close voice carries its esses here, and a lift would sharpen every one.',
+  'genre.ballad.stage.dimension':
+    'The bass narrowed toward the middle, where ballads are mixed with it; the voice, the piano and the strings left as wide as they were placed.',
+  'genre.ballad.stage.maximizer':
+    'A light, slow ceiling that lets go over a whole beat, so the quiet verses stay quiet and the last chorus still lifts.',
+  'genre.ballad.off':
+    'No Exciter, Bass Forge or Bass Punch: harmonics would land on the sibilants, a ballad has a sub only where its producer put one, and there is rarely a kick to shape.',
 };
 
 export default genrePop;

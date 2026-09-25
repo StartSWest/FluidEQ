@@ -68,6 +68,13 @@ export const GENRE_NOTES: Readonly<Record<string, IGenreNote>> = {
     pins: [125, 1250, 12500],
     listen: ['Tian Mi Mi — Teresa Teng', 'Qing Tian — Jay Chou'],
   },
+  ballad: {
+    pins: [125, 500, 3150, 8000],
+    listen: [
+      'Someone Like You — Adele',
+      'I Will Always Love You — Whitney Houston',
+    ],
+  },
   // Rock and what grew out of it.
   rock: {
     pins: [80, 315, 3150, 12500],

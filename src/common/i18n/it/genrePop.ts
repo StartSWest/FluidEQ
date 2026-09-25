@@ -134,4 +134,26 @@ export default {
   'genre.cPop.stage.maximizer': 'Un tetto lento per la dinamica delle ballate.',
   'genre.cPop.off':
     'Niente Punch dei bassi né Fucina dei bassi: nessun sub inventato sotto una ballata al pianoforte.',
+
+  'genre.ballad.hook': 'Il brano lento, la voce sopra tutto',
+  'genre.ballad.story':
+    'Il brano lento di ogni catalogo, pop, rock, soul e latino allo stesso modo, per lo più da 60 a 85 BPM: “Someone Like You” va a 67,5 e “November Rain” a 84. La voce principale si mixa per prima e sta sopra tutto, vicina e su una plate o una sala lunga, sopra un pianoforte, gli archi o una band trattenuta, e il master conserva più dinamica dei singoli dello stesso album.',
+  'genre.ballad.pin.125': 'Il calore della voce e del pianoforte',
+  'genre.ballad.pin.125.why':
+    'Un po’ di corpo, dove la voce e il pianoforte di una ballata sono caldi.',
+  'genre.ballad.pin.500': 'Meno fango',
+  'genre.ballad.pin.500.why':
+    'Le medio-basse che un pianoforte e una voce vicina accumulano, abbassate perché le parole restino chiare.',
+  'genre.ballad.pin.3150': 'Presenza',
+  'genre.ballad.pin.3150.why':
+    'La voce un po’ più avanti, dove si capiscono le parole.',
+  'genre.ballad.pin.8000': 'Sibilanti ammorbidite, non schiarite',
+  'genre.ballad.pin.8000.why':
+    'Una voce vicina porta qui le sue esse, e un’esaltazione le affilerebbe tutte.',
+  'genre.ballad.stage.dimension':
+    'I bassi stretti verso il centro, dove le ballate li mixano; voce, pianoforte e archi lasciati larghi come sono stati posizionati.',
+  'genre.ballad.stage.maximizer':
+    'Un tetto leggero e lento che rilascia lungo un intero tempo, così le strofe piano restano piano e l’ultimo ritornello cresce ancora.',
+  'genre.ballad.off':
+    'Niente Exciter, Fucina dei bassi né Punch dei bassi: le armoniche cadrebbero sulle sibilanti, una ballata ha un sub solo dove il produttore l’ha messo, e raramente c’è una cassa da modellare.',
 };

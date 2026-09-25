@@ -64,8 +64,20 @@ const FAMILY_SOURCES: readonly (readonly [readonly IGenreRack[], string])[] = [
   ],
 ];
 
+/**
+ * A genre researched on its own, after its family's digest: it cites its own
+ * shelf, not the family's. Ballad (2026-09-25) was tuned from the mixing and
+ * mastering press and one large study of genre spectra, none of which the
+ * pop digest used.
+ */
+const GENRE_OWN_SOURCES: Readonly<Record<string, string>> = {
+  ballad:
+    'Sound On Sound · Mix · Waves · Elowsson & Friberg (KTH) · DR Database',
+};
+
 /** Where a genre's research came from, or nothing for an id no family has. */
 export const genreSources = (id: string): string | undefined =>
+  GENRE_OWN_SOURCES[id] ??
   FAMILY_SOURCES.find(([racks]) => racks.some((rack) => rack.id === id))?.[1];
 
 /**
@@ -92,6 +104,7 @@ export const GENRE_MEASURED: Readonly<
   kPop: [0.39, -0.86],
   jPop: [0.63, -0.86],
   cPop: [0.24, -0.86],
+  ballad: [0.06, -0.86],
   rock: [0.6, -0.86],
   popRock: [0.51, -0.87],
   classicRock: [0.28, -0.86],

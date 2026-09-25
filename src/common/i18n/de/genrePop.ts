@@ -135,4 +135,26 @@ export default {
     'Eine langsame Obergrenze für die Dynamik der Balladen.',
   'genre.cPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: kein erfundener Sub unter einer Klavierballade.',
+
+  'genre.ballad.hook': 'Das langsame Lied, die Stimme über allem',
+  'genre.ballad.story':
+    'Das langsame Lied jedes Katalogs, ob Pop, Rock, Soul oder Latin, meist 60 bis 85 BPM: „Someone Like You“ läuft mit 67,5 und „November Rain“ mit 84. Die Leadstimme wird zuerst gemischt und liegt über allem, nah und mit einer langen Platte oder Halle, über Klavier, Streichern oder einer zurückgenommenen Band, und der Master behält mehr Dynamik als die Singles desselben Albums.',
+  'genre.ballad.pin.125': 'Wärme von Stimme und Klavier',
+  'genre.ballad.pin.125.why':
+    'Ein wenig Körper, wo Stimme und Klavier einer Ballade warm sind.',
+  'genre.ballad.pin.500': 'Weniger Matsch',
+  'genre.ballad.pin.500.why':
+    'Die tiefen Mitten, die sich bei Klavier und naher Stimme stauen, abgesenkt, damit die Worte klar bleiben.',
+  'genre.ballad.pin.3150': 'Präsenz',
+  'genre.ballad.pin.3150.why':
+    'Die Stimme etwas nach vorn, wo ihre Worte verstanden werden.',
+  'genre.ballad.pin.8000': 'Zischlaute gezähmt, nicht aufgehellt',
+  'genre.ballad.pin.8000.why':
+    'Eine nahe Stimme trägt hier ihre S-Laute, und eine Anhebung würde jeden schärfen.',
+  'genre.ballad.stage.dimension':
+    'Der Bass zur Mitte hin verschmälert, wo Balladen ihn mischen; Stimme, Klavier und Streicher so breit gelassen, wie sie platziert wurden.',
+  'genre.ballad.stage.maximizer':
+    'Eine leichte, langsame Obergrenze, die über einen ganzen Schlag loslässt, damit die leisen Strophen leise bleiben und der letzte Refrain noch steigt.',
+  'genre.ballad.off':
+    'Kein Exciter, keine Bass-Schmiede und kein Bass-Punch: Obertöne landeten auf den Zischlauten, eine Ballade hat nur dort einen Sub, wo ihr Produzent ihn hingesetzt hat, und selten gibt es eine Bassdrum zu formen.',
 };

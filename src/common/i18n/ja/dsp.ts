@@ -276,6 +276,7 @@ const dsp = {
   'dsp.eqPreset.vShape': 'V字',
   'dsp.eqPreset.rock': 'ロック',
   'dsp.eqPreset.pop': 'ポップ',
+  'dsp.eqPreset.ballad': 'バラード',
   'dsp.eqPreset.jazz': 'ジャズ',
   'dsp.eqPreset.classical': 'クラシック',
   'dsp.eqPreset.electronic': 'エレクトロニック',

@@ -137,4 +137,26 @@ export default {
     'Un plafond lent pour la dynamique des ballades.',
   'genre.cPop.off':
     'Ni Punch des basses ni Forge de basses : pas de sub inventé sous une ballade au piano.',
+
+  'genre.ballad.hook': 'Le morceau lent, la voix au-dessus de tout',
+  'genre.ballad.story':
+    'Le morceau lent de tous les catalogues, pop, rock, soul et latino confondus, le plus souvent entre 60 et 85 BPM : « Someone Like You » avance à 67,5 et « November Rain » à 84. La voix principale est mixée en premier et passe au-dessus de tout, proche et sur une plaque ou une salle longue, par-dessus un piano, des cordes ou un groupe en retrait, et le master garde plus de dynamique que les singles du même album.',
+  'genre.ballad.pin.125': 'La chaleur de la voix et du piano',
+  'genre.ballad.pin.125.why':
+    'Un peu de corps, là où la voix et le piano d’une ballade sont chauds.',
+  'genre.ballad.pin.500': 'Moins de boue',
+  'genre.ballad.pin.500.why':
+    'Les bas-médiums qu’accumulent un piano et une voix proche, abaissés pour que les mots restent clairs.',
+  'genre.ballad.pin.3150': 'Présence',
+  'genre.ballad.pin.3150.why':
+    'La voix un peu plus en avant, là où l’on comprend ses mots.',
+  'genre.ballad.pin.8000': 'Sifflantes adoucies, pas éclaircies',
+  'genre.ballad.pin.8000.why':
+    'Une voix proche porte ici ses « s », et un relèvement aiguiserait chacun d’eux.',
+  'genre.ballad.stage.dimension':
+    'Les basses resserrées vers le centre, où les ballades les mixent ; la voix, le piano et les cordes laissés aussi larges qu’ils ont été placés.',
+  'genre.ballad.stage.maximizer':
+    'Un plafond léger et lent qui relâche sur un temps entier, pour que les couplets calmes restent calmes et que le dernier refrain s’élève encore.',
+  'genre.ballad.off':
+    'Ni Exciteur, ni Forge de basses, ni Punch des basses : les harmoniques tomberaient sur les sifflantes, une ballade n’a de sub que là où son producteur en a mis, et il y a rarement une grosse caisse à façonner.',
 };

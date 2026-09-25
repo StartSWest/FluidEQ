@@ -110,7 +110,7 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(107);
+    expect(DSP_PRESETS).toHaveLength(108);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
