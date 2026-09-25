@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { TranslationKey } from 'common/i18n';
+import { sceneOwnColours } from 'common/graphSceneViews';
 import {
   GraphPalette,
+  GraphStyle,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
   getGraphLook,
@@ -139,9 +141,16 @@ const PALETTE_CHOICES: {
  * this palette paint if left alone" — and for two of the three the answer there
  * is "the colours already on screen", which is no use to a colour picker. This
  * one always returns something editable, starting from what is currently drawn
- * so the first thing the panel shows is not a change.
+ * so the first thing the panel shows is not a change — which, for a drawn
+ * scene on Auto, is the scene's own colours (`SCENE_OWN_COLOURS`), not its
+ * palette's.
  */
-const seedPaletteColours = (palette: ResolvedGraphPalette): string[] => {
+const seedLookColours = (style: GraphStyle, choice: GraphPalette): string[] => {
+  const own = choice === 'auto' ? sceneOwnColours(style) : undefined;
+  if (own) {
+    return [...own];
+  }
+  const palette: ResolvedGraphPalette = resolveGraphPalette(style, choice);
   // Heat walks a ramp with the loudness rather than painting one, so it opens
   // on the same stops as level — the colours mean the same thing in both, and
   // only what moves along them differs.
@@ -495,9 +504,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     (current: ICustomLook) =>
       current.colours.length
         ? current.colours
-        : seedPaletteColours(
-            resolveGraphPalette(current.style, current.palette),
-          ),
+        : seedLookColours(current.style, current.palette),
     [],
   );
 
@@ -566,7 +573,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
    */
   const shownColours = draft.colours.length
     ? draft.colours
-    : seedPaletteColours(resolveGraphPalette(draft.style, draft.palette));
+    : seedLookColours(draft.style, draft.palette);
 
   const paletteHintKey = PALETTE_CHOICES.find(
     (choice) => choice.value === draft.palette,
@@ -726,9 +733,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                       ? next
                       : {
                           ...next,
-                          colours: seedPaletteColours(
-                            resolveGraphPalette(next.style, next.palette),
-                          ),
+                          colours: seedLookColours(next.style, next.palette),
                         };
                   })
                 }
@@ -749,9 +754,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               onClick={() =>
                 setDraft((current) => ({
                   ...current,
-                  colours: seedPaletteColours(
-                    resolveGraphPalette(current.style, current.palette),
-                  ),
+                  colours: seedLookColours(current.style, current.palette),
                 }))
               }
             >

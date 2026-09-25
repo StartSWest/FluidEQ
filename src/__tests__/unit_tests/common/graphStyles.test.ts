@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { isAnalysisStyle } from 'common/graphAnalysis';
+import { isSceneViewStyle } from 'common/graphSceneViews';
 import {
   DEFAULT_GRAPH_LOOK,
   GRAPH_LOOKS,
@@ -254,14 +255,18 @@ describe('readable LED columns', () => {
  * picked, tuned and cycled like any other — but none of them is one path, so
  * none is built by `createGraphShape`: a raster, a stack of fifty-six
  * figures and a box of instruments have nothing to hand back. They are drawn
- * by `renderer/graph/analysis` and tested there.
+ * by `renderer/graph/analysis` and tested there. The drawn scenes are the
+ * same: each is layers, lights and particles, drawn by
+ * `renderer/graph/sceneViews`.
  */
-const DRAWN_HERE = GRAPH_STYLES.filter((style) => !isAnalysisStyle(style));
+const DRAWN_HERE = GRAPH_STYLES.filter(
+  (style) => !isAnalysisStyle(style) && !isSceneViewStyle(style),
+);
 
 describe('the graph style cycle', () => {
-  it('offers sixty-nine distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(69);
-    expect(new Set(GRAPH_STYLES).size).toBe(69);
+  it('offers seventy-nine distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(79);
+    expect(new Set(GRAPH_STYLES).size).toBe(79);
   });
 
   it('gives every form a name of its own', () => {
@@ -617,7 +622,23 @@ describe('the lit peaks', () => {
     const lit = GRAPH_STYLES.filter(
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
-    expect(lit).toEqual(['dots', 'blocks', 'scatter', 'slope']);
+    // The drawn scenes that hold their peaks do it as the thing they picture
+    // does — a lamp left lit, a floating cap, spray off a crest — so theirs
+    // start on; Synthwave's held ridge and the silk's sparks start off.
+    expect(lit).toEqual([
+      'dots',
+      'blocks',
+      'scatter',
+      'slope',
+      'ledwall',
+      'towers',
+      'tide',
+      'halo',
+      'ledbars',
+      'neonbars',
+      'bars3d',
+      'spectrumwave',
+    ]);
     expect(getDefaultAccentStyle('slope')).toBe('sparks');
     expect(getDefaultAccentStyle('scatter')).toBe('blink');
   });

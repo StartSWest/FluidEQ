@@ -47,6 +47,16 @@ export type GraphStyle =
   | 'notes'
   | 'energy'
   | 'phase'
+  | 'ledwall'
+  | 'towers'
+  | 'tide'
+  | 'halo'
+  | 'synthwave'
+  | 'ledbars'
+  | 'neonbars'
+  | 'bars3d'
+  | 'spectrumwave'
+  | 'silkwaves'
   | 'line'
   | 'area'
   | 'bars'
@@ -193,6 +203,18 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'wave-blocks',
   'wave-outline',
   'wave-lattice',
+  // The drawn scenes, after the eight they are filed with
+  // (`graphSceneViews.ts`), and the plain spectrums after them.
+  'ledwall',
+  'towers',
+  'tide',
+  'halo',
+  'synthwave',
+  'ledbars',
+  'neonbars',
+  'bars3d',
+  'spectrumwave',
+  'silkwaves',
 ];
 
 /**
@@ -296,6 +318,16 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   notes: 'Note spectrum',
   energy: 'Energy bands',
   phase: 'Phase history',
+  ledwall: 'LED wall',
+  towers: 'Glass towers',
+  tide: 'Tide',
+  halo: 'Halo',
+  synthwave: 'Synthwave',
+  ledbars: 'LED bars',
+  neonbars: 'Neon bars',
+  bars3d: '3D bars',
+  spectrumwave: 'Spectrum wave',
+  silkwaves: 'Silk waves',
   line: 'Line',
   area: 'Area',
   bars: 'Bars',
@@ -501,6 +533,22 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   energy: 'rainbow',
   midside: 'level',
   phase: 'level',
+  /**
+   * The drawn scenes. Under Auto each is painted in its own colours
+   * (`SCENE_OWN_COLOURS`), laid the way this says: a board's lamps and an
+   * LED column up the axis, like the sea's depth; glass, bars, waves, the
+   * halo and a synthwave skyline across it, bass to treble.
+   */
+  ledwall: 'level',
+  towers: 'rainbow',
+  tide: 'level',
+  halo: 'rainbow',
+  synthwave: 'rainbow',
+  ledbars: 'level',
+  neonbars: 'rainbow',
+  bars3d: 'rainbow',
+  spectrumwave: 'rainbow',
+  silkwaves: 'level',
   // Traces and silhouettes: one colour.
   line: 'signal',
   ridge: 'signal',
@@ -747,6 +795,25 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   notes: { attackMs: 2, releaseMs: 150 },
   energy: { attackMs: 1, releaseMs: 200 },
   phase: { attackMs: 2, releaseMs: 80 },
+  /**
+   * The drawn scenes move like the things they are: lamps snap on and let
+   * go quickly, glass is a little heavier, the sea is slow both ways, and
+   * the halo and the skyline sit between.
+   */
+  ledwall: { attackMs: 3, releaseMs: 240 },
+  towers: { attackMs: 8, releaseMs: 220 },
+  // The slowest release the style editor offers: a default past its slider
+  // is one the look editor can never put back.
+  tide: { attackMs: 45, releaseMs: 400 },
+  halo: { attackMs: 6, releaseMs: 200 },
+  synthwave: { attackMs: 14, releaseMs: 300 },
+  // A segment board snaps like the lamps; bars carry a little weight; the
+  // waves are strokes of a brush, slower both ways.
+  ledbars: { attackMs: 2, releaseMs: 260 },
+  neonbars: { attackMs: 6, releaseMs: 220 },
+  bars3d: { attackMs: 8, releaseMs: 240 },
+  spectrumwave: { attackMs: 10, releaseMs: 260 },
+  silkwaves: { attackMs: 18, releaseMs: 320 },
   midside: { attackMs: 4, releaseMs: 360 },
   line: { attackMs: 12, releaseMs: 150 },
   // Snap up, hang, drop away — a meter's manners.
@@ -1005,6 +1072,18 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   'wave-blocks': 48,
   'wave-outline': 48,
   'wave-lattice': 48,
+  /**
+   * The drawn scenes made of pieces, at the density each was drawn for: a
+   * stadium board's fine columns, a row of glass, half the halo's ring (the
+   * other half is its mirror), and the plain bars at the counts hi-fi
+   * analysers use.
+   */
+  ledwall: 112,
+  towers: 48,
+  halo: 60,
+  ledbars: 48,
+  neonbars: 64,
+  bars3d: 32,
 };
 
 export const getColumnCount = (style: GraphStyle) =>
@@ -1051,6 +1130,22 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   notes: 0.85,
   energy: 0.92,
   phase: 1,
+  /**
+   * The drawn scenes carry their own light and shade — a lamp's lens, a
+   * tower's glass, water deepening to its floor — so they start solid and
+   * the setting takes them down from there, rather than every one of them
+   * opening at the shared default's half-strength.
+   */
+  ledwall: 1,
+  towers: 1,
+  tide: 1,
+  halo: 1,
+  synthwave: 1,
+  ledbars: 1,
+  neonbars: 1,
+  bars3d: 1,
+  spectrumwave: 1,
+  silkwaves: 1,
   /**
    * Brighter than the shared default and dimmer than solid.
    *
@@ -1129,6 +1224,14 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   barcode: 0.18,
   honeycomb: 0.2,
   invaders: 0.35,
+  // The drawn scenes made of pieces, each at the spacing it was drawn at: a
+  // board's lamps, a row of glass, the halo's rays, and the plain bars.
+  ledwall: 0.28,
+  towers: 0.36,
+  halo: 0.48,
+  ledbars: 0.22,
+  neonbars: 0.3,
+  bars3d: 0.3,
 };
 
 export const getGraphBarGap = (style: GraphStyle): number =>
@@ -1208,6 +1311,9 @@ const GLOWLESS_STYLES = new Set<GraphStyle>([
   // The phase history is a raster too, and the scope's halo is its own: the
   // beam already carries one, drawn along the trace rather than round it.
   'phase',
+  // Not the drawn scenes (`graphSceneViews.ts`): they light themselves — the
+  // boards bloom, the towers pool light on their floor, the halo has its
+  // core — and the Glow setting is how much more of that light they throw.
 ]);
 
 export const canGraphGlow = (style: GraphStyle): boolean =>
@@ -1288,6 +1394,13 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'honeycomb',
   'fence',
   'stitch',
+  // The drawn scenes made of pieces (`graphSceneViews.ts`).
+  'ledwall',
+  'towers',
+  'halo',
+  'ledbars',
+  'neonbars',
+  'bars3d',
 ]);
 
 /**

@@ -143,6 +143,25 @@ version and in these notes.
 - **Double-click the graph to fill the screen, Ctrl+double-click to fill the
   window**, and double-click again to come back from either. Help lists the
   graph's keyboard shortcuts.
+- **Twelve ways to read the sound.** The graph's plain drawings gave way to
+  the views studio tools use: Analyzer, Before & after, Spectrogram,
+  Third-octave RTA, Peak & average, Waterfall, Stereo & loudness,
+  Oscilloscope, Mid & side, Note spectrum, Energy bands and Phase history. A
+  look you saved on one of the old drawings still draws.
+- **Ten new visualizers under Scenes.** LED wall, Glass towers, Tide, Halo and
+  Synthwave, and five plain spectrums: LED bars with square segments, Neon
+  bars, 3D bars, Spectrum wave and Silk waves. Each moves with the bass, the
+  beat and the treble separately, keeps its shape upside down and mirrored,
+  and follows the look editor like every other look: colour by frequency,
+  level or loudness, pieces and gap, filled or outline, opacity, line width,
+  texture, lit peaks and glow.
+- **The wave's height and position are kept per view.** Set in the graph's
+  View menu, they are remembered separately for the pane, the expanded view
+  and full screen, and for each Plus visualizer. The Compact player and the
+  desktop backgrounds draw a visualizer with its full-screen setting.
+- **Another player's cover behind the graph.** When the sound comes from
+  Spotify, a browser or any other player, its album art fills the graph
+  behind the wave in the expanded view and in full screen.
 - **A twenty-band quick layout**, and every layout moved onto the
   international standard's frequencies: a band labelled 64 Hz is now the
   63 Hz everything else means by it. Bands also open as wide as their spacing
@@ -216,6 +235,17 @@ version and in these notes.
   neither does the player's picture going to full screen: the window changes
   size out of sight and comes back drawn, full screen fades in from black,
   and a view that measures the sound keeps its grid there.
+- **The player's visualizer, two columns wide, reads like the graph.** A view
+  that measures the sound shows the graph's grid and scales there, and Ctrl+G
+  shows and hides them as it does on the graph; the level meter runs across
+  the whole picture; a view's legend sits under the picture instead of behind
+  the look picker; and full screen has no frame around the picture.
+- **The output level meter no longer slows the window.** It printed its scale
+  afresh on every frame, about a quarter of a processor core's work; it now
+  prints it only when something on it changes.
+- **The graph's curve chips are in the order of the chips under Also
+  applied**: the headphone correction first, then the convolution, the
+  preset, the Tone and your EQ, with the final output after them.
 - **The Compact player recovers from an error.** Its recovery screen said it
   was reloading and never did; it now reloads, and comes back as the player.
 - **The Studio's colours stay on the Studio's page.** Going to the player or

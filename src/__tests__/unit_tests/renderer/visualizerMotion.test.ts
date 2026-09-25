@@ -320,8 +320,11 @@ describe('curated forms and settings', () => {
     // Rainfall and Canyon, then all ten wave forms at once, and finally the
     // twenty plain forms behind them when the measuring views took their
     // place: seven of those and the eight scenes Ivan designed are what the
-    // picker offers now.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(20);
+    // picker offered then, and the ten drawn scenes joined them on
+    // 2026-09-24 (five pictures and five plain spectrums).
+    expect(GRAPH_FORM_LOOKS).toHaveLength(30);
+    expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('silkwaves');
     expect(SELECTABLE_GRAPH_STYLES).toContain('analyzer');
     expect(SELECTABLE_GRAPH_STYLES).toContain('rta');
     expect(SELECTABLE_GRAPH_STYLES).toContain('scope');
