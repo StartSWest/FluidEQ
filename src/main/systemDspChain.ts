@@ -36,6 +36,7 @@ import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
 import {
   gameModeOnWire,
+  hasPresetTone,
   hasRoomTrailer,
   roomHeadOnWire,
 } from '../common/dsp/chainWire';
@@ -59,10 +60,15 @@ export const formatSystemDspChain = (
   // Older installed engines reject an extra numeric word and bypass the rack.
   // A comment carries the new mode without changing the sound they can decode.
   const gaming = gameModeOnWire(values);
-  // A Room-capable engine requires the fixed Game word before its trailer.
-  // Only the legacy optional word may be removed for old engines.
+  // A Room-capable engine requires the fixed Game word before its trailer,
+  // and so does one that reads the preset's curve (only ever sent to one,
+  // `SET_SYSTEM_DSP_CHAIN`). Only the legacy optional word may be removed for
+  // old engines.
   const compatible =
-    gaming && !acceptsGameWord && !hasRoomTrailer(values)
+    gaming &&
+    !acceptsGameWord &&
+    !hasRoomTrailer(values) &&
+    !hasPresetTone(values)
       ? values.slice(0, -1)
       : values;
   return [

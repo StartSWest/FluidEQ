@@ -18,10 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import log from 'electron-log';
 import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
 import {
+  hasPresetTone,
   hasRoomTrailer,
   legacyChainWithoutInactiveRoom,
   isChainWirePayload,
+  withoutPresetTone,
 } from '../../common/dsp/chainWire';
+import { engineTakesPresetTone } from '../../common/dsp/presetTone';
 
 /**
  * Which engine processes the audio, and everything that follows from
@@ -206,7 +209,8 @@ export const registerAudioEngineIpc = ({
     statusRead = reading;
     return reading;
   };
-  const ensureRoomCapability = async (): Promise<boolean> => {
+  /** The installed FluidEQ Engine's binary version, from the latest status read. */
+  const installedEngineVersion = async (): Promise<string | undefined> => {
     if (statusFailed) {
       readAudioEngineStatus(userDataDir, getEngine());
     }
@@ -219,7 +223,7 @@ export const registerAudioEngineIpc = ({
         // eslint-disable-next-line no-await-in-loop -- each iteration awaits a newer externally requested status read, never polls.
         const status = await reading;
         if (reading === statusRead) {
-          return engineSupportsRoomUpgrade(status.fluid?.dllVersion);
+          return status.fluid?.dllVersion;
         }
       } catch (error) {
         if (reading === statusRead) {
@@ -228,6 +232,23 @@ export const registerAudioEngineIpc = ({
           throw error;
         }
       }
+    }
+  };
+  const ensureRoomCapability = async (): Promise<boolean> =>
+    engineSupportsRoomUpgrade(await installedEngineVersion());
+  /**
+   * Whether the installed engine reads the preset's curve after the rack.
+   *
+   * Answered no where the version cannot be read, unlike the Room's question:
+   * without its curve a rack still plays exactly what every engine played
+   * before it, where a line the engine refuses bypasses the whole rack.
+   */
+  const takesPresetTone = async (): Promise<boolean> => {
+    try {
+      return engineTakesPresetTone(await installedEngineVersion());
+    } catch (error) {
+      log.warn('Sending the rack without its curve: no engine version', error);
+      return false;
     }
   };
   /**
@@ -665,8 +686,11 @@ export const registerAudioEngineIpc = ({
         return;
       }
       let supportedValues = values;
-      if (hasRoomTrailer(values) && !(await ensureRoomCapability())) {
-        const legacy = legacyChainWithoutInactiveRoom(values);
+      if (hasPresetTone(supportedValues) && !(await takesPresetTone())) {
+        supportedValues = withoutPresetTone(supportedValues);
+      }
+      if (hasRoomTrailer(supportedValues) && !(await ensureRoomCapability())) {
+        const legacy = legacyChainWithoutInactiveRoom(supportedValues);
         if (!legacy) {
           succeed<TSystemDspChainResult>(event, channel, 'update-required');
           return;

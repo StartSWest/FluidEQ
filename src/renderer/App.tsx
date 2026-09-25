@@ -51,6 +51,7 @@ import ConfigInspector from './components/ConfigInspector';
 import GamesPanel from './games/GamesPanel';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
+import PresetToneFeed from './dsp/PresetToneFeed';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
@@ -2933,6 +2934,9 @@ const AppContent = () => {
             {/* A preset's rack across an engine switch, which is made in a
                 dialog over whichever page is open. */}
             <RackFollowsEngine />
+            {/* And its curve, told to the rack's Maximizer from wherever the
+                curve changes: a preset, its chip, the EQ mode menu. */}
+            <PresetToneFeed />
           </div>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
