@@ -220,18 +220,76 @@ describe('what each monitor shows', () => {
       pauseOnBattery: false,
       wave: { height: 0.4, position: 0.65 },
       motion: 'music',
+      followsGraph: false,
+    });
+  });
+
+  // One monitor can follow the graph while the others keep what they were
+  // given, so the switch is each row's own and changes nothing else about it.
+  it('lets each monitor follow the graph on its own, keeping how it moves', () => {
+    withScreens([
+      showing(3),
+      showing(2, {
+        lookId: 'premium:alpine',
+        motion: 'music',
+        followsGraph: true,
+      }),
+    ]);
+    render(<WallpaperManageDialog onClose={jest.fn()} />);
+    const rows = screen.getAllByRole('listitem');
+    const odyssey = rows.find((row) => within(row).queryByText('Odyssey G5'));
+    const middle = rows.find((row) => within(row).queryByText('Y27qf-30'));
+    if (!odyssey || !middle) {
+      throw new Error('each monitor should have its row');
+    }
+    const followOnOdyssey = within(odyssey).getByRole('button', {
+      name: 'Follow graph',
+    });
+    const followOnMiddle = within(middle).getByRole('button', {
+      name: 'Follow graph',
+    });
+    expect(followOnOdyssey).toHaveAttribute('aria-pressed', 'false');
+    expect(followOnMiddle).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(followOnOdyssey);
+    expect(startWallpaper).toHaveBeenLastCalledWith({
+      lookId: 'premium:aurora',
+      displayIds: [3],
+      pauseOnBattery: false,
+      wave: { height: 0.4, position: 0.65 },
+      motion: 'calm',
+      followsGraph: true,
+    });
+
+    fireEvent.click(followOnMiddle);
+    expect(startWallpaper).toHaveBeenLastCalledWith({
+      lookId: 'premium:alpine',
+      displayIds: [2],
+      pauseOnBattery: false,
+      wave: { height: 0.4, position: 0.65 },
+      motion: 'music',
+      followsGraph: false,
     });
   });
 
   it('offers a stopped monitor a retry that keeps how it moved, not a Calm switch', () => {
-    withScreens([showing(3, { phase: 'error', error: 'host' })]);
+    withScreens([
+      showing(3, { phase: 'error', error: 'host', followsGraph: true }),
+    ]);
     render(<WallpaperManageDialog onClose={jest.fn()} />);
     expect(
       screen.queryByRole('button', { name: 'Calm' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Follow graph' }),
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(startWallpaper).toHaveBeenCalledWith(
-      expect.objectContaining({ displayIds: [3], motion: 'calm' }),
+      expect.objectContaining({
+        displayIds: [3],
+        motion: 'calm',
+        followsGraph: true,
+      }),
     );
   });
 

@@ -75,7 +75,7 @@ const create = (
     tuning: pause.tuning,
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
-      member: false,
+      madeBy: 'fluideq',
     },
     executable: 'FluidEQ-Wallpaper.exe',
     pauseReason: (covered) => (covered ? 'covered' : pause.reason),

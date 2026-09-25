@@ -238,6 +238,10 @@ export const createCalmShaper = (initial: TWallpaperMotion): ICalmShaper => {
       if (progress === 1) {
         return {
           ...heard,
+          // Nothing is played to a calm background: it rests, as any scene
+          // played nothing does (`sceneRest.ts`), and its slow swells read
+          // the same at thirty frames a second.
+          playing: false,
           level: bands.level,
           beat: 0,
           bands: [bands.bass, bands.mid, bands.treble],

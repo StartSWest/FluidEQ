@@ -63,6 +63,23 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
     dispose: jest.fn(),
   }),
 }));
+// The size ladder comes from the rules for who made the scene; this one only
+// records what it was asked to judge.
+jest.mock('../../../renderer/graph/sceneRules', () => ({
+  sceneRulesFor: () => ({
+    limited: false,
+    warmWhenUnseen: false,
+    createLadder: () => ({
+      frame: mockLadderFrame,
+      scale: () => 1,
+      slowed: () => false,
+      refloor: () => undefined,
+      resume: () => undefined,
+      reset: () => undefined,
+      cheapFinish: () => false,
+    }),
+  }),
+}));
 
 const pack: IScenePack = {
   schema: 1,
@@ -84,15 +101,6 @@ const source: ISceneSource = {
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
   madeBy: 'fluideq' as const,
-  createLadder: () => ({
-    frame: mockLadderFrame,
-    scale: () => 1,
-    slowed: () => false,
-    refloor: () => undefined,
-    resume: () => undefined,
-    reset: jest.fn(),
-    cheapFinish: () => false,
-  }),
 };
 
 /**

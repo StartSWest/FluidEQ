@@ -214,6 +214,11 @@ version and in these notes.
   is prepared, pauses while windows cover its whole monitor or a game is in
   front, gives the desktop its own wallpaper back while it waits on battery,
   and follows the visualizer's settings from the window as you change them.
+- **A monitor can follow the graph.** Switch on Follow graph for it in the
+  desktop background's Manage dialog, and it changes to whichever Plus
+  visualizer the graph shows, whether you picked it or the graph changed looks
+  by itself. When the graph shows a standard look, the monitor keeps the last
+  Plus visualizer it had. Each monitor has its own switch.
 - **The FluidEQ Engine has a new build.** The copy on your machine is offered
   an update the first time you run 1.8.0: one press in the notice, and Windows
   restarts its audio itself. Until you take it the equaliser keeps working and
@@ -264,6 +269,16 @@ version and in these notes.
   another page from the Studio, the window takes the colours of the
   visualizer that is playing instead of the Studio's scene.
 - **Scene icons show in the player's look picker**, where they were blank.
+- **A visualizer looks the same wherever it plays.** Your own scene on the
+  desktop was treated as another member's and left a ghost of each frame
+  behind it, while the Studio showed it clean. The graph, the gallery, the
+  Studio, the player and the desktop now play every scene by the same rules.
+  The desktop also follows the music on every frame it draws, where it used
+  to move in steps thirty times a second.
+- **Another member's scene that flashes is calmed, not smeared.** The flash
+  protection used to blend the previous picture into fast motion, which showed
+  as a double image. Now it only dims the patches that flash, and everything
+  else moves as drawn.
 - **The desk lights switch on the graph shows its light only while it is
   on.** Switched off, it drew the same rays as on.
 - **FluidEQ fits a screen scaled to 200%**, such as a Mac showing it at

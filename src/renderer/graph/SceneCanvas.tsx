@@ -6,6 +6,7 @@ import {
   useState,
   type RefObject,
 } from 'react';
+import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
@@ -28,8 +29,6 @@ import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import SceneLoading from './SceneLoading';
-import { createCostLadder } from './sceneHealth';
-import { createWarmupLadder } from './sceneWarmup';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
@@ -62,10 +61,9 @@ const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
  * an error; the fallback form is the error state, and it is a working
  * visualizer.
  *
- * A member's scene differs in exactly three ways: it warms up from an eighth
- * of the size instead of starting at full, it is drawn through the brightness
- * limiter, and it is not compiled ahead while out of sight. Nobody watched it
- * before it reached this screen.
+ * How it is run — its size ladder, the brightness limiter, whether it is
+ * compiled ahead — follows from who made it (`sceneRules.ts`), exactly as it
+ * does on the desktop, in the Library's player and on the Studio's stage.
  */
 export default function SceneCanvas({
   scene,
@@ -75,8 +73,8 @@ export default function SceneCanvas({
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
-  // below, and the runner alone decides what follows (`limiterIsFor`).
-  const own = member && scene.own;
+  // below, and the runner alone decides what follows (`sceneRules.ts`).
+  const madeBy = sceneMakerOf({ member, own: member && scene.own });
   const key = member ? scene.lookId : scene.id;
   const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
@@ -93,9 +91,7 @@ export default function SceneCanvas({
               reportMemberSceneFailure(key, reason).catch(() => undefined);
             },
             tooSlow: () => blockMemberScene(key),
-            createLadder: createWarmupLadder,
-            madeBy: own ? 'listener' : 'member',
-            restsInSilence: true,
+            madeBy,
           }
         : {
             identity: key,
@@ -109,12 +105,9 @@ export default function SceneCanvas({
             // A slow session is a fact about the machine right now, not about
             // the pack: fall back until the next launch, write nothing down.
             tooSlow: () => blockScene(key),
-            createLadder: createCostLadder,
-            madeBy: 'fluideq',
-            warmWhenUnseen: true,
-            restsInSilence: true,
+            madeBy,
           },
-    [member, own, key, version, name],
+    [member, madeBy, key, version, name],
   );
 
   // Which scene has drawn its first frame. Kept by identity, because the

@@ -28,6 +28,9 @@ const wallpaper = {
   'wallpaper.motion.calm': 'शांत',
   'wallpaper.motion.calm.hint':
     'धीमा, शांत एनिमेशन जो संगीत को अनदेखा करता है।',
+  'wallpaper.follow': 'ग्राफ़ के साथ चलें',
+  'wallpaper.follow.hint':
+    'ग्राफ़ पर दिख रहा Plus विज़ुअलाइज़र दिखाता है और उसके साथ बदलता है — चाहे आप उसे चुनें या वह अपने आप बदले। जब ग्राफ़ ऐसा विज़ुअलाइज़र दिखाए जो Plus नहीं है, तो यह स्क्रीन पिछला Plus विज़ुअलाइज़र ही रखती है।',
   'wallpaper.cancel': 'रद्द करें',
   'wallpaper.done': 'हो गया',
   'wallpaper.start': 'बैकग्राउंड सेट करें',

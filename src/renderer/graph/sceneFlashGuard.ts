@@ -10,38 +10,46 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * could flash. WCAG 2.3.1 counts a flash as a pair of opposing swings of at
  * least 10 %, and a general or a red flash alike.
  *
- * Two limits, each for what the other cannot see:
+ * Where it flashes: each pixel (at half resolution) keeps the SECONDS SINCE it
+ * last rose — since how far it has travelled one way, in luminance or in
+ * saturated red, turned from falling to rising. A rise less than a flash's
+ * period behind the last one is a flash too soon, and where that is true AND
+ * flashing covers a share of the area around it (`FLASH_AREA_START`), the
+ * pixel is calmed. A rise and not a swing, because a flash is a PAIR of
+ * changes: see `flashStep`.
  *
- * - Across the frame: relative luminance, averaged over cells about a quarter
- *   of the frame across, may move at most half of full scale per second —
- *   below the 0.6 that three flashes need — WHERE IT IS REVERSING. A beat
- *   still reads; a strobe of the whole picture does not. Averages cannot see
- *   a pattern: a checkerboard of squares an eighth across, inverting every
- *   frame, kept every cell's average where it was and passed untouched.
+ * CALMED, NEVER BLENDED. A calmed pixel shows the calm field
+ * (`FLASH_CALM_TEXELS`): the picture blurred to a sixty-fourth of the frame,
+ * each patch of it following this frame's colour no faster than
+ * `FLASH_LIMIT_PER_SECOND`. The flashing detail goes soft, the colours and
+ * shapes stay, and nothing of the last picture's detail is put on the screen
+ * again.
  *
- *   Reversing, because a flash is a PAIR of opposing swings and a cell's
- *   average moves just as fast when something bright simply crosses it.
- *   Limiting every fast change alike smeared motion badly: measured here,
- *   Hyperdrive at three times its pace showed 29 % of each new frame and lost
- *   a third of its picture, Crystal at four times showed half — and Crystal
- *   was slowed down in its own shader to work around it. Only the second
- *   swing of a pair is held, so at most one un-opposed swing of a strobe
- *   reaches the screen: half a flash, where WCAG allows three.
- * - Where it alternates, over enough of the picture: each pixel (at half
- *   resolution) keeps the SECONDS SINCE it last rose — since how far it has
- *   travelled one way, in luminance or in saturated red, turned from falling
- *   to rising. A rise less than a flash's period behind the last one is a
- *   flash too soon, and where that is true AND flashing covers a share of the
- *   area around it (`FLASH_AREA_START`), the pixel may change no faster than
- *   the frame limit. A rise and not a swing, because a flash is a PAIR of
- *   changes: see `flashStep`.
+ * It used to blend the last picture shown into the new one, and that is a
+ * ghost: a pixel held back shows what was there before, so on a scene moving
+ * fast the previous frame's detail is painted over this one. Hyperdrive at
+ * three times its pace came out with its old rings of tiles smeared across
+ * the new ones; Crystal at four times carried a second, torn outline of its
+ * gem; the Dancing Cat at twice its pace, mottled and doubled. Motion cannot
+ * be told from flashing pixel by pixel — a limb swinging back and forth over
+ * a bright floor is, at every pixel it crosses, a flash — so whatever a limit
+ * does to a pixel it does to motion too, and a remedy that reads the pixel's
+ * past draws that past. This one reads the past only through the calm field,
+ * where a moving thing is a soft patch of its own colour.
+ *
+ * There was a second limit, across the frame, on the average of those
+ * quarter-frame cells where it reversed. Measured on the driver it held only
+ * the one frame a picture turned on, and the picture arrived on the next, so
+ * it never changed what reached the screen; applied as a calming, it would
+ * have had to touch every pixel of a cell, flashing or not. It is gone.
  *
  * How: the scene draws into one of two offscreen textures, the other holding
- * its last frame. A state pass compares them and updates that state. The
- * composite blends the last picture shown toward the new one by just enough
- * for both limits, and the result is copied to the canvas. A new size carries
- * the last picture shown, the last frame and the state across, scaled, so
- * a panel resizing every frame is still limited.
+ * its last frame. A state pass compares them and updates that state; the calm
+ * field follows the new frame. The composite draws onto the canvas, calming
+ * what flashes and passing everything else exactly as drawn. A new size
+ * carries the last frame and the state across, scaled, and the calm field is
+ * the same patches at any size, so a panel resizing every frame is still
+ * limited.
  *
  * Official scenes do not go through this: they are watched before release.
  * NOT UNIT-TESTED beyond its arithmetic, for the same reason as `sceneGl.ts` —
@@ -54,16 +62,16 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * HELD, every one down to a fifth of a flash a second on screen: a square
  * strobe and a ramp that snaps back at 3.75, 4, 5, 6 and 10 flashes a second;
  * an isoluminant slide from grey to saturated red and back — relative
- * luminance pinned at 0.2126 the whole way, so the frame limit sees a still
- * picture — at 4.6 and 4 a second; a red square at 4; half the frame
- * flickering ten times a second.
+ * luminance pinned at 0.2126 the whole way, so a measure of luminance alone
+ * sees a still picture — at 4.6 and 4 a second; a red square at 4; half the
+ * frame flickering ten times a second.
  *
  * LEFT ALONE, every one at the whole of its own swing: a square strobe at
  * exactly three a second, which is WCAG's own boundary and allowed; a beat at
  * 150 BPM as a square, as a ramp and as a red ramp; a beat pulsing at 2 a
  * second; a ramp at 2; a picture breathing at 1; a bar sweeping across a dark
  * frame; and the strips a sixteenth and an eighth of the frame flickering ten
- * times a second — 100 % and 97 % — which are the flame tips and the sparkles
+ * times a second — 100 % and 100 % — which are the flame tips and the sparkles
  * this has twice been sent back for smearing.
  *
  * NONE OF THAT MOVES WITH THE FRAME RATE. Measured on the driver at 30, 60,
@@ -133,7 +141,8 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  */
 
 /**
- * Of full relative luminance, per second, where the picture is reversing.
+ * How fast a calmed region's colour may move: of full relative luminance, or
+ * of saturated red, per second.
  *
  * 0.35, not the 0.5 this was. Both are under the 0.6 that three flashes a
  * second need, but 0.5 is not under it by enough: a picture that RISES over a
@@ -167,42 +176,26 @@ export const FLASH_LIMIT_PER_SECOND = 0.28;
 /** A stalled frame earns no extra allowance: the change it permits is capped. */
 const MAX_FRAME_MS = 100;
 
-/** How far the coarse luminance may move this frame. */
+/** How far a calmed region's colour may move this frame. */
 export const flashAllowance = (deltaMs: number): number =>
   (FLASH_LIMIT_PER_SECOND * Math.max(0, Math.min(MAX_FRAME_MS, deltaMs))) /
   1000;
 
 /**
- * The share of the new frame to show over the last one, so a coarse luminance
- * change of `change` moves by at most `allowance`. Mirrors the shader below.
+ * The share of its move toward this frame's colour a calmed region makes, so
+ * a move of `change` — in luminance or in red, whichever is larger — comes to
+ * at most `allowance`. Mirrors COMPOSITE_SOURCE.
  */
-export const flashBlend = (change: number, allowance: number): number =>
+export const flashCalmShare = (change: number, allowance: number): number =>
   Math.abs(change) > allowance ? allowance / Math.abs(change) : 1;
-
-/** The mip level whose texels cover roughly a quarter of the frame. */
-export const flashLod = (width: number, height: number): number =>
-  Math.max(0, Math.log2(Math.max(width, height) / 4));
 
 /** The smallest swing WCAG counts as part of a flash: a tenth of full scale. */
 export const FLASH_SWING = 0.1;
 
 /**
- * Seconds in which the memory of the last coarse swing falls to 1/e: the
- * period of three flashes a second, so a reversal slower than the rate WCAG
- * forbids meets nothing to oppose and is left alone.
- */
-const COARSE_SECONDS = 1 / 3;
-
-/** What the memory of the last coarse swing is multiplied by over a frame. */
-export const flashCoarseDecay = (deltaMs: number): number =>
-  Math.exp(
-    -Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000 / COARSE_SECONDS,
-  );
-
-/**
- * How far the picture has travelled one way, and which way, carried into the
- * next frame. Mirrors `flashTravel` in the shader; see its comment for why
- * this is travel and not the last direction.
+ * How far a pixel has travelled one way, and which way, carried into the next
+ * frame. Mirrors `flashTravel` in the shader; see its comment for why this is
+ * travel and not the last direction.
  */
 export const flashTravelled = (
   travelled: number,
@@ -217,54 +210,6 @@ export const flashTravelled = (
   }
   const carried = travelled * swing < 0 ? swing : travelled * decay + swing;
   return Math.max(-1, Math.min(1, carried));
-};
-
-/**
- * Which way the coarse luminance has been moving, and how far, carried into
- * the next frame. Mirrors the alpha channel of STATE_SOURCE.
- *
- * It used to be the direction alone, set only when ONE FRAME swung by a tenth
- * of full scale — and a brightness ramped over eleven frames or more swings
- * by less than that every time, so it set nothing and the memory faded to
- * nothing. The instant drop at the end of such a ramp then had nothing to
- * oppose: a full-screen strobe at three to five and a half flashes a second,
- * the band that provokes seizures, went through untouched.
- */
-export const flashCoarseMemory = (
-  swing: number,
-  lastSwing: number,
-  deltaMs: number,
-): number => flashTravelled(lastSwing, swing, flashCoarseDecay(deltaMs));
-
-/** How fresh the memory of an opposing swing still is at this flash rate. */
-const freshnessAt = (flashesPerSecond: number) =>
-  Math.exp(-1 / (2 * flashesPerSecond) / COARSE_SECONDS);
-
-/**
- * Where a reversal starts counting as flashing and where it counts whole:
- * two flashes a second, which WCAG allows, and three, which it does not.
- */
-export const FLASH_REVERSAL_START = freshnessAt(2);
-export const FLASH_REVERSAL_FULL = freshnessAt(3);
-
-/**
- * How much of the coarse limit applies: nothing while the picture moves one
- * way or reverses slowly, all of it where this swing opposes one recent
- * enough to make three flashes a second. Smooth rather than a switch, or the
- * limit would snap on and be seen as a step in the brightness. Mirrors
- * COMPOSITE_SOURCE.
- */
-export const flashAlternating = (swing: number, lastSwing: number): number => {
-  const against = Math.max(0, -swing * lastSwing);
-  const t = Math.max(
-    0,
-    Math.min(
-      1,
-      (against - FLASH_REVERSAL_START) /
-        (FLASH_REVERSAL_FULL - FLASH_REVERSAL_START),
-    ),
-  );
-  return t * t * (3 - 2 * t);
 };
 
 /**
@@ -503,20 +448,30 @@ export const flashAreaLod = (width: number, height: number): number =>
   Math.max(0, Math.log2(Math.max(width, height) / (FLASH_AREA_WINDOW * 4)));
 
 const COLOUR_FUNCTIONS = `
-float luma(vec3 colour) {
-  vec3 linear = pow(max(colour, vec3(0.0)), vec3(2.2));
-  return dot(linear, vec3(0.2126, 0.7152, 0.0722));
+vec3 lightOf(vec3 colour) {
+  return pow(max(colour, vec3(0.0)), vec3(2.2));
+}
+
+float lumaOfLight(vec3 light) {
+  return dot(light, vec3(0.2126, 0.7152, 0.0722));
 }
 
 // Saturated red: red light well above both green and blue.
+float rednessOfLight(vec3 light) {
+  return max(0.0, light.r - max(light.g, light.b));
+}
+
+float luma(vec3 colour) {
+  return lumaOfLight(lightOf(colour));
+}
+
 float redness(vec3 colour) {
-  vec3 linear = pow(max(colour, vec3(0.0)), vec3(2.2));
-  return max(0.0, linear.r - max(linear.g, linear.b));
+  return rednessOfLight(lightOf(colour));
 }
 `;
 
 /**
- * How far the picture has travelled one way, and which way, in one number.
+ * How far a pixel has travelled one way, and which way, in one number.
  *
  * This used to be the direction alone, set only when ONE FRAME moved by a
  * tenth of full scale and faded otherwise — and that is what a flash was
@@ -529,23 +484,8 @@ float redness(vec3 colour) {
  *
  * Travel accumulates instead, decaying as it always did, so a slow rise is
  * remembered as the rise it is. A movement the other way starts the count
- * again from itself, which is what makes the DROP small against a gentle
- * turn and enormous against a sudden one: what the composite weighs is this
- * frame's travel against the last frame's, so a scene that breathes reverses
- * from a small new step and passes, and one that snaps back reverses from a
- * whole one and is held.
- *
- * Measured against the thresholds above: a ramp-and-drop reaches 0.54 at two
- * flashes a second, which WCAG allows and which this lets through, and 0.61
- * to 0.81 from two and a half up, which it does not and this holds.
- *
- * What it holds is the ONE frame the picture turns on, because `against` is a
- * product of two consecutive frames and is non-zero only where the sign
- * flips. Driven on a GPU, every sequence in the header comes out the same
- * with this and with the single-frame direction it replaced: what keeps a
- * picture held for the LENGTH of a flash is the pressure below, not this.
- * Worth having for the frame it does hold, worth nobody believing it is the
- * limiter.
+ * again from itself, which is what makes a turn after a rise a turn at all:
+ * `flashStep` counts the rises that come after a fall of a tenth.
  */
 const TRAVEL_FUNCTION = `
 float flashTravel(float last, float swing, float decay) {
@@ -562,12 +502,10 @@ uniform sampler2D uCurrent;
 uniform sampler2D uLastFrame;
 uniform sampler2D uState;
 uniform float uDecay;
-uniform float uCoarseDecay;
 /** Seconds this frame took, for the gap between turns. */
 uniform float uElapsed;
 /** What the flashing flag is multiplied by over this frame. */
 uniform float uFlashDecay;
-uniform float uLod;
 in vec2 vUv;
 out vec4 state;
 ${COLOUR_FUNCTIONS}${TRAVEL_FUNCTION}
@@ -608,75 +546,128 @@ void main() {
     ? old.b
     : old.b * uFlashDecay;
   float flashing = max(held, tooSoon);
-  // Alpha: the same memory over the quarter-frame average the composite
-  // limits, so it can tell a reversal from something crossing the cell. Read
-  // from the scene's own frames, never from the picture shown, or the limit
-  // would keep itself switched on.
-  float coarseSwing = luma(textureLod(uCurrent, vUv, uLod).rgb)
-    - luma(textureLod(uLastFrame, vUv, uLod).rgb);
-  float lastCoarse = old.a * 2.0 - 1.0;
-  float coarse = flashTravel(lastCoarse, coarseSwing, uCoarseDecay);
-  state = vec4(sinceTurn, remembered * 0.5 + 0.5, flashing, coarse * 0.5 + 0.5);
+  // Alpha is unused.
+  state = vec4(sinceTurn, remembered * 0.5 + 0.5, flashing, 0.0);
+}
+`;
+
+/**
+ * How much of a pixel is calmed, from how much of it is flashing — its flag,
+ * weighed by the share of the area around it that is flashing too, 0..1.
+ *
+ * The cube of that, not the share itself. Where a flash is whole the two
+ * agree. At the edges of one — the area gate's ramp, a flag letting go after
+ * the flashing stops — the share alone took a tenth off the swing of an
+ * eighth of the frame flickering ten times a second, which is a fire's flame
+ * tips, which WCAG leaves alone and which this has twice been sent back for
+ * smearing. The blend this replaced got its gentleness there for nothing, by
+ * converging over the flat frames between swings; a calming does not
+ * converge, it takes the same share every frame. Measured on the driver: the
+ * eighth keeps all of its swing with the cube, 89 % with the share, and 97 %
+ * under the old blend, and everything that must be held still is.
+ */
+export const FLASH_CALM_WEIGHT_SOURCE = 'flashing * flashing * flashing';
+
+/** `FLASH_CALM_WEIGHT_SOURCE`, as arithmetic. */
+export const flashCalmWeight = (flashing: number): number => flashing ** 3;
+
+/**
+ * Texels across each side of the calm field, whatever the panel's size or
+ * shape: each is a sixty-fourth of the frame.
+ *
+ * Chosen by looking, because the two ends fail in opposite ways. At eight
+ * across — a region of a quarter of the frame, where this started — a calmed
+ * pixel took the colour of a whole corner of the picture: the Dancing Cat at
+ * twice its pace, whose fur and bouncing edges read as flashing, came out as
+ * a grey blob where its body was. At a hundred and twenty-eight the field is
+ * fine enough to hold a picture of its own, and holds on to it: an inverting
+ * checkerboard stayed on the screen as its first frame, which is safe and is
+ * also the old blend's lag coming back, only blurred. At sixty-four the cat
+ * keeps its orange coat and its white chest and only goes soft where it
+ * flickers, Crystal at four times its pace keeps a gem where the blend tore
+ * it in two, and a checkerboard or a strobe is held as firmly as ever.
+ */
+export const FLASH_CALM_TEXELS = 64;
+
+/** The mip level of a `width x height` frame whose texels are a calm patch. */
+export const flashCalmLod = (width: number, height: number): number =>
+  Math.max(0, Math.log2(Math.max(width, height) / FLASH_CALM_TEXELS));
+
+/**
+ * The flag's mip level the calming reads: two levels of the half-size state,
+ * so it follows a flashing area eight pixels at a time rather than one. Read
+ * pixel by pixel, the flags along a tunnel's tiles and not between them
+ * striped the calmed area with the picture's own dark gaps.
+ */
+const FLAG_LOD = 2;
+
+/**
+ * The calm field: every region's colour, followed no faster than the limit.
+ *
+ * Each texel reads the frame blurred to its own size, in light, and moves its
+ * own colour toward that by at most the allowance, in luminance or in red,
+ * whichever moved more. It is kept for every region all the time, not only
+ * where something flashes, so a region that starts flashing is calmed from
+ * the colour it had and not from a jump. A calmed pixel shows this field and
+ * nothing else, so what it shows moves no faster than the limit whatever its
+ * neighbours do — which is the whole of the protection, and why it holds at
+ * any size of field.
+ */
+const CALM_SOURCE = `#version 300 es
+precision highp float;
+uniform sampler2D uCurrent;
+uniform sampler2D uCalm;
+uniform float uLod;
+uniform float uAllowance;
+uniform float uFirst;
+in vec2 vUv;
+out vec4 calmOut;
+${COLOUR_FUNCTIONS}
+void main() {
+  vec3 region = lightOf(textureLod(uCurrent, vUv, uLod).rgb);
+  if (uFirst > 0.5) {
+    calmOut = vec4(region, 1.0);
+    return;
+  }
+  vec3 was = texture(uCalm, vUv).rgb;
+  float change = max(
+    abs(lumaOfLight(region) - lumaOfLight(was)),
+    abs(rednessOfLight(region) - rednessOfLight(was)));
+  calmOut = vec4(
+    was + (region - was) * (change > uAllowance ? uAllowance / change : 1.0),
+    1.0);
 }
 `;
 
 const COMPOSITE_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uCurrent;
-uniform sampler2D uPrevious;
+uniform sampler2D uCalm;
 uniform sampler2D uState;
-/** The state as it was before this frame: the swing this one may oppose. */
-uniform sampler2D uWas;
-uniform float uLod;
 uniform float uAreaLod;
-uniform float uAllowance;
-uniform float uFirst;
 in vec2 vUv;
 out vec4 fragColor;
 ${COLOUR_FUNCTIONS}
-float changeOf(vec3 now, vec3 before) {
-  return max(abs(luma(now) - luma(before)), abs(redness(now) - redness(before)));
-}
-
 void main() {
   vec4 current = texture(uCurrent, vUv);
-  if (uFirst > 0.5) {
-    fragColor = current;
-    return;
-  }
-  vec4 previous = texture(uPrevious, vUv);
-  // Luminance only across the frame. Red is caught where it alternates,
-  // below; a quarter-frame average of redness also moved with every surge of
-  // a fire scene's flames, and smeared them when nothing flashed.
-  float coarse = abs(luma(textureLod(uCurrent, vUv, uLod).rgb)
-                   - luma(textureLod(uPrevious, vUv, uLod).rgb));
-  // Only where the scene's own coarse luminance is reversing. Its swing this
-  // frame and the one it follows come from the state pass, which reads the
-  // frames as drawn; something merely crossing the cell swings one way and
-  // is left alone however fast it goes.
-  float nowSwing = textureLod(uState, vUv, 0.0).a * 2.0 - 1.0;
-  float beforeSwing = textureLod(uWas, vUv, 0.0).a * 2.0 - 1.0;
-  float against = max(0.0, -nowSwing * beforeSwing);
-  float alternating = smoothstep(
-    ${FLASH_REVERSAL_START.toFixed(4)},
-    ${FLASH_REVERSAL_FULL.toFixed(4)},
-    against);
-  float frameBlend = mix(
-    1.0,
-    coarse > uAllowance ? uAllowance / coarse : 1.0,
-    alternating);
-  float pixel = changeOf(current.rgb, previous.rgb);
-  float pixelBlend = pixel > uAllowance ? uAllowance / pixel : 1.0;
+  // How much of this pixel is flashing: its flag (FLAG_LOD), weighed by how
+  // much of the area around it is flashing too (FLASH_AREA_START).
   vec2 reach = 0.5 * pow(2.0, uAreaLod) / vec2(textureSize(uState, 0));
   float area = 0.25 * (
       textureLod(uState, vUv + vec2(-reach.x, -reach.y), uAreaLod).b
     + textureLod(uState, vUv + vec2( reach.x, -reach.y), uAreaLod).b
     + textureLod(uState, vUv + vec2(-reach.x,  reach.y), uAreaLod).b
     + textureLod(uState, vUv + vec2( reach.x,  reach.y), uAreaLod).b);
-  float flashing = textureLod(uState, vUv, 0.0).b
+  float flashing = textureLod(uState, vUv, ${FLAG_LOD.toFixed(1)}).b
     * smoothstep(${FLASH_AREA_START.toFixed(2)}, ${FLASH_AREA_FULL.toFixed(2)}, area);
-  float blend = min(frameBlend, mix(1.0, pixelBlend, flashing));
-  fragColor = mix(previous, current, blend);
+  // Nothing flashing here: exactly what the scene drew.
+  if (flashing <= 0.0) {
+    fragColor = current;
+    return;
+  }
+  float calmed = ${FLASH_CALM_WEIGHT_SOURCE};
+  vec3 light = mix(lightOf(current.rgb), texture(uCalm, vUv).rgb, calmed);
+  fragColor = vec4(pow(light, vec3(1.0 / 2.2)), current.a);
 }
 `;
 
@@ -741,26 +732,10 @@ const link = (gl: WebGL2RenderingContext, fragmentSource: string) => {
 };
 
 /**
- * Which scenes are drawn through the limiter, in one place because it was in
- * four and they disagreed: the Studio's stage showed a scene as it is while
- * the graph showed the same scene ghosted, and the listener had made it.
- *
- * A scene the listener made themselves is one they have watched — they built
- * it, and the Studio's stage is where they watched it. The limiter is for the
- * others: a scene that arrives from another member, or from the gallery, and
- * reaches somebody's eyes with nobody having seen it first.
- *
- * Holding a flash back means blending the last picture shown into the new
- * one, so on a scene moving fast it paints the previous frame's detail over
- * this one — a gem at full speed carrying two sets of facets, a tenth of the
- * picture wrong. That is a price worth paying against a stranger's scene and
- * not against your own.
+ * `null` when the GPU cannot give it what it needs — the scene then must not
+ * run. Which scenes are drawn through it is decided in `sceneRules.ts`, from
+ * who made them, and nowhere else.
  */
-export type TSceneMaker = 'fluideq' | 'listener' | 'member';
-
-export const limiterIsFor = (madeBy: TSceneMaker) => madeBy === 'member';
-
-/** `null` when the GPU cannot give it what it needs — the scene then must not run. */
 export const createFlashGuard = (
   gl: WebGL2RenderingContext,
 ): IFlashGuard | null => {
@@ -782,29 +757,31 @@ export const createFlashGuard = (
   }
   const composite = link(gl, COMPOSITE_SOURCE);
   const stateProgram = link(gl, STATE_SOURCE);
+  const calmProgram = link(gl, CALM_SOURCE);
   const vao = gl.createVertexArray();
-  if (!composite || !stateProgram || !vao) {
+  if (!composite || !stateProgram || !calmProgram || !vao) {
     return null;
   }
   const where = {
     current: gl.getUniformLocation(composite, 'uCurrent'),
-    previous: gl.getUniformLocation(composite, 'uPrevious'),
+    calm: gl.getUniformLocation(composite, 'uCalm'),
     state: gl.getUniformLocation(composite, 'uState'),
-    was: gl.getUniformLocation(composite, 'uWas'),
-    lod: gl.getUniformLocation(composite, 'uLod'),
     areaLod: gl.getUniformLocation(composite, 'uAreaLod'),
-    allowance: gl.getUniformLocation(composite, 'uAllowance'),
-    first: gl.getUniformLocation(composite, 'uFirst'),
   };
   const stateWhere = {
     current: gl.getUniformLocation(stateProgram, 'uCurrent'),
     lastFrame: gl.getUniformLocation(stateProgram, 'uLastFrame'),
     state: gl.getUniformLocation(stateProgram, 'uState'),
     decay: gl.getUniformLocation(stateProgram, 'uDecay'),
-    coarseDecay: gl.getUniformLocation(stateProgram, 'uCoarseDecay'),
     elapsed: gl.getUniformLocation(stateProgram, 'uElapsed'),
     flashDecay: gl.getUniformLocation(stateProgram, 'uFlashDecay'),
-    lod: gl.getUniformLocation(stateProgram, 'uLod'),
+  };
+  const calmWhere = {
+    current: gl.getUniformLocation(calmProgram, 'uCurrent'),
+    calm: gl.getUniformLocation(calmProgram, 'uCalm'),
+    lod: gl.getUniformLocation(calmProgram, 'uLod'),
+    allowance: gl.getUniformLocation(calmProgram, 'uAllowance'),
+    first: gl.getUniformLocation(calmProgram, 'uFirst'),
   };
 
   let width = 0;
@@ -813,11 +790,12 @@ export const createFlashGuard = (
   let frames: [ITarget, ITarget] | undefined;
   let drawn = 0;
   let hasFrame = false;
-  let shown: [ITarget, ITarget] | undefined;
-  let latest = 0;
-  let hasShown = false;
   let pressure: [ITarget, ITarget] | undefined;
   let pressureLatest = 0;
+  /** The calm field (CALM_SOURCE), and whether it has been filled yet. */
+  let calm: [ITarget, ITarget] | undefined;
+  let calmLatest = 0;
+  let hasCalm = false;
 
   const release = (target: ITarget | undefined) => {
     if (target) {
@@ -834,9 +812,11 @@ export const createFlashGuard = (
     targetWidth: number,
     targetHeight: number,
     mipmapped: boolean,
-    /** Half floats, for the state, whose gap eight bits cannot carry. */
+    /** Half floats, for the state and the calm field, which eight bits
+     * cannot carry: a gap counted a frame at a time, and light moved by
+     * a few thousandths a frame. */
     precise: boolean,
-    /** What an untouched texel reads as. The state's two memories mean "no
+    /** What an untouched texel reads as. The state's travel means "no
      * swing" at a half, not at zero, which would read as a full swing down. */
     clear: readonly [number, number, number, number] = [0, 0, 0, 0],
   ): ITarget | undefined => {
@@ -857,9 +837,9 @@ export const createFlashGuard = (
       precise ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE,
       null,
     );
-    // Mipmapped: the coarse luminance and the flashing share are read from
-    // high levels. A texture that asks for levels it has never been given
-    // samples as black, so every one is given them below and after each write.
+    // Mipmapped: the region colour and the flashing share are read from high
+    // levels. A texture that asks for levels it has never been given samples
+    // as black, so every one is given them below and after each write.
     gl.texParameteri(
       gl.TEXTURE_2D,
       gl.TEXTURE_MIN_FILTER,
@@ -924,14 +904,13 @@ export const createFlashGuard = (
   };
 
   const resize = (nextWidth: number, nextHeight: number) => {
-    const old = { frames, drawn, shown, latest, pressure, pressureLatest };
+    const old = { frames, drawn, pressure, pressureLatest };
     width = nextWidth;
     height = nextHeight;
     // Clearing a new target and every carry below must reach every pixel.
     const scissored = gl.isEnabled(gl.SCISSOR_TEST);
     gl.disable(gl.SCISSOR_TEST);
     frames = makePair(width, height, true, false);
-    shown = makePair(width, height, true, false);
     pressure = makePair(
       Math.max(1, Math.ceil(width / 2)),
       Math.max(1, Math.ceil(height / 2)),
@@ -941,19 +920,14 @@ export const createFlashGuard = (
       // last turn, and a fresh pixel has never turned. Cleared to zero it
       // would read as having turned this instant, and the first turn it ever
       // saw would come "too soon" after one that never happened — one cut on
-      // a beat, on a scene just started, held as a flash. The two travel
-      // memories mean "no swing" at a half, as before; the flashing flag
-      // starts off.
-      [FLASH_STATE_REST.sinceTurn, 0.5, FLASH_STATE_REST.flashing, 0.5],
+      // a beat, on a scene just started, held as a flash. The travel means
+      // "no swing" at a half; the flashing flag starts off; alpha is unused.
+      [FLASH_STATE_REST.sinceTurn, 0.5, FLASH_STATE_REST.flashing, 0],
     );
-    // The last picture shown, the last frame and the pressure, scaled into
-    // the new size, are what the next frame is limited against; only a guard
-    // that never showed a picture starts unlimited.
-    if (hasShown && old.shown && shown) {
-      carry(old.shown[old.latest], shown[latest], true);
-    } else {
-      hasShown = false;
-    }
+    // The calm field is the same few texels at any size, laid over the frame,
+    // so it goes on as it was; the last frame and the state are scaled into
+    // the new size, so a panel resizing every frame is still limited.
+    calm ??= makePair(FLASH_CALM_TEXELS, FLASH_CALM_TEXELS, false, true);
     if (hasFrame && old.frames && frames) {
       carry(old.frames[old.drawn], frames[drawn], true);
     } else {
@@ -966,7 +940,6 @@ export const createFlashGuard = (
       gl.enable(gl.SCISSOR_TEST);
     }
     releasePair(old.frames);
-    releasePair(old.shown);
     releasePair(old.pressure);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   };
@@ -977,8 +950,6 @@ export const createFlashGuard = (
     }
     const before = pressure[pressureLatest];
     const after = pressure[1 - pressureLatest];
-    const scissored = gl.isEnabled(gl.SCISSOR_TEST);
-    gl.disable(gl.SCISSOR_TEST);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, current.texture);
     gl.activeTexture(gl.TEXTURE1);
@@ -998,18 +969,36 @@ export const createFlashGuard = (
       Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000,
     );
     gl.uniform1f(stateWhere.flashDecay, flashingDecay(deltaMs));
-    gl.uniform1f(stateWhere.coarseDecay, flashCoarseDecay(deltaMs));
-    // The frame's own size, not the half-size state's: the coarse level is
-    // read from the frame textures.
-    gl.uniform1f(stateWhere.lod, flashLod(width, height));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     // Its levels are the share of each area that is flashing.
     gl.bindTexture(gl.TEXTURE_2D, after.texture);
     gl.generateMipmap(gl.TEXTURE_2D);
-    if (scissored) {
-      gl.enable(gl.SCISSOR_TEST);
-    }
     pressureLatest = 1 - pressureLatest;
+  };
+
+  const updateCalm = (current: ITarget, deltaMs: number) => {
+    if (!calm) {
+      return;
+    }
+    const before = calm[calmLatest];
+    const after = calm[1 - calmLatest];
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, current.texture);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, before.texture);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, after.framebuffer);
+    gl.viewport(0, 0, after.width, after.height);
+    gl.useProgram(calmProgram);
+    gl.bindVertexArray(vao);
+    gl.uniform1i(calmWhere.current, 0);
+    gl.uniform1i(calmWhere.calm, 1);
+    // The frame blurred to the field's own patch size.
+    gl.uniform1f(calmWhere.lod, flashCalmLod(width, height));
+    gl.uniform1f(calmWhere.allowance, flashAllowance(deltaMs));
+    gl.uniform1f(calmWhere.first, hasCalm ? 0 : 1);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    calmLatest = 1 - calmLatest;
+    hasCalm = true;
   };
 
   return {
@@ -1028,83 +1017,61 @@ export const createFlashGuard = (
       }
     },
     end: (deltaMs, destination) => {
-      if (!frames || !shown || !pressure) {
+      if (!frames || !pressure || !calm) {
         return false;
       }
       const current = frames[1 - drawn];
       const last = frames[drawn];
-      const previous = shown[latest];
-      const next = shown[1 - latest];
 
+      // The state and the calm field reach every texel, whatever part of the
+      // panel is on screen.
+      const scissored = gl.isEnabled(gl.SCISSOR_TEST);
+      gl.disable(gl.SCISSOR_TEST);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, current.texture);
       gl.generateMipmap(gl.TEXTURE_2D);
       if (hasFrame) {
         updatePressure(current, last, deltaMs);
       }
+      updateCalm(current, deltaMs);
+      if (scissored) {
+        gl.enable(gl.SCISSOR_TEST);
+      }
 
+      // Straight onto the destination, under the same scissor the scene was
+      // drawn with, so only the part of the panel on screen is touched.
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, current.texture);
       gl.activeTexture(gl.TEXTURE1);
-      gl.bindTexture(gl.TEXTURE_2D, previous.texture);
-      if (hasShown) {
-        gl.generateMipmap(gl.TEXTURE_2D);
-      }
+      gl.bindTexture(gl.TEXTURE_2D, calm[calmLatest].texture);
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, pressure[pressureLatest].texture);
-      // The state before this frame, which `updatePressure` has just left as
-      // the other half of the pair: what this frame's swing may oppose.
-      gl.activeTexture(gl.TEXTURE3);
-      gl.bindTexture(gl.TEXTURE_2D, pressure[1 - pressureLatest].texture);
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, next.framebuffer);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, destination);
       gl.viewport(0, 0, width, height);
       gl.useProgram(composite);
       gl.bindVertexArray(vao);
       gl.uniform1i(where.current, 0);
-      gl.uniform1i(where.previous, 1);
+      gl.uniform1i(where.calm, 1);
       gl.uniform1i(where.state, 2);
-      gl.uniform1i(where.was, 3);
-      gl.uniform1f(where.lod, flashLod(width, height));
       gl.uniform1f(where.areaLod, flashAreaLod(width, height));
-      gl.uniform1f(where.allowance, flashAllowance(deltaMs));
-      gl.uniform1f(where.first, hasShown ? 0 : 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-      // Onto the destination. The blit honours the same scissor as the scene
-      // did, so only the part of the panel on screen is touched.
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, next.framebuffer);
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, destination);
-      gl.blitFramebuffer(
-        0,
-        0,
-        width,
-        height,
-        0,
-        0,
-        width,
-        height,
-        gl.COLOR_BUFFER_BIT,
-        gl.NEAREST,
-      );
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.activeTexture(gl.TEXTURE0);
-      latest = 1 - latest;
-      hasShown = true;
       drawn = 1 - drawn;
       hasFrame = true;
       return true;
     },
     dispose: () => {
       releasePair(frames);
-      releasePair(shown);
       releasePair(pressure);
+      releasePair(calm);
       frames = undefined;
-      shown = undefined;
       pressure = undefined;
+      calm = undefined;
       gl.deleteVertexArray(vao);
       gl.deleteProgram(composite);
       gl.deleteProgram(stateProgram);
+      gl.deleteProgram(calmProgram);
     },
   };
 };

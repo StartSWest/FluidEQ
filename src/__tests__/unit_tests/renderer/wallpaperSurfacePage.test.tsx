@@ -6,20 +6,32 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { act, render } from '@testing-library/react';
 import type {
+  IWallpaperAudio,
   IWallpaperBootstrap,
   IWallpaperSurfaceBridge,
   IWallpaperSurfaceState,
 } from '../../../common/wallpaper';
+import type { ISceneAudio } from '../../../renderer/audio/SceneAudioContext';
 import type { ISceneRunnerOptions } from '../../../renderer/graph/useSceneRunner';
 
 const mockRunnerCalls: ISceneRunnerOptions[] = [];
-jest.mock('../../../renderer/graph/useSceneRunner', () => ({
-  __esModule: true,
-  default: (options: ISceneRunnerOptions) => {
-    mockRunnerCalls.push(options);
-    return { current: null };
-  },
-}));
+/** The music as the runner reads it, once for every frame it draws. */
+let mockAudio: ISceneAudio | undefined;
+jest.mock('../../../renderer/graph/useSceneRunner', () => {
+  const { useSceneAudio } = jest.requireActual(
+    '../../../renderer/audio/SceneAudioContext',
+  );
+  return {
+    __esModule: true,
+    // A hook, as the runner is: it reads the page's music the way the real
+    // runner does, from the provider around it.
+    default: function useMockSceneRunner(options: ISceneRunnerOptions) {
+      mockRunnerCalls.push(options);
+      mockAudio = useSceneAudio();
+      return { current: null };
+    },
+  };
+});
 
 /* eslint-disable import/first -- install the runner mock first */
 import WallpaperSurface from '../../../renderer/wallpaper/WallpaperSurface';
@@ -28,18 +40,31 @@ import WallpaperSurface from '../../../renderer/wallpaper/WallpaperSurface';
 const lastRun = (): ISceneRunnerOptions | undefined =>
   mockRunnerCalls[mockRunnerCalls.length - 1];
 
-const frames: FrameRequestCallback[] = [];
-const runFrames = async (count: number) => {
-  for (let index = 0; index < count; index += 1) {
-    const due = frames.splice(0);
-    // eslint-disable-next-line no-await-in-loop -- each frame's read settles before the next frame
-    await act(async () => {
-      due.forEach((callback) => callback(performance.now() + index * 50));
-    });
-  }
+/** One frame drawn: the read the runner makes for it. */
+const drawFrame = () => mockAudio?.readFrame();
+
+/** An answer from main that arrives only when the test says so. */
+const deferred = () => {
+  let settle: (frame: IWallpaperAudio) => void = () => undefined;
+  const promise = new Promise<IWallpaperAudio>((resolve) => {
+    settle = resolve;
+  });
+  return {
+    promise,
+    answer: (frame: IWallpaperAudio) => act(async () => settle(frame)),
+  };
 };
 
-const pageFor = (state: IWallpaperSurfaceState) => {
+const LOUD: IWallpaperAudio = {
+  points: [{ x: 100, y: -12 }],
+  waveform: [0.5, -0.5],
+  stereo: [0.25, 0.8],
+};
+
+const pageFor = (
+  state: IWallpaperSurfaceState,
+  madeBy: IWallpaperBootstrap['madeBy'] = 'fluideq',
+) => {
   let push: ((next: IWallpaperSurfaceState) => void) | undefined;
   const bridge: IWallpaperSurfaceBridge = {
     bootstrap: jest.fn(async (): Promise<IWallpaperBootstrap> => ({
@@ -48,7 +73,7 @@ const pageFor = (state: IWallpaperSurfaceState) => {
         version: 49,
         names: { en: 'Alpine' },
       } as never,
-      member: false,
+      madeBy,
       state,
     })),
     drawn: jest.fn(),
@@ -67,15 +92,8 @@ const pageFor = (state: IWallpaperSurfaceState) => {
 
 beforeEach(() => {
   mockRunnerCalls.length = 0;
-  frames.length = 0;
-  jest
-    .spyOn(window, 'requestAnimationFrame')
-    .mockImplementation((callback) => frames.push(callback));
-  jest
-    .spyOn(window, 'cancelAnimationFrame')
-    .mockImplementation(() => undefined);
+  mockAudio = undefined;
 });
-afterEach(() => jest.restoreAllMocks());
 
 const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
   phase: 'running' as const,
@@ -114,25 +132,73 @@ describe('a desktop background’s page', () => {
     expect(lastRun()?.tuning).toBeUndefined();
   });
 
-  it('asks for the music on its animation frames while it follows the music', async () => {
+  // It used to read on a clock of its own at thirty a second, so on a display
+  // drawing faster everything the music moved stepped at thirty beside a
+  // graph that heard it on every frame.
+  it('reads the music for each frame it draws, one read on the wire at a time', async () => {
     const { bridge } = pageFor(running());
+    const first = deferred();
+    const second = deferred();
+    (bridge.requestAudio as jest.Mock)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
     render(<WallpaperSurface bridge={bridge} />);
     await act(async () => undefined);
-    await runFrames(4);
-    expect(bridge.requestAudio).toHaveBeenCalled();
+    expect(bridge.requestAudio).not.toHaveBeenCalled();
+
+    // Nothing heard yet: the first frame draws silence and asks.
+    expect(drawFrame()).toEqual({ points: [], waveform: [] });
+    expect(bridge.requestAudio).toHaveBeenCalledTimes(1);
+    // Frames drawn while that answer is on its way ask for nothing more.
+    drawFrame();
+    drawFrame();
+    expect(bridge.requestAudio).toHaveBeenCalledTimes(1);
+
+    await first.answer(LOUD);
+    // The next frame draws the newest answer, stereo and all, and asks again.
+    expect(drawFrame()).toEqual(LOUD);
+    expect(bridge.requestAudio).toHaveBeenCalledTimes(2);
   });
 
   it('never asks for the music while it is calm, and starts again when set back', async () => {
     const { bridge, push } = pageFor(running({ motion: 'calm' }));
     render(<WallpaperSurface bridge={bridge} />);
     await act(async () => undefined);
-    await runFrames(6);
+    for (let frame = 0; frame < 6; frame += 1) {
+      expect(drawFrame()).toEqual({ points: [], waveform: [] });
+    }
     expect(bridge.requestAudio).not.toHaveBeenCalled();
     expect(lastRun()?.shapeFrame).toBeDefined();
 
     await push(running({ motion: 'music' }));
-    await runFrames(4);
-    expect(bridge.requestAudio).toHaveBeenCalled();
+    drawFrame();
+    expect(bridge.requestAudio).toHaveBeenCalledTimes(1);
+  });
+
+  // An answer asked for before a switch to calm belongs to the music that
+  // was playing then; drawn after it, the calm background would twitch once.
+  it('drops an answer that arrives after it was set calm', async () => {
+    const { bridge, push } = pageFor(running());
+    const late = deferred();
+    (bridge.requestAudio as jest.Mock).mockReturnValueOnce(late.promise);
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    drawFrame();
+
+    await push(running({ motion: 'calm' }));
+    await late.answer(LOUD);
+    expect(drawFrame()).toEqual({ points: [], waveform: [] });
+    expect(bridge.requestAudio).toHaveBeenCalledTimes(1);
+  });
+
+  // Told only that a member had made it, the page ran the listener's own
+  // scene through the brightness limiter and ghosted it on the desktop while
+  // the Studio showed it clean.
+  it('runs the scene as main says who made it', async () => {
+    const { bridge } = pageFor(running(), 'listener');
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    expect(lastRun()?.source.madeBy).toBe('listener');
   });
 
   // The band used to be [0, 0, 1, 1]: no width, on the top edge.
@@ -169,7 +235,7 @@ describe('a desktop background’s page', () => {
     // The same scene, not a new one, and no music read for it meanwhile.
     expect(lastRun()?.source).toBe(source);
     (bridge.requestAudio as jest.Mock).mockClear();
-    await runFrames(4);
+    drawFrame();
     expect(bridge.requestAudio).not.toHaveBeenCalled();
 
     await push(running());

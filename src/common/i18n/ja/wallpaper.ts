@@ -27,6 +27,9 @@ const wallpaper = {
   'wallpaper.motion.calm': '穏やか',
   'wallpaper.motion.calm.hint':
     '音楽に反応しない、ゆっくりとした静かなアニメーションです。',
+  'wallpaper.follow': 'グラフに合わせる',
+  'wallpaper.follow.hint':
+    'グラフに表示中の Plus ビジュアライザーを表示し、手動でも自動切り替えでも一緒に切り替わります。グラフに Plus 以外のビジュアライザーが表示されている間は、最後の Plus ビジュアライザーのままです。',
   'wallpaper.cancel': 'キャンセル',
   'wallpaper.done': '完了',
   'wallpaper.start': '背景に設定',

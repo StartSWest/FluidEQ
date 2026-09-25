@@ -9,12 +9,12 @@ import {
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
 import type { IReportedScene } from 'common/plusModeration';
+import { sceneMakerOf } from 'common/sceneMaker';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
-import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import BrandMark from '../icons/BrandMark';
@@ -115,14 +115,12 @@ export default function ScenePage({
   const [reported, setReported] = useState(false);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
-  // Who made it decides whether the stranger's-scene brightness limiter runs,
-  // and FluidEQ's own collection is not a stranger's: the graph never limits
-  // it. Asked from the author's account alone, every official scene looked
-  // like a member's to anyone but its publisher, and the limiter - which holds
-  // a fast change back by blending frames - drew ghosts through Aurora's
+  // Who made it decides how it is run (`sceneRules.ts`), and FluidEQ's own
+  // collection is not a stranger's: the graph never limits it. Asked from the
+  // author's account alone, every official scene looked like a member's to
+  // anyone but its publisher, and the limiter drew ghosts through Aurora's
   // curtain here and nowhere else in the app.
-  const theirs: TSceneMaker = own ? 'listener' : 'member';
-  const madeBy: TSceneMaker = scene.official ? 'fluideq' : theirs;
+  const madeBy = sceneMakerOf({ member: !scene.official, own });
   const makerName = own
     ? t('plus.card.byYou')
     : t('plus.card.by', {

@@ -304,6 +304,7 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
             pack={scene.pack}
             label={scene.label}
             tuning={scene.tuning}
+            wave={scene.wave}
             // Nothing to report from here: the graph is where a scene that
             // cannot be run says so, and the free look it falls back to is
             // what this draws in the meantime.

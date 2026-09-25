@@ -247,6 +247,7 @@ const VisDeck = ({ height }: { height: number }) => {
             pack={scene.pack}
             label={scene.label}
             tuning={scene.tuning}
+            wave={scene.wave}
             onTrouble={onTrouble}
           />
         )}

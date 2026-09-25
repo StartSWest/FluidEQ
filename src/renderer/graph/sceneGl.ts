@@ -38,6 +38,14 @@ export interface ISceneFrame {
   musicRun: readonly [number, number];
   accent: readonly [number, number, number];
   fade: number;
+  /**
+   * Whether anything is being played to the scene: the music, or the
+   * Studio's made-up music. Not silence, and not a desktop's calm motion,
+   * which nobody plays. A scene played nothing for a while rests
+   * (`sceneRest.ts`), in every place alike. Never handed to a scene; absent
+   * where nothing is played at all (a still, the lamps).
+   */
+  playing?: boolean;
   spectrum: Uint8Array;
   spectrumRect?: readonly [number, number, number, number];
   waveform: Uint8Array;

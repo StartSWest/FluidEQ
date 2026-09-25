@@ -5,8 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useMemo, useState } from 'react';
+import { sceneMakerOf, type TSceneMaker } from 'common/sceneMaker';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
-import type { TSceneMaker } from '../graph/sceneFlashGuard';
+import type { ISceneWave } from 'common/sceneWave';
 import type { TDrawableScene } from '../graph/SceneCanvas';
 import type { ISceneTuning } from '../graph/sceneTuner';
 import { useSceneLook } from '../utils/graphStyle';
@@ -14,6 +15,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { loadMemberScene } from '../utils/memberScenes';
 import { useListenerParams } from '../utils/sceneParamStore';
 import { useListenerResponse } from '../utils/sceneResponseStore';
+import { useWatchedSceneWave } from '../utils/sceneWaveStore';
 import { loadScenePack } from '../utils/scenePacks';
 
 const isMember = (scene: TDrawableScene) =>
@@ -29,6 +31,8 @@ export interface IGraphScenePack {
   madeBy: TSceneMaker;
   label: string;
   tuning: ISceneTuning | undefined;
+  /** The wave the listener watches it with, as the desktop draws it. */
+  wave: ISceneWave;
 }
 
 /**
@@ -48,7 +52,7 @@ type TLoad =
 
 /**
  * The Plus visualizer the graph is set to, as the listener has it there —
- * the same pack, their own response and settings for it — loaded for a
+ * the same pack, their own response, settings and wave for it — loaded for a
  * player outside the graph.
  */
 const useGraphScenePack = (): TGraphScene => {
@@ -109,6 +113,8 @@ const useGraphScenePack = (): TGraphScene => {
         : undefined,
     [params, response],
   );
+  const current = loaded?.key === loadKey ? loaded.pack : undefined;
+  const wave = useWatchedSceneWave(lookId, current?.wave);
 
   if (!scene) {
     return { state: 'none' };
@@ -119,18 +125,18 @@ const useGraphScenePack = (): TGraphScene => {
   if (!loaded.pack) {
     return { state: 'failed' };
   }
-  let madeBy: TSceneMaker = 'fluideq';
-  if (isMember(scene)) {
-    madeBy = 'own' in scene && scene.own ? 'listener' : 'member';
-  }
   return {
     state: 'ready',
     identity: loadKey,
     lookId,
     pack: loaded.pack,
-    madeBy,
+    madeBy: sceneMakerOf({
+      member: isMember(scene),
+      own: 'own' in scene && scene.own,
+    }),
     label: resolveSceneName(loaded.pack, locale),
     tuning,
+    wave,
   };
 };
 

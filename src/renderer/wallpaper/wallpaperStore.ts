@@ -23,6 +23,7 @@ interface IWallpaperBridge {
   startWallpaper?: (request: IWallpaperStart) => Promise<unknown>;
   stopWallpaper?: (displayIds?: number[]) => Promise<unknown>;
   setSceneTuning?: (tuning: Record<string, IWallpaperTuning>) => void;
+  setGraphLook?: (lookId: string) => void;
   onWallpaperState?: (listener: (state: unknown) => void) => () => void;
 }
 
@@ -148,6 +149,14 @@ const mutate = async (
  */
 export const sendSceneTuning = (tuning: Record<string, IWallpaperTuning>) => {
   bridge()?.setSceneTuning?.(tuning);
+};
+
+/**
+ * The Plus visualizer the graph shows, for the monitors set to follow it.
+ * Main keeps the last one it was told; nothing comes back.
+ */
+export const sendGraphLook = (lookId: string) => {
+  bridge()?.setGraphLook?.(lookId);
 };
 
 export const startWallpaper = (

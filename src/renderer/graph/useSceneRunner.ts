@@ -18,7 +18,6 @@ import { useSceneMotionSpeed } from './sceneMotionSpeed';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence, judgedIntervalMs } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
-import { limiterIsFor } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
 import {
   SCENE_SLOW_FRAMES_TO_STEP,
@@ -31,6 +30,7 @@ import {
   SCENE_REST_PACE_MS,
   type IRestWatch,
 } from './sceneRest';
+import { sceneRulesFor } from './sceneRules';
 import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
@@ -134,7 +134,7 @@ export default function useSceneRunner({
   const spectrumRef = useRef(createSpectrumTexels());
   const waveformRef = useRef(createWaveformTexels());
   const ladderRef = useRef<ICostLadder>(
-    source.createLadder(1, performance.autoFloor),
+    sceneRulesFor(source.madeBy).createLadder(1, performance.autoFloor),
   );
   /** The largest scale the ladder was made for: 1, or the supersampled size. */
   const ladderTopRef = useRef(1);
@@ -263,14 +263,6 @@ export default function useSceneRunner({
         ? fresh.waveform
         : waveformSamplesRef.current;
       const isPlaying = currentPoints.length > 0;
-      // Resting is judged on what this frame hears, before the pace is read
-      // below: the first frame with sound in it is drawn at full rate.
-      if (sourceRef.current.restsInSilence) {
-        restRef.current.frame(
-          now,
-          !isPlaying || isSilentWaveform(currentWaveform),
-        );
-      }
 
       // Sized inside the loop, as the 2D canvas is, because the pixel ratio is
       // not only a property of the element: dragging the window onto a display
@@ -308,7 +300,9 @@ export default function useSceneRunner({
       if (top !== ladderTopRef.current) {
         ladderTopRef.current = top;
         ladderFloorRef.current = autoFloor;
-        ladderRef.current = sourceRef.current.createLadder(top, autoFloor);
+        ladderRef.current = sceneRulesFor(
+          sourceRef.current.madeBy,
+        ).createLadder(top, autoFloor);
         const proved =
           ladderProgramRef.current === undefined
             ? undefined
@@ -380,12 +374,18 @@ export default function useSceneRunner({
         musicRun: [energy.run, energy.runSpeed],
         accent: accentRef.current,
         fade: fadeRef.current,
+        playing: isPlaying && !isSilentWaveform(currentWaveform),
         spectrum: spectrumRef.current,
         spectrumRect: spectrumRectRef.current,
         waveform: waveformRef.current,
         params: paramsRef.current,
       };
       const shaped = shapeRef.current ? shapeRef.current(heard) : heard;
+      // Every scene rests the same way, wherever it plays, judged on what it
+      // is played once its place has had its say — the Studio's made-up music
+      // is played, a desktop's calm motion is not — and before the pace is
+      // read below, so the first frame with sound in it is drawn at full rate.
+      restRef.current.frame(now, !shaped.playing);
       const frame = tunerRef.current.apply(
         shaped,
         deltaMs,
@@ -611,10 +611,9 @@ export default function useSceneRunner({
         },
         () => {
           drawnAtRef.current = undefined;
-          ladderRef.current = sourceRef.current.createLadder(
-            ladderTopRef.current,
-            ladderFloorRef.current,
-          );
+          ladderRef.current = sceneRulesFor(
+            sourceRef.current.madeBy,
+          ).createLadder(ladderTopRef.current, ladderFloorRef.current);
           const proved =
             ladderProgramRef.current === undefined
               ? undefined
@@ -638,12 +637,13 @@ export default function useSceneRunner({
   /** A worker prepares the next scene while the interface remains available. */
   const build = useCallback(
     async (pack: IScenePack) => {
+      const rules = sceneRulesFor(sourceRef.current.madeBy);
       // Unseen, it waits to be seen before it costs a worker.
       if (!shownRef.current) {
         shelvedRef.current = pack;
         setWaiting(true);
-        if (sourceRef.current.warmWhenUnseen) {
-          warmSceneProgram(pack, limiterIsFor(sourceRef.current.madeBy));
+        if (rules.warmWhenUnseen) {
+          warmSceneProgram(pack, rules.limited);
         }
         return;
       }
@@ -676,10 +676,7 @@ export default function useSceneRunner({
       setWaiting(true);
       let result;
       try {
-        result = await renderer.load(
-          pack,
-          limiterIsFor(sourceRef.current.madeBy),
-        );
+        result = await renderer.load(pack, rules.limited);
       } finally {
         if (generation === generationRef.current) {
           buildingRef.current = false;
@@ -716,7 +713,7 @@ export default function useSceneRunner({
         );
         const program = `${sourceRef.current.identity}\n${sceneProgramKey(pack)}`;
         if (result.rebuilt && program !== ladderProgramRef.current) {
-          ladderRef.current = sourceRef.current.createLadder(
+          ladderRef.current = rules.createLadder(
             ladderTopRef.current,
             ladderFloorRef.current,
           );
@@ -752,7 +749,7 @@ export default function useSceneRunner({
   }, [source.identity, startRenderer, dropProgram]);
 
   // A different scene starts from the beginning: clock, fade, energy, and a
-  // limiter only if this one asks for it.
+  // limiter only if who made it calls for one.
   useEffect(() => {
     fadeRef.current = 0;
     clockRef.current = 0;

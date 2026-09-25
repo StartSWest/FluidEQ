@@ -73,6 +73,7 @@ import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
+import WallpaperGraphLook from './wallpaper/WallpaperGraphLook';
 import WallpaperTuning from './wallpaper/WallpaperTuning';
 import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
 import { GenreNotesHost } from './dsp/GenreNotesDialog';
@@ -3309,10 +3310,11 @@ export default function App() {
             <DynamicLightingLoop />
             {/* The desktop background's music, read for its monitors while
                 any plays; what every visualizer is set to, for the monitors
-                showing one; and its dialogs, which outlive the menus that
-                open them. */}
+                showing one; the graph's own, for the monitors following it;
+                and its dialogs, which outlive the menus that open them. */}
             <WallpaperAudio />
             <WallpaperTuning />
+            <WallpaperGraphLook />
             <WallpaperDialogHost />
             {/* A genre's notes, for the same reason: two of the places that
                 open them are menus, which close when pressed. */}

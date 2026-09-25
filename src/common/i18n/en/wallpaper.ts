@@ -27,6 +27,9 @@ const wallpaper = {
   'wallpaper.motion.calm': 'Calm',
   'wallpaper.motion.calm.hint':
     'A slow, quiet animation that ignores the music.',
+  'wallpaper.follow': 'Follow graph',
+  'wallpaper.follow.hint':
+    'Shows the Plus visualizer the graph is showing and changes with it, whether you pick it or automatic switching does. While the graph shows a visualizer that isn’t Plus, this screen keeps the last Plus one.',
   'wallpaper.cancel': 'Cancel',
   'wallpaper.done': 'Done',
   'wallpaper.start': 'Set background',

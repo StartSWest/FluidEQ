@@ -11,7 +11,6 @@ import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
-import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
   type ISceneSource,
   type ISceneTuning,
@@ -84,10 +83,10 @@ interface IStudioStageProps {
 
 /**
  * The Studio's live stage: the member's scene, on their music, through the
- * same runner the graph uses, with the warm-up ladder — a scene nobody has
- * watched may be heavy enough to reset a display driver — and WITHOUT the
- * brightness limiter, because this is the watching, and what the author sees
- * has to be the scene itself (see the source below).
+ * same runner the graph and the desktop use, run by the same rules as the
+ * listener's own scene is everywhere else (`sceneRules.ts`) — so what the
+ * author sees here is what the graph, the desktop and the Library's player
+ * will show.
  *
  * It holds the live capture open while it is on screen, as the graph does:
  * the Plus tab is a whole view of its own, and a stage that listened to
@@ -208,9 +207,8 @@ export default function StudioStage({
             : { kind: 'unavailable' },
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
-      createLadder: createWarmupLadder,
       // The author is at the machine looking at their own work, which is the
-      // watching the brightness limiter exists for (`limiterIsFor`).
+      // watching the brightness limiter exists for (`sceneRules.ts`).
       madeBy: 'listener',
     }),
     [identity, serial],

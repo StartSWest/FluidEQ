@@ -63,15 +63,6 @@ const pack: IScenePack = {
   source: 'vec4 sceneColour(vec2 uv) { return vec4(uv, 0., 1.); }',
   params: [{ id: 'speed', names: { en: 'Speed' }, min: 0, max: 5, value: 1 }],
 };
-const ladder = jest.fn(() => ({
-  frame: jest.fn(),
-  scale: () => 1,
-  slowed: () => false,
-  refloor: () => undefined,
-  resume: () => undefined,
-  reset: jest.fn(),
-  cheapFinish: () => false,
-}));
 const source = (next: IScenePack, version: number): ISceneSource => ({
   identity: 'project',
   version: String(version),
@@ -81,7 +72,6 @@ const source = (next: IScenePack, version: number): ISceneSource => ({
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
   madeBy: 'fluideq' as const,
-  createLadder: ladder,
 });
 /**
  * Settles once the runner has made its `count`th pack the drawn one.

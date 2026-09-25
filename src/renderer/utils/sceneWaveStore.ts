@@ -11,7 +11,11 @@ import {
   type ISceneWave,
 } from 'common/sceneWave';
 import { readStored, removeStored, writeStored } from './graphStorage';
-import { GRAPH_VIEWS, type TGraphView } from './graphViewSettings';
+import {
+  GRAPH_VIEWS,
+  useWatchedGraphWave,
+  type TGraphView,
+} from './graphViewSettings';
 
 /**
  * The wave a listener set for one Plus visualizer, over the one its author
@@ -172,6 +176,31 @@ export const useListenerWave = (lookId: string | undefined, view: TGraphView) =>
     () => (lookId === undefined ? undefined : allChoices().get(lookId)?.[view]),
     () => undefined,
   );
+
+/**
+ * The wave a visualizer is watched with, wherever it is watched rather than
+ * read against a grid — the desktop, the Library's player and its EQ screen,
+ * the backdrop behind a video: the listener's own for full screen, else its
+ * author's, else the graph's own full-screen wave. The graph's rule for its
+ * full-screen view (`FrequencyResponseChart.tsx`), in one place, because the
+ * player once drew its author's wave while the desktop beside it drew the
+ * listener's.
+ */
+export const watchedSceneWave = (
+  chosen: ISceneWave | undefined,
+  authored: ISceneWave | undefined,
+  graph: ISceneWave,
+): ISceneWave => (authored ? (chosen ?? authored) : graph);
+
+/** `watchedSceneWave` for one visualizer, kept current. */
+export const useWatchedSceneWave = (
+  lookId: string | undefined,
+  authored: ISceneWave | undefined,
+): ISceneWave => {
+  const chosen = useListenerWave(authored ? lookId : undefined, 'fullscreen');
+  const graph = useWatchedGraphWave();
+  return watchedSceneWave(chosen, authored, graph);
+};
 
 /** The entry with one mode taken out, or nothing left to keep. */
 const without = (

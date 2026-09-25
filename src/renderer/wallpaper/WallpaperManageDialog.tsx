@@ -160,6 +160,35 @@ export default function WallpaperManageDialog({
                       <button
                         type="button"
                         className="button small subtle wallpaper-toggle"
+                        aria-pressed={screen.followsGraph === true}
+                        title={t('wallpaper.follow.hint')}
+                        disabled={operation.pending}
+                        onClick={() =>
+                          // Turned on while the graph shows another Plus
+                          // visualizer, main moves this screen to it at once.
+                          startWallpaper({
+                            lookId: screen.lookId,
+                            displayIds: [screen.displayId],
+                            pauseOnBattery,
+                            wave: screen.wave,
+                            motion: screen.motion,
+                            followsGraph: screen.followsGraph !== true,
+                          })
+                        }
+                      >
+                        <span
+                          className="wallpaper-toggle__box"
+                          aria-hidden="true"
+                        >
+                          <Glyph name="check" />
+                        </span>
+                        {t('wallpaper.follow')}
+                      </button>
+                    )}
+                    {screen.phase !== 'error' && (
+                      <button
+                        type="button"
+                        className="button small subtle wallpaper-toggle"
                         aria-pressed={screen.motion === 'calm'}
                         title={t('wallpaper.motion.calm.hint')}
                         disabled={operation.pending}
@@ -170,6 +199,7 @@ export default function WallpaperManageDialog({
                             pauseOnBattery,
                             wave: screen.wave,
                             motion: screen.motion === 'calm' ? 'music' : 'calm',
+                            followsGraph: screen.followsGraph === true,
                           })
                         }
                       >
@@ -196,6 +226,7 @@ export default function WallpaperManageDialog({
                               pauseOnBattery,
                               wave: screen.wave,
                               motion: screen.motion,
+                              followsGraph: screen.followsGraph === true,
                             })
                           }
                         >

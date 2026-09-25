@@ -173,6 +173,7 @@ export default function ReviewQueue({ me }: IReviewQueueProps) {
     <ReviewScene
       key={`${reviewing.lookId}@${reviewing.version}:${reviewing.sha256}`}
       item={reviewing}
+      me={me}
     />
   ) : (
     <ReviewList me={me} />

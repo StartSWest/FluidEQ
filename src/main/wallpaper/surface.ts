@@ -1,5 +1,6 @@
 import type { Rectangle, WebContents } from 'electron';
 import log from 'electron-log';
+import type { TSceneMaker } from '../../common/sceneMaker';
 import type { IScenePack } from '../../common/scenePacks';
 import {
   sameScenePerformance,
@@ -18,7 +19,8 @@ import { createWallpaperWindow, wallpaperUrl } from './window';
 
 export interface IWallpaperScene {
   pack: IScenePack;
-  member: boolean;
+  /** Who made it, which is how its page runs it (`sceneRules.ts`). */
+  madeBy: TSceneMaker;
 }
 
 interface IDesktopSurfaceOptions {
@@ -55,13 +57,16 @@ export interface IDesktopSurface {
   readonly scene: IWallpaperScene;
   phase(): IWallpaperSurfaceState['phase'];
   pauseReason(): TWallpaperPause | undefined;
-  /** What it shows, with its wave and motion as they are now. */
+  /** What it shows, with its wave, motion and following as they are now. */
   choice(): IWallpaperChoice;
   /**
    * A new wave or motion for the visualizer already playing: the page moves
-   * its band or changes what it hears, with no restart and no blink.
+   * its band or changes what it hears, with no restart and no blink. Following
+   * the graph turned on or off is kept here too, and tells the page nothing.
    */
-  retune(next: Pick<IWallpaperChoice, 'wave' | 'motion'>): void;
+  retune(
+    next: Pick<IWallpaperChoice, 'wave' | 'motion' | 'followsGraph'>,
+  ): void;
   /** The window's frame rate and resolution choice changed: the page follows. */
   retunePerformance(next: IScenePerformance): void;
   /**
@@ -115,6 +120,7 @@ export const createDesktopSurface = (
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
+  let followsGraph = options.choice.followsGraph === true;
   let { performance, tuning } = options;
   // A look the listener has tuned is drawn in the band they tuned it in,
   // whatever band the monitor was set with.
@@ -265,7 +271,12 @@ export const createDesktopSurface = (
     scene,
     phase: () => phase,
     pauseReason: () => pauseReason,
-    choice: () => ({ lookId, wave, motion }),
+    choice: () => ({
+      lookId,
+      wave,
+      motion,
+      ...(followsGraph ? { followsGraph } : {}),
+    }),
     retunePerformance: (next) => {
       // The whole choice, not the rate and the size alone: the page reads the
       // scaler, the smoothing and the floor on the frames it draws, so a
@@ -290,6 +301,7 @@ export const createDesktopSurface = (
       tellPage();
     },
     retune: (next) => {
+      followsGraph = next.followsGraph === true;
       if (
         next.wave.height === wave.height &&
         next.wave.position === wave.position &&

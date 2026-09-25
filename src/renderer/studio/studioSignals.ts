@@ -324,5 +324,8 @@ export const shapeStudioFrame = (
     bands: [bands.bass, bands.mid, bands.treble],
     spectrum: buffers.spectrum,
     waveform: buffers.waveform,
+    // Made-up music is music being played, whatever the room is doing;
+    // Silence is nothing played, and rests as the graph does in silence.
+    playing: signal !== 'silence',
   };
 };

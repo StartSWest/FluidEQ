@@ -13,6 +13,7 @@ import {
   visibleScenes,
   type IMemberScenesListing,
   type ISceneViewer,
+  type IVisibleScene,
 } from '../memberScenes/visibleScenes';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import { isKnownMaker } from '../account/knownMakers';
@@ -63,8 +64,12 @@ export interface IMemberScenesIpcDeps {
 
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
-  /** The same account and entitlement check as the renderer's load request. */
-  loadVisible(lookId: unknown): IScenePack | undefined;
+  /**
+   * The same account and entitlement check as the renderer's load request,
+   * and whether this account made the scene: a desktop background is run
+   * by who made it (`sceneRules.ts`), as the window's own list says.
+   */
+  loadVisible(lookId: unknown): IVisibleScene | undefined;
   subscribeScenes(listener: () => void): () => void;
   /**
    * A member's look would not run here, right now. The graph reports through
@@ -122,7 +127,7 @@ export const registerMemberScenesIpc = ({
 
   const listing = (): IMemberScenesListing => sceneListing(store, viewer);
 
-  const loadVisible = (lookId: unknown): IScenePack | undefined =>
+  const loadVisible = (lookId: unknown): IVisibleScene | undefined =>
     loadVisibleScene(store, viewer, lookId);
 
   const sceneListeners = new Set<() => void>();
@@ -160,7 +165,7 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('member-scenes-list', () => listing());
 
   ipcMain.handle('member-scenes-load', (_event, lookId: unknown) => {
-    return loadVisible(lookId);
+    return loadVisible(lookId)?.pack;
   });
 
   ipcMain.handle('member-scenes-remove', (_event, lookId: unknown) => {

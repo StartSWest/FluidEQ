@@ -137,8 +137,14 @@ export const mockSurfaceModule = () => ({
       tuning: options.tuning,
       contents: { mainFrame: {} },
       choice: () => choice,
+      // As the real surface: following the graph is whatever the retune says.
       retune: jest.fn((next: IWallpaperChoice) => {
-        choice = { ...choice, wave: next.wave, motion: next.motion };
+        choice = {
+          lookId: choice.lookId,
+          wave: next.wave,
+          motion: next.motion,
+          ...(next.followsGraph === true ? { followsGraph: true } : {}),
+        };
       }),
       retunePerformance: jest.fn(),
       applyTuning: jest.fn((next: IWallpaperTuning | undefined) => {

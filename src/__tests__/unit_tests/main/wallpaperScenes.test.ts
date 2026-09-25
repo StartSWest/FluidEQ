@@ -20,7 +20,10 @@ const looks = () => {
     reportFailure: jest.fn(),
   };
   const member = {
-    loadVisible: jest.fn((lookId: unknown) => pack(String(lookId))),
+    loadVisible: jest.fn((lookId: unknown) => ({
+      pack: pack(String(lookId)),
+      own: false,
+    })),
     subscribeScenes: jest.fn(() => stopMember),
     reportFailure: jest.fn(),
   };
@@ -33,14 +36,28 @@ describe('the looks a desktop background shows', () => {
     const scenes = createWallpaperScenes(official, member);
     expect(scenes.loadScene('premium:alpine')).toEqual({
       pack: expect.objectContaining({ id: 'alpine' }),
-      member: false,
+      madeBy: 'fluideq',
     });
     expect(scenes.loadScene(MEMBER)).toEqual({
       pack: expect.objectContaining({ id: MEMBER }),
-      member: true,
+      madeBy: 'member',
     });
     expect(official.store.load).toHaveBeenCalledWith('alpine');
     expect(member.loadVisible).toHaveBeenCalledWith(MEMBER);
+  });
+
+  // Told only that a member had made it, the desktop ran the listener's own
+  // Dancing Cat through the brightness limiter meant for strangers' scenes,
+  // and ghosted it beside a clean Studio.
+  it('says a scene the listener made is their own', () => {
+    const { official, member } = looks();
+    member.loadVisible.mockImplementationOnce((lookId: unknown) => ({
+      pack: { id: String(lookId) } as IScenePack,
+      own: true,
+    }));
+    expect(createWallpaperScenes(official, member).loadScene(MEMBER)).toEqual(
+      expect.objectContaining({ madeBy: 'listener' }),
+    );
   });
 
   // Whichever kind of look it is, a live failure is handed to that look's

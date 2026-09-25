@@ -27,6 +27,9 @@ const wallpaper = {
   'wallpaper.motion.calm': 'Ruhig',
   'wallpaper.motion.calm.hint':
     'Eine langsame, ruhige Animation, die die Musik ignoriert.',
+  'wallpaper.follow': 'Diagramm folgen',
+  'wallpaper.follow.hint':
+    'Zeigt den Plus-Visualizer des Diagramms und wechselt mit ihm – ob Sie ihn wählen oder der automatische Wechsel. Zeigt das Diagramm einen Visualizer ohne Plus, behält dieser Bildschirm den letzten Plus-Visualizer.',
   'wallpaper.cancel': 'Abbrechen',
   'wallpaper.done': 'Fertig',
   'wallpaper.start': 'Hintergrund festlegen',
