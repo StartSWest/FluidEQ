@@ -19,15 +19,15 @@ import {
 } from '../utils/sceneTintStore';
 
 /**
- * What the Plus visualizer does to the window — nothing, its colours, or its
- * colours beating with it — one press to the next of the three.
+ * What the Plus visualizer does to the window, one press to the next of the
+ * four, as a key among the player's corner keys (`SceneKeys`), which are
+ * glyphs by Ivan's own choice (2026-09-24). The graph and the player's
+ * visualizer bar have the named menu instead (`SceneTintMenu`): a glyph that
+ * cycles keeps three of its four choices out of sight, and Ambient went
+ * unnoticed behind it.
  *
- * A single button walking the three rather than a menu, because it stands in
- * the palette toggle's place in a row that runs out of width first, and only
- * while a Plus visualizer is chosen: a scene brings its own colours, so the
- * palette toggle is always disabled on one. Its glyph is the mode it is in,
- * and the filled half is the colour the window is taking; its title names the
- * mode and the one a press moves to.
+ * Its glyph is the mode it is in, and the filled half is the colour the
+ * window is taking; its title names the mode and the one a press moves to.
  *
  * Never disabled: the colour and the beat change the whole window whether or
  * not the wave is on the plot, and a control that could only be turned off

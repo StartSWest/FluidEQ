@@ -142,7 +142,9 @@ import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
-import SceneTintToggle from './SceneTintToggle';
+import SceneTintMenu from './SceneTintMenu';
+import { useSceneTintMode } from '../utils/sceneTintStore';
+import { useSceneColumnHost, useSceneCoverHost } from '../utils/sceneCover';
 import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
@@ -636,6 +638,24 @@ const FrequencyResponseChart = ({
   const { mode: windowMode } = useWindowMode();
   const isPlayerWindowRef = useRef(windowMode === 'player');
   isPlayerWindowRef.current = windowMode === 'player';
+  // The Backdrop: a Plus visualizer drawn on the window's back layer with
+  // this plot as its frame (`SceneCover.tsx`). Only where the plot is one
+  // part of the window — expanded or full screen the graph is the window
+  // already, and the player's window shows its own deck, not this graph.
+  //
+  // Otherwise, on an EQ page, the layer behind the page's head and this
+  // graph (`SceneColumnLayer`), which is there only while the head stands
+  // above the graph: the scene runs up to the top of the column instead of
+  // stopping in a straight line at the plot's top. Only a scene draws on
+  // either; the 2D looks stay on their plot.
+  const sceneTintMode = useSceneTintMode();
+  const coverLayer = useSceneCoverHost();
+  const columnLayer = useSceneColumnHost();
+  const isPlotPartOfWindow = graphView === 'normal' && windowMode !== 'player';
+  let sceneCoverHost: HTMLElement | null = null;
+  if (isPlotPartOfWindow) {
+    sceneCoverHost = sceneTintMode === 'cover' ? coverLayer : columnLayer;
+  }
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -1851,9 +1871,11 @@ const FrequencyResponseChart = ({
                 was pressed would be worse than one that says it cannot.
 
                 A Plus visualizer brings its own colours, so on one the slot
-                holds the switch that lends those colours to the window. */}
+                holds the menu that lends those colours to the window — named,
+                where a palette is a glyph, because Ambient and the Backdrop
+                behind a glyph that cycles went unnoticed. */}
             {isPremiumSceneSelected ? (
-              <SceneTintToggle />
+              <SceneTintMenu />
             ) : (
               <button
                 type="button"
@@ -2096,6 +2118,7 @@ const FrequencyResponseChart = ({
             editablePoints={canEditEqCurve ? editablePoints : []}
             liveCurves={liveCurves}
             isLiveOutputForeground={isLiveOutputForeground}
+            sceneCoverHost={sceneCoverHost}
             onMarqueeSelect={
               canEditEqCurve
                 ? (ids, additive) =>

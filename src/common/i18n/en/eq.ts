@@ -126,6 +126,8 @@ const eq = {
   'graph.sceneTint.mode.tint': "the visualizer's colours",
   'graph.sceneTint.mode.pulse':
     "the visualizer's colours, with its light glowing around it",
+  'graph.sceneTint.mode.cover':
+    'the visualizer behind the whole window, with its light around it',
   'graph.sceneTint.short.off': 'Theme',
   'graph.sceneTint.short.tint': 'Colours',
   'graph.sceneTint.short.pulse': 'Ambient',

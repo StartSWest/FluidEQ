@@ -128,6 +128,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.mode.off': 'アプリのテーマ',
   'graph.sceneTint.mode.tint': 'ビジュアライザーの色',
   'graph.sceneTint.mode.pulse': 'ビジュアライザーの色と、周りに広がる光',
+  'graph.sceneTint.mode.cover':
+    'ウィンドウ全体の背後にビジュアライザー、周りに広がる光',
   'graph.sceneTint.short.off': 'テーマ',
   'graph.sceneTint.short.tint': '色',
   'graph.sceneTint.short.pulse': '環境光',

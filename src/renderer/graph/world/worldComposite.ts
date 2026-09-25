@@ -87,6 +87,10 @@ uniform sampler2D fqw_bloom;
 uniform float fqw_bloomStrength;
 uniform float fqw_vignette;
 uniform vec3 fqw_backdrop;
+// The panel on the canvas (\`sceneView.ts\`): the sky and the vignette are the
+// scene's and run across its panel; the world's picture and its glow were
+// drawn over the whole canvas and are read across it.
+uniform vec4 fqw_view;
 ${prefixedToneMapping}
 vec3 fqw_toneMap(vec3 c) { return ${TONE_MAP_CALL[world.toneMapping]}; }
 vec3 fqw_encode(vec3 linear) {
@@ -115,9 +119,10 @@ bool fqw_skyHidden() {
   return least >= 1.0;
 }
 void main() {
+  vec2 fqw_panelUv = (vUv - fqw_view.xy) / fqw_view.zw;
 ${
   world.backdrop === 'shader'
-    ? '  vec4 back = fqw_skyHidden() ? vec4(0.0) : clamp(sceneColour(vUv), 0.0, 1.0);'
+    ? '  vec4 back = fqw_skyHidden() ? vec4(0.0) : clamp(sceneColour(fqw_panelUv), 0.0, 1.0);'
     : '  vec4 back = vec4(fqw_backdrop, 1.0);'
 }
   vec4 drawn = texture(fqw_world, vUv);
@@ -137,7 +142,7 @@ ${
   vec3 shown = fqw_encode(1.0 - (1.0 - clamp(base, 0.0, 1.0)) * (1.0 - glow));
   float alpha = cover + back.a * (1.0 - cover);
   alpha = max(alpha, max(shown.r, max(shown.g, shown.b)));
-  vec2 centred = (vUv - 0.5) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
+  vec2 centred = (fqw_panelUv - 0.5) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
   float corner = smoothstep(0.35, 1.15, length(centred));
   shown *= 1.0 - fqw_vignette * corner;
   fragColor = clamp(vec4(shown, alpha), 0.0, 1.0) * uSceneFade;

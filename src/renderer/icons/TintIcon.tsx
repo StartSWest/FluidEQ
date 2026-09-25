@@ -11,9 +11,11 @@ import type { TSceneTintMode } from '../utils/sceneTintStore';
 interface ITintIconProps {
   className?: string;
   /**
-   * Which of the three the glyph says: an empty circle for the theme as it
-   * is, the half filled for the scene's colours, and the half with a wave
-   * round it for the colours beating with the scene. Half filled by default.
+   * Which of the four the glyph says: an empty circle for the theme as it
+   * is, the half filled for the scene's colours, the half with a wave round
+   * it for the colours beating with the scene, and the circle filled whole
+   * inside a filled wave for the scene behind the whole window. Half filled
+   * by default.
    */
   mode?: TSceneTintMode;
 }
@@ -25,6 +27,21 @@ interface ITintIconProps {
  * what lets the control say what it does before its label is read.
  */
 const TintIcon = ({ className, mode = 'tint' }: ITintIconProps) => {
+  if (mode === 'cover') {
+    return (
+      <svg
+        className={className}
+        viewBox="0 0 16 16"
+        aria-hidden
+        data-mode={mode}
+      >
+        <circle className="tint-icon__wash" cx="8" cy="8" r="6.6" />
+        <circle className="tint-icon__half" cx="8" cy="8" r="3.8" />
+        <circle cx="8" cy="8" r="3.8" />
+        <circle className="tint-icon__wave" cx="8" cy="8" r="6.6" />
+      </svg>
+    );
+  }
   if (mode === 'pulse') {
     return (
       <svg

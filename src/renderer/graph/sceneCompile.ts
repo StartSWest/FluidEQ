@@ -1,4 +1,4 @@
-import { SCENE_VERTEX_SOURCE } from 'common/sceneUniformContract';
+import { SCENE_VIEW_VERTEX_SOURCE } from './sceneView';
 
 /**
  * Programs whose link was given up on, each deleted once its link has
@@ -152,7 +152,9 @@ export const linkSceneProgram = async (
   let linked = false;
   let linking = false;
   try {
-    gl.shaderSource(vertex, SCENE_VERTEX_SOURCE);
+    // `uv` measured across the scene's panel, which is the canvas everywhere
+    // but the Backdrop (`sceneView.ts`).
+    gl.shaderSource(vertex, SCENE_VIEW_VERTEX_SOURCE);
     gl.shaderSource(fragment, source);
     gl.compileShader(vertex);
     gl.compileShader(fragment);

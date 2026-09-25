@@ -38,6 +38,7 @@ import { createWorldMirror } from './worldMirror';
 import { parseWorldModels } from './worldModels';
 import { buildWorldNodes } from './worldNodes';
 import { createWorldPass } from './worldPasses';
+import { FULL_VIEW, isFullView, panelSize } from '../sceneView';
 import {
   externalTargets,
   programReady,
@@ -424,7 +425,29 @@ const compileWorld = async (
           rendered.band !== band;
         if (!again) {
           inputs.update(frame, width, height);
-          aim(width / Math.max(1, height));
+          // Framed on the panel, then widened to the canvas round it: under
+          // the Backdrop the canvas is the window, the graph is still what the
+          // camera frames, and the rest of the window is what it would see
+          // past the graph's edges (`sceneView.ts`). Three's own sub-view,
+          // taken the other way: the "full" frame is the panel and the canvas
+          // is larger than it.
+          const view = frame.view ?? FULL_VIEW;
+          const panel = panelSize(width, height, view);
+          aim(panel.width / panel.height);
+          if (isFullView(view)) {
+            if (camera.view?.enabled) {
+              camera.clearViewOffset();
+            }
+          } else {
+            camera.setViewOffset(
+              panel.width,
+              panel.height,
+              -view[0] * width,
+              -(1 - view[1] - view[3]) * height,
+              width,
+              height,
+            );
+          }
           build.update((frame.deltaMs ?? 0) / 1000);
           renderWorld(width, height);
         }

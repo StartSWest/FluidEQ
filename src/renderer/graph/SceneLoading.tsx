@@ -9,7 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { CSSProperties } from 'react';
 import SceneLookIcon from '../icons/SceneLookIcon';
 import { useTranslation } from '../utils/I18nContext';
-import { sceneSkyColour, sceneTintSwatch } from '../utils/sceneTint';
+import { sceneTintSwatch } from '../utils/sceneTint';
 import { useRememberedSceneSky } from '../utils/sceneTintStore';
 
 interface ISceneLoadingProps {
@@ -33,13 +33,17 @@ interface ISceneLoadingProps {
  * jumped up as the scene took over. The same ring and the same fade for
  * every scene is calmer than a likeness that moves.
  *
- * The colour is the one measured for the window's tint, darkened to a
- * scene's ground, so a scene chosen before waits on its own hue; a scene
- * never measured waits on black, which is what every scene is drawn against.
+ * The ground is the app's own floor (Ivan, 2026-09-25: "when loading the plus
+ * viz in the graph no black screen only current app bg color"), so a scene
+ * arrives on the window it is part of. It was the colour measured for the
+ * window's tint darkened to a scene's ground, and black for a scene never
+ * measured — a dark sheet opening in the middle of the open floor for as long
+ * as the scene took to load. Only the ring keeps the scene's own hue, lit
+ * round its icon.
  *
  * The backdrop outlives the loading: it stays under the canvas while the
  * scene fades in over its first quarter second, and fades out after it, so
- * nothing but the scene's own colour is ever behind a half-drawn scene.
+ * nothing moves behind a half-drawn scene.
  */
 export default function SceneLoading({
   lookId,
@@ -53,12 +57,7 @@ export default function SceneLoading({
   const colours = {
     width,
     height,
-    ...(sky
-      ? {
-          '--scene-sky': sceneSkyColour(sky),
-          '--scene-ring': sceneTintSwatch(sky),
-        }
-      : {}),
+    ...(sky ? { '--scene-ring': sceneTintSwatch(sky) } : {}),
   } as CSSProperties;
   return (
     <>

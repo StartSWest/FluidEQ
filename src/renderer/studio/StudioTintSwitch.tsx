@@ -13,7 +13,7 @@ import { sceneTintSwatch } from '../utils/sceneTint';
 import {
   SCENE_TINT_MODE_NAMES,
   SCENE_TINT_MODE_SHORT_NAMES,
-  SCENE_TINT_MODES,
+  STUDIO_TINT_MODES,
   setStudioTintMode,
   useShownSceneSky,
   useStudioTintMode,
@@ -55,7 +55,7 @@ export default function StudioTintSwitch() {
         role="group"
         aria-labelledby={titleId}
       >
-        {SCENE_TINT_MODES.map((entry) => (
+        {STUDIO_TINT_MODES.map((entry) => (
           <button
             key={entry}
             type="button"

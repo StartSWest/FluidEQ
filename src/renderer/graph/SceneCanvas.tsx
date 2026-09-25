@@ -1,11 +1,13 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type RefObject,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
@@ -35,6 +37,7 @@ import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useIsChromeIdle } from '../utils/idleChrome';
 import { createSceneInteraction } from './sceneInteraction';
 import SceneViewReset from './SceneViewReset';
+import { sceneViewOf, type TSceneView } from './sceneView';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -52,7 +55,33 @@ interface ISceneCanvasProps {
   dragTurns: boolean;
   /** How far in from the panel's right and bottom the ruled plot stands. */
   inset: { right: number; bottom: number };
+  /**
+   * The Backdrop: the layer at the back of the window the scene is drawn on
+   * instead, the size of the window, with this panel still its frame
+   * (`SceneCover.tsx`, `sceneView.ts`). Its loading, its reset and the
+   * pointer stay here on the panel.
+   */
+  coverHost?: HTMLElement | null;
 }
+
+/** The canvas the scene is drawn on and where its panel stands on it. */
+interface ICoverFrame {
+  width: number;
+  height: number;
+  view: TSceneView;
+}
+
+// A hundredth of a pixel on a wide window: a resize observer's fractional
+// boxes change by less than that without anything having moved.
+const VIEW_EPSILON = 1e-5;
+
+const isSameCover = (a: ICoverFrame | undefined, b: ICoverFrame): boolean =>
+  a !== undefined &&
+  a.width === b.width &&
+  a.height === b.height &&
+  a.view.every(
+    (value, index) => Math.abs(value - b.view[index]) < VIEW_EPSILON,
+  );
 
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
   'kind' in scene && scene.kind === 'member';
@@ -83,6 +112,7 @@ export default function SceneCanvas({
   spectrumRect,
   dragTurns,
   inset,
+  coverHost,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
@@ -203,29 +233,78 @@ export default function SceneCanvas({
   const dragTurnsRef = useRef(dragTurns);
   dragTurnsRef.current = dragTurns;
 
+  // The panel itself, always on the plot: where the scene is framed, what
+  // the pointer is measured against, and where the window's pulse starts,
+  // whether the scene is drawn here or on the window behind.
+  const panelRef = useRef<HTMLDivElement>(null);
+  hostRef.current = panelRef;
+
+  // The root marked with the layer the scene is drawn on while it is there
+  // (`data-scene-layer`, `sceneCover.ts`): `is-scene-backdrop` veils the
+  // panes' surfaces (`SceneCover.scss`), and the drawings that read their
+  // colours from the root (`readSurface`, the level meter's wells) are told
+  // by its class, which is what their cache of those colours watches;
+  // `is-scene-column` lifts the EQ head over the picture.
+  useLayoutEffect(() => {
+    const layer = coverHost?.dataset.sceneLayer;
+    if (!layer) {
+      return undefined;
+    }
+    const mark = `is-scene-${layer}`;
+    const root = document.documentElement;
+    root.classList.add(mark);
+    return () => root.classList.remove(mark);
+  }, [coverHost]);
+
+  // Under the Backdrop, the window's layer and where this panel stands on
+  // it. Measured whenever either box changes: the graph moving down the
+  // column changes its size with it, as a fraction of the window's grid.
+  const [cover, setCover] = useState<ICoverFrame>();
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!coverHost || !panel || typeof ResizeObserver === 'undefined') {
+      setCover(undefined);
+      return undefined;
+    }
+    const measure = () => {
+      const canvas = coverHost.getBoundingClientRect();
+      const next: ICoverFrame = {
+        width: Math.round(canvas.width),
+        height: Math.round(canvas.height),
+        view: sceneViewOf(panel.getBoundingClientRect(), canvas),
+      };
+      setCover((previous) => (isSameCover(previous, next) ? previous : next));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(panel);
+    observer.observe(coverHost);
+    return () => observer.disconnect();
+  }, [coverHost]);
+
   const sceneRef = useSceneRunner({
     source,
-    width,
-    height,
+    width: cover?.width ?? width,
+    height: cover?.height ?? height,
     spectrumRect,
+    ...(cover ? { view: cover.view } : {}),
     tuning,
     onDrawn,
     onLoaded,
     interaction,
   });
-  hostRef.current = sceneRef;
 
   // On the plot, not on the scene's own layer, which takes no pointer: the
   // drawing and its handles lie over it. Heard before them, in the capture,
   // and every press that is not the scene's goes on to them untouched.
   useEffect(() => {
-    const host = sceneRef.current;
-    const plot = host?.closest<HTMLElement>('.graph-plot');
-    if (!host || !plot) {
+    const panel = panelRef.current;
+    const plot = panel?.closest<HTMLElement>('.graph-plot');
+    if (!panel || !plot) {
       return undefined;
     }
     return interaction.attach(plot, {
-      frame: () => host.getBoundingClientRect(),
+      frame: () => panel.getBoundingClientRect(),
       turns: (event) =>
         event.button === 1 ||
         event.button === 2 ||
@@ -236,8 +315,22 @@ export default function SceneCanvas({
           target.closest('.graph-edit-point, .chart-limit, .chart-presence'),
         ),
     });
-  }, [interaction, sceneRef]);
+  }, [interaction]);
   const isChromeIdle = useIsChromeIdle();
+
+  // The worker's canvas goes here: on the plot, or on the window's layer
+  // behind everything under the Backdrop. The chart keys this component on
+  // which, because a canvas handed to its worker cannot be moved.
+  const drawn = (
+    <div
+      ref={sceneRef}
+      className="chart-scene-canvas"
+      aria-hidden="true"
+      style={
+        cover ? { width: cover.width, height: cover.height } : { width, height }
+      }
+    />
+  );
 
   return (
     <>
@@ -249,11 +342,12 @@ export default function SceneCanvas({
         height={height}
       />
       <div
-        ref={sceneRef}
-        className="chart-scene-canvas"
+        ref={panelRef}
+        className="chart-scene-panel"
         aria-hidden="true"
         style={{ width, height }}
       />
+      {coverHost ? createPortal(drawn, coverHost) : drawn}
       <SceneViewReset
         interaction={interaction}
         className={isChromeIdle ? 'is-idle' : ''}

@@ -40,19 +40,21 @@ const load = (stored: Record<string, string> = {}) => {
   );
   let store: TStore | undefined;
   let Toggle: (() => ReactElement) | undefined;
+  let Menu: (() => ReactElement) | undefined;
   let Tiles: (() => ReactElement) | undefined;
   jest.isolateModules(() => {
     /* eslint-disable global-require */
     library = require('@testing-library/react/pure');
     store = require('../../../renderer/utils/sceneTintStore');
     Toggle = require('../../../renderer/graph/SceneTintToggle').default;
+    Menu = require('../../../renderer/graph/SceneTintMenu').default;
     Tiles = require('../../../renderer/studio/StudioTintSwitch').default;
     /* eslint-enable global-require */
   });
-  if (!store || !Toggle || !Tiles || !library) {
+  if (!store || !Toggle || !Menu || !Tiles || !library) {
     throw new Error('the tint modules did not load');
   }
-  return { store, Toggle, Tiles, library };
+  return { store, Toggle, Menu, Tiles, library };
 };
 
 describe('the modes a launch starts in', () => {
@@ -99,8 +101,58 @@ describe('the modes a launch starts in', () => {
   });
 });
 
-describe('the graph’s button', () => {
-  it('walks the three modes in order, naming the one it is in and the next', async () => {
+describe('the graph’s menu', () => {
+  // Named, because a glyph walking four modes kept Ambient and the Backdrop
+  // out of sight (Ivan, 2026-09-25: "a tiny icon that can pass desapercibido").
+  it('names the mode on its button and offers all four, each said in a line', async () => {
+    const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': 'pulse' });
+    fresh.render(<Menu />);
+    const button = fresh.screen.getByRole('menu', {
+      name: 'graph.sceneTint.label',
+    });
+    expect(button).toHaveTextContent('graph.sceneTint.short.pulse');
+    expect(fresh.screen.queryByRole('menuitem')).toBeNull();
+
+    await userEvent.click(button);
+    const choices = fresh.screen.getAllByRole('menuitem');
+    expect(choices.map((choice) => choice.getAttribute('aria-label'))).toEqual([
+      'graph.sceneTint.short.off',
+      'graph.sceneTint.short.tint',
+      'graph.sceneTint.short.pulse',
+      'graph.sceneTint.short.cover',
+    ]);
+    expect(choices[3]).toHaveTextContent('graph.sceneTint.about.cover');
+    expect(choices[2]).toHaveClass('selected');
+  });
+
+  it('puts the window in the mode picked, and remembers it', async () => {
+    const {
+      Menu,
+      store,
+      library: fresh,
+    } = load({
+      'fluideq.sceneTintMode': 'off',
+    });
+    fresh.render(<Menu />);
+    const { result } = fresh.renderHook(() => store.useSceneTintMode());
+    await userEvent.click(
+      fresh.screen.getByRole('menu', { name: 'graph.sceneTint.label' }),
+    );
+    await userEvent.click(
+      fresh.screen.getByRole('menuitem', {
+        name: 'graph.sceneTint.short.cover',
+      }),
+    );
+    expect(result.current).toBe('cover');
+    expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('cover');
+    expect(
+      fresh.screen.getByRole('menu', { name: 'graph.sceneTint.label' }),
+    ).toHaveTextContent('graph.sceneTint.short.cover');
+  });
+});
+
+describe('the player’s corner key', () => {
+  it('walks the four modes in order, naming the one it is in and the next', async () => {
     const { Toggle, library: fresh } = load({ 'fluideq.sceneTintMode': 'off' });
     fresh.render(<Toggle />);
     const button = () => fresh.screen.getByRole('button');
@@ -113,9 +165,16 @@ describe('the graph’s button', () => {
     expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'tint');
     await userEvent.click(button());
     expect(button()).toHaveAccessibleName(
-      'graph.sceneTint.cycle(graph.sceneTint.mode.pulse|graph.sceneTint.mode.off)',
+      'graph.sceneTint.cycle(graph.sceneTint.mode.pulse|graph.sceneTint.mode.cover)',
     );
     expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'pulse');
+    // The Backdrop: Ambient with the scene behind the whole window.
+    await userEvent.click(button());
+    expect(button()).toHaveAccessibleName(
+      'graph.sceneTint.cycle(graph.sceneTint.mode.cover|graph.sceneTint.mode.off)',
+    );
+    expect(button()).toHaveAttribute('aria-pressed', 'true');
+    expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'cover');
     await userEvent.click(button());
     expect(button()).toHaveAttribute('aria-pressed', 'false');
     expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('off');
@@ -123,6 +182,8 @@ describe('the graph’s button', () => {
 });
 
 describe('the Studio’s tiles', () => {
+  // Three, not the graph's four: the Backdrop covers the window with the
+  // graph's scene, and the Studio's stage is where a scene is judged.
   it('shows all three at once, the chosen one pressed, each named in a word', async () => {
     const { Tiles, library: fresh } = load();
     fresh.render(<Tiles />);

@@ -105,6 +105,7 @@ export default function useSceneRunner({
   width,
   height,
   spectrumRect,
+  view,
   shapeFrame,
   tuning,
   performance: chosenPerformance,
@@ -223,6 +224,8 @@ export default function useSceneRunner({
   sizeRef.current = { width, height };
   const spectrumRectRef = useRef(spectrumRect);
   spectrumRectRef.current = spectrumRect;
+  const viewRef = useRef(view);
+  viewRef.current = view;
   // How fast the scene's own time runs: one for a listener who wants motion,
   // `REDUCED_MOTION_SPEED` for one who has asked Windows for less of it. Read
   // in the frame loop through a ref, and kept current by an effect, because
@@ -451,6 +454,7 @@ export default function useSceneRunner({
         playing: isPlaying && !isSilentWaveform(currentWaveform),
         spectrum: spectrumRef.current,
         spectrumRect: spectrumRectRef.current,
+        ...(viewRef.current ? { view: viewRef.current } : {}),
         waveform: waveformRef.current,
         params: paramsRef.current,
         rhythm: energy.rhythm,
@@ -919,7 +923,7 @@ export default function useSceneRunner({
   // Redraw the backing buffer when the panel's geometry changes.
   useEffect(() => {
     kick();
-  }, [width, height, spectrumRect, kick]);
+  }, [width, height, spectrumRect, view, kick]);
 
   return hostRef;
 }

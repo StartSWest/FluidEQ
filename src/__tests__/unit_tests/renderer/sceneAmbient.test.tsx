@@ -35,7 +35,11 @@ jest.mock('../../../renderer/utils/scenePacks', () => ({
 jest.mock('../../../renderer/utils/memberScenes', () => ({
   loadMemberScene: jest.fn(),
 }));
+// Which modes count as Ambient is the store's own rule, kept real.
 jest.mock('../../../renderer/utils/sceneTintStore', () => ({
+  isAmbientMode: jest.requireActual<
+    typeof import('../../../renderer/utils/sceneTintStore')
+  >('../../../renderer/utils/sceneTintStore').isAmbientMode,
   useSceneTintMode: jest.fn(),
   useStudioTintMode: jest.fn(),
   useStudioTintSource: jest.fn(),
@@ -92,6 +96,13 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks());
 
 it('flies the graph visualizer’s elements while the graph is in Ambient mode', async () => {
+  render(<SceneAmbient />);
+  await waitFor(() => expect(layer()).toBeInTheDocument());
+  expect(loadScenePack).toHaveBeenCalledWith('alpine');
+});
+
+it('flies them in the Backdrop too, which is Ambient with the scene behind the window', async () => {
+  jest.mocked(useSceneTintMode).mockReturnValue('cover');
   render(<SceneAmbient />);
   await waitFor(() => expect(layer()).toBeInTheDocument());
   expect(loadScenePack).toHaveBeenCalledWith('alpine');

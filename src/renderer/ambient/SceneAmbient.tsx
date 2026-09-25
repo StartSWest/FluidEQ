@@ -25,6 +25,7 @@ import {
 } from '../utils/memberScenes';
 import { loadScenePack } from '../utils/scenePacks';
 import {
+  isAmbientMode,
   useSceneTintMode,
   useStudioTintMode,
   useStudioTintSource,
@@ -97,7 +98,7 @@ export default function SceneAmbient() {
   let source: TAmbientSource | undefined;
   if (studio) {
     source = studioMode === 'pulse' ? 'studio' : undefined;
-  } else if (graphMode === 'pulse' && scene) {
+  } else if (isAmbientMode(graphMode) && scene) {
     source = 'graph';
   }
 

@@ -23,6 +23,7 @@ import {
   type TScenePulseVoice,
 } from '../utils/scenePulse';
 import {
+  isAmbientMode,
   useSceneTintMode,
   useStudioTintMode,
   useStudioTintSource,
@@ -196,7 +197,7 @@ export default function ScenePulse() {
   let source: TScenePulseSource | undefined;
   if (studio) {
     source = studioMode === 'pulse' ? 'studio' : undefined;
-  } else if (graphMode === 'pulse' && isSceneLook) {
+  } else if (isAmbientMode(graphMode) && isSceneLook) {
     source = 'graph';
   }
 

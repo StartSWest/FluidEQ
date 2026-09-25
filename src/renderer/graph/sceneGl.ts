@@ -8,6 +8,7 @@ import {
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
+import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
 import compileWorldScene from './sceneWorldLoader';
@@ -51,6 +52,11 @@ export interface ISceneFrame {
   playing?: boolean;
   spectrum: Uint8Array;
   spectrumRect?: readonly [number, number, number, number];
+  /**
+   * Where the scene's panel stands on the canvas (`sceneView.ts`). Absent is
+   * the panel filling it, which is everywhere but the Backdrop.
+   */
+  view?: TSceneView;
   waveform: Uint8Array;
   params: Readonly<Record<string, number>>;
   /**
@@ -249,6 +255,7 @@ const compileShaderScene = async (
     pointer: location('uPointer'),
     tap: location('uTap'),
     camera: location('uCamera'),
+    view: location('uView'),
   };
   const paramLocations = pack.params.map((param) => ({
     id: param.id,
@@ -369,7 +376,12 @@ const compileShaderScene = async (
         }
 
         gl.uniform1f(uniforms.time, frame.timeSeconds);
-        gl.uniform2f(uniforms.resolution, width, height);
+        // The panel's size, not the canvas's: under the Backdrop the canvas
+        // is the window and the scene is still framed by the graph.
+        const view = frame.view ?? FULL_VIEW;
+        const panel = panelSize(width, height, view);
+        gl.uniform2f(uniforms.resolution, panel.width, panel.height);
+        gl.uniform4f(uniforms.view, ...view);
         gl.uniform4f(
           uniforms.spectrumRect,
           ...(frame.spectrumRect ?? [0, 1, 0, 1]),

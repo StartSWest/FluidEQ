@@ -120,6 +120,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.mode.off': '应用主题',
   'graph.sceneTint.mode.tint': '可视化效果的颜色',
   'graph.sceneTint.mode.pulse': '可视化效果的颜色，以及它周围的光',
+  'graph.sceneTint.mode.cover': '可视化效果铺满整个窗口的背后，以及它周围的光',
   'graph.sceneTint.short.off': '主题',
   'graph.sceneTint.short.tint': '颜色',
   'graph.sceneTint.short.pulse': '氛围',

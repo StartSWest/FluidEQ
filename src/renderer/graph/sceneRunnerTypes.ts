@@ -5,6 +5,7 @@ import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
+import type { TSceneView } from './sceneView';
 
 /**
  * What drawing is costing, after every frame: for the Studio's readout and
@@ -75,6 +76,12 @@ export interface ISceneRunnerOptions {
   width: number;
   height: number;
   spectrumRect: readonly [number, number, number, number];
+  /**
+   * Where the scene's panel stands on the canvas, when the canvas is larger
+   * than it: the Backdrop, where the canvas is the window and the graph is
+   * still the scene's frame (`sceneView.ts`). Absent is the panel filling it.
+   */
+  view?: TSceneView;
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** Read every frame, so moving a slider moves the scene at once. */

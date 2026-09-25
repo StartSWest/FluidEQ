@@ -35,20 +35,42 @@ import { getTheme, type TTheme } from './theme';
 
 /**
  * What a scene does to the window: nothing — the theme as it is — its
- * colours, or its colours with the window beating along with it
- * (`ScenePulse.tsx`).
+ * colours, its colours with the window beating along with it
+ * (`ScenePulse.tsx`) and its elements around it — Ambient — or all of that
+ * with the scene itself behind the whole window, the graph still its frame:
+ * the Backdrop (`SceneCover.tsx`; Ivan, 2026-09-25: "cover the app bg … as
+ * the 4th option").
  */
-export const SCENE_TINT_MODES = ['off', 'tint', 'pulse'] as const;
+export const SCENE_TINT_MODES = ['off', 'tint', 'pulse', 'cover'] as const;
 export type TSceneTintMode = (typeof SCENE_TINT_MODES)[number];
+
+/**
+ * The Studio's own switch offers the first three. Its stage is where a scene
+ * is judged, not a graph with a window around it to cover, and the Backdrop
+ * draws the graph's scene.
+ */
+export const STUDIO_TINT_MODES = ['off', 'tint', 'pulse'] as const;
+export type TStudioTintMode = (typeof STUDIO_TINT_MODES)[number];
+
+/**
+ * Whether the window beats with the scene and wears its elements: Ambient,
+ * and the Backdrop, which is Ambient with the scene behind the window too.
+ */
+export const isAmbientMode = (mode: TSceneTintMode): boolean =>
+  mode === 'pulse' || mode === 'cover';
 
 /** Each mode's name where there is room for it: the graph button's title. */
 export const SCENE_TINT_MODE_NAMES: Record<TSceneTintMode, TranslationKey> = {
   off: 'graph.sceneTint.mode.off',
   tint: 'graph.sceneTint.mode.tint',
   pulse: 'graph.sceneTint.mode.pulse',
+  cover: 'graph.sceneTint.mode.cover',
 };
 
-/** And in a word, for the Studio's tiles, 40 pixels wide in its narrowest card. */
+/**
+ * And in a word: the Studio's tiles, 40 pixels wide in its narrowest card,
+ * and the graph's menu, on its button and over each choice.
+ */
 export const SCENE_TINT_MODE_SHORT_NAMES: Record<
   TSceneTintMode,
   TranslationKey
@@ -56,6 +78,15 @@ export const SCENE_TINT_MODE_SHORT_NAMES: Record<
   off: 'graph.sceneTint.short.off',
   tint: 'graph.sceneTint.short.tint',
   pulse: 'graph.sceneTint.short.pulse',
+  cover: 'graph.sceneTint.short.cover',
+};
+
+/** What each does to the window, in a line under its name in that menu. */
+export const SCENE_TINT_MODE_ABOUT: Record<TSceneTintMode, TranslationKey> = {
+  off: 'graph.sceneTint.about.off',
+  tint: 'graph.sceneTint.about.tint',
+  pulse: 'graph.sceneTint.about.pulse',
+  cover: 'graph.sceneTint.about.cover',
 };
 
 const isSceneTintMode = (value: unknown): value is TSceneTintMode =>

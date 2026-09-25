@@ -127,6 +127,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.mode.off': 'тема приложения',
   'graph.sceneTint.mode.tint': 'цвета визуализатора',
   'graph.sceneTint.mode.pulse': 'цвета визуализатора и его свет вокруг',
+  'graph.sceneTint.mode.cover': 'визуализатор за всем окном и его свет вокруг',
   'graph.sceneTint.short.off': 'Тема',
   'graph.sceneTint.short.tint': 'Цвета',
   'graph.sceneTint.short.pulse': 'Атмосфера',

@@ -36,6 +36,7 @@ import type {
 } from 'common/worldExpression';
 import type { ISceneFrame } from '../sceneGl';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
+import { FULL_VIEW, panelSize } from '../sceneView';
 import { createFormula, type IWorldFormula } from './worldFormula';
 
 /**
@@ -164,6 +165,10 @@ export const createWorldInputs = (
     // Half the drawn height, for a point's size at a distance
     // (`buildPointsMaterial`).
     uWorldPointScale: { value: 1 },
+    // Where the scene's panel stands on the canvas (`sceneView.ts`): the
+    // composite reads its sky and its vignette across the panel, and the
+    // world's own picture across the canvas.
+    fqw_view: { value: new Vector4(...FULL_VIEW) },
   };
   pack.params.forEach((param) => {
     uniforms[uniformNameForParam(param.id)] = { value: param.value };
@@ -251,8 +256,14 @@ export const createWorldInputs = (
       waveform.needsUpdate = true;
 
       uniforms.uTime.value = frame.timeSeconds;
-      (uniforms.uResolution.value as Vector2).set(width, height);
-      uniforms.uWorldPointScale.value = height * 0.5;
+      // The panel's, as the flat path gives it (`sceneGl.ts`): the camera
+      // frames the panel and widens round it, so a point is the size it is
+      // in the graph and the sky is worked out at the graph's aspect.
+      const panelView = frame.view ?? FULL_VIEW;
+      const panel = panelSize(width, height, panelView);
+      (uniforms.uResolution.value as Vector2).set(panel.width, panel.height);
+      uniforms.uWorldPointScale.value = panel.height * 0.5;
+      (uniforms.fqw_view.value as Vector4).set(...panelView);
       uniforms.uLevel.value = frame.level;
       uniforms.uBeat.value = frame.beat;
       (uniforms.uBands.value as Vector3).set(...frame.bands);

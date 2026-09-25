@@ -215,6 +215,8 @@ import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
+import SceneCover from './graph/SceneCover';
+import SceneColumnLayer from './graph/SceneColumnLayer';
 import SceneTint from './components/SceneTint';
 import {
   createPreset,
@@ -2729,6 +2731,9 @@ const AppContent = () => {
               page are put in order by the stylesheet rather than by moving
               them here — reordering the page's element moves every panel kept
               alive in it, and a moved web view reloads. */}
+          {/* Behind the head and the graph, for a Plus visualizer to run up
+              to the top of the column (`SceneColumnLayer`). */}
+          {isGraphFirst && showsGraph && <SceneColumnLayer />}
           {isGraphFirst && (
             // Dimmed with its page when the engine cannot hear it
             // (`GraphTheme.scss`), as the pills and the title were while
@@ -3382,6 +3387,9 @@ export default function App() {
                 is switched on. Here for the same reason: the colour outlives
                 the graph being on screen. Renders nothing. */}
             <SceneTint />
+            {/* The back of the window, where that visualizer is drawn in the
+                Backdrop mode; an empty layer otherwise. */}
+            <SceneCover />
             {/* The window beating with that visualizer, when its mode asks
                 for it; nothing in the page otherwise. */}
             <ScenePulse />

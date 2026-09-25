@@ -810,6 +810,12 @@ interface IChartProps {
    * Absent when the preamp is already in the curve's points.
    */
   outputOffset?: IChartLiveOffset;
+  /**
+   * A layer the Plus visualizer is drawn on instead of the plot, with this
+   * plot as its frame: the window's back layer in the Backdrop mode, or the
+   * one behind an EQ page's head and graph (`sceneCover.ts`).
+   */
+  sceneCoverHost?: HTMLElement | null;
 }
 
 const Chart = ({
@@ -820,6 +826,7 @@ const Chart = ({
   isLiveOutputForeground,
   onMarqueeSelect,
   outputOffset,
+  sceneCoverHost,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
@@ -1049,6 +1056,10 @@ const Chart = ({
           // again, and the ordinary canvas below takes over with the look
           // the store already resolved for it.
           <SceneCanvas
+            // A canvas handed to its worker cannot be moved: into a layer,
+            // from one layer to the other, or back out is a scene drawn again.
+            key={sceneCoverHost?.dataset.sceneLayer ?? 'plot'}
+            coverHost={sceneCoverHost}
             scene={scene}
             width={width}
             height={height}
