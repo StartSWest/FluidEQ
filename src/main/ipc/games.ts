@@ -102,7 +102,8 @@ export interface IGamesIpcDeps {
 export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   const scan = deps.scan ?? scanGameLibraries;
   const ours = app?.getPath ? app.getPath('exe').toLowerCase() : '';
-  const toasts = deps.toasts ?? createGameToasts();
+  // The card goes to the screen this window is on, so it is told the window.
+  const toasts = deps.toasts ?? createGameToasts(deps.getMainWindow);
   // Where the last program in front was drawn, so the card lands on the
   // screen the game is on rather than on whichever one FluidEQ sits on.
   let lastRect: string | undefined;
