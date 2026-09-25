@@ -245,6 +245,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Black over the whole player while its picture takes the screen, lifted
+// once the window is full screen and back in view (`visFullScreen.ts`).
+.mini-player__cover {
+  position: absolute;
+  z-index: 100;
+  inset: 0;
+  background: $black;
+  pointer-events: none;
+}
+
 // The one strip of chrome, and the handle the window is dragged by.
 .player-title {
   display: flex;

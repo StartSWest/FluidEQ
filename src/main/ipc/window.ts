@@ -24,6 +24,8 @@ import {
   PLAYER_WIDTH_FLOOR_CHANNEL,
   TITLEBAR_DOUBLE_CLICK_CHANNEL,
   TRAFFIC_LIGHTS_CHANNEL,
+  WINDOW_HIDE_FOR_SWITCH_CHANNEL,
+  WINDOW_REVEAL_CHANNEL,
   type IWindowState,
 } from '../../common/windowMode';
 import {
@@ -34,6 +36,7 @@ import {
 } from '../macWindowChrome';
 import { setTrayLocale } from '../tray';
 import { setWindowFloor } from '../windowBackdrop';
+import { setWindowCloaked } from '../windowDwm';
 import type { TWindowModes } from '../windowMode';
 import onWindowMessage from './windowMessages';
 
@@ -266,6 +269,83 @@ export const registerWindowIpc = ({
         mainWindow.maximize();
       }
     }
+  });
+
+  /*
+   * A switch between the app and the player, off the screen (Ivan,
+   * 2026-09-22: "first we hide the mini app completely then we show the full
+   * ui"). The page asks for the window to go before it asks for the other
+   * mode, and for it back once it has drawn that mode at the new size; in
+   * between, the window changes size cloaked (`setWindowCloaked`). Changing
+   * size in view, it showed the old view stretched, then faded in its
+   * corner, then Windows' maximise growing out of a picture of it.
+   *
+   * NOTHING MAY LEAVE THE WINDOW CLOAKED. A page that reloads or dies in the
+   * middle of a switch never asks for it back, and a listener who restores
+   * the window from the taskbar, or goes to another window and comes back to
+   * this one, is asking for it; each of those puts it back too. Coming back
+   * only: the switch itself may activate the window it is resizing, and that
+   * is no one asking for anything.
+   */
+  let isCloaked = false;
+  let stopWatching: (() => void) | undefined;
+  const reveal = () => {
+    stopWatching?.();
+    stopWatching = undefined;
+    const mainWindow = getMainWindow();
+    if (isCloaked && mainWindow && !mainWindow.isDestroyed()) {
+      setWindowCloaked(mainWindow, false);
+    }
+    isCloaked = false;
+  };
+  onWindowMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, (event) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents || isCloaked) {
+      return;
+    }
+    isCloaked = setWindowCloaked(mainWindow, true);
+    if (!isCloaked) {
+      return;
+    }
+    const contents = mainWindow.webContents;
+    const onNavigation = (details: {
+      isSameDocument: boolean;
+      isMainFrame: boolean;
+    }) => {
+      // The page's own `replaceState` is a same-document navigation, and the
+      // switch makes one; only a new document means the page cannot answer.
+      if (details.isMainFrame && !details.isSameDocument) {
+        reveal();
+      }
+    };
+    let hasLeft = false;
+    const onBlur = () => {
+      hasLeft = true;
+    };
+    const onFocus = () => {
+      if (hasLeft) {
+        reveal();
+      }
+    };
+    contents.on('did-start-navigation', onNavigation);
+    contents.on('render-process-gone', reveal);
+    mainWindow.on('restore', reveal);
+    mainWindow.on('blur', onBlur);
+    mainWindow.on('focus', onFocus);
+    stopWatching = () => {
+      contents.removeListener('did-start-navigation', onNavigation);
+      contents.removeListener('render-process-gone', reveal);
+      mainWindow.removeListener('restore', reveal);
+      mainWindow.removeListener('blur', onBlur);
+      mainWindow.removeListener('focus', onFocus);
+    };
+  });
+  onWindowMessage(WINDOW_REVEAL_CHANNEL, (event) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      return;
+    }
+    reveal();
   });
 
   /**

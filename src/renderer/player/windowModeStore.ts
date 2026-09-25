@@ -8,7 +8,9 @@ import { useSyncExternalStore } from 'react';
 import {
   PLAYER_HEIGHT_LIMIT_CHANNEL,
   PLAYER_WIDTH_FLOOR_CHANNEL,
+  WINDOW_HIDE_FOR_SWITCH_CHANNEL,
   WINDOW_MODE_PARAM,
+  WINDOW_REVEAL_CHANNEL,
 } from 'common/windowMode';
 import type { IWindowState, TWindowMode } from 'common/windowMode';
 
@@ -129,13 +131,15 @@ export const useWindowMode = (): IModeSnapshot =>
   useSyncExternalStore(subscribe, getSnapshot);
 
 /**
- * How the two modes trade places: the window darkens, changes size and
- * comes back up (Ivan, 2026-09-21).
+ * How the two modes trade places. On Windows the window leaves the screen
+ * whole, changes size out of sight and comes back as the other mode, drawn
+ * (Ivan, 2026-09-22: "first we hide the mini app completely then we show the
+ * full ui"). Elsewhere the page darkens, the window changes size and the page
+ * comes back up (2026-09-21).
  *
- * Short on purpose — the switch has to feel like one press, not a scene
- * change — and driven by the animations' own finish rather than by any
- * clock: the window is asked to change size only once the page is out, and
- * the page comes back on the frame after the new mode has been drawn.
+ * Driven by events rather than by any clock either way: the window is asked
+ * to change size only once the old view is gone, and the new one shows only
+ * once the page has drawn it at the window's new size.
  */
 const FADE_OUT_MS = 110;
 const FADE_IN_MS = 170;
@@ -143,60 +147,153 @@ const FADE_IN_MS = 170;
 /** The fade-out, held at nothing while the window changes size. */
 let held: Animation | undefined;
 
-const canFade = () =>
+/** Whether the page can be held dark at all: not in a test's document. */
+const canHold = () =>
   typeof document !== 'undefined' &&
-  typeof document.body?.animate === 'function' &&
-  !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  typeof document.body?.animate === 'function';
 
-const fadeOut = () => {
-  if (!canFade()) {
-    return Promise.resolve();
+/**
+ * How long each half takes. With reduced motion, no time at all — the page
+ * still goes dark for the change of size and comes back, without travelling
+ * there, because the stretch the dark hides is not motion anybody chose.
+ */
+const fadeTime = (ms: number) =>
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms;
+
+/** Resolves once a frame has been drawn after this moment: two frames on. */
+export const afterNextFrame = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+
+/**
+ * Marks the switch on the document for as long as it runs: the page's canvas
+ * wears the window's floor meanwhile (`App.scss`).
+ */
+const markSwitching = (isSwitching: boolean) => {
+  document.documentElement.toggleAttribute(
+    'data-window-switching',
+    isSwitching,
+  );
+};
+
+const fadeOut = async () => {
+  if (!canHold()) {
+    return;
   }
+  markSwitching(true);
   held?.cancel();
   held = document.body.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: FADE_OUT_MS,
+    duration: fadeTime(FADE_OUT_MS),
     easing: 'ease-in',
     fill: 'forwards',
   });
   // A cancelled animation rejects; either way the switch carries on.
-  return held.finished.catch(() => undefined);
+  await held.finished.catch(() => undefined);
+  // And on screen before the window changes size. The fade ends a frame or
+  // two before its last frame is shown, and a window resized in between kept
+  // the old view, part-faded, in its corner while the new one came up (Ivan,
+  // 2026-09-22: "I can see a mini player frame on the left for a sec").
+  await afterNextFrame();
 };
 
-const fadeIn = () =>
+/** Resolves on the window's next `resize`. */
+const nextResize = () =>
   new Promise<void>((resolve) => {
-    if (!canFade()) {
-      held?.cancel();
-      held = undefined;
-      resolve();
-      return;
-    }
-    // The frame after the new mode has been laid out, so what comes up is
-    // the new view and not the old one at its new size.
-    requestAnimationFrame(() => {
-      const rise = document.body.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: FADE_IN_MS,
-        easing: 'ease-out',
-      });
-      // Let go of the hold only once the rise is running, or the page is
-      // fully lit for the frame between the two.
-      held?.cancel();
-      held = undefined;
-      rise.finished.catch(() => undefined).then(() => resolve());
-    });
+    window.addEventListener('resize', () => resolve(), { once: true });
   });
+
+/**
+ * Resolves once this page's viewport is the window's content — the size main
+ * has just given the window — within a pixel for the zoom's rounding.
+ *
+ * Main answers a switch the moment the window has its new size, but the page
+ * hears of that size separately and later, and until it draws a frame at the
+ * new size the screen shows its last frame stretched to fit the new window.
+ * The page used to come back one frame after the answer: into that frame,
+ * still at the old size (Ivan, 2026-09-22: "I can see the ui stretched not
+ * fitting and I see how it stretched back to fit"). Asked again after every
+ * resize, so a window that changes twice — restored, then maximised — is
+ * waited out rather than caught halfway.
+ */
+export const untilViewportIsWindow = async (): Promise<void> => {
+  const bridge = window.electron?.ipcRenderer;
+  if (typeof bridge?.getWindowState !== 'function') {
+    return;
+  }
+  // A main that is restarting answers nothing; the page comes back up.
+  const state = await bridge.getWindowState().catch(() => undefined);
+  const size = state?.contentSize;
+  // A main from before `contentSize` gives nothing to wait on.
+  if (!state || !size) {
+    return;
+  }
+  const zoom = state.zoom > 0 ? state.zoom : 1;
+  if (
+    Math.abs(window.innerWidth - size.width / zoom) <= 1 &&
+    Math.abs(window.innerHeight - size.height / zoom) <= 1
+  ) {
+    return;
+  }
+  await nextResize();
+  await untilViewportIsWindow();
+};
+
+const fadeIn = async () => {
+  if (!canHold()) {
+    return;
+  }
+  // Only once the page has drawn the new mode at the window's new size, so
+  // the first frame to show is that one and not the stretched one before it.
+  await untilViewportIsWindow();
+  await afterNextFrame();
+  const rise = document.body.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: fadeTime(FADE_IN_MS),
+    easing: 'ease-out',
+  });
+  // Let go of the hold only once the rise is running, or the page is fully
+  // lit for the frame between the two.
+  held?.cancel();
+  held = undefined;
+  await rise.finished.catch(() => undefined);
+  markSwitching(false);
+};
+
+/**
+ * Whether main takes the window off the screen for the switch: on Windows,
+ * where it is cloaked — gone from view and still drawing (`windowDwm.ts`).
+ */
+export const hidesWindow = () =>
+  window.electron?.platform === 'win32' &&
+  typeof window.electron.ipcRenderer?.sendMessage === 'function';
 
 /**
  * Ask main for the other mode. What the page draws follows main's answer,
  * never the request: in full screen the switch is refused. Main answers once
- * the window has the new mode's size, and the page is dark for the change.
+ * the window has the new mode's size.
+ *
+ * The window goes before the question is asked — main hears the two in the
+ * order they are sent — and comes back, in a `finally`, whatever the answer:
+ * a switch refused or failed must not leave it off the screen.
  */
 export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
-  await fadeOut();
+  const isHidden = hidesWindow();
+  if (isHidden) {
+    window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
+  } else {
+    await fadeOut();
+  }
   try {
     const answered = await window.electron.ipcRenderer.setWindowMode(mode);
     publish({ ...snapshot, mode: answered });
   } finally {
-    await fadeIn();
+    if (isHidden) {
+      await untilViewportIsWindow();
+      await afterNextFrame();
+      window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
+    } else {
+      await fadeIn();
+    }
   }
 };
 

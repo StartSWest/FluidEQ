@@ -3074,6 +3074,7 @@ app.on('will-quit', stopWatchingSystemMedia);
 const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
   const modes = windowModes.memory();
   const isLive = window !== null && !window.isDestroyed();
+  const [contentWidth, contentHeight] = isLive ? window.getContentSize() : [];
   return {
     isMaximized: isLive ? window.isMaximized() : false,
     isFullScreen: isLive ? window.isFullScreen() : false,
@@ -3081,6 +3082,10 @@ const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
     mode: modes.mode,
     isPinned: modes.isPinned,
     zoom: isLive ? window.webContents.getZoomFactor() : 1,
+    contentSize:
+      contentWidth !== undefined && contentHeight !== undefined
+        ? { width: contentWidth, height: contentHeight }
+        : undefined,
   };
 };
 

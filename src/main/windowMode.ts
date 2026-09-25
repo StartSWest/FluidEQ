@@ -16,6 +16,7 @@ import {
 } from '../common/windowMode';
 import type { IRect, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
+import { setWindowTransitions } from './windowDwm';
 
 /** Where the full app was, as the window-state file keeps it. */
 export interface IAppPlacement extends Partial<IRect> {
@@ -290,12 +291,14 @@ export const createWindowModes = (
     }
     // Windows restores the window on its own message loop; its bounds are
     // only the window's to change once that has happened, which is what the
-    // event says.
+    // event says. Without Windows' shrink on the way (`setWindowTransitions`).
     return new Promise((resolve) => {
       win.once('unmaximize', () => {
         settle();
+        setWindowTransitions(win, true);
         resolve();
       });
+      setWindowTransitions(win, false);
       win.unmaximize();
     });
   };
@@ -345,13 +348,16 @@ export const createWindowModes = (
     // Windows maximises on its own message loop, and the switch is not over
     // until it has: pressed twice in quick succession, the switch back read
     // a window that was not maximised YET, placed the player, and Windows
-    // then maximised it — a player the size of the screen.
+    // then maximised it — a player the size of the screen. Without Windows'
+    // grow on the way (`setWindowTransitions`).
     return new Promise((resolve) => {
       win.once('maximize', () => {
+        setWindowTransitions(win, true);
         isSwitching = false;
         onChange();
         resolve();
       });
+      setWindowTransitions(win, false);
       win.maximize();
     });
   };

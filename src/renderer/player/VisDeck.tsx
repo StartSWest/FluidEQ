@@ -35,16 +35,14 @@ import {
   useWaveOrientation,
 } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
+import { reportError } from '../utils/logger';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import useGraphScenePack from './useGraphScenePack';
 import PlayerPaper from './PlayerPaper';
 import { playerPaperFor } from './paperRules';
-import {
-  PLAYER_VIS_MIN,
-  setPlayerVisFull,
-  usePlayerVisFull,
-} from './playerLayout';
+import { PLAYER_VIS_MIN, usePlayerVisFull } from './playerLayout';
 import { setWindowMode } from './windowModeStore';
+import switchVisFullScreen from './visFullScreen';
 
 /**
  * The player's visualizer: the graph's own look, playing.
@@ -72,18 +70,20 @@ const VisDeck = ({ height }: { height: number }) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const isFull = usePlayerVisFull();
   /**
-   * The picture alone, on the whole screen, and back again.
+   * The picture alone, on the whole screen, and back again — hidden while
+   * the window changes size, fading in on black (`visFullScreen.ts`).
    *
-   * The window is asked in the same breath as the claim is written down, so
-   * the state it announces is never reconciled back out of the mode (see
-   * `App.tsx`). A failure leaves both as they were rather than a window and
-   * a layout that disagree.
+   * The claim is written down before the window is asked, so the state it
+   * announces is never reconciled back out of the mode (see `App.tsx`). A
+   * refusal leaves both as they were rather than a window and a layout that
+   * disagree.
    */
   const toggleFull = useCallback((next: boolean) => {
-    setPlayerVisFull(next);
-    window.electron?.ipcRenderer
-      ?.setWindowFullScreen?.(next)
-      ?.catch(() => setPlayerVisFull(!next));
+    // A refusal is an answer and comes back quietly; anything thrown is a
+    // fault, and the switch has already put the player back in view.
+    switchVisFullScreen(next, stageRef.current).catch((error: unknown) =>
+      reportError('Player full screen switch failed', error),
+    );
   }, []);
 
   // Escape gives the window back, wherever the focus is: a picture with no

@@ -45,6 +45,18 @@ export const PLAYER_HEIGHT_LIMIT_CHANNEL = 'window-player-height-limit';
 export const PLAYER_WIDTH_FLOOR_CHANNEL = 'window-player-width-floor';
 
 /**
+ * The page's word that a switch between the app and the player is starting:
+ * main takes the window off the screen, still drawing, for its length.
+ */
+export const WINDOW_HIDE_FOR_SWITCH_CHANNEL = 'window-hide-for-switch';
+
+/**
+ * The page's word that it has drawn the new mode at the window's new size:
+ * main puts the window back on the screen.
+ */
+export const WINDOW_REVEAL_CHANNEL = 'window-reveal';
+
+/**
  * The page's word for where a Mac's traffic lights belong:
  * `[left, centreY, stripBottom]` in CSS pixels, measured off the strip that
  * is on screen (`TrafficLightSlot`). Main turns it into the system's points
@@ -84,6 +96,13 @@ export interface IWindowState {
    * large at 1.2 and its four corners fall outside the clip.
    */
   zoom: number;
+  /**
+   * The window's content in its own pixels, before the zoom: what the page's
+   * viewport becomes once a change of size has reached it. The switch between
+   * the app and the player waits for the two to agree before the page comes
+   * back up (`setWindowMode`). Absent from a main started before it was said.
+   */
+  contentSize?: { width: number; height: number };
 }
 
 export interface IRect {
