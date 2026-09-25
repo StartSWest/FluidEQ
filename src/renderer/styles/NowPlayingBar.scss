@@ -465,6 +465,25 @@ $now-playing-bar-height: 64px;
       box-shadow: none;
     }
   }
+
+  // Its fader loses its block here, as the library's does: on its own tab
+  // the pill sits over the stage, in the bar it sat in a bar. The mix menu's
+  // copies keep theirs. The mute switch goes bare at rest the same way,
+  // written against its states, so hover and a pressed switch still win
+  // whichever stylesheet the bundler puts last.
+  .karaoke-transport__volume:not(.is-in-mix-menu) {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .karaoke-transport__volume:not(.is-in-mix-menu)
+    button.karaoke-transport__volume-toggle:not(:hover):not(:focus-visible):not(
+      [aria-pressed='true']
+    ) {
+    border-color: transparent;
+    background: transparent;
+  }
 }
 
 // *** Transport: previous / play / next, and the seek line *******************
@@ -518,36 +537,30 @@ $now-playing-bar-height: 64px;
   box-shadow: none;
 }
 
-// The transport keys and the seek line in one wrapper, and the wrapper is the
-// pill. Two pills side by side read as two controls; the keys and the line
-// they move along are one.
+// The transport keys and the seek line in one wrapper, with nothing drawn
+// behind it: the bar is one surface (Ivan, 2026-09-25, from the mockups —
+// "dont change our bar color just remove that options bg"). The keys and the
+// fader each sat in a block one rung up from the bar, and two lit boxes on a
+// floor of the window's own colour read as panels set into it rather than as
+// controls on it.
 //
 // Fixed widths inside it rather than fractions, so the deck is the same size
 // on every tab and, being the middle column between two equal fractions, in
 // the same place -- karaoke's and the library's six keys sit in a group
-// of one width, and the seek line is one length everywhere.
+// of one width, and the seek line is one length everywhere. No padding: with
+// no seek line the deck is the key group alone and the play button is its
+// middle, which the pill needed an uneven padding rule to keep.
 .now-playing-bar__deck,
 .now-playing-bar__adopted .karaoke-transport__deck {
   display: flex;
   min-width: 0;
   flex: 0 1 auto;
   align-items: center;
-  gap: 8px;
-  padding: 3px 10px 3px 3px;
-  // The same block as every wrapper in the window: the slate one step above
-  // the bar, an edge, no shadow. It was a mist wash of its own under a drop
-  // shadow, the one control tray drawn as a different material.
-  @include inset-surface;
-  border-radius: $radius-xs;
-}
-
-// The extra 7px on the right is room after the seek line's time. With no
-// seek line — another program's sound that cannot be seeked, the bar before
-// anything has played — the pill ends on a round button at both sides, and
-// even padding puts the play button at its middle: on the column's middle,
-// under the Tone row's Mid dial, rather than 3px to the left of it.
-.now-playing-bar__deck:not(:has(> .now-playing-bar__position)) {
-  padding-right: 3px;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .now-playing-bar__buttons,
@@ -695,15 +708,21 @@ $now-playing-bar-height: 64px;
   place-items: center;
   padding: 0;
   color: $text-accent;
-  border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+  // Bare at rest, like the transport keys beside it: on a bar with no
+  // blocks, a faint disc round each of these was the last thing still
+  // drawing a box. The menu's rows keep theirs — see `__options`.
+  border: 1px solid transparent;
   border-radius: 50%;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: transparent;
   box-shadow: none;
   cursor: pointer;
   transition: $transition-control;
 
+  // The options button while its menu is open answers like a hover, so a
+  // bare glyph still says which button the menu belongs to.
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &[aria-expanded='true'] {
     color: $white;
     border-color: color-mix(in srgb, $secondary-light 45%, transparent);
     background: color-mix(in srgb, $secondary-default 14%, transparent);
@@ -758,11 +777,11 @@ $now-playing-bar-height: 64px;
 
 // One fader, drawn as one of a set.
 //
-// The same recessed pill karaoke gives each of its three, with the same three
-// columns — icon, slider, reading — so a tab with one fader and a tab with
-// three look like the same control repeated rather than two different ideas
-// about what a fader is. The count is the only thing that changes with the
-// tab.
+// The same three columns karaoke gives each of its faders — icon, slider,
+// reading — so a tab with one fader and a tab with three look like the same
+// control repeated rather than two different ideas about what a fader is.
+// The count is the only thing that changes with the tab. No block behind it,
+// for the reason the deck has none; the menu's row draws its own.
 .now-playing-bar__volume {
   display: grid;
   width: 168px;
@@ -774,10 +793,9 @@ $now-playing-bar-height: 64px;
   grid-template-columns: 26px minmax(56px, 1fr) auto;
   align-items: center;
   gap: 7px;
-  padding: 4px 7px 4px 4px;
-  // Same block as the deck beside it.
-  @include inset-surface;
-  border-radius: $radius-xs;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 // The figure at the end of the fader, in the same grey the format line uses.
@@ -805,9 +823,10 @@ $now-playing-bar-height: 64px;
   place-items: center;
   padding: 0;
   color: $text-accent;
-  border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+  // Bare at rest, like the toggles.
+  border: 1px solid transparent;
   border-radius: 50%;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: transparent;
   box-shadow: none;
   cursor: pointer;
   transition: $transition-control;
@@ -1146,6 +1165,18 @@ $now-playing-bar-height: 64px;
     font-size: $text-body;
   }
 
+  // The faint face the bar's toggles gave up, kept on the rows: here a row
+  // at rest is a target among targets in a panel, not a glyph on a strip.
+  // Written against the states rather than before them, so hover, focus and
+  // a lit row keep winning without depending on where this rule stands.
+  .now-playing-bar__toggle:not(:hover):not(:focus-visible):not(
+      [aria-pressed='true']
+    ),
+  .now-playing-bar__volume-icon:not(:hover):not([aria-pressed='true']) {
+    border-color: color-mix(in srgb, $secondary-light 10%, transparent);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
   .now-playing-bar__option-label {
     display: inline;
     overflow: hidden;
@@ -1160,6 +1191,7 @@ $now-playing-bar-height: 64px;
     width: 100%;
     height: 34px;
     padding: 0 10px;
+    border: 1px solid $border-subtle;
     border-radius: $radius-s;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
   }
@@ -1180,15 +1212,16 @@ $now-playing-bar-height: 64px;
 //
 // 52 rather than 64 under a laptop's height (`$bp-laptop-height`, the shell's
 // own tier in `App.scss`), and every row still inside it with room above and
-// below. What sets the height is the deck: 34px keys and a 44px Play in a
-// padded pill come to 44, which is the 64 bar's whole content box. Here the
-// keys are 30 and Play 38, so the deck is 38 — the height the three lines
-// beside the cover already measure — and 6 of padding either side of it.
+// below. The 64 was set by the deck when it was a padded pill round 34px keys
+// and a 44px Play; the pill is gone (see `__deck`) and the height is kept, so
+// the floor of the window did not move with it. Here the keys are 30 and Play
+// 38 — the height the three lines beside the cover already measure — and 6
+// of padding either side of it.
 //
 // Karaoke draws its own keys into this bar (`.now-playing-bar__adopted`), so
 // they come down with the library's, or the bar would be a different height
 // depending on which tab is playing — the thing `$now-playing-bar-height`
-// exists to prevent. Its fader pill is 38 as drawn.
+// exists to prevent. Its fader fits as drawn.
 @media (max-height: $bp-laptop-height) {
   .now-playing-bar,
   .now-playing-bar.is-compact {
@@ -1226,7 +1259,7 @@ $now-playing-bar-height: 64px;
   }
 
   // The groups shrink with the keys, so the row keeps its spacing instead of
-  // gathering the smaller keys in the middle of a pill cut for the larger
+  // gathering the smaller keys in the middle of a group cut for the larger
   // ones: three keys and two gaps are 98, and the two flanks either side of
   // Play and its gaps 244. The flanks stay equal, which is what keeps Play on
   // the window's centre line.
