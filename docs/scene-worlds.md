@@ -188,9 +188,15 @@ float line = 1.0 - clamp(min(cell.x, cell.y) - 0.5, 0.0, 1.0);
 ## Bounds
 
 512 nodes, 8 deep; 60,000 copies and points in all; 64 materials; 16 lights,
-2 casting shadows; 16 models, 8 MB and 1.5 million triangles between them;
-32 KB per GLSL piece; the pack as a whole at most 9 MB. Past a bound, a part
-is left out, not the world.
+2 casting shadows; 16 models, 8 MB and 500,000 triangles between them; 32 KB
+per GLSL piece and 256 KB for all of a world's GLSL together; material and
+model ids distinct however they are capitalised; the pack as a whole at most
+9 MB. And a frame's budget (`src/common/sceneWorldCost.ts`): 2 million
+vertices across every mesh, copy, point, ribbon and terrain, a mirrored world
+counted twice; 100,000 per-copy and per-point formulas worked out a frame;
+1 million slots kept by `smooth`, `decay` and `integrate`. A point is one
+vertex and a low-poly copy a dozen, so a field of dust wants `points`, not
+spheres. Past a bound, a part is left out, not the world.
 
 ## How it is drawn
 

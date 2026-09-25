@@ -334,14 +334,41 @@ export const WORLD_LIMITS = {
   /** Decoded glTF bytes across every model. */
   modelBytes: 8 * 1024 * 1024,
   /** Triangles across every model once parsed. */
-  modelTriangles: 1_500_000,
+  modelTriangles: 500_000,
   lights: 16,
   shadowLights: 2,
   vars: 32,
   hookBytes: 32 * 1024,
+  /** Every material's GLSL together: what a scene's own shader may be. */
+  hookTotalBytes: 256 * 1024,
   geometrySegments: 256,
   extent: 10000,
+  /**
+   * Vertices a frame across every mesh, copy, point, ribbon and terrain, a
+   * mirror counting the world twice (`sceneWorldCost.ts`). The heaviest world
+   * FluidEQ ships drew 0.85 million; one written to the other bounds alone
+   * could ask for four billion.
+   */
+  frameVertices: 2_000_000,
+  /** Per-copy and per-point formulas worked out a frame; 30,000 at most shipped. */
+  frameFormulas: 100_000,
+  /** Slots `smooth`, `decay` and `integrate` keep across every copy (8 MB). */
+  formulaState: 1_000_000,
 } as const;
+
+/**
+ * Whether a world draws itself a second time for a reflection: a lit
+ * material with a mirror (`worldMirror.ts`). Counted in its budget as twice.
+ */
+export const worldHasMirror = (
+  materials: Readonly<Record<string, IWorldMaterial>>,
+): boolean =>
+  Object.values(materials).some(
+    (material) =>
+      material.mirror !== 0 &&
+      material.kind !== 'basic' &&
+      material.kind !== 'glow',
+  );
 
 /** What a formula anywhere in a world may name. */
 export const WORLD_SIGNALS = [

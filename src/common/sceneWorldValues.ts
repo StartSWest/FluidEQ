@@ -41,7 +41,14 @@ export const readCount = (
   fallback: number,
   min: number,
   max: number,
-): number => Math.round(readNumber(value, fallback, min, max));
+): number =>
+  // Rounded inside the range: a grid's second axis is bounded by the room
+  // its first left, which is rarely whole, and rounding 1.5 up to 2 let a
+  // grid past the copy limit by a third.
+  Math.min(
+    Math.floor(max),
+    Math.max(Math.ceil(min), Math.round(readNumber(value, fallback, min, max))),
+  );
 
 export const readBoolean = (value: unknown, fallback: boolean): boolean =>
   typeof value === 'boolean' ? value : fallback;

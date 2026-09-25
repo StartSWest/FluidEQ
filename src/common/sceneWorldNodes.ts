@@ -18,6 +18,7 @@ import {
   type TWorldNode,
   type TWorldVec3,
 } from './sceneWorld';
+import { copyCost, geometryVertices, pointCost } from './sceneWorldCost';
 import {
   isWorldRecord,
   readBoolean,
@@ -187,7 +188,36 @@ interface IReadState {
   instances: number;
   lights: number;
   shadows: number;
+  /** A frame's vertices so far, and what each counts: 2 with a mirror. */
+  vertices: number;
+  vertexWeight: number;
+  formulas: number;
+  formulaState: number;
 }
+
+/**
+ * Takes a node's share of the frame (`sceneWorldCost.ts`), or says there is
+ * no room for it: then it is left out, like a copy past the copy limit.
+ */
+const afford = (
+  state: IReadState,
+  vertices: number,
+  formulas = 0,
+  formulaState = 0,
+): boolean => {
+  const drawn = state.vertices + vertices * state.vertexWeight;
+  if (
+    drawn > WORLD_LIMITS.frameVertices ||
+    state.formulas + formulas > WORLD_LIMITS.frameFormulas ||
+    state.formulaState + formulaState > WORLD_LIMITS.formulaState
+  ) {
+    return false;
+  }
+  state.vertices = drawn;
+  state.formulas += formulas;
+  state.formulaState += formulaState;
+  return true;
+};
 
 const materialId = (
   value: unknown,
@@ -228,28 +258,53 @@ const readNode = (
     case 'group':
       node = { ...common, type: 'group' };
       break;
-    case 'mesh':
+    case 'mesh': {
+      const geometry = readGeometry(value.geometry);
+      if (!afford(state, geometryVertices(geometry))) {
+        return null;
+      }
       node = {
         ...common,
         type: 'mesh',
-        geometry: readGeometry(value.geometry),
+        geometry,
         material: materialId(value.material, materials),
       };
       break;
+    }
     case 'instances':
     case 'points': {
       if (room < 1) {
         return null;
       }
       const layout = readLayout(value.layout, room);
-      state.instances += layoutCount(layout);
+      const copies = layoutCount(layout);
       const instance = readMotion(value.instance, scopes);
+      const geometry = readGeometry(value.geometry);
+      const perCopy = copyCost(
+        value.type === 'instances'
+          ? [...instance.position, ...instance.rotation, ...instance.scale]
+          : instance.position,
+        instance.colour,
+        scopes.instance,
+      );
+      if (
+        !afford(
+          state,
+          copies *
+            (value.type === 'instances' ? geometryVertices(geometry) : 1),
+          copies * perCopy.perFrame,
+          copies * perCopy.state,
+        )
+      ) {
+        return null;
+      }
+      state.instances += copies;
       node =
         value.type === 'instances'
           ? {
               ...common,
               type: 'instances',
-              geometry: readGeometry(value.geometry),
+              geometry,
               material: materialId(value.material, materials),
               layout,
               instance,
@@ -266,27 +321,60 @@ const readNode = (
             };
       break;
     }
-    case 'ribbon':
+    case 'ribbon': {
+      const segments = readCount(
+        value.segments,
+        128,
+        2,
+        WORLD_LIMITS.ribbonSegments,
+      );
+      const point = readVec3(value.point, scopes.instance, [
+        'u * 10 - 5',
+        0,
+        0,
+      ]);
+      const width = readExpr(value.width, scopes.instance, 0.1);
+      const colour = readColour(value.colour, scopes.instance, {
+        hex: '#ffffff',
+      });
+      const perPoint = pointCost([...point, width], colour, scopes.instance);
+      const points = segments + 1;
+      if (
+        !afford(
+          state,
+          points * 2,
+          points * perPoint.perFrame,
+          points * perPoint.state,
+        )
+      ) {
+        return null;
+      }
       node = {
         ...common,
         type: 'ribbon',
-        segments: readCount(
-          value.segments,
-          128,
-          2,
-          WORLD_LIMITS.ribbonSegments,
-        ),
-        point: readVec3(value.point, scopes.instance, ['u * 10 - 5', 0, 0]),
-        width: readExpr(value.width, scopes.instance, 0.1),
-        colour: readColour(value.colour, scopes.instance, { hex: '#ffffff' }),
+        segments,
+        point,
+        width,
+        colour,
         material: materialId(value.material, materials),
       };
       break;
+    }
     case 'terrain': {
       const size = Array.isArray(value.size) ? value.size : [];
       const segments = Array.isArray(value.segments) ? value.segments : [];
       const band = Array.isArray(value.band) ? value.band : [];
       const low = readNumber(band[0], 0.05, 0, 0.95);
+      const across = readCount(
+        segments[0],
+        128,
+        2,
+        WORLD_LIMITS.terrainSegments,
+      );
+      const deep = readCount(segments[1], 128, 2, WORLD_LIMITS.terrainSegments);
+      if (!afford(state, (across + 1) * (deep + 1))) {
+        return null;
+      }
       node = {
         ...common,
         type: 'terrain',
@@ -294,10 +382,7 @@ const readNode = (
           readNumber(size[0], 60, 0.01, EXTENT),
           readNumber(size[1], 80, 0.01, EXTENT),
         ],
-        segments: [
-          readCount(segments[0], 128, 2, WORLD_LIMITS.terrainSegments),
-          readCount(segments[1], 128, 2, WORLD_LIMITS.terrainSegments),
-        ],
+        segments: [across, deep],
         height: readExpr(value.height, scope, 6),
         rows: readCount(value.rows, 96, 2, WORLD_LIMITS.terrainRows),
         rate: readNumber(value.rate, 24, 1, 240),
@@ -364,17 +449,30 @@ const readNode = (
   return node;
 };
 
-/** The top-level list of a world's objects, bounded as a whole. */
+/**
+ * The top-level list of a world's objects, bounded as a whole. `mirrored`:
+ * the world is drawn twice a frame (`worldHasMirror`).
+ */
 export const readWorldNodes = (
   value: unknown,
   scopes: IWorldScopes,
   materials: Readonly<Record<string, IWorldMaterial>>,
   models: Readonly<Record<string, IWorldModel>>,
+  mirrored: boolean,
 ): TWorldNode[] => {
   if (!Array.isArray(value)) {
     return [];
   }
-  const state: IReadState = { nodes: 0, instances: 0, lights: 0, shadows: 0 };
+  const state: IReadState = {
+    nodes: 0,
+    instances: 0,
+    lights: 0,
+    shadows: 0,
+    vertices: 0,
+    vertexWeight: mirrored ? 2 : 1,
+    formulas: 0,
+    formulaState: 0,
+  };
   const nodes: TWorldNode[] = [];
   value.forEach((raw) => {
     const node = readNode(raw, 1, state, scopes, materials, models);

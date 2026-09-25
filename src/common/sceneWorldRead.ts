@@ -8,6 +8,7 @@ import {
   WORLD_INSTANCE_SIGNALS,
   WORLD_LIMITS,
   WORLD_SIGNALS,
+  worldHasMirror,
   worldInstanceScopeNames,
   worldScopeNames,
   type ISceneWorld,
@@ -183,16 +184,47 @@ const readRegion = (
   return { x, y, width, height };
 };
 
-const readHook = (value: unknown, entry: RegExp): string | undefined => {
+/** What is left of the world's GLSL budget (`hookTotalBytes`). */
+interface IHookBudget {
+  bytes: number;
+}
+
+const readHook = (
+  value: unknown,
+  entry: RegExp,
+  budget: IHookBudget,
+): string | undefined => {
   if (typeof value !== 'string' || !entry.test(value)) {
     return undefined;
   }
   if (/^\s*#version\b/m.test(value)) {
     return undefined;
   }
-  return new TextEncoder().encode(value).byteLength <= WORLD_LIMITS.hookBytes
-    ? value
-    : undefined;
+  const bytes = new TextEncoder().encode(value).byteLength;
+  if (bytes > WORLD_LIMITS.hookBytes || bytes > budget.bytes) {
+    return undefined;
+  }
+  // eslint-disable-next-line no-param-reassign -- the budget is shared by every material's hooks, in order
+  budget.bytes -= bytes;
+  return value;
+};
+
+/**
+ * Entries whose ids are all distinct however they are capitalised: a
+ * material's GLSL and a model are written out under their ids (`world-<id>`,
+ * `model-<id>`, `projectRestore.ts`), and `Glow` and `glow` are one file on
+ * Windows and macOS, where restoring such a world failed half written.
+ */
+const distinctIds = <T>(entries: [string, T][]): [string, T][] => {
+  const seen = new Set<string>();
+  return entries.filter(([id]) => {
+    const folded = id.toLowerCase();
+    if (seen.has(folded)) {
+      return false;
+    }
+    seen.add(folded);
+    return true;
+  });
 };
 
 const MATERIAL_KINDS: readonly TWorldMaterialKind[] = [
@@ -209,6 +241,7 @@ const readMaterial = (
   value: unknown,
   scopes: IWorldScopes,
   artwork: { width: number; height: number } | undefined,
+  hooks: IHookBudget,
 ): IWorldMaterial => {
   const raw = isWorldRecord(value) ? value : {};
   const expr = (field: unknown, fallback: TWorldExpr) =>
@@ -221,8 +254,8 @@ const readMaterial = (
     : [1, 1];
   const map = readRegion(raw.map, artwork);
   const emissiveMap = readRegion(raw.emissiveMap, artwork);
-  const vertex = readHook(raw.vertex, VERTEX_ENTRY);
-  const fragment = readHook(raw.fragment, FRAGMENT_ENTRY);
+  const vertex = readHook(raw.vertex, VERTEX_ENTRY, hooks);
+  const fragment = readHook(raw.fragment, FRAGMENT_ENTRY, hooks);
   return {
     kind: readChoice(raw.kind, MATERIAL_KINDS, 'standard'),
     colour: readColour(raw.colour, scopes.global, WHITE),
@@ -263,11 +296,11 @@ const readMaterials = (
   if (!isWorldRecord(value)) {
     return materials;
   }
-  Object.entries(value)
-    .filter(([id]) => MATERIAL_ID.test(id))
+  const hooks: IHookBudget = { bytes: WORLD_LIMITS.hookTotalBytes };
+  distinctIds(Object.entries(value).filter(([id]) => MATERIAL_ID.test(id)))
     .slice(0, WORLD_LIMITS.materials)
     .forEach(([id, raw]) => {
-      materials[id] = readMaterial(raw, scopes, artwork);
+      materials[id] = readMaterial(raw, scopes, artwork, hooks);
     });
   return materials;
 };
@@ -279,8 +312,7 @@ const readModels = (value: unknown): Record<string, IWorldModel> => {
     return models;
   }
   let bytes = 0;
-  Object.entries(value)
-    .filter(([id]) => MATERIAL_ID.test(id))
+  distinctIds(Object.entries(value).filter(([id]) => MATERIAL_ID.test(id)))
     .slice(0, WORLD_LIMITS.models)
     .forEach(([id, raw]) => {
       if (!isWorldRecord(raw) || typeof raw.data !== 'string') {
@@ -331,7 +363,13 @@ const normalizeSceneWorld = (
   };
   const materials = readMaterials(raw.materials, scopes, artwork);
   const models = readModels(raw.models);
-  const nodes = readWorldNodes(raw.nodes, scopes, materials, models);
+  const nodes = readWorldNodes(
+    raw.nodes,
+    scopes,
+    materials,
+    models,
+    worldHasMirror(materials),
+  );
   if (nodes.length === 0) {
     return undefined;
   }

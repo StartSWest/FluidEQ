@@ -23,7 +23,7 @@ import {
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { IScenePack } from 'common/scenePacks';
-import { worldVarUniform } from 'common/sceneWorld';
+import { worldHasMirror, worldVarUniform } from 'common/sceneWorld';
 import { uniformNameForParam } from 'common/sceneUniformContract';
 import type { ISceneProgram, TSceneCompileResult } from '../sceneGl';
 import { createWorldBloom } from './worldBloom';
@@ -246,13 +246,9 @@ const compileWorld = async (
       (known) => `uniform float ${worldVarUniform(known.name)};`,
     ),
   ].join('\n');
-  const wantsMirror = Object.values(world.materials).some(
-    (material) =>
-      material.mirror !== 0 &&
-      material.kind !== 'basic' &&
-      material.kind !== 'glow',
-  );
-  const mirror = wantsMirror ? createWorldMirror(floatTargets) : null;
+  const mirror = worldHasMirror(world.materials)
+    ? createWorldMirror(floatTargets)
+    : null;
   if (mirror) {
     disposables.push(mirror);
   }

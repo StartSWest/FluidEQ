@@ -31,6 +31,14 @@ const MAX_WORLD_FILE_BYTES =
  * the way the source is — a plain name, in this folder — and bounded before
  * it is read, so a world is as safe to build from a stranger's folder as the
  * rest of the project.
+ *
+ * Bounded as a whole too, by the reader's own limits, BEFORE anything is
+ * read: each file alone was, but a world naming ten thousand materials, or
+ * a hundred models of eight megabytes, was read into memory in full and
+ * only then cut down to what the reader keeps. Only as many materials and
+ * models are opened as the reader could keep, their GLSL and models count
+ * against the world's totals, and a model is refused as soon as it is not
+ * one the app draws — written inline or in a file alike.
  */
 const readWorldFiles = async (
   folder: string,
@@ -48,8 +56,14 @@ const readWorldFiles = async (
     const real = await resolveInside(folder, name, 'world');
     return readBounded(real, limit, 'world');
   };
+  let hookBytes: number = WORLD_LIMITS.hookTotalBytes;
+  const readHook = async (name: unknown) => {
+    const bytes = await read(name, Math.min(WORLD_LIMITS.hookBytes, hookBytes));
+    hookBytes -= bytes.byteLength;
+    return bytes.toString('utf8');
+  };
   const materialEntries = isRecord(world.materials)
-    ? Object.entries(world.materials)
+    ? Object.entries(world.materials).slice(0, WORLD_LIMITS.materials)
     : [];
   for (let i = 0; i < materialEntries.length; i += 1) {
     const [id, material] = materialEntries[i];
@@ -59,35 +73,36 @@ const readWorldFiles = async (
         ...rest,
         ...(vertexFile === undefined
           ? {}
-          : {
-              vertex: (await read(vertexFile, WORLD_LIMITS.hookBytes)).toString(
-                'utf8',
-              ),
-            }),
+          : { vertex: await readHook(vertexFile) }),
         ...(fragmentFile === undefined
           ? {}
-          : {
-              fragment: (
-                await read(fragmentFile, WORLD_LIMITS.hookBytes)
-              ).toString('utf8'),
-            }),
+          : { fragment: await readHook(fragmentFile) }),
       };
     } else {
       materials[id] = material;
     }
   }
   const modelEntries = isRecord(world.models)
-    ? Object.entries(world.models)
+    ? Object.entries(world.models).slice(0, WORLD_LIMITS.models)
     : [];
+  let { modelBytes } = WORLD_LIMITS;
   for (let i = 0; i < modelEntries.length; i += 1) {
     const [id, model] = modelEntries[i];
     if (isRecord(model) && model.file !== undefined) {
-      const bytes = await read(model.file, WORLD_LIMITS.modelBytes);
+      const bytes = await read(model.file, modelBytes);
+      modelBytes -= bytes.byteLength;
       if (!isSelfContainedModel(bytes)) {
         throw new ProjectProblem('bad-model', 'world');
       }
       models[id] = { data: bytes.toString('base64') };
     } else {
+      // Written inline: held to the same test, or the Studio built a scene
+      // the server then refuses to publish.
+      const data =
+        isRecord(model) && typeof model.data === 'string' ? model.data : '';
+      if (!isSelfContainedModel(Buffer.from(data, 'base64'))) {
+        throw new ProjectProblem('bad-model', 'world');
+      }
       models[id] = model;
     }
   }

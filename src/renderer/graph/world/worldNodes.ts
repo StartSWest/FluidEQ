@@ -171,10 +171,12 @@ const buildLight = (node: IWorldLightNode, state: IBuildState): Object3D => {
 };
 
 const buildModel = (node: IWorldModelNode, state: IBuildState): Object3D => {
-  const asset = state.models[node.model];
-  if (!asset) {
+  // Own entries only: a model named `constructor` that failed to load found
+  // Object's own constructor here, and the whole world fell to its shader.
+  if (!Object.prototype.hasOwnProperty.call(state.models, node.model)) {
     return new Group();
   }
+  const asset = state.models[node.model];
   const scene = cloneSkinned(asset.scene);
   scene.traverse((object) => {
     const mesh = object as Partial<Mesh>;

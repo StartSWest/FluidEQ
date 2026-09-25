@@ -179,6 +179,47 @@ describe('reading a project folder', () => {
       },
     );
 
+    it('refuses models past the world total before reading them', async () => {
+      // Each file under the one-model limit, together past it: the second
+      // is refused by its size, not read and cut down afterwards. A real
+      // binary glTF each, its JSON padded out to five megabytes.
+      const json = Buffer.alloc(5 * 1024 * 1024 - 20, ' ');
+      json.write('{"asset":{"version":"2.0"}}');
+      const half = Buffer.alloc(20 + json.length);
+      half.write('glTF', 0, 'ascii');
+      half.writeUInt32LE(2, 4);
+      half.writeUInt32LE(half.length, 8);
+      half.writeUInt32LE(json.length, 12);
+      half.write('JSON', 16, 'ascii');
+      json.copy(half, 20);
+      write('a.glb', half);
+      write('b.glb', half);
+      write(
+        'pack.json',
+        JSON.stringify(
+          manifest({
+            world: {
+              ...WORLD,
+              models: { a: { file: 'a.glb' }, b: { file: 'b.glb' } },
+            },
+          }),
+        ),
+      );
+      expect(await codes()).toEqual(['file-too-large']);
+    });
+
+    it('holds a model written inline to the test a model file meets', async () => {
+      write(
+        'pack.json',
+        JSON.stringify(
+          manifest({
+            world: { ...WORLD, models: { ship: { data: 'AAAA' } } },
+          }),
+        ),
+      );
+      expect(await codes()).toEqual(['bad-model']);
+    });
+
     it('says the world is wrong when its file is not JSON', async () => {
       write('world.json', '{ "nodes": [');
       write('pack.json', JSON.stringify(manifest({ worldFile: 'world.json' })));
