@@ -24,6 +24,7 @@ import {
   type IPeakHold,
   type IPieceRow,
 } from './scenePieces';
+import { roundInk } from './sceneInks';
 
 /**
  * HALO: the spectrum as a ring of light.
@@ -92,45 +93,6 @@ const ringOf = (frame: ISceneFrame, band: IAnalysisBand) => {
     radius: side * RADIUS * (1 + music.pulse * 0.06 + music.bass * 0.05),
     reach: side * REACH,
   };
-};
-
-/**
- * The paint for the rays in one fill: round the ring, bass at the bottom to
- * treble at the top on both sides, or out along the rays from ring to tip.
- */
-const ringInk = (
-  frame: ISceneFrame,
-  cx: number,
-  cy: number,
-  from: number,
-  to: number,
-  turn: number,
-  whiten: number,
-  alpha: number,
-): string | CanvasGradient => {
-  const { context, colours, look } = frame;
-  if (look.ink === 'flat') {
-    return lightInkAt(colours, 0.5, whiten, alpha);
-  }
-  if (look.ink === 'frequency') {
-    // Clockwise from the bottom is up the left side, and on round to the
-    // bottom again down the right: the ramp there and back.
-    const round = context.createConicGradient(Math.PI / 2 + turn, cx, cy);
-    const stops = 16;
-    for (let stop = 0; stop <= stops; stop += 1) {
-      const at = stop / stops;
-      const fromBottom = at < 0.5 ? at * 2 : 2 - at * 2;
-      round.addColorStop(at, lightInkAt(colours, fromBottom, whiten, alpha));
-    }
-    return round;
-  }
-  const out = context.createRadialGradient(cx, cy, from, cx, cy, to);
-  const stops = 8;
-  for (let stop = 0; stop < stops; stop += 1) {
-    const at = stop / (stops - 1);
-    out.addColorStop(at, lightInkAt(colours, at, whiten, alpha));
-  }
-  return out;
 };
 
 const drawCopy = (
@@ -247,7 +209,7 @@ const drawCopy = (
     }
   }
 
-  const paint = ringInk(frame, cx, cy, base, base + reach, turn, 0, 0.95);
+  const paint = roundInk(frame, cx, cy, base, base + reach, turn, 0, 0.95);
   context.save();
   context.globalAlpha = look.opacity;
   if (look.filled) {
@@ -278,7 +240,7 @@ const drawCopy = (
     context.lineWidth = look.lineWidth;
     context.strokeStyle =
       look.ink === 'heat'
-        ? ringInk(
+        ? roundInk(
             { ...frame, look: { ...look, ink: 'level' } },
             cx,
             cy,
@@ -292,7 +254,7 @@ const drawCopy = (
     context.stroke(outline);
   }
   context.restore();
-  context.fillStyle = ringInk(
+  context.fillStyle = roundInk(
     frame,
     cx,
     cy,

@@ -1555,6 +1555,13 @@ const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   neonbars: 'bead',
   bars3d: 'bead',
   spectrumwave: 'bead',
+  mirrorbars: 'bead',
+  pixelbars: 'bead',
+  beams: 'bead',
+  sparkbars: 'bead',
+  glitchbars: 'bead',
+  orb: 'bead',
+  halftone: 'bead',
 };
 
 /**

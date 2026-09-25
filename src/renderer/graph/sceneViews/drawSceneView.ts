@@ -66,6 +66,44 @@ import {
   drawSilkWaves,
   type ISilkWavesState,
 } from './silkWaves';
+import {
+  createMirrorBarsState,
+  drawMirrorBars,
+  type IMirrorBarsState,
+} from './mirrorBars';
+import {
+  createPixelBarsState,
+  drawPixelBars,
+  type IPixelBarsState,
+} from './pixelBars';
+import {
+  createLightBeamsState,
+  drawLightBeams,
+  type ILightBeamsState,
+} from './lightBeams';
+import {
+  createSparkBarsState,
+  drawSparkBars,
+  type ISparkBarsState,
+} from './sparkBars';
+import {
+  createGlitchBarsState,
+  drawGlitchBars,
+  type IGlitchBarsState,
+} from './glitchBars';
+import { createOrbState, drawOrb, type IOrbState } from './orb';
+import {
+  createKaleidoscopeState,
+  drawKaleidoscope,
+  type IKaleidoscopeState,
+} from './kaleidoscope';
+import { createHelixState, drawHelix, type IHelixState } from './helix';
+import { createMeshState, drawMesh, type IMeshState } from './mesh';
+import {
+  createHalftoneState,
+  drawHalftone,
+  type IHalftoneState,
+} from './halftone';
 
 /**
  * The one door into the drawn scenes (`graphSceneViews.ts`).
@@ -97,6 +135,16 @@ export interface ISceneViewState {
   bars3d: IBars3dState;
   spectrumWave: ISpectrumWaveState;
   silkWaves: ISilkWavesState;
+  mirrorBars: IMirrorBarsState;
+  pixelBars: IPixelBarsState;
+  lightBeams: ILightBeamsState;
+  sparkBars: ISparkBarsState;
+  glitchBars: IGlitchBarsState;
+  orb: IOrbState;
+  kaleidoscope: IKaleidoscopeState;
+  helix: IHelixState;
+  mesh: IMeshState;
+  halftone: IHalftoneState;
 }
 
 export const createSceneViewState = (): ISceneViewState => ({
@@ -117,6 +165,16 @@ export const createSceneViewState = (): ISceneViewState => ({
   bars3d: createBars3dState(),
   spectrumWave: createSpectrumWaveState(),
   silkWaves: createSilkWavesState(),
+  mirrorBars: createMirrorBarsState(),
+  pixelBars: createPixelBarsState(),
+  lightBeams: createLightBeamsState(),
+  sparkBars: createSparkBarsState(),
+  glitchBars: createGlitchBarsState(),
+  orb: createOrbState(),
+  kaleidoscope: createKaleidoscopeState(),
+  helix: createHelixState(),
+  mesh: createMeshState(),
+  halftone: createHalftoneState(),
 });
 
 export interface ISceneViewRequest {
@@ -208,6 +266,16 @@ const DRAW: Record<
   bars3d: (frame, state) => drawBars3d(frame, state.bars3d),
   spectrumwave: (frame, state) => drawSpectrumWave(frame, state.spectrumWave),
   silkwaves: (frame, state) => drawSilkWaves(frame, state.silkWaves),
+  mirrorbars: (frame, state) => drawMirrorBars(frame, state.mirrorBars),
+  pixelbars: (frame, state) => drawPixelBars(frame, state.pixelBars),
+  beams: (frame, state) => drawLightBeams(frame, state.lightBeams),
+  sparkbars: (frame, state) => drawSparkBars(frame, state.sparkBars),
+  glitchbars: (frame, state) => drawGlitchBars(frame, state.glitchBars),
+  orb: (frame, state) => drawOrb(frame, state.orb),
+  kaleido: (frame, state) => drawKaleidoscope(frame, state.kaleidoscope),
+  helix: (frame, state) => drawHelix(frame, state.helix),
+  mesh: (frame, state) => drawMesh(frame, state.mesh),
+  halftone: (frame, state) => drawHalftone(frame, state.halftone),
 };
 
 /** A reading in plot gain units as a fraction of the plot's depth. */

@@ -264,9 +264,9 @@ const DRAWN_HERE = GRAPH_STYLES.filter(
 );
 
 describe('the graph style cycle', () => {
-  it('offers seventy-nine distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(79);
-    expect(new Set(GRAPH_STYLES).size).toBe(79);
+  it('offers eighty-nine distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(89);
+    expect(new Set(GRAPH_STYLES).size).toBe(89);
   });
 
   it('gives every form a name of its own', () => {
@@ -624,7 +624,8 @@ describe('the lit peaks', () => {
     );
     // The drawn scenes that hold their peaks do it as the thing they picture
     // does — a lamp left lit, a floating cap, spray off a crest — so theirs
-    // start on; Synthwave's held ridge and the silk's sparks start off.
+    // start on; Synthwave's held ridge, the silk's, the kaleidoscope's, the
+    // helix's and the mesh's sparks start off.
     expect(lit).toEqual([
       'dots',
       'blocks',
@@ -638,6 +639,13 @@ describe('the lit peaks', () => {
       'neonbars',
       'bars3d',
       'spectrumwave',
+      'mirrorbars',
+      'pixelbars',
+      'beams',
+      'sparkbars',
+      'glitchbars',
+      'orb',
+      'halftone',
     ]);
     expect(getDefaultAccentStyle('slope')).toBe('sparks');
     expect(getDefaultAccentStyle('scatter')).toBe('blink');

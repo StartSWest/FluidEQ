@@ -321,10 +321,12 @@ describe('curated forms and settings', () => {
     // twenty plain forms behind them when the measuring views took their
     // place: seven of those and the eight scenes Ivan designed are what the
     // picker offered then, and the ten drawn scenes joined them on
-    // 2026-09-24 (five pictures and five plain spectrums).
-    expect(GRAPH_FORM_LOOKS).toHaveLength(30);
+    // 2026-09-24 (five pictures and five plain spectrums), and ten more
+    // visualizers the next day.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(40);
     expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('silkwaves');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('halftone');
     expect(SELECTABLE_GRAPH_STYLES).toContain('analyzer');
     expect(SELECTABLE_GRAPH_STYLES).toContain('rta');
     expect(SELECTABLE_GRAPH_STYLES).toContain('scope');

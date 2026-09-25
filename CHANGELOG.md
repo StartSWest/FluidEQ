@@ -148,9 +148,11 @@ version and in these notes.
   Third-octave RTA, Peak & average, Waterfall, Stereo & loudness,
   Oscilloscope, Mid & side, Note spectrum, Energy bands and Phase history. A
   look you saved on one of the old drawings still draws.
-- **Ten new visualizers under Scenes.** LED wall, Glass towers, Tide, Halo and
-  Synthwave, and five plain spectrums: LED bars with square segments, Neon
-  bars, 3D bars, Spectrum wave and Silk waves. Each moves with the bass, the
+- **Twenty new visualizers under Scenes.** LED wall, Glass towers, Tide, Halo
+  and Synthwave; LED bars with square segments, Neon bars, 3D bars, Spectrum
+  wave and Silk waves; and Mirror bars, Pixel bars, Light beams, Spark bars,
+  Glitch bars, Orb, Kaleidoscope, Helix, Mesh and Halftone. Each moves with the
+  bass, the
   beat and the treble separately, keeps its shape upside down and mirrored,
   and follows the look editor like every other look: colour by frequency,
   level or loudness, pieces and gap, filled or outline, opacity, line width,
