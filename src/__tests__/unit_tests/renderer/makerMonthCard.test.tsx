@@ -64,22 +64,27 @@ const show = async () => {
 };
 
 /**
- * An instant that is tomorrow on this machine's calendar AND less than a day
- * away, whichever hour the suite runs at.
+ * A fixed "now" for the tests that turn on this computer's calendar.
  *
- * The card says "tomorrow" only when both are true: the day counter rounds up
- * to 1, and the end is not today's date. "+12 hours" satisfied neither before
- * local noon — it is still today — so this passed every afternoon run here and
- * failed the cold build, which starts at 01:00 UTC.
- *
- * The midpoint of the window is inside it at every hour, including midnight,
- * where the window closes to the single instant both ends agree on.
+ * The card reads the clock when it draws, so a date a test built from the
+ * clock a moment earlier can be on the other side of midnight by then. Both
+ * ways it has failed: "+12 hours" was still today before local noon, so the
+ * tomorrow test passed every afternoon run here and failed the cold build,
+ * which starts at 01:00 UTC; and "tonight at 23:59" was already the past for
+ * a full run that reached the last-day test at 23:59, so the card said the
+ * month had ended (2026-09-24). A pinned noon on a fixed day is as far from
+ * either midnight as a day allows, in every time zone, whenever the suite
+ * runs.
  */
-const tomorrowWithinADay = (): string => {
-  const midnight = new Date();
-  midnight.setHours(24, 0, 0, 0);
-  return new Date((midnight.getTime() + Date.now() + DAY) / 2).toISOString();
+const NOON = new Date(2026, 8, 25, 12, 0, 0, 0).getTime();
+let pinnedClock: jest.SpyInstance<number, []> | undefined;
+const pinNow = () => {
+  pinnedClock = jest.spyOn(Date, 'now').mockReturnValue(NOON);
 };
+afterEach(() => {
+  pinnedClock?.mockRestore();
+  pinnedClock = undefined;
+});
 
 test('a running month says when Plus is free until, and nothing about ending', async () => {
   answer({ month: { until: new Date(Date.now() + 20 * DAY).toISOString() } });
@@ -104,7 +109,12 @@ test('the last week counts the days down and asks for a scene', async () => {
 });
 
 test('tomorrow is said as tomorrow, not as one day', async () => {
-  answer({ month: { until: tomorrowWithinADay() } });
+  // Tomorrow at six in the morning: less than a day away, so the counter
+  // rounds up to 1, and not today's date.
+  pinNow();
+  answer({
+    month: { until: new Date(NOON + 18 * 60 * 60 * 1000).toISOString() },
+  });
   await show();
 
   await waitFor(() =>
@@ -184,9 +194,10 @@ test('a maker who is paying is told the next month joins the queue', async () =>
 });
 
 test('the last day is said as today, not as tomorrow', async () => {
-  // Tonight, whatever time this runs: "tomorrow" on the morning a month
-  // ends is a day that does not exist.
-  const tonight = new Date();
+  // Tonight at 23:59, seen from noon of the same day: "tomorrow" on the day
+  // a month ends is a day that does not exist.
+  pinNow();
+  const tonight = new Date(NOON);
   tonight.setHours(23, 59, 0, 0);
   answer({ month: { until: tonight.toISOString(), maker: true } });
   await show();
