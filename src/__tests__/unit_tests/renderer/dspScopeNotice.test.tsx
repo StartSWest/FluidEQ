@@ -76,4 +76,18 @@ describe('the DSP scope line', () => {
       en['dspOff.engineOff'],
     );
   });
+
+  // It was an amber paragraph with a link wrapped onto a line of its own,
+  // which read as an error left on the page rather than as something to act
+  // on (Ivan, 2026-09-22).
+  it('offers switching FluidEQ back on as a real button at the end of the strip', () => {
+    render(notice(status('fluid'), 'switched-off'));
+    const strip = screen.getByRole('status');
+    const button = screen.getByRole('button', { name: en['dspOff.turnOn'] });
+    expect(strip).toContainElement(button);
+    // The loud style: switching back on is what the line exists to suggest.
+    expect(button).toHaveClass('button', 'small');
+    expect(button).not.toHaveClass('link-button');
+    expect(strip.querySelector('.dsp-scope__icon')).not.toBeNull();
+  });
 });

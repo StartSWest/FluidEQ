@@ -8,7 +8,7 @@ import { useEffect, useRef } from 'react';
 import { FilterTypeEnum } from '../../common/constants';
 import { IDimensionSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
-import { readSurfaceAlpha } from '../utils/theme';
+import { fadeTrail, fadingContext } from '../utils/fadingCanvas';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 import {
   readDspCorrelation,
@@ -143,8 +143,8 @@ const DspDimensionGraph = ({
   useEffect(() => {
     const fit = (
       canvas: HTMLCanvasElement,
+      context: CanvasRenderingContext2D | null,
     ): CanvasRenderingContext2D | null => {
-      const context = canvas.getContext('2d');
       if (!context) {
         return null;
       }
@@ -164,26 +164,21 @@ const DspDimensionGraph = ({
 
     const paintField = (enabled: boolean) => {
       const canvas = fieldRef.current;
-      const context = canvas && fit(canvas);
+      // The one that fades a trail (`fadingCanvas.ts`).
+      const context = canvas && fit(canvas, fadingContext(canvas));
       if (!canvas || !context) {
         return;
       }
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
-      // Fade rather than clear, which is what leaves the trail. Toward the
-      // card's own colour, read from the theme, which is what the field's
-      // box wears as well (`.dsp-dimension-field`; Ivan, 2026-09-22: "match
-      // the card"). It was a fixed near-black, so on the Ocean theme the
-      // trail faded into a black square inside a slate card whatever the
-      // stylesheet painted behind it.
+      // Fade rather than clear, which is what leaves the trail — toward
+      // transparent, so the field's box (`.dsp-dimension-field`, the card's
+      // own colour) shows through wherever the trace has gone
+      // (`fadingCanvas.ts`). Faded toward that colour instead, an 8-bit
+      // canvas stopped a few steps short of it and kept the trace's ghost.
       context.globalCompositeOperation = 'source-over';
-      context.fillStyle = readSurfaceAlpha(
-        '--surface-block',
-        1 - FIELD_FADE,
-        `rgba(30, 66, 87, ${1 - FIELD_FADE})`,
-      );
-      context.fillRect(0, 0, width, height);
+      fadeTrail(context, width, height, 1 - FIELD_FADE);
 
       const centreX = width / 2;
       const centreY = height / 2;
@@ -230,7 +225,7 @@ const DspDimensionGraph = ({
      */
     const paintHistory = (enabled: boolean) => {
       const canvas = historyRef.current;
-      const context = canvas && fit(canvas);
+      const context = canvas && fit(canvas, canvas.getContext('2d'));
       if (!canvas || !context) {
         return;
       }
@@ -299,7 +294,7 @@ const DspDimensionGraph = ({
 
     const paintCurve = (enabled: boolean, guard: number) => {
       const canvas = curveRef.current;
-      const context = canvas && fit(canvas);
+      const context = canvas && fit(canvas, canvas.getContext('2d'));
       if (!canvas || !context) {
         return;
       }

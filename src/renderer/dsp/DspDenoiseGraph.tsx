@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readTextInk } from '../utils/theme';
+import { readSurface, readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -59,7 +59,8 @@ const PAD_R = 8;
 const PAD_B = 18;
 
 /**
- * The click lane's height, and the spectrum's top padding below it.
+ * The click lane's bars, the strip they stand in, and the spectrum's top
+ * padding below it.
  *
  * Eighteen pixels so a bar has a readable height rather than merely being
  * present or absent. The graph itself grew to make room instead of taking it
@@ -67,8 +68,12 @@ const PAD_B = 18;
  * is the one thing this picture exists to prevent.
  */
 const LANE_H = 18;
-const LANE_GAP = 6;
-const PAD_T = LANE_H + LANE_GAP + 8;
+const LANE_PAD = 4;
+const LANE_STRIP_H = LANE_H + LANE_PAD * 2;
+const PAD_T = LANE_STRIP_H + 8;
+
+/** Between the lane's name and its first bar. */
+const LANE_LABEL_GAP = 10;
 
 /**
  * Deeper than the EQ and Exciter pages, and it has to be.
@@ -280,35 +285,47 @@ const DspDenoiseGraph = ({
         laneTotal += clicks.buckets[i];
       }
 
-      const laneY = 4;
-      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.03)`;
-      context.fillRect(PAD_L, laneY, plotW, LANE_H);
+      // A strip of its own in the CARD'S colour, ruled off from the plot: it
+      // counts events in time and is no part of the spectrum under it, so it
+      // does not stand on the plot's ground (Ivan, 2026-09-22). Its name sits
+      // at its start and the bars begin after it — drawn over the oldest bars,
+      // as it was, the name was the one thing in the lane nobody could read.
+      context.fillStyle = readSurface('--surface-block', '#1e4257');
+      context.fillRect(0, 0, width, LANE_STRIP_H);
+      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.07)`;
+      context.fillRect(0, LANE_STRIP_H - 1, width, 1);
+      const laneLabel = laneLive
+        ? t('dsp.denoise.graphClicksIn', {
+            count: Math.round(laneTotal),
+            seconds: CLICK_SECONDS,
+          })
+        : t('dsp.denoise.graphClicksOff');
+      context.font = '10px system-ui, sans-serif';
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      context.fillStyle = textInk;
+      context.fillText(laneLabel, PAD_L + 2, LANE_STRIP_H / 2);
+      context.textBaseline = 'alphabetic';
+      const barsX = Math.min(
+        PAD_L + plotW - 1,
+        PAD_L + 2 + context.measureText(laneLabel).width + LANE_LABEL_GAP,
+      );
+      const barsW = Math.max(1, PAD_L + plotW - barsX);
+      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.04)`;
+      context.fillRect(barsX, LANE_PAD, barsW, LANE_H);
       if (laneLive) {
-        const barW = Math.max(1, plotW / CLICK_BUCKETS - 1);
+        const barW = Math.max(1, barsW / CLICK_BUCKETS - 1);
         context.fillStyle = `rgba(${CLICK_INK}, 0.8)`;
         for (let i = 0; i < CLICK_BUCKETS; i += 1) {
           // Oldest at the left, so the lane reads the way time does.
           const bucket = clicks.buckets[(clicks.at + 1 + i) % CLICK_BUCKETS];
           if (bucket > 0) {
             const barH = Math.max(2, (bucket / laneScale) * LANE_H);
-            const x = PAD_L + (i / CLICK_BUCKETS) * plotW;
-            context.fillRect(x, laneY + LANE_H - barH, barW, barH);
+            const x = barsX + (i / CLICK_BUCKETS) * barsW;
+            context.fillRect(x, LANE_PAD + LANE_H - barH, barW, barH);
           }
         }
       }
-      context.font = '9px system-ui, sans-serif';
-      context.textAlign = 'left';
-      context.fillStyle = textInk;
-      context.fillText(
-        laneLive
-          ? t('dsp.denoise.graphClicksIn', {
-              count: Math.round(laneTotal),
-              seconds: CLICK_SECONDS,
-            })
-          : t('dsp.denoise.graphClicksOff'),
-        PAD_L + 4,
-        laneY + LANE_H - 5,
-      );
 
       /* ------------------------------------------------------------ grid */
       context.strokeStyle = 'rgba(255, 255, 255, 0.06)';
@@ -522,16 +539,25 @@ const DspDenoiseGraph = ({
       }
 
       /* ------------------------------------------------ what it is doing */
-      context.textAlign = 'left';
-      context.font = '10px system-ui, sans-serif';
-      context.fillStyle = textInk;
-      context.fillText(
-        live
-          ? `${meter.reductionDb.toFixed(1)} dB`
-          : t('dsp.denoise.graphIdle'),
-        PAD_L + 2,
-        PAD_T - 3,
-      );
+      // Only when there is nothing to watch. The live reduction is the card's
+      // own Reducing reading, under the modules; drawn here as well it was a
+      // second copy of that number. In the lane strip's far end, across from
+      // the lane's own name: idle, the lane has no bars, so that end is
+      // always free. It stood at the plot's top right, and a short graph
+      // brings the level scale's first line up to that edge — "-30" was
+      // printed under "Idle" (Ivan, 2026-09-22).
+      if (!live) {
+        context.textAlign = 'right';
+        context.textBaseline = 'middle';
+        context.font = '10px system-ui, sans-serif';
+        context.fillStyle = textInk;
+        context.fillText(
+          t('dsp.denoise.graphIdle'),
+          PAD_L + plotW - 2,
+          LANE_STRIP_H / 2,
+        );
+        context.textBaseline = 'alphabetic';
+      }
     };
 
     const loop = startGraphLoop(paint);
