@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
-import { getAudioDevices } from './equalizerApi';
+import { readKnownAudioDevices } from './equalizerApi';
 import { reportError } from './logger';
 
 /**
@@ -30,7 +30,7 @@ const useOutputRate = (): number | undefined => {
       // costs the rate and not the page it sits on: the effect that threw
       // would have taken the whole equaliser down with it.
       Promise.resolve()
-        .then(() => getAudioDevices())
+        .then(() => readKnownAudioDevices())
         .then((devices) => {
           if (isLive && request === asked) {
             const found = devices.find(

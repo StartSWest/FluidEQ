@@ -46,7 +46,10 @@ import {
   sendSystemDspChain,
 } from '../../../renderer/dsp/systemChain';
 import { notifyAudioEngineChanged } from '../../../renderer/utils/audioEngineEvents';
-import { resetAudioEngineStatus } from '../../../renderer/utils/useAudioEngineStatus';
+import {
+  refreshAudioEngineStatus,
+  resetAudioEngineStatus,
+} from '../../../renderer/utils/useAudioEngineStatus';
 import {
   claimPlayback,
   stopAllPlayback,
@@ -159,8 +162,11 @@ const flushBridge = async () => {
   await Promise.resolve();
 };
 
-const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) =>
-  render(
+const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) => {
+  // The shell's own question, asked once at launch (`AppContent`): the page
+  // reads that answer and asks main nothing itself.
+  refreshAudioEngineStatus();
+  return render(
     <FluidEqProviderWrapper
       value={{ ...defaultFluidEqContext, isEnabled: true }}
     >
@@ -173,6 +179,7 @@ const renderPanel = (settings: IDspSettings = DSP_DEFAULTS) =>
       />
     </FluidEqProviderWrapper>,
   );
+};
 
 beforeEach(() => {
   engineStatus = FLUID_STATUS;
@@ -351,6 +358,7 @@ describe('the surround switch', () => {
     // on — so it lives with the rack's own switch, where a card being off
     // cannot take it away.
     const onChange = jest.fn();
+    refreshAudioEngineStatus();
     render(
       <FluidEqProviderWrapper
         value={{ ...defaultFluidEqContext, isEnabled: true }}
@@ -553,6 +561,7 @@ describe('where the rack runs, from the engine’s side', () => {
 
 describe('the DSP page while the rack runs nowhere', () => {
   const renderSwitchedOff = (setIsEnabled = jest.fn()) => {
+    refreshAudioEngineStatus();
     render(
       <FluidEqProviderWrapper
         value={{ ...defaultFluidEqContext, isEnabled: false, setIsEnabled }}
@@ -618,6 +627,42 @@ describe('the DSP page while the rack runs nowhere', () => {
       screen.queryByText(en['dspOff.switchedOff']),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeDisabled();
+  });
+});
+
+describe('opening the page', () => {
+  /*
+   * Each ask runs main's engine helper, a registry probe and a hash of the
+   * engine files. The page asked on every opening of its tab, for the answer
+   * the shell had held since launch and keeps current.
+   */
+  it('reads the answer the shell holds, and asks main nothing itself', async () => {
+    const page = (isOpen: boolean) => (
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, isEnabled: true }}
+      >
+        {isOpen ? (
+          <DspPanel
+            settings={DSP_DEFAULTS}
+            onChange={() => undefined}
+            onCommit={() => undefined}
+            engineState="running"
+            onOpenEngineDialog={() => undefined}
+          />
+        ) : null}
+      </FluidEqProviderWrapper>
+    );
+    await act(() => refreshAudioEngineStatus());
+    expect(statusFetches).toBe(1);
+
+    const { rerender } = render(page(true));
+    // The rack reaching the engine is the page acting on the shell's answer.
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    rerender(page(false));
+    rerender(page(true));
+    await flushBridge();
+
+    expect(statusFetches).toBe(1);
   });
 });
 

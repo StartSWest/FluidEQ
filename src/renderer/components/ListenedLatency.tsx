@@ -4,14 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import {
   useListenedDelay,
   useListenedOutput,
 } from '../utils/useListenedOutput';
 import LatencyReadout from './LatencyReadout';
 import GameModeSwitch from './GameModeSwitch';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import '../styles/EngineStrip.scss';
 
 /**
@@ -24,8 +24,10 @@ import '../styles/EngineStrip.scss';
  * instead, rather than opening a second reading of it.
  */
 const ListenedLatency = () => {
-  const { status } = useAudioEngineStatus();
-  const { isEnabled } = useFluidEqContext();
+  // What the window already knows: this mounts with the EQ page, and asking
+  // main on every mount ran the engine helper again for `AppContent`'s answer.
+  const status = useKnownAudioEngineStatus();
+  const { isEnabled } = useFluidEqShell();
   const isFluid = status?.engine === 'fluid';
   const listened = useListenedOutput(isFluid && isEnabled);
   const delay = useListenedDelay(listened);

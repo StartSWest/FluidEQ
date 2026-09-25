@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   karaokeFileBaseName,
   karaokeFileExtension,
@@ -28,7 +35,7 @@ import {
   setKaraokeRelativePath,
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
-import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
+import { TrackClock } from '../../common/karaoke/clock';
 import {
   claimPlayback,
   registerPlayer,
@@ -39,6 +46,7 @@ import {
   KaraokeParseError,
   TKaraokeParseErrorCode,
 } from '../../common/karaoke/types';
+import { createKaraokeLiveValue, IKaraokeLiveValue } from './karaokeLiveValue';
 
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
 
@@ -135,8 +143,16 @@ export const useKaraokeSession = (isActive: boolean) => {
   const [status, setStatus] = useState<TKaraokePlaybackStatus>('empty');
   const [error, setError] = useState<TKaraokeSessionError>();
   const [warning, setWarning] = useState<IKaraokeSessionWarning>();
-  const [playheadMs, setPlayheadMs] = useState(0);
-  const playheadMsRef = useRef(0);
+  /**
+   * Where the song is, as every readout draws it: sampled each
+   * PLAYHEAD_RENDER_INTERVAL_MS while the stage plays, from `timeupdate`
+   * while it is hidden.
+   *
+   * Not state. As state it re-rendered the whole workspace twenty times a
+   * second, where only the few components that show it need to; see
+   * `karaokeLiveValue`.
+   */
+  const [playhead] = useState(() => createKaraokeLiveValue(0));
   const isActiveRef = useRef(isActive);
   const [durationMs, setDurationMs] = useState(0);
   // The app's fader, shared with the library and the Media tab. It used to be
@@ -147,14 +163,13 @@ export const useKaraokeSession = (isActive: boolean) => {
   // normal playback, 0 is voice alone. A ref, because the element must be
   // retuned inside callbacks that never re-render.
   const backingScaleRef = useRef(1);
-  playheadMsRef.current = playheadMs;
   isActiveRef.current = isActive;
 
   /** Read the media element directly for frame-accurate visual synchronization. */
   const readPlayheadMs = useCallback((): number => {
     const audio = audioRef.current;
-    return audio ? new TrackClock(audio).read().nowMs : playheadMsRef.current;
-  }, []);
+    return audio ? new TrackClock(audio).read().nowMs : playhead.read();
+  }, [playhead]);
 
   const revokeObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
@@ -181,9 +196,9 @@ export const useKaraokeSession = (isActive: boolean) => {
     setStatus('empty');
     setError(undefined);
     setWarning(undefined);
-    setPlayheadMs(0);
+    playhead.write(0);
     setDurationMs(0);
-  }, [revokeObjectUrl]);
+  }, [playhead, revokeObjectUrl]);
 
   /** Replace only the parsed karaoke metadata while keeping the loaded audio alive. */
   const applySong = useCallback((nextSong: IKaraokeSong) => {
@@ -335,7 +350,7 @@ export const useKaraokeSession = (isActive: boolean) => {
             language: parsed?.language,
           },
         });
-        setPlayheadMs(0);
+        playhead.write(0);
         setDurationMs(0);
         setStatus('ready');
         audio.src = nextUrl;
@@ -348,7 +363,7 @@ export const useKaraokeSession = (isActive: boolean) => {
         return false;
       }
     },
-    [revokeObjectUrl, song],
+    [playhead, revokeObjectUrl, song],
   );
 
   const play = useCallback(async () => {
@@ -391,34 +406,22 @@ export const useKaraokeSession = (isActive: boolean) => {
   // lyrics and their place in it, and gets them back on the next press.
   useEffect(() => registerPlayer('karaoke', pause), [pause]);
 
-  const seek = useCallback((nextMs: number) => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return;
-    }
-    const clock = new TrackClock(audio);
-    clock.seek(nextMs);
-    setPlayheadMs(clock.read().nowMs);
-  }, []);
+  const seek = useCallback(
+    (nextMs: number) => {
+      const audio = audioRef.current;
+      if (!audio) {
+        return;
+      }
+      const clock = new TrackClock(audio);
+      clock.seek(nextMs);
+      playhead.write(clock.read().nowMs);
+    },
+    [playhead],
+  );
 
   const restart = useCallback(() => {
     seek(0);
   }, [seek]);
-
-  const seekLyric = useCallback(
-    (direction: -1 | 1) => {
-      if (!song?.lines.length) {
-        return;
-      }
-      const active = findActiveKaraokeLine(song.lines, playheadMs);
-      const nextIndex =
-        direction > 0
-          ? Math.min(song.lines.length - 1, active + 1)
-          : Math.max(0, active <= 0 ? 0 : active - 1);
-      seek(song.lines[nextIndex].startMs ?? 0);
-    },
-    [playheadMs, seek, song],
-  );
 
   const setBackingScale = useCallback((scale: number) => {
     backingScaleRef.current = Math.min(1, Math.max(0, scale));
@@ -434,7 +437,7 @@ export const useKaraokeSession = (isActive: boolean) => {
     }
     const syncTime = () => {
       const snapshot = new TrackClock(audio).read();
-      setPlayheadMs(snapshot.nowMs);
+      playhead.write(snapshot.nowMs);
       setDurationMs(snapshot.durationMs);
     };
     const onPlaying = () => {
@@ -490,12 +493,12 @@ export const useKaraokeSession = (isActive: boolean) => {
       audio.removeEventListener('seeked', syncTime);
       audio.removeEventListener('error', onError);
     };
-  }, []);
+  }, [playhead]);
 
   useEffect(() => {
     if (!isActive || status !== 'playing') {
       if (isActive && audioRef.current) {
-        setPlayheadMs(new TrackClock(audioRef.current).read().nowMs);
+        playhead.write(new TrackClock(audioRef.current).read().nowMs);
       }
       return undefined;
     }
@@ -505,14 +508,14 @@ export const useKaraokeSession = (isActive: boolean) => {
       if (renderTime - lastRender >= PLAYHEAD_RENDER_INTERVAL_MS) {
         lastRender = renderTime;
         if (audioRef.current) {
-          setPlayheadMs(new TrackClock(audioRef.current).read().nowMs);
+          playhead.write(new TrackClock(audioRef.current).read().nowMs);
         }
       }
       frame = window.requestAnimationFrame(renderFrame);
     };
     frame = window.requestAnimationFrame(renderFrame);
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, status]);
+  }, [isActive, playhead, status]);
 
   useEffect(
     () => () => {
@@ -526,24 +529,47 @@ export const useKaraokeSession = (isActive: boolean) => {
     [revokeObjectUrl],
   );
 
-  return {
-    audioRef: audioRef as RefObject<HTMLAudioElement>,
-    song,
-    status,
-    error,
-    warning,
-    playheadMs,
-    readPlayheadMs,
-    durationMs,
-    loadFiles,
-    applySong,
-    clear,
-    play,
-    pause,
-    togglePlayback,
-    seek,
-    restart,
-    seekLyric,
-    setBackingScale,
-  };
+  // One object for as long as nothing in it changes. The workspace's playlist
+  // callbacks depend on it, and a new object every render would make each of
+  // them new every render: the memoised playlist would re-draw all its rows
+  // whenever anything at all changed around it.
+  return useMemo(
+    () => ({
+      audioRef: audioRef as RefObject<HTMLAudioElement>,
+      song,
+      status,
+      error,
+      warning,
+      playhead: playhead as IKaraokeLiveValue<number>,
+      readPlayheadMs,
+      durationMs,
+      loadFiles,
+      applySong,
+      clear,
+      play,
+      pause,
+      togglePlayback,
+      seek,
+      restart,
+      setBackingScale,
+    }),
+    [
+      song,
+      status,
+      error,
+      warning,
+      playhead,
+      readPlayheadMs,
+      durationMs,
+      loadFiles,
+      applySong,
+      clear,
+      play,
+      pause,
+      togglePlayback,
+      seek,
+      restart,
+      setBackingScale,
+    ],
+  );
 };

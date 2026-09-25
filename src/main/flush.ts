@@ -65,7 +65,7 @@ const CONFIG_CONTENT = 'Include: fluideq.txt';
 const LEGACY_CONFIG_CONTENT = /^\s*Include:\s*aqua\.txt\s*$/i;
 const LOCAL_STATE_FILENAME = 'state.txt';
 export const FLUIDEQ_CONFIG_FILENAME = 'fluideq.txt';
-const CONFIG_FILENAME = 'config.txt';
+export const CONFIG_FILENAME = 'config.txt';
 export const PRESETS_DIR = 'presets';
 
 export const addFileToPath = (pathPrefix: string, fileName: string) => {
@@ -464,12 +464,18 @@ export const save = (state: IState, settingsDir: string): Promise<void> => {
   return scheduleWrite(settingsPath, serializeState(state));
 };
 
+/**
+ * A profile's text as `fetchPreset` would read it: what the writer last
+ * accepted, or the disk. The same string again for as long as nothing has
+ * changed it, which is what lets a render be kept by what it was made from.
+ */
+export const readPresetText = (presetName: string, presetsDir: string) =>
+  readTextCached(presetFilePath(presetsDir, presetName));
+
 export const fetchPreset = (presetName: string, presetsDir: string) => {
   try {
-    const presetPath = presetFilePath(presetsDir, presetName);
-    // Through the cache: this runs for every attached profile on every
-    // slider movement, and what the writer last accepted beats the disk.
-    const content = readTextCached(presetPath);
+    // Through the cache: what the writer last accepted beats the disk.
+    const content = readPresetText(presetName, presetsDir);
     const json = JSON.parse(content);
     if (validatePresetV1(json)) {
       const oldFormat = json as IPresetV1;

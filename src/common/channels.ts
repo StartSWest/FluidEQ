@@ -164,6 +164,11 @@ enum ChannelEnum {
   EXPORT_DEVICE_CHAIN = 'exportDeviceChain',
   IMPORT_DEVICE_CHAIN = 'importDeviceChain',
   GET_AUDIO_DEVICES = 'getAudioDevices',
+  // Main to the window only: the output list main read because Windows said
+  // the outputs moved (`outputWatch.ts`), after main has followed it. Shaped
+  // as GET_AUDIO_DEVICES' reply, a failure included, so the window takes it
+  // exactly as it takes an answer it asked for.
+  AUDIO_DEVICES_CHANGED = 'audioDevicesChanged',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   READ_OUTPUT_FORMAT = 'readOutputFormat',
   SET_OUTPUT_SEVEN_ONE = 'setOutputSevenOne',

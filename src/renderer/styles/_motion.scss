@@ -26,6 +26,11 @@ $motion-fast: 160ms;
 $motion-base: 220ms;
 $motion-slow: 300ms;
 
+// How long a Smart EQ remark stays said (`smartEqRun.ts`): long enough to read
+// twice. The EQ page's bubble and the player's line both hold it this long,
+// and the end of either hold is what ends the remark.
+$smart-eq-status-hold: 6s;
+
 /**
  * A menu arriving from the control it hangs off, and going back into it.
  *

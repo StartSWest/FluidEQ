@@ -1,4 +1,4 @@
-param([string]$SetDefaultDeviceId = '')
+param([string]$SetDefaultDeviceId = '', [string]$AssemblyPath = '')
 
 $source = @'
 using System;
@@ -449,7 +449,40 @@ public static class AquaAudioDevices
 }
 '@
 
-Add-Type -TypeDefinition $source -Language CSharp
+# Compiling $source starts the C# compiler - csc.exe and its temp files - on
+# every run, and the output list is read every few seconds while the window is
+# open: the compile was most of each read. Main names a file for the compiled
+# helper, stamped with this script's own hash, so each version of the script
+# compiles once. Anything wrong with that file - missing, half written, locked,
+# refused - ends in the in-memory compile every run used to do.
+if ($AssemblyPath) {
+    # Staging files a run could not move or remove - its compile still held
+    # open - are no longer held by the time a later run looks.
+    Get-ChildItem -LiteralPath (Split-Path -Parent $AssemblyPath) -Filter "$(Split-Path -Leaf $AssemblyPath).*.tmp" -ErrorAction SilentlyContinue |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+    try {
+        if (-not (Test-Path -LiteralPath $AssemblyPath)) {
+            # Written beside the final name and moved into place, so a run
+            # killed mid-compile never leaves a partial file under that name.
+            $staging = "$AssemblyPath.$PID.tmp"
+            Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly $staging -OutputType Library -ErrorAction Stop
+            Move-Item -LiteralPath $staging -Destination $AssemblyPath -Force -ErrorAction Stop
+        }
+        if (-not ('AquaAudioDevices' -as [type])) {
+            Add-Type -LiteralPath $AssemblyPath -ErrorAction Stop
+        }
+    }
+    catch {
+        # Next run compiles it again rather than tripping over it forever.
+        Remove-Item -LiteralPath $AssemblyPath -Force -ErrorAction SilentlyContinue
+        if ($staging) {
+            Remove-Item -LiteralPath $staging -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+if (-not ('AquaAudioDevices' -as [type])) {
+    Add-Type -TypeDefinition $source -Language CSharp
+}
 if ($SetDefaultDeviceId) {
     [AquaAudioDevices]::SetDefaultRenderDevice($SetDefaultDeviceId)
     exit 0

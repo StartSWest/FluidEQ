@@ -40,40 +40,77 @@ export interface IFlashedRange {
   highFrequency: number;
 }
 
-/** How long the marks stay up. Long enough to catch, short enough to miss. */
-export const CORRECTION_FLASH_MS = 1500;
+/** One correction landing, and which landing it is. */
+export interface ICorrectionFlash {
+  /** Bumped per landing, so two in a row are two moments rather than one. */
+  id: number;
+  regions: readonly IFlashedRange[];
+}
 
-let flashed: readonly IFlashedRange[] = [];
-const NONE: readonly IFlashedRange[] = [];
-let timer: ReturnType<typeof setTimeout> | undefined;
+/**
+ * How long the moment lasts is the stylesheet's: the bubble's text holds the
+ * applied colour for its `eq-bubble-applied` animation (`MainContent.scss`),
+ * and the end of that animation is what ends the flash (`endCorrectionFlash`).
+ *
+ * It was a timer here, a second and a half from the write. A timer runs
+ * whether or not anything is drawn, so a correction landing behind a
+ * minimised window was over before anybody could see it, and the timer and
+ * the colour were two clocks that only agreed while the window painted.
+ */
+let flash: ICorrectionFlash | undefined;
+let lastId = 0;
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
 
 export const flashCorrection = (regions: readonly IFlashedRange[]) => {
-  if (regions.length === 0) {
+  // With nothing mounted to show it, a landing is shown to nobody — and kept,
+  // it would turn the bubble green over an old write whenever the EQ page next
+  // opened, which is the one thing the colour must never say.
+  if (regions.length === 0 || listeners.size === 0) {
     return;
   }
-  flashed = regions;
-  if (timer) {
-    clearTimeout(timer);
-  }
-  timer = setTimeout(() => {
-    flashed = NONE;
-    timer = undefined;
-    emit();
-  }, CORRECTION_FLASH_MS);
+  lastId += 1;
+  flash = { id: lastId, regions };
   emit();
+};
+
+/**
+ * The moment named by `id` has been shown, so it is over.
+ *
+ * By id, because a second correction can land while the first is still
+ * showing: the first one's end must not take the second away.
+ */
+export const endCorrectionFlash = (id: number) => {
+  if (flash?.id !== id) {
+    return;
+  }
+  flash = undefined;
+  emit();
+};
+
+/**
+ * Module-level rather than written inline in the hook, so React keeps one
+ * subscription for the life of the component instead of swapping it on every
+ * render — which would empty the set for a moment each time, and the last
+ * one leaving is what ends a flash.
+ */
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+    // The page that showed it has gone — another tab opened — and the
+    // animation that would have ended it went with it. Nothing will end it
+    // now, so it is over.
+    if (listeners.size === 0) {
+      flash = undefined;
+    }
+  };
 };
 
 export const useCorrectionFlash = () =>
   useSyncExternalStore(
-    (listener: () => void) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    () => flashed,
-    () => NONE,
+    subscribe,
+    () => flash,
+    () => undefined,
   );

@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
-import { useFluidEqContext } from '../utils/FluidEqContext';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useFluidEqShell } from '../utils/FluidEqContext';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { useTranslation } from '../utils/I18nContext';
 
 interface IFluidEngineLabelProps {
@@ -62,8 +62,12 @@ export default function FluidEngineLabel({
   isEngineOnOutput,
   isPartlyOff,
 }: IFluidEngineLabelProps) {
-  const { status } = useAudioEngineStatus();
-  const { isEngineUsable } = useFluidEqContext();
+  // The answer the window already holds. This line is remounted with every
+  // page of the equaliser's group, and asking main on each mount ran the
+  // engine helper, a registry probe and a hash of the engine files once per
+  // page opened, for the answer `AppContent` had been keeping current.
+  const status = useKnownAudioEngineStatus();
+  const { isEngineUsable } = useFluidEqShell();
   const { t } = useTranslation();
   const isApo =
     status?.engine === 'apo' && status.apo.installed && isEngineUsable;

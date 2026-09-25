@@ -24,6 +24,7 @@ import {
   ILibraryRoot,
   ILibraryTrack,
 } from '../../common/library/types';
+import { replaceFileNow, scheduleWriteOperation } from '../asyncWriter';
 
 const INDEX_FILENAME = 'library-index.json';
 
@@ -48,7 +49,8 @@ const isProgrammeEdges = (value: unknown): boolean =>
   Number.isFinite(value.endMs) &&
   value.endMs >= value.leadInMs;
 
-const isNormalizationAnalysis = (
+/** Also what `library-track-normalization-set` holds a window's measurement to. */
+export const isNormalizationAnalysis = (
   value: unknown,
 ): value is ILibraryNormalizationAnalysis =>
   isObject(value) &&
@@ -134,9 +136,10 @@ export const parseLibraryIndex = (raw: unknown): ILibraryIndex | undefined => {
 export const libraryIndexPath = (userDataDir: string): string =>
   path.join(userDataDir, INDEX_FILENAME);
 
-const readLibraryIndexFile = (target: string): ILibraryIndex | undefined => {
+/** The index in `text`, or undefined when it is not one this version wrote. */
+const parseLibraryIndexText = (text: string): ILibraryIndex | undefined => {
   try {
-    return parseLibraryIndex(JSON.parse(fs.readFileSync(target, 'utf8')));
+    return parseLibraryIndex(JSON.parse(text));
   } catch {
     return undefined;
   }
@@ -161,14 +164,17 @@ const backupUnreadableIndex = (target: string): void => {
   }
 };
 
-export const loadLibraryIndex = (
-  userDataDir: string,
-): { index: ILibraryIndex; wasReset: boolean } => {
-  const target = libraryIndexPath(userDataDir);
-  if (!fs.existsSync(target)) {
-    return { index: emptyLibraryIndex(), wasReset: false };
-  }
-  const parsed = readLibraryIndexFile(target);
+export interface ILoadedLibraryIndex {
+  index: ILibraryIndex;
+  /** The file was there and could not be read; it is kept as `.bak`. */
+  wasReset: boolean;
+}
+
+/** What a read of a file that exists comes to. */
+const settleRead = (
+  target: string,
+  parsed: ILibraryIndex | undefined,
+): ILoadedLibraryIndex => {
   if (parsed) {
     return { index: parsed, wasReset: false };
   }
@@ -176,18 +182,104 @@ export const loadLibraryIndex = (
   return { index: emptyLibraryIndex(), wasReset: true };
 };
 
-export const saveLibraryIndex = (
+const isMissingFile = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  'code' in error &&
+  (error as { code: unknown }).code === 'ENOENT';
+
+/**
+ * The index on disk, read without holding main while the disk answers.
+ *
+ * The index is one file of every track the library knows — 10-40 MB for
+ * fourteen thousand, by how it was written — and it used to be read and
+ * parsed synchronously at registration, which `main.ts` does at module scope:
+ * in front of the first window, on every launch. `ipc/library.ts` now reads
+ * it through here when something first needs it.
+ */
+export const readLibraryIndex = async (
   userDataDir: string,
-  index: ILibraryIndex,
-): void => {
-  fs.mkdirSync(userDataDir, { recursive: true });
+): Promise<ILoadedLibraryIndex> => {
   const target = libraryIndexPath(userDataDir);
-  const temporary = `${target}.tmp`;
-  // A write that dies partway through leaves the .tmp file damaged, not the
-  // index a scan is about to be checked against; the rename that follows is
-  // atomic on both NTFS and the POSIX filesystems this app ships on.
-  fs.writeFileSync(temporary, JSON.stringify(index, null, 2), 'utf8');
-  fs.renameSync(temporary, target);
+  try {
+    return settleRead(
+      target,
+      parseLibraryIndexText(await fs.promises.readFile(target, 'utf8')),
+    );
+  } catch (error) {
+    if (isMissingFile(error)) {
+      return { index: emptyLibraryIndex(), wasReset: false };
+    }
+    // Any other failure to read is a file that is there and cannot be used,
+    // the same as text that does not parse.
+    return settleRead(target, undefined);
+  }
+};
+
+/**
+ * Each track's text in the file, kept for as long as the track object lives.
+ *
+ * A track is never changed in place — every edit in `ipc/library.ts` and
+ * every scan builds a new object (`libraryIndexTracks.ts`) — so its text is
+ * fixed the moment it exists, and a write only has to stringify the tracks
+ * that are new since the last one. Joining the rest costs 10-15 ms for
+ * fourteen thousand tracks, against 40-140 ms to stringify the whole index
+ * (measured on a synthetic index; the high end is tracks carrying noise
+ * profiles) — which is what every newly measured song used to cost main.
+ */
+const trackText = new WeakMap<ILibraryTrack, string>();
+
+/** The same text `JSON.stringify` gives for the whole index. */
+export const serializeLibraryIndex = (index: ILibraryIndex): string => {
+  const { tracks, ...rest } = index;
+  const body = tracks
+    .map((track) => {
+      const known = trackText.get(track);
+      if (known !== undefined) {
+        return known;
+      }
+      const text = JSON.stringify(track);
+      trackText.set(track, text);
+      return text;
+    })
+    .join(',');
+  // `rest` always holds `version`, so its text ends in a `}` closing at least
+  // one member; the tracks go in as the last.
+  return `${JSON.stringify(rest).slice(0, -1)},"tracks":[${body}]}`;
+};
+
+/**
+ * Asks for the index to be on disk soon, without holding main while it goes.
+ *
+ * Every change used to end in a `writeFileSync` of the whole index,
+ * indented: 13-40 MB for fourteen thousand tracks, stringified and written on
+ * main — 70-350 ms on a synthetic index that size, each time a newly played
+ * song's loudness was kept. Now a change is a request. One write runs at a
+ * time; the requests that arrive while it does collapse into one more, which
+ * reads `current()` when it starts, so it writes the index as it is by then
+ * and never a snapshot older than the last change. `asyncWriter` writes beside
+ * the file and renames over it, and the quit waits for it
+ * (`flushPendingWrites`). Compact rather than indented: the one reader is
+ * `JSON.parse`, and the indentation was a third to half of the file.
+ *
+ * `replaceFileNow`, not `scheduleWrite`: the operation already coalesces, and
+ * `scheduleWrite` keeps each path's last text in memory to skip identical
+ * writes — the whole index again, for a check `ipc/library.ts` makes before it
+ * asks (a rescan that changed nothing asks for no write at all). And not
+ * `writeFileNow`, whose refused rename falls back to writing over the file
+ * where it stands: a crash in the middle of that leaves half an index, which
+ * the next launch reads as corrupt and resets. A write that fails is thrown;
+ * the queue goes on past it, and the next change writes the index again.
+ */
+export const writeLibraryIndexSoon = (
+  userDataDir: string,
+  current: () => ILibraryIndex,
+): Promise<void> => {
+  const target = libraryIndexPath(userDataDir);
+  return scheduleWriteOperation(target, async () => {
+    await fs.promises.mkdir(userDataDir, { recursive: true });
+    await replaceFileNow(target, serializeLibraryIndex(current()));
+  });
 };
 
 export const trackPathById = (

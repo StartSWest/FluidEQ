@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import ChannelEnum from 'common/channels';
 import type { IAudioDevice } from 'common/constants';
-import coalesceRequests from 'renderer/utils/coalescedRequest';
+import coalesceRequests from 'common/coalescedRequest';
 import { getAudioDevices, getMainPreAmp } from 'renderer/utils/equalizerApi';
 import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 

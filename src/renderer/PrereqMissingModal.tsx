@@ -24,6 +24,7 @@ import type { IEngineSetupResult } from 'main/engineSetup';
 import Button from './widgets/Button';
 import { useTranslation } from './utils/I18nContext';
 import { startEqualizerApoInstall } from './utils/apoInstall';
+import { useNoticeClaim } from './utils/noticeTurn';
 import './styles/Modal.scss';
 
 interface IPrereqMissingModalProps {
@@ -60,6 +61,8 @@ export default function PrereqMissingModal({
   const [startError, setStartError] = useState<string>();
 
   useEffect(() => setIsDismissed(false), [actionMsg, errorMsg]);
+  // The corner's notices step aside while it is up (`noticeTurn.ts`).
+  useNoticeClaim('prereq', !isDismissed);
 
   // Opens the copy that shipped inside FluidEQ's own installer. It is already
   // on disk; there is nothing to download and nowhere to go.

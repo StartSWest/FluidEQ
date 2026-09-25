@@ -427,6 +427,63 @@ describe('handing a click off to the player (Task 19)', () => {
     expect(screen.queryByText('Live at the Roxy')).not.toBeInTheDocument();
   });
 
+  // The stylesheet reads a full-screen picture from the card
+  // (`is-video-full`) rather than asking the card's subtree for the stage's
+  // `is-fullscreen` with `:has()`: the two have to agree.
+  it('says on the card when its video stage is full screen', async () => {
+    window.localStorage.setItem('fluideq.library.browseMode', 'video');
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Videos',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [
+        track({
+          id: 'v1',
+          title: 'Live at the Roxy',
+          kind: 'video',
+          path: 'C:\\Videos\\Live\\show.mp4',
+        }),
+      ],
+    };
+    const tree = (isFullScreen: boolean) => (
+      <I18nProvider>
+        <LibraryProvider>
+          <LibraryPlayerProvider>
+            <LibraryWorkspace
+              isHidden={false}
+              isFullScreen={isFullScreen}
+              onToggleFullScreen={toggleFullScreen}
+            />
+          </LibraryPlayerProvider>
+        </LibraryProvider>
+      </I18nProvider>
+    );
+    const { container, rerender } = render(tree(true));
+    const card = () => container.querySelector('.library-workspace');
+    // Full screen with no picture: there was no stage for `:has()` to find.
+    expect(card()).not.toHaveClass('is-video-full');
+
+    await userEvent.click(await screen.findByText('Live at the Roxy'));
+    await screen.findByRole('button', { name: 'Back' });
+    expect(container.querySelector('.library-video-stage')).toHaveClass(
+      'is-fullscreen',
+    );
+    expect(card()).toHaveClass('is-video-full');
+
+    rerender(tree(false));
+    expect(container.querySelector('.library-video-stage')).not.toHaveClass(
+      'is-fullscreen',
+    );
+    expect(card()).not.toHaveClass('is-video-full');
+  });
+
   it('leaves the shelf in place for a video FluidEQ cannot decode, instead of opening a broken stage', async () => {
     // The exact gap Task 19 closed in `LibraryPlayerContext`: `videoTrackId`
     // used to key on `kind === 'video'` alone, so an unplayable container

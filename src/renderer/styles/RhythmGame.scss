@@ -326,9 +326,21 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// How long a verdict stays up after the tap that earned it.
+$rhythm-verdict-hold: 900ms;
+
 .rhythm-game__verdict-text {
   display: inline-block;
   animation: rhythm-verdict 460ms ease-out;
+
+  // A tap's verdict, for its moment: the hold's end is what takes it down
+  // (`RhythmGame.tsx`), where a timer beside it used to. The entrance above
+  // runs inside it, so the list names both.
+  &.is-held {
+    animation:
+      rhythm-verdict 460ms ease-out,
+      rhythm-verdict-hold $rhythm-verdict-hold linear;
+  }
 
   &--perfect {
     color: $neon-lime;
@@ -355,6 +367,13 @@ it under the terms of the GNU General Public License version 3 or later.
     @include tracking(0.06em);
     text-transform: none;
   }
+
+  // A tap landing while no beat has been found reads "listening", which does
+  // not flash — but the tap's moment still has to end, or the next beat found
+  // would put up a verdict nobody earned then.
+  &--idle.is-held {
+    animation: rhythm-verdict-hold $rhythm-verdict-hold linear;
+  }
 }
 
 @keyframes rhythm-verdict {
@@ -369,14 +388,36 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// `visibility`, which the verdict already has: the hold changes nothing on
+// screen, only how long the verdict stays. Opacity would have put it on a
+// compositor layer of its own for the length of the hold (`_motion.scss`).
+@keyframes rhythm-verdict-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
 // The flourishes stop; the trace does not.
 //
 // There is no animation to stop here any more — the trace is redrawn from real
 // audio, so its motion IS the data. Freezing it would leave a dead line that
 // still accepted taps, handing anyone who asked for less motion a broken game
 // rather than a calmer one. What can go is the flashing around it.
+//
+// The hold is not a flourish: it does not move, and it has to end for the
+// verdict to go. So it stays, against the stand-down's 1ms (`App.scss`) too —
+// a class more than that rule's `*`, and `!important` to meet its own.
 @media (prefers-reduced-motion: reduce) {
   .rhythm-game__verdict-text {
     animation: none;
   }
+
+  .rhythm-game__verdict-text.is-held {
+    animation: rhythm-verdict-hold $rhythm-verdict-hold linear;
+  }
+}
+
+:root[data-motion='reduced'] .rhythm-game__verdict-text.is-held {
+  animation: rhythm-verdict-hold $rhythm-verdict-hold linear !important;
 }

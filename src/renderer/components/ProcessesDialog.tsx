@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import type { TranslationKey } from 'common/i18n/en';
 import type { IAppProcess, TProcessRole } from '../../main/ipc/processes';
@@ -17,6 +17,9 @@ import '../styles/Processes.scss';
 interface IProcessesDialogProps {
   onClose: () => void;
 }
+
+/** Frames between answers: about four a second on a 60 Hz screen. */
+export const ASK_EVERY_FRAMES = 15;
 
 /** Exhaustive by type: a new role does not compile until it has a name. */
 const NAME_KEYS: Record<TProcessRole, TranslationKey> = {
@@ -34,6 +37,7 @@ const NAME_KEYS: Record<TProcessRole, TranslationKey> = {
   shareCapture: 'app.processes.name.shareCapture',
   sharePlayback: 'app.processes.name.sharePlayback',
   volume: 'app.processes.name.volume',
+  outputs: 'app.processes.name.outputs',
   games: 'app.processes.name.games',
   mediaWatch: 'app.processes.name.mediaWatch',
   sound: 'app.processes.name.sound',
@@ -59,6 +63,7 @@ const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
   shareCapture: 'app.processes.what.shareCapture',
   sharePlayback: 'app.processes.what.sharePlayback',
   volume: 'app.processes.what.volume',
+  outputs: 'app.processes.what.outputs',
   games: 'app.processes.what.games',
   mediaWatch: 'app.processes.what.mediaWatch',
   sound: 'app.processes.what.sound',
@@ -103,26 +108,38 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [rows, setRows] = useState<IAppProcess[]>([]);
 
+  // Escape reads whichever `onClose` is current, and focus is placed once:
+  // re-run with `onClose`, which the window hands over new on every render of
+  // its own, this pulled focus back to Close several times a second while
+  // anything played.
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  });
+
   useEffect(() => {
     closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+    const onKeyDown = (event: KeyboardEvent) => closeOnEscape(event);
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, []);
 
   /**
-   * Asks again as soon as the previous answer has reached a frame.
+   * Asks again once the previous answer has had `ASK_EVERY_FRAMES` frames.
    *
    * One request in flight, the next sent from `requestAnimationFrame` — so the
    * list follows the screen: it keeps up while it is being looked at and stops
    * by itself when the window is minimised or hidden, where Chromium runs no
-   * frames. What keeps sixty answers a second readable is `processReadings`,
-   * which averages CPU and holds a figure until it has genuinely moved; the
-   * table re-renders only when one did.
+   * frames. What keeps the answers readable is `processReadings`, which fits
+   * CPU over a two-second span and holds a figure until it has genuinely
+   * moved; the table re-renders only when one did.
+   *
+   * Not every frame: each answer is `getAppMetrics`, every web contents and a
+   * process snapshot taken by the meter, all on main, so asking sixty times a
+   * second made FluidEQ's own row the busiest one in the list — the dialog
+   * measuring mostly itself — and held every other reply main owed the window
+   * behind it. Four or so answers a second is more points than the fit needs.
    *
    * A failed answer chains the next request just the same. The handler only
    * throws while the window is going away, and a list that stopped on one
@@ -142,7 +159,16 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
     const readings = createProcessReadings(navigator.hardwareConcurrency);
     let closed = false;
     let frame = 0;
-    const request = () => {
+    // Frames since the last answer landed; starts full so the list opens with
+    // an answer rather than a quarter of a second of dashes.
+    let waited = ASK_EVERY_FRAMES;
+    const step = () => {
+      if (waited < ASK_EVERY_FRAMES) {
+        waited += 1;
+        frame = requestAnimationFrame(step);
+        return;
+      }
+      waited = 0;
       ask()
         // Main orders them, and it orders them the same way every time.
         // Sorting by size here is what used to make rows swap places under
@@ -159,11 +185,11 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
         .catch(() => undefined)
         .finally(() => {
           if (!closed) {
-            frame = requestAnimationFrame(request);
+            frame = requestAnimationFrame(step);
           }
         });
     };
-    request();
+    step();
     return () => {
       closed = true;
       cancelAnimationFrame(frame);

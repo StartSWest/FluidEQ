@@ -530,3 +530,60 @@ describe('Windows Authenticode results', () => {
     });
   });
 });
+
+/**
+ * The mandatory dialog stays on "Installing…" until something says otherwise;
+ * it used to give up after twenty seconds on a clock. What says otherwise is
+ * the updater's own `error` once the installer has been handed over, and it
+ * has to arrive as the install failing — not as a download, which offers the
+ * wrong way out, and not as nothing at all.
+ */
+describe('an installer that does not start', () => {
+  const readyMandatory = async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+    if (!controller) {
+      throw new Error('setUpReleaseAutoUpdates returned no controller');
+    }
+    harness.listeners.get('update-available')?.({
+      version: '1.3.2',
+      vendor: { fluidEqMandatoryUpdate: 'required' },
+    });
+    const verifyFeed = jest
+      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
+      .mockReturnValue({ valid: true });
+    harness.listeners.get('update-downloaded')?.({
+      downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
+      version: '1.3.2',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    verifyFeed.mockRestore();
+    return { harness, controller };
+  };
+
+  it('reports the install as failed once it was handed over', async () => {
+    const { harness, controller } = await readyMandatory();
+
+    controller.quitAndInstall(false, true);
+    harness.listeners.get('error')?.(new Error('installer missing'));
+
+    expect(harness.options.sendStatus).toHaveBeenLastCalledWith({
+      phase: 'failed',
+      isMandatory: true,
+      failure: 'install',
+    });
+  });
+
+  it('says nothing about an install for an error before the hand-over', async () => {
+    // The control: the same error with no install asked for is a check
+    // failing after the download, which leaves a ready installer ready.
+    const { harness } = await readyMandatory();
+
+    harness.listeners.get('error')?.(new Error('feed unreachable'));
+
+    expect(harness.options.sendStatus).not.toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'failed' }),
+    );
+  });
+});

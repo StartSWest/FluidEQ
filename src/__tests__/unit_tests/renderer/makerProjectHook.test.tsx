@@ -115,6 +115,41 @@ describe('the Maker project', () => {
     expect(result.current.project.title).toBe('Renamed');
   });
 
+  it('saves one draft at a time, the newest waiting behind it, on no clock', async () => {
+    const saving: { title: string; land: () => void }[] = [];
+    saveKaraokeMakerDraft.mockImplementation(
+      (project: { title: string }) =>
+        new Promise<void>((resolve) => {
+          saving.push({ title: project.title, land: resolve });
+        }),
+    );
+    const { result } = await setup();
+    await waitFor(() => expect(result.current.draftReady).toBe(true));
+    // It was a 450 ms debounce after every edit.
+    const timers = jest.spyOn(window, 'setTimeout');
+    try {
+      // The draft as opened is on its way to disk.
+      expect(saving.map(({ title }) => title)).toEqual(['Hook']);
+
+      act(() => result.current.commit((c) => ({ ...c, title: 'First' })));
+      act(() => result.current.commit((c) => ({ ...c, title: 'Second' })));
+      act(() => result.current.commit((c) => ({ ...c, title: 'Third' })));
+      // One on the wire; the edits wait rather than queue.
+      expect(saving).toHaveLength(1);
+
+      await act(async () => saving[0].land());
+      // Only the newest follows it — two edits inside a millisecond share a
+      // stamp, and the last is sent all the same.
+      expect(saving.map(({ title }) => title)).toEqual(['Hook', 'Third']);
+
+      await act(async () => saving[1].land());
+      expect(saving).toHaveLength(2);
+      expect(timers).not.toHaveBeenCalled();
+    } finally {
+      timers.mockRestore();
+    }
+  });
+
   it('drops the redo branch when a new edit lands on top of an undo', async () => {
     // The future belonged to a past that no longer happened.
     const { result } = await setup();

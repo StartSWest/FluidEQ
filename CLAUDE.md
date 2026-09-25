@@ -1185,7 +1185,10 @@ Out-String` (or any other capture) is what actually waits for it and shows
   arriving or changing state, the default moving, Windows Audio back to
   RUNNING) instead of the 40 Hz retry it was; another program releasing an
   output it held exclusively sends nothing, so that outage ends at the next
-  device change.
+  device change. The render loop waits for the device's next period with no
+  limit — it called a stream dead after two seconds — and a stream that is
+  cut off is reported by its own session (`StreamWatch`, OnSessionDisconnected),
+  which raises the reopen; `close` wakes the wait.
 - **The Library's DSP host reads the room's head from the shipped folder,
   not from the wire.** The host is spawned with `--room-heads <dir>`
   (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's

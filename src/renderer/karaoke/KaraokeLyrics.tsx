@@ -28,6 +28,7 @@ import { IKaraokeSong } from '../../common/karaoke/types';
 import MenuIcon from '../icons/MenuIcon';
 import Dropdown from '../widgets/Dropdown';
 import { useTranslation } from '../utils/I18nContext';
+import observeShown from '../utils/observeShown';
 import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
@@ -84,6 +85,15 @@ interface IKaraokeLyricsProps {
    * to withhold.
    */
   translationLanguage?: string;
+  /**
+   * Whether anyone can see the words. Default true.
+   *
+   * False while the Maker covers the stage. Covered is not hidden — the words
+   * are laid out and on screen under it, so `observeShown` says shown — and
+   * their frame loop drew every frame for nobody for as long as the Maker was
+   * open, beside the Maker's own preview of the same words.
+   */
+  isActive?: boolean;
 }
 
 export interface ILyricHitRegion {
@@ -178,6 +188,7 @@ const KaraokeLyrics = ({
   captureLineState,
   showTranslationPicker = true,
   translationLanguage: externalTranslationLanguage,
+  isActive = true,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(true);
@@ -318,13 +329,20 @@ const KaraokeLyrics = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!isActive) {
+      // Covered, so nothing is drawn — and when it is uncovered the words
+      // come back where they belong, not gliding in from the line that was
+      // up when the cover went over them.
+      motionStateRef.current = undefined;
+      return undefined;
+    }
     // Chromium provides ResizeObserver. The guard avoids trying to validate
     // pixels in DOM-only test environments that do not implement Canvas.
     if (!canvas || typeof ResizeObserver === 'undefined') {
       return undefined;
     }
 
-    let animationFrame = 0;
+    let animationFrame: number | undefined;
     const hitRegions = lineHitRegionsRef.current;
     const draw = (frameTimeMs: number) => {
       const {
@@ -754,13 +772,36 @@ const KaraokeLyrics = ({
     };
     const observer = new ResizeObserver(() => draw(performance.now()));
     observer.observe(canvas);
-    animationFrame = requestAnimationFrame(animate);
+    // Drawn only while it can be seen. Mounted is not seen: the amp hides the
+    // whole app with `display: none` and the words stayed mounted under it,
+    // redrawing every frame for nobody for as long as the amp was up.
+    //
+    // A glide the words were in when they went would have finished unseen
+    // while that loop ran on, so they come back where they belong rather than
+    // gliding in from the line that was up when the amp opened. A minimised
+    // window has always stopped every frame loop, and still resumes mid-glide.
+    let finishGlideOnReturn = false;
+    const stopWatching = observeShown(canvas, (shown) => {
+      if (!shown && animationFrame !== undefined) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = undefined;
+        finishGlideOnReturn = !document.hidden;
+      } else if (shown && animationFrame === undefined) {
+        if (finishGlideOnReturn) {
+          motionStateRef.current = undefined;
+        }
+        animationFrame = requestAnimationFrame(animate);
+      }
+    });
     return () => {
-      cancelAnimationFrame(animationFrame);
+      stopWatching();
+      if (animationFrame !== undefined) {
+        cancelAnimationFrame(animationFrame);
+      }
       observer.disconnect();
       hitRegions.length = 0;
     };
-  }, [captureLineId, captureLineState, song.lines.length]);
+  }, [captureLineId, captureLineState, isActive, song.lines.length]);
 
   const browseLyrics = (direction: -1 | 1) => {
     setManualCenterIndex((current) =>

@@ -6,12 +6,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef } from 'react';
 import { DSP_DEFAULTS, IDimensionSettings } from '../../common/dsp/chain';
+import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
 import DspDimensionBar from './DspDimensionBar';
 import DspDimensionGraph from './DspDimensionGraph';
+import { startGraphLoop } from './graphLoop';
 import { readDspDimensionGuard, useDspSampleRate } from './store';
 import writeLiveText from '../utils/liveText';
+
+/** The guard's reading at its widest, and the dash of a stage not running. */
+const GUARD_WIDEST = ['100%', '—'];
+
+/**
+ * The fill standing at `fraction` of its track.
+ *
+ * Slid rather than sized: the fill keeps the track's whole width and is moved
+ * left by what the guard is holding back, inside a track that clips it. A
+ * width changes the layout of the grid it stands in, every frame, and the
+ * window is laid out up to its root with it; a transform lays nothing out.
+ * Slid rather than scaled because a scaled fill would squash its rounded end
+ * into a flat one as the guard closed — sliding keeps it the shape it was.
+ */
+const guardFill = (fraction: number) =>
+  `translateX(${((fraction - 1) * 100).toFixed(1)}%)`;
 
 interface IDspDimensionCardProps {
   dimension: IDimensionSettings;
@@ -39,34 +57,36 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
     /**
      * A stopped meter has to look stopped.
      *
-     * The fill's resting width is 100%, because a guard that is wide open is
-     * the ordinary state and the bar reads as how much of the control is
-     * AVAILABLE. Leaving early on a disabled card therefore left a full bar and
-     * a "100%" reading sitting under six greyed-out dials, which is a live
-     * meter reporting on a stage that is not running.
+     * The fill's resting place is the whole track, because a guard that is
+     * wide open is the ordinary state and the bar reads as how much of the
+     * control is AVAILABLE. Leaving early on a disabled card therefore left a
+     * full bar and a "100%" reading sitting under six greyed-out dials, which
+     * is a live meter reporting on a stage that is not running.
      */
     if (!isEnabled) {
       if (barRef.current) {
-        barRef.current.style.width = '0%';
+        barRef.current.style.transform = guardFill(0);
       }
-      if (valueRef.current) {
-        writeLiveText(valueRef.current, '—');
-      }
+      writeLiveText(valueRef.current, '—');
       return undefined;
     }
-    let frame = 0;
-    const paint = () => {
+    /**
+     * The rack's own loop, which turns only while the engine publishes and is
+     * started again when it registers (`graphLoop.ts`).
+     *
+     * It asked for its next frame unconditionally, so the card redrew a guard
+     * nothing was measuring sixty times a second for as long as it was open.
+     * The engine letting go buys one last frame, which paints the reading it
+     * leaves behind.
+     */
+    const loop = startGraphLoop(() => {
       const guard = Math.max(0, Math.min(1, readDspDimensionGuard()));
       if (barRef.current) {
-        barRef.current.style.width = `${(guard * 100).toFixed(1)}%`;
+        barRef.current.style.transform = guardFill(guard);
       }
-      if (valueRef.current) {
-        writeLiveText(valueRef.current, `${Math.round(guard * 100)}%`);
-      }
-      frame = requestAnimationFrame(paint);
-    };
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+      writeLiveText(valueRef.current, `${Math.round(guard * 100)}%`);
+    });
+    return () => loop.stop();
   }, [isEnabled]);
 
   return (
@@ -80,9 +100,13 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
       <div className="dsp-dimension-guard-track">
         <div className="dsp-dimension-guard-fill" ref={barRef} />
       </div>
-      <span className="dsp-dimension-guard-value" ref={valueRef}>
+      <LiveFigure
+        className="dsp-dimension-guard-value"
+        widest={GUARD_WIDEST}
+        textRef={valueRef}
+      >
         —
-      </span>
+      </LiveFigure>
     </div>
   );
 };

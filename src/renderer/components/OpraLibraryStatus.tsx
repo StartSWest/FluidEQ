@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraUpdateStatus } from 'common/constants';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import Button from '../widgets/Button';
 import { checkOpraUpdate, updateOpraDatabase } from '../utils/equalizerApi';
@@ -43,7 +43,7 @@ export const OPRA_UPDATED_EVENT = 'fluideq-opra-updated';
  * it read as a footnote to the pickers above it.
  */
 export default function OpraLibraryStatus() {
-  const { setGlobalError } = useFluidEqContext();
+  const { setGlobalError } = useFluidEqShell();
   const { t } = useTranslation();
   const [status, setStatus] = useState<IOpraUpdateStatus>();
   const [isChecking, setIsChecking] = useState(true);

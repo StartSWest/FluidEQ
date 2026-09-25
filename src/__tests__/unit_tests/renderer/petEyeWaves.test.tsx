@@ -1,0 +1,86 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * The waves in the pet's eyes are drawn only while there is joy to show them
+ * (`SupportPet.scss`), and `has-pet-joy` on the document is what says so. At
+ * zero they were fully transparent and scrolled every frame anyway, in the
+ * titlebar, for everybody who had never played.
+ */
+
+import { act, render } from '@testing-library/react';
+import { EUPHORIA_STREAK } from 'common/rhythmGame';
+import EuphoriaGlow from 'renderer/components/EuphoriaGlow';
+import {
+  resetEuphoriaMode,
+  setEuphoriaEnabled,
+  winEuphoria,
+} from 'renderer/utils/euphoriaMode';
+import { resetRhythmRun, setRhythmRun } from 'renderer/utils/rhythmRun';
+
+jest.mock('renderer/audio/LiveAudioContext', () => ({
+  useLiveAudioFrame: () => ({ points: [] }),
+}));
+jest.mock('renderer/utils/FluidEqContext', () => ({
+  ...jest
+    .requireActual('__tests__/utils/fluidEqHookMocks')
+    .eqHooksFrom(() => ({ filters: {}, bandCount: 0 })),
+}));
+
+const root = document.documentElement;
+const hasJoy = () => root.classList.contains('has-pet-joy');
+
+// Reset before rather than after, for the reason `euphoriaGlow.test.tsx`
+// gives: Testing Library unmounts last, and a store torn down under a mounted
+// component is an un-acted update.
+beforeEach(() => {
+  window.localStorage.clear();
+  resetEuphoriaMode();
+  resetRhythmRun();
+  root.classList.remove('has-pet-joy', 'is-euphoric');
+  root.style.removeProperty('--pet-joy');
+});
+
+it('leaves the waves out while there is no streak', () => {
+  render(<EuphoriaGlow />);
+  expect(root.style.getPropertyValue('--pet-joy')).toBe('0');
+  expect(hasJoy()).toBe(false);
+});
+
+it('draws them from the first perfect tap of a run, and not once it ends', () => {
+  render(<EuphoriaGlow />);
+  act(() => setRhythmRun({ score: 1, streak: 1 }));
+  // The control for the test above: the class does come, with any joy.
+  expect(Number(root.style.getPropertyValue('--pet-joy'))).toBeGreaterThan(0);
+  expect(hasJoy()).toBe(true);
+
+  act(() => setRhythmRun({ score: 1, streak: 0 }));
+  expect(hasJoy()).toBe(false);
+});
+
+it('draws them while euphoria is switched on, with the run long over', () => {
+  // Forced euphoria shows the creature's whole face (`EuphoriaGlow.tsx`), and
+  // the waves are part of it.
+  render(<EuphoriaGlow />);
+  act(() => {
+    setRhythmRun({ score: 1, streak: EUPHORIA_STREAK });
+    winEuphoria();
+    resetRhythmRun();
+  });
+  expect(hasJoy()).toBe(true);
+
+  act(() => setEuphoriaEnabled(false));
+  expect(hasJoy()).toBe(false);
+});
+
+it('takes the class with it when the shell unmounts', () => {
+  const view = render(<EuphoriaGlow />);
+  act(() => setRhythmRun({ score: 1, streak: 3 }));
+  expect(hasJoy()).toBe(true);
+
+  view.unmount();
+  expect(hasJoy()).toBe(false);
+});

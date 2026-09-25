@@ -541,6 +541,57 @@ if(WIN32)
   )
 endif()
 
+# The outputs: when an output is plugged in, pulled out, made the default or
+# has its effects changed, told by Windows itself (output-watch/src/main.cpp),
+# so the app follows a new headset with its window hidden and nothing polls.
+# Runs for as long as the app does, and exits when its input closes.
+if(WIN32)
+  add_executable(fluideq-output-watch
+    output-watch/src/main.cpp
+    output-watch/src/output-watch.rc)
+  target_link_libraries(fluideq-output-watch PRIVATE feq_strict ole32 advapi32)
+  set_source_files_properties(output-watch/src/output-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_OUTPUTS_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-output-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Outputs"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
+# What the rest of the machine is playing, for the transport bar: Windows'
+# media sessions, told by Windows itself through their WinRT events
+# (media-watch/src/main.cpp) where a PowerShell loop used to read them every
+# 700 ms. Runs while the window asks for it, and exits when its input closes.
+# C++/WinRT from the SDK like the lighting helper, its headers compiled as
+# external so /W4 /WX holds for this code and not for Microsoft's projection.
+if(WIN32)
+  add_executable(fluideq-media-watch
+    media-watch/src/main.cpp
+    media-watch/src/media-watch.rc)
+  target_link_libraries(fluideq-media-watch PRIVATE feq_strict WindowsApp bcrypt)
+  target_compile_options(fluideq-media-watch PRIVATE
+    /external:anglebrackets /external:W0 /bigobj)
+  set_source_files_properties(media-watch/src/media-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_MEDIA_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-media-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Media"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
+# The media helper's lines, held byte for byte against the app's parser. Plain
+# C++ with no Windows in it, so it runs wherever the tree builds.
+add_executable(fluideq-media-line-test media-watch/tests/media_line_test.cpp)
+target_link_libraries(fluideq-media-line-test PRIVATE feq_strict)
+target_include_directories(fluideq-media-line-test PRIVATE media-watch/src)
+add_test(NAME media-line COMMAND fluideq-media-line-test)
+
 # The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
 # executable in the tree with Windows package identity (see
 # lighting-host/src/identity.h for why it needs one and how it gets it).

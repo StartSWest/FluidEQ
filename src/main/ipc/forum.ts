@@ -10,7 +10,7 @@ import {
   type TForumPostKind,
   type TForumResult,
 } from '../../common/forum/forumTypes';
-import { resolveLocale, translate } from '../../common/i18n';
+import { loadLocale, resolveLocale, translate } from '../../common/i18n';
 import { FORUM_CONFIG, type IForumConfig } from '../forum/forumConfig';
 import ForumError from '../forum/forumError';
 import { createForumFeed } from '../forum/forumFeed';
@@ -150,8 +150,14 @@ export const registerForumIpc = ({
     }
   };
 
-  const pagesFor = (locale: unknown): ISignInPages => {
+  const pagesFor = async (locale: unknown): Promise<ISignInPages> => {
     const code = resolveLocale(typeof locale === 'string' ? locale : undefined);
+    // This process holds only English until a language is asked for. A
+    // dictionary that will not load leaves the pages in English, which is
+    // what a missing key already does.
+    await loadLocale(code).catch((error: unknown) => {
+      logger?.warn(`Could not load the ${code} dictionary: ${error}`);
+    });
     return {
       success: signInPage(
         code,
@@ -178,7 +184,10 @@ export const registerForumIpc = ({
 
   ipcMain.handle('forum-sign-in', (_event, locale: unknown) =>
     guard(async () => {
-      const state = await session.signIn(pagesFor(locale), openExternalIfSafe);
+      const state = await session.signIn(
+        await pagesFor(locale),
+        openExternalIfSafe,
+      );
       // The person is in their browser; bring them back to where the forum
       // is. Windows may only flash the taskbar button instead, which is its
       // rule about stealing focus and still says where to look.

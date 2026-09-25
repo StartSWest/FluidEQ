@@ -198,6 +198,16 @@ const clearEqBands = (filters: IFiltersMap): IFiltersMap =>
  * Unsupported APO filter types are refused instead of being silently erased
  * by the next FluidEQ write. The caller compares file signatures first, so a
  * FluidEQ-originated write never arrives here and cannot form a feedback loop.
+ *
+ * An EMPTY file is not adopted: it is a save in progress, not an edit.
+ * Notepad and Equalizer APO's editor empty the file and then write it, and
+ * the folder watcher wakes a read in between. FluidEQ never writes an empty
+ * one — a layer that is off has no file, and a cleared one keeps its header —
+ * so it is left for the next wake-up, which the rest of the save brings.
+ * Adopted, it cleared the layer, saved that into the profile's preset and
+ * wrote the cleared layer over the user's file: their edit, lost for good.
+ * The sync hid that gap behind a 180 ms pause until it stopped guessing how
+ * long a save takes.
  */
 export const adoptApoFeatureText = (
   state: IState,
@@ -205,6 +215,9 @@ export const adoptApoFeatureText = (
   contents: string,
   expectedContents?: string,
 ): IApoFeatureAdoption => {
+  if (contents.trim() === '') {
+    return { changed: false, unsupported: 0 };
+  }
   if (
     expectedContents !== undefined &&
     describeApoFeatureText(contents) ===

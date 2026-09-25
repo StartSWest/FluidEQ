@@ -11,12 +11,14 @@ import {
   karaokeMakerTimedLineRange,
 } from '../../common/karaoke/makerProject';
 import { TSelection } from './useKaraokeMakerSelection';
+import { TWhenPlayheadReaches } from './karaokeMediaCue';
 
 /** A sentence being played back on a loop, so a line can be checked by ear. */
 export interface ISentenceAuditionState {
   startMs: number;
   endMs: number;
-  timerId: number;
+  /** Stops the pass that is playing; replaced as each pass begins. */
+  cancel: () => void;
 }
 
 /**
@@ -42,6 +44,8 @@ export interface IMakerKeyboardParams {
   onSeek: (positionMs: number) => void;
   readPlayheadMs?: () => number;
   cancelAudibleInteractions: (pause?: boolean) => void;
+  /** What says a pass of the sentence has been heard. */
+  whenPlayheadReaches: TWhenPlayheadReaches;
 
   projectRef: MutableRefObject<IKaraokeMakerProject>;
   playheadMsRef: MutableRefObject<number>;
@@ -59,6 +63,7 @@ export const useMakerKeyboard = ({
   readPlayheadMs,
   selection,
   sentenceAuditionRef,
+  whenPlayheadReaches,
 }: IMakerKeyboardParams) => {
   useEffect(() => {
     const stopSentenceAudition = () => {
@@ -66,7 +71,7 @@ export const useMakerKeyboard = ({
       if (!audition) {
         return;
       }
-      window.clearInterval(audition.timerId);
+      audition.cancel();
       sentenceAuditionRef.current = undefined;
       onPause();
       onSeek(audition.startMs);
@@ -120,24 +125,25 @@ export const useMakerKeyboard = ({
       }
       event.preventDefault();
       cancelAudibleInteractions();
-      onSeek(range.startMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      const timerId = window.setInterval(() => {
-        const audition = sentenceAuditionRef.current;
-        if (!audition) {
-          return;
-        }
-        const currentMs = readPlayheadMs?.() ?? playheadMsRef.current;
-        if (currentMs >= audition.endMs || currentMs < audition.startMs) {
-          onSeek(audition.startMs);
-          Promise.resolve(onPlay()).catch(() => undefined);
-        }
-      }, 25);
-      sentenceAuditionRef.current = {
+      // Round and round while Control is held, each pass going back to the
+      // line's start the moment the playhead reaches its end. It used to ask
+      // the playhead every 25 ms, so each pass overran by up to that — and by
+      // a second in a hidden window, which runs timers once a second at best.
+      const audition: ISentenceAuditionState = {
         startMs: range.startMs,
         endMs: range.endMs,
-        timerId,
+        cancel: () => undefined,
       };
+      const playPass = () => {
+        if (sentenceAuditionRef.current !== audition) {
+          return;
+        }
+        onSeek(audition.startMs);
+        Promise.resolve(onPlay()).catch(() => undefined);
+        audition.cancel = whenPlayheadReaches(audition.endMs, playPass);
+      };
+      sentenceAuditionRef.current = audition;
+      playPass();
     };
     const stopSentenceAuditionOnControlUp = (event: KeyboardEvent) => {
       if (
@@ -172,5 +178,6 @@ export const useMakerKeyboard = ({
     projectRef,
     readPlayheadMs,
     selection,
+    whenPlayheadReaches,
   ]);
 };

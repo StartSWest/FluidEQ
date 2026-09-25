@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  RefObject,
   useCallback,
   useEffect,
   useId,
@@ -68,11 +69,14 @@ import {
   TKaraokeMakerWhisperStage,
   upsertProvenance,
   getKaraokeWhisperSessionSnapshot,
+  holdKaraokeWhisperModel,
   refreshKaraokeWhisperDownloaded,
   subscribeKaraokeWhisperSession,
   writeKaraokeWhisperMemorySettings,
 } from './makerAi';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
+import { IKaraokeAudioClock } from './karaokeAudioClock';
+import { TWhenPlayheadReaches, whenMediaReaches } from './karaokeMediaCue';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
@@ -122,6 +126,13 @@ interface IKaraokeMakerProps {
   restoreSavedDraft: boolean;
   readPlayheadMs?: () => number;
   /**
+   * The element the song plays in, and the sound card's clock: what the
+   * countdown and every audition are timed against. The workspace's own, so
+   * the count-in and the Maker share one clock rather than open two.
+   */
+  audioRef: RefObject<HTMLMediaElement | null>;
+  audioClock: IKaraokeAudioClock;
+  /**
    * The player's guide-vocal level, passed down rather than duplicated.
    *
    * The Maker previews through the same audio element the player uses, so a
@@ -162,6 +173,8 @@ const KaraokeMaker = ({
   isPlaying,
   restoreSavedDraft,
   readPlayheadMs,
+  audioRef,
+  audioClock,
   vocalLevel,
   onVocalLevel,
   onStems,
@@ -197,6 +210,7 @@ const KaraokeMaker = ({
     restoreOriginal: restoreOriginalProject,
     draftReady,
     restoreToast,
+    dismissRestoreToast,
   } = useKaraokeMakerProject({
     song,
     audioFile,
@@ -290,6 +304,7 @@ const KaraokeMaker = ({
   const {
     editorViewRef,
     editorProjectIdRef,
+    flushEditorView,
     viewStartMs,
     setViewStartMs,
     viewDurationMs,
@@ -304,7 +319,7 @@ const KaraokeMaker = ({
     setPreviewTextSize,
     previewHeight,
     setPreviewHeight,
-  } = useKaraokeMakerEditorView(project.id, selection, initialEditorView);
+  } = useKaraokeMakerEditorView(project.id, initialEditorView);
   // The lyric editor's text and whether it still matches the project. Kept
   // apart from the detection it triggers: that is a long asynchronous job, this
   // is a textarea and two derived numbers.
@@ -375,7 +390,6 @@ const KaraokeMaker = ({
     id: number;
     message: string;
   }>();
-  const notice = noticeEntry?.message;
   const setNotice = useCallback((message?: string) => {
     setNoticeEntry(
       message ? { id: (noticeSequenceRef.current += 1), message } : undefined,
@@ -407,37 +421,44 @@ const KaraokeMaker = ({
     startedAt: number;
   }>({ startedAt: 0 });
   const renderCanvasRef = useRef<() => void>(() => undefined);
-  const lineEntryCountdownTimersRef = useRef<number[]>([]);
-  const wordAuditionTimerRef = useRef<number | undefined>(undefined);
+  const cancelLineEntryCountdownRef = useRef<(() => void) | undefined>(
+    undefined,
+  );
+  /** The cancel of the word audition playing, while one is. */
+  const wordAuditionRef = useRef<(() => void) | undefined>(undefined);
+
+  // How every audition knows its stretch has been heard: the song's own
+  // element, timed on the sound card's clock (`karaokeMediaCue`).
+  const whenPlayheadReaches = useCallback<TWhenPlayheadReaches>(
+    (endMs, onReached) => {
+      const media = audioRef.current;
+      return media
+        ? whenMediaReaches(audioClock, media, endMs, onReached)
+        : () => undefined;
+    },
+    [audioClock, audioRef],
+  );
 
   const cancelAudibleInteractions = useCallback(
     (pause = true) => {
       const scrub = gesture.scrub.current;
       const sentenceAudition = sentenceAuditionRef.current;
-      if (scrub?.grainTimerId !== undefined) {
-        window.clearTimeout(scrub.grainTimerId);
-      }
-      if (sentenceAudition) {
-        window.clearInterval(sentenceAudition.timerId);
-      }
-      if (wordAuditionTimerRef.current !== undefined) {
-        window.clearTimeout(wordAuditionTimerRef.current);
-      }
+      scrub?.cancelGrain?.();
+      sentenceAudition?.cancel();
+      wordAuditionRef.current?.();
       const drag = gesture.drag.current;
-      if (drag?.auditionTimerId !== undefined) {
-        window.clearTimeout(drag.auditionTimerId);
-      }
+      drag?.cancelAudition?.();
       const hadAudibleInteraction =
         scrub?.auditionWordGrain === true ||
         sentenceAudition !== undefined ||
         drag?.auditionStarted === true ||
-        wordAuditionTimerRef.current !== undefined;
-      wordAuditionTimerRef.current = undefined;
+        wordAuditionRef.current !== undefined;
+      wordAuditionRef.current = undefined;
       gesture.scrub.current = undefined;
       sentenceAuditionRef.current = undefined;
       setScrubAuditionAnchorMs(undefined);
       if (drag) {
-        drag.auditionTimerId = undefined;
+        drag.cancelAudition = undefined;
         drag.auditionStarted = false;
       }
       setIsCanvasScrubbing(false);
@@ -456,10 +477,8 @@ const KaraokeMaker = ({
   );
 
   const clearLineEntryCountdown = useCallback(() => {
-    lineEntryCountdownTimersRef.current.forEach((timer) =>
-      window.clearTimeout(timer),
-    );
-    lineEntryCountdownTimersRef.current = [];
+    cancelLineEntryCountdownRef.current?.();
+    cancelLineEntryCountdownRef.current = undefined;
     setLineEntryCountdown(undefined);
   }, []);
 
@@ -489,23 +508,31 @@ const KaraokeMaker = ({
     setLineEntryCapture(undefined);
     setLineEntrySession('countdown');
     setLineEntryCountdown('1');
-    const schedule = (delayMs: number, action: () => void) => {
-      lineEntryCountdownTimersRef.current.push(
-        window.setTimeout(action, delayMs),
-      );
-    };
-    schedule(650, () => setLineEntryCountdown('2'));
-    schedule(1_300, () => setLineEntryCountdown('3'));
-    schedule(1_950, () => {
-      setLineEntryCountdown('GO');
-      setLineEntrySession('active');
-      Promise.resolve(onPlay()).catch(() => undefined);
-    });
-    schedule(2_500, () => {
-      setLineEntryCountdown(undefined);
-      lineEntryCountdownTimersRef.current = [];
-    });
+    // On the sound card's clock, every beat a time past one origin: the
+    // song starts on "GO", and whoever is about to press Enter on the first
+    // word is counting towards it. Timers put each beat wherever the thread
+    // happened to be free; see `karaokeAudioClock`.
+    cancelLineEntryCountdownRef.current = audioClock.schedule(() => [
+      { atSeconds: 0.65, run: () => setLineEntryCountdown('2') },
+      { atSeconds: 1.3, run: () => setLineEntryCountdown('3') },
+      {
+        atSeconds: 1.95,
+        run: () => {
+          setLineEntryCountdown('GO');
+          setLineEntrySession('active');
+          Promise.resolve(onPlay()).catch(() => undefined);
+        },
+      },
+      {
+        atSeconds: 2.5,
+        run: () => {
+          cancelLineEntryCountdownRef.current = undefined;
+          setLineEntryCountdown(undefined);
+        },
+      },
+    ]);
   }, [
+    audioClock,
     clearLineEntryCountdown,
     cancelAudibleInteractions,
     isPlaying,
@@ -517,14 +544,7 @@ const KaraokeMaker = ({
     onPlay,
   ]);
 
-  useEffect(
-    () => () => {
-      lineEntryCountdownTimersRef.current.forEach((timer) =>
-        window.clearTimeout(timer),
-      );
-    },
-    [],
-  );
+  useEffect(() => () => cancelLineEntryCountdownRef.current?.(), []);
 
   useEffect(() => {
     if (lineEntryMode) {
@@ -537,6 +557,10 @@ const KaraokeMaker = ({
   useEffect(() => {
     refreshKaraokeWhisperDownloaded().catch(() => undefined);
   }, []);
+
+  // The speech model is needed for as long as this editor is open; its
+  // closing is the moment the model's memory setting is acted on.
+  useEffect(() => holdKaraokeWhisperModel(), []);
 
   const {
     activeLyricFocus,
@@ -807,20 +831,8 @@ const KaraokeMaker = ({
     readPlayheadMs,
     selection,
     sentenceAuditionRef,
+    whenPlayheadReaches,
   });
-
-  useEffect(() => {
-    if (!noticeEntry || analysisProgress !== undefined || analysisError) {
-      return undefined;
-    }
-    const noticeId = noticeEntry.id;
-    const timeout = window.setTimeout(() => {
-      setNoticeEntry((current) =>
-        current?.id === noticeId ? undefined : current,
-      );
-    }, 5_000);
-    return () => window.clearTimeout(timeout);
-  }, [analysisError, analysisProgress, noticeEntry]);
 
   useEffect(
     () => () => {
@@ -993,6 +1005,7 @@ const KaraokeMaker = ({
     setViewStartMs,
     viewStartMs,
     visibleViewDurationMs,
+    whenPlayheadReaches,
   });
 
   const startLineRecordingForProject = (nextProject: IKaraokeMakerProject) => {
@@ -1475,6 +1488,7 @@ const KaraokeMaker = ({
 
   const { exportProject, openProject, selectVocalStem } = useMakerProjectFiles({
     clearHistory,
+    flushEditorView,
     localizeMakerError,
     project,
     setAnalysisFile,
@@ -1516,7 +1530,8 @@ const KaraokeMaker = ({
     t,
     tokens,
     visibleViewDurationMs,
-    wordAuditionTimerRef,
+    whenPlayheadReaches,
+    wordAuditionRef,
   });
 
   const renderSelectedWordTimingSliders = (idPrefix: string) => (
@@ -1780,6 +1795,7 @@ const KaraokeMaker = ({
       <KaraokeMakerSpeechMemoryPanel
         session={whisperSession}
         statusKey={speechMemoryStatusKey}
+        isModelWorking={isModelWorking}
         onRelease={() => releaseWhisperNow().catch(() => undefined)}
         onSettingsChange={writeKaraokeWhisperMemorySettings}
       />
@@ -2305,13 +2321,50 @@ const KaraokeMaker = ({
         visibleWhisperStages={visibleWhisperStages}
         whisperStage={whisperStage}
       />
-      {analysisProgress === undefined && !analysisError && notice && (
-        <div className="karaoke-maker__notice" role="status" aria-live="polite">
-          <span>{notice}</span>
+      {/* Up for five seconds of its own animation, and gone on its end. It
+          was a five-second timer, restarted whenever the analysis panel came
+          and went; the element is mounted and unmounted with that panel, so
+          the animation restarts with it all the same, and a new notice is a
+          new element (`key`) with its five seconds from the start. */}
+      {analysisProgress === undefined && !analysisError && noticeEntry && (
+        <div
+          key={noticeEntry.id}
+          className="karaoke-maker__notice"
+          role="status"
+          aria-live="polite"
+          onAnimationEnd={(event) => {
+            if (
+              event.target !== event.currentTarget ||
+              event.animationName !== 'karaoke-maker-notice-linger'
+            ) {
+              return;
+            }
+            const noticeId = noticeEntry.id;
+            setNoticeEntry((current) =>
+              current?.id === noticeId ? undefined : current,
+            );
+          }}
+        >
+          <span>{noticeEntry.message}</span>
         </div>
       )}
       {restoreToast && (
-        <div className="karaoke-maker__toast" role="status" aria-live="polite">
+        <div
+          key={restoreToast}
+          className="karaoke-maker__toast"
+          role="status"
+          aria-live="polite"
+          onAnimationEnd={(event) => {
+            // The fade that is its lifetime, not the drift beside it (which
+            // reduced motion ends at once) nor anything inside it.
+            if (
+              event.target === event.currentTarget &&
+              event.animationName === 'karaoke-maker-toast'
+            ) {
+              dismissRestoreToast();
+            }
+          }}
+        >
           <KaraokeMakerToolIcon name="apply" />
           <span>{restoreToast}</span>
         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { IEnginePreamp } from '../../common/enginePreamp';
-import { getAudioDevices } from './equalizerApi';
+import { readKnownAudioDevices } from './equalizerApi';
 import { reportError } from './logger';
 
 /**
@@ -71,69 +71,106 @@ export const useEnginePreampAudible = (): boolean =>
     () => Math.abs(liveEnginePreamp.read()) > 0.01,
   );
 
+type TReadEnginePreamp = (
+  endpoint: string,
+) => Promise<IEnginePreamp | undefined>;
+
+/**
+ * One engine read per frame while the window is on screen, following the
+ * output being listened to. Returns how to stop it.
+ */
+const startReader = (read: TReadEnginePreamp): (() => void) => {
+  let disposed = false;
+  let generation = 0;
+  let animation = 0;
+  let endpoint: string | undefined;
+  const paint = async () => {
+    const current = generation;
+    if (disposed || document.hidden || !endpoint) {
+      return;
+    }
+    try {
+      const next = await read(endpoint);
+      if (disposed || current !== generation) {
+        return;
+      }
+      publish(next);
+    } catch (error) {
+      if (disposed || current !== generation) {
+        return;
+      }
+      reportError('reading final output preamp', error);
+      publish();
+      return;
+    }
+    animation = requestAnimationFrame(paint);
+  };
+  const start = async () => {
+    generation += 1;
+    const current = generation;
+    cancelAnimationFrame(animation);
+    publish();
+    if (disposed || document.hidden) {
+      return;
+    }
+    try {
+      const devices = await readKnownAudioDevices();
+      if (disposed || current !== generation) {
+        return;
+      }
+      endpoint = devices.find((device) => device.isDefault)?.guid;
+      if (endpoint) {
+        animation = requestAnimationFrame(paint);
+      }
+    } catch (error) {
+      reportError('finding final output preamp', error);
+    }
+  };
+  start();
+  window.addEventListener('fluideq-output-changed', start);
+  document.addEventListener('visibilitychange', start);
+  return () => {
+    disposed = true;
+    generation += 1;
+    cancelAnimationFrame(animation);
+    publish();
+    window.removeEventListener('fluideq-output-changed', start);
+    document.removeEventListener('visibilitychange', start);
+  };
+};
+
+let holders = 0;
+let stopReader: (() => void) | undefined;
+
+/**
+ * Keep the live preamp read while `enabled`, one reader for every caller.
+ *
+ * The side bar's dial and the amp's band screen each ran a loop of their
+ * own, an engine read per frame apiece — and the side bar stays mounted,
+ * only hidden, while the window is the amp, so the compact player asked the
+ * engine twice a frame for one number. The first caller now starts the one
+ * loop and the last to leave stops it; a caller that is not reading clears
+ * the value only when nobody else is.
+ */
 export const useEnginePreampReader = (enabled: boolean) => {
   useEffect(() => {
     const read = window.electron?.ipcRenderer?.readEnginePreamp;
     if (!enabled || !read) {
-      publish();
+      if (holders === 0) {
+        publish();
+      }
       return undefined;
     }
-    let disposed = false;
-    let generation = 0;
-    let animation = 0;
-    let endpoint: string | undefined;
-    const paint = async () => {
-      const current = generation;
-      if (disposed || document.hidden || !endpoint) {
-        return;
-      }
-      try {
-        const next = await read(endpoint);
-        if (disposed || current !== generation) {
-          return;
-        }
-        publish(next);
-      } catch (error) {
-        if (disposed || current !== generation) {
-          return;
-        }
-        reportError('reading final output preamp', error);
-        publish();
-        return;
-      }
-      animation = requestAnimationFrame(paint);
-    };
-    const start = async () => {
-      generation += 1;
-      const current = generation;
-      cancelAnimationFrame(animation);
-      publish();
-      if (disposed || document.hidden) {
-        return;
-      }
-      try {
-        const devices = await getAudioDevices();
-        if (disposed || current !== generation) {
-          return;
-        }
-        endpoint = devices.find((device) => device.isDefault)?.guid;
-        if (endpoint) {
-          animation = requestAnimationFrame(paint);
-        }
-      } catch (error) {
-        reportError('finding final output preamp', error);
-      }
-    };
-    start();
-    window.addEventListener('fluideq-output-changed', start);
-    document.addEventListener('visibilitychange', start);
+    holders += 1;
+    if (holders === 1) {
+      stopReader = startReader(read);
+    }
     return () => {
-      disposed = true;
-      generation += 1;
-      cancelAnimationFrame(animation);
-      publish();
-      window.removeEventListener('fluideq-output-changed', start);
-      document.removeEventListener('visibilitychange', start);
+      holders -= 1;
+      if (holders === 0) {
+        stopReader?.();
+        stopReader = undefined;
+      }
     };
   }, [enabled]);
 };

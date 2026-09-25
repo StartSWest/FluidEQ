@@ -21,7 +21,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type MutableRefObject,
   type RefObject,
 } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
@@ -29,7 +28,17 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
+import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
+import { prefersReducedMotion } from './utils/bandReveal';
+import { PetArt } from './PetArt';
 import './styles/SupportPet.scss';
+
+// The drawing has a file of its own; the EQ bubble and the share card have
+// always found it here.
+export { PetArt, EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from './PetArt';
+
+/** A waveform peak of 0.625, about -4 dBFS, is the pet at full stretch. */
+const PET_LEVEL_GAIN = 1.6;
 
 /**
  * One scalar is all the animation needs, so the whole waveform is reduced
@@ -45,7 +54,7 @@ const getPetLevel = (waveform: number[]) => {
       peak = waveform[index];
     }
   }
-  return Math.min(1, peak * 1.6);
+  return Math.min(1, peak * PET_LEVEL_GAIN);
 };
 
 /**
@@ -63,13 +72,26 @@ const LEVEL_STEPS = 12;
  * significant bit of dither as 0.0125, so this sits clear of both while still
  * catching a quiet passage.
  */
-const HEARING_LEVEL = 0.03;
+export const HEARING_LEVEL = 0.03;
+/** The same threshold as a peak on the meters, about -34.5 dBFS. */
+const HEARING_PEAK_DB = amplitudeToDb(HEARING_LEVEL / PET_LEVEL_GAIN);
+
 /**
- * Instant attack, slow release. Music has gaps — between tracks, between beats,
- * in a rest — and a bare threshold would strobe the class on and off through
- * every one of them, restarting the sway from its first keyframe each time.
+ * Whether the meters have let go of the last sound she could hear: every
+ * channel's held peak below her threshold.
+ *
+ * The held peak is the meters' slow reading — it holds a second and then falls
+ * at 12 dB/s (`outputLevel.ts`) — so the rest of a bar, a breath, or the
+ * second of silence between two tracks never gets there, and a song that has
+ * really ended does in about three and a half seconds. A quiet source that
+ * never reaches her threshold lets go the same way. The frame the capture
+ * publishes when everything has come to rest (`isMeterAtRest`), after which it
+ * publishes nothing until sound returns, has every peak on the floor, so it
+ * always answers yes: the last frame she is sent is never one she is left
+ * listening to. So does no frame at all — no channels, no capture.
  */
-const HEARING_RELEASE_MS = 1200;
+export const hasLetGo = (levels: readonly IOutputLevel[]) =>
+  levels.every((level) => level.peakDb < HEARING_PEAK_DB);
 
 /**
  * Whether something is actually playing.
@@ -79,35 +101,21 @@ const HEARING_RELEASE_MS = 1200;
  * on teardown. The squash rides `--pet-level` so it settles by itself in
  * silence, but the sway is a keyframe animation and does not — left on
  * `isActive` the pet leans back and forth in a silent room.
- */
-/**
- * Whether something is actually playing.
- *
- * `isActive` from the analyser means the capture stream is running, not that
- * there is any sound in it: it goes true when the stream opens and false only
- * on teardown. The squash rides `--pet-level` so it settles by itself in
- * silence, but the sway is a keyframe animation and does not — left on
- * `isActive` the pet leans back and forth in a silent room.
  *
  * Instant attack, slow release. Music has gaps — between tracks, between beats,
  * in a rest — and a bare threshold would strobe the class on and off through
  * every one of them, restarting the sway from its first keyframe each time.
+ *
+ * The release used to be a 1.2 s timer started when the level dipped, which
+ * guessed how long a gap lasts and was cancelled and restarted through every
+ * one. It is the meters' own held peak now (`hasLetGo`): the frames say when
+ * the sound has gone, and the last frame of a silence always says so.
  */
 const useHearingGate = (
   isCapturing: boolean,
   onChange: (isHearing: boolean) => void,
 ) => {
-  const releaseRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
   const isHearingRef = useRef(false);
-
-  const clearRelease = () => {
-    if (releaseRef.current !== undefined) {
-      clearTimeout(releaseRef.current);
-      releaseRef.current = undefined;
-    }
-  };
 
   const setHearing = useCallback(
     (next: boolean) => {
@@ -121,20 +129,13 @@ const useHearingGate = (
   );
 
   const feed = useCallback(
-    (level: number) => {
+    (level: number, levels: readonly IOutputLevel[]) => {
       if (!isCapturing) {
-        clearRelease();
         setHearing(false);
-        return;
-      }
-      if (level >= HEARING_LEVEL) {
-        clearRelease();
+      } else if (level >= HEARING_LEVEL) {
         setHearing(true);
-      } else if (isHearingRef.current && releaseRef.current === undefined) {
-        releaseRef.current = setTimeout(() => {
-          releaseRef.current = undefined;
-          setHearing(false);
-        }, HEARING_RELEASE_MS);
+      } else if (hasLetGo(levels)) {
+        setHearing(false);
       }
     },
     [isCapturing, setHearing],
@@ -142,12 +143,9 @@ const useHearingGate = (
 
   useEffect(() => {
     if (!isCapturing) {
-      clearRelease();
       setHearing(false);
     }
   }, [isCapturing, setHearing]);
-
-  useEffect(() => () => clearRelease(), []);
 
   return feed;
 };
@@ -171,17 +169,18 @@ const PetLevelPump = ({
   target,
   isCapturing,
   isPaused,
-  levelRef,
+  onLevel,
   onHearingChange,
 }: {
   target: RefObject<HTMLElement | null>;
   isCapturing: boolean;
   isPaused: boolean;
-  levelRef: MutableRefObject<number>;
+  onLevel: (level: number) => void;
   onHearingChange: (isHearing: boolean) => void;
 }) => {
-  const { waveform } = useLiveAudioFrame();
+  const { waveform, outputLevels } = useLiveAudioFrame();
   const publishedRef = useRef(-1);
+  const heardRef = useRef<number[] | undefined>(undefined);
   const feed = useHearingGate(isCapturing && !isPaused, onHearingChange);
 
   useEffect(() => {
@@ -189,8 +188,13 @@ const PetLevelPump = ({
     // reading as music. Paused is zero, or the ears stay stretched on a frame
     // that stopped being true.
     const level = isPaused ? 0 : getPetLevel(waveform);
-    levelRef.current = level;
-    feed(level);
+    feed(level, outputLevels);
+    // Once per frame: the dance counts frames, and this runs again with the
+    // same one whenever anything else it reads changes.
+    if (heardRef.current !== waveform) {
+      heardRef.current = waveform;
+      onLevel(level);
+    }
 
     const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
     if (stepped === publishedRef.current || !target.current) {
@@ -198,17 +202,25 @@ const PetLevelPump = ({
     }
     publishedRef.current = stepped;
     target.current.style.setProperty('--pet-level', String(stepped));
-  }, [feed, isPaused, levelRef, target, waveform]);
+  }, [feed, isPaused, onLevel, outputLevels, target, waveform]);
 
   return null;
 };
 
 /** Loud enough that it is clearly music rather than a notification blip. */
-const DANCE_LEVEL = 0.32;
-const DANCE_DURATION_MS = 7000;
-/** Checked once a minute; roughly one dance every three or four minutes. */
-const DANCE_CHECK_MS = 60000;
+export const DANCE_LEVEL = 0.32;
+/**
+ * Frames heard at `DANCE_LEVEL` or above between one chance to dance and the
+ * next: at the capture's thirty frames a second, a minute of loud music.
+ */
+export const DANCE_LOUD_FRAMES = 1800;
+/** Roughly one dance every three or four minutes of it. */
 const DANCE_CHANCE = 0.3;
+/**
+ * The dance's sway (`SupportPet.scss`), which runs a whole number of times
+ * and stops: its end is the end of the dance.
+ */
+export const DANCE_ANIMATION = 'pet-dance';
 
 /**
  * Occasionally the pet gets up and dances.
@@ -221,43 +233,78 @@ const DANCE_CHANCE = 0.3;
  * A user who never contributes still has a pet that breathes and blinks; it
  * just does not hear the music.
  *
- * The level arrives by ref rather than as a prop, because this reads it once a
- * minute and taking it through render would put the pet back on the frame
- * clock — which is the one thing the pump above exists to prevent.
+ * The music decides, not a clock. A minute's interval used to look at whatever
+ * the level was at that instant, and ran through silence and a quiet film
+ * alike; now every frame she hears loud counts, and every `DANCE_LOUD_FRAMES`
+ * of them she considers it. Silence sends no frames and a quiet passage counts
+ * none, so the minute is a minute of music she could dance to. The dance ends
+ * with its own last sway (`animationend`) — it was stopped by a 7 s timer
+ * that knew nothing of where the sway had got to — or as soon as it is taken
+ * off the page (`animationcancel`: the titlebar hides her, motion is turned
+ * down). Not at all for someone who asked for less motion, whose pet would
+ * stand still through it and then never hear it end.
+ *
+ * The count lives in a ref and the level arrives by call, never through
+ * render, because it changes every frame and the pet must not re-render on
+ * the frame clock — which is the one thing the pump above exists to prevent.
  */
 const useOccasionalDance = (
+  target: RefObject<HTMLElement | null>,
   isUnlocked: boolean,
-  isActive: boolean,
-  levelRef: MutableRefObject<number>,
+  isListening: boolean,
 ) => {
   const [isDancing, setIsDancing] = useState(false);
+  const isDancingRef = useRef(false);
+  const loudFramesRef = useRef(0);
+  const canDance = isUnlocked && isListening;
 
-  useEffect(() => {
-    if (!isUnlocked || !isActive) {
-      setIsDancing(false);
-      return undefined;
-    }
+  const setDancing = useCallback((next: boolean) => {
+    isDancingRef.current = next;
+    setIsDancing(next);
+  }, []);
 
-    let stopTimer: ReturnType<typeof setTimeout> | undefined;
-    const maybeDance = () => {
-      if (levelRef.current < DANCE_LEVEL || Math.random() > DANCE_CHANCE) {
+  const hear = useCallback(
+    (level: number) => {
+      if (!canDance || isDancingRef.current || level < DANCE_LEVEL) {
         return;
       }
-      setIsDancing(true);
-      stopTimer = setTimeout(() => setIsDancing(false), DANCE_DURATION_MS);
-    };
-
-    const timer = setInterval(maybeDance, DANCE_CHECK_MS);
-    return () => {
-      clearInterval(timer);
-      if (stopTimer !== undefined) {
-        clearTimeout(stopTimer);
+      loudFramesRef.current += 1;
+      if (loudFramesRef.current < DANCE_LOUD_FRAMES) {
+        return;
       }
-      setIsDancing(false);
-    };
-  }, [isActive, isUnlocked, levelRef]);
+      loudFramesRef.current = 0;
+      if (Math.random() <= DANCE_CHANCE && !prefersReducedMotion()) {
+        setDancing(true);
+      }
+    },
+    [canDance, setDancing],
+  );
 
-  return isDancing;
+  useEffect(() => {
+    if (!canDance) {
+      setDancing(false);
+    }
+  }, [canDance, setDancing]);
+
+  useEffect(() => {
+    const element = target.current;
+    if (!element) {
+      return undefined;
+    }
+    const end = (event: AnimationEvent) => {
+      if (event.animationName === DANCE_ANIMATION) {
+        setDancing(false);
+      }
+    };
+    element.addEventListener('animationend', end);
+    element.addEventListener('animationcancel', end);
+    return () => {
+      element.removeEventListener('animationend', end);
+      element.removeEventListener('animationcancel', end);
+    };
+  }, [setDancing, target]);
+
+  return { isDancing, hear };
 };
 
 /**
@@ -271,16 +318,19 @@ const usePetAudio = (
   hasContributed: boolean,
 ) => {
   const { isActive, isPaused } = useLiveAudioControl();
-  const levelRef = useRef(0);
   const [isListening, setIsListening] = useState(false);
-  const isDancing = useOccasionalDance(hasContributed, isListening, levelRef);
+  const { isDancing, hear } = useOccasionalDance(
+    target,
+    hasContributed,
+    isListening,
+  );
 
   const pump = (
     <PetLevelPump
       target={target}
       isCapturing={isActive}
       isPaused={isPaused}
-      levelRef={levelRef}
+      onLevel={hear}
       onHearingChange={setIsListening}
     />
   );
@@ -291,148 +341,6 @@ const usePetAudio = (
 interface ISupportPetProps {
   hasContributed: boolean;
   onOpen: () => void;
-}
-
-/** One cycle of the waveform in the eye, in SVG user units. */
-export const EYE_WAVE_PERIOD = 3.2;
-/** Enough cycles to cover the pupil plus a full period of scroll either side. */
-const EYE_WAVE_CYCLES = 8;
-/**
- * Exported so the share card can draw the same wave rather than a lookalike.
- * The card paints her on a canvas, which cannot use the path below, so the
- * numbers are the only thing the two can share — and if they drift, the
- * creature in the picture stops being the creature on screen.
- */
-export const EYE_WAVE_AMPLITUDE = 1.1;
-
-/**
- * A small horizontal waveform to run behind a pupil.
- *
- * Built rather than hand-written so the period is exact: the scroll animation
- * translates by precisely one period and loops, and the join is only invisible
- * if every cycle is identical. A hand-drawn path drifts and the wave visibly
- * jumps once a second.
- */
-export const buildEyeWave = (centreX: number, centreY: number) => {
-  const start = centreX - (EYE_WAVE_CYCLES * EYE_WAVE_PERIOD) / 2;
-  const quarter = EYE_WAVE_PERIOD / 4;
-  let path = `M ${start} ${centreY}`;
-  for (let cycle = 0; cycle < EYE_WAVE_CYCLES; cycle += 1) {
-    const x = start + cycle * EYE_WAVE_PERIOD;
-    path += ` Q ${x + quarter} ${centreY - EYE_WAVE_AMPLITUDE} ${x + quarter * 2} ${centreY}`;
-    path += ` Q ${x + quarter * 3} ${centreY + EYE_WAVE_AMPLITUDE} ${x + quarter * 4} ${centreY}`;
-  }
-  return path;
-};
-
-/**
- * The creature itself. Shared by the titlebar button and the dialog's hero, so
- * the two can never drift apart.
- *
- * In a frame of its own because it moves every frame while music plays — it
- * breathes, and the wave scrolls in its eyes — and a drawing that moves has to
- * be laid out again. Standing straight in the grid that centres it, it had
- * the browser lay out the whole window with it each time: a grid's item is
- * never laid out on its own. Inside the frame the drawing is, so the moving
- * creature costs its own few shapes and nothing around it.
- */
-export function PetArt() {
-  return (
-    <span className="support-pet__frame">
-      <svg
-        className="support-pet__art"
-        viewBox="0 0 40 40"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <defs>
-          {/* Its colours come from two tokens (`SupportPet.scss`): its own mint
-            at rest, the scene's colours while a Plus scene tints the window. */}
-          <linearGradient id="pet-body" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" className="support-pet__tone-top" />
-            <stop offset="1" className="support-pet__tone-bottom" />
-          </linearGradient>
-          {/* The pupils, as clips. The waveform inside each eye runs well past
-            the iris so it can scroll without its ends ever coming into view. */}
-          <clipPath id="pet-eye-left">
-            <circle cx="15.4" cy="22" r="3.4" />
-          </clipPath>
-          <clipPath id="pet-eye-right">
-            <circle cx="24.6" cy="22" r="3.4" />
-          </clipPath>
-        </defs>
-
-        {/* Ears double as a little EQ curve - the creature is made of the thing
-          the app does. Kept chunky so they survive at 40px. */}
-        <g className="support-pet__ears">
-          <path
-            d="M11 12 L14 6 L17 12"
-            fill="none"
-            stroke="url(#pet-body)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-          <path
-            d="M23 12 L26 8 L29 12"
-            fill="none"
-            stroke="url(#pet-body)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </g>
-
-        <g className="support-pet__body">
-          <circle cx="20" cy="24" r="12.5" fill="url(#pet-body)" />
-
-          {/* Eyes carry almost all of the personality, so they are large and
-            maximum contrast. */}
-          <g className="support-pet__eyes">
-            <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
-            <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
-
-            {/* Sound reflected in the eye: a little waveform scrolling across
-              each pupil, clipped to it so it reads as something seen IN the eye
-              rather than drawn over it. Invisible at rest and brightening with
-              the streak — see `--pet-joy`. Always in the markup rather than
-              mounted on demand, so nothing re-renders mid-run to make it
-              appear. */}
-            <g className="support-pet__eye-waves">
-              <g clipPath="url(#pet-eye-left)">
-                <path d={buildEyeWave(15.4, 22)} />
-              </g>
-              <g clipPath="url(#pet-eye-right)">
-                <path d={buildEyeWave(24.6, 22)} />
-              </g>
-            </g>
-
-            <circle cx="16.4" cy="21" r="1.15" fill="#ffffff" />
-            <circle cx="25.6" cy="21" r="1.15" fill="#ffffff" />
-          </g>
-
-          <path
-            className="support-pet__mouth"
-            d="M16.6 28.4 Q20 31.4 23.4 28.4"
-            fill="none"
-            stroke="#06131d"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </g>
-
-        {/* Only ever drawn for a supporter. */}
-        <path
-          className="support-pet__star"
-          d="M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z"
-          fill="#ffe66d"
-        />
-      </svg>
-    </span>
-  );
 }
 
 /** The same creature at hero size inside the support dialog. Decorative: the

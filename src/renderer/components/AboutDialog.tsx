@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import {
   AUTHOR_NAME,
   BUNDLED_ENGINE,
@@ -75,16 +75,22 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
   const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
 
+  // Escape reads whichever `onClose` is current, and focus is placed once:
+  // re-run with `onClose`, which the window hands over new on every render of
+  // its own, this pulled focus back to Close several times a second while
+  // anything played.
+  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  });
+
   useEffect(() => {
     closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+    const onKeyDown = (event: KeyboardEvent) => closeOnEscape(event);
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, []);
 
   return (
     <div

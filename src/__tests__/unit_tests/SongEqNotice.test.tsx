@@ -201,6 +201,37 @@ describe('SongEqNotice', () => {
    * default of the plural at zero) — either would show the plural text one
    * play earlier or later than the singular test above expects.
    */
+  /**
+   * The notice goes when its own linger ends, and only then: its entrance
+   * ending, or an animation of something inside it, is not the end of the
+   * linger (the nulls); the linger's own end reports the notice's id back
+   * (the positive control). It was a six-second timer in the session.
+   */
+  it('reports its end when its own linger animation ends', () => {
+    mockUseSongEqNotice.mockReturnValue({
+      id: 7,
+      identity: IDENTITY,
+      entry: entryOf(1),
+    });
+    render(<SongEqNotice />);
+    const notice = screen.getByRole('dialog');
+    const endAnimation = (target: Element, animationName: string) => {
+      const event = new Event('animationend', { bubbles: true });
+      Object.defineProperty(event, 'animationName', { value: animationName });
+      fireEvent(target, event);
+    };
+
+    endAnimation(notice, 'slide-in-right');
+    endAnimation(
+      screen.getByRole('button', { name: translate('en', 'songEq.undo') }),
+      'song-eq-notice-linger',
+    );
+    expect(session.endSongEqNotice).not.toHaveBeenCalled();
+
+    endAnimation(notice, 'song-eq-notice-linger');
+    expect(session.endSongEqNotice).toHaveBeenCalledWith(7);
+  });
+
   it('uses the plural body once plays is above one', () => {
     mockUseSongEqNotice.mockReturnValue({
       identity: IDENTITY,

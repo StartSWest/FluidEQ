@@ -93,6 +93,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.games': '游戏检测',
   'app.processes.what.games':
     '告诉 FluidEQ 哪个程序在最前面，让游戏在你切换过去的那一刻就用上它自己的声音。只在某个游戏有自己的声音或“游戏预设”页面打开时运行。',
+  'app.processes.name.outputs': '输出监视',
+  'app.processes.what.outputs':
+    '在 Windows 报告有输出设备接入、拔出或更改时收到通知，让 FluidEQ 即使窗口隐藏也会切换到该输出的配置。FluidEQ 运行期间一直运行。',
   'app.processes.name.mediaWatch': '其他应用的媒体',
   'app.processes.what.mediaWatch':
     '读取 Spotify、浏览器或其他播放器正在播放的内容，让播放栏可以显示并控制它。FluidEQ 不再需要时就会关闭。',

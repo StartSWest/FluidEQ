@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { DSP_DEFAULTS } from 'common/dsp/chain';
 import { DSP_PRESETS } from 'common/dsp/presets';
 import en from 'common/i18n/en';
@@ -13,7 +13,10 @@ import defaultContext from '__tests__/utils/mockFluidEqProvider';
 import VoicingQuickPick from 'renderer/components/VoicingQuickPick';
 import DspChainPresetBar from 'renderer/dsp/DspChainPresetBar';
 import { QUICK_DSP_PRESETS } from 'renderer/dsp/dspPresetCatalog';
-import { toggleFavouriteDspPreset } from 'renderer/dsp/favouriteDspPresets';
+import {
+  DSP_PRESETS_CHANGED,
+  toggleFavouriteDspPreset,
+} from 'renderer/dsp/favouriteDspPresets';
 import { applyDspSettings } from 'renderer/dsp/store';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 
@@ -22,7 +25,7 @@ jest.mock('renderer/dsp/systemChain', () => ({
 }));
 let mockEngine: 'fluid' | 'apo' = 'fluid';
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
-  useAudioEngineStatus: () => ({ status: { engine: mockEngine } }),
+  useKnownAudioEngineStatus: () => ({ engine: mockEngine }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   setVoicing: jest.fn(),
@@ -210,5 +213,57 @@ describe('the notes button beside the rack’s picker', () => {
     expect(
       screen.getByRole('button', { name: en['dsp.eqPreset.reset'] }),
     ).toBeInTheDocument();
+  });
+});
+
+/*
+ * The equaliser's page and the player's deck re-render with every frame of a
+ * band being dragged, and the pick re-rendered with them: each frame read the
+ * saved chains and the stars out of storage, parsed and clamped them, and
+ * rebuilt every row, for a menu nobody had open. Now the pick renders only
+ * for what it shows, and even then reads storage only when what is saved has
+ * changed.
+ */
+describe('the equaliser’s pick while a band is dragged', () => {
+  const CATALOGUE_KEYS = [
+    'fluideq.dsp.userChainPresets.v1',
+    'fluideq.dsp.favouritePresets.v1',
+  ];
+
+  it('reads no saved chain for a frame that moved only the bands', () => {
+    const pick = (value: typeof context) => (
+      <FluidEqProviderWrapper value={value}>
+        <VoicingQuickPick />
+      </FluidEqProviderWrapper>
+    );
+    // One band's gain moved, as one frame of a drag moves it.
+    const [first, ...rest] = Object.values(context.filters);
+    const dragged = {
+      ...context,
+      filters: Object.fromEntries(
+        [{ ...first, gain: first.gain + 1 }, ...rest].map((band) => [
+          band.id,
+          band,
+        ]),
+      ),
+    };
+    const view = render(pick(context));
+    const getItem = jest.spyOn(Storage.prototype, 'getItem');
+    const catalogueReads = () =>
+      getItem.mock.calls.filter(([key]) => CATALOGUE_KEYS.includes(key)).length;
+
+    view.rerender(pick(dragged));
+    expect(catalogueReads()).toBe(0);
+
+    // Rendered again for something it shows, with nothing saved changed.
+    view.rerender(pick({ ...dragged, isEnabled: false }));
+    expect(catalogueReads()).toBe(0);
+
+    // The control: a change to what is saved is read.
+    act(() => {
+      window.dispatchEvent(new Event(DSP_PRESETS_CHANGED));
+    });
+    expect(catalogueReads()).toBeGreaterThan(0);
+    getItem.mockRestore();
   });
 });

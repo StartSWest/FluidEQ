@@ -24,7 +24,8 @@ export interface ICanvasScrubState {
   pointerId?: number;
   anchorMs: number;
   auditionWordGrain: boolean;
-  grainTimerId?: number;
+  /** Stops the grain that is playing, while one is. */
+  cancelGrain?: () => void;
 }
 
 /**

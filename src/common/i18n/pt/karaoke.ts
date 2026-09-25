@@ -450,8 +450,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.memoryPolicy.ask': 'Perguntar',
   'karaoke.maker.memoryPolicy.auto': 'Liberar automaticamente',
   'karaoke.maker.memoryPolicy.keep': 'Manter carregado',
-  'karaoke.maker.memoryAfter': 'Depois de',
-  'karaoke.maker.memoryMinutes': '{count} min',
   'karaoke.maker.memoryPromptTitle': 'Liberar a memória do modelo de voz?',
   'karaoke.maker.memoryPromptBody':
     'O modelo de voz local está ocioso. Liberá-lo economiza RAM; seus arquivos continuam em cache para recarregar mais rápido.',

@@ -8,16 +8,11 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { IAudioRestart } from '../utils/useAudioRestart';
 import { useTranslation } from '../utils/I18nContext';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 // The output notice's spot and card, which this shares.
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineUpdateNotice.scss';
-
-/**
- * The stylesheet's own rule, asked of the document: another notice holds the
- * spot, and this one is out of sight behind it (EngineUpdateNotice.scss).
- */
-const OTHER_NOTICE = '.device-apo-notice:not(.engine-update-notice)';
 
 interface IEngineUpdateNoticeProps {
   /**
@@ -47,7 +42,9 @@ interface IEngineUpdateNoticeProps {
 const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
   const { t } = useTranslation();
   const { isOpen, phase, outcome, run, close } = update;
-  const isShown = isOpen && !isHidden;
+  // Last in the spot: behind the output notice, the Room's 7.1 offer and the
+  // engine trouble notice.
+  const isShown = useNoticeTurn('engineUpdate', isOpen && !isHidden);
 
   useEffect(() => {
     if (!isShown) {
@@ -58,15 +55,11 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
     //
     // Only when it is what the Escape was for. On the window, so it hears the
     // key after every dialog's own listener on the document, and a dialog
-    // that has answered it (they all preventDefault) closes alone; and not
-    // while another notice has this one out of sight, where an Escape meant
-    // for that one would put this away unseen until the next launch.
+    // that has answered it (they all preventDefault) closes alone; and only
+    // while it is on screen, since an Escape meant for a notice in front of
+    // it would put this away unseen until the next launch.
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (
-        event.key !== 'Escape' ||
-        event.defaultPrevented ||
-        document.querySelector(OTHER_NOTICE) !== null
-      ) {
+      if (event.key !== 'Escape' || event.defaultPrevented) {
         return;
       }
       close();

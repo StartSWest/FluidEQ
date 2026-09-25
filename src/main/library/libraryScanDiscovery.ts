@@ -48,11 +48,24 @@ import {
   libraryTitleFromFileName,
 } from '../../common/library/files';
 
+/**
+ * What the walk reads from a track the index already holds, and nothing more:
+ * enough to decide whether the file needs reading again (`shouldReparse`) and
+ * to keep the day it was first added through a re-read. Anything else about a
+ * known track is carried through the walk untouched, as the same object, so
+ * the host can send the worker these few fields and have its own tracks back
+ * by reference (`scanHost.ts`) instead of cloning the library both ways.
+ */
+export type IKnownTrack = Pick<
+  ILibraryTrack,
+  'path' | 'sizeBytes' | 'mtimeMs' | 'artId' | 'artworkChecked' | 'addedAt'
+>;
+
 /** Everything a directory walk shares between discovery and parsing. */
-export interface IWalkContext {
+export interface IWalkContext<TKnown extends IKnownTrack = ILibraryTrack> {
   rootId: string;
   userDataDir: string;
-  knownByPath: Map<string, ILibraryTrack>;
+  knownByPath: ReadonlyMap<string, TKnown>;
   /**
    * Turns raw embedded or folder artwork into a cache id. The main-process
    * fallback supplies the Electron implementation directly; the utility
@@ -64,14 +77,15 @@ export interface IWalkContext {
   /** Called by both phases: discovery publishes provisional rows for newly
    * found files (see `discoverDirectory`'s own comment), and phase two
    * republishes the same ids once resolved (`parseCandidates`' batching in
-   * `libraryScanParse.ts`). Undefined for a caller that only wants the final
+   * `libraryScanParse.ts`) — every file it read, never a known one it carried
+   * forward unchanged. Undefined for a caller that only wants the final
    * result. */
   onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
 }
 
-export const reportProgress = (
-  context: IWalkContext,
+export const reportProgress = <TKnown extends IKnownTrack>(
+  context: IWalkContext<TKnown>,
   counts: { seen: number; parsed: number; karaokeSkipped: number },
   current: string,
 ): void => {
@@ -321,9 +335,9 @@ const listDirectory = async (
  * Walks one directory and recurses into its subdirectories, filling
  * `state.candidates` with every non-karaoke media file found beneath `dir`.
  */
-export const discoverDirectory = async (
+export const discoverDirectory = async <TKnown extends IKnownTrack>(
   dir: string,
-  context: IWalkContext,
+  context: IWalkContext<TKnown>,
   state: IDiscoverState,
 ): Promise<void> => {
   if (state.cancelled || context.isCancelled()) {

@@ -36,12 +36,12 @@ jest.mock('renderer/utils/useListenedOutput', () => ({
   useListenedOutput: () => ({ output: undefined }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({
+  ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isBlockingError: false,
     curveSmoothing: 'off',
     refreshState: mockRefresh,
     setGlobalError: mockError,
-  }),
+  })),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   resetEqMode: () => mockReset(),

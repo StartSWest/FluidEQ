@@ -26,7 +26,7 @@ import {
 import { getStreakJoy } from 'common/rhythmGame';
 import { forEachGraphPoint, graphPointCount } from '../graph/EditablePoint';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
 import {
   isEuphoriaAchieved,
@@ -237,7 +237,11 @@ const EuphoriaLevel = () => {
   // The row is rebuilt when the band count changes and at no other time, so
   // that is what the re-query below keys on. Keying it on the frame would
   // re-query every frame and undo the saving entirely.
-  const bandCount = Object.keys(useFluidEqContext().filters).length;
+  //
+  // The count from the layers, not from the bands themselves: the context
+  // that carries the bands re-renders on every frame of a band drag and on
+  // every hover, and this needs to hear only that a band came or went.
+  const { bandCount } = useFluidEqLayers();
   const bandsRef = useRef<HTMLElement[]>([]);
   const bandLevelsRef = useRef<number[]>([]);
 
@@ -409,16 +413,22 @@ const EuphoriaGlow = () => {
   // `useIsEuphoric` is the single answer for whether the app is in euphoria.
   // Asking it directly is the fix; `joy` stays the creature's own 0-to-1
   // intensity, which is about the run and legitimately outlives the switch.
+  //
+  // `has-pet-joy` says there is any joy at all, for what the creature draws
+  // only with some (`SupportPet.scss`): at zero the waves in her eyes were
+  // fully transparent and still scrolled every frame, in the titlebar, for
+  // everybody who had never played.
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--pet-joy', String(joy));
+    root.classList.toggle('has-pet-joy', joy > 0);
     root.classList.toggle('is-euphoric', isEuphoric);
   }, [isEuphoric, joy]);
 
   useEffect(
     () => () => {
       const root = document.documentElement;
-      root.classList.remove('is-euphoric');
+      root.classList.remove('is-euphoric', 'has-pet-joy');
       root.style.removeProperty('--pet-joy');
     },
     [],

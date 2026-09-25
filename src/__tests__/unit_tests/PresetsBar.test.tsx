@@ -20,12 +20,20 @@ import '@testing-library/jest-dom';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import en from 'common/i18n/en';
-import { translate } from 'common/i18n';
+import { loadLocale, translate } from 'common/i18n';
 import PresetsBar, { PRESET_NAME_ERRORS } from 'renderer/PresetsBar';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { clearAndType, setup } from '__tests__/utils/userEventUtils';
+
+// No bridge in this suite, so every read of the outputs fails where it is
+// made — and a read that failed later, as the kept list's does, would be left
+// rejected by the one beside it failing first. Nothing here is about outputs.
+jest.mock('renderer/utils/equalizerApi', () => ({
+  ...jest.requireActual('renderer/utils/equalizerApi'),
+  readKnownAudioDevices: () => Promise.resolve([]),
+}));
 
 describe('PresetListItem', () => {
   const samplePresetNames = ['Apple', 'Banana', 'Oranges'];
@@ -290,6 +298,8 @@ describe('PresetListItem', () => {
   it('says why a name is refused in the language the app is in', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const user = userEvent.setup();
+    // Loaded before the first frame, as the app does with a stored language.
+    await loadLocale('de');
     window.localStorage.setItem('fluideq.locale', 'de');
     try {
       await act(async () => {

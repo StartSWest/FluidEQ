@@ -75,15 +75,30 @@ export interface IDspHostOptions {
 }
 
 /**
- * Real deadlines on a real pipe, not delays covering a race.
+ * NO DEADLINES: THE PROCESS SAYS WHEN IT IS DONE.
  *
- * Each one answers "how long before this is a hang rather than slow work".
- * The device one is longest because opening an endpoint is genuine hardware
- * negotiation and a busy machine can take a moment over it.
+ * There used to be three — five seconds for the handshake, five for every
+ * acknowledgement, two for a shutdown before the host was killed — each one a
+ * guess at "how long before this is a hang rather than slow work", and each
+ * one wrong on the machine that needed it: a cold disk loading the host, a
+ * device taking its time to negotiate, and a request "failed" whose answer
+ * then arrived and was dropped as stale.
+ *
+ * What decides now is what the process itself does. A handshake arrives, or
+ * the host's output closes without one (it exited, or never started: the
+ * child's `error`). An acknowledgement arrives, or the host exits and every
+ * request still waiting on it is refused (`rejectPendingFor`), or its input
+ * pipe breaks and nothing written to it can arrive. A shutdown is asked for,
+ * the host's input is closed behind it — the host leaves on either — and the
+ * child's `close` says it has gone.
+ *
+ * A host that stays alive and says nothing is a host bug, and this does not
+ * paper over it: whatever waits on it keeps waiting, and the lifecycle log
+ * (`trace`) shows the last thing it did — `spawned` with no `handshake-ready`,
+ * `stop-requested` with no `exited` — which names the defect. The host
+ * watches this process's handle (`--parent-pid`) and leaves with it, so quitting
+ * the app still ends it.
  */
-const HANDSHAKE_DEADLINE_MS = 5_000;
-const ACK_DEADLINE_MS = 5_000;
-const SHUTDOWN_DEADLINE_MS = 2_000;
 
 /**
  * Three restarts inside a minute, and then the supervisor stops trying.
@@ -101,7 +116,6 @@ const STDERR_TAIL_LINES = 50;
 interface IPending {
   resolve: (ack: IHostAck) => void;
   reject: (error: Error) => void;
-  timer: ReturnType<typeof setTimeout>;
   child: ChildProcessWithoutNullStreams;
 }
 
@@ -111,6 +125,8 @@ interface IChildLifecycle {
   analysisFrames: number;
   lastAnalysisAt: number;
   shutdownRequested: boolean;
+  /** Settles on the child's `close`: exited, and its pipes shut. */
+  closed: Promise<void>;
 }
 
 export class DspHostSupervisor {
@@ -314,26 +330,23 @@ export class DspHostSupervisor {
      * it correctly.
      */
     this.setState('stopped');
-    // Asked to leave before being made to. The host closes its endpoint on the
-    // way out, and a killed process does not — which leaves the device held by
-    // a process that no longer exists until Windows notices.
-    try {
-      await this.send(HOST_COMMANDS.shutdown, {});
-      this.trace('shutdown-acknowledged', child);
-    } catch {
-      this.trace('shutdown-command-failed', child);
-    }
-    await new Promise<void>((resolve) => {
-      const timer = setTimeout(() => {
-        this.trace('shutdown-force-kill', child);
-        child.kill();
-        resolve();
-      }, SHUTDOWN_DEADLINE_MS);
-      child.once('close', () => {
-        clearTimeout(timer);
-        resolve();
-      });
-    });
+    // Asked to leave, never made to. The host closes its endpoint on the way
+    // out, and a killed process does not — which leaves the device held by a
+    // process that no longer exists until Windows notices.
+    //
+    // Its input is closed behind the ask, and the host leaves on either: the
+    // command, or the end of its input ("control pipe closed; orderly
+    // shutdown"), so a host that never reads the one still meets the other.
+    // Its own `close` is what says it has gone. This used to give it two
+    // seconds and then kill it — the one path here that could leave an
+    // endpoint held; a host that ignores both is a host bug, and waiting on
+    // it shows as `stop-requested` with no `exited` after it.
+    const asked = this.send(HOST_COMMANDS.shutdown, {}).then(
+      () => this.trace('shutdown-acknowledged', child),
+      () => this.trace('shutdown-command-failed', child),
+    );
+    child.stdin.end();
+    await Promise.all([asked, lifecycle?.closed]);
     if (this.child === child) {
       this.child = undefined;
       this.stats = undefined;
@@ -850,26 +863,31 @@ export class DspHostSupervisor {
       analysisFrames: 0,
       lastAnalysisAt: 0,
       shutdownRequested: false,
+      closed: new Promise<void>((resolve) => {
+        child.once('close', () => resolve());
+      }),
     });
     this.trace('spawned', child, { path: this.options.executablePath });
 
     // A write into a pipe the host has closed — it exited, or is exiting —
     // fails on this stream, and with no listener that failure is thrown in
-    // this process. Nothing written there can arrive; whatever waits on it is
-    // settled by the exit that follows, or by its own deadline.
+    // this process. Nothing written there can arrive, so every request still
+    // waiting on it is refused now instead of on an exit that may be late.
     child.stdin.on('error', (error: Error) => {
       this.trace('stdin-error', child, { message: error.message });
+      this.rejectPendingFor(child, 'the DSP host stopped reading its commands');
     });
 
     const handshakeArrived = new Promise<IHostHandshake | undefined>(
       (resolve) => {
-        const timer = setTimeout(
-          () => resolve(undefined),
-          HANDSHAKE_DEADLINE_MS,
-        );
+        // Ended without a handshake by the process, never by a clock: its
+        // output closing (it exited, or never started) or the spawn failing.
+        // Every frame it wrote arrives before its output's `close`, so a
+        // handshake that was sent is never lost to this.
+        child.stdout.once('close', () => resolve(undefined));
+        child.once('error', () => resolve(undefined));
         const reader = new FrameReader({
           onHandshake: (handshake) => {
-            clearTimeout(timer);
             resolve(handshake);
           },
           onAck: (ack) => this.settle(child, ack),
@@ -898,7 +916,6 @@ export class DspHostSupervisor {
             }
           },
           onDesynchronised: (magic) => {
-            clearTimeout(timer);
             if (this.child !== child) {
               this.trace('stale-desynchronisation-ignored', child, { magic });
               resolve(undefined);
@@ -944,12 +961,21 @@ export class DspHostSupervisor {
       return false;
     }
     if (!handshake) {
-      if (this.state !== 'failed') {
-        this.fail(DSP_DIAGNOSTIC_CODES.hostHandshakeRejected, {
-          reason: 'no handshake before the deadline',
-        });
-      }
+      /**
+       * No handshake, and no pipe left to send one on: the host has died or
+       * is dying, or is of no use. It is made to go, and its exit is judged
+       * by `onExit` like any other — a crash, counted against the restart
+       * budget — and not here.
+       *
+       * Its output closes a moment before its exit arrives, and refusing it
+       * here as a failed handshake got in first: a restarted host killed
+       * while it started ended the supervisor on 3002 with no retry, where
+       * the budget would have brought it back (smoke-supervisor's restart
+       * budget, three runs in four). The wait is on the process's own `close`,
+       * after which `onExit` has run.
+       */
       child.kill();
+      await lifecycle?.closed;
       return false;
     }
 
@@ -1050,7 +1076,6 @@ export class DspHostSupervisor {
       this.trace('stale-ack-ignored', child, { requestId: ack.requestId });
       return;
     }
-    clearTimeout(waiting.timer);
     this.pending.delete(ack.requestId);
     waiting.resolve(ack);
   }
@@ -1162,13 +1187,15 @@ export class DspHostSupervisor {
     this.restore().catch(() => undefined);
   }
 
-  private rejectPendingFor(child: ChildProcessWithoutNullStreams): void {
+  private rejectPendingFor(
+    child: ChildProcessWithoutNullStreams,
+    reason = 'the DSP host exited',
+  ): void {
     this.pending.forEach((waiting, requestId) => {
       if (waiting.child !== child) {
         return;
       }
-      clearTimeout(waiting.timer);
-      waiting.reject(new Error('the DSP host exited'));
+      waiting.reject(new Error(reason));
       this.pending.delete(requestId);
     });
   }
@@ -1231,15 +1258,19 @@ export class DspHostSupervisor {
       // moment if it ever does.
       return Promise.reject(new Error('the DSP host is not running'));
     }
+    if (!child.stdin.writable) {
+      // Its input is closed: `stop` has asked it to leave, or it has gone.
+      return Promise.reject(new Error('the DSP host is shutting down'));
+    }
     const requestId = this.nextRequestId;
     this.nextRequestId += 1;
 
+    // Answered by its acknowledgement (`settle`), or refused when the host
+    // exits or its input breaks (`rejectPendingFor`) — never by a deadline.
+    // There was one, five seconds, and an answer that came after it was
+    // dropped as stale while the caller had already been told "failed".
     return new Promise<IHostAck>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(requestId);
-        reject(new Error(`the DSP host did not answer request ${requestId}`));
-      }, ACK_DEADLINE_MS);
-      this.pending.set(requestId, { resolve, reject, timer, child });
+      this.pending.set(requestId, { resolve, reject, child });
 
       child.stdin.write(
         encodeCommand({

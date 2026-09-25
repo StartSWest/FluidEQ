@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { DSP_OUTPUT_INDEX } from '../monitorOutputs';
 import '../../remoteAudio/pcmCapture.worklet';
 import '../../remoteAudio/pcmReceiver.worklet';
+import '../../audio/audioClock.worklet';
 
 /**
  * A wire, and deliberately nothing else.

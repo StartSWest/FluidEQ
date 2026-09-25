@@ -564,13 +564,27 @@ export const useGraphEqQuiet = () =>
  *
  * A store rather than state on the chart, because the thing that fires it is a
  * window key handler and the thing that draws it is a div three components down.
+ *
+ * How long it stays is the caption's own animation (`graph-mode-announce` in
+ * `GraphTheme.scss`), and its end is what takes the caption away
+ * (`endGraphModeAnnouncement`). It was a timer here of the same length as that
+ * animation — two clocks, agreeing only while the window painted; behind a
+ * minimised window the timer ran and the caption was gone before anyone saw it.
  */
-const MODE_ANNOUNCEMENT_MS = 1100;
+export interface IGraphModeAnnouncement {
+  /** What is said; empty when nothing is. */
+  label: string;
+  /** Bumped per announcement, so the same mode twice still reads as twice. */
+  id: number;
+}
 
-let announcement = '';
-/** Bumped per announcement, so the same mode twice still reads as twice. */
-let announcementId = 0;
-let announcementTimer: ReturnType<typeof setTimeout> | undefined;
+/**
+ * One value, replaced whole, so that the caption ending is a change a render
+ * can see. The snapshot used to be the id alone, which an ending does not
+ * move: the words were cleared and nothing re-rendered, so the caption stayed
+ * mounted, faded to nothing, until something else redrew the chart.
+ */
+let announcement: IGraphModeAnnouncement = { label: '', id: 0 };
 const announcementListeners = new Set<() => void>();
 
 const emitAnnouncement = () => {
@@ -578,16 +592,26 @@ const emitAnnouncement = () => {
 };
 
 export const announceGraphMode = (label: string) => {
-  announcement = label;
-  announcementId += 1;
-  if (announcementTimer) {
-    clearTimeout(announcementTimer);
+  // No chart mounted, nobody to say it to — and said anyway, it would wait
+  // for the next chart to mount and name a key pressed long before.
+  if (announcementListeners.size === 0) {
+    return;
   }
-  announcementTimer = setTimeout(() => {
-    announcement = '';
-    announcementTimer = undefined;
-    emitAnnouncement();
-  }, MODE_ANNOUNCEMENT_MS);
+  announcement = { label, id: announcement.id + 1 };
+  emitAnnouncement();
+};
+
+/**
+ * The caption named by `id` has been shown, so it is over.
+ *
+ * By id: a key pressed again while a caption is up replaces it with a new one,
+ * and the old one's end must not take the new one down.
+ */
+export const endGraphModeAnnouncement = (id: number) => {
+  if (id !== announcement.id || announcement.label === '') {
+    return;
+  }
+  announcement = { label: '', id };
   emitAnnouncement();
 };
 
@@ -595,6 +619,12 @@ const subscribeAnnouncement = (listener: () => void) => {
   announcementListeners.add(listener);
   return () => {
     announcementListeners.delete(listener);
+    // The chart that showed it has gone — another tab opened — and the
+    // animation that would have ended it with it. Kept, the caption would
+    // come back over the next chart mounted, naming a key pressed long ago.
+    if (announcementListeners.size === 0 && announcement.label !== '') {
+      announcement = { label: '', id: announcement.id };
+    }
   };
 };
 
@@ -605,14 +635,12 @@ const subscribeAnnouncement = (listener: () => void) => {
  * whose key has not changed, so cycling back to a mode you were in a moment ago
  * would otherwise put the caption up with its entrance already over.
  */
-export const useGraphModeAnnouncement = () => {
-  const id = useSyncExternalStore(
+export const useGraphModeAnnouncement = (): IGraphModeAnnouncement =>
+  useSyncExternalStore(
     subscribeAnnouncement,
-    () => announcementId,
-    () => 0,
+    () => announcement,
+    () => announcement,
   );
-  return { label: announcement, id };
-};
 
 const subscribeSolo = (listener: () => void) => {
   soloListeners.add(listener);

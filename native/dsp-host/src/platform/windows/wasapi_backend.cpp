@@ -313,6 +313,13 @@ class WasapiBackend final : public IAudioOutputBackend {
       error = "the output device exposed no render client";
       return false;
     }
+    // The stream's own session says when it is cut off (`StreamWatch`). A
+    // session that will not take the registration still plays; a cut then
+    // shows itself as a failed call, or as a change of output.
+    if (SUCCEEDED(client_->GetService(IID_PPV_ARGS(&session_))) &&
+        FAILED(session_->RegisterAudioSessionNotification(&stream_watch_))) {
+      session_.Reset();
+    }
 
     format_.sample_rate = rate;
     format_.channels = channels;
@@ -332,6 +339,10 @@ class WasapiBackend final : public IAudioOutputBackend {
   }
 
   void teardown() {
+    if (session_) {
+      session_->UnregisterAudioSessionNotification(&stream_watch_);
+      session_.Reset();
+    }
     render_client_.Reset();
     client_.Reset();
     device_.Reset();
@@ -380,15 +391,16 @@ class WasapiBackend final : public IAudioOutputBackend {
     const uint32_t device_channels = format_.channels;
 
     while (!stop_.load(std::memory_order_acquire)) {
-      // Two full buffers is far longer than any period; reaching it means the
-      // device has stopped asking, which is a dead stream rather than a slow
-      // one.
-      const DWORD waited = WaitForSingleObject(event_, 2000);
+      // Until the device asks for its next period, however long that is. It
+      // was two seconds, after which the stream was called dead: a guess, and
+      // a stream that is cut off says so (`StreamWatch`), which raises the
+      // reopen, whose `close` wakes this wait.
+      const DWORD waited = WaitForSingleObject(event_, INFINITE);
       if (stop_.load(std::memory_order_acquire)) {
         break;
       }
       if (waited != WAIT_OBJECT_0) {
-        // Two full buffers with no request is a dead stream, not a slow one.
+        // The wait itself failed: the event is gone, and so is the stream.
         want_reopen();
         break;
       }
@@ -481,6 +493,8 @@ class WasapiBackend final : public IAudioOutputBackend {
   ComPtr<IMMDevice> device_;
   ComPtr<IAudioClient> client_;
   ComPtr<IAudioRenderClient> render_client_;
+  ComPtr<IAudioSessionControl> session_;
+  StreamWatch stream_watch_{&WasapiBackend::reopen_from_watch, this};
   HANDLE event_ = nullptr;
   UINT32 buffer_frames_ = 0;
   bool owns_com_ = false;

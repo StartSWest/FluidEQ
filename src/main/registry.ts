@@ -54,10 +54,131 @@ const isSoftwareInstalled = async (softwareKey: string) => {
   return false;
 };
 
-export const isEqualizerAPOInstalled = () =>
-  process.platform === 'win32'
-    ? isSoftwareInstalled('EqualizerAPO')
-    : Promise.resolve(true);
+/** Where Equalizer APO reads its config, and the file that says it is there. */
+interface IApoInstall {
+  configDir: string;
+  dllPath: string;
+}
+
+interface IApoLookup {
+  installed: boolean;
+  install?: IApoInstall;
+}
+
+/**
+ * Equalizer APO's installation, as the registry described it, kept for the
+ * session.
+ *
+ * `regedit` answers every question by starting `cscript.exe` (`regList.wsf`),
+ * and the flush asked one before every EQ write — each step of a drag, every
+ * Auto normalize measurement during playback — while a state read or a health
+ * check asked four (installed, then the path, which asked again and read two
+ * keys). The answer only changes when Equalizer APO is uninstalled or moved,
+ * and its uninstaller deletes `EqualizerAPO.dll` from `InstallPath` (its
+ * `Setup.nsi`), so the DLL and the config folder still being there stand in
+ * for the registry once it has spoken. An answer of "not installed" is never
+ * kept: an install that happens while the app runs is found on the next ask,
+ * as it always was.
+ */
+let knownApoInstall: IApoInstall | undefined;
+let apoLookup: Promise<IApoLookup> | undefined;
+/** Moved by `forgetApoInstall`, so a lookup it overtook is not kept. */
+let apoLookupGeneration = 0;
+
+const isApoStillThere = ({ configDir, dllPath }: IApoInstall) =>
+  fs.existsSync(dllPath) && fs.existsSync(configDir);
+
+const APO_REGISTRY_KEYS = [
+  // regedit accepts the normal HKLM hive on both 32-bit and 64-bit Windows;
+  // HKLM64 is not a valid hive name and only produces a noisy warning.
+  'HKLM\\SOFTWARE\\EqualizerAPO',
+  'HKLM\\SOFTWARE\\Wow6432Node\\EqualizerAPO',
+] as const;
+
+const readRegistryText = (value: { value: unknown } | undefined) =>
+  typeof value?.value === 'string' && value.value.length > 0
+    ? value.value
+    : undefined;
+
+const lookUpApoInstall = async (): Promise<IApoLookup> => {
+  if (!(await isSoftwareInstalled('EqualizerAPO'))) {
+    return { installed: false };
+  }
+  const found = await Promise.all(
+    APO_REGISTRY_KEYS.map(async (registryKey) => {
+      try {
+        const values = (await regedit.list([registryKey]))[registryKey]?.values;
+        const configDir = readRegistryText(values?.ConfigPath);
+        return configDir
+          ? {
+              configDir,
+              // The same key's `InstallPath`, because `ConfigPath` may point
+              // anywhere and the DLL is always installed there; without one,
+              // the config folder's parent, which is where Setup.nsi puts both.
+              installDir:
+                readRegistryText(values?.InstallPath) ??
+                path.dirname(configDir),
+            }
+          : undefined;
+      } catch {
+        return undefined;
+      }
+    }),
+  );
+  const first = found.find((candidate) => candidate !== undefined);
+  return first
+    ? {
+        installed: true,
+        install: {
+          configDir: first.configDir,
+          dllPath: path.join(first.installDir, 'EqualizerAPO.dll'),
+        },
+      }
+    : { installed: true };
+};
+
+/** The registry's answer, read once for everyone asking at the same time. */
+const resolveApoInstall = (): Promise<IApoLookup> => {
+  if (knownApoInstall && isApoStillThere(knownApoInstall)) {
+    return Promise.resolve({ installed: true, install: knownApoInstall });
+  }
+  knownApoInstall = undefined;
+  if (apoLookup) {
+    return apoLookup;
+  }
+  const generation = apoLookupGeneration;
+  const lookup: Promise<IApoLookup> = lookUpApoInstall()
+    .then((answer) => {
+      if (
+        generation === apoLookupGeneration &&
+        answer.install &&
+        isApoStillThere(answer.install)
+      ) {
+        knownApoInstall = answer.install;
+      }
+      return answer;
+    })
+    .finally(() => {
+      if (apoLookup === lookup) {
+        apoLookup = undefined;
+      }
+    });
+  apoLookup = lookup;
+  return lookup;
+};
+
+/**
+ * Ask the registry about Equalizer APO again on the next question: the engine
+ * was switched, or its config folder's watcher failed.
+ */
+export const forgetApoInstall = (): void => {
+  knownApoInstall = undefined;
+  apoLookup = undefined;
+  apoLookupGeneration += 1;
+};
+
+export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
+  process.platform === 'win32' ? (await resolveApoInstall()).installed : true;
 
 /**
  * `%ProgramData%\FluidEQ\engine\config` — the FluidEQ Engine DLL watches this
@@ -138,35 +259,12 @@ export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
     return ensureConfigDirWithEmptyConfigFile(getFluidEngineConfigDir());
   }
 
-  const isInstalled = await isEqualizerAPOInstalled();
-  if (!isInstalled) {
+  const apo = await resolveApoInstall();
+  if (!apo.installed) {
     throw new Error('Equalizer APO not installed');
   }
-
-  // regedit accepts the normal HKLM hive on both 32-bit and 64-bit Windows;
-  // HKLM64 is not a valid hive name and only produces a noisy warning.
-  const registryKeys = [
-    'HKLM\\SOFTWARE\\EqualizerAPO',
-    'HKLM\\SOFTWARE\\Wow6432Node\\EqualizerAPO',
-  ];
-  const configPaths = await Promise.all(
-    registryKeys.map(async (registryKey) => {
-      try {
-        const listResult = await regedit.list([registryKey]);
-        const configPath = listResult[registryKey]?.values?.ConfigPath?.value;
-        return typeof configPath === 'string' && configPath.length > 0
-          ? configPath
-          : undefined;
-      } catch (e) {
-        return undefined;
-      }
-    }),
-  );
-  const configPath = configPaths.find((candidate): candidate is string =>
-    Boolean(candidate),
-  );
-  if (configPath) {
-    return configPath;
+  if (apo.install) {
+    return apo.install.configDir;
   }
 
   throw new Error('Config path not found');

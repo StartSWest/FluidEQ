@@ -27,7 +27,7 @@ import {
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import DriverCurve, { DRIVER_CURVE_RANGE_DB } from './DriverCurve';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
 import Dropdown from '../widgets/Dropdown';
@@ -44,7 +44,7 @@ import '../styles/DriverPicker.scss';
  */
 const DriverPicker = () => {
   const { isBlockingError, isEnabled, driver, setDriver, setGlobalError } =
-    useFluidEqContext();
+    useFluidEqLayers();
   const { t, locale } = useTranslation();
 
   const activeId = driver?.profileId ?? '';

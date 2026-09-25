@@ -93,6 +93,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.games': 'Spielerkennung',
   'app.processes.what.games':
     'Sagt FluidEQ, welches Programm im Vordergrund ist, damit ein Spiel seinen eigenen Klang bekommt, sobald Sie zu ihm wechseln. Läuft nur, solange ein Spiel einen eigenen Klang hat oder die Seite Spiel-Presets geöffnet ist.',
+  'app.processes.name.outputs': 'Ausgabewächter',
+  'app.processes.what.outputs':
+    'Hört, wenn Windows meldet, dass eine Ausgabe angeschlossen, getrennt oder geändert wurde, damit FluidEQ auch bei verborgenem Fenster zum Profil dieser Ausgabe wechselt. Läuft, solange FluidEQ läuft.',
   'app.processes.name.mediaWatch': 'Medien anderer Apps',
   'app.processes.what.mediaWatch':
     'Liest, was Spotify, ein Browser oder ein anderer Player abspielt, damit die Playerleiste es anzeigen und steuern kann. Beendet sich, wenn FluidEQ es nicht mehr braucht.',

@@ -83,8 +83,6 @@ export const useDeckAudio = (options: {
   );
   const finishCrossfadeRef = useRef<(() => void) | undefined>(undefined);
 
-  const crossfadeCompletionRef = useRef<number | undefined>(undefined);
-
   /** The object URL currently backing the element, so it can be revoked when
    * the next track replaces it. A blob URL that is never revoked pins its
    * whole buffer for the life of the window. */
@@ -230,6 +228,23 @@ export const useDeckAudio = (options: {
     }
   }, []);
 
+  /**
+   * Every blob URL this player made goes when the player does.
+   *
+   * `useIdlePlayerMount` in `App.tsx` unmounts the provider once nothing on
+   * screen uses it and nothing is playing, and `useDeckLifecycle`'s teardown
+   * empties the decks without reaching this map. The paused track's URL
+   * stayed registered with nothing left that could revoke it: a whole audio
+   * file pinned for the rest of the session, once per visit. `releaseBlob`
+   * also takes a swap still waiting for its metadata off its deck.
+   */
+  useEffect(() => {
+    const blobUrls = blobUrlsRef.current;
+    return () => {
+      Array.from(blobUrls.keys()).forEach(releaseBlob);
+    };
+  }, [releaseBlob]);
+
   const startCrossfade = useCallback(
     (
       outgoing: HTMLAudioElement,
@@ -251,15 +266,13 @@ export const useDeckAudio = (options: {
         shape,
       );
       let finished = false;
+      const watching = new AbortController();
       const finish = () => {
         if (finished) {
           return;
         }
         finished = true;
-        if (crossfadeCompletionRef.current !== undefined) {
-          window.clearTimeout(crossfadeCompletionRef.current);
-          crossfadeCompletionRef.current = undefined;
-        }
+        watching.abort();
         outgoing.pause();
         releaseBlob(outgoing);
         outgoing.removeAttribute('src');
@@ -279,13 +292,33 @@ export const useDeckAudio = (options: {
         finish();
         return;
       }
-      // This timer owns decoder/resource cleanup, not the fade. The fade is
-      // already scheduled on the audio clock, so throttling this callback can
-      // delay `pause()` but can never leave the outgoing song audible.
-      crossfadeCompletionRef.current = window.setTimeout(
-        finish,
-        Math.max(1, durationMs) + 50,
-      );
+      // What is left for this side is the clean-up, not the fade: the fade is
+      // already scheduled on the audio clock, and this only lets the outgoing
+      // decoder go and hands the deck over once it is silent.
+      //
+      // The incoming deck's own playhead says when that is. It moves with the
+      // audio the graph takes from it — the same clock the fade runs on, give
+      // or take a render quantum — so once it has played the fade's length
+      // past where it was when the fade began, the fade is over; whatever of
+      // the curve could remain is thousandths of a gain. It used to be a timer
+      // for the fade's length plus 50 ms, which a busy window ran late and a
+      // minimised one — throttled to one timer a second, then one a minute —
+      // ran a minute late, leaving two decoders running and the new track's
+      // levelling waiting on the old one's.
+      //
+      // Its end or its failure closes the overlap too: either means its
+      // playhead will never get there.
+      const fadeEndsAt = incoming.currentTime + Math.max(1, durationMs) / 1_000;
+      const onTimeUpdate = () => {
+        if (incoming.currentTime >= fadeEndsAt) {
+          finish();
+        }
+      };
+      incoming.addEventListener('timeupdate', onTimeUpdate, {
+        signal: watching.signal,
+      });
+      incoming.addEventListener('ended', finish, { signal: watching.signal });
+      incoming.addEventListener('error', finish, { signal: watching.signal });
     },
     [releaseBlob],
   );

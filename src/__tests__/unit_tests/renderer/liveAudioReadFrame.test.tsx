@@ -35,7 +35,9 @@ jest.mock('../../../renderer/remoteAudio/useSenderSpectrum', () => ({
   }),
 }));
 jest.mock('../../../renderer/utils/FluidEqContext', () => ({
-  useFluidEqContext: () => ({ isEnabled: true }),
+  ...jest
+    .requireActual('__tests__/utils/fluidEqHookMocks')
+    .eqHooksFrom(() => ({ isEnabled: true })),
 }));
 
 const read: { current: (() => unknown) | undefined } = { current: undefined };

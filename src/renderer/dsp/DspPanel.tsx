@@ -31,7 +31,10 @@ import DspSideTabs from './DspSideTabs';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
-import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import {
+  refreshAudioEngineStatus,
+  useKnownAudioEngineStatus,
+} from '../utils/useAudioEngineStatus';
 import {
   useListenedDelay,
   useListenedOutput,
@@ -133,9 +136,12 @@ const DspPanel = ({
 }: IDspPanelProps) => {
   const { t } = useTranslation();
   // Which engine is carrying the audio, which decides whether the rack this
-  // page edits runs on everything or only on the Library player.
-  const { status: audioEngine, refresh: refreshAudioEngineStatus } =
-    useAudioEngineStatus();
+  // page edits runs on everything or only on the Library player. Read from
+  // what the window holds rather than asked on every opening of the tab: each
+  // ask ran the engine helper, a registry probe and a hash of the engine files
+  // for the answer `AppContent` keeps current, and every action that changes
+  // the engine re-reads it there.
+  const audioEngine = useKnownAudioEngineStatus();
   const isSystemWide = audioEngine?.engine === 'fluid';
   useEffect(() => {
     // Opening this page under the engine is the moment to make sure the rack
@@ -159,7 +165,7 @@ const DspPanel = ({
     return () => {
       window.removeEventListener('fluideq-output-changed', onOutputChanged);
     };
-  }, [refreshAudioEngineStatus]);
+  }, []);
   /**
    * Native analysis belongs to the surface that draws it.
    *

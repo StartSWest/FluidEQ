@@ -7,11 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import { readTextInk } from '../utils/theme';
 import { IMaximizerSettings } from '../../common/dsp/chain';
+import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspMaximizerReduction, readDspPeak } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS, baseCurveInk } from './dspInks';
 import writeLiveText from '../utils/liveText';
+import useCanvasSize from './useCanvasSize';
 
 /**
  * What the Maximizer did to the last six seconds of the record.
@@ -91,6 +93,18 @@ const GRAPH_FONT =
 
 const HELD_INK = '255, 176, 89';
 
+/**
+ * The figures at their widest, for the boxes they are laid out in on their
+ * own (`LiveFigure`). Twelve decibels of drive over a ceiling as low as -12
+ * cannot ask for a reduction of 100 dB; the output reads to within half a
+ * decibel of -120 dBFS before it is a dash.
+ */
+const DEPTH_WIDEST = ['-00.0 dB'];
+const OUTPUT_WIDEST = ['-000.0 dBFS'];
+
+/** Below this the output is nothing, and says so with a dash. */
+const OUTPUT_FLOOR_DB = -119.5;
+
 const amplitudeDb = (value: number): number =>
   value > 1e-6 ? 20 * Math.log10(value) : -120;
 
@@ -104,6 +118,18 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
   const reductionRef = useRef<HTMLSpanElement | null>(null);
   const holdRef = useRef<HTMLSpanElement | null>(null);
   const outputRef = useRef<HTMLSpanElement | null>(null);
+  /**
+   * The output's dash and its figure, one of them showing.
+   *
+   * Two elements rather than one figure that also holds the dash: a figure
+   * keeps the width of its widest reading, and the dash standing alone in a
+   * box as wide as -119.5 dBFS would leave a long empty chip on every page
+   * with nothing playing. The swap happens only when the output starts or
+   * stops, which is when the chip changed width before too.
+   */
+  const outputRestRef = useRef<HTMLSpanElement | null>(null);
+  const outputReadingRef = useRef<HTMLSpanElement | null>(null);
+  const isReadingRef = useRef(false);
   /**
    * The strip, oldest first, written as a ring so scrolling costs one index.
    *
@@ -121,6 +147,13 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
   const peakHold = useRef(0);
   /** The running loop's way in, for a render that has to reach the canvas. */
   const redraw = useRef<(() => void) | undefined>(undefined);
+  /**
+   * A frame drawn at once, for a new box: it is reported before the frame it
+   * arrived in is painted, and a frame asked for instead would show the old
+   * picture stretched over the new box until the next one.
+   */
+  const paintNow = useRef<(() => void) | undefined>(undefined);
+  const size = useCanvasSize(canvasRef, () => paintNow.current?.());
 
   const { ceilingDb, enabled } = maximizer;
 
@@ -162,31 +195,38 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
           ? heldDepth.current
           : Math.max(heldDepth.current, peakHold.current - PEAK_HOLD_FALL_DB);
 
-      if (reductionRef.current) {
-        writeLiveText(
-          reductionRef.current,
-          heldDepth.current < 0.05
-            ? '0.0 dB'
-            : `-${heldDepth.current.toFixed(1)} dB`,
-        );
+      writeLiveText(
+        reductionRef.current,
+        heldDepth.current < 0.05
+          ? '0.0 dB'
+          : `-${heldDepth.current.toFixed(1)} dB`,
+      );
+      writeLiveText(
+        holdRef.current,
+        peakHold.current < 0.05
+          ? '0.0 dB'
+          : `-${peakHold.current.toFixed(1)} dB`,
+      );
+      const isReading = levelDb > OUTPUT_FLOOR_DB;
+      if (isReading) {
+        writeLiveText(outputRef.current, `${levelDb.toFixed(1)} dBFS`);
       }
-      if (holdRef.current) {
-        writeLiveText(
-          holdRef.current,
-          peakHold.current < 0.05
-            ? '0.0 dB'
-            : `-${peakHold.current.toFixed(1)} dB`,
-        );
-      }
-      if (outputRef.current) {
-        writeLiveText(
-          outputRef.current,
-          levelDb <= -119.5 ? '—' : `${levelDb.toFixed(1)} dBFS`,
-        );
+      if (isReading !== isReadingRef.current) {
+        isReadingRef.current = isReading;
+        if (outputRestRef.current) {
+          outputRestRef.current.hidden = isReading;
+        }
+        if (outputReadingRef.current) {
+          outputReadingRef.current.hidden = !isReading;
+        }
       }
 
-      const width = Math.max(1, canvas.clientWidth);
-      const height = Math.max(1, canvas.clientHeight);
+      // The box from the observer, never read here: see `useCanvasSize`.
+      // Nothing to draw into until it has reported one.
+      const { width, height } = size.current;
+      if (width < 1 || height < 1) {
+        return;
+      }
       const ratio = Math.max(1, window.devicePixelRatio || 1);
       const pixelWidth = Math.round(width * ratio);
       const pixelHeight = Math.round(height * ratio);
@@ -385,11 +425,13 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       },
     });
     redraw.current = loop.schedule;
+    paintNow.current = () => paint({ schedule: loop.schedule });
     return () => {
       redraw.current = undefined;
+      paintNow.current = undefined;
       loop.stop();
     };
-  }, [ceilingDb, enabled, t]);
+  }, [ceilingDb, enabled, size, t]);
 
   // Repaint when anything drawn changes. The loop only turns while the engine
   // is publishing, so the ceiling line reaches the canvas through here while
@@ -409,19 +451,46 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       />
       {/* Live numbers as text rather than as canvas glyphs: these are the
           readings somebody quotes when they report what the stage did, and
-          text can be selected, translated and read aloud. */}
+          text can be selected, translated and read aloud. Each rewritten one
+          is laid out on its own (`LiveFigure`): the row they stand in is
+          placed by its auto size, so new text there laid the window out. */}
       <div className="dsp-master-status dsp-maximizer-status" aria-live="off">
         <span className={enabled ? 'is-fixed' : 'is-warning'}>
           {t('dsp.maximizer.reduction')}
-          <b ref={reductionRef}>0.0 dB</b>
+          <b>
+            <LiveFigure
+              className="dsp-status-figure"
+              widest={DEPTH_WIDEST}
+              textRef={reductionRef}
+            >
+              0.0 dB
+            </LiveFigure>
+          </b>
         </span>
         <span className="is-safe">
           {t('dsp.maximizer.graph.peakHold')}
-          <b ref={holdRef}>0.0 dB</b>
+          <b>
+            <LiveFigure
+              className="dsp-status-figure"
+              widest={DEPTH_WIDEST}
+              textRef={holdRef}
+            >
+              0.0 dB
+            </LiveFigure>
+          </b>
         </span>
         <span className="is-safe">
           {t('dsp.maximizer.graph.output')}
-          <b ref={outputRef}>—</b>
+          <b>
+            <span ref={outputRestRef}>—</span>
+            <span ref={outputReadingRef} hidden>
+              <LiveFigure
+                className="dsp-status-figure"
+                widest={OUTPUT_WIDEST}
+                textRef={outputRef}
+              />
+            </span>
+          </b>
         </span>
         <span className="is-safe">
           {t('dsp.maximizer.drive')}

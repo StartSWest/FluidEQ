@@ -93,6 +93,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.games': 'ゲームの検出',
   'app.processes.what.games':
     'どのプログラムが前面にあるかを FluidEQ に伝え、ゲームに切り替えたその瞬間にゲーム専用の音にします。ゲームに専用の音が設定されているときか、「ゲームプリセット」ページを開いているときだけ動作します。',
+  'app.processes.name.outputs': '出力の監視',
+  'app.processes.what.outputs':
+    '出力の接続・取り外し・変更を Windows が知らせるのを受け取り、ウィンドウが隠れていても FluidEQ がその出力のプロファイルに切り替わるようにします。FluidEQ が動いている間は動作します。',
   'app.processes.name.mediaWatch': 'ほかのアプリのメディア',
   'app.processes.what.mediaWatch':
     'Spotify やブラウザー、ほかのプレーヤーが再生しているものを読み取り、プレーヤー バーで表示・操作できるようにします。FluidEQ が必要としなくなると終了します。',

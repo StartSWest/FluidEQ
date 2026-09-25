@@ -54,9 +54,77 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 #include <windows.h>
 
+#include <audiopolicy.h>
 #include <winsvc.h>
 
 class OutputNotifications;
+
+/**
+ * What Windows says about one open stream: that it has been cut off.
+ *
+ * The render loop used to wait two seconds for the device's next period and
+ * call the stream dead when none came — a guess at how long a device may
+ * pause, on the one thread that must never guess. Windows says so itself
+ * (`OnSessionDisconnected`: the device removed, its format changed, the audio
+ * service stopping, the session logged off, another program taking the
+ * output exclusively), so the loop now waits for the period with no limit
+ * and this raises the reopen, whose `close` wakes it. Registered per stream,
+ * on the stream's own session, and unregistered before the stream goes.
+ */
+class StreamWatch final : public IAudioSessionEvents {
+ public:
+  using Lost = void (*)(void* owner);
+  StreamWatch(Lost lost, void* owner) : lost_(lost), owner_(owner) {}
+
+  // Not reference counted in any meaningful way: the backend owns this and
+  // unregisters it before the stream it watches is released.
+  ULONG STDMETHODCALLTYPE AddRef() override { return 1; }
+  ULONG STDMETHODCALLTYPE Release() override { return 1; }
+  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid,
+                                           void** object) override {
+    if (object == nullptr) {
+      return E_POINTER;
+    }
+    if (riid == __uuidof(IUnknown) || riid == __uuidof(IAudioSessionEvents)) {
+      *object = static_cast<IAudioSessionEvents*>(this);
+      return S_OK;
+    }
+    *object = nullptr;
+    return E_NOINTERFACE;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  OnSessionDisconnected(AudioSessionDisconnectReason) override {
+    lost_(owner_);
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDisplayNameChanged(LPCWSTR, LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnIconPathChanged(LPCWSTR, LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnSimpleVolumeChanged(float, BOOL,
+                                                  LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnChannelVolumeChanged(DWORD, float*, DWORD,
+                                                   LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnGroupingParamChanged(LPCGUID,
+                                                   LPCGUID) override {
+    return S_OK;
+  }
+  HRESULT STDMETHODCALLTYPE OnStateChanged(AudioSessionState) override {
+    return S_OK;
+  }
+
+ private:
+  Lost lost_;
+  void* owner_;
+};
 
 class DeviceWatch {
  public:

@@ -562,7 +562,7 @@ const onKaraokeSeparationProgress = (
   };
 };
 
-/** `wasReset` is `loadLibraryIndex`'s own answer, carried through unchanged. */
+/** `wasReset` is `readLibraryIndex`'s own answer, carried through unchanged. */
 const getLibraryIndex = () =>
   ipcRenderer.invoke('library-index-get') as Promise<{
     index: ILibraryIndex;

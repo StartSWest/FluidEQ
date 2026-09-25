@@ -23,7 +23,7 @@ jest.mock('renderer/dsp/systemChain', () => ({
 }));
 let mockEngine: 'fluid' | 'apo' = 'fluid';
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
-  useAudioEngineStatus: () => ({ status: { engine: mockEngine } }),
+  useKnownAudioEngineStatus: () => ({ engine: mockEngine }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({ setVoicing: jest.fn() }));
 

@@ -45,7 +45,7 @@ import type {
   IScanResult,
 } from '../../../main/library/libraryScanner';
 
-/** A fresh, real, writable directory `saveLibraryIndex` can write into. */
+/** A fresh, real, writable directory the index can be written into. */
 const tempDir = (prefix: string): string =>
   fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 
@@ -197,13 +197,25 @@ describe('a root added while another is already scanning', () => {
     dropSecondRootWhileFirstIsScanning = () =>
       Promise.resolve(addPaths?.({}, [dirB]));
 
-    // Returns as soon as A is added and its scan is started -- B gets queued
-    // moments later, from inside A's still-pending mocked scan call, not from
-    // this line.
+    // Returns as soon as A is added and its scan asked for -- B gets queued
+    // later, from inside A's still-pending mocked scan call, not from this
+    // line. The walk itself begins once the scanner's chunk has loaded
+    // (`import()` in scanHost.ts), a moment after this call rather than
+    // within it, so B is awaited rather than expected in this answer.
     const afterAddingA = await addPaths?.({}, [dirA]);
     expect(afterAddingA).toMatchObject({
-      roots: [{ path: dirA }, { path: dirB }],
+      roots: expect.arrayContaining([expect.objectContaining({ path: dirA })]),
     });
+    await waitFor(() =>
+      readIndex().index.roots.some((entry) => entry.path === dirB),
+    );
+    // Dropped from inside A's walk, while A was still scanning: the case the
+    // busy guard used to swallow.
+    expect(dropSecondRootWhileFirstIsScanning).toBeUndefined();
+    expect(readIndex().index.roots.map((root) => root.path)).toEqual([
+      dirA,
+      dirB,
+    ]);
 
     // Both scans, A's and B's queued one, are driven by the same
     // `performScan` call and need no real I/O or timers to complete -- this

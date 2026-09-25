@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
 import type { BrowserWindow, ThumbarButton } from 'electron';
+import { loadLocale } from 'common/i18n';
 import {
   ITaskbarTransportState,
   TASKBAR_TRANSPORT_STATE,
@@ -37,6 +38,11 @@ jest.mock('electron', () => ({
 }));
 // eslint-disable-next-line import/first -- install the Electron boundary before loading the controller
 import installTaskbarTransport from '../../../main/taskbarTransport';
+// eslint-disable-next-line import/first -- the mock installed above
+import allowTaskbarMessages from '../../../main/taskbarMessages';
+
+/** What reached the shell, in order: the message filter and each toolbar. */
+let shellCalls: string[];
 
 const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 let buttons: ThumbarButton[];
@@ -64,6 +70,11 @@ const publish = (next: unknown = state, event: unknown = undefined) =>
   );
 
 beforeEach(() => {
+  shellCalls = [];
+  (allowTaskbarMessages as jest.Mock).mockReset();
+  (allowTaskbarMessages as jest.Mock).mockImplementation(() => {
+    shellCalls.push('allow');
+  });
   Object.defineProperty(process, 'platform', { value: 'win32' });
   handlers.clear();
   buttons = [];
@@ -103,6 +114,7 @@ beforeEach(() => {
       }
       buttons = next;
       updates += 1;
+      shellCalls.push('buttons');
       return accept;
     },
   }) as unknown as BrowserWindow;
@@ -205,7 +217,7 @@ it('registers controls when starting minimized and keeps playback state current'
   expect(updates).toBe(2);
 });
 
-it('deduplicates state, changes glyph contrast with Windows, and localizes karaoke arrows', () => {
+it('deduplicates state, changes glyph contrast with Windows, and localizes karaoke arrows', async () => {
   publish();
   publish();
   expect(updates).toBe(1);
@@ -218,6 +230,10 @@ it('deduplicates state, changes glyph contrast with Windows, and localizes karao
     file: expect.stringContaining('play-dark.png'),
   });
   publish({ ...state, locale: 'es', navigation: 'boundaries' });
+  // Main holds only English until a language is asked for: the buttons go up
+  // in English and are written again once the dictionary has loaded.
+  expect(buttons[1].tooltip).toBe('Play');
+  await loadLocale('es');
   expect(buttons[1].tooltip).toBe('Reproducir');
   expect(buttons[0].tooltip).not.toBe('Previous');
   expect(buttons[2].tooltip).not.toBe('Next');
@@ -249,4 +265,35 @@ it('retries a refused shell write on show and clears stale controls on navigatio
   window.emit('closed');
   expect(handlers.size).toBe(0);
   expect(theme.listenerCount('updated')).toBe(0);
+});
+
+it("lets Explorer's clicks through at the window's first show, ahead of the buttons, and once", () => {
+  // Installed with the page, not before it is on screen: koffi stays unloaded
+  // for as long as there is no taskbar entry to put buttons on.
+  visible = false;
+  publish();
+  window.emit('ready-to-show');
+  expect(allowTaskbarMessages).not.toHaveBeenCalled();
+  visible = true;
+  window.emit('show');
+  expect(shellCalls).toEqual(['allow', 'buttons']);
+  window.emit('hide');
+  window.emit('show');
+  publish({ ...state, isPlaying: true });
+  expect(allowTaskbarMessages).toHaveBeenCalledTimes(1);
+});
+
+it('lets the clicks through at a first minimize too, and keeps the buttons when that fails', () => {
+  (allowTaskbarMessages as jest.Mock).mockImplementation(() => {
+    shellCalls.push('allow');
+    throw new Error('refused');
+  });
+  visible = false;
+  publish();
+  expect(allowTaskbarMessages).not.toHaveBeenCalled();
+  minimized = true;
+  window.emit('minimize');
+  expect(shellCalls).toEqual(['allow', 'buttons']);
+  window.emit('minimize');
+  expect(allowTaskbarMessages).toHaveBeenCalledTimes(1);
 });

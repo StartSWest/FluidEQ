@@ -21,17 +21,17 @@ import os from 'os';
 import path from 'path';
 import {
   emptyLibraryIndex,
-  loadLibraryIndex,
   parseLibraryIndex,
-  saveLibraryIndex,
+  readLibraryIndex,
   trackPathById,
+  writeLibraryIndexSoon,
 } from '../../../main/library/libraryIndex';
 
 const tempDir = (): string =>
   fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-library-'));
 
 describe('the library index on disk', () => {
-  it('round-trips what it was given', () => {
+  it('round-trips what it was given', async () => {
     const dir = tempDir();
     const index = emptyLibraryIndex();
     index.roots.push({
@@ -52,23 +52,26 @@ describe('the library index on disk', () => {
       mtimeMs: 20,
       addedAt: 30,
     });
-    saveLibraryIndex(dir, index);
-    expect(loadLibraryIndex(dir)).toEqual({ index, wasReset: false });
+    await writeLibraryIndexSoon(dir, () => index);
+    await expect(readLibraryIndex(dir)).resolves.toEqual({
+      index,
+      wasReset: false,
+    });
   });
 
-  it('starts empty when nothing has been saved', () => {
+  it('starts empty when nothing has been saved', async () => {
     // The positive control for the recovery test below: "empty" must mean
     // "nothing yet", not "something went wrong and I hid it".
-    expect(loadLibraryIndex(tempDir())).toEqual({
+    await expect(readLibraryIndex(tempDir())).resolves.toEqual({
       index: emptyLibraryIndex(),
       wasReset: false,
     });
   });
 
-  it('rebuilds from scratch and says so when the file is corrupt', () => {
+  it('rebuilds from scratch and says so when the file is corrupt', async () => {
     const dir = tempDir();
     fs.writeFileSync(path.join(dir, 'library-index.json'), '{ not json');
-    const loaded = loadLibraryIndex(dir);
+    const loaded = await readLibraryIndex(dir);
     expect(loaded.index).toEqual(emptyLibraryIndex());
     expect(loaded.wasReset).toBe(true);
     // Kept, not deleted — a corrupt index is still the only record of which

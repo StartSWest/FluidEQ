@@ -12,6 +12,7 @@ import {
   parseKaraokeMakerProject,
   serializeKaraokeMakerProject,
 } from '../common/karaoke/makerProject';
+import { replaceFileNow, scheduleWriteOperation } from './asyncWriter';
 
 const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const DRAFT_DIRECTORY = 'karaoke-maker';
@@ -27,20 +28,35 @@ const safeProject = (value: unknown): IKaraokeMakerProject => {
 const draftName = (projectId: string): string =>
   `${createHash('sha256').update(projectId).digest('hex')}.json`;
 
-const draftPath = (userDataDir: string, projectId: string): string =>
-  path.join(userDataDir, DRAFT_DIRECTORY, draftName(projectId));
+/** Where drafts live; swept of abandoned temporaries at launch (`main.ts`). */
+export const karaokeMakerDraftDir = (userDataDir: string): string =>
+  path.join(userDataDir, DRAFT_DIRECTORY);
 
-export const saveKaraokeMakerDraft = (
+const draftPath = (userDataDir: string, projectId: string): string =>
+  path.join(karaokeMakerDraftDir(userDataDir), draftName(projectId));
+
+/**
+ * Save a draft, whole or not at all, off the main process's thread.
+ *
+ * It was `writeFileSync` of up to 16 MB, which held every other message to
+ * main — a fader, a tab's page — for as long as the disk took. Through the
+ * write queue, keyed by the draft's own file, so a save and a delete of the
+ * same project land in the order they were asked, the newest of either
+ * superseding one still waiting, and quit waits for them.
+ */
+export const saveKaraokeMakerDraft = async (
   userDataDir: string,
   value: unknown,
-): IKaraokeMakerProject => {
+): Promise<IKaraokeMakerProject> => {
   const project = safeProject(value);
-  const directory = path.join(userDataDir, DRAFT_DIRECTORY);
-  fs.mkdirSync(directory, { recursive: true });
+  const contents = serializeKaraokeMakerProject(project);
   const target = draftPath(userDataDir, project.id);
-  const temporary = `${target}.tmp`;
-  fs.writeFileSync(temporary, serializeKaraokeMakerProject(project), 'utf8');
-  fs.renameSync(temporary, target);
+  await scheduleWriteOperation(target, async () => {
+    await fs.promises.mkdir(karaokeMakerDraftDir(userDataDir), {
+      recursive: true,
+    });
+    await replaceFileNow(target, contents);
+  });
   return project;
 };
 
@@ -63,18 +79,21 @@ export const loadKaraokeMakerDraft = (
   }
 };
 
-export const deleteKaraokeMakerDraft = (
+export const deleteKaraokeMakerDraft = async (
   userDataDir: string,
   projectId: unknown,
-): void => {
+): Promise<void> => {
   if (typeof projectId !== 'string' || !projectId || projectId.length > 2_048) {
     return;
   }
-  try {
-    fs.rmSync(draftPath(userDataDir, projectId), { force: true });
-  } catch {
+  const target = draftPath(userDataDir, projectId);
+  // Behind any save of the same draft still on its way, which would otherwise
+  // land after the delete and bring the draft back.
+  await scheduleWriteOperation(target, () =>
+    fs.promises.rm(target, { force: true }),
+  ).catch(() => {
     // A locked profile must not make closing the editor fail.
-  }
+  });
 };
 
 export const normalizeKaraokeMakerExport = (

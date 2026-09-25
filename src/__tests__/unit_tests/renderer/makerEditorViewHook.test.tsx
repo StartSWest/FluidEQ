@@ -48,7 +48,7 @@ describe('the Maker editor view', () => {
 
   it('starts at the defaults when the song has never been opened', () => {
     const { result } = renderHook(() =>
-      useKaraokeMakerEditorView('fresh-song', undefined, undefined),
+      useKaraokeMakerEditorView('fresh-song', undefined),
     );
 
     expect(result.current.viewStartMs).toBe(0);
@@ -62,7 +62,7 @@ describe('the Maker editor view', () => {
     // The record is read by the caller, because the selection seeds from the
     // same read — two reads that have to agree is one more than is needed.
     const { result } = renderHook(() =>
-      useKaraokeMakerEditorView('song', undefined, {
+      useKaraokeMakerEditorView('song', {
         viewStartMs: 4_000,
         viewDurationMs: 8_000,
         followViewport: false,
@@ -82,9 +82,9 @@ describe('the Maker editor view', () => {
     expect(result.current.timingScope).toBe('from-word');
   });
 
-  it('writes the view back under the song it belongs to', () => {
+  it('writes the view back under the song it belongs to when the window goes', () => {
     const hook = renderHook(() =>
-      useKaraokeMakerEditorView('song-a', undefined, undefined),
+      useKaraokeMakerEditorView('song-a', undefined),
     );
 
     act(() => {
@@ -103,7 +103,13 @@ describe('the Maker editor view', () => {
         timingScope: 'from-word',
         selection: undefined,
       };
-      jest.advanceTimersByTime(200);
+    });
+    // Not on a clock: it was a 150 ms debounce after every change.
+    expect(jest.getTimerCount()).toBe(0);
+    expect(readKaraokeMakerEditorView('song-a')).toBeUndefined();
+
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'));
     });
 
     const saved = readKaraokeMakerEditorView('song-a');
@@ -113,19 +119,50 @@ describe('the Maker editor view', () => {
     expect(readKaraokeMakerEditorView('song-b')).toBeUndefined();
   });
 
+  it('writes the view when the window is hidden, and not when it is shown', () => {
+    const hook = renderHook(() =>
+      useKaraokeMakerEditorView('song-a', undefined),
+    );
+    act(() => {
+      view(hook as never).current = {
+        viewStartMs: 2_000,
+        viewDurationMs: DEFAULT_VIEW_MS,
+        followViewport: false,
+        previewOpen: true,
+        timingScope: 'all',
+        selection: undefined,
+      };
+    });
+    const setVisibility = (state: DocumentVisibilityState) => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: state,
+      });
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+    };
+
+    setVisibility('visible');
+    expect(readKaraokeMakerEditorView('song-a')).toBeUndefined();
+    setVisibility('hidden');
+    expect(readKaraokeMakerEditorView('song-a')?.viewStartMs).toBe(2_000);
+    Reflect.deleteProperty(document, 'visibilityState');
+  });
+
   it('remembers the preview pane for the app, not for one song', () => {
     // Where you were looking is about this song. Whether the preview is open at
     // all is a preference about the editor, so it is one key rather than one
     // per karaoke file.
     const first = renderHook(() =>
-      useKaraokeMakerEditorView('song-a', undefined, undefined),
+      useKaraokeMakerEditorView('song-a', undefined),
     );
     expect(first.result.current.previewOpen).toBe(true);
 
     act(() => first.result.current.setPreviewOpen(false));
 
     const second = renderHook(() =>
-      useKaraokeMakerEditorView('song-b', undefined, undefined),
+      useKaraokeMakerEditorView('song-b', undefined),
     );
     expect(second.result.current.previewOpen).toBe(false);
   });
@@ -135,7 +172,7 @@ describe('the Maker editor view', () => {
     // reads the id it recorded rather than whatever is current, or the view
     // lands on the wrong song.
     const hook = renderHook(
-      ({ id }) => useKaraokeMakerEditorView(id, undefined, undefined),
+      ({ id }) => useKaraokeMakerEditorView(id, undefined),
       { initialProps: { id: 'song-a' } },
     );
 

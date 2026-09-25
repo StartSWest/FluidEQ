@@ -20,7 +20,6 @@ const request = (
     buildResponseHandler<ICurveComparisonStatus>((result, resolve) =>
       resolve(result),
     ),
-    { timeout: null },
   );
 
 export const getCurveComparison = (): Promise<ICurveComparisonStatus> => {
