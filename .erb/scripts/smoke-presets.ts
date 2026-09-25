@@ -127,8 +127,7 @@ const holdsCeiling = (settings: IDspSettings): boolean =>
 
 const passesShapeSafety = (metrics: IMetrics, held: boolean): boolean =>
   metrics.finite &&
-  (!held ||
-    (metrics.peak <= 1.0001 && metrics.nearCeilingFraction < 0.0001)) &&
+  (!held || (metrics.peak <= 1.0001 && metrics.nearCeilingFraction < 0.0001)) &&
   metrics.rms > 0.003 &&
   metrics.crestDb > 2 &&
   metrics.dc < 0.02;
@@ -375,7 +374,8 @@ const main = async (): Promise<void> => {
          */
         const normalising = normalisesLoudness(preset.settings);
         check(
-          levelDb > -1.5 && levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
+          levelDb > -1.5 &&
+            levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
           normalising
             ? `${preset.id}: spends its makeup and no more`
             : `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
