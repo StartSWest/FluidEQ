@@ -330,6 +330,12 @@ version and in these notes.
   it show through. Menus do not: every menu stands at 95% whatever the
   Transparency, where one opened from a see-through pane used to go
   see-through with it.
+- **The Backdrop stays behind every page.** With a Plus visualizer on the
+  Backdrop, going to the Library, Karaoke or any other page keeps it playing
+  behind the window; in Colours and Ambient it rests off the graph's page, so
+  nothing is spent drawing what nobody can see. Switching between Colours,
+  Ambient and Backdrop, or into full screen and back, moves the same
+  visualizer instead of loading it again.
 - **A Plus visualizer fills the graph.** It runs up behind the section tabs
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws

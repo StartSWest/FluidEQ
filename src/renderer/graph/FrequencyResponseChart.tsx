@@ -147,8 +147,7 @@ import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
 import SceneTintMenu from './SceneTintMenu';
-import { useSceneTintMode } from '../utils/sceneTintStore';
-import { useSceneColumnHost, useSceneCoverHost } from '../utils/sceneCover';
+import { isGraphWaveDrawn } from './graphScenePlace';
 import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
@@ -610,24 +609,14 @@ const FrequencyResponseChart = ({
   const { mode: windowMode } = useWindowMode();
   const isPlayerWindowRef = useRef(windowMode === 'player');
   isPlayerWindowRef.current = windowMode === 'player';
-  // The Backdrop: a Plus visualizer drawn on the window's back layer with
-  // this plot as its frame (`SceneCover.tsx`). Only where the plot is one
-  // part of the window — expanded or full screen the graph is the window
-  // already, and the player's window shows its own deck, not this graph.
-  //
-  // Otherwise, on an EQ page, the layer behind the page's head and this
-  // graph (`SceneColumnLayer`), which is there only while the head stands
-  // above the graph: the scene runs up to the top of the column instead of
-  // stopping in a straight line at the plot's top. Only a scene draws on
-  // either; the 2D looks stay on their plot.
-  const sceneTintMode = useSceneTintMode();
-  const coverLayer = useSceneCoverHost();
-  const columnLayer = useSceneColumnHost();
+  // Whether a Plus visualizer may be drawn on a layer of the window with this
+  // plot as its frame — the window's back in the Backdrop (`SceneCover.tsx`),
+  // the EQ column's otherwise (`SceneColumnLayer`) — which is where the plot
+  // is one part of the window: expanded or full screen the graph is the
+  // window already, and the player's window shows its own deck, not this
+  // graph. Where it goes is `graphScenePlace.ts`; only a scene draws on
+  // either, and the 2D looks stay on their plot.
   const isPlotPartOfWindow = graphView === 'normal' && windowMode !== 'player';
-  let sceneCoverHost: HTMLElement | null = null;
-  if (isPlotPartOfWindow) {
-    sceneCoverHost = sceneTintMode === 'cover' ? coverLayer : columnLayer;
-  }
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -794,7 +783,13 @@ const FrequencyResponseChart = ({
   const isLiveOutputForeground = isSolo || !isEngineUsable;
   // With no response to replace it, the wave is the graph. Force it on without
   // changing the stored switch, so the user's previous layout returns with APO.
-  const isDisplayedWaveHidden = isClean || (isEngineUsable && isWaveHidden);
+  // The same rule decides whether its scene runs off the graph
+  // (`GraphScene`), so the two cannot disagree.
+  const isDisplayedWaveHidden = !isGraphWaveDrawn({
+    isClean,
+    isEngineUsable,
+    isWaveHidden,
+  });
   // The live trace over the response curve is the plot's whole reason to be
   // reading frames, so the plot owns the capture for as long as it is drawn.
   useLiveAudioCapture(isGraphViewOn && !isClean);
@@ -2117,7 +2112,7 @@ const FrequencyResponseChart = ({
             editablePoints={canEditEqCurve ? editablePoints : []}
             liveCurves={liveCurves}
             isLiveOutputForeground={isLiveOutputForeground}
-            sceneCoverHost={sceneCoverHost}
+            isPlotPartOfWindow={isPlotPartOfWindow}
             onMarqueeSelect={
               canEditEqCurve
                 ? (ids, additive) =>

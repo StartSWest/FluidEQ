@@ -118,6 +118,7 @@ export default function useSceneRunner({
   height,
   spectrumRect,
   view,
+  placement,
   shapeFrame,
   tuning,
   performance: chosenPerformance,
@@ -689,7 +690,7 @@ export default function useSceneRunner({
       window.removeEventListener('scroll', measure, true);
       window.removeEventListener('resize', measure);
     };
-  }, [width, height, kick, dropProgram, setWaiting]);
+  }, [width, height, placement, kick, dropProgram, setWaiting]);
 
   const startRenderer = useCallback(() => {
     const host = hostRef.current;

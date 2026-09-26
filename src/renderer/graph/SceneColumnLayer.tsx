@@ -13,9 +13,8 @@ import { publishSceneColumnHost } from '../utils/sceneCover';
  * The layer behind an EQ page's head and its graph that a Plus visualizer is
  * drawn on, the plot still its frame, so the picture runs up under the
  * section pills and the title to the top of the column (Ivan, 2026-09-25:
- * "fill up to the top the graph only when plus viz"). The graph decides
- * whether its scene goes here (`FrequencyResponseChart`); empty, the layer
- * paints nothing.
+ * "fill up to the top the graph only when plus viz"). Whether the graph's
+ * scene goes here is `graphScenePlace.ts`; empty, the layer paints nothing.
  *
  * As tall as the head and the graph together, measured, because the two are
  * separate items of the column and the page and the divider under them are

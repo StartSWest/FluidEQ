@@ -69,7 +69,7 @@ import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import GenrePins from './GenrePins';
 import LiveTraceCanvas from './LiveTraceCanvas';
-import SceneCanvas from './SceneCanvas';
+import ScenePlot from './ScenePlot';
 import {
   FREQUENCY_MAJOR_TICKS,
   FREQUENCY_MINOR_TICKS,
@@ -811,11 +811,11 @@ interface IChartProps {
    */
   outputOffset?: IChartLiveOffset;
   /**
-   * A layer the Plus visualizer is drawn on instead of the plot, with this
-   * plot as its frame: the window's back layer in the Backdrop mode, or the
-   * one behind an EQ page's head and graph (`sceneCover.ts`).
+   * Whether this plot is one part of the window, so a Plus visualizer may be
+   * drawn on a layer of the window with the plot as its frame
+   * (`graphScenePlace.ts`).
    */
-  sceneCoverHost?: HTMLElement | null;
+  isPlotPartOfWindow?: boolean;
 }
 
 const Chart = ({
@@ -826,7 +826,7 @@ const Chart = ({
   isLiveOutputForeground,
   onMarqueeSelect,
   outputOffset,
-  sceneCoverHost,
+  isPlotPartOfWindow = false,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
@@ -1055,11 +1055,9 @@ const Chart = ({
           // drawn under it. Every way a scene can fail makes `scene` null
           // again, and the ordinary canvas below takes over with the look
           // the store already resolved for it.
-          <SceneCanvas
-            // A canvas handed to its worker cannot be moved: into a layer,
-            // from one layer to the other, or back out is a scene drawn again.
-            key={sceneCoverHost?.dataset.sceneLayer ?? 'plot'}
-            coverHost={sceneCoverHost}
+          // The scene itself runs above the pages (`GraphScene`); the plot
+          // says where it is and shows its loading.
+          <ScenePlot
             scene={scene}
             width={width}
             height={height}
@@ -1073,6 +1071,7 @@ const Chart = ({
               right: margins.right + padding.right,
               bottom: margins.bottom + padding.bottom,
             }}
+            isPartOfWindow={isPlotPartOfWindow}
           />
         ) : (
           <LiveTraceCanvas

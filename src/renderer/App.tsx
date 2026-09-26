@@ -240,6 +240,7 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneCover from './graph/SceneCover';
 import SceneColumnLayer from './graph/SceneColumnLayer';
+import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
 import {
@@ -3204,6 +3205,11 @@ const AppContent = () => {
               />
             )}
             {showsGraph ? <FrequencyResponseChart isVisible /> : null}
+            {/* The graph's Plus visualizer, beside the graph and not in it:
+                on the plot, the EQ column or the Backdrop, and still behind
+                the window in the Backdrop while the graph is closed on a page
+                (`GraphScene`). Renders only its canvas, wherever that is. */}
+            <GraphScene />
           </Activity>
         </div>
         {/*

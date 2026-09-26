@@ -82,6 +82,13 @@ export interface ISceneRunnerOptions {
    * still the scene's frame (`sceneView.ts`). Absent is the panel filling it.
    */
   view?: TSceneView;
+  /**
+   * The element the host stands in, for a place that moves it from one layer
+   * to another rather than making another (`SceneCanvas`). Each new one is
+   * watched afresh for being seen: what hides a host is its ancestors, and a
+   * moved host has new ones.
+   */
+  placement?: Element;
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** Read every frame, so moving a slider moves the scene at once. */

@@ -5,11 +5,11 @@ import {
   useMemo,
   useRef,
   useState,
-  type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
+import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
   reportOwnResponse,
@@ -27,42 +27,36 @@ import {
   reportMemberSceneFailure,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
+import { useWatchedSceneWave } from '../utils/sceneWaveStore';
+import useMovableContainer from '../utils/useMovableContainer';
+import { studioSpectrumRect } from '../studio/studioWave';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
-import SceneLoading from './SceneLoading';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
-import { useIsChromeIdle } from '../utils/idleChrome';
 import { createSceneInteraction } from './sceneInteraction';
-import SceneViewReset from './SceneViewReset';
-import { sceneViewOf, type TSceneView } from './sceneView';
+import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
+import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
 interface ISceneCanvasProps {
   scene: TDrawableScene;
-  /** The full panel, including the toolbar and axis gutters. */
-  width: number;
-  height: number;
-  spectrumRect: readonly [number, number, number, number];
   /**
-   * Whether a plain drag on the plot turns a scene that can be turned: only
-   * while it is not the band marquee. A right or middle drag turns it
-   * whichever it is.
+   * Where the canvas stands (`graphScenePlace`): the plot's own slot, or a
+   * layer of the window — the Backdrop, the EQ column's — the size of that
+   * layer, with the plot still its frame (`sceneView.ts`). A new one moves
+   * the canvas there; it never makes another.
    */
-  dragTurns: boolean;
-  /** How far in from the panel's right and bottom the ruled plot stands. */
-  inset: { right: number; bottom: number };
+  target: HTMLElement;
   /**
-   * The Backdrop: the layer at the back of the window the scene is drawn on
-   * instead, the size of the window, with this panel still its frame
-   * (`SceneCover.tsx`, `sceneView.ts`). Its loading, its reset and the
-   * pointer stay here on the panel.
+   * The graph's plot, while it is on screen and draws this scene. Absent,
+   * the scene carries on as the plot last framed it.
    */
-  coverHost?: HTMLElement | null;
+  plot: IScenePlot | undefined;
 }
 
 /** The canvas the scene is drawn on and where its panel stands on it. */
@@ -87,13 +81,18 @@ const isSameCover = (a: ICoverFrame | undefined, b: ICoverFrame): boolean =>
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
   'kind' in scene && scene.kind === 'member';
 
+/** What a scene is drawn as: a new one starts the clock and the fade again. */
+export const sceneIdentityOf = (scene: TDrawableScene): string =>
+  isMemberScene(scene) ? scene.lookId : scene.id;
+
 /**
- * A Plus look, or a member's scene, drawn on the GPU.
+ * The graph's Plus look, or a member's scene, drawn on the GPU — one renderer
+ * for it, above the pages (`GraphScene`), wherever it is drawn.
  *
- * A sibling of `LiveTraceCanvas` and mounted INSTEAD of it, never alongside:
- * two canvases painting the same region is double the fill for a picture that
- * is worse. The loop itself is `useSceneRunner`; what this decides is where
- * the scene comes from and what failing means for it.
+ * Drawn INSTEAD of the plot's 2D trace, never alongside: two canvases
+ * painting the same region is double the fill for a picture that is worse.
+ * The loop itself is `useSceneRunner`; what this decides is where the scene
+ * comes from, what failing means for it, and where its canvas stands.
  *
  * EVERY FAILURE PATH IS THE SAME PATH. A shader that will not compile, a GPU
  * context lost, a machine too slow at the ladder's floor — each reports the
@@ -108,18 +107,14 @@ const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
  */
 export default function SceneCanvas({
   scene,
-  width,
-  height,
-  spectrumRect,
-  dragTurns,
-  inset,
-  coverHost,
+  target,
+  plot,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
   // below, and the runner alone decides what follows (`sceneRules.ts`).
   const madeBy = sceneMakerOf({ member, own: member && scene.own });
-  const key = member ? scene.lookId : scene.id;
+  const key = sceneIdentityOf(scene);
   const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
   const source = useMemo<ISceneSource>(
@@ -154,18 +149,23 @@ export default function SceneCanvas({
     [member, madeBy, key, version, name],
   );
 
+  // The music it answers, held open here as well as by the plot: off the
+  // graph's page, in the Backdrop, nothing else may be listening.
+  useLiveAudioCapture(true);
+
   // Which scene has drawn its first frame. Kept by identity, because the
-  // chart hands this same canvas the next scene when the look changes, and
-  // that one starts from nothing again; a new version of the same scene is
-  // swapped in place and stays settled.
+  // next look is handed to this same canvas and starts from nothing again; a
+  // new version of the same scene is swapped in place and stays settled.
   const [drawnIdentity, setDrawnIdentity] = useState<string>();
   const drawnRef = useRef<string | undefined>(undefined);
   // The automatic switching counts a look's time from its first frame, not
   // from the moment it was chosen (`graphAutoCycle.ts`).
   useHoldGraphAutoCycle(drawnIdentity !== key);
-  // The element the scene draws in, once the runner has made it: where the
-  // window's pulse starts from.
-  const hostRef = useRef<RefObject<Element | null>>(undefined);
+  // Where the window's pulse starts from: the plot's panel while there is
+  // one, the middle of the window while the scene is only the Backdrop.
+  const panel = plot?.panel;
+  const panelRef = useRef(panel);
+  panelRef.current = panel;
   const onDrawn = useCallback(
     (
       frame: ISceneFrame,
@@ -180,15 +180,15 @@ export default function SceneCanvas({
       }
       // The window beats on the beats this scene is drawing, when the
       // graph's mode asks it to (`ScenePulse.tsx`).
-      reportSceneBeat('graph', frame, hostRef.current?.current);
+      reportSceneBeat('graph', frame, panelRef.current);
       // And the Processes dialog says what it is costing.
       reportSceneDraw('graph', name, report);
     },
     [key, name],
   );
-  // The window's light goes with the graph's scene when the graph leaves the
-  // screen with its tab. Not when the look changes: the next scene is drawn
-  // in this same place and carries the light on.
+  // The window's light goes with the graph's scene when it stops being drawn
+  // anywhere. Not when the look changes: the next scene is drawn in this same
+  // place and carries the light on.
   useEffect(
     () => () => {
       reportSceneLeft('graph');
@@ -232,16 +232,21 @@ export default function SceneCanvas({
   );
 
   // The viewer's hands on the scene: a camera to turn where the scene has
-  // one, the pointer and taps where it answers them.
+  // one, the pointer and taps where it answers them. One for the life of the
+  // renderer, so a camera turned on the plot is still turned when the plot
+  // comes back.
   const interaction = useMemo(createSceneInteraction, []);
-  const dragTurnsRef = useRef(dragTurns);
-  dragTurnsRef.current = dragTurns;
+  const dragTurnsRef = useRef(plot?.dragTurns === true);
+  dragTurnsRef.current = plot?.dragTurns === true;
 
-  // The panel itself, always on the plot: where the scene is framed, what
-  // the pointer is measured against, and where the window's pulse starts,
-  // whether the scene is drawn here or on the window behind.
-  const panelRef = useRef<HTMLDivElement>(null);
-  hostRef.current = panelRef;
+  // The plot's loading and its reset read this (`ScenePlot`).
+  useLayoutEffect(() => {
+    publishGraphSceneRun({
+      interaction,
+      ...(drawnIdentity === undefined ? {} : { drawnIdentity }),
+    });
+  }, [interaction, drawnIdentity]);
+  useLayoutEffect(() => () => publishGraphSceneRun(undefined), []);
 
   // The root marked with the layer the scene is drawn on while it is there
   // (`data-scene-layer`, `sceneCover.ts`): `is-scene-backdrop` veils the
@@ -249,115 +254,121 @@ export default function SceneCanvas({
   // colours from the root (`readSurface`, the level meter's wells) are told
   // by its class, which is what their cache of those colours watches;
   // `is-scene-column` lifts the EQ head over the picture.
+  const layerName = target.dataset.sceneLayer;
   useLayoutEffect(() => {
-    const layer = coverHost?.dataset.sceneLayer;
-    if (!layer) {
+    if (!layerName) {
       return undefined;
     }
-    const mark = `is-scene-${layer}`;
+    const mark = `is-scene-${layerName}`;
     const root = document.documentElement;
     root.classList.add(mark);
     return () => root.classList.remove(mark);
-  }, [coverHost]);
+  }, [layerName]);
 
-  // Under the Backdrop, the window's layer and where this panel stands on
-  // it. Measured whenever either box changes: the graph moving down the
-  // column changes its size with it, as a fraction of the window's grid.
+  // On a layer, the layer's size and where the plot's panel stands on it.
+  // Measured whenever either box changes: the graph moving down the column
+  // changes its size with it, as a fraction of the window's grid. With no
+  // plot the panel stays where it last stood, so leaving the graph's page
+  // under the Backdrop leaves the picture as it was; never framed at all
+  // (a launch onto a page without the graph), the panel is the window.
+  const layer = layerName ? target : undefined;
+  const viewRef = useRef<TSceneView>(FULL_VIEW);
   const [cover, setCover] = useState<ICoverFrame>();
   useLayoutEffect(() => {
-    const panel = panelRef.current;
-    if (!coverHost || !panel || typeof ResizeObserver === 'undefined') {
+    if (!layer || typeof ResizeObserver === 'undefined') {
       setCover(undefined);
       return undefined;
     }
     const measure = () => {
-      const canvas = coverHost.getBoundingClientRect();
+      const canvas = layer.getBoundingClientRect();
+      if (panel) {
+        viewRef.current = sceneViewOf(panel.getBoundingClientRect(), canvas);
+      }
       const next: ICoverFrame = {
         width: Math.round(canvas.width),
         height: Math.round(canvas.height),
-        view: sceneViewOf(panel.getBoundingClientRect(), canvas),
+        view: viewRef.current,
       };
       setCover((previous) => (isSameCover(previous, next) ? previous : next));
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(panel);
-    observer.observe(coverHost);
+    if (panel) {
+      observer.observe(panel);
+    }
+    observer.observe(layer);
     return () => observer.disconnect();
-  }, [coverHost]);
+  }, [layer, panel]);
+  // Only the layer's own: the render that moves the canvas onto the plot
+  // still holds the last layer's box until the effect above clears it.
+  const frame = layer ? cover : undefined;
 
+  // The wave as the plot last drew it, carried on with the picture off the
+  // graph; before any plot, the wave it is watched with where there is no
+  // grid (`useWatchedSceneWave`).
+  const { spectrumRange } = scene;
+  const watchedWave = useWatchedSceneWave(lookId, scene.wave);
+  const watchedSpectrum = useMemo(
+    () => studioSpectrumRect({ spectrumRange }, watchedWave),
+    [spectrumRange, watchedWave],
+  );
+  const plotted = plot?.spectrumRect;
+  const [lastPlotted, setLastPlotted] = useState(plotted);
+  useLayoutEffect(() => {
+    if (plotted) {
+      setLastPlotted(plotted);
+    }
+  }, [plotted]);
+  const spectrumRect = plotted ?? lastPlotted ?? watchedSpectrum;
+
+  const width = frame?.width ?? plot?.width ?? 0;
+  const height = frame?.height ?? plot?.height ?? 0;
   const sceneRef = useSceneRunner({
     source,
-    width: cover?.width ?? width,
-    height: cover?.height ?? height,
+    width,
+    height,
     spectrumRect,
-    ...(cover ? { view: cover.view } : {}),
+    ...(frame ? { view: frame.view } : {}),
     tuning,
     onDrawn,
     onLoaded,
     interaction,
+    placement: target,
   });
 
   // On the plot, not on the scene's own layer, which takes no pointer: the
   // drawing and its handles lie over it. Heard before them, in the capture,
   // and every press that is not the scene's goes on to them untouched.
   useEffect(() => {
-    const panel = panelRef.current;
-    const plot = panel?.closest<HTMLElement>('.graph-plot');
-    if (!panel || !plot) {
+    const plotElement = panel?.closest<HTMLElement>('.graph-plot');
+    if (!panel || !plotElement) {
       return undefined;
     }
-    return interaction.attach(plot, {
+    return interaction.attach(plotElement, {
       frame: () => panel.getBoundingClientRect(),
       turns: (event) =>
         event.button === 1 ||
         event.button === 2 ||
         (event.button === 0 && dragTurnsRef.current),
       grabs: () => dragTurnsRef.current,
-      owns: (target) =>
+      owns: (element) =>
         Boolean(
-          target.closest('.graph-edit-point, .chart-limit, .chart-presence'),
+          element.closest('.graph-edit-point, .chart-limit, .chart-presence'),
         ),
     });
-  }, [interaction]);
-  const isChromeIdle = useIsChromeIdle();
+  }, [interaction, panel]);
 
-  // The worker's canvas goes here: on the plot, or on the window's layer
-  // behind everything under the Backdrop. The chart keys this component on
-  // which, because a canvas handed to its worker cannot be moved.
-  const drawn = (
+  // The worker's canvas goes in one container that is moved from place to
+  // place, so the canvas, its worker and its compiled program are the same
+  // ones wherever the scene is drawn.
+  const container = useMovableContainer(target);
+  return createPortal(
     <div
       ref={sceneRef}
       className="chart-scene-canvas"
       aria-hidden="true"
-      style={
-        cover ? { width: cover.width, height: cover.height } : { width, height }
-      }
-    />
-  );
-
-  return (
-    <>
-      <SceneLoading
-        lookId={lookId}
-        swatch={scene.swatch}
-        settled={drawnIdentity === key}
-        width={width}
-        height={height}
-      />
-      <div
-        ref={panelRef}
-        className="chart-scene-panel"
-        aria-hidden="true"
-        style={{ width, height }}
-      />
-      {coverHost ? createPortal(drawn, coverHost) : drawn}
-      <SceneViewReset
-        interaction={interaction}
-        className={isChromeIdle ? 'is-idle' : ''}
-        // In the drawing's own corner, clear of the axes' labels.
-        style={{ right: inset.right + 8, bottom: inset.bottom + 8 }}
-      />
-    </>
+      style={{ width, height }}
+    />,
+    container,
   );
 }
