@@ -15,10 +15,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The logo ****************************************************************
 
-// The tile, the wave's Lagoon and its weight are the app icon's, and every
-// `.brand-mark` has them (`App.scss`): the same in every mode (Ivan,
-// 2026-09-26: "the icon remain the same").
-.brand-mark--signal {
+// The tile and the wave's weight are the app icon's (`App.scss`); the edge,
+// the wave and the glow under it are the window's colours, as the name's
+// "EQ" beside it is (Ivan, 2026-09-26: "the app icon on the top needs to
+// follow theme too"). `--logo-1` to `--logo-5` are read by the wave's own
+// gradient (`ThemeWaveGradient`) and by the edge here: the accent across its
+// greener and bluer ends in Normal — the theme's cyan, or a visualizer's
+// first colour — and the palette in use in Rainbow. Every other mark, in the
+// dialogs, keeps the app icon's Lagoon. Both classes, so the order the two
+// sheets land in never decides which edge is drawn.
+.brand-mark.brand-mark--signal {
+  --logo-1: var(--accent-start);
+  --logo-2: color-mix(in oklab, var(--accent-start), var(--accent));
+  --logo-3: var(--accent);
+  --logo-4: color-mix(in oklab, var(--accent), var(--accent-end));
+  --logo-5: var(--accent-end);
+
+  background:
+    linear-gradient(160deg, #101722, #080b11 50%, #030508) padding-box,
+    linear-gradient(
+        135deg,
+        var(--logo-1),
+        var(--logo-2),
+        var(--logo-3),
+        var(--logo-4),
+        var(--logo-5)
+      )
+      border-box;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, $white 8%, transparent),
+    0 8px 22px color-mix(in srgb, var(--logo-4) 18%, transparent);
+
+  path {
+    filter: drop-shadow(
+      0 0 2px color-mix(in srgb, var(--logo-3) 70%, transparent)
+    );
+  }
+
   // `.brand-mark path` gives both paths the wave's stroke; these are the
   // wave's drawing-on and the pulse's own light.
   .brand-mark__wave {
@@ -37,6 +70,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     filter: drop-shadow(0 0 3px $secondary-light);
     animation: signal-pulse 5.5s cubic-bezier(0.45, 0, 0.2, 1) 1.2s infinite;
   }
+}
+
+// Rainbow: the palette in use, first to last, as the name's "EQ" runs.
+html.is-euphoric .brand-mark.brand-mark--signal {
+  --logo-1: var(--rainbow-1);
+  --logo-2: var(--rainbow-2);
+  --logo-3: var(--rainbow-4);
+  --logo-4: var(--rainbow-6);
+  --logo-5: var(--rainbow-7);
 }
 
 @keyframes signal-draw {

@@ -343,8 +343,9 @@ version and in these notes.
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
   itself and the name rises letter by letter; after that a pulse of light runs
-  along the wave every few seconds. The logo is the app's icon itself, here and
-  in every dialog; "Fluid" is white and "EQ" is in the window's colours.
+  along the wave every few seconds. "Fluid" is white, and "EQ" and the logo's
+  edge and wave are in the window's colours — the accent, a visualizer's
+  colour or the Rainbow palette; the dialogs keep the app icon as it is.
 - **Rainbow mode is on from the start, and it is Lagoon.** Aqua, cyan, sky,
   azure and a soft periwinkle — the icon's own colours — where it used to run
   red to violet, and there is nothing to unlock any more: the switch on the

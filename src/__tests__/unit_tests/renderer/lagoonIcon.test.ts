@@ -49,9 +49,23 @@ describe('Lagoon, everywhere it is written', () => {
     });
   });
 
-  it('edges every logo tile, the header’s and the dialogs’, in order', () => {
+  it('edges every logo tile in the dialogs, in order', () => {
     const mark = ruleBody(css('App.scss'), '.brand-mark');
     expect(mark).toContain(`linear-gradient(135deg, ${LAGOON.join(', ')})`);
+  });
+
+  // The header's is the one exception (Ivan, 2026-09-26: "the app icon on
+  // the top needs to follow theme too"): its edge and wave read the window's
+  // colours — the accent in Normal, the palette in use in Rainbow.
+  it('is not what the header’s logo is drawn in', () => {
+    const sheet = css('SignalBrand.scss');
+    const header = ruleBody(sheet, '.brand-mark.brand-mark--signal');
+    expect(header).toContain('--logo-3: var(--accent)');
+    expect(header).toContain('var(--logo-1)');
+    expect(header).not.toContain(LAGOON[0]);
+    expect(
+      ruleBody(sheet, 'html.is-euphoric .brand-mark.brand-mark--signal'),
+    ).toContain('--logo-1: var(--rainbow-1)');
   });
 
   // The name's "EQ" is in the window's colours (Ivan, 2026-09-26: "when plus

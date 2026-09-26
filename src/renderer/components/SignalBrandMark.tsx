@@ -7,7 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { BRAND_MARK } from 'common/branding';
-import { LagoonWaveGradient, useLagoonWave } from '../icons/BrandMark';
+import { ThemeWaveGradient, useLagoonWave } from '../icons/BrandMark';
 import '../styles/SignalBrand.scss';
 
 /**
@@ -15,9 +15,12 @@ import '../styles/SignalBrand.scss';
  * four, https://claude.ai/artifact/HZpBeQQa79QDb2KAKjNvkV). At launch the
  * wave draws itself; after that a pulse of light runs along it every few
  * seconds, and the name's "EQ" glows as it arrives (`SignalBrandName`). The
- * tile is the app icon's, the same in every mode: a dark face, the edge and
- * the wave in Lagoon (Ivan, 2026-09-26: "wave lagoon", "the icon remain the
- * same"). Still when motion is turned down (`SignalBrand.scss`).
+ * tile is the app icon's dark face, and its edge and wave are in the window's
+ * colours, as the name's "EQ" is (Ivan, 2026-09-26: "the app icon on the top
+ * needs to follow theme too"): the accent in Normal, the palette in use in
+ * Rainbow, a visualizer's own while one lends the window its colours. Every
+ * other mark keeps the app icon's Lagoon (`BrandMark`). Still when motion is
+ * turned down (`SignalBrand.scss`).
  *
  * The tile is `.brand-mark`'s, so every size the header gives the mark still
  * applies. Everywhere else the app shows itself the logo stays the still one
@@ -36,7 +39,7 @@ export default function SignalBrandMark() {
     >
       <svg viewBox={BRAND_MARK.viewBox}>
         <defs>
-          <LagoonWaveGradient id={wave.id} />
+          <ThemeWaveGradient id={wave.id} />
         </defs>
         <path
           className="brand-mark__wave"

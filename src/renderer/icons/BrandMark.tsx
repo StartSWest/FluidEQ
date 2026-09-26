@@ -44,6 +44,29 @@ export function LagoonWaveGradient({ id }: { id: string }) {
 }
 
 /**
+ * The window's colours along the wave, for the header's mark: five stops that
+ * read `--logo-1` to `--logo-5`, which the header sets from the accent in
+ * Normal and from the palette in use in Rainbow (`SignalBrand.scss`). Stop
+ * colours are CSS properties, so they follow a theme or a visualizer's
+ * colours as they change, with nothing re-rendered.
+ */
+const THEME_WAVE_STOPS = [1, 2, 3, 4, 5] as const;
+
+export function ThemeWaveGradient({ id }: { id: string }) {
+  return (
+    <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+      {THEME_WAVE_STOPS.map((stop, index) => (
+        <stop
+          key={stop}
+          offset={index / (THEME_WAVE_STOPS.length - 1)}
+          style={{ stopColor: `var(--logo-${stop})` }}
+        />
+      ))}
+    </linearGradient>
+  );
+}
+
+/**
  * The gradient's id, of this mark's own, and the property `.brand-mark path`
  * strokes with (`App.scss`). Several marks can be on screen at once, and
  * `useId`'s colons are taken out, or the `url()` would have to escape them.
