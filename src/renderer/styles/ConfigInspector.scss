@@ -224,30 +224,38 @@ $name-column: 34ch;
   gap: $spacing-s;
 }
 
+// A card, filled: it is a button, and a button that names no fill of its own
+// is painted in the system's button face — the flat grey every output here
+// stood in on Windows (Ivan, 2026-09-26, the engine config's grey tiles).
 .config-card {
+  @include card-surface;
   display: flex;
   min-width: 150px;
   max-width: 240px;
   flex: 1 1 170px;
   flex-direction: column;
   padding: 8px 10px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
+  color: inherit;
   cursor: pointer;
   gap: 2px;
   text-align: left;
   transition: $transition-control;
 
   &:hover {
+    @include card-hover;
     border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
   }
 
   // Selection is a border and a fill, not a colour swap: the card goes on
-  // saying the same thing whether or not it is the one being read.
+  // saying the same thing whether or not it is the one being read. The fill
+  // is laid over the card's face rather than in place of it.
   &.is-selected {
     border-color: $secondary-default;
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 18%, transparent) 0 0
+      ),
+      $card-glow, $surface-card;
   }
 
   // The output being played through, which is the one somebody almost always

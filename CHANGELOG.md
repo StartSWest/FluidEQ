@@ -358,6 +358,14 @@ version and in these notes.
   where every band and control on the page used to.
 - **A new app icon.** The wave, glossier, on a dark tile, in Lagoon's
   colours with an edge to match.
+- **Cards in the window's colour.** The Library's tiles, its song list and
+  Up next, each game's row, the outputs in the engine's config, the
+  headphone picker, the Studio's AI card and the small graphs are filled
+  now — a step above the page, with the accent glowing in from the corner,
+  in the theme's colours or a visualizer's — where they were outlines or
+  slabs of grey slate. What holds them, like the grid round the tiles, keeps
+  its outline, and a control that cannot be used is an outline with dimmed
+  text instead of a lighter slab.
 
 ### Fixed
 

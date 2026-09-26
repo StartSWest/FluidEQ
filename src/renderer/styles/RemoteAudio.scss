@@ -109,7 +109,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // 1px ring: that ring landed on top of the shell's border as a doubled outline,
 // and its bottom corners curled away from the panel leaving a notch.
 .remote-audio__role-shell {
-  @include lifted-surface;
+  @include card-surface;
   display: flex;
   min-width: 0;
   flex: 0 0 auto;

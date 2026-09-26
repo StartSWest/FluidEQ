@@ -18,16 +18,12 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   gap: 14px;
   padding: 14px 16px 16px;
-  border: 1px solid $border-subtle;
+  // The card every page's cards are now made of (`card-surface`), which is
+  // this one a step darker: Ivan liked it here and asked for it darker and
+  // everywhere (2026-09-26). The light still comes from where the steps
+  // start; only the corner is its own.
+  @include card-surface;
   border-radius: $radius-l;
-  // The light comes from where the steps start.
-  background:
-    radial-gradient(
-      110% 80% at 0% 0%,
-      color-mix(in srgb, $secondary-default 9%, transparent),
-      transparent 55%
-    ),
-    $block-lift;
 }
 
 .studio-maker__title {

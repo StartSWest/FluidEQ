@@ -762,7 +762,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-empty__card {
-  @include lifted-surface;
+  @include card-surface;
   display: grid;
   width: min(420px, 100%);
   justify-items: center;
@@ -898,8 +898,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // container instead of fighting table layout for the cover art and the
 // title-plus-subtitle stack in the same cell.
 
+// The listing is a card of its own, filled a step over the floor (Ivan,
+// 2026-09-26: "some bg color in the listing but subtle"); its rows stand on
+// it unfilled and answer the pointer as before.
 .library-list {
-  @include lifted-surface;
+  @include card-surface;
   display: flex;
   // A floor rather than zero, so the table cannot be squeezed to a single
   // clipped row when the graph takes half the window. Below this the
@@ -1616,8 +1619,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A tile is a button in every way that matters, styled like `.voicing-card`
 // in Voicing.scss: the same inset surface, the same lift-and-glow on hover,
 // laid out as a card rather than the row `.library-list__row` draws.
+// Filled, where the grid round them keeps only its edge (Ivan, 2026-09-26:
+// "the grid card, not the bg").
 .library-grid__tile {
-  @include lifted-surface;
+  @include card-surface;
   // No `content-visibility`, for the reason `.library-list__row` gives at
   // length: `LibraryGridView` now mounts only the rows of tiles near the
   // viewport, and a skipped tile measures as nothing, which is the one thing
@@ -1633,8 +1638,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &:focus-visible {
+    @include card-hover;
     border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
     outline: none;
   }
 
@@ -2823,12 +2828,11 @@ $library-wave-step: 4ms;
 }
 
 .library-up-next {
-  @include panel-surface;
-  // An inner pane, not a card: `panel-surface` is the top-level card recipe
-  // and brings the card's 18px corners with it, which beside the list, the
-  // grid and the video — all `$radius-m` — made this the roundest thing on
-  // the tab. The surface stays; only the corner is the inner one.
-  border-radius: $radius-m;
+  // A card, as the listing beside it is: the pane's flat slate made it the
+  // one grey slab on the tab (Ivan, 2026-09-26: "something nice for the up
+  // next in lib too", "bg color there also"). `card-surface` carries the
+  // inner corner the list, the grid and the video all have.
+  @include card-surface;
   position: absolute;
   z-index: 3;
   // The card's own padding, restated.

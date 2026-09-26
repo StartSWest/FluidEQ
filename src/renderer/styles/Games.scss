@@ -82,10 +82,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 8px 12px;
   min-width: 0;
+  // A card like the Library's tiles, in the window's colour: the plot's flat
+  // slate made each game a grey bar the pickers on it did not match (Ivan,
+  // 2026-09-26: "see some select and pane not matching").
+  @include card-surface;
   padding: 8px 10px;
-  border: 1px solid rgba($white, 0.05);
-  border-radius: $radius-s;
-  background: $surface-plot;
 
   &.is-playing {
     border-color: color-mix(in srgb, $secondary-default 32%, transparent);
@@ -176,10 +177,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: grid;
   justify-items: center;
   gap: 14px;
+  @include card-surface;
   padding: 34px 18px 38px;
-  border: 1px solid rgba($white, 0.05);
-  border-radius: $radius-s;
-  background: $surface-plot;
   text-align: center;
 
   > p {

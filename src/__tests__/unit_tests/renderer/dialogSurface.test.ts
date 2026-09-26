@@ -150,6 +150,10 @@ describe('every dialog', () => {
 
 describe('what stands on the floor', () => {
   const BLOCK = 'var(--surface-block)';
+  // The grey slab: the block colour, flat, as the whole of a fill. A card's
+  // own face mixes the block with the pane and the accent, which is the
+  // window's colour and not a slab (`card-surface`).
+  const SLAB = /background(-color)?: var\(--surface-block\)/;
 
   it.each([
     ['Dsp.scss', '.dsp-card'],
@@ -167,7 +171,39 @@ describe('what stands on the floor', () => {
     ['About.scss', '.about__section'],
     ['DialogHeader.scss', '.dialog-header'],
   ])('%s paints no slab under %s', (sheet, selector) => {
-    expect(declarationsOf(compiledCss(sheet), selector)).not.toContain(BLOCK);
+    expect(declarationsOf(compiledCss(sheet), selector)).not.toMatch(SLAB);
+  });
+
+  // The cards on it are filled in the window's colour (Ivan, 2026-09-26, of
+  // the Studio's AI card: "I kind of like this pane colors … apply to lib too
+  // and all those pages that need panes like this"): the accent through the
+  // body and glowing in from the top corner, over a step between the pane
+  // and the block.
+  it.each([
+    ['Library.scss', '.library-grid__tile'],
+    ['Library.scss', '.library-list'],
+    ['Library.scss', '.library-up-next'],
+    ['Library.scss', '.library-empty__card'],
+    ['Games.scss', '.games-row'],
+    ['ConfigInspector.scss', '.config-card'],
+    ['StudioMaker.scss', '.studio-maker'],
+    ['RemoteAudio.scss', '.remote-audio__role-shell'],
+    ['Karaoke.scss', '.karaoke-playlist'],
+  ])('%s fills %s with the card', (sheet, selector) => {
+    const card = declarationsOf(compiledCss(sheet), selector);
+    expect(card).toContain(
+      'color-mix(in srgb, var(--accent) 5%, color-mix(in srgb, var(--surface-block) 60%, var(--surface-panel)))',
+    );
+    expect(card).toContain('radial-gradient(');
+  });
+
+  // The control: the box that holds a set keeps its edge alone — the grid
+  // round the Library's tiles is not a card (Ivan: "the grid card, not the
+  // bg").
+  it('leaves the box round a set unfilled', () => {
+    expect(
+      declarationsOf(compiledCss('Library.scss'), '.library-grid'),
+    ).toContain('background: transparent');
   });
 
   it('keeps the fill where a control or a picture needs one', () => {

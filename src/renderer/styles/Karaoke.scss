@@ -815,15 +815,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-playlist {
-  @include lifted-surface;
+  @include card-surface;
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
   padding: 10px;
-  // An edge and nothing under it (`lifted-surface`), like every box on the
-  // floor. Full screen keeps a fill of its own below, where the rows have to
-  // read over the artwork.
+  // A card, as the Library's listing is (`card-surface`). Full screen keeps a
+  // fill of its own below, where the rows have to read over the artwork.
 }
 
 .karaoke-playlist__groups {

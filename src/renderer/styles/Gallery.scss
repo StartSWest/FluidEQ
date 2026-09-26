@@ -1208,7 +1208,7 @@ $wait-fade: 520ms;
   gap: 14px;
   min-width: 0;
   padding: 14px 16px 16px;
-  @include lifted-surface;
+  @include card-surface;
 }
 
 .gallery-scene__head {
