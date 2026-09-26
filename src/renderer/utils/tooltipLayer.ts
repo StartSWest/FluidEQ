@@ -6,8 +6,14 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { prefersReducedMotion } from './bandReveal';
-import '../styles/Tooltip.scss';
+import {
+  hideTooltip,
+  retextTooltip,
+  showTooltip,
+  shownTooltip,
+  tooltipText,
+  type TPoint,
+} from './tooltipPopover';
 
 /**
  * The app's own tooltips, drawn in place of the system's.
@@ -31,33 +37,12 @@ import '../styles/Tooltip.scss';
  * mutation the layer is told about, while its own writes are discarded as it
  * makes them (`takeRecords`).
  *
- * One element for the whole window, in the top layer, so the Help guide's
- * modal dialog cannot cover it. Installed from `index.tsx`, beside the other
- * window-wide listeners, and never in the tests: they read titles as the page
- * wrote them.
+ * The tooltip itself — the one element that shows it, where it stands and
+ * how it comes and goes — is `tooltipPopover.ts`'s. Installed from
+ * `index.tsx`, beside the other window-wide listeners, and never in the
+ * tests: they read titles as the page wrote them.
  */
 
-// How long the pointer rests on something before its tooltip appears — the
-// wait the Gallery's loading ring holds for. Sweeping across a toolbar shows
-// nothing; resting on a button reads as asking. It is the entrance's own
-// delay, an animation on the tooltip that no code waits on, and it is kept
-// with Animations off: the wait is the point there, not the motion.
-const HOLD_MS = 500;
-const ENTER_MS = 140;
-// A tooltip leaving fades over this long, and while it is still on screen the
-// next one takes its place at once — moving along a row of buttons reads each
-// of them without the wait again at every one.
-const LEAVE_MS = 150;
-// `$ease-out` in `_motion.scss`.
-const EASE_OUT = 'cubic-bezier(0.32, 0.72, 0, 1)';
-const GAP_PX = 6;
-const EDGE_PX = 8;
-// Anything bigger than this — a list row, a canvas, a plot — is described
-// where the pointer came onto it, a cursor's height below it, rather than
-// under its middle, which could be half a window away.
-const ANCHOR_MAX_WIDTH_PX = 240;
-const ANCHOR_MAX_HEIGHT_PX = 64;
-const CURSOR_CLEARANCE_PX = 20;
 // A title is the accessible name of a button with nothing else to go by —
 // the icon buttons — and a lent one would leave it nameless for as long as
 // the pointer is on it. Only those borrow the text as a label meanwhile; a
@@ -65,8 +50,6 @@ const CURSOR_CLEARANCE_PX = 20;
 const NAMED_BY_TITLE = 'button, [role="button"], a[href]';
 // Their titles are not tooltips.
 const NOT_TOOLTIPS = 'iframe, webview';
-
-type TPoint = { x: number; y: number };
 
 // An SVG shape takes no `title` attribute — its tooltip is a <title> child,
 // which is the system's and cannot be lent — so it asks for this one with
@@ -93,175 +76,28 @@ let pointer: TPoint = { x: 0, y: 0 };
 /** Pressed, scrolled or typed over: stays hidden until the pointer leaves. */
 let isDismissed = false;
 
-let tip: HTMLDivElement | undefined;
-let entrance: Animation | undefined;
-let entranceDelay = 0;
-let exit: Animation | undefined;
-/** What the tooltip on screen describes, and whether it came by keyboard. */
-let shown: { element: Element; byFocus: boolean } | undefined;
-
-const tooltip = (): HTMLDivElement => {
-  if (!tip) {
-    tip = document.createElement('div');
-    tip.className = 'app-tooltip';
-    tip.setAttribute('role', 'tooltip');
-    tip.popover = 'manual';
-    document.body.append(tip);
-  }
-  return tip;
-};
-
-const isOpen = () => tip?.matches(':popover-open') === true;
-
-/** Whether a tooltip can be seen right now, fading out included. */
-const isSeen = (): boolean => {
-  if (!isOpen()) {
-    return false;
-  }
-  if (exit) {
-    return exit.playState === 'running';
-  }
-  if (!entrance || entrance.playState === 'finished') {
-    return true;
-  }
-  const time = entrance.currentTime;
-  return typeof time === 'number' && time >= entranceDelay;
-};
-
-const place = (element: Element, point: TPoint | undefined) => {
-  const box = tooltip();
-  const anchor = element.getBoundingClientRect();
-  const { width, height } = box.getBoundingClientRect();
-  const viewWidth = document.documentElement.clientWidth;
-  const viewHeight = document.documentElement.clientHeight;
-  const atPointer =
-    point !== undefined &&
-    (anchor.width > ANCHOR_MAX_WIDTH_PX ||
-      anchor.height > ANCHOR_MAX_HEIGHT_PX);
-  const centre = atPointer ? point.x : anchor.left + anchor.width / 2;
-  const below = atPointer
-    ? point.y + CURSOR_CLEARANCE_PX
-    : anchor.bottom + GAP_PX;
-  const above = (atPointer ? point.y : anchor.top) - GAP_PX - height;
-  const isBelow = below + height <= viewHeight - EDGE_PX || above < EDGE_PX;
-  const top = Math.min(
-    Math.max(isBelow ? below : above, EDGE_PX),
-    viewHeight - EDGE_PX - height,
-  );
-  const left = Math.min(
-    Math.max(centre - width / 2, EDGE_PX),
-    viewWidth - EDGE_PX - width,
-  );
-  box.style.left = `${Math.round(left)}px`;
-  box.style.top = `${Math.round(top)}px`;
-  return isBelow;
-};
-
-const show = (
-  element: Element,
-  text: string,
-  point: TPoint | undefined,
-  byFocus: boolean,
-) => {
-  const box = tooltip();
-  const isWarm = isSeen();
-  exit?.cancel();
-  exit = undefined;
-  entrance?.cancel();
-  entrance = undefined;
-  if (!isWarm && isOpen()) {
-    // Shown again, so it is the newest thing in the top layer: a dialog
-    // opened since would otherwise stand over it.
-    box.hidePopover();
-  }
-  if (!isOpen()) {
-    box.showPopover();
-  }
-  box.textContent = text;
-  const isBelow = place(element, point);
-  shown = { element, byFocus };
-  if (isWarm) {
-    return;
-  }
-  const isStill = prefersReducedMotion();
-  entranceDelay = HOLD_MS;
-  entrance = box.animate(
-    isStill
-      ? [{ opacity: 0 }, { opacity: 1 }]
-      : [
-          {
-            opacity: 0,
-            transform: `translateY(${isBelow ? -3 : 3}px) scale(0.98)`,
-          },
-          { opacity: 1, transform: 'none' },
-        ],
-    {
-      duration: isStill ? 1 : ENTER_MS,
-      delay: HOLD_MS,
-      easing: EASE_OUT,
-      fill: 'backwards',
-    },
-  );
-};
-
-const hide = (isFading: boolean) => {
-  shown = undefined;
-  if (!isOpen()) {
-    return;
-  }
-  const box = tooltip();
-  const wasSeen = isSeen();
-  entrance?.cancel();
-  entrance = undefined;
-  if (!isFading || !wasSeen || prefersReducedMotion()) {
-    exit?.cancel();
-    exit = undefined;
-    box.hidePopover();
-    return;
-  }
-  if (exit) {
-    return;
-  }
-  const leaving = box.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: LEAVE_MS,
-    easing: 'ease-out',
-    fill: 'forwards',
-  });
-  exit = leaving;
-  // Another tooltip taking this one's place cancels the fade, which does not
-  // finish it.
-  leaving.addEventListener('finish', () => {
-    if (exit !== leaving) {
-      return;
-    }
-    exit = undefined;
-    leaving.cancel();
-    box.hidePopover();
-  });
-};
-
 /** The loan the tooltip describes: the innermost that still has text. */
 const described = () => loans.find((loan) => loan.text !== '');
 
 /** Shows, moves or hides the pointer's tooltip to match the loans. */
 const present = () => {
+  const shown = shownTooltip();
   if (shown?.byFocus) {
     return;
   }
   const loan = described();
   if (!loan || isDismissed) {
-    hide(true);
+    hideTooltip(true);
     return;
   }
-  if (shown?.element === loan.element && tip?.textContent === loan.text) {
+  if (shown?.element === loan.element && tooltipText() === loan.text) {
     return;
   }
   if (shown?.element === loan.element) {
-    tooltip().textContent = loan.text;
-    place(loan.element, pointer);
+    retextTooltip(loan.element, loan.text, pointer);
     return;
   }
-  show(loan.element, loan.text, pointer, false);
+  showTooltip(loan.element, loan.text, pointer, false);
 };
 
 const lending = new MutationObserver((records) => onLoanMutations(records));
@@ -371,8 +207,8 @@ function returnLoans() {
   });
   loans = [];
   isDismissed = false;
-  if (!shown?.byFocus) {
-    hide(true);
+  if (!shownTooltip()?.byFocus) {
+    hideTooltip(true);
   }
 }
 
@@ -424,26 +260,92 @@ const lend = (chain: Element[]) => {
   present();
 };
 
+/**
+ * What the pointer rests on, and the way up from it watched for a tooltip
+ * arriving there.
+ *
+ * What is lent is decided as the pointer arrives. A title written after that,
+ * with the pointer already resting, was heard by nothing, and the system's
+ * tooltip read it on the next move of the mouse inside — the Gallery card's
+ * Add button, titled Remove once it has been pressed, showed "Remove" in
+ * Windows' own box. A `title` or `data-tooltip` appearing anywhere on the way
+ * up is read now as the pointer arriving would read it. What the layer writes
+ * lands on what it has lent, which reads empty or is its own loan, so none of
+ * it is anything arriving.
+ */
+let resting: Element | undefined;
+
+const onArrivals = (records: MutationRecord[]) => {
+  const on = resting;
+  const hasArrived = records.some(
+    ({ target }) =>
+      target instanceof Element &&
+      textOf(target) !== '' &&
+      !loans.some((loan) => loan.element === target),
+  );
+  if (!on?.isConnected || !hasArrived) {
+    return;
+  }
+  const chain = describedChain(on);
+  if (chain.length === 0) {
+    return;
+  }
+  // Read again from the titles the page wrote; a press that brought the title
+  // still keeps it away until the pointer moves on.
+  const wasDismissed = isDismissed;
+  returnLoans();
+  isDismissed = wasDismissed;
+  lend(chain);
+};
+
+const arrivals = new MutationObserver(onArrivals);
+
+const restOn = (element: Element | undefined) => {
+  // Disconnecting drops what is queued: the loans just put back for the last
+  // place the pointer rested are not arrivals at the next.
+  arrivals.disconnect();
+  resting = element;
+  for (let node = element ?? null; node; node = node.parentElement) {
+    arrivals.observe(node, {
+      attributes: true,
+      attributeFilter: ['title', 'data-tooltip'],
+    });
+  }
+};
+
+/** The control a pointer inside it is on: moving onto its icon is not leaving. */
+const controlOf = (element: Element): Element =>
+  element.closest(NAMED_BY_TITLE) ?? element;
+
 const onPointerOver = (event: PointerEvent) => {
   if (event.pointerType === 'touch' || !(event.target instanceof Element)) {
     returnLoans();
+    restOn(undefined);
     return;
   }
+  const { target } = event;
   pointer = { x: event.clientX, y: event.clientY };
+  const isSameControl =
+    resting !== undefined && controlOf(target) === controlOf(resting);
   // Still on what is lent, or on something inside it with nothing of its own
   // to say: nothing changes. Its own title reads empty while it is lent, so
   // this is asked before anything is looked up by text.
-  if (loans.length > 0 && event.target.closest(SOURCES) === loans[0].element) {
+  if (loans.length > 0 && target.closest(SOURCES) === loans[0].element) {
+    restOn(target);
     return;
   }
   // Put back first, so the new chain is read from the titles the page wrote.
   returnLoans();
-  const chain = describedChain(event.target);
+  restOn(target);
+  if (!isSameControl) {
+    isDismissed = false;
+  }
+  const chain = describedChain(target);
   if (chain.length > 0) {
     // The pointer arriving somewhere new is the newer question than the
     // control Tab left focused.
-    if (shown?.byFocus) {
-      hide(true);
+    if (shownTooltip()?.byFocus) {
+      hideTooltip(true);
     }
     lend(chain);
   }
@@ -453,20 +355,23 @@ const onPointerOut = (event: PointerEvent) => {
   // Out of the window altogether: nothing else will be hovered to say so.
   if (event.relatedTarget === null) {
     returnLoans();
+    restOn(undefined);
   }
 };
 
 /** Hidden until the pointer moves onto something else. */
 const dismiss = () => {
-  if (loans.length > 0) {
+  // Resting on something with no tooltip yet counts: a press is what titles
+  // the Gallery's Add button.
+  if (loans.length > 0 || resting) {
     isDismissed = true;
   }
-  hide(false);
+  hideTooltip(false);
 };
 
 const onScroll = (event: Event) => {
   const scrolled = event.target;
-  const on = shown?.element;
+  const on = shownTooltip()?.element;
   if (
     on &&
     (scrolled === document ||
@@ -493,12 +398,13 @@ const onFocusIn = (event: FocusEvent) => {
   if (loans.length > 0) {
     isDismissed = true;
   }
-  show(target, text, undefined, true);
+  showTooltip(target, text, undefined, true);
 };
 
 const onFocusOut = (event: FocusEvent) => {
+  const shown = shownTooltip();
   if (shown?.byFocus && shown.element === event.target) {
-    hide(true);
+    hideTooltip(true);
   }
 };
 

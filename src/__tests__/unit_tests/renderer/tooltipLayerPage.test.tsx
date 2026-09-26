@@ -72,6 +72,23 @@ const TogglePlay = () => {
   );
 };
 
+/**
+ * The Gallery card's Add button: named by its words, and titled only once it
+ * has been pressed, when pressing it again removes the scene.
+ */
+const AddButton = () => {
+  const [isAdded, setAdded] = useState(false);
+  return (
+    <button
+      type="button"
+      title={isAdded ? 'Remove' : undefined}
+      onClick={() => setAdded(true)}
+    >
+      {isAdded ? 'Added' : 'Add'}
+    </button>
+  );
+};
+
 /** A chip whose hint the page may take away. */
 const Chip = ({ hint }: { hint?: string }) => (
   <button type="button" title={hint}>
@@ -210,6 +227,52 @@ describe('the page rewriting a title under the pointer', () => {
     moveTo(button);
     wait(SHOWN_MS);
     expect(seen()).toBe('Pause');
+  });
+
+  // A title arriving with the pointer already resting there was heard by
+  // nothing, and the system's tooltip read it on the next move of the mouse:
+  // "Remove" on the Gallery's Add button, in Windows' own box.
+  it('takes a title that arrives while the pointer rests there', async () => {
+    const { rerender } = render(<Chip />);
+    const chip = screen.getByRole('button', { name: 'Tape' });
+    moveTo(chip);
+    wait(SHOWN_MS);
+    // The control: with no title there is nothing to show.
+    expect(seen()).toBeUndefined();
+
+    await act(async () => {
+      rerender(<Chip hint="Tape saturation" />);
+    });
+    await observersHear();
+    expect(systemTooltip()).toBe('');
+    wait(SHOWN_MS);
+    expect(seen()).toBe('Tape saturation');
+
+    moveTo(document.body);
+    expect(chip).toHaveAttribute('title', 'Tape saturation');
+  });
+
+  it('keeps a title that arrives with a press away until the pointer moves on', async () => {
+    render(<AddButton />);
+    const add = screen.getByRole('button', { name: 'Add' });
+    moveTo(add);
+    wait(SHOWN_MS);
+    expect(seen()).toBeUndefined();
+
+    await act(async () => {
+      pressPointer();
+    });
+    await observersHear();
+    expect(add).toHaveAttribute('title', '');
+    expect(systemTooltip()).toBe('');
+    wait(SHOWN_MS);
+    expect(seen()).toBeUndefined();
+
+    moveTo(document.body);
+    expect(add).toHaveAttribute('title', 'Remove');
+    moveTo(add);
+    wait(SHOWN_MS);
+    expect(seen()).toBe('Remove');
   });
 
   it('lets the tooltip go with an element taken out from under the pointer', async () => {
