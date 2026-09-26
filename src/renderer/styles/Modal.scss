@@ -19,9 +19,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+
+// EVERY DIALOG'S CARD, ONE LOOK (`dialog.surface-look`): whatever its own
+// sheet paints, a card with a dialog's role stands on the menus' 95% floor
+// with the open floor's hairline, corner and lift (Ivan, 2026-09-26: "que
+// tengan todos un style que matchea y sea standarizado para todos"). Weighted
+// over any one card's own rule, which is how the hairline already reached
+// them all (`Rainbow.scss`).
+//
+// Not a menu that is a dialog by role (`data-anchored-menu`: the EQ mode menu
+// holds switches), which has the menus' own surface; not the Karaoke Maker or
+// the Karaoke page, each a dialog by role, for what a screen reader is told,
+// and on screen the whole pane a song is edited in; and not the three
+// confirmations that open in place inside a card — signing out, removing from
+// the Library, leaving the leaderboard — which float over nothing and say
+// "careful" in red or amber. Not the Support card, which is this look at rest
+// and lights up with the pet's streak (`Support.scss`). Not the Maker's
+// set-up offer either, which is a
+// dialog by role on the cover it lays over the Maker; its card is the panel
+// inside, and that wears this look from `Karaoke.scss`. Nor the Maker's
+// timing panel, a dialog by role that drops out of a tool like a menu and
+// wears the menus' surface with the Maker's other tool panels.
+//
+// And not the notices. The engine's trouble card, the song EQ and speech
+// memory toasts, the scene review and the Plus terms notice are dialogs by
+// role, for a screen reader, and on screen they are a word in a corner that
+// keeps its own floor: the terms notice is solid on purpose, over the Save
+// button beside it. Their edge is already every dialog's hairline
+// (`Rainbow.scss`).
+html
+  body
+  :is([role='dialog'], [role='alertdialog'], dialog):not(
+    [data-anchored-menu],
+    .karaoke-maker,
+    .karaoke-workspace,
+    .karaoke-maker__wizard,
+    .karaoke-maker__tool-popover,
+    .sign-out-confirm,
+    .library-detail__confirm,
+    .leaderboard-card__confirm,
+    .support-dialog,
+    .device-apo-notice,
+    .scene-review-notice,
+    .song-eq-notice,
+    .speech-memory-notice,
+    .plus-terms-notice
+  ) {
+  @include dialog.surface-look;
+}
 
 .prereq-notice {
   @include animate(rise-in, $motion-slow);

@@ -987,7 +987,7 @@ $now-playing-bar-height: 64px;
   flex: 1 1 auto;
   overflow: hidden;
   // An inner pane's corners, all four of them — the same `$radius-m` the
-  // list and the grid in this tab take from `inset-surface`, and the same the
+  // list and the grid in this tab take from `lifted-surface`, and the same the
   // queue beside it takes now. The bottom pair used to be the card's own
   // 18px, copied from the Media tab's stage, where the picture runs flush to
   // the card's bottom edge and has to share its corners. This one does not:

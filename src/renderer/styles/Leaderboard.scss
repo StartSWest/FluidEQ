@@ -12,8 +12,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The leaderboard inside the Plus tab, built from the Visualizers gallery's
-// furniture — the same page padding, toolbar, `$block-lift` cards with a
-// subtle edge that takes the accent under the pointer — so the two places
+// furniture — the same page padding, toolbar, cards of a subtle edge on
+// the floor that takes the accent under the pointer — so the two places
 // read as one app. A person's colour stays on their avatar; the board itself
 // is painted in the accent, the three medals and the three parts of a score.
 // The Account panel's card is in LeaderboardCard.scss, the standing card in
@@ -358,7 +358,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 8px 14px 8px 8px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   transition:
     border-color $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;

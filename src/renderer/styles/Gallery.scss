@@ -308,7 +308,6 @@ $gallery-card-lead: 120ms;
   overflow: hidden;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   transition:
     border-color $motion-fast $ease-out,
     transform $motion-fast $ease-out,
@@ -1209,7 +1208,7 @@ $wait-fade: 520ms;
   gap: 14px;
   min-width: 0;
   padding: 14px 16px 16px;
-  @include inset-surface;
+  @include lifted-surface;
 }
 
 .gallery-scene__head {
@@ -1401,7 +1400,6 @@ $wait-fade: 520ms;
     padding: 8px 10px;
     border: 1px solid $border-subtle;
     border-radius: $radius-s;
-    background: $block-lift;
   }
 
   dt {
@@ -1622,7 +1620,6 @@ $wait-fade: 520ms;
   padding: 10px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
 
   @container plus (max-width: 640px) {
     grid-template-columns: 96px minmax(0, 1fr);
@@ -1915,7 +1912,6 @@ $wait-fade: 520ms;
   color: $text-primary;
   border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: $block-lift;
   font-size: $text-body;
   cursor: pointer;
   transition: $transition-control;

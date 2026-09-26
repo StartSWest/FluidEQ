@@ -762,7 +762,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-empty__card {
-  @include inset-surface;
+  @include lifted-surface;
   display: grid;
   width: min(420px, 100%);
   justify-items: center;
@@ -899,7 +899,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // title-plus-subtitle stack in the same cell.
 
 .library-list {
-  @include inset-surface;
+  @include lifted-surface;
   display: flex;
   // A floor rather than zero, so the table cannot be squeezed to a single
   // clipped row when the graph takes half the window. Below this the
@@ -1595,7 +1595,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // width allows, never chosen up front.
 
 .library-grid {
-  @include inset-surface;
+  @include lifted-surface;
   @include slim-scrollbar;
   display: grid;
   // Same floor and the same reason as `.library-list` — about one row of
@@ -1617,7 +1617,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // in Voicing.scss: the same inset surface, the same lift-and-glow on hover,
 // laid out as a card rather than the row `.library-list__row` draws.
 .library-grid__tile {
-  @include inset-surface;
+  @include lifted-surface;
   // No `content-visibility`, for the reason `.library-list__row` gives at
   // length: `LibraryGridView` now mounts only the rows of tiles near the
   // viewport, and a skipped tile measures as nothing, which is the one thing
@@ -1743,7 +1743,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // heading instead of a flat grid.
 
 .library-video-section {
-  @include inset-surface;
+  @include lifted-surface;
   @include slim-scrollbar;
   display: flex;
   min-height: 0;

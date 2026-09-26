@@ -192,11 +192,9 @@ $font-mono:
 //   window bg          $surface-base (ramp $surface-base-top → -bottom)
 //     pane bg          $surface-panel — the titlebar, the sidebar, the EQ
 //                      card, the graph, the right column, the transport bar
-//       block in pane  `inset-surface`: $block-lift — one step DARKER:
-//                      the sidebar's cards, the face the bands stand on, a
-//                      folding section
-//         box on block `lifted-surface`: the block's colour, edged — the
-//                      mapping summary, the profile list, the driver curve
+//       box on floor   `lifted-surface`: an edge and no fill — a card, a
+//                      list, a folding section, a group in a dialog
+//                      ($block-lift is left to controls' tracks and trays)
 //       field          `field-surface`: $surface-field → $surface-field-end
 //                      an input, a select, a dropdown trigger, a knob body
 //       menu           `menu-surface`: $surface-menu-top → $surface-menu
@@ -306,8 +304,8 @@ $surface-floating: color-mix(in srgb, $surface-base 70%, $surface-panel);
 // panel into its mix, and at the veil's thinnest it stood at three quarters
 // over the picture.
 $surface-menu-floor: var(--surface-menu-floor);
-// The shade a well is painted in, over a card, at the alpha `inset-surface`
-// uses. Kept next to the shell colour it is derived from.
+// The shade a well is painted in: a meter's slot, a picture's frame. Kept
+// next to the shell colour it is derived from.
 $surface-well: var(--surface-well);
 
 // Edges are a cool white, not the lavender `$primary-lighter`: at a tenth of
@@ -705,32 +703,14 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
   box-shadow: inset 0 1px 0 rgba($white, 0.05);
 }
 
-// Recessed well used inside cards (mapping summary, sidebar control chips,
-// the profile list, the face the bands stand on). One rung below the card:
-// the shell's colour at an alpha that leaves the card visible in it, so a well
-// reads as a dip in the surface rather than as a hole punched through to the
-// window behind.
-//
-// A shallow dip. At 42% the wells were the darkest surfaces in the window —
-// the profile list, the meter slot and a switched-off toggle all landed
-// within a few values of each other and read as holes. A well only has to be
-// visibly below the card, and a quarter of the shell colour does that.
-@mixin inset-surface {
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
-  // Up, not down. See `$block-lift`. Flat: the pane has the face, the
-  // blocks on it do not — a ramp on a 44px tray read as a bevelled button
-  // bar sitting in a lit card.
-  background: $block-lift;
-  box-shadow: none;
-}
-
-// A box standing ON a well, rather than cut into it: the mapping summary in
-// the output section, the profile list, the driver curve. These sit inside a
-// folding section that is already one rung down, and a second well inside
-// the first is how the darkest boxes in the app were made. Up is the only
-// direction left, so they lift by the same few percent of cool white every
-// slider track uses.
+// A box on the open floor: a list, a card, a group of settings, a tray. A
+// hairline and the floor showing through, never a fill of its own (Ivan,
+// 2026-09-26: "ve por toda la UI quitándole el bg color ese que tienen los
+// elementos que no matchea con el style"). There were two of these, a well
+// at the block colour and this one, and the block colour was the grey slab
+// every page still carried after the panes lost theirs: the DSP stage's
+// card, the empty Library, Share Audio's role cards, the karaoke pitch lane.
+// What stands on the floor is told apart by its edge, as the panes are.
 @mixin lifted-surface {
   border: 1px solid $border-subtle;
   border-radius: $radius-m;

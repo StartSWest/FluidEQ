@@ -52,6 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // exact fault that suffix rule was written to kill.
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -80,14 +81,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: min(560px, 100%);
   max-height: min(720px, calc(100vh - 48px));
   grid-template-rows: auto minmax(0, 1fr) auto;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
-  background: color-mix(in srgb, $surface-menu-top 99%, transparent);
-  box-shadow: 0 30px 80px rgba($black, 0.55);
-}
-
-.overlay-card--alert {
-  border-color: rgba($red, 0.45);
+  // Every dialog's material. A failed update said so with a red edge as well
+  // as its red failure box; the box says it on its own, and the edge was the
+  // one dialog in the app drawn in a colour of its own.
+  @include dialog.surface-look;
 }
 
 .overlay-card__header {

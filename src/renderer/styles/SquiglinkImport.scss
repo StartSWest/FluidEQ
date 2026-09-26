@@ -9,7 +9,7 @@
 // notice. A section is a section — the shell here is exactly what
 // `.sidebar-section` paints, so the pair match at the pixel.
 .squig-import {
-  @include inset-surface;
+  @include lifted-surface;
   position: relative;
   overflow: hidden;
   flex: 0 0 auto;
@@ -132,7 +132,6 @@
   padding: 16px 14px 10px;
   border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: $block-lift;
 }
 
 // The card that holds a drawing, wearing what the card that holds a drawing

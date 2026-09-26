@@ -256,7 +256,7 @@ const MandatoryUpdateModal = () => {
     >
       <div
         ref={dialogRef}
-        className={`overlay-card${hasFailed ? ' overlay-card--alert' : ''}`}
+        className="overlay-card"
         // Focusable but not in the tab order, so the dialog itself is what
         // announces on open rather than whichever button happens to be first —
         // which, on the close button, would put Enter on "later".

@@ -26,10 +26,10 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-l;
   background: color-mix(in srgb, $white 2.5%, transparent);
 
-  // The opening post is the topic: lifted a step, with the accent across its
-  // top rim so the eye lands there first.
+  // The opening post is the topic: a breath of the accent, with the accent
+  // across its top rim so the eye lands there first.
   &--opening {
-    background: color-mix(in srgb, $secondary-default 5%, $surface-block);
+    background: color-mix(in srgb, $secondary-default 5%, transparent);
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, $secondary-light 40%, transparent),
       0 10px 28px rgba($black, 0.22);

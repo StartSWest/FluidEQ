@@ -31,29 +31,32 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// EVERY DIALOG ONE MATERIAL (Ivan, 2026-09-26: "que tengan todos un style
+// que matchea y sea standarizado para todos … ponlos todos transparentes
+// también al 95%"): the menus' floor at 95% (`$surface-menu-floor`), the
+// open floor's hairline and corner, and one lift. `Modal.scss` puts it on
+// every card with a dialog's role, so a dialog that styles itself cannot
+// drift from the rest; the mixin below is the same look for the family that
+// is built on it. No edge of its own in Rainbow mode any more ("quítale el
+// rainbow border a todos"): a spectrum drifting round a dialog was the one
+// moving outline in a window of still ones, as it had been round the menus.
+@mixin surface-look {
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-2xs;
+  background: $surface-menu-floor;
+  box-shadow:
+    0 32px 90px rgba($black, 0.64),
+    inset 0 1px 0 rgba($white, 0.05);
+}
+
 @mixin surface($width, $height) {
-  // As a surface's motion, so euphoria's rainbow edge below keeps the pop
-  // rather than replacing it (`surface-motion`).
   @include surface-motion($dialog-arrival);
+  @include surface-look;
   position: relative;
   display: grid;
   width: min($width, 100%);
   max-height: min($height, calc(100vh - #{$spacing-l} * 2));
   overflow: hidden;
-  border: 1px solid rgba($white, 0.09);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-field-end 97%, transparent);
-  box-shadow:
-    0 32px 90px rgba($black, 0.64),
-    inset 0 1px 0 rgba($white, 0.07);
-
-  .is-euphoric & {
-    @include rainbow-border;
-    box-shadow:
-      0 32px 90px rgba($black, 0.64),
-      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%),
-      inset 0 1px 0 rgba($white, 0.07);
-  }
 
   @media (max-width: 620px), (max-height: 620px) {
     max-height: calc(100vh - #{$spacing-m});
@@ -61,9 +64,10 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // A modern inner group: enough separation to scan, not another floating modal
-// inside the first one.
+// inside the first one. An edge and the dialog's own floor through it, like a
+// box on the page (`lifted-surface`): a slab of the block colour inside a
+// card at 95% was a second, opaque card laid in the first.
 @mixin section-surface {
   border: 1px solid rgba($white, 0.09);
   border-radius: $radius-m;
-  background: $block-lift;
 }

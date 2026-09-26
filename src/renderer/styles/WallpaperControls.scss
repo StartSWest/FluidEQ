@@ -182,7 +182,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 11px 12px;
   border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: $block-lift;
   cursor: pointer;
   transition:
     border-color $motion-fast $ease-out,
@@ -206,7 +205,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:has(input:checked) {
     border-color: $secondary-light;
-    background: color-mix(in srgb, $secondary-default 9%, $block-lift);
+    background: color-mix(in srgb, $secondary-default 9%, transparent);
     box-shadow:
       0 0 0 1px $secondary-light,
       0 0 24px color-mix(in srgb, $secondary-default 20%, transparent);
@@ -346,7 +345,6 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: $block-lift;
 }
 
 .wallpaper-dialog__setting {

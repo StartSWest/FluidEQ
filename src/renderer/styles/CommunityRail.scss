@@ -150,7 +150,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: $spacing-xs;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   overflow-y: auto;
   @include slim-scrollbar;
   @include animate(fade-to-rest);

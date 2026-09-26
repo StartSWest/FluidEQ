@@ -256,7 +256,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   transition:
     border-color $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;

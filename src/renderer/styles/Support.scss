@@ -64,21 +64,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // by the dialog and runs 0 to 1 across the multiplier, so at rest this is
   // simply the surface it always was and every term below falls out to zero.
   //
-  // The border brightens alongside it: a glow with no edge to sit against reads
-  // as a blur rather than as the thing itself lighting up.
-  border-color: rgba($secondary-light, calc(0.26 + var(--pet-joy, 0) * 0.55));
-  border-radius: $radius-xl;
-  background: color-mix(in srgb, $surface-field-end 97%, transparent);
+  // The edge brightens alongside it: a glow with no edge to sit against reads
+  // as a blur rather than as the thing itself lighting up. At rest it is every
+  // dialog's hairline and lift (`dialog.surface-look`), on the menus' 95%
+  // floor, which is why `Modal.scss` leaves this one card to its own sheet:
+  // its rule would put the glow out at every level of joy.
+  //
+  // The lit edge is a ring drawn inside the hairline, not the border's own
+  // colour: every dialog's border is set by the hairline rule in
+  // `Rainbow.scss`, which outweighs this one, and the joy's edge had not been
+  // seen since that rule arrived. The glows go through `color-mix` because
+  // the accents are hex custom properties: `rgba(var(--accent), …)` is no
+  // colour at all, and it threw out the whole shadow, lift and glow alike.
   box-shadow:
     0 32px 90px rgba($black, 0.64),
-    inset 0 1px 0 rgba($white, 0.07),
+    inset 0 1px 0 rgba($white, 0.05),
+    inset 0 0 0 1px
+      color-mix(
+        in srgb,
+        $secondary-light calc(var(--pet-joy, 0) * 55%),
+        transparent
+      ),
     0 0 calc(var(--pet-joy, 0) * 40px)
-      rgba($secondary-default, calc(var(--pet-joy, 0) * 0.45)),
+      color-mix(
+        in srgb,
+        $secondary-default calc(var(--pet-joy, 0) * 45%),
+        transparent
+      ),
     0 0 calc(var(--pet-joy, 0) * 90px)
-      rgba($secondary-light, calc(var(--pet-joy, 0) * 0.22));
-  transition:
-    border-color 300ms ease-out,
-    box-shadow 300ms ease-out;
+      color-mix(
+        in srgb,
+        $secondary-light calc(var(--pet-joy, 0) * 22%),
+        transparent
+      );
+  transition: box-shadow 300ms ease-out;
 
   h2 {
     margin: 3px 0 0;
@@ -98,7 +117,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 14px;
   padding: 10px 14px 10px 18px;
   border-bottom: 1px solid rgba($edge-tint, 0.1);
-  background: $block-lift;
 
   &::after {
     position: absolute;
@@ -328,7 +346,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
   border-left-color: color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-s;
-  background: $block-lift;
   font-size: $text-lead;
   line-height: 1.55;
 }
@@ -339,7 +356,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-method {
-  @include inset-surface;
+  @include lifted-surface;
   display: grid;
   min-width: 0;
   padding: 16px;

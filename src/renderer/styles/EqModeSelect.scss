@@ -84,8 +84,10 @@
     // deck beside it sit, rather than on a slider's groove colour: that
     // lighter slate is right for a 5px line and, filling a whole row, read as
     // a grey from no palette (Ivan, 2026-09-22: "use the one that sliders in
-    // volume use").
-    @include inset-surface;
+    // volume use"). A control's track, so it keeps its fill where the boxes
+    // on the floor gave theirs up (2026-09-26).
+    border: 1px solid $border-subtle;
+    background: $block-lift;
     display: grid;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;

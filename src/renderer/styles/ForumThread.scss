@@ -294,6 +294,5 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-block 60%, transparent);
   font-size: $text-body;
 }

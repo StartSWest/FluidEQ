@@ -39,7 +39,7 @@
   padding: $spacing-m;
   border: 1px solid color-mix(in srgb, $secondary-default 28%, $border-field);
   border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-default 6%, $surface-block);
+  background: color-mix(in srgb, $secondary-default 6%, transparent);
 
   h3 {
     margin: 0;
@@ -101,7 +101,7 @@
 
 .plus-trial--ended {
   border-color: $border-field;
-  background: $surface-block;
+  background: transparent;
 }
 .plus-trial-banner {
   @include panel-surface($secondary-default, 4%);
@@ -247,7 +247,6 @@
   gap: $spacing-s;
   margin: 0;
   padding: $spacing-m;
-  background: $surface-block;
   border: 1px solid $border-field;
   border-radius: $radius-m;
 

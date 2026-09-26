@@ -148,7 +148,6 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--card-hue) 24%, transparent);
   border-radius: $radius-m;
-  background: $surface-field-end;
   @include stagger-in($count: 5, $step: 46ms, $offset: 110ms);
 
   &:nth-child(1) {

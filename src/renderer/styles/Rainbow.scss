@@ -121,29 +121,6 @@ html
   border-radius: $radius-2xs;
 }
 
-// Dialogs only. Menus keep their plain hairline in rainbow mode as well (Ivan,
-// 2026-09-25: "the dropdown menus no rainbow border pls I want a pro nice
-// border", then "all menus no rainbow border"): a list dropped out of a control
-// is a tool, and a spectrum drifting round it was the one moving outline among
-// the open floor's still lines. That includes the menus that are dialogs by
-// role — the EQ mode menu holds switches, so a screen reader is told it is a
-// dialog — which is why anything anchored to a control is left out by what it
-// is (`data-anchored-menu`, set by `AnchoredMenu`), not by its role.
-//
-// Not the Karaoke Maker. It is a dialog by role, for what a screen reader says,
-// but on screen it is the whole pane a song is edited in, and a rainbow round
-// its edge read as a frame drawn round the workspace rather than as a window
-// opened over it.
-html.is-euphoric
-  body
-  :is(
-    [role='dialog']:not(.karaoke-maker, [data-anchored-menu]),
-    [role='alertdialog']:not([data-anchored-menu]),
-    dialog:not([data-anchored-menu])
-  ) {
-  @include rainbow-border;
-}
-
 // A moving gradient behind text is exactly the thing this setting is for
 // people who cannot have. The colours stay; only the travel stops.
 @media (prefers-reduced-motion: reduce) {

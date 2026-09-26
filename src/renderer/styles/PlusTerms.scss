@@ -257,7 +257,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 12px 14px 12px 12px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   transition: border-color $motion-fast $ease-out;
 
   &:hover {
@@ -338,7 +337,6 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-s;
   padding: 12px 20px 14px;
   border-top: 1px solid $border-subtle;
-  background: $block-lift;
 }
 
 .plus-terms-agree {
@@ -346,7 +344,6 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 10px;
   padding: 14px 20px 16px;
   border-top: 1px solid $border-subtle;
-  background: $block-lift;
 
   .account__error {
     margin: 0;

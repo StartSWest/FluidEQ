@@ -239,10 +239,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  // The block colour, like every other box that stands on a pane. It was a
-  // wash of cool white at 7%, which is a tone this palette does not have:
-  // against the teal panels it read as a smudge rather than as a card.
-  background: $block-lift;
   font-size: $text-body;
   line-height: 1.45;
 }
@@ -288,11 +284,6 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 12px;
   border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  // Same move as the note above, and it matters most here: a search can
-  // return forty of these, so this one colour is most of the page. On the
-  // block colour the rows are cards on a pane; on a white wash they were a
-  // stack of grey strips nothing else in the window shares.
-  background: $block-lift;
 
   &__details {
     display: flex;

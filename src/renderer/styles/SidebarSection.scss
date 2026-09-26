@@ -14,8 +14,6 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   border: 1px solid $border-subtle;
   border-radius: $radius-l;
-  // One step up from the pane, the same step every block stands on.
-  background: $block-lift;
 }
 
 // The whole header toggles. A separate chevron button would put a 16px target
@@ -203,7 +201,6 @@ it under the terms of the GNU General Public License version 3 or later.
 .right-content .sidebar-section {
   border: 0;
   border-radius: 0;
-  background: transparent;
 
   & + .sidebar-section {
     border-top: 1px solid $border-subtle;

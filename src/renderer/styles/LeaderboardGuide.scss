@@ -15,7 +15,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // narrow one — the switch is the `leaderboard` container in Leaderboard.scss.
 // Each part wears its `--part` colour, set there too, so a rule here, a
 // segment of the standing bar and a figure under a name read as one thing.
-// The surfaces are the gallery's: a card on `$block-lift` with a subtle edge,
+// The surfaces are the gallery's: a card of a subtle edge on the floor,
 // colour on the small picture tiles and the values only.
 
 .leaderboard-guide {
@@ -24,7 +24,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 14px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   @include animate(rise-in, $motion-base, $ease-out, 100ms);
 
   // Beside the board it stays in view while the rows scroll under the

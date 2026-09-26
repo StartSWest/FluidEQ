@@ -300,7 +300,11 @@ version and in these notes.
   stands at the top, under the section tabs and the title, and every band's
   slider stands under the point on the graph it moves. The header's wave lost
   its box, the menus lost their rainbow edge, and the tooltips are FluidEQ's
-  own.
+  own. The boxes on every page — the DSP stage, the empty Library, Share
+  Audio's roles, the karaoke pitch lane and the whole Karaoke Maker, Studio,
+  the gallery — lost their grey fill too and stand on the floor as the panes
+  do, and every dialog is one material: the menus' floor at 95%, the same fine
+  edge and corner, and no rainbow round it.
 - **The theme is a slider.** Light and Dark became one slider, from Black at
   the left to a lighter Ocean at the right, and every step between them is a
   theme: the window follows the thumb as it moves. Ocean as it was stands

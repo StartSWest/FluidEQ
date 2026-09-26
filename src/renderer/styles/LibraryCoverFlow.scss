@@ -31,7 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // draws on.
 
 .library-coverflow {
-  @include inset-surface;
+  @include lifted-surface;
   display: flex;
   // A floor, so the row and whatever is open under it are never crushed into
   // an unreadable strip when the graph takes half the window — past this the

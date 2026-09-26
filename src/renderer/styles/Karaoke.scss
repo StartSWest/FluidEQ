@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -814,17 +815,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-playlist {
-  @include inset-surface;
+  @include lifted-surface;
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
   padding: 10px;
-  // The card colour `inset-surface` already gives it, and nothing over it.
-  // The shell colour at a third of its strength was a darker, different slate
-  // from the queue on the Library tab and from every card in the right rail,
-  // so the two playlists in the app were two colours. Full screen keeps its
-  // own translucent fill below, where the picture has to show through.
+  // An edge and nothing under it (`lifted-surface`), like every box on the
+  // floor. Full screen keeps a fill of its own below, where the rows have to
+  // read over the artwork.
 }
 
 .karaoke-playlist__groups {
@@ -1155,7 +1154,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-workspace__stage {
-  @include inset-surface;
+  @include lifted-surface;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -2516,7 +2515,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: minmax(0, 1fr);
 
   article {
-    @include inset-surface;
+    @include lifted-surface;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
@@ -2826,7 +2825,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-pitch {
-  @include inset-surface;
+  @include lifted-surface;
   position: relative;
   z-index: 1;
   isolation: isolate;
@@ -2841,19 +2840,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   color: $text-muted;
   border-color: color-mix(in srgb, $secondary-light 13%, transparent);
-  // The playlist's corner, which `inset-surface` sets from `$radius-m`. An
+  // The playlist's corner, which `lifted-surface` sets from `$radius-m`. An
   // 18px corner of its own made two panels of the same row read as two
   // different kinds of thing, in a window as much as in full screen.
   border-radius: $radius-m;
-  // The card colour, flat, like the playlist it shares a row with.
+  // No fill and no lift, like the playlist it shares a row with: an edge on
+  // the floor (2026-09-26).
   //
   // What it had was a 145deg ramp from the shell colour to the well colour
   // under a radial cyan wash, over a four-layer shadow with a light inset at
   // the top and a dark one at the foot. That is a bevel, and it made the one
   // panel on this page that is mostly empty space the glossiest thing in the
-  // window — beside a playlist that is a plain card, on the same row.
-  background: $block-lift !important;
-  box-shadow: 0 14px 36px rgba($black, 0.22);
+  // window — beside a playlist that is a plain card, on the same row. The
+  // block colour it had after that was the last grey slab on the page.
+  background: transparent !important;
   text-align: left;
   transform: translateZ(0);
   transition:
@@ -3773,9 +3773,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px 14px;
   min-height: 54px;
   padding: 5px 12px;
-  background: $block-lift;
   border-bottom: 1px solid rgba(63, 149, 173, 0.22);
-  box-shadow: 0 12px 35px color-mix(in srgb, $surface-base 14%, transparent);
 }
 
 .karaoke-maker__header-tools {
@@ -3865,7 +3863,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: 4px;
   padding: 4px;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 12%, transparent);
   border-radius: $radius-l;
   box-shadow: inset 0 1px rgba($white, 0.025);
@@ -3896,9 +3893,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: $block-lift;
-    border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
-    border-radius: $radius-xs;
+    @include floating-surface(0 6px 16px rgba($black, 0.28));
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4184,10 +4179,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: $block-lift;
-    border: 1px solid color-mix(in srgb, $secondary-default 34%, transparent);
-    border-radius: $radius-xs;
-    box-shadow: 0 10px 28px color-mix(in srgb, $surface-base 42%, transparent);
+    @include floating-surface(0 6px 16px rgba($black, 0.28));
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4288,13 +4280,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background-color: $block-lift;
-  @include surface-artwork(
-    radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%)
+  // The menus' material (`menu-surface`): a panel dropped from a tool is a
+  // menu, and on the block colour with a cyan wash it was a slab of its own
+  // over the editor (2026-09-26).
+  @include floating-surface(
+    0 22px 48px color-mix(in srgb, $surface-base 48%, transparent)
   );
-  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
-  border-radius: $radius-l;
-  box-shadow: 0 22px 48px color-mix(in srgb, $surface-base 48%, transparent);
+  background: $surface-menu-floor;
   transform: translateX(-50%);
   // Pops out of the button it hangs under. A pop, not the menus' fold: the
   // fold is a `transform`, and this one's transform is what centres it. The
@@ -4381,7 +4373,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 9px 0 2px;
   padding: 8px 9px;
   list-style: none;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 11%, transparent);
   border-radius: $radius-xs;
 
@@ -4578,11 +4569,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
   width: min(360px, calc(100vw - 32px));
   padding: 10px;
-  border-color: color-mix(in srgb, $secondary-default 42%, transparent);
-  box-shadow:
-    0 24px 64px color-mix(in srgb, $surface-base 54%, transparent),
-    0 0 32px color-mix(in srgb, $secondary-default 9%, transparent),
-    inset 0 1px rgba($white, 0.045);
   transform: translate(-50%, -50%);
   animation: karaoke-maker-timing-arrive 150ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
@@ -4659,7 +4645,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 7px;
   padding: 7px;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
   border-radius: $radius-s;
 }
@@ -4733,13 +4718,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   width: 164px;
   padding: 5px;
-  background: $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
-  border-radius: $radius-m;
-  box-shadow: 0 18px 38px color-mix(in srgb, $surface-base 38%, transparent);
-  // Out of the Export button's corner, and back into it (`menu-in`).
+  // A menu, and the menus' own surface and motion: out of the Export
+  // button's corner, and back into it (`menu-in`).
+  @include menu-surface;
   --menu-origin: top right;
-  @include menu-motion;
 
   button {
     justify-content: flex-start;
@@ -4783,7 +4765,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   padding: 2px 7px;
   white-space: nowrap;
-  background: $block-lift;
   border: 1px solid rgba(82, 145, 164, 0.12);
   border-radius: $radius-2xs;
 
@@ -4949,9 +4930,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   min-height: 52px;
   padding: 5px 8px;
-  background:
-    linear-gradient(90deg, rgba(29, 117, 126, 0.07), transparent 34%),
-    $block-lift;
   border-top: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
   box-shadow: 0 -10px 30px color-mix(in srgb, $surface-base 18%, transparent);
 }
@@ -5007,9 +4985,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: $block-lift;
-    border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
-    border-radius: $radius-xs;
+    @include floating-surface(0 6px 16px rgba($black, 0.28));
     opacity: 0;
     transform: translate(-50%, 3px);
     content: attr(data-tooltip);
@@ -5152,12 +5128,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   margin: 6px 10px;
   overflow: hidden;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
   border-radius: $radius-m;
-  box-shadow:
-    inset 0 1px rgba($white, 0.025),
-    0 8px 22px color-mix(in srgb, $surface-base 12%, transparent);
 
   > header {
     display: flex;
@@ -5248,7 +5220,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   padding: 2px 7px;
   color: $text-muted;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
   border-radius: $radius-xs;
 
@@ -6136,7 +6107,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: 22px;
   font-weight: $weight-display;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
   border-radius: $radius-m;
 
@@ -6870,7 +6840,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 15px;
   min-height: 44px;
   padding: 5px 13px;
-  background: $block-lift;
   border-top: 1px solid $border-field;
 }
 
@@ -6879,9 +6848,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 12;
   display: grid;
   min-width: 0;
-  background:
-    linear-gradient(90deg, rgba(25, 105, 119, 0.07), transparent 42%),
-    $block-lift;
   border-top: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
   box-shadow:
     0 -14px 36px color-mix(in srgb, $surface-base 24%, transparent),
@@ -7146,9 +7112,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px 10px;
   color: $text-muted;
   font-size: $text-lead;
-  background: $block-lift;
+  // Over the drawing, so a floor of its own: the menus' (2026-09-26).
+  background: $surface-menu-floor;
   border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
-  border-radius: $radius-m;
+  border-radius: $radius-2xs;
   box-shadow: 0 14px 34px color-mix(in srgb, $surface-base 32%, transparent);
   // How long it stays: the Maker takes it down on this animation's end. It
   // changes nothing on screen — the notice looks as it always has for the
@@ -7301,7 +7268,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   padding: 7px 10px;
   font-size: $text-lead;
-  background: $block-lift;
   border: 1px solid $border-field;
   border-radius: $radius-s;
 
@@ -7387,7 +7353,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   inset: 0;
   padding: 24px;
   place-items: center;
-  background: $block-lift;
+  // A cover, dimming the Maker as the dialogs' backdrop dims the window; the
+  // card is the panel inside it.
+  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
 }
 
 .karaoke-maker__wizard-panel {
@@ -7398,16 +7366,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 22px 24px;
   overflow-y: auto;
   color: $text-primary;
-  background:
-    radial-gradient(
-      circle at 12% 0,
-      color-mix(in srgb, $secondary-default 13%, transparent),
-      transparent 58%
-    ),
-    $block-lift;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
-  box-shadow: 0 18px 44px color-mix(in srgb, $surface-base 46%, transparent);
+  @include dialog.surface-look;
 }
 
 .karaoke-maker__wizard-title {
@@ -7458,7 +7417,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 10px 12px;
   font-size: $text-title;
-  background: $block-lift;
   border: 1px solid $border-field;
   border-radius: $radius-m;
 
@@ -7660,7 +7618,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   padding: 7px;
   overflow: hidden auto;
-  background: $block-lift;
   border: 1px solid rgba(105, 196, 205, 0.13);
   border-radius: $radius-s;
   scrollbar-color: color-mix(in srgb, $secondary-default 50%, transparent)
@@ -8035,9 +7992,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-lead;
   font-weight: $weight-bold;
   pointer-events: none;
-  background: $block-lift;
+  background: $surface-menu-floor;
   border: 1px solid $border-field;
-  border-radius: $radius-s;
+  border-radius: $radius-2xs;
   box-shadow:
     0 14px 34px rgba($black, 0.36),
     0 0 18px color-mix(in srgb, $secondary-default 9%, transparent),
@@ -8105,7 +8062,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   place-items: center;
   padding: 24px;
-  background: $block-lift;
+  // The dialogs' own backdrop (`dialog.backdrop`): the Maker dims behind its
+  // dialogs as the window does behind every other one, rather than going out
+  // behind a sheet of the block colour.
+  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
 }
 
 .karaoke-maker__lyrics-modal {
@@ -8118,13 +8078,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-height: calc(100dvh - 48px);
   overflow: hidden;
   padding: 18px;
-  background-color: $block-lift;
-  @include surface-artwork(
-    radial-gradient(circle at 20% 0, rgba(80, 35, 121, 0.24), transparent 42%)
-  );
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-xl;
-  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
+  // Every dialog's material (`dialog.surface-look`, and `Modal.scss` puts it
+  // on anything with a dialog's role): a violet wash and an accent edge of its
+  // own were a second family of dialogs inside the Maker.
+  @include dialog.surface-look;
 
   h2 {
     margin: 3px 0;
@@ -8227,7 +8184,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   gap: 9px;
   padding: 11px;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
   border-radius: $radius-l;
 }
@@ -8359,7 +8315,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: $text-lead;
   line-height: 1.4;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
   border-radius: $radius-s;
 }
@@ -8605,7 +8560,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 11px;
   padding: 13px;
-  background: $block-lift;
   border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
   border-radius: $radius-m;
   box-shadow: inset 0 0 20px
@@ -8784,13 +8738,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__consent-modal {
   width: min(530px, 100%);
   padding: 22px;
-  background-color: $block-lift;
-  @include surface-artwork(
-    radial-gradient(circle at 18% 0, rgba(67, 39, 124, 0.25), transparent 46%)
-  );
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-xl;
-  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
+  @include dialog.surface-look;
 
   h2 {
     margin: 6px 0 10px;
@@ -8815,13 +8763,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 12px;
   padding: 20px;
   color: $text-muted;
-  background-color: $block-lift;
-  @include surface-artwork(
-    radial-gradient(circle at 12% 0, rgba($red, 0.2), transparent 50%)
-  );
-  border: 1px solid rgba(255, 104, 129, 0.3);
-  border-radius: $radius-l;
-  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
+  // The dialogs' material; the red glyph beside the words is what says this
+  // one cannot be undone.
+  @include dialog.surface-look;
 
   > svg {
     width: 24px;
@@ -8945,7 +8889,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: min(720px, calc(100dvh - 16px));
     max-height: calc(100dvh - 16px);
     padding: 11px;
-    border-radius: $radius-l;
   }
 
   .karaoke-maker__lyrics-modal-head {

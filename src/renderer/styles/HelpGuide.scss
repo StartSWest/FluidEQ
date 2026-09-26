@@ -103,7 +103,6 @@
   padding: 22px 16px;
   overflow-y: auto;
   border-right: 1px solid rgba($white, 0.09);
-  background: $block-lift;
 
   label {
     font-weight: $weight-semibold;
@@ -457,7 +456,7 @@
   &:hover,
   &.is-lit {
     border-color: color-mix(in srgb, $secondary-light 32%, transparent);
-    background: color-mix(in srgb, $secondary-default 8%, $block-lift);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
   }
 }
 
@@ -594,7 +593,7 @@
 // held, with the accent down its edge so it stands out in a long list.
 .help-guide__article .help-control.is-found {
   border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-  background: color-mix(in srgb, $secondary-default 12%, $block-lift);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
   box-shadow: inset 3px 0 0 $secondary-default;
 
   .help-control__number {

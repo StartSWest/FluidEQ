@@ -233,11 +233,6 @@ $name-column: 34ch;
   padding: 8px 10px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  // The block colour, like every card in the window. A wash of cool white at
-  // 4% is a tone this palette does not have: it took whatever was behind it,
-  // so a row of output cards came out a different colour from the boxes on
-  // every other tab.
-  background: $block-lift;
   cursor: pointer;
   gap: 2px;
   text-align: left;
@@ -303,7 +298,6 @@ $name-column: 34ch;
   padding: $spacing-s $spacing-m $spacing-m;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $block-lift;
   gap: 6px;
 }
 

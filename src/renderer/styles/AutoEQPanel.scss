@@ -88,7 +88,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // One well holding the whole reference picker, so the page reads as a heading
 // and a thing to use rather than as two cards of similar weight stacked up.
 .autoeq-panel__picker {
-  @include inset-surface;
+  @include lifted-surface;
   flex: 0 0 auto;
   padding: 2px 4px 6px;
 }
