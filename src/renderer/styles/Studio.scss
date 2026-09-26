@@ -219,7 +219,11 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-s $spacing-m;
   margin-block: calc(-1 * #{$spacing-m}) calc(-1 * #{$spacing-s});
   padding-block: $spacing-m $spacing-s;
-  background: $surface-panel;
+  // The floor the page stands on, opaque, so what scrolls under the bar is
+  // hidden and the bar at rest is no band at all. It was the panes' slate,
+  // which the page lost with its fill, and stood as a lighter band across the
+  // top of the Studio (Ivan, 2026-09-26: "fix studio top thing bg color").
+  background: $surface-base;
   // An edge only once something is under it: a hairline and a soft shadow
   // that arrive over the first few pixels of scrolling and are gone at the
   // top, where the bar is just the head of the page.
@@ -453,6 +457,11 @@ $studio-scrollbar: 8px;
     position: sticky;
     bottom: -$studio-pane-bleed;
     z-index: 1;
+    // A card, and opaque: the rows scroll under it, and with no fill of its
+    // own they were read through it, the controls over the buttons (Ivan,
+    // 2026-09-26: "the bottom publish pane no transparent either"). The
+    // card's face over the floor, so a veiled pane cannot make it see-through.
+    background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
     // The card brings its own face; this is what separates it from the rows
     // passing under it, so the pinning reads as depth rather than as a
     // drawing mistake.

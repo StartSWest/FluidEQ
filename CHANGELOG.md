@@ -378,6 +378,11 @@ version and in these notes.
 
 ### Fixed
 
+- **The Studio's edges are solid.** The Plus side rail, which opens over the
+  Studio when folded, is the menus' material now instead of see-through; the
+  buttons pinned at the foot of the Studio's controls hide what scrolls under
+  them; and the bar across the top of the Studio is the window's own colour
+  instead of a lighter band.
 - **Online Media matches the window.** YouTube and the other sites drawn in
   the app's colours are now in the colour of the window's floor, with their
   cards lifted in the accent's hue, where they stood as a lighter slate
