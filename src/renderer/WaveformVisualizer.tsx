@@ -112,7 +112,11 @@ import {
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
 import useMomentaryHold from './utils/useMomentaryHold';
-import { useIsEuphoric } from './utils/euphoriaMode';
+import {
+  toggleEuphoriaEnabled,
+  useIsEuphoriaEnabled,
+  useIsEuphoric,
+} from './utils/euphoriaMode';
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readAccentLight } from './utils/theme';
@@ -168,9 +172,10 @@ const WaveformVisualizer = () => {
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
-  // The mode is always on now (`euphoriaMode.ts`), so its switch that stood
-  // beside this wave is gone.
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
+  // The switch's own state, apart from the look: the game's streak can light
+  // the rainbow for a while without the switch being on.
+  const isRainbowOn = useIsEuphoriaEnabled();
   // `points` is the FFT frequency-domain reading the graph panel draws,
   // read here so the `spectrum` style can build real spectrum bars off it
   // rather than the time-domain envelope every other style uses.
@@ -1029,6 +1034,27 @@ const WaveformVisualizer = () => {
         >
           {isOff ? style : announcedStyle}
         </span>
+      </button>
+      {/* Normal or Rainbow, from the wave itself (Ivan, 2026-09-26: "put back
+        the rainbow button to toggle on and off in the top wave"), as in the
+        window colours menu and the app menu (`RainbowSwitch`). A sibling of
+        the meter, not inside it: both are buttons, and a button inside a
+        button is unnested by the browser, which loses the inner click.
+        Drained of colour when off, so it reads as a control that is there to
+        be pressed rather than as something that vanished. */}
+      <button
+        type="button"
+        className={`euphoria-pill waveform-visualizer__euphoria${
+          isRainbowOn ? '' : ' is-dormant'
+        }`}
+        aria-pressed={isRainbowOn}
+        title={t('graph.sceneTint.rainbowHint')}
+        onClick={toggleEuphoriaEnabled}
+      >
+        {/* One word: the strip's readouts give way to it at widths measured
+            for a label this short (`WaveformVisualizer.scss`), and "Rainbow
+            mode" ran to 171px in Italian. The hint names the mode in full. */}
+        {t('waveform.rainbow')}
       </button>
     </div>
   );

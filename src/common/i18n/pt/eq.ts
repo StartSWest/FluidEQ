@@ -745,6 +745,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Apenas suas bandas de EQ, sem nada por cima',
   'voicing.strength': 'Intensidade',
   'waveform.style': 'Mudar o estilo do medidor',
+  'waveform.rainbow': 'Arco-íris',
   'waveform.live': 'SAÍDA AO VIVO',
   'waveform.signal': 'SINAL DE ÁUDIO',
   'waveform.clip': 'SATURAÇÃO',

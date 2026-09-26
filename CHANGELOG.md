@@ -351,7 +351,8 @@ version and in these notes.
   red to violet, and there is nothing to unlock any more: the switch on the
   signal, the What's new slide and the offer in the Support dialog are gone,
   and Normal or Rainbow is a switch under Brightness and Transparency, in
-  Window colours and in the app menu. The window takes a little of it too:
+  Window colours and in the app menu, and a pill on the wave in the title
+  bar. The window takes a little of it too:
   the panes lean toward its sky.
 - **A Plus visualizer lends the whole window its colours.** Five are read
   from the visualizer itself as it plays. In Normal the buttons, the switches

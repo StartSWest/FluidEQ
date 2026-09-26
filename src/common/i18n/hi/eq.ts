@@ -738,6 +738,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
   'voicing.strength': 'मात्रा',
   'waveform.style': 'मीटर की शैली बदलें',
+  'waveform.rainbow': 'इंद्रधनुष',
   'waveform.live': 'लाइव आउटपुट',
   'waveform.signal': 'ऑडियो सिग्नल',
   'waveform.clip': 'क्लिप',

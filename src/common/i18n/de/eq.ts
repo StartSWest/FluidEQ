@@ -749,6 +749,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',
   'waveform.style': 'Stil der Anzeige wechseln',
+  'waveform.rainbow': 'Regenbogen',
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',
   'waveform.clip': 'ÜBERSTEUERUNG',

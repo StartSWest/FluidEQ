@@ -67,6 +67,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // Ivan took the pane's box off on 2026-09-25 — rim, fill and corners — so
   // the wave is drawn straight on the header; the rainbow is in the trace.
 
+  .euphoria-pill {
+    animation: rainbow-cycle 3.6s linear infinite;
+  }
+
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
   // cyan; the spectrum is what reaching the ceiling buys, so it cannot already
   // be on before you get there.
@@ -452,11 +456,68 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The meter, as one positioned box.
+// The badge that names the mode, and its switch on the header's wave: on,
+// it runs through the palette in use; off, it is drained of colour but not
+// of presence, so it reads as a control that is there to be pressed.
+.euphoria-pill {
+  padding: 2px 9px;
+  color: $surface-well;
+  border-radius: $radius-xs;
+  // Lifted toward white, so the dark label reads on every stop of the
+  // palette: its blue and indigo would lose it at their own lightness.
+  background: color-mix(in srgb, var(--rainbow-now) 68%, white);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &:focus-visible {
+    @include focus-ring($surface-well);
+  }
+}
+
+// The meter and its pill, as one positioned box.
+//
+// The pill is a sibling rather than a child because both are buttons, and a
+// button inside a button is invalid markup that browsers fix by unnesting —
+// which quietly loses the inner click.
 .waveform-visualizer-shell {
   position: relative;
   display: flex;
   min-width: 0;
+}
+
+// The last thing to go from the meter's top strip, and only once the pane
+// cannot hold the pill at all: its label and the pane's 28px of inline
+// padding. The readouts that share the strip give way before it — see the
+// note in `WaveformVisualizer.scss`.
+@container wave-meter (max-width: 136px) {
+  .waveform-visualizer__euphoria {
+    display: none;
+  }
+}
+
+// Centred over the top of the meter, clear of the readouts at either end.
+.waveform-visualizer__euphoria {
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  left: 50%;
+  border: none;
+  translate: -50% 0;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &.is-dormant {
+    color: $text-muted;
+    background: rgba($edge-tint, 0.1);
+
+    &:hover {
+      color: $white;
+      background: color-mix(in srgb, $secondary-default 22%, transparent);
+    }
+  }
 }
 
 // Registered so it can actually animate. Without the type the browser treats it

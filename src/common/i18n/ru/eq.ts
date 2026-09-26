@@ -738,6 +738,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',
   'voicing.strength': 'Сила',
   'waveform.style': 'Сменить стиль индикатора',
+  'waveform.rainbow': 'Радуга',
   'waveform.live': 'ВЫХОД В РЕАЛЬНОМ ВРЕМЕНИ',
   'waveform.signal': 'АУДИОСИГНАЛ',
   'waveform.clip': 'ПЕРЕГРУЗКА',

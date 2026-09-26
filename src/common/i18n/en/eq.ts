@@ -756,6 +756,7 @@ const eq = {
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',
   'voicing.strength': 'Strength',
   'waveform.style': 'Change the meter style',
+  'waveform.rainbow': 'Rainbow',
   'waveform.live': 'LIVE OUTPUT',
   'waveform.signal': 'AUDIO SIGNAL',
   'waveform.clip': 'CLIP',

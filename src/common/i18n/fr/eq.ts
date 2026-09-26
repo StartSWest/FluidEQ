@@ -751,6 +751,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',
   'voicing.strength': 'Intensité',
   'waveform.style': "Changer le style de l'indicateur",
+  'waveform.rainbow': 'Arc-en-ciel',
   'waveform.live': 'SORTIE EN DIRECT',
   'waveform.signal': 'SIGNAL AUDIO',
   'waveform.clip': 'SATURATION',

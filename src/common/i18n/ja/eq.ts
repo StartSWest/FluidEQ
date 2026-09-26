@@ -737,6 +737,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',
   'waveform.style': 'メーターのスタイルを変更',
+  'waveform.rainbow': 'レインボー',
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',

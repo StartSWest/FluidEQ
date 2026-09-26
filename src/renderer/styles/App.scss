@@ -700,6 +700,14 @@ select option {
   flex: 1 1 auto;
 }
 
+// The one button in the middle track, given back to the pointer. Everything
+// around it in here is a drag handle, and Windows subtracts a `no-drag`
+// rectangle from that region rather than layering it — so this is what keeps
+// the Rainbow switch pressable on a bar you can also pick the window up by.
+.titlebar-nav .waveform-visualizer__euphoria {
+  -webkit-app-region: no-drag;
+}
+
 // Nothing here strips the meter: it has no box to strip. Its fill, its rim,
 // its lit cyan when there is signal and its rainbow sweep in euphoria all went
 // on 2026-09-25 (Ivan: "the pane remove that border", then no fill and no

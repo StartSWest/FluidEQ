@@ -699,6 +699,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
   'voicing.strength': '强度',
   'waveform.style': '更换指示器样式',
+  'waveform.rainbow': '彩虹',
   'waveform.live': '实时输出',
   'waveform.signal': '音频信号',
   'waveform.clip': '削波',
