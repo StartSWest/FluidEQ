@@ -41,8 +41,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     'Eliminare «{name}» dalle disposizioni salvate? L’EQ attuale non cambia.',
   'eq.layouts.delete': 'Elimina',
-  'eq.band.resetGainHint':
-    'Ctrl/⌘-clic su un cursore ne riporta il guadagno a 0 dB.',
   'eq.mode.phase': 'Fase',
   'eq.mode.minimumPhase': 'Minima',
   'eq.mode.linearPhase': 'Lineare',

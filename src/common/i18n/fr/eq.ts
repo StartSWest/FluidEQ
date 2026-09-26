@@ -42,7 +42,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     'Supprimer « {name} » des dispositions enregistrées ? Votre EQ actuel reste inchangé.',
   'eq.layouts.delete': 'Supprimer',
-  'eq.band.resetGainHint': 'Ctrl/⌘-clic sur un curseur remet son gain à 0 dB.',
   'eq.mode.phase': 'Phase',
   'eq.mode.minimumPhase': 'Minimale',
   'eq.mode.linearPhase': 'Linéaire',

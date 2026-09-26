@@ -40,7 +40,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     '从已保存的布局中删除“{name}”？当前的 EQ 不会改变。',
   'eq.layouts.delete': '删除布局',
-  'eq.band.resetGainHint': '按住 Ctrl/⌘ 点击滑块，将其增益重置为 0 dB。',
   'eq.mode.phase': '相位',
   'eq.mode.minimumPhase': '最小',
   'eq.mode.linearPhase': '线性',

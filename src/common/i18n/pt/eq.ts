@@ -42,7 +42,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     'Excluir “{name}” dos designs salvos? Seu EQ atual permanece igual.',
   'eq.layouts.delete': 'Excluir design',
-  'eq.band.resetGainHint': 'Ctrl/⌘-clique em um controle para zerar seu ganho.',
   'eq.mode.phase': 'Fase',
   'eq.mode.minimumPhase': 'Mínima',
   'eq.mode.linearPhase': 'Linear',

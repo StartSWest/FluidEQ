@@ -43,8 +43,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     '„{name}“ aus Ihren gespeicherten Designs löschen? Ihr aktueller EQ bleibt unverändert.',
   'eq.layouts.delete': 'Design löschen',
-  'eq.band.resetGainHint':
-    'Strg/⌘-Klick auf einen Regler setzt dessen Verstärkung auf 0 dB.',
   'eq.mode.phase': 'Phase',
   'eq.mode.minimumPhase': 'Minimal',
   'eq.mode.linearPhase': 'Linear',

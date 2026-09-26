@@ -38,7 +38,6 @@ import { useLatestCall } from 'renderer/utils/utils';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
-import { useTranslation } from '../utils/I18nContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
 
@@ -85,7 +84,6 @@ const FrequencyBand = forwardRef(
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const { setGlobalError, dispatchFilter } = useFluidEqShell();
-    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
@@ -209,7 +207,6 @@ const FrequencyBand = forwardRef(
             ? undefined
             : ({ '--band-lead': `${lead}px` } as CSSProperties)
         }
-        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}${isBandEnabled(filter) ? '' : ' · off'} · ${t('eq.band.resetGainHint')}`}
         onPointerDownCapture={(event) => {
           const { target } = event;
           if (

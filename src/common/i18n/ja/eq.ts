@@ -43,8 +43,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     '保存済みレイアウトから「{name}」を削除しますか？現在のEQは変わりません。',
   'eq.layouts.delete': 'レイアウトを削除',
-  'eq.band.resetGainHint':
-    'スライダーをCtrl/⌘-クリックするとゲインを0 dBに戻します。',
   'eq.mode.phase': '位相',
   'eq.mode.minimumPhase': '最小',
   'eq.mode.linearPhase': 'リニア',

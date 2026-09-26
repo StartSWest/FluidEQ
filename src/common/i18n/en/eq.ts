@@ -38,7 +38,6 @@ const eq = {
   'eq.layouts.deleteWarning':
     'Delete “{name}” from your saved designs? Your current EQ stays unchanged.',
   'eq.layouts.delete': 'Delete design',
-  'eq.band.resetGainHint': 'Ctrl/⌘-click a slider to reset its gain to 0 dB.',
   'eq.mode.phase': 'Phase',
   'eq.mode.minimumPhase': 'Minimum',
   'eq.mode.linearPhase': 'Linear',

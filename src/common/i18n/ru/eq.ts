@@ -41,8 +41,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     'Удалить «{name}» из сохранённых схем? Текущий EQ не изменится.',
   'eq.layouts.delete': 'Удалить схему',
-  'eq.band.resetGainHint':
-    'Ctrl/⌘-щелчок по ползунку сбрасывает его усиление на 0 дБ.',
   'eq.mode.phase': 'Фаза',
   'eq.mode.minimumPhase': 'Минимальная',
   'eq.mode.linearPhase': 'Линейная',

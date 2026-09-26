@@ -42,8 +42,6 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.deleteWarning':
     'सहेजे हुए डिज़ाइन से “{name}” हटाएँ? आपका मौजूदा EQ नहीं बदलेगा।',
   'eq.layouts.delete': 'डिज़ाइन हटाएँ',
-  'eq.band.resetGainHint':
-    'स्लाइडर पर Ctrl/⌘-क्लिक करके उसका गेन 0 dB पर रीसेट करें।',
   'eq.mode.phase': 'फेज़',
   'eq.mode.minimumPhase': 'मिनिमम',
   'eq.mode.linearPhase': 'लीनियर',
