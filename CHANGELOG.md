@@ -301,7 +301,8 @@ version and in these notes.
   sliders share its width, each in a place of its own: dragging a band's
   frequency on the graph leaves its slider where it is, and two bands trade
   places only when one passes the other. The header's wave lost
-  its box, the menus lost their rainbow edge, and the tooltips are FluidEQ's
+  its box and keeps only the app's rounded corners, the menus lost their
+  rainbow edge, and the tooltips are FluidEQ's
   own. The boxes on every page — the DSP stage, the empty Library, Share
   Audio's roles, the karaoke pitch lane and the whole Karaoke Maker, Studio,
   the gallery — lost their grey fill too and stand on the floor as the panes

@@ -54,14 +54,17 @@ it under the terms of the GNU General Public License version 3 or later.
   // App.scss and Euphoria.scss went to 65 for the same reason.
   height: 63px;
   padding: 0;
-  // No box at all: no rim, no glow, no fill, no corners. The wave is drawn
-  // straight on the header (Ivan, 2026-09-25: "the pane remove that border",
-  // then "not add a bg remove it and also the borders and radius"). It used
-  // to be a well a shade under the bar with a lit rim, and a rainbow rim in
-  // euphoria. The border stays as a transparent pixel so the arithmetic above
-  // still holds and nothing inside moves; only keyboard focus draws it.
+  // No box at all: no rim, no glow, no fill. The wave is drawn straight on
+  // the header (Ivan, 2026-09-25: "the pane remove that border", then "not
+  // add a bg remove it and also the borders and radius"). It used to be a
+  // well a shade under the bar with a lit rim, and a rainbow rim in euphoria.
+  // The border stays as a transparent pixel so the arithmetic above still
+  // holds and nothing inside moves; only keyboard focus draws it. The corners
+  // came back the next day, the app's own (Ivan, 2026-09-26: "add our border
+  // radius to the top wave wrapper too"): the drawing is clipped to them
+  // (`__stage`), and the focus ring follows them.
   border: 1px solid transparent;
-  border-radius: 0;
+  border-radius: $radius-m;
   background: transparent;
   overflow: visible;
   color: inherit;
@@ -249,12 +252,15 @@ it under the terms of the GNU General Public License version 3 or later.
   // into the width the wave has to span.
   inset: var(--meter-meta-room) 2px 2px;
   display: block;
-  // Square, like the pane. It was rounded to sit inside the pane's curve, and
-  // promoted (`translateZ(0)`) because Chromium clips a composited canvas by
-  // an ancestor's rectangle but not by its radius unless that ancestor is a
-  // layer too. With no corners to follow, the plain rectangle clip is the
-  // whole job and the extra layer is gone.
+  // The app's corners (`$radius-m`, as every card has), clipped by a path:
+  // Chromium clips a composited canvas by an ancestor's rectangle but not by
+  // its radius unless that ancestor is a layer too, which is why this was
+  // once promoted with `translateZ(0)`. A clip path takes the corners off
+  // whatever is painted under it, composited or not, with no layer of its
+  // own. The overflow clip stays for the rectangle, where it is free.
+  border-radius: $radius-m;
   overflow: hidden;
+  clip-path: inset(0 round $radius-m);
   pointer-events: none;
 }
 
