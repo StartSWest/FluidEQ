@@ -322,8 +322,8 @@ version and in these notes.
   their darkest, never black, to their lightest. Transparency is how much of
   the visualizer shows through the panes on the Backdrop, and stands dimmed
   in any other mode. Both are marked at a quarter, a half and three quarters,
-  and the thumb falls into each mark. A new install opens at 25% Brightness
-  and 50% Transparency, and Brightness follows the hand without the window
+  and the thumb falls into each mark. A new install opens at 0% Brightness
+  and 5% Transparency, and Brightness follows the hand without the window
   holding it back.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let

@@ -18,13 +18,14 @@ import { readStored, writeStored } from './graphStorage';
  *
  * The floor is 20% at the least, where the panes' text still stands on
  * something darker than any scene's bright spots, and 95% at the most, where
- * the picture is still there to be seen. A fresh install starts at half
- * (Ivan, 2026-09-26: "50% default on new app installs"); 58% was where the
- * Backdrop was first tuned, and anybody who moved it keeps their own.
+ * the picture is still there to be seen. A fresh install starts at the most,
+ * which the slider shows as 5% transparent (Ivan, 2026-09-26: "transparent
+ * 5%" as the default, after trying half); 58% was where the Backdrop was
+ * first tuned, and anybody who moved it keeps their own.
  */
 export const BACKDROP_VEIL_MIN = 20;
 export const BACKDROP_VEIL_MAX = 95;
-export const BACKDROP_VEIL_DEFAULT = 50;
+export const BACKDROP_VEIL_DEFAULT = BACKDROP_VEIL_MAX;
 
 const KEY = 'fluideq.backdropVeil';
 

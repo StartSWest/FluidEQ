@@ -149,11 +149,9 @@ describe('a theme chosen before the slider', () => {
     expect(openWith('ocean')).toBe(OCEAN_SHADE);
   });
 
-  // A quarter of the way from Black when nothing usable is stored (Ivan,
-  // 2026-09-26: "the default should be 25%").
-  it('opens a shade where it was left, and anything else a quarter up', () => {
+  it('opens a shade where it was left, and anything else on Black', () => {
     expect(openWith('37')).toBe(37);
-    expect(openWith('purple')).toBe(25);
-    expect(openWith(null)).toBe(25);
+    expect(openWith('purple')).toBe(THEME_SHADE_MIN);
+    expect(openWith(null)).toBe(THEME_SHADE_MIN);
   });
 });
