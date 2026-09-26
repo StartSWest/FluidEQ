@@ -97,24 +97,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The EQ axis's compressed ends, ±20 to ±60 dB (`eqGainScale`): a haze in the
-// grid's own ink, thickest at the plot's edge where the most decibels share a
-// pixel, and nothing at the ±20 rule, so it reads as the plot's margin rather
-// than as more of the same scale.
-.chart-overflow {
-  pointer-events: none;
-}
-
-.chart-overflow__edge {
-  stop-color: rgb(214, 233, 247);
-  stop-opacity: 0.075;
-}
-
-.chart-overflow__line {
-  stop-color: rgb(214, 233, 247);
-  stop-opacity: 0;
-}
-
 // The presence line: below it a range counts as not playing, and is never
 // boosted. Deliberately thin, because it is read against the trace it sits
 // under and a thick rule would hide the very thing it is being set by. What

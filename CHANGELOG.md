@@ -336,6 +336,9 @@ version and in these notes.
   nothing is spent drawing what nobody can see. Switching between Colours,
   Ambient and Backdrop, or into full screen and back, moves the same
   visualizer instead of loading it again.
+- **The graph's paper is plain.** The shaded bands across its top and foot,
+  past ±20 dB, are gone; the ±20 dB rule still marks where the scale
+  tightens.
 - **A Plus visualizer fills the graph.** It runs up behind the section tabs
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws

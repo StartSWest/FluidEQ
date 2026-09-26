@@ -19,14 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MIN_GAIN } from 'common/constants';
 import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
 import { useSmartEqMeasurement } from '../audio/smartEqMeasurement';
 import useController, {
-  EQ_GAIN_REACH,
   GRAPH_END,
   GRAPH_START,
   graphFrequencyRange,
@@ -1186,53 +1185,17 @@ const Chart = ({
             <stop offset="0%" stopColor="#54ff8a" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#ff5a6e" stopOpacity="0.3" />
           </linearGradient>
-          {/* The haze over the EQ axis's compressed ends, thickest at the
-            plot's edge, where the most decibels share a pixel. */}
-          <linearGradient id="chart-overflow-top" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" className="chart-overflow__edge" />
-            <stop offset="100%" className="chart-overflow__line" />
-          </linearGradient>
-          <linearGradient
-            id="chart-overflow-bottom"
-            x1="0"
-            x2="0"
-            y1="1"
-            y2="0"
-          >
-            <stop offset="0%" className="chart-overflow__edge" />
-            <stop offset="100%" className="chart-overflow__line" />
-          </linearGradient>
         </defs>
         {/* The paper, as one group, so it can be taken away as one thing.
           Grouped rather than each line carrying its own class: the hiding is a
           single decision and four grid layers plus two axes agreeing about it
           is four more places for one of them to be forgotten. */}
+        {/* No band past ±20 dB, where the EQ's axis is compressed
+          (`eqGainScale`): a haze there read as a grey slab laid across the top
+          and foot of the plot (Ivan, 2026-09-26: "remove grid bg too"). The
+          ±20 rule and the compressed labels still say where the scale
+          changes. */}
         <g className="chart-grid">
-          {/* Past ±20 dB, where the EQ's axis is compressed (`eqGainScale`):
-            a band of its own, so a curve carried down there by the preamp is
-            read as far past the grid rather than just under it. */}
-          <rect
-            className="chart-overflow"
-            x={padding.left}
-            y={Number(yScaleEq(EQ_GAIN_REACH))}
-            width={plotWidth}
-            height={Math.max(
-              0,
-              Number(yScaleEq(MAX_GAIN)) - Number(yScaleEq(EQ_GAIN_REACH)),
-            )}
-            fill="url(#chart-overflow-top)"
-          />
-          <rect
-            className="chart-overflow"
-            x={padding.left}
-            y={Number(yScaleEq(MIN_GAIN))}
-            width={plotWidth}
-            height={Math.max(
-              0,
-              Number(yScaleEq(-EQ_GAIN_REACH)) - Number(yScaleEq(MIN_GAIN)),
-            )}
-            fill="url(#chart-overflow-bottom)"
-          />
           <GridLine
             type="vertical"
             scale={xScaleFreq}
