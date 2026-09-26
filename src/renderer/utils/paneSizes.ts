@@ -53,6 +53,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { useSyncExternalStore } from 'react';
+import { getBandsPaneNeed, subscribeBandsPaneNeed } from './bandsPaneNeed';
 
 /**
  * Below this a pane has stopped being a pane.
@@ -329,6 +330,11 @@ export const belowGraphPaneKey = (tab: string) => `${tab}${BELOW_GRAPH_SUFFIX}`;
  * harness, 0.45 left the page scrolling 31px at 1440x852 while 1707x960 had
  * room to spare. 344px is a track of about 96px at every width down to 1100,
  * nothing scrolling; the graph takes whatever the window has beyond it.
+ *
+ * It is only where the pane opens before the bands have been laid out once:
+ * from then on the height is what they measure they need for that track
+ * (`bandsPaneNeed.ts`), which on a 2560x1440 window, with the Tone's dials at
+ * full size, is 368px — at 344 the tracks stood at their 72px floor.
  */
 const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
 
@@ -341,7 +347,8 @@ const editorShareForTab = (tab: string) => {
     return GRAPH_STRIP_SHARE;
   }
   return tab.endsWith(BELOW_GRAPH_SUFFIX)
-    ? BELOW_GRAPH_DEFAULT_HEIGHT / Math.max(1, cachedSplittable.base)
+    ? (getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT) /
+        Math.max(1, cachedSplittable.base)
     : defaultEditorShare;
 };
 
@@ -534,3 +541,13 @@ if (typeof window !== 'undefined') {
     editorListeners.forEach((listener) => listener());
   });
 }
+
+// A pane under the graph that nobody has sized follows what the bands say
+// they need; one that has been dragged keeps its share, which this leaves
+// alone (`editorShareForTab`).
+subscribeBandsPaneNeed(() => {
+  cachedEditorHeights.forEach((_height, tab) => {
+    cachedEditorHeights.set(tab, calculateEditorHeight(tab));
+  });
+  editorListeners.forEach((listener) => listener());
+});

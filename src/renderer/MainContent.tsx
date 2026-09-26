@@ -117,10 +117,22 @@ import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import useTone, { TONE_CONTROLS } from './eq/useTone';
 import heightProperty from './utils/heightProperty';
+import { watchBandsPaneNeed } from './utils/bandsPaneNeed';
 
 /** The rail's height on the rail, which the sliders' length is worked out
  * from (`MainContent.scss`). */
-const attachRail = heightProperty('--bands-rail-height');
+const measureRail = heightProperty('--bands-rail-height');
+
+/** That, and what the pane round it needs for a full track, which is where
+ * the pane under the graph opens until the divider is moved. */
+const attachRail = (rail: HTMLDivElement | null) => {
+  const stopMeasuring = measureRail(rail);
+  const stopWatching = watchBandsPaneNeed(rail);
+  return () => {
+    stopMeasuring?.();
+    stopWatching?.();
+  };
+};
 
 const MainContent = () => {
   const {

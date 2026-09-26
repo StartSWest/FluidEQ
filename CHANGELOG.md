@@ -378,6 +378,10 @@ version and in these notes.
 
 ### Fixed
 
+- **The EQ opens with its sliders at full length on any screen.** On a large
+  screen the bands under the graph used to open squeezed to their shortest,
+  because the Tone dials there are bigger; the first height of that pane is
+  now what the bands need, until you move the divider yourself.
 - **The wave in the title bar follows quiet music.** A song played softly, or
   at a low Windows volume, used to lie almost flat on the middle line and
   jump from frame to frame; it now fills the strip and glides at any volume.
