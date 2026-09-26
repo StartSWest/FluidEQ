@@ -73,49 +73,8 @@ export const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
  */
 export const WAVEFORM_BLEED = 10;
 
-/**
- * Below this the normalising gain stops increasing. Quiet music must still
- * taper continuously toward rest; switching normalisation off at this point
- * made frames either fill the header or collapse to their raw few-percent
- * height whenever a low-volume passage crossed the boundary.
- *
- * A fixed maximum gain keeps the capture noise near the baseline without
- * introducing that gate: below the floor, half the signal draws half as tall.
- */
-export const NORMALISE_FLOOR = 0.02;
-
 /** Where the chosen meter style is remembered. */
 export const WAVEFORM_STYLE_KEY = 'fluideq-waveform-style';
-
-/**
- * Scale a frame by its own peak, so the shape fills the pane whatever the
- * volume is set to. The denominator is floored rather than the operation being
- * skipped: that caps the gain on capture noise while keeping the response
- * continuous through quiet passages.
- *
- * Written into a buffer the caller owns rather than returning a new array. This
- * runs only in euphoria, which is exactly the mode that draws at the display's
- * full rate rather than at thirty — so a `map` here was one array of a few
- * hundred numbers per frame, for as long as the mode is on, which is the same
- * per-frame garbage the rest of this pipeline goes out of its way to avoid.
- */
-export const normalise = (samples: number[], into: number[]): number[] => {
-  let peak = 0;
-  for (let index = 0; index < samples.length; index += 1) {
-    const magnitude = Math.abs(samples[index]);
-    if (magnitude > peak) {
-      peak = magnitude;
-    }
-  }
-  const gain = 1 / Math.max(peak, NORMALISE_FLOOR);
-  if (into.length !== samples.length) {
-    into.length = samples.length;
-  }
-  for (let index = 0; index < samples.length; index += 1) {
-    into[index] = samples[index] * gain;
-  }
-  return into;
-};
 
 /**
  * How the spectrum bars breathe between FFT frames.

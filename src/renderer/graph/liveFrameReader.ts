@@ -62,6 +62,13 @@ export interface ILiveFrame {
   graphPoints: IChartPointData[];
   waveform: number[];
   /**
+   * When this block was read, on the capture's audio clock. How long the
+   * output has been silent is measured on it (`waveformGate.ts`): it advances
+   * only as audio is rendered, so a drawing that reads faster than that sees
+   * the same block, and one that stalls sees the time that really passed.
+   */
+  audioMs: number;
+  /**
    * Each real channel's loudest sample in the window, as a linear amplitude:
    * what the output meter needs, and what the pump's meter reading was
    * taken from 33 ms earlier.
@@ -162,6 +169,7 @@ export const createLiveFrameReader = ({
     points: NO_POINTS,
     graphPoints: NO_POINTS,
     waveform: buffers.waveform[0],
+    audioMs: 0,
     channelPeaks: channelAnalysers.map(() => 0),
     ...(channelAnalysers.length >= 2 ? { stereo: [0, 0] } : {}),
     ...(sound ? { sound } : {}),
@@ -179,6 +187,7 @@ export const createLiveFrameReader = ({
           ? Number.POSITIVE_INFINITY
           : Math.max(0, at - readAt);
       readAt = at;
+      frame.audioMs = at;
 
       analyser.smoothingTimeConstant =
         DRAW_SMOOTHING ** (elapsedMs / UPDATE_INTERVAL_MS);

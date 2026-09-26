@@ -361,6 +361,11 @@ version and in these notes.
 
 ### Fixed
 
+- **The wave in the title bar follows quiet music.** A song played softly, or
+  at a low Windows volume, used to lie almost flat on the middle line and
+  jump from frame to frame; it now fills the strip and glides at any volume.
+  The flat line means real silence, and only once it has lasted half a
+  second, so the gap between two notes no longer flashes it.
 - **A Plus visualizer's colours arrive as you choose it**, not after it has
   loaded — even the first time, before it has ever been measured.
 - **Automatic switching gives every visualizer its whole turn**, counted from

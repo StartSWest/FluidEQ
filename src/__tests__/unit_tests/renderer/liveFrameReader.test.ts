@@ -168,6 +168,17 @@ describe('live frame reader', () => {
     expect(frames.read().points).toHaveLength(axis.length);
   });
 
+  // What the titlebar measures a silence on: the audio that passed, not how
+  // often the drawing asked.
+  it('dates each block by the audio clock it was read at', () => {
+    const { fake, frames } = reader();
+    fake.at(250);
+    expect(frames.read().audioMs).toBe(250);
+    expect(frames.read().audioMs).toBe(250);
+    fake.at(280);
+    expect(frames.read().audioMs).toBe(280);
+  });
+
   it('takes the waveform from the loudest real channel', () => {
     const { fake, frames } = reader();
     fake.at(10);

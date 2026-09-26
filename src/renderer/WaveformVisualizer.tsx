@@ -30,8 +30,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * WHAT DID NOT CHANGE. `createWaveformShape` still returns SVG path data for
  * all ten styles, because `new Path2D(d)` takes exactly that string. The shapes,
- * the easing and the normalising are untouched — this is a renderer swap, not a
- * redesign, and the geometry was never the problem.
+ * the easing and the normalising were untouched by that swap — it was a
+ * renderer swap, not a redesign. How a block is scaled to the pane, and when
+ * silence becomes the flat line, is `waveformGate.ts`.
  *
  * WHAT STAYS IN THE DOM. The pane, the labels, the held peak, the euphoria
  * pill. Those are text and controls; they change when the audio changes *state*
@@ -92,11 +93,11 @@ import {
   WAVEFORM_HEIGHT,
   WAVEFORM_STYLE_KEY,
   WAVEFORM_WIDTH,
-  normalise,
   peakDbOf,
   resolveStylePaint,
   setAlpha,
 } from './waveformPaint';
+import { type IWaveGate, createWaveGate } from './waveformGate';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -196,8 +197,15 @@ const WaveformVisualizer = () => {
   // Smoothed HERE rather than in the analyser, because the game's beat
   // detection runs off the same frames and needs the transients left sharp —
   // smoothing at the source would round off the very edges it looks for.
-  // The newest measurement, and the shape currently drawn chasing it.
+  //
+  // The newest published frame and when it arrived: what the drawing takes
+  // when it cannot read the capture itself — paused, or another PC's audio.
   const targetRef = useRef<number[]>([]);
+  const arrivedAtRef = useRef(0);
+  // Every block scaled to the pane by the music's own recent peak, and the
+  // flat line held back until silence has lasted (`waveformGate.ts`). Made on
+  // the first drawn frame, so a re-render never builds one to throw away.
+  const waveGateRef = useRef<IWaveGate | undefined>(undefined);
   // Remembered across launches: which one somebody likes is a preference, and
   // being handed back a different meter every morning is not charming. The
   // first-run default is `spectrum` — the site's signal-deck look, and the
@@ -291,9 +299,8 @@ const WaveformVisualizer = () => {
     [showAnnouncement],
   );
 
+  // The shape drawn, in the pane's units, chasing the gate's target.
   const smoothedRef = useRef<number[]>([]);
-  // Where the normalised copy is built, reused between frames. See `normalise`.
-  const normalisedRef = useRef<number[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Held rather than fetched per frame: a context is bound to the element it
   // came from, so the two are taken together and go stale together.
@@ -304,14 +311,13 @@ const WaveformVisualizer = () => {
   // Read inside the animation frame rather than closed over, so changing mode
   // does not have to rebuild the callback and restart the loop.
   //
-  // Every style now takes the max-amplitude, normalised look regardless of
-  // mode — the pane's own drawing does not shrink with the volume knob.
-  // The distinction between the two is carried by the colours below (cyan
-  // tones at rest, rainbow in euphoria), not by the geometry.
+  // Every style now takes the max-amplitude look regardless of mode — the
+  // pane's own drawing does not shrink with the volume knob, because the gate
+  // scales every block by the music's own peak. The distinction between the
+  // two is carried by the colours below (cyan tones at rest, rainbow in
+  // euphoria), not by the geometry.
   const amplitudeRef = useRef(WAVEFORM_AMPLITUDE_MAX);
   amplitudeRef.current = WAVEFORM_AMPLITUDE_MAX;
-  const normaliseRef = useRef(true);
-  normaliseRef.current = true;
   // The three states that used to reach the trace as a class on an ancestor.
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
@@ -382,11 +388,35 @@ const WaveformVisualizer = () => {
     // `liveFrameReader.ts`. Off, paused or showing another PC's audio, it
     // answers nothing and the published frame stands.
     const fresh = isOffRef.current ? undefined : readFrameRef.current();
-    const target =
-      fresh && fresh.waveform.length === smoothed.length
-        ? fresh.waveform
-        : targetRef.current;
-    const framePoints = fresh ? fresh.points : pointsRef.current;
+    // The capture's resting frame stands for every block it no longer sends,
+    // so it is dated by this drawing, as the held peak's release below counts
+    // it; any other published frame by when it arrived.
+    const isStandingRest =
+      !fresh && targetRef.current === SILENT_WAVEFORM && !isPausedRef.current;
+    waveGateRef.current ??= createWaveGate();
+    const waveGate = waveGateRef.current;
+    if (fresh) {
+      waveGate.take(fresh.waveform, fresh.points, fresh.audioMs, 'audio');
+    } else if (!isOffRef.current) {
+      waveGate.take(
+        targetRef.current,
+        pointsRef.current,
+        isStandingRest ? performance.now() : arrivedAtRef.current,
+        'arrival',
+      );
+    }
+    const target = waveGate.target();
+    if (smoothed.length !== target.length) {
+      // First block, or the analyser changed size. Nothing to ease from, so
+      // the shape arrives whole rather than growing out of zero.
+      smoothed.length = target.length;
+      for (let index = 0; index < target.length; index += 1) {
+        smoothed[index] = target[index];
+      }
+    }
+    const framePoints = isOffRef.current
+      ? pointsRef.current
+      : waveGate.points();
     // The same in both modes. Rainbow's "smoother" look is bought with
     // FRAME RATE, not with easing: `useSmoothFrames` caps the loop at
     // thirty frames a second at rest and lets it run at the display's own
@@ -401,18 +431,21 @@ const WaveformVisualizer = () => {
     // frantic beside them — a symmetric rate that quick tracks the
     // waveform's own oscillation rather than the shape of the sound, so
     // the drawing shivers instead of moving.
+    //
+    // In the pane's units, never in raw amplitude: the ease's settle
+    // threshold is a five-hundredth of the range it is given, and a raw
+    // record at -45 dBFS spans less than three of those.
     let moving = easeTowards(
       smoothed,
       target,
       getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
       getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
     );
-    // Normalising is the euphoria behaviour — the trace fills the pane
-    // regardless of the volume knob — and is applied here so every style gets
-    // it rather than each reimplementing it.
-    const scaled = normaliseRef.current
-      ? normalise(smoothed, normalisedRef.current)
-      : smoothed;
+    // A silence still inside its hold ends on a later block, and only another
+    // read can bring one: the pump sends nothing once the output is at rest.
+    if (waveGate.isHolding() && (fresh !== undefined || isStandingRest)) {
+      moving = true;
+    }
     // The FFT magnitudes are computed for every style that draws bars off
     // the spectrum — `bars`, `mirror-bars`, and the wave-plus-bars
     // `spectrum`. The renderer's imperative bar drawing below runs its
@@ -443,7 +476,7 @@ const WaveformVisualizer = () => {
     }
 
     const shape = createWaveformShape(
-      scaled,
+      smoothed,
       styleRef.current,
       WAVEFORM_WIDTH,
       WAVEFORM_HEIGHT,
@@ -816,11 +849,9 @@ const WaveformVisualizer = () => {
       return;
     }
     targetRef.current = waveform;
-    if (smoothedRef.current.length !== waveform.length) {
-      // First frame, or the analyser changed size. Nothing to ease from, so
-      // the shape arrives whole rather than growing out of zero.
-      smoothedRef.current = waveform.slice();
-    }
+    // The block's own arrival, which is what dates it when the drawing cannot
+    // read the capture's audio clock.
+    arrivedAtRef.current = performance.now();
     kickFrames();
   }, [isOff, kickFrames, waveform]);
 
