@@ -327,6 +327,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Meter *****************************************************************
 
+// The way back to a meter hidden from the graph's View menu (`SideBar`):
+// the strip's width, its words wrapped and centred, where "Mostrar el
+// medidor de nivel" is three words too long for one line.
+.side-bar__meter-show {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+  text-wrap: balance;
+}
+
 // Takes the rest of the column: a meter is the one control here that is
 // genuinely better tall — more resolution per decibel — and everything above
 // it is a fixed size. The floor keeps its heading, its well and a legible

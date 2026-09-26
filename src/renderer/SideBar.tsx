@@ -29,7 +29,7 @@ import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { useCurrentEngine } from './utils/audioEngineContext';
 import { useEnginePreamp, useEnginePreampReader } from './utils/enginePreamp';
-import { useGraphMeterHidden } from './utils/graphStyle';
+import { toggleGraphMeter, useGraphMeterHidden } from './utils/graphStyle';
 import writeLiveText from './utils/liveText';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import LiveFigure from './components/LiveFigure';
@@ -223,6 +223,23 @@ const SideBar = ({
               meter is switched off in the graph's own menu: an empty well
               with a heading over it is a broken instrument, not a hidden
               one. */}
+          {/* Hidden from the graph's View menu, and brought back from here
+              as well: with the graph switched off that menu is not on screen
+              at all, and a hidden meter had no way back from the place it
+              had stood (Ivan, 2026-09-26: "where are my meters"). One quiet
+              button rather than the empty well. */}
+          {isMeterHidden && (
+            <>
+              <div className="side-bar__rule" />
+              <button
+                type="button"
+                className="button small subtle side-bar__meter-show"
+                onClick={toggleGraphMeter}
+              >
+                {t('graph.show', { item: t('graph.item.meter') })}
+              </button>
+            </>
+          )}
           {!isMeterHidden && (
             <>
               <div className="side-bar__rule" />
