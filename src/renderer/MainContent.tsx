@@ -116,6 +116,11 @@ import ConfirmIcon from './icons/ConfirmIcon';
 import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import useTone, { TONE_CONTROLS } from './eq/useTone';
+import heightProperty from './utils/heightProperty';
+
+/** The rail's height on the rail, which the sliders' length is worked out
+ * from (`MainContent.scss`). */
+const attachRail = heightProperty('--bands-rail-height');
 
 const MainContent = () => {
   const {
@@ -1317,11 +1322,11 @@ const MainContent = () => {
             their frequencies overprinted on one another, and nothing anybody
             could aim at. Each band keeps a floor of its own instead and the
             row runs past the edge, which is a thing you can scroll. */}
-        <div className="bands-rail">
-          {/* No arrows while the bands stand under their points: every one of
-              them is inside the plot's width by construction, and the few
-              pixels the outermost may hang into the page's padding are not
-              a row to scroll. */}
+        <div className="bands-rail" ref={attachRail}>
+          {/* No arrows while the bands are placed across the plot: every one
+              of them is inside its width by construction, and the few pixels
+              the outermost may hang into the page's padding are not a row to
+              scroll. */}
           {!bandPlacement && canScrollBands.canScrollBack && (
             <OverflowArrow
               direction="back"

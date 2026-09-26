@@ -1271,12 +1271,24 @@ $eq-bubble-applied-hold: 1.5s;
   grid-template-rows: minmax(186px, 378px) auto;
 }
 
+// Size-contained, so its height is the grid row's and not its content's; the
+// sliders' length is worked out from that height, measured onto the rail as
+// `--bands-rail-height` (`MainContent.tsx`). Not in container units: those
+// are resolved again every time the rail is laid out, which restyled every
+// slider and laid the page out twice on each step of a drag.
 .main-content > .bands-rail {
-  container: eq-bands / size;
+  // The containment the size container carried, without the container: its
+  // absolutely placed children (the arrows, the marquee) keep it as the box
+  // they are placed in.
+  contain: size layout style;
 }
 
 .bandWrapper .range {
-  --range-length: clamp(72px, calc(100cqh - 114px), 264px);
+  --range-length: clamp(
+    72px,
+    calc(var(--bands-rail-height, 264px) - 114px),
+    264px
+  );
 }
 
 // The reference picker used to sit above the bands and folding it stretched the
@@ -1301,14 +1313,18 @@ $eq-bubble-applied-hold: 1.5s;
 // other one: long enough to use a 1080 window's room, and short of a fader so
 // long that a full sweep is a reach across the screen.
 // Only the two numbers differ from the docked case above, which already grows
-// the grid to the panel and makes the rail a size container.
+// the grid to the panel and measures the rail.
 #root.minimized {
   .workspace-tab-panel__scroll > .main-content {
     grid-template-rows: minmax(246px, 634px) auto;
   }
 
   .bandWrapper .range {
-    --range-length: clamp(132px, calc(100cqh - 114px), 520px);
+    --range-length: clamp(
+      132px,
+      calc(var(--bands-rail-height, 520px) - 114px),
+      520px
+    );
   }
 }
 

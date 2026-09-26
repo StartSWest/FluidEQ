@@ -102,11 +102,28 @@ describe('the row under the EQ bands', () => {
   it('measures the bands from the room left, never from a constant', () => {
     const length = declared('.bandWrapper .range', '--range-length');
     expect(length).toBeDefined();
-    // The rail is a size container, so `100cqh` is the band row's own height.
-    expect(length).toContain('100cqh');
+    // The band row's own height, measured onto the rail by the page.
+    expect(length).toContain('var(--bands-rail-height');
+    // Never in container units: those are resolved again each time the rail
+    // is laid out, which restyled every slider and laid the page out twice
+    // on each step of a drag (2026-09-26, 800ms of layout to 192ms).
+    expect(length).not.toMatch(/\d+cq[hwib]/);
     // The pane's height less a fixed allowance is what could not know which
     // of the two rows was showing.
     expect(length).not.toContain('--editor-height');
+  });
+
+  it('keeps the rail sized by its grid row, not by its sliders', () => {
+    // Size containment is what makes the measured height the row's: without
+    // it the sliders' length would feed back into the height it is read from.
+    expect(declared('.main-content > .bands-rail', 'contain')).toBe(
+      'size layout style',
+    );
+    // And no container is declared, so nothing can quote the rail in
+    // container units by accident.
+    expect(
+      declared('.main-content > .bands-rail', 'container'),
+    ).toBeUndefined();
   });
 
   it('reserves the taller of the two rows, so neither state moves the bands', () => {
