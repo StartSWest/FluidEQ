@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 import {
   BACKDROP_VEIL_MAX,
   BACKDROP_VEIL_MIN,
@@ -14,6 +14,11 @@ import {
   useBackdropVeil,
 } from '../utils/backdropVeil';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import { useSceneTintMode } from '../utils/sceneTintStore';
 
 /**
@@ -30,6 +35,10 @@ import { useSceneTintMode } from '../utils/sceneTintStore';
  * it stands dimmed and does not move: a slider that moved and changed
  * nothing would read as broken.
  */
+/** The slider's ends as transparencies, the veil's range turned round. */
+const MIN_SHOWN = 100 - BACKDROP_VEIL_MAX;
+const MAX_SHOWN = 100 - BACKDROP_VEIL_MIN;
+
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
@@ -47,17 +56,35 @@ const BackdropVeilSlider = () => {
         <path d="M2.5 9.5h11" />
       </svg>
       <span>{t('graph.backdropVeil')}</span>
-      <input
-        id={id}
-        type="range"
-        aria-label={t('graph.backdropVeil')}
-        min={100 - BACKDROP_VEIL_MAX}
-        max={100 - BACKDROP_VEIL_MIN}
-        step={1}
-        disabled={!isBackdrop}
-        value={transparency}
-        onChange={(event) => setBackdropVeil(100 - Number(event.target.value))}
-      />
+      {/* The quarters, marked and fallen into (`percentSnaps.ts`), as on
+          Brightness beside it. */}
+      <span className="graph-view-menu__track">
+        {PERCENT_SNAPS.map((snap) => (
+          <i
+            key={snap}
+            className="graph-view-menu__snap"
+            style={
+              {
+                '--snap-frac': snapFraction(snap, MIN_SHOWN, MAX_SHOWN),
+              } as CSSProperties
+            }
+            aria-hidden
+          />
+        ))}
+        <input
+          id={id}
+          type="range"
+          aria-label={t('graph.backdropVeil')}
+          min={MIN_SHOWN}
+          max={MAX_SHOWN}
+          step={1}
+          disabled={!isBackdrop}
+          value={transparency}
+          onChange={(event) =>
+            setBackdropVeil(100 - snapPercent(Number(event.target.value)))
+          }
+        />
+      </span>
       <span className="graph-view-menu__value" aria-hidden>
         {t('graph.scene.percent', { percent: String(transparency) })}
       </span>

@@ -39,6 +39,7 @@ import {
 import SceneParamMenu from './SceneParamMenu';
 import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
+import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -157,33 +158,6 @@ interface IPlacement {
   /** How tall it may be here, or none if it fits without a cap. */
   maxHeight?: number;
 }
-
-/**
- * The wave height slider snaps to the quarter marks.
- *
- * A half-height wave is a thing people set on purpose — it leaves the top
- * half of the plot for the response curves — and landing on exactly 50
- * with a mouse is luck. Within three points of a quarter the thumb goes
- * to it; further away it is free.
- */
-/**
- * The quarters, on every percentage slider in this menu.
- *
- * A slider that lands exactly on a quarter is worth more than three
- * decimal places of freedom either side of it: half height and half
- * see-through are the settings people actually mean, and hitting one by
- * hand on an 86px track is luck. The ticks say where they are and the
- * reach makes the thumb fall into them. Blur is not a percentage and has
- * no quarters worth naming, so it stays a plain slider.
- */
-const PERCENT_SNAPS = [25, 50, 75];
-const PERCENT_SNAP_REACH = 3;
-export const snapPercent = (percent: number): number => {
-  const near = PERCENT_SNAPS.find(
-    (snap) => Math.abs(percent - snap) <= PERCENT_SNAP_REACH,
-  );
-  return near ?? percent;
-};
 
 /**
  * How close to an edge the list may come before it stops growing — the

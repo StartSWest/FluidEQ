@@ -15,7 +15,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The layout itself is measured in the running window; this is the rule.
  */
 
-import { isTitlebarCrowded } from '../../../renderer/utils/useTitlebarRoom';
+import {
+  isTitlebarCrowded,
+  watchTitlebarRoom,
+} from '../../../renderer/utils/useTitlebarRoom';
 
 describe('the titlebar giving ground before the wave does', () => {
   it('keeps the two while either end has room beside its content', () => {
@@ -86,5 +89,69 @@ describe('the titlebar giving ground before the wave does', () => {
         }),
       ).toBe(true);
     });
+  });
+});
+
+/**
+ * What the bar is measured again for. Every step of the actions menu's
+ * Brightness slider rewrote its percentage inside the right end, and each
+ * rewrite measured the bar — five reads of a layout just restyled everywhere,
+ * most of what held the slider to 20 frames a second. A menu is out of the
+ * flow and changes no end's width.
+ */
+describe('the titlebar measured again', () => {
+  const settle = () =>
+    new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+
+  const bar = () => {
+    const header = document.createElement('header');
+    const left = document.createElement('div');
+    const right = document.createElement('div');
+    const tab = document.createElement('span');
+    tab.textContent = 'Online Media';
+    const menu = document.createElement('div');
+    menu.setAttribute('role', 'menu');
+    const percent = document.createElement('span');
+    percent.textContent = '25%';
+    menu.append(percent);
+    right.append(tab, menu);
+    header.append(left, right);
+    document.body.append(header);
+    return { header, left, right, tab, percent };
+  };
+
+  beforeAll(() => {
+    // jsdom has no ResizeObserver; the bar's size is not what is tested here.
+    window.ResizeObserver = jest.fn(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+  });
+
+  it('is not measured for what changes inside an open menu', async () => {
+    const { header, left, right, percent } = bar();
+    const stop = watchTitlebarRoom(header, left, right);
+    const reads = jest.spyOn(right, 'getBoundingClientRect');
+    percent.textContent = '26%';
+    percent.className = 'is-moving';
+    await settle();
+    expect(reads).not.toHaveBeenCalled();
+    stop();
+    header.remove();
+  });
+
+  // The control: the same kind of change in the flow is measured.
+  it('is measured for what changes in the flow', async () => {
+    const { header, left, right, tab } = bar();
+    const stop = watchTitlebarRoom(header, left, right);
+    const reads = jest.spyOn(right, 'getBoundingClientRect');
+    tab.textContent = 'Multimedia en línea';
+    await settle();
+    expect(reads).toHaveBeenCalled();
+    stop();
+    header.remove();
   });
 });

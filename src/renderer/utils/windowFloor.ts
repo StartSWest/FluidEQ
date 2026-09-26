@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect } from 'react';
-import { useThemeShade } from './theme';
+import { subscribeTheme } from './theme';
 
 /**
  * Tells the native window what colour the shell's floor is.
@@ -43,28 +43,50 @@ export const readWindowFloor = (): string | undefined => {
 };
 
 /**
- * Publishes it on mount and on every step of the theme's slider.
+ * Publishes it on mount and whenever the theme's slider moves, at most once a
+ * frame.
  *
- * In an effect rather than beside the attribute the theme writes: the theme is
- * applied as soon as its module loads, which in development is before
- * style-loader has put the stylesheet in the document, and the floor would
- * read as whatever an unstyled page computes. An effect runs after the cascade
- * has, every time.
+ * Subscribed to the theme's store directly rather than through a hook: the
+ * hook re-rendered the component it lived in, which is the app's own root,
+ * so every step of a Brightness drag re-rendered the whole window — every
+ * knob and switch rewritten — to send one colour to the main process. A
+ * frame's worth of steps send one, read in the frame after the change, once
+ * the cascade has applied it.
+ *
+ * On mount in an effect rather than beside the attribute the theme writes:
+ * the theme is applied as soon as its module loads, which in development is
+ * before style-loader has put the stylesheet in the document, and the floor
+ * would read as whatever an unstyled page computes. An effect runs after the
+ * cascade has, every time.
  */
+const publishFloor = () => {
+  const floor = readWindowFloor();
+  if (!floor) {
+    return;
+  }
+  // Every optional link is deliberate: tests stub the bridge with a handful
+  // of methods, and the window's background is not worth taking a render
+  // down for.
+  window.electron?.ipcRenderer?.setWindowFloor?.(floor)?.catch(() => undefined);
+};
+
 const useWindowFloor = () => {
-  const shade = useThemeShade();
   useEffect(() => {
-    const floor = readWindowFloor();
-    if (!floor) {
-      return;
-    }
-    // Every optional link is deliberate: tests stub the bridge with a handful
-    // of methods, and the window's background is not worth taking a render
-    // down for.
-    window.electron?.ipcRenderer
-      ?.setWindowFloor?.(floor)
-      ?.catch(() => undefined);
-  }, [shade]);
+    publishFloor();
+    let frame = 0;
+    const unsubscribe = subscribeTheme(() => {
+      if (frame === 0) {
+        frame = window.requestAnimationFrame(() => {
+          frame = 0;
+          publishFloor();
+        });
+      }
+    });
+    return () => {
+      unsubscribe();
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
 };
 
 export default useWindowFloor;

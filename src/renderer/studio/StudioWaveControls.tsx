@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { snapPercent } from '../graph/GraphViewMenu';
+import { snapPercent } from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
 import { Setting } from './StudioSettings';
 import { STUDIO_WAVE_MIN_HEIGHT, type IStudioWave } from './studioWave';

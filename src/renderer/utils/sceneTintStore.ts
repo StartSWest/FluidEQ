@@ -19,6 +19,7 @@ import {
 } from './sceneTint';
 import { tintLiftForShade } from './sceneTintPalette';
 import { getThemeShade, subscribeTheme } from './theme';
+import { THEME_SHADE_TOKENS, themeShadeTokens } from './themeShade';
 
 /**
  * The window in a Plus visualizer's colour: the switch, what each scene's sky
@@ -417,39 +418,57 @@ const sameSky = (left?: ISceneSky, right?: ISceneSky) =>
     sameColour(left.active, right.active));
 
 /**
- * The theme's own values for the tinted tokens, read once per shade.
+ * The theme's own values for the tinted tokens at `shade`.
  *
- * Reading them means lifting the overrides first — they are what the computed
- * style would otherwise answer — and that is a whole style pass of its own on
- * top of the one the new colours cost. Read on every change, both passes
- * landed on the first frame of the fade. A stylesheet edited under a running
- * development window is not seen here until the theme changes or it reloads.
+ * Every one the Brightness slider moves is worked out, not read: the slider
+ * is `themeShadeTokens`, a table walked in OKLab, and the same table gives
+ * the theme's value for any shade straight away. They used to be read off
+ * the root, which meant lifting the tint's overrides — they are what the
+ * computed style would otherwise answer — reading, and putting them back:
+ * a whole style pass of the window of its own, on every step of a Brightness
+ * drag with a tint on, which with Rainbow mode on by default is always.
+ * Measured on the window's 1,300 elements, that was one of the three style
+ * passes a step cost, and the slider moved at 20 frames a second.
+ *
+ * The rest (`--active`) no shade changes, so it is read once, the same way.
+ * A stylesheet edited under a running development window is not seen here
+ * until it reloads.
  */
-let themeBase: { shade: number; values: Record<string, string> } | undefined;
+const SHADE_TOKENS: ReadonlySet<string> = new Set(THEME_SHADE_TOKENS);
+let fixedBase: Record<string, string> | undefined;
 
-const readThemeBase = (shade: number) => {
-  if (themeBase?.shade === shade) {
-    return themeBase.values;
+const readFixedBase = () => {
+  if (fixedBase) {
+    return fixedBase;
   }
   const root = document.documentElement;
-  const held = SCENE_TINT_TOKENS.map(
+  const fixed = SCENE_TINT_TOKENS.filter((token) => !SHADE_TOKENS.has(token));
+  const held = fixed.map(
     (token) => [token, root.style.getPropertyValue(token)] as const,
   );
   held.forEach(([token]) => root.style.removeProperty(token));
   const computed = getComputedStyle(root);
-  const values = Object.fromEntries(
-    SCENE_TINT_TOKENS.map((token) => [
-      token,
-      computed.getPropertyValue(token).trim(),
-    ]),
+  fixedBase = Object.fromEntries(
+    fixed.map((token) => [token, computed.getPropertyValue(token).trim()]),
   );
   held.forEach(([token, value]) => {
     if (value) {
       root.style.setProperty(token, value);
     }
   });
-  themeBase = { shade, values };
-  return values;
+  return fixedBase;
+};
+
+let themeBase: { shade: number; values: Record<string, string> } | undefined;
+
+const readThemeBase = (shade: number) => {
+  if (themeBase?.shade !== shade) {
+    themeBase = {
+      shade,
+      values: { ...readFixedBase(), ...themeShadeTokens(shade) },
+    };
+  }
+  return themeBase.values;
 };
 
 /**
@@ -566,22 +585,23 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
 };
 
 /**
- * The Brightness moved lands at once and at most once a frame: the slider
- * moves under the pointer, and a cross-fade on every step would be the
- * window lagging behind it. Mid-fade it waits for the fade, which repaints
- * to whatever is wanted when it ends.
+ * A Brightness move lands at once, in the same task as the theme's own rule:
+ * the slider moves under the pointer, and a cross-fade on every step would be
+ * the window lagging behind it. Mid-fade it waits for the fade, which
+ * repaints to whatever is wanted when it ends.
+ *
+ * Not deferred to the next frame. Deferred, the theme's rule changed in the
+ * input event and the tint's overrides in a frame callback queued behind
+ * every drawing's own — and the drawings read the root's colours in between,
+ * so each step of a drag paid for the window's whole style twice (1,300
+ * elements, measured). Written together, the next read or frame pays once;
+ * two steps landing in one frame cost two sets of property writes, which
+ * restyle nothing until something reads.
  */
-let liftFrame = 0;
 const repaintLift = () => {
-  if (liftFrame !== 0 || typeof window === 'undefined') {
-    return;
+  if (!fading && needsPaint()) {
+    paint();
   }
-  liftFrame = window.requestAnimationFrame(() => {
-    liftFrame = 0;
-    if (!fading && needsPaint()) {
-      paint();
-    }
-  });
 };
 subscribeTheme(repaintLift);
 

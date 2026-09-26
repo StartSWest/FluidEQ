@@ -92,6 +92,16 @@ const contentWidth = (end: HTMLElement) => {
 const spareIn = (end: HTMLElement) =>
   end.getBoundingClientRect().width - contentWidth(end);
 
+/** A change the ends are measured again for: anything outside a menu. */
+const MENU = '[role="menu"]';
+const movesAnEnd = (record: MutationRecord) => {
+  const element =
+    record.target instanceof Element
+      ? record.target
+      : record.target.parentElement;
+  return !element?.closest(MENU);
+};
+
 /**
  * Watch the bar and keep `data-crowded` true to it. Returns the teardown.
  *
@@ -103,6 +113,15 @@ const spareIn = (end: HTMLElement) =>
  * the media tab's one-word name), by children (the creature leaves while the
  * chrome idles) and by class (a tab chosen); `style` is left out, because the
  * creature's level is written there twenty times a second.
+ *
+ * Nothing inside an open menu counts. The actions menu and Help open inside
+ * the right end, out of the flow, so what changes in them changes no end's
+ * width — but every step of the menu's Brightness slider rewrote its
+ * percentage and restyled its row, and each of those measured the bar: five
+ * reads of the layout a step, on a window whose style had just been changed
+ * everywhere, which was most of what held the slider to 20 frames a second.
+ * A menu opening or closing is a child added to or taken from something
+ * outside it, and is still measured.
  */
 export const watchTitlebarRoom = (
   bar: HTMLElement,
@@ -163,7 +182,11 @@ export const watchTitlebarRoom = (
   measure();
   const size = new ResizeObserver(measure);
   size.observe(bar);
-  const contents = new MutationObserver(measure);
+  const contents = new MutationObserver((records) => {
+    if (records.some(movesAnEnd)) {
+      measure();
+    }
+  });
   [left, right].forEach((end) =>
     contents.observe(end, {
       characterData: true,

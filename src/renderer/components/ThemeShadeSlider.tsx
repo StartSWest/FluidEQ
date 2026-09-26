@@ -8,6 +8,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useId, type CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import {
   THEME_SHADE_MAX,
@@ -28,7 +33,9 @@ const TRACK_STYLE = {
  * walks a visualizer's colours.
  *
  * The window follows the thumb as it moves: nothing is committed on release,
- * because the colour on screen is the only way to judge where to stop.
+ * because the colour on screen is the only way to judge where to stop. It
+ * falls into the same quarters as the window's Brightness (`percentSnaps.ts`),
+ * so the two never disagree about where a quarter is.
  */
 const ThemeShadeSlider = () => {
   const { t } = useTranslation();
@@ -44,17 +51,37 @@ const ThemeShadeSlider = () => {
         <span className="theme-shade__end" aria-hidden="true">
           {t('theme.black')}
         </span>
-        <input
-          id={id}
-          type="range"
-          className="theme-shade__range"
-          style={TRACK_STYLE}
-          min={THEME_SHADE_MIN}
-          max={THEME_SHADE_MAX}
-          step={1}
-          value={shade}
-          onChange={(event) => setThemeShade(Number(event.target.value))}
-        />
+        <span className="theme-shade__track">
+          {PERCENT_SNAPS.map((snap) => (
+            <i
+              key={snap}
+              className="theme-shade__snap"
+              style={
+                {
+                  '--snap-frac': snapFraction(
+                    snap,
+                    THEME_SHADE_MIN,
+                    THEME_SHADE_MAX,
+                  ),
+                } as CSSProperties
+              }
+              aria-hidden
+            />
+          ))}
+          <input
+            id={id}
+            type="range"
+            className="theme-shade__range"
+            style={TRACK_STYLE}
+            min={THEME_SHADE_MIN}
+            max={THEME_SHADE_MAX}
+            step={1}
+            value={shade}
+            onChange={(event) =>
+              setThemeShade(snapPercent(Number(event.target.value)))
+            }
+          />
+        </span>
         <span className="theme-shade__end" aria-hidden="true">
           {t('theme.ocean')}
         </span>

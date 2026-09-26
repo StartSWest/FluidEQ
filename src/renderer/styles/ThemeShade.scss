@@ -24,7 +24,31 @@
   font-size: $text-small;
 }
 
+// The track and its quarters (`percentSnaps.ts`): a hair above and below the
+// painted track at each, as on the window's Brightness, where the thumb falls.
+.theme-shade__track {
+  position: relative;
+  display: flex;
+  min-width: 72px;
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.theme-shade__snap {
+  position: absolute;
+  top: 50%;
+  // Half the 16px thumb in from each end, whatever the track is wide.
+  left: calc(8px + var(--snap-frac, 0) * (100% - 16px));
+  width: 1px;
+  height: 14px;
+  border-radius: 1px;
+  background: rgba($edge-tint, 0.4);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .theme-shade__range {
+  position: relative;
   width: 100%;
   min-width: 72px;
   height: 22px;
