@@ -29,8 +29,12 @@ import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers, reportError } from './utils/logger';
 import installTooltipLayer from './utils/tooltipLayer';
+import forgetReactTimings from './utils/forgetReactTimings';
 import { readInitialLocale } from './utils/I18nContext';
 import { preloadLaunchPages } from './workspacePages';
+
+// Before the first render, whose own entries are the first React writes.
+forgetReactTimings();
 
 // The window title, which `index.ejs` also carries so that something sensible
 // is on the taskbar before any JavaScript runs. Set again from branding

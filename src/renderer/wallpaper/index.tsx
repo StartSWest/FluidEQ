@@ -1,7 +1,12 @@
 import { createRoot } from 'react-dom/client';
 import type { IWallpaperSurfaceBridge } from 'common/wallpaper';
+import forgetReactTimings from '../utils/forgetReactTimings';
 import WallpaperSurface from './WallpaperSurface';
 import './surface.css';
+
+// A desktop background stays up for hours, so in development React's timing
+// entries would pile up here as they do in the window.
+forgetReactTimings();
 
 declare global {
   interface Window {
