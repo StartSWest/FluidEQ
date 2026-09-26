@@ -22,7 +22,7 @@ import { useUsableScenes } from '../utils/scenePacks';
  * icon is drawn in (Ivan, 2026-09-26: "when plus viz and rainbow mode we need
  * the plus viz rainbow matching its current theme, like different rainbow
  * modes depending on the current plus viz"). Otherwise, and for a scene in
- * greys, it is Aurora (`rainbowPalette.ts`).
+ * greys, it is Lagoon (`rainbowPalette.ts`).
  *
  * Whatever the window's colours are set to: Theme, Colours, Ambient or the
  * Backdrop decide what the scene does to the panes, and the rainbow is the

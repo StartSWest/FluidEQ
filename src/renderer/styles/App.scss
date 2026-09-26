@@ -1960,7 +1960,7 @@ textarea,
 // The theme is a slider from Black to a lighter Ocean (Ivan, 2026-09-25), and
 // `renderer/utils/themeShade.ts` writes every step of it as a rule over this
 // block: the surfaces, the edges, the accent and the coverage columns, walked
-// in OKLab through Black (`#050608` floor, `#52e9dc` accent, grey coverage
+// in OKLab through Black (`#050608` floor, `#4fe6ef` accent, grey coverage
 // columns) and the Ocean below. This block is what the window paints before
 // that script has run, and `themeShade.test.ts` holds the script's Ocean to
 // it.
@@ -1991,12 +1991,28 @@ textarea,
   // one pane from the next.
   --border-subtle: rgba(214, 233, 247, 0.09);
   --border-panel: rgba(214, 233, 247, 0.11);
-  --border-menu: rgba(156, 255, 244, 0.22);
+  --border-menu: rgba(156, 250, 255, 0.22);
   // The accent: the chosen thing, the live thing, the thing to press.
-  --accent: #00e5cf;
-  --accent-light: #9cfff4;
+  --accent: #1bdee7;
+  --accent-light: #a1fcff;
   --accent-dark: #00a9d6;
   --accent-darker: #007f95;
+  // What a filled control is painted with: the accent between a greener and
+  // a bluer end, the span the icon's wave runs (Ivan, 2026-09-26: "i wanna see
+  // app colors match more the icon"). Worked out from the accent in OKLCH, so
+  // the slider's every step and a scene's tint carry it with them; Rainbow
+  // mode takes the two ends from its palette instead (`Rainbow.scss`). 20°
+  // back and 35° on from the accent's hue is aqua to azure on the cyan, and
+  // the ends move 0.04 lighter and 0.05 darker so the label keeps its
+  // contrast across the whole fill.
+  --accent-start: oklch(from var(--accent) calc(l + 0.04) c calc(h - 20));
+  --accent-end: oklch(from var(--accent) calc(l - 0.05) c calc(h + 35));
+  --accent-fill: linear-gradient(
+    100deg,
+    var(--accent-start),
+    var(--accent) 48%,
+    var(--accent-end)
+  );
   // What says a thing is on: the attached profile, the live output, a project
   // that saves as it goes. Shared by both themes, and turned to a scene's own
   // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
@@ -2538,7 +2554,7 @@ $tab-bar-inset: 8px;
   height: 2px;
   border: 0;
   border-radius: 2px;
-  background: $secondary-default;
+  background: $secondary-default var(--accent-fill);
   box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
   pointer-events: none;
   transform: translateX(var(--tab-pill-x, 0));
@@ -4351,7 +4367,7 @@ button.graph-legend {
   width: var(--section-bar-width, 0);
   height: 2px;
   border-radius: 2px;
-  background: $secondary-default;
+  background: $secondary-default var(--accent-fill);
   box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
   pointer-events: none;
   transform: translateX(var(--section-bar-x, 0));

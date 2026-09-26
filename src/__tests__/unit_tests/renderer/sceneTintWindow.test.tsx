@@ -164,10 +164,11 @@ describe('the graph’s visualizer', () => {
     expect(root.style.getPropertyValue('--surface-base')).toBe('');
   });
 
-  // Rainbow mode with no visualizer lends the window Aurora, as a scene would
+  // Rainbow mode with no visualizer lends the window Lagoon, as a scene would
   // lend its own colours (Ivan, 2026-09-26: "la interfaz ... debe también kind
-  // of match some of the aurora color when there is not plus viz").
-  it('lends the window Aurora in Rainbow mode with no visualizer chosen', () => {
+  // of match some of the aurora color when there is not plus viz"; the mode's
+  // palette is Lagoon since "wave lagoon").
+  it('lends the window Lagoon in Rainbow mode with no visualizer chosen', () => {
     mockLookId = 'look:signal';
     root.classList.add('is-euphoric');
     try {

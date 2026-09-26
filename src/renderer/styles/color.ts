@@ -29,8 +29,8 @@ export enum PrimaryColorEnum {
 export enum SecondaryColorEnum {
   DARKER = '#007f95',
   DARK = '#00a9d6',
-  DEFAULT = '#00e5cf',
-  LIGHT = '#9cfff4',
+  DEFAULT = '#1bdee7',
+  LIGHT = '#a1fcff',
 }
 
 export enum ColorEnum {

@@ -5,16 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Rainbow mode's palette: Aurora, never the flag, and a Plus visualizer's own
+ * Rainbow mode's palette: Lagoon, never the flag, and a Plus visualizer's own
  * colours while one is chosen (Ivan, 2026-09-26: "que podemos hacer para que
- * no se parezca al LGBT", then "quiero el aurora ... different rainbow modes
- * depending on the current plus viz").
+ * no se parezca al LGBT", then "different rainbow modes depending on the
+ * current plus viz", then "wave lagoon" — the icon's own colours).
  */
 
 import { getBandColor } from '../../../renderer/utils/bandColors';
 import { parseCssColour, rgbToLab } from '../../../renderer/utils/oklab';
 import {
-  AURORA,
+  LAGOON,
   RAINBOW_STOP_COUNT,
   RAINBOW_TOKENS,
   getRainbowStops,
@@ -36,7 +36,7 @@ const lchOf = (colour: string) => {
   };
 };
 
-/** Red, orange, yellow and green: the half of the flag Aurora leaves out. */
+/** Red, orange, yellow and green: the half of the flag Lagoon leaves out. */
 const isFlagWarmOrGreen = (hue: number) => hue > 15 && hue < 165;
 
 afterEach(() => {
@@ -44,10 +44,10 @@ afterEach(() => {
   document.documentElement.removeAttribute('style');
 });
 
-describe('Aurora', () => {
+describe('Lagoon', () => {
   it('is seven stops, cold hues only: no red, orange, yellow or green', () => {
-    expect(AURORA).toHaveLength(RAINBOW_STOP_COUNT);
-    AURORA.forEach((stop) => {
+    expect(LAGOON).toHaveLength(RAINBOW_STOP_COUNT);
+    LAGOON.forEach((stop) => {
       expect(isFlagWarmOrGreen(lchOf(stop).h)).toBe(false);
     });
     // Positive control: the palette it replaced was the flag.
@@ -58,12 +58,12 @@ describe('Aurora', () => {
   });
 
   it('is the palette in use until a visualizer lends one', () => {
-    expect(getRainbowStops()).toEqual(AURORA);
+    expect(getRainbowStops()).toEqual(LAGOON);
   });
 });
 
 describe('the palette in use', () => {
-  it('is written on the root, a token per stop, and put back as Aurora', () => {
+  it('is written on the root, a token per stop, and put back as Lagoon', () => {
     const fire = rainbowFromColours(['#1a0500', '#ff6a00', '#ffd000']);
     if (!fire) {
       throw new Error('a fire scene gave no rainbow');
@@ -75,13 +75,13 @@ describe('the palette in use', () => {
     });
     setRainbowStops(undefined);
     RAINBOW_TOKENS.forEach((token, index) => {
-      expect(style.getPropertyValue(token)).toBe(AURORA[index]);
+      expect(style.getPropertyValue(token)).toBe(LAGOON[index]);
     });
   });
 
   it('refuses anything but seven stops', () => {
     setRainbowStops(['#ff0000', '#00ff00']);
-    expect(getRainbowStops()).toEqual(AURORA);
+    expect(getRainbowStops()).toEqual(LAGOON);
   });
 
   it('colours the bands, low to high, first stop to last', () => {
@@ -96,18 +96,18 @@ describe('the palette in use', () => {
       first?.rgb.map((channel) => Math.round(channel * 255)),
     );
     // And a palette handed in wins over the one in use.
-    expect(getBandColor(0, AURORA).color).toBe('rgb(0, 229, 207)');
+    expect(getBandColor(0, LAGOON).color).toBe('rgb(114, 247, 221)');
   });
 
   it('turns as a loop: a whole turn is the first stop again', () => {
     expect(rainbowColourAt(0)).toBe(rainbowColourAt(1));
-    expect(rainbowColourAt(0)).toBe('rgb(0, 229, 207)');
+    expect(rainbowColourAt(0)).toBe('rgb(114, 247, 221)');
     expect(rainbowColourAt(0.5, 0, 0.3)).toMatch(/^rgba\(.*, 0\.300\)$/);
   });
 });
 
 describe('a visualizer’s colours', () => {
-  it('keeps Aurora for a scene in greys', () => {
+  it('keeps Lagoon for a scene in greys', () => {
     expect(
       rainbowFromColours(['#000000', '#ffffff', '#808080']),
     ).toBeUndefined();

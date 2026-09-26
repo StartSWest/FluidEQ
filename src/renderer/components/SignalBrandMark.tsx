@@ -8,18 +8,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useId, type CSSProperties } from 'react';
 import { BRAND_MARK } from 'common/branding';
-import { RAINBOW_TOKENS } from '../utils/rainbowPalette';
+import { LAGOON } from '../utils/rainbowPalette';
 import '../styles/SignalBrand.scss';
 
 /**
  * The logo in the header, alive: "Signal" (Ivan chose it on 2026-09-25 from
  * four, https://claude.ai/artifact/HZpBeQQa79QDb2KAKjNvkV). At launch the
  * wave draws itself; after that a pulse of light runs along it every few
- * seconds, and the name's "EQ" glows as it arrives (`SignalBrandName`). In
- * Rainbow mode the tile keeps its dark face, its edge takes the mode's
- * palette, drifting as the name's does, and the wave is drawn in the palette
- * from end to end. Still when motion is turned
- * down (`SignalBrand.scss`).
+ * seconds, and the name's "EQ" glows as it arrives (`SignalBrandName`). The
+ * tile is the app icon's, the same in every mode: a dark face, the edge and
+ * the wave in Lagoon (Ivan, 2026-09-26: "wave lagoon", "the icon remain the
+ * same"). Still when motion is turned down (`SignalBrand.scss`).
  *
  * The tile is `.brand-mark`'s, so every size the header gives the mark still
  * applies. Everywhere else the app shows itself the logo stays the still one
@@ -40,15 +39,15 @@ export default function SignalBrandMark() {
       style={{ '--signal-wave-paint': `url(#${gradient})` } as CSSProperties}
     >
       <svg viewBox={BRAND_MARK.viewBox}>
-        {/* Rainbow mode's palette, first stop to last, read from the root
-            (`Rainbow.scss`); only the mode strokes the wave with it. */}
+        {/* Lagoon, first stop to last, as the app icon's wave is drawn:
+            never the palette in use, which a Plus visualizer changes. */}
         <defs>
           <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="0">
-            {RAINBOW_TOKENS.map((token, index) => (
+            {LAGOON.map((colour, index) => (
               <stop
-                key={token}
-                offset={index / (RAINBOW_TOKENS.length - 1)}
-                style={{ stopColor: `var(${token})` }}
+                key={colour}
+                offset={index / (LAGOON.length - 1)}
+                stopColor={colour}
               />
             ))}
           </linearGradient>

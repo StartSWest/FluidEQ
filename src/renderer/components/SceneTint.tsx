@@ -16,7 +16,7 @@ import {
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
-import { AURORA_SKY } from '../utils/rainbowPalette';
+import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
@@ -38,7 +38,7 @@ import {
  * looks and the scenes members make, the only looks drawn by a scene whose
  * sky can be measured. Choosing an ordinary look puts the theme back, and so
  * does Plus lapsing: the selection leaves the scene, and this follows it.
- * And Rainbow mode, with no visualizer chosen: the window in some of Aurora's
+ * And Rainbow mode, with no visualizer chosen: the window in some of Lagoon's
  * colours, the mode's own palette (`rainbowPalette.ts`).
  *
  * Mounted at the root of the app rather than in the graph, because the colour
@@ -125,10 +125,10 @@ const SceneTint = () => {
     }
 
     if (!isSceneLook) {
-      // Rainbow mode with no visualizer chosen lends the window Aurora, as a
-      // visualizer would lend its own colours (`AURORA_SKY`); the theme as it
+      // Rainbow mode with no visualizer chosen lends the window Lagoon, as a
+      // visualizer would lend its own colours (`LAGOON_SKY`); the theme as it
       // is otherwise.
-      showSceneSky(isRainbow ? AURORA_SKY : undefined, fade);
+      showSceneSky(isRainbow ? LAGOON_SKY : undefined, fade);
       return stop;
     }
     if (!isEnabled) {

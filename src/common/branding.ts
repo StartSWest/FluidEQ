@@ -101,8 +101,13 @@ export const OFFICIAL_SITE_URL = 'https://fluideq.com';
  */
 export const BRAND_MARK = {
   viewBox: '0 0 48 48',
-  /** One period of a wave: down through the middle, up, and out flat. */
-  path: 'M5 24c6-13 12-13 18 0s12 13 20 0',
+  /**
+   * One period of a wave, up and down through the middle: the app icon's
+   * (`assets/icon.svg`, 112 to 400 of its 512), scaled so a 30px mark in a
+   * 38px tile draws it where the icon does. It was a flatter wave from 5 to
+   * 43, which beside the icon on the taskbar read as a different logo.
+   */
+  path: 'M7 24C12.6 10.7 18.3 10.7 24 24S35.4 37.3 41 24',
 } as const;
 
 /**

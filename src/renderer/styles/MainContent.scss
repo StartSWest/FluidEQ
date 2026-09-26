@@ -161,7 +161,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // box, so -200% is one whole image along — and stopping leaves no jump.
   animation: eq-engine-flow 4s linear;
 
-  // Rainbow mode's palette (`Rainbow.scss`): Aurora, or the Plus visualizer's.
+  // Rainbow mode's palette (`Rainbow.scss`): Lagoon, or the Plus visualizer's.
   .is-euphoric & {
     background-image: linear-gradient(90deg, var(--rainbow-stops));
   }
@@ -464,11 +464,14 @@ $eq-caret-width: 24px;
   // And either half lights both, for the same reason: hovering one end of a
   // control should not make the other end look like a separate one that is not
   // being hovered.
+  //
+  // Lit by the same filter as a lone filled button, so each half keeps its
+  // fill (`--accent-fill`) under the pointer instead of turning flat.
   &:hover:not(.is-disabled) {
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
       color: $surface-base;
-      background: $secondary-light;
+      filter: brightness(1.1);
     }
   }
 
@@ -495,9 +498,11 @@ $eq-caret-width: 24px;
     // The divider, and the only line between them.
     border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
     border-radius: 0 $radius-xs $radius-xs 0;
-    background: $secondary-default;
     // The same fill and the same ink as the half it is attached to, because it
-    // is not a second button — it is the end of this one.
+    // is not a second button — it is the end of this one: the colour the main
+    // half's fill ends in, so the fill runs on through the divider rather than
+    // starting again at the aqua.
+    background: var(--accent-end, #{$secondary-default});
     color: $surface-base;
     box-shadow:
       0 8px 22px color-mix(in srgb, $secondary-default 12%, transparent),
@@ -518,7 +523,7 @@ $eq-caret-width: 24px;
 
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
-      background: $secondary-light;
+      filter: brightness(1.1);
       outline: none;
     }
 

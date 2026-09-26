@@ -330,20 +330,23 @@ version and in these notes.
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
   itself and the name rises letter by letter; after that a pulse of light runs
-  along the wave every few seconds. In Rainbow mode the logo keeps its dark
-  face with the mode's colours round its edge and along its wave, and the name
-  is one drifting gradient.
-- **Rainbow mode is Aurora.** Turquoise, cyan, blue, indigo, violet, magenta
-  and pink, where it used to run red to violet. The window takes some of it
-  too: the panes lean indigo, buttons turn Aurora's cyan and what is switched
-  on its magenta. With a Plus visualizer chosen the rainbow is made from that
-  visualizer's own colours instead, so every scene has one of its own.
+  along the wave every few seconds. The logo is the app's icon itself, the
+  same in every mode; in Rainbow mode the name is one drifting gradient.
+- **Rainbow mode is Lagoon.** Aqua, cyan, sky, azure and a soft periwinkle —
+  the icon's own colours — where it used to run red to violet. The window
+  takes a little of it too: the panes lean toward its sky. With a Plus
+  visualizer chosen the rainbow is made from that visualizer's own colours
+  instead, so every scene has one of its own.
+- **The colours match the icon.** The accent is the cyan at the middle of the
+  icon's wave, on Black and on Ocean alike, and the filled buttons, the
+  switches, the power key and the bar under the open tab run aqua to azure the
+  way the wave does.
 - **The EQ sliders keep up with the hand.** A drag moves the slider at once
   and the graph follows without holding it back; the engine gets the newest
   value as soon as it is ready for it. Only the slider being dragged redraws,
   where every band and control on the page used to.
-- **A new app icon.** The same wave on a dark tile, in Aurora's colours, with
-  an edge to match.
+- **A new app icon.** The wave, glossier, on a dark tile, in Lagoon's
+  colours with an edge to match.
 
 ### Fixed
 

@@ -85,10 +85,14 @@ type TThemeTable = Record<TThemeShadeToken, string>;
  * (at the first cut's alphas they drew a wireframe over the window), and the
  * accent is a colour with some restraint in it rather than pure white.
  *
- * The accent is the green-cyan the Maker's song strip has always drawn its
- * waveform in: the same family as Ocean's cyan so the two are plainly one
- * app, softer and a touch greener so it sits on near-black without glowing.
- * The rainbow stays — it is the music.
+ * The accent is Ocean's cyan a little softer, so it sits on near-black
+ * without glowing. Both themes' accents are the cyan at the middle of the
+ * icon's Lagoon wave, between its aqua and its azure (Ivan, 2026-09-26: "i
+ * wanna see app colors match more the icon"); they were a greener teal, the
+ * wave's first colour only, and next to the icon every button read as a
+ * different colour from it. The filled controls run the wave's own span
+ * either side of the accent (`--accent-fill`, `App.scss`). The rainbow stays
+ * — it is the music.
  */
 export const BLACK_THEME: TThemeTable = {
   '--surface-base': '#050608',
@@ -104,10 +108,10 @@ export const BLACK_THEME: TThemeTable = {
   '--border-subtle': 'rgba(190, 205, 225, 0.06)',
   '--border-panel': 'rgba(190, 205, 225, 0.08)',
   '--border-menu': 'rgba(190, 205, 225, 0.14)',
-  '--accent': '#52e9dc',
-  '--accent-light': '#b6f7f0',
-  '--accent-dark': '#2fcfc2',
-  '--accent-darker': '#1f9e95',
+  '--accent': '#4fe6ef',
+  '--accent-light': '#b4f6fa',
+  '--accent-dark': '#22ccdb',
+  '--accent-darker': '#1a9bab',
 };
 
 export const OCEAN_THEME: TThemeTable = {
@@ -123,9 +127,9 @@ export const OCEAN_THEME: TThemeTable = {
   '--track-well': '#2e4f63',
   '--border-subtle': 'rgba(214, 233, 247, 0.09)',
   '--border-panel': 'rgba(214, 233, 247, 0.11)',
-  '--border-menu': 'rgba(156, 255, 244, 0.22)',
-  '--accent': '#00e5cf',
-  '--accent-light': '#9cfff4',
+  '--border-menu': 'rgba(156, 250, 255, 0.22)',
+  '--accent': '#1bdee7',
+  '--accent-light': '#a1fcff',
   '--accent-dark': '#00a9d6',
   '--accent-darker': '#007f95',
 };

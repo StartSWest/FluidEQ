@@ -126,15 +126,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // glowing glyph on the same dark disc as OFF read as "a little on" — the
   // difference was a haze, and Ivan asked for colour, not more of it
   // (2026-09-24: "more vivid so it shows it really on", "not so much glow").
-  // The accent's own three steps dome the face, the glyph is engraved in its
-  // darkest, and the halo stays tight. Not while broken: red owns that state.
+  // The fill's two ends and the accent between dome the face — the aqua lit
+  // at the top, the azure the rim, as the icon's wave runs — the glyph is
+  // engraved in the accent's darkest, and the halo stays tight. Not while
+  // broken: red owns that state.
   &.is-on:not(.is-broken) {
     border-color: color-mix(in srgb, $secondary-light 50%, transparent);
     background: radial-gradient(
       circle at 50% 30%,
-      color-mix(in oklab, $secondary-default, $white 34%),
-      $secondary-default 50%,
-      $secondary-dark 100%
+      color-mix(in oklab, var(--accent-start), $white 30%),
+      $secondary-default 52%,
+      var(--accent-end) 100%
     );
     box-shadow:
       0 10px 22px rgba($black, 0.5),

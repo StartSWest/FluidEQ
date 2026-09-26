@@ -29,13 +29,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   padding: 8px 13px;
   color: $surface-base;
-  // Its own colour for an edge, and no glow at rest: the filled button is
-  // already the loudest thing in its row, and a lighter outline and a halo
-  // round it were two more rings saying so (Ivan, 2026-09-25: "I want a
-  // clean design"). The glow is the hover's.
-  border: 1px solid $secondary-default;
+  // No edge of its own and no glow at rest: the filled button is already the
+  // loudest thing in its row, and a lighter outline and a halo round it were
+  // two more rings saying so (Ivan, 2026-09-25: "I want a clean design"). The
+  // glow is the hover's.
+  //
+  // Filled with the icon's span, aqua to azure through the accent
+  // (`--accent-fill`), not the accent alone: a flat teal beside a wave that
+  // runs into blue read as another app's button (Ivan, 2026-09-26: "the
+  // buttons colors needs to match more"). Painted from the border's edge, so
+  // the transparent border shows the fill's own ends and not a repeat of it.
+  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: $secondary-default;
+  background: $secondary-default var(--accent-fill) border-box;
   box-shadow: inset 0 1px 0 rgba($white, 0.24);
   font-weight: $weight-bold;
   line-height: 1.15;
@@ -64,22 +70,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     fill: none;
   }
 
+  // Hover and press light and dim the same fill rather than swapping it for
+  // a flat colour, which put the old teal slab back under the pointer.
   &:hover:not([aria-disabled='true']):not(:disabled) {
-    // The hover surface is the light cyan accent; keep the label dark enough
-    // to stay readable.
     color: $surface-base;
-    border-color: $secondary-light;
-    background: $secondary-light;
     box-shadow:
       0 0 16px color-mix(in srgb, $secondary-default 16%, transparent),
       inset 0 1px 0 rgba($white, 0.32);
-    filter: brightness(1.04);
+    filter: brightness(1.1);
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
     color: $surface-base;
-    border-color: $secondary-dark;
-    background: $secondary-dark;
+    filter: brightness(0.9);
   }
 
   &.small {
@@ -111,15 +114,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // cyan discs. The arrow's real defect was that ITS svg did not say
     // `fill="none"`, and that is fixed where it lives.
 
+    // The filled button's hover and press filters are its own: an outline
+    // lit or dimmed as a whole read as flicker.
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
       border-color: $border-field-hover;
       background: color-mix(in srgb, $secondary-default 14%, transparent);
       box-shadow: none;
+      filter: none;
     }
 
     &:active:not([aria-disabled='true']):not(:disabled) {
       background: color-mix(in srgb, $secondary-default 24%, transparent);
+      filter: none;
     }
   }
 
@@ -153,6 +160,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:active:not([aria-disabled='true']):not(:disabled) {
       color: $white;
       background: color-mix(in srgb, $red 54%, $surface-base);
+      filter: none;
     }
 
     // Busy breathes in its own colour: the accent's glow on a red button

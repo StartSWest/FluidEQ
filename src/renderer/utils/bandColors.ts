@@ -69,7 +69,7 @@ export const BAND_SPECTRUM_HEX: readonly string[] = BAND_COLOR_STOPS.map(
 
 /**
  * A band's colour where Rainbow mode draws the bands in colour, `progress` its
- * place low to high. Rainbow mode's palette (`rainbowPalette.ts`): Aurora, or
+ * place low to high. Rainbow mode's palette (`rainbowPalette.ts`): Lagoon, or
  * the Plus visualizer's own colours while one is chosen. Outside the mode
  * every one of these places draws the accent instead, so this is the mode's
  * alone; the graph's Rainbow palette and the look designer keep the spectrum

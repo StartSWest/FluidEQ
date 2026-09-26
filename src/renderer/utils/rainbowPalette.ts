@@ -22,11 +22,13 @@ import {
  *
  * The mode painted red, orange, yellow, green, blue and violet in that order,
  * and in that order it is a flag (Ivan, 2026-09-26: "que podemos hacer para
- * que no se parezca al LGBT"). It paints Aurora now — seven cold hues from
- * turquoise to pink, the one he picked from five drawn in the real window —
- * and, while a Plus visualizer is chosen, a palette made from that scene's
- * own colours ("different rainbow modes depending on the current plus viz"),
- * so every scene has a rainbow of its own (`RainbowSource.tsx`).
+ * que no se parezca al LGBT"). It paints Lagoon now — seven cold hues from
+ * aqua through the original cyan to a soft azure, the colours of the app's
+ * own icon (Ivan, 2026-09-26: "wave lagoon", picked over Aurora, which ran on
+ * into violet and pink, because he wanted it "more close to our original
+ * cyan") — and, while a Plus visualizer is chosen, a palette made from that
+ * scene's own colours ("different rainbow modes depending on the current plus
+ * viz"), so every scene has a rainbow of its own (`RainbowSource.tsx`).
  *
  * Always seven stops. The stylesheets read them from the root as
  * `--rainbow-1` … `--rainbow-7`: the sweeps are gradients through them and
@@ -37,19 +39,23 @@ import {
 
 export const RAINBOW_STOP_COUNT = 7;
 
-/** The seven stops, in order: turquoise, cyan, blue, indigo, violet, magenta, pink. */
-export const AURORA: readonly string[] = [
+/**
+ * The seven stops, in order: aqua, the original cyan, cyan, sky, azure, blue,
+ * periwinkle. The icon's wave and edge are drawn in them too (`icon.svg`,
+ * `SignalBrandMark`), so the mode and the mark are one set of colours.
+ */
+export const LAGOON: readonly string[] = [
+  '#72f7dd',
   '#00e5cf',
-  '#00c8ff',
-  '#3d7bff',
-  '#5b4cff',
-  '#9b4dff',
-  '#e040fb',
-  '#ff3cac',
+  '#00dbe6',
+  '#00ccf5',
+  '#27b8ff',
+  '#51a3ff',
+  '#7a95ff',
 ];
 
 /** The root's custom properties, one per stop. */
-export const RAINBOW_TOKENS: readonly string[] = AURORA.map(
+export const RAINBOW_TOKENS: readonly string[] = LAGOON.map(
   (_, index) => `--rainbow-${index + 1}`,
 );
 
@@ -84,19 +90,20 @@ const colourOf = (hex: string, chroma?: number): ISceneColour => {
 };
 
 /**
- * Aurora lent to the window the way a Plus visualizer lends its colours
+ * Lagoon lent to the window the way a Plus visualizer lends its colours
  * (`sceneTintStore.ts`), for Rainbow mode with no visualizer chosen (Ivan,
  * 2026-09-26: "la interfaz ... debe también kind of match some of the aurora
  * color when there is not plus viz"). Some of it, not all: the panes toward
- * its indigo at a little over half the strength a scene's own sky reaches
- * (`FULL_SKY_CHROMA` is 0.08), what is pressed and chosen in its cyan, and
- * what is on in its magenta.
+ * its sky at under half the strength a scene's own sky reaches
+ * (`FULL_SKY_CHROMA` is 0.08), what is pressed and chosen in its cyan — the
+ * accent the themes carry, so the buttons do not change colour with the mode
+ * — and what is on in its azure.
  */
-export const AURORA_SKY: ISceneSky = {
-  ...colourOf(AURORA[3], 0.045),
+export const LAGOON_SKY: ISceneSky = {
+  ...colourOf(LAGOON[3], 0.03),
   lightness: 0.3,
-  accent: colourOf(AURORA[1]),
-  active: colourOf(AURORA[5]),
+  accent: colourOf(LAGOON[2]),
+  active: colourOf(LAGOON[5]),
 };
 
 /** Under this chroma a colour is a grey and lends a rainbow no hue. */
@@ -127,7 +134,7 @@ const MAX_WHEEL_STEP = 90;
 /**
  * Seven stops from a Plus scene's colours — its swatch, the colours its
  * picker icon is drawn in — or undefined for a scene in greys, which keeps
- * Aurora.
+ * Lagoon.
  *
  * Each colour is lifted into the band the marks can be read in, one stop per
  * hue, taken round the wheel from the scene's first colour so the sweep turns
@@ -193,7 +200,7 @@ export const rainbowFromColours = (
 
 // *** The palette in use ******************************************************
 
-let stops: readonly string[] = AURORA;
+let stops: readonly string[] = LAGOON;
 const listeners = new Set<() => void>();
 
 /** Each palette's stops in OKLab, parsed once per palette. */
@@ -225,12 +232,12 @@ const paintRoot = () => {
 export const getRainbowStops = (): readonly string[] => stops;
 
 /**
- * Put `next` in use — Aurora for undefined — on the root and for every
+ * Put `next` in use — Lagoon for undefined — on the root and for every
  * script that draws in it. Anything but seven stops is refused, keeping the
  * palette there is.
  */
 export const setRainbowStops = (next: readonly string[] | undefined) => {
-  const wanted = next ?? AURORA;
+  const wanted = next ?? LAGOON;
   if (
     wanted.length !== RAINBOW_STOP_COUNT ||
     wanted.every((stop, index) => stop === stops[index])
@@ -254,7 +261,7 @@ export const useRainbowStops = (): readonly string[] =>
   useSyncExternalStore(
     subscribe,
     () => stops,
-    () => AURORA,
+    () => LAGOON,
   );
 
 const mix = (from: ILab, to: ILab, amount: number): ILab => ({

@@ -93,9 +93,10 @@ $switch-inset: 4px;
     @include focus-ring;
   }
 
+  // On is the filled button's fill, the icon's span through the accent.
   &:checked + .switch-label {
     border-color: color-mix(in srgb, $secondary-light 44%, transparent);
-    background: $secondary-default;
+    background: $secondary-default var(--accent-fill) border-box;
     box-shadow:
       inset 0 1px 3px rgba($black, 0.25),
       0 0 18px color-mix(in srgb, $secondary-default 13%, transparent);

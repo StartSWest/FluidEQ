@@ -40,22 +40,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * lamps. Everything else stays exactly as it was.
  *
  * Its colours are a palette, not the spectrum (`rainbowPalette.ts`): red to
- * violet in order was a flag (Ivan, 2026-09-26), so the mode is Aurora —
- * turquoise, cyan, blue, indigo, violet, magenta, pink — and, while a Plus
- * visualizer is chosen, that scene's own colours. Seven stops on the root,
- * Aurora here and the palette in use written over them inline, and every
- * sweep and every cycle below is made of them, so one change reaches them
- * all. On the root outside the mode too: the Support dialog previews the
- * mode before it is won.
+ * violet in order was a flag (Ivan, 2026-09-26), so the mode is Lagoon —
+ * aqua, the original cyan, cyan, sky, azure, blue, periwinkle, the icon's own
+ * colours — and, while a Plus visualizer is chosen, that scene's own colours.
+ * Seven stops on the root, Lagoon here and the palette in use written over
+ * them inline, and every sweep and every cycle below is made of them, so one
+ * change reaches them all. On the root outside the mode too: the Support
+ * dialog previews the mode before it is won.
  */
 :root {
-  --rainbow-1: #00e5cf;
-  --rainbow-2: #00c8ff;
-  --rainbow-3: #3d7bff;
-  --rainbow-4: #5b4cff;
-  --rainbow-5: #9b4dff;
-  --rainbow-6: #e040fb;
-  --rainbow-7: #ff3cac;
+  --rainbow-1: #72f7dd;
+  --rainbow-2: #00e5cf;
+  --rainbow-3: #00dbe6;
+  --rainbow-4: #00ccf5;
+  --rainbow-5: #27b8ff;
+  --rainbow-6: #51a3ff;
+  --rainbow-7: #7a95ff;
   // The first again at the end, so a sweep twice the box wide never jumps.
   --rainbow-stops:
     var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4),
@@ -64,6 +64,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 html.is-euphoric {
   --rainbow-sweep: linear-gradient(90deg, var(--rainbow-stops));
+  // The filled controls' two ends (`App.scss`'s `--accent-fill`) from the
+  // palette in use, the accent between them: Lagoon's aqua to its azure, and
+  // a Plus visualizer's own first and fifth colours while one is chosen.
+  --accent-start: var(--rainbow-1);
+  --accent-end: var(--rainbow-5);
 }
 
 // Doubled width and swept, so the gradient reads as moving light rather than as
