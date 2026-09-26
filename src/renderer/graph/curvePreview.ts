@@ -31,6 +31,7 @@ import {
   getCombinedLineData,
   getFilterLineData,
   getGraphicEqLineData,
+  getLineGainAtFrequency,
 } from './utils';
 
 /** The drawing box, in the units of the caller's `viewBox`. */
@@ -96,6 +97,41 @@ export const curveScales = (
 };
 
 /**
+ * The part of a curve these boxes draw, 20 Hz to 20 kHz, ending on both edges.
+ *
+ * The response is sampled from 10 Hz, where the main graph's plot starts
+ * (`RESPONSE_START`), and the octave under 20 Hz, placed by these scales,
+ * landed left of the box and ran out over the panel beside it (Ivan,
+ * 2026-09-26: "curves in presets eq outside the box"); it also stretched the
+ * gain axis for a range nobody sees here. Dropping it is not enough on its
+ * own: no sample falls on 20 Hz (the nearest is 20.12), and the last one is
+ * 20000.000000000004, so a plain filter stopped the line short of both edges.
+ * Each edge the samples reach past gets a point of its own, read between the
+ * two samples either side of it in log frequency, as the graph reads them.
+ */
+const clipToSpan = (points: IChartPointData[]): IChartPointData[] => {
+  const inside = points.filter(
+    (point) => point.x >= MIN_HZ && point.x <= MAX_HZ,
+  );
+  if (points.length === 0) {
+    return inside;
+  }
+  const lowest = points[0].x;
+  const highest = points[points.length - 1].x;
+  const head =
+    lowest < MIN_HZ && highest > MIN_HZ && inside[0]?.x !== MIN_HZ
+      ? [{ x: MIN_HZ, y: getLineGainAtFrequency(points, MIN_HZ) }]
+      : [];
+  const tail =
+    highest > MAX_HZ &&
+    lowest < MAX_HZ &&
+    inside[inside.length - 1]?.x !== MAX_HZ
+      ? [{ x: MAX_HZ, y: getLineGainAtFrequency(points, MAX_HZ) }]
+      : [];
+  return [...head, ...inside, ...tail];
+};
+
+/**
  * Points to a path, at a fixed ±12 dB floor unless the curve exceeds it.
  *
  * The floor is what makes two curves comparable: a correction that only ever
@@ -107,21 +143,22 @@ export const makePath = (
   box: ICurveBox,
   bounds?: { min: number; max: number },
 ): ICurvePath => {
-  if (points.length === 0) {
+  const shown = clipToSpan(points);
+  if (shown.length === 0) {
     return { path: '', min: -12, max: 12, points };
   }
 
-  const minValue = Math.min(...points.map((point) => point.y));
-  const maxValue = Math.max(...points.map((point) => point.y));
+  const minValue = Math.min(...shown.map((point) => point.y));
+  const maxValue = Math.max(...shown.map((point) => point.y));
   const min = bounds?.min ?? Math.min(-12, Math.floor(minValue / 3) * 3);
   const max = bounds?.max ?? Math.max(12, Math.ceil(maxValue / 3) * 3);
   const { x, y } = curveScales(box, { min, max });
 
   // One point per pixel of width is already more than a 2.6px stroke can show,
   // and the full set is a few thousand.
-  const stride = Math.max(1, Math.ceil(points.length / 180));
-  const drawn = points.filter((_point, index) => index % stride === 0);
-  const last = points[points.length - 1];
+  const stride = Math.max(1, Math.ceil(shown.length / 180));
+  const drawn = shown.filter((_point, index) => index % stride === 0);
+  const last = shown[shown.length - 1];
   if (drawn[drawn.length - 1] !== last) {
     drawn.push(last);
   }
