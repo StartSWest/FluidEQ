@@ -177,8 +177,8 @@ describe('what stands on the floor', () => {
   // The cards on it are filled in the window's colour (Ivan, 2026-09-26, of
   // the Studio's AI card: "I kind of like this pane colors … apply to lib too
   // and all those pages that need panes like this"): the accent through the
-  // body and glowing in from the top corner, over a step between the pane
-  // and the block.
+  // body and glowing in from the top corner, at half a pane's depth over the
+  // floor — never lighter than a pane ("fix those pane too light").
   it.each([
     ['Library.scss', '.library-grid__tile'],
     ['Library.scss', '.library-list'],
@@ -192,7 +192,7 @@ describe('what stands on the floor', () => {
   ])('%s fills %s with the card', (sheet, selector) => {
     const card = declarationsOf(compiledCss(sheet), selector);
     expect(card).toContain(
-      'color-mix(in srgb, var(--accent) 5%, color-mix(in srgb, var(--surface-block) 60%, var(--surface-panel)))',
+      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 55%, transparent)',
     );
     expect(card).toContain('radial-gradient(');
   });

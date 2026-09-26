@@ -277,23 +277,32 @@ $surface-block: var(--surface-block);
 // pages that need panes like this … so the ui is less boring", and of the
 // Library's grid "the grid card, not the bg". Hours earlier every box had
 // lost its block-grey fill, and rightly: a grey slab is from another palette.
-// What that card had and the slabs did not is the window's own colour — the
-// block with the accent glowing in from its top corner. This is it a step
-// darker, as asked (60% of the way from the pane to the block), with a
-// twentieth of the accent through its body so it carries the hue even where
-// the glow has faded: the cyan on the theme, a visualizer's own colour while
-// one lends the window its colours.
+// What that card had and the slabs did not is the window's own colour: the
+// accent through its body and glowing in from its top corner.
 //
-// Built from the pane and block tokens, so a veiled pane over the Backdrop
-// veils its cards with it (`SceneCover.scss`).
+// Its depth is the pane's, half of it, over whatever it stands on — between
+// the floor and a pane, never lighter than a pane. It was first 60% of the
+// way from the pane up to the block, which on a lighter or tinted window (a
+// warm visualizer's mauve at half Brightness) made every card and plot the
+// palest thing on the page: Share Audio's monitor and role cards, the driver
+// sketch in the side column (Ivan, 2026-09-26: "all pane and graph not good
+// … shared audio sucks, fix those pane too light"). A twenty-fifth of the
+// accent keeps the hue; the glow is a sixteenth, where a tenth of a warm
+// accent lit the corner like a lamp.
+//
+// Translucent on purpose: every pane stands on the floor now, so over the
+// floor it is one colour everywhere, and over the Backdrop's scene it lets
+// the scene through as the veiled panes do (`SceneCover.scss`) instead of
+// standing opaque in a see-through window. What must hide what scrolls under
+// it lays it over the floor (`.studio-ship-card`).
 $surface-card: color-mix(
   in srgb,
-  $secondary-default 5%,
-  color-mix(in srgb, $surface-block 60%, $surface-panel)
+  color-mix(in srgb, $secondary-default 4%, $surface-panel) 55%,
+  transparent
 );
 $card-glow: radial-gradient(
   120% 90% at 0% 0%,
-  color-mix(in srgb, $secondary-default 10%, transparent),
+  color-mix(in srgb, $secondary-default 6%, transparent),
   transparent 60%
 );
 
@@ -358,14 +367,17 @@ $edge-tint: #d6e9f7;
 // control, and on the block colour they were indistinguishable from the card
 // around them — a line floating on a panel instead of a line on a chart.
 //
-// It was the pane's own colour, because that is what the big graph is drawn
-// on, and on the open floor that made every small plot a slab of slate — the
-// correction curve, the imported curve, the driver's sketch, the DSP's EQ —
-// "not matching" beside the window's hue (Ivan, 2026-09-26: "fix all graphs
-// bg color", "dsp graphs too"). It is the card's colour now, flat: a plot is
-// a card with a drawing on it, and the accent's glow stays off it so a curve
-// is read against an even ground.
-$surface-plot: $surface-card;
+// A well, darker than whatever it is cut into: half the floor laid over it.
+// On the open floor that is a shade under the floor, inside a card a shade
+// under the card, so a curve always stands on the darkest thing around it,
+// as the big graph does on its own ground.
+//
+// It was the pane's colour, and on the open floor every small plot was a
+// slab of lighter slate (Ivan, 2026-09-26: "fix all graphs bg color", "dsp
+// graphs too"); then the card's, which was lighter still on a tinted window
+// ("all pane and graph not good"). A drawing is read against its ground, and
+// the lightest ground on the page is the worst one to read a line on.
+$surface-plot: color-mix(in srgb, $surface-base 50%, transparent);
 $track-well: var(--track-well);
 $border-subtle: var(--border-subtle);
 $border-panel: var(--border-panel);

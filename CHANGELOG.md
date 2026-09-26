@@ -369,10 +369,13 @@ version and in these notes.
   colours with an edge to match.
 - **Cards in the window's colour.** The Library's tiles, its song list and
   Up next, each game's row, the outputs in the engine's config, the
-  headphone picker, the Studio's AI card and the small graphs are filled
-  now — a step above the page, with the accent glowing in from the corner,
-  in the theme's colours or a visualizer's — where they were outlines or
-  slabs of grey slate. What holds them, like the grid round the tiles, keeps
+  headphone picker, Share Audio's roles and the Studio's AI card are filled
+  now — a gentle step above the page, never lighter than a pane, with the
+  accent glowing in from the corner, in the theme's colours or a
+  visualizer's — where they were outlines or slabs of grey slate. The small
+  graphs (the headphone correction, the driver sketch, the DSP's plots, the
+  Share Audio monitor) stand in a darker well, so their lines read on the
+  darkest thing around them. What holds them, like the grid round the tiles, keeps
   its outline, and a control that cannot be used is an outline with dimmed
   text instead of a lighter slab.
 
