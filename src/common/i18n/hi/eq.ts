@@ -127,7 +127,7 @@ const eq: Partial<Dictionary> = {
     'विज़ुअलाइज़र के रंग, उसके आसपास उसकी रोशनी के साथ',
   'graph.sceneTint.mode.cover':
     'पूरी विंडो के पीछे विज़ुअलाइज़र, उसके आसपास उसकी रोशनी के साथ',
-  'graph.sceneTint.short.off': 'थीम',
+  'graph.sceneTint.short.off': 'मूल',
   'graph.sceneTint.short.tint': 'रंग',
   'graph.sceneTint.short.pulse': 'माहौल',
   'graph.sceneTint.short.cover': 'पृष्ठभूमि',

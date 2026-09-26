@@ -128,7 +128,7 @@ const eq: Partial<Dictionary> = {
     'los colores del visualizador, con su luz alrededor',
   'graph.sceneTint.mode.cover':
     'el visualizador detrás de toda la ventana, con su luz alrededor',
-  'graph.sceneTint.short.off': 'Tema',
+  'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Colores',
   'graph.sceneTint.short.pulse': 'Ambiente',
   'graph.sceneTint.short.cover': 'Fondo',
