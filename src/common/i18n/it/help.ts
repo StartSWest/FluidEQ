@@ -49,7 +49,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Premi una pagina nell’intestazione: Media online, Condividi audio ed EQ stanno prima del segnale; DSP, Libreria, Karaoke e Plus dopo.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il segnale o il misuratore di livello per cambiare come viene disegnato, e Modalità arcobaleno per far muovere curve e misuratori alla piena frequenza del tuo schermo.',
   'help.window.tip':
-    'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante a impulso accanto ad Aiuto contiene la scheda del motore, il tuo account, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows e Processi, che mostra cosa sta usando ogni parte di FluidEQ; in fondo al menu ci sono il tema Chiaro o Scuro, le animazioni, Avvia con Windows e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
+    'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante a impulso accanto ad Aiuto contiene la scheda del motore, il tuo account, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows e Processi, che mostra cosa sta usando ogni parte di FluidEQ; in fondo al menu ci sono Luminosità e Trasparenza, le animazioni, Avvia con Windows e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
   'help.window.keywords':
     'interfaccia, navigazione, panoramica, schermata principale, barra superiore, barra di riproduzione, pannello laterale, layout, tab, header, toolbar, vumetro, VU meter, indicatore di livello, tema, tema scuro, tema chiaro, modalità scura, modalità chiara, dark mode, lingua, cambiare lingua, avvio con windows, avvio automatico, esecuzione automatica, all’avvio, account',
   'help.window.headerLeftCaption': 'L’intestazione, fino al segnale',
@@ -77,7 +77,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema.',
   'help.window.actions':
-    'Il motore, il tuo account, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows e Processi; il tema, le animazioni, Avvia con Windows e la lingua.',
+    'Il motore, il tuo account, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows e Processi; Luminosità e Trasparenza, le animazioni, Avvia con Windows e la lingua.',
   'help.window.systemEq':
     'Attiva o disattiva l’elaborazione di FluidEQ per tutto ciò che il PC riproduce.',
   'help.window.preamp':

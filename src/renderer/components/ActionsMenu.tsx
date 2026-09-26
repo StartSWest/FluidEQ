@@ -21,7 +21,8 @@ import useExitAnimation from '../utils/useExitAnimation';
 import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
 import StartupPicker from './StartupPicker';
-import ThemeShadeSlider from './ThemeShadeSlider';
+import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
+import BackdropVeilSlider from '../graph/BackdropVeilSlider';
 import '../styles/ActionsMenu.scss';
 
 /**
@@ -41,7 +42,7 @@ const PULSE = 'M4 12h3l2-6 4 12 2-6h5';
 
 /** Everything the arrow keys walk through, in the order it is drawn. */
 const FOCUSABLE =
-  '[role="menuitem"], [role="menuitemradio"], input[type="range"], .switch-checkbox, .dropdown > [role="menu"]';
+  '[role="menuitem"], [role="menuitemradio"], input[type="range"]:not(:disabled), .switch-checkbox, .dropdown > [role="menu"]';
 
 interface IActionsMenuProps {
   engineState: TEngineState;
@@ -365,7 +366,13 @@ const ActionsMenu = ({
           {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
           <div className="actions-menu__prefs">
-            <ThemeShadeSlider />
+            {/* The window's look, as Window colours sets it: Brightness and
+                Transparency, the same two sliders (Ivan, 2026-09-26: "do
+                same in the main menu both options bright trans no theme"). */}
+            <div className="actions-menu__sliders">
+              <WindowBrightnessSlider />
+              <BackdropVeilSlider />
+            </div>
             <MotionPicker />
             {/* Under the animations row, where Ivan asked for it
                 (2026-09-19). Nothing else in the app decides this: the answer

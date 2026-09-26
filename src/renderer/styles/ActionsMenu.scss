@@ -313,11 +313,22 @@
   line-height: 1.35;
 }
 
-// The theme's slider, as wide as a track needs to be read as one: the Dark
-// and Light either side of it and 120px of travel between them. The column
-// is shared with the language list, which comes out the same width beside it.
-.actions-menu__prefs .theme-shade {
-  min-width: 212px;
+// Brightness and Transparency at the head of the tray, across both of its
+// columns: the window-colours menu's own slider rows (`GraphTheme.scss`), so
+// the two sliders read the same in either menu. Their glyphs stand where the
+// tray's names start, 10px in, and their names at the tray's size: at the
+// menu row's smaller one they sat over Animations and Language a size down.
+.actions-menu__sliders {
+  display: grid;
+  gap: 2px;
+  grid-column: 1 / -1;
+  padding: 3px 0;
+
+  .graph-view-menu__slider {
+    padding-right: 0;
+    padding-left: 0;
+    font-size: $text-body;
+  }
 }
 
 // The language list's trigger, drawn as a sibling of the tray's other

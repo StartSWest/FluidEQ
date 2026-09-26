@@ -6,17 +6,21 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+import { useId } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 
 /**
- * How light the window stands, at the head of the window-colours menu beside
- * Transparency — the two things that menu sets (Ivan, 2026-09-25: "in total
- * I want only two options brightness and transparency").
+ * How light the window stands, beside Transparency at the head of the
+ * window-colours menu and in the actions menu's tray — the two things either
+ * menu sets about the window's look (Ivan, 2026-09-25: "in total I want only
+ * two options brightness and transparency"; 2026-09-26: "do same in the main
+ * menu … no theme").
  *
- * It is the theme's own slider (`themeShade.ts`), the one the actions menu
- * shows as Dark to Light: with the theme it walks Black to a lighter Ocean,
+ * It is the theme's own slider (`themeShade.ts`), the one the Compact
+ * player's menu shows as Dark to Light: with the theme it walks Black to a
+ * lighter Ocean,
  * and while a visualizer lends the window its colours it walks those from
  * their darkest, never black, to their lightest ("if ambient is on is not
  * black is ambient color … dark to more lighter").
@@ -29,10 +33,11 @@ import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 const WindowBrightnessSlider = () => {
   const { t } = useTranslation();
   const shade = useThemeShade();
+  const id = useId();
   return (
     <label
       className="graph-view-menu__slider"
-      htmlFor="scene-look-brightness"
+      htmlFor={id}
       title={t('graph.sceneTint.brightnessHint')}
     >
       <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
@@ -41,7 +46,7 @@ const WindowBrightnessSlider = () => {
       </svg>
       <span>{t('graph.sceneTint.brightness')}</span>
       <input
-        id="scene-look-brightness"
+        id={id}
         type="range"
         aria-label={t('graph.sceneTint.brightness')}
         min={THEME_SHADE_MIN}

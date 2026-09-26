@@ -6,6 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+import { useId } from 'react';
 import {
   BACKDROP_VEIL_MAX,
   BACKDROP_VEIL_MIN,
@@ -16,9 +17,11 @@ import { useTranslation } from '../utils/I18nContext';
 import { useSceneTintMode } from '../utils/sceneTintStore';
 
 /**
- * How much of the Backdrop's scene shows through the panes, at the head of
- * the window-colours menu beside Brightness (Ivan, 2026-09-25: "in total I
- * want only two options brightness and transparency"). Stored as the veil's
+ * How much of the Backdrop's scene shows through the panes, beside
+ * Brightness at the head of the window-colours menu and in the actions
+ * menu's tray (Ivan, 2026-09-25: "in total I want only two options
+ * brightness and transparency"; 2026-09-26: "do same in the main menu").
+ * Stored as the veil's
  * strength, which is what the stylesheet wants (`backdropVeil.ts`); shown as
  * its transparency, which is what the name says, so right is more of the
  * scene.
@@ -32,10 +35,11 @@ const BackdropVeilSlider = () => {
   const veil = useBackdropVeil();
   const isBackdrop = useSceneTintMode() === 'cover';
   const transparency = 100 - veil;
+  const id = useId();
   return (
     <label
       className={`graph-view-menu__slider${isBackdrop ? '' : ' is-disabled'}`}
-      htmlFor="scene-look-transparency"
+      htmlFor={id}
       title={t('graph.backdropVeilHint')}
     >
       <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
@@ -44,7 +48,7 @@ const BackdropVeilSlider = () => {
       </svg>
       <span>{t('graph.backdropVeil')}</span>
       <input
-        id="scene-look-transparency"
+        id={id}
         type="range"
         aria-label={t('graph.backdropVeil')}
         min={100 - BACKDROP_VEIL_MAX}

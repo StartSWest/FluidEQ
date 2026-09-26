@@ -258,26 +258,36 @@ describe('the commands of the actions menu', () => {
 });
 
 describe('the settings tray', () => {
-  it('shows the theme as a slider from Dark to Light that moves the window as it goes', () => {
+  // The window's look as Window colours sets it, and no Theme row (Ivan,
+  // 2026-09-26: "do same in the main menu both options bright trans no
+  // theme").
+  it('offers Brightness and Transparency, and Brightness moves the window as it goes', () => {
     const { trigger } = show('ready');
     open(trigger);
-    const theme = screen.getByRole('slider', { name: 'Theme' });
-    const row = theme.closest('.theme-shade');
+    expect(
+      screen.queryByRole('slider', { name: en['theme.aria'] }),
+    ).not.toBeInTheDocument();
+    const brightness = screen.getByRole('slider', {
+      name: en['graph.sceneTint.brightness'],
+    });
+    // Transparency is the Backdrop's, and stands still under any other mode.
+    expect(
+      screen.getByRole('slider', { name: en['graph.backdropVeil'] }),
+    ).toBeDisabled();
 
-    // Black, the default, at the dark end; the two ends named either side.
-    expect(theme).toHaveValue('0');
-    expect(row).toHaveTextContent(en['theme.black']);
-    expect(row).toHaveTextContent(en['theme.ocean']);
-
-    fireEvent.change(theme, { target: { value: String(OCEAN_SHADE) } });
+    // Black, the default, at the dark end.
+    expect(brightness).toHaveValue('0');
+    fireEvent.change(brightness, { target: { value: String(OCEAN_SHADE) } });
     expect(getThemeShade()).toBe(OCEAN_SHADE);
     expect(document.documentElement.getAttribute('data-theme-shade')).toBe(
       String(OCEAN_SHADE),
     );
 
-    fireEvent.change(theme, { target: { value: String(THEME_SHADE_MAX) } });
+    fireEvent.change(brightness, {
+      target: { value: String(THEME_SHADE_MAX) },
+    });
     expect(getThemeShade()).toBe(THEME_SHADE_MAX);
-    expect(theme).toHaveValue(String(THEME_SHADE_MAX));
+    expect(brightness).toHaveValue(String(THEME_SHADE_MAX));
     // Choosing a setting is not a command: the menu stays where it is.
     expect(
       screen.getByRole('menu', { name: 'FluidEQ actions' }),
@@ -310,7 +320,12 @@ describe('opening and closing the actions menu', () => {
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(screen.getByRole('slider', { name: 'Theme' })).toHaveFocus();
+    // Transparency stands still outside the Backdrop, and the arrows pass it.
+    expect(
+      screen.getByRole('slider', {
+        name: en['graph.sceneTint.brightness'],
+      }),
+    ).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'End' });
     fireEvent.keyDown(menu, { key: 'ArrowDown' });

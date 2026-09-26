@@ -49,7 +49,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Plus danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf Regenbogenmodus, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen das Design Hell oder Dunkel, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
     'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
@@ -77,7 +77,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
   'help.window.actions':
-    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse; das Design, die Animationen, Mit Windows starten und die Sprache.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse; Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':

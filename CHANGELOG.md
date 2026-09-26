@@ -305,8 +305,9 @@ version and in these notes.
   the left to a lighter Ocean at the right, and every step between them is a
   theme: the window follows the thumb as it moves. Ocean as it was stands
   three quarters of the way along, which is where anyone who had chosen it
-  finds it. It is in the menu behind the pulse icon and in the Compact
-  player's menu.
+  finds it. The menu behind the pulse icon has it as Brightness, beside
+  Transparency — the same two sliders as Window colours — and the Compact
+  player's menu as its theme, Dark to Light.
 - **Window colours, by name.** The button beside Auto on the graph says what a
   Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
   and opens all four, each with a line on what it does, under two sliders.

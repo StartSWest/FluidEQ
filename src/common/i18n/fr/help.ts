@@ -49,7 +49,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Appuyez sur une page dans l’en-tête : Médias en ligne, Partager l’audio et Égaliseur avant le signal ; DSP, Bibliothèque, Karaoké et Plus après.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur le signal ou sur l’indicateur de niveau pour changer la façon dont il est dessiné, et sur Mode arc-en-ciel pour que les courbes et les vumètres bougent à la pleine fréquence de votre écran.',
   'help.window.tip':
-    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton d’impulsion, juste à côté, contient la carte du moteur, votre compte, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows et Processus, qui montre ce que chaque partie de FluidEQ utilise ; tout en bas se trouvent le thème Clair ou Sombre, les animations, Démarrer avec Windows et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
+    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton d’impulsion, juste à côté, contient la carte du moteur, votre compte, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows et Processus, qui montre ce que chaque partie de FluidEQ utilise ; tout en bas se trouvent Luminosité et Transparence, les animations, Démarrer avec Windows et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
   'help.window.keywords':
     'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, compte',
   'help.window.headerLeftCaption': 'L’en-tête, jusqu’au signal',
@@ -78,7 +78,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Ce guide, Nouveautés, le dépannage audio et Signaler un problème.',
   'help.window.actions':
-    'Le moteur, votre compte, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows et Processus ; le thème, les animations, Démarrer avec Windows et la langue.',
+    'Le moteur, votre compte, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows et Processus ; Luminosité et Transparence, les animations, Démarrer avec Windows et la langue.',
   'help.window.systemEq':
     'Active ou désactive le traitement de FluidEQ pour tout ce que joue le PC.',
   'help.window.preamp':

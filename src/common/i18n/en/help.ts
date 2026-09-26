@@ -53,7 +53,7 @@ const help = {
   'help.window.steps':
     'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are the Light or Dark theme, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
     'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
@@ -80,7 +80,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; the theme, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
