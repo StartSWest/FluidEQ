@@ -1,18 +1,43 @@
 html,
 body,
 #root,
-.wallpaper-scene {
+.wallpaper-stage {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
   background: #090b12;
 }
-.wallpaper-scene {
+.wallpaper-stage {
   position: relative;
+}
+/* Each visualizer the page draws is a layer of the whole stage; two stand
+   one over the other only while one replaces the other (sceneCrossfade.ts). */
+.wallpaper-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #090b12;
 }
 .wallpaper-scene canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+/* The one being replaced stays over its successor, whole, while that one
+   builds and until it has drawn: under an opaque layer a scene still draws,
+   where at opacity 0 it would be one nobody can see and would not be built. */
+.wallpaper-scene--over {
+  z-index: 1;
+}
+/* Then it fades off it. Slow at the start, because the new scene is still
+   rising out of black for its first quarter second (its canvas's 250 ms
+   settle and an 80 ms half-life on the scene's own fade): 250 ms in, this
+   has uncovered a fifth of it and the new one stands at 0.89 of itself, so
+   the picture never dips toward the page's colour by more than 3% (computed
+   from the three curves; 600 ms would dip 6%). Its transitionend is what
+   lets the old one go. */
+.wallpaper-scene--leaving {
+  opacity: 0;
+  transition: opacity 800ms ease-in-out;
 }

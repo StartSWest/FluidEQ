@@ -62,17 +62,25 @@ describe('a monitor following the graph', () => {
     expect(showing(manager)[0]).toEqual([2, 'premium:neon-city']);
   });
 
-  // The replacement is placed the way every change is: the one playing stays
-  // on the desktop until the new one has drawn.
-  it('keeps the one it shows playing until the graph’s is on the desktop', () => {
+  // The replacement goes where every change of visualizer goes: into the
+  // page already on the desktop, which keeps the one it shows until the new
+  // one has drawn and crossfades.
+  it('changes to the graph’s in the page it already has, never a new window', () => {
     const { deps } = setup();
     const manager = createWallpaperManager(deps);
     manager.start(request({ followsGraph: true }));
     manager.setGraphLook('premium:aurora');
-    const [playing, coming] = mockSurfaces;
+    const [playing] = mockSurfaces;
+    expect(mockSurfaces).toHaveLength(1);
+    expect(playing.changeScene).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookId: 'premium:aurora',
+        followsGraph: true,
+      }),
+      expect.anything(),
+      undefined,
+    );
     expect(playing.release).not.toHaveBeenCalled();
-    coming.ready();
-    expect(playing.release).toHaveBeenCalledTimes(1);
   });
 
   // The graph on a free visualizer says nothing at all (the window sends

@@ -369,6 +369,60 @@ describe('a desktop background changing and ending', () => {
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
   });
 
+  // A new window for every visualizer was the blink: the old one was
+  // destroyed as the new one was shown, before a frame of it was on screen.
+  it('takes another visualizer into the page it has, which asks for it by a new generation', () => {
+    const { surface } = create();
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    mockWindow.webContents.send.mockClear();
+
+    const ember = {
+      pack: { id: 'ember', version: 3 } as never,
+      madeBy: 'fluideq' as const,
+    };
+    surface.changeScene(
+      {
+        lookId: 'premium:ember',
+        wave: { height: 1, position: 0 },
+        motion: 'calm',
+        followsGraph: true,
+      },
+      ember,
+      { params: { glow: 0.2 }, wave: { height: 0.5, position: 0.1 } },
+    );
+    expect(surface.lookId).toBe('premium:ember');
+    expect(surface.scene).toBe(ember);
+    expect(surface.choice()).toEqual({
+      lookId: 'premium:ember',
+      wave: { height: 0.5, position: 0.1 },
+      motion: 'calm',
+      followsGraph: true,
+    });
+    expect(mockWindow.webContents.send).toHaveBeenCalledTimes(1);
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      'wallpaper-surface-changed',
+      expect.objectContaining({
+        phase: 'running',
+        renderGeneration: 2,
+        motion: 'calm',
+        tuning: { params: { glow: 0.2 }, wave: { height: 0.5, position: 0.1 } },
+      }),
+    );
+    // The same window, still on the desktop: nothing shown again or let go.
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(mockWindow.destroy).not.toHaveBeenCalled();
+    expect(mockHost.stop).not.toHaveBeenCalled();
+
+    // A late frame of the one replaced is not the new one's.
+    mockWindow.webContents.send.mockClear();
+    surface.drawn(1);
+    expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+    surface.drawn(2);
+    expect(mockWindow.webContents.send).toHaveBeenCalledTimes(1);
+  });
+
   it('lets go of its helper and window once when the helper fails, and says so once', () => {
     const { surface, onFail } = create();
     surface.drawn(1);

@@ -86,11 +86,12 @@ export const createMonitorBackgrounds = (
     choice: IWallpaperChoice,
     scene: IWallpaperScene,
   ) => {
-    // One visualizer replacing another — a look set again, a scene brought up
-    // to date — used to take the old one off the desktop first, so the plain
-    // wallpaper was on screen for as long as the new scene took to load and
-    // compile. The one playing stays until the new one is on the desktop, or
-    // has learned it must not be seen at all.
+    // A new window replacing another — a monitor that changed shape, which
+    // no window can follow (`change` covers everything else) — used to take
+    // the old one off the desktop first, so the plain wallpaper was on screen
+    // for as long as the new scene took to load and compile. The one playing
+    // stays until the new one is on the desktop, or has learned it must not
+    // be seen at all.
     const playing = surfaces.get(display.id);
     const handOver = playing?.phase() === 'running' ? playing : undefined;
     if (handOver) {
@@ -149,12 +150,41 @@ export const createMonitorBackgrounds = (
     }
   };
 
+  /**
+   * Another visualizer for a monitor: into the page already on it, which
+   * crossfades once the new one has drawn, wherever that window still fits
+   * the monitor. `place` alone put every change in a window of its own, and
+   * the swap between the two windows was a blink and a hard cut, never a
+   * fade. A monitor with nothing on it, or one whose rectangle has changed,
+   * gets a new window as before (the desktop helper cannot move one).
+   */
+  const change = (
+    display: Display,
+    choice: IWallpaperChoice,
+    scene: IWallpaperScene,
+  ) => {
+    const playing = surfaces.get(display.id);
+    const { x, y, width, height } = display.bounds;
+    if (
+      playing &&
+      playing.bounds.x === x &&
+      playing.bounds.y === y &&
+      playing.bounds.width === width &&
+      playing.bounds.height === height
+    ) {
+      playing.changeScene(choice, scene, options.tuning(choice.lookId));
+      return;
+    }
+    place(display, choice, scene);
+  };
+
   return {
     /** Hears what a surface changes on its own: its phase, or its failing. */
     onChange: (listener: () => void) => {
       changed = listener;
     },
     place,
+    change,
     fail,
     /** Nothing on the monitor: no surface and no failure. */
     clear: (displayId: number) => {

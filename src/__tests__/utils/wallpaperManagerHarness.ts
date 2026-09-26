@@ -44,6 +44,11 @@ export interface IFakeSurface {
   release: jest.Mock;
   applyPolicy: jest.Mock;
   fail: jest.Mock;
+  /**
+   * Another visualizer into the same page, as the real surface takes it:
+   * what it shows, its choice and the tuning of the new look.
+   */
+  changeScene: jest.Mock;
   /** It is on the desktop now: what it replaced may go. */
   ready(): void;
 }
@@ -120,6 +125,7 @@ export const mockNativeHost = () => ({
 export const mockSurfaceModule = () => ({
   createDesktopSurface: (options: {
     displayId: number;
+    bounds: IFakeDisplay['bounds'];
     choice: IWallpaperChoice;
     performance: IScenePerformance;
     tuning: IWallpaperTuning | undefined;
@@ -133,6 +139,18 @@ export const mockSurfaceModule = () => ({
     const surface: IFakeSurface = {
       displayId: options.displayId,
       lookId: options.choice.lookId,
+      changeScene: jest.fn(
+        (
+          next: IWallpaperChoice,
+          scene: IWallpaperScene,
+          tuning: IWallpaperTuning | undefined,
+        ) => {
+          surface.lookId = next.lookId;
+          surface.tuning = tuning;
+          choice = tuning?.wave ? { ...next, wave: tuning.wave } : next;
+          Object.assign(surface, { scene });
+        },
+      ),
       performance: options.performance,
       tuning: options.tuning,
       contents: { mainFrame: {} },
@@ -158,6 +176,7 @@ export const mockSurfaceModule = () => ({
       ready: () => options.onReady(),
     };
     Object.assign(surface, {
+      bounds: options.bounds,
       scene: { pack: { version: 1, source: 'void main() {}' } },
       phase: () => 'running',
       pauseReason: () => undefined,

@@ -40,7 +40,9 @@ const wiring = (file: string) =>
 const SURFACES = [
   'graph/SceneCanvas.tsx',
   'plus/ScenePreview.tsx',
-  'wallpaper/WallpaperSurface.tsx',
+  // The desktop page draws each visualizer in a layer of its own, which is
+  // where its source is stated (`sceneCrossfade.ts`).
+  'wallpaper/WallpaperSceneLayer.tsx',
   'studio/StudioStage.tsx',
 ];
 
@@ -95,7 +97,7 @@ describe('how a scene is run', () => {
     expect(wiring('plus/ReviewScene.tsx')).toContain('sceneMakerOf(');
     expect(wiring('player/useGraphScenePack.ts')).toContain('sceneMakerOf(');
     // Main's word, never worked out by the page (`wallpaperScenes.test.ts`).
-    expect(wiring('wallpaper/WallpaperSurface.tsx')).toContain(
+    expect(wiring('wallpaper/WallpaperSceneLayer.tsx')).toContain(
       'madeBy: bootstrap.madeBy',
     );
     // The stage and the publish camera are the author's own work by

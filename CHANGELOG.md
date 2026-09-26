@@ -378,6 +378,10 @@ version and in these notes.
 
 ### Fixed
 
+- **A visualizer on the desktop changes with a crossfade.** Switching it,
+  following the graph's automatic switching or saving your scene in the
+  Studio used to blink the screen dark and cut to the new one; the old
+  picture now stays until the new one has drawn and fades into it.
 - **The Studio's edges are solid.** The Plus side rail, which opens over the
   Studio when folded, is the menus' material now instead of see-through; the
   buttons pinned at the foot of the Studio's controls hide what scrolls under

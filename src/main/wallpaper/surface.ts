@@ -53,6 +53,9 @@ interface IDesktopSurfaceOptions {
 
 export interface IDesktopSurface {
   readonly displayId: number;
+  /** The monitor's rectangle this window was made for; another needs another window. */
+  readonly bounds: Rectangle;
+  /** What it shows now: `changeScene` moves both. */
   readonly lookId: string;
   readonly scene: IWallpaperScene;
   phase(): IWallpaperSurfaceState['phase'];
@@ -75,6 +78,20 @@ export interface IDesktopSurface {
    * monitor's, so the list and the next launch show what is on the desktop.
    */
   applyTuning(next: IWallpaperTuning | undefined): void;
+  /**
+   * Another visualizer on this monitor — set by hand, the graph's that it
+   * follows, a newer version of its own — drawn by the same page, which
+   * keeps the one it shows until the new one has drawn and crossfades
+   * (`sceneCrossfade.ts`). A new window here is what blinked the desktop:
+   * the old one was destroyed the moment the new one was shown, before
+   * Chromium had composited a frame of it, so the monitor showed the
+   * window's background colour and then cut to the new scene.
+   */
+  changeScene(
+    choice: IWallpaperChoice,
+    scene: IWallpaperScene,
+    tuning: IWallpaperTuning | undefined,
+  ): void;
   surfaceState(): IWallpaperSurfaceState;
   owns(contents: WebContents): boolean;
   /** Re-reads the lock, sleep and battery conditions every monitor shares. */
@@ -101,9 +118,10 @@ const sameTuning = (
 export const createDesktopSurface = (
   options: IDesktopSurfaceOptions,
 ): IDesktopSurface => {
-  const { displayId, scene, executable } = options;
-  const { lookId } = options.choice;
-  const window = createWallpaperWindow(options.bounds);
+  const { displayId, bounds, executable } = options;
+  let { scene } = options;
+  let { lookId } = options.choice;
+  const window = createWallpaperWindow(bounds);
   let host: IWallpaperHost | undefined;
   let released = false;
   let attached = false;
@@ -112,11 +130,12 @@ export const createDesktopSurface = (
   let shown = false;
   let ready = false;
   let frameReady = false;
-  // The page's key for its scene. It stood still through a pause and rose
-  // when one ended, because a background was hidden while it waited and had
-  // to draw afresh before it could be shown again; nothing is hidden now and
-  // the scene it keeps is the one that comes back, so it never moves.
-  const renderGeneration = 1;
+  // The page's key for its scene. A pause never moves it — nothing is hidden
+  // while it waits, and the scene it keeps is the one that comes back — and
+  // another visualizer raises it (`changeScene`): the page asks for the scene
+  // again and crossfades to it, and a frame reported for an older one is not
+  // this one's.
+  let renderGeneration = 1;
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
@@ -267,8 +286,13 @@ export const createDesktopSurface = (
 
   return {
     displayId,
-    lookId,
-    scene,
+    bounds,
+    get lookId() {
+      return lookId;
+    },
+    get scene() {
+      return scene;
+    },
     phase: () => phase,
     pauseReason: () => pauseReason,
     choice: () => ({
@@ -310,6 +334,22 @@ export const createDesktopSurface = (
         return;
       }
       ({ wave, motion } = next);
+      tellPage();
+    },
+    changeScene: (nextChoice, nextScene, nextTuning) => {
+      if (released) {
+        return;
+      }
+      ({ lookId, wave, motion } = nextChoice);
+      followsGraph = nextChoice.followsGraph === true;
+      scene = nextScene;
+      tuning = nextTuning;
+      if (tuning?.wave) {
+        wave = tuning.wave;
+      }
+      // The phase stays: the window is on the desktop showing the scene it
+      // had until the page has the new one drawn, so nothing is starting.
+      renderGeneration += 1;
       tellPage();
     },
     surfaceState,

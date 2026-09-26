@@ -271,7 +271,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
    * shows. Nothing moves while that visualizer cannot be loaded here, and a
    * monitor that is gone, or waiting on something a new scene cannot mend,
    * stays as it is: following never takes a background off the desktop. The
-   * one it replaces plays until the new one has drawn (`backgrounds.place`).
+   * one it replaces plays until the new one has drawn, and the page
+   * crossfades (`backgrounds.change`).
    */
   const followGraph = (): boolean => {
     if (disposed || !graphLook || !app.isReady() || !entitled()) {
@@ -305,7 +306,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         return;
       }
       const choice: IWallpaperChoice = { ...entry.choice, lookId };
-      backgrounds.place(target, choice, scene);
+      backgrounds.change(target, choice, scene);
       remember(
         display,
         backgrounds.surfaceOn(entry.displayId)?.choice() ?? choice,
@@ -437,7 +438,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
           // blink.
           playing.retune(chosen);
         } else {
-          backgrounds.place(target, chosen, scene);
+          backgrounds.change(target, chosen, scene);
         }
         // Remembered once it is on the monitor: a request refused outright
         // is not something to bring back at the next launch.
@@ -508,13 +509,14 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         return;
       }
       const display = connected.find((entry) => entry.id === surface.displayId);
-      // An updated scene replaces the one on the desktop, as in the graph.
+      // An updated scene replaces the one on the desktop, as in the graph —
+      // a Studio save of the listener's own scene among them.
       if (
         display &&
         (next.pack.version !== surface.scene.pack.version ||
           next.pack.source !== surface.scene.pack.source)
       ) {
-        backgrounds.place(display, surface.choice(), next);
+        backgrounds.change(display, surface.choice(), next);
         changed = true;
       }
     });
