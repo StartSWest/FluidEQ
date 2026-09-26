@@ -175,18 +175,13 @@ body {
   // it are opaque, so it shows only in the gutters between them.
 }
 
-// Full screen: the two bars become glass.
+// Full screen: the graph's strip of controls becomes glass.
 //
-// The only blur in the app, and the only place one earns its cost. Everywhere
-// else a pane stands on a floor of the same family and a blur would be
-// compositing work for a difference nobody could name. Here the plot runs
-// under both bars edge to edge, so an opaque bar is a slab laid across a
-// picture — and a translucent one with no blur is worse, because the drawing
-// carries on legibly underneath the words.
-//
-// Two elements, both of them a single strip, neither of them redrawn per
-// frame: the compositor blurs each once and reuses it until the picture
-// under it changes.
+// The one place a blur earns its cost: the strip floats on the picture, and a
+// translucent one with no blur is worse than either, because the drawing
+// carries on legibly underneath the words. A single strip, not redrawn per
+// frame: the compositor blurs it once and reuses it until the picture under
+// it changes.
 //
 // Full screen is `data-app-full` on `<html>` (`useAppFullMark`), published
 // with the workspace's `is-app-full`. These rules asked the root and the body
@@ -194,23 +189,18 @@ body {
 // every change there. `#root` stays in the selectors of what lives inside it,
 // so each rule keeps the weight it had; the transport bar is portalled beside
 // the root, and nothing else that styles it carries an id.
-:root[data-app-full] #root .window-titlebar,
-:root[data-app-full] #root .graph-legend-group,
-:root[data-app-full] .now-playing-bar {
+//
+// Not the title bar and the transport bar any more: in full screen they are
+// the window's floor, opaque, exactly as they are in the window (Ivan,
+// 2026-09-26: "fix play bar and head in fullscreen needs to be same color as
+// normal no distinction"). As glass they were the pane's colour at 80%, a
+// lighter band than the same two bars a moment before, with the deck and the
+// volume as lighter slabs again inside them. The strip of graph controls
+// floating on the picture keeps the glass.
+:root[data-app-full] #root .graph-legend-group {
   background-color: color-mix(in srgb, $surface-panel 80%, transparent);
   backdrop-filter: blur(22px) saturate(130%);
   -webkit-backdrop-filter: blur(22px) saturate(130%);
-}
-
-// The blocks inside the glass go part-way see-through with it.
-//
-// They are opaque slabs of the block colour, which over a blurred picture
-// read as two cut-outs laid on the glass rather than as part of it. At two
-// thirds they still hold their controls apart from whatever is moving
-// underneath, and the blur carries through them.
-:root[data-app-full] .now-playing-bar__deck,
-:root[data-app-full] .now-playing-bar__volume {
-  background-color: color-mix(in srgb, $surface-block 66%, transparent);
 }
 
 // The graph's largest view keeps the app's own floor.
