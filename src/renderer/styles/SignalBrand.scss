@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'sass:list';
 @use 'color' as *;
 @use 'theme' as *;
 
@@ -105,31 +106,39 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// *** Rainbow mode ************************************************************
+// *** "EQ" in Lagoon **********************************************************
 
-// ONE PALETTE, SMOOTH, THROUGH THE NAME. The first cut gave each letter a hue
-// of its own, and Ivan sent it back ("more smooth not per letter", 2026-09-25).
-// The name is one gradient through all its letters, drifting. The icon beside
-// it stays as it is outside the mode (above): it is the app's, not the mode's.
-//
-// Rainbow mode's palette (`Rainbow.scss`): Lagoon, or the Plus visualizer's.
-// Twice the box wide and swept by one width, as Rainbow mode's own sweep
-// does, with the first colour again at the end, so the drift never jumps.
-$signal-spectrum: linear-gradient(110deg, var(--rainbow-stops));
+// "FLUID" IN WHITE, "EQ" IN OUR OWN COLOURS (Ivan, 2026-09-26: "improve the
+// fluid title color, perhaps add some white to word and EQ in rainbow", then
+// "in our rainbow color not rainbow"). The whole name was one gradient
+// through Rainbow mode's palette, which with the mode always on made it a
+// cyan-to-blue word with nothing white in it, and turned with whichever Plus
+// visualizer was chosen. Now the first part keeps the white the titles use
+// and rises letter by letter as it did outside the mode; "EQ" is Lagoon —
+// the icon's colours (`$lagoon`), never the palette in use — drifting slowly
+// through it, and glows as the pulse arrives. Twice the box wide and swept
+// by one width, with the first colour again at the end, so the drift never
+// jumps.
+$signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
 
-html.is-euphoric {
-  // The name clips the palette to its letters. Its letters stand as
-  // plain text here, not as boxes of their own: a letter that is its own
-  // box, or still rising, is painted apart from its parent and the clip
-  // misses it — the whole name vanished that way in the mockup.
-  .signal-name {
-    display: inline;
-    color: transparent;
-    background: $signal-spectrum;
-    background-size: 200% 100%;
-    background-clip: text;
-    animation: signal-sweep 12s linear infinite;
-  }
+// One box for the two letters, so the gradient runs through them as one and
+// they rise together after the first part. The letters inside are plain text,
+// not boxes of their own: a letter that is its own box, or still rising, is
+// painted apart from its parent and the clip misses it — the whole name
+// vanished that way in the mockup.
+.signal-name__suffix {
+  display: inline-block;
+  color: transparent;
+  background: $signal-eq-lagoon;
+  background-size: 200% 100%;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(5px);
+  animation:
+    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
+    signal-sweep 12s linear infinite,
+    signal-glow-lit 5.5s ease-in-out infinite;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms), 0s, 1.2s;
 
   .signal-name__letter,
   .signal-name__letter--glow {
@@ -138,6 +147,25 @@ html.is-euphoric {
     opacity: 1;
     transform: none;
     animation: none;
+  }
+}
+
+// The glow of a clipped word: a text shadow would be drawn through its
+// transparent letters and tint them, so the light is a drop shadow round the
+// painted word instead, on the pulse's clock.
+@keyframes signal-glow-lit {
+  0%,
+  16% {
+    filter: none;
+  }
+
+  22% {
+    filter: drop-shadow(0 0 7px color-mix(in srgb, #00ccf5 80%, transparent));
+  }
+
+  40%,
+  100% {
+    filter: none;
   }
 }
 
@@ -168,7 +196,9 @@ html.is-euphoric {
     transform: none;
   }
 
-  html.is-euphoric .signal-name {
+  .signal-name__suffix {
     animation: none;
+    opacity: 1;
+    transform: none;
   }
 }

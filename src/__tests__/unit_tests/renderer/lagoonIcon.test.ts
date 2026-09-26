@@ -54,6 +54,14 @@ describe('Lagoon, everywhere it is written', () => {
     expect(mark).toContain(`linear-gradient(135deg, ${LAGOON.join(', ')})`);
   });
 
+  // "EQ in our rainbow color not rainbow" (Ivan, 2026-09-26): the name's
+  // second part is drawn in Lagoon itself, never in the palette in use.
+  it('is what the header name’s “EQ” is drawn in', () => {
+    const eq = ruleBody(css('SignalBrand.scss'), '.signal-name__suffix');
+    expect(eq).toContain(`linear-gradient(110deg, ${LAGOON.join(', ')}`);
+    expect(eq).not.toContain('--rainbow');
+  });
+
   it('is the icon file’s edge', () => {
     const svg = fs.readFileSync(path.join(ROOT, 'assets', 'icon.svg'), 'utf8');
     const edge = svg.slice(svg.indexOf('id="edge"'));
