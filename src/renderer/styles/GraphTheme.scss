@@ -2709,16 +2709,13 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow: none;
   }
 
-  // The stage is the panel now, so it carries the panel's corners.
-  //
-  // Squaring them off was right while the card around it supplied the rounding;
-  // with that card's frame gone the stage *is* the edge, and square corners sat
-  // against the workspace's rounded everything else.
+  // The stage is the panel now, and square, as the card over it is (Ivan,
+  // 2026-09-26: "remove rounded borders on graph expanded mode"). The
+  // workspace's panes lost their rounded frames with their fills, so there is
+  // no rounded everything-else left for square corners to sit against.
   .video-browser__stage {
-    border-radius: $radius-xl;
-    // Matched to the radius above, and needed for the same reason as the base
-    // rule: the guest is composited separately and only a clip path reaches it.
-    clip-path: inset(0 round $radius-xl);
+    border-radius: 0;
+    clip-path: none;
   }
 
   > .graph-wrapper {
@@ -2750,8 +2747,10 @@ it under the terms of the GNU General Public License version 3 or later.
     // The same edge as the side panes. It is still a panel laid over the
     // workspace, not a second window, and a card in the middle of the screen
     // with its own idea of a border reads as something that has gone wrong.
+    // Square: the column it covers is square, and a rounded card flush with
+    // it showed the workspace in four notches at its corners.
     border: 1px solid $border-panel;
-    border-radius: $radius-xl;
+    border-radius: 0;
     background: none;
     opacity: 1;
     // No drop shadow, because it could only ever show in the corners.
