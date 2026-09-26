@@ -6,33 +6,9 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useMemo, type CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { tintThemePalette, type ISceneSky } from '../utils/sceneTint';
-import { tintLiftForShade } from '../utils/sceneTintPalette';
-import { useSceneTintMode, useShownSceneSky } from '../utils/sceneTintStore';
 import { setThemeShade, useThemeShade } from '../utils/theme';
-import {
-  OCEAN_SHADE,
-  THEME_SHADE_MAX,
-  THEME_SHADE_MIN,
-  THEME_SHADE_TRACK,
-  themeShadeTokens,
-} from '../utils/themeShade';
-
-const PANEL = '--surface-panel';
-
-/** The panes at `shade` in the sky's colours, as the window would wear them. */
-const tintedPanel = (sky: ISceneSky, shade: number) =>
-  tintThemePalette(themeShadeTokens(shade), sky, tintLiftForShade(shade))[
-    PANEL
-  ] ?? themeShadeTokens(shade)[PANEL];
-
-const tintedTrack = (sky: ISceneSky) =>
-  `linear-gradient(in oklab 90deg, ${tintedPanel(sky, THEME_SHADE_MIN)}, ${tintedPanel(
-    sky,
-    OCEAN_SHADE,
-  )} ${OCEAN_SHADE}%, ${tintedPanel(sky, THEME_SHADE_MAX)})`;
+import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 
 /**
  * How light the window stands, at the head of the window-colours menu beside
@@ -43,27 +19,19 @@ const tintedTrack = (sky: ISceneSky) =>
  * shows as Dark to Light: with the theme it walks Black to a lighter Ocean,
  * and while a visualizer lends the window its colours it walks those from
  * their darkest, never black, to their lightest ("if ambient is on is not
- * black is ambient color … dark to more lighter"). The track is painted in
- * whichever of the two the window is wearing, so it shows where the thumb
- * will take it.
+ * black is ambient color … dark to more lighter").
+ *
+ * Drawn exactly as Transparency under it, the menu's own slider row: a first
+ * cut painted its track in the colours it walks, thickened to carry them, and
+ * the two rows read as two different kinds of control (Ivan: "I dont like
+ * that bring slider").
  */
 const WindowBrightnessSlider = () => {
   const { t } = useTranslation();
   const shade = useThemeShade();
-  const mode = useSceneTintMode();
-  const sky = useShownSceneSky();
-  const isTinted = mode !== 'off' && sky !== undefined;
-  const track = useMemo(
-    () =>
-      ({
-        '--brightness-track':
-          isTinted && sky ? tintedTrack(sky) : THEME_SHADE_TRACK,
-      }) as CSSProperties,
-    [isTinted, sky],
-  );
   return (
     <label
-      className="graph-view-menu__slider graph-view-menu__slider--brightness"
+      className="graph-view-menu__slider"
       htmlFor="scene-look-brightness"
       title={t('graph.sceneTint.brightnessHint')}
     >
@@ -76,7 +44,6 @@ const WindowBrightnessSlider = () => {
         id="scene-look-brightness"
         type="range"
         aria-label={t('graph.sceneTint.brightness')}
-        style={track}
         min={THEME_SHADE_MIN}
         max={THEME_SHADE_MAX}
         step={1}

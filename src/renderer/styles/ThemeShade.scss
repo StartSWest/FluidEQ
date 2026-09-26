@@ -62,13 +62,3 @@
     border-radius: $radius-pill;
   }
 }
-
-// The window-colours menu's Brightness (`WindowBrightnessSlider`): the menu's
-// own slider row, with its track thickened enough to carry the colours the
-// thumb walks — the theme's, or the visualizer's while it lends them. At the
-// row's 3px a gradient read as a grey line.
-.graph-view-menu__slider--brightness input[type='range'] {
-  height: 6px;
-  background: var(--brightness-track);
-  box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.2);
-}

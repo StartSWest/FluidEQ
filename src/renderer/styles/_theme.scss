@@ -299,6 +299,13 @@ $border-menu: var(--border-menu);
 // three tenths of the panel colour in it (`floating-surface`). The select's
 // tint above was a teal slab over the open floor.
 $surface-floating: color-mix(in srgb, $surface-base 70%, $surface-panel);
+// A menu's floor: the same material at 95% (Ivan, 2026-09-26: "make sure all
+// menus has no transparency like crazy just 95%"). Resolved on `:root`
+// (`App.scss`), from the root's own surfaces, and inherited as a colour: a
+// menu opened from a pane under the Backdrop's veil used to take the veiled
+// panel into its mix, and at the veil's thinnest it stood at three quarters
+// over the picture.
+$surface-menu-floor: var(--surface-menu-floor);
 // The shade a well is painted in, over a card, at the alpha `inset-surface`
 // uses. Kept next to the shell colour it is derived from.
 $surface-well: var(--surface-well);
@@ -625,6 +632,7 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 
 @mixin menu-surface {
   @include floating-surface;
+  background: $surface-menu-floor;
   // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
   // actually available; without somewhere for the overflow to go, that cap
   // would clip the last entries instead of letting them be reached — the exact

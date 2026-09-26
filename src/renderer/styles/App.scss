@@ -2023,6 +2023,14 @@ textarea,
   // reference, so a Plus scene lending the window its accent recolours these
   // with it rather than leaving cyan columns under a pink curve.
   --coverage-band: var(--accent);
+  // Every menu's floor (`$surface-menu-floor`), from the surfaces as the root
+  // holds them — the theme's slider and a scene's tint included — so what the
+  // Backdrop veils inside the panes never reaches a menu opened from them.
+  --surface-menu-floor: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--surface-base) 70%, var(--surface-panel)) 95%,
+    transparent
+  );
 }
 
 // While a Plus scene lends the window its colours the root is marked

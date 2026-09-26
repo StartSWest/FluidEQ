@@ -316,7 +316,9 @@ version and in these notes.
   the visualizer shows through the panes on the Backdrop.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let
-  it show through.
+  it show through. Menus do not: every menu stands at 95% whatever the
+  Transparency, where one opened from a see-through pane used to go
+  see-through with it.
 - **A Plus visualizer fills the graph.** It runs up behind the section tabs
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
