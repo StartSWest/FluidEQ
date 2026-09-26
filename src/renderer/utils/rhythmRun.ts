@@ -65,10 +65,9 @@ export const setRhythmRun = (next: IRhythmScore) => {
  * Back to a fresh install, as far as the game is concerned.
  *
  * Everything downstream follows from the run, so this is all it takes: the
- * shell subscribes to it, so zeroing the streak drops the joy to nothing, which
- * removes `.is-euphoric` from the document and takes euphoria mode off the
- * bands, the graph trace and the titlebar meter in the same frame. Nothing here
- * needs to know that any of that exists.
+ * shell subscribes to it, so zeroing the streak drops the creature's joy to
+ * nothing in the same frame. Rainbow mode itself stays on — it is always on
+ * now (`euphoriaMode.ts`) — and nothing here needs to know that it exists.
  *
  * The high score goes with it. It is meant to outlive a run, but this is not
  * the end of a run — it is the badge being taken away, and leaving a record

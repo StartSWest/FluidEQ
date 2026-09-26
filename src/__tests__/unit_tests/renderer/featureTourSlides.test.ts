@@ -27,7 +27,6 @@ describe("What's new, slide by slide", () => {
       'visualizers',
       'desktop-visualizer',
       'dynamic-lighting',
-      'rainbow-mode',
     ]);
   });
 

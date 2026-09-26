@@ -46,14 +46,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // Smaller than the titlebar's 44px and larger than the support panel's
   // 26px: the two lines beside it — the eyebrow and a 1.1rem title — come to
   // about this, and a mark taller than the text it introduces stops being a
-  // signature and becomes a picture.
+  // signature and becomes a picture. The tile itself is the app icon's
+  // (`.brand-mark`).
   .brand-mark {
     width: 34px;
     height: 34px;
-    border: 1px solid $border-field;
     border-radius: $radius-s;
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    box-shadow: inset 0 1px 0 rgba($white, 0.06);
 
     svg {
       width: 22px;

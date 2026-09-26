@@ -64,8 +64,6 @@ const help: Record<keyof typeof en, string> = {
   'help.window.waveName': 'Signal audio',
   'help.window.wave':
     'Ce qui est en lecture, en direct. Appuyez dessus pour changer la façon dont il est dessiné.',
-  'help.window.rainbow':
-    'Colore la fenêtre et dessine les courbes et les vumètres à la pleine fréquence de votre écran.',
   'help.window.dsp':
     'Le rack d’effets : les préréglages, la Salle et chaque étage de la chaîne.',
   'help.window.library':
@@ -403,8 +401,7 @@ const help: Record<keyof typeof en, string> = {
     'La courbe de réponse trace vos courbes d’EQ sur le son en direct. La barre au-dessus choisit ce qui est dessiné et comment, et elle change selon le style choisi : style standard ou visualiseur Plus.',
   'help.graph.steps':
     'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Espace et Ctrl+Espace les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde. La Cadence s’y trouve aussi : toutes les images que votre écran propose, ou 60 ou 30, et 60 sur batterie.\nUn visualiseur Plus ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Utiliser son onde d’origine ramène l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le tracé pour passer en plein écran, ou Ctrl+double-clic pour l’agrandir dans la fenêtre ; un nouveau double-clic le ramène. Un simple clic masque ou affiche la barre.\nTouches : Ctrl+F plein écran, Ctrl+S vue agrandie, Échap retour à la vue normale, Ctrl+G la grille, Ctrl+W ce que montre le graphique, Ctrl+I le sens de l’onde, Ctrl+A toutes les bandes. Sur le point d’une bande, faites-le glisser pour la déplacer et un clic droit ouvre son menu ; Ctrl+molette change le Q d’un point sélectionné.',
-  'help.graph.tip':
-    'Tout ceci ne change que le dessin, jamais votre son. Le mode arc-en-ciel (à activer dans Aide → Nouveautés) dessine les styles standard, les vumètres et l’onde à la pleine fréquence de votre écran au lieu de 30 images par seconde.',
+  'help.graph.tip': 'Tout ceci ne change que le dessin, jamais votre son.',
   'help.graph.keywords':
     "analyseur de spectre, forme d'onde, quadrillage, taux de rafraîchissement, fluidité, saccadé, réactivité, FPS, framerate, fullscreen, raccourcis, raccourcis clavier, double-clic, vue agrandie, agrandir",
   'help.graph.stripCaption': 'Avec un style standard',

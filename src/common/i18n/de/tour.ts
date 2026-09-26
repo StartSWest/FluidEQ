@@ -3,17 +3,6 @@ import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
   'tour.contribute': 'Bitte unterstützen Sie uns',
-  'tour.rainbow.title': 'Willkommen im Regenbogenmodus',
-  'tour.rainbow.subtitle': 'Mit einem Klick einschalten',
-  'tour.rainbow.lead':
-    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft — und flüssigere Bewegung: Diagramm, Pegelanzeigen und Welle werden mit der vollen Bildwiederholrate des Bildschirms gezeichnet statt mit dreißig Bildern pro Sekunde. Der Klang ändert sich nie.',
-  'tour.rainbow.how':
-    'Hier sofort einschalten — ×10 ist nicht nötig. Ihre Wahl wird gespeichert und Sie können den Modus jederzeit ausschalten. Beiträge sind freiwillig.',
-  'tour.rainbow.enable': 'Regenbogenmodus einschalten',
-  'tour.rainbow.disable': 'Regenbogenmodus ausschalten',
-  'tour.rainbow.waveform': 'Vorschau der oberen Wellenform',
-  'tour.rainbow.toggleHint':
-    'Klicken Sie oben auf den Schalter „RAINBOW MODE“, um den Modus ein- oder auszuschalten.',
   'tour.eyebrow': 'NEU IN DIESER VERSION',
   'tour.title': 'Neu in FluidEQ',
   'tour.close': 'Schließen',

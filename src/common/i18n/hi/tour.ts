@@ -3,17 +3,6 @@ import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
   'tour.contribute': 'कृपया योगदान दें',
-  'tour.rainbow.title': 'इंद्रधनुष मोड में आपका स्वागत है',
-  'tour.rainbow.subtitle': 'एक क्लिक से चालू करें',
-  'tour.rainbow.lead':
-    'इंद्रधनुषी रंग, चमकते प्रभाव और रंग बदलता बॉर्डर — और ज़्यादा स्मूद हरकत: ग्राफ़, मीटर और तरंग तीस फ़्रेम प्रति सेकंड के बजाय आपकी स्क्रीन की पूरी रिफ़्रेश दर पर बनते हैं। आवाज़ कभी नहीं बदलती।',
-  'tour.rainbow.how':
-    'यहाँ तुरंत चालू करें — ×10 की ज़रूरत नहीं। आपकी पसंद सहेजी जाती है और आप इसे कभी भी बंद कर सकते हैं। योगदान वैकल्पिक है।',
-  'tour.rainbow.enable': 'इंद्रधनुष मोड चालू करें',
-  'tour.rainbow.disable': 'इंद्रधनुष मोड बंद करें',
-  'tour.rainbow.waveform': 'ऊपरी तरंग का पूर्वावलोकन',
-  'tour.rainbow.toggleHint':
-    'मोड चालू या बंद करने के लिए ऊपर “RAINBOW MODE” टॉगल पर क्लिक करें।',
   'tour.eyebrow': 'इस संस्करण में नया',
   'tour.title': 'FluidEQ में नया क्या है',
   'tour.close': 'बंद करें',

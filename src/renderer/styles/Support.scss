@@ -142,31 +142,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include slim-scrollbar;
 }
 
-// Euphoria, said once across the top of the panel.
-//
-// A row of its own spanning both columns, rather than something floated over a
-// corner. Nothing to collide with, nothing to leave a permanent gap for — the
-// row simply does not exist until the mode is on, which is almost always.
-//
-// The sweeping colour comes free: `.is-euphoric .euphoria-pill` is already
-// animating the hue for every pill in the app, and this is one of them. What is
-// added here is size and a shadow to sit on. At the corner tag's 0.55rem this
-// read as a warning label rather than as a celebration, and it is announcing
-// the one thing in this app anybody has to play for.
-//
-// The compound selector is load-bearing: `.euphoria-pill` sets the same
-// padding and font-size, and which of two single-class rules wins depends on
-// which stylesheet the bundler happens to emit first.
-.euphoria-pill.support-dialog__mode {
-  @include animate(pop-in, $motion-base, $ease-spring);
-  padding: 5px 14px;
-  font-size: $text-micro;
-  @include tracking(0.14em);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.2),
-    0 0 18px color-mix(in srgb, $secondary-light 20%, transparent);
-}
-
 .support-dialog__stage,
 .support-dialog__ask {
   display: grid;
@@ -896,6 +871,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   @include tracking(0.02em);
 
+  // The app icon's tile (`.brand-mark`), at the panel's size.
   .brand-mark {
     display: flex;
     width: 32px;
@@ -903,18 +879,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border: 1px solid $border-field;
     border-radius: $radius-s;
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    box-shadow: inset 0 1px 0 rgba($white, 0.06);
 
     svg {
       width: 21px;
       height: 21px;
-      fill: none;
-      stroke: $secondary-light;
-      stroke-linecap: round;
-      stroke-width: 4;
     }
   }
 }

@@ -11,7 +11,6 @@ import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
 import BlackThemeSlide from './BlackThemeSlide';
 import ShareAudioSlide from './ShareAudioSlide';
-import RainbowModeSlide from './RainbowModeSlide';
 import {
   CustomLooksSlide,
   DspSlide,
@@ -99,13 +98,6 @@ const SHARE_AUDIO: TSlideEntry = {
   Body: ShareAudioSlide,
 };
 
-const RAINBOW_MODE: TSlideEntry = {
-  id: 'rainbow-mode',
-  titleKey: 'tour.rainbow.title',
-  subtitleKey: 'tour.rainbow.subtitle',
-  Body: RainbowModeSlide,
-};
-
 const ROOM: TSlideEntry = {
   id: 'room',
   titleKey: 'tour.room.title',
@@ -149,7 +141,6 @@ const RELEASE_17: TSlideEntry[] = [
     subtitleKey: 'tour.lighting.subtitle',
     Body: DynamicLightingSlide,
   },
-  RAINBOW_MODE,
 ];
 
 /**
@@ -234,7 +225,6 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
  * the thing most people came for.
  */
 const ALWAYS: TSlideEntry[] = [
-  RAINBOW_MODE,
   SECOND_OUTPUT,
   BLACK_THEME,
   SHARE_AUDIO,

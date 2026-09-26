@@ -50,6 +50,12 @@ $analogous-2: #54ff8a;
 // property, so `rgba()` cannot take it: mix it with `color-mix()`.
 $active: var(--active);
 
+// The app icon's colours, aqua to periwinkle: its edge and its wave
+// (`assets/icon.svg`), and `LAGOON` in `rainbowPalette.ts`. Written out rather
+// than read from `--rainbow-*`, because those turn to a Plus visualizer's
+// colours and the icon does not.
+$lagoon: #72f7dd, #00e5cf, #00dbe6, #00ccf5, #27b8ff, #51a3ff, #7a95ff;
+
 // Rainbow glow accents
 $neon-cyan: #00e5ff;
 $neon-lime: #b6ff4a;

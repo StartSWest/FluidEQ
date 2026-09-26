@@ -35,6 +35,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Contribution confirmation uses the same unlock event without changing the
  * score. Neither flag depends on the development preview shortcut.
+ *
+ * ALWAYS ON NOW (Ivan, 2026-09-26: "rainbow mode is always on", "just make
+ * sure is always on and thats it"). Both flags start true, whatever was
+ * stored, and nothing turns them off: `setEuphoriaEnabled` refuses `false`
+ * and the reset keeps them. What offered the switch — the pill on the top
+ * wave, the tour's slide, the Support dialog's offer — is gone, and the rest
+ * of this file stays as it was, because everything that draws asks it.
  */
 
 import { useSyncExternalStore } from 'react';
@@ -57,37 +64,25 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-let achieved = false;
-try {
-  achieved = window.localStorage.getItem(ACHIEVED_KEY) === 'true';
-} catch {
-  // Storage can be unavailable. The mode is then simply locked for the
-  // session, which is the safe direction to fail in.
-}
+// Always on: won and switched on from the first frame, whatever was stored.
+let achieved = true;
 
 /**
- * ENABLED. The user's last explicit choice survives a reload or restart. It is
- * still gated by ACHIEVED so a stale or manually written preference can never
- * unlock the mode by itself.
+ * ENABLED. Always on, like ACHIEVED above.
  *
  * COSMETIC ONLY. This turns the look on and nothing else: no multiplier, no
  * points, no streak. The score measures how accurately somebody played, and a
  * switch that granted x10 would make it measure whether they found the switch.
  */
-let enabled = false;
-try {
-  enabled = achieved && window.localStorage.getItem(ENABLED_KEY) === 'true';
-} catch {
-  // Storage can be unavailable. Keep the quiet default for this session.
-}
+let enabled = true;
 
 export const isEuphoriaAchieved = () => achieved;
 export const isEuphoriaEnabled = () => enabled;
 
 export const setEuphoriaEnabled = (next: boolean) => {
-  if (enabled === next || (next && !achieved)) {
-    // Never switchable before it has been won. Guarded here rather than only
-    // in the UI, so one place decides.
+  if (enabled === next || !next || !achieved) {
+    // Never off: the mode is always on. Guarded here rather than only in the
+    // UI, so one place decides — Ctrl+E and the development buttons ask too.
     return;
   }
   enabled = next;
@@ -210,17 +205,14 @@ export const useIsRootEuphoric = () =>
 /**
  * Reset, for the development affordance that gives the badge back.
  *
- * The unlock has to go with it, or "remove badge" leaves the app still offering
- * a mode the fresh state has not earned.
+ * Clears what was stored and leaves the mode on: it is always on now, and a
+ * reset that switched it off would be the one way left to lose it.
  */
 export const resetEuphoriaMode = () => {
-  achieved = false;
-  enabled = false;
   try {
     window.localStorage.removeItem(ACHIEVED_KEY);
     window.localStorage.removeItem(ENABLED_KEY);
   } catch {
     // Nothing to undo if it was never written.
   }
-  emit();
 };

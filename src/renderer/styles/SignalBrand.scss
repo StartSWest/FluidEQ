@@ -15,37 +15,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The logo ****************************************************************
 
-// THE APP'S ICON, THE SAME IN EVERY MODE (Ivan, 2026-09-26: "wave lagoon",
-// then "the icon remain the same"): the tile dark almost as the window behind
-// it, the edge and the wave in Lagoon, aqua to periwinkle — the colours
-// `assets/icon.svg` is drawn in, and `LAGOON` in `rainbowPalette.ts`. Written
-// out rather than read from `--rainbow-*`, because those turn to a Plus
-// visualizer's colours in Rainbow mode and the icon does not.
-$signal-lagoon: #72f7dd, #00e5cf, #00dbe6, #00ccf5, #27b8ff, #51a3ff, #7a95ff;
-
+// The tile, the wave's Lagoon and its weight are the app icon's, and every
+// `.brand-mark` has them (`App.scss`): the same in every mode (Ivan,
+// 2026-09-26: "the icon remain the same").
 .brand-mark--signal {
-  border: 1.5px solid transparent;
-  // The icon's own face, lit from its top corner, inside an edge painted with
-  // Lagoon: the face clipped to the padding, the gradient under it showing
-  // only where the border is. The face is the icon's and not the theme's
-  // floor, so on the light end of the slider it is the same tile the taskbar
-  // shows.
-  background:
-    linear-gradient(160deg, #101722, #080b11 50%, #030508) padding-box,
-    linear-gradient(135deg, $signal-lagoon) border-box;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, $white 8%, transparent),
-    0 8px 22px color-mix(in srgb, #27b8ff 18%, transparent);
-
   // `.brand-mark path` gives both paths the wave's stroke; these are the
-  // wave's Lagoon (`SignalBrandMark`'s own gradient), its drawing-on and the
-  // pulse's own light.
+  // wave's drawing-on and the pulse's own light.
   .brand-mark__wave {
-    stroke: var(--signal-wave-paint);
-    // The icon's weight: 48 of its 512, at the header's scale, with the
-    // icon's glow under it.
-    stroke-width: 5.6;
-    filter: drop-shadow(0 0 2px color-mix(in srgb, #00ccf5 70%, transparent));
     stroke-dasharray: 60;
     stroke-dashoffset: 60;
     animation: signal-draw 900ms cubic-bezier(0.3, 0.7, 0, 1) 150ms forwards;

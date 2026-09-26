@@ -114,7 +114,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Drücken Sie die Leertaste, damit es hüpft',
   'support.game.hint': 'Im Takt drücken, wenn die Spitze die Linie erreicht',
   'support.game.howTo':
-    'Spielen Sie Musik ab und tippen Sie auf das Tier oder drücken Sie die Leertaste, sobald eine Spitze die Mittellinie erreicht. Erreichen Sie ×10, um den Regenbogenmodus freizuschalten.',
+    'Spielen Sie Musik ab und tippen Sie auf das Tier oder drücken Sie die Leertaste, sobald eine Spitze die Mittellinie erreicht.',
   'support.game.thanks':
     'Wenn Sie davon etwas zum Lächeln gebracht hat: Ideen und Unterstützung halten das hier am Leben.',
   'support.game.noAudio': 'Spielen Sie etwas ab, dann erscheint der Takt hier',
@@ -133,10 +133,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'Kopiert',
   'support.game.shareLinkOnly':
     'Teilt nur den Link – den Text fügen Sie selbst ein',
-  'support.game.euphoria': 'Regenbogenmodus',
-  'support.game.euphoriaToggle': 'Regenbogenmodus ein- oder ausschalten',
-  'support.game.euphoriaHint':
-    'Regenbogenfarben, dazu Diagramm, Pegelanzeigen und Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde. Zum Ein- oder Ausschalten klicken.',
   'support.game.perfect': 'Perfekt',
   'support.game.great': 'Super',
   'support.game.good': 'Gut',
@@ -157,11 +153,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Adresse kopieren',
   'support.copied': 'Kopiert',
   'support.openWallet': 'In der Wallet öffnen',
-  'support.contributed': 'Ich habe beigetragen — Regenbogenmodus aktivieren',
-  'support.rainbowHint':
-    'Schon beigetragen? Mit „Ich habe beigetragen“ schalten Sie den Regenbogenmodus sofort ein – seine Farben und flüssigere Bewegung in Diagramm und Pegelanzeigen. ×10 ist nicht nötig.',
-  'support.thanks':
-    'Danke — der Regenbogenmodus ist freigeschaltet und Ihr Tier hat seinen Stern und seinen Tanz.',
+  'support.contributed': 'Ich habe beigetragen',
+  'support.thanks': 'Danke — Ihr Tier hat seinen Stern und seinen Tanz.',
   'support.releaseNotes': 'Sehen, was in dieser Version neu ist',
   'support.footerBefore':
     'Lieber Zeit beitragen? Issues und Pull Requests sind genauso willkommen auf',

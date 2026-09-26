@@ -37,17 +37,12 @@ const START_CHAPTERS = [
           },
           { box: [969, 29, 85, 39], name: 'tabs.eq', text: 'help.window.eq' },
           {
-            // Below the Rainbow mode pill, which sits on the signal's top
-            // edge: a box that took the whole signal would hold the pill, and
-            // the pill's line would count as crossing it.
+            // Below where the Rainbow mode pill sat on the signal's top edge
+            // in this picture, which was taken while it had one: a box that
+            // took the whole signal would hold the pill.
             box: [1070, 34, 420, 47],
             name: 'help.window.waveName',
             text: 'help.window.wave',
-          },
-          {
-            box: [1226, 18, 109, 15],
-            name: 'support.game.euphoria',
-            text: 'help.window.rainbow',
           },
         ],
       },

@@ -111,7 +111,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Pressione Espaço para fazê-lo pular',
   'support.game.hint': 'Toque no ritmo quando o pico chegar à linha',
   'support.game.howTo':
-    'Reproduza música e toque no mascote ou pressione Espaço quando um pico chegar à linha central. Alcance ×10 para desbloquear o modo arco-íris.',
+    'Reproduza música e toque no mascote ou pressione Espaço quando um pico chegar à linha central.',
   'support.game.thanks':
     'Se algo aqui fez você sorrir, ideias e apoio são o que mantêm isto vivo.',
   'support.game.noAudio': 'Toque algo e o ritmo aparece aqui',
@@ -130,10 +130,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'Copiado',
   'support.game.shareLinkOnly':
     'Compartilha apenas o link: cole o texto você mesmo',
-  'support.game.euphoria': 'Modo arco-íris',
-  'support.game.euphoriaToggle': 'Ligar ou desligar o modo arco-íris',
-  'support.game.euphoriaHint':
-    'Cores do arco-íris, e o gráfico, os medidores e a onda desenhados na taxa de atualização total da sua tela em vez de 30 quadros por segundo. Pressione para ligar ou desligar.',
   'support.game.perfect': 'Perfeito',
   'support.game.great': 'Muito bom',
   'support.game.good': 'Bom',
@@ -154,11 +150,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copiar endereço',
   'support.copied': 'Copiado',
   'support.openWallet': 'Abrir na carteira',
-  'support.contributed': 'Eu contribuí — ativar o modo arco-íris',
-  'support.rainbowHint':
-    'Já contribuiu? Ative o modo arco-íris imediatamente com “Eu contribuí”: as cores e um movimento mais suave no gráfico e nos medidores. Não é preciso alcançar ×10.',
-  'support.thanks':
-    'Obrigado — o modo arco-íris está desbloqueado, e seu mascote tem sua estrela e sua dança.',
+  'support.contributed': 'Eu contribuí',
+  'support.thanks': 'Obrigado — seu mascote tem sua estrela e sua dança.',
   'support.releaseNotes': 'Veja as novidades desta versão',
   'support.footerBefore':
     'Prefere contribuir com tempo? Issues e pull requests são igualmente bem-vindos no',

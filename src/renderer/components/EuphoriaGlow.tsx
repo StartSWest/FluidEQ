@@ -386,7 +386,9 @@ const EuphoriaGlow = () => {
   // Counted rather than a boolean, so a second arrival fires a second burst.
   // Re-applying a class an element already has does nothing at all.
   const [burst, setBurst] = useState(0);
-  const wasEuphoricRef = useRef(false);
+  // From the state the window opens in. The mode is always on now, and
+  // starting from false fired the arrival's burst over every launch.
+  const wasEuphoricRef = useRef(isEuphoric);
 
   // On the way IN only. Thirty-six perfect taps deserve a bang; the way out is
   // a mistake, and nobody wants confetti for that.

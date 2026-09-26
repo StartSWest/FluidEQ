@@ -110,7 +110,7 @@ const look = {
   'support.petHint': 'Press space to make it jump',
   'support.game.hint': 'Tap on the beat when the spike reaches the line',
   'support.game.howTo':
-    'Play music, then tap the pet or press Space as a spike reaches the centre line. Reach ×10 to unlock Rainbow mode.',
+    'Play music, then tap the pet or press Space as a spike reaches the centre line.',
   'support.game.thanks':
     'If any of this made you smile, ideas and support are what keep it coming.',
   'support.game.noAudio': 'Play something and the beat shows up here',
@@ -129,10 +129,6 @@ const look = {
   'support.game.shareCopied': 'Copied',
   'support.game.shareLinkOnly':
     'Shares the link only — paste the text yourself',
-  'support.game.euphoria': 'Rainbow mode',
-  'support.game.euphoriaToggle': 'Turn Rainbow mode on or off',
-  'support.game.euphoriaHint':
-    'Rainbow colours, and the graph, meters and wave drawn at your screen’s full refresh rate instead of 30 frames a second. Press to turn it on or off.',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',
   'support.game.good': 'Good',
@@ -153,11 +149,8 @@ const look = {
   'support.copy': 'Copy address',
   'support.copied': 'Copied',
   'support.openWallet': 'Open in wallet',
-  'support.contributed': 'I contributed — enable Rainbow mode',
-  'support.rainbowHint':
-    'Contributed? Turn Rainbow mode on immediately with “I contributed” — its colours, and smoother motion across the graph and meters. No ×10 required.',
-  'support.thanks':
-    'Thank you — Rainbow mode is unlocked, and your pet has its star and dance.',
+  'support.contributed': 'I contributed',
+  'support.thanks': 'Thank you — your pet has its star and dance.',
   'support.releaseNotes': "See what's new in this version",
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',

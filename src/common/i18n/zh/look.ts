@@ -106,8 +106,7 @@ const look: Partial<Dictionary> = {
   'support.eyebrow': '完全自愿',
   'support.petHint': '按空格键让它跳一下',
   'support.game.hint': '波峰到达线上时跟着节拍按下',
-  'support.game.howTo':
-    '播放音乐，当波峰到达中央线时，点击宠物或按空格键。达到 ×10 即可解锁彩虹模式。',
+  'support.game.howTo': '播放音乐，当波峰到达中央线时，点击宠物或按空格键。',
   'support.game.thanks':
     '如果这让你会心一笑，你的想法和支持就是它继续下去的动力。',
   'support.game.noAudio': '播放音乐后节拍会显示在这里',
@@ -125,10 +124,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopy': '复制文字',
   'support.game.shareCopied': '已复制',
   'support.game.shareLinkOnly': '只会分享链接，文字请自行粘贴',
-  'support.game.euphoria': '彩虹模式',
-  'support.game.euphoriaToggle': '开启或关闭彩虹模式',
-  'support.game.euphoriaHint':
-    '彩虹色，并让图表、电平表和波形以屏幕的完整刷新率绘制，而不是每秒 30 帧。点击即可开启或关闭。',
   'support.game.perfect': '完美',
   'support.game.great': '很棒',
   'support.game.good': '不错',
@@ -149,10 +144,8 @@ const look: Partial<Dictionary> = {
   'support.copy': '复制地址',
   'support.copied': '已复制',
   'support.openWallet': '在钱包中打开',
-  'support.contributed': '我支持过了 — 开启彩虹模式',
-  'support.rainbowHint':
-    '已经支持过了？点击“我支持过了”即可立即开启彩虹模式——它的色彩，以及图表和电平表更流畅的动态。无需达到 ×10。',
-  'support.thanks': '谢谢！彩虹模式已解锁，你的宠物也有了星星和舞蹈。',
+  'support.contributed': '我支持过了',
+  'support.thanks': '谢谢！你的宠物有了星星和舞蹈。',
   'support.releaseNotes': '看看这个版本有什么新变化',
   'support.footerBefore':
     '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',

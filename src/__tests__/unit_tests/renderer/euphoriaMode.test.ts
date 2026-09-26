@@ -25,120 +25,66 @@ const load = () => {
   return mod!;
 };
 
-describe('euphoria unlock', () => {
+/**
+ * Rainbow mode is always on (Ivan, 2026-09-26: "rainbow mode is always on",
+ * "just make sure is always on and thats it"). The unlock and the switch are
+ * still in the store, because everything that draws asks it; what these hold
+ * is that nothing can make either answer "off".
+ */
+describe('Rainbow mode, always on', () => {
   beforeEach(() => window.localStorage.clear());
 
-  it('starts locked on a fresh install', () => {
+  it('is won and switched on from a fresh install', () => {
     const mode = load();
-    expect(mode.isEuphoriaAchieved()).toBe(false);
-  });
-
-  it('cannot be switched on before it has been earned', () => {
-    // The whole reward is that the first x10 is a surprise. A switch that
-    // works before anyone reaches it puts the surprise on the titlebar.
-    const mode = load();
-    mode.setEuphoriaEnabled(true);
-    expect(mode.isEuphoriaEnabled()).toBe(false);
-  });
-
-  it('unlocks once, and stays unlocked across restarts', () => {
-    const first = load();
-    first.winEuphoria();
-    expect(first.isEuphoriaAchieved()).toBe(true);
-
-    // A fresh module, as if the app had been reopened.
-    const second = load();
-    expect(second.isEuphoriaAchieved()).toBe(true);
-  });
-
-  it('switches the look on at the moment it is won', () => {
-    // Winning is when the mode is worth seeing. Unlocking a switch and leaving
-    // it off would mean the reward for thirty-six perfect taps is a button.
-    const mode = load();
-    mode.winEuphoria();
+    expect(mode.isEuphoriaAchieved()).toBe(true);
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
-  it('can be switched off after winning, which is the whole point', () => {
-    // This is the bug that prompted the two-flag split. The mode used to be
-    // "the streak is at the ceiling OR the switch is on", and a streak does
-    // not reset when somebody stops playing — so the first half stayed true
-    // indefinitely and the switch could never turn anything off.
+  it('is on whatever an older version stored', () => {
+    window.localStorage.setItem('fluideq-euphoria-reached', 'false');
+    window.localStorage.setItem('fluideq-euphoria-enabled', 'false');
+    // The control: what is stored really does say off.
+    expect(window.localStorage.getItem('fluideq-euphoria-enabled')).toBe(
+      'false',
+    );
     const mode = load();
-    mode.winEuphoria();
-    mode.toggleEuphoriaEnabled();
-    expect(mode.isEuphoriaEnabled()).toBe(false);
     expect(mode.isEuphoriaAchieved()).toBe(true);
+    expect(mode.isEuphoriaEnabled()).toBe(true);
+  });
+
+  it('cannot be switched off, by the switch or by Ctrl+E', () => {
+    const mode = load();
+    mode.setEuphoriaEnabled(false);
+    expect(mode.isEuphoriaEnabled()).toBe(true);
     mode.toggleEuphoriaEnabled();
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
-  it('keeps the achievement when the look is switched off', () => {
-    // Turning the colour off is not giving the trophy back.
+  it('stays on when a run wins it again', () => {
     const mode = load();
-    mode.winEuphoria();
-    mode.setEuphoriaEnabled(false);
-    expect(mode.isEuphoriaAchieved()).toBe(true);
-  });
-
-  it('switches back on when a later run wins it again', () => {
-    const mode = load();
-    mode.winEuphoria();
-    mode.setEuphoriaEnabled(false);
     mode.winEuphoria();
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
-  it('resolves to the switch once won, and to the run before that', () => {
-    // The rule the whole app reads. Before winning, a run at the ceiling
-    // lights it up on its own — that first arrival is the surprise. After
-    // winning, the switch decides and the run has no say, which is what makes
-    // it possible to turn off.
+  it('resolves to on whatever the run says', () => {
+    // The rule the whole app reads (`useIsEuphoric`), through the plain
+    // functions, since the hook needs a renderer.
     const mode = load();
-    const atCeiling = true;
-    expect(mode.useIsEuphoric).toBeDefined();
-
-    // Exercised through the plain functions, since the hook needs a renderer.
     const resolve = (isEarned: boolean) =>
       mode.isEuphoriaAchieved() ? mode.isEuphoriaEnabled() : isEarned;
-
-    expect(resolve(atCeiling)).toBe(true);
-    mode.winEuphoria();
-    expect(resolve(atCeiling)).toBe(true);
-    mode.setEuphoriaEnabled(false);
-    // Still at the ceiling, and still off. This is the fix.
-    expect(resolve(atCeiling)).toBe(false);
+    expect(resolve(false)).toBe(true);
+    expect(resolve(true)).toBe(true);
   });
 
-  it('remembers being switched on across restarts', () => {
-    const first = load();
-    first.winEuphoria();
-    first.setEuphoriaEnabled(true);
-
-    const second = load();
-    expect(second.isEuphoriaAchieved()).toBe(true);
-    expect(second.isEuphoriaEnabled()).toBe(true);
-  });
-
-  it('remembers being switched off across restarts', () => {
-    const first = load();
-    first.winEuphoria();
-    first.setEuphoriaEnabled(false);
-
-    const second = load();
-    expect(second.isEuphoriaAchieved()).toBe(true);
-    expect(second.isEuphoriaEnabled()).toBe(false);
-  });
-
-  it('is given back by the development reset', () => {
+  it('is kept by the development reset, which clears only what was stored', () => {
+    window.localStorage.setItem('fluideq-euphoria-reached', 'true');
+    window.localStorage.setItem('fluideq-euphoria-enabled', 'false');
     const mode = load();
-    mode.winEuphoria();
-    mode.setEuphoriaEnabled(true);
     mode.resetEuphoriaMode();
-    expect(mode.isEuphoriaAchieved()).toBe(false);
-    expect(mode.isEuphoriaEnabled()).toBe(false);
-    // And it does not come back on the next launch.
-    expect(load().isEuphoriaAchieved()).toBe(false);
+    expect(window.localStorage.getItem('fluideq-euphoria-reached')).toBeNull();
+    expect(window.localStorage.getItem('fluideq-euphoria-enabled')).toBeNull();
+    expect(mode.isEuphoriaAchieved()).toBe(true);
+    expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
   it('survives storage being unavailable', () => {
@@ -153,13 +99,11 @@ describe('euphoria unlock', () => {
         throw new Error('denied');
       });
     try {
-      // Locked is the safe direction to fail in, and marking it must not throw
-      // out of the render that noticed the ceiling.
+      // Winning must not throw out of the render that noticed the ceiling.
       const mode = load();
-      expect(mode.isEuphoriaAchieved()).toBe(false);
+      expect(mode.isEuphoriaEnabled()).toBe(true);
       expect(() => mode.winEuphoria()).not.toThrow();
-      // Unlocked for this session even though it could not be written.
-      expect(mode.isEuphoriaAchieved()).toBe(true);
+      expect(mode.isEuphoriaEnabled()).toBe(true);
     } finally {
       getItem.mockRestore();
       setItem.mockRestore();

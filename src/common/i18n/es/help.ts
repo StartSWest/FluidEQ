@@ -64,8 +64,6 @@ const help: Record<keyof typeof en, string> = {
   'help.window.waveName': 'Señal de audio',
   'help.window.wave':
     'Lo que está sonando, mientras suena. Púlsala para cambiar cómo se dibuja.',
-  'help.window.rainbow':
-    'Colorea la ventana y dibuja las curvas y los medidores a la frecuencia completa de tu pantalla.',
   'help.window.dsp':
     'El rack de efectos: presets, la Sala y todas las etapas de la cadena.',
   'help.window.library':
@@ -400,8 +398,7 @@ const help: Record<keyof typeof en, string> = {
     'La gráfica de respuesta dibuja tus curvas de EQ sobre el sonido en directo. La barra que tiene encima elige qué se dibuja y cómo, y cambia según lo que haya en la gráfica: un estilo estándar o un visualizador Plus.',
   'help.graph.steps':
     'Haz clic en el nombre del estilo actual para elegir otro estilo o un visualizador. Las flechas de al lado, Espacio y Ctrl+Espacio pasan de uno a otro.\nAbre Vista para cambiar el tamaño de la gráfica, lo que muestra y la altura y la posición de la onda. Fotogramas también está ahí: todos los fotogramas que ofrezca tu pantalla, o 60 o 30, y 60 con batería.\nUn visualizador Plus añade sus propios controles a Vista —lo que su autor te dejó ajustar— y Usar su onda original devuelve la onda a la altura y la posición que eligió ese autor.\nHaz doble clic en la gráfica para verla a pantalla completa, o Ctrl+doble clic para ampliarla en la ventana; otro doble clic la devuelve. Un solo clic oculta o muestra la barra.\nTeclas: Ctrl+F pantalla completa, Ctrl+S vista ampliada, Esc vuelve a la vista normal, Ctrl+G la cuadrícula, Ctrl+W lo que muestra la gráfica, Ctrl+I hacia dónde mira la onda, Ctrl+A todas las bandas. Sobre el punto de una banda, arrástralo para moverla y el clic derecho abre su menú; Ctrl+rueda cambia la Q de un punto seleccionado.',
-  'help.graph.tip':
-    'Todo esto cambia solo el dibujo, nunca tu sonido. El Modo arcoíris (se activa en Ayuda → Novedades) dibuja los estilos estándar, los medidores y la onda a la frecuencia completa de tu pantalla en lugar de a 30 fotogramas por segundo.',
+  'help.graph.tip': 'Todo esto cambia solo el dibujo, nunca tu sonido.',
   'help.graph.keywords':
     'analizador de espectro, FPS, cuadros por segundo, frames, tasa de refresco, forma de onda, rejilla, tiempo real, fullscreen, atajos, atajos de teclado, doble clic, ampliada',
   'help.graph.stripCaption': 'Con un estilo estándar',

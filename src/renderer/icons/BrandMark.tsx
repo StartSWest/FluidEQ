@@ -16,7 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useId, type CSSProperties } from 'react';
 import { BRAND_MARK } from 'common/branding';
+import { LAGOON } from '../utils/rainbowPalette';
 
 interface IBrandMarkProps {
   /** Extra class on the tile, for a panel that wants a different size. */
@@ -24,7 +26,39 @@ interface IBrandMarkProps {
 }
 
 /**
- * The logo, wherever the app shows itself.
+ * The app icon's wave colours, first stop to last, for a mark's `<defs>`:
+ * Lagoon, never the palette in use, which a Plus visualizer changes.
+ */
+export function LagoonWaveGradient({ id }: { id: string }) {
+  return (
+    <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+      {LAGOON.map((colour, index) => (
+        <stop
+          key={colour}
+          offset={index / (LAGOON.length - 1)}
+          stopColor={colour}
+        />
+      ))}
+    </linearGradient>
+  );
+}
+
+/**
+ * The gradient's id, of this mark's own, and the property `.brand-mark path`
+ * strokes with (`App.scss`). Several marks can be on screen at once, and
+ * `useId`'s colons are taken out, or the `url()` would have to escape them.
+ */
+export const useLagoonWave = () => {
+  const id = `brand-wave-${useId().replace(/:/g, '')}`;
+  return {
+    id,
+    style: { '--brand-wave-paint': `url(#${id})` } as CSSProperties,
+  };
+};
+
+/**
+ * The logo, wherever the app shows itself: the app icon, its tile and its
+ * wave in Lagoon (`App.scss`).
  *
  * The tile comes with it rather than being left to each caller: `.brand-mark`
  * is what styles the frame AND the stroke inside it, so a bare `<svg>` handed
@@ -33,12 +67,17 @@ interface IBrandMarkProps {
  * glyph as well would read the name twice.
  */
 export default function BrandMark({ className }: IBrandMarkProps) {
+  const wave = useLagoonWave();
   return (
     <div
       className={className ? `brand-mark ${className}` : 'brand-mark'}
       aria-hidden="true"
+      style={wave.style}
     >
       <svg viewBox={BRAND_MARK.viewBox}>
+        <defs>
+          <LagoonWaveGradient id={wave.id} />
+        </defs>
         <path d={BRAND_MARK.path} />
       </svg>
     </div>

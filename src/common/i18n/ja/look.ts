@@ -109,7 +109,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'スペースキーで跳ねさせられます',
   'support.game.hint': 'ピークが線に達したらリズムに合わせて押します',
   'support.game.howTo':
-    '音楽を再生し、波のピークが中央の線に来たらペットをタップするかスペースキーを押します。×10に到達するとレインボーモードを解除できます。',
+    '音楽を再生し、波のピークが中央の線に来たらペットをタップするかスペースキーを押します。',
   'support.game.thanks':
     '少しでも楽しんでいただけたなら、アイデアや支援がこの先を作ります。',
   'support.game.noAudio': '何か再生するとビートがここに出ます',
@@ -128,10 +128,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'コピーしました',
   'support.game.shareLinkOnly':
     '共有されるのはリンクのみです。テキストはご自身で貼り付けてください',
-  'support.game.euphoria': 'レインボーモード',
-  'support.game.euphoriaToggle': 'レインボーモードのオン・オフ',
-  'support.game.euphoriaHint':
-    '虹色のカラーに加え、グラフ、メーター、波形を毎秒30フレームではなく画面のリフレッシュレートいっぱいで描きます。押すとオン・オフを切り替えます。',
   'support.game.perfect': 'パーフェクト',
   'support.game.great': 'グレート',
   'support.game.good': 'グッド',
@@ -152,11 +148,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'アドレスをコピー',
   'support.copied': 'コピーしました',
   'support.openWallet': 'ウォレットで開く',
-  'support.contributed': '支援しました — レインボーモードを有効にする',
-  'support.rainbowHint':
-    '支援済みですか？「支援しました」ですぐにレインボーモードを有効にできます。虹色のカラーに加え、グラフとメーターの動きも滑らかになります。×10は不要です。',
-  'support.thanks':
-    'ありがとう！レインボーモードが解除され、ペットに星とダンスが加わりました。',
+  'support.contributed': '支援しました',
+  'support.thanks': 'ありがとう！ペットに星とダンスが加わりました。',
   'support.releaseNotes': 'このバージョンの新機能を見る',
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',

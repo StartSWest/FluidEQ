@@ -3,17 +3,6 @@ import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
   'tour.contribute': 'Merci de contribuer',
-  'tour.rainbow.title': 'Bienvenue dans le mode arc-en-ciel',
-  'tour.rainbow.subtitle': 'Activez-le en un clic',
-  'tour.rainbow.lead':
-    'Des couleurs arc-en-ciel, des accents lumineux et une bordure qui parcourt le spectre — et un mouvement plus fluide : le graphique, les vumètres et l’onde sont dessinés à la pleine fréquence de votre écran au lieu de trente images par seconde. Votre son ne change jamais.',
-  'tour.rainbow.how':
-    'Activez-le ici immédiatement, sans atteindre ×10. Votre choix est mémorisé et vous pouvez le désactiver à tout moment. Contribuer est facultatif.',
-  'tour.rainbow.enable': 'Activer le mode arc-en-ciel',
-  'tour.rainbow.disable': 'Désactiver le mode arc-en-ciel',
-  'tour.rainbow.waveform': 'Aperçu de la forme d’onde du haut',
-  'tour.rainbow.toggleHint':
-    'Cliquez sur le bouton « RAINBOW MODE » au-dessus pour activer ou désactiver le mode.',
   'tour.eyebrow': 'NOUVEAU DANS CETTE VERSION',
   'tour.title': 'Nouveautés de FluidEQ',
   'tour.close': 'Fermer',

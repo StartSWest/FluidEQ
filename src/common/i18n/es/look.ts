@@ -111,7 +111,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Pulsa espacio para hacerlo saltar',
   'support.game.hint': 'Pulsa al ritmo cuando el pico llegue a la línea',
   'support.game.howTo':
-    'Reproduce música y toca la mascota o pulsa Espacio cuando un pico llegue a la línea central. Llega a ×10 para desbloquear el modo arcoíris.',
+    'Reproduce música y toca la mascota o pulsa Espacio cuando un pico llegue a la línea central.',
   'support.game.thanks':
     'Si algo de esto te ha sacado una sonrisa, tus ideas y tu apoyo son lo que lo mantiene vivo.',
   'support.game.noAudio': 'Pon algo de música y el ritmo aparecerá aquí',
@@ -130,10 +130,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'Copiado',
   'support.game.shareLinkOnly':
     'Solo comparte el enlace: pega el texto tú mismo',
-  'support.game.euphoria': 'Modo arcoíris',
-  'support.game.euphoriaToggle': 'Activa o desactiva el modo arcoíris',
-  'support.game.euphoriaHint':
-    'Colores del arcoíris, y la gráfica, los medidores y la onda dibujados a la frecuencia completa de tu pantalla en lugar de a 30 fotogramas por segundo. Pulsa para activarlo o desactivarlo.',
   'support.game.perfect': 'Perfecto',
   'support.game.great': 'Muy bien',
   'support.game.good': 'Bien',
@@ -154,11 +150,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copiar dirección',
   'support.copied': 'Copiada',
   'support.openWallet': 'Abrir en el monedero',
-  'support.contributed': 'He contribuido — activar el modo arcoíris',
-  'support.rainbowHint':
-    '¿Has contribuido? Activa el modo arcoíris al instante con «He contribuido»: sus colores y un movimiento más suave en la gráfica y los medidores. No necesitas llegar a ×10.',
-  'support.thanks':
-    'Gracias: has desbloqueado el modo arcoíris, y tu mascota tiene su estrella y su baile.',
+  'support.contributed': 'He contribuido',
+  'support.thanks': 'Gracias: tu mascota tiene su estrella y su baile.',
   'support.releaseNotes': 'Mira las novedades de esta versión',
   'support.footerBefore':
     '¿Prefieres aportar tiempo? Las incidencias y los pull requests son igual de bienvenidos en',

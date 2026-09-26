@@ -64,8 +64,6 @@ const help: Record<keyof typeof en, string> = {
   'help.window.waveName': 'Segnale audio',
   'help.window.wave':
     'Ciò che è in riproduzione, in tempo reale. Premilo per cambiare come viene disegnato.',
-  'help.window.rainbow':
-    'Colora la finestra e disegna curve e misuratori alla piena frequenza del tuo schermo.',
   'help.window.dsp':
     'Il rack degli effetti: i preset, la Stanza e ogni stadio della catena.',
   'help.window.library':
@@ -400,8 +398,7 @@ const help: Record<keyof typeof en, string> = {
     'Il grafico di risposta disegna le curve del tuo EQ sopra il suono dal vivo. La barra sopra il grafico sceglie cosa viene disegnato e come, e cambia con l’aspetto: uno stile standard o un visualizzatore Plus.',
   'help.graph.steps':
     'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Spazio e Ctrl+Spazio li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Anche la frequenza dei fotogrammi è lì: tutti i fotogrammi che offre il tuo schermo, oppure 60 o 30, e 60 a batteria.\nUn visualizzatore Plus aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Usa la sua onda originale riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero, o Ctrl+doppio clic per espanderlo nella finestra; un altro doppio clic lo riporta indietro. Un clic singolo nasconde o mostra la barra.\nTasti: Ctrl+F schermo intero, Ctrl+S vista espansa, Esc torna alla vista normale, Ctrl+G la griglia, Ctrl+W ciò che mostra il grafico, Ctrl+I il verso dell’onda, Ctrl+A tutte le bande. Sul punto di una banda, trascinalo per spostarla e il clic destro apre il suo menu; Ctrl+rotellina cambia il Q di un punto selezionato.',
-  'help.graph.tip':
-    'Tutto qui cambia solo il disegno, mai il suono. La modalità arcobaleno (si attiva da Aiuto → Novità) disegna gli stili standard, i misuratori e l’onda alla piena frequenza del tuo schermo invece che a 30 fotogrammi al secondo.',
+  'help.graph.tip': 'Tutto qui cambia solo il disegno, mai il suono.',
   'help.graph.keywords':
     'analizzatore di spettro, analyzer, RTA, FPS, frame rate, frequenza di aggiornamento, waveform, fullscreen, scorciatoie, scorciatoie da tastiera, doppio clic, espansa',
   'help.graph.stripCaption': 'Con uno stile standard',

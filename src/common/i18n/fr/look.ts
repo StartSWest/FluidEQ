@@ -113,7 +113,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Appuyez sur espace pour le faire sauter',
   'support.game.hint': 'Appuyez en rythme quand le pic atteint la ligne',
   'support.game.howTo':
-    'Lancez de la musique, puis touchez la mascotte ou appuyez sur Espace quand un pic atteint la ligne centrale. Atteignez ×10 pour débloquer le mode arc-en-ciel.',
+    'Lancez de la musique, puis touchez la mascotte ou appuyez sur Espace quand un pic atteint la ligne centrale.',
   'support.game.thanks':
     'Si tout cela vous a fait sourire, vos idées et votre soutien sont ce qui fait avancer le projet.',
   'support.game.noAudio': 'Lancez un morceau et le rythme apparaîtra ici',
@@ -132,10 +132,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'Copié',
   'support.game.shareLinkOnly':
     'Partage seulement le lien : collez le texte vous-même',
-  'support.game.euphoria': 'Mode arc-en-ciel',
-  'support.game.euphoriaToggle': 'Activer ou désactiver le mode arc-en-ciel',
-  'support.game.euphoriaHint':
-    'Couleurs arc-en-ciel, et le graphique, les vumètres et l’onde dessinés à la pleine fréquence de votre écran au lieu de 30 images par seconde. Appuyez pour l’activer ou le désactiver.',
   'support.game.perfect': 'Parfait',
   'support.game.great': 'Excellent',
   'support.game.good': 'Bien',
@@ -156,11 +152,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copier l’adresse',
   'support.copied': 'Copiée',
   'support.openWallet': 'Ouvrir dans le portefeuille',
-  'support.contributed': 'J’ai contribué — activer le mode arc-en-ciel',
-  'support.rainbowHint':
-    'Vous avez contribué ? Activez immédiatement le mode arc-en-ciel avec « J’ai contribué » : ses couleurs, et un mouvement plus fluide sur le graphique et les vumètres. Pas besoin d’atteindre ×10.',
-  'support.thanks':
-    'Merci — le mode arc-en-ciel est débloqué, et votre mascotte a son étoile et sa danse.',
+  'support.contributed': 'J’ai contribué',
+  'support.thanks': 'Merci — votre mascotte a son étoile et sa danse.',
   'support.releaseNotes': 'Voir les nouveautés de cette version',
   'support.footerBefore':
     'Vous préférez donner du temps ? Les tickets et les pull requests sont tout aussi bienvenus sur',

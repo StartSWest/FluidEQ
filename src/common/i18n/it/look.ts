@@ -113,7 +113,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Premi spazio per farlo saltare',
   'support.game.hint': 'Premi a tempo quando il picco raggiunge la linea',
   'support.game.howTo':
-    'Riproduci musica, poi tocca la mascotte o premi Spazio quando un picco raggiunge la linea centrale. Raggiungi ×10 per sbloccare la modalità arcobaleno.',
+    'Riproduci musica, poi tocca la mascotte o premi Spazio quando un picco raggiunge la linea centrale.',
   'support.game.thanks':
     'Se qualcosa qui ti ha strappato un sorriso, idee e sostegno sono ciò che lo tiene vivo.',
   'support.game.noAudio': 'Metti della musica e il ritmo comparirà qui',
@@ -132,10 +132,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'Copiato',
   'support.game.shareLinkOnly':
     'Condivide solo il link: incolla il testo tu stesso',
-  'support.game.euphoria': 'Modalità arcobaleno',
-  'support.game.euphoriaToggle': 'Attiva o disattiva la modalità arcobaleno',
-  'support.game.euphoriaHint':
-    'Colori arcobaleno, e il grafico, i misuratori e l’onda disegnati alla piena frequenza del tuo schermo invece che a 30 fotogrammi al secondo. Premi per attivarla o disattivarla.',
   'support.game.perfect': 'Perfetto',
   'support.game.great': 'Ottimo',
   'support.game.good': 'Bene',
@@ -156,11 +152,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copia l’indirizzo',
   'support.copied': 'Copiato',
   'support.openWallet': 'Apri nel wallet',
-  'support.contributed': 'Ho contribuito — attiva la modalità arcobaleno',
-  'support.rainbowHint':
-    'Hai contribuito? Attiva subito la modalità arcobaleno con «Ho contribuito»: i suoi colori e un movimento più fluido nel grafico e nei misuratori. Non serve raggiungere ×10.',
-  'support.thanks':
-    'Grazie — la modalità arcobaleno è sbloccata e la tua mascotte ha la sua stella e il suo ballo.',
+  'support.contributed': 'Ho contribuito',
+  'support.thanks': 'Grazie — la tua mascotte ha la sua stella e il suo ballo.',
   'support.releaseNotes': 'Guarda le novità di questa versione',
   'support.footerBefore':
     'Preferisci contribuire con il tempo? Issue e pull request sono altrettanto benvenute su',

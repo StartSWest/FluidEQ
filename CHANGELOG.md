@@ -330,12 +330,14 @@ version and in these notes.
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
   itself and the name rises letter by letter; after that a pulse of light runs
-  along the wave every few seconds. The logo is the app's icon itself, the
-  same in every mode; in Rainbow mode the name is one drifting gradient.
-- **Rainbow mode is Lagoon.** Aqua, cyan, sky, azure and a soft periwinkle —
-  the icon's own colours — where it used to run red to violet. The window
-  takes a little of it too: the panes lean toward its sky. With a Plus
-  visualizer chosen the rainbow is made from that visualizer's own colours
+  along the wave every few seconds. The logo is the app's icon itself, here and
+  in every dialog, and the name is one drifting gradient.
+- **Rainbow mode is always on, and it is Lagoon.** Aqua, cyan, sky, azure and
+  a soft periwinkle — the icon's own colours — where it used to run red to
+  violet, and there is nothing to unlock or switch any more: the switch on the
+  signal, the What's new slide and the offer in the Support dialog are gone.
+  The window takes a little of it too: the panes lean toward its sky. With a
+  Plus visualizer chosen the rainbow is made from that visualizer's own colours
   instead, so every scene has one of its own.
 - **The colours match the icon.** The accent is the cyan at the middle of the
   icon's wave, on Black and on Ocean alike, and the filled buttons, the
@@ -424,8 +426,7 @@ version and in these notes.
 - **Resizing the window no longer throws it into the recovery screen**, and its
   edges no longer show a tint of the wallpaper behind it.
 - **The title bar makes room for itself.** The tagline and the little creature
-  leave as soon as the signal would have to narrow, in every language, and
-  Rainbow mode no longer prints over the signal's own readouts. The signal
+  leave as soon as the signal would have to narrow, in every language. The signal
   and the meters no longer stay frozen after you come back from the Compact
   player.
 - **Smart EQ's speech bubble no longer covers Game mode, the delay or the page

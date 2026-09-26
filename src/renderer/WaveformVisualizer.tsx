@@ -111,11 +111,7 @@ import {
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
 import useMomentaryHold from './utils/useMomentaryHold';
-import {
-  toggleEuphoriaEnabled,
-  useIsEuphoriaAchieved,
-  useIsEuphoric,
-} from './utils/euphoriaMode';
+import { useIsEuphoric } from './utils/euphoriaMode';
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readAccentLight } from './utils/theme';
@@ -171,9 +167,8 @@ const WaveformVisualizer = () => {
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
-  // Both halves of the mode: earned right now, or switched on by someone who
-  // earned it before. The look is the same either way.
-  const hasReached = useIsEuphoriaAchieved();
+  // The mode is always on now (`euphoriaMode.ts`), so its switch that stood
+  // beside this wave is gone.
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   // `points` is the FFT frequency-domain reading the graph panel draws,
   // read here so the `spectrum` style can build real spectrum bars off it
@@ -1004,30 +999,6 @@ const WaveformVisualizer = () => {
           {isOff ? style : announcedStyle}
         </span>
       </button>
-      {/* The switch, and only for someone who has already reached the ceiling
-        the hard way. Before that it does not exist — the first x10 has to be
-        earned, or the surprise the whole thing is built around is a button on
-        the titlebar.
-
-        Afterwards it stays put, drained of colour when the mode is off, so it
-        reads as a control that is available rather than as something that
-        vanished. Cosmetic only: it turns the look on, never the multiplier. */}
-      {hasReached && (
-        <button
-          type="button"
-          className={`euphoria-pill waveform-visualizer__euphoria${
-            isEuphoric ? '' : ' is-dormant'
-          }`}
-          aria-pressed={isEuphoric}
-          // What it does, not just that it toggles: besides the colours it
-          // draws the graph, the meters and this wave at the display's full
-          // rate instead of thirty frames a second, and nothing else says so.
-          title={t('support.game.euphoriaHint')}
-          onClick={toggleEuphoriaEnabled}
-        >
-          {t('support.game.euphoria')}
-        </button>
-      )}
     </div>
   );
 };

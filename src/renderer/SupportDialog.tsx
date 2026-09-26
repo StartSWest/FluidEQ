@@ -29,7 +29,6 @@ import {
   getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
-import { getStreakJoy } from 'common/rhythmGame';
 import { isAdBlockRevealChord } from 'common/videoAdBlock';
 import { PRODUCT_NAME, PRODUCT_VERSION } from 'common/branding';
 import BrandMark from './icons/BrandMark';
@@ -37,8 +36,7 @@ import {
   toggleAdBlockRevealed,
   useIsAdBlockRevealed,
 } from './utils/adBlockReveal';
-import { useIsEuphoric, winEuphoria } from './utils/euphoriaMode';
-import { useRhythmRun } from './utils/rhythmRun';
+import { winEuphoria } from './utils/euphoriaMode';
 import supportQrImage from '../../assets/support-qr.png';
 import MemoryTraceButton from './components/MemoryTraceButton';
 import QrCode from './components/QrCode';
@@ -80,10 +78,6 @@ export default function SupportDialog({
   // is about to go. The chord deliberately says nothing at all.
   const isAdBlockShown = useIsAdBlockRevealed();
   const methods = getSupportMethods();
-  // Read here as well as in the game, because the banner belongs to the panel
-  // rather than to the trace — the same one line the titlebar meter uses, so
-  // the two cannot disagree about whether the mode is on.
-  const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
@@ -234,12 +228,6 @@ export default function SupportDialog({
               )}
             </span>
           </div>
-
-          {isEuphoric && (
-            <span className="euphoria-pill support-dialog__mode">
-              {t('support.game.euphoria')}
-            </span>
-          )}
 
           <button
             ref={closeRef}

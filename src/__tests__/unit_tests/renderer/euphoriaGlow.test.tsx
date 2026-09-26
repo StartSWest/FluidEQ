@@ -57,52 +57,32 @@ describe('the euphoria root class', () => {
     document.documentElement.classList.remove('is-euphoric');
   });
 
-  it('goes on when a run reaches the ceiling', () => {
+  // Always on (Ivan, 2026-09-26: "rainbow mode is always on").
+  it('is on from the first frame, with no run at all', () => {
     render(<EuphoriaGlow />);
-    expect(isRootEuphoric()).toBe(false);
-
-    act(() => {
-      setRhythmRun({ score: 1, streak: EUPHORIA_STREAK });
-    });
     expect(isRootEuphoric()).toBe(true);
   });
 
-  it('comes off in the same session it was won in', () => {
-    // The bug this pins, in the exact state the app is in the first time
-    // anybody sees the mode. Winning is what switches it on, and a streak does
-    // not reset when somebody stops playing — so at the moment the switch is
-    // turned off, the run is still sitting at the ceiling.
-    //
-    // The class used to be derived from `joy`, which falls back to the streak
-    // whenever the switch is off. It therefore stayed on: everything gated on
-    // `isEuphoric` in React went quiet and everything gated on `.is-euphoric`
-    // in the stylesheets kept painting, which is half a rainbow. Restarting
-    // appeared to fix it only because the run lives in memory and the streak
-    // was gone.
+  it('stays on when asked to switch off, and after a run ends', () => {
     render(<EuphoriaGlow />);
     act(() => {
       setRhythmRun({ score: 1, streak: EUPHORIA_STREAK });
       winEuphoria();
     });
-    expect(isRootEuphoric()).toBe(true);
-
     act(() => setEuphoriaEnabled(false));
-    expect(isRootEuphoric()).toBe(false);
+    expect(isRootEuphoric()).toBe(true);
+    act(() => resetRhythmRun());
+    expect(isRootEuphoric()).toBe(true);
   });
 
-  it('comes back on when the switch does, with the run long over', () => {
-    // The other direction of the same rule: once won, the switch is the only
-    // thing that decides, so a streak of nothing must not hold the mode off.
-    render(<EuphoriaGlow />);
-    act(() => {
-      winEuphoria();
-      setEuphoriaEnabled(false);
-      resetRhythmRun();
-    });
-    expect(isRootEuphoric()).toBe(false);
-
-    act(() => setEuphoriaEnabled(true));
+  // The arrival's burst is for the way in, and a window that opens already in
+  // the mode has not arrived anywhere: starting from "off" put the burst over
+  // every launch.
+  it('opens without the arrival burst', () => {
+    const view = render(<EuphoriaGlow />);
+    // The control: this is the state the burst used to fire in.
     expect(isRootEuphoric()).toBe(true);
+    expect(view.container.querySelector('.euphoria-burst')).toBeNull();
   });
 
   it('takes the class with it when the shell unmounts', () => {

@@ -19,8 +19,8 @@ export default function SupportRainbowUnlock({
   const { t } = useTranslation();
   const isAchieved = useIsEuphoriaAchieved();
   const [isCelebrating, setIsCelebrating] = useState(false);
-  // Existing supporters also get the unlock. Once achieved, reopening this
-  // dialog must respect their choice to switch Rainbow back off.
+  // Existing supporters also get the unlock. Rainbow mode is always on now
+  // (`euphoriaMode.ts`), so this records it and changes nothing on screen.
   useEffect(() => {
     if (hasContributed && !isAchieved) {
       winEuphoria();
@@ -41,16 +41,13 @@ export default function SupportRainbowUnlock({
       {hasContributed ? (
         <p className="support-dialog__thanks">{t('support.thanks')}</p>
       ) : (
-        <>
-          <button
-            type="button"
-            className="button small support-dialog__contributed"
-            onClick={confirmContribution}
-          >
-            {t('support.contributed')}
-          </button>
-          <p className="support-method__hint">{t('support.rainbowHint')}</p>
-        </>
+        <button
+          type="button"
+          className="button small support-dialog__contributed"
+          onClick={confirmContribution}
+        >
+          {t('support.contributed')}
+        </button>
       )}
       {isCelebrating &&
         createPortal(

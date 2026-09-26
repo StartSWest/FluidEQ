@@ -6,9 +6,8 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useId, type CSSProperties } from 'react';
 import { BRAND_MARK } from 'common/branding';
-import { LAGOON } from '../utils/rainbowPalette';
+import { LagoonWaveGradient, useLagoonWave } from '../icons/BrandMark';
 import '../styles/SignalBrand.scss';
 
 /**
@@ -28,29 +27,16 @@ import '../styles/SignalBrand.scss';
  * what the draw and the pulse are timed against.
  */
 export default function SignalBrandMark() {
-  // The wave's gradient, by an id of this mark's own: the header and the
-  // Compact player can both draw one. `useId`'s colons are taken out, or the
-  // `url()` that paints with it would have to escape them.
-  const gradient = `signal-wave-${useId().replace(/:/g, '')}`;
+  const wave = useLagoonWave();
   return (
     <div
       className="brand-mark brand-mark--signal"
       aria-hidden="true"
-      style={{ '--signal-wave-paint': `url(#${gradient})` } as CSSProperties}
+      style={wave.style}
     >
       <svg viewBox={BRAND_MARK.viewBox}>
-        {/* Lagoon, first stop to last, as the app icon's wave is drawn:
-            never the palette in use, which a Plus visualizer changes. */}
         <defs>
-          <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="0">
-            {LAGOON.map((colour, index) => (
-              <stop
-                key={colour}
-                offset={index / (LAGOON.length - 1)}
-                stopColor={colour}
-              />
-            ))}
-          </linearGradient>
+          <LagoonWaveGradient id={wave.id} />
         </defs>
         <path
           className="brand-mark__wave"

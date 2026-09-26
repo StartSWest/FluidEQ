@@ -111,7 +111,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'इसे उछालने के लिए Space दबाएँ',
   'support.game.hint': 'शिखर रेखा तक पहुँचे तब ताल पर दबाएँ',
   'support.game.howTo':
-    'संगीत चलाएँ। जब कोई शिखर बीच की रेखा पर आए, तो पेट पर टैप करें या Space दबाएँ। इंद्रधनुष मोड खोलने के लिए ×10 तक पहुँचें।',
+    'संगीत चलाएँ। जब कोई शिखर बीच की रेखा पर आए, तो पेट पर टैप करें या Space दबाएँ।',
   'support.game.thanks':
     'अगर इसमें से कुछ भी आपको अच्छा लगा, तो आपके विचार और सहयोग ही इसे आगे बढ़ाते हैं।',
   'support.game.noAudio': 'कुछ चलाइए, ताल यहाँ दिखेगी',
@@ -130,10 +130,6 @@ const look: Partial<Dictionary> = {
   'support.game.shareCopied': 'कॉपी हो गया',
   'support.game.shareLinkOnly':
     'केवल लिंक साझा होता है — टेक्स्ट स्वयं चिपकाएँ',
-  'support.game.euphoria': 'इंद्रधनुष मोड',
-  'support.game.euphoriaToggle': 'इंद्रधनुष मोड चालू या बंद करें',
-  'support.game.euphoriaHint':
-    'इंद्रधनुषी रंग, और ग्राफ़, मीटर व तरंग 30 फ़्रेम प्रति सेकंड के बजाय आपकी स्क्रीन की पूरी रिफ़्रेश दर पर। चालू या बंद करने के लिए दबाएँ।',
   'support.game.perfect': 'बिलकुल सही',
   'support.game.great': 'शानदार',
   'support.game.good': 'अच्छा',
@@ -154,11 +150,8 @@ const look: Partial<Dictionary> = {
   'support.copy': 'पता कॉपी करें',
   'support.copied': 'कॉपी हो गया',
   'support.openWallet': 'वॉलेट में खोलें',
-  'support.contributed': 'मैंने योगदान दिया — इंद्रधनुष मोड चालू करें',
-  'support.rainbowHint':
-    'योगदान दे चुके हैं? “मैंने योगदान दिया” से इंद्रधनुष मोड तुरंत चालू करें — इसके रंग, और ग्राफ़ व मीटर में ज़्यादा स्मूद हरकत। ×10 तक पहुँचना ज़रूरी नहीं है।',
-  'support.thanks':
-    'धन्यवाद — इंद्रधनुष मोड खुल गया है और आपके पेट को सितारा और नाच मिल गया है।',
+  'support.contributed': 'मैंने योगदान दिया',
+  'support.thanks': 'धन्यवाद — आपके पेट को सितारा और नाच मिल गया है।',
   'support.releaseNotes': 'इस संस्करण में क्या नया है, देखें',
   'support.footerBefore':
     'समय देकर मदद करना चाहेंगे? Issue और pull request भी उतने ही स्वागत योग्य हैं:',

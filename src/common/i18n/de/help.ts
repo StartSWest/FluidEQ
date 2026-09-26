@@ -64,8 +64,6 @@ const help: Record<keyof typeof en, string> = {
   'help.window.waveName': 'Audiosignal',
   'help.window.wave':
     'Was gerade läuft, in Echtzeit. Drücken Sie darauf, um zu ändern, wie es gezeichnet wird.',
-  'help.window.rainbow':
-    'Färbt das Fenster und zeichnet Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms.',
   'help.window.dsp':
     'Das Effekt-Rack: Presets, der Raum und jede Stufe der Kette.',
   'help.window.library': 'Ihre Musikdateien, Alben und die Warteschlange.',
@@ -404,7 +402,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.steps':
     'Klicken Sie auf den Namen der Darstellung, um einen Stil oder einen Visualizer zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. Die Bildrate steht ebenfalls dort: jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Eigene Welle der Szene bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm für Vollbild, mit Strg für die erweiterte Ansicht im Fenster; ein weiterer Doppelklick bringt es zurück. Ein einfacher Klick blendet die Leiste aus oder ein.\nTasten: Strg+F Vollbild, Strg+S erweiterte Ansicht, Esc zurück zur normalen Ansicht, Strg+G das Raster, Strg+W was das Diagramm zeigt, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands verschieben Sie es durch Ziehen, ein Rechtsklick öffnet sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.',
   'help.graph.tip':
-    'Alles hier ändert nur, was gezeichnet wird, nie Ihren Klang. Der Regenbogenmodus (einzuschalten unter Hilfe → Neuerungen) zeichnet die Standardstile, die Pegelanzeigen und die Welle mit der vollen Bildwiederholrate des Bildschirms statt mit 30 Bildern pro Sekunde.',
+    'Alles hier ändert nur, was gezeichnet wird, nie Ihren Klang.',
   'help.graph.keywords':
     'graph, spektrumanalysator, analyzer, frequenzanalyse, fullscreen, FPS, framerate, bildwiederholfrequenz, wellenform, gitternetz, ausblenden, einblenden, tastenkürzel, shortcuts, doppelklick, erweitert',
   'help.graph.stripCaption': 'Mit einem Standardstil',

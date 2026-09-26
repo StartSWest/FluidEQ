@@ -700,14 +700,6 @@ select option {
   flex: 1 1 auto;
 }
 
-// The one button in the middle track, given back to the pointer. Everything
-// around it in here is a drag handle, and Windows subtracts a `no-drag`
-// rectangle from that region rather than layering it — so this is what keeps
-// the rainbow switch pressable on a bar you can also pick the window up by.
-.titlebar-nav .waveform-visualizer__euphoria {
-  -webkit-app-region: no-drag;
-}
-
 // Nothing here strips the meter: it has no box to strip. Its fill, its rim,
 // its lit cyan when there is signal and its rainbow sweep in euphoria all went
 // on 2026-09-25 (Ivan: "the pane remove that border", then no fill and no
@@ -1189,23 +1181,34 @@ select option {
   width: 44px;
   height: 44px;
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
+  // THE APP ICON, WHEREVER THE APP SHOWS ITSELF (Ivan, 2026-09-26: "the icon
+  // remain the same"): the icon's own dark face, lit from its top corner,
+  // inside an edge in Lagoon — the face clipped to the padding, the gradient
+  // under it showing only where the border is. The face is the icon's and not
+  // the theme's floor, so at the light end of the slider it is still the tile
+  // the taskbar shows.
+  border: 1.5px solid transparent;
   border-radius: $radius-l;
-  background: color-mix(in srgb, $secondary-default 20%, transparent);
+  background:
+    linear-gradient(160deg, #101722, #080b11 50%, #030508) padding-box,
+    linear-gradient(135deg, $lagoon) border-box;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, $secondary-light 6%, transparent),
-    0 14px 38px color-mix(in srgb, $secondary-default 12%, transparent);
+    inset 0 1px 0 color-mix(in srgb, $white 8%, transparent),
+    0 8px 22px color-mix(in srgb, #27b8ff 18%, transparent);
 
   svg {
     width: 30px;
     height: 30px;
   }
 
+  // The wave in Lagoon (`BrandMark`'s and `SignalBrandMark`'s own gradient),
+  // at the icon's weight, with the icon's glow under it.
   path {
     fill: none;
-    stroke: $secondary-light;
-    stroke-width: 3.5;
+    stroke: var(--brand-wave-paint, #{$secondary-light});
+    stroke-width: 5.6;
     stroke-linecap: round;
+    filter: drop-shadow(0 0 2px color-mix(in srgb, #00ccf5 70%, transparent));
   }
 }
 
