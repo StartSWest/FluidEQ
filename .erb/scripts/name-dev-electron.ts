@@ -27,13 +27,41 @@
  *
  * The version fields are left alone for the same reason: `app.getVersion()`
  * falls back to them, and the four-part format they use is not semver.
+ *
+ * THE ICON IS STAMPED AGAIN WHENEVER IT CHANGES. The check that skips a
+ * stamped binary used to look at the name alone, so the icon went in once, at
+ * the first install, and every icon after it never reached the development
+ * build: the Lagoon icon of 2026-09-26 was in the tree and the taskbar still
+ * showed whatever the first install had put there. A fingerprint of
+ * `assets/icon.ico` rides along in the version resource now, and a binary
+ * whose fingerprint differs is stamped again. `pnpm dev` runs this too, so a
+ * pull that changes the icon shows on the next start, not on the next
+ * reinstall.
  */
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
 /** What Task Manager should read, for every process in the tree. */
 const PRODUCT_NAME = 'FluidEQ';
 const COMPANY_NAME = 'FluidEQ contributors';
+/** The version string that says which icon the binary carries. */
+export const ICON_KEY = 'FluidEQIcon';
+
+/** Which icon file this is, short enough to read in a Properties dialog. */
+export const iconFingerprint = (icon: Uint8Array): string =>
+  createHash('sha256').update(icon).digest('hex').slice(0, 16);
+
+/**
+ * Whether a binary with these version strings already says FluidEQ and
+ * carries the icon with this fingerprint (none when the tree has no icon).
+ */
+export const isStamped = (
+  strings: Record<string, string | undefined>,
+  fingerprint: string | undefined,
+): boolean =>
+  strings.FileDescription === PRODUCT_NAME &&
+  (fingerprint === undefined || strings[ICON_KEY] === fingerprint);
 
 const distDir = path.join(__dirname, '../../node_modules/electron/dist');
 const exePath = path.join(distDir, 'electron.exe');
@@ -66,11 +94,17 @@ const run = () => {
   const exe = NtExecutable.from(original);
   const res = NtExecutableResource.from(exe);
 
+  const iconPath = path.join(__dirname, '../../assets/icon.ico');
+  const iconFile = fs.existsSync(iconPath)
+    ? fs.readFileSync(iconPath)
+    : undefined;
+  const fingerprint = iconFile ? iconFingerprint(iconFile) : undefined;
+
   const versionInfo = Resource.VersionInfo.fromEntries(res.entries)[0];
   const existing = versionInfo.getStringValues({ lang: 1033, codepage: 1200 });
-  if (existing.FileDescription === PRODUCT_NAME) {
-    // Already stamped. Rewriting the file every install would churn a 200MB
-    // binary for nothing and risk failing while it is in use.
+  if (isStamped(existing, fingerprint)) {
+    // Already stamped, with this icon. Rewriting the file every start would
+    // churn a 200MB binary for nothing and risk failing while it is in use.
     return;
   }
 
@@ -84,14 +118,14 @@ const run = () => {
       ProductName: PRODUCT_NAME,
       CompanyName: COMPANY_NAME,
       LegalCopyright: `Copyright (C) ${COMPANY_NAME}. GPL-3.0-or-later.`,
+      ...(fingerprint ? { [ICON_KEY]: fingerprint } : {}),
     },
   );
   versionInfo.outputToResourceEntries(res.entries);
 
   // The icon too, so alt-tab and the taskbar match the name.
-  const iconPath = path.join(__dirname, '../../assets/icon.ico');
-  if (fs.existsSync(iconPath)) {
-    const icon = Data.IconFile.from(fs.readFileSync(iconPath));
+  if (iconFile) {
+    const icon = Data.IconFile.from(iconFile);
     Resource.IconGroupEntry.replaceIconsForResource(
       res.entries,
       1,
@@ -111,16 +145,30 @@ const run = () => {
     fs.rmSync(stagingPath, { force: true });
     throw renameError;
   }
-  console.log('Development Electron now reports itself as FluidEQ');
+  console.log(
+    'Development Electron now reports itself as FluidEQ, with the current icon',
+  );
 };
 
-try {
-  run();
-} catch (error) {
-  // Never fail an install over a cosmetic rename. The app runs either way.
-  console.warn(
-    'Could not rename the development Electron binary:',
-    (error as Error).message,
-  );
-  console.warn('Close any running dev instance and reinstall to pick it up.');
+/**
+ * Stamps the binary if it needs it. Called by the install (`postinstall.ts`)
+ * and run as a script by `pnpm dev` (`dev.cjs`); importing this file does
+ * nothing by itself, so its helpers can be tested without touching a binary.
+ */
+export const stampDevElectron = () => {
+  try {
+    run();
+  } catch (error) {
+    // Never fail an install or a start over a cosmetic rename. The app runs
+    // either way.
+    console.warn(
+      'Could not rename the development Electron binary:',
+      (error as Error).message,
+    );
+    console.warn('Close any running dev instance and start dev again.');
+  }
+};
+
+if (require.main === module) {
+  stampDevElectron();
 }

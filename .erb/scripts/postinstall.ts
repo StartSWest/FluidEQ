@@ -28,4 +28,5 @@ runPnpm([
 // Windows names a process from the version resource inside its executable, so
 // the development binary calls itself "Electron" until it is stamped. Done here
 // rather than by hand, so a reinstall repairs it instead of silently reverting.
-require('./name-dev-electron');
+// `pnpm dev` does it again on every start, for an icon changed by a pull.
+require('./name-dev-electron').stampDevElectron();

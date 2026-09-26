@@ -86,6 +86,22 @@ const syncInstalledEngine = () => {
   }
 };
 
+/**
+ * Put the current name and icon on the development Electron binary when they
+ * are not there yet — see `name-dev-electron.ts`. The install used to be the
+ * only thing that did it, and only once, so an icon changed by a pull never
+ * reached the taskbar. Never stops dev: the script warns and carries on.
+ */
+const stampDevElectron = () => {
+  const { spawnSync } = require('child_process');
+  const tsNode = require.resolve('ts-node/dist/bin.js');
+  const script = path.join(__dirname, 'name-dev-electron.ts');
+  spawnSync(process.execPath, [tsNode, script], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+};
+
 const startDevServer = () => {
   const cli = require.resolve('webpack-cli/bin/cli.js');
   const config = path.join(
@@ -126,6 +142,7 @@ probe.once('listening', () => {
       process.exit(1);
     }
     syncInstalledEngine();
+    stampDevElectron();
     startDevServer();
   });
 });
