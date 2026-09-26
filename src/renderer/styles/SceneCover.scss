@@ -23,19 +23,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The EQ head over the picture: the section pills and the title stand on a
-// shade of the floor that is deepest at the top, where the pills are, and
-// gone where the head meets the plot, so the scene flows on into the graph
-// with no edge between them (Ivan, 2026-09-25: "fill up to the top the graph
-// only when plus viz", and "in bg mode also like that"). Lifted over the
-// layer it stands on; inside it the controls keep their own faces.
+// shade of the floor that is deepest at the top, where the pills are, so the
+// scene runs up under them (Ivan, 2026-09-25: "fill up to the top the graph
+// only when plus viz", and "in bg mode also like that"). It ends where the
+// plot's own shade begins, at the same 52% (`.chart-scene-scrim`), which
+// holds the graph's strip of controls and then eases out into the picture:
+// one gradient from the pills to below the strip, with no edge between the
+// head and the graph. It used to fade to nothing at the head's foot, and the
+// strip under it stood on whatever the scene was doing (2026-09-26). Lifted
+// over the layer it stands on; inside it the controls keep their own faces.
 @mixin head-over-scene {
   position: relative;
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    color-mix(in srgb, $surface-base 62%, transparent),
-    color-mix(in srgb, $surface-base 30%, transparent) 70%,
-    transparent
+    color-mix(in srgb, $surface-base 64%, transparent),
+    color-mix(in srgb, $surface-base 52%, transparent)
   );
 }
 

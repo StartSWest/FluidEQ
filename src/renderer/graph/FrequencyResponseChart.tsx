@@ -124,7 +124,8 @@ import {
   useSceneLook,
   useSelectedLookId,
 } from '../utils/graphStyle';
-import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
+import { setChromeHeld } from '../utils/idleChrome';
+import { useIsGraphChromeIdle } from './graphChromeIdle';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -713,7 +714,7 @@ const FrequencyResponseChart = ({
     setGraphLook(lookId);
   }, []);
   const isFullScreen = useGraphFullScreen();
-  const isChromeIdle = useIsChromeIdle();
+  const isChromeIdle = useIsGraphChromeIdle();
   const hasTopBar = useFullScreenTopBar();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -1699,11 +1700,10 @@ const FrequencyResponseChart = ({
         } as CSSProperties
       }
     >
-      {/* `is-idle` only ever does anything in full screen — the store that sets
-          it is not watching in any other mode, so the class is simply never on
-          elsewhere. Kept unconditional here rather than gated on the mode as
-          well, because two things deciding the same question is how they come
-          to disagree. */}
+      {/* `is-idle` is decided in one place (`useIsGraphChromeIdle`), which the
+          scene's reset and its shade read too, and never gated again here:
+          two things deciding the same question is how they come to
+          disagree. */}
       {drawnScene && <GraphUpdateNotice />}
       <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
         {/* One pane for the whole right-hand cluster.

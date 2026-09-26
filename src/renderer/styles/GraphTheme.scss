@@ -1698,6 +1698,33 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// The shade the strip of controls stands on over a Plus visualizer
+// (`ScenePlot`, while `useIsGraphChromeHeld`). It carries on the EQ head's
+// shade (`head-over-scene`, which ends at the same 52%) down through the
+// strip's row and a second one where a narrow window wraps it, then eases
+// out into the picture. Held steady: the strip faded out and back over a
+// moving scene, whose light came and went behind it on its own, and the
+// buttons were there one moment and lost the next (Ivan, 2026-09-26). Over
+// the scene's canvas, under the curves and the strip.
+.chart-scene-scrim {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: min(100%, 168px);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, $surface-base 52%, transparent) 0,
+    color-mix(in srgb, $surface-base 48%, transparent) 56px,
+    color-mix(in srgb, $surface-base 36%, transparent) 92px,
+    color-mix(in srgb, $surface-base 18%, transparent) 122px,
+    color-mix(in srgb, $surface-base 6%, transparent) 146px,
+    transparent
+  );
+  pointer-events: none;
+}
+
 // A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
 // is about to be, then out of the way once it has faded in over it. Black for
 // a scene whose colour has not been measured, because that is what every
