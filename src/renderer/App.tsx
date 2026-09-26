@@ -241,6 +241,7 @@ import SceneAmbient from './ambient/SceneAmbient';
 import SceneCover from './graph/SceneCover';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import SceneTint from './components/SceneTint';
+import RainbowSource from './components/RainbowSource';
 import {
   createPreset,
   deletePreset,
@@ -3572,6 +3573,9 @@ export default function App() {
                 is switched on. Here for the same reason: the colour outlives
                 the graph being on screen. Renders nothing. */}
             <SceneTint />
+            {/* Rainbow mode's palette: Aurora, or the chosen Plus
+                visualizer's colours. Renders nothing. */}
+            <RainbowSource />
             {/* The back of the window, where that visualizer is drawn in the
                 Backdrop mode; an empty layer otherwise. */}
             <SceneCover />

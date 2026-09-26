@@ -15,6 +15,8 @@ import {
   type TSkyMeasurement,
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
+import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import { AURORA_SKY } from '../utils/rainbowPalette';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
@@ -29,13 +31,15 @@ import {
 /**
  * Puts the whole window in the colour of a Plus scene. Renders nothing.
  *
- * Two things can ask for it. The Studio, while the member's own scene plays
+ * Three things can ask for it. The Studio, while the member's own scene plays
  * on its stage with the Studio's switch on — and that wins, because somebody
  * looking at their scene there is judging that one. Otherwise the graph,
  * while its switch is on and the chosen look is a Plus visualizer: the Plus
  * looks and the scenes members make, the only looks drawn by a scene whose
  * sky can be measured. Choosing an ordinary look puts the theme back, and so
  * does Plus lapsing: the selection leaves the scene, and this follows it.
+ * And Rainbow mode, with no visualizer chosen: the window in some of Aurora's
+ * colours, the mode's own palette (`rainbowPalette.ts`).
  *
  * Mounted at the root of the app rather than in the graph, because the colour
  * belongs to the window: it stays while the graph is on another tab, and the
@@ -51,6 +55,7 @@ import {
  */
 const SceneTint = () => {
   const isEnabled = useSceneTintEnabled();
+  const isRainbow = useIsRootEuphoric();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -119,7 +124,14 @@ const SceneTint = () => {
       return stop;
     }
 
-    if (!isEnabled || !isSceneLook) {
+    if (!isSceneLook) {
+      // Rainbow mode with no visualizer chosen lends the window Aurora, as a
+      // visualizer would lend its own colours (`AURORA_SKY`); the theme as it
+      // is otherwise.
+      showSceneSky(isRainbow ? AURORA_SKY : undefined, fade);
+      return stop;
+    }
+    if (!isEnabled) {
       showSceneSky(undefined, fade);
       return stop;
     }
@@ -138,7 +150,7 @@ const SceneTint = () => {
       showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch]);
+  }, [studio, isEnabled, isRainbow, isSceneLook, lookId, version, swatch]);
 
   return null;
 };

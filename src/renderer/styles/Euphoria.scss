@@ -58,9 +58,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // AND NOTHING SWEEPS FROM AN ANCESTOR. Each element that travels through the
   // spectrum animates its own hue; see the @property declaration below.
   .rhythm-game__trace {
-    animation: euphoria-sweep 3.6s linear infinite;
-    border-color: hsl(var(--euphoria-hue) 90% 62% / 55%);
-    box-shadow: 0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
+    animation: rainbow-cycle 3.6s linear infinite;
+    border-color: color-mix(in srgb, var(--rainbow-now) 55%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--rainbow-now) 30%, transparent);
   }
 
   // The header's wave takes no rim here either. It had a rainbow one, and
@@ -68,7 +68,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // the wave is drawn straight on the header; the rainbow is in the trace.
 
   .euphoria-pill {
-    animation: euphoria-sweep 3.6s linear infinite;
+    animation: rainbow-cycle 3.6s linear infinite;
   }
 
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
@@ -285,10 +285,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // root and a broken streak removes it, so the line goes back to its ordinary
   // width and colour in the same moment the rest of the window does.
   .rhythm-game__target {
-    animation: euphoria-sweep 3.6s linear infinite;
+    animation: rainbow-cycle 3.6s linear infinite;
     width: 4px;
-    background: hsl(var(--euphoria-hue) 95% 65%);
-    box-shadow: 0 0 6px hsl(var(--euphoria-hue) 95% 60% / 65%);
+    background: var(--rainbow-now);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--rainbow-now) 65%, transparent);
     translate: -2px 0;
   }
 
@@ -463,9 +463,9 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 9px;
   color: $surface-well;
   border-radius: $radius-xs;
-  // The blue part of the sweep used to lose contrast against the dark text.
-  // This lightness keeps the label readable throughout the rainbow.
-  background: hsl(var(--euphoria-hue, 160deg) 95% 75%);
+  // Lifted toward white, so the dark label reads on every stop of the
+  // palette: its blue and indigo would lose it at their own lightness.
+  background: color-mix(in srgb, var(--rainbow-now) 68%, white);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.14em);
@@ -557,6 +557,53 @@ it under the terms of the GNU General Public License version 3 or later.
 
   to {
     --euphoria-hue: 360deg;
+  }
+}
+
+// THE COLOUR ITSELF, for everything the stylesheets colour with the sweep.
+// `--euphoria-hue` turned the wheel, which passes through every colour of the
+// flag; this steps through Rainbow mode's palette instead (`Rainbow.scss`),
+// Aurora or the Plus visualizer's, in the same 3.6 seconds. Not inherited,
+// for the reason above. `--euphoria-hue` still turns for the live trace,
+// whose painter reads an angle and walks the same palette with it
+// (`liveTracePaint.ts`).
+@property --rainbow-now {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #00e5cf;
+}
+
+@keyframes rainbow-cycle {
+  0% {
+    --rainbow-now: var(--rainbow-1);
+  }
+
+  14.286% {
+    --rainbow-now: var(--rainbow-2);
+  }
+
+  28.571% {
+    --rainbow-now: var(--rainbow-3);
+  }
+
+  42.857% {
+    --rainbow-now: var(--rainbow-4);
+  }
+
+  57.143% {
+    --rainbow-now: var(--rainbow-5);
+  }
+
+  71.429% {
+    --rainbow-now: var(--rainbow-6);
+  }
+
+  85.714% {
+    --rainbow-now: var(--rainbow-7);
+  }
+
+  100% {
+    --rainbow-now: var(--rainbow-1);
   }
 }
 

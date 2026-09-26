@@ -15,6 +15,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import { getBandColor } from '../utils/bandColors';
+import { useRainbowStops } from '../utils/rainbowPalette';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreamp, useEnginePreampReader } from '../utils/enginePreamp';
 import { setGain, setMainPreAmp } from '../utils/equalizerApi';
@@ -53,6 +54,7 @@ interface IMiniBandProps {
 
 /** One band: the player's own fader in the band's colour, its frequency. */
 const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
+  const rainbow = useRainbowStops();
   const { dispatchFilter, setGlobalError } = useFluidEqShell();
   // The screen first, then the engine — the order the EQ page keeps, so the
   // slider does not jitter while the write is on its way.
@@ -92,7 +94,7 @@ const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
       // The band's own colour, unless the player is drawing in one colour:
       // the spectrum is Rainbow mode's (`--player-band-tint`, declared only
       // outside it, in `MiniPlayer.scss`).
-      colour={`var(--player-band-tint, ${getBandColor(progress).color})`}
+      colour={`var(--player-band-tint, ${getBandColor(progress, rainbow).color})`}
       isDisabled={isDisabled}
       isOff={!isBandEnabled(band)}
       onHold={(isHeld) => onFocus(isHeld ? band.id : undefined)}

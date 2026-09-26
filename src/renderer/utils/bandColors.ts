@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { rainbowRgbAt } from './rainbowPalette';
+
 type Rgb = readonly [number, number, number];
 
 export interface IBandColor {
@@ -24,9 +26,9 @@ export interface IBandColor {
   track: string;
 }
 
-// Keep the EQ rails and graph points on the same waveform-inspired spectrum.
-// The caller supplies a 0..1 position in frequency order, so every fixed
-// layout samples the same palette regardless of its band count.
+// The graph's Rainbow palette, the waveform-inspired spectrum: sampled in
+// frequency order, so every layout draws the same colours whatever its band
+// count.
 const BAND_COLOR_STOPS: ReadonlyArray<{ position: number; color: Rgb }> = [
   { position: 0, color: [0, 229, 255] },
   { position: 0.28, color: [84, 255, 138] },
@@ -65,18 +67,20 @@ export const BAND_SPECTRUM_HEX: readonly string[] = BAND_COLOR_STOPS.map(
       .join('')}`,
 );
 
-export const getBandColor = (progress: number): IBandColor => {
-  const normalized = Math.max(0, Math.min(1, progress));
-  const rightStop =
-    BAND_COLOR_STOPS.find((stop) => stop.position >= normalized) ||
-    BAND_COLOR_STOPS[BAND_COLOR_STOPS.length - 1];
-  const rightIndex = BAND_COLOR_STOPS.indexOf(rightStop);
-  const leftStop = BAND_COLOR_STOPS[Math.max(0, rightIndex - 1)];
-  const span = rightStop.position - leftStop.position || 1;
-  const amount = (normalized - leftStop.position) / span;
-  const rgb = leftStop.color.map((channel, index) =>
-    Math.round(channel + (rightStop.color[index] - channel) * amount),
-  );
+/**
+ * A band's colour where Rainbow mode draws the bands in colour, `progress` its
+ * place low to high. Rainbow mode's palette (`rainbowPalette.ts`): Aurora, or
+ * the Plus visualizer's own colours while one is chosen. Outside the mode
+ * every one of these places draws the accent instead, so this is the mode's
+ * alone; the graph's Rainbow palette and the look designer keep the spectrum
+ * above. A component hands the palette it read with `useRainbowStops`, so it
+ * draws again when the visualizer changes it.
+ */
+export const getBandColor = (
+  progress: number,
+  palette?: readonly string[],
+): IBandColor => {
+  const rgb = rainbowRgbAt(progress, palette);
   const color = `rgb(${rgb.join(', ')})`;
   // The hue is at full strength; these two say how much of the column
   // carries it. At 0.38 and 0.1 almost everything a band showed was the dot

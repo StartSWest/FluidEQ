@@ -107,41 +107,45 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** Rainbow mode ************************************************************
 
-// ONE SPECTRUM, SMOOTH, ON THE TILE AND THROUGH THE NAME. The first cut gave
+// ONE PALETTE, SMOOTH, ROUND THE TILE AND THROUGH THE NAME. The first cut gave
 // each letter a hue of its own and the tile a thin ring and a small spectrum
 // wave, and Ivan sent both back ("more smooth not per letter and the icon
-// too sucks", 2026-09-25). Now the tile is filled with the spectrum and the
-// wave is drawn in white on it, lit like the pulse, and the name is one
-// gradient running through all its letters; both drift the same way at the
-// same pace, so the mark and the name read as one thing.
+// too sucks", 2026-09-25); the next filled the tile with the spectrum and
+// drew the wave white on it. Now the tile is the one it is outside the mode,
+// dark almost as the window behind it, and the colour is its edge and its
+// wave (Ivan, 2026-09-26: "quiero que sea como estaba, un icon con border y
+// bg interno más oscuro casi como el bg de la app"). The name is one
+// gradient through all its letters, drifting with the edge.
 //
+// Rainbow mode's palette (`Rainbow.scss`): Aurora, or the Plus visualizer's.
 // Twice the box wide and swept by one width, as Rainbow mode's own sweep
 // does, with the first colour again at the end, so the drift never jumps.
-$signal-spectrum: linear-gradient(
-  110deg,
-  #ff4d6d,
-  #ff9f45,
-  #ffd93d,
-  #6bcb77,
-  #36c9d6,
-  #5b8cff,
-  #b06ab3,
-  #ff4d6d
-);
+$signal-spectrum: linear-gradient(110deg, var(--rainbow-stops));
 
 html.is-euphoric {
   .brand-mark--signal {
-    border-color: color-mix(in srgb, $white 22%, transparent);
-    background: $signal-spectrum;
-    background-size: 200% 200%;
+    border: 1.5px solid transparent;
+    // The window's floor with a breath of the pane in it, inside an edge
+    // painted with the palette: the fill clipped to the padding, the
+    // palette under it showing only where the border is.
+    background:
+      linear-gradient(
+          color-mix(in srgb, $surface-base 80%, $surface-panel),
+          color-mix(in srgb, $surface-base 80%, $surface-panel)
+        )
+        padding-box,
+      $signal-spectrum border-box;
+    background-size:
+      100% 100%,
+      200% 200%;
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, $white 35%, transparent),
-      0 8px 24px color-mix(in srgb, #b06ab3 30%, transparent);
+      inset 0 1px 0 color-mix(in srgb, $white 8%, transparent),
+      0 8px 22px color-mix(in srgb, var(--rainbow-5) 22%, transparent);
     animation: signal-sweep 12s linear infinite;
 
+    // The palette along the wave (`SignalBrandMark`'s own gradient).
     .brand-mark__wave {
-      stroke: $white;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+      stroke: var(--signal-wave-paint);
     }
 
     .brand-mark__pulse {

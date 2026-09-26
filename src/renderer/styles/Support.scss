@@ -522,20 +522,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Preview the reward on the coffee card and confirmation before Rainbow is
-// unlocked. The local sweep leaves the rest of the dialog unchanged.
+// unlocked, in the mode's own palette (`Rainbow.scss`). The local sweep leaves
+// the rest of the dialog unchanged.
 .button.support-dialog__contributed,
 .support-method--primary.support-method--qr {
-  --rainbow-sweep: linear-gradient(
-    90deg,
-    #ff4d6d,
-    #ff9f45,
-    #ffd93d,
-    #6bcb77,
-    #36c9d6,
-    #5b8cff,
-    #b06ab3,
-    #ff4d6d
-  );
+  --rainbow-sweep: linear-gradient(90deg, var(--rainbow-stops));
 
   border-width: 2px;
 

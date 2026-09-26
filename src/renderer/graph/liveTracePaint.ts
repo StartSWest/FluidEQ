@@ -33,6 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { GraphPalette, heatHue } from 'common/graphStyles';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
+import { rainbowColourAt } from '../utils/rainbowPalette';
 import { ILiveCurveData } from './ChartController';
 import { heatColour } from './lookColours';
 
@@ -172,18 +173,20 @@ export interface IEuphoriaPaint {
 }
 
 /**
- * The travelling hue, in the two weights the mode uses.
+ * The travelling colour, in the two weights the mode uses. `hue` is how far
+ * round the sweep has come, in degrees; it walks Rainbow mode's palette
+ * rather than the colour wheel, which went through every hue of the flag
+ * (`rainbowPalette.ts`). The outline a little deeper than the trace.
  *
- * Comma-separated rather than the modern space-separated form: both are legal
- * CSS colours and Chromium accepts either, but a canvas fill style is parsed by
- * whatever is running the code — including jsdom under test — and the older
- * form is the one nothing argues about.
+ * As `rgb(r, g, b)`, comma-separated: a canvas fill style is parsed by
+ * whatever is running the code — including jsdom under test — and that form
+ * is the one nothing argues about.
  */
 export const euphoriaTraceColour = (hue: number): string =>
-  `hsl(${hue}, 95%, 66%)`;
+  rainbowColourAt(hue / 360, 0.02);
 
 export const euphoriaOutlineColour = (hue: number): string =>
-  `hsl(${hue}, 90%, 62%)`;
+  rainbowColourAt(hue / 360, -0.02);
 
 /**
  * What the figure is stroked with, or nothing.

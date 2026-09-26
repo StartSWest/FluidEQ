@@ -37,19 +37,25 @@ const supporting = (
  * across the whole spectrum the stops are placed in, wherever the plot's
  * edges land.
  */
-export const eqGradientStops = (filters: IFiltersMap): IChartGradientStop[] => {
+export const eqGradientStops = (
+  filters: IFiltersMap,
+  // Rainbow mode's palette, as the graph read it (`useRainbowStops`).
+  rainbow?: readonly string[],
+): IChartGradientStop[] => {
   const sorted = Object.values(filters).sort(
     (a, b) => a.frequency - b.frequency,
   );
   const logSpan = Math.log(GRAPH_END / GRAPH_START);
   return [
-    { offset: 0, color: getBandColor(0).color },
+    { offset: 0, color: getBandColor(0, rainbow).color },
     ...sorted.map((filter, index) => ({
       offset: Math.log(filter.frequency / GRAPH_START) / logSpan,
-      color: getBandColor(sorted.length > 1 ? index / (sorted.length - 1) : 0)
-        .color,
+      color: getBandColor(
+        sorted.length > 1 ? index / (sorted.length - 1) : 0,
+        rainbow,
+      ).color,
     })),
-    { offset: 1, color: getBandColor(1).color },
+    { offset: 1, color: getBandColor(1, rainbow).color },
   ];
 };
 

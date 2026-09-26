@@ -128,6 +128,11 @@ export interface IBuildChartDataParams
    * Undefined until the output list has answered.
    */
   sampleRate?: number;
+  /**
+   * Rainbow mode's palette, which shades the EQ curve's halo while the mode
+   * is on (`rainbowPalette.ts`). The one in use when not given.
+   */
+  rainbow?: readonly string[];
   t: ReturnType<typeof useTranslation>['t'];
 }
 
@@ -170,6 +175,7 @@ export const buildChartData = ({
   preAmp,
   prevFilterLines,
   prevFilters,
+  rainbow,
   sampleRate,
   smartEq,
   t,
@@ -404,7 +410,7 @@ export const buildChartData = ({
         ? {
             points: getCombinedLineData(0, eqLines),
             isQuiet: isEqQuiet,
-            gradientStops: eqGradientStops(filters),
+            gradientStops: eqGradientStops(filters, rainbow),
           }
         : undefined,
     }),

@@ -161,16 +161,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // box, so -200% is one whole image along — and stopping leaves no jump.
   animation: eq-engine-flow 4s linear;
 
+  // Rainbow mode's palette (`Rainbow.scss`): Aurora, or the Plus visualizer's.
   .is-euphoric & {
-    background-image: linear-gradient(
-      90deg,
-      $neon-cyan,
-      $neon-lime,
-      $neon-yellow,
-      $neon-pink,
-      $neon-purple,
-      $neon-cyan
-    );
+    background-image: linear-gradient(90deg, var(--rainbow-stops));
   }
 
   // A scene lending the window its colours takes this cyan with it: with a

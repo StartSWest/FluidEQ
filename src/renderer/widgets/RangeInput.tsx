@@ -29,6 +29,7 @@ import ArrowButton from './ArrowButton';
 import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
 import { getBandColor } from '../utils/bandColors';
+import { useRainbowStops } from '../utils/rainbowPalette';
 
 interface IRangeInputProps {
   name: string;
@@ -101,9 +102,11 @@ const RangeInput = ({
     () => 1 / 10 ** incrementPrecision,
     [incrementPrecision],
   );
+  // Rainbow mode's palette, read here so a new one draws the band again.
+  const rainbow = useRainbowStops();
   const rangeColor = useMemo(
-    () => getBandColor(colorProgress),
-    [colorProgress],
+    () => getBandColor(colorProgress, rainbow),
+    [colorProgress, rainbow],
   );
 
   const onRangeInput = (e: ChangeEvent<HTMLInputElement>) => {

@@ -10,6 +10,7 @@ import {
 import { IKaraokeSong } from '../../common/karaoke/types';
 import KaraokeLyrics from './KaraokeLyrics';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent, readSurfaceAlpha } from '../utils/theme';
 
 interface IKaraokeMakerPreviewProps {
@@ -119,7 +120,9 @@ const KaraokeMakerPreviewNotes = ({
         noteFill = readAccent(0.3, 'rgba(61, 225, 217, .3)');
       }
       if (rainbow) {
-        noteFill = `hsl(${(performance.now() / 10 + index * 17) % 360}, 94%, 67%)`;
+        // Round Rainbow mode's palette every 3.6 seconds, as the hue went
+        // round the wheel, each note a step on from the one before it.
+        noteFill = rainbowColourAt(performance.now() / 3600 + index * 0.047);
       }
       context.fillStyle = noteFill;
       context.shadowColor = rainbow

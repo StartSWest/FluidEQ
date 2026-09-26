@@ -267,21 +267,19 @@ $share-score-copied: 1.6s;
 
   // At the ceiling it stops being an outline and becomes the spectrum, because
   // this is the one moment worth showing anyone — the offer is made while the
-  // thing it captures is still on screen. Riding `--euphoria-hue`, which the
-  // shell is already animating on the document root, so this costs one more
-  // element reading a value that was being swept anyway rather than an
-  // animation of its own.
+  // thing it captures is still on screen. Stepping through Rainbow mode's
+  // palette with the rest of the mode (`rainbow-cycle`).
   &.is-euphoric {
-    animation: euphoria-sweep 3.6s linear infinite;
+    animation: rainbow-cycle 3.6s linear infinite;
     color: $surface-well;
     border-color: transparent;
-    background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
+    background: var(--rainbow-now);
     font-weight: $weight-bold;
-    box-shadow: 0 0 14px hsl(var(--euphoria-hue, 160deg) 95% 62% / 55%);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--rainbow-now) 55%, transparent);
 
     &:hover {
       color: $surface-well;
-      background: hsl(var(--euphoria-hue, 160deg) 95% 72%);
+      background: color-mix(in srgb, var(--rainbow-now) 75%, white);
     }
   }
 }

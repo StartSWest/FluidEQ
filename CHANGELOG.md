@@ -328,8 +328,16 @@ version and in these notes.
   and the title, and down to the divider, with no band of floor around it.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
   itself and the name rises letter by letter; after that a pulse of light runs
-  along the wave every few seconds. In Rainbow mode the logo and the name are
-  one drifting spectrum.
+  along the wave every few seconds. In Rainbow mode the logo keeps its dark
+  face with the mode's colours round its edge and along its wave, and the name
+  is one drifting gradient.
+- **Rainbow mode is Aurora.** Turquoise, cyan, blue, indigo, violet, magenta
+  and pink, where it used to run red to violet. The window takes some of it
+  too: the panes lean indigo, buttons turn Aurora's cyan and what is switched
+  on its magenta. With a Plus visualizer chosen the rainbow is made from that
+  visualizer's own colours instead, so every scene has one of its own.
+- **A new app icon.** The same wave on a dark tile, in Aurora's colours, with
+  an edge to match.
 
 ### Fixed
 

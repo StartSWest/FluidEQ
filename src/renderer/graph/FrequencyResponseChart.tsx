@@ -80,6 +80,7 @@ import {
 } from '../audio/LiveAudioContext';
 import { SILENT_WAVEFORM } from './liveSpectrumFrames';
 import { getBandColor } from '../utils/bandColors';
+import { useRainbowStops } from '../utils/rainbowPalette';
 import {
   cycleGraphLook,
   cycleWaveOrientation,
@@ -1148,6 +1149,8 @@ const FrequencyResponseChart = ({
     [dispatchFilter, filters, queuePointEdit, selectedFilterIds],
   );
 
+  // Rainbow mode's palette: the points and the curve's halo are drawn in it.
+  const rainbow = useRainbowStops();
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(
     () =>
       buildChartData({
@@ -1175,6 +1178,7 @@ const FrequencyResponseChart = ({
         preAmp,
         prevFilterLines,
         prevFilters,
+        rainbow,
         sampleRate: outputRate,
         smartEq,
         t,
@@ -1209,6 +1213,7 @@ const FrequencyResponseChart = ({
       t,
       tone,
       voicing,
+      rainbow,
     ],
   );
 
@@ -1617,14 +1622,14 @@ const FrequencyResponseChart = ({
       sortedFilters.map((filter, index) => {
         const progress =
           sortedFilters.length > 1 ? index / (sortedFilters.length - 1) : 0;
-        return [filter.id, getBandColor(progress)] as const;
+        return [filter.id, getBandColor(progress, rainbow)] as const;
       }),
     );
     const eqCurve = chartData.find((curve) => curve.id === 'EQ Response')?.line
       .points;
 
     return Object.values(filters).map((filter) => {
-      const bandColor = colorsById.get(filter.id) || getBandColor(0);
+      const bandColor = colorsById.get(filter.id) || getBandColor(0, rainbow);
       // Where the curve puts it, or — when there is no curve, because the EQ is
       // switched off or hidden — where the band itself sits. Plain gain rather
       // than gain plus preamp, matching the curve now that the curve is drawn
@@ -1664,6 +1669,7 @@ const FrequencyResponseChart = ({
   }, [
     filters,
     chartData,
+    rainbow,
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,

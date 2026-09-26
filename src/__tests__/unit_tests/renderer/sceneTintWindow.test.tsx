@@ -164,6 +164,42 @@ describe('the graph’s visualizer', () => {
     expect(root.style.getPropertyValue('--surface-base')).toBe('');
   });
 
+  // Rainbow mode with no visualizer lends the window Aurora, as a scene would
+  // lend its own colours (Ivan, 2026-09-26: "la interfaz ... debe también kind
+  // of match some of the aurora color when there is not plus viz").
+  it('lends the window Aurora in Rainbow mode with no visualizer chosen', () => {
+    mockLookId = 'look:signal';
+    root.classList.add('is-euphoric');
+    try {
+      mount();
+      expect(root).toHaveAttribute('data-scene-tint');
+      expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
+    } finally {
+      root.classList.remove('is-euphoric');
+    }
+  });
+
+  // The control: the same look outside the mode is the theme.
+  it('keeps the theme with no visualizer outside Rainbow mode', () => {
+    mockLookId = 'look:signal';
+    mount();
+    expect(root).not.toHaveAttribute('data-scene-tint');
+  });
+
+  // A visualizer chosen in Theme mode keeps the theme, Rainbow or not: the
+  // mode's own colours are the rainbow's, and the window's are the menu's.
+  it('keeps the theme for a visualizer in Theme mode, even in Rainbow mode', () => {
+    remember([['premium:bloom', '3', sky(300)]]);
+    window.localStorage.setItem('fluideq.sceneTintMode', 'off');
+    root.classList.add('is-euphoric');
+    try {
+      mount();
+      expect(root).not.toHaveAttribute('data-scene-tint');
+    } finally {
+      root.classList.remove('is-euphoric');
+    }
+  });
+
   it('puts the theme back on a look that is not a scene', () => {
     remember([['premium:bloom', '3', sky(300)]]);
     mockLookId = 'look:signal';

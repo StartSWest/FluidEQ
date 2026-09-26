@@ -39,23 +39,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * instead: the bar under the open tab, the edge of the open processor, and the
  * lamps. Everything else stays exactly as it was.
  *
- * The order is the spectrum's own, low to high, because that is what the
- * `rainbow` palette means on the graph — a bar's colour says where in the
- * frequency range it sits. The rail happens to run in signal order too, so its
- * lamps land in the same order the graph would have drawn them.
+ * Its colours are a palette, not the spectrum (`rainbowPalette.ts`): red to
+ * violet in order was a flag (Ivan, 2026-09-26), so the mode is Aurora —
+ * turquoise, cyan, blue, indigo, violet, magenta, pink — and, while a Plus
+ * visualizer is chosen, that scene's own colours. Seven stops on the root,
+ * Aurora here and the palette in use written over them inline, and every
+ * sweep and every cycle below is made of them, so one change reaches them
+ * all. On the root outside the mode too: the Support dialog previews the
+ * mode before it is won.
  */
+:root {
+  --rainbow-1: #00e5cf;
+  --rainbow-2: #00c8ff;
+  --rainbow-3: #3d7bff;
+  --rainbow-4: #5b4cff;
+  --rainbow-5: #9b4dff;
+  --rainbow-6: #e040fb;
+  --rainbow-7: #ff3cac;
+  // The first again at the end, so a sweep twice the box wide never jumps.
+  --rainbow-stops:
+    var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4),
+    var(--rainbow-5), var(--rainbow-6), var(--rainbow-7), var(--rainbow-1);
+}
+
 html.is-euphoric {
-  --rainbow-sweep: linear-gradient(
-    90deg,
-    #ff4d6d,
-    #ff9f45,
-    #ffd93d,
-    #6bcb77,
-    #36c9d6,
-    #5b8cff,
-    #b06ab3,
-    #ff4d6d
-  );
+  --rainbow-sweep: linear-gradient(90deg, var(--rainbow-stops));
 }
 
 // Doubled width and swept, so the gradient reads as moving light rather than as

@@ -70,6 +70,7 @@ import {
   readAccentLightChannels,
   readSurface,
 } from '../utils/theme';
+import { rainbowColourAt, rainbowGradientStops } from '../utils/rainbowPalette';
 import type { IRampRole } from '../utils/sceneAccentRamp';
 
 /**
@@ -215,13 +216,6 @@ const LADDER_ROLES: readonly IRampRole[] = [
   { role: 'accent' },
   { role: 'light' },
 ];
-const RAINBOW_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
-  { offset: 0, colour: '#00e5ff' },
-  { offset: 0.28, colour: '#b6ff4a' },
-  { offset: 0.52, colour: '#ffe66d' },
-  { offset: 0.76, colour: '#ff3cac' },
-  { offset: 1, colour: '#8b5cff' },
-];
 
 /**
  * The zones' colours, held out of the euphoria rule — a clipped peak stays
@@ -312,34 +306,35 @@ const paintLevel = (
 /**
  * Palettes for the mirrored ramp, which cannot reuse the ones above.
  *
- * `RAINBOW_STOPS` ENDS ON VIOLET, and the zone colours that follow it are
- * amber and red. Up a bar that seam is one edge near the ceiling and it
+ * RAINBOW MODE'S PALETTE ENDS ON ITS LAST STOP — Aurora's pink, or a
+ * visualizer's — and the zone colours that follow it are amber and red. Up a bar that seam is one edge near the ceiling and it
  * passes; mirrored it happens at both ends of the strip at once, and
  * violet butted against amber is the ugly join it looks like.
  *
  * These run the other way round, cool core to warm rim, so the ramp is
  * already amber-adjacent by the time the zones take over and the whole
  * strip reads as one temperature scale blooming outward. Mirroring the
- * originals also drew the full spectrum twice back to back, which is ten
- * colour bands in an eighteen-pixel strip.
+ * originals also drew the whole palette twice back to back, which is too
+ * many colour bands for an eighteen-pixel strip: four of its stops instead,
+ * shaded violet at the core, then pink, turquoise and cyan at the rim.
  */
 const MIRRORED_CYAN_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
   { offset: 0, colour: '#0a3a4d' },
   { offset: 0.55, colour: '#00c5ff' },
   { offset: 1, colour: '#7ef9e8' },
 ];
-const MIRRORED_RAINBOW_STOPS: ReadonlyArray<{
+const mirroredRainbowStops = (): ReadonlyArray<{
   offset: number;
   colour: string;
-}> = [
-  { offset: 0, colour: '#6a2fd6' },
-  { offset: 0.4, colour: '#ff3cac' },
-  { offset: 0.72, colour: '#00e5ff' },
-  { offset: 1, colour: '#b6ff4a' },
+}> => [
+  { offset: 0, colour: rainbowColourAt(4 / 7, -0.22) },
+  { offset: 0.4, colour: rainbowColourAt(6 / 7) },
+  { offset: 0.72, colour: rainbowColourAt(0) },
+  { offset: 1, colour: rainbowColourAt(1 / 7, 0.06) },
 ];
 
 /**
- * One hue, walked round the wheel by the clock.
+ * One colour, walked round Rainbow mode's palette by the clock.
  *
  * `segments` in euphoria takes this instead of the fixed rainbow: the
  * whole strip is a single colour at any instant and that colour cycles,
@@ -381,8 +376,10 @@ const themeStops = (
     ),
   }));
 
+// Rainbow mode's palette in the mode (`rainbowPalette.ts`): Aurora, or the
+// Plus visualizer's colours while one is chosen.
 const modeStops = (isEuphoric: boolean) =>
-  isEuphoric ? RAINBOW_STOPS : themeStops(CYAN_STOPS, RAMP_ROLES);
+  isEuphoric ? rainbowGradientStops() : themeStops(CYAN_STOPS, RAMP_ROLES);
 
 /**
  * How many lamps a ladder style stacks in a strip of this height. Shared
@@ -409,13 +406,15 @@ const ladderRows = (style: MeterStyle, height: number): number | undefined => {
 const cyclingStops = (
   nowMs: number,
 ): ReadonlyArray<{ offset: number; colour: string }> => {
-  const hue = (nowMs * 0.012) % 360;
+  // Round Rainbow mode's palette once every thirty seconds, as the hue went
+  // round the wheel: shaded at the foot, lit at the rim.
+  const phase = nowMs / 30000;
   return [
-    { offset: 0, colour: `hsl(${hue}, 80%, 32%)` },
-    { offset: 0.55, colour: `hsl(${hue}, 95%, 58%)` },
+    { offset: 0, colour: rainbowColourAt(phase, -0.3) },
+    { offset: 0.55, colour: rainbowColourAt(phase) },
     // The rim runs a little ahead of the core, so the segment has depth
-    // instead of being one flat wash of the current hue.
-    { offset: 1, colour: `hsl(${(hue + 34) % 360}, 100%, 74%)` },
+    // instead of being one flat wash of the current colour.
+    { offset: 1, colour: rainbowColourAt(phase + 0.094, 0.12) },
   ];
 };
 
@@ -1714,7 +1713,7 @@ const drawChannel = (
         { x: 0, y: rect.y },
         { x: 0, y: rect.y + rect.height },
         isEuphoric
-          ? MIRRORED_RAINBOW_STOPS
+          ? mirroredRainbowStops()
           : themeStops(MIRRORED_CYAN_STOPS, RAMP_ROLES),
       );
 

@@ -138,8 +138,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // this header. The eyebrow is already the small all-caps line the euphoria
 // pill is shaped like, so the mode marks itself without a second element.
 .is-euphoric .dialog-header .eyebrow {
-  animation: euphoria-sweep 3.6s linear infinite;
-  // Blue and purple need the same readable contrast as cyan on Ocean.
-  color: hsl(var(--euphoria-hue, 160deg) 95% 85%);
-  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
+  animation: rainbow-cycle 3.6s linear infinite;
+  // Lifted toward white: the palette's blue and indigo need the same
+  // readable contrast as cyan on Ocean.
+  color: color-mix(in srgb, var(--rainbow-now) 55%, white);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--rainbow-now) 45%, transparent);
 }

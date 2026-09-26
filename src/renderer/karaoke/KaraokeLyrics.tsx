@@ -47,6 +47,7 @@ import {
   paintKaraokeLyricsTranslationLine,
   useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
+import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent, readAccentLight } from '../utils/theme';
 
 interface IKaraokeLyricsProps {
@@ -538,17 +539,19 @@ const KaraokeLyrics = ({
             )
           : undefined;
         if (euphoriaFill) {
+          // Three points of Rainbow mode's palette a little apart, riding
+          // the sweep together (`rainbowPalette.ts`).
           euphoriaFill.addColorStop(
             0,
-            `hsl(${(euphoriaHue + 318) % 360}, 96%, 70%)`,
+            rainbowColourAt(euphoriaHue / 360, 0.04),
           );
           euphoriaFill.addColorStop(
             0.48,
-            `hsl(${(euphoriaHue + 18) % 360}, 98%, 72%)`,
+            rainbowColourAt(euphoriaHue / 360 + 0.14, 0.05),
           );
           euphoriaFill.addColorStop(
             1,
-            `hsl(${(euphoriaHue + 92) % 360}, 96%, 69%)`,
+            rainbowColourAt(euphoriaHue / 360 + 0.28, 0.04),
           );
         }
         context.save();
@@ -557,7 +560,11 @@ const KaraokeLyrics = ({
         context.textBaseline = 'middle';
         let shadowColor = `rgba(34, 224, 214, ${0.2 * focusAmount})`;
         if (hasEuphoriaText) {
-          shadowColor = `hsla(${euphoriaHue}, 96%, 64%, ${0.32 * focusAmount})`;
+          shadowColor = rainbowColourAt(
+            euphoriaHue / 360,
+            0,
+            0.32 * focusAmount,
+          );
         } else if (isCapturePending) {
           shadowColor = 'rgba(0, 0, 0, 0)';
         } else if (isCaptureStarted) {
