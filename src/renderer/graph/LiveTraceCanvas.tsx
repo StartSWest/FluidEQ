@@ -57,7 +57,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import type { AxisScale, NumberValue } from 'd3';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { DEFAULT_GLOW, resolveLookColours } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
@@ -4771,6 +4778,24 @@ const LiveTraceCanvas = ({
     isEnabled: true,
     target: canvasRef,
   });
+
+  /**
+   * A new size is drawn before it is painted.
+   *
+   * The canvas's box takes its size from this render and its backing store
+   * only from the next frame the loop draws — one display frame later at
+   * best, two at the graph's thirty — so every resize painted the last
+   * picture stretched over the new box: a whole scene squashed to the docked
+   * graph's height on the way out of full screen (Ivan, 2026-09-26: "the
+   * scene itself kind of compresses when exiting full screen"). A draw that
+   * advances no time is the same picture at the size the box now has, and a
+   * layout effect lands it before the paint that shows the box.
+   */
+  const drawFrameRef = useRef(drawFrame);
+  drawFrameRef.current = drawFrame;
+  useLayoutEffect(() => {
+    drawFrameRef.current(0);
+  }, [width, height]);
 
   /**
    * Take the context when the element arrives, and let everything go when it

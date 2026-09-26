@@ -57,6 +57,11 @@ export interface ISceneWorkerClient {
    * draws nothing on its own either — see the worker's own pacing.
    */
   idle(): void;
+  /**
+   * The picture off the screen until let go, and back only on a frame drawn
+   * after that — framed for where the graph has arrived (`graphArrival.ts`).
+   */
+  holdPicture(held: boolean): void;
   dispose(): void;
 }
 
@@ -226,6 +231,8 @@ export const createSceneWorkerClient = (
   let settled = true;
   let boxTurn = 0;
   let drawnForTurn = 0;
+  // Held from outside (`holdPicture`): no frame brings the scene back.
+  let pinned = false;
   const hold = () => {
     boxTurn += 1;
     if (settled) {
@@ -236,7 +243,7 @@ export const createSceneWorkerClient = (
     }
   };
   const release = () => {
-    if (settled || drawnForTurn !== boxTurn) {
+    if (settled || pinned || drawnForTurn !== boxTurn) {
       return;
     }
     settled = true;
@@ -438,6 +445,15 @@ export const createSceneWorkerClient = (
       } catch (error) {
         fail(String(error));
       }
+    },
+    holdPicture: (held) => {
+      if (held === pinned) {
+        return;
+      }
+      pinned = held;
+      // A new turn either way: held, the picture goes now; let go, only a
+      // frame sent from here on brings it back.
+      hold();
     },
     dispose: () => {
       disposed = true;

@@ -18,12 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import { useIsFirstRender } from 'renderer/utils/utils';
+import scaleRangeKey from './scaleRange';
 import { GrayScaleEnum } from '../styles/color';
-import {
-  GRAPH_ANIMATE_DURATION,
-  INIT_ANIMATE_DURATION,
-} from './ChartController';
+import { GRAPH_ANIMATE_DURATION } from './ChartController';
 
 const AXIS_GENERATORS = {
   bottom: d3.axisBottom,
@@ -65,24 +62,25 @@ const Axis = ({
     },
     [],
   );
-  const isFirstRender = useIsFirstRender();
+  // As the grid's rules: a new size is labelled at once (`scaleRange.ts`).
+  const drawnRange = useRef<string | undefined>(undefined);
   useEffect(() => {
     const axisGenerator = AXIS_GENERATORS[type];
     const axis = tickFormat
       ? axisGenerator(scale).tickValues(tickValues).tickFormat(tickFormat)
       : axisGenerator(scale).tickValues(tickValues);
+    const range = scaleRangeKey(scale);
+    const isResize = drawnRange.current !== range;
+    drawnRange.current = range;
 
     if (ref.current) {
       const axisGroup = d3.select(ref.current);
-      if (disableAnimation) {
-        axisGroup.call(axis);
+      if (disableAnimation || isResize) {
+        axisGroup.interrupt().call(axis);
       } else {
-        const duration = isFirstRender
-          ? INIT_ANIMATE_DURATION
-          : GRAPH_ANIMATE_DURATION;
         axisGroup
           .transition()
-          .duration(duration)
+          .duration(GRAPH_ANIMATE_DURATION)
           .ease(d3.easeLinear)
           .call(axis);
       }
@@ -94,7 +92,7 @@ const Axis = ({
         .attr('color', GrayScaleEnum.WHITE)
         .attr('font-size', '0.75rem');
     }
-  }, [scale, tickValues, tickFormat, disableAnimation, type, isFirstRender]);
+  }, [scale, tickValues, tickFormat, disableAnimation, type]);
 
   return <g name="axis-frequency" ref={ref} transform={transform} />;
 };

@@ -18,11 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import { useIsFirstRender } from 'renderer/utils/utils';
-import {
-  GRAPH_ANIMATE_DURATION,
-  INIT_ANIMATE_DURATION,
-} from './ChartController';
+import scaleRangeKey from './scaleRange';
+import { GRAPH_ANIMATE_DURATION } from './ChartController';
 
 interface IGridLineProps {
   type: 'vertical' | 'horizontal';
@@ -65,23 +62,26 @@ const GridLine = ({
     },
     [],
   );
-  const isFirstRender = useIsFirstRender();
+  // The pixels the rules were last drawn across: a new size is drawn at once,
+  // never glided into (`scaleRange.ts`), and so is the first drawing — the
+  // graph fades in whole instead (`.graph-plot.is-measured`).
+  const drawnRange = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const axisGenerator = type === 'vertical' ? d3.axisBottom : d3.axisLeft;
     const axis = axisGenerator(scale).tickValues(tickValues).tickSize(-size);
+    const range = `${scaleRangeKey(scale)}|${size}`;
+    const isResize = drawnRange.current !== range;
+    drawnRange.current = range;
 
     if (ref.current) {
       const gridGroup = d3.select(ref.current);
-      if (disableAnimation) {
-        gridGroup.call(axis);
+      if (disableAnimation || isResize) {
+        gridGroup.interrupt().call(axis);
       } else {
-        const duration = isFirstRender
-          ? INIT_ANIMATE_DURATION
-          : GRAPH_ANIMATE_DURATION;
         gridGroup
           .transition()
-          .duration(duration)
+          .duration(GRAPH_ANIMATE_DURATION)
           .ease(d3.easeLinear)
           .call(axis);
       }
@@ -89,7 +89,7 @@ const GridLine = ({
       gridGroup.selectAll('text').remove();
       gridGroup.selectAll('line').attr('stroke', color);
     }
-  }, [scale, tickValues, size, disableAnimation, type, color, isFirstRender]);
+  }, [scale, tickValues, size, disableAnimation, type, color]);
 
   return <g ref={ref} transform={transform} />;
 };

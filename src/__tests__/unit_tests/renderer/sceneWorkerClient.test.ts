@@ -308,3 +308,47 @@ it('sends a second compile of the same program only once the first has linked', 
   first?.dispose();
   second?.dispose();
 });
+
+/**
+ * A scene on a layer of the window is held off the screen while the graph
+ * framing it is on its way out of full screen (`graphArrival.ts`), and comes
+ * back only on a frame drawn once it is let go — never on a frame drawn for a
+ * layout in between (Ivan, 2026-09-26: "the scene itself kind of compresses
+ * when exiting full screen").
+ */
+it('keeps a held picture off the screen until a frame drawn after it is let go', () => {
+  const { client, canvas } = start();
+  const drawOnce = () => {
+    client?.draw(
+      {} as ISceneFrame,
+      { width: 100, height: 100 },
+      { width: 100, height: 100 },
+      { fsr: false, fxaa: false },
+      [0, 0, 1, 1],
+      0,
+      jest.fn(),
+    );
+  };
+  const drawn = () =>
+    reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
+  // The control: a frame drawn with nothing held leaves the picture shown.
+  drawOnce();
+  drawn();
+  expect(canvas?.style.opacity).not.toBe('0');
+
+  client?.holdPicture(true);
+  expect(canvas?.style.opacity).toBe('0');
+  drawOnce();
+  drawn();
+  expect(canvas?.style.opacity).toBe('0');
+
+  // Let go with a frame already on its way: that frame was drawn for the
+  // layout the hold was for, so it does not bring the picture back.
+  drawOnce();
+  client?.holdPicture(false);
+  drawn();
+  expect(canvas?.style.opacity).toBe('0');
+  drawOnce();
+  drawn();
+  expect(canvas?.style.opacity).toBe('1');
+});

@@ -227,7 +227,13 @@ import {
   useIsPlayerQueueOpen,
   usePlayerVisFull,
 } from './player/playerLayout';
-import { setWindowMode, useWindowMode } from './player/windowModeStore';
+import {
+  afterNextFrame,
+  setWindowMode,
+  untilViewportIsWindow,
+  useWindowMode,
+} from './player/windowModeStore';
+import { holdGraphUntil } from './graph/graphArrival';
 import { applyThemeScope } from './utils/theme';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
@@ -1568,9 +1574,15 @@ const AppContent = () => {
     return window.electron.ipcRenderer.setWindowFullScreen(next);
   }, []);
 
+  // The graph goes out of sight while the window changes size for it and
+  // fades in once the page is drawn at the new size (`graphArrival.ts`):
+  // main answers once it has moved the window, and the page's own size says
+  // when that has reached it.
   useEffect(() => {
     onWindowFullScreenChange((next) => {
-      requestWindowFullScreen(next).catch((e) => {
+      const moved = requestWindowFullScreen(next);
+      holdGraphUntil(moved.then(untilViewportIsWindow).then(afterNextFrame));
+      moved.catch((e) => {
         reportError('Could not change the window to full screen', e);
       });
     });

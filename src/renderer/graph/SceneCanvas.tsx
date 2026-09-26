@@ -40,6 +40,7 @@ import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { createSceneInteraction } from './sceneInteraction';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
 import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
+import { useGraphArriving } from './graphArrival';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -323,12 +324,17 @@ export default function SceneCanvas({
 
   const width = frame?.width ?? plot?.width ?? 0;
   const height = frame?.height ?? plot?.height ?? 0;
+  // On a layer, out of sight while the window changes size for full screen:
+  // the plot is framing it through every layout in between, and the plot's
+  // own fade (`App.scss`) does not reach a picture outside it.
+  const arriving = useGraphArriving();
   const sceneRef = useSceneRunner({
     source,
     width,
     height,
     spectrumRect,
     ...(frame ? { view: frame.view } : {}),
+    held: layer !== undefined && arriving,
     tuning,
     onDrawn,
     onLoaded,

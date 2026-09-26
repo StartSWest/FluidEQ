@@ -2097,7 +2097,10 @@ const FrequencyResponseChart = ({
           {modeAnnouncement.label}
         </div>
       )}
-      <div className="graph-plot" ref={ref}>
+      <div
+        className={`graph-plot${width > 0 && height > 0 ? ' is-measured' : ''}`}
+        ref={ref}
+      >
         {/* Mounted in Clean too, with nothing to draw: the grid is the
             chart's, and Clean keeps the grid. */}
         {isLoading ? (

@@ -40,6 +40,7 @@ import {
   useRef,
 } from 'react';
 import { useIsFirstRender } from 'renderer/utils/utils';
+import scaleRangeKey from './scaleRange';
 import {
   GRAPH_ANIMATE_DURATION,
   IChartPointData,
@@ -196,19 +197,31 @@ const Line = ({
     initRender,
   ]);
 
+  // The pixels the curve was last drawn across. A new size is drawn at once
+  // (`scaleRange.ts`): glided, the curve slid into place each time the graph
+  // appeared and again leaving full screen. That includes the graph's first
+  // measured size, which lands on a curve first drawn across nothing, so the
+  // draw-on of a curve arriving with the graph is cut short there and the
+  // graph fades in whole instead; a curve added to a graph already on screen
+  // still draws itself on.
+  const range = scaleRangeKey(xScale, yScale);
+  const drawnRange = useRef(range);
+
   // Handle animation for subsequent renders
   useEffect(() => {
     if (!ref.current || isFirstRender) {
       return;
     }
+    const isResize = drawnRange.current !== range;
+    drawnRange.current = range;
     const path = d3
       .select(ref.current)
       // Make sure initial animation is overwritten
       .attr('stroke-dasharray', null)
-      .attr('stroke-offset', null)
+      .attr('stroke-dashoffset', null)
       .attr('opacity', opacity);
 
-    if (animation === AnimationOptionsEnum.NONE) {
+    if (animation === AnimationOptionsEnum.NONE || isResize) {
       // A glide still under way would carry on writing its own `d` over this
       // one until it finished: the output curve takes a new curve by gliding
       // and the live preamp's next step at once, often within the glide.
@@ -217,7 +230,7 @@ const Line = ({
     }
 
     path.transition().duration(GRAPH_ANIMATE_DURATION).attr('d', d);
-  }, [animation, d, isFirstRender, opacity]);
+  }, [animation, d, isFirstRender, opacity, range]);
 
   return (
     <>

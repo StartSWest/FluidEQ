@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type RefObject,
+} from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import type { IScenePack } from 'common/scenePacks';
 import {
@@ -123,6 +129,7 @@ export default function useSceneRunner({
   tuning,
   performance: chosenPerformance,
   asleep,
+  held,
   onHeard,
   onDrawn,
   onLoaded,
@@ -153,6 +160,8 @@ export default function useSceneRunner({
   const visibleRef = useRef(true);
   const asleepRef = useRef(asleep === true);
   asleepRef.current = asleep === true;
+  const heldRef = useRef(held === true);
+  heldRef.current = held === true;
   const clipRef = useRef<readonly [number, number, number, number]>([
     0, 0, 1, 1,
   ]);
@@ -736,6 +745,7 @@ export default function useSceneRunner({
       setWaiting(false);
       sourceRef.current.block();
     }
+    rendererRef.current?.holdPicture(heldRef.current);
     return rendererRef.current;
   }, [dropProgram, kick, setWaiting]);
 
@@ -932,6 +942,18 @@ export default function useSceneRunner({
       kick();
     }
   }, [asleep, kick]);
+
+  // Held and let go on the renderer there is; a renderer started while held
+  // is told by `startRenderer`. Before the paint, so the layout the hold is
+  // for is never shown with the picture on it; and kicked on the way back,
+  // so the frame that brings the picture back is drawn even where the loop
+  // had stopped.
+  useLayoutEffect(() => {
+    rendererRef.current?.holdPicture(held === true);
+    if (held !== true) {
+      kick();
+    }
+  }, [held, kick]);
 
   // Redraw the backing buffer when the panel's geometry changes.
   useEffect(() => {

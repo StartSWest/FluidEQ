@@ -110,6 +110,13 @@ export interface ISceneRunnerOptions {
    */
   asleep?: boolean;
   /**
+   * The picture off the screen while the graph that frames it is on its way
+   * somewhere else — a scene on a layer of the window, while the window
+   * changes size for full screen (`graphArrival.ts`). It keeps drawing, and
+   * comes back on the first frame drawn once let go.
+   */
+  held?: boolean;
+  /**
    * The pack each time a version of it becomes the one being drawn — the
    * graph's menu starts its attack and release from what the scene came with.
    */

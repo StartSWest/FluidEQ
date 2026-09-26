@@ -91,6 +91,7 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
         client.frames.push(shown);
       },
       idle: () => undefined,
+      holdPicture: () => undefined,
       // As the real client: a load still running is answered as given up.
       dispose: () => {
         client.disposed = true;

@@ -3512,6 +3512,37 @@ $tab-bar-inset: 8px;
   // does not resolve, and a hex written into the chart data went cyan on a
   // monochrome theme.
   color: $secondary-default;
+  // Unseen until it has its size, then faded in whole (Ivan, 2026-09-26: "the
+  // graph on EQ and on any page needs to appear smooth fading in, no moving
+  // animation"). Its first drawing is across nothing — the box is measured
+  // after it is mounted — and the grid and curves used to glide from there to
+  // the real size, which is the sliding in he saw. They take a new size at
+  // once now (`scaleRange.ts`); the fade is what arriving looks like.
+  //
+  // A hundredth and never nothing: a box at zero opacity is one nobody can
+  // see (`observeShown`), and every drawing inside it — the trace, a scene
+  // and its worker — stops for it and starts again only once the fade has
+  // ended, so the fade showed an empty plot and the picture came after it.
+  opacity: 0.01;
+
+  &.is-measured {
+    opacity: 1;
+    transition: opacity 240ms ease-out;
+  }
+
+  // And out of sight again while the window changes size for full screen,
+  // then faded in at the size it lands on (`graphArrival.ts`). Gone at once:
+  // a fade out is a slower way of showing the layouts in between.
+  html[data-graph-arriving] & {
+    opacity: 0.01;
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &.is-measured {
+      transition: none;
+    }
+  }
 }
 
 // Legend strip floating over the top of the chart. It has no surface of its

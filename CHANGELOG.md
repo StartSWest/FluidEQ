@@ -385,6 +385,12 @@ version and in these notes.
 
 ### Fixed
 
+- **The graph fades in, and nothing in it slides.** Opening a page with the
+  graph, the grid and the curves used to glide in from the edge, and leaving
+  full screen squashed the visualizer through each size the window passed on
+  its way back. The graph now stays out of sight until the window has its
+  size and fades in there, whole; the grid and the curves take any new size
+  at once. Showing and hiding the graph still slides the band sliders.
 - **A visualizer on the desktop changes with a crossfade.** Switching it,
   following the graph's automatic switching or saving your scene in the
   Studio used to blink the screen dark and cut to the new one; the old
