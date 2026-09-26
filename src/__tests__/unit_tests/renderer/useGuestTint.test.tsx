@@ -248,6 +248,24 @@ describe('the Media page in the interface colours', () => {
     expect(page.sheet('sheet-2')).toContain('--suno-page: transparent');
   });
 
+  // The page stands on the window's floor now, not on a pane (Ivan,
+  // 2026-09-26: "fix the color also"): tinted from the pane's colour, the
+  // site was a slab of lighter slate in a dark window.
+  it('puts the page in the floor’s colour, not the pane’s', async () => {
+    const root = document.documentElement;
+    root.style.setProperty('--surface-base', '#0a1b2c');
+    root.style.setProperty('--surface-panel', '#22334a');
+    act(() => setGuestTintEnabled(true));
+    const page = fakePage([TWITCH_ANSWER]);
+    renderHook(() => useGuestTint(page.ref, 'twitch', 1, true, false));
+    await waitFor(() => expect(page.log).toContain('insert sheet-1'));
+    // The control: the pane's colour is there to be picked, and is not.
+    expect(page.sheet('sheet-1')).toContain('--color-background-body: #0a1b2c');
+    expect(page.sheet('sheet-1')).not.toContain('#22334a');
+    root.style.removeProperty('--surface-base');
+    root.style.removeProperty('--surface-panel');
+  });
+
   it('keeps colouring when the next page leaves out the greys it is changing', async () => {
     act(() => setGuestTintEnabled(true));
     const page = fakePage([

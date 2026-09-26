@@ -35,11 +35,15 @@ import type { IGuestPaint, TGuestGrey, TGuestKeep } from './guestTintProbe';
  * paints both keeps it on the rules that use it as text wherever the page is
  * made clear (`TGuestKeep`).
  *
- * AT THE SAME DARKNESS. Each grey is rebuilt from the interface's panel colour
- * by mixing in the same share of white that stands it above the site's own
- * page: YouTube's page is #0f0f0f and its cards #212121, 7.5% of the way to
- * white, so its cards become the panel with 7.5% white. The site keeps the
- * steps it had between page, card and menu, and takes the interface's hue.
+ * AT THE SAME DARKNESS. Each grey is rebuilt from the colour the page stands
+ * on in the interface — its ground — by mixing in the same share of the lift
+ * that stands it above the site's own page: YouTube's page is #0f0f0f and its
+ * cards #212121, 7.5% of the way to white, so its cards become the ground with
+ * 7.5% of the lift. The lift is white unless the caller gives one; the Media
+ * page gives white with a little of the accent in it, so the site's cards
+ * carry the hue the app's own cards do rather than lifting to grey
+ * (`useGuestTint`). The site keeps the steps it had between page, card and
+ * menu, and takes the interface's colours.
  * Pure black and anything darker than the page is left alone: that is where a
  * video letterbox and inverted text live.
  *
@@ -154,23 +158,32 @@ const HEX = /^#[0-9a-f]{6}$/i;
 const mean = (r: number, g: number, b: number) => (r + g + b) / 3;
 
 /**
- * The panel colour standing as far above the interface's ground as `level`
- * stands above the site's page: the same share of the way to white.
+ * The ground standing as far above itself as `level` stands above the site's
+ * page: the same share of the way to the lift.
  */
-const shade = (panel: string, level: number, page: number): string => {
-  const white = Math.max(0, ((level - page) / (255 - page)) * 100);
-  return white < 0.05
-    ? panel
-    : `color-mix(in srgb, ${panel}, #ffffff ${white.toFixed(2)}%)`;
+const shade = (
+  ground: string,
+  level: number,
+  page: number,
+  lift: string,
+): string => {
+  const share = Math.max(0, ((level - page) / (255 - page)) * 100);
+  return share < 0.05
+    ? ground
+    : `color-mix(in srgb, ${ground}, ${lift} ${share.toFixed(2)}%)`;
 };
+
+/** What a site's steps are lifted toward when the caller names nothing. */
+const WHITE = '#ffffff';
 
 /** A grey in the interface's colour, keeping its own translucency. */
 const tintOf = (
-  panel: string,
+  ground: string,
   [, r, g, b, alpha]: TGuestGrey,
   page: number,
+  lift: string,
 ): string => {
-  const surface = shade(panel, mean(r, g, b), page);
+  const surface = shade(ground, mean(r, g, b), page, lift);
   return alpha >= 1
     ? surface
     : `color-mix(in srgb, ${surface} ${Math.round(alpha * 100)}%, transparent)`;
@@ -238,7 +251,8 @@ const keepRules = (
   site: IGuestTintSite,
   known: IGuestTintKnowledge,
   changed: ReadonlyMap<string, TGuestGrey>,
-  panel: string,
+  ground: string,
+  lift: string,
 ): string[] => {
   const page = mean(...site.page);
   const byName = new Map<string, string[]>();
@@ -252,7 +266,7 @@ const keepRules = (
     const grey = changed.get(name);
     if (grey) {
       rules.push(
-        `:is(${site.scope}) :is(${selectors.join(', ')})${RAISE} {\n  ${name}: ${tintOf(panel, grey, page)} !important;\n}`,
+        `:is(${site.scope}) :is(${selectors.join(', ')})${RAISE} {\n  ${name}: ${tintOf(ground, grey, page, lift)} !important;\n}`,
       );
     }
   });
@@ -271,11 +285,12 @@ const keepRules = (
  */
 export const buildGuestGlassCss = (
   siteId: string | undefined,
-  panel: string,
+  ground: string,
   known: IGuestTintKnowledge,
+  lift = WHITE,
 ): string | undefined => {
   const site = siteId ? GUEST_TINT_SITES[siteId] : undefined;
-  if (!site || !HEX.test(panel)) {
+  if (!site || !HEX.test(ground)) {
     return undefined;
   }
   const page = mean(...site.page);
@@ -305,7 +320,7 @@ export const buildGuestGlassCss = (
   const rules = [
     `${site.scope} {\n${declarations.join('\n')}\n}`,
     `html${RAISE} {\n  background-color: rgba(0, 0, 0, ${PAGE_WASH}) !important;\n}`,
-    ...keepRules(site, known, changed, panel),
+    ...keepRules(site, known, changed, ground, lift),
   ];
   (site.literals ?? []).forEach(([selector, r, g, b]) => {
     const step = stepOf(mean(r, g, b));
@@ -327,14 +342,14 @@ export const buildGuestGlassCss = (
   });
   if (site.bars) {
     rules.push(
-      `${site.bars.join(',\n')} {\n  background-color: color-mix(in srgb, ${panel} ${BAR_OPACITY}%, transparent) !important;\n}`,
+      `${site.bars.join(',\n')} {\n  background-color: color-mix(in srgb, ${ground} ${BAR_OPACITY}%, transparent) !important;\n}`,
     );
   }
   return `${rules.join('\n')}\n`;
 };
 
 /**
- * The stylesheet that puts `siteId` in the colour of `panel`, from the greys
+ * The stylesheet that puts `siteId` in the colour of `ground`, from the greys
  * its page reported — or nothing for a site this does not tint, a colour that
  * is not a plain hex, or a page with none of its own greys left to change.
  *
@@ -344,11 +359,12 @@ export const buildGuestGlassCss = (
  */
 export const buildGuestTintCss = (
   siteId: string | undefined,
-  panel: string,
+  ground: string,
   known: IGuestTintKnowledge,
+  lift = WHITE,
 ): string | undefined => {
   const site = siteId ? GUEST_TINT_SITES[siteId] : undefined;
-  if (!site || !HEX.test(panel)) {
+  if (!site || !HEX.test(ground)) {
     return undefined;
   }
   const page = mean(...site.page);
@@ -363,7 +379,9 @@ export const buildGuestTintCss = (
       declarations.push(`  ${name}: ${originalOf(grey)} !important;`);
       return;
     }
-    declarations.push(`  ${name}: ${tintOf(panel, grey, page)} !important;`);
+    declarations.push(
+      `  ${name}: ${tintOf(ground, grey, page, lift)} !important;`,
+    );
     changes += 1;
   });
   if (changes === 0) {
@@ -372,7 +390,7 @@ export const buildGuestTintCss = (
   const rules = [`${site.scope} {\n${declarations.join('\n')}\n}`];
   (site.literals ?? []).forEach(([selector, r, g, b]) => {
     rules.push(
-      `${selector} {\n  background-color: ${shade(panel, mean(r, g, b), page)} !important;\n}`,
+      `${selector} {\n  background-color: ${shade(ground, mean(r, g, b), page, lift)} !important;\n}`,
     );
   });
   return `${rules.join('\n')}\n`;

@@ -672,35 +672,17 @@ $video-sign-out-said: 4s;
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  // No frame of its own.
+  // No frame of its own, and square.
   //
-  // The player is a tab panel now, and the panel is the card — border, radius,
-  // shadow, the same as every other tab. The stage carrying a second set of all
-  // three drew a rounded rectangle a few pixels inside another rounded
-  // rectangle, which is the doubled edge that shows up around the video.
-  //
-  // Rounded to match whatever it is up against.
-  //
-  // The panel pads only the top, so the stage runs flush to the card's own
-  // border on the left, the right and the bottom — and down there its corners
-  // have to be the card's corners or they cut across them. A tighter radius
-  // left two square-ish notches at the bottom, which is the "square borders"
-  // that shows up along the bottom edge.
-  //
-  // The top pair stays tighter, because up there the stage is inset from the
-  // card by the toolbar's padding and is a smaller box sitting inside a larger
-  // one — which is where a tighter radius is the right answer.
+  // The panes lost their fills and their card with them: the page stands on
+  // the window's floor, and the site drawn in its colour (`useGuestTint`)
+  // runs on out of it. Rounded corners were those of a card that is no longer
+  // drawn, and read as a rounded box cut into the pane (Ivan, 2026-09-26: "no
+  // rounded borders now inside that pane"). No clip path either: it was only
+  // there to carry the rounding to the guest, which this document does not
+  // paint.
   border: none;
-  border-radius: $radius-m $radius-m $radius-xl $radius-xl;
-  // A clip path as well as the radius, because the guest is not clipped by
-  // either on its own.
-  //
-  // `overflow: hidden` and a border-radius clip painting done by this document.
-  // A `<webview>` is not painted by this document — it is its own surface,
-  // handed to the compositor separately — so its black corners carried on
-  // sitting square outside the rounded ones, which is the overflow at the
-  // bottom. `clip-path` is applied at composite time and reaches it.
-  clip-path: inset(0 round $radius-m $radius-m $radius-xl $radius-xl);
+  border-radius: 0;
   // Black rather than the shell colour: this is where a picture goes, and any
   // tint behind a letterboxed video is visible as a border around it.
   // No fill of its own, so a letterboxed video shows the workspace behind it

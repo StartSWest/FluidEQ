@@ -378,6 +378,10 @@ version and in these notes.
 
 ### Fixed
 
+- **Online Media matches the window.** YouTube and the other sites drawn in
+  the app's colours are now in the colour of the window's floor, with their
+  cards lifted in the accent's hue, where they stood as a lighter slate
+  block; and the page's corners are square, as the pane around it is.
 - **The EQ opens with its sliders at full length on any screen.** On a large
   screen the bands under the graph used to open squeezed to their shortest,
   because the Tone dials there are bigger; the first height of that pane is

@@ -174,7 +174,19 @@ export const useGuestTint = (
   isOverScene: boolean,
 ) => {
   const isEnabled = useGuestTintEnabled();
-  const panel = useLiveSurface('--surface-panel', '#0b1016');
+  // The window's floor, which is what the Media page stands on: the panes
+  // lost their fills and the page's frame with them, so tinted from the pane
+  // colour the site was a slab of lighter slate in the middle of a dark
+  // window (Ivan, 2026-09-26: "fix the color also"). Its cards are lifted
+  // toward white with a fifth of the accent in it, as the app's own cards
+  // carry the accent, rather than toward a grey.
+  const ground = useLiveSurface('--surface-base', '#05080c');
+  const accent = useLiveSurface('--accent-light', '#a1fcff');
+  // Only a plain hex goes into another site's page: it has none of this
+  // document's properties to resolve anything else against.
+  const lift = /^#[0-9a-f]{6}$/i.test(accent)
+    ? `color-mix(in srgb, #ffffff 80%, ${accent})`
+    : '#ffffff';
   const site =
     siteId !== undefined && siteId in GUEST_TINT_SITES ? siteId : undefined;
   const isActive = isEnabled && isGuestReady && site !== undefined;
@@ -230,8 +242,8 @@ export const useGuestTint = (
   let css: string | undefined;
   if (isActive && known) {
     css = isOverScene
-      ? buildGuestGlassCss(site, panel, known)
-      : buildGuestTintCss(site, panel, known);
+      ? buildGuestGlassCss(site, ground, known, lift)
+      : buildGuestTintCss(site, ground, known, lift);
   }
 
   const liveKey = useRef<string | undefined>(undefined);

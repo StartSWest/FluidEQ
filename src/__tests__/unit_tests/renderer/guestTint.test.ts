@@ -68,6 +68,20 @@ it('keeps each step above the page the same share of the way to white', () => {
   );
 });
 
+// The Media page lifts toward white with a little of the accent in it, so a
+// site's cards carry the hue the app's own cards do (Ivan, 2026-09-26: "fix
+// the color also"); the page itself stays the ground.
+it('lifts each step toward the colour it is given', () => {
+  const lift = 'color-mix(in srgb, #ffffff 80%, #a1fcff)';
+  const css = buildGuestTintCss('youtube', PANEL, PAGE, lift) ?? '';
+  expect(css).toContain(
+    `--yt-sys-color-baseline--raised-background: color-mix(in srgb, ${PANEL}, ${lift} 7.50%) !important;`,
+  );
+  expect(css).toContain(
+    `--yt-sys-color-baseline--base-background: ${PANEL} !important;`,
+  );
+});
+
 it('never touches black, anything darker than the page, or a colour of its own', () => {
   const css = buildGuestTintCss('youtube', PANEL, PAGE) ?? '';
   expect(css).not.toContain('--yt-deprecated-black-pure');
