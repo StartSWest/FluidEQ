@@ -1215,8 +1215,16 @@ $now-playing-bar-height: 64px;
 // below. The 64 was set by the deck when it was a padded pill round 34px keys
 // and a 44px Play; the pill is gone (see `__deck`) and the height is kept, so
 // the floor of the window did not move with it. Here the keys are 30 and Play
-// 38 — the height the three lines beside the cover already measure — and 6
-// of padding either side of it.
+// 38 — the height the three lines beside the cover already measure.
+//
+// No padding above or below: the row is centred in the bar's whole height
+// instead. It had 6 either side, which left 39px for a track column 44 tall
+// (the three lines and the press-target's own padding and edge round them),
+// so the row overflowed downwards and every control in it — title, keys,
+// Play — sat 3px below the bar's middle, 14 above the keys and 8 below
+// (Ivan, 2026-09-26: "the play bar's controls not centered vertically").
+// With no padding the one row fills the bar and centres whatever it holds,
+// however tall a column grows.
 //
 // Karaoke draws its own keys into this bar (`.now-playing-bar__adopted`), so
 // they come down with the library's, or the bar would be a different height
@@ -1226,7 +1234,7 @@ $now-playing-bar-height: 64px;
   .now-playing-bar,
   .now-playing-bar.is-compact {
     height: 52px;
-    padding-block: 6px;
+    padding-block: 0;
   }
 
   .now-playing-bar__control,
