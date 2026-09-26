@@ -21,6 +21,7 @@ import {
   CSSProperties,
   PointerEvent,
   ReactElement,
+  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -61,7 +62,7 @@ import { useEqTitleSlot } from './utils/eqTitleSlot';
 import {
   IBandPlacement,
   isSamePlacement,
-  placeBandsUnderPlot,
+  placeBandsEvenly,
   usePlotGeometry,
 } from './graph/plotGeometry';
 import {
@@ -401,29 +402,27 @@ const MainContent = () => {
   const canScrollBands = useOverflowScroll(frequencySortedFilters.length);
 
   /**
-   * Each band under its point on the graph (layout A, Ivan 2026-09-25) —
-   * only while the graph stands directly above the row, which is exactly
-   * when the title has gone up above the graph (`titleSlot`). Placed from the
-   * axis the handles are placed on (`plotGeometry.ts`), measured against
-   * where the plot and the row actually are; too close together for that,
-   * the bands stay evenly spaced.
+   * The bands in fixed places across the width of the graph above them
+   * (layout A, Ivan 2026-09-25; `placeBandsEvenly`) — only while the graph
+   * stands directly above the row, which is exactly when the title has gone
+   * up above the graph (`titleSlot`). Measured against where the plot and the
+   * row actually are; too many to fit, the row scrolls instead.
    *
-   * Keyed on the frequencies alone: a gain drag changes `filters` twenty
-   * times a second and moves no band sideways, and reading two boxes on
-   * every one of those would be layout work for nothing.
+   * Keyed on how many bands there are and nothing about them: a frequency
+   * dragged on the graph moves no slider (Ivan, 2026-09-26), and neither a
+   * gain drag nor a frequency drag re-reads two boxes on every step. Two
+   * bands that pass each other trade places because the row is drawn in
+   * frequency order.
    */
   const plotGeometry = usePlotGeometry();
-  const bandFrequencies = frequencySortedFilters
-    .map((filter) => filter.frequency)
-    .join(',');
+  const bandCount = frequencySortedFilters.length;
   const [bandPlacement, setBandPlacement] = useState<IBandPlacement>();
   useLayoutEffect(() => {
     const bands = bandsElement;
-    if (!titleSlot || !plotGeometry || !bands || !bandFrequencies) {
+    if (!titleSlot || !plotGeometry || !bands || bandCount === 0) {
       setBandPlacement(undefined);
       return undefined;
     }
-    const frequencies = bandFrequencies.split(',').map(Number);
     // Measured, not derived: the row sits inside the page's padding and the
     // plot does not, and the row's own left edge moves when it goes from even
     // to placed. Its size changes with it, which is what calls this again.
@@ -440,12 +439,7 @@ const MainContent = () => {
           scroller.getBoundingClientRect().left + scroller.clientLeft - row;
         visible = { left, right: left + scroller.clientWidth };
       }
-      const next = placeBandsUnderPlot(
-        frequencies,
-        plotGeometry,
-        offset,
-        visible,
-      );
+      const next = placeBandsEvenly(bandCount, plotGeometry, offset, visible);
       setBandPlacement((previous) =>
         isSamePlacement(previous, next) ? previous : next,
       );
@@ -457,7 +451,7 @@ const MainContent = () => {
     const observer = new ResizeObserver(place);
     observer.observe(bands);
     return () => observer.disconnect();
-  }, [titleSlot, plotGeometry, bandsElement, bandFrequencies]);
+  }, [titleSlot, plotGeometry, bandsElement, bandCount]);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -489,7 +483,8 @@ const MainContent = () => {
   const groupFlush = useLatestCall(flushGroupEdit);
 
   /**
-   * Move one parameter across everything selected.
+   * The edits moving one parameter to `newValue` makes across everything
+   * selected.
    *
    * The value handed in is the one the control shows, which belongs to the
    * primary band; every other band in the selection moves by the same amount
@@ -497,19 +492,12 @@ const MainContent = () => {
    * would run past an end of the range stop there — which does mean a group
    * pushed to the top and then pulled back spreads out, and that is the only
    * behaviour that does not silently discard the rest of the selection.
-   *
-   * The edit is shown immediately and written one write at a time. Both
-   * halves matter: showing it immediately is what makes the next delta measure
-   * from where the band actually is, and one write at a time is what stops a
-   * drag queueing a config rewrite per frame. They are absolute values, so an
-   * edit folded into a newer one mid-drag loses nothing — the one that lands
-   * last is complete.
    */
-  const updateSelectedGroup = useCallback(
-    async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
+  const groupEdits = useCallback(
+    (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
       const primary = selectedFilterRef.current;
       if (!primary) {
-        return;
+        return [];
       }
       const liveFilters = filtersRef.current;
       const ids = selectedFilterIdsRef.current.includes(primary.id)
@@ -536,29 +524,104 @@ const MainContent = () => {
           edits.push({ id, [field]: nextValue });
         }
       });
+      return edits;
+    },
+    [],
+  );
 
+  // THE STORE IN A TRANSITION, THE ENGINE AFTER IT (Ivan, 2026-09-26: "so
+  // the user feels it is really fast … and the settings come after, non
+  // blocking UI"). A dragged slider's thumb is already under the pointer
+  // (RangeInput's draft); what a step set off behind it — every band and the
+  // whole graph rendered again, then a layout of the page — was about 9 ms of
+  // React and 7 of layout per step at 1440x900, measured, run inside the
+  // input event, so the next step waited on it. As a transition React renders
+  // it between pointer events and drops a render the next step has already
+  // made stale.
+  const showGroupEdits = useCallback(
+    (edits: IFilterEdit[]) =>
+      startTransition(() => {
+        dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+      }),
+    [dispatchFilter],
+  );
+
+  /**
+   * Move one parameter across everything selected, in the store and then in
+   * the engine.
+   *
+   * The edit is shown at once and written one write at a time. Both halves
+   * matter: showing it at once is what makes the next delta measure from
+   * where the band actually is, and one write at a time is what stops a drag
+   * queueing a config rewrite per frame (`groupFlush`). They are absolute
+   * values, so an edit folded into a newer one mid-drag loses nothing — the
+   * one that lands last is complete.
+   */
+  const updateSelectedGroup = useCallback(
+    async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
+      const edits = groupEdits(field, newValue);
       if (edits.length === 0) {
         return;
       }
-      dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+      showGroupEdits(edits);
       await groupFlush(edits);
     },
-    [dispatchFilter, groupFlush],
+    [groupEdits, groupFlush, showGroupEdits],
   );
 
+  // The callbacks every band is handed, stable across a drag: read
+  // through refs, so another band's step gives no band a new prop and the
+  // memoised bands stay as they are (`FrequencyBand`).
   const handleBandGainChange = useCallback(
     (filterId: string, newValue: number) => {
-      const source = filters[filterId];
+      const source = filtersRef.current[filterId];
       if (!source) {
         return Promise.resolve();
       }
-      const primaryValue = selectedFilter?.gain ?? source.gain;
+      const primaryValue = selectedFilterRef.current?.gain ?? source.gain;
       return updateSelectedGroup(
         'gain',
         primaryValue + (newValue - source.gain),
       );
     },
-    [filters, selectedFilter?.gain, updateSelectedGroup],
+    [updateSelectedGroup],
+  );
+
+  // Through a ref: the context's selection callback is made again whenever
+  // a band moves, since it reads the bands, and handed on as it is it gave
+  // every band a new prop at every step of a drag.
+  const toggleFilterSelectionRef = useRef(toggleFilterSelection);
+  toggleFilterSelectionRef.current = toggleFilterSelection;
+  // A drag's step in the store alone: the band hands the engine its value
+  // through its own queue, where a reset waits in line behind it.
+  const handleBandGainPreview = useCallback(
+    (filterId: string, newValue: number) => {
+      const source = filtersRef.current[filterId];
+      if (!source) {
+        return;
+      }
+      const primaryValue = selectedFilterRef.current?.gain ?? source.gain;
+      const edits = groupEdits('gain', primaryValue + (newValue - source.gain));
+      if (edits.length > 0) {
+        showGroupEdits(edits);
+      }
+    },
+    [groupEdits, showGroupEdits],
+  );
+
+  const handleBandSelect = useCallback(
+    (
+      filterId: string,
+      event: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean },
+    ) =>
+      toggleFilterSelectionRef.current(filterId, selectionModeFromEvent(event)),
+    [],
+  );
+
+  const handleBandHover = useCallback(
+    (filterId: string, isHovered: boolean) =>
+      setHoveredFilterId(isHovered ? filterId : ''),
+    [setHoveredFilterId],
   );
 
   const getSelectionPoint = (event: PointerEvent<HTMLDivElement>) => {
@@ -1315,20 +1378,14 @@ const MainContent = () => {
                   density={density}
                   flatLayout
                   isSelected={selectedFilterIds.includes(filter.id)}
-                  onSelect={(event) =>
-                    toggleFilterSelection(
-                      filter.id,
-                      selectionModeFromEvent(event),
-                    )
-                  }
+                  onSelect={handleBandSelect}
                   isHovered={hoveredFilterId === filter.id}
-                  onHover={(isHovered) =>
-                    setHoveredFilterId(isHovered ? filter.id : '')
-                  }
+                  onHover={handleBandHover}
                   isMinSliderCount={
                     frequencySortedFilters.length <= MIN_NUM_FILTERS
                   }
                   onGainChange={handleBandGainChange}
+                  onGainPreview={handleBandGainPreview}
                   lead={bandPlacement?.leads[index]}
                 />
               ))}

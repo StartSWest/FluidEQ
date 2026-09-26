@@ -1311,15 +1311,13 @@ const FrequencyResponseChart = ({
   }, [updateDimensions]);
 
   // Where the plot is, for the band row that stands under it on the EQ pages
-  // (layout A): the axis is built from this width and this grid, and
-  // `plotGeometry.ts` rebuilds it from them to put each band's slider under
-  // its handle.
+  // (layout A): `plotGeometry.ts` shares this width out between the bands.
   useEffect(() => {
     const element = ref.current;
     if (element && width > 0) {
-      publishPlotGeometry({ element, width, isGridHidden });
+      publishPlotGeometry({ element, width });
     }
-  }, [width, isGridHidden]);
+  }, [width]);
 
   useEffect(() => {
     const element = ref.current;

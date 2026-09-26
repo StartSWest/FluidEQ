@@ -29,6 +29,7 @@ import {
   CSSProperties,
   ForwardedRef,
   forwardRef,
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -50,18 +51,25 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
-  onSelect?: (event: {
-    ctrlKey: boolean;
-    metaKey: boolean;
-    shiftKey: boolean;
-  }) => void;
-  onHover?: (isHovered: boolean) => void;
+  // Both told the band's id, so the row can hand every band the same two
+  // callbacks and a band whose props have not changed does not draw again.
+  onSelect?: (
+    filterId: string,
+    event: {
+      ctrlKey: boolean;
+      metaKey: boolean;
+      shiftKey: boolean;
+    },
+  ) => void;
+  onHover?: (filterId: string, isHovered: boolean) => void;
   colorProgress?: number;
   onGainChange?: (filterId: string, newValue: number) => Promise<void>;
+  /** A drag's step in the store alone, before the engine has it. */
+  onGainPreview?: (filterId: string, newValue: number) => void;
   /**
-   * Its distance from the band before it, while the row stands each band
-   * under its point on the graph (`placeBandsUnderPlot`); unset, the row
-   * spaces the bands evenly.
+   * Its distance from the band before it, while the row shares the graph's
+   * width out between the bands (`placeBandsEvenly`); unset, the row lays
+   * them out itself and scrolls.
    */
   lead?: number;
 }
@@ -79,6 +87,7 @@ const FrequencyBand = forwardRef(
       onHover,
       colorProgress = 0,
       onGainChange,
+      onGainPreview,
       lead,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
@@ -144,24 +153,32 @@ const FrequencyBand = forwardRef(
       [dispatchFilter, filter.id, onGainChange],
     );
 
-    // How often a drag reaches the store and the engine: as often as the
-    // engine takes a write — one in flight, the newest position waiting
-    // behind it. The thumb itself follows the pointer on every event (see
-    // RangeInput). It was twenty times a second on a timer, which also held
-    // the last position back a twentieth of a second after the hand stopped;
-    // ten a second was audible as steps with music playing.
+    // How often a drag reaches the engine: as often as the engine takes a
+    // write — one in flight, the newest position waiting behind it — and a
+    // reset in the same line, so a drag value still waiting can never land
+    // after the reset and put the old gain back. The thumb follows the pointer
+    // on every event (see RangeInput), and the graph on every step
+    // (`onGainPreview` below). It was twenty times a second on a timer, which
+    // also held the last position back a twentieth of a second after the
+    // hand stopped; ten a second was audible as steps with music playing.
     const throttleSetGain = useLatestCall(normalSetGain);
 
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
+    //
+    // Every step of a drag reaches the store at once where the row takes
+    // previews — `onGainPreview`, the store in a transition, nothing written —
+    // and the engine through `throttleSetGain`. Through the queue alone the
+    // store moved at the engine's pace rather than the hand's.
     const handleGainSubmit = useCallback(
       async (newValue: number) => {
+        onGainPreview?.(filter.id, newValue);
         try {
           await throttleSetGain({ kind: 'set', value: newValue });
         } catch (e) {
           setGlobalError(e as ErrorDescription);
         }
       },
-      [setGlobalError, throttleSetGain],
+      [filter.id, onGainPreview, setGlobalError, throttleSetGain],
     );
 
     const isGainDisabled = useMemo(
@@ -226,16 +243,16 @@ const FrequencyBand = forwardRef(
         // with this band's controls updates the selected-band editor.
         onPointerDown={(event) => {
           event.stopPropagation();
-          onSelect?.(event);
+          onSelect?.(filter.id, event);
         }}
         // The same menu the band's handle on the graph opens.
         onContextMenu={(event) => {
           event.preventDefault();
           requestBandMenu(filter.id, event.clientX, event.clientY);
         }}
-        onMouseEnter={() => onHover?.(true)}
+        onMouseEnter={() => onHover?.(filter.id, true)}
         onMouseLeave={() => {
-          onHover?.(false);
+          onHover?.(filter.id, false);
           setIsDeleteArmed(false);
         }}
       >
@@ -309,7 +326,7 @@ const FrequencyBand = forwardRef(
             // pointer and reports a detail of zero.
             onClick={(event) => {
               if (event.detail === 0) {
-                onSelect?.(event);
+                onSelect?.(filter.id, event);
               }
             }}
           >
@@ -340,4 +357,9 @@ const FrequencyBand = forwardRef(
   },
 );
 
-export default FrequencyBand;
+// Memoised: a drag on one band re-rendered all of them at every step, and
+// React writes a controlled input's `name` and `type` again on each render,
+// which restyled every slider and laid the whole page out again — about 7 ms
+// a step at 1440x900, measured. Its callbacks take the band's id so the row
+// can keep them stable (`MainContent`).
+export default memo(FrequencyBand);

@@ -1131,8 +1131,8 @@ $eq-bubble-applied-hold: 1.5s;
   justify-self: stretch;
 }
 
-// Each band under its point on the graph above (layout A; `placed` by
-// `placeBandsUnderPlot` in plotGeometry.ts). A flex row of bands one slot
+// The bands in fixed places across the graph above (layout A; `placed` by
+// `placeBandsEvenly` in plotGeometry.ts). A flex row of bands one slot
 // wide, each held off the one before it by its own lead — so the row keeps
 // the height its bands give it, and the marquee and the glow still find the
 // bands in their frequency order.

@@ -297,8 +297,10 @@ version and in these notes.
   the DSP effects stay off, which is what the "Update engine" card says.
 - **A new look for the whole window.** The panes no longer sit in cards: they
   stand on one floor, parted by fine lines. On the equaliser's pages the graph
-  stands at the top, under the section tabs and the title, and every band's
-  slider stands under the point on the graph it moves. The header's wave lost
+  stands at the top, under the section tabs and the title, and the bands'
+  sliders share its width, each in a place of its own: dragging a band's
+  frequency on the graph leaves its slider where it is, and two bands trade
+  places only when one passes the other. The header's wave lost
   its box, the menus lost their rainbow edge, and the tooltips are FluidEQ's
   own. The boxes on every page — the DSP stage, the empty Library, Share
   Audio's roles, the karaoke pitch lane and the whole Karaoke Maker, Studio,
@@ -336,6 +338,10 @@ version and in these notes.
   too: the panes lean indigo, buttons turn Aurora's cyan and what is switched
   on its magenta. With a Plus visualizer chosen the rainbow is made from that
   visualizer's own colours instead, so every scene has one of its own.
+- **The EQ sliders keep up with the hand.** A drag moves the slider at once
+  and the graph follows without holding it back; the engine gets the newest
+  value as soon as it is ready for it. Only the slider being dragged redraws,
+  where every band and control on the page used to.
 - **A new app icon.** The same wave on a dark tile, in Aurora's colours, with
   an edge to match.
 

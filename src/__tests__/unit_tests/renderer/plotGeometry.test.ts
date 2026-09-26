@@ -7,37 +7,23 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 /**
- * The band row under the graph (layout A, Ivan 2026-09-25): each slider
- * standing under the point on the graph it moves.
+ * The band row under the graph (layout A, Ivan 2026-09-25): each band in a
+ * fixed place, the plot's width shared evenly between them (Ivan,
+ * 2026-09-26: "don't move the slider if I move the freq in the graph … their
+ * position doesn't change, they just interchange each other if they
+ * overpass the prev or next one").
  *
- * The row is laid out from `placeBandsUnderPlot`'s slot and leads, and the
- * points from `bandXInPlot`, which rebuilds the chart's own axis. These hold
- * the two to each other: measured from the leads, every band's centre is its
- * point's x — including at 900px, where two points 39.9px apart used to send
- * the whole row back to even spacing for want of a tenth of a pixel.
+ * The row is laid out from `placeBandsEvenly`'s slot and leads. These hold
+ * the places to depend on how many bands there are and on nothing else, and
+ * every band to stand whole inside what the page shows.
  */
 
 import {
   MAX_BAND_SLOT,
   MIN_BAND_SLOT,
-  bandXInPlot,
-  placeBandsUnderPlot,
+  placeBandsEvenly,
   type IBandPlacement,
-  type IPlotGeometry,
 } from '../../../renderer/graph/plotGeometry';
-
-type TGeometry = Pick<IPlotGeometry, 'width' | 'isGridHidden'>;
-
-const FIFTEEN = [
-  25, 40, 63, 100, 160, 250, 400, 630, 1000, 1600, 2500, 4100, 6300, 10000,
-  16000,
-];
-
-const THIRTY_ONE = [
-  20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630,
-  800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500,
-  16000, 20000,
-];
 
 /** Each band's centre in the row, walked from the leads the row is laid with. */
 const centresOf = ({ slot, leads }: IBandPlacement) => {
@@ -50,159 +36,84 @@ const centresOf = ({ slot, leads }: IBandPlacement) => {
   });
 };
 
-const pointsOf = (frequencies: number[], geometry: TGeometry, offset = 0) =>
-  frequencies.map((frequency) => offset + bandXInPlot(frequency, geometry));
-
-/** The furthest any band's centre stands from its point. */
-const worstMisalignment = (
-  placement: IBandPlacement,
-  frequencies: number[],
-  geometry: TGeometry,
-  offset = 0,
+const place = (
+  count: number,
+  width: number,
+  {
+    offset = 0,
+    visible,
+  }: { offset?: number; visible?: { left: number; right: number } } = {},
 ) => {
-  const points = pointsOf(frequencies, geometry, offset);
-  return Math.max(
-    ...centresOf(placement).map((centre, index) =>
-      Math.abs(centre - points[index]),
-    ),
-  );
+  const placement = placeBandsEvenly(count, { width }, offset, visible);
+  if (!placement) {
+    throw new Error(`${count} bands found no places across ${width}px`);
+  }
+  return placement;
 };
 
-const closestPair = (points: number[]) =>
-  Math.min(...points.slice(1).map((x, index) => x - points[index]));
-
-describe('bands under their graph points', () => {
-  const wide: TGeometry = { width: 1245, isGridHidden: false };
-
-  it('stands every band under its point on a wide graph', () => {
-    const placement = placeBandsUnderPlot(FIFTEEN, wide, 12);
-    expect(placement).toBeDefined();
-    if (!placement) {
-      return;
-    }
-    expect(placement.slot).toBeGreaterThanOrEqual(MIN_BAND_SLOT);
-    expect(placement.slot).toBeLessThanOrEqual(MAX_BAND_SLOT);
-    expect(worstMisalignment(placement, FIFTEEN, wide, 12)).toBeLessThan(0.5);
-  });
-
-  // The positive control: the measure above has to be able to see a band
-  // standing off its point, or its zero proves nothing.
-  it('is measured by something that sees a band moved off its point', () => {
-    const placement = placeBandsUnderPlot(FIFTEEN, wide, 12);
-    expect(placement).toBeDefined();
-    if (!placement) {
-      return;
-    }
-    const leads = [...placement.leads];
-    leads[3] += 6;
-    expect(
-      worstMisalignment({ ...placement, leads }, FIFTEEN, wide, 12),
-    ).toBeGreaterThan(5.9);
-  });
-
-  it('keeps them under their points where two are a hair closer than a band', () => {
-    // The widest plot on which the closest pair is under a band's width —
-    // what a 900px window left the fifteen bands.
-    let width = 1400;
-    while (
-      closestPair(pointsOf(FIFTEEN, { width, isGridHidden: false })) >=
-      MIN_BAND_SLOT
-    ) {
-      width -= 1;
-    }
-    const geometry: TGeometry = { width, isGridHidden: false };
-    // The case the row used to give up on, or this test is not about it.
-    expect(closestPair(pointsOf(FIFTEEN, geometry))).toBeLessThan(
-      MIN_BAND_SLOT,
-    );
-
-    const placement = placeBandsUnderPlot(FIFTEEN, geometry, 0);
-    expect(placement).toBeDefined();
-    if (!placement) {
-      return;
-    }
-    expect(placement.slot).toBe(MIN_BAND_SLOT);
-    expect(placement.leads.every((lead) => lead >= -1e-9)).toBe(true);
-    expect(worstMisalignment(placement, FIFTEEN, geometry)).toBeLessThan(1);
-  });
-
-  it('spaces them evenly when the bands would stand far from their points', () => {
-    // Thirty-one a third of an octave apart are ~30px from each other here:
-    // spread to a band's width, the ones at the ends would be a band away.
-    expect(closestPair(pointsOf(THIRTY_ONE, wide))).toBeLessThan(MIN_BAND_SLOT);
-    expect(placeBandsUnderPlot(THIRTY_ONE, wide, 0)).toBeUndefined();
-  });
-
-  it('keeps the outermost inside the plot when it runs edge to edge', () => {
-    const gridless: TGeometry = { width: 1245, isGridHidden: true };
-    const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0);
-    expect(placement).toBeDefined();
-    if (!placement) {
-      return;
-    }
+describe('bands in fixed places under the graph', () => {
+  it('shares the plot’s width out evenly, each band centred in its share', () => {
+    const placement = place(10, 1200);
     const centres = centresOf(placement);
-    expect(centres[0] - placement.slot / 2).toBeGreaterThanOrEqual(-1e-9);
-    expect(
-      centres[centres.length - 1] + placement.slot / 2,
-    ).toBeLessThanOrEqual(gridless.width + 1e-9);
+    centres.forEach((centre, index) => {
+      expect(centre).toBeCloseTo(60 + index * 120, 6);
+    });
+    expect(placement.slot).toBe(MAX_BAND_SLOT);
   });
 
-  // The row is clipped by the page it stands in, inside the plot's ends: with
-  // the grid off, 16 kHz stands 12px from the plot's edge, past what a page
-  // inset 20px shows, and its band was cut in half there (Ivan, 2026-09-25:
-  // "EQ never can get trim on the side").
-  describe('inside what the page shows', () => {
-    const gridless: TGeometry = { width: 1245, isGridHidden: true };
-    const shown = { left: 20, right: 1225 };
+  // The places come from the count alone, so a frequency dragged on the graph
+  // — which reorders the bands at most — moves no slider. Ten bands in two
+  // orders are laid out alike; the positive control is that an eleventh
+  // band does move them.
+  it('depends on how many bands there are and nothing else', () => {
+    expect(place(10, 1200)).toEqual(place(10, 1200));
+    expect(centresOf(place(11, 1200))[0]).not.toBeCloseTo(
+      centresOf(place(10, 1200))[0],
+      3,
+    );
+  });
 
-    it('keeps every band whole, and the row placed', () => {
-      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0, shown);
-      expect(placement).toBeDefined();
-      if (!placement) {
-        return;
-      }
+  it('narrows the bands to their share, down to the narrowest a band reads at', () => {
+    const placement = place(31, 31 * 45);
+    expect(placement.slot).toBeCloseTo(45, 6);
+    expect(placeBandsEvenly(31, { width: 31 * 39 }, 0)).toBeUndefined();
+    expect(place(31, 31 * MIN_BAND_SLOT).slot).toBe(MIN_BAND_SLOT);
+  });
+
+  it('measures from the plot’s left edge in the row', () => {
+    const shifted = centresOf(place(5, 500, { offset: 30 }));
+    centresOf(place(5, 500)).forEach((centre, index) => {
+      expect(shifted[index]).toBeCloseTo(centre + 30, 6);
+    });
+  });
+
+  describe('inside what the page shows', () => {
+    // The scroller clips the row at its padding and its scrollbar's gutter,
+    // inside the plot's ends (Ivan, 2026-09-25: "EQ never can get trim on
+    // the side").
+    it('keeps every band whole within it', () => {
+      const visible = { left: 20, right: 1180 };
+      const placement = place(15, 1200, { visible });
       const centres = centresOf(placement);
-      expect(centres[0] - placement.slot / 2).toBeGreaterThanOrEqual(
-        shown.left - 1e-9,
-      );
+      expect(centres[0] - placement.slot / 2).toBeGreaterThanOrEqual(20);
       expect(
         centres[centres.length - 1] + placement.slot / 2,
-      ).toBeLessThanOrEqual(shown.right + 1e-9);
+      ).toBeLessThanOrEqual(1180);
     });
 
-    // The positive control: told only of the plot, the last band runs past
-    // the edge the page clips at — which is the cut this guards against.
+    // The control: told only of the plot, the same row runs past the edges
+    // the page shows.
     it('would run past it if told only of the plot', () => {
-      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0);
-      expect(placement).toBeDefined();
-      if (!placement) {
-        return;
-      }
+      const placement = place(15, 1200);
       const centres = centresOf(placement);
       expect(centres[centres.length - 1] + placement.slot / 2).toBeGreaterThan(
-        shown.right,
+        1180,
       );
-    });
-
-    it('stands the bands that fit under their points', () => {
-      const placement = placeBandsUnderPlot(FIFTEEN, gridless, 0, shown);
-      expect(placement).toBeDefined();
-      if (!placement) {
-        return;
-      }
-      const points = pointsOf(FIFTEEN, gridless);
-      const centres = centresOf(placement);
-      // All but the outermost, which gives up what the edge takes.
-      centres.slice(1, -2).forEach((centre, index) => {
-        expect(Math.abs(centre - points[index + 1])).toBeLessThan(1);
-      });
     });
   });
 
   it('has nothing to place without bands or without a plot', () => {
-    expect(placeBandsUnderPlot([], wide, 0)).toBeUndefined();
-    expect(
-      placeBandsUnderPlot(FIFTEEN, { width: 0, isGridHidden: false }, 0),
-    ).toBeUndefined();
+    expect(placeBandsEvenly(0, { width: 1200 }, 0)).toBeUndefined();
+    expect(placeBandsEvenly(10, { width: 0 }, 0)).toBeUndefined();
   });
 });

@@ -412,9 +412,13 @@ const filterReducer: IFilterReducer = (
       if (landing.length === 0) {
         return filters;
       }
-      const filtersCloned = cloneFilters(filters);
+      // A new map, and a new object for each band edited and no other: a
+      // band nothing touched keeps the object it had, so a memoised band on
+      // the page does not draw again for another band's drag (`FrequencyBand`).
+      const filtersCloned: IFiltersMap = { ...filters };
       landing.forEach((edit) => {
-        const filter = filtersCloned[edit.id];
+        const filter = { ...filtersCloned[edit.id] };
+        filtersCloned[edit.id] = filter;
         if (edit.frequency !== undefined) {
           filter.frequency = edit.frequency;
         }

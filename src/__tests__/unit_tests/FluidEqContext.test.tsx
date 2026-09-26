@@ -313,6 +313,47 @@ describe('FluidEqProvider group edits', () => {
     expect(after.type).toBe(before.type);
   });
 
+  // A band nothing touched keeps its object, so the memoised bands on the
+  // page skip another band's drag: all of them rendering at every step was a
+  // layout of the whole page per step (Ivan, 2026-09-26: "make the slider
+  // super performant").
+  it('keeps the object of every band the edit does not touch', async () => {
+    await mount();
+    const before = context().filters;
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [{ id: 'band-1', gain: 7 }],
+      });
+    });
+
+    const after = context().filters;
+    expect(after).not.toBe(before);
+    // The control: the band edited is a new object.
+    expect(after['band-1']).not.toBe(before['band-1']);
+    Object.keys(before)
+      .filter((id) => id !== 'band-1')
+      .forEach((id) => expect(after[id]).toBe(before[id]));
+  });
+
+  it('applies two edits of one band in one batch, the later last', async () => {
+    await mount();
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [
+          { id: 'band-2', gain: 3 },
+          { id: 'band-2', quality: 4 },
+        ],
+      });
+    });
+
+    expect(context().filters['band-2'].gain).toBe(3);
+    expect(context().filters['band-2'].quality).toBe(4);
+  });
+
   it('drops bands that no longer exist rather than resurrecting them', async () => {
     await mount();
 
