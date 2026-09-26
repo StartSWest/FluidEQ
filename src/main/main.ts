@@ -257,7 +257,8 @@ import {
 } from '../common/apoFeatureSync';
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
-import { APP_ID, PRODUCT_NAME } from '../common/branding';
+import { PRODUCT_NAME } from '../common/branding';
+import { APP_USER_MODEL_ID } from './appIdentity';
 import { appVersion } from './appVersion';
 import {
   assignDeviceProfile,
@@ -3952,9 +3953,11 @@ const onAppReady = async () => {
   if (process.platform === 'win32') {
     // Without this the taskbar attributes the window to Electron itself,
     // which is also why notifications and pinning misbehave in development.
-    // Must stay equal to electron-builder's `appId`, which is why it is
-    // written once, in branding.
-    app.setAppUserModelId(APP_ID);
+    // An installed build's must stay equal to electron-builder's `appId`,
+    // which is why it is written once, in branding; the development build
+    // has one of its own, or the taskbar draws it with the installed app's
+    // icon (`appIdentity.ts`).
+    app.setAppUserModelId(APP_USER_MODEL_ID);
   }
   // Before any window exists, so the player's session and the rules its web
   // contents run under are in place by the time one can be attached.

@@ -38,6 +38,7 @@
  * pull that changes the icon shows on the next start, not on the next
  * reinstall.
  */
+import { spawnSync } from 'child_process';
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -145,6 +146,23 @@ const run = () => {
     fs.rmSync(stagingPath, { force: true });
     throw renameError;
   }
+  // Explorer keeps the icons it has drawn for a file in a cache of its own,
+  // and a binary rewritten in place can go on being drawn from it — the
+  // Start menu, alt-tab and a pinned button kept the old icon that way.
+  // `ie4uinit -show` is Windows' own way of asking it to draw them again. A
+  // Windows without it only keeps the old picture a while longer.
+  spawnSync(
+    path.join(
+      process.env.SystemRoot ?? 'C:\\Windows',
+      'System32',
+      'ie4uinit.exe',
+    ),
+    ['-show'],
+    {
+      stdio: 'ignore',
+      windowsHide: true,
+    },
+  );
   console.log(
     'Development Electron now reports itself as FluidEQ, with the current icon',
   );
