@@ -16,6 +16,27 @@ it under the terms of the GNU General Public License version 3 or later.
 // different blur, radius and shadow. These two mixins make a new dialog belong
 // to the app by construction, while still allowing each body to choose its own
 // width and content layout.
+
+// What stands between a dialog and the window behind it: always a step DOWN
+// from the floor, never up. It was the menus' top colour at 74%, which is a
+// step up from the floor, so at the darkest Brightness a dialog opening lit
+// the whole window behind it grey (Ivan, 2026-09-26: "if full dark 0
+// brightness opening a modal cannot make the app behind lighter"). Half
+// black under the floor's own colour keeps the theme's hue in the dimming,
+// and dims a light theme the way a light theme's dialogs are dimmed.
+$scrim: color-mix(
+  in srgb,
+  color-mix(in srgb, $surface-base 50%, $black) 76%,
+  transparent
+);
+
+// A dialog's corner: the scale's dialog step, where the menus keep theirs.
+// The dialogs had the menus' 4px from the rule that gives both their
+// hairline (`Rainbow.scss`), and a card the size of half the window read as
+// a flat, hard-edged slab (Ivan, 2026-09-26: "borders not rounded", "no
+// more flat"). The panes inside a dialog take `$radius-l`, one step in.
+$corner: $radius-xl;
+
 @mixin backdrop($layer) {
   @include animate(fade-in, $motion-fast);
   position: fixed;
@@ -24,17 +45,35 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   padding: $spacing-l;
   place-items: center;
-  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
+  background: $scrim;
 
   @media (max-width: 620px), (max-height: 620px) {
     padding: $spacing-s;
   }
 }
 
+// The line under a dialog's head, or over its foot: the hairline, fading out
+// before either end, so it reads as the head ending rather than as a ruled
+// edge drawn to the frame (Ivan, 2026-09-26: "header border no more flat").
+// A background, not a border, so it can fade; `$side` is `bottom` or `top`.
+@mixin rule($side: bottom) {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, $edge-tint 13%, transparent) 14%,
+    color-mix(in srgb, $edge-tint 13%, transparent) 86%,
+    transparent
+  );
+  background-position: $side;
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+}
+
 // EVERY DIALOG ONE MATERIAL (Ivan, 2026-09-26: "que tengan todos un style
 // que matchea y sea standarizado para todos … ponlos todos transparentes
 // también al 95%"): the menus' floor at 95% (`$surface-menu-floor`), the
-// open floor's hairline and corner, and one lift. `Modal.scss` puts it on
+// open floor's hairline, the dialog's corner (`$corner`) and one lift.
+// `Modal.scss` puts it on
 // every card with a dialog's role, so a dialog that styles itself cannot
 // drift from the rest; the mixin below is the same look for the family that
 // is built on it. No edge of its own in Rainbow mode any more ("quítale el
@@ -42,7 +81,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // moving outline in a window of still ones, as it had been round the menus.
 @mixin surface-look {
   border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
-  border-radius: $radius-2xs;
+  border-radius: $corner;
   background: $surface-menu-floor;
   box-shadow:
     0 32px 90px rgba($black, 0.64),
@@ -69,5 +108,5 @@ it under the terms of the GNU General Public License version 3 or later.
 // card at 95% was a second, opaque card laid in the first.
 @mixin section-surface {
   border: 1px solid rgba($white, 0.09);
-  border-radius: $radius-m;
+  border-radius: $radius-l;
 }

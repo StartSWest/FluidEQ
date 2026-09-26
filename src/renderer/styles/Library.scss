@@ -2911,7 +2911,12 @@ $library-wave-step: 4ms;
   // competing with whatever was behind them. It then took an opaque colour of
   // its own, a darker slate than any card beside it, so the one panel that
   // floats over the shelf was also the one panel in a different material.
-  background: $block-lift;
+  //
+  // Then it was the block colour, opaque — a step lighter than every card
+  // (Ivan, 2026-09-26: "fix up next in library pane darker a bit too"). Now
+  // the card itself, laid over the floor so the shelf does not show through
+  // (`.studio-ship-card` does the same).
+  background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
 }
 
 // *** The queue beside a video ************************************************

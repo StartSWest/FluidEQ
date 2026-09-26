@@ -225,7 +225,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .engine-dialog__foot {
   display: grid;
   padding: $spacing-m $spacing-l $spacing-l;
-  border-top: 1px solid rgba($edge-tint, 0.09);
+  @include rule(top);
   gap: $spacing-xs;
 }
 

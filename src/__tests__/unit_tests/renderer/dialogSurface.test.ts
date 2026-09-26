@@ -84,11 +84,13 @@ const everyDialogRule = () => {
 };
 
 describe('every dialog', () => {
-  it('stands on the menus’ floor, with their hairline and corner', () => {
+  it('stands on the menus’ floor, with their hairline and the dialog corner', () => {
+    // 12px, the scale's dialog step (`dialog.$corner`): the menus' 4px made
+    // a card half the window's size a flat, hard-edged slab (2026-09-26).
     const { declarations } = everyDialogRule();
     expect(declarations).toContain(FLOOR);
     expect(declarations).toContain(HAIRLINE);
-    expect(declarations).toContain('border-radius: 4px');
+    expect(declarations).toContain('border-radius: 12px');
   });
 
   it('leaves out what is a dialog by role and not a card over the window', () => {
@@ -144,6 +146,46 @@ describe('every dialog', () => {
     expect(support).not.toMatch(/rgba\(var\(/);
     expect(support).toMatch(
       /inset 0 0 0 1px color-mix\(in srgb, var\(--accent-light\) calc\(var\(--pet-joy, 0\) \* 55%\), transparent\)/,
+    );
+  });
+
+  // At the darkest Brightness the menus' top colour is a step UP from the
+  // floor, and the backdrop made of it lit the window grey behind every
+  // dialog (2026-09-26). The scrim is the floor half-way to black.
+  const SCRIM =
+    'background: color-mix(in srgb, color-mix(in srgb, var(--surface-base) 50%, #000000) 76%, transparent)';
+
+  it.each([
+    ['About.scss', '.about-backdrop'],
+    ['OverlayCard.scss', '.overlay-card__backdrop'],
+    ['Dsp.scss', '.dsp-import-backdrop'],
+    ['Karaoke.scss', '.karaoke-maker__modal-backdrop'],
+    ['Support.scss', '.support-backdrop'],
+    ['ShareScore.scss', '.share-card-backdrop'],
+    ['AudioTroubleshooter.scss', '.troubleshoot-backdrop'],
+  ])('%s dims the window behind %s, never lifts it', (sheet, selector) => {
+    const backdrop = declarationsOf(compiledCss(sheet), selector);
+    expect(backdrop).toContain(SCRIM);
+    expect(backdrop).not.toContain('--surface-menu-top');
+  });
+
+  it('gives a dialog its own corner and keeps the menus at theirs', () => {
+    const css = compiledCss('Rainbow.scss').replace(/\s+/g, ' ');
+    const rule = (selectorStart: string) => {
+      const at = css.indexOf(selectorStart);
+      if (at < 0) {
+        throw new Error(`no rule for ${selectorStart}`);
+      }
+      return css.slice(css.indexOf('{', at) + 1, css.indexOf('}', at));
+    };
+    expect(
+      rule(
+        'html body :is([role=dialog], [role=alertdialog], dialog):not([data-anchored-menu], .karaoke-maker)',
+      ),
+    ).toContain('border-radius: 12px');
+    // The control: a menu keeps the 4px it had.
+    expect(rule('html body :is([data-anchored-menu],')).toContain(
+      'border-radius: 4px',
     );
   });
 });

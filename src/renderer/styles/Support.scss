@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -32,7 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   padding: $spacing-l;
   place-items: center;
-  background: color-mix(in srgb, $surface-well 72%, transparent);
+  background: dialog.$scrim;
 }
 
 // A frame with a scrolling body inside it, rather than one box that scrolls.

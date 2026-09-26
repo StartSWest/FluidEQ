@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'theme' as *;
 
 // A popup inside another surface must not copy its parent's decorative artwork.
@@ -120,6 +121,9 @@ html.is-euphoric {
 //
 // The floating surfaces' own hairline (`floating-surface`), so a menu built on
 // the mixin and one that is only a `role` look the same. It was 9% white.
+//
+// Not the Karaoke Maker, a dialog by role and on screen the pane a song is
+// edited in, which is a card with the cards' own edge (`Karaoke.scss`).
 html
   body
   :is(
@@ -129,9 +133,32 @@ html
     [data-anchored-menu],
     [role='menu']:not(.dropdown > [role='menu']),
     .graph-legend-menu__list
-  ) {
+  ):not(.karaoke-maker) {
   border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+}
+
+// The menus' corner, weighted as the hairline is.
+html
+  body
+  :is(
+    [data-anchored-menu],
+    [role='menu']:not(.dropdown > [role='menu']),
+    .graph-legend-menu__list
+  ) {
   border-radius: $radius-2xs;
+}
+
+// A dialog's own corner (`dialog.$corner`): one rule gave the menus and the
+// dialogs 4px alike, and a card half the window's size read as a flat,
+// hard-edged slab. Not a menu that is a dialog by role
+// (`data-anchored-menu`), which keeps the menus' corner, and not the Maker.
+html
+  body
+  :is([role='dialog'], [role='alertdialog'], dialog):not(
+    [data-anchored-menu],
+    .karaoke-maker
+  ) {
+  border-radius: dialog.$corner;
 }
 
 // A moving gradient behind text is exactly the thing this setting is for

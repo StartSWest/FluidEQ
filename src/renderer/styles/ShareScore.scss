@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -29,7 +30,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   padding: $spacing-m;
   place-items: center;
-  background: color-mix(in srgb, $surface-well 72%, transparent);
+  background: dialog.$scrim;
 }
 
 .share-score {

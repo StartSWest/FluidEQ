@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -23,8 +24,9 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: space-between;
   gap: $spacing-m;
   padding: 10px 14px 10px 18px;
-  // A second accent rule made this divider brighter than the window frame.
-  border-bottom: 1px solid rgba($white, 0.09);
+  // A second accent rule made this divider brighter than the window frame;
+  // a hairline ruled out to the frame read as a flat edge. It fades now.
+  @include dialog.rule(bottom);
 }
 
 .dialog-header__identity {

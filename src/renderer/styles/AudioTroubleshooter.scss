@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -28,7 +29,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba($black, 0.62);
+  // Every dialog's backdrop: dims the window, in its own hue.
+  background: dialog.$scrim;
   inset: 0;
 }
 

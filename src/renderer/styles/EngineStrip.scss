@@ -23,6 +23,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 
+// The well the latency figure sits in (see below).
+$engine-well: color-mix(in srgb, $surface-base 72%, transparent);
+
 .engine-strip {
   @include field-surface;
   display: inline-flex;
@@ -75,12 +78,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // on the capsule's own face. A hairline between two flat halves said they
   // were two halves; this says which one is the instrument and which one is
   // the switch, and it costs no extra edge.
+  //
+  // A recess is darker than the face it is let into. It was the track colour,
+  // a pale slab lighter than the whole capsule and every pane round it (Ivan,
+  // 2026-09-26: "this retardo pill to light too"); it is the floor now, most
+  // of the way through, and lights with the accent when pointed at.
   > .latency-readout {
-    background: $track-well;
+    background: $engine-well;
 
     &:hover:not(:disabled),
     &[aria-expanded='true'] {
-      background: color-mix(in srgb, $secondary-light 12%, $track-well);
+      background:
+        linear-gradient(
+          color-mix(in srgb, $secondary-default 14%, transparent) 0 0
+        ),
+        $engine-well;
     }
   }
 
@@ -105,11 +117,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   > .latency-readout.is-game {
-    background: color-mix(in srgb, $secondary-default 13%, $track-well);
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 13%, transparent) 0 0
+      ),
+      $engine-well;
 
     &:hover:not(:disabled),
     &[aria-expanded='true'] {
-      background: color-mix(in srgb, $secondary-default 22%, $track-well);
+      background:
+        linear-gradient(
+          color-mix(in srgb, $secondary-default 22%, transparent) 0 0
+        ),
+        $engine-well;
     }
   }
 }

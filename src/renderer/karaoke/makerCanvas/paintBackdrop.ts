@@ -112,31 +112,22 @@ export const paintBackdrop = (
     translationLaneHeight,
   );
 
-  const background = context.createLinearGradient(0, 0, width, height);
-  // The plot colour every drawing in the app lies on, flat. It was a ramp
-  // of two near-black blues, which made the editor the darkest thing in a
-  // window that has no black in it.
-  background.addColorStop(0, readSurface('--surface-panel', '#1a3a4e'));
-  background.addColorStop(1, readSurface('--surface-panel', '#1a3a4e'));
-  context.fillStyle = background;
+  // The window's floor, flat: the editor is a well in the Maker's card, as a
+  // plot is on every page. It was the pane colour, a step LIGHTER than the
+  // card round it, and the lyric lanes on it the block colour, lighter again
+  // (Ivan, 2026-09-26: "karaoke maker color … make pane but darker like some
+  // others we have"). Before that it was a ramp of two near-black blues,
+  // darker than anything else in the window; the floor is neither.
+  context.fillStyle = readSurface('--surface-base', '#0d2030');
   context.fillRect(0, 0, width, height);
 
-  const lyricBackground = context.createLinearGradient(
-    0,
-    lyricSectionTop,
-    0,
-    headerHeight,
+  // The lyric band is a card on the plot: the pane colour, part through, one
+  // step up from the floor — the step the window's cards take.
+  context.fillStyle = readSurfaceAlpha(
+    '--surface-panel',
+    0.72,
+    'rgba(26, 58, 78, 0.72)',
   );
-  // The lyric band is a card on the plot: the card colour, one step up.
-  lyricBackground.addColorStop(
-    0,
-    readSurfaceAlpha('--surface-block', 0.9, 'rgba(30, 66, 87, 0.9)'),
-  );
-  lyricBackground.addColorStop(
-    1,
-    readSurfaceAlpha('--surface-block', 0.96, 'rgba(30, 66, 87, 0.96)'),
-  );
-  context.fillStyle = lyricBackground;
   context.fillRect(
     plotLeft,
     lyricSectionTop - 3,
@@ -145,9 +136,9 @@ export const paintBackdrop = (
   );
   if (canvasSectionGroups.length) {
     context.fillStyle = readSurfaceAlpha(
-      '--surface-block',
-      0.94,
-      'rgba(30, 66, 87, 0.94)',
+      '--surface-panel',
+      0.8,
+      'rgba(26, 58, 78, 0.8)',
     );
     context.fillRect(
       plotLeft,

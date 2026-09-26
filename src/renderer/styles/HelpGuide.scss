@@ -76,7 +76,7 @@
   -webkit-app-region: no-drag;
 
   &::backdrop {
-    background: color-mix(in srgb, $surface-menu-top 80%, transparent);
+    background: dialog.$scrim;
   }
   &:not([open]) {
     display: none;

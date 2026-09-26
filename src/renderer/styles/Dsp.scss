@@ -2829,7 +2829,7 @@ $dsp-pane-columns: 6;
   justify-content: center;
   padding: 24px;
   // Every dialog's backdrop (`dialog.backdrop`), not a black sheet of its own.
-  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
+  background: dialog.$scrim;
 }
 
 .dsp-import {

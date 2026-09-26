@@ -67,8 +67,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   // Heavier and blurrier than the About panel's. That panel is something you
   // opened; these arrive on their own, and the workspace behind them should
-  // not look like the thing to carry on reading.
-  background: color-mix(in srgb, $surface-well 82%, transparent);
+  // not look like the thing to carry on reading. The dialogs' own scrim,
+  // which only ever dims.
+  background: dialog.$scrim;
 }
 
 .overlay-card__backdrop--locked {
@@ -92,7 +93,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: flex-start;
   gap: $spacing-s;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba($edge-tint, 0.12);
+  @include dialog.rule(bottom);
 
   h2 {
     margin: 0;
@@ -244,7 +245,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: $spacing-s;
   padding: 14px 20px 18px;
-  border-top: 1px solid rgba($edge-tint, 0.12);
+  @include dialog.rule(top);
 }
 
 .overlay-card__button {

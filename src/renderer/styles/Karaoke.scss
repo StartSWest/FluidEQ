@@ -3502,6 +3502,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The app's quiet face for a control (`.button.subtle`), and its hover, as
+// the Maker's controls wear them: the accent's faint fill. Slabs of the
+// block colour, a step lighter than every card, were the Maker's own face
+// for the same controls (Ivan, 2026-09-26: "review all panes").
+$maker-quiet: color-mix(in srgb, $secondary-default 7%, transparent);
+$maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
+
 // Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
 // deliberately limited to stable controls and inspectors; notes, words,
 // waveform, playhead and the time/pitch grids are all drawn in one canvas.
@@ -3522,26 +3529,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
+  isolation: isolate;
+  // A card on the floor, as the window's other panes are (Ivan, 2026-09-26:
+  // "karaoke maker color and borders not rounded pls make pane but darker
+  // like some others we have"). It was the pane colour, flat and a step
+  // lighter than every card, with a purple wash, run square to the tab's
+  // edges. The Maker still covers the whole tab, opaque in the floor's own
+  // colour — the stage and the transport are underneath it.
+  //
+  // The card is the header, the editor and the preview: a grid item of its
+  // own behind the first three rows (`::before`), standing in from the tab's
+  // edge by the pages' gutter. The command dock stays out of it, on the floor
+  // where the player's transport stands, because the two share that bar and
+  // it must not move between them. The panels placed from the header's
+  // height add the card's top inset.
+  --karaoke-maker-card-top: 8px;
+  --karaoke-maker-card-x: 10px;
   color: $text-muted;
-  @include surface-artwork(
-    (
-      radial-gradient(
-        circle at 17% 20%,
-        rgba(103, 47, 151, 0.22),
-        transparent 35%
-      ),
-      radial-gradient(
-        circle at 82% 12%,
-        color-mix(in srgb, $secondary-default 15%, transparent),
-        transparent 31%
-      ),
-      // The pane colour, flat — the same one every other tab stands on. The
-      // ramp down to the shell and the old well was where the Maker's darkness
-      // started: everything on it was then a wash over near-black.
-      linear-gradient(145deg, $surface-panel, $surface-panel)
-    )
-  );
-  border-radius: inherit;
+  background: $surface-base;
+  border-radius: 0;
+
+  &::before {
+    content: '';
+    z-index: -1;
+    // The Maker's one column, named: `1 / -1` counts the explicit grid,
+    // which has no columns, and opened a second column for the rows.
+    grid-row: 1 / 4;
+    grid-column: 1;
+    margin: var(--karaoke-maker-card-top) var(--karaoke-maker-card-x) 0;
+    @include card-surface;
+    border-radius: $radius-xl;
+    pointer-events: none;
+  }
+
+  > .karaoke-maker__header {
+    grid-area: 1 / 1;
+    margin: var(--karaoke-maker-card-top) var(--karaoke-maker-card-x) 0;
+  }
+
+  > .karaoke-maker__canvas-host {
+    grid-area: 2 / 1;
+  }
+
+  > .karaoke-maker-preview {
+    grid-area: 3 / 1;
+  }
+
+  > .karaoke-maker__command-dock {
+    grid-area: 4 / 1;
+  }
 
   button,
   input,
@@ -3549,14 +3585,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font: inherit;
   }
 
+  // The app's own two faces (`Button.scss`): the quiet outline at rest and
+  // the accent fill for the one suggested action. The Maker had a slab of its
+  // own, a darker gradient up to the block colour, which made every control
+  // in it a lighter tile than the same control anywhere else.
   button {
     min-height: 30px;
     padding: 0 11px;
-    color: $text-muted;
-    background: linear-gradient(180deg, rgba(18, 55, 75, 0.88), $block-lift);
-    border: 1px solid rgba(93, 174, 197, 0.28);
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-s;
-    box-shadow: inset 0 1px rgba($white, 0.035);
+    box-shadow: none;
     cursor: pointer;
     transition:
       border-color 150ms ease,
@@ -3566,23 +3606,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not(:disabled),
     &.is-active {
-      color: $text-muted;
-      border-color: color-mix(in srgb, $secondary-default 64%, transparent);
-      box-shadow:
-        inset 0 0 16px color-mix(in srgb, $secondary-default 9%, transparent),
-        0 0 14px color-mix(in srgb, $secondary-default 8%, transparent);
+      color: $white;
+      border-color: $border-field-hover;
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      box-shadow: none;
     }
 
     &.is-primary,
     &.is-active {
       color: $surface-base;
       font-weight: $weight-bold;
-      background: linear-gradient(
-        135deg,
-        $secondary-light,
-        $secondary-default 72%
-      );
-      border-color: color-mix(in srgb, $secondary-light 82%, transparent);
+      background: $secondary-default var(--accent-fill) border-box;
+      border-color: transparent;
+      box-shadow: inset 0 1px 0 rgba($white, 0.24);
     }
 
     // Bright primary actions need dark ink in every interaction state. The
@@ -3595,18 +3631,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: none;
     }
 
+    // The filled button's own hover (`Button.scss`): brighter and lit, the
+    // ink kept dark.
     &.is-primary:hover:not(:disabled),
     &.is-primary:focus-visible {
-      color: $surface-well;
-      background: linear-gradient(
-        135deg,
-        $secondary-light,
-        $secondary-default 72%
-      );
-      border-color: rgba($edge-tint, 0.85);
+      color: $surface-base;
+      background: $secondary-default var(--accent-fill) border-box;
+      border-color: transparent;
+      filter: brightness(1.1);
       box-shadow:
-        inset 0 1px rgba($white, 0.42),
-        0 0 18px color-mix(in srgb, $secondary-default 22%, transparent);
+        inset 0 1px 0 rgba($white, 0.24),
+        0 0 16px color-mix(in srgb, $secondary-default 16%, transparent);
     }
 
     &:disabled {
@@ -3621,7 +3656,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // and transport at the top after entering full screen.
     position: fixed;
     z-index: 96;
+    // The whole screen is the card: no gutter, no corner.
+    --karaoke-maker-card-top: 0px;
+    --karaoke-maker-card-x: 0px;
     border-radius: 0;
+
+    &::before {
+      border: 0;
+      border-radius: 0;
+    }
     // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
     //
     // This surface is the only opaque thing between the editor and the player:
@@ -3772,7 +3815,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px 14px;
   min-height: 54px;
   padding: 5px 12px;
-  border-bottom: 1px solid rgba(63, 149, 173, 0.22);
+  // The dialogs' head line, fading before either end of the card: a ruled
+  // accent edge drawn to the card's sides read as a flat frame inside it.
+  @include dialog.rule(bottom);
 }
 
 .karaoke-maker__header-tools {
@@ -3804,7 +3849,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   gap: 2px;
   padding: 2px;
-  background: $block-lift;
+  background: $maker-quiet;
   border-radius: $radius-xs;
 
   button {
@@ -4006,7 +4051,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__header-back {
   flex: 0 0 auto;
-  background: $block-lift !important;
+  background: $maker-quiet !important;
   border-color: color-mix(
     in srgb,
     $secondary-default 19%,
@@ -4350,16 +4395,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 9px;
   margin-top: 3px;
   color: $text-muted;
-  background:
-    radial-gradient(
-      circle at 8% 0,
-      color-mix(in srgb, $secondary-default 12%, transparent),
-      transparent 58%
-    ),
-    $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
-  border-radius: $radius-s;
-  box-shadow: inset 0 1px rgba($white, 0.035);
+  // The window's filled card in the menu's floor (Ivan, 2026-09-26, of this
+  // box: "some this pane too"). It was a block-coloured slab under an accent
+  // rim, the lightest thing in the tools menu.
+  @include card-surface;
 }
 
 // One row per model the Maker can load. The same dot, name and state as the
@@ -4540,19 +4579,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-muted;
     font-size: $text-body;
     font-weight: $weight-semibold;
-    background: $block-lift;
-    border: 1px solid rgba(97, 157, 174, 0.16);
+    // A segmented choice in the quiet face, the chosen one lit and edged:
+    // three block-coloured slabs were a row of lighter tiles.
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-xs;
+    box-shadow: none;
     transition:
       color 120ms ease,
       background 120ms ease,
       border-color 120ms ease;
 
-    &:hover,
+    &:hover {
+      color: $white;
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      border-color: $border-field-hover;
+    }
+
     &.is-active {
-      color: $text-primary;
+      color: $secondary-light;
+      font-weight: $weight-semibold;
       background: color-mix(in srgb, $secondary-default 18%, transparent);
-      border-color: color-mix(in srgb, $secondary-default 34%, transparent);
+      border-color: color-mix(in srgb, $secondary-light 46%, transparent);
     }
   }
 }
@@ -4606,8 +4654,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint !important;
   font-size: 15px !important;
   line-height: 1;
-  background: $block-lift !important;
-  border-color: rgba(91, 177, 190, 0.14) !important;
+  background: $surface-plot !important;
+  border-color: rgba($edge-tint, 0.08) !important;
   border-radius: $radius-xs !important;
   box-shadow: none !important;
 
@@ -4667,8 +4715,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 3px;
-  background: $block-lift;
-  border: 1px solid rgba(68, 139, 160, 0.16);
+  background: $maker-quiet;
+  border: 1px solid $border-field;
   border-radius: $radius-s;
 
   button {
@@ -4849,7 +4897,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
-  margin: 8px 10px 0;
+  // Inside the Maker's card, by its own gutter.
+  margin: 8px calc(10px + var(--karaoke-maker-card-x)) 0;
   overflow: hidden;
   background: $surface-base;
   border: 1px solid $border-field;
@@ -4961,11 +5010,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 34px !important;
   padding: 0 7px !important;
   color: $text-muted !important;
-  background: linear-gradient(
-    180deg,
-    rgba(18, 58, 75, 0.7),
-    $block-lift
-  ) !important;
+  background: $maker-quiet !important;
   border-color: color-mix(
     in srgb,
     $secondary-default 20%,
@@ -5007,11 +5052,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   padding: 0 !important;
   color: $text-accent !important;
-  background: linear-gradient(
-    180deg,
-    rgba(20, 65, 80, 0.76),
-    $block-lift
-  ) !important;
+  background: $maker-quiet !important;
   border: 1px solid $border-field !important;
   border-radius: 50% !important;
   box-shadow:
@@ -5025,12 +5066,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    color: #fff !important;
-    background: linear-gradient(
-      180deg,
-      rgba(30, 120, 125, 0.62),
-      $block-lift
-    ) !important;
+    color: $white !important;
+    background: $maker-quiet-hover !important;
     border-color: color-mix(
       in srgb,
       $secondary-default 58%,
@@ -5097,11 +5134,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover:not(:disabled):not(.is-active),
   &:focus-visible:not(.is-active) {
     color: $white !important;
-    background: linear-gradient(
-      180deg,
-      rgba(27, 92, 102, 0.88),
-      $block-lift
-    ) !important;
+    background: $maker-quiet-hover !important;
   }
 }
 
@@ -5125,10 +5158,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker-preview {
   position: relative;
   min-width: 0;
-  margin: 6px 10px;
+  // The last row in the Maker's card: its gutter at the sides and below.
+  margin: 6px calc(10px + var(--karaoke-maker-card-x)) 10px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
-  border-radius: $radius-m;
+  // A box in the card, edged as the window's boxes are; an accent frame
+  // inside the card read as a second, brighter card.
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
 
   > header {
     display: flex;
@@ -5256,11 +5292,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   letter-spacing: 0 !important;
   text-transform: none;
-  background: linear-gradient(
-    180deg,
-    rgba(24, 66, 81, 0.74),
-    $block-lift
-  ) !important;
+  background: $maker-quiet !important;
   border-color: color-mix(
     in srgb,
     $secondary-light 20%,
@@ -5590,7 +5622,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-family: inherit;
     font-size: $text-body;
     font-weight: $weight-bold;
-    background: $block-lift;
+    background: $maker-quiet;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
     box-shadow: inset 0 -2px rgba($black, 0.22);
@@ -5849,36 +5881,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
   padding: 16px 16px 12px;
   color: $text-primary;
-  background:
-    radial-gradient(
-      circle at 8% 0,
-      color-mix(in srgb, $secondary-default 24%, transparent),
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 94% 100%,
-      rgba($neon-pink, 0.12),
-      transparent 38%
-    ),
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, $surface-field-end 98.5%, transparent),
-      color-mix(in srgb, $surface-base 99%, transparent)
-    );
-  border: 1px solid color-mix(in srgb, $secondary-light 46%, transparent);
-  border-radius: $radius-xl;
+  // The dialogs' material (`dialog.surface-look`), a card floating over the
+  // editor like any other: a cyan and a pink wash under a bright accent rim
+  // made the Maker's two floating panels a family of their own (Ivan,
+  // 2026-09-26: "all panes", "fix all modals").
+  @include dialog.surface-look;
   box-shadow:
     0 20px 54px rgba($black, 0.54),
-    0 0 34px color-mix(in srgb, $secondary-default 13%, transparent),
-    inset 0 1px rgba($white, 0.08);
+    inset 0 1px rgba($white, 0.05);
   will-change: transform;
 
   &.is-end {
     border-color: rgba($amber, 0.5);
-    box-shadow:
-      0 20px 54px rgba($black, 0.54),
-      0 0 32px rgba($amber, 0.12),
-      inset 0 1px rgba($white, 0.08);
   }
 
   &.is-countdown {
@@ -5901,17 +5915,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   gap: 4px;
   padding: 0;
+  // The panel's own floor and edge, so the handle reads as part of it.
   color: $text-muted;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $surface-field 98%, transparent),
-    color-mix(in srgb, $surface-base 99%, transparent)
-  );
-  border: 1px solid color-mix(in srgb, $secondary-light 44%, transparent);
+  background: $surface-menu-floor;
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-pill;
-  box-shadow:
-    0 7px 16px rgba($black, 0.35),
-    inset 0 1px rgba($white, 0.07);
+  box-shadow: 0 7px 16px rgba($black, 0.35);
   transform: translateX(-50%);
   cursor: grab;
   touch-action: none;
@@ -5923,15 +5932,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     color: $white;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, $surface-field 99%, transparent),
-      color-mix(in srgb, $surface-panel 99%, transparent)
-    );
-    border-color: color-mix(in srgb, $secondary-light 76%, transparent);
-    box-shadow:
-      0 8px 20px rgba($black, 0.4),
-      0 0 18px color-mix(in srgb, $secondary-default 22%, transparent);
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 14%, transparent) 0 0
+      ),
+      $surface-menu-floor;
+    border-color: $border-field-hover;
+    box-shadow: 0 8px 20px rgba($black, 0.4);
   }
 
   > span {
@@ -5954,16 +5961,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 30px !important;
   place-items: center;
   padding: 0 !important;
-  color: $text-faint;
-  background: color-mix(in srgb, $surface-well 64%, transparent);
-  border-color: color-mix(in srgb, $secondary-light 18%, transparent);
+  // Every dialog's close (`.dialog-header__close`). Red on hover said
+  // "delete" for a button that only puts the panel away.
+  color: $text-muted;
+  background: $surface-plot;
+  border-color: rgba($edge-tint, 0.08);
   border-radius: $radius-s;
 
   &:hover,
   &:focus-visible {
-    color: #ffd4da;
-    background: rgba(#542034, 0.82);
-    border-color: rgba(#ff7188, 0.46);
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
   }
 
   svg {
@@ -5983,28 +5992,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
   padding: 25px 48px 15px 18px;
   color: $text-primary;
-  background:
-    radial-gradient(
-      circle at 8% 0,
-      color-mix(in srgb, $secondary-default 20%, transparent),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 94% 100%,
-      rgba($neon-pink, 0.09),
-      transparent 40%
-    ),
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, $surface-field-end 98.5%, transparent),
-      color-mix(in srgb, $surface-base 99%, transparent)
-    );
-  border: 1px solid color-mix(in srgb, $secondary-light 44%, transparent);
-  border-radius: $radius-xl;
+  // The dialogs' material, as the capture panel above.
+  @include dialog.surface-look;
   box-shadow:
     0 20px 54px rgba($black, 0.54),
-    0 0 32px color-mix(in srgb, $secondary-default 12%, transparent),
-    inset 0 1px rgba($white, 0.08);
+    inset 0 1px rgba($white, 0.05);
   will-change: transform;
 
   &.is-word-selection {
@@ -6030,25 +6022,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: center;
     gap: 6px;
     padding: 0 10px;
-    color: $text-muted;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    background: linear-gradient(180deg, rgba(21, 80, 94, 0.68), $block-lift);
-    border: 1px solid color-mix(in srgb, $secondary-default 31%, transparent);
+    // The Maker's two faces (`.karaoke-maker button`), not a slab of its own.
     border-radius: $radius-s;
-
-    &:hover,
-    &:focus-visible {
-      color: $white;
-      background: linear-gradient(
-        180deg,
-        rgba(27, 115, 120, 0.78),
-        $block-lift
-      );
-      border-color: color-mix(in srgb, $secondary-default 62%, transparent);
-      box-shadow: 0 0 16px
-        color-mix(in srgb, $secondary-default 12%, transparent);
-    }
 
     svg {
       width: 14px;
@@ -6260,8 +6237,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: center;
   justify-self: start;
   padding: 3px;
-  background: $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-default 16%, transparent);
+  background: $maker-quiet;
+  border: 1px solid $border-field;
 
   button {
     min-height: 28px;
@@ -6847,10 +6824,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 12;
   display: grid;
   min-width: 0;
-  border-top: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
-  box-shadow:
-    0 -14px 36px color-mix(in srgb, $surface-base 24%, transparent),
-    inset 0 1px rgba($white, 0.025);
+  // On the floor under the Maker's card, as the player's transport is: the
+  // card's own edge is the line between them.
 
   > .karaoke-transport {
     // Match the player's 12px workspace inset exactly, so switching into the
@@ -7029,27 +7004,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-self: stretch;
     align-content: center;
     padding: 7px 10px;
-    background: $surface-plot;
-    border: 1px solid color-mix(in srgb, $secondary-default 15%, transparent);
-    border-radius: $radius-m;
-  }
-
-  .karaoke-maker__selection-coach.is-word-selection
-    .karaoke-maker__word-inspector {
-    grid-template-columns: minmax(0, 1fr);
-
-    .karaoke-maker__word-inspector-identity {
-      grid-row: auto;
-    }
-
-    .karaoke-maker__word-inspector-actions {
-      grid-column: 1;
-      justify-content: stretch;
-
-      button {
-        flex: 1 1 0;
-      }
-    }
+    // The window's filled card, in the panel's floor.
+    @include card-surface;
   }
 
   .karaoke-maker__word-timing-sliders {
@@ -7069,12 +7025,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: 0 1 auto;
       padding-inline: 11px;
 
+      // Play the word: the one suggested action here, in the filled face.
       &:nth-child(2) {
         color: $surface-base;
-        background: $secondary-default;
-        border-color: rgba($edge-tint, 0.7);
-        box-shadow: 0 0 18px
-          color-mix(in srgb, $secondary-default 16%, transparent);
+        background: $secondary-default var(--accent-fill) border-box;
+        border-color: transparent;
+        box-shadow: inset 0 1px 0 rgba($white, 0.24);
       }
     }
   }
@@ -7084,10 +7040,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 25px;
   padding: 0 9px;
   color: $secondary-light;
-  background: linear-gradient(180deg, rgba(25, 91, 103, 0.5), $block-lift);
-  border-color: color-mix(in srgb, $secondary-default 38%, transparent);
-  box-shadow: inset 0 0 12px
-    color-mix(in srgb, $secondary-default 6%, transparent);
+  background: $maker-quiet;
+  border-color: $border-field;
+  box-shadow: none;
 
   &:active {
     transform: scale(0.96);
@@ -7155,7 +7110,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__analysis-error {
   position: absolute;
   z-index: 22;
-  top: calc(var(--karaoke-maker-header-height) + 12px);
+  top: calc(
+    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
+  );
   right: 18px;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
@@ -7177,22 +7134,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__stems-float {
   position: absolute;
   z-index: 21;
-  top: calc(var(--karaoke-maker-header-height) + 12px);
+  top: calc(
+    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
+  );
   right: 18px;
   width: min(430px, calc(100% - 36px));
   padding: 13px 14px;
-  background:
-    radial-gradient(
-      circle at 15% 0,
-      color-mix(in srgb, $secondary-default 12%, transparent),
-      transparent 55%
-    ),
-    $block-lift;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
+  // A panel floating over the editor: the dialogs' material, not a slab of
+  // the block colour.
+  @include dialog.surface-look;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
-    inset 0 1px rgba($white, 0.055);
+    inset 0 1px rgba($white, 0.05);
 }
 
 // The advanced-tools popover, split into "voice and music" and "lyrics and
@@ -7354,7 +7307,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   // A cover, dimming the Maker as the dialogs' backdrop dims the window; the
   // card is the panel inside it.
-  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
+  background: dialog.$scrim;
 }
 
 .karaoke-maker__wizard-panel {
@@ -7569,14 +7522,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px 12px;
   padding: 11px 12px;
   color: $text-primary;
-  background:
-    radial-gradient(
-      circle at 15% 0,
-      color-mix(in srgb, $secondary-default 12%, transparent),
-      transparent 55%
-    ),
-    $block-lift;
-  border: 1px solid $border-field;
+  // The window's filled card, where the progress stands in a panel.
+  @include card-surface;
   border-radius: $radius-l;
 
   > button {
@@ -7979,7 +7926,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__toast {
   position: absolute;
   z-index: 20;
-  top: calc(var(--karaoke-maker-header-height) + 12px);
+  top: calc(
+    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
+  );
   right: 16px;
   display: flex;
   min-height: 34px;
@@ -8064,8 +8013,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The dialogs' own backdrop (`dialog.backdrop`): the Maker dims behind its
   // dialogs as the window does behind every other one, rather than going out
   // behind a sheet of the block colour.
-  background: color-mix(in srgb, $surface-menu-top 74%, transparent);
+  background: dialog.$scrim;
 }
+
+// What the lyrics dialog writes in and lays its words on: a well, a step
+// DOWN from the dialog's floor, as a plot is on a page. It was the block
+// colour, a lighter slab laid in the dialog, and so was every word chip and
+// button on it (Ivan, 2026-09-26: "fix all modals", "review all panes").
+$lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
 
 .karaoke-maker__lyrics-modal {
   position: relative;
@@ -8101,8 +8056,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     resize: vertical;
     color: $text-muted;
     line-height: 1.65;
-    background: $block-lift;
-    border: 1px solid rgba(69, 145, 169, 0.28);
+    background: $lyrics-well;
+    border: 1px solid $border-field;
     border-radius: $radius-m;
     outline: 0;
 
@@ -8141,14 +8096,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 32px !important;
   place-items: center;
   padding: 0 !important;
+  // Every dialog's close (`.dialog-header__close`): the plot's well and the
+  // faintest edge, lit only when pointed at.
   color: $text-muted !important;
-  background: $block-lift !important;
-  border-color: color-mix(
-    in srgb,
-    $secondary-default 28%,
-    transparent
-  ) !important;
-  border-radius: $radius-xs !important;
+  background: $surface-plot !important;
+  border-color: rgba($edge-tint, 0.08) !important;
+  border-radius: $radius-s !important;
 
   svg {
     width: 15px;
@@ -8158,13 +8111,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover:not(:disabled),
   &:focus-visible {
     color: $secondary-light !important;
-    background: rgba(15, 69, 77, 0.9) !important;
-    border-color: color-mix(
+    background: color-mix(
       in srgb,
-      $secondary-default 62%,
+      $secondary-default 16%,
       transparent
     ) !important;
-    box-shadow: 0 0 15px color-mix(in srgb, $secondary-default 14%, transparent) !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-light 40%,
+      transparent
+    ) !important;
+    box-shadow: none !important;
   }
 }
 
@@ -8183,8 +8140,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   gap: 9px;
   padding: 11px;
-  border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
-  border-radius: $radius-l;
+  // The dialogs' inner group (`dialog.section-surface`): an edge and the
+  // dialog's floor through it. An accent frame round each column made three
+  // brighter cards inside the card.
+  @include dialog.section-surface;
 }
 
 .karaoke-maker__lyrics-source {
@@ -8197,8 +8156,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: $block-lift;
-  border: 1px solid rgba(69, 145, 169, 0.28);
+  background: $lyrics-well;
+  border: 1px solid $border-field;
   border-radius: $radius-m;
 
   &:focus-within {
@@ -8235,7 +8194,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: 0;
     box-shadow: none;
     scrollbar-color: color-mix(in srgb, $secondary-default 65%, transparent)
-      $block-lift;
+      transparent;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
 
@@ -8366,11 +8325,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 6px;
     padding: 0 8px;
-    color: $text-muted;
     font-size: $text-body;
     font-weight: $weight-bold;
-    background: rgba(14, 61, 76, 0.62);
-    border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
+    // The Maker's quiet face, its colours untouched here.
     border-radius: $radius-xs;
 
     svg {
@@ -8385,7 +8342,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: auto;
   padding: 3px 4px 8px 2px;
   scrollbar-color: color-mix(in srgb, $secondary-default 65%, transparent)
-    $block-lift;
+    transparent;
   scrollbar-width: thin;
 }
 
@@ -8404,8 +8361,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 6px 8px;
   color: $text-muted;
   font-size: $text-body;
-  background: rgba(16, 66, 77, 0.42);
-  border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-xs;
 
   svg {
@@ -8427,7 +8384,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     color: inherit;
-    background: $block-lift;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
     transform: none;
   }
 }
@@ -8452,13 +8409,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color-mix(in srgb, $secondary-default 22%, transparent);
   }
 
+  // A word is a chip in the app's quiet face: the accent's faint fill and
+  // the fields' edge. It was a slab of the block colour, lighter than the
+  // dialog it lay in.
   > button {
     min-height: 24px;
     padding: 0 8px;
     color: $text-muted;
     font-size: $text-lead;
-    background: $block-lift;
-    border: 1px solid transparent;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    border: 1px solid $border-field;
     border-radius: $radius-xs;
     transition:
       color 130ms ease,
@@ -8467,8 +8427,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transform 130ms ease;
 
     &:hover {
-      color: $text-muted;
-      background: rgba(20, 76, 87, 0.8);
+      color: $white;
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      border-color: $border-field-hover;
       transform: translateY(-1px);
     }
 
@@ -8480,7 +8441,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-adjusted {
       color: $secondary-light;
-      background: rgba(18, 91, 91, 0.54);
+      background: color-mix(in srgb, $secondary-default 20%, transparent);
     }
 
     &.is-current {
@@ -8492,8 +8453,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &.is-selected {
       color: $surface-base;
       font-weight: $weight-bold;
-      background: $secondary-default;
-      border-color: rgba($edge-tint, 0.65);
+      background: $secondary-default var(--accent-fill) border-box;
+      border-color: transparent;
     }
 
     &[draggable='true'] {
@@ -8559,10 +8520,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 11px;
   padding: 13px;
-  border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
-  border-radius: $radius-m;
-  box-shadow: inset 0 0 20px
-    color-mix(in srgb, $secondary-default 3.5%, transparent);
+  // A card in the column: the window's filled card, where the column round
+  // it is only an edge.
+  @include card-surface;
+  border-radius: $radius-l;
 }
 
 .karaoke-maker__lyrics-word-editor-head {
@@ -8605,9 +8566,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       min-height: 34px;
       place-items: center;
       padding: 0;
-      color: $secondary-light;
-      background: rgba(14, 61, 75, 0.72);
-      border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
       border-radius: $radius-xs;
 
       svg {
@@ -8638,25 +8596,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 6px;
     padding: 0 11px;
-    color: $secondary-light;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    background: rgba(14, 67, 76, 0.66);
-    border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
+    // The Maker's two faces, quiet and filled (`.karaoke-maker button`); a
+    // teal slab and a primary with its own ink were a third and a fourth.
     border-radius: $radius-xs;
 
     svg {
       width: 15px;
       height: 15px;
     }
-  }
-
-  button.is-primary {
-    color: #022421;
-    font-weight: $weight-bold;
-    background: $secondary-default;
-    border-color: color-mix(in srgb, $secondary-light 84%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 14%, transparent);
   }
 
   > span {
@@ -8676,15 +8625,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   padding: 11px 12px;
   color: $text-primary;
-  background:
-    radial-gradient(
-      circle at 12% 0,
-      color-mix(in srgb, $secondary-default 12%, transparent),
-      transparent 58%
-    ),
-    $block-lift;
-  border: 1px solid $border-field;
-  border-radius: $radius-m;
+  @include card-surface;
+  border-radius: $radius-l;
 
   strong,
   span {
@@ -9146,15 +9088,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: end;
   gap: 5px 12px;
   padding: 6px 9px;
-  background:
-    radial-gradient(
-      circle at 50% 0,
-      color-mix(in srgb, $secondary-default 8%, transparent),
-      transparent 65%
-    ),
-    $block-lift;
-  border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
-  border-radius: $radius-s;
+  // The window's filled card: a block-coloured slab was the lightest thing
+  // in the word editor.
+  @include card-surface;
+  border-radius: $radius-m;
 
   label {
     display: grid;
