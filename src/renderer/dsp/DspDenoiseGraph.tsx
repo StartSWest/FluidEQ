@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readSurface, readTextInk } from '../utils/theme';
+import { readSurfaceAlpha, readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -290,7 +290,16 @@ const DspDenoiseGraph = ({
       // does not stand on the plot's ground (Ivan, 2026-09-22). Its name sits
       // at its start and the bars begin after it — drawn over the oldest bars,
       // as it was, the name was the one thing in the lane nobody could read.
-      context.fillStyle = readSurface('--surface-block', '#1e4257');
+      //
+      // The card's colour is the pane's at 55% (`$surface-card`), not the
+      // block's: opaque block was a pale band across the top of the graph,
+      // lighter than every card in the window (Ivan, 2026-09-26: "dsp
+      // reduction graph header also fix").
+      context.fillStyle = readSurfaceAlpha(
+        '--surface-panel',
+        0.55,
+        'rgba(26, 58, 78, 0.55)',
+      );
       context.fillRect(0, 0, width, LANE_STRIP_H);
       context.fillStyle = `rgba(${SPECTRUM_INK}, 0.07)`;
       context.fillRect(0, LANE_STRIP_H - 1, width, 1);
