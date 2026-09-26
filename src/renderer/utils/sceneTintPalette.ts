@@ -22,7 +22,6 @@ import {
   clamp01,
 } from './oklab';
 import type { ISceneSky } from './sceneTint';
-import { THEME_SHADE_MAX, clampThemeShade } from './themeShade';
 
 /**
  * The theme toned in a scene's colours (`sceneTint.ts` finds them): which
@@ -102,34 +101,6 @@ const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
  */
 const MAX_SURFACE_CHROMA = 0.07;
 
-/**
- * How much further the window's Brightness lifts a visualizer's colours than
- * it lifts the theme, in OKLab lightness at the slider's right end, rising
- * evenly from nothing at its left (`sceneTintStore.ts`). Ivan, 2026-09-25:
- * "if ambient on is theme ambient dark to more lighter" — at the left end the
- * window is the darkest of the visualizer's colours, never black, and at the
- * right end the panes stand about where the per-mode Brightness this
- * replaced took them at its top (0.16 over Ocean): the lighter Ocean's panes
- * and this much more, under the ceiling below.
- */
-export const TINT_SHADE_LIFT = 0.1;
-
-/** The lift at `shade` on the theme's slider: evenly from none to all. */
-export const tintLiftForShade = (shade: number) =>
-  (clampThemeShade(shade) / THEME_SHADE_MAX) * TINT_SHADE_LIFT;
-
-/**
- * The lightest a surface may be lifted to: 0.52 in OKLab, where the app's
- * body text still stands on it at about 5:1. The text stays light whatever
- * the Brightness, so a surface lifted past this would be a pale ground for
- * pale words.
- */
-const LIFTED_SURFACE_CEILING = 0.52;
-
-const liftedLightness = (lightness: number, lift: number) =>
-  lift === 0
-    ? lightness
-    : Math.min(Math.max(lightness, LIFTED_SURFACE_CEILING), lightness + lift);
 /**
  * The edges' chroma. They are drawn at six to twenty-two percent alpha, so
  * this is what keeps them from reading as grey wire on a coloured pane and no
@@ -317,8 +288,6 @@ const activeUnder = (
 export const tintThemePalette = (
   base: Readonly<Record<string, string>>,
   sky: ISceneSky,
-  // OKLab lightness added to every surface (`TINT_SHADE_LIFT`).
-  lift = 0,
 ): TSceneTintPalette => {
   const amount = sceneTintStrength(sky);
   // Under a grey sky the surfaces and edges lose the theme's own tone
@@ -328,8 +297,7 @@ export const tintThemePalette = (
   SCENE_TINT_SURFACES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
-      const own = rgbToLab(colour.rgb);
-      const lab = { ...own, l: liftedLightness(own.l, lift) };
+      const lab = rgbToLab(colour.rgb);
       const chroma = grey
         ? 0
         : Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);

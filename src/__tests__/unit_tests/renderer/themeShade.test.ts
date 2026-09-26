@@ -76,13 +76,26 @@ describe("the theme's slider", () => {
   });
 
   it("lifts Ocean's surfaces at its right end and keeps its accent", () => {
+    // 0.145: the theme's own 0.045 and the 0.1 a visualizer's colours used
+    // to add over it, which made Original the darker of the two at 100%
+    // (2026-09-26).
     const right = themeShadeTokens(THEME_SHADE_MAX);
     const lift =
       lightness(right['--surface-panel']) -
       lightness(OCEAN_THEME['--surface-panel']);
-    expect(lift).toBeGreaterThan(0.04);
-    expect(lift).toBeLessThan(0.05);
+    expect(lift).toBeGreaterThan(0.14);
+    expect(lift).toBeLessThan(0.15);
     expect(right['--accent']).toBe(OCEAN_THEME['--accent']);
+  });
+
+  it('lifts no surface past where light text still reads', () => {
+    const right = themeShadeTokens(THEME_SHADE_MAX);
+    // Positive control: the track's well, Ocean's lightest surface, is one
+    // the full lift would have taken past the ceiling.
+    expect(lightness(OCEAN_THEME['--track-well']) + 0.145).toBeGreaterThan(
+      0.53,
+    );
+    expect(lightness(right['--track-well'])).toBeLessThanOrEqual(0.521);
   });
 
   it('only ever gets lighter from left to right', () => {

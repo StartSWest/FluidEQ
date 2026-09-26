@@ -22,8 +22,10 @@ import {
  * we have but bit lighter").
  *
  * Every step is a set of surface colours, walked in OKLab so equal steps of
- * the thumb look like equal steps of light: Black at 0, Ocean as it shipped
- * at `OCEAN_SHADE`, and past it Ocean lifted by `LIGHT_LIFT`. Through
+ * the thumb look like equal steps of light within each stretch: Black at 0,
+ * Ocean as it shipped at `OCEAN_SHADE`, and past it Ocean lifted by
+ * `LIGHT_LIFT`, the last quarter the steeper since it took over the lift a
+ * visualizer's colours had of their own. Through
  * Ocean exactly, rather than straight from Black to the lighter end, so
  * somebody who had picked Ocean opens on the colours they chose and not on
  * a near miss of them.
@@ -37,15 +39,34 @@ export const THEME_SHADE_MIN = 0;
 export const THEME_SHADE_MAX = 100;
 
 /**
- * Where Ocean as it shipped stands. Three quarters of the way, because the
- * lift past it is a third of Black-to-Ocean's lightness on the floor (0.045
- * of 0.115) and a quarter on the panes (of 0.171): there the thumb moves the
- * light about evenly from one end of the track to the other.
+ * Where Ocean as it shipped stands: three quarters of the way, so somebody
+ * who had picked Ocean opens on it and the last quarter lightens past it.
  */
 export const OCEAN_SHADE = 75;
 
-/** OKLab lightness Ocean's surfaces gain at the light end. */
-const LIGHT_LIFT = 0.045;
+/**
+ * OKLab lightness Ocean's surfaces gain at the light end: 0.045 of the
+ * theme's own and the 0.1 a visualizer's colours used to add on top of it
+ * there. At 100% Colours stood that much lighter than the theme, and the
+ * theme — Original — read as the dark one of the two at the same Brightness
+ * (Ivan, 2026-09-26: "original needs to light a bit more to match colores
+ * just the brightness internally not the slider"). The colours now follow
+ * this scale exactly (`sceneTintStore.ts`), so the two agree at every step.
+ */
+const LIGHT_LIFT = 0.145;
+
+/**
+ * The lightest a surface is lifted to: 0.52 in OKLab, where the app's body
+ * text still stands on it at about 5:1. The text stays light whatever the
+ * Brightness, so a surface lifted past this would be a pale ground for pale
+ * words; one already above it keeps its own.
+ */
+const LIGHT_CEILING = 0.52;
+
+const lightEnd = (lightness: number) =>
+  lightness >= LIGHT_CEILING
+    ? lightness
+    : Math.min(LIGHT_CEILING, lightness + LIGHT_LIFT);
 
 const SURFACES = [
   '--surface-base',
@@ -168,7 +189,7 @@ const ENDS = THEME_SHADE_TOKENS.map((token) => {
     black: stopOf(BLACK_THEME[token]),
     ocean,
     light: isSurface(token)
-      ? { ...ocean, lab: { ...ocean.lab, l: ocean.lab.l + LIGHT_LIFT } }
+      ? { ...ocean, lab: { ...ocean.lab, l: lightEnd(ocean.lab.l) } }
       : ocean,
   };
 });

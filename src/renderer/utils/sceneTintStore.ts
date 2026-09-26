@@ -17,7 +17,6 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from './sceneTint';
-import { tintLiftForShade } from './sceneTintPalette';
 import { getThemeShade, subscribeTheme } from './theme';
 import { THEME_SHADE_TOKENS, themeShadeTokens } from './themeShade';
 
@@ -378,24 +377,23 @@ export const useRememberedSceneSky = (lookId: string) =>
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
 /**
- * What the root carries now, the theme's shade it was toned against, and the
- * lightness it was lifted by.
+ * What the root carries now, and the theme's shade it was toned against.
+ *
+ * A visualizer's colours stand at exactly the theme's lightness for the
+ * shade, with the scene's hue: the window's Brightness is one slider for
+ * every mode and for the Studio too, since it is the theme's (Ivan,
+ * 2026-09-25: "in total I want only two options brightness and
+ * transparency"), and at one setting Original and Colours are as light as
+ * each other (2026-09-26: "when I choose tema is darker than when I choose
+ * colores … with same 100% brightness"). They used to be lifted past the
+ * theme by a lift of their own, which is now the theme's light end
+ * (`themeShade.ts`).
  */
-let painted: { sky: ISceneSky | undefined; shade: number; lift: number } = {
+let painted: { sky: ISceneSky | undefined; shade: number } = {
   sky: undefined,
   shade: getThemeShade(),
-  lift: 0,
 };
 
-/**
- * How far the window's Brightness lifts a visualizer's colours past the
- * theme it tones them from: nothing at its left end, where they are the
- * darkest the theme stands, and `TINT_SHADE_LIFT` at its right. One slider
- * for every mode and for the Studio too, since it is the theme's (Ivan,
- * 2026-09-25: "in total I want only two options brightness and
- * transparency").
- */
-const wantedLift = () => tintLiftForShade(getThemeShade());
 const wantedListeners = new Set<() => void>();
 
 const SCENE_TINT_TRANSITION = 'scene-tint';
@@ -480,9 +478,8 @@ const readThemeBase = (shade: number) => {
 const paint = () => {
   const { style } = document.documentElement;
   const shade = getThemeShade();
-  const lift = wantedLift();
   const palette = wanted
-    ? tintThemePalette(readThemeBase(shade), wanted, lift)
+    ? tintThemePalette(readThemeBase(shade), wanted)
     : undefined;
   SCENE_TINT_TOKENS.forEach((token) => {
     const value = palette?.[token];
@@ -499,13 +496,12 @@ const paint = () => {
     'data-scene-tint',
     palette !== undefined,
   );
-  painted = { sky: wanted, shade, lift };
+  painted = { sky: wanted, shade };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
-  (wanted !== undefined &&
-    (painted.shade !== getThemeShade() || painted.lift !== wantedLift()));
+  (wanted !== undefined && painted.shade !== getThemeShade());
 
 /**
  * Whether the change can cross-fade.
@@ -598,12 +594,12 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
  * two steps landing in one frame cost two sets of property writes, which
  * restyle nothing until something reads.
  */
-const repaintLift = () => {
+const repaintShade = () => {
   if (!fading && needsPaint()) {
     paint();
   }
 };
-subscribeTheme(repaintLift);
+subscribeTheme(repaintShade);
 
 const subscribeWanted = (listener: () => void) => {
   wantedListeners.add(listener);

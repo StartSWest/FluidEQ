@@ -7,17 +7,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The window-colours menu's Brightness under a visualizer's colours: the
  * theme's own slider, walking the tinted window from its darkest — the
- * visualizer's colour, never black — to its lightest, under the ceiling
- * where the app's light text still reads (Ivan, 2026-09-25: "if ambient is on
- * is not black is ambient color … dark to more lighter").
+ * visualizer's colour, never black — to its lightest (Ivan, 2026-09-25: "if
+ * ambient is on is not black is ambient color … dark to more lighter"), and
+ * exactly as light as Original at every step (2026-09-26: "when I choose
+ * tema is darker than when I choose colores … with same 100% brightness").
  */
 
 import { parseCssColour, rgbToLab } from 'renderer/utils/oklab';
 import type { ISceneSky } from 'renderer/utils/sceneTint';
 import {
   SCENE_TINT_SURFACES,
-  TINT_SHADE_LIFT,
-  tintLiftForShade,
   tintThemePalette,
 } from 'renderer/utils/sceneTintPalette';
 import {
@@ -50,15 +49,27 @@ const sky: ISceneSky = {
 
 /** The window at `shade`, as the tint paints it under `sky`. */
 const tintedAt = (shade: number) =>
-  tintThemePalette(themeShadeTokens(shade), sky, tintLiftForShade(shade));
+  tintThemePalette(themeShadeTokens(shade), sky);
 
 describe('Brightness under a visualizer’s colours', () => {
-  it('lifts nothing at the left end and all of its reach at the right', () => {
-    expect(tintLiftForShade(THEME_SHADE_MIN)).toBe(0);
-    expect(tintLiftForShade(THEME_SHADE_MAX)).toBeCloseTo(TINT_SHADE_LIFT, 6);
-    expect(tintLiftForShade(THEME_SHADE_MAX / 2)).toBeCloseTo(
-      TINT_SHADE_LIFT / 2,
-      6,
+  it('is as light as Original at every step, in the visualizer’s hue', () => {
+    [0, 25, 50, 75, 100].forEach((shade) => {
+      const theme = themeShadeTokens(shade);
+      const tinted = tintedAt(shade);
+      SCENE_TINT_SURFACES.forEach((token) => {
+        expect([shade, token, labOf(tinted[token]).l]).toEqual([
+          shade,
+          token,
+          expect.closeTo(labOf(theme[token]).l, 2),
+        ]);
+      });
+    });
+    // Positive control: the hue did change, so the two were compared as two
+    // different colours of one lightness and not as one colour.
+    expect(
+      chromaOf(tintedAt(THEME_SHADE_MAX)['--surface-base']),
+    ).toBeGreaterThan(
+      chromaOf(themeShadeTokens(THEME_SHADE_MAX)['--surface-base']) + 0.02,
     );
   });
 
@@ -87,12 +98,12 @@ describe('Brightness under a visualizer’s colours', () => {
     );
   });
 
-  it('never lifts a surface past where light text still reads', () => {
-    const lifted = tintThemePalette(themeShadeTokens(THEME_SHADE_MAX), sky, 5);
+  it('never stands a surface past where light text still reads', () => {
+    const right = tintedAt(THEME_SHADE_MAX);
     // Positive control: every surface came back to be measured.
-    expect(SCENE_TINT_SURFACES.every((token) => lifted[token])).toBe(true);
+    expect(SCENE_TINT_SURFACES.every((token) => right[token])).toBe(true);
     SCENE_TINT_SURFACES.forEach((token) =>
-      expect(labOf(lifted[token]).l).toBeLessThanOrEqual(0.53),
+      expect(labOf(right[token]).l).toBeLessThanOrEqual(0.53),
     );
   });
 });
