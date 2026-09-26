@@ -200,9 +200,14 @@ describe('the glow in the window', () => {
     expect(String(frames[0].transform)).toContain('translate(300px, 150px)');
     expect(frames[1].opacity).toBe(1);
     expect(frames[2].opacity).toBe(0);
-    expect(layer.style.clipPath).toMatch(
-      /^path\(evenodd, 'M0 0H\d+V\d+H0Z M112 60 /,
-    );
+    // A mask of the whole window with the hole in it, its edge widened and
+    // blurred so the light fades out before the scene instead of stopping
+    // on a line.
+    const cut = layer.style.maskImage;
+    expect(cut).toMatch(/^url\("data:image\/svg\+xml;utf8,/);
+    expect(cut).toContain("d='M112 60 ");
+    expect(cut).toContain("stroke-width='24'");
+    expect(cut).toContain("feGaussianBlur stdDeviation='6'");
   });
 
   it('keeps every visualizer on screen out of the light, not only the one it comes from', () => {
@@ -210,14 +215,13 @@ describe('the glow in the window', () => {
     const layer = document.querySelector('.scene-pulse') as HTMLElement;
     const graph = sceneAt(100, 60, 400, 180, 'graph-plot');
     sceneAt(600, 300, 200, 120, 'gallery-picture');
-    // A picture shown inside another visualizer's box is one hole, not two:
-    // under `evenodd` a second outline would put the light back inside.
+    // A picture shown inside another visualizer's box is one hole, not two.
     sceneAt(120, 80, 100, 50, 'gallery-picture');
     act(() => beats(1, beat(), graph));
-    const holes = layer.style.clipPath.match(/ M\d/g) ?? [];
+    const holes = layer.style.maskImage.match(/['\s]M\d/g) ?? [];
     expect(holes).toHaveLength(2);
-    expect(layer.style.clipPath).toContain('M112 60 ');
-    expect(layer.style.clipPath).toContain('M612 300 ');
+    expect(layer.style.maskImage).toContain('M112 60 ');
+    expect(layer.style.maskImage).toContain('M612 300 ');
   });
 
   it('follows the visualizers while a swell is lit, as a page scrolls under it', async () => {
@@ -227,7 +231,7 @@ describe('the glow in the window', () => {
     act(() => beats(1, beat(), picture));
     const glow = animations[0].element as HTMLElement;
     glow.getAnimations = () => [{} as Animation];
-    expect(layer.style.clipPath).toContain('M612 300 ');
+    expect(layer.style.maskImage).toContain('M612 300 ');
 
     picture.getBoundingClientRect = sceneAt(
       600,
@@ -240,7 +244,7 @@ describe('the glow in the window', () => {
         requestAnimationFrame(resolve);
       });
     });
-    expect(layer.style.clipPath).toContain('M612 180 ');
+    expect(layer.style.maskImage).toContain('M612 180 ');
 
     // Dark again: nothing is followed until the next swell.
     glow.getAnimations = () => [];
@@ -255,7 +259,7 @@ describe('the glow in the window', () => {
         requestAnimationFrame(resolve);
       });
     });
-    expect(layer.style.clipPath).toContain('M612 180 ');
+    expect(layer.style.maskImage).toContain('M612 180 ');
   });
 
   it('puts its light out with the scene that made it, and the cut around where it stood', () => {
@@ -280,7 +284,7 @@ describe('the glow in the window', () => {
       transform: 'matrix(3, 0, 0, 2, 300, 150)',
     });
     expect(to.opacity).toBe(0);
-    expect(layer.style.clipPath).toBe('none');
+    expect(layer.style.maskImage).toBe('none');
   });
 
   it('leaves the light alone when some other scene leaves', () => {

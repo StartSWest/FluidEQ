@@ -39,12 +39,15 @@ $glow-lightness: 0.6;
   pointer-events: none;
   contain: strict;
   mix-blend-mode: screen;
+  // The cut (`ScenePulse.tsx`) is drawn at the window's size, once.
+  mask-repeat: no-repeat;
 }
 
 // One soft pool of light per colour, placed and sized by each swell's
 // transform: centred on the scene it comes from and reaching the window's
-// far corners. The layer's clip cuts the scene's own box out of it
-// (`ScenePulse.tsx`), so the light is strongest at the scene's edge and fades
+// far corners. The layer's mask cuts the scene's own box out of it, with an
+// edge that fades (`ScenePulse.tsx`), so the light is strongest just outside
+// the scene and fades
 // across the rest of the app. Very faint on purpose — a wave twice this strong was
 // sent back as far too much; this is ambient light, not an effect.
 .scene-pulse__glow {

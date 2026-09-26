@@ -103,14 +103,32 @@ const holeFor = ({ left: x, top: y, width, height }: IVisualizerBox) => {
 };
 
 /**
- * The whole window with every visualizer on screen cut out of it, as a clip
- * path (`visualizerSurfaces.ts`). The light is the room's, not the pictures':
- * lit over, a scene's own dark background turned grey and its space stopped
+ * How soft the cut's edge is: the spread of its blur, in pixels. The light
+ * ends two of these outside a visualizer, where it was cut to a hard line on
+ * the box's edge — which over a scene run up under the EQ's head drew a sharp
+ * bar across the window at every swell (Ivan, 2026-09-26: "just add a smooth
+ * gradient short one so the border is not too sharp").
+ */
+const FEATHER = 6;
+
+/** What an SVG in a `url()` cannot carry as itself. */
+const escapeSvg = (svg: string) =>
+  svg.replace(/#/g, '%23').replace(/</g, '%3C').replace(/>/g, '%3E');
+
+/**
+ * The whole window with every visualizer on screen cut out of it, as a mask
+ * (`visualizerSurfaces.ts`). The light is the room's, not the pictures': lit
+ * over, a scene's own dark background turned grey and its space stopped
  * looking deep, and the same light over the gallery's pictures and the graph
  * greyed them too.
  *
- * One hole per place: a box inside another is dropped, since under `evenodd`
- * the second outline would put the light back inside the first.
+ * Each hole is its box widened by twice the feather and blurred by it, so the
+ * light is all but gone at the box's edge (98% taken) and whole four
+ * feathers out: nothing reaches a scene, and nothing ends in a line. The blur
+ * works in the window's own space, or a small hole's filter region would clip
+ * its own edge.
+ *
+ * One hole per place: a box inside another adds nothing to the one round it.
  */
 const cutFor = (boxes: readonly IVisualizerBox[]) => {
   if (boxes.length === 0) {
@@ -118,7 +136,18 @@ const cutFor = (boxes: readonly IVisualizerBox[]) => {
   }
   const { innerWidth: w, innerHeight: h } = window;
   const holes = outermostBoxes(boxes).map(holeFor).join(' ');
-  return `path(evenodd, 'M0 0H${w}V${h}H0Z ${holes}')`;
+  const svg = [
+    `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>`,
+    `<filter id='f' filterUnits='userSpaceOnUse' x='0' y='0' width='${w}' height='${h}'>`,
+    `<feGaussianBlur stdDeviation='${FEATHER}'/></filter>`,
+    `<mask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='${w}' height='${h}'>`,
+    `<rect width='${w}' height='${h}' fill='white'/>`,
+    `<path d='${holes}' fill='black' stroke='black' stroke-width='${4 * FEATHER}' filter='url(#f)'/>`,
+    `</mask>`,
+    `<rect width='${w}' height='${h}' fill='white' mask='url(#m)'/>`,
+    `</svg>`,
+  ].join('');
+  return `url("data:image/svg+xml;utf8,${escapeSvg(svg)}")`;
 };
 
 /**
@@ -178,7 +207,7 @@ const shareOf = (transform: string, scaleX: number) => {
  * Built to cost nothing between swells and next to nothing on one: three
  * layers, one per colour, invisible at rest and animated by the compositor on
  * transform and opacity alone — no layout moves, and the one style written is
- * the clip, only on a frame where a visualizer under the light has moved. A
+ * the cut, only on a frame where a visualizer under the light has moved. A
  * new swell in another colour crossfades with the last as it settles. While
  * the mode is anything else it is not in the page at all.
  *
@@ -212,7 +241,8 @@ export default function ScenePulse() {
     }
     let cut = '';
     let following = 0;
-    // The clip, written only when a visualizer has moved, come or gone.
+    // The cut, written only when a visualizer has moved, come or gone: the
+    // mask is drawn again only when it is written.
     const recut = () => {
       const layer = layerRef.current;
       const next = cutFor(
@@ -220,7 +250,7 @@ export default function ScenePulse() {
       );
       if (layer && next !== cut) {
         cut = next;
-        layer.style.clipPath = next;
+        layer.style.maskImage = next;
       }
     };
     // Every frame a swell is on screen, and only then: a gallery scrolled or
@@ -307,8 +337,8 @@ export default function ScenePulse() {
       cancelAnimationFrame(following);
       // The window's light changing hands, the Studio closing onto the
       // graph's, keeps this layer in the page: what the Studio lit goes with
-      // it rather than settling over the page that replaced it, and the clip
-      // is cut around what that page shows.
+      // it rather than settling over the page that replaced it, and the cut
+      // is made around what that page shows.
       putOut(glows);
       recut();
     };
