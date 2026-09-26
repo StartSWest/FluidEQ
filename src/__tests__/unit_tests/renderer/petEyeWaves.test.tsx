@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The waves in the pet's eyes are drawn only while there is joy to show them
  * (`SupportPet.scss`), and `has-pet-joy` on the document is what says so. At
  * zero they were fully transparent and scrolled every frame anyway, in the
- * titlebar, for everybody who had never played. With Rainbow mode always on
- * there is always joy, and the class is still what the stylesheet asks.
+ * titlebar, for everybody who had never played. With Rainbow mode on there
+ * is always joy, and the class is still what the stylesheet asks.
  */
 
 import { act, render } from '@testing-library/react';
@@ -45,7 +45,7 @@ beforeEach(() => {
   root.style.removeProperty('--pet-joy');
 });
 
-// Rainbow mode is always on now (Ivan, 2026-09-26), and forced euphoria
+// Rainbow mode is on by default (Ivan, 2026-09-26), and forced euphoria
 // shows the creature's whole face (`EuphoriaGlow.tsx`): the waves are part of
 // it from the first frame, run or no run.
 it('draws them from the first frame, with no streak', () => {
@@ -54,7 +54,7 @@ it('draws them from the first frame, with no streak', () => {
   expect(hasJoy()).toBe(true);
 });
 
-it('keeps them when a run ends and when asked to switch off', () => {
+it('keeps them when a run ends, and leaves them out with the mode off', () => {
   render(<EuphoriaGlow />);
   act(() => {
     setRhythmRun({ score: 1, streak: EUPHORIA_STREAK });
@@ -64,7 +64,7 @@ it('keeps them when a run ends and when asked to switch off', () => {
   expect(hasJoy()).toBe(true);
 
   act(() => setEuphoriaEnabled(false));
-  expect(hasJoy()).toBe(true);
+  expect(hasJoy()).toBe(false);
 });
 
 it('takes the class with it when the shell unmounts', () => {

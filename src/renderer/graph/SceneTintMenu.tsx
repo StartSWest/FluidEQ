@@ -21,12 +21,14 @@ import {
 } from '../utils/sceneTintStore';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import BackdropVeilSlider from './BackdropVeilSlider';
+import RainbowSwitch from './RainbowSwitch';
 import WindowBrightnessSlider from './WindowBrightnessSlider';
 
 /**
  * What a Plus visualizer does to the window, as a named menu: the mode it is
  * in on the button; at the head of the menu its two sliders, Brightness and
- * Transparency, the same whichever mode is chosen (Ivan, 2026-09-25: "in
+ * Transparency, and Rainbow mode's switch under them, the same whichever
+ * mode is chosen (Ivan, 2026-09-25: "in
  * total I want only two options brightness and transparency" — they had
  * been one set under each mode, and the theme's slider a third above them);
  * and all four modes, each with what it does. Brightness is the theme's own
@@ -117,6 +119,7 @@ const SceneTintMenu = () => {
           <div className="scene-look-menu__sliders">
             <WindowBrightnessSlider />
             <BackdropVeilSlider />
+            <RainbowSwitch />
           </div>
           <div
             className="scene-look-menu__choices"

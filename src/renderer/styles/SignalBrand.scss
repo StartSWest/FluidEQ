@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-@use 'sass:list';
 @use 'color' as *;
 @use 'theme' as *;
 
@@ -106,22 +105,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// *** "EQ" in Lagoon **********************************************************
+// *** "EQ" in the window's colours ********************************************
 
-// "FLUID" IN WHITE, "EQ" IN OUR OWN COLOURS (Ivan, 2026-09-26: "improve the
-// fluid title color, perhaps add some white to word and EQ in rainbow", then
-// "in our rainbow color not rainbow"). The whole name was one gradient
-// through Rainbow mode's palette, which with the mode always on made it a
-// cyan-to-blue word with nothing white in it, and turned with whichever Plus
-// visualizer was chosen. Now the first part keeps the white the titles use
-// and rises letter by letter as it did outside the mode; "EQ" is Lagoon —
-// the icon's colours (`$lagoon`), never the palette in use — drifting slowly
-// through it, and glows as the pulse arrives. Twice the box wide and swept
-// by one width, with the first colour again at the end, so the drift never
-// jumps.
-$signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
+// "FLUID" IN WHITE, "EQ" IN THE WINDOW'S COLOURS (Ivan, 2026-09-26: "improve
+// the fluid title color, perhaps add some white to word and EQ in rainbow",
+// then, with a Plus visualizer lending the window its colours, "when plus
+// viz is on it should also use the viz theme"). The first part keeps the
+// white the titles use and rises letter by letter; "EQ" is in whatever the
+// window is drawn in. In Normal it is the filled controls' own fill
+// (`--accent-fill`): the accent between its greener and bluer ends — the
+// theme's cyan, or the visualizer's first colour. In Rainbow it is the
+// palette in use — Lagoon, or the visualizer's five — twice the box wide and
+// swept by one width, with the first colour again at the end, so the drift
+// never jumps. The logo beside it stays the app's own icon either way.
+$signal-eq-palette: linear-gradient(110deg, var(--rainbow-stops));
 
-// One box for the two letters, so the gradient runs through them as one and
+// One box for the two letters, so the colour runs through them as one and
 // they rise together after the first part. The letters inside are plain text,
 // not boxes of their own: a letter that is its own box, or still rising, is
 // painted apart from its parent and the clip misses it — the whole name
@@ -129,16 +128,14 @@ $signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
 .signal-name__suffix {
   display: inline-block;
   color: transparent;
-  background: $signal-eq-lagoon;
-  background-size: 200% 100%;
+  background: $secondary-default var(--accent-fill);
   background-clip: text;
   opacity: 0;
   transform: translateY(5px);
   animation:
     signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
-    signal-sweep 12s linear infinite,
     signal-glow-lit 5.5s ease-in-out infinite;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms), 0s, 1.2s;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms), 1.2s;
 
   .signal-name__letter,
   .signal-name__letter--glow {
@@ -148,6 +145,17 @@ $signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
     transform: none;
     animation: none;
   }
+}
+
+html.is-euphoric .signal-name__suffix {
+  background: $signal-eq-palette;
+  background-size: 200% 100%;
+  background-clip: text;
+  animation:
+    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
+    signal-sweep 12s linear infinite,
+    signal-glow-lit 5.5s ease-in-out infinite;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms), 0s, 1.2s;
 }
 
 // The glow of a clipped word: a text shadow would be drawn through its
@@ -160,7 +168,9 @@ $signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
   }
 
   22% {
-    filter: drop-shadow(0 0 7px color-mix(in srgb, #00ccf5 80%, transparent));
+    filter: drop-shadow(
+      0 0 7px color-mix(in srgb, $secondary-default 80%, transparent)
+    );
   }
 
   40%,
@@ -196,7 +206,8 @@ $signal-eq-lagoon: linear-gradient(110deg, $lagoon, list.nth($lagoon, 1));
     transform: none;
   }
 
-  .signal-name__suffix {
+  .signal-name__suffix,
+  html.is-euphoric .signal-name__suffix {
     animation: none;
     opacity: 1;
     transform: none;

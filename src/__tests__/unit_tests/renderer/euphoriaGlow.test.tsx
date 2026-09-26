@@ -57,21 +57,25 @@ describe('the euphoria root class', () => {
     document.documentElement.classList.remove('is-euphoric');
   });
 
-  // Always on (Ivan, 2026-09-26: "rainbow mode is always on").
+  // On by default (Ivan, 2026-09-26), with nothing to unlock.
   it('is on from the first frame, with no run at all', () => {
     render(<EuphoriaGlow />);
     expect(isRootEuphoric()).toBe(true);
   });
 
-  it('stays on when asked to switch off, and after a run ends', () => {
+  it('comes off with the switch and back on with it, the run long over', () => {
     render(<EuphoriaGlow />);
     act(() => {
       setRhythmRun({ score: 1, streak: EUPHORIA_STREAK });
       winEuphoria();
     });
     act(() => setEuphoriaEnabled(false));
-    expect(isRootEuphoric()).toBe(true);
-    act(() => resetRhythmRun());
+    // Still at the ceiling, and off: the switch decides, not the run.
+    expect(isRootEuphoric()).toBe(false);
+    act(() => {
+      resetRhythmRun();
+      setEuphoriaEnabled(true);
+    });
     expect(isRootEuphoric()).toBe(true);
   });
 

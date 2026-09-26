@@ -134,6 +134,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少可视化效果',
   'graph.sceneTint.brightness': '亮度',
+  'graph.sceneTint.rainbow': '彩虹模式',
+  'graph.sceneTint.rainbowHint':
+    '频段、标题和亮起的控件使用调色板而不是单一颜色；选择 Plus 可视化效果时使用它自己的颜色。',
   'graph.sceneTint.brightnessHint': '窗口在主题或可视化效果颜色下的明暗',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',

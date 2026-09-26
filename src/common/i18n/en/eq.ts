@@ -150,6 +150,9 @@ const eq = {
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
+  'graph.sceneTint.rainbow': 'Rainbow mode',
+  'graph.sceneTint.rainbowHint':
+    'The bands, the title and the lit controls in a palette instead of one colour — a Plus visualizer’s own colours while one is chosen.',
   'graph.sceneTint.brightnessHint':
     "How light or dark the window stands, in your theme or in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this

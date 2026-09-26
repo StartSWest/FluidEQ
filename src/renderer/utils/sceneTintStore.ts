@@ -269,7 +269,9 @@ const isSky = (value: unknown): value is ISceneSky =>
   'accent' in value &&
   (value.accent === null || isColour(value.accent)) &&
   'active' in value &&
-  (value.active === null || isColour(value.active));
+  (value.active === null || isColour(value.active)) &&
+  (!('palette' in value) ||
+    (Array.isArray(value.palette) && value.palette.every(isColour)));
 
 /**
  * Stored as `{ measurement, rows }`, the rows `[lookId, version, sky]` oldest

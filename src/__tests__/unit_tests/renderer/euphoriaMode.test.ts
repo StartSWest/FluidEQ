@@ -26,12 +26,12 @@ const load = () => {
 };
 
 /**
- * Rainbow mode is always on (Ivan, 2026-09-26: "rainbow mode is always on",
- * "just make sure is always on and thats it"). The unlock and the switch are
- * still in the store, because everything that draws asks it; what these hold
- * is that nothing can make either answer "off".
+ * Rainbow mode: nothing to unlock, on unless switched off (Ivan, 2026-09-26:
+ * "rainbow mode is always on", then "let's keep the normal mode and the
+ * rainbow mode"). The switch lives in the Window colours menu and the app
+ * menu (`RainbowSwitch`).
  */
-describe('Rainbow mode, always on', () => {
+describe('Rainbow mode, on by default and switchable', () => {
   beforeEach(() => window.localStorage.clear());
 
   it('is won and switched on from a fresh install', () => {
@@ -40,50 +40,59 @@ describe('Rainbow mode, always on', () => {
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
-  it('is on whatever an older version stored', () => {
+  it('switches off and on, and remembers the choice across restarts', () => {
+    const first = load();
+    first.setEuphoriaEnabled(false);
+    expect(first.isEuphoriaEnabled()).toBe(false);
+    expect(load().isEuphoriaEnabled()).toBe(false);
+
+    const second = load();
+    second.toggleEuphoriaEnabled();
+    expect(second.isEuphoriaEnabled()).toBe(true);
+    expect(load().isEuphoriaEnabled()).toBe(true);
+  });
+
+  // The key the mode was a prize under is not read: somebody who switched
+  // it off back then starts on, like everybody else.
+  it('starts on whatever an older version stored', () => {
     window.localStorage.setItem('fluideq-euphoria-reached', 'false');
     window.localStorage.setItem('fluideq-euphoria-enabled', 'false');
-    // The control: what is stored really does say off.
-    expect(window.localStorage.getItem('fluideq-euphoria-enabled')).toBe(
-      'false',
-    );
-    const mode = load();
-    expect(mode.isEuphoriaAchieved()).toBe(true);
-    expect(mode.isEuphoriaEnabled()).toBe(true);
+    expect(load().isEuphoriaEnabled()).toBe(true);
+    // The control: its own key does switch it off.
+    window.localStorage.setItem('fluideq-rainbow', 'off');
+    expect(load().isEuphoriaEnabled()).toBe(false);
   });
 
-  it('cannot be switched off, by the switch or by Ctrl+E', () => {
+  it('switches back on when a run wins it', () => {
     const mode = load();
     mode.setEuphoriaEnabled(false);
-    expect(mode.isEuphoriaEnabled()).toBe(true);
-    mode.toggleEuphoriaEnabled();
-    expect(mode.isEuphoriaEnabled()).toBe(true);
-  });
-
-  it('stays on when a run wins it again', () => {
-    const mode = load();
     mode.winEuphoria();
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
-  it('resolves to on whatever the run says', () => {
+  it('resolves to the switch whatever the run says', () => {
     // The rule the whole app reads (`useIsEuphoric`), through the plain
     // functions, since the hook needs a renderer.
     const mode = load();
     const resolve = (isEarned: boolean) =>
       mode.isEuphoriaAchieved() ? mode.isEuphoriaEnabled() : isEarned;
+    mode.setEuphoriaEnabled(false);
+    expect(resolve(true)).toBe(false);
+    mode.setEuphoriaEnabled(true);
     expect(resolve(false)).toBe(true);
-    expect(resolve(true)).toBe(true);
   });
 
-  it('is kept by the development reset, which clears only what was stored', () => {
+  it('is put back on by the development reset, which clears every key', () => {
     window.localStorage.setItem('fluideq-euphoria-reached', 'true');
     window.localStorage.setItem('fluideq-euphoria-enabled', 'false');
     const mode = load();
+    mode.setEuphoriaEnabled(false);
     mode.resetEuphoriaMode();
-    expect(window.localStorage.getItem('fluideq-euphoria-reached')).toBeNull();
-    expect(window.localStorage.getItem('fluideq-euphoria-enabled')).toBeNull();
-    expect(mode.isEuphoriaAchieved()).toBe(true);
+    [
+      'fluideq-euphoria-reached',
+      'fluideq-euphoria-enabled',
+      'fluideq-rainbow',
+    ].forEach((key) => expect(window.localStorage.getItem(key)).toBeNull());
     expect(mode.isEuphoriaEnabled()).toBe(true);
   });
 
@@ -99,11 +108,11 @@ describe('Rainbow mode, always on', () => {
         throw new Error('denied');
       });
     try {
-      // Winning must not throw out of the render that noticed the ceiling.
       const mode = load();
       expect(mode.isEuphoriaEnabled()).toBe(true);
-      expect(() => mode.winEuphoria()).not.toThrow();
-      expect(mode.isEuphoriaEnabled()).toBe(true);
+      expect(() => mode.setEuphoriaEnabled(false)).not.toThrow();
+      // The session still follows the choice it could not remember.
+      expect(mode.isEuphoriaEnabled()).toBe(false);
     } finally {
       getItem.mockRestore();
       setItem.mockRestore();

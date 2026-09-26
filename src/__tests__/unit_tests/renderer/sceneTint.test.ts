@@ -147,6 +147,51 @@ const violetSky: ISceneSky = {
   active: { lightness: 0.7, chroma: 0.05, hue: 250, share: 0.02 },
 };
 
+// Rainbow mode's colours while a visualizer is chosen, read from its own
+// frames (Ivan, 2026-09-26: "read from the same viz automatically, because
+// the viz know nothing about colours").
+describe('a scene’s palette', () => {
+  const GREEN: TRgb = [40, 200, 90];
+  const YELLOW: TRgb = [240, 220, 60];
+
+  it('is up to five of its colours, the buttons’ first, each its own hue', () => {
+    const sky = findSceneSky(
+      frame([
+        [VIOLET, 0.55],
+        [CYAN, 0.1],
+        [PINK, 0.08],
+        [GREEN, 0.06],
+        [YELLOW, 0.05],
+        [BLUE, 0.04],
+        [BLACK, 0.12],
+      ]),
+    );
+    const palette = sky?.palette ?? [];
+    expect(palette.length).toBeGreaterThanOrEqual(4);
+    expect(palette.length).toBeLessThanOrEqual(5);
+    expect(palette[0].hue).toBeCloseTo(sky?.accent?.hue ?? -1, 6);
+    palette.forEach((colour, index) =>
+      palette.slice(index + 1).forEach((other) => {
+        expect(hueDistance(colour.hue, other.hue)).toBeGreaterThanOrEqual(35);
+      }),
+    );
+  });
+
+  // The control: a scene in one colour and its dark has nothing more to give.
+  it('is the one colour of a scene in one colour', () => {
+    const sky = findSceneSky(
+      frame([
+        [VIOLET, 0.85],
+        [BLACK, 0.15],
+      ]),
+    );
+    expect(sky?.palette).toHaveLength(1);
+    expect(
+      hueDistance(sky?.palette?.[0].hue ?? -1, hueOf(VIOLET)),
+    ).toBeLessThan(10);
+  });
+});
+
 describe('the window in a scene’s colour', () => {
   const palette = tintThemePalette(OCEAN, violetSky);
 

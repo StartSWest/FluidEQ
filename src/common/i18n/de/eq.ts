@@ -146,6 +146,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',
+  'graph.sceneTint.rainbow': 'Regenbogenmodus',
+  'graph.sceneTint.rainbowHint':
+    'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einem Plus-Visualizer in dessen eigenen Farben.',
   'graph.sceneTint.brightnessHint':
     'Wie hell oder dunkel das Fenster steht, in Ihrem Design oder in den Farben des Visualizers',
   'graph.member.mine': 'Von Ihnen erstellt',

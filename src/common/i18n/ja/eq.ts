@@ -143,6 +143,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
+  'graph.sceneTint.rainbow': 'レインボーモード',
+  'graph.sceneTint.rainbowHint':
+    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。Plus ビジュアライザーの選択中はその色で表示します。',
   'graph.sceneTint.brightnessHint':
     'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',

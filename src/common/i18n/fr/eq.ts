@@ -148,6 +148,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint':
     'Quelle part du visualiseur transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
+  'graph.sceneTint.rainbow': 'Mode arc-en-ciel',
+  'graph.sceneTint.rainbowHint':
+    'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec un visualiseur Plus, dans ses propres couleurs.',
   'graph.sceneTint.brightnessHint':
     'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
   'graph.member.mine': 'Créés par vous',

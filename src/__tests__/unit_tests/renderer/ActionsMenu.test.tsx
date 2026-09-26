@@ -320,6 +320,11 @@ describe('opening and closing the actions menu', () => {
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    expect(
+      screen.getByRole('checkbox', { name: en['graph.sceneTint.rainbow'] }),
+    ).toHaveFocus();
+
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
     // Transparency stands still outside the Backdrop, and the arrows pass it.
     expect(
       screen.getByRole('slider', {

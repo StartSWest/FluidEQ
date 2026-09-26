@@ -21,6 +21,7 @@ import useExitAnimation from '../utils/useExitAnimation';
 import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
 import StartupPicker from './StartupPicker';
+import RainbowSwitch from '../graph/RainbowSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import BackdropVeilSlider from '../graph/BackdropVeilSlider';
 import '../styles/ActionsMenu.scss';
@@ -368,10 +369,12 @@ const ActionsMenu = ({
           <div className="actions-menu__prefs">
             {/* The window's look, as Window colours sets it: Brightness and
                 Transparency, the same two sliders (Ivan, 2026-09-26: "do
-                same in the main menu both options bright trans no theme"). */}
+                same in the main menu both options bright trans no theme"),
+                and Rainbow mode's switch under them. */}
             <div className="actions-menu__sliders">
               <WindowBrightnessSlider />
               <BackdropVeilSlider />
+              <RainbowSwitch />
             </div>
             <MotionPicker />
             {/* Under the animations row, where Ivan asked for it

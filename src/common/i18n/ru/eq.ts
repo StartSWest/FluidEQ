@@ -141,6 +141,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
+  'graph.sceneTint.rainbow': 'Режим «Радуга»',
+  'graph.sceneTint.rainbowHint':
+    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с визуализатором Plus — его собственными цветами.',
   'graph.sceneTint.brightnessHint':
     'Насколько светлым или тёмным будет окно — в вашей теме или в цветах визуализатора',
   'graph.member.mine': 'Созданы вами',

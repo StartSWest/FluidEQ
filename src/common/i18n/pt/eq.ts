@@ -145,6 +145,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint':
     'Quanto do visualizador aparece através dos painéis',
   'graph.sceneTint.brightness': 'Brilho',
+  'graph.sceneTint.rainbow': 'Modo arco-íris',
+  'graph.sceneTint.rainbowHint':
+    'As bandas, o título e os controles acesos numa paleta em vez de uma só cor; com um visualizador Plus, nas cores dele.',
   'graph.sceneTint.brightnessHint':
     'O quanto a janela fica clara ou escura, no seu tema ou nas cores do visualizador',
   'graph.member.mine': 'Feitos por você',

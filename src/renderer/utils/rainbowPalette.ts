@@ -198,6 +198,14 @@ export const rainbowFromColours = (
   });
 };
 
+/**
+ * A measured scene colour as the hex the palettes are written in, at the
+ * lightness and chroma it was measured at: `rainbowFromColours` lifts it into
+ * the band the marks read in.
+ */
+export const sceneColourHex = ({ lightness, chroma, hue }: ISceneColour) =>
+  toHex(fromLch({ l: lightness, c: chroma, h: hue }));
+
 // *** The palette in use ******************************************************
 
 let stops: readonly string[] = LAGOON;

@@ -1508,6 +1508,32 @@ it under the terms of the GNU General Public License version 3 or later.
   text-align: right;
 }
 
+// Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and
+// value stand, at the right, the name wrapping as the sliders' names do.
+.graph-view-menu__slider--switch {
+  cursor: default;
+
+  > label {
+    min-width: 0;
+    overflow-wrap: break-word;
+    white-space: normal;
+    cursor: pointer;
+  }
+
+  .graph-view-menu__switch {
+    display: flex;
+    grid-column: 3 / -1;
+    justify-self: end;
+  }
+
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
+  }
+}
+
 .graph-view-menu__snap--own {
   width: 2px;
   height: 7px;

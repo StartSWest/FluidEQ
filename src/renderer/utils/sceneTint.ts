@@ -68,6 +68,16 @@ export interface ISceneSky extends ISceneColour {
    * a magenta flower. Null for a scene with no such colour, a fire or a desert.
    */
   active: ISceneColour | null;
+  /**
+   * Up to five of the scene's own colours, each a clearly different hue: the
+   * accent, the colour for "on", the sky, then the busiest of the rest, in
+   * that order. What Rainbow mode draws in while the scene is chosen (Ivan,
+   * 2026-09-26: "in the plus viz, for normal mode the primary and secondary,
+   * and for rainbow mode all of them … read from the same viz automatically,
+   * because the viz know nothing about colours"). Absent from a sky made by
+   * hand (`LAGOON_SKY`), where the three above are all there is.
+   */
+  palette?: readonly ISceneColour[];
 }
 
 export { parseCssColour } from './oklab';
@@ -94,9 +104,9 @@ export {
  * Which way of measuring a sky the answers below come from. Raise it with any
  * change to what `findSceneSky` returns for the same frames: remembered skies
  * from another measurement are thrown away and the scenes measured again.
- * 2 added the accent, 3 the colour for "on", 4 grey skies.
+ * 2 added the accent, 3 the colour for "on", 4 grey skies, 5 the palette.
  */
-export const SCENE_SKY_MEASUREMENT = 4;
+export const SCENE_SKY_MEASUREMENT = 5;
 
 /** Ten degrees a bin. */
 const HUE_BINS = 36;
@@ -178,6 +188,14 @@ const MIN_ACTIVE_SHARE = 0.006;
  */
 const WARNING_HUES = [14, 66] as const;
 const MIN_WARNING_SEPARATION = 35;
+/**
+ * The palette's size, and how far apart round the wheel its colours stand: a
+ * rainbow of five is five colours somebody would name, not a sky and its own
+ * horizon twice. Its extra colours are counted as the colour for "on" is —
+ * quiet ones allowed, and small ones: a moon, a heart, the lit windows.
+ */
+const PALETTE_SIZE = 5;
+const MIN_PALETTE_SEPARATION = 35;
 
 /** Area-weighted OKLCH sums per ten degrees of hue. */
 interface IHueHistogram {
@@ -383,7 +401,24 @@ export const findSceneSky = (
         (warning) => hueDistance(centre, warning) >= MIN_WARNING_SEPARATION,
       ),
   );
-  return { ...sky, accent: accent ?? null, active: active ?? null };
+  const palette: ISceneColour[] = [];
+  const isApart = (hue: number) =>
+    palette.every(
+      (taken) => hueDistance(taken.hue, hue) >= MIN_PALETTE_SEPARATION,
+    );
+  [accent, active, isMetal ? undefined : sky].forEach((colour) => {
+    if (colour && palette.length < PALETTE_SIZE && isApart(colour.hue)) {
+      palette.push(colour);
+    }
+  });
+  while (palette.length < PALETTE_SIZE) {
+    const next = busiestColour(details, area, MIN_ACTIVE_SHARE, isApart);
+    if (!next) {
+      break;
+    }
+    palette.push(next);
+  }
+  return { ...sky, accent: accent ?? null, active: active ?? null, palette };
 };
 
 /**

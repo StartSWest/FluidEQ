@@ -54,12 +54,18 @@ describe('Lagoon, everywhere it is written', () => {
     expect(mark).toContain(`linear-gradient(135deg, ${LAGOON.join(', ')})`);
   });
 
-  // "EQ in our rainbow color not rainbow" (Ivan, 2026-09-26): the name's
-  // second part is drawn in Lagoon itself, never in the palette in use.
-  it('is what the header name’s “EQ” is drawn in', () => {
-    const eq = ruleBody(css('SignalBrand.scss'), '.signal-name__suffix');
-    expect(eq).toContain(`linear-gradient(110deg, ${LAGOON.join(', ')}`);
-    expect(eq).not.toContain('--rainbow');
+  // The name's "EQ" is in the window's colours (Ivan, 2026-09-26: "when plus
+  // viz is on it should also use the viz theme"): the filled controls' fill
+  // in Normal, the palette in use in Rainbow — Lagoon, or a visualizer's own.
+  it('is what the header name’s “EQ” is drawn in only through the palette', () => {
+    const sheet = css('SignalBrand.scss');
+    expect(ruleBody(sheet, '.signal-name__suffix')).toContain(
+      'var(--accent-fill)',
+    );
+    expect(ruleBody(sheet, 'html.is-euphoric .signal-name__suffix')).toContain(
+      'var(--rainbow-stops)',
+    );
+    expect(ruleBody(sheet, '.signal-name__suffix')).not.toContain(LAGOON[0]);
   });
 
   it('is the icon file’s edge', () => {

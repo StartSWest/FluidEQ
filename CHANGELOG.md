@@ -331,15 +331,19 @@ version and in these notes.
 - **The title is alive.** When FluidEQ opens, the wave in its logo draws
   itself and the name rises letter by letter; after that a pulse of light runs
   along the wave every few seconds. The logo is the app's icon itself, here and
-  in every dialog; "Fluid" is white and "EQ" drifts through the icon's
-  colours.
-- **Rainbow mode is always on, and it is Lagoon.** Aqua, cyan, sky, azure and
-  a soft periwinkle — the icon's own colours — where it used to run red to
-  violet, and there is nothing to unlock or switch any more: the switch on the
-  signal, the What's new slide and the offer in the Support dialog are gone.
-  The window takes a little of it too: the panes lean toward its sky. With a
-  Plus visualizer chosen the rainbow is made from that visualizer's own colours
-  instead, so every scene has one of its own.
+  in every dialog; "Fluid" is white and "EQ" is in the window's colours.
+- **Rainbow mode is on from the start, and it is Lagoon.** Aqua, cyan, sky,
+  azure and a soft periwinkle — the icon's own colours — where it used to run
+  red to violet, and there is nothing to unlock any more: the switch on the
+  signal, the What's new slide and the offer in the Support dialog are gone,
+  and Normal or Rainbow is a switch under Brightness and Transparency, in
+  Window colours and in the app menu. The window takes a little of it too:
+  the panes lean toward its sky.
+- **A Plus visualizer lends the whole window its colours.** Five are read
+  from the visualizer itself as it plays. In Normal the buttons, the switches
+  and the "EQ" of the title take its first colour and what is switched on its
+  second; in Rainbow all five run across the bands, the title and the lit
+  controls. The app's icon stays its own.
 - **The colours match the icon.** The accent is the cyan at the middle of the
   icon's wave, on Black and on Ocean alike, and the filled buttons, the
   switches, the power key and the bar under the open tab run aqua to azure the

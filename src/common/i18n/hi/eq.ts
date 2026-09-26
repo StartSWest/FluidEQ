@@ -141,6 +141,9 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
+  'graph.sceneTint.rainbow': 'इंद्रधनुष मोड',
+  'graph.sceneTint.rainbowHint':
+    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — Plus विज़ुअलाइज़र चुना हो तो उसी के रंगों में।',
   'graph.sceneTint.brightnessHint':
     'आपकी थीम में या विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',
