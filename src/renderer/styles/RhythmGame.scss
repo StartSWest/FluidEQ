@@ -37,19 +37,21 @@ it under the terms of the GNU General Public License version 3 or later.
 // `text-wrap: balance` is what stops the last word dropping to a line of its
 // own — with two sentences at this width that happened constantly, and a
 // stranded "×10." is most of what "not formatted properly" looks like.
-// Yellow, and the only yellow in the panel. Grey text under a grey heading
-// beside a grey note is where an instruction goes to die — this one has to be
-// found before anything else in here makes sense, so it is the one line
-// allowed to shout.
+// The accent's light, and the one line in the panel lit with it. Grey text
+// under a grey heading beside a grey note is where an instruction goes to
+// die — this one has to be found before anything else in here makes sense,
+// so it is the one line allowed to shout. It shouted in neon yellow, a
+// colour from no theme (Ivan, 2026-09-26: "colors … make it nicer"); the
+// theme's own light carries it as far.
 .rhythm-game__howto {
   max-width: 46ch;
   margin: 0 auto;
-  color: $neon-yellow;
+  color: $secondary-light;
   font-size: $text-title;
   font-weight: $weight-semibold;
   line-height: 1.55;
   text-align: center;
-  text-shadow: 0 0 14px rgba($neon-yellow, 0.28);
+  text-shadow: 0 0 14px color-mix(in srgb, $secondary-default 28%, transparent);
   text-wrap: balance;
 }
 
@@ -209,7 +211,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // What to do about an empty box, said in the empty box.
   //
-  // Yellow, matching the instruction above the game, because both are the app
+  // Lit, matching the instruction above the game, because both are the app
   // asking for something rather than reporting on it — and a grey line inside
   // a dark empty rectangle is indistinguishable from the rectangle being
   // broken. Centred over the whole frame and above the wave layer, though
@@ -220,11 +222,12 @@ it under the terms of the GNU General Public License version 3 or later.
     top: 50%;
     right: 12px;
     left: 12px;
-    color: $neon-yellow;
+    color: $secondary-light;
     font-size: $text-lead;
     font-weight: $weight-semibold;
     text-align: center;
-    text-shadow: 0 0 12px rgba($neon-yellow, 0.35);
+    text-shadow: 0 0 12px
+      color-mix(in srgb, $secondary-default 35%, transparent);
     translate: 0 -50%;
     pointer-events: none;
   }

@@ -43,7 +43,7 @@ export default function SupportRainbowUnlock({
       ) : (
         <button
           type="button"
-          className="button small support-dialog__contributed"
+          className="button small subtle support-dialog__contributed"
           onClick={confirmContribution}
         >
           {t('support.contributed')}

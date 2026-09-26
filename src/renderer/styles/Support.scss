@@ -117,17 +117,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 14px;
   padding: 10px 14px 10px 18px;
-  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  // Every dialog's head line, fading before the frame (`dialog.rule`). A
+  // hairline and an accent rule over it, both run edge to edge, read as a
+  // flat bar across the card (Ivan, 2026-09-26: "header border no more
+  // flat"). The accent is the streak's alone now: dark at rest, lit and
+  // fading out the same way as the pet's joy rises.
+  @include dialog.rule(bottom);
 
   &::after {
     position: absolute;
     right: 0;
-    bottom: -1px;
+    bottom: 0;
     left: 0;
     height: 1px;
-    background: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, $secondary-light 60%, transparent) 50%,
+      transparent
+    );
     content: '';
-    opacity: calc(0.32 + var(--pet-joy, 0) * 0.68);
+    opacity: var(--pet-joy, 0);
   }
 }
 
@@ -161,15 +171,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     column-gap: 18px;
   }
 
+  // The window's filled card, both of them, one step in from the dialog's
+  // corner: a hairline box round a floor-coloured well and one round a plot's
+  // slate were two different materials side by side (Ivan, 2026-09-26: "make
+  // it nicer and all panes and colors").
   .support-dialog__stage,
   .support-dialog__ask {
     display: grid;
     min-width: 0;
     align-content: start;
     gap: var(--support-gap);
-    border: 1px solid rgba($edge-tint, 0.11);
+    @include card-surface;
     border-radius: $radius-l;
-    box-shadow: inset 0 1px 0 rgba($white, 0.035);
   }
 
   .support-dialog__stage {
@@ -177,7 +190,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     top: 0;
     overflow: hidden;
     padding: 24px 20px 20px;
-    background: color-mix(in srgb, $surface-base 42%, transparent);
 
     &::after {
       position: absolute;
@@ -194,7 +206,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .support-dialog__ask {
     padding: 22px;
-    background: $surface-plot;
   }
 }
 
@@ -317,11 +328,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // paragraph of the same argument.
 .support-dialog__craft {
   margin: 0;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 16px;
   color: $text-muted;
-  border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
-  border-left-color: color-mix(in srgb, $secondary-light 42%, transparent);
-  border-radius: $radius-s;
+  // A quote let into the card: a well a step down from it, and the accent's
+  // spine as its only line. A box ruled round it in two colours was a third
+  // frame in the column.
+  border: 0;
+  border-left: 2px solid color-mix(in srgb, $secondary-light 42%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-base 40%, transparent);
   font-size: $text-lead;
   line-height: 1.55;
 }
@@ -372,7 +387,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
-    background: color-mix(in srgb, $surface-menu-top 70%, transparent);
+    // A well in the card, a step down from it, as every field is.
+    background: color-mix(in srgb, $surface-base 55%, transparent);
     font-family: $font-mono;
     font-size: $text-lead;
     line-height: 1.5;
@@ -444,10 +460,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // lift on hover are the whole difference between this reading as a card and
 // reading as a button — the card had neither and people were scanning the QR
 // because it was the only part that looked interactive.
+// The ask itself: the card with the accent in it, edged in the accent at a
+// third, and lit a step further under the pointer. It was framed in a 2px
+// spectrum, the one moving outline in the dialog, over a brighter slab.
 .support-method--primary {
   position: relative;
-  border-color: color-mix(in srgb, $secondary-light 62%, transparent);
-  background: color-mix(in srgb, $secondary-default 12%, $surface-plot);
+  border-color: color-mix(in srgb, $secondary-light 32%, transparent);
+  background:
+    linear-gradient(color-mix(in srgb, $secondary-default 8%, transparent) 0 0),
+    $card-glow, $surface-card;
   cursor: pointer;
   transition:
     $transition-control,
@@ -455,8 +476,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
-    background: color-mix(in srgb, $surface-field-end 82%, transparent);
+    border-color: color-mix(in srgb, $secondary-light 58%, transparent);
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 15%, transparent) 0 0
+      ),
+      $card-glow, $surface-card;
     outline: none;
   }
 
@@ -497,28 +522,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Preview the reward on the coffee card and confirmation before Rainbow is
-// unlocked, in the mode's own palette (`Rainbow.scss`). The local sweep leaves
-// the rest of the dialog unchanged.
-.button.support-dialog__contributed,
-.support-method--primary.support-method--qr {
-  --rainbow-sweep: linear-gradient(90deg, var(--rainbow-stops));
-
-  border-width: 2px;
-
-  // Interactive states reset the background shorthand; restore the border
-  // layer while preserving the control's normal surface colour.
-  &,
-  &:hover:not([aria-disabled='true']):not(:disabled),
-  &:focus-visible:not([aria-disabled='true']):not(:disabled),
-  &:active:not([aria-disabled='true']):not(:disabled) {
-    @include rainbow-border;
-  }
-}
-
+// "I contributed" answers the ask; it is not the ask. The quiet face
+// (`button small subtle`), where it was a full-width bar in the loud one
+// inside a 2px spectrum, louder than the card it answers — and Rainbow mode,
+// which that frame previewed, is on for everybody now.
 .button.support-dialog__contributed {
   min-width: 0;
-  min-height: 40px;
+  min-height: 36px;
   white-space: normal;
 
   + .support-method__hint {
@@ -529,23 +539,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A status, not a control. Centred inside a full-width bordered box it read
 // as a disabled button, which is a strange note to end on after someone has
 // just contributed. A star and a left-aligned line say 'this happened'.
+// In the accent, with the star alone in gold: a neon-yellow box was the one
+// colour in the dialog that was no part of the theme.
 .support-dialog__thanks {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0;
-  padding: 10px 12px;
-  color: $neon-yellow;
-  border: 1px solid rgba($neon-yellow, 0.26);
-  border-left: 2px solid rgba($neon-yellow, 0.75);
-  border-radius: $radius-s;
-  background: rgba($neon-yellow, 0.1);
+  padding: 10px 12px 10px 14px;
+  color: $secondary-light;
+  border: 0;
+  border-left: 2px solid color-mix(in srgb, $secondary-light 70%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 9%, transparent);
   font-size: $text-lead;
   font-weight: $weight-bold;
   line-height: 1.45;
 
   &::before {
     flex: 0 0 auto;
+    color: $amber;
     content: '★';
     font-size: 1.05rem;
     line-height: 1;
@@ -588,7 +601,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: baseline;
   gap: 6px 20px;
   padding-top: 12px;
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  @include dialog.rule(top);
 }
 
 .support-dialog__footer {

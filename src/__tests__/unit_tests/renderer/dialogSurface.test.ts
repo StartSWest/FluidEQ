@@ -123,12 +123,19 @@ describe('every dialog', () => {
   });
 
   it('draws no spectrum round its edge in Rainbow mode', () => {
-    // Positive control: the mode still sweeps its spectrum through the app,
-    // the Support button's edge among it.
-    expect(compiledCss('Support.scss')).toContain('var(--rainbow-sweep)');
+    // Positive control: the mode still sweeps its spectrum through the app.
     expect(compiledCss('Rainbow.scss')).toContain('var(--rainbow-sweep)');
-    ['About.scss', 'BugReport.scss', 'WhatsNew.scss', 'Modal.scss'].forEach(
-      (sheet) => expect(compiledCss(sheet)).not.toContain('rainbow-sweep'),
+    // The Support card's ask and its "I contributed" lost theirs on
+    // 2026-09-26: the one moving outline in the dialog, previewing a mode
+    // that is now on for everybody.
+    [
+      'About.scss',
+      'BugReport.scss',
+      'WhatsNew.scss',
+      'Modal.scss',
+      'Support.scss',
+    ].forEach((sheet) =>
+      expect(compiledCss(sheet)).not.toContain('rainbow-sweep'),
     );
     expect(compiledCss('Rainbow.scss')).not.toMatch(
       /is-euphoric body :is\(\s*\[role=dialog\]/,
