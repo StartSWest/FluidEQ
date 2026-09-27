@@ -12,8 +12,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * when hidden, so we see full plus viz to the top").
  */
 
-import { renderHook } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { render, renderHook } from '@testing-library/react';
+import { createElement } from 'react';
 import useIsGraphChromeIdle from '../../../renderer/graph/graphChromeIdle';
+import HeadSceneShade from '../../../renderer/graph/HeadSceneShade';
 
 const state = { idle: false, fullScreen: false, scene: false };
 
@@ -58,5 +61,37 @@ describe('the graph chrome, over any look', () => {
     state.scene = true;
 
     expect(read()).toBe(false);
+  });
+});
+
+/*
+ * The EQ head's shade over a scene is the options' shade carried up to the
+ * top of the window, so it has to leave with them: there with the options,
+ * faded with them, never left behind as a dark band over the picture.
+ */
+describe("the EQ head's shade", () => {
+  const shade = () => {
+    const { container } = render(createElement(HeadSceneShade));
+    return container.querySelector('.center-head__shade');
+  };
+
+  beforeEach(() => {
+    Object.assign(state, { idle: false, fullScreen: false, scene: true });
+  });
+
+  it('is there while the options are', () => {
+    expect(shade()).not.toHaveClass('is-idle');
+  });
+
+  it('fades with them over a scene, in the ordinary view and full screen', () => {
+    state.idle = true;
+    expect(shade()).toHaveClass('is-idle');
+
+    state.fullScreen = true;
+    expect(shade()).toHaveClass('is-idle');
+  });
+
+  it('is never read aloud', () => {
+    expect(shade()).toHaveAttribute('aria-hidden', 'true');
   });
 });

@@ -456,7 +456,7 @@ describe('songEqSession', () => {
     await playFor(SONG_EQ_SETTLE_MS + 1000);
 
     // The match applied the stored layer through context, exactly as
-    // ActiveLayers and SmartEqEngine do for every other Smart EQ write.
+    // the Curves menu and SmartEqEngine do for every other Smart EQ write.
     expect(setSmartEqSpy).toHaveBeenCalledWith(entry.settings);
 
     // `contextSmartEq` now holds the applied layer; rerendering is what lets

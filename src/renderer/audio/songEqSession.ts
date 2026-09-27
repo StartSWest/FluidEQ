@@ -68,7 +68,7 @@ import { useTransportSources } from './transportSource';
  *
  * `applyLayer` mirrors the matched layer into `FluidEqContext.setSmartEq` —
  * the same pairing with the IPC write every other Smart EQ writer in this
- * app uses (see `SmartEqEngine.tsx`, `ActiveLayers.tsx`) — so the applied
+ * app uses (see `SmartEqEngine.tsx`, `useActiveLayers.ts`) — so the applied
  * curve is visible in the graph and the layer chips, not just audible. That
  * mirrored value comes back around as the next `smartEq` this module reads
  * out of context, indistinguishable on the face of it from somebody loading

@@ -91,7 +91,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   getAudioDevices: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock('renderer/components/VoicingQuickPick', () => () => null);
-jest.mock('renderer/components/ActiveLayers', () => () => null);
+jest.mock('renderer/components/CurvesPicker', () => () => null);
 jest.mock('renderer/components/FrequencyBand', () => () => null);
 jest.mock('renderer/utils/bandReveal', () => ({
   planBandReveal: () => undefined,

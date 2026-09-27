@@ -591,8 +591,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Continua medindo · cada gravação para a mesma curva',
   'eq.layers': 'Também aplicado',
-  'eq.layers.count': '{count} camadas',
-  'eq.layers.countOff': '{count} camadas · {off} desligadas',
   'eq.layers.aria': 'Outros ajustes que afetam esta saída',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bandas',

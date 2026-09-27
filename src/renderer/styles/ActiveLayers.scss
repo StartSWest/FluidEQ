@@ -10,95 +10,12 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'theme' as *;
 
-// A quiet row, not a banner: it reports something that is already true rather
-// than asking for anything. It only exists at all when a layer is live.
-// A responsive grid, not a wrapping flex line. Wrapping put chips of wildly
-// different widths on ragged rows — one long convolution name and the last
-// chip fell onto a line of its own with a gap beside it. Equal tracks that
-// reflow at any width give a tidy block at every panel size, and auto-fill
-// (not auto-fit) keeps the chips compact on a wide panel instead of stretching
-// four of them across the whole card.
-// Centred, like the toolbar it sits under: the three rows of the EQ header
-// read as one block only if they share an axis.
-.active-layers {
-  display: flex;
-  min-width: 0;
-  // One line, always. It used to wrap, which is how five chips with faders
-  // became three ragged rows above the bands; now the row that does not fit
-  // is collapsed into a single control instead — see `ActiveLayers`, which
-  // measures this element to decide.
-  flex-wrap: nowrap;
-  // Hidden rather than visible, and the chips do not shrink.
-  //
-  // Both are what make "does this fit" answerable at all: allowed to shrink,
-  // four chips squeezed themselves into any width and the row always reported
-  // that it fitted, names truncated to two letters and all. At their own width
-  // they overflow instead, which is the measurement `ActiveLayers` reads —
-  // and `hidden` keeps that overflow from being painted in the frame before
-  // the row collapses into its button.
-  overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  // One chip's height, held whether there is a chip or not.
-  //
-  // The row fills up as somebody works, and appearing from nothing pushed the
-  // editor down under their hands mid-drag — at exactly the moment they were
-  // tuning for the first time. Reserving the line costs a strip of space and
-  // buys an editor that never moves.
-  //
-  // A floor rather than a fixed height: the row wraps, and four layers on a
-  // narrow window are two lines. It grows then, which is a layout change
-  // somebody caused by adding something rather than one that happened to them.
-  min-height: 28px;
-}
+// The applied layers: the Bands page's "Curves" button (`CurvesPicker`) and
+// the rows in its menu, which the player's EQ screen opens as well
+// (`EqScreen`). The row of chips that stood above the bands is gone; they
+// live in a menu now and nowhere else.
 
-// Wrapping is what makes this survive a narrow window, and the chips have to be
-// able to give ground for it to work. Each one shortens its own name rather
-// than pushing the next off the end, and the row stops being centred once it is
-// full — a centred second line of one chip reads as a stray control.
-@media (max-width: 900px) {
-  .active-layers {
-    justify-content: flex-start;
-  }
-
-  .active-layer {
-    max-width: 100%;
-  }
-}
-
-// Sits inline with the first chip rather than on a line of its own: with the
-// row centred, a label above it looked like a heading for the whole panel.
-.active-layers__lede {
-  flex: 0 0 auto;
-  margin-right: 2px;
-  color: $text-muted;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.14em);
-  text-transform: uppercase;
-}
-
-// Appears in response to a click on another tab, one at a time, so a small
-// overshoot is right here in a way it would not be for a list.
-// Collapsed there is nothing to clip and something that must not be: the
-// button is taller than the strip the row reserves for a chip, and hidden
-// overflow took a slice off its bottom edge.
-//
-// Centred here too, whatever the narrow rule below says. That rule pushes a
-// row of chips to the left because a centred row of five reads as adrift;
-// one short label and one button is not that row, and left of a centred
-// toolbar it was the only thing in the header off the axis.
-.active-layers.is-collapsed {
-  overflow: visible;
-  justify-content: center;
-}
-
-.active-layers > .active-layer {
-  flex: 0 0 auto;
-}
-
-// Collapsed: one button saying how many, and the chips in its menu.
+// One control with the Smart EQ button's and the layout picker's shape.
 .active-layers__picker {
   display: inline-flex;
   min-width: 0;
@@ -114,20 +31,9 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   gap: 6px;
-
-  > svg {
-    width: 11px;
-    height: 11px;
-    opacity: 0.75;
-    transition: transform $motion-fast $ease-out;
-  }
 }
 
-.active-layers__picker.is-open .active-layers__trigger > svg {
-  transform: rotate(180deg);
-}
-
-// A dot of each layer's colour, before the words (mockup A's `●●● Layers`).
+// A dot of each layer's colour, before the word (`●●● Curves`).
 // Filled while the layer plays; switched off, the same colour as a ring, so
 // the dots still count every layer the menu lists.
 .active-layers__dots {
@@ -150,7 +56,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The chips again, in a column.
+// The chips, in a column.
 //
 // `max-content` with a cap, not a fixed width: the menu is as wide as its
 // widest chip and never wider than the window, which is what stops a row
@@ -186,10 +92,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// A chip on its own: in the menu above, and as the DSP page's saved crossfade
+// curves (`DspCrossfadeCurveLibrary`), which borrow it whole.
 .active-layer {
   @include animate(pop-in, $motion-base, $ease-spring);
-  // Wide enough to read, short enough that four fit on a line.
-  max-width: 320px;
   // Icon, label, name, remove. The name track is the only flexible one, so a
   // long convolution title shortens instead of pushing the button off the end.
   display: grid;
@@ -200,10 +106,9 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: minmax(0, 1fr) auto;
   padding: 4px 5px 4px 9px;
   border: 1px solid $border-field;
-  // The buttons' corner, not a pill: the chips stand on the row under the
-  // title's tools, and a capsule among square-cornered controls read as a
-  // different kind of thing (Ivan, 2026-09-25: "applied filter pills can have
-  // less rounded too").
+  // The buttons' corner, not a pill: a capsule among square-cornered controls
+  // read as a different kind of thing (Ivan, 2026-09-25: "applied filter pills
+  // can have less rounded too").
   border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 10%, transparent);
   font-size: $text-small;
