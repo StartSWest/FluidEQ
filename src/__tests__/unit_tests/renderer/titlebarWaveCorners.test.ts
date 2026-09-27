@@ -46,10 +46,12 @@ describe('the title bar wave', () => {
     expect(stage).toContain('clip-path: inset(0 round 8px)');
   });
 
-  it('rounds its focus ring the same way and still draws no box', () => {
+  it('rounds its edge the same way, a hairline with no fill', () => {
+    // The window's faintest edge, and still no fill (2026-09-26: "add subtle
+    // border on the top wave too").
     const pane = bodyOf('.waveform-visualizer');
     expect(pane).toContain('border-radius: 8px');
     expect(pane).toContain('background: transparent');
-    expect(pane).toContain('border: 1px solid transparent');
+    expect(pane).toContain('border: 1px solid var(--border-subtle)');
   });
 });

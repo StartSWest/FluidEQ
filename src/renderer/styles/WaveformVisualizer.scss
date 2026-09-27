@@ -62,8 +62,11 @@ it under the terms of the GNU General Public License version 3 or later.
   // holds and nothing inside moves; only keyboard focus draws it. The corners
   // came back the next day, the app's own (Ivan, 2026-09-26: "add our border
   // radius to the top wave wrapper too"): the drawing is clipped to them
-  // (`__stage`), and the focus ring follows them.
-  border: 1px solid transparent;
+  // (`__stage`), and the focus ring follows them. And that evening a subtle
+  // edge came back too (Ivan: "add subtle border on the top wave too"): the
+  // window's own hairline, the faintest edge any box in the window has, so the
+  // wave reads as held in a frame without a rim to look at. Still no fill.
+  border: 1px solid $border-subtle;
   border-radius: $radius-m;
   background: transparent;
   overflow: visible;
