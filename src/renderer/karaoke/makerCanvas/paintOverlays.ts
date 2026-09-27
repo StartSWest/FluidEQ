@@ -216,10 +216,9 @@ export const paintOverlays = (
   const playheadX = timeX(visualPlayheadMs);
   if (playheadX >= plotLeft && playheadX <= plotRight) {
     context.save();
+    // A clean line and no glow, as the song strip's and the preview's are.
     context.strokeStyle = readAccent(1, '#19e8d6');
     context.lineWidth = 1.5;
-    context.shadowColor = readAccent(1, '#1ee7d6');
-    context.shadowBlur = 8;
     context.beginPath();
     context.moveTo(playheadX, 4);
     context.lineTo(playheadX, plotBottom);

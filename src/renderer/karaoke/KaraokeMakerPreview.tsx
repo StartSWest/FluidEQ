@@ -77,6 +77,10 @@ const KaraokeMakerPreviewNotes = ({
     }
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
+    // A context keeps its shadow from one paint to the next. The pink glow
+    // the playhead used to end on was still set when the next paint filled
+    // the strip, and bled through the see-through strip as a magenta band.
+    context.shadowBlur = 0;
     context.fillStyle = readSurfaceAlpha(
       '--surface-base',
       0.68,
@@ -124,19 +128,16 @@ const KaraokeMakerPreviewNotes = ({
         // round the wheel, each note a step on from the one before it.
         noteFill = rainbowColourAt(performance.now() / 3600 + index * 0.047);
       }
+      // Flat, as the window's drawings are now: no glow round a note.
       context.fillStyle = noteFill;
-      context.shadowColor = rainbow
-        ? context.fillStyle
-        : readAccent(0.28, 'rgba(47, 227, 214, .28)');
-      context.shadowBlur = 5;
       context.beginPath();
       context.roundRect(left, height / 2 - 2, Math.max(2, right - left), 4, 2);
       context.fill();
     });
-    context.shadowBlur = 0;
-    context.fillStyle = '#fe53ba';
-    context.shadowColor = 'rgba(254, 83, 186, .72)';
-    context.shadowBlur = 7;
+    // The same playhead as the editor's above it and the song strip's, in
+    // the accent and without a glow. It was a pink of its own, the one
+    // colour on the Maker that followed neither the theme nor Rainbow.
+    context.fillStyle = readAccent(1, '#4fe6ef');
     context.fillRect(width / 2 - 0.75, 1, 1.5, height - 2);
   }, [playheadMs, song.pitch]);
 

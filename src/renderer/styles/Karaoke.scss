@@ -3438,14 +3438,15 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
-  // The card every pane is, laid over the floor so it stays opaque — the
-  // stage and the transport are underneath it (Ivan, 2026-09-27: "nice card
-  // bg as we did on DSP ... to the whole maker window"). Square and with no
-  // frame of its own, still: a rounded card tried here was sent back ("no
-  // rounder border like that"). It was the bare floor, and before that the
-  // pane colour with a purple wash.
+  // The window's floor, flat and opaque — the stage and the transport are
+  // underneath it — as it was before the card was tried over it (Ivan,
+  // 2026-09-27: "bg need to be as it was"). The toolbar above and the command
+  // dock below stand in the pane colour instead, as the titlebar and the
+  // transport bar do over the app's own floor, so the editing surface reads
+  // as the floor between two bars. Square and with no frame of its own
+  // ("no rounder border like that").
   color: $text-muted;
-  background: $card-glow, $karaoke-chip-face;
+  background: $surface-base;
   border-radius: 0;
 
   button,
@@ -3676,9 +3677,12 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   gap: 8px 14px;
   min-height: 54px;
   padding: 5px 12px;
-  // The dialogs' head line, fading before either end of the card: a ruled
-  // accent edge drawn to the card's sides read as a flat frame inside it.
-  @include dialog.rule(bottom);
+  // The toolbar in the pane colour, a bar of its own over the floor the
+  // song is edited on, as the titlebar is over the app's (Ivan, 2026-09-27:
+  // "make tool bar be another color like pane colors so is different"), and
+  // parted from it by the panes' own hairline, edge to edge.
+  background: $surface-panel;
+  border-bottom: 1px solid $border-panel;
 }
 
 .karaoke-maker__header-tools {
@@ -6692,9 +6696,11 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   z-index: 12;
   display: grid;
   min-width: 0;
-  // Ruled off from the editor by the same fading line as the header: an
-  // accent edge and a shadow thrown upward read as a second frame.
-  @include dialog.rule(top);
+  // The toolbar's pair at the foot, in the same pane colour and hairline, as
+  // the transport bar pairs the titlebar: the song's fields and checks are a
+  // bar, not more of the editing floor.
+  background: $surface-panel;
+  border-top: 1px solid $border-panel;
 
   > .karaoke-transport {
     // Match the player's 12px workspace inset exactly, so switching into the

@@ -197,7 +197,12 @@ const KaraokeMakerNavigator = ({
         0.55,
         readAccent(0.65, 'rgba(82, 233, 220, .65)'),
       );
-      waveformGradient.addColorStop(1, 'rgba(111, 120, 232, .42)');
+      // All three stops in the accent: the violet the far end had was a hue
+      // of its own that no theme and no palette ever set.
+      waveformGradient.addColorStop(
+        1,
+        readAccentLight(0.42, 'rgba(180, 246, 250, .42)'),
+      );
       context.strokeStyle = waveformGradient;
       context.lineWidth = 1;
       context.beginPath();
@@ -279,22 +284,22 @@ const KaraokeMakerNavigator = ({
       0.5,
       readAccent(0.18, 'rgba(54, 232, 216, .18)'),
     );
-    viewportGradient.addColorStop(1, 'rgba(82, 134, 226, .24)');
+    viewportGradient.addColorStop(
+      1,
+      readAccent(0.24, 'rgba(79, 230, 239, .24)'),
+    );
+    // The window onto the editor, flat: its edge and its fill, no glow round
+    // it or its grips (the window's drawings lost theirs, 2026-09-26/27).
     context.fillStyle = viewportGradient;
     context.strokeStyle = readAccentLight(0.98, 'rgba(132, 255, 245, .98)');
     context.lineWidth = 2;
-    context.shadowColor = readAccent(0.52, 'rgba(35, 225, 209, .52)');
-    context.shadowBlur = 11;
     context.beginPath();
     context.roundRect(viewportLeft, 2, viewportWidth, height - 4, 6);
     context.fill();
     context.stroke();
-    context.shadowBlur = 0;
 
     [viewportLeft, viewportLeft + viewportWidth].forEach((edgeX) => {
       context.fillStyle = readAccentLight(1, '#bafff8');
-      context.shadowColor = readAccent(0.7, 'rgba(59, 238, 222, .7)');
-      context.shadowBlur = 7;
       context.beginPath();
       context.roundRect(edgeX - 3, height / 2 - 10, 6, 20, 3);
       context.fill();
@@ -304,18 +309,16 @@ const KaraokeMakerNavigator = ({
       );
       context.fillRect(edgeX - 0.6, height / 2 - 5, 1.2, 10);
     });
-    context.shadowBlur = 0;
 
+    // The editor's playhead, in the same accent and with no glow; it was a
+    // pink of its own here, against the cyan one right above it.
     const playheadX = clamp((playheadMs / durationMs) * width, 0, width);
-    context.strokeStyle = '#ff55bd';
-    context.lineWidth = 1.3;
-    context.shadowColor = 'rgba(255, 71, 184, .62)';
-    context.shadowBlur = 6;
+    context.strokeStyle = readAccent(1, '#4fe6ef');
+    context.lineWidth = 1.5;
     context.beginPath();
     context.moveTo(playheadX, 3);
     context.lineTo(playheadX, height - 3);
     context.stroke();
-    context.shadowBlur = 0;
   }, [
     durationMs,
     notes,
