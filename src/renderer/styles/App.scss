@@ -2185,7 +2185,25 @@ textarea,
   --title-bar-meter: 65px;
 }
 
+// How wide the sound panel's column is: the panel's own width, or its rail
+// when it is folded (`soundPane.ts`). A registered length so the column can
+// ease between the two: an unregistered custom property changes in one step,
+// and the grid track built from it with it.
+@property --sound-pane-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 330px;
+}
+
+// The rail a folded or closed sound panel keeps: its button and nothing else.
+$sound-pane-rail: 44px;
+$sound-pane-docked: 330px;
+// The fold's ease, the one the Studio's groups open with: quick off the mark
+// and settling, so the column reads as sliding rather than jumping.
+$sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
+
 .app-workspace {
+  --sound-pane-width: #{$sound-pane-docked};
   display: grid;
   width: 100%;
   // Exactly the window, less the titlebar. Not `min-height`: this must not be
@@ -2200,12 +2218,24 @@ textarea,
   overflow: hidden;
 
   grid-template-areas: 'side-bar center-workspace right-content';
-  grid-template-columns: $side-bar-width minmax(0, 1fr) minmax(280px, 330px);
+  grid-template-columns: $side-bar-width minmax(0, 1fr) var(--sound-pane-width);
   // One row, the height of the shell. `minmax(0, 1fr)` rather than
   // `minmax(min-content, 1fr)`: min-content would let a long column force the
   // row taller than the window, which is the whole thing being prevented.
   grid-template-rows: minmax(0, 1fr);
   align-content: stretch;
+  transition: --sound-pane-width $sound-pane-ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// Folded beside the page (Ivan, 2026-09-27: "make right side pane collapsible
+// nicely with animation"): the column eases down to its rail and the page
+// takes the width.
+.app-workspace.is-sound-pane-folded {
+  --sound-pane-width: #{$sound-pane-rail};
 }
 
 // Media, Library and Karaoke share one application-owned fullscreen shell.
@@ -3023,8 +3053,9 @@ $tab-bar-inset: 8px;
 // positioned against the window, so there is nothing left to escape from — see
 // the head of Dropdown.tsx.
 
-// The handle each drawer is pulled out by: a slim tab of the drawer's own
-// floor and edge, with a chevron that points the way the panel goes (Ivan,
+// The handle the left drawer is pulled out by (the sound panel's button is
+// on its rail instead): a slim tab of the drawer's own floor and edge, with a
+// chevron that points the way the panel goes (Ivan,
 // 2026-09-25: "better side pane floating, less drop shadow, better handle").
 // It was a 30x56 box of the panel colour under a bright cyan rim, a 16px
 // corner and a heavy shadow, with a gear in it: a button from another kit
@@ -3053,54 +3084,6 @@ $tab-bar-inset: 8px;
     width: 12px;
     height: 12px;
     opacity: 1;
-  }
-}
-
-// The drawer's summon tab and backdrop. Both exist only below the
-// three-column breakpoint; wide layouts show the column in the grid and
-// these render as nothing at all.
-.right-content-toggle {
-  position: fixed;
-  // Four layers, in pairs: the left drawer (60) under its tab (61), and the
-  // right drawer (62) under its own (63). Each tab is above the panel it
-  // opens -- that is how it stays pressable — and the whole right pair is
-  // above the whole left one, so the left tab riding on its panel's edge
-  // cannot end up drawn on top of the right panel.
-  z-index: 63;
-  top: 50%;
-  right: 0;
-  display: none;
-  @include drawer-handle;
-  border-right: 0;
-  border-radius: $radius-xs 0 0 $radius-xs;
-  box-shadow: -4px 0 12px rgba($black, 0.16);
-  transform: translateY(-50%);
-  animation: drawer-tab-hint 14s $ease-out infinite;
-  // Opacity and transform for full screen, where the tab tucks itself off the
-  // edge until the pointer comes for it — see `is-side-chrome-awake` below.
-  transition:
-    right 180ms ease-out,
-    opacity $motion-base ease,
-    transform $motion-base ease,
-    color 150ms ease,
-    border-color 150ms ease;
-
-  // Pull it out: the chevron points the way the panel comes.
-  .drawer-tab__chevron {
-    transform: rotate(90deg);
-  }
-
-  // Open, the tab rides on the panel's own edge and travels with it. Left at
-  // the window's edge it ended up underneath the panel it opened, and on a
-  // narrow window with both drawers out there was no bare backdrop left to
-  // press either -- the panels covered the window and nothing could be shut.
-  &.is-open {
-    right: $sound-panel-width;
-    animation: none;
-
-    .drawer-tab__chevron {
-      transform: rotate(-90deg);
-    }
   }
 }
 
@@ -3180,8 +3163,7 @@ $tab-bar-inset: 8px;
 // what you see is a surface arriving and then its contents settling on it.
 // Keyed off `.is-open` rather than mount, because the drawer is never
 // unmounted -- it is the same element in both states.
-.side-bar.is-open > *,
-.right-content.is-open > * {
+.side-bar.is-open > * {
   animation: drawer-content-in $motion-base $ease-out backwards;
   animation-delay: 90ms;
 }
@@ -3279,7 +3261,6 @@ $tab-bar-inset: 8px;
 
 @media (prefers-reduced-motion: reduce) {
   .side-bar.is-open > *,
-  .right-content.is-open > *,
   .drawer-backdrop {
     animation: none;
   }
@@ -3305,24 +3286,23 @@ $tab-bar-inset: 8px;
   }
 }
 
-// Nothing blinks for a reader who asked for stillness; the tabs are still
-// drawn, still where they were, and the hover state still says what they are.
+// Nothing blinks for a reader who asked for stillness; the tab is still
+// drawn, still where it was, and the hover state still says what it is.
 @media (prefers-reduced-motion: reduce) {
-  .right-content-toggle,
   .side-bar-toggle {
     animation: none;
   }
 }
 
-// *** The drawer tabs in full screen *****************************************
+// *** The drawer tab in full screen ******************************************
 //
-// The picture is the window here, and two handles pinned to its sides are the
-// same interruption the header and the transport are — so they keep the same
+// The picture is the window here, and a handle pinned to its side is the same
+// interruption the header and the transport are — so it keeps the same
 // bargain those two keep: away while nothing is happening, back the moment the
-// pointer goes to where they live.
+// pointer goes to where it lives.
 //
-// Three things put them on screen, and any one is enough. The frame being up
-// at all, which is what the absence of `is-chrome-idle` says. The pointer at a
+// Three things put it on screen, and any one is enough. The frame being up at
+// all, which is what the absence of `is-chrome-idle` says. The pointer at a
 // side edge — `is-side-chrome-awake`, published by App from the same store the
 // two bars read, and separate from them so that reaching for a panel does not
 // drag the header and the transport back with it. And the tab's own panel
@@ -3332,98 +3312,203 @@ $tab-bar-inset: 8px;
 // has nothing left to advertise, and a light blinking over a full-screen
 // picture every fourteen seconds is precisely the chrome the mode exists to
 // take away.
-.app-workspace.is-app-full > :is(.side-bar-toggle, .right-content-toggle) {
+.app-workspace.is-app-full > .side-bar-toggle {
   animation: none;
 }
 
 // `:focus-visible` is the keyboard's version of reaching for the edge. Without
-// it the Tab key still lands on these buttons — opacity does not take an
-// element out of the focus order — and the ring would be drawn on something
-// invisible, sitting off the side of the screen.
+// it the Tab key still lands on the button — opacity does not take an element
+// out of the focus order — and the ring would be drawn on something invisible.
 #root.is-chrome-idle:not(.is-side-chrome-awake)
   .app-workspace.is-app-full
-  > :is(.side-bar-toggle, .right-content-toggle):not(.is-open):not(
-    :focus-visible
-  ) {
+  > .side-bar-toggle:not(.is-open):not(:focus-visible) {
+  opacity: 0;
+  pointer-events: none;
+  // Out through the edge it belongs to, rather than dissolving where it
+  // stands: the tab lives just off the screen, and should read as gone back.
+  transform: translate(-100%, -50%);
+}
+
+// The sound panel's button over a full-screen picture, on the same terms.
+#root.is-chrome-idle:not(.is-side-chrome-awake)
+  .app-workspace.is-app-full
+  > .right-content:not(.is-open)
+  .right-content__fold:not(:focus-visible) {
   opacity: 0;
   pointer-events: none;
 }
 
-// Out through the edge it belongs to, rather than dissolving where it stands:
-// the tab is a thing that lives just off the screen, and it should read as
-// having gone back there.
-#root.is-chrome-idle:not(.is-side-chrome-awake)
-  .app-workspace.is-app-full
-  > .side-bar-toggle:not(.is-open):not(:focus-visible) {
-  transform: translate(-100%, -50%);
-}
-
-#root.is-chrome-idle:not(.is-side-chrome-awake)
-  .app-workspace.is-app-full
-  > .right-content-toggle:not(.is-open):not(:focus-visible) {
-  transform: translate(100%, -50%);
-}
-
 // *** Right column ***********************************************************
 
-// The sound panel as a slide-over drawer, for the narrow layout and for full
-// screen: fixed at the right edge, above the left drawer and its tab (see
-// `.right-content-toggle`), slid off until its tab opens it.
-@mixin right-content-drawer {
-  position: fixed;
-  z-index: 62;
-  // Fixed positioning ignores #root's titlebar padding. Start at the real
-  // titlebar edge so its first section is never painted underneath chrome.
-  top: $title-bar-height;
-  right: 0;
-  // The same floor the left drawer keeps: above the transport bar, not
-  // behind it. Both drawers ran to the window's edge and the bar, which is
-  // fixed and drawn later, sat on top of the last thing in each of them.
-  bottom: calc(
-    var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
-  );
-  width: $sound-panel-width;
+// The sound panel. Beside the page it is a column that folds to its rail and
+// back (`soundPane.ts`); where there is no room for the column — under the
+// three-column width — and over a full-screen picture it is that rail, and it
+// opens over the page from it. Either way its button stands at its top left
+// (Ivan, 2026-09-27: "remove that center crappy handler, put the collapsible
+// on the top left of the pane"): the edge tab halfway down the window it
+// replaces was the one control in the app that belonged to no surface.
+//
+// The grid cell holds the rail or the column; the panel inside it holds what
+// the panel shows, so the panel can reach past a rail's cell over the page.
+.right-content {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
+  // Cut at its own edge while the column eases to its rail.
   overflow: hidden;
-  // The floor it slides over, parted from the page by the same hairline the
-  // docked column draws, and lifted off it by its shadow alone.
-  background: $surface-base;
-  border-left: 1px solid $border-panel;
-  // Lifted off the page, not thrown onto it: the 48px shadow at 0.45 lay a
-  // dark band a hand wide across whatever the panel covered the edge of.
-  box-shadow: -10px 0 28px rgba($black, 0.22);
-  transform: translateX(105%);
-  transition: transform 180ms ease-out;
+}
 
-  &.is-open {
-    transform: translateX(0);
+.right-content__panel {
+  // What the sections are laid out at, whatever the column is doing: they are
+  // never reflowed through every width of the fold, only revealed and cut.
+  --sound-pane-open: #{$sound-pane-docked};
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: 100%;
+  grid-template-rows: auto minmax(0, 1fr) max-content;
+  overflow: hidden;
+  // No card and no fill: the open floor, and a hairline on the edge it
+  // shares with the page (layout A, Ivan 2026-09-25). A fill here stood
+  // solid over a scene behind the window (the Backdrop), where every other
+  // pane lets it through.
+  border-left: 1px solid $border-subtle;
+  background: none;
+}
+
+// Its button, on a row of its own at the top: the rail keeps it there when
+// the rest is folded away.
+.right-content__head {
+  display: flex;
+  align-items: center;
+  height: $sound-pane-rail;
+  padding: 0 5px;
+}
+
+// A quiet square, the Plus rail's own fold button in shape: the panel glyph,
+// its arrow pointing the way the panel will go.
+.right-content__fold {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+  transition:
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    opacity $motion-base ease;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.3;
+  }
+
+  &:hover {
+    color: $white;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
-// In full screen the sound panel is a drawer over the picture too, summoned
-// by its edge tab — see the note on `.side-bar` in SideBar.scss.
+// Open, the arrow points where folding sends the panel: out to the right.
+.right-content__fold-arrow {
+  transform-origin: 6.5px 8px;
+  transition: transform $sound-pane-ease;
+
+  .right-content__fold[aria-expanded='true'] & {
+    transform: rotate(180deg);
+  }
+}
+
+// What the panel shows, at the panel's width, fading out as it folds and in
+// once it has opened, so the width is never seen changing under the text.
+.right-content__scroll,
+.right-content__footer {
+  width: calc(var(--sound-pane-open) - 1px);
+  transition:
+    opacity 180ms ease 120ms,
+    visibility 0s linear 0s;
+}
+
+.right-content:not(.is-shown) {
+  .right-content__scroll,
+  .right-content__footer {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 120ms ease,
+      visibility 0s linear 120ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .right-content__panel,
+  .right-content__scroll,
+  .right-content__footer,
+  .right-content__fold-arrow {
+    transition: none;
+  }
+}
+
+// Where the panel opens over the page: its rail's cell keeps the rail, and the
+// panel grows out of it to the left, over the page, lifted off it by its
+// shadow alone.
+@mixin sound-pane-over-page {
+  overflow: visible;
+
+  > .right-content__panel {
+    --sound-pane-open: #{$sound-panel-width};
+    width: $sound-pane-rail;
+    transition:
+      width $sound-pane-ease,
+      box-shadow $sound-pane-ease;
+  }
+
+  // Open over the page it hides what it covers: the floor, opaque.
+  &.is-open > .right-content__panel {
+    width: $sound-panel-width;
+    border-left-color: $border-panel;
+    background: $surface-base;
+    box-shadow: -10px 0 28px rgba($black, 0.22);
+  }
+}
+
+// Over a full-screen picture: the rail stands at the window's edge under the
+// header's strip and above the transport, as the drawer did, and closed it is
+// only its button, which goes with the rest of the frame when the window is
+// still (above).
 .app-workspace.is-app-full > .right-content {
-  @include right-content-drawer;
-
+  position: fixed;
   z-index: 72;
-}
+  top: $title-bar-height;
+  right: 0;
+  bottom: calc(
+    var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
+  );
+  width: $sound-pane-rail;
+  @include sound-pane-over-page;
 
-.app-workspace.is-app-full > .right-content-toggle {
-  display: grid;
-  z-index: 73;
-}
-
-.right-content {
-  // No card: the floor, and a hairline on the edge it shares with the page
-  // (layout A, Ivan 2026-09-25).
-  border-left: 1px solid $border-subtle;
-  display: grid;
-  min-height: 0;
-  padding: 0;
-  gap: 0;
-  grid-template-rows: minmax(0, 1fr) max-content;
-  align-content: stretch;
-  overflow: hidden;
+  &:not(.is-open) > .right-content__panel {
+    border-left-color: transparent;
+    background: none;
+  }
 }
 
 // The sections scroll; the website does not. Keeping the scrollbar on this
@@ -3648,9 +3733,9 @@ $tab-bar-inset: 8px;
   .app-workspace.is-sound-drawer-open:not(.is-app-full)
     .graph-wrapper
     > .live-output-controls {
-    // The drawer covers the page its own width in from the window's edge,
-    // and the graph already stops the tab's lane short of that edge.
-    right: calc(#{$sound-panel-width} - #{$drawer-tab-width} + 12px);
+    // The open panel covers the page its own width in from the window's
+    // edge, and the graph already stops its rail short of that edge.
+    right: calc(#{$sound-panel-width} - #{$sound-pane-rail} + 12px);
   }
 }
 
@@ -4071,48 +4156,27 @@ button.graph-legend {
 
 // *** Responsive shell *******************************************************
 
-// Two columns: the profile column moves below the workspace and splits in two.
+// Two columns and the sound panel's rail: no room for the panel's column. Its
+// old fate was a band squashed under the workspace — two panels wide, half of
+// it below the fold — which read as clutter, not as settings; then a drawer
+// pulled out by a tab halfway down the window's edge. It is its rail now, in
+// the grid where the column stands at full width, with its button where the
+// column's is, and it opens over the page from there.
 @media (max-width: $bp-three-column) {
   .app-workspace {
-    // Two columns only: the sound panel leaves the grid entirely below this
-    // breakpoint. Its old fate was a band squashed under the workspace —
-    // two panels wide, half of it below the fold — which read as clutter,
-    // not as settings. It floats now.
-    grid-template-areas: 'side-bar center-workspace';
-    grid-template-columns: $side-bar-width-compact minmax(0, 1fr);
+    grid-template-areas: 'side-bar center-workspace right-content';
+    grid-template-columns:
+      $side-bar-width-compact minmax(0, 1fr)
+      $sound-pane-rail;
     grid-template-rows: minmax(0, 1fr);
   }
 
-  // The same panel as a slide-over drawer: summoned from the edge tab,
-  // dismissed by its backdrop, scrolling on its own.
-  //
-  // And standing where it stands docked (Ivan, 2026-09-23: "side panes when
-  // collapsed should display in the same position they belong ... no gap to
-  // the header"): under the header and in from the edge by the shell's
-  // gutter, which on the open floor is nothing — so it lies flush against
-  // both, like the docked column. Shut, it travels past the gutter and its
-  // shadow, or both stayed in sight along the edge.
-  .right-content {
-    @include right-content-drawer;
-    top: calc(#{$title-bar-height} + var(--shell-gutter, 0px));
-    right: var(--shell-gutter, 0px);
-    transform: translateX(calc(100% + var(--shell-gutter, 0px) + 72px));
-  }
-
-  .right-content-toggle {
-    display: grid;
-  }
-
-  // And the page keeps a lane for the tab (`$drawer-tab-width`), so the tab
-  // stands beside the graph's level labels rather than on them.
-  .app-workspace:not(.is-app-full) > .center-workspace {
-    padding-right: $drawer-tab-width;
-  }
-
-  // Its tab rides on the panel's edge, which is now a gutter in from the
-  // window's. Not over a full screen, whose drawer keeps the edge.
-  .app-workspace:not(.is-app-full) > .right-content-toggle.is-open {
-    right: calc(#{$sound-panel-width} + var(--shell-gutter, 16px));
+  // Above the page it opens over and the backdrop that dims it (58), and
+  // above the left drawer and its tab (60, 61), as the drawer it replaces
+  // was: the right pair over the left one.
+  .app-workspace:not(.is-app-full) > .right-content {
+    z-index: 62;
+    @include sound-pane-over-page;
   }
 }
 
@@ -4120,15 +4184,16 @@ button.graph-legend {
 // every remaining section owns a full-width row.
 @media (max-width: $bp-two-column) {
   .app-workspace {
-    // One area, and one row.
+    // The page and the sound panel's rail, and one row.
     //
-    // Neither of the other two panels is in the layout at this width: both are
-    // drawers that float over it. A `right-content` row left behind measured
-    // zero but still took the grid's 12px row gap after the workspace, which
-    // is a band of nothing between the last card and the transport bar —
-    // twice the inset the same card keeps at its sides.
-    grid-template-areas: 'center-workspace';
-    grid-template-columns: minmax(0, 1fr);
+    // The sidebar is a drawer that floats over the page at this width; the
+    // sound panel keeps its rail, which it opens over the page from. A
+    // `right-content` row left behind once measured zero but still took the
+    // grid's 12px row gap after the workspace, which is a band of nothing
+    // between the last card and the transport bar — twice the inset the same
+    // card keeps at its sides.
+    grid-template-areas: 'center-workspace right-content';
+    grid-template-columns: minmax(0, 1fr) $sound-pane-rail;
     // One row, for the one area above. Each time this list has disagreed with
     // the areas the result was the same kind of bug: a stale third row put the
     // workspace in `max-content` and the response graph grew without limit; a
@@ -4178,14 +4243,6 @@ button.graph-legend {
   // and every pane's own scroller behave exactly as they do at any other, and
   // the only thing the breakpoint still changes is how the columns are
   // arranged.
-
-  // The right column is still a fixed slide-over at this breakpoint, not part
-  // of the scrolling document. Preserve its own remaining-viewport scroller.
-  .right-content {
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: hidden;
-  }
 
   .right-content__scroll {
     overscroll-behavior: contain;
@@ -4267,10 +4324,6 @@ button.graph-legend {
 // last squeeze.
 
 @media (max-width: 760px) {
-  .right-content {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   // No titlebar rules here any more. The grid, the gap and the padding were a
   // fourth sizing of the same bar; it has three now — 1800, 1300 and 900 — and
   // nothing between them.

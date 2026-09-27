@@ -456,8 +456,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: grid;
   }
 
-  // The page keeps a lane for the tab (`$drawer-tab-width`), as it does on
-  // the right for the sound panel's, so the tab never stands on the page.
+  // The page keeps a lane for the tab (`$drawer-tab-width`), so the tab never
+  // stands on the page.
   .app-workspace:not(.is-app-full) > .center-workspace {
     padding-left: $drawer-tab-width;
   }

@@ -50,6 +50,7 @@ import {
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
+import { setSoundPaneFolded, useSoundPaneFolded } from './utils/soundPane';
 import { useTitlebarRoom } from './utils/useTitlebarRoom';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
@@ -360,6 +361,13 @@ const MEDIA_TAB_ONE_WORD_QUERY = '(max-width: 1280px)';
  * own split, with the graph starting as a strip (`shortWindowPaneKey`).
  */
 const SHORT_WINDOW_QUERY = '(max-height: 900px)';
+
+/**
+ * `$bp-three-column` in `_constant.scss`: under it the sound panel is a rail
+ * that opens over the page rather than a column beside it, so its button
+ * opens and shuts the drawer instead of folding the column.
+ */
+const SOUND_PANE_DRAWER_QUERY = '(max-width: 1560px)';
 
 const isEqGroupTab = (tab: TWorkspaceTab): boolean =>
   EQ_GROUP_TABS.includes(tab);
@@ -702,8 +710,13 @@ const AppContent = () => {
   } = useFluidEqShell();
   const { t } = useTranslation();
 
-  // The sound panel drawer, meaningful only under the three-column breakpoint.
+  // The sound panel drawer, meaningful only under the three-column breakpoint
+  // and over a full-screen picture, where the panel opens over the page.
   const [rightPaneOpen, setRightPaneOpen] = useState(false);
+  // Docked beside the page, folded to its rail or not: the member's choice,
+  // and the Studio's while its bench is on screen (`soundPane.ts`).
+  const isSoundPaneFolded = useSoundPaneFolded();
+  const isSoundPaneDrawer = useMediaQuery(SOUND_PANE_DRAWER_QUERY);
   // The same, for the panel that becomes a drawer at the top of the window.
   const [topPaneOpen, setTopPaneOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
@@ -1451,6 +1464,14 @@ const AppContent = () => {
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isGraphAppFullScreen =
     graphView === 'fullscreen' && showsGraph && !isMediaFullScreen;
+  // Where the sound panel opens over the page rather than standing beside it,
+  // its button opens the drawer; beside the page it folds the column.
+  const isSoundPaneOverPage =
+    isSoundPaneDrawer || isGraphAppFullScreen || isMediaFullScreen;
+  const isSoundDrawerOpen = isSoundPaneOverPage && rightPaneOpen;
+  const isSoundPaneShown = isSoundPaneOverPage
+    ? rightPaneOpen
+    : !isSoundPaneFolded;
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
@@ -2778,8 +2799,8 @@ const AppContent = () => {
         }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
         }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}${
-          rightPaneOpen ? ' is-sound-drawer-open' : ''
-        }`}
+          isSoundDrawerOpen ? ' is-sound-drawer-open' : ''
+        }${isSoundPaneFolded ? ' is-sound-pane-folded' : ''}`}
       >
         {showAudioRestartRecommendation && !suppressAudioNotices && (
           <aside className="audio-restart-notice" role="status">
@@ -2825,9 +2846,9 @@ const AppContent = () => {
         )}
         {/* Below the two-column breakpoint this panel is a drawer that slides
             in from the left edge, summoned by the tab below and dismissed by
-            its own backdrop — the same arrangement the sound panel has on the
-            other edge. Above that width the tab and the backdrop are
-            display:none and the class does nothing. */}
+            its own backdrop. (The sound panel on the other edge keeps a rail
+            instead, its button at the top.) Above that width the tab and the
+            backdrop are display:none and the class does nothing. */}
         <button
           type="button"
           className={`side-bar-toggle${topPaneOpen ? ' is-open' : ''}`}
@@ -3236,28 +3257,11 @@ const AppContent = () => {
             <GraphScene />
           </Activity>
         </div>
-        {/*
-          Below the three-column breakpoint the sound panel is a slide-over
-          drawer instead of a band squashed under the workspace: the same
-          content, floated, with an edge tab to summon it. Above the
-          breakpoint the tab and backdrop are display:none and this class
-          does nothing.
-        */}
-        <button
-          type="button"
-          className={`right-content-toggle${rightPaneOpen ? ' is-open' : ''}`}
-          aria-expanded={rightPaneOpen}
-          aria-label={t('app.soundPanel')}
-          title={t('app.soundPanel')}
-          onClick={() => setRightPaneOpen((open) => !open)}
-        >
-          <Chevron className="drawer-tab__chevron" />
-        </button>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
             them stacked, each closing only its own, meant a press outside
             with both open closed whichever happened to be on top and left
             the other standing. */}
-        {(rightPaneOpen || topPaneOpen) && (
+        {(isSoundDrawerOpen || topPaneOpen) && (
           <button
             type="button"
             className="drawer-backdrop"
@@ -3268,56 +3272,94 @@ const AppContent = () => {
             }}
           />
         )}
-        <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
-          <div className="right-content__scroll">
-            {/* One card: the output you listen on, and under it the profiles
-                that play through it. They were two cards, and the ON pill on
-                a profile sat a card away from the output it was on. */}
-            {/* Asleep behind the amp. Each reads what it shows again when it
-                wakes: the preset list, the outputs and their profiles. */}
-            <Activity mode={behindAmp}>
-              <DeviceProfiles
-                engine={engineStatus?.engine ?? null}
-                isNoticeHidden={suppressAudioNotices}
-                onConfigureApo={handleConfigureEqualizerApo}
-                onAttachFluidEngine={handleAttachFluidEngine}
+        <div
+          className={`right-content${isSoundDrawerOpen ? ' is-open' : ''}${
+            isSoundPaneShown ? ' is-shown' : ''
+          }`}
+        >
+          <div className="right-content__panel">
+            {/* The panel's own button, at its top left, where the rail keeps
+                it when the panel is folded (Ivan, 2026-09-27: "remove that
+                center crappy handler, put the collapsible on the top left of
+                the pane"). Beside the page it folds the column to its rail;
+                under the three-column width and over a full-screen picture,
+                where the panel opens over the page, it opens and shuts it. */}
+            <div className="right-content__head">
+              <button
+                type="button"
+                className="right-content__fold"
+                aria-expanded={isSoundPaneShown}
+                aria-label={t('app.soundPanel')}
+                title={t('app.soundPanel')}
+                onClick={() =>
+                  isSoundPaneOverPage
+                    ? setRightPaneOpen((open) => !open)
+                    : setSoundPaneFolded(!isSoundPaneFolded)
+                }
               >
-                <PresetsBar
-                  fetchPresets={getPresetListFromFiles}
-                  loadPreset={loadPreset}
-                  savePreset={savePreset}
-                  createPreset={createPreset}
-                  renamePreset={renamePreset}
-                  deletePreset={deletePreset}
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <rect x="2" y="2.5" width="12" height="11" rx="1.6" />
+                  <path d="M10 2.5v11" />
+                  <path
+                    className="right-content__fold-arrow"
+                    d="M7.4 6.2 5.6 8l1.8 1.8"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="right-content__scroll" inert={!isSoundPaneShown}>
+              {/* One card: the output you listen on, and under it the profiles
+                  that play through it. They were two cards, and the ON pill on
+                  a profile sat a card away from the output it was on. */}
+              {/* Asleep behind the amp. Each reads what it shows again when it
+                  wakes: the preset list, the outputs and their profiles. */}
+              <Activity mode={behindAmp}>
+                <DeviceProfiles
+                  engine={engineStatus?.engine ?? null}
+                  isNoticeHidden={suppressAudioNotices}
+                  onConfigureApo={handleConfigureEqualizerApo}
+                  onAttachFluidEngine={handleAttachFluidEngine}
+                >
+                  <PresetsBar
+                    fetchPresets={getPresetListFromFiles}
+                    loadPreset={loadPreset}
+                    savePreset={savePreset}
+                    createPreset={createPreset}
+                    renamePreset={renamePreset}
+                    deletePreset={deletePreset}
+                  />
+                </DeviceProfiles>
+              </Activity>
+              {/* Directly under the output picker: it is the same question asked
+                  twice over — that one chooses where the sound goes, this one
+                  adds a second somewhere. */}
+              {/* Awake behind the amp: it plays the mirror to the second output
+                  (`useOutputMirror`), and asleep it would silence that output
+                  the moment the window became the amp. */}
+              <ExtraOutputs engine={engineStatus?.engine ?? null} />
+              {/* Sits with the output device because it answers the same question:
+                  what is this sound coming out of. */}
+              <Activity mode={behindAmp}>
+                <DriverPicker />
+              </Activity>
+            </div>
+            <footer className="right-content__footer" inert={!isSoundPaneShown}>
+              <a
+                className="right-content__site"
+                href={OFFICIAL_SITE_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open fluideq.com in your browser"
+                title="Open fluideq.com in your browser"
+              >
+                <span>fluideq.com</span>
+                <MenuIcon
+                  name="external"
+                  className="right-content__site-icon"
                 />
-              </DeviceProfiles>
-            </Activity>
-            {/* Directly under the output picker: it is the same question asked
-                twice over — that one chooses where the sound goes, this one
-                adds a second somewhere. */}
-            {/* Awake behind the amp: it plays the mirror to the second output
-                (`useOutputMirror`), and asleep it would silence that output
-                the moment the window became the amp. */}
-            <ExtraOutputs engine={engineStatus?.engine ?? null} />
-            {/* Sits with the output device because it answers the same question:
-                what is this sound coming out of. */}
-            <Activity mode={behindAmp}>
-              <DriverPicker />
-            </Activity>
+              </a>
+            </footer>
           </div>
-          <footer className="right-content__footer">
-            <a
-              className="right-content__site"
-              href={OFFICIAL_SITE_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open fluideq.com in your browser"
-              title="Open fluideq.com in your browser"
-            >
-              <span>fluideq.com</span>
-              <MenuIcon name="external" className="right-content__site-icon" />
-            </a>
-          </footer>
         </div>
         {/* Only a genuinely fatal condition takes the screen. Anything else is
             reported without touching the editor: a preset that failed to save

@@ -299,7 +299,7 @@ export const SIDE_WAKE_EDGE_PX = 64;
  * panel — faded out from under the pointer still resting on it.
  */
 const SIDE_CHROME_SELECTOR =
-  '.side-bar-toggle, .right-content-toggle, .is-app-full > .side-bar, .is-app-full > .right-content';
+  '.side-bar-toggle, .is-app-full > .side-bar, .is-app-full > .right-content';
 
 const isSideChrome = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest(SIDE_CHROME_SELECTOR) !== null;
