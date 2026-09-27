@@ -151,11 +151,13 @@ html
 // A dialog's own corner (`dialog.$corner`): one rule gave the menus and the
 // dialogs 4px alike, and a card half the window's size read as a flat,
 // hard-edged slab. Not a menu that is a dialog by role
-// (`data-anchored-menu`), which keeps the menus' corner, and not the Maker.
+// (`data-anchored-menu`), which keeps the menus' corner, nor the graph's New
+// look panel, which is one by surface (`Modal.scss`), and not the Maker.
 html
   body
   :is([role='dialog'], [role='alertdialog'], dialog):not(
     [data-anchored-menu],
+    .look-designer,
     .karaoke-maker
   ) {
   border-radius: dialog.$corner;
