@@ -32,6 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //     .right-content
 
 @use 'sass:color' as sass-color;
+@use 'sass:list';
 @use 'color' as *;
 @use 'constant' as *;
 @use 'motion' as *;
@@ -2822,23 +2823,55 @@ $tab-bar-inset: 8px;
 // their own cards inside — the Library's covers and panes, the Karaoke
 // stage, a video — and not Plus and the forum, which lay out rails of their
 // own.
-.workspace-tab-panel--eq,
-.workspace-tab-panel--presets,
-.workspace-tab-panel--convolution,
-.workspace-tab-panel--games,
-.workspace-tab-panel--config,
-.workspace-tab-panel--dsp,
-.workspace-tab-panel--share {
+$section-card-pages: ();
+@each $page in eq, presets, convolution, games, config, dsp, share {
+  $section-card-pages: list.append(
+    $section-card-pages,
+    '.workspace-tab-panel--#{$page}',
+    $separator: comma
+  );
+}
+
+#{$section-card-pages} {
   @include section-card;
   margin: 0 10px 10px;
 
   // At the head of the column, with no graph above it, the card stands 8px
   // under the titlebar, the gutter the sound panel keeps between its cards:
   // flush, its top edge lay against the titlebar's and doubled it. Under a
-  // graph it hangs from the divider, so the bands stand as close under the
-  // plot as they did.
+  // graph the divider's strip below is its gap.
   .center-workspace:not(.is-graph-first) > .middle-content > & {
     margin-top: 8px;
+  }
+}
+
+// Between a section card and the graph the divider is a strip of floor, its
+// grip in the middle and no line (Ivan, 2026-09-27: "remove the graph
+// division splitter line and add a gap so the rounded pane separated from
+// the graph"). The card hung straight off the line, which doubled the card's
+// own top edge and ran on past its rounded corners. The strip is as tall as
+// the card stands in from the column's sides, so it has the same 10px of
+// floor all round; and it is the divider's own box, which the split already
+// counts (`paneSizes.ts`) and which keeps the grip centred in the gap.
+.center-workspace:has(> .pane-resizer):has(
+    > .middle-content > :is(#{$section-card-pages})
+  ) {
+  > .pane-resizer {
+    height: 10px;
+
+    &::before {
+      display: none;
+    }
+
+    // The strip is the target, and a little over it at both edges.
+    &::after {
+      inset: -3px 0;
+    }
+  }
+
+  // Above a graph (DSP, Share Audio) the strip is the card's gap at its foot.
+  &:not(.is-graph-first) > .middle-content > :is(#{$section-card-pages}) {
+    margin-bottom: 0;
   }
 }
 
