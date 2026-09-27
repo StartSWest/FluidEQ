@@ -647,8 +647,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'Band löschen',
   'eq.deleteAria': 'Gewähltes EQ-Band löschen',
   'eq.deleteSelectionAria': 'Die {count} gewählten Bänder löschen',
-  'eq.delete.armed': 'Löschen',
-  'eq.delete.keep': 'Behalten',
   'eq.delete.keepAria': 'Das Band behalten und das Löschen abbrechen.',
   'eq.delete.armedAria':
     'Noch einmal drücken, um dieses Band zu löschen. Pegel und Q gehen mit und lassen sich nicht zurückholen.',

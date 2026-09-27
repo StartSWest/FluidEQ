@@ -126,24 +126,45 @@ describe('the knob', () => {
       )
       ?.declarations.get('stop-color');
 
-  // The body and the face are the field rung and the well rung of the
-  // ladder every control uses, and a scene's tint redefines those two
-  // surfaces on the root — so the knob follows a recoloured window through
+  // The body, its edge, its side wall and the channel its light lies in are
+  // all worked out from the pane's own colour, which a scene's tint
+  // redefines on the root — so the knob follows a recoloured window through
   // the variables alone, with no tinted copy of its own. It used to be three
   // fixed navy blues with a tinted copy beside them, which is what made it
   // the one blue disc in a green window.
-  it('is built from the theme’s field, so a scene’s tint reaches it by itself', () => {
-    expect(stopColour('.knob__stop--body-top', false)).toBe(
-      'color-mix(in oklab, var(--surface-field), #ffffff 11%)',
+  it('is built from the pane’s colour, so a scene’s tint reaches it by itself', () => {
+    expect(stopColour('.knob__stop--body-lit', false)).toBe(
+      'var(--knob-body-lit)',
     );
-    expect(stopColour('.knob__stop--body-mid', false)).toBe(
-      'var(--surface-field)',
+    expect(stopColour('.knob__stop--body-foot', false)).toBe(
+      'var(--knob-body-foot)',
     );
-    expect(stopColour('.knob__stop--face-edge', false)).toContain(
-      'var(--surface-field-end)',
-    );
-    // No rule of its own under the tint: the one above is the one that runs.
-    expect(stopColour('.knob__stop--body-top', true)).toBeUndefined();
+    const knob = rules.find(({ selectors }) =>
+      selectors.includes('.knob'),
+    )?.declarations;
+    [
+      '--knob-edge',
+      '--knob-body-lit',
+      '--knob-body-foot',
+      '--knob-wall',
+      '--knob-channel',
+    ].forEach((name) => {
+      expect([name, knob?.get(name)]).toEqual([
+        name,
+        expect.stringContaining('var(--surface-panel)'),
+      ]);
+    });
+    // No rule of its own under the tint: the ones above are the ones that run.
+    expect(stopColour('.knob__stop--body-lit', true)).toBeUndefined();
+    expect(
+      rules.some(({ selectors }) =>
+        selectors.some(
+          (selector) =>
+            selector.startsWith(':root[data-scene-tint]') &&
+            selector.includes('.knob'),
+        ),
+      ),
+    ).toBe(false);
   });
 });
 

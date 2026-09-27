@@ -644,8 +644,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'Excluir banda',
   'eq.deleteAria': 'Excluir a banda de EQ selecionada',
   'eq.deleteSelectionAria': 'Excluir as {count} bandas selecionadas',
-  'eq.delete.armed': 'Excluir',
-  'eq.delete.keep': 'Manter',
   'eq.delete.keepAria': 'Manter a banda e cancelar a exclusão.',
   'eq.delete.armedAria':
     'Pressione de novo para excluir esta banda. O ganho e o Q vão junto e não podem ser recuperados.',

@@ -638,8 +638,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'बैंड हटाएँ',
   'eq.deleteAria': 'चुना हुआ EQ बैंड हटाएँ',
   'eq.deleteSelectionAria': 'चुने हुए {count} बैंड हटाएँ',
-  'eq.delete.armed': 'हटाएँ',
-  'eq.delete.keep': 'रहने दें',
   'eq.delete.keepAria': 'बैंड रहने दें और हटाना रद्द करें।',
   'eq.delete.armedAria':
     'यह बैंड हटाने के लिए दोबारा दबाएँ। इसका गेन और Q भी साथ चले जाएँगे और वापस नहीं लाए जा सकते।',

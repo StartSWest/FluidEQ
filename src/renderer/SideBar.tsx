@@ -23,7 +23,6 @@ import { setMainPreAmp } from './utils/equalizerApi';
 import SideBarEngine from './components/SideBarEngine';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Knob from './widgets/Knob';
-import NumberInput from './widgets/NumberInput';
 import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
@@ -140,8 +139,8 @@ const SideBar = ({
               hundred and sixty wide — a track, a ceiling caption, a floor
               caption and a number field — which is most of the side bar spent
               on one control. The dial says the same thing in eighty: the
-              sweep is the position, the number in the middle is the value.
-              It is the same `Knob` the band inspector uses for Q.
+              sweep is the position, the number under it is the value. It is
+              the same `Knob` as every dial in the app.
 
               Its floor is the PREAMP's, -60 dB, not a band's ±20: this
               number cancels the sum of every layer, and a headphone
@@ -150,8 +149,10 @@ const SideBar = ({
               same (Ivan, 2026-09-24: "center 0 on top not to the side"): the
               +20 side keeps its half evenly and the -60 side is compressed
               into the other, as fine as the top side near 0 and coarser
-              towards the floor (`centredSweep`). The field under it is where
-              an exact value is typed, and it takes the same range. */}
+              towards the floor (`centredSweep`). Its number is where an exact
+              value is typed: pressed, it turns into a box (`KnobView`) — it
+              had a field of its own under it, which showed the same number
+              twice (Ivan, 2026-09-26: "make a single number"). */}
           <section className="side-bar__preamp">
             <h4 className="side-bar__head">{t('sidebar.preamp')}</h4>
             <Knob
@@ -163,11 +164,11 @@ const SideBar = ({
               centre={0}
               value={displayedPreamp}
               step={0.01}
-              // The label under the number says who set it: AUTO while Auto
-              // normalize owns the dial, the unit while it is yours. It
-              // replaces the two-line note that used to say the same thing
-              // under the dial, and the switch that turns it off is the row
-              // directly beneath.
+              // The word after the number says who set it: AUTO while Auto
+              // normalize owns the dial — and it cannot be typed into then —
+              // the unit while it is yours. It replaces the two-line note
+              // that used to say the same thing under the dial, and the
+              // switch that turns it off is the row directly beneath.
               unit={isAutoPreAmpOn ? t('sidebar.autoLabel') : 'dB'}
               // Ctrl-click returns it to unity. Without a default the reset is
               // not merely absent — the gesture works everywhere else in the
@@ -176,22 +177,6 @@ const SideBar = ({
               defaultValue={0}
               isDisabled={isAutoPreAmpOn}
               handleChange={setGain}
-            />
-            {/* The field is always here, and only its availability moves.
-                It used to appear and disappear with auto normalize, which
-                made the card change height whenever the switch below it was
-                touched and left the dial as the only readout — a dial is a
-                poor way to read -6.5 exactly, whoever set it. Disabled while
-                auto owns the value says the same thing the swap did, without
-                the column jumping. */}
-            <NumberInput
-              name={t('sidebar.preampAria')}
-              value={displayedPreamp}
-              min={PREAMP_MIN_GAIN}
-              max={MAX_GAIN}
-              floatPrecision={2}
-              isDisabled={isAutoPreAmpOn}
-              handleSubmit={setGain}
             />
             <div className="side-bar__row">
               <label htmlFor="autoPreAmpEnabler">

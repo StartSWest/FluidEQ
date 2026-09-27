@@ -178,6 +178,9 @@ describe('a dial of settings', () => {
 
   it('reads a value between two settings as the nearer one', () => {
     const { container } = mount(20);
-    expect(container.querySelector('.knob__number')).toHaveTextContent('24');
+    // The reading under the knob (`KnobView`); its number was in its face.
+    expect(container.querySelector('.knob-readout__value')).toHaveTextContent(
+      '24',
+    );
   });
 });

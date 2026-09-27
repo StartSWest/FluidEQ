@@ -650,8 +650,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'Supprimer la bande',
   'eq.deleteAria': 'Supprimer la bande d’égalisation sélectionnée',
   'eq.deleteSelectionAria': 'Supprimer les {count} bandes sélectionnées',
-  'eq.delete.armed': 'Supprimer',
-  'eq.delete.keep': 'Garder',
   'eq.delete.keepAria': 'Garder la bande et annuler la suppression.',
   'eq.delete.armedAria':
     'Appuyez encore pour supprimer cette bande. Son gain et son Q partent avec elle et ne peuvent pas être récupérés.',

@@ -607,8 +607,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': '删除频段',
   'eq.deleteAria': '删除选中的均衡频段',
   'eq.deleteSelectionAria': '删除选中的 {count} 个频段',
-  'eq.delete.armed': '删除',
-  'eq.delete.keep': '保留',
   'eq.delete.keepAria': '保留该频段并取消删除。',
   'eq.delete.armedAria':
     '再按一次即可删除该频段。它的增益和 Q 会一起消失，无法找回。',

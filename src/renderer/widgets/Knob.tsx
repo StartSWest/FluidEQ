@@ -58,13 +58,9 @@ interface IKnobProps {
 }
 
 /**
- * A dial with its number in its face.
- *
- * The compact one: the editor's rows and the chain's cards give a control a
- * square and nothing under it, so the value is read off the middle of the
- * disc. Where there is room for a line under the dial — the three tone dials
- * — `ToneKnob` is the same dial with the value under it instead, which is
- * the shape the player's mockup was drawn in.
+ * The app's dial: the round knob with its reading under it (`KnobView`),
+ * turned in a sweep (`dialGesture`). Every knob in the window is this or
+ * `SteppedKnob`, the same knob turned a setting at a time.
  */
 const Knob = ({
   name,

@@ -53,10 +53,9 @@ export interface IDialGesture {
  * Everything a dial does that is not drawing: how its range maps onto the
  * sweep, what its number reads, and the pointer, wheel and keyboard gestures.
  *
- * Shared, because there are two dials in this app — the one with its number
- * in its face, which is what the editor rows and the chain's rows have room
- * for, and the big one with its value under it — and the way a dial answers
- * a hand must not depend on which of the two is on screen.
+ * Apart from the drawing (`KnobView`) so that a stepped dial
+ * (`steppedDialGesture`) can hand the same knob a different gesture, and the
+ * knob cannot tell which it is being turned by.
  */
 const useDialGesture = ({
   name,
@@ -161,6 +160,15 @@ const useDialGesture = ({
    * pointing at it already says it better.
    */
   const showsArc = arcLength > 0 || !restsInside;
+  /**
+   * The marks round the dial (`KnobDial`): the two ends of its travel, and
+   * where it rests when that is part way round — flat on a boost-or-cut,
+   * unity on the preamp.
+   */
+  const detents =
+    restsInside && arcOrigin > 0 && arcOrigin < 100
+      ? [0, arcOrigin, 100]
+      : [0, 100];
   /**
    * Decimals this dial can actually reach, read off its own step.
    *
@@ -304,7 +312,10 @@ const useDialGesture = ({
     arcStart,
     arcLength,
     showsArc,
+    detents,
     displayValue,
+    /** A typed value, rounded and held to the range as a turn is. */
+    typeValue: updateValue,
     /** On the box around the dial, which is what the hand lands on. */
     dialProps: {
       onWheel,

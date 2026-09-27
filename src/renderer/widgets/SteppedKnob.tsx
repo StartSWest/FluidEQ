@@ -20,8 +20,8 @@ interface ISteppedKnobProps {
 }
 
 /**
- * A dial that clicks between a few settings: the same disc and face as
- * `Knob`, turned a setting at a time (`steppedDialGesture`).
+ * A dial that clicks between a few settings: the same knob as `Knob`, with a
+ * mark at each setting, turned a setting at a time (`steppedDialGesture`).
  */
 const SteppedKnob = ({
   name,

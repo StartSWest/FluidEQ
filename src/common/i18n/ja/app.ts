@@ -30,6 +30,7 @@ const app: Partial<Dictionary> = {
   'recovery.copy': '詳細をコピー',
   'recovery.history': '過去のエラー',
   'app.tagline': 'あなたの音を、どの機器でも、自動で。',
+  'app.knob.type': 'クリックして値を入力',
   'app.actions': 'FluidEQ の操作',
   'app.actions.title': 'オーディオ操作',
   'app.status.ready': 'オーディオエンジンに接続済み',

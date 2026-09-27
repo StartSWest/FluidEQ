@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { ReactNode, useId } from 'react';
+import { useId } from 'react';
 
 interface IKnobDialProps {
   /** Where the dial stands, 0 to 100 (`dialGesture`). */
@@ -13,121 +13,206 @@ interface IKnobDialProps {
   arcStart: number;
   arcLength: number;
   showsArc: boolean;
-  /** What sits in the middle of the disc, if anything: a face and a number. */
-  children?: ReactNode;
+  /** Where the dial's marks stand round the scale, 0 to 100 of its sweep. */
+  detents: readonly number[];
+}
+
+/** The sweep runs 270° from the lower left. */
+const SWEEP_START_DEG = 135;
+const SWEEP_DEG = 270;
+const CENTRE = 36;
+/**
+ * The tube stands clear of the body, a gap of the pane between them (Ivan,
+ * 2026-09-27: "separate the arc from the control a bit").
+ */
+const TUBE_R = 30.2;
+const BODY_R = 25;
+/** The beads at the travel's ends and its rest, just outside the tube. */
+const BEAD_R = 35.6;
+/**
+ * The lit tube, drawn from its widest and faintest light to its white core
+ * (`Knob.scss` gives each its width and strength).
+ */
+const NEON_LAYERS = ['far', 'near', 'tube', 'core'] as const;
+
+const pointAt = (share: number, radius: number) => {
+  const angle = ((SWEEP_START_DEG + (share / 100) * SWEEP_DEG) * Math.PI) / 180;
+  return {
+    x: CENTRE + radius * Math.cos(angle),
+    y: CENTRE + radius * Math.sin(angle),
+  };
+};
+
+interface ITubeRingProps {
+  className: string;
+  /** The stretch of the ring drawn; unset, it takes its group's. */
+  dash?: string;
 }
 
 /**
- * The disc itself: what every knob in this app is drawn as.
+ * One ring of the tube. Every one is the same circle turned onto the sweep's
+ * start, so the glass, the light and the pointer agree by construction.
+ */
+const TubeRing = ({ className, dash }: ITubeRingProps) => (
+  <circle
+    className={className}
+    cx={CENTRE}
+    cy={CENTRE}
+    r={TUBE_R}
+    pathLength="100"
+    strokeDasharray={dash}
+    transform={`rotate(${SWEEP_START_DEG} ${CENTRE} ${CENTRE})`}
+  />
+);
+
+/**
+ * The knob itself: what every dial in this app is drawn as — the EQ page's,
+ * the preamp, every DSP stage's, the player's tone (Ivan, 2026-09-26: "I want
+ * you to update all nobs in the entire app").
  *
- * Slate, like everything else in the window. This was a turned aluminium knob
- * — a near-white body lit from the upper left, a chrome bevel, a black face —
- * and it was the one piece of metal in a flat blue interface: the eye went to
- * it before the EQ. The body is now the field rung of the same ladder every
- * control uses, one step lighter than the card, with the faintest top light
- * so it still reads as a disc rather than a printed circle. Only the pointer
- * and the arc carry colour, which is the part that means something.
+ * The one Ivan picked on 2026-09-27 from five after real gear (the RME
+ * ADI-2's matte knob with its ring of light) and then from three ways of
+ * making it neon ("make it better, like a neon"): a matte body standing on
+ * its side wall, and the value as a lit tube hugging it — a white core, the
+ * accent round it, a soft light round that — with a short neon line on the
+ * body for the pointer and a glass bead at each place it can stand. The unlit
+ * rest of the tube is glass, so the travel reads at rest as well.
  *
- * A big body under a thin bright ring, the ring held off the rim by a hair of
- * unlit panel (Ivan, 2026-09-21): the small body inside a thick far arc it
- * used to be read as a gauge with a knob in the middle of it rather than as
- * a knob.
+ * The light is painted in layers rather than filtered: a filter on a dial
+ * that redraws on every pixel of a drag is repainted with it, and a page of
+ * them is a page of filters. Every colour is a class, so the theme's shade
+ * and a scene's tint reach it through their variables. Nothing is printed on
+ * the body: the reading stands under the knob (`KnobView`).
  */
 const KnobDial = ({
   progress,
   arcStart,
   arcLength,
   showsArc,
-  children,
+  detents,
 }: IKnobDialProps) => {
-  // Two knobs can be on screen at once — a band's Q and the preamp — and SVG
-  // gradient ids are document-global, so a fixed one would have the second
-  // silently paint itself with the first one's metal.
+  // SVG gradient ids are document-global and a page holds many of these; a
+  // fixed one would have the second paint itself with the first one's light.
   const ids = useId();
+  const dash = `${(75 * arcLength) / 100} 100`;
+  // Negative, because a dash pattern offset backwards begins that far along
+  // the path — which is how the arc starts at the centre of a bipolar range
+  // instead of at its low end.
+  const offset = -(75 * arcStart) / 100;
 
   return (
     <svg className="knob__dial" viewBox="0 0 72 72" aria-hidden="true">
       <defs>
-        <radialGradient id={`${ids}-body`} cx="38%" cy="28%" r="80%">
-          <stop offset="0%" className="knob__stop--body-top" />
-          <stop offset="70%" className="knob__stop--body-mid" />
-          <stop offset="100%" className="knob__stop--body-edge" />
-        </radialGradient>
-        {/* What the body casts on the panel: a soft ring of shade around its
-            foot, the way one light from above leaves it. Painted rather than
-            filtered — a filter on a dial that redraws on every pixel of a
-            drag is repainted with it, and a page of them is a page of
-            filters. */}
-        <radialGradient id={`${ids}-cast`} cx="50%" cy="50%" r="50%">
-          <stop offset="72%" className="knob__stop--cast" />
-          <stop offset="100%" className="knob__stop--cast" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id={`${ids}-bevel`} x1="0" y1="0" x2="0" y2="1">
-          {/* Mist above, mist below. The lower stop was black at 30%, which
-              on a navy body is not a shaded edge — it is a dark ring drawn
-              round the knob, and it read as a hole the knob sat in. */}
-          <stop offset="0%" className="knob__stop--mist" stopOpacity="0.24" />
-          <stop offset="55%" className="knob__stop--mist" stopOpacity="0.05" />
-          <stop offset="100%" className="knob__stop--mist" stopOpacity="0.1" />
+        <linearGradient id={`${ids}-body`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="knob__stop--body-lit" />
+          <stop offset="1" className="knob__stop--body-foot" />
         </linearGradient>
+        {/* The light catching the body's upper rim, gone by its foot. */}
+        <linearGradient id={`${ids}-rim`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="knob__stop--rim" />
+          <stop offset="0.6" className="knob__stop--rim" stopOpacity="0" />
+        </linearGradient>
+        {/* The matte top's turned finish: fine rings, barely there. */}
+        <radialGradient
+          id={`${ids}-turned`}
+          cx="50%"
+          cy="50%"
+          r="5%"
+          spreadMethod="repeat"
+        >
+          <stop offset="0" className="knob__stop--turned" stopOpacity="0" />
+          <stop offset="0.5" className="knob__stop--turned" />
+          <stop offset="1" className="knob__stop--turned" stopOpacity="0" />
+        </radialGradient>
       </defs>
-      <circle
-        className="knob__cast"
-        cx="36"
-        cy="37.5"
-        r="31"
-        fill={`url(#${ids}-cast)`}
-      />
-      <circle
-        className="knob__track"
-        cx="36"
-        cy="36"
-        r="32"
-        pathLength="100"
-        strokeDasharray="75 25"
-        transform="rotate(135 36 36)"
-      />
-      {showsArc ? (
-        <circle
+      {detents.map((at) => {
+        const { x, y } = pointAt(at, BEAD_R);
+        return (
+          <circle key={at} className="knob__bead" cx={x} cy={y} r="1.25" />
+        );
+      })}
+      <TubeRing className="knob__channel" dash="75 25" />
+      <TubeRing className="knob__glass" dash="75 25" />
+      <TubeRing className="knob__glass-line" dash="75 25" />
+      {/* The lit stretch is the group's, and its four layers of light take
+          it from there: one arc, however many strokes it is drawn in. */}
+      {showsArc && (
+        <g
           className="knob__value"
-          cx="36"
-          cy="36"
-          r="32"
-          pathLength="100"
-          strokeDasharray={`${(75 * arcLength) / 100} 100`}
-          // Negative, because a dash pattern offset backwards begins that
-          // far along the path — which is how the arc starts at the centre
-          // of a bipolar range instead of at its low end.
-          strokeDashoffset={-(75 * arcStart) / 100}
-          transform="rotate(135 36 36)"
-        />
-      ) : undefined}
+          strokeDasharray={dash}
+          strokeDashoffset={offset}
+        >
+          {NEON_LAYERS.map((layer) => (
+            <TubeRing
+              key={layer}
+              className={`knob__neon knob__neon--${layer}`}
+            />
+          ))}
+        </g>
+      )}
+      {/* The edge's own colour, softly, under the wall and the body: their
+          outline feathered outwards. */}
+      <circle
+        className="knob__edge-glow"
+        cx={CENTRE}
+        cy={CENTRE + 2.2}
+        r={BODY_R}
+      />
+      <circle className="knob__edge-glow" cx={CENTRE} cy={CENTRE} r={BODY_R} />
+      <circle className="knob__wall" cx={CENTRE} cy={CENTRE + 2.2} r={BODY_R} />
       <circle
         className="knob__body"
-        cx="36"
-        cy="36"
-        r="27"
+        cx={CENTRE}
+        cy={CENTRE}
+        r={BODY_R}
         fill={`url(#${ids}-body)`}
       />
-      <circle className="knob__rim" cx="36" cy="36" r="26.6" />
       <circle
-        className="knob__bevel"
-        cx="36"
-        cy="36"
-        r="25.8"
-        stroke={`url(#${ids}-bevel)`}
+        cx={CENTRE}
+        cy={CENTRE}
+        r={BODY_R - 0.7}
+        fill={`url(#${ids}-turned)`}
       />
-      {/* Drawn along the +x axis and rotated onto the value, which is the
-          same 135°-plus-sweep the arcs above are rotated by — so the pointer
-          and the filled arc always point at the same place by construction
-          rather than by two calculations agreeing. */}
-      <g transform={`rotate(${135 + (progress / 100) * 270} 36 36)`}>
-        {/* A faint groove under the pointer, so the lit line has an edge to
-            sit in rather than floating on the disc. */}
-        <line className="knob__notch-groove" x1="53" y1="36" x2="60" y2="36" />
-        <line className="knob__notch" x1="53" y1="36" x2="60" y2="36" />
+      {/* The outline itself: a soft band on the body's edge, not a line. */}
+      <circle className="knob__edge" cx={CENTRE} cy={CENTRE} r={BODY_R} />
+      <circle
+        className="knob__rim"
+        cx={CENTRE}
+        cy={CENTRE}
+        r={BODY_R - 0.9}
+        stroke={`url(#${ids}-rim)`}
+      />
+      {/* Drawn along +x and turned onto the value, the same 135° plus the
+          sweep the tube is turned by, so the pointer and the light always
+          point at the same place. */}
+      <g
+        transform={`rotate(${SWEEP_START_DEG + (progress / 100) * SWEEP_DEG} ${CENTRE} ${CENTRE})`}
+      >
+        <rect
+          className="knob__pointer-glow"
+          x={CENTRE + 12.4}
+          y={CENTRE - 2.6}
+          width="10.2"
+          height="5.2"
+          rx="2.6"
+        />
+        <rect
+          className="knob__pointer"
+          x={CENTRE + 13.4}
+          y={CENTRE - 1.2}
+          width="8.2"
+          height="2.4"
+          rx="1.2"
+        />
+        <rect
+          className="knob__pointer-core"
+          x={CENTRE + 14.2}
+          y={CENTRE - 0.5}
+          width="6.6"
+          height="1"
+          rx="0.5"
+        />
       </g>
-      {children}
     </svg>
   );
 };

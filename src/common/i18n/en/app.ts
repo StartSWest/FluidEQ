@@ -28,6 +28,7 @@ const app = {
   'recovery.copy': 'Copy details',
   'recovery.history': 'Earlier failures',
   'app.tagline': 'Your sound. Every device. Automatically.',
+  'app.knob.type': 'Click to type a value',
   'app.actions': 'FluidEQ actions',
   'app.actions.title': 'Audio actions',
   'app.status.ready': 'Audio engine connected',

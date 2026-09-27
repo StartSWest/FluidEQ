@@ -30,6 +30,7 @@ const app: Partial<Dictionary> = {
   'recovery.copy': 'Copier les détails',
   'recovery.history': 'Échecs précédents',
   'app.tagline': 'Votre son. Sur chaque appareil. Automatiquement.',
+  'app.knob.type': 'Cliquez pour saisir une valeur',
   'app.actions': 'Actions FluidEQ',
   'app.actions.title': 'Actions audio',
   'app.status.ready': 'Moteur audio connecté',

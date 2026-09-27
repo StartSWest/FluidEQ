@@ -30,6 +30,7 @@ const app: Partial<Dictionary> = {
   'recovery.copy': 'Details kopieren',
   'recovery.history': 'Frühere Fehler',
   'app.tagline': 'Ihr Klang. Auf jedem Gerät. Automatisch.',
+  'app.knob.type': 'Klicken Sie, um einen Wert einzugeben',
   'app.actions': 'FluidEQ-Aktionen',
   'app.actions.title': 'Audio-Aktionen',
   'app.status.ready': 'Audio-Engine verbunden',

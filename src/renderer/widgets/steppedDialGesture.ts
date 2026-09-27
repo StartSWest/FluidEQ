@@ -165,7 +165,12 @@ const useSteppedDialGesture = ({
     arcStart: 0,
     arcLength: progress,
     showsArc: true,
+    // A mark at each setting it can stand on.
+    detents: stops.map((_, at) => (last > 0 ? (at / last) * 100 : 0)),
     displayValue,
+    // A typed value lands on the setting nearest it: a dial of detents only
+    // ever stands on one.
+    typeValue: (typed: number) => turnTo(nearestStop(stops, typed)),
     dialProps: {
       onWheel,
       onPointerDown,

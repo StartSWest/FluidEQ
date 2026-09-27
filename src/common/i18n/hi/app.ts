@@ -30,6 +30,7 @@ const app: Partial<Dictionary> = {
   'recovery.copy': 'विवरण कॉपी करें',
   'recovery.history': 'पिछली विफलताएँ',
   'app.tagline': 'आपकी आवाज़। हर डिवाइस पर। अपने आप।',
+  'app.knob.type': 'मान लिखने के लिए क्लिक करें',
   'app.actions': 'FluidEQ क्रियाएँ',
   'app.actions.title': 'ऑडियो क्रियाएँ',
   'app.status.ready': 'ऑडियो इंजन से जुड़ा हुआ',

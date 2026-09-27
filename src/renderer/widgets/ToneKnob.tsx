@@ -4,8 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import useDialGesture from './dialGesture';
-import KnobDial from './KnobDial';
+import Knob from './Knob';
 import '../styles/ToneKnob.scss';
 
 interface IToneKnobProps {
@@ -24,13 +23,10 @@ interface IToneKnobProps {
 }
 
 /**
- * A dial with its value and its name under it, as big as its row allows.
- *
- * The three tone dials, on the EQ page and in the player, drawn the way the
- * player's design has them (Ivan, 2026-09-21): an unbroken disc, the lit arc
- * around it, and the reading under it rather than in its face. The same disc
- * and the same gestures as every other knob here — only where the number
- * sits is different, and that is a matter of the room the row has.
+ * The player's three tone dials: the app's knob with its name under its
+ * reading, as big as the deck allows (`--tone-knob-size`). The same knob as
+ * every other dial in the window (Ivan, 2026-09-26: "a single reusable
+ * component"); it had a drawing of its own, value and all.
  */
 const ToneKnob = ({
   name,
@@ -43,56 +39,22 @@ const ToneKnob = ({
   defaultValue,
   onReset,
   handleChange,
-}: IToneKnobProps) => {
-  const {
-    inputRef,
-    clampedProgress,
-    arcStart,
-    arcLength,
-    showsArc,
-    displayValue,
-    dialProps,
-    inputProps,
-  } = useDialGesture({
-    name,
-    value,
-    min,
-    max,
-    step,
-    sensitivity: 1,
-    isDisabled,
-    unit,
-    defaultValue,
-    onReset,
-    handleChange,
-  });
-
-  return (
-    <div className={`tone-knob${isDisabled ? ' tone-knob--disabled' : ''}`}>
-      <div
-        className={`tone-knob__dial knob${isDisabled ? ' knob--disabled' : ''}`}
-        // eslint-disable-next-line react/jsx-props-no-spreading -- the dial gesture is one group of handlers, named together
-        {...dialProps}
-      >
-        <KnobDial
-          progress={clampedProgress}
-          arcStart={arcStart}
-          arcLength={arcLength}
-          showsArc={showsArc}
-        />
-        <input
-          ref={inputRef}
-          className="knob__input"
-          // eslint-disable-next-line react/jsx-props-no-spreading -- the range input is described in one place, the gesture
-          {...inputProps}
-        />
-      </div>
-      <span className="tone-knob__value">
-        {displayValue} {unit}
-      </span>
-      <span className="tone-knob__name">{name}</span>
-    </div>
-  );
-};
+}: IToneKnobProps) => (
+  <div className={`tone-knob${isDisabled ? ' tone-knob--disabled' : ''}`}>
+    <Knob
+      name={name}
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      isDisabled={isDisabled}
+      unit={unit}
+      defaultValue={defaultValue}
+      onReset={onReset}
+      handleChange={handleChange}
+    />
+    <span className="tone-knob__name">{name}</span>
+  </div>
+);
 
 export default ToneKnob;

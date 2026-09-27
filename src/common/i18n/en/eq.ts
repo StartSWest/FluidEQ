@@ -654,8 +654,6 @@ const eq = {
   'eq.delete': 'Delete band',
   'eq.deleteAria': 'Delete selected EQ band',
   'eq.deleteSelectionAria': 'Delete the {count} selected bands',
-  'eq.delete.armed': 'Delete',
-  'eq.delete.keep': 'Keep',
   'eq.delete.keepAria': 'Keep the band and stand the delete down.',
   'eq.delete.armedAria':
     'Press again to delete this band. Its gain and Q go with it and cannot be brought back.',

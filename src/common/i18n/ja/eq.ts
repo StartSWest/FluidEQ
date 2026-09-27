@@ -637,8 +637,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'バンドを削除',
   'eq.deleteAria': '選択中の EQ バンドを削除',
   'eq.deleteSelectionAria': '選択中の {count} 本のバンドを削除',
-  'eq.delete.armed': '削除',
-  'eq.delete.keep': '残す',
   'eq.delete.keepAria': 'バンドを残して削除をやめます。',
   'eq.delete.armedAria':
     'もう一度押すとこのバンドを削除します。ゲインと Q も一緒になくなり、元に戻せません。',

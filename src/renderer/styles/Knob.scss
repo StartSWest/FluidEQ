@@ -9,7 +9,25 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'theme' as *;
 
+// The app's one knob (`KnobDial`), wherever it is: the EQ page, the preamp,
+// every DSP stage, the player's tone. A matte body with the value lit round
+// it as neon. Every colour is worked out from the pane under it or is the
+// accent, so it follows the theme's shade and a scene's tint.
 .knob {
+  // The body and its edges, from the pane's own colour, and no dark line
+  // anywhere: the body is cut out by an edge a step LIGHTER than the pane, the
+  // tube lies in the shallowest of channels and its glass is clear (Ivan,
+  // 2026-09-27, of the neon knob: "make sure we dont do so dark borders" — the
+  // lightest of the three strengths shown). A dark edge two steps under the
+  // pane, a black channel and a black side wall read as a black ring round
+  // every knob.
+  --knob-edge: oklch(from var(--surface-panel) calc(l + 0.07) calc(c * 0.9) h);
+  --knob-body-lit: oklch(from var(--surface-panel) calc(l + 0.01) c h);
+  --knob-body-foot: oklch(from var(--surface-panel) calc(l - 0.05) c h);
+  --knob-wall: oklch(from var(--surface-panel) calc(l - 0.06) c h);
+  --knob-channel: oklch(from var(--surface-panel) calc(l - 0.025) c h);
+  --knob-glass: #{rgba($edge-tint, 0.14)};
+
   cursor: ns-resize;
   touch-action: none;
   position: relative;
@@ -26,132 +44,133 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow: visible;
   }
 
-  // The gauge outside the body: a hairline of unlit panel, then a thin ring
-  // in the accent as far as the value goes and a ghost of it the rest of the
-  // way round. Thin on purpose — a thick arc is a meter, and the thing being
-  // read here is the disc.
-  &__track,
-  &__value {
+  &__stop--body-lit {
+    stop-color: var(--knob-body-lit);
+  }
+
+  &__stop--body-foot {
+    stop-color: var(--knob-body-foot);
+  }
+
+  &__stop--rim {
+    stop-color: $white;
+    stop-opacity: 0.36;
+  }
+
+  &__stop--turned {
+    stop-color: $white;
+    stop-opacity: 0.055;
+  }
+
+  // The tube: the channel it lies in, its glass, and a glint along the
+  // glass. No transition on anything drawn along it, the light included: the
+  // light is a dash whose offset is where it starts and whose length is how
+  // far it runs, and on a dial grown from the centre a value below zero
+  // starts at the value and ends at zero — an offset eased under a length
+  // that changes at once moved the zero end with every turn (Ivan,
+  // 2026-09-23: "como que el 0 se mueve también").
+  &__channel,
+  &__glass,
+  &__glass-line,
+  &__neon {
     fill: none;
-    stroke-width: 3;
     stroke-linecap: round;
   }
 
-  &__track {
-    stroke: rgba($edge-tint, 0.1);
+  &__channel {
+    stroke: var(--knob-channel);
+    stroke-width: 7.4;
   }
 
-  // No transition, and none on the dash either. The arc is a dash whose
-  // offset is where it starts and whose length is how far it runs, and on a
-  // dial that grows from the centre a value below zero starts at the value
-  // and ends at zero. An offset eased over 120ms under a length that changes
-  // at once moved the zero end with every turn and smeared the arc behind
-  // the pointer (Ivan, 2026-09-23: "como que el 0 se mueve también"). The
-  // pointer is not eased either, and the arc is the pointer's trace.
-  &__value {
+  &__glass {
+    stroke: var(--knob-glass);
+    stroke-width: 3.2;
+  }
+
+  &__glass-line {
+    stroke: rgba($white, 0.12);
+    stroke-width: 0.5;
+  }
+
+  // The light, from the widest and faintest to the white core.
+  &__neon {
     stroke: $secondary-default;
   }
 
-  // The body's and the face's gradients (`Knob.tsx`), by class rather than by
-  // attribute so a scene's tint can reach them: they are the field rung and
-  // the well rung of the ladder every control uses, and a Plus scene's tint
-  // (`data-scene-tint` on the root, `sceneTintStore.ts`) redefines those two
-  // surfaces, so the knob follows a recoloured window without a rule of its
-  // own. They were three fixed navy blues with a tinted copy beside them,
-  // which is what made this the one blue disc in a green window.
-  &__stop--body-top {
-    stop-color: color-mix(in oklab, $surface-field, $white 11%);
+  // A step down from the first neon shown (Ivan, 2026-09-27: "reduce neon
+  // a bit"): the far light 0.17 to 0.11, the near 0.36 to 0.24, the core
+  // less white.
+  &__neon--far {
+    stroke-width: 12.5;
+    stroke-opacity: 0.11;
   }
 
-  &__stop--body-mid {
-    stop-color: $surface-field;
+  &__neon--near {
+    stroke-width: 7.2;
+    stroke-opacity: 0.24;
   }
 
-  &__stop--body-edge {
-    stop-color: $surface-field-end;
+  &__neon--tube {
+    stroke-width: 3.7;
+    stroke-opacity: 0.88;
   }
 
-  // The well the number sits in: one step under the body, and no more. At
-  // 22% and 38% black it was the darkest thing on the Ocean theme's panel —
-  // a hole in the middle of every dial, which is how Ivan described it on the
-  // light theme (2026-09-22). The body's own edge colour is the step; the
-  // rim's shadow does the rest.
-  &__stop--face-top {
-    stop-color: $surface-field-end;
+  &__neon--core {
+    stroke: color-mix(in srgb, $secondary-light 50%, $white);
+    stroke-width: 1.5;
   }
 
-  &__stop--face-edge {
-    stop-color: color-mix(in oklab, $surface-field-end, $black 12%);
+  &__bead {
+    fill: rgba($edge-tint, 0.26);
+    stroke: rgba($white, 0.22);
+    stroke-width: 0.4;
   }
 
-  &__stop--mist {
-    stop-color: $edge-tint;
+  // The body standing on its side wall, the light on its upper rim, and an
+  // outline with no hard line in it (Ivan, 2026-09-27: "make borders using
+  // dropshadow with same color so they are smoother", "make sure the border
+  // is not edgy"): a band of the edge's colour at half strength on the
+  // body's edge, and the same colour feathered outwards under the body and
+  // the wall. A one-pixel line at full strength, with a second ring inside
+  // it, read as a hard, stepped circle. Painted like the light: a filter
+  // would be repainted with every pixel of a drag.
+  &__wall {
+    fill: var(--knob-wall);
   }
 
-  &__stop--cast {
-    stop-color: rgba($black, 0.42);
-  }
-
-  // The shade the body sits in, and the hairline that cuts it out of the
-  // panel: without the line the dark body and the dark card behind it are
-  // one shape at a glance.
+  &__edge,
+  &__edge-glow,
   &__rim {
     fill: none;
-    stroke: rgba($black, 0.66);
-    stroke-width: 1.2;
   }
 
-  &__bevel {
-    fill: none;
-    stroke-width: 1.6;
+  &__edge {
+    stroke: var(--knob-edge);
+    stroke-width: 1.5;
+    stroke-opacity: 0.55;
   }
 
-  // The pointer, and the one part of this that is not metal.
-  //
-  // Cyan against the silver because it has to be findable at a glance on a
-  // body that is deliberately neutral, and because it is the same accent the
-  // filled arc outside it uses — the two say the same thing and should look
-  // like they do. The dark under-stroke is what keeps it legible where it
-  // crosses the bright top of the body.
-  &__notch-groove {
-    stroke: color-mix(in srgb, $surface-base 55%, transparent);
-    stroke-width: 6;
-    stroke-linecap: round;
+  &__edge-glow {
+    stroke: var(--knob-edge);
+    stroke-width: 3.6;
+    stroke-opacity: 0.3;
   }
 
-  &__notch {
-    stroke: $secondary-light;
-    stroke-width: 3.4;
-    stroke-linecap: round;
-    filter: drop-shadow(
-      0 0 6px color-mix(in srgb, $secondary-default 95%, transparent)
-    );
+  &__rim {
+    stroke-width: 1.1;
   }
 
-  // Recessed, so the number sits in a well rather than on the metal. The
-  // edge is mist, not black: a black ring on a navy body is not a shadow,
-  // it is a hole cut for the face.
-  &__face {
-    stroke: rgba($edge-tint, 0.12);
-    stroke-width: 1;
+  &__pointer-glow {
+    fill: $secondary-default;
+    fill-opacity: 0.24;
   }
 
-  // Sized for the 46-50px dials the editor rows use, where a ten-unit
-  // number came out six pixels tall. The 78px sidebar dial scales these up
-  // with it and they read as large there, which is fine — it is the one
-  // number on that whole card.
-  &__number {
-    fill: $white;
-    font-size: 12.5px;
-    font-weight: $weight-bold;
-    font-variant-numeric: tabular-nums;
+  &__pointer {
+    fill: $secondary-default;
   }
 
-  &__label {
-    fill: $text-muted;
-    font-size: 7.5px;
-    font-weight: $weight-bold;
-    @include tracking(0.08em);
+  &__pointer-core {
+    fill: color-mix(in srgb, $secondary-light 50%, $white);
   }
 
   // Kept for focus and the arrow keys only. A range input maps its own width
@@ -167,30 +186,145 @@ it under the terms of the GNU General Public License version 3 or later.
     pointer-events: none;
   }
 
-  // The dial is an SVG behind a transparent range input, so the focus ring has
-  // to be drawn on the wrapper.
+  // The dial is an SVG behind a transparent range input, so the focus ring
+  // has to be drawn on the wrapper.
   &:has(.knob__input:focus-visible) {
     border-radius: 50%;
     @include focus-ring;
-
-    .knob__value {
-      stroke: $secondary-light;
-    }
   }
 
-  &:hover {
-    filter: drop-shadow(
-      0 0 12px color-mix(in srgb, $secondary-default 28%, transparent)
-    );
+  // Reached for: the ring round it lights — its glass takes the accent and
+  // its light comes up, with the pointer's — and nothing on the body changes
+  // (Ivan, 2026-09-27: "the hover needs to highlight the external arc").
+  // Lighting the body's edge, the side wall and a ring round it as well lit
+  // every border of the knob at once ("it highlights all borders, not good").
+  &:hover,
+  &:has(.knob__input:focus-visible) {
+    .knob__glass {
+      stroke: color-mix(in srgb, $secondary-default 34%, transparent);
+    }
 
-    .knob__value {
-      stroke: $secondary-light;
+    .knob__neon--far {
+      stroke-opacity: 0.2;
+    }
+
+    .knob__neon--near {
+      stroke-opacity: 0.4;
+    }
+
+    .knob__pointer-glow {
+      fill-opacity: 0.45;
     }
   }
 
   &--disabled {
-    opacity: 0.45;
+    opacity: $disabled-opacity;
     cursor: default;
-    filter: none;
+  }
+}
+
+// The reading under every knob (`KnobView`), and the box it turns into
+// when it is pressed. The box IS the reading — the same element class, the
+// same padding, the same text — so pressing it moves nothing, the number
+// included (Ivan, 2026-09-26: "make sure it keep same position").
+.knob-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  justify-self: center;
+
+  // A button, quiet until it is reached for: under the pointer it wears the
+  // face every field in the app has (`field-surface`: the faint edge and
+  // fill), and pressed it keeps that face with the caret in it. No bright
+  // edge and no ring while typing — the caret and the selection already say
+  // where the keys go, and a full-accent outline under a 12px number was the
+  // loudest thing on the row ("the borders needs to be more discrete").
+  &__value {
+    display: inline-flex;
+    height: 20px;
+    padding: 2px 6px 0;
+    align-items: baseline;
+    justify-content: center;
+    color: $text-faint;
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+    line-height: 16px;
+    white-space: nowrap;
+    cursor: text;
+    transition: $transition-control;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      border-color: $border-field;
+      background: color-mix(in srgb, $secondary-default 7%, transparent);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &.is-typing {
+      @include field-surface;
+    }
+  }
+
+  // Sized by its text (`field-sizing`), so the box opens exactly as wide as
+  // the reading was and grows only as digits are typed; every edge and fill
+  // is the box's round it, none its own. Sized to the text alone, the caret
+  // at the end had no room and sat on the last digit, so the field keeps one
+  // pixel after the text for it and the unit gives that pixel back — the
+  // number and the unit both stay where the reading had them. Past eight
+  // digits the text scrolls inside it instead: the preamp's column is a
+  // hundred-odd pixels wide, and a box that grew with anything pasted into
+  // it pushed the side panel sideways.
+  &__field {
+    min-width: 1ch;
+    max-width: 8ch;
+    height: 16px;
+    padding: 0 1px 0 0;
+    color: inherit;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    line-height: 16px;
+    text-align: center;
+    field-sizing: content;
+
+    &::selection {
+      background: color-mix(in srgb, $secondary-default 28%, transparent);
+    }
+  }
+
+  &__value.is-typing &__unit {
+    margin-left: 2px;
+  }
+
+  // The faint tier, not the dim one: a unit is read, and in the dim tier's
+  // 3:1 the knobs' Hz, dB and Q measured 2.99:1 at 100% (2026-09-27).
+  &__unit {
+    margin-left: 3px;
+    color: $text-faint;
+    font-size: $text-micro;
+    font-weight: $weight-semibold;
+  }
+
+  // Typed text stays white in every field of the app, lit dial or not.
+  &.is-lit &__value:not(.is-typing) {
+    color: $secondary-light;
+  }
+
+  &.is-disabled &__value {
+    opacity: $disabled-opacity;
   }
 }

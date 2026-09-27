@@ -1594,11 +1594,10 @@ const MainContent = () => {
                 />
               </div>
             </div>
-            {/* The title is what the icon-only form needs: once the row is
-                squeezed and the label collapses, a bare glyph is the only
-                thing left, and hovering has to be able to say what it does.
-                It carries the full sentence rather than the button text, so
-                it is worth having even when the label is showing. */}
+            {/* A bin and nothing else (Ivan, 2026-09-26: "delete band make a
+                icon only"): beside the dials a worded button was the widest
+                thing in the row for the control used least. The title is what
+                says what it does — the full sentence, armed or not. */}
             <div className="eq-flat-editor__delete-cell" ref={deleteCellRef}>
               <button
                 type="button"
@@ -1620,16 +1619,12 @@ const MainContent = () => {
                   setIsDeleteArmed(true);
                 }}
               >
-                {/* Rendered always, shown only when the row runs out of room.
-                    `currentColor` so it dims with the button when there is only
-                    one band left and deleting is not allowed. */}
+                {/* `currentColor` so it dims with the button when there is
+                    only one band left and deleting is not allowed. */}
                 <TrashIcon
                   className="eq-flat-editor__delete-icon"
                   fill="currentColor"
                 />
-                <span className="eq-flat-editor__delete-label">
-                  {isDeleteArmed ? t('eq.delete.armed') : t('eq.delete')}
-                </span>
               </button>
               {/* The way out, said rather than implied. Pressing elsewhere and
                   Escape both stand the button down, but neither is on screen,
@@ -1645,9 +1640,6 @@ const MainContent = () => {
                 >
                   <span className="eq-flat-editor__keep-icon">
                     <ConfirmIcon variant="cancel" />
-                  </span>
-                  <span className="eq-flat-editor__delete-label">
-                    {t('eq.delete.keep')}
                   </span>
                 </button>
               )}

@@ -639,8 +639,6 @@ const eq: Partial<Dictionary> = {
   'eq.delete': 'Удалить полосу',
   'eq.deleteAria': 'Удалить выбранную полосу эквалайзера',
   'eq.deleteSelectionAria': 'Удалить выбранные полосы ({count})',
-  'eq.delete.armed': 'Удалить',
-  'eq.delete.keep': 'Оставить',
   'eq.delete.keepAria': 'Оставить полосу и отменить удаление.',
   'eq.delete.armedAria':
     'Нажмите ещё раз, чтобы удалить эту полосу. Усиление и Q уйдут вместе с ней, вернуть их нельзя.',

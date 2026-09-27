@@ -30,6 +30,7 @@ const app: Partial<Dictionary> = {
   'recovery.copy': '复制详情',
   'recovery.history': '先前的故障',
   'app.tagline': '你的声音，每台设备，自动生效。',
+  'app.knob.type': '点击输入数值',
   'app.actions': 'FluidEQ 操作',
   'app.actions.title': '音频操作',
   'app.status.ready': '音频引擎已连接',
