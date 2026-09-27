@@ -255,14 +255,26 @@ describe('what stands on the floor', () => {
     ).toContain('background: transparent');
   });
 
-  it('keeps the fill where a control or a picture needs one', () => {
-    // A control's track: the EQ mode menu's segmented rows.
+  // A control's track keeps a fill, and it is the quiet pill's — the accent
+  // at 7% inside the field's edge — never the block's grey: every segmented
+  // row was a pale slab with a paler choice in it (Ivan, 2026-09-26: "not
+  // good, too light color", "all of those").
+  it('fills a segmented track with the quiet pill, and its choice with the selection', () => {
+    const track = declarationsOf(compiledCss('Dsp.scss'), '.segmented');
+    expect(track).toContain(
+      'background: color-mix(in srgb, var(--accent) 7%, transparent)',
+    );
+    expect(track).not.toContain(BLOCK);
+    // The EQ mode menu's rows are the same track, with no fill of their own.
     expect(
       declarationsOf(
         compiledCss('EqModeSelect.scss'),
         '.eq-mode-menu .segmented.eq-mode-menu__choices',
       ),
-    ).toContain(BLOCK);
+    ).not.toContain('background');
+    expect(
+      declarationsOf(compiledCss('Dsp.scss'), '.segmented__option.is-selected'),
+    ).toContain('color-mix(in srgb, var(--accent) 16%, transparent)');
   });
 
   // What floats over the karaoke stage's picture keeps a fill, and it is the

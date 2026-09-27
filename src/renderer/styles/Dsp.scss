@@ -645,12 +645,6 @@ $dsp-rail-offset: 110ms;
     margin-left: auto;
   }
 
-  .segmented__option {
-    flex: 1 1 auto;
-    justify-content: center;
-    text-align: center;
-  }
-
   > .dsp-band-title {
     width: 100%;
     text-align: center;
@@ -1152,12 +1146,6 @@ $dsp-rail-offset: 110ms;
   .segmented {
     min-width: min(100%, 360px);
     max-width: 100%;
-  }
-
-  .segmented__option {
-    flex: 1 1 auto;
-    justify-content: center;
-    text-align: center;
   }
 }
 
@@ -2762,35 +2750,44 @@ $dsp-pane-columns: 6;
 // ternary: you could not see what you were choosing between without opening a
 // menu to find out. The three that stayed are the ones with long lists or long
 // labels, where a menu is still the right shape.
-// On the recessed block the EQ mode menu's rows stand on (Ivan, 2026-09-22,
-// of those: "use the one that sliders in volume use"), not the sliders'
-// groove colour: that lighter slate is right for a 5px line and, filling a
-// whole row, read as a grey from no palette — here as much as there.
+// The quiet pill's own face (`field-surface`: the accent at 7% inside the
+// field's edge), the one every select and quiet button beside it wears, with
+// the chosen option in the selection tint (`$selected-accent`). It stood on
+// the block colour with the choice at 20% of the accent over it: a pale slab
+// with a paler one inside, the lightest thing on every card it was on (Ivan,
+// 2026-09-26: "not good, too light color", "all of those").
 .segmented {
   display: flex;
   flex: 0 0 auto;
   padding: 2px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: $block-lift;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
 }
 
+// The options share whatever width the track is given and hold their words
+// in their middle. Sized to their words alone, a track set wider than them —
+// the hum filter's 260px — kept all three against its left end, with the
+// rest of it empty ("and centered").
 .segmented__option {
   position: relative;
+  flex: 1 1 auto;
   padding: 4px 10px;
   border: 0;
   border-radius: $radius-xs;
   background: none;
   color: $text-faint;
   font-size: $text-body;
+  text-align: center;
   white-space: nowrap;
   cursor: pointer;
   transition:
     background 130ms ease,
     color 130ms ease;
 
-  &:hover:not(:disabled) {
-    color: rgba($white, 0.88);
+  &:hover:not(:disabled, .is-selected) {
+    color: $text-primary;
+    background: $hover-accent;
   }
 
   &:disabled {
@@ -2799,8 +2796,8 @@ $dsp-pane-columns: 6;
   }
 
   &.is-selected {
-    background: color-mix(in srgb, $secondary-default 20%, transparent);
-    color: $white;
+    background: $selected-accent;
+    color: $secondary-light;
   }
 }
 
@@ -2814,7 +2811,7 @@ $dsp-pane-columns: 6;
     bottom: 4px;
     left: 0;
     width: 1px;
-    background: rgba($white, 0.1);
+    background: $border-field;
     content: '';
   }
 }
