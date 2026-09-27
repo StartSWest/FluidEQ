@@ -30,10 +30,65 @@ interface IRoomBackdropProps {
 }
 
 /**
- * The room: walls drawn to its size, fading as they absorb and shining a
+ * A measurement's figure is 10px text: about this wide per character, with
+ * this much clear line either side of it and this far from its middle to its
+ * top and bottom.
+ */
+const FIGURE_CHAR = 5.6;
+const FIGURE_CLEAR = 4;
+const FIGURE_HALF_HEIGHT = 5;
+
+/**
+ * How far along a measurement's line, either side of its figure, the line
+ * breaks so the figure stands in the gap — a drawing's dimension, and no
+ * halo: a halo in any one colour was a dark box on a floor of another.
+ */
+const figureBreak = (figure: string, angleDeg: number) => {
+  const radians = (angleDeg * Math.PI) / 180;
+  const across = Math.abs(Math.sin(radians));
+  const along = Math.abs(Math.cos(radians));
+  const byWidth = (figure.length * FIGURE_CHAR) / 2 + FIGURE_CLEAR;
+  const byHeight = FIGURE_HALF_HEIGHT + FIGURE_CLEAR;
+  return Math.min(
+    across > 0 ? byWidth / across : Infinity,
+    along > 0 ? byHeight / along : Infinity,
+  );
+};
+
+/** A measurement's line from `from` to `to` out along `angleDeg`, broken at `at`. */
+const MeasureLine = ({
+  angleDeg,
+  from,
+  to,
+  at,
+  gap,
+}: {
+  angleDeg: number;
+  from: number;
+  to: number;
+  at: number;
+  gap: number;
+}) => (
+  <>
+    {[
+      [from, at - gap],
+      [at + gap, to],
+    ]
+      .filter(([start, end]) => end - start > 1)
+      .map(([start, end]) => {
+        const a = polar(angleDeg, start);
+        const b = polar(angleDeg, end);
+        return <line key={start} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />;
+      })}
+  </>
+);
+
+/**
+ * The room: walls drawn to its size, fading as they absorb, the floor lit a
  * little while they are hard, the ring the speakers stand on, and the room's
  * side and the speakers' distance in metres, so the dials and the picture
- * agree.
+ * agree. Flat, like every plot in the app: no radial floor, no blurred shine
+ * (Ivan, 2026-09-26: "make room box also flat and nice").
  */
 export const RoomBackdrop = ({
   room,
@@ -45,33 +100,28 @@ export const RoomBackdrop = ({
   const wallRight = CENTRE + wallHalf;
   const wallTop = CENTRE - wallHalf;
   const sizeLineY = CENTRE + wallHalf + 14;
-  // The corners and the shine's inset follow the room: at 16 they turned a
-  // room drawn small — one whose speakers stand well outside it — into a
-  // lozenge with no corners left to read as a room.
-  const corner = clamp(wallHalf * 0.16, 4, 16);
-  const shineInset = clamp(wallHalf * 0.05, 2, 5);
+  // The corners follow the room, and stay small: a room drawn small — one
+  // whose speakers stand well outside it — must keep corners to read as a
+  // room, and a large one is not a rounded card.
+  const corner = clamp(wallHalf * 0.04, 2, 4);
   const ring = radiusOf(scale, room.distanceM);
   const wallAlpha = 0.16 + (1 - room.walls) * 0.6;
-  // The shine is the sound coming back off the walls, so it is what Space
-  // turns: at nothing there is no wall sound at all, whatever the walls are
-  // made of, and the room goes dark inside its own outline. The wall line
-  // itself stays put — it is the room's shape, and the picture is read for
-  // that before anything else.
-  const shineAlpha =
-    (1 - room.walls) * 0.3 * (spaceOfDb(room.earlyReflectionDb) / 100);
+  // The sound coming back off the walls, as the floor's light: what Space
+  // turns, so at nothing there is none, whatever the walls are made of. It
+  // was a blurred second outline inside the wall, a double border. The wall
+  // line itself stays put — it is the room's shape, and the picture is read
+  // for that before anything else.
+  const reflection =
+    (1 - room.walls) * 0.12 * (spaceOfDb(room.earlyReflectionDb) / 100);
   const distanceAngle = emptiestAngle(room.angles);
-  const distanceStart = polar(distanceAngle, 24 * scale.glyph);
-  const distanceEnd = polar(distanceAngle, ring - 4);
-  const distanceMid = polar(distanceAngle, ring / 2 + 10);
+  const distanceFigure = metres(room.distanceM);
+  const distanceAt = ring / 2 + 10;
+  const distanceMid = polar(distanceAngle, distanceAt);
+  const sizeFigure = metres(room.sizeM);
+  const sizeGap = figureBreak(sizeFigure, 90);
 
   return (
     <>
-      <defs>
-        <radialGradient id="dsp-room-floor" cx="50%" cy="50%" r="62%">
-          <stop offset="0" className="dsp-room-floor-in" />
-          <stop offset="1" className="dsp-room-floor-out" />
-        </radialGradient>
-      </defs>
       <rect
         className="dsp-room-floor"
         x={wallLeft}
@@ -79,17 +129,15 @@ export const RoomBackdrop = ({
         width={wallHalf * 2}
         height={wallHalf * 2}
         rx={corner}
-        fill="url(#dsp-room-floor)"
       />
-      {/* Hard walls shine back into the room; absorbing ones do not. */}
       <rect
-        className="dsp-room-shine"
-        x={wallLeft + shineInset}
-        y={wallTop + shineInset}
-        width={wallHalf * 2 - shineInset * 2}
-        height={wallHalf * 2 - shineInset * 2}
-        rx={Math.max(corner - 4, 2)}
-        style={{ strokeOpacity: shineAlpha }}
+        className="dsp-room-reflection"
+        x={wallLeft}
+        y={wallTop}
+        width={wallHalf * 2}
+        height={wallHalf * 2}
+        rx={corner}
+        style={{ fillOpacity: reflection }}
       />
       <rect
         className="dsp-room-walls"
@@ -110,24 +158,31 @@ export const RoomBackdrop = ({
       <circle className="dsp-room-ring" cx={CENTRE} cy={CENTRE} r={ring} />
       {/* The speakers' distance, measured in the widest gap between them. */}
       <g className="dsp-room-measure">
-        <line
-          x1={distanceStart.x}
-          y1={distanceStart.y}
-          x2={distanceEnd.x}
-          y2={distanceEnd.y}
+        <MeasureLine
+          angleDeg={distanceAngle}
+          from={24 * scale.glyph}
+          to={ring - 4}
+          at={distanceAt}
+          gap={figureBreak(distanceFigure, distanceAngle)}
         />
-        <text
-          className="dsp-room-measure-size"
-          x={distanceMid.x}
-          y={distanceMid.y + 3.5}
-          textAnchor="middle"
-        >
-          {metres(room.distanceM)}
+        <text x={distanceMid.x} y={distanceMid.y + 3.5} textAnchor="middle">
+          {distanceFigure}
         </text>
       </g>
       {/* The room's side, along the bottom wall. */}
       <g className="dsp-room-measure">
-        <line x1={wallLeft} y1={sizeLineY} x2={wallRight} y2={sizeLineY} />
+        <line
+          x1={wallLeft}
+          y1={sizeLineY}
+          x2={CENTRE - sizeGap}
+          y2={sizeLineY}
+        />
+        <line
+          x1={CENTRE + sizeGap}
+          y1={sizeLineY}
+          x2={wallRight}
+          y2={sizeLineY}
+        />
         <line
           x1={wallLeft}
           y1={sizeLineY - 4}
@@ -140,13 +195,8 @@ export const RoomBackdrop = ({
           x2={wallRight}
           y2={sizeLineY + 4}
         />
-        <text
-          className="dsp-room-measure-size"
-          x={CENTRE}
-          y={sizeLineY + 4}
-          textAnchor="middle"
-        >
-          {metres(room.sizeM)}
+        <text x={CENTRE} y={sizeLineY + 3.5} textAnchor="middle">
+          {sizeFigure}
         </text>
       </g>
     </>
@@ -176,11 +226,18 @@ interface IRoomSpeakerBodyProps {
   point: { x: number; y: number };
   label: { x: number; y: number };
   /** 0 asleep or muted, to 1 at full level. */
-  glow: number;
+  level: number;
   isMuted: boolean;
   isSoloed: boolean;
   isSelected: boolean;
 }
+
+/**
+ * How much of the accent a cabinet's face takes at full level. Its level was a
+ * blurred halo round the cabinet, lit cyan whatever the window's colours; the
+ * face itself fills instead, flat, and inside its own edge.
+ */
+const LEVEL_FILL = 0.36;
 
 /** A speaker on the ring, turned to face the listener, under its name. */
 export const RoomSpeakerBody = ({
@@ -188,19 +245,12 @@ export const RoomSpeakerBody = ({
   angle,
   point,
   label,
-  glow,
+  level,
   isMuted,
   isSoloed,
   isSelected,
 }: IRoomSpeakerBodyProps) => (
   <>
-    <circle
-      className="dsp-room-speaker-glow"
-      cx={point.x}
-      cy={point.y}
-      r={14 + glow * 12}
-      style={{ opacity: 0.18 + glow * 0.42 }}
-    />
     <g transform={`translate(${point.x} ${point.y}) rotate(${angle + 180})`}>
       <rect
         className="dsp-room-speaker-box"
@@ -208,7 +258,16 @@ export const RoomSpeakerBody = ({
         y={-16}
         width={22}
         height={32}
-        rx={5}
+        rx={3}
+      />
+      <rect
+        className="dsp-room-speaker-level"
+        x={-11}
+        y={-16}
+        width={22}
+        height={32}
+        rx={3}
+        style={{ fillOpacity: level * LEVEL_FILL }}
       />
       <circle className="dsp-room-speaker-driver" cy={5} r={5.5} />
       <circle className="dsp-room-speaker-tweeter" cy={-7} r={2.5} />
@@ -245,7 +304,7 @@ export const RoomSpeakerBody = ({
 
 interface IRoomSubBodyProps {
   /** 0 while the stream has no subwoofer feed or the sub is muted. */
-  glow: number;
+  level: number;
   /** The picture's own scale, which the cabinet takes and its name does not. */
   glyph: number;
   isLit: boolean;
@@ -255,11 +314,11 @@ interface IRoomSubBodyProps {
 
 /**
  * The sub: on the floor by the front wall, where subs live. It has no
- * direction and no place on the ring, so it is not dragged; its glow is the
+ * direction and no place on the ring, so it is not dragged; its level is the
  * Sub dial's.
  */
 export const RoomSubBody = ({
-  glow,
+  level,
   glyph,
   isLit,
   isMuted,
@@ -273,18 +332,22 @@ export const RoomSubBody = ({
       {isSelected ? (
         <circle className="dsp-room-speaker-select" r={26} />
       ) : undefined}
-      <circle
-        className="dsp-room-speaker-glow"
-        r={14 + glow * 12}
-        style={{ opacity: isLit ? 0.18 + glow * 0.42 : 0 }}
-      />
       <rect
         className="dsp-room-speaker-box"
         x={-15}
         y={-15}
         width={30}
         height={30}
-        rx={5}
+        rx={3}
+      />
+      <rect
+        className="dsp-room-speaker-level"
+        x={-15}
+        y={-15}
+        width={30}
+        height={30}
+        rx={3}
+        style={{ fillOpacity: isLit ? level * LEVEL_FILL : 0 }}
       />
       <circle className="dsp-room-speaker-driver" cy={1} r={8.5} />
       <circle className="dsp-room-speaker-tweeter" cx={9} cy={-9} r={2} />

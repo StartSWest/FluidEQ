@@ -297,7 +297,7 @@ const DspRoomGraph = ({
   // The sub keeps to its corner: deeper in a big room, tucked right into it
   // in a small one, where the front-left speaker stands at the wall.
   const subInset = clamp(wallHalf * 0.25, 6, 44);
-  const subGlow = subFed ? clamp((room.subDb + 12) / 24, 0, 1) : 0;
+  const subLevel = subFed ? clamp((room.subDb + 12) / 24, 0, 1) : 0;
   const { mutes } = room;
   // The speaker heard alone, if the mutes spell one: ringed, so a solo reads
   // as a solo and not as six separate mutes.
@@ -309,7 +309,7 @@ const DspRoomGraph = ({
       angle,
       point: polar(angle, radiusOf(scale, room.distances[at])),
       label: polar(angle, radiusOf(scale, room.distances[at]) + 28),
-      glow:
+      level:
         fed[at] && !mutes[at] ? clamp((room.levels[at] + 24) / 24, 0, 1) : 0,
       asleep: !fed[at],
       worked: derived[at] === true,
@@ -347,7 +347,7 @@ const DspRoomGraph = ({
           frontLabel={t('dsp.room.front')}
         />
         {/* Each speaker's direct path to the head, brighter the louder it is. */}
-        {speakers.map(({ at, point, glow, asleep }) => (
+        {speakers.map(({ at, point, level, asleep }) => (
           <line
             key={SPEAKER_NAMES[at]}
             className="dsp-room-path"
@@ -355,7 +355,7 @@ const DspRoomGraph = ({
             y1={CENTRE}
             x2={point.x}
             y2={point.y}
-            style={{ opacity: asleep ? 0.03 : 0.06 + glow * 0.22 }}
+            style={{ opacity: asleep ? 0.03 : 0.06 + level * 0.22 }}
           />
         ))}
         {/* Asleep ones first, so an awake speaker standing on top of one is
@@ -368,7 +368,7 @@ const DspRoomGraph = ({
               angle,
               point,
               label,
-              glow,
+              level,
               asleep,
               worked,
               muted,
@@ -403,7 +403,7 @@ const DspRoomGraph = ({
                   angle={angle}
                   point={point}
                   label={label}
-                  glow={glow}
+                  level={level}
                   isMuted={muted}
                   isSoloed={soloed}
                   isSelected={isSelected}
@@ -413,7 +413,7 @@ const DspRoomGraph = ({
           )}
         {/* The sub: on the floor by the front wall, where subs live. It has
             no direction and no place on the ring, so it is not dragged; its
-            glow is the Sub dial's, and it sleeps while the stream has no
+            level is the Sub dial's, and it sleeps while the stream has no
             subwoofer feed. */}
         <g
           className={`dsp-room-sub${subFed ? '' : ' is-asleep'}${
@@ -434,7 +434,7 @@ const DspRoomGraph = ({
           onKeyDown={subHandle.onKeyDown}
         >
           <RoomSubBody
-            glow={subGlow}
+            level={subLevel}
             glyph={scale.glyph}
             isLit={subFed && !mutes[ROOM_SPEAKERS]}
             isMuted={mutes[ROOM_SPEAKERS] === true}
