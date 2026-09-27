@@ -472,19 +472,11 @@ export const BODY_STOPS = [
 ];
 
 /**
- * The trace's colours by mode, applied globally to every style. Rainbow
- * mode uses the site signal-deck's exact five-stop palette; the default
- * "cyan tones" mode a three-stop cyan gradient — bright cyan at the ends
- * fading to a light cyan at the middle. Same offsets in both, so every
- * style lines up bar-for-bar and sample-for-sample regardless of mode.
+ * The trace's colours outside Rainbow mode, applied to every style: deep
+ * teal at the ends through cyan to an ice white in the middle. In Rainbow
+ * mode the trace is the mode's own palette (`rainbowGradientStops`), which
+ * replaced a fixed five-stop spectrum of its own here (2026-09-26).
  */
-export const TRACE_RAINBOW_STOPS = [
-  { offset: 0, colour: '#00e5ff' },
-  { offset: 0.28, colour: '#b6ff4a' },
-  { offset: 0.52, colour: '#ffe66d' },
-  { offset: 0.76, colour: '#ff3cac' },
-  { offset: 1, colour: '#8b5cff' },
-];
 export const TRACE_CYAN_STOPS = [
   { offset: 0, colour: '#0077a3' }, // deep teal
   { offset: 0.28, colour: '#00c5ff' }, // cyan

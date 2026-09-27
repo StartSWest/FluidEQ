@@ -86,7 +86,6 @@ import {
   SPECTRUM_HUE_FLAT,
   SOFT_GLOW_WAVEFORM_STYLES,
   TRACE_CYAN_STOPS,
-  TRACE_RAINBOW_STOPS,
   TRACE_TINT_ROLES,
   WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_BLEED,
@@ -120,6 +119,7 @@ import {
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readAccentLight } from './utils/theme';
+import { rainbowGradientStops, rainbowRgbAt } from './utils/rainbowPalette';
 import { tintedSpectrumHue, tintedStops } from './utils/sceneAccentRamp';
 import './styles/WaveformVisualizer.scss';
 
@@ -626,6 +626,20 @@ const WaveformVisualizer = () => {
         // No look to tune here — the pane is what it is, so this is always
         // the spacing the form was drawn at.
         0,
+        // In Rainbow mode each bar is its place in the palette the mode is
+        // using, as the trace over it is, lit at the top and fading out.
+        isEuphoricRef.current
+          ? (across, _energy, y, height, topAlpha) => {
+              const [red, green, blue] = rainbowRgbAt(across);
+              const bar = context.createLinearGradient(0, y, 0, y + height);
+              bar.addColorStop(
+                0,
+                `rgba(${red}, ${green}, ${blue}, ${topAlpha})`,
+              );
+              bar.addColorStop(1, `rgba(${red}, ${green}, ${blue}, 0.06)`);
+              return bar;
+            }
+          : undefined,
       );
     }
 
@@ -637,8 +651,15 @@ const WaveformVisualizer = () => {
     // One rule for every style: rainbow when euphoria is on, cyan tones
     // when it is off. No per-style distinction — the whole pane changes
     // together, and the mode carries the difference, not the shape.
+    //
+    // The rainbow is the mode's own palette (`rainbowPalette.ts`) — Lagoon,
+    // or the Plus visualizer's colours — first to last across the pane. It
+    // was a fixed spectrum of its own, lime and yellow and pink, the one
+    // thing in Rainbow mode that ignored the palette (Ivan, 2026-09-26:
+    // "make top wave meter also same arcoiris as the theme not fully
+    // rainbow").
     const traceStops = isEuphoricRef.current
-      ? TRACE_RAINBOW_STOPS
+      ? rainbowGradientStops()
       : tintedStops(TRACE_CYAN_STOPS, TRACE_TINT_ROLES);
     const traceRamp = context.createLinearGradient(
       WAVEFORM_BLEED,
