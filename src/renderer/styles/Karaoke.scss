@@ -449,8 +449,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin: 12px 0 12px 12px;
     border-color: color-mix(in srgb, $secondary-light 20%, transparent);
     // The card colour, opaque: the rows have to read over whatever the
-    // artwork is, and a card is what every other list in the app is.
-    background: $block-lift;
+    // artwork is, and a card is what every other list in the app is. The
+    // card itself laid over the floor, as Library's Up next is — the block
+    // colour was a step lighter than every card (2026-09-26).
+    background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
   }
 
   .karaoke-workspace__stage {
@@ -851,10 +853,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-s;
   transition: $transition-control;
 
+  // The choosing tint on the card, not a lighter slab laid in it.
   &:hover,
   &:focus-within {
     border-color: rgba($edge-tint, 0.11);
-    background: $block-lift;
+    background: $hover-accent;
   }
 
   &.is-selected {

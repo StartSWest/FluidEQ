@@ -2762,13 +2762,17 @@ $dsp-pane-columns: 6;
 // ternary: you could not see what you were choosing between without opening a
 // menu to find out. The three that stayed are the ones with long lists or long
 // labels, where a menu is still the right shape.
+// On the recessed block the EQ mode menu's rows stand on (Ivan, 2026-09-22,
+// of those: "use the one that sliders in volume use"), not the sliders'
+// groove colour: that lighter slate is right for a 5px line and, filling a
+// whole row, read as a grey from no palette — here as much as there.
 .segmented {
   display: flex;
   flex: 0 0 auto;
   padding: 2px;
-  border: 1px solid rgba($white, 0.09);
+  border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  background: $track-well;
+  background: $block-lift;
 }
 
 .segmented__option {
