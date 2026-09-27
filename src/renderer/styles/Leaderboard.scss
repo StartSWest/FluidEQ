@@ -142,34 +142,29 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow: hidden;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--medal) 13%, transparent),
-      transparent 58%
-    ),
-    $block-lift;
+  // The card every pane is (`card-surface`), flat (Ivan, 2026-09-27:
+  // "leaderboard bg too", of the DSP card's). It was the block colour under
+  // a wash of the medal, a lighter slab per place, lifted by a drop shadow
+  // under the pointer.
+  background: $card-glow, $surface-card;
   text-align: center;
-  transition:
-    border-color $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
+  transition: border-color $motion-fast $ease-out;
   @include stagger-in(3, 60ms, 80ms);
 
-  // The medal's edge along the top, brightest in the middle.
+  // The medal's edge along the top, one flat stroke of the metal.
   &::before {
     position: absolute;
     top: 0;
-    right: 16%;
-    left: 16%;
+    right: 24%;
+    left: 24%;
     height: 2px;
     border-radius: 0 0 2px 2px;
-    background: linear-gradient(90deg, transparent, var(--medal), transparent);
+    background: color-mix(in srgb, var(--medal) 75%, transparent);
     content: '';
   }
 
   &:hover {
     border-color: color-mix(in srgb, $secondary-default 42%, transparent);
-    box-shadow: 0 10px 28px rgba($black, 0.32);
   }
 
   &--1 {
@@ -239,22 +234,20 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 24px;
   color: color-mix(in srgb, var(--medal) 18%, $black);
   border-radius: 50%;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--medal) 55%, $white),
-    var(--medal)
-  );
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%);
+  // The metal, flat: no sheen across it and no lit edge.
+  background: var(--medal);
   font-size: $text-small;
   font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
 }
 
+// A ring of the metal a step off the avatar. An outline, so the gap is the
+// card itself: the gap was painted in the block colour and showed as a grey
+// ring on the card.
 .leaderboard__place .community__avatar--podium {
   margin-bottom: 4px;
-  box-shadow:
-    0 0 0 2px $block-lift,
-    0 0 0 3px color-mix(in srgb, var(--medal) 70%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--medal) 70%, transparent);
+  outline-offset: 2px;
 }
 
 .leaderboard__place--1 .community__avatar--podium {
@@ -358,26 +351,20 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 8px 14px 8px 8px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  transition:
-    border-color $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
+  // The card, as the podium's places are, flat: no shadow under the pointer.
+  background: $card-glow, $surface-card;
+  transition: border-color $motion-fast $ease-out;
   @include stagger-in(14, 24ms, 140ms);
 
   &:hover {
     border-color: color-mix(in srgb, $secondary-default 42%, transparent);
-    box-shadow: 0 8px 22px rgba($black, 0.28);
   }
 
-  // Your own row, wherever it lands.
+  // Your own row, wherever it lands: the card in the selection's tint, flat.
+  // It was the block colour under an accent wash fading across it.
   &--me {
     border-color: color-mix(in srgb, $secondary-default 55%, transparent);
-    background:
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, $secondary-default 10%, transparent),
-        color-mix(in srgb, $secondary-default 2%, transparent) 70%
-      ),
-      $block-lift;
+    background: linear-gradient($hover-accent 0 0), $card-glow, $surface-card;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -441,7 +428,8 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 4px;
   overflow: hidden;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 7%, transparent);
+  // The app's one empty-track colour, not a wash of white.
+  background: $track-well;
 
   > span {
     display: block;

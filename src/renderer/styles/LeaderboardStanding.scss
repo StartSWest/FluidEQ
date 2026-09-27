@@ -24,13 +24,11 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 14px $spacing-l;
   border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
   border-radius: $radius-m;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, $secondary-default 10%, transparent),
-      color-mix(in srgb, $secondary-default 2%, transparent) 70%
-    ),
-    $block-lift;
+  // The card every pane is (`card-surface`), flat, inside the accent's edge
+  // that says it is yours. It was the block colour under an accent wash, a
+  // pale slab across the top of the board (Ivan, 2026-09-27: "leaderboard bg
+  // too", of the DSP card's).
+  background: $card-glow, $surface-card;
   @include animate(rise-in, $motion-base, $ease-out, 60ms);
 
   @container eq-panel (max-width: 600px) {
@@ -117,7 +115,8 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 6px;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $white 7%, transparent);
+  // The app's one empty-track colour, not a wash of white.
+  background: $track-well;
 }
 
 .leaderboard-standing__segment {

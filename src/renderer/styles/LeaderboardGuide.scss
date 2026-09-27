@@ -85,7 +85,9 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px 12px 10px 10px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: color-mix(in srgb, $white 2%, transparent);
+  // The card, as the board's own are; white at 2% was a grey haze from no
+  // palette.
+  background: $card-glow, $surface-card;
   @include stagger-in(4, 50ms, 160ms);
 }
 
