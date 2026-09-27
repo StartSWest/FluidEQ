@@ -7,6 +7,9 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useId, type CSSProperties } from 'react';
+import { isMemberLookId } from 'common/memberScenes';
+import { isPremiumLookId } from 'common/scenePacks';
+import { useSelectedLookId } from '../utils/graphStyle';
 import {
   BACKDROP_VEIL_MAX,
   BACKDROP_VEIL_MIN,
@@ -42,7 +45,15 @@ const MAX_SHOWN = 100 - BACKDROP_VEIL_MIN;
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
-  const isBackdrop = useSceneTintMode() === 'cover';
+  // Only while a Backdrop is drawn: the mode chosen AND a Plus visualizer to
+  // draw in it. The mode alone is remembered across looks, so with a
+  // standard visualizer on it left this slider live over a window with
+  // nothing behind it to see through to (Ivan, 2026-09-26: "the
+  // transparency slider is enabled which is not right").
+  const lookId = useSelectedLookId();
+  const isBackdrop =
+    useSceneTintMode() === 'cover' &&
+    (isPremiumLookId(lookId) || isMemberLookId(lookId));
   const transparency = 100 - veil;
   const id = useId();
   return (
