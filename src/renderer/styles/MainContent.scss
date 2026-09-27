@@ -26,29 +26,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Panel heading and toolbar **********************************************
 
-// Two rows, each read across (layout A, Ivan 2026-09-25: "put it on the right
-// top like in the mockup"):
+// One row, read across (Ivan, 2026-09-27: "Parametric EQ title back on the
+// left of the EQ toolbar row"): the page's name and its output's rate on the
+// left, its tools against the right edge, the path's delay and Game mode
+// among them. The applied layers are the "Curves" dropdown at the end of the
+// section pills' line (`CurvesPicker`), so the row that listed them, and the
+// second row the delay stood on, are gone and the graph has their height.
 //
-//   the title                        its tools, against the right edge
-//   the path's delay and game mode   what else is applied, against the right
-//
-// It was three rows stacked and centred — the title with the delay strip in
-// the middle of its line, the eleven tools centred under it, the applied
-// layers centred under those — and on the open floor, above the graph, that
-// read as a column of controls floating in the middle of the page. The tools
-// fit beside the title wherever the page is wider than the container tier
-// below (the title about 230px, the Spanish tools 737, at 24 between); under
-// it the rows stack again as they were.
+// A flex line that wraps, not a grid with a breakpoint: where the tools do
+// not fit beside the name they take the next line, still against the right
+// edge, at whatever width the language gives them. The breakpoint it replaces
+// (990px, "the Spanish tools are the widest") was a guess at those widths.
 //
 // No surface and no inner padding: the page's own 12px inset is the one every
 // tab's heading keeps.
 .main-content-title {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   min-width: 0;
-  grid-template-areas:
-    'title tools'
-    'meta layers';
-  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   gap: 8px 24px;
   margin: 0;
@@ -57,25 +52,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > div:first-child {
     position: relative;
     min-width: 0;
-    grid-area: title;
+    margin-inline-end: auto;
   }
 
   > .eq-toolbar {
-    grid-area: tools;
+    flex: 0 1 auto;
     justify-content: flex-end;
-  }
-
-  > .engine-strip {
-    grid-area: meta;
-    justify-self: start;
-  }
-
-  // Collapsed into its one button as well: that rule centres it for the
-  // stacked rows (`ActiveLayers.scss`), which this row is not.
-  > .active-layers,
-  > .active-layers.is-collapsed {
-    grid-area: layers;
-    justify-content: flex-end;
+    margin-inline-start: auto;
   }
 
   // Matches the intro `h2` sizing on every other tab (Presets, Voicing,
@@ -103,8 +86,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Out of sight and still read: a word that names a control whose glyph is
-// all that shows, and a heading kept for the page's outline alone.
+// Out of sight and still read: a word naming a control whose glyph is all
+// that shows.
 @mixin words-hidden {
   position: absolute;
   width: 1px;
@@ -114,32 +97,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: nowrap;
 }
 
-// The row as the head's second half, above the graph (option C, Ivan
-// 2026-09-27: "go with C"): no title and no layers row — the section pills'
-// line carries the tools, the rate stands after the engine's name
-// (`App.tsx`), the layers stand on the plot (`hasLayersOnPlot`). One line,
-// in the mockup's order: the presets, Smart EQ, the EQ mode, the band count
-// and its plus, the path's delay, Clear.
-//
-// The words go where a glyph already says it — Clear, Add band, "EQ mode",
-// Game mode and "Processing delay" — which is what fits the line beside five
-// pills: each keeps its name for a screen reader, and a tooltip.
+// Above the graph (`is-in-head`) the row is the head's second line: no
+// eyebrow, the name on the tools' middle, and the words gone where a glyph
+// already says it — Clear, Add band, "EQ mode" — so the name and the tools
+// share one line in a window with its side panel open. Each keeps its name
+// for a screen reader, and a tooltip.
 .main-content-title.is-in-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-
-  // Its tools are the row's own items, the delay among them.
-  > .eq-toolbar {
-    display: contents;
+  .main-content-title__heading,
+  h2 {
+    margin: 0;
   }
 
-  .main-content-title__outline,
-  .eq-toolbar__word,
-  .game-mode-switch__word,
-  .latency-readout__name {
+  .eq-toolbar__word {
     @include words-hidden;
   }
 
@@ -151,48 +120,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-inline: 0;
   }
 
-  // The plus leans on the band count before it, as one "20 bands, +".
+  // The plus leans on the band count before it, as one "15 bands, +".
   .quick-layouts + .eq-toolbar__add {
     margin-inline-start: -4px;
   }
+}
 
-  // The toolbar's height, not the field's taller one, like the EQ mode's
-  // trigger beside it.
-  .engine-strip {
-    min-height: $control-height-sm;
+// Game mode and the path's delay, on the section pills' line after the
+// engine's name (`App.tsx`, Ivan 2026-09-27: "put game engine next to fluid
+// engine on the top menu right"): its glyph, its switch and the figure, the
+// two captions kept for a screen reader and the tooltips. The toolbar's
+// height, standing on the line's middle like the name, and never squeezed:
+// the pills scroll before it gives.
+.workspace-section-header > .engine-strip {
+  flex: 0 0 auto;
+  min-height: $control-height-sm;
+  margin-block: 4px;
+
+  .game-mode-switch__word,
+  .latency-readout__name {
+    @include words-hidden;
   }
 
   .game-mode-switch__label {
     gap: 0;
-  }
-}
-
-// Stacked, as the rows were before they met across (`eq-panel` tier and the
-// narrow window below): the title, then the delay strip, the tools and the
-// applied layers each centred on a row of their own.
-@mixin title-stacked {
-  .main-content-title {
-    grid-template-areas:
-      'title'
-      'meta'
-      'tools'
-      'layers';
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-    row-gap: 8px;
-  }
-
-  .main-content-title > .eq-toolbar {
-    justify-content: center;
-  }
-
-  .main-content-title > .engine-strip {
-    justify-self: center;
-  }
-
-  .main-content-title > .active-layers,
-  .main-content-title > .active-layers.is-collapsed {
-    justify-content: center;
   }
 }
 
@@ -615,14 +566,12 @@ $eq-caret-width: 24px;
   }
 }
 
-// The quiet version of the pair.
-//
-// The caret above is drawn in the accent because the half it is attached to
-// is: the Smart EQ button is the recommended action on this toolbar and wears
-// the loud style. The layout picker and the layer list are not actions at all
-// — they open a list — so they take the outline style, and their caret has
-// to follow. Left as it was, a quiet main half carried a bright green end and
-// the two halves read as two controls stuck together.
+// The quiet version of the pair, which every split in the EQ page's toolbar
+// wears: the layout picker and the Curves list, which open a list, and Smart
+// EQ, which was the one filled button in the row until Ivan asked for it like
+// the others (2026-09-27: "make smart eq button same as the others, no
+// fill"). The caret follows its main half, or a quiet half carries a bright
+// end and the two read as two controls stuck together.
 .eq-mode.is-subtle {
   .eq-mode__caret {
     color: $secondary-light;
@@ -1898,16 +1847,6 @@ $eq-bubble-applied-hold: 1.5s;
 
 // *** Responsive *************************************************************
 
-// The title and its tools need about 990px side by side (the Spanish tools
-// are the widest, 737). Below that the rows stack, the tools centred on a row
-// of their own rather than squeezing the heading out. Measured against the
-// panel, not the window: with both sidebars open the panel is ~600px narrower
-// than the viewport, which is why the old viewport-based breakpoint never
-// fired when it needed to.
-@container eq-panel (max-width: 1040px) {
-  @include title-stacked;
-}
-
 // The delete button is the one cell whose width is set by a translated string,
 // so it is the one that decides whether the row fits. "Delete band" is short;
 // "Eliminar banda" and "Bandbreite löschen" are not, and because the column is
@@ -1964,8 +1903,6 @@ $eq-bubble-applied-hold: 1.5s;
 // Two rows of controls read better than six squeezed columns once the EQ card
 // is narrow. The identity and delete rows span the full width.
 @media (max-width: 940px) {
-  @include title-stacked;
-
   .main-content {
     grid-template-columns: 30px minmax(0, 1fr);
     padding-inline: 6px;

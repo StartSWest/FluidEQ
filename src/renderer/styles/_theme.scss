@@ -348,6 +348,12 @@ $surface-floating: color-mix(in srgb, $surface-base 70%, $surface-panel);
 // panel into its mix, and at the veil's thinnest it stood at three quarters
 // over the picture.
 $surface-menu-floor: var(--surface-menu-floor);
+// The one shade under the graph's options, from the top of the block they
+// stand in to the foot of their row (Ivan, 2026-09-27: "same for the entire
+// block top to bottom of the options pane"): the EQ head's over a scene
+// (`head-over-scene`) and the strip's own (`.live-output-controls::before`)
+// are this, so the two read as one even shade with no step between them.
+$chrome-shade: color-mix(in srgb, $surface-base 66%, transparent);
 // The shade a well is painted in: a meter's slot, a picture's frame. Kept
 // next to the shell colour it is derived from.
 $surface-well: var(--surface-well);

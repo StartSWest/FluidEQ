@@ -725,47 +725,25 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
 }
 
-// No surface of its own. The legends and the controls read directly on the
-// graph card, the way they always have.
+// The graph's captions and controls, as one row and not a surface: every
+// button in it carries a face of its own, and the captions between them stand
+// on the strip's text shadow.
 //
-// A pane was tried around them — it makes them legible once the drawing is
-// stretched up behind them, and it costs more than it buys: a bordered box in
-// the corner of a graph is a second card inside a card, and it turns a quiet
-// row of captions into a piece of furniture. Discretion wins; the drawing is
-// what this pane is for.
-// The pane the markup has always described. Everything in here is a caption
-// or a control for the same drawing, and without a surface they were loose
-// glyphs scattered over the plot, held apart from whatever moved underneath
-// by a text shadow alone.
-//
-// The quiet pill's own fill (`field-surface`): the accent at a fourteenth
-// through it, as the section pills and every quiet button above the graph
-// wear it, so the strip reads as one more of them (Ivan, 2026-09-26: "graph
-// option bar more transparent like the pills on top ... so it looks the same
-// as the other pills and buttons"). It was the floating surfaces' colour at
-// 72%, a dark slab over the picture, and in full screen a glass one. No edge
-// of its own, still (2026-09-25: "no borders"): the buttons in it carry
-// theirs, and one round them all is a border round borders.
-//
-// Deliberately no `backdrop-filter`: it would sit over the one thing in this
-// app that repaints continuously, each frame forcing the blur to be sampled
-// again.
+// It has been a pane three times — the floating surfaces' colour at 72%, a
+// glass one in full screen, then the quiet pill's 7% fill — and each was a
+// band laid across the top of the plot, the width of the whole cluster
+// (Ivan, 2026-09-27: "esta barra bg ... algo hay que hacer"). No edge either
+// (2026-09-25: "no borders"), and no `backdrop-filter`: it would sit over the
+// one thing in this app that repaints continuously.
 .graph-legend-group {
   border: 0;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  border-radius: 0;
+  background: none;
   box-shadow: none;
   display: inline-flex;
   align-items: center;
-  padding: 5px 9px;
+  padding: 0;
   gap: $spacing-s;
-
-  // The shadow on the strip exists to hold loose text off a moving
-  // background. Inside the pane there is no moving background, and it only
-  // muddies the letters.
-  > * {
-    text-shadow: none;
-  }
 
   // The pane floats inside the plot (`plotTopMargin`), so only its controls
   // take a press: between them, and on the hint's words, a press goes through
@@ -780,75 +758,47 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The Bands page's applied layers, at the strip's start (`hasLayersOnPlot`,
-// option C, Ivan 2026-09-27), growing into what the legend's cluster leaves.
+// A dark shade under the graph's options, from the top of the plot to the
+// foot of their row, then a soft end (Ivan, 2026-09-27: "add a smooth dark
+// gradient below when those options appear", "same for plus viz", "from the
+// top to the bottom of the options", "add smooth end to the drop shadow").
+// The peaks and the scenes run up behind the strip, and with no surface under
+// it (`.graph-legend-group` has none) the words stood on whatever the picture
+// was doing.
 //
-// Never narrower than its chips, and never wider than the strip
-// (`fit-content`): where the chips do not fit beside the cluster the cluster
-// takes the next line, and only chips wider than a whole line fold behind
-// their count (`ActiveLayers`, which measures this row). Folding first, by
-// the room beside the cluster, looped — folded, the button no longer fitted
-// either, the row got a line of its own, the chips fitted that line and
-// unfolded, and the cluster came back beside them.
+// The strip's own `::before`, so it is as tall as its rows — one, or two
+// where a narrow window wraps them — and fades out and back with them
+// (`is-idle`), nothing left behind when the options are away. It reaches the
+// plot's edges past the strip's own insets: 9px above, 10px at the sides, 56px
+// on the right of a ruled plot (the level scale's gutter). Behind the strip's
+// controls and over the picture: the strip is its own stacking layer.
 //
-// Like the cluster, only its chips take a press: the row floats inside the
-// plot, and between two chips a press is a band handle's.
-.live-output-controls > .active-layers {
-  flex: 1 1 0;
-  min-width: fit-content;
-  justify-content: flex-start;
-  text-shadow: none;
+// Even from top to foot, and the same shade as the EQ head's over a scene
+// (`$chrome-shade`), so under the head the two are one block from the pills
+// to the options with no gap between them ("same for the entire block top to
+// bottom"). Past the foot it falls away over 44px in four steps, so there is
+// no line where the shade stops and the picture begins.
+.live-output-controls::before {
+  position: absolute;
+  z-index: -1;
+  top: -9px;
+  right: -10px;
+  bottom: -44px;
+  left: -10px;
+  content: '';
+  background: linear-gradient(
+    to bottom,
+    $chrome-shade calc(100% - 44px),
+    color-mix(in srgb, $chrome-shade 72%, transparent) calc(100% - 33px),
+    color-mix(in srgb, $chrome-shade 42%, transparent) calc(100% - 22px),
+    color-mix(in srgb, $chrome-shade 16%, transparent) calc(100% - 11px),
+    transparent
+  );
   pointer-events: none;
-
-  > * {
-    pointer-events: auto;
-  }
-
-  // The chips are its name here, as the legend's are.
-  > .active-layers__lede {
-    display: none;
-  }
-
-  // Nothing applied: no row, and the cluster has the strip to itself.
-  &.is-empty {
-    display: none;
-  }
-
-  &.is-collapsed {
-    justify-content: flex-start;
-  }
 }
 
-// On a ruled plot the chips start where the plot does: the gain scale's
-// labels stand in its 50px gutter (`getAxisPadding`) after 8px of air
-// (`GRID_SIDE_MARGIN`), and from the strip's own 10px the first chip lay over
-// "+60 dB", the top of that scale — the right end's `right: 56px` again.
-.graph-wrapper:not(.is-gridless) > .live-output-controls > .active-layers {
-  margin-inline-start: 48px;
-}
-
-// The hint about dragging is for a plot with nothing else to say; with the
-// layers on it, the chips have the room.
-.live-output-controls:has(> .active-layers:not(.is-empty)) .graph-edit-hint {
-  display: none;
-}
-
-// The layers stay when the strip fades (`is-idle`, five still seconds): they
-// say what is playing, as the row under the title they replaced did, and
-// that row never faded. The rest of the strip is controls reached for now
-// and then, and goes as it always has — on the same curves as the strip.
-.live-output-controls:has(> .active-layers:not(.is-empty))
-  > :not(.active-layers) {
-  transition: opacity 320ms ease;
-}
-
-.live-output-controls.is-idle:has(> .active-layers:not(.is-empty)) {
-  opacity: 1;
-
-  > :not(.active-layers) {
-    opacity: 0;
-    transition-duration: 520ms;
-  }
+.graph-wrapper:not(.is-gridless) > .live-output-controls::before {
+  right: -56px;
 }
 
 // One step through the looks, either side of the name.
@@ -1763,42 +1713,6 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
-// The shade the strip of controls stands on over a Plus visualizer
-// (`ScenePlot`, while `useIsGraphChromeHeld`). It carries on the EQ head's
-// shade (`head-over-scene`, which ends at the same 52%) down through the
-// strip's row and a second one where a narrow window wraps it, then eases
-// out into the picture. Held steady: the strip faded out and back over a
-// moving scene, whose light came and went behind it on its own, and the
-// buttons were there one moment and lost the next (Ivan, 2026-09-26). Over
-// the scene's canvas, under the curves and the strip.
-.chart-scene-scrim {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: min(100%, 168px);
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, $surface-base 52%, transparent) 0,
-    color-mix(in srgb, $surface-base 48%, transparent) 56px,
-    color-mix(in srgb, $surface-base 36%, transparent) 92px,
-    color-mix(in srgb, $surface-base 18%, transparent) 122px,
-    color-mix(in srgb, $surface-base 6%, transparent) 146px,
-    transparent
-  );
-  pointer-events: none;
-}
-
-// Only under the EQ head it carries on from. Docked at the foot of another
-// page, or filling the window, the graph has no head above it, and the shade
-// was a dark band across the top of the picture (Ivan, 2026-09-26: "no need
-// for gradient in the top of the graph when the graph is not in the EQ page,
-// so when it's on the bottom").
-.center-workspace:is(:not(.is-graph-first), .is-graph-full) .chart-scene-scrim {
-  display: none;
-}
-
 // A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
 // is about to be, then out of the way once it has faded in over it. Black for
 // a scene whose colour has not been measured, because that is what every
@@ -2419,9 +2333,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // Only the shape of the strip, never its surface.
 //
 // This used to carry a `panel-surface` of its own, from when the controls
-// inside it had none and needed something to sit on over a video. They have
-// their own pane now — see `.graph-legend-group` — and keeping both gave full
-// screen a card inside a card, with two borders a few pixels apart.
+// inside it had none and needed something to sit on over a video. Each has a
+// face of its own now (`.graph-legend-group`), and a surface under them gave
+// full screen a card inside a card, with two borders a few pixels apart.
 //
 // The positioning that used to live here has gone with the absolute layout.
 // `left: auto` existed to let a strip pinned to both edges shrink back to its
@@ -2668,6 +2582,19 @@ it under the terms of the GNU General Public License version 3 or later.
   transition:
     top $motion-base ease,
     right 180ms ease-out;
+}
+
+// In full screen the same shade, across the whole window and from its top
+// edge — behind the header, so there is no gap between it and the options
+// (Ivan, 2026-09-27: "same on fullscreen and make the whole line darker, not
+// just under the options", "leave no gap between the header and the
+// options"). The graph is the window there, so a reach past every side is
+// cut by the window's own edges; the strip's insets move with the header and
+// the side panel, and chasing each of them would leave a sliver somewhere.
+.app-workspace.is-app-full .live-output-controls::before {
+  top: -100vh;
+  right: -100vw;
+  left: -100vw;
 }
 
 .app-workspace.is-app-full.has-top-bar .live-output-controls {

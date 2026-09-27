@@ -43,7 +43,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // dialog by role on the cover it lays over the Maker; its card is the panel
 // inside, and that wears this look from `Karaoke.scss`. Nor the Maker's
 // timing panel, a dialog by role that drops out of a tool like a menu and
-// wears the menus' surface with the Maker's other tool panels.
+// wears the menus' surface with the Maker's other tool panels. Nor the
+// graph's New look panel, which opens out of the graph's strip the same way
+// and wears the same surface (Ivan, 2026-09-27: "new look menu not matching
+// our menus").
 //
 // And not the notices. The engine's trouble card, the song EQ and speech
 // memory toasts, the scene review and the Plus terms notice are dialogs by
@@ -59,6 +62,7 @@ html
     .karaoke-workspace,
     .karaoke-maker__wizard,
     .karaoke-maker__tool-popover,
+    .look-designer,
     .sign-out-confirm,
     .library-detail__confirm,
     .leaderboard-card__confirm,

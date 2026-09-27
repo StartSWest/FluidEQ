@@ -5,17 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The graph's strip of controls over a Plus visualizer: held on screen in the
- * ordinary view, where fading out and back over a moving picture read as
- * buttons appearing and disappearing by themselves (2026-09-26), and faded
- * as before everywhere else.
+ * The graph's strip of controls, and the shades that come with it, fade on
+ * the window's stillness whatever is drawn: a Plus visualizer no longer holds
+ * them on screen, so with the options away the scene is whole to its top
+ * edge (2026-09-27: "only appear when graph options is shown and disappear
+ * when hidden, so we see full plus viz to the top").
  */
 
 import { renderHook } from '@testing-library/react';
-import {
-  useIsGraphChromeHeld,
-  useIsGraphChromeIdle,
-} from '../../../renderer/graph/graphChromeIdle';
+import useIsGraphChromeIdle from '../../../renderer/graph/graphChromeIdle';
 
 const state = { idle: false, fullScreen: false, scene: false };
 
@@ -29,39 +27,36 @@ jest.mock('../../../renderer/utils/graphStyle', () => ({
   useSceneLook: () => (state.scene ? { lookId: 'crystal' } : undefined),
 }));
 
-const read = () => ({
-  idle: renderHook(() => useIsGraphChromeIdle()).result.current,
-  held: renderHook(() => useIsGraphChromeHeld()).result.current,
-});
+const read = () => renderHook(() => useIsGraphChromeIdle()).result.current;
 
-describe('the graph chrome over a Plus visualizer', () => {
+describe('the graph chrome, over any look', () => {
   beforeEach(() => {
     Object.assign(state, { idle: true, fullScreen: false, scene: false });
   });
 
   it('fades on a still pointer with no scene, as it always has', () => {
-    // The control: the window's stillness does reach the strip.
-    expect(read()).toEqual({ idle: true, held: false });
+    expect(read()).toBe(true);
   });
 
-  it('stays on screen, shaded, under a scene in the ordinary view', () => {
+  it('fades on a still pointer under a scene in the ordinary view too', () => {
     state.scene = true;
 
-    expect(read()).toEqual({ idle: false, held: true });
+    expect(read()).toBe(true);
   });
 
-  it('still fades under a scene in full screen, with no shade', () => {
+  it('fades under a scene in full screen', () => {
     state.scene = true;
     state.fullScreen = true;
 
-    expect(read()).toEqual({ idle: true, held: false });
+    expect(read()).toBe(true);
   });
 
   it('shows with the pointer moving, whatever is drawn', () => {
+    // The control: the same rule answers "shown" when the window is not
+    // still, so the three fades above are the stillness, not a stuck answer.
     state.idle = false;
     state.scene = true;
-    state.fullScreen = true;
 
-    expect(read().idle).toBe(false);
+    expect(read()).toBe(false);
   });
 });

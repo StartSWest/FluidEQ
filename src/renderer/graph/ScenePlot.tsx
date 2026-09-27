@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useLayoutEffect, useRef } from 'react';
-import { useIsGraphChromeHeld, useIsGraphChromeIdle } from './graphChromeIdle';
+import useIsGraphChromeIdle from './graphChromeIdle';
 import { publishScenePlot, useGraphSceneRun } from './graphScenePlace';
 import { sceneIdentityOf, type TDrawableScene } from './SceneCanvas';
 import SceneLoading from './SceneLoading';
@@ -72,7 +72,6 @@ export default function ScenePlot({
 
   const run = useGraphSceneRun();
   const isChromeIdle = useIsGraphChromeIdle();
-  const isChromeHeld = useIsGraphChromeHeld();
 
   return (
     <>
@@ -99,10 +98,6 @@ export default function ScenePlot({
         aria-hidden="true"
         style={{ display: 'contents' }}
       />
-      {/* The shade the strip of controls stands on while the scene holds it
-          (`useIsGraphChromeHeld`): over the picture, wherever it is drawn,
-          and under the curves. */}
-      {isChromeHeld && <div className="chart-scene-scrim" aria-hidden="true" />}
       {run && (
         <SceneViewReset
           interaction={run.interaction}

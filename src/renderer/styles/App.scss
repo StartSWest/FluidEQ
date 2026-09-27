@@ -2420,43 +2420,16 @@ textarea,
   }
 }
 
-// The Bands page's head is one line (option C, Ivan 2026-09-27): the pills,
-// then the page's tools against the right edge (`.main-content-title
-// .is-in-head`). A flex line that wraps rather than a breakpoint, because
-// what fits is a matter of the language: where the tools do not fit beside
-// the pills they take a line of their own under them, right-aligned, and the
-// pills' rule runs the whole width above them as it did.
-//
-// The title slot's width container goes: its size is its tools' here, and a
-// width container has no size of its own to give a line to wrap by. Nothing
-// in the row asks it anything once it is laid out like this.
+// The Bands page's head is closer set (Ivan, 2026-09-27: "less gap so things
+// are more close vertically"): its title and tools stand 8px under the pills'
+// rule (the rule's own 4px, then this 4) and the graph's options 11px under
+// them (this 2px, then the strip's own 9px inside the plot), where the gaps
+// were 14 and 19.
 .center-head--eq {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 20px;
+  padding-bottom: 2px;
 
-  > .workspace-section-header {
-    flex: 1 1 auto;
-  }
-
-  > .center-head__title {
-    container-type: normal;
-    flex: 0 1 auto;
-    min-width: 0;
-    margin-inline-start: auto;
-  }
-
-  // Beside the pills there is nothing above it to keep 10px from.
   > .center-head__title:not(:empty) {
-    padding-top: 0;
-  }
-
-  // Beside the engine's name: the rate of what it is playing to, the way the
-  // page's title carried it (`TitleRate`) — 8px from the name, where the
-  // header's 20 between its items would part the two.
-  .workspace-section-header > .title-rate {
-    margin: 6px 0 6px -12px;
+    padding-top: 4px;
   }
 }
 
@@ -3644,11 +3617,7 @@ $tab-bar-inset: 8px;
     pointer-events: auto;
   }
 
-  // Not the layer chips' own buttons (`GraphTheme.scss`): the body, the
-  // strength's info and the × are parts of one chip, which a pill each would
-  // take apart. `:where`, so every rule written against this one still
-  // weighs what it did.
-  button:not(:where(.active-layers *)) {
+  button {
     @include ghost-button;
     min-height: 28px;
     padding: 5px 9px;

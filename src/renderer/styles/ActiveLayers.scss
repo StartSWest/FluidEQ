@@ -127,6 +127,29 @@ it under the terms of the GNU General Public License version 3 or later.
   transform: rotate(180deg);
 }
 
+// A dot of each layer's colour, before the words (mockup A's `●●● Layers`).
+// Filled while the layer plays; switched off, the same colour as a ring, so
+// the dots still count every layer the menu lists.
+.active-layers__dots {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+
+  > i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+
+    &.is-off {
+      background: none;
+      box-shadow: inset 0 0 0 1.5px currentColor;
+      opacity: 0.6;
+    }
+  }
+}
+
 // The chips again, in a column.
 //
 // `max-content` with a cap, not a fixed width: the menu is as wide as its
@@ -145,10 +168,21 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 8px;
   overflow-y: auto;
 
+  // Rows of the menu, not pills in it: no fill and no edge of their own at
+  // rest (Ivan, 2026-09-27: "quita los bg de los pills de ese sub menu"),
+  // and the menus' own wash under the pointer, like every other menu's row.
   .active-layer {
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    border-color: transparent;
+    background: none;
+    transition: background $motion-fast $ease-out;
+
+    &:hover,
+    &:focus-within {
+      background: $hover-accent;
+    }
   }
 }
 
@@ -175,16 +209,15 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// The chip's line on the graph, in the chip.
-//
-// A short bar rather than a dot, because that is the shape it has on the plot —
-// the legend at the foot of the graph uses the same 13px stroke, and two
-// different shapes for the same thing would be one more pairing to work out.
+// The chip's colour on the graph, in the chip: a dot of its line's colour
+// (Ivan, 2026-09-27: "quiero los circulitos de colores en layers"). It was a
+// 10 × 3 bar, the shape of the line, and at that size the colour was the
+// part nobody could see.
 .active-layer__swatch {
-  width: 10px;
-  height: 3px;
+  width: 9px;
+  height: 9px;
   flex: 0 0 auto;
-  border-radius: 2px;
+  border-radius: 50%;
 }
 
 .active-layer__icon {

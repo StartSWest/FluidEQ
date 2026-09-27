@@ -23,28 +23,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The EQ head over the picture: the section pills and the title stand on a
-// shade of the floor that is deepest at the top, where the pills are, so the
-// scene runs up under them (Ivan, 2026-09-25: "fill up to the top the graph
-// only when plus viz", and "in bg mode also like that"). It ends where the
-// plot's own shade begins, at the same 52% (`.chart-scene-scrim`), which
-// holds the graph's strip of controls and then eases out into the picture:
-// one gradient from the pills to below the strip, with no edge between the
-// head and the graph. It used to fade to nothing at the head's foot, and the
-// strip under it stood on whatever the scene was doing (2026-09-26). Lifted
+// shade of the floor, so the scene runs up under them (Ivan, 2026-09-25:
+// "fill up to the top the graph only when plus viz", and "in bg mode also
+// like that"). The same shade as the graph's strip of controls carries on to
+// the foot of its row (`$chrome-shade`, `.live-output-controls::before`): one
+// even block from the pills to the options, with no step between the head and
+// the graph (2026-09-27: "same for the entire block top to bottom"). Lifted
 // over the layer it stands on; inside it the controls keep their own faces.
+//
+// And only while the graph's options are up, like the plot's shade it runs
+// into: with them away the scene is whole to the top of the column (Ivan,
+// 2026-09-27: "only appear when graph options is shown and disappear when
+// hidden, so we see full plus viz to the top"). The shade is its own element
+// (`HeadSceneShade`) under the head's content, faded on the strip's curves.
 //
 // Over the graph's 2 as well, never between the two: the head and the graph
 // do not overlap, but what hangs out of the head does — the Smart EQ bubble
-// under its button, since the Bands page's tools stand on the pills' line
-// (option C, 2026-09-27) — and at 1 the plot painted over it.
+// under its button — and at 1 the plot painted over it.
 @mixin head-over-scene {
   position: relative;
   z-index: 3;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, $surface-base 64%, transparent),
-    color-mix(in srgb, $surface-base 52%, transparent)
-  );
+
+  > .center-head__shade {
+    display: block;
+    background: $chrome-shade;
+  }
+}
+
+// Nothing without a scene behind the head; the mixin above shows it.
+.center-head__shade {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  transition: opacity 320ms ease;
+
+  &.is-idle {
+    opacity: 0;
+    transition-duration: 520ms;
+  }
 }
 
 // A veil of the floor over the scene wherever the window is not the graph:

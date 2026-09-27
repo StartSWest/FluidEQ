@@ -283,22 +283,25 @@ describe('the Bands page with its graph on', () => {
     expect(page.querySelector('.main-content')).toBeInTheDocument();
   });
 
-  it('puts the applied layers on the graph, and on no other page’s graph', async () => {
+  it('names the page and keeps its tools on one row, with no row of layers on the page or the graph', async () => {
     const { container } = await renderShell();
-    const strip = () =>
-      container.querySelector<HTMLElement>(
-        '.graph-wrapper .live-output-controls',
-      );
+    const strip = container.querySelector<HTMLElement>(
+      '.graph-wrapper .live-output-controls',
+    );
+    const row = container.querySelector<HTMLElement>(
+      '.center-head .main-content-title',
+    );
 
-    expect(strip()?.querySelector(':scope > .active-layers')).not.toBeNull();
-    expect(container.querySelector('.center-head .active-layers')).toBeNull();
-
-    await pressTab('EQ Presets', 'presets');
-
-    // POSITIVE CONTROL: the strip is still drawn on the presets page, so the
-    // layers' absence from it is the page's, not a graph that went away.
-    expect(strip()).not.toBeNull();
-    expect(strip()?.querySelector('.active-layers')).toBeNull();
+    // The applied layers are the Curves dropdown among the tools
+    // (`CurvesPicker`), never a row of chips — on the plot or in the head.
+    expect(container.querySelector('.active-layers')).toBeNull();
+    // POSITIVE CONTROL: the strip and the row are drawn, so the absence is
+    // theirs, not a graph or a head that went away.
+    expect(strip).not.toBeNull();
+    expect(row).not.toBeNull();
+    // The page's name is on the row, with its tools.
+    expect(row).toContainElement(bandsTitle());
+    expect(row?.querySelector('.eq-toolbar')).not.toBeNull();
   });
 
   it('keeps the page first in the markup, so the graph is put above it by the stylesheet alone', async () => {
@@ -399,9 +402,8 @@ describe('where the graph is not above the page', () => {
     expect(page.querySelector('.main-content-title')).not.toHaveClass(
       'is-in-head',
     );
-    expect(
-      page.querySelector('.main-content-title > .active-layers'),
-    ).toBeInTheDocument();
+    // The layers are the Curves dropdown here too, never a row of chips.
+    expect(page.querySelector('.active-layers')).toBeNull();
     expect(within(page).getByRole('tablist', { name: 'EQ' })).toBeVisible();
     expect(
       Array.from(

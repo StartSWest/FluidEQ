@@ -144,7 +144,7 @@ import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
 import WorkspaceSectionTabs from './components/WorkspaceSectionTabs';
 import FluidEngineLabel from './components/FluidEngineLabel';
-import OutputRate from './components/OutputRate';
+import ListenedLatency from './components/ListenedLatency';
 import {
   clampToWindow,
   commitPaneSizes,
@@ -223,11 +223,7 @@ import type { TPlayerPage } from './player/PlayerTitleStrip';
 import WindowModeSwitch from './player/WindowModeSwitch';
 import TrafficLightSlot from './components/TrafficLightSlot';
 import runsOnMac from './utils/platform';
-import {
-  setPlayerVisFull,
-  useIsPlayerQueueOpen,
-  usePlayerVisFull,
-} from './player/playerLayout';
+import { setPlayerVisFull, usePlayerVisFull } from './player/playerLayout';
 import {
   afterNextFrame,
   setWindowMode,
@@ -247,6 +243,7 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneCover from './graph/SceneCover';
 import SceneColumnLayer from './graph/SceneColumnLayer';
+import HeadSceneShade from './graph/HeadSceneShade';
 import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
@@ -810,11 +807,11 @@ const AppContent = () => {
    * away — as they are off-tab once silent and no longer the last thing
    * played, and as they
    * have never been on a fresh launch — the deck had nothing to list and a
-   * drop went nowhere, silently. So while the window is the amp and its
-   * queue is open, the Library counts as opened and as active below.
+   * drop went nowhere, silently. So while the window is the amp, the Library
+   * counts as opened and as active below: its queue is one tab of the amp's
+   * sheet away (the Stage, 2026-09-27), and its count names that tab.
    */
-  const isPlayerQueueOpen = useIsPlayerQueueOpen();
-  const playerWantsLibrary = windowMode === 'player' && isPlayerQueueOpen;
+  const playerWantsLibrary = windowMode === 'player';
   /**
    * THE AMP KEEPS ITS OWN THEME (Ivan, 2026-09-22). The full app can be Dark
    * while the amp is Light: the two are never on screen at once, so there is
@@ -953,10 +950,6 @@ const AppContent = () => {
    * by each panel, because they are five separate pages and a row that is
    * part of the page has to be inside it.
    *
-   * Above the graph the Bands page has no title of its own any more (the row
-   * beside these pills is its tools, `MainContent`), so the output's rate it
-   * carried stands after the engine's name: the rate of what that engine is
-   * playing to.
    */
   const eqGroupPills = (
     <WorkspaceSectionTabs
@@ -977,7 +970,11 @@ const AppContent = () => {
         isEngineOnOutput={isEngineOnOutput}
         isPartlyOff={engineTrouble?.kind === 'problems'}
       />
-      {isGraphFirst && activeWorkspaceTab === 'eq' && <OutputRate />}
+      {/* The Bands page's Game mode and the path's delay, next to the
+          engine's name they belong to (Ivan, 2026-09-27: "put game engine next
+          to fluid engine on the top menu right"), the graph above the bands
+          or not. */}
+      {activeWorkspaceTab === 'eq' && <ListenedLatency />}
     </WorkspaceSectionTabs>
   );
   // The player bar's deck stands under this column's middle.
@@ -2903,6 +2900,9 @@ const AppContent = () => {
                 !isEqReachingSound ? ' is-engine-disabled' : ''
               }`}
             >
+              {/* Its shade over a scene, which comes and goes with the
+                  graph's options (`HeadSceneShade`). */}
+              <HeadSceneShade />
               {eqGroupPills}
               <div className="center-head__title" ref={setEqTitleSlot} />
             </div>
@@ -3226,7 +3226,7 @@ const AppContent = () => {
             {showsGraph ? (
               <FrequencyResponseChart
                 isVisible
-                hasLayersOnPlot={isGraphFirst && activeWorkspaceTab === 'eq'}
+                hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
               />
             ) : null}
             {/* The graph's Plus visualizer, beside the graph and not in it:

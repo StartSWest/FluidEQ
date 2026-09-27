@@ -125,7 +125,7 @@ import {
   useSelectedLookId,
 } from '../utils/graphStyle';
 import { setChromeHeld } from '../utils/idleChrome';
-import { useIsGraphChromeIdle } from './graphChromeIdle';
+import useIsGraphChromeIdle from './graphChromeIdle';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -169,7 +169,6 @@ import {
   IGraphData,
   SUPPORTING_CURVE_OPACITY,
 } from './buildChartData';
-import ActiveLayers from '../components/ActiveLayers';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -516,12 +515,13 @@ interface IFrequencyResponseChartProps {
   /** Controlled visibility for the active workspace tab. */
   isVisible?: boolean;
   /**
-   * The Bands page's applied layers stand on the plot, at the strip's start,
-   * in place of the legend's chip for each (option C, Ivan 2026-09-27): the
-   * row they had under the page's title is gone while the graph stands above
-   * the bands. Showing or hiding a layer's line stays in the View menu.
+   * The Bands page's applied layers are the "Curves" dropdown in the page's
+   * head (`CurvesPicker`, Ivan 2026-09-27: "make applied filters always on
+   * curves dropdown"), each row there naming its line with its colour, so the
+   * legend here keeps only the sum's chip. Showing or hiding a layer's line
+   * stays in the View menu.
    */
-  hasLayersOnPlot?: boolean;
+  hasLayersInHead?: boolean;
 }
 
 /**
@@ -536,7 +536,7 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 
 const FrequencyResponseChart = ({
   isVisible,
-  hasLayersOnPlot = false,
+  hasLayersInHead = false,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -890,10 +890,10 @@ const FrequencyResponseChart = ({
       curve === 'total' ? ROW_ORDER.length : ROW_ORDER.indexOf(curve);
     curveChips.sort((a, b) => rank(a.curve) - rank(b.curve));
   }
-  // With the layers on the plot their own chips name their lines (swatch and
-  // all), so the legend keeps only the sum's; the View menu still offers
-  // every one of them (`curveToggles`).
-  const legendChips = hasLayersOnPlot
+  // With the layers in the head's "Curves" their own rows name their lines,
+  // so the legend keeps only the sum's; the View menu still offers every one
+  // of them (`curveToggles`).
+  const legendChips = hasLayersInHead
     ? curveChips.filter((chip) => chip.curve === 'total')
     : curveChips;
 
@@ -1720,12 +1720,9 @@ const FrequencyResponseChart = ({
           two things deciding the same question is how they come to
           disagree. */}
       {drawnScene && <GraphUpdateNotice />}
+      {/* Its shade is its own `::before` (`GraphTheme.scss`), so it is as
+          tall as its rows and comes and goes with them. */}
       <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
-        {/* The layers at the strip's start, each chip its line's swatch, its
-            A/B, its strength and its ×, the legend's own cluster keeping the
-            right. Only while the curves are on the plot: in front of the live
-            output there is nothing drawn for them to name. */}
-        {hasLayersOnPlot && !isLiveOutputForeground && <ActiveLayers />}
         {/* One pane for the whole right-hand cluster.
 
             The card used to be on the style picker alone, which left the
@@ -1767,7 +1764,8 @@ const FrequencyResponseChart = ({
               right-aligned over the plot, so chips that do not fit do not stop
               at an edge — they push the picker and the menu off the left of the
               card. */}
-          {areChipsCollapsed && legendChips.length > 0 ? (
+          {/* A menu of one chip is a detour to the chip: one stays itself. */}
+          {areChipsCollapsed && legendChips.length > 1 ? (
             <CurveLegendMenu chips={legendChips} />
           ) : (
             legendChips.map((chip) => (

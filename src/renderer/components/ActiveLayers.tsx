@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import ActiveLayerChips from './ActiveLayerChips';
+import ActiveLayersPicker from './ActiveLayersPicker';
 import useActiveLayers from './useActiveLayers';
 import '../styles/ActiveLayers.scss';
 
@@ -60,8 +60,6 @@ const ActiveLayers = () => {
   const rowRef = useRef<HTMLDivElement | null>(null);
   const naturalWidthRef = useRef(0);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuHolder = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const row = rowRef.current;
@@ -100,39 +98,6 @@ const ActiveLayers = () => {
     return () => observer.disconnect();
   }, [layers.length]);
 
-  // Nothing to hang a menu off once the row fits again.
-  useEffect(() => {
-    if (!isCollapsed) {
-      setIsMenuOpen(false);
-    }
-  }, [isCollapsed]);
-
-  // Closes on a press elsewhere and on Escape, like every other menu here.
-  useEffect(() => {
-    if (!isMenuOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (
-        !menuHolder.current?.contains(event.target as Node) &&
-        !isInsideAnchoredMenu(event.target)
-      ) {
-        setIsMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isMenuOpen]);
-
   // alternative was floating it over the layout, which trades the jump for a
   // strip that covers whatever is underneath.
   if (layers.length === 0) {
@@ -151,8 +116,6 @@ const ActiveLayers = () => {
     (layer) => (layer.feature && isBypassed(layer.feature)) || layer.isInactive,
   ).length;
 
-  const chips = <ActiveLayerChips active={active} />;
-
   return (
     <div
       ref={rowRef}
@@ -161,51 +124,19 @@ const ActiveLayers = () => {
     >
       <span className="active-layers__lede">{t('eq.layers')}</span>
       {isCollapsed ? (
-        // The same split control as the Smart EQ button and the layout picker
-        // beside it, down to their classes: a main half and a caret attached
-        // to it. Written as a plain button with a chevron inside, it was the
-        // one dropdown in this header that looked like something else.
-        <span
-          className={`eq-mode is-subtle active-layers__picker${
-            isMenuOpen ? ' is-open' : ''
-          }`}
-          ref={menuHolder}
-        >
-          <button
-            type="button"
-            className="button small subtle eq-mode__main active-layers__trigger"
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((wasOpen) => !wasOpen)}
-          >
-            {offCount > 0
+        <ActiveLayersPicker
+          active={active}
+          label={
+            offCount > 0
               ? t('eq.layers.countOff', {
                   count: layers.length,
                   off: offCount,
                 })
-              : t('eq.layers.count', { count: layers.length })}
-          </button>
-          <button
-            type="button"
-            className="eq-mode__caret"
-            aria-label={t('eq.layers.aria')}
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((wasOpen) => !wasOpen)}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden>
-              <path d="M4 6.5l4 4 4-4" />
-            </svg>
-          </button>
-          <AnchoredMenu
-            anchor={menuHolder.current}
-            isOpen={isMenuOpen}
-            className="active-layers__menu"
-            ariaLabel={t('eq.layers.aria')}
-          >
-            {chips}
-          </AnchoredMenu>
-        </span>
+              : t('eq.layers.count', { count: layers.length })
+          }
+        />
       ) : (
-        chips
+        <ActiveLayerChips active={active} />
       )}
     </div>
   );
