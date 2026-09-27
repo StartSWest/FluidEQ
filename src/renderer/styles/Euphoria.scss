@@ -509,6 +509,22 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
   transition: $transition-control;
 
+  // On, over the wave, it is a dark chip tinted with the colour the mode is
+  // on, its letters that colour made pale — not the pale block the badge is
+  // elsewhere, which at the top of the window was the brightest thing in it
+  // and drew the eye from what was playing (Ivan, 2026-09-26: "arcoiris pull
+  // make darker so it doesnt focus attention to the view").
+  &:not(.is-dormant) {
+    color: color-mix(in srgb, var(--rainbow-now) 55%, white);
+    background: color-mix(in srgb, var(--rainbow-now) 20%, $surface-base);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--rainbow-now) 38%, transparent);
+
+    &:hover {
+      background: color-mix(in srgb, var(--rainbow-now) 32%, $surface-base);
+    }
+  }
+
   &.is-dormant {
     color: $text-muted;
     background: rgba($edge-tint, 0.1);
