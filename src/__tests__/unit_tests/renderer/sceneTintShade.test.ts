@@ -64,12 +64,17 @@ describe('Brightness under a visualizer’s colours', () => {
         ]);
       });
     });
-    // Positive control: the hue did change, so the two were compared as two
-    // different colours of one lightness and not as one colour.
-    expect(
-      chromaOf(tintedAt(THEME_SHADE_MAX)['--surface-base']),
-    ).toBeGreaterThan(
-      chromaOf(themeShadeTokens(THEME_SHADE_MAX)['--surface-base']) + 0.02,
+    // Positive control: the hue did change — toward the sky's violet, away
+    // from Ocean's blue — so the two were compared as two different colours
+    // of one lightness and not as one colour.
+    const hueOf = (hex: string | undefined) => {
+      const { a, b } = labOf(hex);
+      return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
+    };
+    const tintedHue = hueOf(tintedAt(THEME_SHADE_MAX)['--surface-base']);
+    const themeHue = hueOf(themeShadeTokens(THEME_SHADE_MAX)['--surface-base']);
+    expect(Math.abs(tintedHue - sky.hue)).toBeLessThan(
+      Math.abs(themeHue - sky.hue),
     );
   });
 

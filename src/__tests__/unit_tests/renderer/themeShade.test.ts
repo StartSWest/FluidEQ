@@ -88,6 +88,28 @@ describe("the theme's slider", () => {
     expect(right['--accent']).toBe(OCEAN_THEME['--accent']);
   });
 
+  it('keeps Ocean’s colour as it lightens, never grey', () => {
+    // Lifted with Ocean's chroma left as it was, the light end read as a
+    // blue-grey (2026-09-26: "the light original is too not colored").
+    const chroma = (hex: string) => {
+      const colour = parseCssColour(hex);
+      if (!colour) {
+        throw new Error(`not a colour: ${hex}`);
+      }
+      const { a, b } = rgbToLab(colour.rgb);
+      return Math.hypot(a, b);
+    };
+    const right = themeShadeTokens(THEME_SHADE_MAX);
+    (['--surface-base', '--surface-panel'] as const).forEach((token) => {
+      // Positive control: Ocean itself is a muted blue.
+      expect(chroma(OCEAN_THEME[token])).toBeLessThan(0.056);
+      expect(chroma(right[token])).toBeGreaterThan(
+        chroma(OCEAN_THEME[token]) * 1.3,
+      );
+      expect(chroma(right[token])).toBeLessThanOrEqual(0.081);
+    });
+  });
+
   it('lifts no surface past where light text still reads', () => {
     const right = themeShadeTokens(THEME_SHADE_MAX);
     // Positive control: the track's well, Ocean's lightest surface, is one

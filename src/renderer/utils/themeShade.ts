@@ -68,6 +68,32 @@ const lightEnd = (lightness: number) =>
     ? lightness
     : Math.min(LIGHT_CEILING, lightness + LIGHT_LIFT);
 
+/**
+ * The most colour a lifted surface takes, in OKLab chroma: about where a
+ * visualizer's colours stop (`MAX_SURFACE_CHROMA`, 0.07), a touch past it
+ * for the block and the menus' faces.
+ */
+const LIGHT_MAX_CHROMA = 0.08;
+
+/**
+ * A surface at the light end: lifted, and as colourful for its lightness as
+ * Ocean is. Lifted alone, its chroma stayed Ocean's 0.04-0.055 while its
+ * lightness rose by half again, and the window at 100% read as a blue-grey
+ * with no colour in it (Ivan, 2026-09-26: "the light original is too not
+ * colored"). Ocean's own share of colour to light is kept, which is what
+ * makes a lighter Ocean still Ocean — about 0.065 on the floor and 0.075
+ * on the panes, level with Colours at the same Brightness.
+ */
+const lightSurface = (ocean: ILab): ILab => {
+  const l = lightEnd(ocean.l);
+  const chroma = Math.hypot(ocean.a, ocean.b);
+  if (chroma === 0 || ocean.l <= 0) {
+    return { ...ocean, l };
+  }
+  const scale = Math.max(1, Math.min(l / ocean.l, LIGHT_MAX_CHROMA / chroma));
+  return { l, a: ocean.a * scale, b: ocean.b * scale };
+};
+
 const SURFACES = [
   '--surface-base',
   '--surface-panel',
@@ -189,7 +215,7 @@ const ENDS = THEME_SHADE_TOKENS.map((token) => {
     black: stopOf(BLACK_THEME[token]),
     ocean,
     light: isSurface(token)
-      ? { ...ocean, lab: { ...ocean.lab, l: lightEnd(ocean.lab.l) } }
+      ? { ...ocean, lab: lightSurface(ocean.lab) }
       : ocean,
   };
 });
