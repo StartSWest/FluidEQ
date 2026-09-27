@@ -1866,6 +1866,38 @@ describe('KaraokeWorkspace', () => {
     );
   });
 
+  // Said once and then gone (Ivan, 2026-09-27: "this warning needs to be
+  // closable and to auto disappear after a few seconds"): its own fade's end
+  // takes it away, and so does its cross. Only that fade: an animation of
+  // another name ending on it (an arrival) leaves it standing.
+  it('lets the set-aside notice go by its cross or by its own fade', async () => {
+    const importSetAside = (container: HTMLElement) =>
+      fireEvent.change(
+        container.querySelector('input[type="file"]') as HTMLInputElement,
+        {
+          target: {
+            files: [
+              new File(['audio'], 'Sing Along.mp3', { type: 'audio/mpeg' }),
+              new File(['graphics'], 'Sing Along.cdg'),
+            ],
+          },
+        },
+      );
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    importSetAside(container);
+    await screen.findByRole('heading', { name: 'Sing Along' });
+
+    const notice = importNotice(container) as HTMLElement;
+    animationEnd(notice, 'rise-in');
+    expect(importNotice(container)).toBeInTheDocument();
+    animationEnd(notice, 'karaoke-notice-leave');
+    expect(importNotice(container)).not.toBeInTheDocument();
+
+    importSetAside(container);
+    fireEvent.click(await screen.findByRole('button', { name: 'Dismiss' }));
+    expect(importNotice(container)).not.toBeInTheDocument();
+  });
+
   it('says two lyric files matched one song, so neither was used', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
     fireEvent.change(

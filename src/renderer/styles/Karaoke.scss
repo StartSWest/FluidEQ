@@ -547,7 +547,9 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   padding: 9px 12px;
   border: 1px solid rgba($edge-tint, 0.16);
   border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-field 38%, transparent);
+  // The card, as the playlist and the chips on the stage are. It was the
+  // field colour at a third, a pale strip across the top of the page.
+  background: $karaoke-chip-face;
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.45;
@@ -568,6 +570,66 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
 
   span {
     color: $text-faint;
+  }
+}
+
+// Says its piece and goes (`KaraokeSetAsideNotice`; Ivan, 2026-09-27: "this
+// warning needs to be closable and to auto disappear after a few seconds").
+// This fade is the clock: seven seconds to be read, then gone, and its end is
+// the event that takes the notice away. A pointer resting on it, or a key on
+// its cross, holds it, so a sentence being read is never pulled out from
+// under the reader.
+.karaoke-workspace__notice.is-passing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: karaoke-notice-leave 360ms ease-in 7s forwards;
+
+  &:hover,
+  &:focus-within {
+    animation-play-state: paused;
+  }
+
+  > .karaoke-workspace__notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $text-muted;
+  }
+}
+
+@keyframes karaoke-notice-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+.karaoke-workspace__notice-close {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: $hover-lift;
   }
 }
 

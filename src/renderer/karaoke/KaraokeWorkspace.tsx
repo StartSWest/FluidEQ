@@ -64,6 +64,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { KaraokeMicrophoneSettings } from './KaraokeMicrophone';
 import KaraokeChordGuide from './KaraokeChordGuide';
 import KaraokeLyrics from './KaraokeLyrics';
+import KaraokeSetAsideNotice from './KaraokeSetAsideNotice';
 import {
   MAX_LYRIC_TEXT_SIZE,
   MIN_LYRIC_TEXT_SIZE,
@@ -1869,6 +1870,10 @@ const KaraokeWorkspace = ({
     );
   }
 
+  const setAsideText = setAsideFiles
+    ? karaokeSetAsideSentences(setAsideFiles, t).join(' ')
+    : undefined;
+
   return (
     <section
       ref={workspaceRef}
@@ -1976,10 +1981,14 @@ const KaraokeWorkspace = ({
           two lyric files that matched one song. There is no single song to
           hang it on, and set aside without a word it reads as a feature that
           silently did nothing. */}
-      {setAsideFiles && (
-        <div className="karaoke-workspace__notice is-warning" role="status">
-          {karaokeSetAsideSentences(setAsideFiles, t).join(' ')}
-        </div>
+      {setAsideText && (
+        // Keyed by what it says, so a new import's news starts its own few
+        // seconds rather than inheriting what was left of the last one's.
+        <KaraokeSetAsideNotice
+          key={setAsideText}
+          text={setAsideText}
+          onDismiss={() => setSetAsideFiles(undefined)}
+        />
       )}
       {/* The idle-release question is not drawn here. It outlives this tab
           being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
