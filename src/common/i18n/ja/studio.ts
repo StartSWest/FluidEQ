@@ -23,7 +23,6 @@ const studio = {
   'studio.description': 'AI でシーンを作り、ライブで確かめる',
   'studio.rail.blurb': '自分だけのシーンを作る',
 
-  'studio.plus.title': 'Plus なら',
   'studio.plus.locked': 'Plus のみ',
   'studio.locked.title': 'スタジオは Plus の一部です',
   'studio.locked.body':
@@ -353,6 +352,11 @@ const studio = {
 
   'studio.test.title': 'シーンを試す',
   'studio.ship.title': '仕上がったら',
+  'studio.work.label': 'シーンの作業',
+  'studio.work.make': 'AI と作る',
+  'studio.work.pictures': '画像',
+  'studio.work.tune': '調整',
+  'studio.ship.more': 'その他',
   'studio.ship.makerTitle': 'シーンの公開は引き続きできます',
   'studio.signals.title': 'プレビューの音声',
   'studio.signals.hint':

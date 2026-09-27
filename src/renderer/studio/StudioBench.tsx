@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { resolveSceneName } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
@@ -15,14 +21,18 @@ import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
 import StudioShipMaker from './StudioShipMaker';
-import StudioShipSection from './StudioShipSection';
-import StudioTestCard from './StudioTestCard';
+import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
+import StudioListen from './StudioListen';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
 import StudioStageArea from './StudioStageArea';
+import StudioStageControls from './StudioStageControls';
 import StudioStageStart from './StudioStageStart';
+import StudioTune from './StudioTune';
 import StudioVersion from './StudioVersion';
+import StudioWork, { type TStudioWorkTab } from './StudioWork';
+import useStudioBenchLayout from './useStudioBenchLayout';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
 import useStudioBaseline from './useStudioBaseline';
 import useStudioKeep from './useStudioKeep';
@@ -79,8 +89,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [notice, setNotice] = useState<ISharingNotice>();
   const [naming, setNaming] = useState(false);
   const feed = useRef<TStageHeard | undefined>(undefined);
-  // The bench on screen: the window's colour is the Studio's only then.
+  // The bench on screen: the window's colour is the Studio's only then, and
+  // the sound panel folded while it is.
   const benchRef = useRef<HTMLDivElement>(null);
+  const { isWide } = useStudioBenchLayout(benchRef);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
   // How many times this bench has published, so the scene just published
@@ -176,8 +188,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
   // inside says what it is for instead; without Plus — which on the bench
   // means a maker — Publish stays open and the rest are shown locked. Three
-  // insides, chosen here, rather than one with two flags; the card around
-  // them (`StudioShipSection`) is the same for all three.
+  // of them, chosen here, rather than one with two flags; each stands at the
+  // end of the bar.
   let shipCard = (
     <StudioShipMaker
       unfit={unfit}
@@ -247,9 +259,88 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        controls={<StudioStageControls size={size} onSize={choose} />}
       />
     );
   }
+
+  const idle = !(pack && playing);
+  // "What it hears" beside the stage, or a tab under it when the bench is too
+  // narrow for the column: one live copy of the meters either way.
+  const listening = (
+    <>
+      <StudioListen signal={signal} onSignal={setSignal} idle={idle} />
+      <StudioMeters feed={feed} response={tuner.response} />
+    </>
+  );
+  const panels: Partial<Record<TStudioWorkTab, ReactNode>> = {
+    make: <StudioMaker key={project?.id ?? 'draft'} project={project} />,
+    tune: (
+      <StudioTune
+        wave={tuner.wave}
+        onWave={tuner.setWave}
+        onWaveCommit={tuner.commit}
+        onWaveReset={tuner.resetWave}
+        canResetWave={tuner.canResetWave}
+        idle={idle}
+        settings={
+          <StudioSettings
+            params={tuner.params}
+            values={tuner.values}
+            response={tuner.response}
+            saved={tuner.saved}
+            idle={idle}
+            canResetParams={tuner.canResetParams}
+            canResetResponse={tuner.canResetResponse}
+            publishedVersion={tuner.publishedVersion}
+            onParam={tuner.setParam}
+            onResponse={tuner.setResponse}
+            onCommit={tuner.commit}
+            onResetParams={tuner.resetParams}
+            onResetResponse={tuner.resetResponse}
+            ambient={ambient}
+          />
+        }
+      />
+    ),
+    drawing: (
+      <StudioDrawing
+        cost={cost}
+        percent={Math.round(scale * 100)}
+        readingRef={readingRef}
+      />
+    ),
+  };
+  if (project) {
+    panels.code = (
+      <StudioCode
+        key={project.id}
+        source={view.source}
+        problemLines={problemLinesOf(
+          problems,
+          trouble?.kind === 'compile' ? trouble.log : undefined,
+        )}
+      />
+    );
+  }
+  if (project && picture.pictures && picture.pictures.kind !== 'none') {
+    panels.pictures = (
+      <StudioPictures
+        pictures={picture.pictures}
+        previews={picture.previews}
+        busy={
+          picture.opening ??
+          (picture.saving ? picture.session?.picture.id : undefined)
+        }
+        onOpen={picture.open}
+      />
+    );
+  }
+  if (!isWide) {
+    panels.hears = <div className="studio-work__hears">{listening}</div>;
+  }
+  const problemCount =
+    (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);
 
   return (
     <div className="studio-bench" ref={benchRef}>
@@ -266,9 +357,16 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         {project && version !== undefined && (
           <StudioVersion version={version} published={tuner.publishedVersion} />
         )}
-        {project && <span className="studio-bench__status">{t(status)}</span>}
-        {/* In the pinned bar, so what an action says is in view wherever the
-            page was scrolled to when it was pressed. */}
+        {project && (
+          <span
+            className={`studio-bench__status is-${status.split('.').pop()}`}
+          >
+            <span className="studio-bench__lamp" aria-hidden="true" />
+            {t(status)}
+          </span>
+        )}
+        {/* In the bar, so what an action says is in view wherever the page
+            was left when it was pressed. */}
         <PlusToastStack<ISharingNotice>
           sources={{
             picture: picture.notice,
@@ -278,82 +376,44 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           }}
           text={(entry) => t(entry.key, entry.vars)}
         />
+        {project && <div className="studio-bench__ship">{shipCard}</div>}
       </div>
 
-      <div className={`studio-bench__grid studio-bench__grid--${size}`}>
-        {/* The stage's pane, scrolled apart from the side column so tuning
-            down that column keeps the scene in view. */}
+      <div
+        className={`studio-bench__grid studio-bench__grid--${size}${isWide ? '' : ' is-single'}`}
+      >
+        {/* The stage stays put and the work changes under it (layout A, Ivan
+            2026-09-27): one long page under the stage took the scene off the
+            screen exactly while it was being made. */}
         <div className="studio-bench__main">
           <StudioStageArea
             stage={stage}
             resizable={project !== undefined && size === 'graph'}
           >
             <StudioProblems problems={problems} trouble={trouble} />
-            {project && (
-              <StudioPictures
-                pictures={picture.pictures}
-                previews={picture.previews}
-                busy={
-                  picture.opening ??
-                  (picture.saving ? picture.session?.picture.id : undefined)
-                }
-                onOpen={picture.open}
-              />
-            )}
-            {project && (
-              <StudioCode
-                key={project.id}
-                source={view.source}
-                problemLines={problemLinesOf(
-                  problems,
-                  trouble?.kind === 'compile' ? trouble.log : undefined,
-                )}
-              />
-            )}
           </StudioStageArea>
-
-          <div className="studio-bench__maker">
-            <StudioMaker key={project?.id ?? 'draft'} project={project} />
-          </div>
-        </div>
-
-        <div className="studio-bench__side">
-          <StudioMeters feed={feed} response={tuner.response} />
-          <StudioTestCard
-            readingRef={readingRef}
-            signal={signal}
-            onSignal={setSignal}
-            size={size}
-            onSize={choose}
-            wave={tuner.wave}
-            onWave={tuner.setWave}
-            onWaveCommit={tuner.commit}
-            onWaveReset={tuner.resetWave}
-            canResetWave={tuner.canResetWave}
-            idle={!(pack && playing)}
-            cost={cost}
-            percent={Math.round(scale * 100)}
-            settings={
-              <StudioSettings
-                params={tuner.params}
-                values={tuner.values}
-                response={tuner.response}
-                saved={tuner.saved}
-                idle={!(pack && playing)}
-                canResetParams={tuner.canResetParams}
-                canResetResponse={tuner.canResetResponse}
-                publishedVersion={tuner.publishedVersion}
-                onParam={tuner.setParam}
-                onResponse={tuner.setResponse}
-                onCommit={tuner.commit}
-                onResetParams={tuner.resetParams}
-                onResetResponse={tuner.resetResponse}
-                ambient={ambient}
-              />
-            }
+          <StudioWork
+            panels={panels}
+            badges={{
+              code: { badge: problemCount, isAlert: true },
+              pictures: {
+                badge:
+                  picture.pictures?.kind === 'atlas'
+                    ? picture.pictures.pictures.length
+                    : undefined,
+              },
+            }}
           />
-          <StudioShipSection>{shipCard}</StudioShipSection>
         </div>
+
+        {isWide && (
+          <aside
+            className="studio-bench__side"
+            aria-label={t('studio.test.title')}
+          >
+            {listening}
+          </aside>
+        )}
       </div>
 
       {naming && (

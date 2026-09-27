@@ -5,12 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Studio's two panes. The stage and what makes it scroll in one, what
- * tests and tunes it in the other, so going down the side column to a slider
- * keeps the scene being tuned in view. The scrolling itself is the
- * stylesheet's; what is held here is which pane each part is in, since a card
- * moved into the wrong one scrolls the stage away again and still passes
- * every other test.
+ * The Studio's two panes (layout A, 2026-09-27): the stage and the work on
+ * it, in tabs under it, in one; what it is played with and what it hears in
+ * the other; and the ways out of the Studio in the bar above both. What is
+ * held here is which pane each part is in, since a part moved into the wrong
+ * one scrolls the stage away again and still passes every other test.
  */
 
 import '@testing-library/jest-dom';
@@ -30,9 +29,16 @@ jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
 }));
 
+// The stage without a GPU, keeping the controls laid over its foot: the sizes
+// are on the stage now, not in the side column.
 jest.mock('../../../renderer/studio/StudioStage', () => ({
   __esModule: true,
-  default: () => <canvas data-testid="studio-stage" />,
+  default: ({ controls }: { controls?: import('react').ReactNode }) => (
+    <div>
+      <canvas data-testid="studio-stage" />
+      {controls}
+    </div>
+  ),
 }));
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -91,21 +97,28 @@ const panesOf = (container: HTMLElement) => {
 };
 
 describe("the Studio's panes", () => {
-  it('keeps the stage and the making in the pane beside the side column', async () => {
+  it('keeps the stage and the work on it in one pane, what it hears in the other, and the ways out in the bar', async () => {
     const { container } = render(<StudioBench view={view} />);
-    const { main, side } = panesOf(container);
+    const { top, main, side } = panesOf(container);
 
     expect(main).toContainElement(screen.getByTestId('studio-stage'));
+    // The work is a tab under the stage; making it with an AI is the first.
+    expect(main).toContainElement(
+      screen.getByRole('tablist', { name: 'studio.work.label' }),
+    );
     expect(main).toContainElement(
       await screen.findByRole('textbox', { name: 'studio.maker.describe' }),
     );
-    // The control: the side column's own card is found, and not in the
-    // stage's pane.
+    expect(side).toContainElement(
+      screen.getByRole('group', { name: 'studio.signals.title' }),
+    );
+    // The control: the bar's own actions are found, and in neither pane.
     const add = screen.getByRole('button', {
       name: 'studio.action.addToLooks',
     });
-    expect(side).toContainElement(add);
+    expect(top).toContainElement(add);
     expect(main).not.toContainElement(add);
+    expect(side).not.toContainElement(add);
   });
 
   it('keeps the two panes apart, under the project bar', async () => {

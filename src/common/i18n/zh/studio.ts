@@ -22,7 +22,6 @@ const studio = {
   'studio.description': '用你的 AI 创作场景，并实时观看',
   'studio.rail.blurb': '创作你自己的场景',
 
-  'studio.plus.title': '有 Plus 时',
   'studio.plus.locked': '仅限 Plus',
   'studio.locked.title': '工作室属于 Plus',
   'studio.locked.body': 'FluidEQ 的场景在这里诞生，你的场景也可以。',
@@ -314,6 +313,11 @@ const studio = {
 
   'studio.test.title': '试听场景',
   'studio.ship.title': '完成之后',
+  'studio.work.label': '编辑场景',
+  'studio.work.make': '用 AI 制作',
+  'studio.work.pictures': '图片',
+  'studio.work.tune': '调整',
+  'studio.ship.more': '更多',
   'studio.ship.makerTitle': '你仍然可以发布场景',
   'studio.signals.title': '预览音频',
   'studio.signals.hint':

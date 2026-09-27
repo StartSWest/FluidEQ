@@ -23,7 +23,6 @@ const studio = {
   'studio.description': 'Crea scene con la tua IA e guardale dal vivo',
   'studio.rail.blurb': 'Crea le tue scene',
 
-  'studio.plus.title': 'Con Plus',
   'studio.plus.locked': 'Solo con Plus',
   'studio.locked.title': 'Lo Studio fa parte di Plus',
   'studio.locked.body':
@@ -353,6 +352,11 @@ const studio = {
 
   'studio.test.title': 'Provare la scena',
   'studio.ship.title': 'Quando è pronta',
+  'studio.work.label': 'Lavora sulla scena',
+  'studio.work.make': 'Crea con l’IA',
+  'studio.work.pictures': 'Immagini',
+  'studio.work.tune': 'Regola',
+  'studio.ship.more': 'Altro',
   'studio.ship.makerTitle': 'Puoi continuare a pubblicare',
   'studio.signals.title': 'Audio dell’anteprima',
   'studio.signals.hint':

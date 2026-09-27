@@ -1,0 +1,361 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// Layout A of the Studio (Ivan, 2026-09-27): the stage stays put, the work
+// changes under it in tabs, what the scene hears stands beside it, and the
+// ways out of the Studio are at the end of its bar. The bench's own grid is
+// in `Studio.scss`; these are the parts A added.
+
+// ---------------------------------------------------------------- tabs
+
+.studio-work {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+// The rail of names, ruled off from the panel by the pages' own hairline,
+// the chosen one underlined in the accent as the workspace's tabs are.
+.studio-work__tabs {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid $border-subtle;
+  scrollbar-width: none;
+}
+
+.studio-work__tab {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  color: $text-faint;
+  border: 0;
+  background: none;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &[aria-selected='true'] {
+    color: $text-primary;
+
+    &::after {
+      position: absolute;
+      right: 10px;
+      bottom: -1px;
+      left: 10px;
+      height: 2px;
+      content: '';
+      border-radius: 1px;
+      background: $secondary-default;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline-offset: -2px;
+  }
+}
+
+// A count after the name: the pictures a scene asks for, in the accent, and
+// its problems, in the danger colour, so a red number is the first thing a
+// broken save shows under the stage.
+.studio-work__badge {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  color: $text-accent;
+  border-radius: $radius-pill;
+  background: $selected-accent;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+
+  &.is-alert {
+    color: $white;
+    background: color-mix(in srgb, $red 70%, transparent);
+  }
+}
+
+// The panel scrolls under the rail; the stage above never moves.
+.studio-work__panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 2px 4px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  container: studio-work / inline-size;
+  @include slim-scrollbar;
+}
+
+// "What it hears" as a tab, when the bench is too narrow for its column:
+// what plays and what is heard, side by side while there is room.
+.studio-work__hears {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 248px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+// ---------------------------------------------------------------- tune
+
+// The three groups side by side under the stage, each at the width its
+// sliders and tiles were laid out at, wrapping when the panel is narrower.
+.studio-tune {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+// The visualizer's own settings are the longest group; given two tracks
+// where the panel has four, they stop being the one tall column at the end.
+.studio-tune__box--visualizer {
+  @container studio-work (min-width: 900px) {
+    grid-column: span 2;
+  }
+}
+
+// ---------------------------------------------------------------- drawing
+
+.studio-drawing {
+  max-width: 640px;
+}
+
+// ---------------------------------------------------------------- stage
+
+// The stage answers its own width for its controls: a narrow stage (the
+// phone-width panel, 260px) keeps the drawings and loses the words.
+.studio-bench .studio-stage {
+  container: studio-stage / inline-size;
+}
+
+// On the foot of the picture, where the graph keeps its own options, and on
+// the same terms: a flat chip over the scene, gone with the graph's options
+// when the window has been still a while (`useIsGraphChromeIdle`), back at
+// the next touch of the pointer.
+.studio-stage-controls {
+  position: absolute;
+  z-index: 3;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 320ms $ease-out;
+
+  &.is-idle {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 520ms;
+  }
+
+  // Under the pointer or the keyboard it stays: fading what is being used is
+  // the one thing an idle fade must never do.
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.studio-stage-controls__group {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-xs;
+  background: $chrome-shade;
+}
+
+.studio-stage-controls__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 9px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition:
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  &:hover {
+    color: $white;
+    background: $hover-accent;
+  }
+
+  &[aria-pressed='true'] {
+    color: $white;
+    background: $selected-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The grid button stands on its own chip beside the sizes.
+.studio-stage-controls__grid {
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-xs;
+  background: $chrome-shade;
+}
+
+.studio-stage-controls__word {
+  white-space: nowrap;
+
+  @container studio-stage (max-width: 620px) {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------- the bar's ways out
+
+// At the end of the bar, one row: More, Publish, and the loud Add to my
+// looks last, where the eye ends the bar.
+.studio-bench__ship {
+  display: flex;
+  flex: none;
+  margin-inline-start: auto;
+
+  .studio-ship {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .studio-ship .button,
+  .studio-ship__add {
+    flex: none;
+  }
+
+  // A FluidEQ scene opened to look inside says what it is for where the
+  // actions would be, in two short lines rather than a card.
+  .studio-ship--inspect {
+    display: grid;
+    max-width: 420px;
+    gap: 2px;
+  }
+}
+
+.studio-ship-more {
+  display: inline-flex;
+}
+
+.studio-ship-more__chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform $motion-fast $ease-out;
+
+  .studio-ship-more__trigger.is-open & {
+    transform: rotate(180deg);
+  }
+}
+
+.studio-ship-more__menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 24px));
+  gap: 2px;
+  padding: 6px;
+}
+
+// Why the rows are what they are, for a maker: what publishing earns.
+.studio-ship-more__lead {
+  margin: 2px 6px 6px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.studio-ship-more__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 10px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  font-size: $text-body;
+  text-align: left;
+  cursor: pointer;
+  transition: background $motion-fast $ease-out;
+
+  svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+.studio-ship-more__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.studio-ship-more__lock {
+  color: $text-dim;
+}

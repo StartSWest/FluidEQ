@@ -7,6 +7,7 @@ import { openStudioSession, useStudio } from './studioStore';
 import '../styles/Studio.scss';
 import '../styles/StudioStage.scss';
 import '../styles/StudioMaker.scss';
+import '../styles/StudioWork.scss';
 
 /**
  * The Studio, as the main area of the Plus tab.

@@ -31,7 +31,6 @@ const studio = {
   'studio.description': 'Make scenes with your AI and watch them live',
   'studio.rail.blurb': 'Build your own scenes',
 
-  'studio.plus.title': 'With Plus',
   'studio.plus.locked': 'Only with Plus',
   'studio.locked.title': 'The Studio is part of Plus',
   'studio.locked.body':
@@ -358,6 +357,11 @@ const studio = {
 
   'studio.test.title': 'Trying the scene',
   'studio.ship.title': 'When it’s ready',
+  'studio.work.label': 'Work on the scene',
+  'studio.work.make': 'Make with AI',
+  'studio.work.pictures': 'Pictures',
+  'studio.work.tune': 'Tune',
+  'studio.ship.more': 'More',
   'studio.ship.makerTitle': 'Publishing stays open to you',
   'studio.signals.title': 'Preview audio',
   'studio.signals.hint':

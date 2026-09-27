@@ -23,7 +23,6 @@ const studio = {
   'studio.description': 'अपने AI के साथ सीन बनाएँ और उन्हें लाइव देखें',
   'studio.rail.blurb': 'अपने खुद के सीन बनाएँ',
 
-  'studio.plus.title': 'Plus के साथ',
   'studio.plus.locked': 'सिर्फ़ Plus के साथ',
   'studio.locked.title': 'स्टूडियो Plus का हिस्सा है',
   'studio.locked.body':
@@ -343,6 +342,11 @@ const studio = {
 
   'studio.test.title': 'सीन आज़माएँ',
   'studio.ship.title': 'जब तैयार हो',
+  'studio.work.label': 'सीन पर काम',
+  'studio.work.make': 'AI से बनाइए',
+  'studio.work.pictures': 'चित्र',
+  'studio.work.tune': 'ट्यून',
+  'studio.ship.more': 'और',
   'studio.ship.makerTitle': 'आप प्रकाशित करना जारी रख सकते हैं',
   'studio.signals.title': 'प्रीव्यू का ऑडियो',
   'studio.signals.hint':

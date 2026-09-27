@@ -77,6 +77,25 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Side by side in a wide tab (layout A, 2026-09-27): under the stage there is
+// width and little height, and three steps down the panel put the prompt a
+// scroll away. The numbers still say the order; the line joining them down
+// the page has no down to join across a row.
+@container studio-work (min-width: 900px) {
+  .studio-maker__steps {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    column-gap: 24px;
+  }
+
+  .studio-maker__step {
+    padding-bottom: 0;
+
+    &:not(:last-child)::before {
+      display: none;
+    }
+  }
+}
+
 .studio-maker__number {
   display: grid;
   place-items: center;

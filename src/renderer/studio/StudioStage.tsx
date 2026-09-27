@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type RefObject,
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
@@ -101,6 +102,8 @@ interface IStudioStageProps {
   onExitFullscreen: () => void;
   /** Double-clicking the stage: full screen, or back from it. */
   onToggleFullscreen: () => void;
+  /** The stage's own controls, laid over its foot (`StudioStageControls`). */
+  controls?: ReactNode;
 }
 
 /**
@@ -131,6 +134,7 @@ export default function StudioStage({
   onDrawn,
   onExitFullscreen,
   onToggleFullscreen,
+  controls,
 }: IStudioStageProps) {
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -385,6 +389,7 @@ export default function StudioStage({
               : undefined
           }
         />
+        {controls}
         {waiting && <StudioStageLoading name={pack.names.en} />}
         {/* On screen whenever the screen is full, whichever of the two
             believes it: a way out that depends on the app's own idea of the

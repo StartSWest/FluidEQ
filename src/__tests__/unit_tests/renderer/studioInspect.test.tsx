@@ -208,19 +208,20 @@ describe('the share card', () => {
     [
       'studio.action.addToLooks',
       'studio.action.publish',
-      'studio.action.export',
+      'studio.ship.more',
     ].forEach((name) =>
       expect(screen.queryByRole('button', { name })).not.toBeInTheDocument(),
     );
 
-    // The control: the member's own project offers all three.
+    // The control: the member's own project offers them, sending the scene
+    // as a file behind More.
     await act(async () => {
       rerender(<StudioBench view={view(MINE)} />);
     });
     [
       'studio.action.addToLooks',
       'studio.action.publish',
-      'studio.action.export',
+      'studio.ship.more',
     ].forEach((name) =>
       expect(screen.getByRole('button', { name })).toBeInTheDocument(),
     );

@@ -19,8 +19,8 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
 import useSceneRunner from '../../../renderer/graph/useSceneRunner';
-import StudioGridSwitch from '../../../renderer/studio/StudioGridSwitch';
 import StudioStage from '../../../renderer/studio/StudioStage';
+import StudioStageControls from '../../../renderer/studio/StudioStageControls';
 import { studioPaper } from '../../../renderer/studio/studioPaper';
 import { studioSpectrumRect } from '../../../renderer/studio/studioWave';
 
@@ -152,14 +152,20 @@ it('keeps one band array while nothing about it changes', () => {
   expect(lastBand()).toBe(first);
 });
 
-it('remembers the grid switch', () => {
+it('remembers the grid button on the stage', () => {
   window.localStorage.removeItem('fluideq.studioGrid');
-  render(<StudioGridSwitch />);
-  const toggle = screen.getByRole('checkbox', { name: 'studio.grid.label' });
-  expect(toggle).not.toBeChecked();
+  const onSize = jest.fn();
+  render(<StudioStageControls size="graph" onSize={onSize} />);
+  const toggle = screen.getByRole('button', { name: 'studio.grid.label' });
+  expect(toggle).toHaveAttribute('aria-pressed', 'false');
   fireEvent.click(toggle);
   expect(
-    screen.getByRole('checkbox', { name: 'studio.grid.label' }),
-  ).toBeChecked();
+    screen.getByRole('button', { name: 'studio.grid.label' }),
+  ).toHaveAttribute('aria-pressed', 'true');
   expect(window.localStorage.getItem('fluideq.studioGrid')).toBe('true');
+  // The grid is a way of looking, not a size: pressing it chose none.
+  expect(onSize).not.toHaveBeenCalled();
+  // POSITIVE CONTROL: a size beside it is chosen by its own press.
+  fireEvent.click(screen.getByRole('button', { name: 'studio.size.wide' }));
+  expect(onSize).toHaveBeenCalledWith('wide');
 });

@@ -23,7 +23,6 @@ const studio = {
   'studio.description': 'Szenen mit Ihrer KI bauen und live ansehen',
   'studio.rail.blurb': 'Eigene Szenen bauen',
 
-  'studio.plus.title': 'Mit Plus',
   'studio.plus.locked': 'Nur mit Plus',
   'studio.locked.title': 'Das Studio gehört zu Plus',
   'studio.locked.body':
@@ -360,6 +359,11 @@ const studio = {
 
   'studio.test.title': 'Szene ausprobieren',
   'studio.ship.title': 'Wenn sie fertig ist',
+  'studio.work.label': 'An der Szene arbeiten',
+  'studio.work.make': 'Mit KI erstellen',
+  'studio.work.pictures': 'Bilder',
+  'studio.work.tune': 'Abstimmen',
+  'studio.ship.more': 'Mehr',
   'studio.ship.makerTitle': 'Veröffentlichen können Sie weiterhin',
   'studio.signals.title': 'Audio für die Vorschau',
   'studio.signals.hint':

@@ -108,8 +108,8 @@ it('gives the whole editor to a member without Plus', async () => {
   ).toBeEnabled();
 });
 
-it('keeps Publish open to a maker, and the other ways out locked, opening Plus', async () => {
-  // Publishing is how a maker earns their Plus back. This card once showed
+it('keeps Publish open to a maker, and the other ways out locked under More, opening Plus', async () => {
+  // Publishing is how a maker earns their Plus back. This bar once showed
   // it locked, which shut the one way back while the server would have
   // taken the scene (`is_scene_maker`).
   render(<StudioBench view={view()} />);
@@ -117,23 +117,28 @@ it('keeps Publish open to a maker, and the other ways out locked, opening Plus',
   const publish = screen.getByRole('button', {
     name: 'studio.action.publish',
   });
-  expect(publish).not.toHaveAttribute('title');
+  // Its title says why it is open when the rest is not.
+  expect(publish).toHaveAttribute('title', 'studio.ship.makerTitle');
   expect(publish).toHaveClass('button', 'small');
   expect(publish).not.toHaveClass('subtle');
-  expect(screen.getByText('studio.ship.makerTitle')).toBeInTheDocument();
-  expect(screen.getByText('studio.locked.earn')).toBeInTheDocument();
   const locked = [
     'studio.action.addToLooks',
     'studio.action.export',
     'studio.action.desktop',
   ];
   // One press at a time, as a member presses: clicks started together
-  // overlap their act() scopes and land in no fixed order.
+  // overlap their act() scopes and land in no fixed order. Each press closes
+  // the menu, so More is opened again before the next.
   await locked.reduce(async (previous, name) => {
     await previous;
-    const button = screen.getByRole('button', { name });
-    expect(button).toHaveAttribute('title', 'studio.plus.locked');
-    await userEvent.click(button);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.ship.more' }),
+    );
+    // What publishing earns, above the rows it explains.
+    expect(screen.getByText('studio.locked.earn')).toBeInTheDocument();
+    const item = screen.getByRole('menuitem', { name });
+    expect(item).toHaveAttribute('title', 'studio.plus.locked');
+    await userEvent.click(item);
   }, Promise.resolve());
   expect(requestAccountPanel).toHaveBeenCalledTimes(locked.length);
   expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
@@ -143,11 +148,14 @@ it('locks no desktop on a computer that cannot have one, as Plus offers none the
   jest.mocked(useCanSetDesktop).mockReturnValue(false);
   render(<StudioBench view={view()} />);
   await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await userEvent.click(
+    screen.getByRole('button', { name: 'studio.ship.more' }),
+  );
   expect(
-    screen.queryByRole('button', { name: 'studio.action.desktop' }),
+    screen.queryByRole('menuitem', { name: 'studio.action.desktop' }),
   ).toBeNull();
   expect(
-    screen.getByRole('button', { name: 'studio.action.export' }),
+    screen.getByRole('menuitem', { name: 'studio.action.export' }),
   ).toBeInTheDocument();
 });
 

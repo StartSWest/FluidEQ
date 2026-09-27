@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IMemberSceneProblem } from 'common/memberScenes';
 import type { IProjectSource } from 'main/memberScenes/project';
 import { useTranslation } from '../utils/I18nContext';
@@ -15,25 +8,6 @@ import StudioCodeEditor from './StudioCodeEditor';
 import { writeStudioSource } from './studioStore';
 import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioCode.scss';
-
-const OPEN_KEY = 'fluideq.studio.codeOpen';
-
-/** Whether the pane was left open; open the first time, and wherever storage is refused. */
-const readOpen = () => {
-  try {
-    return window.localStorage.getItem(OPEN_KEY) !== 'false';
-  } catch {
-    return true;
-  }
-};
-
-const writeOpen = (open: boolean) => {
-  try {
-    window.localStorage.setItem(OPEN_KEY, String(open));
-  } catch {
-    // Only the pane's remembered state is lost; it opens next time.
-  }
-};
 
 /**
  * The source lines something is wrong on: the rules' own line numbers, and
@@ -88,8 +62,6 @@ interface IStudioCodeProps {
  */
 export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
   const { t, locale } = useTranslation();
-  const bodyId = useId();
-  const [open, setOpen] = useState(readOpen);
   const [draft, setDraft] = useState(source?.text ?? '');
   // The disk text the draft started from: unequal means unsaved typing.
   const [base, setBase] = useState(source?.text ?? '');
@@ -157,13 +129,6 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
     [locale],
   );
 
-  const toggle = () => {
-    setOpen((was) => {
-      writeOpen(!was);
-      return !was;
-    });
-  };
-
   const type = (text: string) => {
     setDraft(text);
     // Typing moves the lines the marks were counted against.
@@ -202,19 +167,13 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
   return (
     <section className="studio-card studio-code">
       <div className="studio-code__head">
-        <button
-          type="button"
-          className="studio-code__toggle"
-          aria-expanded={open}
-          aria-controls={bodyId}
-          onClick={toggle}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M6 3.5 10.5 8 6 12.5" />
-          </svg>
+        {/* A heading, not a fold: the code has a tab of its own under the
+            stage (layout A, 2026-09-27), and a fold inside that tab would be
+            a second way of not showing it. */}
+        <h3 className="studio-code__toggle">
           <span className="studio-code__title">{t('studio.code.title')}</span>
           {source && <span className="studio-code__file">{source.file}</span>}
-        </button>
+        </h3>
         {source && (
           <span
             className={`studio-code__state${dirty ? ' is-dirty' : ''}${change && !dirty ? ' is-changed' : ''}`}
@@ -224,7 +183,7 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
             {status}
           </span>
         )}
-        {open && change && !dirty && (
+        {change && !dirty && (
           <>
             <span
               className="studio-code__delta"
@@ -252,7 +211,7 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
             </button>
           </>
         )}
-        {open && source && (
+        {source && (
           <button
             type="button"
             className={`button small${saving ? ' is-running' : ''}`}
@@ -265,63 +224,61 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
         )}
       </div>
 
-      {open && (
-        <div id={bodyId} className="studio-code__body">
-          {incoming !== undefined && (
-            <div className="studio-code__incoming" role="alert">
-              <span>{t('studio.code.changed')}</span>
-              <button
-                type="button"
-                className="button small"
-                onClick={() => adoptOutside(base, incoming)}
-              >
-                {t('studio.code.load')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => {
-                  setBase(incoming);
-                  setIncoming(undefined);
-                }}
-              >
-                {t('studio.code.keep')}
-              </button>
-            </div>
-          )}
-          {trouble && (
-            <p className="studio-code__trouble" role="alert">
-              {t(
-                trouble === 'too-large'
-                  ? 'studio.code.tooLarge'
-                  : 'studio.code.failed',
-              )}
-            </p>
-          )}
-          {source && showDiff && change && (
-            <StudioCodeDiff lines={change.detail.lines} />
-          )}
-          {source && !(showDiff && change) && (
-            <StudioCodeEditor
-              text={draft}
-              label={t('studio.code.label', { file: source.file })}
-              onText={type}
-              onSave={save}
-              wrong={wrong}
-              added={change?.detail.added ?? NOTHING}
-              removedAbove={change?.detail.removedAbove ?? NOTHING}
-              reveal={
-                change
-                  ? { id: change.id, line: change.detail.firstLine }
-                  : undefined
-              }
-            />
-          )}
-          {!source && (
-            <p className="studio-code__missing">{t('studio.code.missing')}</p>
-          )}
-        </div>
-      )}
+      <div className="studio-code__body">
+        {incoming !== undefined && (
+          <div className="studio-code__incoming" role="alert">
+            <span>{t('studio.code.changed')}</span>
+            <button
+              type="button"
+              className="button small"
+              onClick={() => adoptOutside(base, incoming)}
+            >
+              {t('studio.code.load')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => {
+                setBase(incoming);
+                setIncoming(undefined);
+              }}
+            >
+              {t('studio.code.keep')}
+            </button>
+          </div>
+        )}
+        {trouble && (
+          <p className="studio-code__trouble" role="alert">
+            {t(
+              trouble === 'too-large'
+                ? 'studio.code.tooLarge'
+                : 'studio.code.failed',
+            )}
+          </p>
+        )}
+        {source && showDiff && change && (
+          <StudioCodeDiff lines={change.detail.lines} />
+        )}
+        {source && !(showDiff && change) && (
+          <StudioCodeEditor
+            text={draft}
+            label={t('studio.code.label', { file: source.file })}
+            onText={type}
+            onSave={save}
+            wrong={wrong}
+            added={change?.detail.added ?? NOTHING}
+            removedAbove={change?.detail.removedAbove ?? NOTHING}
+            reveal={
+              change
+                ? { id: change.id, line: change.detail.firstLine }
+                : undefined
+            }
+          />
+        )}
+        {!source && (
+          <p className="studio-code__missing">{t('studio.code.missing')}</p>
+        )}
+      </div>
     </section>
   );
 }

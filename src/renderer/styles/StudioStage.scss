@@ -398,9 +398,11 @@ $stage-edge: $border-menu;
   min-height: 48px;
 }
 
-// The card answers to its own width, not the Studio's: the side column it
-// stands in is 220 to 248 pixels whatever the window does.
-.studio-test {
+// A card with tiles answers to its own width, not the Studio's: the side
+// column the preview audio stands in is 220 to 248 pixels whatever the
+// window does, and a Tune box is as wide as its track leaves it.
+.studio-listen,
+.studio-tune__box {
   container: studio-test / inline-size;
 }
 
@@ -450,53 +452,6 @@ $stage-edge: $border-menu;
 
 .studio-wave__hint {
   margin-top: -2px;
-}
-
-// The grid over the stage: a section of its own under a hairline, its name
-// with the grid's glyph and a switch on one line, and what it is for under
-// them. The switch is the look designer's small one: at its default 50x28 it
-// was taller than the words beside it and the heaviest thing in a card made
-// of 10px labels.
-.studio-grid-switch {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 5px $spacing-s;
-  margin-top: 2px;
-  padding-top: 9px;
-  border-top: 1px solid $border-subtle;
-
-  .switch {
-    --switch-width: 30px;
-    --switch-height: 16px;
-    --switch-thumb: 10px;
-    --switch-inset: 2px;
-  }
-}
-
-.studio-grid-switch__label {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 7px;
-  color: $text-primary;
-  font-size: $text-small;
-  cursor: pointer;
-}
-
-.studio-grid-switch__glyph {
-  flex: 0 0 auto;
-  width: 13px;
-  height: 13px;
-  color: $text-faint;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 1.6;
-}
-
-.studio-grid-switch__hint {
-  grid-column: 1 / -1;
-  margin-top: 0;
 }
 
 // What is playing, read first: its name, and what it is, on a bar of the
@@ -649,8 +604,8 @@ $stage-edge: $border-menu;
   box-shadow: 0 0 8px color-mix(in srgb, $red 70%, transparent);
 }
 
-// The graph's performance rows inside the card that tries a scene
-// (`StudioTestCard.tsx`): the menu's own rows, standing in the card instead
+// The graph's performance rows in the Studio's Performance tab
+// (`StudioDrawing.tsx`): the menu's own rows, standing in the card instead
 // of floating under a trigger. Its width is the card's, so a long answer
 // wraps in the value column as it does in the menu.
 //
@@ -668,7 +623,7 @@ $stage-edge: $border-menu;
 // like the other settings". Everything that makes the list a surface is
 // taken off here — in euphoria as well — and what is kept is the row
 // styling, which is why the list class is still on the element.
-.studio-test .studio-performance__rows.studio-performance__rows {
+.studio-drawing .studio-performance__rows.studio-performance__rows {
   position: static;
   z-index: auto;
   width: 100%;

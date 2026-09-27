@@ -1,5 +1,6 @@
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import StudioShipMore, { type IShipMoreItem } from './StudioShipMore';
 
 interface IStudioShipCardProps {
   /** No scene that plays and passes, so nothing can be kept or sent yet. */
@@ -15,10 +16,15 @@ interface IStudioShipCardProps {
 }
 
 /**
- * What to do with the scene once it plays: keep it in the member's looks,
- * publish it to the gallery, send it as a file, play it on the desktop.
- * With Plus; the bench shows `StudioShipMaker` without it, and
- * `StudioShipInspect` for one of FluidEQ's scenes opened to look inside.
+ * What to do with the scene once it plays, at the end of the Studio's bar
+ * (layout A, Ivan 2026-09-27): keep it in the member's looks — what most
+ * members do, so the loud one — publish it to the gallery, and behind More,
+ * send it as a file or play it on the desktop. With Plus; the bench shows
+ * `StudioShipMaker` without it, and `StudioShipInspect` for one of FluidEQ's
+ * scenes opened to look inside.
+ *
+ * In the bar they are in reach wherever the page was left: at the foot of the
+ * side column they were a card pinned over everything that scrolled there.
  */
 export default function StudioShipCard({
   unfit,
@@ -31,17 +37,41 @@ export default function StudioShipCard({
   settingDesktop,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
+  const more: IShipMoreItem[] = [
+    {
+      key: 'export',
+      glyph: 'send',
+      label: t('studio.action.export'),
+      busy: exporting,
+      disabled: unfit,
+      onSelect: () => {
+        if (!exporting) {
+          onExport();
+        }
+      },
+    },
+  ];
+  if (onSetDesktop) {
+    more.push({
+      key: 'desktop',
+      glyph: 'monitor',
+      label: t('studio.action.desktop'),
+      busy: settingDesktop,
+      disabled: unfit,
+      onSelect: () => {
+        if (!settingDesktop) {
+          onSetDesktop();
+        }
+      },
+    });
+  }
   return (
-    <div className="studio-ship">
-      <button
-        type="button"
-        className="button small studio-ship__add"
-        onClick={onAdd}
-        disabled={unfit}
-      >
-        <Glyph name="looks" />
-        {t('studio.action.addToLooks')}
-      </button>
+    <div
+      className="studio-ship"
+      role="group"
+      aria-label={t('studio.ship.title')}
+    >
+      <StudioShipMore items={more} />
       <button
         type="button"
         className={`button small subtle${publishing ? ' is-running' : ''}`}
@@ -54,34 +84,13 @@ export default function StudioShipCard({
       </button>
       <button
         type="button"
-        className={`button small subtle${exporting ? ' is-running' : ''}`}
-        aria-busy={exporting}
-        onClick={() => {
-          if (!exporting) {
-            onExport();
-          }
-        }}
+        className="button small studio-ship__add"
+        onClick={onAdd}
         disabled={unfit}
       >
-        <Glyph name="send" />
-        {t('studio.action.export')}
+        <Glyph name="looks" />
+        {t('studio.action.addToLooks')}
       </button>
-      {onSetDesktop && (
-        <button
-          type="button"
-          className={`button small subtle${settingDesktop ? ' is-running' : ''}`}
-          aria-busy={settingDesktop}
-          onClick={() => {
-            if (!settingDesktop) {
-              onSetDesktop();
-            }
-          }}
-          disabled={unfit}
-        >
-          <Glyph name="monitor" />
-          {t('studio.action.desktop')}
-        </button>
-      )}
     </div>
   );
 }

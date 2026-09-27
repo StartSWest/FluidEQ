@@ -110,6 +110,7 @@ import './StudioPictureLightbox.scss';
 import './PaneResizer.scss';
 import './StudioLocked.scss';
 import './StudioMaker.scss';
+import './StudioWork.scss';
 import './CommunityRail.scss';
 import './Community.scss';
 import './Leaderboard.scss';

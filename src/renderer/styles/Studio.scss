@@ -13,14 +13,14 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The Studio: the main area of the Plus tab when its rail entry is on.
 //
-// One layout whether a project is open or not. The stage has the width;
-// what judges the scene — what it hears, what to test it with, what to do
-// with it — stands in one column beside it; how to make it sits under the
-// stage. Narrow, it all folds into one column in the order it is used:
-// stage, then its controls, then the making.
+// One layout whether a project is open or not (layout A, 2026-09-27). The
+// stage has the width and stays at the top; the work on the scene is tabs
+// under it; what it plays and what it hears stand in a column beside it, or
+// in a tab of their own when the bench is too narrow for the column; what to
+// do with the finished scene is at the end of the bar.
 //
-// The stage and its controls are in `StudioStage.scss`, the making card in
-// `StudioMaker.scss`.
+// The stage is in `StudioStage.scss`, the tabs, the stage's controls and the
+// bar's actions in `StudioWork.scss`, the making card in `StudioMaker.scss`.
 
 .studio {
   display: flex;
@@ -174,12 +174,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- bench
 
-// Two panes side by side, each scrolling on its own under the project bar:
-// the stage, its pictures, code and making on the left, what tests and
-// tunes it on the right. One scroll for the whole page meant going down the
-// column to a slider took the scene being tuned off the top of the screen.
-// The bench fills the Studio's height so the Studio itself never scrolls;
-// folded into one column, it is one page again and the Studio scrolls it.
+// Layout A (Ivan, 2026-09-27): the stage at the top of the page and never
+// scrolled away, the work on the scene in tabs under it, what the scene hears
+// in a column beside it, and the ways out of the Studio at the end of the bar
+// above. The bench fills the Studio's height so the Studio itself never
+// scrolls; what is long scrolls inside its own tab panel or column.
 .studio-bench {
   display: grid;
   flex: 1 1 auto;
@@ -187,66 +186,46 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-m;
   min-width: 0;
   min-height: 0;
-  // Down to the Studio's bottom edge: the panes scroll, so the padding the
-  // Studio keeps under a page it scrolls as one was only a dead strip under
-  // them, read as room kept for a horizontal scrollbar.
+  // Down to the Studio's bottom edge: the panels scroll, so the padding the
+  // Studio keeps under itself was only a dead strip under them.
   margin-bottom: calc(-1 * #{$spacing-s});
-
-  @container studio (max-width: 760px) {
-    flex: none;
-    grid-template-rows: none;
-    margin-bottom: 0;
-  }
 }
 
-// Pinned to the top of the Studio while it scrolls. Which project is open, and
-// the arrows to the next one, are what every card underneath belongs to; with
-// the code pane open at the foot of the page they had scrolled away exactly
-// when somebody wanted to move on.
-//
-// It stands on the pane's own colour so the cards pass under it rather than
-// through it, and it reaches up over the scroller's top padding and down by a
-// small step, both cancelled by its margins so nothing moves at rest: without
-// the reach, a strip of the cards showed above it and its edge sat flush on
-// whatever passed under.
+// The project, its version and state, what an action just said, and the ways
+// out of the Studio, on the floor the page stands on.
 .studio-bench__top {
-  position: sticky;
-  z-index: 3;
-  top: calc(-1 * #{$spacing-m});
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-s $spacing-m;
-  margin-block: calc(-1 * #{$spacing-m}) calc(-1 * #{$spacing-s});
-  padding-block: $spacing-m $spacing-s;
-  // The floor the page stands on, opaque, so what scrolls under the bar is
-  // hidden and the bar at rest is no band at all. It was the panes' slate,
-  // which the page lost with its fill, and stood as a lighter band across the
-  // top of the Studio (Ivan, 2026-09-26: "fix studio top thing bg color").
   background: $surface-base;
-  // An edge only once something is under it: a hairline that arrives over
-  // the first few pixels of scrolling and is gone at the top, where the bar
-  // is just the head of the page. No shadow under it (Ivan, 2026-09-27:
-  // "remove shadow under search when list scrolls ... and all those lists").
-  animation: studio-top-lift linear both;
-  animation-timeline: scroll(nearest block);
-  animation-range: 0 $spacing-l;
 }
 
-@keyframes studio-top-lift {
-  from {
-    box-shadow: 0 1px 0 transparent;
-  }
-
-  to {
-    box-shadow: 0 1px 0 $border-subtle;
-  }
-}
-
+// What the bench is doing, in words and a lamp beside them: never the colour
+// alone (a red-green reading of the lamp would be no reading at all).
 .studio-bench__status {
+  display: inline-flex;
   min-width: 0;
-  color: $text-dim;
-  font-size: $text-small;
+  align-items: center;
+  gap: 7px;
+  color: $text-faint;
+  font-size: $text-body;
+}
+
+.studio-bench__lamp {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $text-dim;
+
+  .studio-bench__status.is-live & {
+    background: $active;
+  }
+
+  .studio-bench__status.is-problem & {
+    background: $red;
+  }
 }
 
 // The version on the bench, beside the status word. Tabular figures so a
@@ -276,17 +255,21 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // What a pane keeps clear inside its scroll edge, and gives back with its
-// margins so nothing moves: a scroller clips at its own box, and the stage's
-// ring and a focused control's glow both reach a few pixels past theirs.
+// margins so nothing moves: a scroller clips at its own box, and a focused
+// control's ring reaches a few pixels past it.
 $studio-pane-bleed: 4px;
 
-// The side column's cards are 248px, the width their tiles and sliders were
-// laid out at; the column is that and the scrollbar it always keeps.
+// The side column's cards are 248px, the width their tiles were laid out at;
+// the column is that and the scrollbar it always keeps.
 $studio-side-cards: 248px;
 $studio-scrollbar: 8px;
 
+// Kept under the stage whatever its shape: the tabs' rail and enough of a
+// panel to work in. The stage gives way to it on a short window instead of
+// pushing the work off the bottom.
+$studio-room-under-stage: 220px;
+
 .studio-bench__grid {
-  position: relative;
   display: grid;
   grid-template-columns:
     minmax(0, 1fr)
@@ -294,102 +277,25 @@ $studio-scrollbar: 8px;
   grid-template-areas: 'main side';
   gap: $spacing-m;
   min-height: 0;
-  // Both panes' scroll positions, for the edges drawn over their tops.
-  timeline-scope: --studio-main, --studio-side;
 
-  @container studio (max-width: 760px) {
+  // Too narrow for the column (`useStudioBenchLayout.ts`): what it held is
+  // a tab under the stage instead.
+  &.is-single {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'stage'
-      'side'
-      'maker';
-    align-items: start;
-  }
-
-  // An edge along the top of a pane once something has scrolled under it: a
-  // hairline that arrives over its first few pixels of scrolling, the project
-  // bar's own look, and no shade under it. Placed by grid area, so each spans
-  // exactly its pane whatever the columns come to. A pane that has nothing
-  // to scroll has no active timeline and keeps the resting opacity, unseen.
-  &::before,
-  &::after {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 0;
-    content: '';
-    pointer-events: none;
-    border-top: 1px solid $border-subtle;
-    opacity: 0;
-    animation: studio-pane-edge linear both;
-    animation-range: 0 $spacing-l;
-
-    @container studio (max-width: 760px) {
-      display: none;
-    }
-  }
-
-  &::before {
-    grid-area: main;
-    animation-timeline: --studio-main;
-  }
-
-  &::after {
-    grid-area: side;
-    animation-timeline: --studio-side;
+    grid-template-areas: 'main';
   }
 }
 
-@keyframes studio-pane-edge {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-// Shared by both panes. The scrollbar's room is kept whether or not there is
-// anything to scroll: a pane that grew a scrollbar when its pictures arrived
-// would narrow the stage under a playing scene and redraw it at a new size.
-@mixin studio-pane {
-  min-height: 0;
-  margin: 0 (-$studio-pane-bleed);
-  padding: $studio-pane-bleed;
-  // Up and down only. A scroller that scrolls one way is made to scroll the
-  // other too, and a line a few pixels too wide then put a horizontal
-  // scrollbar along the pane's foot.
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  @include slim-scrollbar;
-
-  @container studio (max-width: 760px) {
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-    scrollbar-gutter: auto;
-  }
-}
-
+// The stage, then the tabs, then the panel that scrolls. A size container so
+// the stage can be held to the height left over (below).
 .studio-bench__main {
   display: flex;
   flex-direction: column;
   grid-area: main;
-  gap: $spacing-m;
+  gap: $spacing-s;
   min-width: 0;
-  scroll-timeline: --studio-main block;
-  @include studio-pane;
-
-  // Folded, its two parts are laid out by the grid again, with the side
-  // column between them in the order the Studio is used.
-  @container studio (max-width: 760px) {
-    display: contents;
-  }
+  min-height: 0;
+  container: studio-main / size;
 }
 
 .studio-bench__stage {
@@ -399,16 +305,8 @@ $studio-scrollbar: 8px;
   gap: $spacing-s;
   min-width: 0;
 
-  @container studio (max-width: 760px) {
-    grid-area: stage;
-  }
-
-  // The divider under the stage sits in the gap to what follows, as the EQ
-  // tab's sits between its cards, rather than adding a gap of its own: a 12px
-  // seam with the grip in its middle. A column, not a grid, for this: a grid
-  // row cannot be less than nothing tall, so the margins were only half
-  // taken back, and the seam came out twice the gap with the grip against
-  // the stage.
+  // The divider under the stage sits in the gap to what follows rather than
+  // adding a gap of its own: a 12px seam with the grip in its middle.
   > .pane-resizer {
     margin-block: calc(-1 * #{$spacing-s});
   }
@@ -420,95 +318,81 @@ $studio-scrollbar: 8px;
   }
 }
 
+// Each shape held to the height the page leaves it, by width: the stage keeps
+// its shape (a scene drawn at the wrong one is the wrong scene) and grows
+// narrower instead, centred.
+.studio-bench__main {
+  // The wells that stand where a stage will be, held the same way.
+  .studio-stage__well--empty,
+  .studio-stage__well--start {
+    max-height: calc(100cqh - #{$studio-room-under-stage});
+  }
+
+  .studio-stage--graph {
+    max-width: calc(
+      (100cqh - #{$studio-room-under-stage}) * var(--studio-stage-ratio, 2.35)
+    );
+    margin-inline: auto;
+  }
+
+  .studio-stage--full {
+    max-width: calc((100cqh - #{$studio-room-under-stage}) * 2.35);
+    margin-inline: auto;
+  }
+
+  .studio-stage--wide {
+    max-width: min(
+      640px,
+      calc((100cqh - #{$studio-room-under-stage}) * 16 / 9)
+    );
+  }
+
+  .studio-stage--narrow {
+    max-width: min(260px, calc((100cqh - #{$studio-room-under-stage}) * 2 / 3));
+  }
+}
+
+// Shared by the scrolling column. The scrollbar's room is kept whether or not
+// there is anything to scroll: a column that grew a scrollbar when a group
+// opened would narrow its tiles under the pointer.
+@mixin studio-pane {
+  min-height: 0;
+  margin: 0 (-$studio-pane-bleed);
+  padding: $studio-pane-bleed;
+  // Up and down only: a line a few pixels too wide put a horizontal
+  // scrollbar along the column's foot.
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  @include slim-scrollbar;
+}
+
 .studio-bench__side {
   display: grid;
   grid-area: side;
   align-content: start;
   gap: $spacing-s;
   min-width: 0;
-  scroll-timeline: --studio-side block;
   @include studio-pane;
-
-  // Folded under the stage, a column of cards the width of the panel is a
-  // long scroll of short rows: side by side they fill it.
-  @container studio (min-width: 480px) and (max-width: 760px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    .studio-ship-card {
-      grid-column: 1 / -1;
-    }
-  }
-
-  // "When it's ready" stays at the foot of the column, whatever is above it.
-  //
-  // Everything a scene is tried and tuned with is one card now, and open it
-  // stands taller than the column: the actions that take a finished scene
-  // out of the Studio — to the looks, the gallery, a file — ended up
-  // seventeen hundred pixels down a scroller, which is a set of actions
-  // nobody can find. Pinned, they are where they always were, last, and
-  // always in reach; everything else scrolls behind them. The bleed the
-  // pane scrolls under is why the offset is not zero: at zero the card
-  // stopped a few pixels short of the foot and the rows slid into the gap.
-  .studio-ship-card {
-    position: sticky;
-    bottom: -$studio-pane-bleed;
-    z-index: 1;
-    // A card, and opaque: the rows scroll under it, and with no fill of its
-    // own they were read through it, the controls over the buttons (Ivan,
-    // 2026-09-26: "the bottom publish pane no transparent either"). The
-    // card's face over the floor, so a veiled pane cannot make it see-through.
-    background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
-    // No shadow over the rows it pins above (Ivan, 2026-09-27: "remove drop
-    // shadow"): its own edge and opaque face are what part it from them, as
-    // every other card in the flat window is parted.
-  }
 }
 
-.studio-bench__maker {
-  flex: none;
-  min-width: 0;
-
-  @container studio (max-width: 760px) {
-    grid-area: maker;
-  }
-}
-
-// What to do with the scene once it plays: keep it, publish it, send it.
-// Keeping it is what most members do, so it is the loud one, and in the
-// column it has a row of its own. Under the stage all three share one row,
-// wrapping only when a translation will not fit — a button never shrinks
-// below its own label.
+// What to do with the scene once it plays: keep it, publish it, send it —
+// at the end of the bar (`StudioWork.scss` lays the row out).
 .studio-ship {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-
-  .button {
-    flex: 1 1 0;
-  }
+  gap: 8px;
 }
 
-.studio-ship__add {
-  flex-basis: 100%;
-
-  @container studio (min-width: 480px) and (max-width: 760px) {
-    flex: 1.4 1 0;
-  }
-}
-
-// A FluidEQ scene opened to look inside: in place of the three actions, what
-// the project is for and why it cannot be kept or shared, marked with the
-// looks glyph in FluidEQ's accent as its gallery page is.
+// A FluidEQ scene opened to look inside: in place of the actions, what the
+// project is for and why it cannot be kept or shared, marked with the looks
+// glyph in FluidEQ's accent as its gallery page is.
 .studio-ship--inspect {
   display: grid;
   gap: 5px;
 }
 
-// The title and the line under it are one treatment on both cards that
-// stand in for the actions: the one for a FluidEQ scene opened to look
-// inside, and the one without Plus.
-.studio-ship__inspect-title,
-.studio-ship__locked-title {
+.studio-ship__inspect-title {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -524,59 +408,11 @@ $studio-scrollbar: 8px;
   }
 }
 
-.studio-ship__inspect-body,
-.studio-ship__locked-body {
+.studio-ship__inspect-body {
   color: $text-dim;
   font-size: $text-micro;
   line-height: 1.45;
   text-wrap: pretty;
-}
-
-// Without Plus, which on the bench is a maker (`StudioShipMaker.tsx`):
-// Publish, in the loud style because it is how they earn Plus back, over
-// the other actions each shown locked in the quiet one.
-.studio-ship--maker {
-  display: grid;
-  gap: $spacing-s;
-}
-
-// One row each in the side column; side by side once the card is folded
-// under the stage and runs the panel's width, where rows the full width
-// stood mostly empty and made the pinned card a quarter of the window.
-.studio-ship__locked-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-// The name on the left, the lock on the right: a row that reads as a thing
-// that would be pressed, rather than as a line of text with an icon.
-//
-// The name wraps rather than holding one line: in Russian the names are
-// long enough that a row which cannot wrap makes the whole side column nine
-// pixels wider than it has, and a column that wide crushes the cards under it.
-// Doubled with `.button` on purpose: that class sets the three things undone
-// here, at the same weight, and which stylesheet the bundle writes last is
-// not a thing to lean on.
-.button.studio-ship__locked-action {
-  width: 100%;
-  min-width: 0;
-  justify-content: flex-start;
-  white-space: normal;
-}
-
-.studio-ship__locked-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  text-align: left;
-}
-
-.studio-ship__locked-mark {
-  flex: 0 0 auto;
-  color: $text-dim;
 }
 
 // ---------------------------------------------------------------- projects

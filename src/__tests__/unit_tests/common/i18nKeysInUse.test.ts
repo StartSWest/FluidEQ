@@ -157,12 +157,12 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['remoteAudio.{listen,send}.kicker', 'remoteAudio.*.kicker'],
   ],
   'src/renderer/remoteAudio/RemoteAudioPanel.tsx': ['remoteAudio.error.*'],
-  'src/renderer/studio/StudioProblems.tsx': ['studio.problem.*'],
-  'src/renderer/studio/StudioTestCard.tsx': [
+  'src/renderer/studio/StudioListen.tsx': [
     'studio.signal.*',
     'studio.signalHint.*',
-    'studio.size.*',
   ],
+  'src/renderer/studio/StudioProblems.tsx': ['studio.problem.*'],
+  'src/renderer/studio/StudioStageControls.tsx': ['studio.size.*'],
 };
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

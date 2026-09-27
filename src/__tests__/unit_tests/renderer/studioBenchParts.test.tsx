@@ -7,17 +7,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The smaller parts the Studio's bench is built from: the version tag in its
  * bar, the empty stage where the first project starts, the stage's area with
- * the divider under it, and the card at the foot of the side column that
- * holds whichever share inside the bench chose.
+ * the divider under it, and the tabs the work on the scene is in under it.
  */
 
 import '@testing-library/jest-dom';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import StudioShipSection from '../../../renderer/studio/StudioShipSection';
 import StudioStageArea from '../../../renderer/studio/StudioStageArea';
 import StudioStageStart from '../../../renderer/studio/StudioStageStart';
 import StudioVersion from '../../../renderer/studio/StudioVersion';
+import StudioWorkTabs from '../../../renderer/studio/StudioWorkTabs';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -141,17 +140,67 @@ describe("the stage's area", () => {
   });
 });
 
-describe('the card at the foot of the side column', () => {
-  it('is a region named by its title, around the inside it is given', () => {
+describe('the work tabs under the stage', () => {
+  const tabs = [
+    { id: 'make', label: 'Make' },
+    { id: 'code', label: 'Code', badge: 2, isAlert: true },
+    { id: 'tune', label: 'Tune' },
+  ] as const;
+
+  const renderTabs = (onSelect = jest.fn(), selected = 'make') =>
     render(
-      <StudioShipSection>
-        <button type="button">inside</button>
-      </StudioShipSection>,
+      <StudioWorkTabs
+        label="Work"
+        tabs={tabs}
+        selected={selected as 'make' | 'code' | 'tune'}
+        onSelect={onSelect}
+      >
+        <p>panel of {selected}</p>
+      </StudioWorkTabs>,
     );
-    const card = screen.getByRole('region', { name: 'studio.ship.title' });
-    expect(card).toHaveClass('studio-card', 'studio-ship-card');
+
+  it('is a tab list whose selected tab labels its panel', () => {
+    renderTabs();
+    const list = screen.getByRole('tablist', { name: 'Work' });
+    const make = within(list).getByRole('tab', { name: 'Make' });
+    expect(make).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: 'Make' })).toHaveTextContent(
+      'panel of make',
+    );
+    // Only the selected tab is in the tab order: the panel is one Tab away.
+    expect(make).toHaveAttribute('tabindex', '0');
+    expect(within(list).getByRole('tab', { name: 'Tune' })).toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
+  });
+
+  it('says a count after a name, and a problem count as an alert', () => {
+    renderTabs();
+    const code = screen.getByRole('tab', { name: 'Code 2' });
+    expect(within(code).getByText('2')).toHaveClass(
+      'studio-work__badge',
+      'is-alert',
+    );
+    // POSITIVE CONTROL: a tab with no count has no badge.
     expect(
-      within(card).getByRole('button', { name: 'inside' }),
-    ).toBeInTheDocument();
+      screen
+        .getByRole('tab', { name: 'Make' })
+        .querySelector('.studio-work__badge'),
+    ).toBeNull();
+  });
+
+  it('walks the tabs with the arrows, round the ends, and Home and End', async () => {
+    const onSelect = jest.fn();
+    renderTabs(onSelect);
+    screen.getByRole('tab', { name: 'Make' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(onSelect).toHaveBeenLastCalledWith('code');
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(onSelect).toHaveBeenLastCalledWith('tune');
+    await userEvent.keyboard('{End}');
+    expect(onSelect).toHaveBeenLastCalledWith('tune');
+    await userEvent.keyboard('{Home}');
+    expect(onSelect).toHaveBeenLastCalledWith('make');
   });
 });

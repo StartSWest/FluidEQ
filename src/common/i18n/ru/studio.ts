@@ -23,7 +23,6 @@ const studio = {
   'studio.description': 'Создавайте сцены с вашим ИИ и смотрите их вживую',
   'studio.rail.blurb': 'Создавайте свои сцены',
 
-  'studio.plus.title': 'С Plus',
   'studio.plus.locked': 'Только с Plus',
   'studio.locked.title': 'Студия входит в Plus',
   'studio.locked.body':
@@ -347,6 +346,11 @@ const studio = {
 
   'studio.test.title': 'Проверка сцены',
   'studio.ship.title': 'Когда готова',
+  'studio.work.label': 'Работа над сценой',
+  'studio.work.make': 'Создать с ИИ',
+  'studio.work.pictures': 'Изображения',
+  'studio.work.tune': 'Настройка',
+  'studio.ship.more': 'Ещё',
   'studio.ship.makerTitle': 'Публиковать вы можете и дальше',
   'studio.signals.title': 'Звук для предпросмотра',
   'studio.signals.hint':

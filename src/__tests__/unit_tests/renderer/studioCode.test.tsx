@@ -194,18 +194,19 @@ describe('the code pane', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('remembers being folded away', () => {
-    const { unmount } = render(
-      <StudioCode source={source(BEFORE)} problemLines={[]} />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /studio.code.title/ }));
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    unmount();
+  it('has no fold of its own: the code has a tab, and shows in it', () => {
+    // A fold inside the Code tab would be a second way of not showing it
+    // (layout A, 2026-09-27); a pane folded before that change must not come
+    // back folded either.
+    window.localStorage.setItem('fluideq.studio.codeOpen', 'false');
     render(<StudioCode source={source(BEFORE)} problemLines={[]} />);
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /studio.code.title/ }),
-    ).toHaveAttribute('aria-expanded', 'false');
+      screen.getByRole('heading', { name: /studio.code.title/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /studio.code.title/ }),
+    ).toBeNull();
   });
 });
 
