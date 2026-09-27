@@ -321,22 +321,22 @@ $card-glow: radial-gradient(
 // mockups). With every pane one floor and hairlines between the sections,
 // the window read as "flat but like something is missing".
 //
-// The depth the approved picture was painted at: seven tenths of the pane,
-// with a twentieth of the accent through it — twice the card's third.
-// Measured on the black window, the card's depth stands 7 values over the
-// floor (the DSP card, rgb 2,13,19 on 0,6,12) and this one 15 (3,21,28),
-// the step the picture showed. Flat, no glow: the corner glow is the card's,
-// and on a stretch the height of a page it would be a gradient across it.
+// The pane's own colour and nothing else (Ivan, 2026-09-27: "I want panes
+// darker because in dark theme they need to be almost black as the rest of
+// the app but somehow visible still"). A twentieth of the accent had been
+// mixed in, after the mockup: on Black that made each section rgb 12,19,23,
+// a teal slab on a #050608 floor. Now it is the pane's #0c0e12 seen at 85%
+// over that floor, about rgb 11,13,16 — almost black, a few steps up, and
+// its edge (`$border-panel`) says where it ends. Every other shade keeps the
+// same relation, pane over floor, and a Plus scene tinting the window tints
+// it with the pane. Flat, no glow: the corner glow is the card's, and on a
+// stretch the height of a page it would be a gradient across it.
 //
 // Translucent, for the card's reason: over the Backdrop's scene it lets the
 // scene through as the veiled panes do (`SceneCover.scss`), and is mixed
 // from their veiled pane colour there, where an opaque section would stand
 // as a slab across the picture.
-$surface-section: color-mix(
-  in srgb,
-  color-mix(in srgb, $secondary-default 5%, $surface-panel) 70%,
-  transparent
-);
+$surface-section: color-mix(in srgb, $surface-panel 85%, transparent);
 
 // The radius Windows 11 clips a frameless window's corners to, and therefore
 // the radius the window's own edge is drawn at (`body::after` in App.scss).

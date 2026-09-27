@@ -84,8 +84,7 @@ const LIGHT_MAX_CHROMA = 0.08;
  * makes a lighter Ocean still Ocean — about 0.065 on the floor and 0.075
  * on the panes, level with Colours at the same Brightness.
  */
-const lightSurface = (ocean: ILab): ILab => {
-  const l = lightEnd(ocean.l);
+const liftedTo = (ocean: ILab, l: number): ILab => {
   const chroma = Math.hypot(ocean.a, ocean.b);
   if (chroma === 0 || ocean.l <= 0) {
     return { ...ocean, l };
@@ -93,6 +92,44 @@ const lightSurface = (ocean: ILab): ILab => {
   const scale = Math.max(1, Math.min(l / ocean.l, LIGHT_MAX_CHROMA / chroma));
   return { l, a: ocean.a * scale, b: ocean.b * scale };
 };
+
+const lightSurface = (ocean: ILab): ILab => liftedTo(ocean, lightEnd(ocean.l));
+
+/**
+ * How far the floor stands under the panes at the light end, in OKLab
+ * lightness: Black's own step, #050608 under #0c0e12 (0.041).
+ *
+ * Lifted by the panes' own amount the floor kept Ocean's gap to them, 0.1,
+ * and the window at 100% was a dark navy with lit panes on it (Ivan,
+ * 2026-09-27: "the whole app should be lighter almost matching the pane …
+ * when brightness is 100 keep pane color as it is and make app more bright
+ * too", "so they are close but still separated visually"). So the light end
+ * takes the floor to just under the panes' light end instead, with the panes
+ * where they were; from Ocean up the step closes gradually, and Ocean and
+ * everything under it are as they shipped.
+ */
+const LIGHT_FLOOR_STEP = 0.04;
+
+/**
+ * The floor alone. The wells stay where the lift puts them, under the new
+ * floor: a fader's slot, a knob's well and a meter's recess sit in cards,
+ * and taken up with the floor they stood 0.035 under the cards instead of
+ * 0.1 and read as faded ("some colors look faded in the sliders and lines").
+ * A well darker than the floor is what Black has too (#030405 on #050608).
+ */
+const FLOORS: readonly string[] = ['--surface-base'];
+
+/**
+ * The hairlines, light on the floor at an opacity: on a lighter floor the same
+ * opacity is a fainter line. At the light end each keeps the contrast it has
+ * on Ocean's floor, its opacity raised by how much less room there is between
+ * the line's colour and the floor under it.
+ */
+const EDGES: readonly string[] = [
+  '--border-subtle',
+  '--border-panel',
+  '--border-menu',
+];
 
 const SURFACES = [
   '--surface-base',
@@ -207,6 +244,26 @@ const stopOf = (text: string): IStop => {
 const isSurface = (token: TThemeShadeToken) =>
   (SURFACES as readonly string[]).includes(token);
 
+/** Where the floor ends up at the light end: one step under the panes. */
+const LIGHT_FLOOR =
+  lightEnd(stopOf(OCEAN_THEME['--surface-panel']).lab.l) - LIGHT_FLOOR_STEP;
+
+const OCEAN_FLOOR = stopOf(OCEAN_THEME['--surface-base']).lab.l;
+
+const lightStop = (token: TThemeShadeToken, ocean: IStop): IStop => {
+  if (FLOORS.includes(token)) {
+    return { ...ocean, lab: liftedTo(ocean.lab, LIGHT_FLOOR) };
+  }
+  if (EDGES.includes(token)) {
+    const room = (floor: number) => Math.max(ocean.lab.l - floor, 0.01);
+    return {
+      ...ocean,
+      alpha: Math.min(1, (ocean.alpha * room(OCEAN_FLOOR)) / room(LIGHT_FLOOR)),
+    };
+  }
+  return isSurface(token) ? { ...ocean, lab: lightSurface(ocean.lab) } : ocean;
+};
+
 /** Each token at Black, at Ocean, and at the light end. */
 const ENDS = THEME_SHADE_TOKENS.map((token) => {
   const ocean = stopOf(OCEAN_THEME[token]);
@@ -214,9 +271,7 @@ const ENDS = THEME_SHADE_TOKENS.map((token) => {
     token,
     black: stopOf(BLACK_THEME[token]),
     ocean,
-    light: isSurface(token)
-      ? { ...ocean, lab: lightSurface(ocean.lab) }
-      : ocean,
+    light: lightStop(token, ocean),
   };
 });
 
