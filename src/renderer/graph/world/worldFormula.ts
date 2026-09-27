@@ -27,6 +27,11 @@ export interface IWorldFormula {
   constant?: number;
   names: readonly string[];
   live: boolean;
+  /**
+   * Whether it keeps state (`smooth`, `decay`, `integrate`), which moves on
+   * only when it is worked out: a frame it is skipped is a frame it misses.
+   */
+  remembers: boolean;
 }
 
 export interface IWorldVec3Formula {
@@ -34,6 +39,7 @@ export interface IWorldVec3Formula {
   y: IWorldFormula;
   z: IWorldFormula;
   constant: boolean;
+  remembers: boolean;
 }
 
 export interface IWorldColourFormula {
@@ -42,6 +48,7 @@ export interface IWorldColourFormula {
   constant: boolean;
   names: readonly string[];
   live: boolean;
+  remembers: boolean;
 }
 
 /**
@@ -57,12 +64,24 @@ export const createFormula = (
 ): IWorldFormula => {
   const compiled = compileExpression(source, scope);
   if (!compiled.ok) {
-    return { value: () => 0, constant: 0, names: [], live: false };
+    return {
+      value: () => 0,
+      constant: 0,
+      names: [],
+      live: false,
+      remembers: false,
+    };
   }
   const { expression } = compiled;
   if (expression.constant !== undefined) {
     const fixed = expression.constant;
-    return { value: () => fixed, constant: fixed, names: [], live: false };
+    return {
+      value: () => fixed,
+      constant: fixed,
+      names: [],
+      live: false,
+      remembers: false,
+    };
   }
   const size = expression.stateSize;
   const state = new Float64Array(Math.max(1, size * Math.max(1, copies)));
@@ -75,6 +94,7 @@ export const createFormula = (
     },
     names: expression.names,
     live: expression.live,
+    remembers: size > 0,
   };
 };
 
@@ -95,6 +115,7 @@ export const createVec3Formula = (
       x.constant !== undefined &&
       y.constant !== undefined &&
       z.constant !== undefined,
+    remembers: x.remembers || y.remembers || z.remembers,
   };
 };
 
@@ -113,6 +134,7 @@ export const createColourFormula = (
       constant: true,
       names: [],
       live: false,
+      remembers: false,
     };
   }
   const hsl = 'hsl' in source;
@@ -150,5 +172,6 @@ export const createColourFormula = (
     constant: channels.constant,
     names,
     live,
+    remembers: channels.remembers,
   };
 };

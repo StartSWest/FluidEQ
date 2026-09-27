@@ -76,6 +76,8 @@ export interface IWorldMaterialHandle {
    * itself with it, and a terrain's ridges cast none.
    */
   shadow?: { depth: Material; distance: Material };
+  /** Whether a formula of it keeps state (`IWorldFormula.remembers`). */
+  remembers: boolean;
 }
 
 export interface IWorldMaterialVariant {
@@ -378,6 +380,9 @@ export const buildWorldMaterial = (
     update,
     reflects,
     ...(shadow ? { shadow } : {}),
+    remembers: [colour, emissive, emissiveIntensity, mirrorStrength]
+      .concat(scalars.map(({ formula }) => formula))
+      .some((formula) => formula.remembers),
     dispose: () => {
       material.dispose();
       shadow?.depth.dispose();
@@ -484,6 +489,7 @@ export const buildPointsMaterial = (
   return {
     material,
     update,
+    remembers: size.remembers || opacity.remembers || colour.remembers,
     dispose: () => {
       material.dispose();
       dot.dispose();

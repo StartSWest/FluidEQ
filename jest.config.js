@@ -35,6 +35,9 @@ module.exports = {
     '^d3$': '<rootDir>/node_modules/d3/dist/d3.min.js',
     '^music-metadata$': '<rootDir>/node_modules/music-metadata/lib/index.js',
     '^file-type$': fileTypeEntry,
+    // The ES module build itself, transpiled below: `three.cjs` only
+    // requires it, and warns on every run that it is deprecated.
+    '^three$': '<rootDir>/node_modules/three/build/three.module.js',
   },
   setupFiles: [
     './.erb/scripts/check-build-exists.ts',
@@ -78,7 +81,10 @@ module.exports = {
     // ESM that music-metadata's parse chain needs transpiled rather than left
     // for Node's `require` to choke on. `win-guid` is the ninth — forward
     // provisioning for WMA/ASF tag parsing that no test exercises yet.
-    '/node_modules/(?!.*(uuid|music-metadata|file-type|strtok3|token-types|media-typer|uint8array-extras|win-guid|@borewit|@tokenizer))',
+    // `three` is the tenth: its CommonJS entry only requires the ES module
+    // build, so a test that builds a real 3D world (`worldHiddenWork.test.ts`)
+    // needs it transpiled too; a test that mocks `three` never loads it.
+    '/node_modules/(?!.*(uuid|music-metadata|file-type|strtok3|token-types|media-typer|uint8array-extras|win-guid|@borewit|@tokenizer|three))',
     '\\.pnp\\.[^\\/]+$',
   ],
 };

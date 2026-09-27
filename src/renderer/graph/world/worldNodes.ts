@@ -278,6 +278,43 @@ const placeNode = (
   }
 };
 
+/**
+ * `work` done each frame only while `node` shows, where leaving it undone
+ * loses nothing. A ribbon worked out every sample and sent up three buffers
+ * every frame, drawn or not, and so did a set of copies every live formula:
+ * the Storm scene's eight lightning ribbons, hidden between strikes, cost
+ * 4 ms of an 8.6 ms frame that way (headless Chrome on an RTX 4080). Never
+ * where something in it remembers: a `smooth`, `decay` or `integrate` moves
+ * on only when it is worked out, and would come back where it was hidden.
+ * Judged by the node's own `visible` in its own step, so the first frame it
+ * shows is worked out in that frame, never drawn from its last showing.
+ */
+const whileShown = (
+  node: TWorldNode,
+  state: IBuildState,
+  remembers: boolean,
+  work: () => void,
+) => {
+  const shows = createFormula(
+    node.visible,
+    state.inputs.runtime,
+    state.inputs.scope,
+  );
+  if (remembers || (shows.constant !== undefined && shows.constant > 0.5)) {
+    state.frame.push(work);
+    return;
+  }
+  // Hidden for good: nothing to do, ever.
+  if (shows.constant !== undefined) {
+    return;
+  }
+  state.frame.push(() => {
+    if (shows.value() > 0.5) {
+      work();
+    }
+  });
+};
+
 const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
   const { inputs, context } = state;
   let object: Object3D;
@@ -309,14 +346,14 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
       shaped = sharedMaterial(state, node.material);
       const copies = buildInstances(node, inputs, shaped);
       object = copies.object;
-      state.frame.push(copies.update);
+      whileShown(node, state, copies.remembers, copies.update);
       state.disposers.push(copies.dispose);
       break;
     }
     case 'points': {
       const points = buildPoints(node, inputs, context);
       object = points.object;
-      state.frame.push(points.update);
+      whileShown(node, state, points.remembers, points.update);
       state.disposers.push(points.dispose);
       break;
     }
@@ -328,7 +365,7 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
       const ribbon = buildRibbon(node, inputs, material, state.camera);
       object = ribbon.object;
       shaped = material;
-      state.frame.push(() => {
+      whileShown(node, state, ribbon.remembers || material.remembers, () => {
         material.update();
         ribbon.update();
       });

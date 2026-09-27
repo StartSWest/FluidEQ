@@ -34,6 +34,8 @@ export interface IWorldRibbon {
   object: Mesh;
   update(): void;
   dispose(): void;
+  /** Whether a formula of its points, width or colour keeps state. */
+  remembers: boolean;
 }
 
 /**
@@ -189,5 +191,6 @@ export const buildRibbon = (
     object: mesh,
     update,
     dispose: () => geometry.dispose(),
+    remembers: point.remembers || width.remembers || colour.remembers,
   };
 };

@@ -163,7 +163,17 @@ export interface IWorldCopies {
   /** Every frame; does nothing for a set whose formulas ignore the music. */
   update(): void;
   dispose(): void;
+  /**
+   * Whether `update` works out anything that keeps state: a formula
+   * worked out every frame, or the points' own material.
+   */
+  remembers: boolean;
 }
+
+/** Whether any formula of `motion` worked out every frame keeps state. */
+const motionRemembers = (motion: ICopyMotion): boolean =>
+  motion.live.some((channel) => motion.channels[channel].remembers) ||
+  (motion.colourLive && motion.colour?.remembers === true);
 
 export const buildInstances = (
   node: IWorldInstancesNode,
@@ -261,6 +271,7 @@ export const buildInstances = (
       geometry.dispose();
       mesh.dispose();
     },
+    remembers: motionRemembers(motion),
   };
 };
 
@@ -339,5 +350,6 @@ export const buildPoints = (
       geometry.dispose();
       material.dispose();
     },
+    remembers: motionRemembers(motion) || material.remembers,
   };
 };
