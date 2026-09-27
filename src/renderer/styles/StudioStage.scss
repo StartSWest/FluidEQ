@@ -240,14 +240,8 @@ $stage-edge: $border-menu;
   @include truncate;
 }
 
-.studio-stage__exit {
-  position: absolute;
-  top: $spacing-m;
-  right: $spacing-m;
-}
-
 // The way back to the scene's own view (`SceneViewReset.tsx`), in the corner
-// the reading and the way out leave free.
+// the plate with the reading and the way out leaves free.
 .studio-stage__reset {
   right: $spacing-s;
   bottom: $spacing-s;
@@ -557,27 +551,20 @@ $stage-edge: $border-menu;
 }
 
 /**
- * The same light, words and figures as the card down the column, in the
- * corner of the picture they are about. Judging a scene means watching it,
- * and the two were three hundred pixels apart — so a change that made the
- * scene heavy went unnoticed until somebody happened to glance aside.
+ * The same light, words and figures as the card down the column, on the
+ * picture they are about. Judging a scene means watching it, and the two were
+ * three hundred pixels apart — so a change that made the scene heavy went
+ * unnoticed until somebody happened to glance aside.
  *
- * On its own glass plate, because a scene owns every pixel under it and plain
- * text over a bright one is unreadable. It takes no press: the stage is
- * double-clicked to go full screen, and a corner that swallowed that would be
- * a part of the scene behaving differently from the rest of it.
+ * The first part of the stage's plate (`.studio-stage__bar` in
+ * StudioWork.scss), which carries the glass; it takes no press, like the
+ * plate around it.
  */
 .studio-stage__reading {
-  position: absolute;
-  z-index: 1;
-  top: $spacing-s;
-  left: $spacing-s;
+  flex: none;
   margin-top: 0;
-  padding: 6px $spacing-s;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-menu 78%, transparent);
-  backdrop-filter: blur(12px);
+  padding: 0 4px 0 6px;
+  border-top: 0;
   pointer-events: none;
   font-size: $text-micro;
   line-height: 1.35;

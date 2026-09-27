@@ -102,7 +102,10 @@ interface IStudioStageProps {
   onExitFullscreen: () => void;
   /** Double-clicking the stage: full screen, or back from it. */
   onToggleFullscreen: () => void;
-  /** The stage's own controls, laid over its foot (`StudioStageControls`). */
+  /**
+   * The stage's own controls (`StudioStageControls`), on the plate in its top
+   * right corner beside the reading.
+   */
   controls?: ReactNode;
 }
 
@@ -362,19 +365,48 @@ export default function StudioStage({
           style={{ width: box.width, height: box.height }}
         />
         {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
-        {/* In the corner of the picture it is about, on exactly the terms the
-            card down the column shows it on. NOT also gated on the stage
-            having settled: frames arrive — and the card reports them — while
-            the runner still says it is waiting, so a corner that waited for
-            that stayed empty over a scene that was plainly playing. The
-            loading card covers this while there is really nothing yet. */}
-        {cost && (
-          <StudioStageReading
-            cost={cost}
-            percent={percent ?? 100}
-            readingRef={readingRef}
-          />
-        )}
+        {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
+            into one with runs smoothly and put it on the right top"): how the
+            scene is keeping up, the sizes, the grid and, full screen, the way
+            out. With the grid over the scene it stands inside the ruled plot,
+            clear of the scales' labels, as the reset below does.
+            The reading is NOT gated on the stage having settled: frames
+            arrive — and are timed — while the runner still says it is
+            waiting, so a reading that waited for that stayed empty over a
+            scene that was plainly playing. The loading card covers the plate
+            while there is really nothing yet. */}
+        <div
+          className="studio-stage__bar"
+          style={
+            paper
+              ? {
+                  top: paper.margins.top + paper.padding.top + 8,
+                  right: paper.margins.right + paper.padding.right + 8,
+                }
+              : undefined
+          }
+        >
+          {cost && (
+            <StudioStageReading
+              cost={cost}
+              percent={percent ?? 100}
+              readingRef={readingRef}
+            />
+          )}
+          {controls}
+          {/* On screen whenever the screen is full, whichever of the two
+              believes it: a way out that depends on the app's own idea of the
+              size is a way out that can go missing. */}
+          {(size === 'full' || isFullscreen) && (
+            <button
+              type="button"
+              className="studio-stage__exit"
+              onClick={leaveFullscreen}
+            >
+              {t('studio.size.exit')}
+            </button>
+          )}
+        </div>
         <SceneViewReset
           interaction={interaction}
           className="studio-stage__reset"
@@ -389,20 +421,7 @@ export default function StudioStage({
               : undefined
           }
         />
-        {controls}
         {waiting && <StudioStageLoading name={pack.names.en} />}
-        {/* On screen whenever the screen is full, whichever of the two
-            believes it: a way out that depends on the app's own idea of the
-            size is a way out that can go missing. */}
-        {(size === 'full' || isFullscreen) && (
-          <button
-            type="button"
-            className="button small subtle studio-stage__exit"
-            onClick={leaveFullscreen}
-          >
-            {t('studio.size.exit')}
-          </button>
-        )}
       </div>
     </div>
   );

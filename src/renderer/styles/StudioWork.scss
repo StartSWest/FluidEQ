@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
 // Layout A of the Studio (Ivan, 2026-09-27): the stage stays put, the work
@@ -150,107 +151,146 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- stage
 
-// The stage answers its own width for its controls: a narrow stage (the
-// phone-width panel, 260px) keeps the drawings and loses the words.
+// The stage answers its own width for its plate: a narrow stage keeps the
+// drawings and loses the words, and the narrowest wraps the plate in two.
 .studio-bench .studio-stage {
   container: studio-stage / inline-size;
 }
 
-// On the foot of the picture, where the graph keeps its own options, and on
-// the same terms: a flat chip over the scene, gone with the graph's options
-// when the window has been still a while (`useIsGraphChromeIdle`), back at
-// the next touch of the pointer.
-.studio-stage-controls {
+// ONE PLATE in the stage's top right corner (Ivan, 2026-09-27: "join all
+// into one with runs smoothly and put it on the right top", "a single pane
+// semi solid"): how the scene is keeping up, the sizes, the grid and, full
+// screen, the way out, parted by hairlines. The reading's own glass, because
+// a scene owns every pixel under it and words over a bright one need a plate.
+//
+// The plate itself takes no press: the stage is double-clicked to go full
+// screen and dragged to turn a world, and a plate that swallowed either would
+// be a patch of the scene behaving differently from the rest. Its buttons
+// take theirs.
+.studio-stage__bar {
   position: absolute;
   z-index: 3;
-  bottom: 10px;
-  left: 10px;
+  top: $spacing-s;
+  right: $spacing-s;
+  display: flex;
+  max-width: calc(100% - #{2 * $spacing-s});
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 78%, transparent);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+
+  &:empty {
+    display: none;
+  }
+
+  // Every button on it wears one face: quiet at rest, the accent's wash when
+  // chosen, the drawing and the word in the ink of the text beside them.
+  button {
+    display: inline-flex;
+    height: 28px;
+    flex: none;
+    align-items: center;
+    padding: 0 8px;
+    color: $text-muted;
+    border: 0;
+    border-radius: $radius-2xs;
+    background: none;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    transition:
+      color $motion-fast $ease-out,
+      background $motion-fast $ease-out;
+
+    svg {
+      flex: none;
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.4;
+    }
+
+    &:hover {
+      color: $white;
+      background: $hover-accent;
+    }
+
+    &[aria-pressed='true'] {
+      color: $white;
+      background: $selected-accent;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  // The narrowest stage (the tall Narrow size in a short window, the phone
+  // width panel) has no room for one row: the reading keeps the first and the
+  // buttons take the next, with no hairline left standing at a row's end.
+  @container studio-stage (max-width: 440px) {
+    flex-wrap: wrap;
+
+    > :not(:last-child) {
+      padding-right: 0;
+      border-right: 0;
+    }
+  }
+}
+
+// A hairline after each part that has another after it.
+.studio-stage__bar > :not(:last-child) {
+  padding-right: 4px;
+  border-right: 1px solid $border-subtle;
+}
+
+.studio-stage-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: opacity 320ms $ease-out;
-
-  &.is-idle {
-    opacity: 0;
-    pointer-events: none;
-    transition-duration: 520ms;
-  }
-
-  // Under the pointer or the keyboard it stays: fading what is being used is
-  // the one thing an idle fade must never do.
-  &:hover,
-  &:focus-within {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  gap: 4px;
 }
 
 .studio-stage-controls__group {
   display: flex;
   gap: 2px;
-  padding: 3px;
-  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
-  border-radius: $radius-xs;
-  background: $chrome-shade;
+  padding-right: 4px;
+  border-right: 1px solid $border-subtle;
 }
 
-.studio-stage-controls__button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 9px;
-  color: $text-muted;
-  border: 0;
-  border-radius: $radius-2xs;
-  background: none;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
-  cursor: pointer;
-  transition:
-    color $motion-fast $ease-out,
-    background $motion-fast $ease-out;
-
-  svg {
-    flex: none;
-    width: 15px;
-    height: 15px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.4;
-  }
-
-  &:hover {
-    color: $white;
-    background: $hover-accent;
-  }
-
-  &[aria-pressed='true'] {
-    color: $white;
-    background: $selected-accent;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
-// The grid button stands on its own chip beside the sizes.
-.studio-stage-controls__grid {
-  height: 36px;
-  padding: 0 11px;
-  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
-  border-radius: $radius-xs;
-  background: $chrome-shade;
-}
-
+// The chosen size says its name and the others only their drawing, so the
+// plate stays small over the picture. The name opens out of the drawing
+// rather than appearing beside it, and closes back into the one left.
 .studio-stage-controls__word {
-  white-space: nowrap;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-width 240ms $ease-out,
+    margin 240ms $ease-out,
+    opacity 160ms ease;
+
+  [aria-pressed='true'] > & {
+    max-width: 14em;
+    margin-left: 6px;
+    opacity: 1;
+  }
 
   @container studio-stage (max-width: 620px) {
     display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 

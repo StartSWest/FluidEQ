@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TranslationKey } from 'common/i18n';
-import useIsGraphChromeIdle from '../graph/graphChromeIdle';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStudioSize } from './StudioStage';
 import { setStudioGridShown, useStudioGridShown } from './studioPaper';
@@ -23,24 +22,25 @@ interface IStudioStageControlsProps {
  * graph's grid over it (layout A, Ivan 2026-09-27). They were rows in the
  * side column, a scroll away from the picture they change.
  *
- * They are drawn only on a stage that plays, so nothing here waits for a
- * scene. On the picture they cover a corner of it, so they go the way the
- * graph's own options go (`useIsGraphChromeIdle`): away after the window has
- * been still a while, back at the next touch of the pointer. The words give way
- * to the drawings alone on a stage too narrow for both (the stylesheet's
- * container query); the names stay the buttons' accessible names.
+ * They stand on the stage's plate beside the reading of how the scene keeps
+ * up (`StudioStage`: "join all into one with runs smoothly"), so they stay
+ * as the reading always has, and take as little of the picture as they can:
+ * the chosen size says its name and the others show their drawing, the grid
+ * its drawing alone. Every name is still the button's accessible name and
+ * its tooltip. The drawings are only drawn on a stage that plays, so nothing
+ * here waits for a scene.
  */
 export default function StudioStageControls({
   size,
   onSize,
 }: IStudioStageControlsProps) {
   const { t } = useTranslation();
-  const isChromeIdle = useIsGraphChromeIdle();
   const isGridShown = useStudioGridShown();
   const sizeName = (entry: TStudioSize) =>
     t(`studio.size.${entry}` as TranslationKey);
+  const gridName = t('studio.grid.label');
   return (
-    <div className={`studio-stage-controls${isChromeIdle ? ' is-idle' : ''}`}>
+    <div className="studio-stage-controls">
       <div
         className="studio-stage-controls__group"
         role="group"
@@ -67,16 +67,14 @@ export default function StudioStageControls({
         type="button"
         className="studio-stage-controls__button studio-stage-controls__grid"
         aria-pressed={isGridShown}
-        aria-label={t('studio.grid.label')}
-        title={t('studio.grid.hint')}
+        aria-label={gridName}
+        // The name first, then what it is for: a drawing alone says neither.
+        title={`${gridName}\n${t('studio.grid.hint')}`}
         onClick={() => setStudioGridShown(!isGridShown)}
       >
         <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
           <path d="M2.5 2.5h11v11h-11zM2.5 6.2h11M2.5 9.8h11M6.2 2.5v11M9.8 2.5v11" />
         </svg>
-        <span className="studio-stage-controls__word" aria-hidden="true">
-          {t('studio.grid.label')}
-        </span>
       </button>
     </div>
   );
