@@ -306,16 +306,18 @@ $gallery-card-lead: 120ms;
   grid-template-rows: auto 1fr;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
+  // The Library's tile (`card-surface`): the picture over the card every pane
+  // is, its words on the card. It was an edge alone, the words on nothing,
+  // lifted by a drop shadow under the pointer (Ivan, 2026-09-27: "visualizers
+  // library cards as the music library card, I want that nice bg here too").
+  @include card-surface;
   transition:
     border-color $motion-fast $ease-out,
-    transform $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
+    transform $motion-fast $ease-out;
 
   &:hover {
     border-color: color-mix(in srgb, $secondary-default 42%, transparent);
-    box-shadow: 0 10px 28px rgba($black, 0.32);
+    @include card-hover;
   }
 
   @for $beat from 1 through $gallery-card-beats {
@@ -838,7 +840,10 @@ $gallery-card-lead: 120ms;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
   background: $surface-plot;
-  box-shadow: 0 16px 40px rgba($black, 0.38);
+  // Flat, as every picture on the page stands: a 40px drop shadow under the
+  // stage floated it off a page of flat cards ("the preview big card and
+  // drop shadow, make it a bit flat").
+  box-shadow: none;
 }
 
 // The frame and the canvas inside it are `ScenePreview`'s own, and moved to
@@ -874,7 +879,7 @@ $gallery-card-lead: 120ms;
   height: 7px;
   border-radius: 50%;
   background: $active;
-  box-shadow: 0 0 8px $active;
+  box-shadow: none;
   animation: gallery-live 2.4s $ease-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
@@ -1070,7 +1075,7 @@ $wait-fade: 520ms;
   border: 1px solid rgba($white, 0.16);
   border-radius: 50%;
   background: rgba($black, 0.42);
-  box-shadow: 0 6px 18px rgba($black, 0.35);
+  box-shadow: none;
   cursor: pointer;
   opacity: 0.7;
   transform: translateY(-50%);
@@ -1125,8 +1130,9 @@ $wait-fade: 520ms;
 .gallery-taste__fill {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
-  box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 60%, transparent);
+  // The accent, flat, as every running bar in the app is.
+  background: $secondary-default;
+  box-shadow: none;
   transform: scaleX(0);
   transform-origin: left center;
 }
@@ -1382,7 +1388,8 @@ $wait-fade: 520ms;
   color: $text-faint;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 3%, transparent);
+  // The quiet pill's face, not a wash of white.
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   font-size: $text-micro;
 }
 
@@ -1799,8 +1806,10 @@ $wait-fade: 520ms;
   height: 28px;
   color: $surface-base;
   border-radius: 50%;
-  background: linear-gradient(135deg, $secondary-light, $secondary-default);
-  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 30%, transparent);
+  // The filled controls' face (`--control-fill`), flat outside Rainbow mode,
+  // with no halo.
+  background: $secondary-default var(--control-fill) border-box;
+  box-shadow: none;
 
   svg {
     width: 16px;
@@ -1960,8 +1969,6 @@ $wait-fade: 520ms;
       height: 7px;
       border-radius: 50%;
       background: $secondary-default;
-      box-shadow: 0 0 8px
-        color-mix(in srgb, $secondary-default 60%, transparent);
     }
   }
 }
@@ -1998,9 +2005,11 @@ $wait-fade: 520ms;
   display: grid;
   gap: 4px;
   padding: 10px 12px;
+  // A box inside the card: its edge on the card's own colour, as every box
+  // inside a card is. It was white at 4%, a grey haze on the card.
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: $lift-rest;
+  background: none;
 
   p {
     margin: 0;
@@ -2010,9 +2019,11 @@ $wait-fade: 520ms;
     overflow-wrap: anywhere;
   }
 
+  // What is new: the choosing tint inside the field's lit edge, not a
+  // brighter frame at nearly half the accent.
   &.is-new {
-    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+    background: $hover-accent;
   }
 }
 
