@@ -109,7 +109,6 @@ $rail-reveal-delay: 110ms;
     overflow-x: hidden;
     transition:
       width var(--rail-settle) $ease-out 60ms,
-      box-shadow var(--rail-settle) $ease-out,
       border-color var(--rail-settle) $ease-out;
 
     @include rail-words {
@@ -139,15 +138,15 @@ $rail-reveal-delay: 110ms;
     }
   }
 
-  // Folded, and open over the place.
+  // Folded, and open over the place: a menu's material and a menu's edge,
+  // and nothing under it (Ivan, 2026-09-27: "remove drop shadow on plus side
+  // menu, it sucks, make it like the dropdown menus"). It cast 42px of black
+  // across the place it opened over.
   .community--rail-folded .community__rail:is(:hover, :has(:focus-visible)) {
-    border-color: color-mix(in srgb, $secondary-light 18%, transparent);
-    box-shadow:
-      18px 0 42px rgba($black, 0.5),
-      0 0 0 1px rgba($black, 0.2);
+    border-color: color-mix(in srgb, $edge-tint 14%, transparent);
+    box-shadow: none;
     transition:
       width var(--rail-move) $ease-out $rail-reveal-delay,
-      box-shadow var(--rail-move) $ease-out $rail-reveal-delay,
       border-color var(--rail-settle) $ease-out $rail-reveal-delay;
 
     @include rail-words {
