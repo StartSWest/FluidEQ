@@ -1,5 +1,6 @@
 import type { IScenePack } from 'common/scenePacks';
 import { SILENT_RHYTHM } from 'common/sceneRhythm';
+import type { IWorldReport } from 'common/worldNotes';
 import {
   STUDIO_AGENT_SILENCE_S,
   type IStudioAgentMoment,
@@ -138,7 +139,11 @@ const context = () => {
 };
 
 type TBuilt =
-  | ({ ok: true } & IBuiltScene)
+  /**
+   * `world`: what became of a 3D world here — its shader drawn in its
+   * place, or a part left out — which the member's AI is told.
+   */
+  | ({ ok: true; world?: IWorldReport } & IBuiltScene)
   /** `log`: the shader did not compile, in the driver's words. */
   | { ok: false; log?: string };
 
@@ -148,17 +153,17 @@ const refuserOf = (pack: IScenePack) => (reason: TSceneStillRefusal) => {
 };
 
 /**
- * `pack`'s program on the shared context, or why not: nothing to say when
- * the scene is refused, the artwork will not decode or there is no context,
- * the driver's own words when the shader does not compile.
- */
-/**
  * Fired when the page stops being seen: a link the member's AI is waiting on
  * frame by frame is read to its end at once, rather than when the member
  * next looks at FluidEQ (`linkSceneProgram`). Made again when it is seen.
  */
 let hidden = new AbortController();
 
+/**
+ * `pack`'s program on the shared context, or why not: nothing to say when
+ * the scene is refused, the artwork will not decode or there is no context,
+ * the driver's own words when the shader does not compile.
+ */
 const build = async (
   pack: IScenePack,
   hurry?: AbortSignal,
@@ -187,9 +192,15 @@ const build = async (
   if (!compiled) {
     return { ok: false };
   }
-  return compiled.ok
-    ? { ok: true, ...drawn, program: compiled.program }
-    : { ok: false, log: compiled.log };
+  if (!compiled.ok) {
+    return { ok: false, log: compiled.log };
+  }
+  return {
+    ok: true,
+    ...drawn,
+    program: compiled.program,
+    ...(compiled.world ? { world: compiled.world } : {}),
+  };
 };
 
 /** The first quality whose WebP fits, each tried only if the last was too big. */
@@ -299,6 +310,7 @@ const drawAgentPicture = async (
     renderWidth: size.renderWidth,
     renderHeight: size.renderHeight,
     moment: momentOf(kept.frame),
+    ...(built.world ? { world: built.world } : {}),
   };
 };
 

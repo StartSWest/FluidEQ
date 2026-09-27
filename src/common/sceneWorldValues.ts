@@ -21,7 +21,7 @@ export const isWorldRecord = (
 ): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-export const clampWorld = (value: number, min: number, max: number): number =>
+const clampWorld = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
 /** A finite number kept inside its bounds, or the fallback. */

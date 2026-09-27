@@ -41,6 +41,7 @@ import StudioStage, {
 } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
+import troubleHoldsBack from './stageTrouble';
 import { linkStudioFolder, type IStudioView } from './studioStore';
 
 interface IStudioBenchProps {
@@ -110,7 +111,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     [],
   );
   const publishing = useStudioPublish(view, playing, name, onPublished);
-  const unfit = !pack || Boolean(problems) || trouble !== undefined;
+  const unfit = !pack || Boolean(problems) || troubleHoldsBack(trouble);
   // The Publish dialog plays the scene itself, so the stage behind it stops:
   // two copies of one scene would halve what a slow machine can give either.
   const pausedForPublish = publishing.draft !== undefined;
@@ -133,7 +134,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   let status: TranslationKey = 'studio.status.waiting';
   if (
     pack &&
-    (problems || trouble?.kind === 'compile' || trouble?.kind === 'world')
+    (problems ||
+      trouble?.kind === 'compile' ||
+      (trouble?.kind === 'world' && troubleHoldsBack(trouble)))
   ) {
     status = 'studio.status.problem';
   } else if (pack) {

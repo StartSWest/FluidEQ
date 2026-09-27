@@ -446,12 +446,27 @@ const studio = {
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-world':
     '这个 3D 世界里没有此版本能绘制的内容。请检查它的节点、材质和公式。',
-  'studio.problem.bad-model': '3D 模型必须是自带全部缓冲区和图片的 .glb 文件。',
+  'studio.problem.bad-model':
+    '3D 模型必须是自带全部缓冲区和图片的 .glb 文件，不能带有自己的灯光、实例化或压缩。',
+  'studio.problem.model-too-heavy':
+    '3D 模型加起来超过了 50 万个三角形或 1600 万像素的图片。',
+  'studio.problem.pack-too-large':
+    '整个场景超过了 9 MB，这是可分享场景的上限。请使用更轻的模型或更小的图片。',
   'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
   'studio.problem.missing-file': '缺少场景需要的文件。',
   'studio.problem.unsafe-path': '文件名必须是本文件夹中文件的普通名称。',
   'studio.problem.file-too-large': '有一个文件超过了场景允许的大小。',
   'studio.world.heading': '3D 世界没有绘制，只显示了天空',
+  'studio.world.partial': '3D 世界有一部分被省略了',
+  'studio.worldNote.engine-missing':
+    'FluidEQ 无法在这里运行 3D 引擎，所以只显示天空。',
+  'studio.worldNote.engine-failed': '3D 引擎因错误停止：{detail}',
+  'studio.worldNote.engine-unsupported':
+    '这台电脑的显卡无法在场景中绘制 3D 世界。',
+  'studio.worldNote.material': '有一个材质的 GLSL 编译失败。显卡驱动提示：',
+  'studio.worldNote.model-refused':
+    'FluidEQ 无法读取模型“{model}”，因此省略了它。',
+  'studio.worldNote.model-unreadable': '无法读取模型“{model}”：{detail}',
   'studio.compile.heading': '着色器编译失败',
   'studio.compile.hint': '修正后保存，或把错误粘贴给你的 AI。',
   'studio.heavy.body':

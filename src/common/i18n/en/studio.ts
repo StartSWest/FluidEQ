@@ -520,13 +520,30 @@ const studio = {
   'studio.problem.bad-world':
     'The 3D world has nothing this version can draw. Check its nodes, materials and formulas.',
   'studio.problem.bad-model':
-    'A 3D model must be a .glb that carries every buffer and image inside it.',
+    'A 3D model must be a .glb that carries every buffer and image inside it, with no lights, instancing or compression of its own.',
+  'studio.problem.model-too-heavy':
+    'The 3D models together have more than 500,000 triangles or more than 16 million pixels of pictures.',
+  'studio.problem.pack-too-large':
+    'The whole scene is larger than 9 MB, the most a scene can be shared as. Use lighter models or a smaller picture.',
   'studio.problem.bad-json': 'pack.json is not valid JSON.',
   'studio.problem.missing-file': 'A file the scene needs is missing.',
   'studio.problem.unsafe-path':
     'File names must be plain names of files in this folder.',
   'studio.problem.file-too-large': 'A file is larger than a scene allows.',
   'studio.world.heading': 'The 3D world was not drawn, only its sky',
+  'studio.world.partial': 'Part of the 3D world was left out',
+  'studio.worldNote.engine-missing':
+    'FluidEQ cannot run its 3D engine here, so the sky plays alone.',
+  'studio.worldNote.engine-failed':
+    'The 3D engine stopped with an error: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'This computer’s graphics cannot draw a 3D world into the scene.',
+  'studio.worldNote.material':
+    'A material’s GLSL did not compile. The graphics driver says:',
+  'studio.worldNote.model-refused':
+    'Model “{model}” is not one FluidEQ can read, so it was left out.',
+  'studio.worldNote.model-unreadable':
+    'Model “{model}” could not be read: {detail}',
   'studio.compile.heading': 'The shader did not compile',
   'studio.compile.hint': 'Fix it and save, or paste the error into your AI.',
   'studio.heavy.body':

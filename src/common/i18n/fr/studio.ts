@@ -516,7 +516,11 @@ const studio = {
   'studio.problem.bad-world':
     'Le monde 3D ne contient rien que cette version puisse dessiner. Vérifiez ses nœuds, matériaux et formules.',
   'studio.problem.bad-model':
-    'Un modèle 3D doit être un .glb qui contient tous ses tampons et images.',
+    'Un modèle 3D doit être un .glb qui contient tous ses tampons et images, sans lumières, instances ni compression propres.',
+  'studio.problem.model-too-heavy':
+    'Ensemble, les modèles 3D dépassent 500 000 triangles ou 16 millions de pixels d’image.',
+  'studio.problem.pack-too-large':
+    'La scène complète dépasse 9 Mo, la taille maximale d’une scène partagée. Utilisez des modèles plus légers ou une image plus petite.',
   'studio.problem.bad-json': 'pack.json n’est pas un JSON valide.',
   'studio.problem.missing-file': 'Il manque un fichier dont la scène a besoin.',
   'studio.problem.unsafe-path':
@@ -524,6 +528,19 @@ const studio = {
   'studio.problem.file-too-large':
     'Un fichier dépasse la taille permise pour une scène.',
   'studio.world.heading': 'Le monde 3D n’a pas été dessiné, seulement son ciel',
+  'studio.world.partial': 'Une partie du monde 3D a été laissée de côté',
+  'studio.worldNote.engine-missing':
+    'FluidEQ ne peut pas faire tourner son moteur 3D ici : seul le ciel est affiché.',
+  'studio.worldNote.engine-failed':
+    'Le moteur 3D s’est arrêté sur une erreur : {detail}',
+  'studio.worldNote.engine-unsupported':
+    'La carte graphique de cet ordinateur ne peut pas dessiner un monde 3D dans la scène.',
+  'studio.worldNote.material':
+    'Le GLSL d’un matériau ne s’est pas compilé. Le pilote graphique indique :',
+  'studio.worldNote.model-refused':
+    'FluidEQ ne sait pas lire le modèle « {model} », il a donc été laissé de côté.',
+  'studio.worldNote.model-unreadable':
+    'Le modèle « {model} » n’a pas pu être lu : {detail}',
   'studio.compile.heading': 'Le shader ne s’est pas compilé',
   'studio.compile.hint':
     'Corrigez-le et enregistrez, ou collez l’erreur dans votre IA.',

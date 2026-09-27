@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 
@@ -57,8 +58,8 @@ export type TSceneBuildResult =
   | {
       kind: 'ready';
       rebuilt: boolean;
-      /** What a 3D world left out, or why it fell back to its shader. */
-      notes?: string[];
+      /** What became of a 3D world: drawn, or its shader in its place. */
+      world?: IWorldReport;
     }
   | { kind: 'compile'; log: string }
   | { kind: 'unavailable' }

@@ -12,6 +12,7 @@ import {
   type IStudioAgentMoment,
   type TStudioAgentDrawAnswer,
 } from '../../common/studioAgent';
+import type { IWorldReport, TWorldNote } from '../../common/worldNotes';
 
 /**
  * What goes into a look and what comes back from one, checked here and
@@ -48,6 +49,74 @@ const readMoment = (raw: unknown): IStudioAgentMoment | undefined => {
     return true;
   });
   return whole ? (moment as IStudioAgentMoment) : undefined;
+};
+
+/**
+ * Text from the window, as the model will read it: bounded, and without
+ * control characters — the driver's log ends in a NUL on ANGLE, and one in
+ * what the model reads is noise at best. Line breaks and tabs stay.
+ */
+const cleanText = (text: string, most: number) =>
+  text
+    .slice(0, most)
+    // eslint-disable-next-line no-control-regex -- matching them is the point
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '');
+
+/** Notes past this are the window saying more than any world could. */
+const MAX_WORLD_NOTES = 32;
+const MAX_MODEL_ID = 64;
+
+const readWorldNote = (raw: unknown): TWorldNote | undefined => {
+  if (typeof raw !== 'object' || raw === null) {
+    return undefined;
+  }
+  const { code, detail, log, model } = raw as Record<string, unknown>;
+  const text = (value: unknown, most = MAX_LOG_CHARACTERS) =>
+    typeof value === 'string' ? cleanText(value, most) : undefined;
+  switch (code) {
+    case 'engine-missing':
+    case 'engine-unsupported':
+      return { code };
+    case 'engine-failed': {
+      const said = text(detail);
+      return said === undefined ? undefined : { code, detail: said };
+    }
+    case 'material': {
+      const said = text(log);
+      return said === undefined ? undefined : { code, log: said };
+    }
+    case 'model-refused': {
+      const id = text(model, MAX_MODEL_ID);
+      return id === undefined ? undefined : { code, model: id };
+    }
+    case 'model-unreadable': {
+      const id = text(model, MAX_MODEL_ID);
+      const said = text(detail);
+      return id === undefined || said === undefined
+        ? undefined
+        : { code, model: id, detail: said };
+    }
+    default:
+      return undefined;
+  }
+};
+
+/** A world's report from the window, or nothing when it is not one. */
+const readWorldReport = (raw: unknown): IWorldReport | undefined => {
+  if (typeof raw !== 'object' || raw === null) {
+    return undefined;
+  }
+  const { drawn, notes } = raw as Record<string, unknown>;
+  if (typeof drawn !== 'boolean' || !Array.isArray(notes)) {
+    return undefined;
+  }
+  return {
+    drawn,
+    notes: notes
+      .slice(0, MAX_WORLD_NOTES)
+      .map(readWorldNote)
+      .filter((note): note is TWorldNote => note !== undefined),
+  };
 };
 
 /**
@@ -92,6 +161,7 @@ export const readDrawAnswer = (
     ) {
       return unavailable;
     }
+    const world = readWorldReport(answer.world);
     return {
       ok: true,
       image,
@@ -107,20 +177,16 @@ export const readDrawAnswer = (
         spectrumRect[3],
       ],
       moment,
+      ...(world ? { world } : {}),
     };
   }
   switch (answer.reason) {
     case 'compile':
-      // The driver's log ends in a NUL on ANGLE, and a control character in
-      // what the model reads is noise at best; line breaks and tabs stay.
       return typeof answer.log === 'string'
         ? {
             ok: false,
             reason: 'compile',
-            log: answer.log
-              .slice(0, MAX_LOG_CHARACTERS)
-              // eslint-disable-next-line no-control-regex -- matching them is the point
-              .replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, ''),
+            log: cleanText(answer.log, MAX_LOG_CHARACTERS),
           }
         : unavailable;
     case 'gpu-reset':

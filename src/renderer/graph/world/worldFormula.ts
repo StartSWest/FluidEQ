@@ -152,20 +152,3 @@ export const createColourFormula = (
     live,
   };
 };
-
-/**
- * Whether a per-copy formula changes from frame to frame, or only from copy
- * to copy. A pillar's place round a ring is worked out once; its height, if
- * it reads the spectrum, every frame.
- */
-export const variesPerFrame = (
-  formula: {
-    names: readonly string[];
-    live: boolean;
-    constant?: number | boolean;
-  },
-  perCopy: ReadonlySet<string>,
-): boolean =>
-  formula.constant !== true &&
-  typeof formula.constant !== 'number' &&
-  (formula.live || formula.names.some((name) => !perCopy.has(name)));

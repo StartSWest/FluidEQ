@@ -508,7 +508,11 @@ const studio = {
   'studio.problem.bad-world':
     'El mundo 3D no tiene nada que esta versión pueda dibujar. Revisa sus nodos, materiales y fórmulas.',
   'studio.problem.bad-model':
-    'Un modelo 3D debe ser un .glb que lleve dentro todos sus búferes e imágenes.',
+    'Un modelo 3D debe ser un .glb que lleve dentro todos sus búferes e imágenes, sin luces, instancias ni compresión propias.',
+  'studio.problem.model-too-heavy':
+    'Los modelos 3D juntos superan los 500.000 triángulos o los 16 millones de píxeles de imagen.',
+  'studio.problem.pack-too-large':
+    'La escena completa pasa de 9 MB, lo máximo que puede ocupar una escena para compartirse. Usa modelos más ligeros o una imagen más pequeña.',
   'studio.problem.bad-json': 'pack.json no es un JSON válido.',
   'studio.problem.missing-file': 'Falta un archivo que la escena necesita.',
   'studio.problem.unsafe-path':
@@ -516,6 +520,19 @@ const studio = {
   'studio.problem.file-too-large':
     'Un archivo es más grande de lo que permite una escena.',
   'studio.world.heading': 'El mundo 3D no se dibujó, solo su cielo',
+  'studio.world.partial': 'Se omitió una parte del mundo 3D',
+  'studio.worldNote.engine-missing':
+    'FluidEQ no puede ejecutar aquí su motor 3D, así que solo se muestra el cielo.',
+  'studio.worldNote.engine-failed':
+    'El motor 3D se detuvo con un error: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'Los gráficos de este equipo no pueden dibujar un mundo 3D dentro de la escena.',
+  'studio.worldNote.material':
+    'El GLSL de un material no compiló. El controlador gráfico dice:',
+  'studio.worldNote.model-refused':
+    'FluidEQ no puede leer el modelo «{model}», así que se omitió.',
+  'studio.worldNote.model-unreadable':
+    'No se pudo leer el modelo «{model}»: {detail}',
   'studio.compile.heading': 'El shader no compiló',
   'studio.compile.hint': 'Corrígelo y guarda, o pega el error en tu IA.',
   'studio.heavy.body':

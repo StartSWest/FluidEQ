@@ -26,22 +26,24 @@ import {
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { IScenePack } from 'common/scenePacks';
 import { worldHasMirror, worldVarUniform } from 'common/sceneWorld';
-import { uniformNameForParam } from 'common/sceneUniformContract';
-import type { ISceneProgram, TSceneCompileResult } from '../sceneGl';
+import { paramUniformDeclarations } from 'common/sceneUniformContract';
+import type { TWorldCompileResult } from '../sceneGl';
 import { createWorldBloom } from './worldBloom';
 import createWorldCamera from './worldCamera';
 import { createWorldComposite } from './worldComposite';
+import { createWorldSceneProgram } from './worldDraw';
 import { createFormula } from './worldFormula';
 import { createWorldInputs } from './worldInputs';
 import type { IWorldMaterialContext } from './worldMaterials';
 import { createWorldMirror } from './worldMirror';
-import { parseWorldModels } from './worldModels';
+import { parseWorldModels, type IWorldModelAsset } from './worldModels';
 import { buildWorldNodes } from './worldNodes';
 import { createWorldPass } from './worldPasses';
-import { FULL_VIEW, isFullView, panelSize } from '../sceneView';
 import {
+  deletePrograms,
   externalTargets,
   programReady,
+  releaseModelResources,
   trackDrawnTargets,
   waitForPrograms,
 } from './worldRenderer';
@@ -84,10 +86,10 @@ const compileWorld = async (
    * is ended.
    */
   releaseWhenLinked: (linked: () => boolean, release: () => void) => void,
-): Promise<TSceneCompileResult> => {
+): Promise<TWorldCompileResult> => {
   const { world } = pack;
   if (!world) {
-    return { ok: false, log: 'the pack has no world' };
+    return { ok: false, notes: [] };
   }
   const renderer = new WebGLRenderer({
     canvas: gl.canvas,
@@ -109,7 +111,7 @@ const compileWorld = async (
   if (!external) {
     gl.canvas.removeEventListener('webglcontextlost', onLost);
     renderer.dispose();
-    return { ok: false, log: 'this build of three cannot draw into the scene' };
+    return { ok: false, notes: [{ code: 'engine-unsupported' }] };
   }
   const targets = trackDrawnTargets(renderer);
   const disposables: { dispose(): void }[] = [];
@@ -121,11 +123,16 @@ const compileWorld = async (
     depthBuffer: false,
     generateMipmaps: false,
   });
+  /** The models as the loader made them, which nothing else frees. */
+  let models: Record<string, IWorldModelAsset> = {};
   let released = false;
   /**
    * Everything the world made, once, however its build ends: a build that
    * threw part way left its renderer, its listener on the canvas and every
-   * picture made so far to the collector.
+   * picture made so far to the collector. The worker's context outlives every
+   * world, and a renderer's own `dispose` frees nothing it put on the GPU, so
+   * each model's buffers, textures and bitmaps and every program still held
+   * are freed by hand, before it.
    */
   const release = () => {
     if (released) {
@@ -134,6 +141,8 @@ const compileWorld = async (
     released = true;
     targets.free([shown]);
     disposables.forEach((item) => item.dispose());
+    releaseModelResources(Object.values(models).map((asset) => asset.scene));
+    deletePrograms(renderer);
     gl.canvas.removeEventListener('webglcontextlost', onLost);
     renderer.dispose();
   };
@@ -178,9 +187,9 @@ const compileWorld = async (
 
     const inputs = createWorldInputs(pack, contractArtwork);
     disposables.push(inputs);
-    const { parsed: models, problems: notes } = await parseWorldModels(
-      world.models,
-    );
+    const read = await parseWorldModels(world.models);
+    models = read.parsed;
+    const { notes } = read;
     if (signal?.aborted) {
       release();
       throw abortError();
@@ -208,14 +217,9 @@ const compileWorld = async (
       kept.push(lighting);
     }
 
-    const declarations = [
-      ...pack.params.map(
-        (param) => `uniform float ${uniformNameForParam(param.id)};`,
-      ),
-      ...world.vars.map(
-        (known) => `uniform float ${worldVarUniform(known.name)};`,
-      ),
-    ].join('\n');
+    const declarations = `${paramUniformDeclarations(pack)}${world.vars
+      .map((known) => `uniform float ${worldVarUniform(known.name)};\n`)
+      .join('')}`;
     const mirror = worldHasMirror(world.materials)
       ? createWorldMirror(floatTargets, inputs.uniforms.uWorldPointScale)
       : null;
@@ -224,7 +228,7 @@ const compileWorld = async (
     }
     const context: IWorldMaterialContext = {
       inputs,
-      declarations: `${declarations}\n`,
+      declarations,
       atlas,
       fogToBackdrop:
         world.fog?.toBackdrop === true && world.backdrop === 'shader',
@@ -266,7 +270,8 @@ const compileWorld = async (
     );
     const composite = createWorldComposite(pack, world, inputs);
     disposables.push(composite);
-    const renderWorld = (width: number, height: number) => {
+    /** The world's targets at this size, and the reflection it shows. */
+    const prepare = (width: number, height: number) => {
       const multisample = width * height <= MULTISAMPLE_LIMIT;
       const samples = multisample ? Math.min(4, maxSamples) : 0;
       if (drawn.samples !== samples) {
@@ -279,10 +284,20 @@ const compileWorld = async (
       if (mirror && build.mirror) {
         mirror.render(renderer, scene, camera, build.mirror, width, height);
       }
+    };
+    /** The world into its target: every row, or a strip of a still's. */
+    const renderMain = (strip?: { from: number; rows: number }) => {
+      if (strip) {
+        drawn.scissor.set(0, strip.from, drawn.width, strip.rows);
+      }
+      drawn.scissorTest = strip !== undefined;
       renderer.setRenderTarget(drawn);
       renderer.setClearColor(0x000000, 0);
       renderer.clear(true, true, false);
       renderer.render(scene, camera);
+      drawn.scissorTest = false;
+    };
+    const finish = (width: number, height: number) => {
       const glow = bloom ? bloom.render(drawn.texture, width, height) : null;
       composite.set(
         drawn.texture,
@@ -290,6 +305,11 @@ const compileWorld = async (
         bloomStrength.value(),
         exposure.value(),
       );
+    };
+    const renderWorld = (width: number, height: number) => {
+      prepare(width, height);
+      renderMain();
+      finish(width, height);
     };
 
     // Compiled before the first frame, never during it: every program is
@@ -385,105 +405,30 @@ const compileWorld = async (
     renderer.resetState();
     if (problems.length > 0) {
       release();
-      return { ok: false, log: problems.join('\n') };
+      return {
+        ok: false,
+        notes: problems.map((log) => ({ code: 'material' as const, log })),
+      };
     }
 
-    let lastAccent = 0;
-    /**
-     * The instant last rendered. The Studio's and the gallery's stills draw
-     * one frame again and again, a band of the picture at a time under the
-     * scissor, with no time passing (`sceneStill.worker.ts`): a shader only
-     * shades the band, but a world rendered the whole scene for every band, so
-     * its still cost the world times the number of bands. The same frame at the
-     * same size is the same picture, and only the band is laid down again.
-     */
-    let rendered:
-      | { frame: unknown; width: number; height: number; band: string }
-      | undefined;
-    const program: ISceneProgram = {
-      draw: (frame, width, height) => {
-        // What the worker left bound is where the picture belongs.
-        const target = gl.getParameter(
-          gl.FRAMEBUFFER_BINDING,
-        ) as WebGLFramebuffer | null;
-        const clipped = gl.isEnabled(gl.SCISSOR_TEST);
-        const box = gl.getParameter(gl.SCISSOR_BOX) as Int32Array;
-        renderer.resetState();
-
-        [lastAccent] = frame.musicAccent;
-        // Only the NEXT band of the same frame reuses it. The same band
-        // drawn again is somebody timing the frame (`sceneStillKeep.ts`
-        // draws one frame nine times to measure it for the member's AI, and
-        // three for the still's estimate): reused, every draw after the
-        // first measured the sky alone, and a heavy world read as cheap.
-        const band = `${clipped}:${box.join(',')}`;
-        const again =
-          rendered !== undefined &&
-          rendered.frame === frame &&
-          rendered.width === width &&
-          rendered.height === height &&
-          rendered.band !== band;
-        if (!again) {
-          inputs.update(frame, width, height);
-          // Framed on the panel, then widened to the canvas round it: under
-          // the Backdrop the canvas is the window, the graph is still what the
-          // camera frames, and the rest of the window is what it would see
-          // past the graph's edges (`sceneView.ts`). Three's own sub-view,
-          // taken the other way: the "full" frame is the panel and the canvas
-          // is larger than it.
-          const view = frame.view ?? FULL_VIEW;
-          const panel = panelSize(width, height, view);
-          aim(panel.width / panel.height);
-          if (isFullView(view)) {
-            if (camera.view?.enabled) {
-              camera.clearViewOffset();
-            }
-          } else {
-            camera.setViewOffset(
-              panel.width,
-              panel.height,
-              -view[0] * width,
-              -(1 - view[1] - view[3]) * height,
-              width,
-              height,
-            );
-          }
-          build.update((frame.deltaMs ?? 0) / 1000);
-          renderWorld(width, height);
-        }
-        rendered = { frame, width, height, band };
-
-        shown.viewport.set(0, 0, width, height);
-        shown.scissor.set(box[0], box[1], box[2], box[3]);
-        shown.scissorTest = clipped;
-        external.point(shown, target);
-        renderer.setRenderTarget(shown);
-        pass.use(composite.material);
-        renderer.render(pass.scene, pass.camera);
-
-        // The context as the worker expects it: three's state gone, the
-        // picture's target bound, its clip on.
-        renderer.resetState();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, target);
-        gl.viewport(0, 0, width, height);
-        if (clipped) {
-          gl.enable(gl.SCISSOR_TEST);
-          gl.scissor(box[0], box[1], box[2], box[3]);
-        }
-      },
-      isSettled: () => inputs.settled(),
-      musicAccent: () => lastAccent,
-      rest: () => {
-        // Every picture drawn again each frame — the world's, its glow, its
-        // reflection, three's own for glass — is made again by the next frame
-        // at the size it kept, so the frame after a rest is the frame it would
-        // have been.
-        targets.free([shown, ...kept]);
-        rendered = undefined;
-      },
-      dispose: release,
-    };
-    return { ok: true, program, ...(notes.length > 0 ? { notes } : {}) };
+    const program = createWorldSceneProgram({
+      gl,
+      renderer,
+      inputs,
+      camera,
+      aim,
+      advance: (seconds) => build.update(seconds),
+      prepare,
+      renderMain,
+      finish,
+      composite,
+      pass,
+      shown,
+      external,
+      free: () => targets.free([shown, ...kept]),
+      release,
+    });
+    return { ok: true, program, notes };
   } catch (error) {
     if (!handedOff) {
       release();

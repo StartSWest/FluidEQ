@@ -187,7 +187,7 @@ const load = async (
     return {
       kind: 'ready',
       rebuilt: true,
-      ...(result.notes ? { notes: result.notes } : {}),
+      ...(result.world ? { world: result.world } : {}),
     };
   } catch (error) {
     // A lost first compile has no last-good pack to restore. Report it so

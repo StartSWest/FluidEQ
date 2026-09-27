@@ -69,5 +69,6 @@ export const drawForAgent = async (
     renderHeight: reply.renderHeight,
     spectrumRect,
     moment: reply.moment,
+    ...(reply.world ? { world: reply.world } : {}),
   };
 };

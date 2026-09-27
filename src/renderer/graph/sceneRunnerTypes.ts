@@ -1,6 +1,7 @@
 import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
+import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneInteraction } from './sceneInteraction';
@@ -61,7 +62,7 @@ export interface ISceneSource {
    * for the Studio, where its author can fix it. Elsewhere the scene simply
    * plays as well as this machine can play it.
    */
-  reportNotes?(notes: readonly string[]): void;
+  reportWorld?(report: IWorldReport): void;
   /**
    * Who made the scene (`sceneMaker.ts`): FluidEQ, the listener, or another
    * member. Its size ladder, its brightness limiter and whether it is

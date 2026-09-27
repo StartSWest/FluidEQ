@@ -18,6 +18,7 @@ import { dspWorkletConfig } from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
+import wallpaperContentSecurityPolicy from '../../src/main/wallpaper/wallpaperPolicy';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -249,6 +250,8 @@ const configuration: webpack.Configuration = {
       filename: 'wallpaper.html',
       template: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.ejs'),
       chunks: ['wallpaper'],
+      // The same policy the header carries (wallpaperPolicy.ts).
+      csp: wallpaperContentSecurityPolicy(true),
     }),
 
     new HtmlWebpackPlugin({

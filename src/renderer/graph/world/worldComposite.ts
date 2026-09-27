@@ -16,7 +16,10 @@ import {
 } from 'three';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneWorld, TWorldToneMapping } from 'common/sceneWorld';
-import { assembleSceneFunctions } from 'common/sceneUniformContract';
+import {
+  assembleSceneDeclarations,
+  assembleSceneFunctions,
+} from 'common/sceneUniformContract';
 import type { IWorldInputs } from './worldInputs';
 import { WORLD_PASS_VERTEX } from './worldPasses';
 
@@ -165,7 +168,10 @@ export const createWorldComposite = (
   world: ISceneWorld,
   inputs: IWorldInputs,
 ): IWorldComposite => {
-  const { source } = assembleSceneFunctions(pack);
+  const source =
+    world.backdrop === 'shader'
+      ? assembleSceneFunctions(pack)
+      : assembleSceneDeclarations(pack);
   const black = new DataTexture(new Uint8Array(4), 1, 1);
   black.needsUpdate = true;
   // Laid in as the display shows it, beside the sky, so it is read raw

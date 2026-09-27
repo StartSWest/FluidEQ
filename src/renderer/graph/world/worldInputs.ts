@@ -23,8 +23,6 @@ import {
   worldScopeNames,
   worldVarUniform,
 } from 'common/sceneWorld';
-import { SILENT_RHYTHM } from 'common/sceneRhythm';
-import { getEaseFactor } from 'common/smoothing';
 import {
   SPECTRUM_TEXELS,
   WAVEFORM_TEXELS,
@@ -36,6 +34,7 @@ import type {
 } from 'common/worldExpression';
 import type { ISceneFrame } from '../sceneGl';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
+import { createSlowSpectrum, frameSignals, frameStepMs } from '../sceneSignals';
 import { FULL_VIEW, panelSize } from '../sceneView';
 import { createFormula, type IWorldFormula } from './worldFormula';
 
@@ -69,14 +68,11 @@ export interface IWorldInputs {
   dispose(): void;
 }
 
-const createLineTexture = (width: number) => {
-  const texture = new DataTexture(
-    new Uint8Array(width),
-    width,
-    1,
-    RedFormat,
-    UnsignedByteType,
-  );
+const createLineTexture = (
+  width: number,
+  data: Uint8Array = new Uint8Array(width),
+) => {
+  const texture = new DataTexture(data, width, 1, RedFormat, UnsignedByteType);
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.generateMipmaps = false;
@@ -107,12 +103,11 @@ export const createWorldInputs = (
   const instanceEnv = new Float64Array(instanceNames.length);
 
   const spectrum = createLineTexture(SPECTRUM_TEXELS);
-  const slow = createLineTexture(SPECTRUM_TEXELS);
+  const easedSpectrum = createSlowSpectrum();
+  const slow = createLineTexture(SPECTRUM_TEXELS, easedSpectrum.bytes);
   const waveform = createLineTexture(WAVEFORM_TEXELS);
   const spectrumBytes = spectrum.image.data as Uint8Array;
-  const slowBytes = slow.image.data as Uint8Array;
   const waveBytes = waveform.image.data as Uint8Array;
-  const slowValues = new Float32Array(SPECTRUM_TEXELS);
   // The contract always declares the artwork; a scene without one samples
   // a single black texel, which is what the shader-only path's unbound
   // unit reads as.
@@ -121,7 +116,7 @@ export const createWorldInputs = (
 
   const sampler = {
     spectrum: (u: number) => sampleBytes(spectrumBytes, u, 1 / 255),
-    slow: (u: number) => sampleBytes(slowValues, u, 1 / 255),
+    slow: (u: number) => sampleBytes(easedSpectrum.values, u, 1 / 255),
     wave: (u: number) => sampleBytes(waveBytes, u, 1 / 255),
   };
   const runtime: IExpressionRuntime = {
@@ -162,7 +157,7 @@ export const createWorldInputs = (
     uPointer: { value: new Vector4(...NO_POINTER) },
     uTap: { value: new Vector4(...NO_TAP) },
     uCamera: { value: new Vector3(...HOME_CAMERA) },
-    // Half the drawn height, for a point's size at a distance
+    // Half the panel's height, for a point's size at a distance
     // (`buildPointsMaterial`).
     uWorldPointScale: { value: 1 },
     // Where the scene's panel stands on the canvas (`sceneView.ts`): the
@@ -206,25 +201,6 @@ export const createWorldInputs = (
 
   const view: [number, number, number] = [...HOME_CAMERA];
   let previousTime: number | undefined;
-  let isSettled = true;
-
-  const easeSlow = (frame: ISceneFrame, elapsed: number) => {
-    const attack = getEaseFactor(elapsed, 180);
-    const release = getEaseFactor(elapsed, 420);
-    isSettled = true;
-    for (let i = 0; i < SPECTRUM_TEXELS; i += 1) {
-      const target = frame.spectrum[i] ?? 0;
-      if (previousTime === undefined) {
-        slowValues[i] = target;
-      }
-      slowValues[i] +=
-        (target - slowValues[i]) * (target > slowValues[i] ? attack : release);
-      slowBytes[i] = Math.round(slowValues[i]);
-      if (Math.abs(target - slowValues[i]) > 0.25) {
-        isSettled = false;
-      }
-    }
-  };
 
   return {
     uniforms,
@@ -237,19 +213,10 @@ export const createWorldInputs = (
     spectrumBytes,
     view,
     update: (frame, width, height) => {
-      const elapsed =
-        previousTime === undefined
-          ? 0
-          : Math.max(
-              0,
-              Math.min(
-                100,
-                frame.deltaMs ?? (frame.timeSeconds - previousTime) * 1000,
-              ),
-            );
+      const elapsed = frameStepMs(frame, previousTime);
       spectrumBytes.set(frame.spectrum.subarray(0, SPECTRUM_TEXELS));
       waveBytes.set(frame.waveform.subarray(0, WAVEFORM_TEXELS));
-      easeSlow(frame, elapsed);
+      easedSpectrum.ease(frame.spectrum, elapsed);
       previousTime = frame.timeSeconds;
       spectrum.needsUpdate = true;
       slow.needsUpdate = true;
@@ -274,34 +241,16 @@ export const createWorldInputs = (
       (uniforms.uSpectrumRect.value as Vector4).set(
         ...(frame.spectrumRect ?? [0, 1, 0, 1]),
       );
-      // As the shader-only path fills them (`sceneGl.ts`): nothing heard,
-      // nobody pointing and the author's own view where the frame is silent.
-      const rhythm = frame.rhythm ?? SILENT_RHYTHM;
-      const time = [
-        rhythm.beatPhase,
-        rhythm.barPhase,
-        rhythm.tempo,
-        rhythm.confidence,
-      ] as const;
-      const drums = [rhythm.kick, rhythm.snare, rhythm.hat] as const;
-      const song = [
-        rhythm.intensity,
-        rhythm.build,
-        rhythm.drop,
-        rhythm.dropSerial,
-      ] as const;
-      const stereo = frame.stereo ?? [0, 0];
-      const voice = frame.voice ?? [0, 0, 0];
-      const pointer = frame.pointer ?? NO_POINTER;
-      const tap = frame.tap ?? NO_TAP;
-      [view[0], view[1], view[2]] = frame.camera ?? HOME_CAMERA;
-      (uniforms.uRhythm.value as Vector4).set(...time);
-      (uniforms.uDrums.value as Vector3).set(...drums);
-      (uniforms.uSong.value as Vector4).set(...song);
-      (uniforms.uStereo.value as Vector2).set(...stereo);
-      (uniforms.uVoice.value as Vector3).set(...voice);
-      (uniforms.uPointer.value as Vector4).set(...pointer);
-      (uniforms.uTap.value as Vector4).set(...tap);
+      // As the shader-only path fills them (`sceneSignals.ts`).
+      const signals = frameSignals(frame);
+      [view[0], view[1], view[2]] = signals.camera;
+      (uniforms.uRhythm.value as Vector4).set(...signals.rhythm);
+      (uniforms.uDrums.value as Vector3).set(...signals.drums);
+      (uniforms.uSong.value as Vector4).set(...signals.song);
+      (uniforms.uStereo.value as Vector2).set(...signals.stereo);
+      (uniforms.uVoice.value as Vector3).set(...signals.voice);
+      (uniforms.uPointer.value as Vector4).set(...signals.pointer);
+      (uniforms.uTap.value as Vector4).set(...signals.tap);
       (uniforms.uCamera.value as Vector3).set(...view);
 
       const dt = elapsed / 1000;
@@ -314,14 +263,17 @@ export const createWorldInputs = (
       [env[slots.bass], env[slots.mid], env[slots.treble]] = frame.bands;
       [env[slots.accent], env[slots.accentId]] = frame.musicAccent;
       [env[slots.run], env[slots.runSpeed]] = frame.musicRun;
-      env[slots.aspect] = width / Math.max(1, height);
-      setRun('beatPhase', time);
-      setRun('drumKick', drums);
-      setRun('songIntensity', song);
-      setRun('stereoPan', stereo);
-      setRun('voiceOpen', voice);
-      setRun('pointerX', pointer);
-      setRun('tapX', tap);
+      // The panel's, like `uResolution` and the camera above: under the
+      // Backdrop the canvas is the window, and a formula that framed itself
+      // by the canvas disagreed with the camera it was framing for.
+      env[slots.aspect] = panel.width / Math.max(1, panel.height);
+      setRun('beatPhase', signals.rhythm);
+      setRun('drumKick', signals.drums);
+      setRun('songIntensity', signals.song);
+      setRun('stereoPan', signals.stereo);
+      setRun('voiceOpen', signals.voice);
+      setRun('pointerX', signals.pointer);
+      setRun('tapX', signals.tap);
       setRun('viewYaw', view);
       paramSlots.forEach((param) => {
         const value = frame.params[param.id] ?? param.fallback;
@@ -335,7 +287,7 @@ export const createWorldInputs = (
       });
       instanceEnv.set(env);
     },
-    settled: () => isSettled,
+    settled: () => easedSpectrum.settled(),
     dispose: () => {
       spectrum.dispose();
       slow.dispose();

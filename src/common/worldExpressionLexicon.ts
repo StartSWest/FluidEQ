@@ -90,7 +90,11 @@ export const PURE: Readonly<Record<string, (...args: number[]) => number>> = {
   sqrt: (x) => Math.sqrt(Math.max(0, x)),
   exp: (x) => Math.exp(Math.min(80, x)),
   log: (x) => Math.log(Math.max(1e-12, x)),
-  pow: (x, y) => Math.abs(x) ** y,
+  // Nought to a negative power reads 0, as a division by nought does.
+  pow: (x, y) => {
+    const power = Math.abs(x) ** y;
+    return Number.isFinite(power) ? power : 0;
+  },
   min: Math.min,
   max: Math.max,
   clamp: clampRange,

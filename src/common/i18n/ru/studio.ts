@@ -504,13 +504,29 @@ const studio = {
   'studio.problem.bad-world':
     'В 3D-мире нет ничего, что эта версия может нарисовать. Проверьте узлы, материалы и формулы.',
   'studio.problem.bad-model':
-    '3D-модель должна быть файлом .glb, в котором есть все буферы и изображения.',
+    '3D-модель должна быть файлом .glb, в котором есть все буферы и изображения, без собственных источников света, инстансинга и сжатия.',
+  'studio.problem.model-too-heavy':
+    'Вместе 3D-модели содержат больше 500 000 треугольников или больше 16 млн пикселей изображений.',
+  'studio.problem.pack-too-large':
+    'Вся сцена больше 9 МБ — это предел для сцены, которой делятся. Используйте модели полегче или изображение поменьше.',
   'studio.problem.bad-json': 'pack.json — не корректный JSON.',
   'studio.problem.missing-file': 'Не хватает файла, нужного сцене.',
   'studio.problem.unsafe-path':
     'Имена файлов должны быть простыми именами файлов из этой папки.',
   'studio.problem.file-too-large': 'Файл больше, чем допускает сцена.',
   'studio.world.heading': '3D-мир не нарисован, показано только небо',
+  'studio.world.partial': 'Часть 3D-мира не показана',
+  'studio.worldNote.engine-missing':
+    'FluidEQ не может запустить здесь свой 3D-движок, поэтому показывается только небо.',
+  'studio.worldNote.engine-failed': '3D-движок остановился с ошибкой: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'Графика этого компьютера не может нарисовать 3D-мир в сцене.',
+  'studio.worldNote.material':
+    'GLSL одного из материалов не скомпилировался. Графический драйвер сообщает:',
+  'studio.worldNote.model-refused':
+    'FluidEQ не может прочитать модель «{model}», поэтому она не показана.',
+  'studio.worldNote.model-unreadable':
+    'Не удалось прочитать модель «{model}»: {detail}',
   'studio.compile.heading': 'Шейдер не скомпилировался',
   'studio.compile.hint': 'Исправьте и сохраните или вставьте ошибку в свой ИИ.',
   'studio.heavy.body':

@@ -838,8 +838,8 @@ export default function useSceneRunner({
             ladderRef.current.resume(proved);
           }
         }
-        if (result.notes) {
-          sourceRef.current.reportNotes?.(result.notes);
+        if (result.world) {
+          sourceRef.current.reportWorld?.(result.world);
         }
         loadedRef.current?.(pack);
         kick();

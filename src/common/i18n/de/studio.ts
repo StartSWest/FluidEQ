@@ -522,7 +522,11 @@ const studio = {
   'studio.problem.bad-world':
     'Die 3D-Welt enthält nichts, was diese Version zeichnen kann. Prüfen Sie Knoten, Materialien und Formeln.',
   'studio.problem.bad-model':
-    'Ein 3D-Modell muss eine .glb sein, die alle Puffer und Bilder selbst enthält.',
+    'Ein 3D-Modell muss eine .glb sein, die alle Puffer und Bilder selbst enthält – ohne eigene Lichter, Instanzen oder Kompression.',
+  'studio.problem.model-too-heavy':
+    'Die 3D-Modelle haben zusammen mehr als 500.000 Dreiecke oder mehr als 16 Millionen Bildpixel.',
+  'studio.problem.pack-too-large':
+    'Die ganze Szene ist größer als 9 MB, die eine geteilte Szene höchstens haben darf. Verwenden Sie leichtere Modelle oder ein kleineres Bild.',
   'studio.problem.bad-json': 'pack.json ist kein gültiges JSON.',
   'studio.problem.missing-file': 'Eine Datei, die die Szene braucht, fehlt.',
   'studio.problem.unsafe-path':
@@ -530,6 +534,19 @@ const studio = {
   'studio.problem.file-too-large':
     'Eine Datei ist größer, als eine Szene erlaubt.',
   'studio.world.heading': 'Die 3D-Welt wurde nicht gezeichnet, nur ihr Himmel',
+  'studio.world.partial': 'Ein Teil der 3D-Welt wurde weggelassen',
+  'studio.worldNote.engine-missing':
+    'FluidEQ kann seine 3D-Engine hier nicht ausführen, daher läuft nur der Himmel.',
+  'studio.worldNote.engine-failed':
+    'Die 3D-Engine wurde mit einem Fehler beendet: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'Die Grafik dieses Computers kann keine 3D-Welt in die Szene zeichnen.',
+  'studio.worldNote.material':
+    'Das GLSL eines Materials ließ sich nicht kompilieren. Der Grafiktreiber meldet:',
+  'studio.worldNote.model-refused':
+    'Das Modell „{model}“ kann FluidEQ nicht lesen, daher wurde es weggelassen.',
+  'studio.worldNote.model-unreadable':
+    'Das Modell „{model}“ konnte nicht gelesen werden: {detail}',
   'studio.compile.heading': 'Der Shader ließ sich nicht kompilieren',
   'studio.compile.hint':
     'Korrigieren Sie ihn und speichern Sie, oder fügen Sie den Fehler in Ihre KI ein.',

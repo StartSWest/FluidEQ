@@ -71,7 +71,7 @@ export const restoredManifest = (pack: IScenePack) =>
  * and everything else in `world.json` naming them. Material ids are already
  * plain names (`sceneWorldRead.ts`), so every file name here is one too.
  */
-export const restoredWorldFiles = (
+const restoredWorldFiles = (
   world: ISceneWorld,
 ): Array<[string, string | Buffer]> => {
   const files: Array<[string, string | Buffer]> = [];

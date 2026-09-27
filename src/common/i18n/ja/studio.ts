@@ -507,7 +507,11 @@ const studio = {
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':
-    '3D モデルは、すべてのバッファーと画像を内部に含む .glb である必要があります。',
+    '3D モデルは、すべてのバッファーと画像を内部に含み、独自のライト・インスタンス・圧縮を使わない .glb である必要があります。',
+  'studio.problem.model-too-heavy':
+    '3D モデルの合計が、三角形 50 万個または画像 1,600 万ピクセルを超えています。',
+  'studio.problem.pack-too-large':
+    'シーン全体が、共有できる上限の 9 MB を超えています。軽いモデルか小さい画像を使ってください。',
   'studio.problem.bad-json': 'pack.json が正しい JSON ではありません。',
   'studio.problem.missing-file': 'シーンに必要なファイルがありません。',
   'studio.problem.unsafe-path':
@@ -515,6 +519,19 @@ const studio = {
   'studio.problem.file-too-large':
     'シーンで使える大きさを超えるファイルがあります。',
   'studio.world.heading': '3D ワールドは描画されず、空だけが表示されています',
+  'studio.world.partial': '3D ワールドの一部が省かれました',
+  'studio.worldNote.engine-missing':
+    'ここでは FluidEQ の 3D エンジンを動かせないため、空だけが表示されます。',
+  'studio.worldNote.engine-failed':
+    '3D エンジンがエラーで止まりました: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'このコンピューターのグラフィックスでは、シーンに 3D ワールドを描画できません。',
+  'studio.worldNote.material':
+    'マテリアルの GLSL をコンパイルできませんでした。グラフィックス ドライバーのメッセージ:',
+  'studio.worldNote.model-refused':
+    'モデル「{model}」は FluidEQ で読み込めないため、省かれました。',
+  'studio.worldNote.model-unreadable':
+    'モデル「{model}」を読み込めませんでした: {detail}',
   'studio.compile.heading': 'シェーダーをコンパイルできませんでした',
   'studio.compile.hint': '直して保存するか、エラーを AI に貼り付けてください。',
   'studio.heavy.body':

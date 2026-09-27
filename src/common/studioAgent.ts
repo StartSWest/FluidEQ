@@ -8,6 +8,7 @@ import type { ISceneCamera } from './sceneCamera';
 import type { IScenePack } from './scenePacks';
 import type { ISceneWave } from './sceneWave';
 import type { ISongMap } from './songMap';
+import type { IWorldReport } from './worldNotes';
 
 /**
  * The Studio's agent door: what a member's AI assistant may ask FluidEQ over
@@ -179,6 +180,11 @@ export type TStudioAgentDrawAnswer =
        */
       spectrumRect: readonly [number, number, number, number];
       moment: IStudioAgentMoment;
+      /**
+       * What became of the scene's 3D world: its shader drawn in its place,
+       * or a part of it left out. The picture alone cannot say which.
+       */
+      world?: IWorldReport;
     }
   | TStudioAgentDrawFailure;
 

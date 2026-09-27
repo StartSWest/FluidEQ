@@ -3,6 +3,7 @@ import type {
   IMemberSceneProblem,
   TMemberSceneFile,
 } from 'common/memberScenes';
+import type { IWorldReport, TWorldNote } from 'common/worldNotes';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStageTrouble } from './StudioStage';
 
@@ -48,6 +49,71 @@ const Problem = ({ problem }: { problem: IMemberSceneProblem }) => {
       </span>
       <span className="studio-problem__what">{t(what)}</span>
     </li>
+  );
+};
+
+type TTranslate = ReturnType<typeof useTranslation>['t'];
+
+/** One reason the world, or a part of it, was not drawn. */
+const worldNoteText = (t: TTranslate, note: TWorldNote): string => {
+  switch (note.code) {
+    case 'engine-missing':
+      return t('studio.worldNote.engine-missing');
+    case 'engine-failed':
+      return t('studio.worldNote.engine-failed', { detail: note.detail });
+    case 'engine-unsupported':
+      return t('studio.worldNote.engine-unsupported');
+    case 'material':
+      return t('studio.worldNote.material');
+    case 'model-refused':
+      return t('studio.worldNote.model-refused', { model: note.model });
+    default:
+      return t('studio.worldNote.model-unreadable', {
+        model: note.model,
+        detail: note.detail,
+      });
+  }
+};
+
+/**
+ * What became of the 3D world: its shader drawn in its place, or parts of it
+ * left out, each with its reason, and the driver's own words for a material.
+ */
+const WorldTrouble = ({ report }: { report: IWorldReport }) => {
+  const { t } = useTranslation();
+  const material = report.notes.find(
+    (note): note is Extract<TWorldNote, { code: 'material' }> =>
+      note.code === 'material',
+  );
+  return (
+    <>
+      <span className="studio-problems__title">
+        {t(report.drawn ? 'studio.world.partial' : 'studio.world.heading')}
+      </span>
+      {report.notes.length > 0 && (
+        <ul className="studio-problems__list">
+          {report.notes.map((note, index) => (
+            <li
+              className="studio-problem"
+              // A world's notes are made once per build and never reordered.
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${note.code}:${index}`}
+            >
+              <span className="studio-problem__where">
+                {t('studio.file.world')}
+              </span>
+              <span className="studio-problem__what">
+                {worldNoteText(t, note)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {material && (
+        <code className="studio-problems__log">{firstError(material.log)}</code>
+      )}
+      <span className="studio-problems__hint">{t('studio.compile.hint')}</span>
+    </>
   );
 };
 
@@ -111,19 +177,7 @@ export default function StudioProblems({
           </span>
         </>
       )}
-      {trouble?.kind === 'world' && (
-        <>
-          <span className="studio-problems__title">
-            {t('studio.world.heading')}
-          </span>
-          <code className="studio-problems__log">
-            {firstError(trouble.log)}
-          </code>
-          <span className="studio-problems__hint">
-            {t('studio.compile.hint')}
-          </span>
-        </>
-      )}
+      {trouble?.kind === 'world' && <WorldTrouble report={trouble.report} />}
       {trouble?.kind === 'heavy' && (
         <span className="studio-problems__hint">{t('studio.heavy.body')}</span>
       )}

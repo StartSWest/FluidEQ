@@ -91,10 +91,14 @@ const ambient = () =>
 
 /**
  * The smallest binary glTF the model check accepts: its header and a JSON
- * chunk naming the format, padded to four bytes as the format requires.
+ * chunk naming the format and its one scene, padded to four bytes as the
+ * format requires. Without the scene three builds no model at all.
  */
 const glb = () => {
-  const json = Buffer.from('{"asset":{"version":"2.0"}} ', 'utf8');
+  const json = Buffer.from(
+    '{"asset":{"version":"2.0"},"scenes":[{"nodes":[]}]} ',
+    'utf8',
+  );
   const bytes = Buffer.alloc(20 + json.length);
   bytes.write('glTF', 0, 'ascii');
   bytes.writeUInt32LE(2, 4);

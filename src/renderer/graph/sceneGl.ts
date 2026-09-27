@@ -1,13 +1,13 @@
 import type { IScenePack } from 'common/scenePacks';
-import { SILENT_RHYTHM, type ISceneRhythm } from 'common/sceneRhythm';
-import { getEaseFactor } from 'common/smoothing';
+import type { ISceneRhythm } from 'common/sceneRhythm';
+import type { IWorldReport, TWorldNote } from 'common/worldNotes';
 import {
   assembleFragmentSource,
   SPECTRUM_TEXELS,
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
-import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
+import { createSlowSpectrum, frameSignals, frameStepMs } from './sceneSignals';
 import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
@@ -103,6 +103,17 @@ export interface ISceneProgram {
    * giving back and leaves this out.
    */
   rest?(): void;
+  /**
+   * Renders once what every band of a still of `frame` lays down, a strip at
+   * a time, before the bands are drawn (`sceneStillKeep.ts`), and what that
+   * cost the GPU: a 3D world's scene, which a band only reveals. A shader
+   * shades each band itself and leaves this out.
+   */
+  prepareStill?(
+    frame: ISceneFrame,
+    width: number,
+    height: number,
+  ): { spentMs: number; longestMs: number };
   dispose(): void;
 }
 
@@ -111,12 +122,17 @@ export type TSceneCompileResult =
       ok: true;
       program: ISceneProgram;
       /**
-       * What a 3D world left out and why — a model it could not read, or the
-       * whole world when it fell back to its shader — for the scene's author.
+       * What became of a pack's 3D world: drawn, or its shader drawn in its
+       * place, and anything left out, for the scene's author.
        */
-      notes?: string[];
+      world?: IWorldReport;
     }
   | { ok: false; log: string };
+
+/** A world's own compile: its program, or why not, for its author. */
+export type TWorldCompileResult =
+  | { ok: true; program: ISceneProgram; notes: TWorldNote[] }
+  | { ok: false; notes: TWorldNote[] };
 
 export const createSceneContext = (
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -265,10 +281,8 @@ const compileShaderScene = async (
 
   // A vertex array is required in WebGL2 even with no attributes bound.
   const vao = gl.createVertexArray();
-  const slowValues = new Float32Array(SPECTRUM_TEXELS);
-  const slowBytes = new Uint8Array(SPECTRUM_TEXELS);
+  const slow = createSlowSpectrum();
   let previousTime: number | undefined;
-  let settled = true;
   // What the scene was last given, for the runner's own checks.
   let lastAccent = 0;
 
@@ -310,34 +324,7 @@ const compileShaderScene = async (
         gl.uniform1i(uniforms.spectrum, 0);
 
         if (slowTexture) {
-          // Raw analyser updates arrive in steps. Ease only the atmospheric
-          // texture; boats and meters retain their independent fast response.
-          const elapsed =
-            previousTime === undefined
-              ? 0
-              : Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    frame.deltaMs ?? (frame.timeSeconds - previousTime) * 1000,
-                  ),
-                );
-          const attack = getEaseFactor(elapsed, 180);
-          const release = getEaseFactor(elapsed, 420);
-          settled = true;
-          for (let i = 0; i < SPECTRUM_TEXELS; i += 1) {
-            const target = frame.spectrum[i];
-            if (previousTime === undefined) {
-              slowValues[i] = target;
-            }
-            slowValues[i] +=
-              (target - slowValues[i]) *
-              (target > slowValues[i] ? attack : release);
-            slowBytes[i] = Math.round(slowValues[i]);
-            if (Math.abs(target - slowValues[i]) > 0.25) {
-              settled = false;
-            }
-          }
+          slow.ease(frame.spectrum, frameStepMs(frame, previousTime));
           previousTime = frame.timeSeconds;
           gl.activeTexture(gl.TEXTURE3);
           gl.bindTexture(gl.TEXTURE_2D, slowTexture);
@@ -350,7 +337,7 @@ const compileShaderScene = async (
             1,
             gl.RED,
             gl.UNSIGNED_BYTE,
-            slowBytes,
+            slow.bytes,
           );
           gl.uniform1i(slowLocation, 3);
         }
@@ -401,27 +388,15 @@ const compileShaderScene = async (
           frame.accent[2],
         );
         gl.uniform1f(uniforms.fade, frame.fade);
-        const rhythm = frame.rhythm ?? SILENT_RHYTHM;
-        gl.uniform4f(
-          uniforms.rhythm,
-          rhythm.beatPhase,
-          rhythm.barPhase,
-          rhythm.tempo,
-          rhythm.confidence,
-        );
-        gl.uniform3f(uniforms.drums, rhythm.kick, rhythm.snare, rhythm.hat);
-        gl.uniform4f(
-          uniforms.song,
-          rhythm.intensity,
-          rhythm.build,
-          rhythm.drop,
-          rhythm.dropSerial,
-        );
-        gl.uniform2f(uniforms.stereo, ...(frame.stereo ?? [0, 0]));
-        gl.uniform3f(uniforms.voice, ...(frame.voice ?? [0, 0, 0]));
-        gl.uniform4f(uniforms.pointer, ...(frame.pointer ?? NO_POINTER));
-        gl.uniform4f(uniforms.tap, ...(frame.tap ?? NO_TAP));
-        gl.uniform3f(uniforms.camera, ...(frame.camera ?? HOME_CAMERA));
+        const signals = frameSignals(frame);
+        gl.uniform4f(uniforms.rhythm, ...signals.rhythm);
+        gl.uniform3f(uniforms.drums, ...signals.drums);
+        gl.uniform4f(uniforms.song, ...signals.song);
+        gl.uniform2f(uniforms.stereo, ...signals.stereo);
+        gl.uniform3f(uniforms.voice, ...signals.voice);
+        gl.uniform4f(uniforms.pointer, ...signals.pointer);
+        gl.uniform4f(uniforms.tap, ...signals.tap);
+        gl.uniform3f(uniforms.camera, ...signals.camera);
         paramLocations.forEach(({ id, location: where, fallback }) => {
           gl.uniform1f(where, frame.params[id] ?? fallback);
         });
@@ -436,7 +411,7 @@ const compileShaderScene = async (
         gl.deleteTexture(slowTexture);
         gl.deleteProgram(program);
       },
-      isSettled: () => settled,
+      isSettled: () => slow.settled(),
       musicAccent: () => lastAccent,
     },
   };
@@ -461,10 +436,14 @@ export const compileScene = async (
   }
   const world = await compileWorldScene(gl, pack, artwork, signal, hurry);
   if (world.ok) {
-    return world;
+    return {
+      ok: true,
+      program: world.program,
+      world: { drawn: true, notes: world.notes },
+    };
   }
   const shader = await compileShaderScene(gl, pack, artwork, signal, hurry);
   return shader.ok
-    ? { ...shader, notes: [`The 3D world was not drawn: ${world.log}`] }
+    ? { ...shader, world: { drawn: false, notes: world.notes } }
     : shader;
 };

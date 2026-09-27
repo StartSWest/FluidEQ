@@ -17,17 +17,15 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import {
-  WORLD_INSTANCE_SIGNALS,
-  type IWorldInstanceMotion,
-  type IWorldInstancesNode,
-  type IWorldLayout,
-  type IWorldPointsNode,
+import type {
+  IWorldInstanceMotion,
+  IWorldInstancesNode,
+  IWorldPointsNode,
 } from 'common/sceneWorld';
+import { variesPerFrame } from 'common/sceneWorldCost';
 import {
   createColourFormula,
   createVec3Formula,
-  variesPerFrame,
   type IWorldColourFormula,
   type IWorldFormula,
 } from './worldFormula';
@@ -55,8 +53,6 @@ import {
  * of pillars whose heights followed the spectrum worked out all nine numbers
  * of every pillar, and its turn and its colour, every frame, to change one.
  */
-
-const PER_COPY = new Set<string>(WORLD_INSTANCE_SIGNALS);
 
 /** Position x, y, z, rotation x, y, z, scale x, y, z. */
 const CHANNELS = 9;
@@ -97,20 +93,16 @@ const readMotion = (
       )
     : undefined;
   const live = channels.flatMap((formula, channel) =>
-    variesPerFrame(formula, PER_COPY) ? [channel] : [],
+    variesPerFrame(formula) ? [channel] : [],
   );
   return {
     channels,
     live,
     turns: live.some((channel) => channel >= 3 && channel < 6),
     ...(colour ? { colour } : {}),
-    colourLive: colour !== undefined && variesPerFrame(colour, PER_COPY),
+    colourLive: colour !== undefined && variesPerFrame(colour),
   };
 };
-
-/** Whether anything in the set changes from frame to frame. */
-const moves = (motion: ICopyMotion) =>
-  motion.live.length > 0 || motion.colourLive;
 
 /**
  * Every copy's nine numbers, worked out once, and the listed channels of
@@ -173,14 +165,12 @@ export interface IWorldCopies {
   dispose(): void;
 }
 
-const slotsOf = (layout: IWorldLayout) => layoutSlots(layout);
-
 export const buildInstances = (
   node: IWorldInstancesNode,
   inputs: IWorldInputs,
   material: IWorldMaterialHandle,
 ): IWorldCopies => {
-  const slots = slotsOf(node.layout);
+  const slots = layoutSlots(node.layout);
   const count = slots.length;
   const geometry = buildWorldGeometry(node.geometry);
   const marks = new Float32Array(count * 4);
@@ -193,9 +183,13 @@ export const buildInstances = (
   );
   const mesh = new InstancedMesh(geometry, material.material, count);
   const motion = readMotion(node.instance, inputs, count);
-  const live = moves(motion);
+  // Where the copies stand and what colour they are follow the music apart:
+  // a set whose only live part was its colour recomposed and sent up every
+  // copy's matrix each frame — 3.8 MB a frame at 60,000 copies — and gave up
+  // its bounds, for places that never moved.
+  const placesLive = motion.live.length > 0;
   const { colourLive } = motion;
-  if (live) {
+  if (placesLive) {
     mesh.instanceMatrix.setUsage(DynamicDrawUsage);
     // Copies that move with the music leave any bounds worked out once.
     mesh.frustumCulled = false;
@@ -238,27 +232,31 @@ export const buildInstances = (
   const update = () => {
     slots.forEach((slot, index) => {
       enterCopy(inputs, slot, index, count);
-      refresh(index);
-      if (motion.turns) {
-        turnOf(index);
+      if (placesLive) {
+        refresh(index);
+        if (motion.turns) {
+          turnOf(index);
+        }
+        setMatrix(index);
       }
-      setMatrix(index);
       if (colourLive) {
         paint(index);
       }
     });
-    mesh.instanceMatrix.needsUpdate = true;
-    // Colours that ignore the music went up once and stay.
+    // Places and colours that ignore the music went up once and stay.
+    if (placesLive) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
     if (mesh.instanceColor && colourLive) {
       mesh.instanceColor.needsUpdate = true;
     }
   };
-  if (!live) {
+  if (!placesLive) {
     mesh.computeBoundingSphere();
   }
   return {
     object: mesh,
-    update: live ? update : () => undefined,
+    update: placesLive || colourLive ? update : () => undefined,
     dispose: () => {
       geometry.dispose();
       mesh.dispose();
@@ -271,7 +269,7 @@ export const buildPoints = (
   inputs: IWorldInputs,
   context: IWorldMaterialContext,
 ): IWorldCopies => {
-  const slots = slotsOf(node.layout);
+  const slots = layoutSlots(node.layout);
   const count = slots.length;
   const positions = new Float32Array(count * 3);
   const colours = new Float32Array(count * 3).fill(1);

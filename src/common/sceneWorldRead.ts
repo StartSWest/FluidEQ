@@ -8,6 +8,7 @@ import {
   WORLD_INSTANCE_SIGNALS,
   WORLD_LIMITS,
   WORLD_SIGNALS,
+  worldHasGlass,
   worldHasMirror,
   worldInstanceScopeNames,
   worldScopeNames,
@@ -26,7 +27,6 @@ import {
 } from './sceneWorld';
 import { readWorldNodes } from './sceneWorldNodes';
 import {
-  clampWorld,
   isWorldRecord,
   readBoolean,
   readChoice,
@@ -37,6 +37,7 @@ import {
   WORLD_HEX,
   type IWorldScopes,
 } from './sceneWorldValues';
+import { readModelCost, type IModelCost } from './worldModelCheck';
 
 /**
  * A pack's `world`, read the way the rest of a pack is read: everything
@@ -45,9 +46,10 @@ import {
  * exactly what an older FluidEQ does with the same pack.
  */
 
-// Any name a formula can spell (`worldExpressionLexicon.ts`): lower case
-// only, `heroA` was dropped here while every formula naming it compiled, and
-// read as 0 — a lantern meant to rise sat on the water with nothing saying so.
+// Any name a formula can spell (`worldExpressionLexicon.ts`), capitals
+// included: while this took lower case only, `heroA` was dropped here as every
+// formula naming it compiled and read it as 0 — a lantern meant to rise sat
+// on the water with nothing saying so.
 const VAR_NAME = /^[A-Za-z][A-Za-z0-9_]{0,23}$/;
 const MATERIAL_ID = /^[A-Za-z][A-Za-z0-9_-]{0,31}$/;
 const VERTEX_ENTRY = /\bvec3\s+worldDisplace\s*\(/;
@@ -197,7 +199,10 @@ const readHook = (
   if (typeof value !== 'string' || !entry.test(value)) {
     return undefined;
   }
-  if (/^\s*#version\b/m.test(value)) {
+  // GLSL lets space stand between the `#` and its word: `#  version 300 es`
+  // is a version line too, and one inside a piece three splices into its
+  // own program fails that program's compile.
+  if (/^\s*#\s*version\b/m.test(value)) {
     return undefined;
   }
   const bytes = new TextEncoder().encode(value).byteLength;
@@ -305,13 +310,35 @@ const readMaterials = (
   return materials;
 };
 
-/** Base64 of the size a decoded model can be, and nothing else. */
-const readModels = (value: unknown): Record<string, IWorldModel> => {
+/** A model's bytes, from base64 `readModels` has already checked. */
+const decodeWorldModel = (data: string): Uint8Array => {
+  const text = atob(data);
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i += 1) {
+    bytes[i] = text.charCodeAt(i);
+  }
+  return bytes;
+};
+
+/**
+ * Every model this version reads (`worldModelCheck.ts`) that fits with the
+ * ones before it — bytes, triangles and image pixels — and what each costs
+ * wherever it is placed, which is what its nodes are charged.
+ */
+const readModels = (
+  value: unknown,
+): {
+  models: Record<string, IWorldModel>;
+  costs: Record<string, IModelCost>;
+} => {
   const models: Record<string, IWorldModel> = {};
+  const costs: Record<string, IModelCost> = {};
   if (!isWorldRecord(value)) {
-    return models;
+    return { models, costs };
   }
   let bytes = 0;
+  let triangles = 0;
+  let pixels = 0;
   distinctIds(Object.entries(value).filter(([id]) => MATERIAL_ID.test(id)))
     .slice(0, WORLD_LIMITS.models)
     .forEach(([id, raw]) => {
@@ -328,10 +355,21 @@ const readModels = (value: unknown): Record<string, IWorldModel> => {
       ) {
         return;
       }
+      const cost = readModelCost(decodeWorldModel(data));
+      if (
+        !cost ||
+        triangles + cost.triangles > WORLD_LIMITS.modelTriangles ||
+        pixels + cost.pixels > WORLD_LIMITS.modelImagePixels
+      ) {
+        return;
+      }
       bytes += decoded;
+      triangles += cost.triangles;
+      pixels += cost.pixels;
       models[id] = { data };
+      costs[id] = cost;
     });
-  return models;
+  return { models, costs };
 };
 
 const TONE_MAPPINGS: readonly TWorldToneMapping[] = [
@@ -362,14 +400,13 @@ const normalizeSceneWorld = (
     instance: { names: worldInstanceScopeNames(paramIds, varNames) },
   };
   const materials = readMaterials(raw.materials, scopes, artwork);
-  const models = readModels(raw.models);
-  const nodes = readWorldNodes(
-    raw.nodes,
-    scopes,
-    materials,
-    models,
-    worldHasMirror(materials),
-  );
+  const { models, costs } = readModels(raw.models);
+  const nodes = readWorldNodes(raw.nodes, scopes, materials, costs, {
+    mirrored: worldHasMirror(materials),
+    glass:
+      worldHasGlass(materials) ||
+      Object.values(costs).some((cost) => cost.transmission),
+  });
   if (nodes.length === 0) {
     return undefined;
   }
@@ -389,7 +426,7 @@ const normalizeSceneWorld = (
     exposure: readExpr(raw.exposure, scopes.global, 1),
     toneMapping: readChoice(raw.toneMapping, TONE_MAPPINGS, 'aces'),
     ...(bloom ? { bloom } : {}),
-    vignette: clampWorld(readNumber(raw.vignette, 0.25, 0, 1), 0, 1),
+    vignette: readNumber(raw.vignette, 0.25, 0, 1),
     materials,
     models,
     nodes,

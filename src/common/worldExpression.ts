@@ -141,6 +141,11 @@ const parse = (tokens: TToken[], scope: IExpressionScope) => {
     };
   };
 
+  // What a remembering call keeps is only ever a finite number. One NaN or
+  // Infinity stored there — `smooth(pow(level, -0.5), 0.3)` in a silent
+  // frame — was kept for good: every frame after worked out from it, and the
+  // formula read 0 for the rest of the session. A value that is not finite
+  // leaves what was kept as it was.
   const stateful = (name: string, args: IPart[]): IPart => {
     const slot = stateSize;
     stateSize += 1;
@@ -149,7 +154,10 @@ const parse = (tokens: TToken[], scope: IExpressionScope) => {
       return {
         evaluate: (rt) => {
           const index = rt.stateBase + slot;
-          rt.state[index] += value(rt) * rt.dt;
+          const next = rt.state[index] + value(rt) * rt.dt;
+          if (Number.isFinite(next)) {
+            rt.state[index] = next;
+          }
           return rt.state[index];
         },
       };
@@ -159,13 +167,17 @@ const parse = (tokens: TToken[], scope: IExpressionScope) => {
       evaluate: (rt) => {
         const index = rt.stateBase + slot;
         const target = value(rt);
-        const halfLife = Math.max(1e-3, seconds(rt));
+        const given = seconds(rt);
+        const halfLife = Math.max(1e-3, Number.isFinite(given) ? given : 0);
         const ease = 1 - 0.5 ** (rt.dt / halfLife);
         const current = rt.state[index];
-        rt.state[index] =
+        const next =
           rising && target > current
             ? target
             : current + (target - current) * ease;
+        if (Number.isFinite(next)) {
+          rt.state[index] = next;
+        }
         return rt.state[index];
       },
     };

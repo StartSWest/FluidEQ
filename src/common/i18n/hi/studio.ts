@@ -497,13 +497,30 @@ const studio = {
   'studio.problem.bad-world':
     'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
   'studio.problem.bad-model':
-    '3D मॉडल एक ऐसी .glb फ़ाइल होनी चाहिए जिसमें सारे बफ़र और चित्र शामिल हों।',
+    '3D मॉडल एक ऐसी .glb फ़ाइल होनी चाहिए जिसमें सारे बफ़र और चित्र शामिल हों, और जिसकी अपनी रोशनियाँ, इंस्टेंसिंग या कम्प्रेशन न हों।',
+  'studio.problem.model-too-heavy':
+    'सभी 3D मॉडल मिलाकर 5,00,000 से ज़्यादा त्रिकोण या 1.6 करोड़ से ज़्यादा चित्र-पिक्सेल रखते हैं।',
+  'studio.problem.pack-too-large':
+    'पूरा सीन 9 MB से बड़ा है, जो साझा किए जाने वाले सीन की सीमा है। हल्के मॉडल या छोटा चित्र इस्तेमाल करें।',
   'studio.problem.bad-json': 'pack.json मान्य JSON नहीं है।',
   'studio.problem.missing-file': 'सीन के लिए ज़रूरी एक फ़ाइल गायब है।',
   'studio.problem.unsafe-path':
     'फ़ाइल नाम इसी फ़ोल्डर की फ़ाइलों के सादे नाम होने चाहिए।',
   'studio.problem.file-too-large': 'एक फ़ाइल सीन की अनुमति से बड़ी है।',
   'studio.world.heading': '3D दुनिया नहीं बनी, केवल उसका आकाश दिख रहा है',
+  'studio.world.partial': '3D दुनिया का एक हिस्सा छोड़ दिया गया',
+  'studio.worldNote.engine-missing':
+    'FluidEQ यहाँ अपना 3D इंजन नहीं चला सकता, इसलिए केवल आकाश दिख रहा है।',
+  'studio.worldNote.engine-failed':
+    '3D इंजन एक त्रुटि के साथ रुक गया: {detail}',
+  'studio.worldNote.engine-unsupported':
+    'इस कंप्यूटर का ग्राफ़िक्स सीन में 3D दुनिया नहीं बना सकता।',
+  'studio.worldNote.material':
+    'एक मटीरियल का GLSL कंपाइल नहीं हुआ। ग्राफ़िक्स ड्राइवर कहता है:',
+  'studio.worldNote.model-refused':
+    'FluidEQ मॉडल “{model}” नहीं पढ़ सकता, इसलिए उसे छोड़ दिया गया।',
+  'studio.worldNote.model-unreadable':
+    'मॉडल “{model}” पढ़ा नहीं जा सका: {detail}',
   'studio.compile.heading': 'शेडर कंपाइल नहीं हुआ',
   'studio.compile.hint':
     'उसे ठीक करके सेव करें, या त्रुटि अपने AI में चिपकाएँ।',

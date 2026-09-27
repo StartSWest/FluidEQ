@@ -184,7 +184,7 @@ describe('reading a project folder', () => {
       // is refused by its size, not read and cut down afterwards. A real
       // binary glTF each, its JSON padded out to five megabytes.
       const json = Buffer.alloc(5 * 1024 * 1024 - 20, ' ');
-      json.write('{"asset":{"version":"2.0"}}');
+      json.write('{"asset":{"version":"2.0"},"scenes":[{"nodes":[]}]}');
       const half = Buffer.alloc(20 + json.length);
       half.write('glTF', 0, 'ascii');
       half.writeUInt32LE(2, 4);

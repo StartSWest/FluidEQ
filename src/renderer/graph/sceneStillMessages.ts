@@ -1,5 +1,6 @@
 import type { IScenePack } from 'common/scenePacks';
 import type { IStudioAgentMoment, TStudioAgentSound } from 'common/studioAgent';
+import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
 
 /**
@@ -98,6 +99,8 @@ export type TSceneStillReply =
       renderHeight?: number;
       /** What the music was doing at the kept frame. */
       moment?: IStudioAgentMoment;
+      /** What became of a 3D world, when the pack has one. */
+      world?: IWorldReport;
       /** The shader did not compile, in the driver's words. */
       log?: string;
       /** It built, and its frame would take this computer far too long. */

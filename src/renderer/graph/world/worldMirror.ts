@@ -146,7 +146,13 @@ export const createWorldMirror = (
       const fullScale: unknown = pointScale.value;
       floor.visible = false;
       renderer.shadowMap.autoUpdate = false;
-      pointScale.value = h * 0.5;
+      // The frame's scale is the panel's (`worldInputs.ts`), and the
+      // reflection is drawn at this fraction of the canvas: a point in it is
+      // that fraction of its size in the frame. Half the canvas's height, it
+      // was the canvas's own, and under the Backdrop, where the canvas is the
+      // window, every reflected point came out several times too large.
+      pointScale.value =
+        typeof fullScale === 'number' ? fullScale * (h / height) : h * 0.5;
       renderer.setRenderTarget(target);
       renderer.setClearColor(0x000000, 0);
       renderer.clear(true, true, false);

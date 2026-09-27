@@ -1,6 +1,7 @@
 import { app, BrowserWindow, session, type Rectangle } from 'electron';
 import path from 'path';
 import { resolveHtmlPath } from '../util';
+import wallpaperContentSecurityPolicy from './wallpaperPolicy';
 
 const PARTITION = 'fluideq-wallpaper';
 let sessionReady = false;
@@ -16,17 +17,14 @@ const wallpaperSession = () => {
     answer(false),
   );
   isolated.setPermissionCheckHandler(() => false);
+  // The development server's documents; a packaged build's come from
+  // `file://`, which carries the same policy as a meta tag instead.
   isolated.webRequest.onHeadersReceived((details, answer) => {
-    const development = !app.isPackaged;
     answer({
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'none'; " +
-            `script-src 'self'${development ? " 'unsafe-eval'" : ''}; ` +
-            "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
-            "worker-src 'self' blob:; " +
-            `connect-src 'self'${development ? ' ws://localhost:* ws://127.0.0.1:*' : ''};`,
+          wallpaperContentSecurityPolicy(!app.isPackaged),
         ],
       },
     });

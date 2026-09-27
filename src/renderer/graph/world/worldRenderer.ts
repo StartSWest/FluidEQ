@@ -4,7 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { Material, WebGLRenderer, WebGLRenderTarget } from 'three';
+import type {
+  BufferGeometry,
+  Material,
+  Mesh,
+  Object3D,
+  Texture,
+  WebGLRenderer,
+  WebGLRenderTarget,
+} from 'three';
 
 /**
  * What a world asks of three's renderer beyond drawing: a framebuffer it
@@ -12,7 +20,7 @@ import type { Material, WebGLRenderer, WebGLRenderTarget } from 'three';
  * for itself and never frees.
  */
 
-interface IExternalTargets {
+export interface IExternalTargets {
   point(target: WebGLRenderTarget, framebuffer: WebGLFramebuffer | null): void;
 }
 
@@ -125,4 +133,70 @@ export const trackDrawnTargets = (renderer: WebGLRenderer) => {
       });
     },
   };
+};
+
+/**
+ * Frees what three put on the GPU for everything under `roots`: the models,
+ * whose geometries, materials and textures come out of the glTF loader with
+ * no owner. A renderer's own `dispose` forgets its maps and deletes nothing,
+ * and the worker's context outlives every world, so each Studio save of a
+ * scene with a model left its buffers, its textures — a decoded bitmap each —
+ * and its programs on the GPU for as long as the worker lived.
+ */
+export const releaseModelResources = (roots: readonly Object3D[]): void => {
+  const geometries = new Set<BufferGeometry>();
+  const materials = new Set<Material>();
+  roots.forEach((root) =>
+    root.traverse((object) => {
+      const { geometry, material } = object as Partial<Mesh>;
+      if (geometry) {
+        geometries.add(geometry);
+      }
+      (Array.isArray(material) ? material : [material]).forEach((each) => {
+        if (each) {
+          materials.add(each);
+        }
+      });
+    }),
+  );
+  // Recognised by three's own mark rather than its class, so this module
+  // loads without the engine and is tested without a GPU.
+  const isTexture = (value: unknown): value is Texture =>
+    isRecord(value) && value.isTexture === true;
+  const textures = new Set<Texture>();
+  materials.forEach((material) =>
+    Object.values(material).forEach((value: unknown) => {
+      if (isTexture(value)) {
+        textures.add(value);
+      }
+    }),
+  );
+  geometries.forEach((geometry) => geometry.dispose());
+  materials.forEach((material) => material.dispose());
+  textures.forEach((texture) => {
+    texture.dispose();
+    const { image } = texture;
+    if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) {
+      image.close();
+    }
+  });
+};
+
+/**
+ * Deletes every program the renderer still holds, once everything that used
+ * them is disposed. Three's shadow maps draw with depth materials of their
+ * own that nothing outside can reach, and every renderer a world made left
+ * their programs linked on the worker's context.
+ */
+export const deletePrograms = (renderer: WebGLRenderer): void => {
+  const { programs } = renderer.info;
+  if (!Array.isArray(programs)) {
+    return;
+  }
+  [...programs].forEach((program: unknown) => {
+    const destroy = isRecord(program) ? program.destroy : undefined;
+    if (typeof destroy === 'function') {
+      destroy.call(program);
+    }
+  });
 };

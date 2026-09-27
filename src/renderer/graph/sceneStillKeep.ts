@@ -105,13 +105,35 @@ export const watchDraws = (
   };
 };
 
+/** The fastest of three draws of `stamp` at this size, and the slowest. */
+const timeStamp = (
+  gl: WebGL2RenderingContext,
+  program: ISceneProgram,
+  stamp: ISceneFrame,
+  width: number,
+  height: number,
+) => {
+  const times = [0, 1, 2].map(() => {
+    const started = performance.now();
+    program.draw(stamp, width, height);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+    return performance.now() - started;
+  });
+  return { fastest: Math.min(...times), slowest: Math.max(...times) };
+};
+
 /**
  * Whether the kept frame is worth starting at all.
  *
  * Timed on the postage stamp at the same instant, with a pixel read back so
- * the time is the GPU's: the fastest of three, times how many more pixels the
- * kept frame has. A scene this says would take half a minute is one whose
- * picture would never arrive, so nothing is drawn and nobody waits.
+ * the time is the GPU's, the fastest of three, at the stamp's size and at
+ * twice it each way: what does not grow with the picture — a 3D world's
+ * shadow maps and vertices — from what does, and the kept frame estimated as
+ * the first plus its pixels at the rate of the second. Scaled whole, as a
+ * shader's cost scales, a world's fixed work was counted nine hundred times
+ * and a world that draws its picture in a second was refused as hopeless. A
+ * scene this says would take half a minute is one whose picture would never
+ * arrive, so nothing is drawn and nobody waits.
  *
  * This answer is ONLY ever trusted to say no. It used to decide how many
  * bands the frame was drawn in as well, and that put the scene in charge of
@@ -129,18 +151,24 @@ const keptFrameWorthDrawing = (
   size: IRenderSize,
 ): { worth: boolean; longestMs: number } => {
   const stamp = { ...last, deltaMs: 0 };
-  const times = [0, 1, 2].map(() => {
-    const started = performance.now();
-    program.draw(stamp, WARMUP_WIDTH, WARMUP_HEIGHT);
-    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-    return performance.now() - started;
-  });
-  const estimate =
-    Math.min(...times) *
-    ((size.renderWidth * size.renderHeight) / (WARMUP_WIDTH * WARMUP_HEIGHT));
+  const small = timeStamp(gl, program, stamp, WARMUP_WIDTH, WARMUP_HEIGHT);
+  const large = timeStamp(
+    gl,
+    program,
+    stamp,
+    WARMUP_WIDTH * 2,
+    WARMUP_HEIGHT * 2,
+  );
+  const stampPixels = WARMUP_WIDTH * WARMUP_HEIGHT;
+  const perPixel = Math.max(
+    0,
+    (large.fastest - small.fastest) / (3 * stampPixels),
+  );
+  const fixed = Math.max(0, small.fastest - perPixel * stampPixels);
+  const estimate = fixed + perPixel * size.renderWidth * size.renderHeight;
   return {
     worth: !gl.isContextLost() && estimate <= HOPELESS_STILL_MS,
-    longestMs: Math.max(...times),
+    longestMs: Math.max(small.slowest, large.slowest),
   };
 };
 
@@ -151,7 +179,10 @@ const keptFrameWorthDrawing = (
  * time, so the bands meet without a seam.
  *
  * How tall each band may be is `sceneStillBands.ts`, decided as this goes from
- * the band before it — never from anything the scene had a say in.
+ * the band before it — never from anything the scene had a say in. A 3D world
+ * renders the frame's scene first, in strips held to the same rules
+ * (`prepareStill`), and each band then lays its rows of it down; what that
+ * cost is counted with the bands.
  */
 const drawInBands = (
   gl: WebGL2RenderingContext,
@@ -159,8 +190,9 @@ const drawInBands = (
   frame: ISceneFrame,
   { renderWidth, renderHeight }: IRenderSize,
 ): { spentMs: number; longestMs: number } => {
-  let spent = 0;
-  let longest = 0;
+  const prepared = program.prepareStill?.(frame, renderWidth, renderHeight);
+  let spent = prepared?.spentMs ?? 0;
+  let longest = prepared?.longestMs ?? 0;
   gl.enable(gl.SCISSOR_TEST);
   try {
     walkBands(renderHeight, (from, rows) => {

@@ -11,6 +11,7 @@ import {
   type TStudioAgentSong,
 } from '../../common/studioAgent';
 import { DEFAULT_SCENE_WAVE, type ISceneWave } from '../../common/sceneWave';
+import type { IWorldReport, TWorldNote } from '../../common/worldNotes';
 import { HEAR_SCHEMA, readHearRequest } from './hearRequest';
 import { LOOK_SCHEMA, readLookRequest, type ILookRequest } from './lookRequest';
 import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
@@ -69,6 +70,34 @@ const problemLine = ({ code, file, line }: IMemberSceneProblem) => {
   const key = `studio.problem.${code}` as keyof typeof studioStrings;
   const words = studioStrings[key] ?? code;
   return `- ${at}: ${words}`;
+};
+
+/** A world's note as the Studio says it, its values filled in. */
+const worldNoteLine = (note: TWorldNote) => {
+  const key = `studio.worldNote.${note.code}` as keyof typeof studioStrings;
+  const words = (studioStrings[key] ?? note.code)
+    .replace('{model}', () => ('model' in note ? note.model : ''))
+    .replace('{detail}', () => ('detail' in note ? note.detail : ''));
+  return note.code === 'material'
+    ? `- ${words}\n${note.log.slice(0, MAX_LOG_LENGTH)}`
+    : `- ${words}`;
+};
+
+/**
+ * What became of the scene's 3D world, which a picture cannot say for itself:
+ * a sky drawn alone looks like a finished scene, and an AI shown one kept
+ * editing the sky.
+ */
+const worldLines = (world: IWorldReport | undefined): string[] => {
+  if (!world || (world.drawn && world.notes.length === 0)) {
+    return [];
+  }
+  return [
+    world.drawn
+      ? 'Part of the 3D world was left out; the picture shows the rest of it:'
+      : "The 3D world was NOT drawn: this picture is the pack's shader alone, which is what a listener sees whose FluidEQ cannot build the world. Fix what follows, save, and look again:",
+    ...world.notes.map(worldNoteLine),
+  ];
 };
 
 const nameOf = (pack: IScenePack) => pack.names.en ?? pack.id;
@@ -207,6 +236,7 @@ const describe = (
       : music;
   const lines = [
     `${nameOf(pack)} (id ${pack.id}, version ${pack.version}), drawn by FluidEQ on this computer's GPU exactly as it plays: ${answer.width}x${answer.height} (${request.shape}), ${heard}.`,
+    ...worldLines(answer.world),
     `The member's wave: height ${wave.height}, position ${wave.position}, so uSpectrumRect was (${answer.spectrumRect.map((edge) => Number(edge.toFixed(3))).join(', ')}).`,
     slidersLine(pack),
     momentLine(answer.moment),

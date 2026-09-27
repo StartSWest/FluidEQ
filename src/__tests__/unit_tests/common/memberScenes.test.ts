@@ -14,8 +14,18 @@ import {
   readMemberScene,
   sanitizeDisplayText,
 } from '../../../common/memberScenes';
-import { SCENE_PACK_SCHEMA } from '../../../common/scenePacks';
+import { MAX_PACK_BYTES, SCENE_PACK_SCHEMA } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
+import { WORLD_LIMITS } from '../../../common/sceneWorld';
+import {
+  EMPTY_MODEL,
+  GLB_JSON_CHUNK,
+  glbChunk,
+  glbFile,
+  jsonChunkBody,
+  modelData,
+  webpLosslessHeader,
+} from '../../utils/glbFixture';
 
 const AUTHOR = '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30';
 
@@ -153,6 +163,45 @@ describe('checking a member scene', () => {
   it('refuses something that is not a pack at all', () => {
     expect(problemCodes('a screenshot')).toEqual(['not-a-pack']);
     expect(problemCodes(null)).toEqual(['not-a-pack']);
+  });
+
+  it('refuses a pack too large to travel, though its models and its picture each fit their own bounds', () => {
+    // A model the whole of the models' bound, its table of contents padded
+    // with spaces, and a picture: each inside its own limit, together past
+    // what a pack may be. Played in the Studio, such a scene could never
+    // reach anybody else.
+    const model = modelData(
+      glbFile([
+        glbChunk(
+          GLB_JSON_CHUNK,
+          jsonChunkBody(EMPTY_MODEL.json, WORLD_LIMITS.modelBytes - 20),
+        ),
+      ]),
+    );
+    const withPicture = (bytes: number) =>
+      raw({
+        artwork: {
+          mime: 'image/webp',
+          width: 64,
+          height: 64,
+          data: modelData(webpLosslessHeader(64, 64, bytes)),
+        },
+        world: {
+          models: { hull: { data: model } },
+          nodes: [{ type: 'model', model: 'hull' }],
+        },
+      });
+    const room = MAX_PACK_BYTES - model.length;
+    expect(room).toBeGreaterThan(0);
+    expect(checkMemberScene(withPicture(1024))).toMatchObject({
+      ok: true,
+      pack: { world: { models: { hull: { data: model } } } },
+    });
+    // Its base64 alone fills what the model left of the pack.
+    expect(checkMemberScene(withPicture(Math.ceil((room * 3) / 4)))).toEqual({
+      ok: false,
+      problems: [{ code: 'pack-too-large', file: 'pack.json' }],
+    });
   });
 });
 

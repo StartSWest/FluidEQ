@@ -7,6 +7,7 @@ import {
 } from './memberSceneRules';
 import { normalizeSceneArtwork } from './sceneArtwork';
 import {
+  MAX_PACK_BYTES,
   MAX_PARAM_MAGNITUDE,
   MAX_SCENE_PARAMS,
   normalizeScenePack,
@@ -169,10 +170,14 @@ export type TMemberProblemCode =
   | 'bad-param'
   | 'too-many-params'
   | 'bad-ambient'
-  // The 3D world (`sceneWorld.ts`) left nothing to draw, or a model in it
-  // does not carry everything it needs inside itself.
+  // The 3D world (`sceneWorld.ts`) left nothing to draw, a model in it is not
+  // one the engine reads (`worldModelCheck.ts`), or its models together are
+  // past the world's triangles or image pixels.
   | 'bad-world'
   | 'bad-model'
+  | 'model-too-heavy'
+  // The whole pack is more than a scene can travel as (`MAX_PACK_BYTES`).
+  | 'pack-too-large'
   // Raised by the project folder reader, never by a pack in memory.
   | 'bad-json'
   | 'missing-file'
@@ -388,6 +393,18 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
   // author's is told, while there is somebody to add what was missing.
   if (raw.world !== undefined && !pack.world) {
     return { ok: false, problems: [{ code: 'bad-world', file: 'world' }] };
+  }
+  // What travels is the pack whole — a download is refused past this
+  // (`parseScenePackPayload`), and so is an upload — and a world's models
+  // and a picture, each inside its own bound, came to more together: the
+  // scene played in the Studio and could never reach anybody else.
+  if (
+    new TextEncoder().encode(JSON.stringify(pack)).byteLength > MAX_PACK_BYTES
+  ) {
+    return {
+      ok: false,
+      problems: [{ code: 'pack-too-large', file: 'pack.json' }],
+    };
   }
   return { ok: true, pack };
 };

@@ -1,8 +1,6 @@
-import {
-  MAX_MEMBER_LOOP_ITERATIONS,
-  MAX_MEMBER_LOOPS,
-  MAX_MEMBER_PIXEL_WORK,
-} from 'common/memberSceneRules';
+import { MAX_MEMBER_LOOP_ITERATIONS } from 'common/memberGlslLoops';
+import { MAX_MEMBER_PIXEL_WORK } from 'common/memberGlslWork';
+import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
 import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {

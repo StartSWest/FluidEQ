@@ -164,14 +164,20 @@ export interface IAssembledFragment {
   sourceLineOffset: number;
 }
 
+/**
+ * One `uniform float` a line for each of the pack's parameters: the shader,
+ * a 3D world's sky and its materials all read them under these names.
+ */
+export const paramUniformDeclarations = (pack: IScenePack): string =>
+  pack.params
+    .map((param) => `uniform float ${uniformNameForParam(param.id)};\n`)
+    .join('');
+
 /** The whole fragment program, with the pack's parameters declared as uniforms. */
 export const assembleFragmentSource = (
   pack: IScenePack,
 ): IAssembledFragment => {
-  const params = pack.params
-    .map((param) => `uniform float ${uniformNameForParam(param.id)};`)
-    .join('\n');
-  const head = params ? `${PREAMBLE_HEAD}${params}\n` : PREAMBLE_HEAD;
+  const head = `${PREAMBLE_HEAD}${paramUniformDeclarations(pack)}`;
   return {
     source: `${head}${pack.source}\n${PREAMBLE_TAIL}`,
     sourceLineOffset: head.split('\n').length - 1,
@@ -179,21 +185,17 @@ export const assembleFragmentSource = (
 };
 
 /**
- * The pack's `sceneColour` with every declaration it may use, and no `main()`:
- * what a 3D world finishes its picture around, with the shader as its sky
- * (`renderer/graph/world/worldComposite.ts`). Without the version line,
- * which the 3D renderer writes itself.
+ * Every declaration a pack's shader may use, and no `main()`: what a 3D
+ * world finishes its picture in (`renderer/graph/world/worldComposite.ts`).
+ * Without the version line, which the 3D renderer writes itself.
  */
-export const assembleSceneFunctions = (
-  pack: IScenePack,
-): IAssembledFragment => {
-  const params = pack.params
-    .map((param) => `uniform float ${uniformNameForParam(param.id)};`)
-    .join('\n');
-  const bare = PREAMBLE_HEAD.replace(/^#version 300 es\n/, '');
-  const head = params ? `${bare}${params}\n` : bare;
-  return {
-    source: `${head}${pack.source}\n`,
-    sourceLineOffset: head.split('\n').length - 1,
-  };
-};
+export const assembleSceneDeclarations = (pack: IScenePack): string =>
+  `${PREAMBLE_HEAD.replace(/^#version 300 es\n/, '')}${paramUniformDeclarations(pack)}`;
+
+/**
+ * The same with the pack's own `sceneColour`, for a world whose sky is its
+ * shader. A world with a colour behind it never calls it, and compiling it
+ * anyway linked the whole sky — seconds, for a heavy one — for nothing.
+ */
+export const assembleSceneFunctions = (pack: IScenePack): string =>
+  `${assembleSceneDeclarations(pack)}${pack.source}\n`;

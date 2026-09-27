@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
+import type { IWorldReport } from 'common/worldNotes';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -36,8 +37,11 @@ export type TStudioSize = 'graph' | 'narrow' | 'wide' | 'full';
 
 export type TStageTrouble =
   | { kind: 'compile'; log: string }
-  /** The 3D world was not built, and the stage shows its shader instead. */
-  | { kind: 'world'; log: string }
+  /**
+   * What became of the 3D world: not built, so the stage shows its shader
+   * instead, or built with parts of it left out.
+   */
+  | { kind: 'world'; report: IWorldReport }
   | { kind: 'heavy' }
   | { kind: 'unavailable' };
 
@@ -226,8 +230,11 @@ export default function StudioStage({
             : { kind: 'unavailable' },
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
-      reportNotes: (notes) =>
-        troubleRef.current({ kind: 'world', log: notes.join('\n') }),
+      reportWorld: (report) => {
+        if (!report.drawn || report.notes.length > 0) {
+          troubleRef.current({ kind: 'world', report });
+        }
+      },
       // The author is at the machine looking at their own work, which is the
       // watching the brightness limiter exists for (`sceneRules.ts`).
       madeBy: 'listener',

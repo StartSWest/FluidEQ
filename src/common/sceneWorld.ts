@@ -336,10 +336,25 @@ export const WORLD_LIMITS = {
   terrainRows: 256,
   materials: 64,
   models: 16,
-  /** Decoded glTF bytes across every model. */
-  modelBytes: 8 * 1024 * 1024,
-  /** Triangles across every model once parsed. */
+  /**
+   * Decoded glTF bytes across every model: 8 MB as base64, inside the 9 MB a
+   * whole pack may be (`MAX_PACK_BYTES`). At 8 MB decoded a world's models
+   * alone made a pack no listener could download.
+   */
+  modelBytes: 6 * 1024 * 1024,
+  /** Triangles across every model, counted before one is parsed. */
   modelTriangles: 500_000,
+  /** A model's nodes, its morph targets per mesh and its busiest clip. */
+  modelNodes: 1024,
+  modelMorphTargets: 8,
+  modelChannels: 1024,
+  /**
+   * Its images, from their own headers: an image is decoded at the size it
+   * says, which its bytes say nothing about (a 1 MB PNG of one colour is
+   * 1 GB decoded). Four 2048-pixel textures, or one at the widest side.
+   */
+  modelImageSide: 4096,
+  modelImagePixels: 16_777_216,
   lights: 16,
   shadowLights: 2,
   vars: 32,
@@ -373,6 +388,18 @@ export const worldHasMirror = (
       material.mirror !== 0 &&
       material.kind !== 'basic' &&
       material.kind !== 'glow',
+  );
+
+/**
+ * Whether three draws the world's solid things a second time, behind glass:
+ * a physical material with transmission (`worldMaterials.ts`). Counted in its
+ * budget as another pass, like the mirror.
+ */
+export const worldHasGlass = (
+  materials: Readonly<Record<string, IWorldMaterial>>,
+): boolean =>
+  Object.values(materials).some(
+    (material) => material.kind === 'physical' && material.transmission !== 0,
   );
 
 /** What a formula anywhere in a world may name. */

@@ -11,14 +11,23 @@ import {
   type IWorldLayout,
   type IWorldLight,
   type IWorldMaterial,
-  type IWorldModel,
   type TWorldGeometryKind,
   type TWorldLayoutKind,
   type TWorldLightKind,
   type TWorldNode,
   type TWorldVec3,
 } from './sceneWorld';
-import { copyCost, geometryVertices, pointCost } from './sceneWorldCost';
+import {
+  affordInFrame,
+  copyCost,
+  createWorldBudget,
+  geometryVertices,
+  modelFrameVertices,
+  pointCost,
+  shedShadows,
+  type IWorldBudget,
+  type IWorldPasses,
+} from './sceneWorldCost';
 import {
   isWorldRecord,
   readBoolean,
@@ -31,6 +40,7 @@ import {
   readVec3,
   type IWorldScopes,
 } from './sceneWorldValues';
+import type { IModelCost } from './worldModelCheck';
 
 /**
  * A world's objects, read with every count bounded: the nodes in the whole
@@ -147,6 +157,8 @@ export const layoutCount = (layout: IWorldLayout): number =>
     : layout.count[0];
 
 const PLACED: TWorldVec3 = ['x', 'y', 'z'];
+const UNTURNED: TWorldVec3 = [0, 0, 0];
+const UNSCALED: TWorldVec3 = [1, 1, 1];
 
 const readMotion = (
   value: unknown,
@@ -188,36 +200,9 @@ interface IReadState {
   instances: number;
   lights: number;
   shadows: number;
-  /** A frame's vertices so far, and what each counts: 2 with a mirror. */
-  vertices: number;
-  vertexWeight: number;
-  formulas: number;
-  formulaState: number;
+  /** The frame's budget (`sceneWorldCost.ts`), which every node is charged. */
+  budget: IWorldBudget;
 }
-
-/**
- * Takes a node's share of the frame (`sceneWorldCost.ts`), or says there is
- * no room for it: then it is left out, like a copy past the copy limit.
- */
-const afford = (
-  state: IReadState,
-  vertices: number,
-  formulas = 0,
-  formulaState = 0,
-): boolean => {
-  const drawn = state.vertices + vertices * state.vertexWeight;
-  if (
-    drawn > WORLD_LIMITS.frameVertices ||
-    state.formulas + formulas > WORLD_LIMITS.frameFormulas ||
-    state.formulaState + formulaState > WORLD_LIMITS.formulaState
-  ) {
-    return false;
-  }
-  state.vertices = drawn;
-  state.formulas += formulas;
-  state.formulaState += formulaState;
-  return true;
-};
 
 const materialId = (
   value: unknown,
@@ -234,11 +219,13 @@ const readNode = (
   state: IReadState,
   scopes: IWorldScopes,
   materials: Readonly<Record<string, IWorldMaterial>>,
-  models: Readonly<Record<string, IWorldModel>>,
+  models: Readonly<Record<string, IModelCost>>,
 ): TWorldNode | null => {
   if (!isWorldRecord(value) || state.nodes >= WORLD_LIMITS.nodes) {
     return null;
   }
+  // The node's own vertices, for its shadow if it casts one.
+  let shaded = 0;
   const scope = scopes.global;
   const common = {
     ...(typeof value.name === 'string' && value.name.length <= 64
@@ -260,7 +247,8 @@ const readNode = (
       break;
     case 'mesh': {
       const geometry = readGeometry(value.geometry);
-      if (!afford(state, geometryVertices(geometry))) {
+      shaded = geometryVertices(geometry);
+      if (!affordInFrame(state.budget, shaded)) {
         return null;
       }
       node = {
@@ -278,20 +266,26 @@ const readNode = (
       }
       const layout = readLayout(value.layout, room);
       const copies = layoutCount(layout);
-      const instance = readMotion(value.instance, scopes);
+      const moved = readMotion(value.instance, scopes);
+      // A point has a place and a colour; its turn and size are the
+      // material's (`worldCopies.ts`). Formulas kept for them were worked out
+      // and remembered for every point every frame, uncounted.
+      const instance =
+        value.type === 'instances'
+          ? moved
+          : { ...moved, rotation: UNTURNED, scale: UNSCALED };
       const geometry = readGeometry(value.geometry);
       const perCopy = copyCost(
-        value.type === 'instances'
-          ? [...instance.position, ...instance.rotation, ...instance.scale]
-          : instance.position,
+        [...instance.position, ...instance.rotation, ...instance.scale],
         instance.colour,
         scopes.instance,
       );
+      shaded =
+        copies * (value.type === 'instances' ? geometryVertices(geometry) : 1);
       if (
-        !afford(
-          state,
-          copies *
-            (value.type === 'instances' ? geometryVertices(geometry) : 1),
+        !affordInFrame(
+          state.budget,
+          shaded,
           copies * perCopy.perFrame,
           copies * perCopy.state,
         )
@@ -339,10 +333,11 @@ const readNode = (
       });
       const perPoint = pointCost([...point, width], colour, scopes.instance);
       const points = segments + 1;
+      shaded = points * 2;
       if (
-        !afford(
-          state,
-          points * 2,
+        !affordInFrame(
+          state.budget,
+          shaded,
           points * perPoint.perFrame,
           points * perPoint.state,
         )
@@ -372,7 +367,8 @@ const readNode = (
         WORLD_LIMITS.terrainSegments,
       );
       const deep = readCount(segments[1], 128, 2, WORLD_LIMITS.terrainSegments);
-      if (!afford(state, (across + 1) * (deep + 1))) {
+      shaded = (across + 1) * (deep + 1);
+      if (!affordInFrame(state.budget, shaded)) {
         return null;
       }
       node = {
@@ -393,17 +389,26 @@ const readNode = (
       };
       break;
     }
-    case 'model':
+    case 'model': {
+      // Each placement is the whole model again (`worldNodes.ts` clones it),
+      // and its clip is played for each: 512 placements of one model were
+      // once free, and a quarter of a billion triangles a frame.
+      const { model } = value;
       if (
-        typeof value.model !== 'string' ||
-        !Object.prototype.hasOwnProperty.call(models, value.model)
+        typeof model !== 'string' ||
+        !Object.prototype.hasOwnProperty.call(models, model)
       ) {
         return null;
       }
+      const drawn = modelFrameVertices(models[model]);
+      if (!affordInFrame(state.budget, drawn, models[model].channels)) {
+        return null;
+      }
+      shaded = drawn;
       node = {
         ...common,
         type: 'model',
-        model: value.model,
+        model,
         ...(typeof value.clip === 'string' ||
         (typeof value.clip === 'number' && Number.isInteger(value.clip))
           ? { clip: value.clip }
@@ -411,6 +416,7 @@ const readNode = (
         speed: readExpr(value.speed, scope, 1),
       };
       break;
+    }
     case 'light': {
       if (state.lights >= WORLD_LIMITS.lights) {
         return null;
@@ -425,6 +431,8 @@ const readNode = (
       state.lights += 1;
       if (castsShadow) {
         state.shadows += 1;
+        // A point light's shadow is a cube: its casters are drawn six times.
+        state.budget.shadowPasses += light.kind === 'point' ? 6 : 1;
       }
       node = {
         ...common,
@@ -436,6 +444,9 @@ const readNode = (
     default:
       // A kind of object a newer FluidEQ draws: this one leaves it out.
       return null;
+  }
+  if (node?.castShadow && shaded > 0) {
+    state.budget.casters.push({ node, vertices: shaded });
   }
   state.nodes += 1;
   if (depth < WORLD_LIMITS.depth && Array.isArray(value.children)) {
@@ -450,15 +461,15 @@ const readNode = (
 };
 
 /**
- * The top-level list of a world's objects, bounded as a whole. `mirrored`:
- * the world is drawn twice a frame (`worldHasMirror`).
+ * The top-level list of a world's objects, bounded as a whole, each model
+ * placement charged what `models` says the model costs.
  */
 export const readWorldNodes = (
   value: unknown,
   scopes: IWorldScopes,
   materials: Readonly<Record<string, IWorldMaterial>>,
-  models: Readonly<Record<string, IWorldModel>>,
-  mirrored: boolean,
+  models: Readonly<Record<string, IModelCost>>,
+  passes: IWorldPasses,
 ): TWorldNode[] => {
   if (!Array.isArray(value)) {
     return [];
@@ -468,10 +479,7 @@ export const readWorldNodes = (
     instances: 0,
     lights: 0,
     shadows: 0,
-    vertices: 0,
-    vertexWeight: mirrored ? 2 : 1,
-    formulas: 0,
-    formulaState: 0,
+    budget: createWorldBudget(passes),
   };
   const nodes: TWorldNode[] = [];
   value.forEach((raw) => {
@@ -480,5 +488,6 @@ export const readWorldNodes = (
       nodes.push(node);
     }
   });
+  shedShadows(state.budget);
   return nodes;
 };

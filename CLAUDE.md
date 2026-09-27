@@ -1290,10 +1290,31 @@ Out-String` (or any other capture) is what actually waits for it and shows
   three pixels (smaller, a star field was invisible); the composite works in
   linear light and adds the world's light to the sky, because keeping only
   light where geometry covered the pixel threw away every glow over empty
-  sky; and a still drawn band by band reuses the world rendered for the same
-  frame, or each band cost the whole world. A member's world GLSL answers to
-  the scene rules (`checkMemberWorldHook`); a world that breaks one plays its
-  shader.
+  sky; and a still renders its world once, in strips each finished before
+  the next (`prepareStill`, `worldDraw.ts`), and its bands only lay it down —
+  rendered whole for the first band it was one job of the entire world at
+  full size, the job the bands exist to forbid, and reused across the timing
+  walks the member's AI was told a heavy world was cheap. A member's world
+  GLSL answers to the scene rules (`checkMemberWorldHook`); a world that
+  breaks one plays its shader, and the reasons travel as codes
+  (`worldNotes.ts`) that the Studio says in the member's language and the
+  agent door in English.
+- **A model is checked the way three's `GLTFLoader` reads it, never the way
+  the format says a file is written** (`worldModelCheck.ts` and its two
+  parts, vendored to the server). The loader keeps the LAST JSON chunk and
+  runs a plugin on any object's `extensions` whether or not `extensionsUsed`
+  names it; a check that read the first chunk and the declared list let a
+  harmless-looking file make every viewer fetch a URL, and
+  `EXT_mesh_gpu_instancing` multiply a mesh by a million. Every accessor
+  must lie inside the file (one with no buffer view is allocated from its
+  count alone), every image is held to the size its own header decodes to,
+  and a model brings no lights. What the check reads is also what the model
+  costs: every placement is charged the whole model in the frame's budget
+  (`sceneWorldCost.ts`), shadows once per light pass (six for a point light,
+  shed from the last casters before any part is dropped), glass and the
+  mirror each once more. Change what three's loader does — a new plugin, a
+  new three — and this check changes with it, or the check approves files
+  the engine reads differently.
 - **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
   (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
   at 48 kHz, so a coefficient or a stage that assumed one rate would pass all

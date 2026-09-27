@@ -1,6 +1,11 @@
 import { WORLD_LIMITS } from '../../common/sceneWorld';
-import isSelfContainedModel from '../../common/worldModelCheck';
-import { ProjectProblem, readBounded, resolveInside } from './projectFiles';
+import { readModelCost } from '../../common/worldModelCheck';
+import {
+  isRecord,
+  ProjectProblem,
+  readBounded,
+  resolveInside,
+} from './projectFiles';
 
 /**
  * A project's 3D world, read the way the rest of the folder is.
@@ -12,9 +17,6 @@ import { ProjectProblem, readBounded, resolveInside } from './projectFiles';
  * is refused rather than one picked, since either choice would build a scene
  * the author was not looking at.
  */
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * A world written whole: every model inline as base64 (4 bytes for 3), both
@@ -86,23 +88,37 @@ const readWorldFiles = async (
     ? Object.entries(world.models).slice(0, WORLD_LIMITS.models)
     : [];
   let { modelBytes } = WORLD_LIMITS;
+  let triangles = 0;
+  let pixels = 0;
+  // Said here, by name, because the reader leaves out a model past these
+  // totals without a word, and the author would see a model simply missing.
+  const admit = (bytes: Uint8Array) => {
+    const cost = readModelCost(bytes);
+    if (!cost) {
+      throw new ProjectProblem('bad-model', 'world');
+    }
+    triangles += cost.triangles;
+    pixels += cost.pixels;
+    if (
+      triangles > WORLD_LIMITS.modelTriangles ||
+      pixels > WORLD_LIMITS.modelImagePixels
+    ) {
+      throw new ProjectProblem('model-too-heavy', 'world');
+    }
+  };
   for (let i = 0; i < modelEntries.length; i += 1) {
     const [id, model] = modelEntries[i];
     if (isRecord(model) && model.file !== undefined) {
       const bytes = await read(model.file, modelBytes);
       modelBytes -= bytes.byteLength;
-      if (!isSelfContainedModel(bytes)) {
-        throw new ProjectProblem('bad-model', 'world');
-      }
+      admit(bytes);
       models[id] = { data: bytes.toString('base64') };
     } else {
       // Written inline: held to the same test, or the Studio built a scene
       // the server then refuses to publish.
       const data =
         isRecord(model) && typeof model.data === 'string' ? model.data : '';
-      if (!isSelfContainedModel(Buffer.from(data, 'base64'))) {
-        throw new ProjectProblem('bad-model', 'world');
-      }
+      admit(Buffer.from(data, 'base64'));
       models[id] = model;
     }
   }

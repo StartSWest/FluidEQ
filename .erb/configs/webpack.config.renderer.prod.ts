@@ -17,6 +17,7 @@ import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
+import wallpaperContentSecurityPolicy from '../../src/main/wallpaper/wallpaperPolicy';
 
 checkNodeEnv('production');
 deleteSourceMaps();
@@ -189,6 +190,8 @@ const configuration: webpack.Configuration = {
       filename: 'wallpaper.html',
       template: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.ejs'),
       chunks: ['wallpaper'],
+      // The only policy the wallpaper gets from file:// (wallpaperPolicy.ts).
+      csp: wallpaperContentSecurityPolicy(process.env.DEBUG_PROD === 'true'),
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',

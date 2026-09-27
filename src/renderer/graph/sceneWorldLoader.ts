@@ -5,8 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import type { TWorldNote } from 'common/worldNotes';
 import { releaseWhenLinked } from './sceneCompile';
-import type { TSceneCompileResult } from './sceneGl';
+import type { TWorldCompileResult } from './sceneGl';
 import type compileWorld from './world/worldProgram';
 
 /**
@@ -29,7 +30,7 @@ interface IWorkerScope {
 
 let engine: TCompileWorld | null | undefined;
 /** Why the engine could not be had, for the scene's author. */
-let unavailable = 'the 3D engine is not available here';
+let unavailable: TWorldNote = { code: 'engine-missing' };
 
 const engineUrl = (base: string) =>
   new URL(
@@ -51,7 +52,7 @@ const loadWorldEngine = (): TCompileWorld | null => {
   try {
     scope.importScripts(engineUrl(scope.location.href));
   } catch (error) {
-    unavailable = `the 3D engine could not be loaded: ${String(error)}`;
+    unavailable = { code: 'engine-failed', detail: String(error) };
     engine = null;
     return engine;
   }
@@ -78,10 +79,10 @@ const compileWorldScene = async (
   artwork: ImageBitmap | undefined,
   signal: AbortSignal | undefined,
   hurry: AbortSignal | undefined,
-): Promise<TSceneCompileResult> => {
+): Promise<TWorldCompileResult> => {
   const compile = loadWorldEngine();
   if (!compile) {
-    return { ok: false, log: unavailable };
+    return { ok: false, notes: [unavailable] };
   }
   try {
     // The world's bundle has its own copy of any module it imports, so the
@@ -93,7 +94,10 @@ const compileWorldScene = async (
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw error;
     }
-    return { ok: false, log: String(error) };
+    return {
+      ok: false,
+      notes: [{ code: 'engine-failed', detail: String(error) }],
+    };
   }
 };
 
