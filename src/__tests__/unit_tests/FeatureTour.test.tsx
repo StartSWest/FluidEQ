@@ -26,8 +26,8 @@ const showTour = () => {
   const onOpenTab = jest.fn();
   render(
     <FeatureTour
-      version="1.8.0"
-      slides={featureTourFor('1.8.0')}
+      version="2.0.0"
+      slides={featureTourFor('2.0.0')}
       onClose={onClose}
       onShowReleaseNotes={jest.fn()}
       onOpenTab={onOpenTab}
@@ -47,7 +47,7 @@ it('heads each release it shows as new with its own number, then the rest', () =
     document.querySelectorAll('.feature-tour__rail-heading'),
     (heading) => heading.textContent,
   );
-  expect(headings).toEqual(['NEW IN 1.8', 'NEW IN 1.7', 'ALSO IN FLUIDEQ']);
+  expect(headings).toEqual(['NEW IN 2.0', 'NEW IN 1.7', 'ALSO IN FLUIDEQ']);
   expect(
     screen.getByRole('heading', { name: 'FluidEQ, folded into a player' }),
   ).toBeInTheDocument();

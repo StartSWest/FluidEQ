@@ -6,36 +6,128 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
-## 1.8.0
+## 2.0.0
 
-FluidEQ can now be small. One switch in the title bar turns the whole window
-into the Compact player — the song, the equaliser, a visualizer and Up Next in
-one narrow column — and the same switch brings the full app back on the page
-you left. It has a theme of its own, folds to a single line, stays on top of
-other windows if you ask, and its volume is your computer's own.
+FluidEQ 2.0 is a new window around a rebuilt sound.
 
-Games got their own sound: a chain per game, switched the moment the game
-comes to the front and kept until you close it, however often you alt-tab.
-Game mode cuts the delay FluidEQ adds, and the page now shows that delay as
-measured. The presets were rebuilt around the same idea — every music style a
-whole chain, every chain measured and levelled so switching changes the
-character and not the volume, and each preset's tone played in the main
-equaliser, where it is heard on the FluidEQ Engine as clearly as on Equalizer
-APO. A compressor that every preset switched on without any card showing it
-is gone, so a rack with everything off now plays the sound exactly as it
-came.
+The window stands on one open floor, in the colours of a new icon. The theme
+is one slider from Black to a lighter Ocean, with Brightness and Transparency
+beside it, and a Plus visualizer can lend the window its colours or play
+behind the whole app while the panes let it through. Dialogs and menus share
+one material, and one switch folds everything into the Compact player.
 
-The Room grew to twenty-four rooms, its page was rebuilt so nothing is hidden
-behind a tab, and its locks came off: sound has never been the part of
-FluidEQ you pay for. Plus changed shape around that — the Studio is Plus's
-now, it opens with a free trial, and a scene you publish that is approved
-earns the next month free. Help can finally be asked a question in your own
-words, and its pictures follow your theme.
+The sound was rebuilt preset by preset. Every music style is a whole chain,
+its bass, air and width chosen for that style, measured and levelled so
+switching changes the character and never the volume, and each explains
+itself: what the style asks for and why every point on its curve is where it
+is. On the FluidEQ Engine your curve plays exactly as drawn all the way to the
+top, switching presets crossfades instead of crackling, and Auto normalize
+lands on the right level at once. Dimension now widens even a mono record.
 
-1.7.5 was prepared and never released; everything it carried is in this
-version and in these notes.
+The graph reads the sound the way studio tools do: twelve professional views,
+among them Analyzer, Spectrogram, Third-octave RTA, Peak & average, Waterfall,
+Stereo & loudness and Oscilloscope, on scales that hold still, with the live
+sound measured 80 dB deep and down to 10 Hz, so what you see is what is
+playing.
 
-### New
+The Room has twenty-four rooms, free for everyone; games get their own sound;
+visualizers can be real 3D worlds; the Studio opens with a free trial; and
+Help answers questions in your own words.
+
+1.7.5 and 1.8.0 were never released; everything they carried is here.
+
+### A new look
+
+- **A new look for the whole window.** The panes no longer sit in cards: they
+  stand on one floor, parted by fine lines. On the equaliser's pages the graph
+  stands at the top, under the section tabs and the title, and the bands'
+  sliders share its width, each in a place of its own: dragging a band's
+  frequency on the graph leaves its slider where it is, and two bands trade
+  places only when one passes the other. The header's wave lost
+  its box and keeps only the app's rounded corners, the menus lost their
+  rainbow edge, and the tooltips are FluidEQ's
+  own. The boxes on every page — the DSP stage, the empty Library, Share
+  Audio's roles, the karaoke pitch lane and the whole Karaoke Maker, Studio,
+  the gallery — lost their grey fill too and stand on the floor as the panes
+  do, and every dialog is one material: the menus' floor at 95%, the same fine
+  edge and corner, and no rainbow round it.
+- **The theme is a slider.** Light and Dark became one slider, from Black at
+  the left to a lighter Ocean at the right, and every step between them is a
+  theme: the window follows the thumb as it moves. Ocean as it was stands
+  three quarters of the way along, which is where anyone who had chosen it
+  finds it. The menu behind the pulse icon has it as Brightness, beside
+  Transparency — the same two sliders as Window colours — and the Compact
+  player's menu as its theme, Dark to Light.
+- **The colours match the icon.** The accent is the cyan at the middle of the
+  icon's wave, on Black and on Ocean alike, and the filled buttons, the
+  switches, the power key and the bar under the open tab run aqua to azure the
+  way the wave does.
+- **A new app icon.** The wave, glossier, on a dark tile, in Lagoon's
+  colours with an edge to match.
+- **The title is alive.** When FluidEQ opens, the wave in its logo draws
+  itself and the name rises letter by letter; after that a pulse of light runs
+  along the wave every few seconds. "Fluid" is white, and "EQ" and the logo's
+  edge and wave are in the window's colours — the accent, a visualizer's
+  colour or the Rainbow palette; the dialogs keep the app icon as it is.
+- **Rainbow mode is on from the start, and it is Lagoon.** Aqua, cyan, sky,
+  azure and a soft periwinkle — the icon's own colours — where it used to run
+  red to violet, and there is nothing to unlock any more: the switch on the
+  signal, the What's new slide and the offer in the Support dialog are gone,
+  and Normal or Rainbow is a switch under Brightness and Transparency, in
+  Window colours and in the app menu, and a pill on the wave in the title
+  bar. The window takes a little of it too:
+  the panes lean toward its sky.
+- **Window colours, by name.** The button beside Auto on the graph says what a
+  Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
+  and opens all four, each with a line on what it does, under two sliders.
+  Brightness is the theme's own slider: with the theme it goes from Black to
+  Ocean, and while a visualizer lends the window its colours it goes from
+  their darkest, never black, to their lightest. Transparency is how much of
+  the visualizer shows through the panes on the Backdrop, and stands dimmed
+  in any other mode. Both are marked at a quarter, a half and three quarters,
+  and the thumb falls into each mark. A new install opens at 0% Brightness
+  and 5% Transparency, and Brightness follows the hand without the window
+  holding it back.
+- **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
+  window, the graph still its frame, and the panes and everything on them let
+  it show through. Menus do not: every menu stands at 95% whatever the
+  Transparency, where one opened from a see-through pane used to go
+  see-through with it.
+- **The Backdrop stays behind every page.** With a Plus visualizer on the
+  Backdrop, going to the Library, Karaoke or any other page keeps it playing
+  behind the window; in Colours and Ambient it rests off the graph's page, so
+  nothing is spent drawing what nobody can see. Switching between Colours,
+  Ambient and Backdrop, or into full screen and back, moves the same
+  visualizer instead of loading it again.
+- **A Plus visualizer lends the whole window its colours.** Five are read
+  from the visualizer itself as it plays. In Normal the buttons, the switches
+  and the "EQ" of the title take its first colour and what is switched on its
+  second; in Rainbow all five run across the bands, the title and the lit
+  controls. The app's icon stays its own.
+- **A Plus visualizer fills the graph.** It runs up behind the section tabs
+  and the title, and down to the divider, with no band of floor around it.
+- **Cards in the window's colour.** The Library's tiles, its song list and
+  Up next, each game's row, the outputs in the engine's config, the
+  headphone picker, Share Audio's roles and the Studio's AI card are filled
+  now — a gentle step above the page, never lighter than a pane, with the
+  accent glowing in from the corner, in the theme's colours or a
+  visualizer's — where they were outlines or slabs of grey slate. The small
+  graphs (the headphone correction, the driver sketch, the DSP's plots, the
+  Share Audio monitor) stand in a darker well, so their lines read on the
+  darkest thing around them. What holds them, like the grid round the tiles, keeps
+  its outline, and a control that cannot be used is an outline with dimmed
+  text instead of a lighter slab.
+- **The expanded graph is square.** Its card and the picture under it have
+  square corners, as the column they cover does.
+- **The graph's paper is plain.** The shaded bands across its top and foot,
+  past ±20 dB, are gone; the ±20 dB rule still marks where the scale
+  tightens.
+- **On a Mac, FluidEQ looks like a Mac app.** The Mac's own close, minimise
+  and zoom buttons stand in the title bar and in the player's strip, with the
+  Mac's corner and edge, text drawn the way the Mac draws it, and the green
+  button and a double-click on the title bar doing what your Mac is set to do.
+
+### The Compact player
 
 - **The Compact player.** The switch beside Help in the title bar turns the
   window into a player a few hundred pixels wide: the song and its clock at
@@ -58,25 +150,13 @@ version and in these notes.
   background, in the same order as on the graph: beside the picture when the
   player is two columns wide, and in the corner of the equaliser's screen
   when it is one.
-- **On a Mac, FluidEQ looks like a Mac app.** The Mac's own close, minimise
-  and zoom buttons stand in the title bar and in the player's strip, with the
-  Mac's corner and edge, text drawn the way the Mac draws it, and the green
-  button and a double-click on the title bar doing what your Mac is set to do.
 - **The volume is your computer's own.** FluidEQ's separate volume level is
   gone: the slider on the player, on both bars and in Karaoke is Windows'
   volume, so it sets the level of everything the computer plays and stays
   where you leave it. Every player in FluidEQ plays at full level into it.
-- **Every game its own sound.** A chain per game — from Steam, Epic Games, EA,
-  GOG, Ubisoft, Battle.net and Xbox, or any program that is open — switched
-  the moment the game comes to the front, and kept until the game is closed,
-  however often you alt-tab. A card on the desktop — on the screen FluidEQ is
-  on, in the window's own colours — says what was loaded and another what came
-  back. While a game holds the sound, the player bar names it. The equaliser's
-  fourth pill is named for what it holds — Game presets.
-- **Game mode, and the delay you can see.** Game mode cuts the delay FluidEQ
-  adds, for aim and for voice chat, and the Gaming presets turn it on. The EQ
-  and DSP pages now show the delay the chain adds as measured, broken down by
-  the effects that add it, and Linear phase says what it costs.
+
+### Presets and the equaliser
+
 - **Presets that sound like the music.** Every preset was measured again and
   levelled, so switching changes character and not volume. Each music style is
   a whole chain — its bass, its air and its width chosen for that style, and
@@ -84,13 +164,6 @@ version and in these notes.
   five measured bands in front of the Room so the chain sounds like itself
   through it (a record leaves a room about 3 dB louder and 3 to 4 dB darker
   than it went in; those bands are that difference).
-- **Width you can hear, even on a mono record.** Dimension's Spread now makes
-  width out of the middle of the mix, above the bass, so a mono recording or a
-  voice dead centre opens out too; before, the stage could only stretch the
-  width a record already had, and a mono one stayed mono. Someone listening
-  in mono still hears exactly the same, and the bass stays in the centre. The
-  Movie preset and the Dimension card's Gaming profile keep the centre
-  focused, so dialogue and a footstep straight ahead stay where they are.
 - **Every music style explains itself.** Each genre preset has notes: what the
   style asks for, why each point on its curve is where it is, and what every
   effect in its chain does or why it is left off, with how loud it plays
@@ -119,20 +192,13 @@ version and in these notes.
   the main equaliser on both engines: it shows on the graph as a curve of its
   own, named after the preset, with a strength you can turn down, and its ×
   takes the whole preset away. The rack keeps what supports the tone.
-- **Thirteen new rooms, told apart by measurement.** Twenty-four in all, each
-  with its speakers where that place would put them and its own air, and none
-  of them another one under a different name: every pair is measured against
-  every other for level, for how wide it sits at the ears, for top against
-  bottom, and on a surround stream for the centre, a side and a rear against
-  the front. Three rooms written that week measured as copies of ones already
-  there and were taken out again.
-- **The Room's page hides nothing.** The rooms are in the same picker every
-  other stage uses, under Featured, Classic rooms and Yours; what a room is
-  made of is on the page rather than behind tabs; the room stands on the left
-  with six bands beside it, and the speaker you pressed has its own pane from
-  the moment you press it, with its angle as a number you can type.
-- **The Room is not part of Plus.** Shaping a room, saving one, fitting the
-  head by ear: all of it is open to everybody.
+- **Width you can hear, even on a mono record.** Dimension's Spread now makes
+  width out of the middle of the mix, above the bass, so a mono recording or a
+  voice dead centre opens out too; before, the stage could only stretch the
+  width a record already had, and a mono one stayed mono. Someone listening
+  in mono still hears exactly the same, and the bass stays in the centre. The
+  Movie preset and the Dimension card's Gaming profile keep the centre
+  focused, so dialogue and a footstep straight ahead stay where they are.
 - **Bass, Mid and Treble across the whole rack**, the way an amplifier has
   them, on the main equaliser whenever no band is selected. Each moves its own
   third of the spectrum; Ctrl+click puts that third back to flat. They are a
@@ -156,6 +222,56 @@ version and in these notes.
   one step, and only fine-tunes after that.
 - **Linear phase on your EQ and on the curves shares one delay**, instead of
   adding the two together.
+- **A twenty-band quick layout**, and every layout moved onto the
+  international standard's frequencies: a band labelled 64 Hz is now the
+  63 Hz everything else means by it. Bands also open as wide as their spacing
+  — a thirty-one-band rack no longer has three bands playing the same note,
+  and a six-band no longer leaves holes between them.
+- **The EQ sliders keep up with the hand.** A drag moves the slider at once
+  and the graph follows without holding it back; the engine gets the newest
+  value as soon as it is ready for it. Only the slider being dragged redraws,
+  where every band and control on the page used to.
+- **The equaliser shows the output's rate** beside its name, as the DSP page
+  does: the rate Windows runs the output you are listening to at, read again
+  when the output changes or you come back to the window.
+- **The FluidEQ Engine has a new build.** The copy on your machine is offered
+  an update the first time you run 2.0.0: one press in the notice, and Windows
+  restarts its audio itself. Until you take it the equaliser keeps working and
+  the DSP effects stay off, which is what the "Update engine" card says.
+
+### Games
+
+- **Every game its own sound.** A chain per game — from Steam, Epic Games, EA,
+  GOG, Ubisoft, Battle.net and Xbox, or any program that is open — switched
+  the moment the game comes to the front, and kept until the game is closed,
+  however often you alt-tab. A card on the desktop — on the screen FluidEQ is
+  on, in the window's own colours — says what was loaded and another what came
+  back. While a game holds the sound, the player bar names it. The equaliser's
+  fourth pill is named for what it holds — Game presets.
+- **Game mode, and the delay you can see.** Game mode cuts the delay FluidEQ
+  adds, for aim and for voice chat, and the Gaming presets turn it on. The EQ
+  and DSP pages now show the delay the chain adds as measured, broken down by
+  the effects that add it, and Linear phase says what it costs.
+
+### The Room
+
+- **Thirteen new rooms, told apart by measurement.** Twenty-four in all, each
+  with its speakers where that place would put them and its own air, and none
+  of them another one under a different name: every pair is measured against
+  every other for level, for how wide it sits at the ears, for top against
+  bottom, and on a surround stream for the centre, a side and a rear against
+  the front. Three rooms written that week measured as copies of ones already
+  there and were taken out again.
+- **The Room's page hides nothing.** The rooms are in the same picker every
+  other stage uses, under Featured, Classic rooms and Yours; what a room is
+  made of is on the page rather than behind tabs; the room stands on the left
+  with six bands beside it, and the speaker you pressed has its own pane from
+  the moment you press it, with its angle as a number you can type.
+- **The Room is not part of Plus.** Shaping a room, saving one, fitting the
+  head by ear: all of it is open to everybody.
+
+### The graph and the visualizers
+
 - **The graph shows the whole spectrum, on scales that hold still.** With the
   grid on it starts an octave below 20 Hz, where a low cut does its work; with
   the grid off it is trimmed to 20 Hz – 16 kHz, where records have sound, so a
@@ -192,6 +308,33 @@ version and in these notes.
 - **Another player's cover behind the graph.** When the sound comes from
   Spotify, a browser or any other player, its album art fills the graph
   behind the wave in the expanded view and in full screen.
+- **Visualizers in real 3D.** A scene can now carry a 3D world — shapes and
+  models, materials, lights, reflections on wet floors and water, glow —
+  standing in front of its painted sky and moving with the music: the kick,
+  the snare and the hats each their own way, gathering in a build and
+  breaking on the drop. It goes through the same smoothing, FSR upscaling
+  and brightness limiter as every scene, everywhere a scene plays — the
+  graph, the desktop, the lights, the Studio and the gallery — turns with
+  your mouse where its maker allows, and hands its graphics memory back
+  while the window is covered. In the Studio a world is a file beside the
+  scene with its own GLSL and models, and opening one of FluidEQ's scenes
+  writes its world out for you to look inside. A FluidEQ from before this
+  plays the same scene without its world.
+- **Scenes can dance to the song.** A scene now hears the tempo and where
+  each beat and bar falls — a clock that lands on the beat instead of
+  answering after it — the kick, the snare and the hi-hats apart, how intense
+  the song is, when it builds and when it drops, where the music sits between
+  the speakers, and the singer's voice. The AI prompt teaches all of it, so a
+  scene written from one line can step on the kick and leap at the drop.
+- **Turn a 3D scene with your mouse.** Where its maker allows, drag a scene to
+  see it from another side, Ctrl+scroll or pinch to move in and out, and press
+  Reset view for the view it was made with — on the graph, in the Studio and
+  in the gallery. On the graph a plain drag still selects bands; the right or
+  middle button turns the scene there. A scene can also answer where you
+  point and tap.
+
+### The desktop, Online Media and Windows
+
 - **YouTube, YouTube Music, Twitch and Suno in FluidEQ's colours.** Match
   FluidEQ's colours, in the Media page's toolbar, gives a site's dark page,
   cards, menus and top bar the window's colour at the same darkness, on your
@@ -202,21 +345,21 @@ version and in these notes.
   graph and the site's colours matched, the video's own full screen plays the
   visualizer behind the page: the chat, the comments and the suggestions
   stand over it, and the video stays solid on top.
-- **A twenty-band quick layout**, and every layout moved onto the
-  international standard's frequencies: a band labelled 64 Hz is now the
-  63 Hz everything else means by it. Bands also open as wide as their spacing
-  — a thirty-one-band rack no longer has three bands playing the same note,
-  and a six-band no longer leaves holes between them.
-- **Ask the guide in your own words.** Help's search ranks what it finds,
-  forgives typos and plurals, knows the words people use for things in all ten
-  languages — "no sound", "limiter", "wallpaper" — and searches the English
-  guide alongside your own, so an English word finds its chapter too. Each
-  result quotes the
-  passage it found with the words marked; the guide takes you there and rings
-  the control on its picture, and Enter walks to the next match.
-- **Help follows your theme**, and has a chapter for the Compact player. Its
-  pictures are shown in Light when the window is Light and in Dark when it is
-  Dark. Help itself is now the book in the title bar, beside the actions menu.
+- **A desktop background keeps its place.** It plays on while its replacement
+  is prepared, pauses while windows cover its whole monitor or a game is in
+  front, gives the desktop its own wallpaper back while it waits on battery,
+  and follows the visualizer's settings from the window as you change them.
+- **A monitor can follow the graph.** Switch on Follow graph for it in the
+  desktop background's Manage dialog, and it changes to whichever Plus
+  visualizer the graph shows, whether you picked it or the graph changed looks
+  by itself. When the graph shows a standard look, the monitor keeps the last
+  Plus visualizer it had. Each monitor has its own switch.
+- **Start with Windows.** A switch in the actions menu, under Animations,
+  starts FluidEQ when you sign in. It needs no administrator, and it says so
+  when Windows' own Startup apps has FluidEQ switched off.
+
+### Plus and the Studio
+
 - **The Studio is part of Plus, and opens with a free trial.** Fifteen days,
   no card, nothing charged when it ends — **for an account created on or after
   20 September 2026, the day the offer opened**. Somebody without Plus meets a page that
@@ -240,30 +383,6 @@ version and in these notes.
   sections, builds, drops, drums and tempo — as numbers, never the sound and
   never which song. The switch is on the Studio's card, and nothing of it
   leaves your computer.
-- **Scenes can dance to the song.** A scene now hears the tempo and where
-  each beat and bar falls — a clock that lands on the beat instead of
-  answering after it — the kick, the snare and the hi-hats apart, how intense
-  the song is, when it builds and when it drops, where the music sits between
-  the speakers, and the singer's voice. The AI prompt teaches all of it, so a
-  scene written from one line can step on the kick and leap at the drop.
-- **Turn a 3D scene with your mouse.** Where its maker allows, drag a scene to
-  see it from another side, Ctrl+scroll or pinch to move in and out, and press
-  Reset view for the view it was made with — on the graph, in the Studio and
-  in the gallery. On the graph a plain drag still selects bands; the right or
-  middle button turns the scene there. A scene can also answer where you
-  point and tap.
-- **Visualizers in real 3D.** A scene can now carry a 3D world — shapes and
-  models, materials, lights, reflections on wet floors and water, glow —
-  standing in front of its painted sky and moving with the music: the kick,
-  the snare and the hats each their own way, gathering in a build and
-  breaking on the drop. It goes through the same smoothing, FSR upscaling
-  and brightness limiter as every scene, everywhere a scene plays — the
-  graph, the desktop, the lights, the Studio and the gallery — turns with
-  your mouse where its maker allows, and hands its graphics memory back
-  while the window is covered. In the Studio a world is a file beside the
-  scene with its own GLSL and models, and opening one of FluidEQ's scenes
-  writes its world out for you to look inside. A FluidEQ from before this
-  plays the same scene without its world.
 - **The Studio's meters follow the rhythm and the song**: the tempo and how
   sure it is, a lamp each for the kick, the snare and the hats, a spin the
   music winds up, intensity, build and drop, the voice and its note, and
@@ -276,113 +395,20 @@ version and in these notes.
   what an AI tool on your computer can see once you let it look at the
   Studio's stage. Members who agreed to an earlier edition are told once, in
   a small card, what changed.
-- **The equaliser shows the output's rate** beside its name, as the DSP page
-  does: the rate Windows runs the output you are listening to at, read again
-  when the output changes or you come back to the window.
-- **Start with Windows.** A switch in the actions menu, under Animations,
-  starts FluidEQ when you sign in. It needs no administrator, and it says so
-  when Windows' own Startup apps has FluidEQ switched off.
-- **A desktop background keeps its place.** It plays on while its replacement
-  is prepared, pauses while windows cover its whole monitor or a game is in
-  front, gives the desktop its own wallpaper back while it waits on battery,
-  and follows the visualizer's settings from the window as you change them.
-- **A monitor can follow the graph.** Switch on Follow graph for it in the
-  desktop background's Manage dialog, and it changes to whichever Plus
-  visualizer the graph shows, whether you picked it or the graph changed looks
-  by itself. When the graph shows a standard look, the monitor keeps the last
-  Plus visualizer it had. Each monitor has its own switch.
-- **The FluidEQ Engine has a new build.** The copy on your machine is offered
-  an update the first time you run 1.8.0: one press in the notice, and Windows
-  restarts its audio itself. Until you take it the equaliser keeps working and
-  the DSP effects stay off, which is what the "Update engine" card says.
-- **A new look for the whole window.** The panes no longer sit in cards: they
-  stand on one floor, parted by fine lines. On the equaliser's pages the graph
-  stands at the top, under the section tabs and the title, and the bands'
-  sliders share its width, each in a place of its own: dragging a band's
-  frequency on the graph leaves its slider where it is, and two bands trade
-  places only when one passes the other. The header's wave lost
-  its box and keeps only the app's rounded corners, the menus lost their
-  rainbow edge, and the tooltips are FluidEQ's
-  own. The boxes on every page — the DSP stage, the empty Library, Share
-  Audio's roles, the karaoke pitch lane and the whole Karaoke Maker, Studio,
-  the gallery — lost their grey fill too and stand on the floor as the panes
-  do, and every dialog is one material: the menus' floor at 95%, the same fine
-  edge and corner, and no rainbow round it.
-- **The theme is a slider.** Light and Dark became one slider, from Black at
-  the left to a lighter Ocean at the right, and every step between them is a
-  theme: the window follows the thumb as it moves. Ocean as it was stands
-  three quarters of the way along, which is where anyone who had chosen it
-  finds it. The menu behind the pulse icon has it as Brightness, beside
-  Transparency — the same two sliders as Window colours — and the Compact
-  player's menu as its theme, Dark to Light.
-- **Window colours, by name.** The button beside Auto on the graph says what a
-  Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
-  and opens all four, each with a line on what it does, under two sliders.
-  Brightness is the theme's own slider: with the theme it goes from Black to
-  Ocean, and while a visualizer lends the window its colours it goes from
-  their darkest, never black, to their lightest. Transparency is how much of
-  the visualizer shows through the panes on the Backdrop, and stands dimmed
-  in any other mode. Both are marked at a quarter, a half and three quarters,
-  and the thumb falls into each mark. A new install opens at 0% Brightness
-  and 5% Transparency, and Brightness follows the hand without the window
-  holding it back.
-- **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
-  window, the graph still its frame, and the panes and everything on them let
-  it show through. Menus do not: every menu stands at 95% whatever the
-  Transparency, where one opened from a see-through pane used to go
-  see-through with it.
-- **The Backdrop stays behind every page.** With a Plus visualizer on the
-  Backdrop, going to the Library, Karaoke or any other page keeps it playing
-  behind the window; in Colours and Ambient it rests off the graph's page, so
-  nothing is spent drawing what nobody can see. Switching between Colours,
-  Ambient and Backdrop, or into full screen and back, moves the same
-  visualizer instead of loading it again.
-- **The expanded graph is square.** Its card and the picture under it have
-  square corners, as the column they cover does.
-- **The graph's paper is plain.** The shaded bands across its top and foot,
-  past ±20 dB, are gone; the ±20 dB rule still marks where the scale
-  tightens.
-- **A Plus visualizer fills the graph.** It runs up behind the section tabs
-  and the title, and down to the divider, with no band of floor around it.
-- **The title is alive.** When FluidEQ opens, the wave in its logo draws
-  itself and the name rises letter by letter; after that a pulse of light runs
-  along the wave every few seconds. "Fluid" is white, and "EQ" and the logo's
-  edge and wave are in the window's colours — the accent, a visualizer's
-  colour or the Rainbow palette; the dialogs keep the app icon as it is.
-- **Rainbow mode is on from the start, and it is Lagoon.** Aqua, cyan, sky,
-  azure and a soft periwinkle — the icon's own colours — where it used to run
-  red to violet, and there is nothing to unlock any more: the switch on the
-  signal, the What's new slide and the offer in the Support dialog are gone,
-  and Normal or Rainbow is a switch under Brightness and Transparency, in
-  Window colours and in the app menu, and a pill on the wave in the title
-  bar. The window takes a little of it too:
-  the panes lean toward its sky.
-- **A Plus visualizer lends the whole window its colours.** Five are read
-  from the visualizer itself as it plays. In Normal the buttons, the switches
-  and the "EQ" of the title take its first colour and what is switched on its
-  second; in Rainbow all five run across the bands, the title and the lit
-  controls. The app's icon stays its own.
-- **The colours match the icon.** The accent is the cyan at the middle of the
-  icon's wave, on Black and on Ocean alike, and the filled buttons, the
-  switches, the power key and the bar under the open tab run aqua to azure the
-  way the wave does.
-- **The EQ sliders keep up with the hand.** A drag moves the slider at once
-  and the graph follows without holding it back; the engine gets the newest
-  value as soon as it is ready for it. Only the slider being dragged redraws,
-  where every band and control on the page used to.
-- **A new app icon.** The wave, glossier, on a dark tile, in Lagoon's
-  colours with an edge to match.
-- **Cards in the window's colour.** The Library's tiles, its song list and
-  Up next, each game's row, the outputs in the engine's config, the
-  headphone picker, Share Audio's roles and the Studio's AI card are filled
-  now — a gentle step above the page, never lighter than a pane, with the
-  accent glowing in from the corner, in the theme's colours or a
-  visualizer's — where they were outlines or slabs of grey slate. The small
-  graphs (the headphone correction, the driver sketch, the DSP's plots, the
-  Share Audio monitor) stand in a darker well, so their lines read on the
-  darkest thing around them. What holds them, like the grid round the tiles, keeps
-  its outline, and a control that cannot be used is an outline with dimmed
-  text instead of a lighter slab.
+
+### Help
+
+- **Ask the guide in your own words.** Help's search ranks what it finds,
+  forgives typos and plurals, knows the words people use for things in all ten
+  languages — "no sound", "limiter", "wallpaper" — and searches the English
+  guide alongside your own, so an English word finds its chapter too. Each
+  result quotes the
+  passage it found with the words marked; the guide takes you there and rings
+  the control on its picture, and Enter walks to the next match.
+- **Help follows your theme**, and has a chapter for the Compact player. Its
+  pictures follow the theme: the lighter captures while the slider stands
+  nearer Ocean, the darker ones nearer Black. Help itself is now the book in
+  the title bar, beside the actions menu.
 
 ### Fixed
 

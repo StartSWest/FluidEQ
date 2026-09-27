@@ -77,10 +77,11 @@
  * than promising an offer that may answer "unavailable"; the trial has its
  * own conditions and its own version beside these (`plusTrial.ts`).
  *
- * Revision 9 was amended, not raised, before its first release (1.8.0,
- * 2026-09-24): the Studio's AI link got its line under Where else FluidEQ
- * connects, and a maker's one kept project its sentence under the
- * membership. 1.7.5 never shipped, and the server's only agreement to 9 was
+ * Revision 9 was amended, not raised, before its first release (2.0.0,
+ * prepared as 1.8.0; amended 2026-09-24): the Studio's AI link got its line
+ * under Where else FluidEQ connects, and a maker's one kept project its
+ * sentence under the membership. Neither 1.7.5 nor 1.8.0 shipped, and the
+ * server's only agreement to 9 was
  * the maker's own admin account, so no member ever agreed to the text
  * without them. A raise would also have had to move the server's
  * `plus_terms_version()`, or the trial refuses every new account.

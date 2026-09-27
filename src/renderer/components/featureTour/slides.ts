@@ -144,12 +144,14 @@ const RELEASE_17: TSlideEntry[] = [
 ];
 
 /**
- * 1.8. The Compact player first, because it is the one thing in it that
- * changes how the whole window is used. The Room moves up into this release:
- * thirteen of its twenty-four rooms, the page they are picked on and its free
- * locks arrived here, and one slide cannot stand in two places.
+ * 2.0, prepared as 1.8 and never released under that number, which is why
+ * its slides live in `release18.tsx`. The Compact player first, because it is
+ * the one thing in it that changes how the whole window is used. The Room
+ * moves up into this release: thirteen of its twenty-four rooms, the page
+ * they are picked on and its free locks arrived here, and one slide cannot
+ * stand in two places.
  */
-const RELEASE_18: TSlideEntry[] = [
+const RELEASE_20: TSlideEntry[] = [
   {
     id: 'compact-player',
     titleKey: 'tour.player.title',
@@ -207,11 +209,11 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
   '1.6': announced('1.6', [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO]),
   '1.7': announced('1.7', RELEASE_17),
-  '1.8': [
-    ...announced('1.8', RELEASE_18),
+  '2.0': [
+    ...announced('2.0', RELEASE_20),
     ...announced(
       '1.7',
-      RELEASE_17.filter((entry) => !RELEASE_18.includes(entry)),
+      RELEASE_17.filter((entry) => !RELEASE_20.includes(entry)),
     ),
   ],
 };
