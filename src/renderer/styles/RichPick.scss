@@ -88,12 +88,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The name takes whatever width the trigger has over its contents, so the
+// caret stands at the trigger's right end the way a combo box's arrow does.
+// On a trigger sized to its text there is nothing over and nothing moves; on
+// one stretched to a field (the Studio's projects, the DSP presets) the caret
+// used to trail straight after a short name, halfway along the box (Ivan,
+// 2026-09-27: "the combo arrow needs to be on the right").
+.rich-pick__label {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
 // The one mark that says this is a menu rather than an action.
 //
 // Quieter than the label it follows, because it is a property of the control
 // rather than a second thing to read. It turns over when the menu is open,
 // which is the cheapest possible way to say the next press closes it.
 .rich-pick__caret {
+  flex: none;
   margin-left: 1px;
 }
 

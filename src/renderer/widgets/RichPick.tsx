@@ -474,7 +474,7 @@ const RichPick = ({
         }}
       >
         {active ? active.icon : placeholderIcon}
-        <span>
+        <span className="rich-pick__label">
           {active ? active.name : placeholder}
           {triggerExtra}
         </span>
