@@ -2791,8 +2791,9 @@ $tab-bar-inset: 8px;
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
 .workspace-tab-panel--library {
-  // No card: every page stands on the window's floor, between the hairlines
-  // of the columns either side (layout A, Ivan 2026-09-25).
+  // No card here: which pages stand on one is the rule below, and the rest
+  // stand on the window's floor, between the hairlines of the columns
+  // either side (layout A, Ivan 2026-09-25).
   display: flex;
   flex-direction: column;
   // One padding for every tab, taken from the Media tab: 10px above the first
@@ -2804,6 +2805,41 @@ $tab-bar-inset: 8px;
   // does not get; its bar re-adds the same 12 inline, so the two toolbars sit
   // on the same rule.
   padding: 10px 12px 12px;
+}
+
+// THE SETTINGS PAGES STAND ON A SECTION CARD (`section-card`), 10px in
+// from the column's sides and foot, like the sound panel's sections beside
+// them (Ivan, 2026-09-27: "lets do section cards").
+//
+// The card is the panel, not `.middle-content` around it. The divider's split
+// counts that pane without margins (`paneSizes.ts`), so a gutter on the pane
+// would come out of the graph, and with the graph at its floor push it under
+// the column's foot. And under the Backdrop the pane is what carries the
+// veil (`SceneCover.scss`): the gutter round a card inside it stays veiled,
+// where a gutter round the pane itself would be a frame of bare scene.
+//
+// Not the players, whose pictures run to the column's edges and which carry
+// their own cards inside — the Library's covers and panes, the Karaoke
+// stage, a video — and not Plus and the forum, which lay out rails of their
+// own.
+.workspace-tab-panel--eq,
+.workspace-tab-panel--presets,
+.workspace-tab-panel--convolution,
+.workspace-tab-panel--games,
+.workspace-tab-panel--config,
+.workspace-tab-panel--dsp,
+.workspace-tab-panel--share {
+  @include section-card;
+  margin: 0 10px 10px;
+
+  // At the head of the column, with no graph above it, the card stands 8px
+  // under the titlebar, the gutter the sound panel keeps between its cards:
+  // flush, its top edge lay against the titlebar's and doubled it. Under a
+  // graph it hangs from the divider, so the bands stand as close under the
+  // plot as they did.
+  .center-workspace:not(.is-graph-first) > .middle-content > & {
+    margin-top: 8px;
+  }
 }
 
 // The five EQ pages start with the section rail, and it sits on the card's own
@@ -3044,6 +3080,27 @@ $tab-bar-inset: 8px;
   border: 0;
   background: transparent;
   box-shadow: none;
+}
+
+// On the section card, a page's own well keeps its edge and gives up its
+// face: the headphone picker, Share Audio's two roles and the panel under
+// them, the processor on the DSP page. Each was filled because it stood on
+// the bare floor (`card-surface`); on the section it was a second fill, a
+// lighter slab with its own lit corner, and the card inside a card that the
+// section cards were not to become. What stands in the wells — a module's
+// boxes, a chosen role — keeps its own surface.
+.workspace-tab-panel--presets .autoeq-panel__picker,
+.workspace-tab-panel--share .remote-audio__role-shell,
+.workspace-tab-panel--dsp .dsp-card {
+  background: transparent;
+}
+
+// The empty games page has nothing in its well to hold together, so the
+// well goes altogether: the section is the box the page says it is empty
+// in, and a frame inside it was a box in a box around one sentence.
+.workspace-tab-panel--games .games-empty {
+  border-color: transparent;
+  background: transparent;
 }
 
 // A dropdown menu used to escape its card the hard way: a `:has(.dropdown--open)`
@@ -3514,18 +3571,23 @@ $tab-bar-inset: 8px;
 // The sections scroll; the website does not. Keeping the scrollbar on this
 // inner row makes it end above the footer instead of running behind the link,
 // and the stable gutter stops the sections shifting sideways when overflow
-// first appears. No gap and no padding: the sections run edge to edge and are
-// parted by their own hairlines (`SidebarSection.scss`).
+// first appears.
+//
+// The sections are cards now (`SidebarSection.scss`), and this row spaces
+// them: 8px above, between and below, and at the sides the gutter itself —
+// kept on both edges, so the cards stand 8px in from the page's hairline and
+// 8px in from the window's edge, the scrollbar's own 8px. On one edge only
+// the cards stood twice as far from the window as from the page.
 .right-content__scroll {
   display: grid;
   min-height: 0;
   align-content: start;
-  gap: 0;
-  padding: 0;
+  gap: 8px;
+  padding: 8px 0;
   grid-auto-rows: max-content;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
   overscroll-behavior: contain;
 }
 

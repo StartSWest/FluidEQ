@@ -192,6 +192,9 @@ $font-mono:
 //   window bg          $surface-base (ramp $surface-base-top → -bottom)
 //     pane bg          $surface-panel — the titlebar, the sidebar, the EQ
 //                      card, the graph, the right column, the transport bar
+//     section          `section-card`: a soft card on the floor for one
+//                      subject — a sound panel section, the page under the
+//                      graph
 //       box on floor   `lifted-surface`: an edge and no fill — a card, a
 //                      list, a folding section, a group in a dialog
 //                      ($block-lift is left to controls' tracks and trays)
@@ -309,6 +312,30 @@ $card-glow: radial-gradient(
   120% 90% at 0% 0%,
   color-mix(in srgb, $secondary-default 5%, transparent),
   transparent 60%
+);
+
+// A SECTION: one subject's stretch of a column, standing on the floor — the
+// output and its profiles, the second output, the driver, the page under the
+// graph. The window stays the floor and each section is a soft card on it
+// (Ivan, 2026-09-27: "lets do section cards", from the background balance
+// mockups). With every pane one floor and hairlines between the sections,
+// the window read as "flat but like something is missing".
+//
+// The depth the approved picture was painted at: seven tenths of the pane,
+// with a twentieth of the accent through it — twice the card's third.
+// Measured on the black window, the card's depth stands 7 values over the
+// floor (the DSP card, rgb 2,13,19 on 0,6,12) and this one 15 (3,21,28),
+// the step the picture showed. Flat, no glow: the corner glow is the card's,
+// and on a stretch the height of a page it would be a gradient across it.
+//
+// Translucent, for the card's reason: over the Backdrop's scene it lets the
+// scene through as the veiled panes do (`SceneCover.scss`), and is mixed
+// from their veiled pane colour there, where an opaque section would stand
+// as a slab across the picture.
+$surface-section: color-mix(
+  in srgb,
+  color-mix(in srgb, $secondary-default 5%, $surface-panel) 70%,
+  transparent
 );
 
 // The radius Windows 11 clips a frameless window's corners to, and therefore
@@ -786,6 +813,18 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 // lost its fill on hover went darker as it was pointed at.
 @mixin card-hover {
   background: linear-gradient($hover-accent 0 0), $card-glow, $surface-card;
+}
+
+// A section's face (`$surface-section`): the pane's edge, a block's corner.
+// What stands on it keeps its own surface — a card is still a card on it,
+// and a group of controls still only an edge. Not `section-surface`: that is
+// the dialogs' inner group (`_dialog.scss`), and a sheet that uses both
+// modules could not tell the two apart.
+@mixin section-card {
+  border: 1px solid $border-panel;
+  border-radius: $radius-m;
+  background: $surface-section;
+  box-shadow: none;
 }
 
 // Quiet, outline-only button (titlebar actions, graph overlay controls).

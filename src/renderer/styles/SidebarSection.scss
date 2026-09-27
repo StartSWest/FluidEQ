@@ -191,43 +191,48 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow: visible;
 }
 
-// In the sound panel a section is a stretch of the column, not a card in it:
-// no frame, no fill, no corners, a hairline between one section and the next,
-// and the same 18px in from the column's edges as the rest of the page's
-// content (layout A, Ivan 2026-09-25). The line under an open header goes
-// too — on the open floor the title and what it opens onto are one stretch.
-// Elsewhere (the headphone picker on the EQ Presets page) a section is still a
-// block standing on its page.
+// In the sound panel each section is a soft card on the column's floor
+// (`section-card`; Ivan, 2026-09-27: "lets do section cards", after the
+// background balance mockups). It was a stretch of the column with a
+// hairline to the next and nothing under it, and the sections read as
+// floating. The column spaces the cards (`.right-content__scroll`), so no
+// hairline is left between one and the next.
+//
+// One inset for everything inside, the header's 12px: the picker or the rule
+// under the header, and the body. The picker at 18 and the body at 10 left
+// the output's picker 8px narrower each side than the profile buttons under
+// it.
+//
+// No line under an open header, as before: the title and what it opens onto
+// are one card. Elsewhere (the headphone picker on the EQ Presets page) a
+// section keeps the base block above.
 .right-content .sidebar-section {
-  border: 0;
-  border-radius: 0;
-
-  & + .sidebar-section {
-    border-top: 1px solid $border-subtle;
-  }
+  @include section-card;
 
   .sidebar-section__header {
-    padding: 14px 18px;
-    border-radius: 0;
+    padding: 12px;
+    // One pixel inside the card's corner, so the focus ring's arc is
+    // concentric with the card's.
+    border-radius: calc(#{$radius-m} - 1px);
   }
 
   &.is-open .sidebar-section__header {
-    border-radius: 0;
+    border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
     box-shadow: none;
   }
 
   &.is-open .sidebar-section__reveal {
-    border-radius: 0;
+    border-radius: 0 0 calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px);
   }
 
   .sidebar-section__summary,
   .sidebar-section__aside,
   .sidebar-section__body {
-    padding-inline: 18px;
+    padding-inline: 12px;
   }
 
   &.is-open .sidebar-section__body {
-    padding-bottom: 16px;
+    padding-bottom: 12px;
   }
 }
 
