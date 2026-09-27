@@ -1957,9 +1957,14 @@ textarea,
 // that script has run, and `themeShade.test.ts` holds the script's Ocean to
 // it.
 :root {
-  --text-primary: #{$text-primary};
-  --text-muted: #{$text-muted};
-  --text-faint: #{$text-faint};
+  --text-primary: #{$text-primary-shipped};
+  --text-muted: #{$text-muted-shipped};
+  --text-faint: #{$text-faint-shipped};
+  // The inks the theme's script solves for each shade (`themeInk.ts`), at
+  // Ocean's values until it has run.
+  --text-dim-share: 40.7%;
+  --field-edge-share: 18.5%;
+  --disabled-opacity: 0.45;
   // Ocean: the slate-navy the app was designed on. Hue 206 throughout; only
   // the lightness moves between rungs.
   --surface-base: #0d2030;
@@ -1981,9 +1986,9 @@ textarea,
   --track-well: #2e4f63;
   // The edges, a cool white at a whisper: on slate they only have to part
   // one pane from the next.
-  --border-subtle: rgba(214, 233, 247, 0.09);
-  --border-panel: rgba(214, 233, 247, 0.11);
-  --border-menu: rgba(156, 250, 255, 0.22);
+  --border-subtle: rgba(214, 233, 247, 0.124);
+  --border-panel: rgba(214, 233, 247, 0.183);
+  --border-menu: rgba(156, 250, 255, 0.262);
   // The accent: the chosen thing, the live thing, the thing to press.
   --accent: #1bdee7;
   --accent-light: #a1fcff;

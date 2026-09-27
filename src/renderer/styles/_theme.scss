@@ -73,7 +73,10 @@ $field-padding-inline: 11px;
 // treatment for a REGION: no desaturation with it. The filter went on the DSP
 // stage to say "off" and what it actually did was drain the palette out of
 // half the window, which is why that page looked muddy beside every other.
-$disabled-opacity: 0.45;
+//
+// 0.45 up to Ocean; above it, as much more as keeps a disabled word at 3:1 on
+// the lighter ground (`themeInk.ts`), which at 100% is 0.56.
+$disabled-opacity: var(--disabled-opacity);
 
 // *** Typography *************************************************************
 
@@ -425,7 +428,15 @@ $border-panel: var(--border-panel);
 // 2026-09-25: "the borders of buttons and pills are a bit too much"). The
 // faint fill already says where the control is; the edge only finishes it,
 // and comes up under the pointer.
-$border-field: color-mix(in srgb, $secondary-light 13%, transparent);
+//
+// At the share of the accent's light that makes the edge 1.7:1 on a card at
+// this shade (`--field-edge-share`, `themeInk.ts`), never under the 13% it
+// shipped at: 13% measured 1.3:1 on Black and at 100%, a box nobody could see.
+$border-field: color-mix(
+  in srgb,
+  $secondary-light var(--field-edge-share),
+  transparent
+);
 $border-field-hover: color-mix(in srgb, $secondary-light 42%, transparent);
 $border-field-focus: $secondary-light;
 
@@ -475,11 +486,20 @@ $selected-border: transparent;
 // ordinary labels look disabled, especially on Ocean's lighter surfaces.
 // Even the quietest readable ink clears 5:1 on Ocean's menu face; disabled
 // ink alone keeps the faded treatment, separate from information hierarchy.
+//
+// Each shade's own values (`themeInk.ts`): where a ground is light enough to
+// bring a tier under its contrast — the top of the Brightness slider — the
+// tier is lifted toward white until it reaches it, and everywhere else it is
+// the colour it shipped as, which is also what the window paints before the
+// theme's script has run (the `:root` block in App.scss).
 $text-accent: $secondary-light;
-$text-primary: #ecf5fb;
-$text-muted: #d6e9f7;
-$text-faint: #bfd3e3;
-$text-dim: rgba($edge-tint, 0.38);
+$text-primary-shipped: #ecf5fb;
+$text-muted-shipped: #d6e9f7;
+$text-faint-shipped: #bfd3e3;
+$text-primary: var(--text-primary);
+$text-muted: var(--text-muted);
+$text-faint: var(--text-faint);
+$text-dim: color-mix(in srgb, $edge-tint var(--text-dim-share), transparent);
 
 // *** Type scale for the side panes ******************************************
 

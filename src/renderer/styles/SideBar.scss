@@ -68,6 +68,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A real knob of a button: a domed field-coloured disc with a ring around it
 // that lights in the accent when FluidEQ is on, and in red when the engine
 // is not on the output being listened to.
+//
+// It stands on a crisp shadow right under it: a hard two pixels and a short
+// falloff (Ivan, 2026-09-27, of the key: "make more sharp dropshadow, not
+// like that" — a 26px blur and a haze of the accent round the face). The
+// dome inside it is what gives it its volume, and stays.
+$power-key-cast:
+  0 2px 0 rgba($black, 0.5),
+  0 3px 4px rgba($black, 0.3);
+
 .side-bar__power-button {
   position: relative;
   display: grid;
@@ -85,7 +94,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $surface-field-end 100%
   );
   box-shadow:
-    0 12px 26px rgba($black, 0.55),
+    $power-key-cast,
     inset 0 1px 0 rgba($white, 0.08),
     inset 0 -6px 14px rgba($black, 0.35);
   cursor: pointer;
@@ -106,20 +115,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-on::before {
     border-color: $secondary-default;
-    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 30%, transparent);
   }
 
   &.is-broken::before {
     border-color: color-mix(in srgb, $red 70%, transparent);
-    box-shadow: 0 0 18px color-mix(in srgb, $red 30%, transparent);
   }
 
+  // Under the pointer the face lifts a step, as it does when on; the ring
+  // says the rest.
   &:hover:not(:disabled) {
-    box-shadow:
-      0 12px 26px rgba($black, 0.55),
-      0 0 18px color-mix(in srgb, $secondary-default 20%, transparent),
-      inset 0 1px 0 rgba($white, 0.1),
-      inset 0 -6px 14px rgba($black, 0.35);
+    filter: brightness(1.08);
   }
 
   // ON: the face itself is lit, the way a hardware power key is. A ring and a
@@ -139,8 +144,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       var(--accent-end) 100%
     );
     box-shadow:
-      0 10px 22px rgba($black, 0.5),
-      0 0 12px color-mix(in srgb, $secondary-default 32%, transparent),
+      $power-key-cast,
       inset 0 1px 0 rgba($white, 0.4),
       inset 0 -6px 12px color-mix(in srgb, $secondary-darker 60%, transparent);
 

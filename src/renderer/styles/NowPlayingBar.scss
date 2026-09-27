@@ -935,7 +935,7 @@ $now-playing-bar-height: 64px;
     width: 13px;
     height: 13px;
     margin-top: -4px;
-    border: 2px solid rgba($text-primary, 0.92);
+    border: 2px solid color-mix(in srgb, $text-primary 92%, transparent);
     border-radius: 50%;
     background: $secondary-default;
     box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 45%, transparent);
