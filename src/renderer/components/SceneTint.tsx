@@ -15,7 +15,6 @@ import {
   type TSkyMeasurement,
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
-import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
@@ -38,8 +37,9 @@ import {
  * looks and the scenes members make, the only looks drawn by a scene whose
  * sky can be measured. Choosing an ordinary look puts the theme back, and so
  * does Plus lapsing: the selection leaves the scene, and this follows it.
- * And Rainbow mode, with no visualizer chosen: the window in some of Lagoon's
- * colours, the mode's own palette (`rainbowPalette.ts`).
+ * And with no visualizer chosen at all: the window in some of Lagoon's
+ * colours, Rainbow mode's own palette (`rainbowPalette.ts`), whether the
+ * mode is on or not.
  *
  * Mounted at the root of the app rather than in the graph, because the colour
  * belongs to the window: it stays while the graph is on another tab, and the
@@ -55,7 +55,6 @@ import {
  */
 const SceneTint = () => {
   const isEnabled = useSceneTintEnabled();
-  const isRainbow = useIsRootEuphoric();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -125,10 +124,14 @@ const SceneTint = () => {
     }
 
     if (!isSceneLook) {
-      // Rainbow mode with no visualizer chosen lends the window Lagoon, as a
-      // visualizer would lend its own colours (`LAGOON_SKY`); the theme as it
-      // is otherwise.
-      showSceneSky(isRainbow ? LAGOON_SKY : undefined, fade);
+      // No visualizer chosen: the window wears Lagoon (`LAGOON_SKY`), Rainbow
+      // mode or not. Rainbow on used to lend it and Rainbow off to put the
+      // bare theme back, so the switch changed every pane and the floor under
+      // them; Ivan wants the two identical, in Rainbow's colours ("app or
+      // pane … need to be exactly the same with rainbow and no rainbow, and I
+      // want the one that rainbow on has now", 2026-09-27). Rainbow changes
+      // only what is drawn in its stops.
+      showSceneSky(LAGOON_SKY, fade);
       return stop;
     }
     if (!isEnabled) {
@@ -150,7 +153,7 @@ const SceneTint = () => {
       showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isRainbow, isSceneLook, lookId, version, swatch]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch]);
 
   return null;
 };

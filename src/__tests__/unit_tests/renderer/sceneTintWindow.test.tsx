@@ -180,11 +180,30 @@ describe('the graph’s visualizer', () => {
     }
   });
 
-  // The control: the same look outside the mode is the theme.
-  it('keeps the theme with no visualizer outside Rainbow mode', () => {
+  // And outside the mode the same colours, to the digit: Rainbow changes what
+  // is drawn in its stops and never the panes or the floor (Ivan, 2026-09-27:
+  // "app or pane … need to be exactly the same with rainbow and no rainbow,
+  // and I want the one that rainbow on has now").
+  it('lends the window the same Lagoon with Rainbow mode off', () => {
     mockLookId = 'look:signal';
+    root.classList.add('is-euphoric');
+    let inRainbow = '';
+    try {
+      mount();
+      inRainbow = root.style.getPropertyValue('--surface-base');
+    } finally {
+      root.classList.remove('is-euphoric');
+    }
+    library?.cleanup();
+    root.removeAttribute('style');
+    root.removeAttribute('data-scene-tint');
+
     mount();
-    expect(root).not.toHaveAttribute('data-scene-tint');
+    expect(root).toHaveAttribute('data-scene-tint');
+    expect(root.style.getPropertyValue('--surface-base')).toBe(inRainbow);
+    // POSITIVE CONTROL: that is a colour of its own, not the theme's floor.
+    expect(inRainbow).toMatch(/^#/);
+    expect(inRainbow).not.toBe('#0d2030');
   });
 
   // A visualizer chosen in Theme mode keeps the theme, Rainbow or not: the
@@ -201,11 +220,20 @@ describe('the graph’s visualizer', () => {
     }
   });
 
-  it('puts the theme back on a look that is not a scene', () => {
+  it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {
     remember([['premium:bloom', '3', sky(300)]]);
+    const scene = mount();
+    const bloomFloor = root.style.getPropertyValue('--surface-base');
+    scene.fresh.cleanup();
+    root.removeAttribute('style');
+    root.removeAttribute('data-scene-tint');
+
     mockLookId = 'look:signal';
     mount();
-    expect(root).not.toHaveAttribute('data-scene-tint');
+    expect(root).toHaveAttribute('data-scene-tint');
+    // POSITIVE CONTROL: the scene did lend a colour, and this is another.
+    expect(bloomFloor).toMatch(/^#/);
+    expect(root.style.getPropertyValue('--surface-base')).not.toBe(bloomFloor);
   });
 });
 
