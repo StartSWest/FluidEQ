@@ -23,6 +23,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// The two colours every karaoke wash and glow is lit in: the palette the
+// window is in. In Rainbow mode its ends (Lagoon's cyan and periwinkle, or a
+// Plus visualizer's own colours, `RainbowSource`); otherwise the accent's
+// greener and bluer ends, which a visualizer lending the window its colours
+// retints as well. They were a fixed neon pink and cyan, the one pair in
+// the window that followed nothing (Ivan, 2026-09-26: "the karaoke gradient
+// bg need to match rainbow too and app colors and plus viz colors"). On the
+// root, because the microphone's panel is portalled out of the page.
+:root {
+  --karaoke-glow-warm: var(--accent-end);
+  --karaoke-glow-cool: var(--accent-start);
+}
+
+:root.is-euphoric {
+  --karaoke-glow-warm: var(--rainbow-7);
+  --karaoke-glow-cool: var(--rainbow-2);
+}
+
+$karaoke-warm: var(--karaoke-glow-warm);
+$karaoke-cool: var(--karaoke-glow-cool);
+
 .karaoke-workspace {
   display: flex;
   min-width: 0;
@@ -324,15 +345,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at 14% 42%, rgba($neon-pink, 0.16), transparent 32%),
+    radial-gradient(
+      circle at 14% 42%,
+      color-mix(in srgb, #{$karaoke-warm} 16%, transparent),
+      transparent 32%
+    ),
     radial-gradient(
       circle at 84% 36%,
-      color-mix(in srgb, $secondary-default 15%, transparent),
+      color-mix(in srgb, #{$karaoke-cool} 15%, transparent),
       transparent 34%
     ),
     radial-gradient(
       circle at 52% 112%,
-      rgba($neon-cyan, 0.08),
+      color-mix(in srgb, #{$karaoke-cool} 8%, transparent),
       transparent 34%
     ),
     linear-gradient(
@@ -1169,10 +1194,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: clamp(24px, 4vw, 52px);
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 48%, rgba($neon-pink, 0.14), transparent 27%),
+    radial-gradient(
+      circle at 18% 48%,
+      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
+      transparent 27%
+    ),
     radial-gradient(
       circle at 82% 42%,
-      color-mix(in srgb, $secondary-default 12%, transparent),
+      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
       transparent 30%
     ),
     linear-gradient(
@@ -2491,7 +2520,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 4px;
     height: 38%;
     border-radius: $radius-pill;
-    background: linear-gradient($neon-pink, $secondary-default);
+    background: linear-gradient(#{$karaoke-warm}, #{$karaoke-cool});
     box-shadow: 0 0 9px color-mix(in srgb, $secondary-default 28%, transparent);
 
     &:nth-child(2),
@@ -3532,55 +3561,14 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
-  isolation: isolate;
-  // A card on the floor, as the window's other panes are (Ivan, 2026-09-26:
-  // "karaoke maker color and borders not rounded pls make pane but darker
-  // like some others we have"). It was the pane colour, flat and a step
-  // lighter than every card, with a purple wash, run square to the tab's
-  // edges. The Maker still covers the whole tab, opaque in the floor's own
-  // colour — the stage and the transport are underneath it.
-  //
-  // The card is the header, the editor and the preview: a grid item of its
-  // own behind the first three rows (`::before`), standing in from the tab's
-  // edge by the pages' gutter. The command dock stays out of it, on the floor
-  // where the player's transport stands, because the two share that bar and
-  // it must not move between them. The panels placed from the header's
-  // height add the card's top inset.
-  --karaoke-maker-card-top: 8px;
-  --karaoke-maker-card-x: 10px;
+  // The window's floor, flat, as every page on the open floor is: no card,
+  // no corner (Ivan, 2026-09-26, of a rounded card tried in its place: "no
+  // rounder border like that and no bg"). It was the pane colour, a step
+  // lighter than the floor, with a purple wash. Opaque all the same — the
+  // stage and the transport are underneath it.
   color: $text-muted;
   background: $surface-base;
   border-radius: 0;
-
-  &::before {
-    content: '';
-    z-index: -1;
-    // The Maker's one column, named: `1 / -1` counts the explicit grid,
-    // which has no columns, and opened a second column for the rows.
-    grid-row: 1 / 4;
-    grid-column: 1;
-    margin: var(--karaoke-maker-card-top) var(--karaoke-maker-card-x) 0;
-    @include card-surface;
-    border-radius: $radius-xl;
-    pointer-events: none;
-  }
-
-  > .karaoke-maker__header {
-    grid-area: 1 / 1;
-    margin: var(--karaoke-maker-card-top) var(--karaoke-maker-card-x) 0;
-  }
-
-  > .karaoke-maker__canvas-host {
-    grid-area: 2 / 1;
-  }
-
-  > .karaoke-maker-preview {
-    grid-area: 3 / 1;
-  }
-
-  > .karaoke-maker__command-dock {
-    grid-area: 4 / 1;
-  }
 
   button,
   input,
@@ -3659,15 +3647,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     // and transport at the top after entering full screen.
     position: fixed;
     z-index: 96;
-    // The whole screen is the card: no gutter, no corner.
-    --karaoke-maker-card-top: 0px;
-    --karaoke-maker-card-x: 0px;
     border-radius: 0;
-
-    &::before {
-      border: 0;
-      border-radius: 0;
-    }
     // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
     //
     // This surface is the only opaque thing between the editor and the player:
@@ -4900,8 +4880,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
-  // Inside the Maker's card, by its own gutter.
-  margin: 8px calc(10px + var(--karaoke-maker-card-x)) 0;
+  margin: 8px 10px 0;
   overflow: hidden;
   background: $surface-base;
   border: 1px solid $border-field;
@@ -5161,8 +5140,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 .karaoke-maker-preview {
   position: relative;
   min-width: 0;
-  // The last row in the Maker's card: its gutter at the sides and below.
-  margin: 6px calc(10px + var(--karaoke-maker-card-x)) 10px;
+  margin: 6px 10px;
   overflow: hidden;
   // A box in the card, edged as the window's boxes are; an accent frame
   // inside the card read as a second, brighter card.
@@ -5355,10 +5333,14 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 48%, rgba($neon-pink, 0.14), transparent 27%),
+    radial-gradient(
+      circle at 18% 48%,
+      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
+      transparent 27%
+    ),
     radial-gradient(
       circle at 82% 42%,
-      color-mix(in srgb, $secondary-default 12%, transparent),
+      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
       transparent 30%
     ),
     linear-gradient(
@@ -5659,7 +5641,11 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
       color-mix(in srgb, $secondary-default 20%, transparent),
       transparent 44%
     ),
-    radial-gradient(circle at 94% 100%, rgba($neon-pink, 0.1), transparent 40%),
+    radial-gradient(
+      circle at 94% 100%,
+      color-mix(in srgb, #{$karaoke-warm} 10%, transparent),
+      transparent 40%
+    ),
     linear-gradient(
       150deg,
       color-mix(in srgb, $surface-field-end 98%, transparent),
@@ -6827,8 +6813,9 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   z-index: 12;
   display: grid;
   min-width: 0;
-  // On the floor under the Maker's card, as the player's transport is: the
-  // card's own edge is the line between them.
+  // Ruled off from the editor by the same fading line as the header: an
+  // accent edge and a shadow thrown upward read as a second frame.
+  @include dialog.rule(top);
 
   > .karaoke-transport {
     // Match the player's 12px workspace inset exactly, so switching into the
@@ -7113,9 +7100,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 .karaoke-maker__analysis-error {
   position: absolute;
   z-index: 22;
-  top: calc(
-    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
-  );
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
@@ -7137,9 +7122,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 .karaoke-maker__stems-float {
   position: absolute;
   z-index: 21;
-  top: calc(
-    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
-  );
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
   width: min(430px, calc(100% - 36px));
   padding: 13px 14px;
@@ -7929,9 +7912,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 .karaoke-maker__toast {
   position: absolute;
   z-index: 20;
-  top: calc(
-    var(--karaoke-maker-card-top) + var(--karaoke-maker-header-height) + 12px
-  );
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 16px;
   display: flex;
   min-height: 34px;
