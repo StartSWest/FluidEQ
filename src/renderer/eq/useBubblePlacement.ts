@@ -78,8 +78,15 @@ const useBubblePlacement = (
         height,
         // The page's panel, not the header: with nothing applied the header
         // ends under the toolbar, and hanging over the top of the graph is
-        // better than covering a control to stay inside it.
-        bounds: (header.parentElement ?? header).getBoundingClientRect(),
+        // better than covering a control to stay inside it. Above the graph
+        // the row stands in the column's head, a line of tools with nothing
+        // above it but the window's bar, so the column is the panel there:
+        // under the button, over the plot's top, is where the room is.
+        bounds: (
+          header.closest('.center-head')?.parentElement ??
+          header.parentElement ??
+          header
+        ).getBoundingClientRect(),
         avoid: occupied(header, pair),
         gap: GAP,
         tailInset: TAIL_INSET,

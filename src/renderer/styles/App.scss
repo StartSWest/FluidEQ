@@ -2374,7 +2374,13 @@ textarea,
 // first: moving the page's element would move every panel kept alive inside
 // it, and a web view that is moved reloads.
 .center-workspace.is-graph-first {
+  // Over the graph's 2, as over a scene (`head-over-scene`): the two never
+  // overlap, but what hangs out of the head does — the Smart EQ bubble under
+  // its button — and a dimmed head (`is-engine-disabled`) is a layer of its
+  // own that would otherwise paint under the plot.
   > .center-head {
+    position: relative;
+    z-index: 3;
     order: 0;
   }
 
@@ -2411,6 +2417,46 @@ textarea,
 
   > .center-head__title:not(:empty) {
     padding-top: 10px;
+  }
+}
+
+// The Bands page's head is one line (option C, Ivan 2026-09-27): the pills,
+// then the page's tools against the right edge (`.main-content-title
+// .is-in-head`). A flex line that wraps rather than a breakpoint, because
+// what fits is a matter of the language: where the tools do not fit beside
+// the pills they take a line of their own under them, right-aligned, and the
+// pills' rule runs the whole width above them as it did.
+//
+// The title slot's width container goes: its size is its tools' here, and a
+// width container has no size of its own to give a line to wrap by. Nothing
+// in the row asks it anything once it is laid out like this.
+.center-head--eq {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 20px;
+
+  > .workspace-section-header {
+    flex: 1 1 auto;
+  }
+
+  > .center-head__title {
+    container-type: normal;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-start: auto;
+  }
+
+  // Beside the pills there is nothing above it to keep 10px from.
+  > .center-head__title:not(:empty) {
+    padding-top: 0;
+  }
+
+  // Beside the engine's name: the rate of what it is playing to, the way the
+  // page's title carried it (`TitleRate`) — 8px from the name, where the
+  // header's 20 between its items would part the two.
+  .workspace-section-header > .title-rate {
+    margin: 6px 0 6px -12px;
   }
 }
 
@@ -3598,7 +3644,11 @@ $tab-bar-inset: 8px;
     pointer-events: auto;
   }
 
-  button {
+  // Not the layer chips' own buttons (`GraphTheme.scss`): the body, the
+  // strength's info and the × are parts of one chip, which a pill each would
+  // take apart. `:where`, so every rule written against this one still
+  // weighs what it did.
+  button:not(:where(.active-layers *)) {
     @include ghost-button;
     min-height: 28px;
     padding: 5px 9px;

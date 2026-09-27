@@ -22,6 +22,8 @@ import '../styles/Button.scss';
 interface IButtonProps {
   children: ReactNode;
   ariaLabel: string;
+  /** The tooltip, for a button that shows only its glyph somewhere. */
+  title?: string;
   isDisabled: boolean;
   className?: string;
   /**
@@ -39,6 +41,7 @@ interface IButtonProps {
 const Button = ({
   children,
   ariaLabel,
+  title,
   isDisabled,
   className = '',
   isPressed,
@@ -66,6 +69,7 @@ const Button = ({
     <div
       role="button"
       aria-label={ariaLabel}
+      title={title}
       className={`button ${className}`}
       onClick={activate}
       onKeyDown={onKeyDown}

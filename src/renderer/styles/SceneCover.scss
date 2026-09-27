@@ -32,9 +32,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // head and the graph. It used to fade to nothing at the head's foot, and the
 // strip under it stood on whatever the scene was doing (2026-09-26). Lifted
 // over the layer it stands on; inside it the controls keep their own faces.
+//
+// Over the graph's 2 as well, never between the two: the head and the graph
+// do not overlap, but what hangs out of the head does — the Smart EQ bubble
+// under its button, since the Bands page's tools stand on the pills' line
+// (option C, 2026-09-27) — and at 1 the plot painted over it.
 @mixin head-over-scene {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   background: linear-gradient(
     to bottom,
     color-mix(in srgb, $surface-base 64%, transparent),

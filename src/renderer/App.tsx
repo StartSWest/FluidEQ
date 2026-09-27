@@ -144,6 +144,7 @@ import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
 import WorkspaceSectionTabs from './components/WorkspaceSectionTabs';
 import FluidEngineLabel from './components/FluidEngineLabel';
+import OutputRate from './components/OutputRate';
 import {
   clampToWindow,
   commitPaneSizes,
@@ -895,35 +896,6 @@ const AppContent = () => {
   // two the context knows about. See `eqReachesSound.ts`.
   const isEqReachingSound = eqReachesSound(isEngineUsable, isEngineOnOutput);
 
-  /**
-   * Inside the page rather than above it, and pills rather than tabs: the
-   * strip is where the app's five places are chosen, and a second row of
-   * tab-shaped things under it would read as eight tabs in two rows — which
-   * is the arrangement this split exists to undo. Built once here and placed
-   * by each panel, because they are five separate pages and a row that is
-   * part of the page has to be inside it.
-   */
-  const eqGroupPills = (
-    <WorkspaceSectionTabs
-      label={t('tabs.eq')}
-      activeId={activeWorkspaceTab}
-      tabs={EQ_GROUP_TABS.map((tab) => ({
-        id: tab,
-        label: t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS]),
-      }))}
-      onSelect={(id) => {
-        const next = resolveWorkspaceTab(id);
-        if (next) {
-          selectTopWorkspaceTab(next);
-        }
-      }}
-    >
-      <FluidEngineLabel
-        isEngineOnOutput={isEngineOnOutput}
-        isPartlyOff={engineTrouble?.kind === 'problems'}
-      />
-    </WorkspaceSectionTabs>
-  );
   const isVideoTab = activeWorkspaceTab === 'video';
   const isMediaTabOneWord = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
   const isLibraryTab = activeWorkspaceTab === 'library';
@@ -973,6 +945,41 @@ const AppContent = () => {
   const isGraphFirst =
     isEqGroupTab(activeWorkspaceTab) && showsGraph && !isGraphFullScreen;
   const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
+  /**
+   * Inside the page rather than above it, and pills rather than tabs: the
+   * strip is where the app's five places are chosen, and a second row of
+   * tab-shaped things under it would read as eight tabs in two rows — which
+   * is the arrangement this split exists to undo. Built once here and placed
+   * by each panel, because they are five separate pages and a row that is
+   * part of the page has to be inside it.
+   *
+   * Above the graph the Bands page has no title of its own any more (the row
+   * beside these pills is its tools, `MainContent`), so the output's rate it
+   * carried stands after the engine's name: the rate of what that engine is
+   * playing to.
+   */
+  const eqGroupPills = (
+    <WorkspaceSectionTabs
+      label={t('tabs.eq')}
+      activeId={activeWorkspaceTab}
+      tabs={EQ_GROUP_TABS.map((tab) => ({
+        id: tab,
+        label: t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS]),
+      }))}
+      onSelect={(id) => {
+        const next = resolveWorkspaceTab(id);
+        if (next) {
+          selectTopWorkspaceTab(next);
+        }
+      }}
+    >
+      <FluidEngineLabel
+        isEngineOnOutput={isEngineOnOutput}
+        isPartlyOff={engineTrouble?.kind === 'problems'}
+      />
+      {isGraphFirst && activeWorkspaceTab === 'eq' && <OutputRate />}
+    </WorkspaceSectionTabs>
+  );
   // The player bar's deck stands under this column's middle.
   const [centerColumn, setCenterColumn] = useState<HTMLDivElement | null>(null);
   useWorkspaceAxis(centerColumn);
@@ -3216,7 +3223,12 @@ const AppContent = () => {
                 onEnd={handleGraphResizeEnd}
               />
             )}
-            {showsGraph ? <FrequencyResponseChart isVisible /> : null}
+            {showsGraph ? (
+              <FrequencyResponseChart
+                isVisible
+                hasLayersOnPlot={isGraphFirst && activeWorkspaceTab === 'eq'}
+              />
+            ) : null}
             {/* The graph's Plus visualizer, beside the graph and not in it:
                 on the plot, the EQ column or the Backdrop, and still behind
                 the window in the Backdrop while the graph is closed on a page

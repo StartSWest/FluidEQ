@@ -121,7 +121,9 @@ export default function ClearEqButton() {
         onClick={() => setOpen(true)}
       >
         <MenuIcon name="reset" className="eq-toolbar__icon" />
-        {t('eq.clear')}
+        {/* Hidden, never removed, where the toolbar stands in the EQ page's
+          head: the glyph is the button there and the word still names it. */}
+        <span className="eq-toolbar__word">{t('eq.clear')}</span>
       </button>
       {open && <ClearEqConfirmation onClose={() => setOpen(false)} />}
     </>

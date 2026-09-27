@@ -390,7 +390,7 @@ export default function EqModeSelect() {
             in these toolbars — and it is the glyph that is left once the row
             runs out of room for words (Ivan, 2026-09-22). */}
         <MenuIcon name="settings" className="eq-toolbar__icon" />
-        <span>{t('eq.mode')}</span>
+        <span className="eq-toolbar__word">{t('eq.mode')}</span>
         <span className="eq-mode-trigger__summary">{summary}</span>
         <Chevron />
       </button>

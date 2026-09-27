@@ -263,8 +263,12 @@ describe('the Bands page with its graph on', () => {
       throw new Error('the head, its title slot or the Bands page is missing');
     }
 
-    expect(within(slot).getByText('FINE TUNE')).toBeVisible();
+    // One line beside the pills (option C, 2026-09-27): the page's name is
+    // kept for the outline, its eyebrow and its layers row are not drawn.
+    expect(within(slot).queryByText('FINE TUNE')).toBeNull();
     expect(slot).toContainElement(bandsTitle());
+    expect(slot.querySelector('.main-content-title')).toHaveClass('is-in-head');
+    expect(slot.querySelector('.active-layers')).toBeNull();
     expect(
       within(slot).getByRole('button', { name: 'Add EQ band' }),
     ).toBeInTheDocument();
@@ -277,6 +281,24 @@ describe('the Bands page with its graph on', () => {
     // POSITIVE CONTROL: the page those came from is mounted and holds its
     // bands, so their absence from it is the portal, not an empty page.
     expect(page.querySelector('.main-content')).toBeInTheDocument();
+  });
+
+  it('puts the applied layers on the graph, and on no other page’s graph', async () => {
+    const { container } = await renderShell();
+    const strip = () =>
+      container.querySelector<HTMLElement>(
+        '.graph-wrapper .live-output-controls',
+      );
+
+    expect(strip()?.querySelector(':scope > .active-layers')).not.toBeNull();
+    expect(container.querySelector('.center-head .active-layers')).toBeNull();
+
+    await pressTab('EQ Presets', 'presets');
+
+    // POSITIVE CONTROL: the strip is still drawn on the presets page, so the
+    // layers' absence from it is the page's, not a graph that went away.
+    expect(strip()).not.toBeNull();
+    expect(strip()?.querySelector('.active-layers')).toBeNull();
   });
 
   it('keeps the page first in the markup, so the graph is put above it by the stylesheet alone', async () => {
@@ -373,6 +395,13 @@ describe('where the graph is not above the page', () => {
     // POSITIVE CONTROL for the head's absence: the row and the pills are
     // drawn, in the page, the row above the bands.
     expect(page).toContainElement(bandsTitle());
+    expect(within(page).getByText('FINE TUNE')).toBeVisible();
+    expect(page.querySelector('.main-content-title')).not.toHaveClass(
+      'is-in-head',
+    );
+    expect(
+      page.querySelector('.main-content-title > .active-layers'),
+    ).toBeInTheDocument();
     expect(within(page).getByRole('tablist', { name: 'EQ' })).toBeVisible();
     expect(
       Array.from(

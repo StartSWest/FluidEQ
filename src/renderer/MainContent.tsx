@@ -154,6 +154,7 @@ const MainContent = () => {
   // Above the graph while the graph stands between the title and the bands
   // (`eqTitleSlot.ts`); here, above the bands, otherwise.
   const titleSlot = useEqTitleSlot();
+  const isTitleInHead = titleSlot !== null;
   const placeTitle = (title: ReactElement) =>
     titleSlot ? createPortal(title, titleSlot) : title;
   /**
@@ -1078,6 +1079,22 @@ const MainContent = () => {
       : [bandMenuFilter];
   }
 
+  // One control in two places in the toolbar (see where it is placed). Its
+  // word is kept for the row under the page's title and hidden in the head,
+  // where the glyph beside the band count says it (`MainContent.scss`).
+  const addBandButton = (
+    <Button
+      ariaLabel={t('eq.addBandAria')}
+      title={t('eq.addBandAria')}
+      isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
+      className="small subtle eq-toolbar__add"
+      handleChange={addFilter}
+    >
+      <MenuIcon name="plus" className="eq-toolbar__icon" />
+      <span className="eq-toolbar__word">{t('eq.addBand')}</span>
+    </Button>
+  );
+
   return isLoading ? (
     <div className="center full row">
       <Spinner />
@@ -1101,16 +1118,28 @@ const MainContent = () => {
         />
       )}
       {placeTitle(
-        <div className="main-content-title">
-          <div>
-            <span className="eyebrow">{t('eq.eyebrow')}</span>
-            <div className="main-content-title__heading">
-              <h2>
-                {t('eq.title')}
-                <OutputRate />
-              </h2>
+        // Above the graph the row is the head's second half: the tools on the
+        // section pills' line, the page's name kept for the outline alone, the
+        // rate beside the engine's name (`App.tsx`) and the layers on the
+        // graph (`FrequencyResponseChart`, `hasLayersOnPlot`) — Ivan's pick
+        // on 2026-09-27 ("go with C"), which gives the curve back the two
+        // rows the title and the layers stood on.
+        <div
+          className={`main-content-title${isTitleInHead ? ' is-in-head' : ''}`}
+        >
+          {isTitleInHead ? (
+            <h2 className="main-content-title__outline">{t('eq.title')}</h2>
+          ) : (
+            <div>
+              <span className="eyebrow">{t('eq.eyebrow')}</span>
+              <div className="main-content-title__heading">
+                <h2>
+                  {t('eq.title')}
+                  <OutputRate />
+                </h2>
+              </div>
             </div>
-          </div>
+          )}
           <div className="eq-toolbar">
             <VoicingQuickPick />
             {/* One button, and it is whichever way of measuring is chosen.
@@ -1296,27 +1325,31 @@ const MainContent = () => {
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
             {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-            <ClearEqButton />
+            {!isTitleInHead && <ClearEqButton />}
             <EqModeSelect />
-            <Button
-              ariaLabel={t('eq.addBandAria')}
-              isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
-              className="small subtle"
-              handleChange={addFilter}
-            >
-              <MenuIcon name="plus" className="eq-toolbar__icon" />
-              {t('eq.addBand')}
-            </Button>
+            {/* In the head the layout comes first and the one-more-band after
+              it, so the two read as the band count and its plus. */}
+            {!isTitleInHead && addBandButton}
             <BandLayoutMenu />
+            {isTitleInHead && (
+              <>
+                {addBandButton}
+                <ListenedLatency />
+                {/* Last, the way the mockup ends the line: the one tool that
+                  undoes everything the others did. */}
+                <ClearEqButton />
+              </>
+            )}
           </div>
           {/* The delay of everything this page configures, with the switch
             that moves it: a property of the whole path, not one more verb for
             the toolbar. Under the title, facing the applied layers across
             the row (`MainContent.scss`). */}
-          <ListenedLatency />
+          {!isTitleInHead && <ListenedLatency />}
           {/* The bands below are not the whole chain, and anything else that
-            is live is named here so the graph stops looking wrong. */}
-          <ActiveLayers />
+            is live is named here so the graph stops looking wrong. On the
+            graph instead while the row stands above it. */}
+          {!isTitleInHead && <ActiveLayers />}
         </div>,
       )}
       <div

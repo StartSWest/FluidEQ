@@ -780,6 +780,77 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The Bands page's applied layers, at the strip's start (`hasLayersOnPlot`,
+// option C, Ivan 2026-09-27), growing into what the legend's cluster leaves.
+//
+// Never narrower than its chips, and never wider than the strip
+// (`fit-content`): where the chips do not fit beside the cluster the cluster
+// takes the next line, and only chips wider than a whole line fold behind
+// their count (`ActiveLayers`, which measures this row). Folding first, by
+// the room beside the cluster, looped — folded, the button no longer fitted
+// either, the row got a line of its own, the chips fitted that line and
+// unfolded, and the cluster came back beside them.
+//
+// Like the cluster, only its chips take a press: the row floats inside the
+// plot, and between two chips a press is a band handle's.
+.live-output-controls > .active-layers {
+  flex: 1 1 0;
+  min-width: fit-content;
+  justify-content: flex-start;
+  text-shadow: none;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  // The chips are its name here, as the legend's are.
+  > .active-layers__lede {
+    display: none;
+  }
+
+  // Nothing applied: no row, and the cluster has the strip to itself.
+  &.is-empty {
+    display: none;
+  }
+
+  &.is-collapsed {
+    justify-content: flex-start;
+  }
+}
+
+// On a ruled plot the chips start where the plot does: the gain scale's
+// labels stand in its 50px gutter (`getAxisPadding`) after 8px of air
+// (`GRID_SIDE_MARGIN`), and from the strip's own 10px the first chip lay over
+// "+60 dB", the top of that scale — the right end's `right: 56px` again.
+.graph-wrapper:not(.is-gridless) > .live-output-controls > .active-layers {
+  margin-inline-start: 48px;
+}
+
+// The hint about dragging is for a plot with nothing else to say; with the
+// layers on it, the chips have the room.
+.live-output-controls:has(> .active-layers:not(.is-empty)) .graph-edit-hint {
+  display: none;
+}
+
+// The layers stay when the strip fades (`is-idle`, five still seconds): they
+// say what is playing, as the row under the title they replaced did, and
+// that row never faded. The rest of the strip is controls reached for now
+// and then, and goes as it always has — on the same curves as the strip.
+.live-output-controls:has(> .active-layers:not(.is-empty))
+  > :not(.active-layers) {
+  transition: opacity 320ms ease;
+}
+
+.live-output-controls.is-idle:has(> .active-layers:not(.is-empty)) {
+  opacity: 1;
+
+  > :not(.active-layers) {
+    opacity: 0;
+    transition-duration: 520ms;
+  }
+}
+
 // One step through the looks, either side of the name.
 //
 // Small on purpose: they sit between a caption and a dropdown in a row of

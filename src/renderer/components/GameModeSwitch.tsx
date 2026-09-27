@@ -28,7 +28,9 @@ const GameModeSwitch = ({
     >
       <label htmlFor={id} className="game-mode-switch__label">
         <VoicingIcon profileId="games" className="game-mode-switch__icon" />
-        {t('dsp.latency.gameMode')}
+        <span className="game-mode-switch__word">
+          {t('dsp.latency.gameMode')}
+        </span>
       </label>
       <Switch
         id={id}

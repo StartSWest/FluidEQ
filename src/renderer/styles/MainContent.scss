@@ -103,6 +103,70 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Out of sight and still read: a word that names a control whose glyph is
+// all that shows, and a heading kept for the page's outline alone.
+@mixin words-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// The row as the head's second half, above the graph (option C, Ivan
+// 2026-09-27: "go with C"): no title and no layers row — the section pills'
+// line carries the tools, the rate stands after the engine's name
+// (`App.tsx`), the layers stand on the plot (`hasLayersOnPlot`). One line,
+// in the mockup's order: the presets, Smart EQ, the EQ mode, the band count
+// and its plus, the path's delay, Clear.
+//
+// The words go where a glyph already says it — Clear, Add band, "EQ mode",
+// Game mode and "Processing delay" — which is what fits the line beside five
+// pills: each keeps its name for a screen reader, and a tooltip.
+.main-content-title.is-in-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  // Its tools are the row's own items, the delay among them.
+  > .eq-toolbar {
+    display: contents;
+  }
+
+  .main-content-title__outline,
+  .eq-toolbar__word,
+  .game-mode-switch__word,
+  .latency-readout__name {
+    @include words-hidden;
+  }
+
+  // Square, the glyph centred: the two that are only a glyph here.
+  .clear-eq-trigger,
+  .eq-toolbar__add {
+    justify-content: center;
+    width: $control-height-sm;
+    padding-inline: 0;
+  }
+
+  // The plus leans on the band count before it, as one "20 bands, +".
+  .quick-layouts + .eq-toolbar__add {
+    margin-inline-start: -4px;
+  }
+
+  // The toolbar's height, not the field's taller one, like the EQ mode's
+  // trigger beside it.
+  .engine-strip {
+    min-height: $control-height-sm;
+  }
+
+  .game-mode-switch__label {
+    gap: 0;
+  }
+}
+
 // Stacked, as the rows were before they met across (`eq-panel` tier and the
 // narrow window below): the title, then the delay strip, the tools and the
 // applied layers each centred on a row of their own.
