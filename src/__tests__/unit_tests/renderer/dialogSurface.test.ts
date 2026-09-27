@@ -263,9 +263,23 @@ describe('what stands on the floor', () => {
         '.eq-mode-menu .segmented.eq-mode-menu__choices',
       ),
     ).toContain(BLOCK);
-    // The chord chip, which floats over the song's artwork.
-    expect(
-      declarationsOf(compiledCss('Karaoke.scss'), '.karaoke-chords'),
-    ).toContain(BLOCK);
+  });
+
+  // What floats over the karaoke stage's picture keeps a fill, and it is the
+  // card laid over the floor — opaque, and the playlist's own material rather
+  // than the block's grey (Ivan, 2026-09-26: "karaoke fix all those suck ui").
+  it.each([
+    '.karaoke-chords',
+    '.karaoke-song__text-size',
+    '.karaoke-playlist__expand',
+    '.karaoke-count-in',
+    '.karaoke-transport',
+  ])('lays the card over the floor under %s', (selector) => {
+    const chip = declarationsOf(compiledCss('Karaoke.scss'), selector);
+    expect(chip).toContain(
+      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 55%, transparent)',
+    );
+    expect(chip).toContain('var(--surface-base)');
+    expect(chip).not.toMatch(SLAB);
   });
 });

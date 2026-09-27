@@ -44,6 +44,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 $karaoke-warm: var(--karaoke-glow-warm);
 $karaoke-cool: var(--karaoke-glow-cool);
 
+// What stands over the stage's picture — the chord chip, the lyric size, the
+// playlist's pill, the count-in, the transport: the card colour laid over the
+// floor, opaque, so it reads on any artwork and is the same material as the
+// playlist beside it. Each of these was the block colour, a grey slab a step
+// lighter than every card, under a lit rim and a drop shadow (Ivan,
+// 2026-09-26: "karaoke fix all those suck ui and no drop shadow").
+$karaoke-chip-face: linear-gradient($surface-card 0 0), $surface-base;
+$karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
+
 .karaoke-workspace {
   display: flex;
   min-width: 0;
@@ -75,7 +84,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
 // starts the animation and putting it back arms it for the next visit.
 //
 // The frames hold still and their contents arrive into them — the stage keeps
-// its well and its grid, the playlist keeps its panel. That is what makes the
+// its card, the playlist keeps its panel. That is what makes the
 // tab read as filling in rather than as being rebuilt, and it is also what
 // keeps this flat: one sequence of delays over leaf elements, never a cascade
 // nested inside a container that is itself animating. See `stagger-in`.
@@ -286,15 +295,14 @@ $karaoke-cool: var(--karaoke-glow-cool);
       color: $surface-base;
       border-color: color-mix(in srgb, $secondary-default 82%, transparent);
       background: $secondary-default;
-      box-shadow: 0 0 20px
-        color-mix(in srgb, $secondary-default 18%, transparent);
+      box-shadow: none;
     }
   }
 
   .karaoke-workspace__settings.is-live {
     color: $secondary-light;
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 18%, transparent);
+    box-shadow: none;
   }
 
   // The stage-art toggle wears the same lit state as the pitch guide: they are
@@ -307,20 +315,16 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $surface-base;
     border-color: color-mix(in srgb, $secondary-light 94%, transparent);
     background: linear-gradient(145deg, $secondary-light, $secondary-default);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, $secondary-default 20%, transparent),
-      0 0 20px color-mix(in srgb, $secondary-default 24%, transparent),
-      inset 0 1px rgba($white, 0.42);
+    box-shadow: 0 0 0 1px
+      color-mix(in srgb, $secondary-default 20%, transparent);
 
     &:hover:not(:disabled),
     &:focus-visible {
       color: $surface-base;
       border-color: rgba($white, 0.96);
       background: linear-gradient(145deg, $white, $secondary-light);
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, $secondary-default 20%, transparent),
-        0 0 24px color-mix(in srgb, $secondary-default 32%, transparent),
-        inset 0 1px rgba($white, 0.56);
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, $secondary-default 20%, transparent);
     }
   }
 }
@@ -360,34 +364,10 @@ $karaoke-cool: var(--karaoke-glow-cool);
       color-mix(in srgb, #{$karaoke-cool} 8%, transparent),
       transparent 34%
     ),
-    linear-gradient(
-      135deg,
-      $surface-panel 0%,
-      $surface-base 52%,
-      $surface-well 100%
-    );
-
-  // The grid belongs to the whole stage rather than to the lyric card. It now
-  // continues behind an expanded playlist and reaches every screen edge.
-  &::before {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    opacity: 0.2;
-    background-image:
-      linear-gradient(
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 34px 34px;
-    pointer-events: none;
-    content: '';
-  }
+    // The floor, flat. It was a diagonal from the pane colour to the well's
+    // under a 34px graph-paper grid — texture no other page has, and on a
+    // stage whose words are the subject.
+    $surface-base;
 
   > .karaoke-workspace__player,
   > .karaoke-workspace__notice {
@@ -461,9 +441,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   // does the work, since no single ink is visible against every picture.
   .karaoke-pane-splitter__handle > span {
     background: rgba($white, 0.62);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, $surface-well 50%, transparent),
-      0 2px 10px color-mix(in srgb, $surface-well 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, $surface-well 50%, transparent);
   }
 
   // Inset from the screen edges, and solid enough to read over a bright
@@ -477,7 +455,14 @@ $karaoke-cool: var(--karaoke-glow-cool);
     // artwork is, and a card is what every other list in the app is. The
     // card itself laid over the floor, as Library's Up next is — the block
     // colour was a step lighter than every card (2026-09-26).
-    background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
+    background: $card-glow, $karaoke-chip-face;
+  }
+
+  // The lane stands on the picture beside the playlist, so it is the same
+  // card as the playlist; in a window it is a box inside the stage's card and
+  // keeps its edge alone.
+  .karaoke-pitch {
+    background: $card-glow, $karaoke-chip-face !important;
   }
 
   .karaoke-workspace__stage {
@@ -485,10 +470,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-
-    &::before {
-      display: none;
-    }
   }
 }
 
@@ -504,17 +485,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
   padding: 5px;
   border: 1px solid $border-field;
   border-radius: $radius-l;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, $surface-field-end 82%, transparent),
-      color-mix(in srgb, $surface-well 88%, transparent)
-    ),
-    color-mix(in srgb, $surface-base 76%, transparent);
-  box-shadow:
-    0 12px 30px rgba($black, 0.32),
-    0 0 22px color-mix(in srgb, $secondary-default 6%, transparent),
-    inset 0 1px 0 rgba($white, 0.07);
+  background: $karaoke-chip-face;
+  box-shadow: none;
   opacity: 0.82;
   transition:
     opacity 180ms ease,
@@ -525,10 +497,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   &:hover,
   &:focus-within {
     border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    box-shadow:
-      0 14px 34px rgba($black, 0.38),
-      0 0 26px color-mix(in srgb, $secondary-default 10%, transparent),
-      inset 0 1px 0 rgba($white, 0.09);
+    box-shadow: none;
     opacity: 1;
   }
 
@@ -547,7 +516,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $secondary-light;
     border-color: color-mix(in srgb, $secondary-default 46%, transparent);
     background: color-mix(in srgb, $secondary-default 10%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 10%, transparent);
+    box-shadow: none;
   }
 
   // Fades in place. The 7px lift that used to come with it meant the bar slid
@@ -815,13 +784,12 @@ $karaoke-cool: var(--karaoke-glow-cool);
   &:focus-visible > span,
   &.is-dragging > span {
     background: color-mix(in srgb, $secondary-light 82%, transparent);
-    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 28%, transparent);
+    box-shadow: none;
   }
 
   &:focus-visible > span {
-    box-shadow:
-      0 0 0 3px color-mix(in srgb, $secondary-default 18%, transparent),
-      0 0 10px color-mix(in srgb, $secondary-default 28%, transparent);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, $secondary-default 18%, transparent);
   }
 }
 
@@ -998,7 +966,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   place-items: center;
   padding: 0;
   color: $text-muted;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid $border-field;
   border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition: $transition-control;
@@ -1013,7 +981,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $secondary-light;
     border-color: color-mix(in srgb, $secondary-default 50%, transparent);
     background: color-mix(in srgb, $secondary-default 12%, transparent);
-    box-shadow: 0 0 15px color-mix(in srgb, $secondary-default 14%, transparent);
+    box-shadow: none;
   }
 }
 
@@ -1027,8 +995,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
   // the accent's own label, like the queue chip over a library video.
   color: $secondary-light;
   border: 1px solid $border-field;
-  background: $block-lift;
-  box-shadow: 0 5px 15px rgba($black, 0.24);
+  background: $karaoke-chip-face;
+  box-shadow: none;
   transition: $transition-control;
 
   svg {
@@ -1044,24 +1012,26 @@ $karaoke-cool: var(--karaoke-glow-cool);
   &:hover,
   &:focus-visible {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 48%, transparent);
-    background: linear-gradient(
-      145deg,
-      color-mix(in srgb, $surface-field 94%, transparent),
-      color-mix(in srgb, $surface-panel 96%, transparent)
-    );
-    box-shadow:
-      0 0 16px color-mix(in srgb, $secondary-default 14%, transparent),
-      inset 0 1px 0 rgba($white, 0.08);
+    border-color: $border-field-hover;
+    background: $karaoke-chip-hover;
+    box-shadow: none;
     outline: none;
   }
 }
 
+// On the card, not over the picture: the quiet button, like the group toggle
+// beside it, rather than a dark opaque square among two tinted ones.
 .karaoke-playlist__collapse {
   width: 26px;
   height: 26px;
   padding: 0;
   border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
 }
 
 // Out of the fold it just closed: the pill stands on the stage's left edge, so
@@ -1181,7 +1151,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
 }
 
 .karaoke-workspace__stage {
-  @include lifted-surface;
+  @include card-surface;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -1193,6 +1163,9 @@ $karaoke-cool: var(--karaoke-glow-cool);
   gap: clamp(18px, 4vw, 52px);
   padding: clamp(24px, 4vw, 52px);
   overflow: hidden;
+  // The playlist's card, with the palette's two lights in it. It was a
+  // diagonal of its own under a graph-paper grid, beside a playlist that is
+  // a plain card: two materials in one row.
   background:
     radial-gradient(
       circle at 18% 48%,
@@ -1204,36 +1177,12 @@ $karaoke-cool: var(--karaoke-glow-cool);
       color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
       transparent 30%
     ),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, $surface-panel 70%, transparent),
-      color-mix(in srgb, $surface-base 45%, transparent)
-    );
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    opacity: 0.22;
-    background-image:
-      linear-gradient(
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 34px 34px;
-    pointer-events: none;
-    content: '';
-  }
+    $card-glow, $surface-card;
 
   &.is-dragging {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, $secondary-default 32%, transparent),
-      0 0 30px color-mix(in srgb, $secondary-default 10%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-default 32%, transparent);
   }
 
   &.has-song {
@@ -1336,8 +1285,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
   justify-self: center;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 28px 32px rgba($black, 0.34))
-    drop-shadow(0 0 24px color-mix(in srgb, $secondary-default 9%, transparent));
   transform: translateX(clamp(8px, 1vw, 18px)) rotate(12deg);
   transform-origin: center;
   user-select: none;
@@ -1484,28 +1431,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
   color: rgba($white, 0.9);
   border: 1px solid $border-field;
   border-radius: $radius-m;
-  background: $block-lift;
-  box-shadow:
-    0 9px 24px rgba($black, 0.28),
-    0 0 22px color-mix(in srgb, $secondary-default 6%, transparent),
-    inset 0 1px 0 rgba($white, 0.08);
-
-  &::before {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: 12px;
-    left: 12px;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, $secondary-light 35%, transparent),
-      transparent
-    );
-    content: '';
-    pointer-events: none;
-  }
+  background: $karaoke-chip-face;
+  box-shadow: none;
 
   &.is-analyzing {
     min-width: 168px;
@@ -1526,7 +1453,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   border: 2px solid $border-field;
   border-top-color: $secondary-light;
   border-radius: 50%;
-  box-shadow: 0 0 9px color-mix(in srgb, $secondary-default 20%, transparent);
+  box-shadow: none;
   animation: karaoke-chord-scan 900ms linear infinite;
 }
 
@@ -1566,8 +1493,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
   strong {
     color: $secondary-light;
     font-size: 1.18rem;
-    text-shadow: 0 0 14px
-      color-mix(in srgb, $secondary-default 32%, transparent);
   }
 }
 
@@ -1625,25 +1550,16 @@ $karaoke-cool: var(--karaoke-glow-cool);
   box-sizing: border-box;
   padding: 4px 8px;
   color: $text-muted;
-  border: 1px solid color-mix(in srgb, $secondary-light 13%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-s;
-  background: $block-lift;
-  box-shadow:
-    0 6px 18px rgba($black, 0.24),
-    0 0 16px color-mix(in srgb, $secondary-default 4%, transparent),
-    inset 0 1px 0 rgba($white, 0.06);
+  background: $karaoke-chip-face;
   transition:
     border-color 180ms ease,
-    box-shadow 180ms ease,
     opacity 180ms ease;
 
   &:hover,
   &:focus-within {
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    box-shadow:
-      0 7px 20px rgba($black, 0.28),
-      0 0 18px color-mix(in srgb, $secondary-default 8%, transparent),
-      inset 0 1px 0 rgba($white, 0.08);
+    border-color: $border-field-hover;
   }
 
   > span {
@@ -1682,8 +1598,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
       90deg,
       $secondary-default 0%,
       $secondary-default var(--karaoke-lyric-size-progress),
-      rgba($edge-tint, 0.18) var(--karaoke-lyric-size-progress),
-      rgba($edge-tint, 0.18) 100%
+      $track-well var(--karaoke-lyric-size-progress),
+      $track-well 100%
     );
     cursor: pointer;
 
@@ -1694,9 +1610,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
       border: 2px solid color-mix(in srgb, $surface-base 95%, transparent);
       border-radius: 50%;
       background: $secondary-light;
-      box-shadow:
-        0 0 0 1px color-mix(in srgb, $secondary-default 55%, transparent),
-        0 0 10px color-mix(in srgb, $secondary-default 30%, transparent);
+      box-shadow: 0 0 0 1px
+        color-mix(in srgb, $secondary-default 55%, transparent);
       transition:
         scale 140ms ease,
         box-shadow 140ms ease;
@@ -1704,9 +1619,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
 
     &:hover::-webkit-slider-thumb,
     &:focus-visible::-webkit-slider-thumb {
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, $secondary-default 20%, transparent),
-        0 0 13px color-mix(in srgb, $secondary-default 46%, transparent);
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, $secondary-default 20%, transparent);
       scale: 1.12;
     }
   }
@@ -1729,15 +1643,9 @@ $karaoke-cool: var(--karaoke-glow-cool);
   min-height: 28px !important;
   gap: 5px;
   padding: 4px 9px !important;
-  border-color: color-mix(
-    in srgb,
-    $secondary-default 34%,
-    transparent
-  ) !important;
-  background: color-mix(in srgb, $surface-base 90%, transparent) !important;
-  box-shadow:
-    0 5px 16px rgba($black, 0.3),
-    0 0 14px color-mix(in srgb, $secondary-default 8%, transparent);
+  border-color: $border-field !important;
+  background: $karaoke-chip-face !important;
+  box-shadow: none;
   font-size: 0.6rem !important;
   transform: translateX(-50%);
 
@@ -1754,12 +1662,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
   &.button:hover:not([aria-disabled='true']),
   &.button:focus-visible {
     color: $secondary-light;
-    border-color: color-mix(
-      in srgb,
-      $secondary-default 65%,
-      transparent
-    ) !important;
-    background: color-mix(in srgb, $surface-panel 96%, transparent) !important;
+    border-color: $border-field-hover !important;
+    background: $karaoke-chip-hover !important;
   }
 }
 
@@ -1792,19 +1696,17 @@ $karaoke-cool: var(--karaoke-glow-cool);
   min-height: 28px;
   padding: 4px 9px;
   color: $text-muted;
-  border: 1px solid color-mix(in srgb, $secondary-default 34%, transparent);
+  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $surface-base 90%, transparent);
-  box-shadow:
-    0 5px 16px rgba($black, 0.3),
-    0 0 14px color-mix(in srgb, $secondary-default 8%, transparent);
+  background: $karaoke-chip-face;
+  box-shadow: none;
   font-size: $text-micro;
 
   &:hover:not([aria-disabled='true']),
   &:focus-visible {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 65%, transparent);
-    background: color-mix(in srgb, $surface-panel 96%, transparent);
+    border-color: $border-field-hover;
+    background: $karaoke-chip-hover;
   }
 }
 
@@ -1859,48 +1761,14 @@ $karaoke-cool: var(--karaoke-glow-cool);
   padding: 8px 11px;
   border: 1px solid $border-field;
   border-radius: $radius-xl;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, $surface-field-end 72%, transparent),
-      color-mix(in srgb, $surface-well 84%, transparent)
-    ),
-    color-mix(in srgb, $surface-base 70%, transparent);
-  box-shadow:
-    0 16px 42px rgba($black, 0.4),
-    0 0 30px color-mix(in srgb, $secondary-default 5.5%, transparent),
-    inset 0 1px 0 rgba($white, 0.08),
-    inset 0 -1px 0 rgba($black, 0.28);
+  background: $karaoke-chip-face;
+  box-shadow: none;
   transform: translateZ(0);
-  transition:
-    border-color 260ms ease,
-    box-shadow 260ms ease;
-
-  &::before {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: 8%;
-    left: 8%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, $secondary-light 44%, transparent),
-      transparent
-    );
-    content: '';
-    pointer-events: none;
-  }
+  transition: border-color 260ms ease;
 
   &:hover,
   &:focus-within {
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    box-shadow:
-      0 19px 48px rgba($black, 0.44),
-      0 0 36px color-mix(in srgb, $secondary-default 9%, transparent),
-      inset 0 1px 0 rgba($white, 0.11),
-      inset 0 -1px 0 rgba($black, 0.26);
+    border-color: $border-field-hover;
   }
 }
 
@@ -1912,9 +1780,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
   border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-well 38%, transparent);
-  box-shadow:
-    0 5px 16px rgba($black, 0.22),
-    inset 0 1px 0 rgba($white, 0.035);
+  box-shadow: none;
 
   // Match the library transport's asymmetric action count without moving the
   // play button: two fixed-width flanks keep it on the bar's centre line while
@@ -1962,8 +1828,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
         $secondary-default 14%,
         transparent
       ) !important;
-      box-shadow: 0 0 16px
-        color-mix(in srgb, $secondary-default 13%, transparent) !important;
+      box-shadow: none !important;
       filter: none;
       transform: none;
     }
@@ -1998,7 +1863,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
       font-weight: $weight-bold;
       line-height: 1;
       background: $surface-panel;
-      border: 1px solid rgba(105, 246, 233, 0.38);
+      border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
       border-radius: 50%;
     }
 
@@ -2008,17 +1873,19 @@ $karaoke-cool: var(--karaoke-glow-cool);
       left: 50%;
       z-index: 30;
       padding: 6px 8px;
-      color: #dcfffb;
+      // A menu's floor and edge, in the window's palette. It was a fixed
+      // teal on near-black, the same under every theme and every accent.
+      color: $text-primary;
       font-size: $text-lead;
       font-weight: $weight-bold;
       line-height: 1;
       white-space: nowrap;
       pointer-events: none;
       visibility: hidden;
-      background: rgba(4, 22, 35, 0.98);
-      border: 1px solid rgba(76, 225, 214, 0.34);
+      background: $surface-menu-floor;
+      border: 1px solid $border-menu;
       border-radius: $radius-xs;
-      box-shadow: 0 10px 28px rgba($black, 0.42);
+      box-shadow: none;
       opacity: 0;
       transform: translate(-50%, 3px);
       transition:
@@ -2051,10 +1918,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
       $secondary-light,
       $secondary-default
     ) !important;
-    box-shadow:
-      0 8px 20px rgba($black, 0.34),
-      0 0 22px color-mix(in srgb, $secondary-default 30%, transparent),
-      inset 0 1px 0 rgba($white, 0.42) !important;
+    box-shadow: none !important;
 
     &:hover:not([aria-disabled='true']) {
       color: $surface-base !important;
@@ -2099,7 +1963,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
   border: 1px solid color-mix(in srgb, $secondary-light 7%, transparent);
   border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-well 24%, transparent);
-  box-shadow: inset 0 1px 2px rgba($black, 0.24);
+  box-shadow: none;
 }
 
 .karaoke-transport__time {
@@ -2186,7 +2050,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $white;
     border-color: color-mix(in srgb, $secondary-light 45%, transparent);
     background: color-mix(in srgb, $secondary-default 14%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 16%, transparent);
+    box-shadow: none;
   }
 }
 
@@ -2236,7 +2100,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $surface-base;
     border-color: color-mix(in srgb, $secondary-light 70%, transparent);
     background: $secondary-default;
-    box-shadow: 0 0 15px color-mix(in srgb, $secondary-default 24%, transparent);
+    box-shadow: none;
   }
 
   &[data-unavailable='true'] {
@@ -2456,7 +2320,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     border: 2px solid rgba($text-primary, 0.92);
     border-radius: 50%;
     background: $secondary-default;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 45%, transparent);
+    box-shadow: none;
   }
 
   &:focus-visible {
@@ -2521,7 +2385,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     height: 38%;
     border-radius: $radius-pill;
     background: linear-gradient(#{$karaoke-warm}, #{$karaoke-cool});
-    box-shadow: 0 0 9px color-mix(in srgb, $secondary-default 28%, transparent);
+    box-shadow: none;
 
     &:nth-child(2),
     &:nth-child(6) {
@@ -2647,9 +2511,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
 
   &.is-live {
     border-color: color-mix(in srgb, $secondary-default 32%, transparent);
-    box-shadow:
-      inset 0 1px 3px rgba($black, 0.28),
-      0 0 24px color-mix(in srgb, $secondary-default 7%, transparent);
+    box-shadow: none;
   }
 }
 
@@ -2761,7 +2623,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
       $neon-yellow 88%,
       $red 100%
     );
-    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 35%, transparent);
+    box-shadow: none;
     transform-origin: left center;
     transition: transform 50ms linear;
   }
@@ -2804,9 +2666,8 @@ $karaoke-cool: var(--karaoke-glow-cool);
       border: 2px solid $surface-base;
       border-radius: 50%;
       background: $secondary-light;
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, $secondary-default 28%, transparent),
-        0 0 10px color-mix(in srgb, $secondary-default 35%, transparent);
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, $secondary-default 28%, transparent);
     }
 
     &:focus-visible {
@@ -2887,40 +2748,15 @@ $karaoke-cool: var(--karaoke-glow-cool);
   background: transparent !important;
   text-align: left;
   transform: translateZ(0);
-  transition:
-    border-color 280ms ease,
-    box-shadow 280ms ease;
-
-  &::before {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 7%;
-    left: 7%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, $secondary-light 32%, transparent),
-      transparent
-    );
-    content: '';
-    pointer-events: none;
-  }
+  transition: border-color 280ms ease;
 
   &:hover,
   &:focus-within {
     border-color: color-mix(in srgb, $secondary-light 22%, transparent);
-    box-shadow:
-      0 18px 42px rgba($black, 0.26),
-      0 0 36px color-mix(in srgb, $secondary-default 6%, transparent);
   }
 
   &.is-microphone-live {
     border-color: color-mix(in srgb, $secondary-light 25%, transparent);
-    box-shadow:
-      0 16px 40px rgba($black, 0.24),
-      0 0 34px color-mix(in srgb, $secondary-default 10%, transparent);
   }
 
   &.has-targets {
@@ -2955,13 +2791,7 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $secondary-light;
     border-color: color-mix(in srgb, $secondary-default 72%, transparent);
     background: color-mix(in srgb, $secondary-default 16%, transparent);
-    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 16%, transparent);
-
-    .karaoke-button__icon {
-      filter: drop-shadow(
-        0 0 5px color-mix(in srgb, $secondary-light 50%, transparent)
-      );
-    }
+    box-shadow: none;
   }
 
   &:disabled {
@@ -3020,7 +2850,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
     color: $neon-yellow;
     font-size: $text-title;
     @include tracking(0.02em);
-    text-shadow: 0 0 12px rgba($neon-yellow, 0.22);
   }
 }
 
@@ -3036,15 +2865,10 @@ $karaoke-cool: var(--karaoke-glow-cool);
   // to edge, so a wash here only showed as a darker rim where the two did
   // not quite meet.
   background: $surface-plot;
-  box-shadow: none;
-  transition:
-    border-color 260ms ease,
-    box-shadow 260ms ease;
+  transition: border-color 260ms ease;
 
   .karaoke-pitch.is-microphone-live & {
     border-color: color-mix(in srgb, $secondary-light 17%, transparent);
-    box-shadow: 0 0 18px
-      color-mix(in srgb, $secondary-default 4.5%, transparent);
   }
 
   canvas {
@@ -3092,11 +2916,10 @@ $karaoke-cool: var(--karaoke-glow-cool);
   border: 1px solid color-mix(in srgb, $secondary-light 44%, transparent);
   border-radius: $radius-l;
   // The card colour, like every other card. It was the old well colour at
-  // 88%, which over a picture was a black box with a number in it.
-  background: $block-lift;
-  box-shadow:
-    0 20px 55px rgba($black, 0.45),
-    0 0 34px color-mix(in srgb, $secondary-default 17%, transparent);
+  // 88%, which over a picture was a black box with a number in it, and then
+  // the block colour, a grey slab.
+  background: $karaoke-chip-face;
+  box-shadow: none;
   pointer-events: none;
   transform: translate(-50%, -50%);
 
@@ -3105,8 +2928,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
     font-size: clamp(2.5rem, 7vh, 4.8rem);
     font-weight: $weight-display;
     line-height: 1;
-    text-shadow: 0 0 28px
-      color-mix(in srgb, $secondary-default 55%, transparent);
     animation: karaoke-count-in-cue 550ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 

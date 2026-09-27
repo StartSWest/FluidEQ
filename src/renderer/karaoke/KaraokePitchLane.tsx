@@ -474,8 +474,6 @@ const KaraokePitchLane = ({
         context.fillStyle = isComplete
           ? readAccentLight(0.88, 'rgba(151, 247, 238, .88)')
           : textInk;
-        context.shadowColor = 'transparent';
-        context.shadowBlur = 0;
         context.fillText(word.text, labelX, labelY);
         if (wordProgress > 0 && !isComplete) {
           context.save();
@@ -488,8 +486,6 @@ const KaraokePitchLane = ({
           );
           context.clip();
           context.fillStyle = readAccentLight(1, '#73fff3');
-          context.shadowColor = readAccent(0.78, 'rgba(33, 232, 214, .78)');
-          context.shadowBlur = isCurrent ? 9 : 4;
           context.fillText(word.text, labelX, labelY);
           context.restore();
         }
@@ -510,10 +506,6 @@ const KaraokePitchLane = ({
             ? readAccent(0.7, 'rgba(91, 237, 224, .7)')
             : readAccent(1, '#49f2e3');
           context.lineWidth = isCurrent ? 2.6 : 2;
-          context.shadowColor = isCurrent
-            ? readAccent(0.7, 'rgba(39, 235, 219, .7)')
-            : 'transparent';
-          context.shadowBlur = isCurrent ? 7 : 0;
           context.beginPath();
           context.moveTo(noteLeft, plotTop - 6);
           context.lineTo(Math.max(noteLeft + 1, progressRight), plotTop - 6);
@@ -681,33 +673,22 @@ const KaraokePitchLane = ({
         noteGradient.addColorStop(0.35, noteColor);
         noteGradient.addColorStop(1, noteColor);
         context.fillStyle = noteGradient;
-        context.shadowColor = isPitchMatch
-          ? readAccent(0.98, 'rgba(40, 242, 213, 0.98)')
-          : noteEdge;
-        context.shadowBlur = isPitchMatch ? 18 : 5;
         roundedRectPath(context, x, noteY, noteWidth, noteHeight);
         context.fill();
-        context.shadowBlur = 0;
 
         if (timingState !== 'idle') {
           let timingBorder = readAccent(0.5, 'rgba(34, 224, 214, 0.5)');
-          let timingGlow = 3;
           if (timingState === 'active') {
             timingBorder = 'rgba(48, 145, 255, 1)';
-            timingGlow = 10;
           }
           if (isPitchMatch) {
             timingBorder = readAccentLight(1, 'rgba(226, 255, 250, 1)');
-            timingGlow = 15;
           }
           context.strokeStyle = timingBorder;
           context.lineWidth = timingState === 'active' ? 2.2 : 1.35;
           context.setLineDash([]);
-          context.shadowColor = timingBorder;
-          context.shadowBlur = timingGlow;
           roundedRectPath(context, x, noteY, noteWidth, noteHeight);
           context.stroke();
-          context.shadowBlur = 0;
         }
 
         const noteName = midiToNoteName(midi, targetHasAbsoluteOctaves);
@@ -735,16 +716,11 @@ const KaraokePitchLane = ({
           context.fillStyle = isPitchMatch
             ? readAccentLight(1, 'rgba(226, 255, 250, 1)')
             : 'rgba(221, 233, 251, 0.9)';
-          context.shadowColor = isPitchMatch
-            ? readAccent(0.8, 'rgba(40, 242, 213, 0.8)')
-            : 'rgba(5, 14, 25, 0.95)';
-          context.shadowBlur = isPitchMatch ? 8 : 3;
           context.fillText(
             noteName,
             labelX,
             labelAbove ? noteY - 3 : noteY + noteHeight + 3,
           );
-          context.shadowBlur = 0;
           floatingLabelRightByPitch.set(pitchRow, labelX + labelWidth / 2);
         }
       });
@@ -792,21 +768,16 @@ const KaraokePitchLane = ({
           1,
           readAccent(0.76, 'rgba(107, 233, 242, 0.76)'),
         );
+        // One sharp line. It ran over a 6px haze of its own blue under a
+        // 10px glow, and the lane read as lit fog (Ivan, 2026-09-26: the
+        // pitch lane "need to be clean and nice").
         context.lineCap = 'round';
         context.lineJoin = 'round';
         context.setLineDash([]);
-        context.strokeStyle = 'rgba(91, 182, 255, 0.2)';
-        context.lineWidth = 6;
-        context.shadowColor = 'rgba(73, 177, 255, 0.52)';
-        context.shadowBlur = 10;
-        guidePath();
-        context.stroke();
         context.strokeStyle = guideGradient;
-        context.lineWidth = 1.65;
-        context.shadowBlur = 4;
+        context.lineWidth = 1.8;
         guidePath();
         context.stroke();
-        context.shadowBlur = 0;
 
         const guideTargetMidi = targetAtTime(
           visibleNotes.filter((note) => note.kind !== 'free'),
@@ -816,12 +787,9 @@ const KaraokePitchLane = ({
           const guideY = yForMidi(guideTargetMidi);
           const guideX = xForSongTime(synchronizedPlayheadMs);
           context.fillStyle = readAccentLight(1, '#dff8ff');
-          context.shadowColor = '#5fb8ff';
-          context.shadowBlur = 12;
           context.beginPath();
           context.arc(guideX, guideY, 3, 0, Math.PI * 2);
           context.fill();
-          context.shadowBlur = 0;
         }
       }
 
@@ -842,8 +810,6 @@ const KaraokePitchLane = ({
       if (hasSongClock) {
         context.strokeStyle = 'rgba(48, 145, 255, 0.92)';
         context.lineWidth = 2;
-        context.shadowColor = 'rgba(48, 145, 255, 0.45)';
-        context.shadowBlur = 8;
         context.beginPath();
         context.moveTo(playheadX, plotTop - 3);
         context.lineTo(playheadX, plotTop + plotHeight);
@@ -852,7 +818,6 @@ const KaraokePitchLane = ({
         context.beginPath();
         context.arc(playheadX, plotTop, 3.5, 0, Math.PI * 2);
         context.fill();
-        context.shadowBlur = 0;
       }
 
       if (trace.length > 0) {
@@ -944,7 +909,7 @@ const KaraokePitchLane = ({
         context.clip();
 
         // The microphone is one continuous pitch curve over the song blocks.
-        // Input energy changes its glow; the presentation-only pitch easing
+        // Input energy changes its weight; the presentation-only pitch easing
         // above calms detector wobble without changing scoring coordinates.
         const microphoneGradient = context.createLinearGradient(
           first.x,
@@ -964,38 +929,24 @@ const KaraokePitchLane = ({
             ),
           );
         });
-        context.globalAlpha = 0.22;
-        context.strokeStyle = microphoneGradient;
-        context.lineWidth = 6;
-        context.shadowColor = headColor;
-        context.shadowBlur = 8 + Math.min(12, last.energy * 22);
-        tracePath();
-        context.stroke();
+        // One stroke that thickens as the voice gets louder. It was a 6px
+        // haze under a glow sized by the same energy — the loudness is still
+        // there, in the line's own weight rather than in a blur round it.
         context.globalAlpha = Math.max(0.72, last.confidence);
         context.strokeStyle = microphoneGradient;
-        context.lineWidth = 2.1;
-        context.shadowBlur = 4 + Math.min(8, last.energy * 14);
+        context.lineWidth = 2.1 + Math.min(1.6, last.energy * 3);
         tracePath();
         context.stroke();
         context.globalAlpha = 1;
-        context.shadowBlur = 0;
 
+        // The voice's head: a ring that breathes while it sings, round a
+        // point. It was a radial glow the ring's size.
         const pulse = last.voiced ? 4.6 + Math.sin(now / 145) * 0.75 : 2.7;
-        const aura = context.createRadialGradient(
-          last.x,
-          last.y,
-          0,
-          last.x,
-          last.y,
-          pulse * 2.8,
-        );
-        aura.addColorStop(0, last.voiced ? '#ffffff' : headColor);
-        aura.addColorStop(0.22, headColor);
-        aura.addColorStop(1, readAccent(0, 'rgba(34, 224, 214, 0)'));
-        context.fillStyle = aura;
+        context.strokeStyle = headColor;
+        context.lineWidth = 1.5;
         context.beginPath();
-        context.arc(last.x, last.y, pulse * 2.8, 0, Math.PI * 2);
-        context.fill();
+        context.arc(last.x, last.y, pulse, 0, Math.PI * 2);
+        context.stroke();
         context.fillStyle = last.voiced ? '#ffffff' : headColor;
         context.beginPath();
         context.arc(last.x, last.y, 1.8, 0, Math.PI * 2);
@@ -1047,26 +998,15 @@ const KaraokePitchLane = ({
           24,
           plotWidth - reviewLabelWidth - reviewCountWidth,
         );
-        const reviewSurface = context.createLinearGradient(
-          PLOT_LEFT,
-          reviewY - 5,
-          PLOT_LEFT + plotWidth,
-          reviewY + reviewTrackHeight + 5,
-        );
-        // The card colour over the plot, the same step every block in the
-        // app takes over its pane. It was a ramp of three near-black blues.
-        reviewSurface.addColorStop(
-          0,
-          readSurfaceAlpha('--surface-block', 0.96, 'rgba(30, 66, 87, 0.96)'),
-        );
-        reviewSurface.addColorStop(
-          1,
-          readSurfaceAlpha('--surface-block', 0.9, 'rgba(30, 66, 87, 0.9)'),
-        );
+        // The plot's own ground, opaque, so the strip hides what scrolls
+        // under it without standing out from the plot as a lighter slab. It
+        // was the block colour under a drop shadow.
         context.save();
-        context.fillStyle = reviewSurface;
-        context.shadowColor = 'rgba(0, 0, 0, 0.24)';
-        context.shadowBlur = 8;
+        context.fillStyle = readSurfaceAlpha(
+          '--surface-base',
+          0.94,
+          'rgba(1, 21, 33, 0.94)',
+        );
         roundedRectPath(
           context,
           PLOT_LEFT - 7,
@@ -1149,8 +1089,6 @@ const KaraokePitchLane = ({
           }
           context.fillStyle = issueColor;
           context.globalAlpha = isHovered ? 1 : 0.88;
-          context.shadowColor = issueColor;
-          context.shadowBlur = isHovered ? 10 : 5;
           roundedRectPath(
             context,
             issueLeft,
@@ -1160,7 +1098,6 @@ const KaraokePitchLane = ({
           );
           context.fill();
           context.globalAlpha = 1;
-          context.shadowBlur = 0;
           issueHitRegionsRef.current.push({
             issue,
             left: issueLeft - 2,
@@ -1178,13 +1115,10 @@ const KaraokePitchLane = ({
           ) *
             reviewTrackWidth;
         context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-        context.shadowColor = 'rgba(48, 145, 255, 0.9)';
-        context.shadowBlur = 5;
         context.beginPath();
         context.moveTo(reviewPlayheadX, reviewY - 2);
         context.lineTo(reviewPlayheadX, reviewY + reviewTrackHeight + 2);
         context.stroke();
-        context.shadowBlur = 0;
         if (reviewCountWidth > 0) {
           context.textAlign = 'right';
           context.fillStyle = textInk;
@@ -1208,26 +1142,14 @@ const KaraokePitchLane = ({
         const legendHeight = 72;
         const legendX = PLOT_LEFT + plotWidth - legendWidth - 11;
         const legendY = plotTop + plotHeight - legendHeight - 10;
-        const legendSurface = context.createLinearGradient(
-          legendX,
-          legendY,
-          legendX + legendWidth,
-          legendY + legendHeight,
-        );
-        // Same card colour as the review strip, for the same reason.
-        legendSurface.addColorStop(
-          0,
-          readSurfaceAlpha('--surface-block', 0.97, 'rgba(30, 66, 87, 0.97)'),
-        );
-        legendSurface.addColorStop(
-          1,
-          readSurfaceAlpha('--surface-block', 0.94, 'rgba(30, 66, 87, 0.94)'),
-        );
+        // The review strip's ground, for the same reason, with an edge and
+        // nothing else: no drop shadow, no lit rim along its top.
         context.save();
-        context.fillStyle = legendSurface;
-        context.shadowColor = 'rgba(0, 0, 0, 0.38)';
-        context.shadowBlur = 15;
-        context.shadowOffsetY = 6;
+        context.fillStyle = readSurfaceAlpha(
+          '--surface-base',
+          0.94,
+          'rgba(1, 21, 33, 0.94)',
+        );
         roundedRectPath(
           context,
           legendX,
@@ -1250,32 +1172,6 @@ const KaraokePitchLane = ({
         );
         context.stroke();
 
-        // A fine highlight makes the card read as part of the glass UI without
-        // outlining every side in bright cyan.
-        const legendHighlight = context.createLinearGradient(
-          legendX + 9,
-          0,
-          legendX + legendWidth - 9,
-          0,
-        );
-        legendHighlight.addColorStop(
-          0,
-          readAccent(0, 'rgba(107, 233, 242, 0)'),
-        );
-        legendHighlight.addColorStop(
-          0.5,
-          readAccent(0.32, 'rgba(107, 233, 242, 0.32)'),
-        );
-        legendHighlight.addColorStop(
-          1,
-          readAccent(0, 'rgba(107, 233, 242, 0)'),
-        );
-        context.strokeStyle = legendHighlight;
-        context.beginPath();
-        context.moveTo(legendX + 9, legendY + 0.5);
-        context.lineTo(legendX + legendWidth - 9, legendY + 0.5);
-        context.stroke();
-
         context.font = `600 11px ${LANE_FONT}`;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
@@ -1284,8 +1180,6 @@ const KaraokePitchLane = ({
           const swatchX = legendX + 13;
           context.fillStyle = color;
           context.strokeStyle = color;
-          context.shadowColor = color;
-          context.shadowBlur = 4;
           if (symbol === 'guide') {
             context.lineWidth = 1.6;
             context.lineCap = 'round';
@@ -1304,7 +1198,6 @@ const KaraokePitchLane = ({
             context.font = `700 11px ${LANE_FONT}`;
             context.fillText(symbol, swatchX + 1, y);
           }
-          context.shadowBlur = 0;
           context.font = `600 11px ${LANE_FONT}`;
           context.fillStyle = 'rgba(222, 232, 247, 0.9)';
           context.fillText(label, legendX + 34, y, legendWidth - 45);

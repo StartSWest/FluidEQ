@@ -558,24 +558,10 @@ const KaraokeLyrics = ({
         context.globalAlpha = alpha;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
-        let shadowColor = `rgba(34, 224, 214, ${0.2 * focusAmount})`;
-        if (hasEuphoriaText) {
-          shadowColor = rainbowColourAt(
-            euphoriaHue / 360,
-            0,
-            0.32 * focusAmount,
-          );
-        } else if (isCapturePending) {
-          shadowColor = 'rgba(0, 0, 0, 0)';
-        } else if (isCaptureStarted) {
-          shadowColor = `rgba(34, 224, 214, ${0.3 * focusAmount})`;
-        } else if (isCaptureComplete) {
-          shadowColor = `rgba(112, 255, 246, ${0.42 * focusAmount})`;
-        }
-        context.shadowColor = shadowColor;
-        context.shadowBlur = hasEuphoriaText
-          ? 18 * focusAmount
-          : 20 * focusAmount;
+        // No halo round the words. The focused line carried a 20px glow in a
+        // fixed cyan, whatever the window's palette, and the dark key below
+        // is what actually makes it read over a picture (Ivan, 2026-09-26:
+        // "karaoke fix all those suck ui and no drop shadow").
         let wordX = textLeft;
         for (
           let wordIndex = 0;
@@ -608,7 +594,6 @@ const KaraokeLyrics = ({
             // focused line receives it, so upcoming lyrics stay quiet.
             context.save();
             context.lineJoin = 'round';
-            context.shadowBlur = 0;
             context.lineWidth = 3.2 * focusAmount;
             context.strokeStyle = `rgba(2, 8, 15, ${0.72 * focusAmount})`;
             context.strokeText(displayText, wordX, y);
@@ -616,10 +601,6 @@ const KaraokeLyrics = ({
             context.strokeStyle = `hsla(${
               (euphoriaHue + wordIndex * 11) % 360
             }, 96%, 70%, ${0.72 * focusAmount})`;
-            context.shadowColor = `hsla(${euphoriaHue}, 98%, 64%, ${
-              0.4 * focusAmount
-            })`;
-            context.shadowBlur = 10 * focusAmount;
             context.strokeText(displayText, wordX, y);
             context.restore();
           } else if (focusAmount > 0.55 && !isSection && !isCapturePending) {
@@ -628,7 +609,6 @@ const KaraokeLyrics = ({
             // only near the centre, so surrounding lyrics stay soft and quiet.
             context.save();
             context.lineJoin = 'round';
-            context.shadowBlur = 0;
             context.lineWidth = 2.4 * focusAmount;
             context.strokeStyle = `rgba(2, 8, 15, ${0.64 * focusAmount})`;
             context.strokeText(displayText, wordX, y);
@@ -662,10 +642,6 @@ const KaraokeLyrics = ({
                 (isCaptureComplete
                   ? readAccentLight(1, 'rgb(208, 255, 251)')
                   : readAccent(1, 'rgb(103, 241, 232)'));
-              if (euphoriaFill) {
-                context.shadowColor = `hsla(${euphoriaHue}, 98%, 65%, 0.5)`;
-                context.shadowBlur = 13 * focusAmount;
-              }
               context.fillText(displayText, wordX, y);
               context.restore();
             }
@@ -761,12 +737,12 @@ const KaraokeLyrics = ({
           context.font = `800 ${size}px ${LYRIC_FONT_FAMILY}`;
           context.textAlign = 'center';
           context.textBaseline = 'middle';
-          context.shadowColor = readAccent(
-            0.55,
-            readAccent(0.55, 'rgba(0, 229, 207, 0.55)'),
+          // The accent's light end, flat, like the words: it was a fixed
+          // cyan under an 18px glow.
+          context.fillStyle = readAccentLight(
+            0.9 * fade,
+            `rgba(126, 245, 232, ${0.9 * fade})`,
           );
-          context.shadowBlur = 18;
-          context.fillStyle = `rgba(126, 245, 232, ${0.9 * fade})`;
           context.fillText(label, width / 2, height - size * 1.1);
           context.restore();
         }

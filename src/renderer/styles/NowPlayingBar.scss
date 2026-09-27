@@ -30,10 +30,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // branch of that grid. `App.scss`'s `.has-now-playing` reserves the strip of
 // window this occupies so it never sits over the last row of content instead
 // of beside it.
-//
-// The glass-panel recipe below — the two-stop gradient, the inset highlight,
-// the blur — is `.karaoke-transport`'s own, reused rather than redrawn for a
-// second floating transport bar.
 
 // The play button lands on the same pixel whichever tab is driving the bar,
 // and these two figures are how.
@@ -454,10 +450,6 @@ $now-playing-bar-height: 64px;
     border-radius: 0;
     background: none;
     box-shadow: none;
-
-    &::before {
-      display: none;
-    }
 
     &:hover,
     &:focus-within {
