@@ -2771,12 +2771,14 @@ it under the terms of the GNU General Public License version 3 or later.
     // A 3D transform forces this box onto a layer of its own, which does sort,
     // and costs one layer for as long as the mode is open.
     transform: translateZ(0);
-    // The same edge as the side panes. It is still a panel laid over the
-    // workspace, not a second window, and a card in the middle of the screen
-    // with its own idea of a border reads as something that has gone wrong.
-    // Square: the column it covers is square, and a rounded card flush with
-    // it showed the workspace in four notches at its corners.
-    border: 1px solid $border-panel;
+    // No edge of its own. It is flush with the column, and every side of the
+    // column already has one — the side panes' hairlines, the title bar's and
+    // the player bar's — so the card's own line ran a pixel or two inside
+    // each of them as a second one (Ivan, 2026-09-26: "no double border on
+    // expanded mode UIs on any"). Square: the column it covers is square,
+    // and a rounded card flush with it showed the workspace in four notches
+    // at its corners.
+    border: 0;
     border-radius: 0;
     background: none;
     opacity: 1;
