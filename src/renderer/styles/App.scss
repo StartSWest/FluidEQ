@@ -2004,6 +2004,17 @@ textarea,
     var(--accent) 48%,
     var(--accent-end)
   );
+  // What a button, a switch or any filled control is painted with: the
+  // accent, flat. The fill above ran the icon's span across every button,
+  // and outside Rainbow mode that read as a gradient on each one (Ivan,
+  // 2026-09-27: "when rainbow mode is off make buttons flat, no gradient").
+  // Rainbow mode hands them the span again, below. An image rather than a
+  // colour, so it stands wherever the span did (`background: <colour>
+  // <image> border-box`).
+  --control-fill: linear-gradient(var(--accent) 0 0);
+  // The colour a filled control's fill ends in, for what continues it — a
+  // split button's arrow half.
+  --control-end: var(--accent);
   // What says a thing is on: the attached profile, the live output, a project
   // that saves as it goes. Shared by both themes, and turned to a scene's own
   // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
@@ -2059,6 +2070,13 @@ textarea,
       95%,
     transparent
   );
+}
+
+// Rainbow mode's buttons and switches carry the span again: the accent
+// between the palette's greener and bluer ends (`Rainbow.scss` sets them).
+:root.is-euphoric {
+  --control-fill: var(--accent-fill);
+  --control-end: var(--accent-end);
 }
 
 // While a Plus scene lends the window its colours the root is marked

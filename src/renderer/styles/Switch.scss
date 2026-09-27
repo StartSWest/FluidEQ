@@ -57,13 +57,16 @@ $switch-inset: 4px;
   // Off is the empty-track colour — see `$track-well`, the same one the
   // meters show with no signal, so an unlit toggle and an unlit meter are
   // the same material.
+  //
+  // Flat, like the buttons beside it (Ivan, 2026-09-27: "make buttons flat"):
+  // the track was sunk with an inner shadow and the knob floated on a drop
+  // shadow of its own, a bevelled toy among flat controls.
   background: $track-well;
-  box-shadow: inset 0 2px 5px rgba($black, 0.25);
+  box-shadow: none;
   cursor: pointer;
   transition:
     background 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease;
+    border-color 200ms ease;
 
   .switch-button {
     position: absolute;
@@ -73,7 +76,7 @@ $switch-inset: 4px;
     height: var(--switch-thumb);
     border-radius: 50%;
     background: rgba($edge-tint, 0.88);
-    box-shadow: 0 3px 9px rgba($black, 0.38);
+    box-shadow: none;
     transition:
       left 200ms ease,
       background 200ms ease,
@@ -93,13 +96,12 @@ $switch-inset: 4px;
     @include focus-ring;
   }
 
-  // On is the filled button's fill, the icon's span through the accent.
+  // On is the filled button's own fill (`--control-fill`): the accent, flat,
+  // and the icon's span only in Rainbow mode. No halo round the track.
   &:checked + .switch-label {
     border-color: color-mix(in srgb, $secondary-light 44%, transparent);
-    background: $secondary-default var(--accent-fill) border-box;
-    box-shadow:
-      inset 0 1px 3px rgba($black, 0.25),
-      0 0 18px color-mix(in srgb, $secondary-default 13%, transparent);
+    background: $secondary-default var(--control-fill) border-box;
+    box-shadow: none;
 
     .switch-button {
       left: calc(100% - var(--switch-thumb) - var(--switch-inset));
@@ -107,14 +109,15 @@ $switch-inset: 4px;
     }
   }
 
+  // Under the pointer the knob takes a crisp ring, not a blurred shadow.
   &:not(:disabled) + .switch-label {
     &:hover .switch-button {
-      box-shadow: 0 0 4px 1px rgba($black, 0.36);
+      box-shadow: 0 0 0 1px rgba($black, 0.36);
     }
 
     &:active .switch-button {
       background: $secondary-light;
-      box-shadow: 0 0 4px 1px rgba($black, 0.36);
+      box-shadow: 0 0 0 1px rgba($black, 0.36);
     }
   }
 

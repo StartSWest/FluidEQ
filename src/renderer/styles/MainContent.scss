@@ -466,7 +466,7 @@ $eq-caret-width: 24px;
   // being hovered.
   //
   // Lit by the same filter as a lone filled button, so each half keeps its
-  // fill (`--accent-fill`) under the pointer instead of turning flat.
+  // fill (`--control-fill`) under the pointer instead of being swapped.
   &:hover:not(.is-disabled) {
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
@@ -500,13 +500,15 @@ $eq-caret-width: 24px;
     border-radius: 0 $radius-xs $radius-xs 0;
     // The same fill and the same ink as the half it is attached to, because it
     // is not a second button — it is the end of this one: the colour the main
-    // half's fill ends in, so the fill runs on through the divider rather than
-    // starting again at the aqua.
-    background: var(--accent-end, #{$secondary-default});
+    // half's fill ends in (`--control-end`), so a fill runs on through the
+    // divider rather than starting again. Outside Rainbow mode that is the
+    // accent itself, the main half being flat: it was the span's azure end
+    // beside a flat half, a second colour on one pill (Ivan, 2026-09-27: "the
+    // dropdown arrow bg color needs to be the same color as the button"). No
+    // halo under it and no lit edge, like the button it ends.
+    background: var(--control-end, #{$secondary-default});
     color: $surface-base;
-    box-shadow:
-      0 8px 22px color-mix(in srgb, $secondary-default 12%, transparent),
-      inset 0 1px 0 rgba($white, 0.36);
+    box-shadow: none;
     cursor: pointer;
     transition: $transition-control;
 

@@ -92,20 +92,38 @@ describe('Lagoon, everywhere it is written', () => {
   });
 });
 
+// Flat outside Rainbow mode, the span only in it (Ivan, 2026-09-27: "when
+// rainbow mode is off make buttons flat, no gradient"), and a split button's
+// arrow the colour its button ends in: one colour on one pill.
 describe('the filled controls', () => {
-  it('are painted with the accent’s span, not the accent alone', () => {
-    const app = ruleBody(css('App.scss'), ':root');
-    expect(app).toMatch(/--accent-fill: linear-gradient\(/);
-    expect(ruleBody(css('Button.scss'), '.button')).toContain(
-      'var(--accent-fill)',
+  it('are the accent, flat, and the span only in Rainbow mode', () => {
+    const app = css('App.scss');
+    const root = ruleBody(app, ':root');
+    expect(root).toContain(
+      '--control-fill: linear-gradient(var(--accent) 0 0)',
     );
+    expect(root).toContain('--control-end: var(--accent)');
+    const rainbow = ruleBody(app, ':root.is-euphoric');
+    expect(rainbow).toContain('--control-fill: var(--accent-fill)');
+    expect(rainbow).toContain('--control-end: var(--accent-end)');
+    // Positive control: the span itself is still there for Rainbow to use.
+    expect(root).toMatch(/--accent-fill: linear-gradient\(\s*100deg/);
+    expect(ruleBody(css('Button.scss'), '.button')).toContain(
+      'var(--control-fill)',
+    );
+    expect(
+      ruleBody(css('Switch.scss'), '.switch-checkbox:checked + .switch-label'),
+    ).toContain('var(--control-fill)');
+    expect(
+      ruleBody(css('MainContent.scss'), '.eq-mode .eq-mode__caret'),
+    ).toContain('var(--control-end');
   });
 
   // The control: the quiet button stays an outline, so the fill is the loud
   // one's alone.
   it('leave the quiet button its outline', () => {
     expect(ruleBody(css('Button.scss'), '.button.subtle')).not.toContain(
-      '--accent-fill',
+      'fill)',
     );
   });
 });

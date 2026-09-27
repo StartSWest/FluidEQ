@@ -312,19 +312,20 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   // a button that cannot act is the one case where the highlight would lie.
   .karaoke-workspace__pitch-toggle[aria-pressed='true'],
   .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
+    // The filled button's face (`--control-fill`): flat outside Rainbow mode,
+    // lit under the pointer by the same brightness the filled button takes.
     color: $surface-base;
-    border-color: color-mix(in srgb, $secondary-light 94%, transparent);
-    background: linear-gradient(145deg, $secondary-light, $secondary-default);
-    box-shadow: 0 0 0 1px
-      color-mix(in srgb, $secondary-default 20%, transparent);
+    border-color: transparent;
+    background: $secondary-default var(--control-fill) border-box;
+    box-shadow: none;
 
     &:hover:not(:disabled),
     &:focus-visible {
       color: $surface-base;
-      border-color: rgba($white, 0.96);
-      background: linear-gradient(145deg, $white, $secondary-light);
-      box-shadow: 0 0 0 2px
-        color-mix(in srgb, $secondary-default 20%, transparent);
+      border-color: transparent;
+      background: $secondary-default var(--control-fill) border-box;
+      box-shadow: none;
+      filter: brightness(1.1);
     }
   }
 }
@@ -1911,18 +1912,16 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
     min-height: 44px;
     margin: -4px 1px;
     color: $surface-base !important;
-    border-color: rgba($white, 0.32) !important;
+    border-color: transparent !important;
     border-radius: 50%;
-    background: linear-gradient(
-      145deg,
-      $secondary-light,
-      $secondary-default
-    ) !important;
+    // The filled button's face, flat outside Rainbow mode (`--control-fill`).
+    background: $secondary-default var(--control-fill) border-box !important;
     box-shadow: none !important;
 
     &:hover:not([aria-disabled='true']) {
       color: $surface-base !important;
-      background: linear-gradient(145deg, $white, $secondary-light) !important;
+      background: $secondary-default var(--control-fill) border-box !important;
+      filter: brightness(1.1);
     }
 
     &:active:not([aria-disabled='true']) {
@@ -3428,7 +3427,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     &.is-active {
       color: $surface-base;
       font-weight: $weight-bold;
-      background: $secondary-default var(--accent-fill) border-box;
+      background: $secondary-default var(--control-fill) border-box;
       border-color: transparent;
       box-shadow: inset 0 1px 0 rgba($white, 0.24);
     }
@@ -3448,7 +3447,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     &.is-primary:hover:not(:disabled),
     &.is-primary:focus-visible {
       color: $surface-base;
-      background: $secondary-default var(--accent-fill) border-box;
+      background: $secondary-default var(--control-fill) border-box;
       border-color: transparent;
       filter: brightness(1.1);
       box-shadow:
@@ -5374,12 +5373,13 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     border-radius: $radius-pill;
     white-space: nowrap;
 
+    // The filled button's face (`--control-fill`), flat outside Rainbow mode,
+    // with no halo.
     &.is-active {
-      color: #062c29;
-      background: linear-gradient(135deg, $secondary-light, $secondary-default);
-      border-color: rgba($white, 0.72);
-      box-shadow: 0 0 16px
-        color-mix(in srgb, $secondary-default 23%, transparent);
+      color: $surface-base;
+      background: $secondary-default var(--control-fill) border-box;
+      border-color: transparent;
+      box-shadow: none;
     }
 
     &.is-complete {
@@ -6839,7 +6839,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
       // Play the word: the one suggested action here, in the filled face.
       &:nth-child(2) {
         color: $surface-base;
-        background: $secondary-default var(--accent-fill) border-box;
+        background: $secondary-default var(--control-fill) border-box;
         border-color: transparent;
         box-shadow: inset 0 1px 0 rgba($white, 0.24);
       }
@@ -8253,7 +8253,7 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
     &.is-selected {
       color: $surface-base;
       font-weight: $weight-bold;
-      background: $secondary-default var(--accent-fill) border-box;
+      background: $secondary-default var(--control-fill) border-box;
       border-color: transparent;
     }
 
