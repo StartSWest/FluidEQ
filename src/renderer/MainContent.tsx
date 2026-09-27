@@ -1241,6 +1241,7 @@ const MainContent = () => {
                           right: 'auto',
                           bottom: 'auto',
                           '--bubble-tail': `${bubbleSpot.tailX}px`,
+                          '--bubble-stem': `${bubbleSpot.stem}px`,
                         } as React.CSSProperties)
                       : undefined
                   }

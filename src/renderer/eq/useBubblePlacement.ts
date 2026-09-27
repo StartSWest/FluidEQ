@@ -89,13 +89,15 @@ const useBubblePlacement = (
         offsetLeft: Math.round(placement.left - anchor.left),
         offsetTop: Math.round(placement.top - anchor.top),
         tailX: Math.round(placement.tailX),
+        stem: Math.round(placement.stem),
       };
       setSpot((was) =>
         was &&
         was.offsetLeft === next.offsetLeft &&
         was.offsetTop === next.offsetTop &&
         was.isBelow === next.isBelow &&
-        was.tailX === next.tailX
+        was.tailX === next.tailX &&
+        was.stem === next.stem
           ? was
           : next,
       );

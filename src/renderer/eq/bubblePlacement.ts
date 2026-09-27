@@ -33,6 +33,12 @@ export interface IBubblePlacement {
   isBelow: boolean;
   /** Where the tail's point stands, from the bubble's own left edge. */
   tailX: number;
+  /**
+   * How far below its usual row it stands, cleared past what lies under the
+   * button, with a stem that long drawn from its tail back up to the button.
+   * Nothing, in the two rows beside the button.
+   */
+  stem: number;
 }
 
 export interface IBubbleRequest {
@@ -59,12 +65,19 @@ const overlap = (a: IRect, b: IRect): number =>
 /**
  * The best spot, and where its tail stands.
  *
- * For each row — above, then below — every left edge the tail allows is a
- * candidate: the one the bubble would take unobstructed (ending where it
- * aims, growing away from the button), each edge of what is in the way, and
- * the two ends of the stretch. The first row with a free candidate wins, and
- * in it the free one nearest the unobstructed spot. With nothing free
- * anywhere, the spot covering the least.
+ * For each row — above, then below, then below whatever lies under the
+ * button — every left edge the tail allows is a candidate: the one the
+ * bubble would take unobstructed (ending where it aims, growing away from the
+ * button), each edge of what is in the way, and the two ends of the stretch.
+ * The first row with a free candidate wins, and in it the free one nearest
+ * the unobstructed spot. With nothing free anywhere, the spot covering the
+ * least.
+ *
+ * The third row is for a crowded header: with the toolbar over the button
+ * and the Also applied row under it, the two rows beside it were never free,
+ * and the least-covering spot laid the bubble over the Also applied label
+ * (2026-09-26). It stands clear of all of it instead, over the top of the
+ * graph, and a stem carries its tail back up to the button.
  */
 const placeBubble = ({
   anchor,
@@ -84,13 +97,30 @@ const placeBubble = ({
     Math.min(Math.max(x, Math.min(lowest, highest)), Math.max(lowest, highest));
   const preferred = clamp(aimX + tailInset - width);
 
+  const below = anchor.bottom + gap;
+  // The foot of everything under the button that a bubble in reach of its
+  // aim could meet: the row below all of it is the third row.
+  const underneath = avoid.filter(
+    (rect) =>
+      rect.top >= anchor.top &&
+      rect.bottom > below &&
+      rect.right > aimX - width + tailInset &&
+      rect.left < aimX + width - tailInset,
+  );
+  const cleared =
+    underneath.length > 0
+      ? Math.max(...underneath.map((rect) => rect.bottom)) + gap
+      : below;
+
   const rows = [
     { isBelow: false, top: anchor.top - gap - height },
-    { isBelow: true, top: anchor.bottom + gap },
+    { isBelow: true, top: below },
+    ...(cleared > below ? [{ isBelow: true, top: cleared }] : []),
   ];
   let fallback: { cost: number; placement: IBubblePlacement } | undefined;
   for (let at = 0; at < rows.length; at += 1) {
     const { isBelow, top } = rows[at];
+    const stem = isBelow ? top - below : 0;
     const candidates = [
       preferred,
       lowest,
@@ -115,6 +145,7 @@ const placeBubble = ({
         top,
         isBelow,
         tailX: Math.min(Math.max(aimX - left, tailInset), width - tailInset),
+        stem,
       };
       if (cost === 0) {
         return placement;
@@ -130,6 +161,7 @@ const placeBubble = ({
       top: rows[0].top,
       isBelow: false,
       tailX: tailInset,
+      stem: 0,
     }
   );
 };

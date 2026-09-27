@@ -59,7 +59,13 @@ describe('where the Smart EQ bubble stands', () => {
     const spot = placeBubble(
       request(rect(992, 217, 1092, 249), rect(201, 151, 2430, 288), avoid),
     );
-    expect(spot).toEqual({ left: 805, top: 174, isBelow: false, tailX: 247 });
+    expect(spot).toEqual({
+      left: 805,
+      top: 174,
+      isBelow: false,
+      tailX: 247,
+      stem: 0,
+    });
     const box = rect(spot.left, spot.top, spot.left + 263, spot.top + 34);
     expect(avoid.some((one) => intersects(box, one))).toBe(false);
   });
@@ -104,6 +110,38 @@ describe('where the Smart EQ bubble stands', () => {
     expect(spot.isBelow).toBe(false);
     expect(spot.left).toBe(529);
     expect(spot.left + spot.tailX).toBe(660);
+  });
+
+  it('clears a crowded row under the button, with a stem back up to it', () => {
+    // 1500 px wide, as measured: the toolbar over the button and the Also
+    // applied row under it. The least-covering spot in the rows beside the
+    // button laid it over the Also applied label (2026-09-26).
+    const lede = rect(931, 170, 1010, 184);
+    const avoid = [
+      rect(146, 136, 360, 160), // the title's own text
+      rect(760, 122, 860, 146), // the preset picker, beside the button
+      rect(1000, 122, 1100, 146), // Clear EQ, beside it on the other side
+      rect(760, 0, 1400, 112), // the section pills and the toolbar's top
+      lede,
+      rect(1016, 164, 1300, 190), // the chips beside it
+    ];
+    const bounds = rect(130, 60, 1480, 880);
+    const spot = placeBubble(request(rect(868, 122, 1000, 146), bounds, avoid));
+    const box = rect(spot.left, spot.top, spot.left + 263, spot.top + 34);
+    expect(avoid.some((one) => intersects(box, one))).toBe(false);
+    expect(spot.isBelow).toBe(true);
+    // Below the Also applied row, and the stem is the way back up.
+    expect(spot.top).toBe(190 + 9);
+    expect(spot.stem).toBe(190 + 9 - (146 + 9));
+    // Its tail still points at the button's label.
+    expect(spot.left + spot.tailX).toBe(1000 - 24 - 16);
+  });
+
+  it('draws no stem in the rows beside the button', () => {
+    const spot = placeBubble(
+      request(rect(600, 217, 700, 249), rect(0, 100, 1400, 400), []),
+    );
+    expect(spot.stem).toBe(0);
   });
 
   it('covers the least it can when nothing anywhere is free', () => {

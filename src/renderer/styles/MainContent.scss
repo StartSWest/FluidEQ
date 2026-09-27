@@ -576,9 +576,13 @@ $eq-caret-width: 24px;
   }
 }
 
-// The face for the moment a correction lands: the "on" colour at a fifth into
-// the menu slate, opaque like the face it replaces.
-$eq-bubble-applied-face: color-mix(in srgb, $active 20%, $surface-menu-top);
+// The face for the moment a correction lands: the resting face with a breath
+// of the "on" colour in it, opaque like the face it replaces. It was the "on"
+// colour at a fifth into the menu's lighter slate, a mint slab beside the
+// mint of the filled Smart EQ button it spoke for, the brightest thing in the
+// header (Ivan, 2026-09-26: "fix the bubble smart eq"). The edge, the words
+// and a soft glow carry the moment now; the face stays dark.
+$eq-bubble-applied-face: color-mix(in srgb, $active 8%, $surface-floating);
 // And how long that moment is. Long enough to catch, short enough to miss.
 $eq-bubble-applied-hold: 1.5s;
 
@@ -672,6 +676,9 @@ $eq-bubble-applied-hold: 1.5s;
   &.is-applied {
     border-color: color-mix(in srgb, $active 50%, transparent);
     background: $eq-bubble-applied-face;
+    box-shadow:
+      0 2px 6px rgba($black, 0.22),
+      0 0 14px color-mix(in srgb, $active 22%, transparent);
 
     &::before {
       border-right-color: color-mix(in srgb, $active 50%, transparent);
@@ -704,6 +711,24 @@ $eq-bubble-applied-hold: 1.5s;
   &.is-below.is-applied::before {
     border-top-color: color-mix(in srgb, $active 50%, transparent);
     border-left-color: color-mix(in srgb, $active 50%, transparent);
+  }
+
+  // Cleared past a crowded row under the button (`bubblePlacement.ts`): a
+  // stem from the tail's point back up to the button, the bubble's own edge
+  // colour, so the tail still reads as coming from the thing it speaks for.
+  // No height, and so nothing, in the two rows beside the button.
+  &.is-below::after {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: calc(var(--bubble-tail, calc(100% - 16px)) - 0.5px);
+    width: 1px;
+    height: var(--bubble-stem, 0px);
+    background: $border-menu;
+    content: '';
+  }
+
+  &.is-below.is-applied::after {
+    background: color-mix(in srgb, $active 50%, transparent);
   }
 }
 
