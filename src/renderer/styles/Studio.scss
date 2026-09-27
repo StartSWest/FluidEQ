@@ -224,9 +224,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // which the page lost with its fill, and stood as a lighter band across the
   // top of the Studio (Ivan, 2026-09-26: "fix studio top thing bg color").
   background: $surface-base;
-  // An edge only once something is under it: a hairline and a soft shadow
-  // that arrive over the first few pixels of scrolling and are gone at the
-  // top, where the bar is just the head of the page.
+  // An edge only once something is under it: a hairline that arrives over
+  // the first few pixels of scrolling and is gone at the top, where the bar
+  // is just the head of the page. No shadow under it (Ivan, 2026-09-27:
+  // "remove shadow under search when list scrolls ... and all those lists").
   animation: studio-top-lift linear both;
   animation-timeline: scroll(nearest block);
   animation-range: 0 $spacing-l;
@@ -234,15 +235,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @keyframes studio-top-lift {
   from {
-    box-shadow:
-      0 1px 0 transparent,
-      0 14px 18px -16px transparent;
+    box-shadow: 0 1px 0 transparent;
   }
 
   to {
-    box-shadow:
-      0 1px 0 $border-subtle,
-      0 14px 18px -16px rgba($black, 0.7);
+    box-shadow: 0 1px 0 $border-subtle;
   }
 }
 
@@ -310,8 +307,8 @@ $studio-scrollbar: 8px;
   }
 
   // An edge along the top of a pane once something has scrolled under it: a
-  // hairline and a soft shade that arrive over its first few pixels of
-  // scrolling, the project bar's own look. Placed by grid area, so each spans
+  // hairline that arrives over its first few pixels of scrolling, the project
+  // bar's own look, and no shade under it. Placed by grid area, so each spans
   // exactly its pane whatever the columns come to. A pane that has nothing
   // to scroll has no active timeline and keeps the resting opacity, unseen.
   &::before,
@@ -321,11 +318,10 @@ $studio-scrollbar: 8px;
     top: 0;
     right: 0;
     left: 0;
-    height: 14px;
+    height: 0;
     content: '';
     pointer-events: none;
     border-top: 1px solid $border-subtle;
-    background: linear-gradient(rgba($black, 0.45), transparent);
     opacity: 0;
     animation: studio-pane-edge linear both;
     animation-range: 0 $spacing-l;

@@ -16,10 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'constant' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
 
 // The trigger-and-menu pattern the EQ toolbar established, under a name that
@@ -110,7 +108,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Positioned by AnchoredMenu, which renders it into the body so the panel
   // it lives in cannot clip it.
   z-index: 1000;
-  // The two ends lift over the list they cast their edges onto; this keeps
+  // The two ends stand over the list that scrolls under them; this keeps
   // that stacking inside the menu while it animates in.
   isolation: isolate;
   display: flex;
@@ -119,9 +117,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // At 236 most descriptions were truncated after four words, which is a
   // subtitle that costs a row and says nothing.
   width: 300px;
-  // The list's scroll position, readable by the search row and the actions
-  // beside it rather than only by what is inside it.
-  timeline-scope: --rich-pick-list;
 }
 
 // A column beside the list about the row being pointed at (`renderPreview`).
@@ -183,16 +178,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // to scroll back up to correct, and correcting it is most of what it is for —
 // a list of forty-six gets searched by typing, looking, and typing something
 // else.
+// Its hairline (`menu-search`) is the whole edge. A shadow used to arrive
+// under it as the rows scrolled, the row lifting off a list it is part of
+// (Ivan, 2026-09-27: "remove shadow under search when list scrolls in preset
+// list and all those lists").
 .rich-pick__search {
   @include menu-search;
   z-index: 1;
   flex: none;
-  // An edge only once rows are under it, as the Studio's own top bar does: a
-  // soft shadow that arrives over the first few pixels of scrolling and is
-  // gone at the top, where there is nothing to lift off.
-  animation: rich-pick-search-edge linear both;
-  animation-timeline: --rich-pick-list;
-  animation-range: 0 $spacing-l;
 }
 
 // Shrinks before anything else does when the menu is capped, but not to a
@@ -216,20 +209,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // A row the arrows bring into view keeps the gap it has at rest, instead of
   // landing flush against the hairline.
   scroll-padding-block: 6px;
-  scroll-timeline: --rich-pick-list block;
-}
-
-// Not the Studio top bar's `0 14px 18px -16px`: a spread of -16px shrinks a
-// 32px search row to a shape with no height, and side by side at 2x the edge
-// barely registered over the rows. -10px leaves a shape to blur.
-@keyframes rich-pick-search-edge {
-  from {
-    box-shadow: 0 10px 14px -10px transparent;
-  }
-
-  to {
-    box-shadow: 0 10px 14px -10px rgba($black, 0.7);
-  }
 }
 
 // Said out loud rather than left as an empty box. A menu that goes blank reads
@@ -457,22 +436,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: none;
   gap: 2px;
   padding: 6px;
+  // The hairline alone, as over the search row: no shadow rising from it
+  // while rows are hidden under the actions.
   border-top: 1px solid $border-subtle;
-  // The search row's edge, turned over: present while rows are hidden under
-  // the actions, fading over the last few pixels of the list, gone at its end.
-  animation: rich-pick-footer-edge linear both;
-  animation-timeline: --rich-pick-list;
-  animation-range: calc(100% - #{$spacing-l}) 100%;
-}
-
-@keyframes rich-pick-footer-edge {
-  from {
-    box-shadow: 0 -10px 14px -10px rgba($black, 0.7);
-  }
-
-  to {
-    box-shadow: 0 -10px 14px -10px transparent;
-  }
 }
 
 .rich-pick__action {
