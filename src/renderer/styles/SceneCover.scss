@@ -108,14 +108,14 @@ $cover-veil: color-mix(
 // On the document's root and not on `#root`: the transport bar is portalled
 // to `body`, outside `#root`, and a rule scoped to `#root` never reached it —
 // it stood opaque across the picture, its tray a pale slab on top.
-:root.is-scene-backdrop {
-  // The root's own stacking, so the layer's -1 lands above the floor the root
-  // paints and not under it. The root is positioned without a z-index, which
-  // puts its background over everything its children stack below zero.
-  #root {
-    z-index: 0;
-  }
-
+//
+// And in full screen under the Backdrop, where the scene is drawn on the plot
+// that is the window then (`graphScenePlace`) and the root is marked
+// `is-scene-full` instead (`GraphScene`): the two bars lie over the picture
+// there too, and went back to the opaque floor, a band cut out of the scene
+// the window had shown through them a moment before (Ivan, 2026-09-26: "in
+// fullscreen too same ... same transparency as when not fullscreen").
+:root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {
   // Computed on `body`, from the root's tokens, and inherited by everything
   // in the window: the panes in `#root` and the bar beside it.
   body {
@@ -151,13 +151,22 @@ $cover-veil: color-mix(
     );
   }
 
-  // The two strips across the window take the full screen's glass
-  // (`App.scss`, `is-app-full`): opaque, they cut the picture into a band.
+  // The two strips across the window are glass of the floor: opaque, they
+  // cut the picture into a band.
   .window-titlebar,
   .now-playing-bar {
     @include veiled-surfaces;
     background-color: color-mix(in srgb, $surface-base 72%, transparent);
     backdrop-filter: blur(18px) saturate(120%);
+  }
+}
+
+:root.is-scene-backdrop {
+  // The root's own stacking, so the layer's -1 lands above the floor the root
+  // paints and not under it. The root is positioned without a z-index, which
+  // puts its background over everything its children stack below zero.
+  #root {
+    z-index: 0;
   }
 
   // The docked columns, and the parts of the middle one that are not the

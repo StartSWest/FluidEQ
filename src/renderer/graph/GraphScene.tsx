@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useLayoutEffect } from 'react';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import {
   useGraphContents,
@@ -48,6 +49,23 @@ export default function GraphScene() {
     backdrop,
     column,
   });
+  // Expanded or full screen, the Backdrop's scene is drawn on the plot, which
+  // is the window then, so nothing marks the root `is-scene-backdrop`; this
+  // says so instead, and in full screen keeps the title bar and the transport
+  // the Backdrop's glass over the picture (`SceneCover.scss`).
+  const isBackdropOnPlot =
+    mode === 'cover' &&
+    target !== undefined &&
+    plot !== undefined &&
+    !plot.isPartOfWindow;
+  useLayoutEffect(() => {
+    if (!isBackdropOnPlot) {
+      return undefined;
+    }
+    const root = document.documentElement;
+    root.classList.add('is-scene-full');
+    return () => root.classList.remove('is-scene-full');
+  }, [isBackdropOnPlot]);
   if (!scene || !target) {
     return null;
   }

@@ -23,9 +23,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 
-// The well the latency figure sits in (see below).
-$engine-well: color-mix(in srgb, $surface-base 72%, transparent);
-
 .engine-strip {
   @include field-surface;
   display: inline-flex;
@@ -73,26 +70,20 @@ $engine-well: color-mix(in srgb, $surface-base 72%, transparent);
     font-size: $text-body;
   }
 
-  // The reading sits in a well, the way the app's segmented control seats its
-  // options: a small display let into the capsule, with the control beside it
-  // on the capsule's own face. A hairline between two flat halves said they
-  // were two halves; this says which one is the instrument and which one is
-  // the switch, and it costs no extra edge.
-  //
-  // A recess is darker than the face it is let into. It was the track colour,
-  // a pale slab lighter than the whole capsule and every pane round it (Ivan,
-  // 2026-09-26: "this retardo pill to light too"); it is the floor now, most
-  // of the way through, and lights with the accent when pointed at.
+  // The reading on the capsule's own face, past a hairline seam: the split
+  // pill's drawing (Detail and its arrow), so the strip is one more of the
+  // quiet pills beside it (Ivan, 2026-09-26: "the game mode and processing
+  // too so it looks the same as the other pills and buttons"). It sat in a
+  // well — first the track colour, a pale slab ("this retardo pill too
+  // light"), then the floor most of the way through, a dark one. Either way a
+  // second surface let into a pill no other pill has.
   > .latency-readout {
-    background: $engine-well;
+    border-left: 1px solid $border-field;
+    border-radius: 0 $radius-xs $radius-xs 0;
 
     &:hover:not(:disabled),
     &[aria-expanded='true'] {
-      background:
-        linear-gradient(
-          color-mix(in srgb, $secondary-default 14%, transparent) 0 0
-        ),
-        $engine-well;
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
     }
   }
 
@@ -111,25 +102,12 @@ $engine-well: color-mix(in srgb, $surface-base 72%, transparent);
 
   // The halves stop painting their own state fill — the capsule is wearing it
   // now, and two fills stacked on the left half made it the darker of the two.
-  // The well keeps its recess and takes the colour with it.
+  // The seam takes the capsule's lit edge with it.
   > .game-mode-switch.is-on {
     background: none;
   }
 
   > .latency-readout.is-game {
-    background:
-      linear-gradient(
-        color-mix(in srgb, $secondary-default 13%, transparent) 0 0
-      ),
-      $engine-well;
-
-    &:hover:not(:disabled),
-    &[aria-expanded='true'] {
-      background:
-        linear-gradient(
-          color-mix(in srgb, $secondary-default 22%, transparent) 0 0
-        ),
-        $engine-well;
-    }
+    border-left-color: color-mix(in srgb, $secondary-default 40%, transparent);
   }
 }

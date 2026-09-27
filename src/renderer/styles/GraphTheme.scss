@@ -738,28 +738,22 @@ it under the terms of the GNU General Public License version 3 or later.
 // glyphs scattered over the plot, held apart from whatever moved underneath
 // by a text shadow alone.
 //
-// A soft, rounded veil lying inside the graph (layout A, Ivan 2026-09-25: "the
-// pane … nice same app style", "more transparent and no borders", rounded):
-// the floating surfaces' own colour (`floating-surface`), a little under
-// three quarters opaque — enough that the captions stay legible over a
-// moving drawing, little enough that the drawing reads through it — and no
-// edge, no shadow, so it is part of the picture rather than a slab laid on
-// it. It was the lifted block colour with an edge, which on the open floor
-// read as exactly that slab.
+// The quiet pill's own fill (`field-surface`): the accent at a fourteenth
+// through it, as the section pills and every quiet button above the graph
+// wear it, so the strip reads as one more of them (Ivan, 2026-09-26: "graph
+// option bar more transparent like the pills on top ... so it looks the same
+// as the other pills and buttons"). It was the floating surfaces' colour at
+// 72%, a dark slab over the picture, and in full screen a glass one. No edge
+// of its own, still (2026-09-25: "no borders"): the buttons in it carry
+// theirs, and one round them all is a border round borders.
 //
 // Deliberately no `backdrop-filter`: it would sit over the one thing in this
 // app that repaints continuously, each frame forcing the blur to be sampled
-// again. Full screen's glass (`App.scss`) is the one exception.
+// again.
 .graph-legend-group {
   border: 0;
-  // The menus' crisp corner (`$radius-2xs`), the one every floating surface
-  // now keeps.
-  border-radius: $radius-2xs;
-  background: color-mix(
-    in srgb,
-    color-mix(in srgb, $surface-base 70%, $surface-panel) 72%,
-    transparent
-  );
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   box-shadow: none;
   display: inline-flex;
   align-items: center;
@@ -1723,6 +1717,15 @@ it under the terms of the GNU General Public License version 3 or later.
     transparent
   );
   pointer-events: none;
+}
+
+// Only under the EQ head it carries on from. Docked at the foot of another
+// page, or filling the window, the graph has no head above it, and the shade
+// was a dark band across the top of the picture (Ivan, 2026-09-26: "no need
+// for gradient in the top of the graph when the graph is not in the EQ page,
+// so when it's on the bottom").
+.center-workspace:is(:not(.is-graph-first), .is-graph-full) .chart-scene-scrim {
+  display: none;
 }
 
 // A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it

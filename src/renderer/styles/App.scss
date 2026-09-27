@@ -175,14 +175,6 @@ body {
   // it are opaque, so it shows only in the gutters between them.
 }
 
-// Full screen: the graph's strip of controls becomes glass.
-//
-// The one place a blur earns its cost: the strip floats on the picture, and a
-// translucent one with no blur is worse than either, because the drawing
-// carries on legibly underneath the words. A single strip, not redrawn per
-// frame: the compositor blurs it once and reuses it until the picture under
-// it changes.
-//
 // Full screen is `data-app-full` on `<html>` (`useAppFullMark`), published
 // with the workspace's `is-app-full`. These rules asked the root and the body
 // with `:has()` instead, which kept both answering for their children after
@@ -190,18 +182,15 @@ body {
 // so each rule keeps the weight it had; the transport bar is portalled beside
 // the root, and nothing else that styles it carries an id.
 //
-// Not the title bar and the transport bar any more: in full screen they are
-// the window's floor, opaque, exactly as they are in the window (Ivan,
+// Nothing in full screen is drawn differently from the window: the title bar
+// and the transport bar are what they are in the window — the floor, or the
+// Backdrop's glass while a scene is the window's (`SceneCover.scss`) — and
+// the graph's strip of controls is the quiet pill it is everywhere (Ivan,
 // 2026-09-26: "fix play bar and head in fullscreen needs to be same color as
-// normal no distinction"). As glass they were the pane's colour at 80%, a
-// lighter band than the same two bars a moment before, with the deck and the
-// volume as lighter slabs again inside them. The strip of graph controls
-// floating on the picture keeps the glass.
-:root[data-app-full] #root .graph-legend-group {
-  background-color: color-mix(in srgb, $surface-panel 80%, transparent);
-  backdrop-filter: blur(22px) saturate(130%);
-  -webkit-backdrop-filter: blur(22px) saturate(130%);
-}
+// normal no distinction", and then of the strip, the head and the play bar:
+// "in fullscreen too same ... same transparency as when not fullscreen so I
+// can see a bit more of the scene"). As glass the strip was the pane's
+// colour at 80%, a lighter slab than the same strip a moment before.
 
 // The graph's largest view keeps the app's own floor.
 //
