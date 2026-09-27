@@ -20,6 +20,7 @@ import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
+  lendSceneSky,
   recallSceneSky,
   showSceneSky,
   studioSkyKey,
@@ -130,8 +131,9 @@ const SceneTint = () => {
       // them; Ivan wants the two identical, in Rainbow's colours ("app or
       // pane … need to be exactly the same with rainbow and no rainbow, and I
       // want the one that rainbow on has now", 2026-09-27). Rainbow changes
-      // only what is drawn in its stops.
-      showSceneSky(LAGOON_SKY, fade);
+      // only what is drawn in its stops. Lent, so it fades out toward Black,
+      // which is black and grey ("moving toward the 0 make it no tinting").
+      lendSceneSky(LAGOON_SKY, fade);
       return stop;
     }
     if (!isEnabled) {

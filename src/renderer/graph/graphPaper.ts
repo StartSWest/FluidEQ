@@ -119,10 +119,10 @@ export const FREQUENCY_MINOR_TICKS = [
 ];
 
 /**
- * The minor lines, at half the ink of the decades: the EQ face's ±10 ticks
- * against its ±20.
+ * The minor lines, a step under the decades, at the opacity the theme solves
+ * for each shade (`--rule-minor`, `themeInk.ts`); a fixed 6% was 1.1:1.
  */
-export const MINOR_RULE_INK = 'rgba(214, 233, 247, 0.06)';
+export const MINOR_RULE_INK = 'var(--rule-minor)';
 
 /**
  * Unity gain is a reference, not a measurement, so it reads as a brighter grid

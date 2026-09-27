@@ -429,15 +429,21 @@ $border-panel: var(--border-panel);
 // faint fill already says where the control is; the edge only finishes it,
 // and comes up under the pointer.
 //
-// At the share of the accent's light that makes the edge 1.7:1 on a card at
+// At the share of the accent's light that makes the edge 2.2:1 on a card at
 // this shade (`--field-edge-share`, `themeInk.ts`), never under the 13% it
-// shipped at: 13% measured 1.3:1 on Black and at 100%, a box nobody could see.
+// shipped at: 13% measured 1.3:1 on Black and at 100%, a box nobody could see,
+// and 1.7:1 still read as missing on the EQ page. Under the pointer it comes
+// up to 3.2:1 (`--field-edge-hover-share`), never under the 42% it was.
 $border-field: color-mix(
   in srgb,
   $secondary-light var(--field-edge-share),
   transparent
 );
-$border-field-hover: color-mix(in srgb, $secondary-light 42%, transparent);
+$border-field-hover: color-mix(
+  in srgb,
+  $secondary-light var(--field-edge-hover-share),
+  transparent
+);
 $border-field-focus: $secondary-light;
 
 // *** Interactive states *****************************************************

@@ -170,6 +170,7 @@ describe('the graph’s visualizer', () => {
   // palette is Lagoon since "wave lagoon").
   it('lends the window Lagoon in Rainbow mode with no visualizer chosen', () => {
     mockLookId = 'look:signal';
+    window.localStorage.setItem('fluideq.theme', 'ocean');
     root.classList.add('is-euphoric');
     try {
       mount();
@@ -186,6 +187,7 @@ describe('the graph’s visualizer', () => {
   // and I want the one that rainbow on has now").
   it('lends the window the same Lagoon with Rainbow mode off', () => {
     mockLookId = 'look:signal';
+    window.localStorage.setItem('fluideq.theme', 'ocean');
     root.classList.add('is-euphoric');
     let inRainbow = '';
     try {
@@ -220,8 +222,29 @@ describe('the graph’s visualizer', () => {
     }
   });
 
+  // Black is the window with no colour in it: the sky lent with no visualizer
+  // fades out toward it (Ivan, 2026-09-27: "moving toward the 0 make it no
+  // tinting so is pure black / dark gray"), while a visualizer's own colour
+  // stays there, darkened (2026-09-25: "is not black is ambient color").
+  it('lends no Lagoon at Black, and still a visualizer’s colour there', () => {
+    mockLookId = 'look:signal';
+    const lent = mount();
+    expect(root).not.toHaveAttribute('data-scene-tint');
+    expect(root.style.getPropertyValue('--surface-base')).toBe('');
+    lent.fresh.cleanup();
+    root.removeAttribute('style');
+
+    // POSITIVE CONTROL: a visualizer at the same Black keeps its colour.
+    mockLookId = 'premium:bloom';
+    remember([['premium:bloom', '3', sky(300)]]);
+    mount();
+    expect(root).toHaveAttribute('data-scene-tint');
+    expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
+  });
+
   it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {
     remember([['premium:bloom', '3', sky(300)]]);
+    window.localStorage.setItem('fluideq.theme', 'ocean');
     const scene = mount();
     const bloomFloor = root.style.getPropertyValue('--surface-base');
     scene.fresh.cleanup();

@@ -91,6 +91,7 @@ export {
   sceneSkyColour,
   isGreySky,
   sceneIconSwatch,
+  lentSkyReach,
   sceneTintStrength,
   sceneTintSwatch,
   tintThemePalette,

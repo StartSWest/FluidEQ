@@ -27,9 +27,9 @@ import {
  * hairlines measured 1.1:1 on Black and 1.3:1 at 100%, the fields' edge
  * 1.3:1, the faint text 4.3:1 at 100% against 12:1 on Black.
  *
- * So each one is given the contrast it must reach, in WCAG terms, against a
- * card — the lighter of the two grounds most things stand on, so the floor
- * only ever does better — and is solved for it at every shade: an edge by its
+ * So each one is given the contrast it must reach, in WCAG terms, against the
+ * lightest of the grounds most things stand on (`groundOf`), so the others
+ * only ever do better — and is solved for it at every shade: an edge by its
  * opacity, a text by its lightness (never darker than it shipped), the
  * disabled state by its opacity. `themeShade.ts` writes the answers with the
  * surfaces.
@@ -40,12 +40,18 @@ export const CARD_PANE_SHARE = 0.85;
 
 /**
  * The hairlines. The subtle one parts rows inside a pane, the panel one draws
- * a pane's or a card's edge, the menu one a floating surface's.
+ * a pane's or a card's edge, the menu one a floating surface's. First solved
+ * at 1.4, 1.65 and 2.1, which measured 1.33 to 1.74 on the EQ page's own
+ * grounds in the window at Black and at 100 — the switches' track, the
+ * driver's plot, the pane's foot, the page's card — and still read as
+ * missing (Ivan, 2026-09-27, the EQ page first: "focus on how this page looks
+ * now"). 1.8:1 is the least any of them may measure on the ground it stands
+ * on, and `groundOf` is the lightest of those.
  */
 export const EDGE_CONTRAST = {
-  '--border-subtle': 1.4,
-  '--border-panel': 1.65,
-  '--border-menu': 2.1,
+  '--border-subtle': 1.8,
+  '--border-panel': 2,
+  '--border-menu': 2.5,
 } as const;
 
 /** The three tiers of text: what is read, what explains, what hints. */
@@ -75,11 +81,23 @@ const DISABLED_OPACITY_MIN = 0.45;
 const DISABLED_OPACITY_MAX = 0.8;
 
 /**
- * A field's and a quiet button's edge: the accent's light at a share of full
- * (`$border-field`), 1.7:1, and never under the 13% it shipped at.
+ * A field's and a quiet button's edge, a switch's track and every outline
+ * the hand acts on: the accent's light at a share of full (`$border-field`),
+ * above the card's own edge so a control is never drawn fainter than the
+ * card it stands on, and never under the 13% it shipped at. It was 1.7:1 and
+ * the EQ page's small buttons measured 1.64 there.
  */
-const FIELD_EDGE_CONTRAST = 1.7;
+const FIELD_EDGE_CONTRAST = 2.2;
 const FIELD_EDGE_SHARE_MIN = 0.13;
+
+/**
+ * The same edge under the pointer (`$border-field-hover`). It was a fixed
+ * 42%, which the edge at rest now reaches by itself at the light end — a
+ * hover that changed nothing there — so it is solved as well, a clear step
+ * over the edge at rest, and never under the 42% it shipped at.
+ */
+const FIELD_EDGE_HOVER_CONTRAST = 3.2;
+const FIELD_EDGE_HOVER_SHARE_MIN = 0.42;
 
 /**
  * The dim tier, for what is decorative or a unit beside a value (`$text-dim`):
@@ -91,11 +109,26 @@ const DIM_SHARE_MIN = 0.38;
 /** `$edge-tint`, the cool white the hairlines and the dim tier are made of. */
 const EDGE_TINT = '#d6e9f7';
 
+/**
+ * The graph's ruled paper (`GridLine`, `graphPaper.ts`): the decades and the
+ * ±10/±20 dB lines, and the lines between the decades at a lower step. They
+ * were the edge tint at a fixed 12% and 6%, about 1.25:1 and 1.1:1 at every
+ * shade — "faint at 100", and gone on Black. A grid is a reference, so it
+ * stays under the hairlines (1.8:1): there to place a curve by, never
+ * competing with one.
+ */
+const RULE_CONTRAST = {
+  '--rule-major': 1.5,
+  '--rule-minor': 1.22,
+} as const;
+
 export type TInkToken =
   | keyof typeof TEXT_CONTRAST
   | '--disabled-opacity'
   | '--field-edge-share'
-  | '--text-dim-share';
+  | '--field-edge-hover-share'
+  | '--text-dim-share'
+  | keyof typeof RULE_CONTRAST;
 
 type TRgb = readonly [number, number, number];
 
@@ -142,28 +175,45 @@ export const cardOf = (floor: string, pane: string): TRgb =>
   over(rgbOf(pane), CARD_PANE_SHARE, rgbOf(floor));
 
 /**
- * `edge` (an `rgb`/`rgba` whose colour is kept) at the opacity that reaches
- * its contrast on `card`, written the way the tables write an edge.
+ * What the inks are solved on: the lighter of a card and the pane itself.
+ * Solved on the card alone, the edges of whatever is painted in the pane's
+ * own colour — the sound pane, the player's bar, the Studio's cards — came
+ * out under their target there: 1.73:1 on Black for a 1.8 edge.
  */
-export const edgeOn = (
-  token: keyof typeof EDGE_CONTRAST,
-  edge: string,
-  card: TRgb,
-): string => {
-  const colour = rgbOf(edge);
-  const alpha = opacityFor(colour, card, EDGE_CONTRAST[token]);
+export const groundOf = (floor: string, pane: string): TRgb => {
+  const card = cardOf(floor, pane);
+  const own = rgbOf(pane);
+  return lumOf(own) > lumOf(card) ? own : card;
+};
+
+/**
+ * `colour` at the opacity that reaches `target` on `ground`, written the way
+ * the tables write an edge.
+ */
+const rgbaFor = (colour: TRgb, ground: TRgb, target: number): string => {
+  const alpha = opacityFor(colour, ground, target);
   const [red, green, blue] = colour.map((channel) => Math.round(channel * 255));
   return `rgba(${red}, ${green}, ${blue}, ${Number(alpha.toFixed(3))})`;
 };
 
 /**
- * `shipped`, lifted toward white along its own hue only as far as it has to
- * go to reach `target` on `card`; unchanged where it already does.
+ * `edge` (an `rgb`/`rgba` whose colour is kept) at the opacity that reaches
+ * its contrast on `ground`.
  */
-const textOn = (shipped: string, card: TRgb, target: number): string => {
-  const cardLum = lumOf(card);
+export const edgeOn = (
+  token: keyof typeof EDGE_CONTRAST,
+  edge: string,
+  ground: TRgb,
+): string => rgbaFor(rgbOf(edge), ground, EDGE_CONTRAST[token]);
+
+/**
+ * `shipped`, lifted toward white along its own hue only as far as it has to
+ * go to reach `target` on `ground`; unchanged where it already does.
+ */
+const textOn = (shipped: string, ground: TRgb, target: number): string => {
+  const groundLum = lumOf(ground);
   const reach = (lab: ILab) =>
-    contrast(lumOf(rgbOf(labToHex(lab))), cardLum) >= target;
+    contrast(lumOf(rgbOf(labToHex(lab))), groundLum) >= target;
   const start = rgbToLab(rgbOf(shipped));
   if (reach(start)) {
     return shipped;
@@ -190,25 +240,25 @@ const textOn = (shipped: string, card: TRgb, target: number): string => {
   return labToHex(at(high));
 };
 
-/** Every ink that is not an edge, for a shade whose card is `card`. */
+/** Every ink that is not an edge, solved on `ground` (`groundOf`). */
 export const inkTokens = (
-  card: TRgb,
+  ground: TRgb,
   accentLight: string,
 ): Record<TInkToken, string> => {
   const text = {
     '--text-primary': textOn(
       SHIPPED_TEXT['--text-primary'],
-      card,
+      ground,
       TEXT_CONTRAST['--text-primary'],
     ),
     '--text-muted': textOn(
       SHIPPED_TEXT['--text-muted'],
-      card,
+      ground,
       TEXT_CONTRAST['--text-muted'],
     ),
     '--text-faint': textOn(
       SHIPPED_TEXT['--text-faint'],
-      card,
+      ground,
       TEXT_CONTRAST['--text-faint'],
     ),
   };
@@ -216,22 +266,31 @@ export const inkTokens = (
     DISABLED_OPACITY_MAX,
     Math.max(
       DISABLED_OPACITY_MIN,
-      opacityFor(rgbOf(text['--text-muted']), card, DISABLED_CONTRAST),
+      opacityFor(rgbOf(text['--text-muted']), ground, DISABLED_CONTRAST),
     ),
   );
   const fieldEdge = Math.max(
     FIELD_EDGE_SHARE_MIN,
-    opacityFor(rgbOf(accentLight), card, FIELD_EDGE_CONTRAST),
+    opacityFor(rgbOf(accentLight), ground, FIELD_EDGE_CONTRAST),
+  );
+  const fieldEdgeHover = Math.max(
+    FIELD_EDGE_HOVER_SHARE_MIN,
+    opacityFor(rgbOf(accentLight), ground, FIELD_EDGE_HOVER_CONTRAST),
   );
   const dim = Math.max(
     DIM_SHARE_MIN,
-    opacityFor(rgbOf(EDGE_TINT), card, DIM_CONTRAST),
+    opacityFor(rgbOf(EDGE_TINT), ground, DIM_CONTRAST),
   );
   const percent = (share: number) => `${Number((share * 100).toFixed(1))}%`;
+  const rule = (token: keyof typeof RULE_CONTRAST) =>
+    rgbaFor(rgbOf(EDGE_TINT), ground, RULE_CONTRAST[token]);
   return {
     ...text,
     '--disabled-opacity': String(Number(disabled.toFixed(3))),
     '--field-edge-share': percent(fieldEdge),
+    '--field-edge-hover-share': percent(fieldEdgeHover),
     '--text-dim-share': percent(dim),
+    '--rule-major': rule('--rule-major'),
+    '--rule-minor': rule('--rule-minor'),
   };
 };

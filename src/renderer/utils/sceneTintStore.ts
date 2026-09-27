@@ -13,6 +13,7 @@ import { readStored, writeStored } from './graphStorage';
 import {
   SCENE_SKY_MEASUREMENT,
   SCENE_TINT_TOKENS,
+  lentSkyReach,
   tintThemePalette,
   type ISceneColour,
   type ISceneSky,
@@ -377,6 +378,11 @@ export const useRememberedSceneSky = (lookId: string) =>
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
 /**
+ * Whether that sky is lent — the window's own with no visualizer chosen
+ * (`lendSceneSky`) — and so fades out toward Black (`lentSkyReach`).
+ */
+let wantedIsLent = false;
+/**
  * What the root carries now, and the theme's shade it was toned against.
  *
  * A visualizer's colours stand at exactly the theme's lightness for the
@@ -389,8 +395,9 @@ let wanted: ISceneSky | undefined;
  * theme by a lift of their own, which is now the theme's light end
  * (`themeShade.ts`).
  */
-let painted: { sky: ISceneSky | undefined; shade: number } = {
+let painted: { sky: ISceneSky | undefined; lent: boolean; shade: number } = {
   sky: undefined,
+  lent: false,
   shade: getThemeShade(),
 };
 
@@ -478,9 +485,14 @@ const readThemeBase = (shade: number) => {
 const paint = () => {
   const { style } = document.documentElement;
   const shade = getThemeShade();
-  const palette = wanted
-    ? tintThemePalette(readThemeBase(shade), wanted)
-    : undefined;
+  const reach = wantedIsLent ? lentSkyReach(shade) : 1;
+  // A lent sky at Black lends nothing, so the window is the theme's own there
+  // — the knobs, the wave and the meter included, which take a scene's
+  // colours only while `data-scene-tint` says one is lent.
+  const palette =
+    wanted && reach > 0
+      ? tintThemePalette(readThemeBase(shade), wanted, reach)
+      : undefined;
   SCENE_TINT_TOKENS.forEach((token) => {
     const value = palette?.[token];
     if (value) {
@@ -496,11 +508,12 @@ const paint = () => {
     'data-scene-tint',
     palette !== undefined,
   );
-  painted = { sky: wanted, shade };
+  painted = { sky: wanted, lent: wantedIsLent, shade };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
+  painted.lent !== wantedIsLent ||
   (wanted !== undefined && painted.shade !== getThemeShade());
 
 /**
@@ -565,9 +578,14 @@ const fadeToWanted = () => {
  * `fade` cross-fades when the window can; the first paint of a launch should
  * not, since there is no earlier colour to fade from.
  */
-export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
-  if (!sameSky(sky, wanted)) {
+const showSky = (
+  sky: ISceneSky | undefined,
+  isLent: boolean,
+  fade: boolean,
+) => {
+  if (!sameSky(sky, wanted) || isLent !== wantedIsLent) {
     wanted = sky;
+    wantedIsLent = isLent;
     wantedListeners.forEach((listener) => listener());
   }
   if (!needsPaint()) {
@@ -579,6 +597,16 @@ export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) => {
     paint();
   }
 };
+
+export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) =>
+  showSky(sky, false, fade);
+
+/**
+ * Lend the window `sky` as its own, with no visualizer chosen: toned like a
+ * visualizer's, except that it fades out toward Black (`lentSkyReach`).
+ */
+export const lendSceneSky = (sky: ISceneSky, fade: boolean) =>
+  showSky(sky, true, fade);
 
 /**
  * A Brightness move lands at once, in the same task as the theme's own rule:

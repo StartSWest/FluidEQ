@@ -14,7 +14,7 @@ import {
   toByte,
   type ILab,
 } from './oklab';
-import { EDGE_CONTRAST, cardOf, edgeOn, inkTokens } from './themeInk';
+import { EDGE_CONTRAST, edgeOn, groundOf, inkTokens } from './themeInk';
 
 /**
  * The theme as one slider from Black to a lighter Ocean (Ivan, 2026-09-25:
@@ -179,12 +179,12 @@ export const BLACK_THEME: TThemeTable = {
   '--surface-well': '#030405',
   '--track-well': '#222731',
   // The edges as painted: each one's colour here, at the opacity that reaches
-  // its contrast on this shade's card (`themeInk.ts`). They were 0.06, 0.08
-  // and 0.14 — the "barely there" of the paragraph above, 1.1:1, which Ivan
-  // called lines he hated against the background (2026-09-27).
-  '--border-subtle': 'rgba(190, 205, 225, 0.166)',
-  '--border-panel': 'rgba(190, 205, 225, 0.225)',
-  '--border-menu': 'rgba(190, 205, 225, 0.306)',
+  // its contrast on this shade's lightest ground (`themeInk.ts`). They were
+  // 0.06, 0.08 and 0.14 — the "barely there" of the paragraph above, 1.1:1,
+  // which Ivan called lines he hated against the background (2026-09-27).
+  '--border-subtle': 'rgba(190, 205, 225, 0.253)',
+  '--border-panel': 'rgba(190, 205, 225, 0.288)',
+  '--border-menu': 'rgba(190, 205, 225, 0.363)',
   '--accent': '#4fe6ef',
   '--accent-light': '#b4f6fa',
   '--accent-dark': '#22ccdb',
@@ -203,9 +203,9 @@ export const OCEAN_THEME: TThemeTable = {
   '--surface-well': '#0d2030',
   '--track-well': '#2e4f63',
   // As painted, like Black's (`themeInk.ts`); they shipped at 0.09, 0.11, 0.22.
-  '--border-subtle': 'rgba(214, 233, 247, 0.124)',
-  '--border-panel': 'rgba(214, 233, 247, 0.183)',
-  '--border-menu': 'rgba(156, 250, 255, 0.262)',
+  '--border-subtle': 'rgba(214, 233, 247, 0.218)',
+  '--border-panel': 'rgba(214, 233, 247, 0.258)',
+  '--border-menu': 'rgba(156, 250, 255, 0.333)',
   '--accent': '#1bdee7',
   '--accent-light': '#a1fcff',
   '--accent-dark': '#00a9d6',
@@ -305,10 +305,10 @@ export const themeShadeTokens = (shade: number): TThemeTable => {
       ),
     ]),
   ) as TThemeTable;
-  const card = cardOf(table['--surface-base'], table['--surface-panel']);
+  const ground = groundOf(table['--surface-base'], table['--surface-panel']);
   (Object.keys(EDGE_CONTRAST) as (keyof typeof EDGE_CONTRAST)[]).forEach(
     (token) => {
-      table[token] = edgeOn(token, table[token], card);
+      table[token] = edgeOn(token, table[token], ground);
     },
   );
   return table;
@@ -318,7 +318,7 @@ export const themeShadeTokens = (shade: number): TThemeTable => {
 export const themeInkTokens = (shade: number) => {
   const table = themeShadeTokens(shade);
   return inkTokens(
-    cardOf(table['--surface-base'], table['--surface-panel']),
+    groundOf(table['--surface-base'], table['--surface-panel']),
     table['--accent-light'],
   );
 };

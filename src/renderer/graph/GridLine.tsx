@@ -39,10 +39,10 @@ const GridLine = ({
   transform,
   // Faint by default. A grid is a reference, not a subject — it exists so
   // the eye can place a curve, and the moment it competes with one it is
-  // doing the opposite of its job.
-  // The mist at the same alpha as the EQ face's major ticks, so the graph's
-  // paper and the sliders' paper are ruled in one ink. See `$edge-tint`.
-  color = 'rgba(214, 233, 247, 0.12)',
+  // doing the opposite of its job. The mist at the opacity the theme solves
+  // for each shade (`--rule-major`, `themeInk.ts`): a fixed 12% was 1.25:1
+  // at every shade, faint at the light end and gone on Black.
+  color = 'var(--rule-major)',
   disableAnimation,
 }: IGridLineProps) => {
   const ref = useRef<SVGGElement>(null);
@@ -87,7 +87,9 @@ const GridLine = ({
       }
       gridGroup.select('.domain').remove();
       gridGroup.selectAll('text').remove();
-      gridGroup.selectAll('line').attr('stroke', color);
+      // A style, not the `stroke` attribute: a presentation attribute does
+      // not resolve `var()`, and the inks are the theme's variables.
+      gridGroup.selectAll('line').style('stroke', color);
     }
   }, [scale, tickValues, size, disableAnimation, type, color]);
 

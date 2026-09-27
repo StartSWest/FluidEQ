@@ -52,7 +52,9 @@ $switch-inset: 4px;
   height: var(--switch-height);
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba($edge-tint, 0.14);
+  // The edge every control the hand acts on wears; a fixed 14% of the edge
+  // tint measured 1.33:1 on the EQ page at 100% (2026-09-27).
+  border: 1px solid $border-field;
   border-radius: $radius-pill;
   // Off is the empty-track colour — see `$track-well`, the same one the
   // meters show with no signal, so an unlit toggle and an unlit meter are

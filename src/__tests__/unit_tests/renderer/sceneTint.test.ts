@@ -25,10 +25,13 @@ import {
 } from '../../../renderer/utils/oklab';
 import {
   findSceneSky,
+  lentSkyReach,
   sceneSkyColour,
   tintThemePalette,
   type ISceneSky,
 } from '../../../renderer/utils/sceneTint';
+import { EDGE_CONTRAST, groundOf } from '../../../renderer/utils/themeInk';
+import { OCEAN_SHADE } from '../../../renderer/utils/themeShade';
 
 type TRgb = readonly [number, number, number];
 
@@ -204,7 +207,52 @@ describe('the window in a scene’s colour', () => {
         expect(hueDistance(after.hue, 300)).toBeLessThan(20);
       },
     );
-    expect(palette['--border-subtle']).toMatch(/^rgba\(.+, 0\.09\)$/);
+  });
+
+  // The edges keep the contrast the theme solved them for, measured on the
+  // panes as the sky tones them — not the alpha they had on the theme's own
+  // panes, which under Lagoon came out at 1.74:1 for a 1.8 edge.
+  it('keeps its edges at their contrast on the toned panes', () => {
+    const edge = parseCssColour(palette['--border-subtle'] ?? '');
+    const ground = groundOf(
+      palette['--surface-base'] ?? '',
+      palette['--surface-panel'] ?? '',
+    );
+    if (!edge) {
+      throw new Error('no edge');
+    }
+    const mixed = edge.rgb.map(
+      (channel, index) =>
+        channel * edge.alpha + ground[index] * (1 - edge.alpha),
+    );
+    const measured = contrast(
+      luminance(mixed.map(toLinear)),
+      luminance(ground.map(toLinear)),
+    );
+    expect(measured).toBeGreaterThanOrEqual(
+      EDGE_CONTRAST['--border-subtle'] - 0.01,
+    );
+    // In the sky's hue, like the panes it parts.
+    expect(
+      hueDistance(labOfHex(palette['--border-subtle']).hue, 300),
+    ).toBeLessThan(40);
+    // POSITIVE CONTROL: at the alpha it came in with it measures under that.
+    const kept = edge.rgb.map(
+      (channel, index) => channel * 0.09 + ground[index] * (1 - 0.09),
+    );
+    expect(
+      contrast(luminance(kept.map(toLinear)), luminance(ground.map(toLinear))),
+    ).toBeLessThan(EDGE_CONTRAST['--border-subtle']);
+  });
+
+  it('takes none of the sky’s colour at no reach, and all of it at full', () => {
+    const none = tintThemePalette(OCEAN, violetSky, 0);
+    (['--surface-base', '--surface-panel', '--surface-block'] as const).forEach(
+      (token) => {
+        expect(none[token]).toBe(OCEAN[token]);
+        expect(palette[token]).not.toBe(OCEAN[token]);
+      },
+    );
   });
 
   it('gives the buttons the scene’s second colour, keeping their labels readable', () => {
@@ -255,5 +303,18 @@ describe('what a loading scene waits on', () => {
     );
     expect(colour.l).toBeLessThanOrEqual(0.145);
     expect(hueDistance(colour.hue, 300)).toBeLessThan(25);
+  });
+});
+
+// The sky the window borrows with no visualizer chosen fades out toward
+// Black, which is black and grey (Ivan, 2026-09-27: "moving toward the 0
+// make it no tinting ... when moving to the 100% it tints the cyan as
+// normal"); a visualizer's own sky is never scaled by it.
+describe('the sky lent with no visualizer', () => {
+  it('lends nothing at Black, all of itself from Ocean up, a share between', () => {
+    expect(lentSkyReach(0)).toBe(0);
+    expect(lentSkyReach(OCEAN_SHADE / 2)).toBeCloseTo(0.5, 6);
+    expect(lentSkyReach(OCEAN_SHADE)).toBe(1);
+    expect(lentSkyReach(100)).toBe(1);
   });
 });

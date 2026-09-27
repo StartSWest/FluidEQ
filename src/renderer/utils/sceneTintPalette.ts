@@ -22,6 +22,8 @@ import {
   clamp01,
 } from './oklab';
 import type { ISceneSky } from './sceneTint';
+import { edgeOn, groundOf } from './themeInk';
+import { OCEAN_SHADE } from './themeShade';
 
 /**
  * The theme toned in a scene's colours (`sceneTint.ts` finds them): which
@@ -129,6 +131,17 @@ export const isGreySky = (sky: ISceneSky) => sky.chroma === 0;
 export const sceneTintStrength = (sky: ISceneSky) =>
   clamp01(sky.share / FULL_SKY_SHARE) *
   (isGreySky(sky) ? 1 : clamp01(sky.chroma / FULL_SKY_CHROMA));
+
+/**
+ * How much of a LENT sky's colour the window takes at `shade` — the one it
+ * borrows with no visualizer chosen: none at Black, all of it from Ocean up,
+ * in step with the theme's own walk from Black to Ocean. Black is the window
+ * with no colour in it, black and dark grey (Ivan, 2026-09-27: "moving toward
+ * the 0 make it no tinting so is pure black / dark gray ... when moving to
+ * the 100% it tints the cyan as normal"). A visualizer's own sky keeps its
+ * colour at Black, which is its colour darkened, never black (2026-09-25).
+ */
+export const lentSkyReach = (shade: number) => clamp01(shade / OCEAN_SHADE);
 
 const formatAlpha = (alpha: number) => String(Math.round(alpha * 1000) / 1000);
 
@@ -283,13 +296,16 @@ const activeUnder = (
  * `parseCssColour` cannot read are left out, so the theme's own value stays.
  *
  * Surfaces and accents come back as `#rrggbb`, because the drawings read them
- * with a six-digit pattern; edges as `rgba()` with the alpha they had.
+ * with a six-digit pattern; edges as `rgba()` at the contrast the theme solved
+ * them for. `reach` is how much of the sky's toning the surfaces and edges
+ * take, 1 for all of it (`lentSkyReach`).
  */
 export const tintThemePalette = (
   base: Readonly<Record<string, string>>,
   sky: ISceneSky,
+  reach = 1,
 ): TSceneTintPalette => {
-  const amount = sceneTintStrength(sky);
+  const amount = sceneTintStrength(sky) * reach;
   // Under a grey sky the surfaces and edges lose the theme's own tone
   // instead of taking a colour.
   const grey = isGreySky(sky);
@@ -304,15 +320,24 @@ export const tintThemePalette = (
       palette[token] = labToHex(toward(lab, chroma, sky.hue, amount));
     }
   });
+  // The edges keep the contrast the theme solved them for, measured on the
+  // panes as the sky tones them: toned and kept at the theme's alpha, they
+  // came out under it — 1.74:1 for a 1.8 edge under Lagoon, measured in the
+  // window.
+  const floor = palette['--surface-base'] ?? base['--surface-base'];
+  const pane = palette['--surface-panel'] ?? base['--surface-panel'];
+  const ground =
+    floor && pane && parseCssColour(floor) && parseCssColour(pane)
+      ? groundOf(floor, pane)
+      : undefined;
   SCENE_TINT_EDGES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
       const tinted = intoGamut(
         toward(rgbToLab(colour.rgb), grey ? 0 : EDGE_CHROMA, sky.hue, amount),
       ).map(toByte);
-      palette[token] = `rgba(${tinted.join(', ')}, ${formatAlpha(
-        colour.alpha,
-      )})`;
+      const toned = `rgba(${tinted.join(', ')}, ${formatAlpha(colour.alpha)})`;
+      palette[token] = ground ? edgeOn(token, toned, ground) : toned;
     }
   });
   const accentHue = sceneAccentHue(sky);
