@@ -55,6 +55,9 @@ import type { IGuestPaint, TGuestGrey, TGuestKeep } from './guestTintProbe';
  * an artist's page is not a colour preference.
  */
 
+/** Which of the interface's two outlines a site's own outline becomes. */
+type TGuestEdge = 'field' | 'card';
+
 /** A site this can tint: where its dark mode is, and what its page is. */
 interface IGuestTintSite {
   /**
@@ -86,6 +89,17 @@ interface IGuestTintSite {
    * colour instead, nearly solid, and reads as FluidEQ's bar carried on.
    */
   bars?: readonly string[];
+  /**
+   * Outlines the site draws in a colour no grey above reaches, and which of
+   * the interface's outlines each one takes. YouTube's search field is edged
+   * in #303030 written as a colour, and its playlist's frame in white at a
+   * fifth: under a tinted page the first was a grey ring round a blue field
+   * and the second a pale frame round a dark list (Ivan, 2026-09-26: "search
+   * bar border not good, playlist border neither"). A state the site marks
+   * with a colour of its own — the field's focus — is left out of the
+   * selector and keeps it.
+   */
+  edges?: ReadonlyArray<readonly [string, TGuestEdge]>;
 }
 
 const RAISE = ':not(#fluideq-guest-tint)';
@@ -105,6 +119,20 @@ export const GUEST_TINT_SITES: Readonly<Record<string, IGuestTintSite>> = {
       `html[dark] #background.ytd-masthead${RAISE}`,
       `html[dark] ytd-masthead[frosted-glass-mode]${RAISE}`,
       `html[dark] #frosted-glass${RAISE}`,
+    ],
+    // Measured on the page, 2026-09-26: the field and its button in #303030,
+    // the unified field and the playlist's frame in white at 20%.
+    edges: [
+      [
+        `html[dark] .ytSearchboxComponentInputBoxDark:not(.ytSearchboxComponentInputBoxHasFocus)${RAISE}`,
+        'field',
+      ],
+      [
+        `html[dark] .ytSearchboxComponentInputBoxUnified:not(.ytSearchboxComponentInputBoxHasFocus)${RAISE}`,
+        'field',
+      ],
+      [`html[dark] .ytSearchboxComponentSearchButtonDark${RAISE}`, 'field'],
+      [`html[dark] #container.ytd-playlist-panel-renderer${RAISE}`, 'card'],
     ],
   },
   'youtube-music': {
@@ -231,6 +259,21 @@ const PAGE_WASH = 0.35;
  */
 const BAR_OPACITY = 92;
 
+/**
+ * The interface's two outlines, as shares of the lift over whatever is behind
+ * them: a field's edge (`$border-field`, the light accent at 13%) and a card's
+ * (`$border-subtle`, a cool white at 9%). The lift is white with a fifth of
+ * the accent in it, which is what both of those are.
+ */
+const EDGE_SHARE: Readonly<Record<TGuestEdge, number>> = { field: 13, card: 9 };
+
+/** A site's own outlines in the interface's, over colour and glass alike. */
+const edgeRules = (site: IGuestTintSite, lift: string): string[] =>
+  (site.edges ?? []).map(
+    ([selector, edge]) =>
+      `${selector} {\n  border-color: color-mix(in srgb, ${lift} ${EDGE_SHARE[edge]}%, transparent) !important;\n}`,
+  );
+
 /** A selector for the page's root element itself, with nothing below it. */
 const ROOT_SELECTOR = /^html(?:\[[^\]]*\]|:[\w-]+\([^)]*\))*$/;
 
@@ -345,6 +388,7 @@ export const buildGuestGlassCss = (
       `${site.bars.join(',\n')} {\n  background-color: color-mix(in srgb, ${ground} ${BAR_OPACITY}%, transparent) !important;\n}`,
     );
   }
+  rules.push(...edgeRules(site, lift));
   return `${rules.join('\n')}\n`;
 };
 
@@ -393,5 +437,6 @@ export const buildGuestTintCss = (
       `${selector} {\n  background-color: ${shade(ground, mean(r, g, b), page, lift)} !important;\n}`,
     );
   });
+  rules.push(...edgeRules(site, lift));
   return `${rules.join('\n')}\n`;
 };

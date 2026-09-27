@@ -109,6 +109,39 @@ it('also colours what the site paints without a variable, at its own step', () =
   );
 });
 
+// YouTube edges its search field in #303030 written as a colour and its
+// playlist's frame in white at a fifth, which no grey reaches: a grey ring
+// round a tinted field, a pale frame round a tinted list (Ivan, 2026-09-26:
+// "search bar border not good, playlist border neither").
+it.each([
+  ['colour', buildGuestTintCss],
+  ['glass', buildGuestGlassCss],
+])("draws YouTube's own outlines in the interface's, over %s", (_, build) => {
+  const lift = 'color-mix(in srgb, #ffffff 80%, #a1fcff)';
+  const css = build('youtube', PANEL, PAGE, lift) ?? '';
+  const edgeOf = (selector: string) =>
+    new RegExp(
+      `${selector}[^{]*\\{\\s*border-color: color-mix\\(in srgb, ${lift.replace(/[()]/g, '\\$&')} (\\d+)%, transparent\\) !important;`,
+    ).exec(css)?.[1];
+  // A field's edge and a card's, as `$border-field` and `$border-subtle`.
+  expect(edgeOf('\\.ytSearchboxComponentInputBoxDark')).toBe('13');
+  expect(edgeOf('\\.ytSearchboxComponentSearchButtonDark')).toBe('13');
+  expect(edgeOf('#container\\.ytd-playlist-panel-renderer')).toBe('9');
+  // The field's focus keeps the site's own colour.
+  expect(css).toContain(
+    '.ytSearchboxComponentInputBoxDark:not(.ytSearchboxComponentInputBoxHasFocus)',
+  );
+  // Only YouTube's outlines: Twitch has none named.
+  expect(
+    build(
+      'twitch',
+      PANEL,
+      surfaces([['--color-background-body', 14, 14, 16, 1]]),
+      lift,
+    ),
+  ).not.toContain('border-color');
+});
+
 it('does nothing rather than guess: another site, an odd colour, no greys', () => {
   expect(buildGuestTintCss('bandcamp', PANEL, PAGE)).toBeUndefined();
   expect(buildGuestTintCss(undefined, PANEL, PAGE)).toBeUndefined();
