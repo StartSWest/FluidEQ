@@ -459,13 +459,6 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
     background: $card-glow, $karaoke-chip-face;
   }
 
-  // The lane stands on the picture beside the playlist, so it is the same
-  // card as the playlist; in a window it is a box inside the stage's card and
-  // keeps its edge alone.
-  .karaoke-pitch {
-    background: $card-glow, $karaoke-chip-face !important;
-  }
-
   .karaoke-workspace__stage {
     border: 0;
     border-radius: 0;
@@ -2735,16 +2728,18 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   // 18px corner of its own made two panels of the same row read as two
   // different kinds of thing, in a window as much as in full screen.
   border-radius: $radius-m;
-  // No fill and no lift, like the playlist it shares a row with: an edge on
-  // the floor (2026-09-26).
+  // The card, laid over the floor as the playlist's is, in a window as much
+  // as in full screen (Ivan, 2026-09-27: "nice card bg as we did on DSP to
+  // the pitch lane"). Its plot inside is the plot well, darker, as every
+  // drawing's is.
   //
   // What it had was a 145deg ramp from the shell colour to the well colour
   // under a radial cyan wash, over a four-layer shadow with a light inset at
   // the top and a dark one at the foot. That is a bevel, and it made the one
   // panel on this page that is mostly empty space the glossiest thing in the
-  // window — beside a playlist that is a plain card, on the same row. The
-  // block colour it had after that was the last grey slab on the page.
-  background: transparent !important;
+  // window. The block colour it had after that was a grey slab, and then an
+  // edge alone.
+  background: $card-glow, $karaoke-chip-face !important;
   text-align: left;
   transform: translateZ(0);
   transition: border-color 280ms ease;
@@ -3381,13 +3376,14 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
-  // The window's floor, flat, as every page on the open floor is: no card,
-  // no corner (Ivan, 2026-09-26, of a rounded card tried in its place: "no
-  // rounder border like that and no bg"). It was the pane colour, a step
-  // lighter than the floor, with a purple wash. Opaque all the same — the
-  // stage and the transport are underneath it.
+  // The card every pane is, laid over the floor so it stays opaque — the
+  // stage and the transport are underneath it (Ivan, 2026-09-27: "nice card
+  // bg as we did on DSP ... to the whole maker window"). Square and with no
+  // frame of its own, still: a rounded card tried here was sent back ("no
+  // rounder border like that"). It was the bare floor, and before that the
+  // pane colour with a purple wash.
   color: $text-muted;
-  background: $surface-base;
+  background: $card-glow, $karaoke-chip-face;
   border-radius: 0;
 
   button,

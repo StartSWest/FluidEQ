@@ -90,7 +90,6 @@ import {
   readTextInk,
   readAccent,
   readAccentLight,
-  readSurface,
   readSurfaceAlpha,
 } from '../utils/theme';
 
@@ -331,14 +330,12 @@ const KaraokePitchLane = ({
       context.textRendering = 'optimizeLegibility';
       issueHitRegionsRef.current = [];
 
-      // The plot colour every other drawing in the app lies on — the same
-      // one the EQ response, the correction curves and the DSP graphs use.
-      // It was a three-stop ramp of near-black blues, which made this the
-      // darkest rectangle in the window and a different material from the
-      // card it sits in. A canvas cannot read the stylesheet, so the value
-      // is `$surface-plot` written out.
-      context.fillStyle = readSurface('--surface-panel', '#1a3a4e');
-      context.fillRect(0, 0, width, height);
+      // Nothing painted under the drawing: the canvas's box is the plot well
+      // (`.karaoke-pitch__canvas`, `$surface-plot`), the colour every other
+      // drawing in the app lies on. It was filled with the pane colour
+      // here, whatever the comment said — a pale slab in the middle of the
+      // card, the lightest thing on the page (Ivan, 2026-09-27: "fix pitch
+      // lane bg color"). Before that it was a ramp of near-black blues.
 
       const plotWidth = Math.max(1, width - PLOT_LEFT - PLOT_RIGHT);
       const { plotTop, plotBottom, wordLanes, showsReview } = pitchLaneLayout(
