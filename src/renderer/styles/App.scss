@@ -2039,6 +2039,27 @@ textarea,
   );
 }
 
+// Under the Backdrop, the same floor as a veiled pane shows it over a dark
+// scene: the veil's share of it, the rest the night behind. At the root's own
+// floor a menu was the one pale slab in a window of panes the scene darkens —
+// lighter than every pill and pane it opened from (Ivan, 2026-09-26, of the
+// open preset list over a scene: "the dropdown menus too", beside "so it looks
+// the same as the other pills and buttons"). Still 95%: the Backdrop's veil
+// sets its colour, never its opacity.
+:root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {
+  --surface-menu-floor: color-mix(
+    in srgb,
+    color-mix(
+        in srgb,
+        color-mix(in srgb, var(--surface-base) 70%, var(--surface-panel))
+          var(--backdrop-veil),
+        #{$black}
+      )
+      95%,
+    transparent
+  );
+}
+
 // While a Plus scene lends the window its colours the root is marked
 // (`sceneTintStore.ts`), and the colours kept for contrast take the scene's
 // "on" colour, which is chosen well away from the accent and from red and

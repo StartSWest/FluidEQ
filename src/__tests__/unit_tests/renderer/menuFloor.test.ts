@@ -71,6 +71,24 @@ describe('the menus’ floor', () => {
     expect(floor).toMatch(/\) 95%, transparent ?\)/);
   });
 
+  // Over a scene the panes are the veil's share of the floor and the rest the
+  // night behind it; a menu at the root's own floor was the one pale slab in
+  // that window (Ivan, 2026-09-26: "the dropdown menus too"). Its colour takes
+  // the veil, its opacity never does.
+  it('under the Backdrop, is the floor a veiled pane shows, still at 95%', () => {
+    const css = compiledCss('App.scss');
+    const at = css.indexOf(
+      ':root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {',
+    );
+    expect(at).toBeGreaterThanOrEqual(0);
+    const floor = css.slice(at, css.indexOf('}', at)).replace(/\s+/g, ' ');
+    expect(floor).toContain('--surface-menu-floor:');
+    expect(floor).toContain(
+      'var(--surface-base) 70%, var(--surface-panel)) var(--backdrop-veil), #000000',
+    );
+    expect(floor).toMatch(/\) 95%, transparent ?\)/);
+  });
+
   it('is never named by the Backdrop, which veils the panes', () => {
     const cover = fs.readFileSync(
       path.join(STYLES_DIR, 'SceneCover.scss'),
