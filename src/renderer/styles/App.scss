@@ -3929,12 +3929,17 @@ button.graph-legend {
   // The `--selected:hover` pair is what fixes it: three selectors, matching
   // hover's weight, and later in the file, so now the tie-break really is
   // source order.
+  //
+  // Quieter than it was: the halo a faint disc of the band's colour rather
+  // than a lit one, the collar a little under white, and a short glow. With
+  // every band selected the curve carried a row of bright discs brighter than
+  // the curve itself (Ivan, 2026-09-26: "and the selected graph dots").
   &--selected,
   &--selected:hover,
   &:focus-visible {
     .graph-edit-point__halo {
-      fill: var(--point-muted-color);
-      stroke: var(--point-color);
+      fill: color-mix(in srgb, var(--point-color) 14%, transparent);
+      stroke: var(--point-muted-color);
     }
 
     .graph-edit-point__dot {
@@ -3947,9 +3952,9 @@ button.graph-legend {
       // exactly why the selected handle needs something outside the scheme:
       // against a rainbow of neighbours, another shade of the same family says
       // very little, and white says it at any hue.
-      stroke: rgba($white, 0.95);
+      stroke: rgba($white, 0.78);
       stroke-width: 2;
-      filter: drop-shadow(0 0 10px var(--point-color));
+      filter: drop-shadow(0 0 5px var(--point-muted-color));
     }
   }
 

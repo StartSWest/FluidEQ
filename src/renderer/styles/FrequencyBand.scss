@@ -67,9 +67,14 @@ $filter-dropdown-width: 56px;
   // of its own from the spectrum — so a cyan wash under a magenta band was
   // two colours arguing about which one the band is. A plain lift and a mist
   // ring say "this one" without saying anything about hue.
+  //
+  // A lift, not a slab: the track colour at two fifths. At full strength it
+  // was the lightest surface in the window, and with every band selected the
+  // whole strip turned into a row of pale boxes (Ivan, 2026-09-26: "bg
+  // selected slider also less light").
   &.is-selected {
-    background: $track-well;
-    box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.22);
+    background: color-mix(in srgb, $track-well 40%, transparent);
+    box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.16);
   }
 
   // A band switched off. Its column keeps its place in the strip — that is the
