@@ -1426,21 +1426,19 @@ $dsp-rail-offset: 110ms;
   gap: 10px;
   padding: 12px 14px 14px;
   container: dsp-card / inline-size;
-  // An edge on the floor, with no fill of its own (`lifted-surface`); the
-  // stage it holds is the page, as every other page's content is.
-  border: 1px solid rgba($white, 0.07);
-  border-radius: $radius-m;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+  // The card every pane is (`card-surface`), at its now very subtle depth:
+  // an edge on the floor alone left the stage's boxes floating on nothing
+  // beside a Library whose panes were filled (Ivan, 2026-09-26: "pick a nice
+  // very subtle bg color for pane and use it in all panes").
+  @include card-surface;
+  transition: border-color 160ms ease;
 }
 
+// Chosen: the accent's edge and a ring, flat. It carried a lit bevel along
+// its top and a 18px glow under it.
 .dsp-card.is-active {
   border-color: color-mix(in srgb, $secondary-default 42%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.06),
-    0 0 0 1px color-mix(in srgb, $secondary-default 12%, transparent),
-    0 6px 18px -12px color-mix(in srgb, $secondary-default 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, $secondary-default 12%, transparent);
 }
 
 // THE HEADER WRAPS; IT IS NEVER REARRANGED.

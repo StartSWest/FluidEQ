@@ -241,7 +241,7 @@ describe('what stands on the floor', () => {
   ])('%s fills %s with the card', (sheet, selector) => {
     const card = declarationsOf(compiledCss(sheet), selector);
     expect(card).toContain(
-      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 55%, transparent)',
+      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent)',
     );
     expect(card).toContain('radial-gradient(');
   });
@@ -289,7 +289,7 @@ describe('what stands on the floor', () => {
   ])('lays the card over the floor under %s', (selector) => {
     const chip = declarationsOf(compiledCss('Karaoke.scss'), selector);
     expect(chip).toContain(
-      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 55%, transparent)',
+      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent)',
     );
     expect(chip).toContain('var(--surface-base)');
     expect(chip).not.toMatch(SLAB);

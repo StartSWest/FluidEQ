@@ -295,14 +295,19 @@ $surface-block: var(--surface-block);
 // the scene through as the veiled panes do (`SceneCover.scss`) instead of
 // standing opaque in a see-through window. What must hide what scrolls under
 // it lays it over the floor (`.studio-ship-card`).
+//
+// A third of the pane's depth, and the glow a twentieth: at half of it the
+// Library's listing was a lighter slab across the tab, and every card with it
+// (Ivan, 2026-09-26: "pick a nice very subtle bg color for pane and use it
+// in all panes"). Enough to see where a card is; not enough to see it first.
 $surface-card: color-mix(
   in srgb,
-  color-mix(in srgb, $secondary-default 4%, $surface-panel) 55%,
+  color-mix(in srgb, $secondary-default 4%, $surface-panel) 34%,
   transparent
 );
 $card-glow: radial-gradient(
   120% 90% at 0% 0%,
-  color-mix(in srgb, $secondary-default 6%, transparent),
+  color-mix(in srgb, $secondary-default 5%, transparent),
   transparent 60%
 );
 
