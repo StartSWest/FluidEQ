@@ -126,22 +126,29 @@ describe('the row under the EQ bands', () => {
     ).toBeUndefined();
   });
 
-  it('reserves the taller of the two rows, so neither state moves the bands', () => {
-    expect(declared('.eq-flat-editor', 'min-height')).toBe('100px');
-    // And gives it back where the two rows are already one box, rather than
-    // holding a floor of zero that lets the row squash under its controls.
-    expect(declared('.eq-flat-editor', 'min-height', SHORT)).toBe('auto');
+  // One height for the two rows by construction (Ivan, 2026-09-26: "make band
+  // setting same height and nice style like tone"): the same dial, of one
+  // `--dial-size`, with its reading under it, in both. The Tone row used to
+  // be the taller, and the row reserved its height so neither state moved
+  // the bands; with one size there is nothing to reserve.
+  it('gives both rows one dial size, so neither state moves the bands', () => {
+    expect(declared('.eq-flat-editor', '--dial-size')).toBe('68px');
+    expect(declared('.eq-flat-editor', '--dial-size', SHORT)).toBe('56px');
+    expect(declared('.eq-flat-editor .knob', 'height')).toBe(
+      'var(--dial-size)',
+    );
+    expect(declared('.eq-flat-editor .knob', 'width')).toBe('var(--dial-size)');
   });
 
-  it('POSITIVE CONTROL: the Tone row is the taller one, and only above that tier', () => {
-    // If these two were ever the same, the reservation above would be dead
-    // weight — and this is the measurement the reservation is made from.
+  it('POSITIVE CONTROL: the Tone row has no dial size of its own', () => {
+    // A size of its own is what made the two rows two heights.
     expect(
       declared('.eq-flat-editor.eq-flat-editor--tone .knob', 'height'),
-    ).toBe('68px');
+    ).toBeUndefined();
     expect(
       declared('.eq-flat-editor.eq-flat-editor--tone .knob', 'height', SHORT),
-    ).toBe('52px');
+    ).toBeUndefined();
+    expect(declared('.eq-flat-editor', 'min-height')).toBeUndefined();
   });
 
   it('grows the grid to the panel so the bands can give way', () => {
