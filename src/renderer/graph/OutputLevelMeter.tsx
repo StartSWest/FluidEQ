@@ -66,7 +66,6 @@ import {
 } from './outputLevel';
 import {
   readTextInk,
-  readAccent,
   readAccentLightChannels,
   readSurface,
 } from '../utils/theme';
@@ -512,8 +511,6 @@ const drawPeakLine = (
   const colour = READING_COLOURS[channel.peakZone];
   context.save();
   context.fillStyle = colour;
-  context.shadowColor = colour;
-  context.shadowBlur = 6;
   if (style === 'center') {
     const midY = rect.y + rect.height / 2;
     const reach = (rect.height / 2) * channel.peak;
@@ -600,10 +597,11 @@ const drawChannel = (
    * coloured bricks at both ends of `center`, announcing something that
    * had not happened.
    *
-   * `glow` is the reading itself, over a soft coloured bloom so the lit
-   * pieces look like light rather than like paint. The bloom colour
-   * follows the mode, which is the one place the meter announces which
-   * mode it is in without a legend.
+   * `lit` is the reading itself, flat: no bloom under it, in any mode.
+   * It was drawn over a soft coloured bloom, cyan or a hot pink in Rainbow
+   * mode, and every lamp and bar carried a halo that smeared its edges into
+   * the well (Ivan, 2026-09-26: "no glow on meter I like sharp and clean
+   * border", "remove that red glow and all that crap").
    */
   /**
    * Everything a meter draws that is NOT the reading: the unlit remainder of
@@ -622,12 +620,8 @@ const drawChannel = (
     draw();
     context.restore();
   };
-  const glow = (draw: () => void) => {
+  const lit = (draw: () => void) => {
     context.save();
-    context.shadowBlur = isEuphoric ? 12 : 8;
-    context.shadowColor = isEuphoric
-      ? 'rgba(255, 60, 172, 0.55)'
-      : readAccent(0.7, 'rgba(0, 229, 207, 0.7)');
     context.fillStyle = paint;
     context.strokeStyle = paint;
     draw();
@@ -648,7 +642,7 @@ const drawChannel = (
       ghost(() => {
         context.fillRect(rect.x, rect.y, rect.width, rect.height - fillHeight);
       });
-      glow(() => {
+      lit(() => {
         context.fillRect(rect.x, fillTop, rect.width, fillHeight);
       });
       // The tip, brightened. On a bar the value lives at one edge and the
@@ -688,19 +682,31 @@ const drawChannel = (
       const blockPitch = rect.height / blockCount;
       const blockGap = Math.max(2, blockPitch * 0.26);
       const blockHeight = blockPitch - blockGap;
-      const blockRadius = Math.min(blockHeight / 2, 3);
       const litBlocks = Math.round(channel.level * blockCount);
       const peakBlock = Math.round(channel.peak * blockCount) - 1;
       const blockAt = (index: number) =>
         rect.y + rect.height - (index + 1) * blockPitch + blockGap / 2;
+      // Square lamps on whole pixels: sharp, clean edges (Ivan, 2026-09-26:
+      // "I like sharp and clean border"). Rounded, each with a halo round
+      // it, the ladder read as a column of soft pastel sweets.
       const lamp = (index: number) => {
         context.beginPath();
-        context.roundRect(
-          rect.x,
-          blockAt(index),
-          rect.width,
-          blockHeight,
-          blockRadius,
+        context.rect(
+          Math.round(rect.x),
+          Math.round(blockAt(index)),
+          Math.round(rect.width),
+          Math.max(1, Math.round(blockHeight)),
+        );
+      };
+      // The same lamp's edge, on the half pixel inside it: a 1px line on a
+      // whole-pixel edge is spread across two pixels and comes out soft.
+      const rim = (index: number) => {
+        context.beginPath();
+        context.rect(
+          Math.round(rect.x) + 0.5,
+          Math.round(blockAt(index)) + 0.5,
+          Math.max(0, Math.round(rect.width) - 1),
+          Math.max(0, Math.round(blockHeight) - 1),
         );
       };
 
@@ -724,25 +730,17 @@ const drawChannel = (
         context.strokeStyle = 'rgba(214, 233, 247, 0.2)';
         context.lineWidth = 1;
         for (let i = litBlocks; i < blockCount; i += 1) {
-          lamp(i);
+          rim(i);
           context.stroke();
         }
       });
 
-      glow(() => {
+      lit(() => {
+        // Flat lamps: one clean colour each, no white face along the top.
         context.fillStyle = ladderPaint;
         for (let i = 0; i < litBlocks; i += 1) {
           lamp(i);
           context.fill();
-          // The lit face along the top of the lamp. Without it a block is
-          // one flat colour and reads as painted rather than as glowing.
-          if (blockHeight > 3) {
-            context.globalAlpha = 0.32;
-            context.fillStyle = '#ffffff';
-            context.fillRect(rect.x + 1, blockAt(i) + 0.5, rect.width - 2, 1.2);
-            context.fillStyle = ladderPaint;
-            context.globalAlpha = 1;
-          }
         }
 
         /**
@@ -787,7 +785,7 @@ const drawChannel = (
           bead(i);
         }
       });
-      glow(() => {
+      lit(() => {
         // The ladder's own ramp, lifted off the floor.
         //
         // The shared one starts at a deep teal because a continuous column
@@ -799,49 +797,16 @@ const drawChannel = (
         for (let i = 0; i < litDots; i += 1) {
           bead(i);
         }
-        /**
-         * The topmost lit bead blooms with the music.
-         *
-         * The shared `glow` pass carries a fixed bloom, which means the
-         * ladder looks identical at a whisper and at full tilt once you
-         * stop counting beads. Swelling the halo on the bead at the top
-         * of the reading gives the level somewhere to show besides its
-         * own height, and it lands on the one bead the eye is already on.
-         */
-        if (litDots > 0) {
-          context.shadowBlur = 10 + channel.level * 26;
-          context.globalAlpha = 0.5 + channel.level * 0.5;
-          bead(litDots - 1);
-        }
       });
 
-      /**
-       * The domes.
-       *
-       * A lit bead was one flat disc of colour with a bloom under it,
-       * which reads as a sticker rather than as a lamp. Three passes over
-       * the same circle turn it into a solid: a highlight up and to the
-       * left where the light is coming from, shading down and to the
-       * right where it is not, and a dark bezel round the rim so the lamp
-       * sits IN the panel instead of on it.
-       *
-       * Deliberately outside the `glow` pass. Inside it every one of
-       * these would pick up the bloom, and a blurred white highlight is
-       * not a highlight — it is fog over the bead.
-       *
-       * They are also drawn over `paint` rather than instead of it, so
-       * the bead keeps whatever colour its decibel gives it and the
-       * shading works for any hue.
-       */
       // FLAT LAMPS, and no edge on the lit ones.
       //
       // They carried a white gloss and a dark underside — a moulded plastic
-      // bead, two gradients each, sixteen of them per channel every frame.
-      // A ring was tried after that and it outlined the light, which is the
-      // one thing a lamp does not have. What is left is the disc and the
-      // bloom the `glow` pass already gives it, and the bloom is what says
-      // how brightly it is on. The unlit beads keep their ring: they are
-      // sockets, and a socket does have an edge.
+      // bead, two gradients each, sixteen of them per channel every frame —
+      // and after that a bloom, and a halo on the top bead that swelled with
+      // the level. What is left is the disc, flat, with no glow at all (Ivan,
+      // 2026-09-26: "no glow on meter"). The unlit beads keep their ring:
+      // they are sockets, and a socket does have an edge.
       context.save();
       for (let i = litDots; i < dotCount; i += 1) {
         // No dark well inside an unlit bead: it made each one a black hole
@@ -858,10 +823,9 @@ const drawChannel = (
       // be missed. A ring round the peak was tried instead and was
       // invisible by construction — it was the same size as the bead it
       // circled and landed on top of a lit one, so it vanished into it.
+      // Flat red, with no glow round it ("remove that red glow").
       if (channel.peakZone === 'clip') {
         context.save();
-        context.shadowBlur = 12;
-        context.shadowColor = ZONE_COLOURS.clip;
         context.fillStyle = ZONE_COLOURS.clip;
         bead(dotCount - 1);
         context.restore();
@@ -940,7 +904,7 @@ const drawChannel = (
         floor - ceiling - wallWidth * 2,
       );
       context.clip();
-      glow(() => {
+      lit(() => {
         const steps = 14;
         // The body a shade translucent so the vessel reads through it —
         // an opaque column is a bar, not a liquid.
@@ -1041,7 +1005,7 @@ const drawChannel = (
       context.save();
       glassPath();
       context.clip();
-      glow(() => {
+      lit(() => {
         context.fillRect(
           tubeX - 1,
           mercuryTop,
@@ -1292,7 +1256,7 @@ const drawChannel = (
           context.fillRect(rect.x, y - 0.5, length, 1);
         }
       });
-      glow(() => {
+      lit(() => {
         // The pointer: a blade across the strip with a head on the left,
         // which is the side the ticks run from. A line on its own reads
         // as a boundary between two regions; a head makes it point.
@@ -1301,7 +1265,6 @@ const drawChannel = (
         // pointer is the one thing here to be read, and in the ramp's cyan
         // over a cyan haze it was the hardest thing in the tube to find.
         context.fillStyle = READING_COLOURS[channel.zone];
-        context.shadowColor = READING_COLOURS[channel.zone];
         const headWidth = Math.max(3, rect.width * 0.34);
         context.fillRect(rect.x, y - 0.9, rect.width, 1.8);
         context.beginPath();
@@ -1415,23 +1378,11 @@ const drawChannel = (
       bed.addColorStop(0, `${bedHue} ${bedGlow})`);
       bed.addColorStop(1, `${bedHue} 0)`);
 
-      /**
-       * Drawn OUTSIDE the strip's clip, unlike everything else here.
-       *
-       * A hot floor throws light onto whatever is near it — that is what
-       * heat looks like, and it is the difference between a lit shape and
-       * a source. Clipped to the strip the glow stopped dead at the wall,
-       * which reads as a bright rectangle rather than as something
-       * burning. The shadow carries it past the edge; the fill itself
-       * still sits inside.
-       *
-       * The blur widens with the level, so a loud passage throws further
-       * as well as brighter.
-       */
+      // Inside the strip and nowhere else. It threw a blur of its own past
+      // the strip's edges, the one light in the meter that spilled out of
+      // its well; the meter has no glow now (Ivan, 2026-09-26).
       context.save();
       context.globalCompositeOperation = 'lighter';
-      context.shadowColor = `${bedHue} ${Math.min(1, bedGlow)})`;
-      context.shadowBlur = 8 + drive * 22;
       context.fillStyle = bed;
       context.fillRect(
         rect.x,
@@ -1585,7 +1536,7 @@ const drawChannel = (
         );
       }
       context.restore();
-      glow(() => {
+      lit(() => {
         for (let i = 0; i < litSlabs; i += 1) {
           const y = slabAt(i);
           const x = rect.x + leanAt(i);
@@ -1650,7 +1601,7 @@ const drawChannel = (
         context.beginPath();
         context.rect(rect.x, columnTop, rect.width, columnHeight);
         context.clip();
-        glow(() => {
+        lit(() => {
           // Body of the current, so the column reads as filled rather
           // than as a few marks floating in a dark gap.
           context.globalAlpha = 0.9;
@@ -1732,7 +1683,7 @@ const drawChannel = (
         );
       });
 
-      glow(() => {
+      lit(() => {
         context.fillStyle = mirrored;
         context.fillRect(rect.x, midY - reach, rect.width, reach * 2);
         // Both tips brightened, because on a centre-zero meter the value
@@ -2352,8 +2303,9 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
         // only appear when there is something to say.
         //
         // The corner radius follows the style: the bead column runs in a
-        // pill, everything else in a slot with a soft corner.
-        const trackRadius = styleRef.current === 'leds' ? rect.width / 2 : 3;
+        // pill, everything else in a square slot, as sharp as the lamps in
+        // it (Ivan, 2026-09-26: "I like sharp and clean border").
+        const trackRadius = styleRef.current === 'leds' ? rect.width / 2 : 0;
         // ONE CONTAINER FOR EVERY STYLE.
         //
         // Two of them used to draw their own — the thermometer's glass, the
@@ -2504,33 +2456,10 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
           context.stroke();
         }
 
-        // A soft outer glow in euphoria — the pane is always lit even when
-        // audio is quiet, and the mode announces itself around the strip
-        // rather than over the meter's reading.
-        if (
-          !isOff &&
-          isEuphoricRef.current &&
-          styleRef.current !== 'leds' &&
-          styleRef.current !== 'mercury'
-        ) {
-          context.save();
-          context.shadowColor = 'rgba(255, 60, 172, 0.5)';
-          context.shadowBlur = 14;
-          context.strokeStyle = 'rgba(255, 60, 172, 0.15)';
-          context.lineWidth = 1;
-          context.beginPath();
-          // The same radius the track was drawn with, so the glow traces
-          // the well rather than boxing it.
-          context.roundRect(
-            rect.x,
-            rect.y,
-            rect.width,
-            rect.height,
-            trackRadius,
-          );
-          context.stroke();
-          context.restore();
-        }
+        // No glow round the strip in Rainbow mode. It had a hot-pink one,
+        // lit even in silence, the one colour round the meter from no
+        // palette at all (Ivan, 2026-09-26: "remove that red glow and all
+        // that crap").
 
         if (!isOff) {
           drawChannel(
