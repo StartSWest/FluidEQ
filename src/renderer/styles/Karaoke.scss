@@ -7373,9 +7373,6 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   overflow: hidden auto;
   border: 1px solid rgba(105, 196, 205, 0.13);
   border-radius: $radius-s;
-  scrollbar-color: color-mix(in srgb, $secondary-default 50%, transparent)
-    transparent;
-  scrollbar-width: thin;
 }
 
 .karaoke-maker__download-file-row {
@@ -7998,10 +7995,7 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    scrollbar-color: color-mix(in srgb, $secondary-default 65%, transparent)
-      transparent;
     scrollbar-gutter: stable;
-    scrollbar-width: thin;
 
     &:focus {
       border: 0;
@@ -8019,9 +8013,13 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   }
 }
 
+// The textarea's own gutter, so the colour layer wraps its lines at the same
+// width as the words typed over it: the app's one scrollbar is the width of
+// both gutters (`slim-scrollbar`).
 .karaoke-maker__lyrics-source-highlight {
   z-index: 1;
   overflow: hidden;
+  scrollbar-gutter: stable;
   color: rgba($edge-tint, 0.81);
   pointer-events: none;
   user-select: none;
@@ -8146,9 +8144,6 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   min-height: 0;
   overflow: auto;
   padding: 3px 4px 8px 2px;
-  scrollbar-color: color-mix(in srgb, $secondary-default 65%, transparent)
-    transparent;
-  scrollbar-width: thin;
 }
 
 .karaoke-maker__lyrics-token-preview {

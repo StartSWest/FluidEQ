@@ -291,18 +291,19 @@ select option {
   background: transparent;
 }
 
-// Quiet at rest, cyan under the pointer. A scrollbar is not a control the eye
-// should find on its own: at 60% cyan it was the brightest thing on any panel
-// that happened to overflow, and outshone the switches beside it.
+// Quiet at rest, lit under the pointer, in the accent (`slim-scrollbar` says
+// why). A scrollbar is not a control the eye should find on its own: at 60%
+// cyan it was the brightest thing on any panel that happened to overflow, and
+// at a third of the light accent the palest.
 ::-webkit-scrollbar-thumb {
   min-height: 28px;
   border: 2px solid transparent;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $secondary-light 34%, transparent);
+  background: $scrollbar-thumb;
   background-clip: padding-box;
 
   &:hover {
-    background-color: $secondary-default;
+    background-color: $scrollbar-thumb-hover;
   }
 }
 

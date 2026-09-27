@@ -829,7 +829,11 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 // the bar itself and nothing behind it.
 //
 // Identical to the document-level rules in App.scss, which cover every
-// scrolling surface that does not reach for this. Change one, change both.
+// scrolling surface that does not reach for this, and which take the thumb's
+// two colours from here.
+$scrollbar-thumb: color-mix(in srgb, $secondary-default 30%, transparent);
+$scrollbar-thumb-hover: color-mix(in srgb, $secondary-default 62%, transparent);
+
 @mixin slim-scrollbar {
   // Pseudo-elements only. `scrollbar-color` and `scrollbar-width` used to sit
   // at the top of this mixin, and in Chromium the standard properties win
@@ -845,17 +849,20 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
     background: transparent;
   }
 
-  // The quiet button's colour at rest and the primary's under the pointer:
-  // a scrollbar is a control, so it wears the two colours every control does.
+  // The accent, quiet at rest and lit under the pointer: a scrollbar is a
+  // control, so it wears the control's colour. It was the light accent at a
+  // third — a pale grey-cyan bar, the palest thing on every dark pane it
+  // scrolled — and the full accent under the pointer (Ivan, 2026-09-26: "time
+  // to fix all scrolls colors").
   &::-webkit-scrollbar-thumb {
     min-height: 28px;
     border: 2px solid transparent;
     border-radius: $radius-pill;
-    background: color-mix(in srgb, $secondary-light 34%, transparent);
+    background: $scrollbar-thumb;
     background-clip: padding-box;
 
     &:hover {
-      background-color: $secondary-default;
+      background-color: $scrollbar-thumb-hover;
     }
   }
 
