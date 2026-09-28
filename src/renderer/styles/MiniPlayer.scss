@@ -94,6 +94,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --menu-glass: #{glass.$glass-blur};
 }
 
+// THE AMP'S EDGE IS WINDOWS' OWN (Ivan, 2026-09-28: "why does the amp's
+// border suck? We need normal ones"). The full app lights a hairline just
+// inside the window's clip (`body::after` in `App.scss`), a rim for a dark
+// floor; over the Stage's picture, as bright as a scene is at the window's
+// top, it read as a second, lighter frame inside Windows' own, rounded apart
+// from it at the corners. The amp's picture and decks run to the edge and
+// Windows' border marks where it stops, as it does for every other window.
+:root[data-amp] body::after {
+  display: none;
+}
+
 @scope (:root[data-amp='stage']) {
   @include meta.load-css('ampStage');
 }
