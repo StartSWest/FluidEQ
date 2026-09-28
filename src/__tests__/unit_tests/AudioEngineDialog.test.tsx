@@ -217,8 +217,11 @@ describe('AudioEngineDialog', () => {
         onCancel={onCancel}
       />,
     );
-    const close = screen.getByRole('button', { name: en['engine.close'] });
-    expect(close).toHaveFocus();
+    // Focus goes to the corner's cross: beside a greyed Apply, the footer's
+    // quiet Close wearing the ring read as the answer being recommended.
+    expect(screen.getByTitle(en['engine.close'])).toHaveFocus();
+    // The footer's own answer is Close now, never Cancel.
+    const close = screen.getByText(en['engine.close'], { selector: 'button' });
     expect(
       screen.queryByRole('button', { name: en['engine.cancel'] }),
     ).not.toBeInTheDocument();

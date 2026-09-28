@@ -31,9 +31,12 @@ import { compileString } from 'sass';
 
 const STYLES_DIR = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
 
-/** The one rule allowed, as Sass prints it. */
+/**
+ * The one rule allowed, as Sass prints it. Inside the amps' `@scope` the
+ * page's root is written `:scope` (`MiniPlayer.scss`).
+ */
 const ALLOWED = [
-  ':root[data-window-mode=player]:has(> body > .mini-player-host)',
+  ':scope[data-window-mode=player]:has(> body > .mini-player-host)',
 ];
 
 /** The top-level compounds of a selector: split on combinators, not inside brackets. */
@@ -62,7 +65,9 @@ const compounds = (selector: string): string[] => {
   return found;
 };
 
-const DOCUMENT_ANCHOR = /^(html|body|:root|#root)(?![\w-])/;
+// `:scope` too: every `@scope` in these sheets is rooted at the page's
+// root (the two amps', `MiniPlayer.scss`), so its `:scope` is the document.
+const DOCUMENT_ANCHOR = /^(html|body|:root|:scope|#root)(?![\w-])/;
 
 /** The compounds in `selector` that ask `:has()` of the whole document. */
 const documentHasAnchors = (selector: string): string[] =>
@@ -118,6 +123,7 @@ describe('the detector', () => {
     ).toEqual(['#root:has(> .app-workspace.is-app-full)']);
     expect(documentHasAnchors(':root:not(:has(.a)) .b')).toHaveLength(1);
     expect(documentHasAnchors('html:has(dialog[open])')).toHaveLength(1);
+    expect(documentHasAnchors(':scope[data-x]:has(.a) .b')).toHaveLength(1);
     // A :has() on an element inside the root is its own business.
     expect(
       documentHasAnchors(
@@ -159,7 +165,7 @@ describe('the stylesheets', () => {
     expect(
       selectors.filter((selector) => documentHasAnchors(selector).length > 0),
     ).toContainEqual(
-      expect.stringMatching(/^:root\[data-window-mode=player\]/),
+      expect.stringMatching(/^:scope\[data-window-mode=player\]/),
     );
     const offenders = selectors.filter(
       (selector) =>

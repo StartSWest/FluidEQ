@@ -23,7 +23,7 @@ import {
 import { resetRhythmRun, setRhythmRun } from 'renderer/utils/rhythmRun';
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioFrame: () => ({ points: [] }),
+  useLiveAudioFrame: () => ({ points: [], graphPoints: [] }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest

@@ -234,7 +234,12 @@ describe('the amp', () => {
   });
 
   it('keeps the paused clock lit and still for less motion', () => {
-    const media = css.indexOf('@media (prefers-reduced-motion: reduce)');
+    // The stand-down that follows the blink's own rule: the sheet holds
+    // several, one for each thing that moves.
+    const media = css.indexOf(
+      '@media (prefers-reduced-motion: reduce)',
+      css.indexOf('.player-clock.is-paused .led-clock__lit {'),
+    );
     expect(media).toBeGreaterThan(-1);
     expect(
       bodyOf(css, '.player-clock.is-paused .led-clock__lit', media),

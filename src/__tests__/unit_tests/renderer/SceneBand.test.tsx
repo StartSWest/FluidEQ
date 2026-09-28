@@ -21,11 +21,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
  */
 describe('the scene band', () => {
   it('shows the scene as a picture, at its full height, before it draws', () => {
-    const { container } = render(
-      <SceneBand playsScene>
-        <span>over it</span>
-      </SceneBand>,
-    );
+    const { container } = render(<SceneBand playsScene />);
 
     const band = container.querySelector('.scene-band');
     // `is-scene` is what the height rests on, not `is-playing`: the picture
@@ -37,11 +33,7 @@ describe('the scene band', () => {
   });
 
   it('is the app’s own light, short and still, without a scene', () => {
-    const { container } = render(
-      <SceneBand>
-        <span>over it</span>
-      </SceneBand>,
-    );
+    const { container } = render(<SceneBand />);
 
     const band = container.querySelector('.scene-band');
     expect(band).not.toHaveClass('is-scene');

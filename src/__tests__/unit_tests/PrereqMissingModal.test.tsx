@@ -85,11 +85,15 @@ describe('PrereqMissingModal', () => {
     renderModal('fluid');
 
     expect(
+      screen.getByRole('button', { name: en['prereq.install.fluid'] }),
+    ).not.toHaveClass('subtle');
+    expect(
       screen.getByRole('button', { name: en['prereq.retry'] }),
     ).toHaveClass('subtle');
+    // Putting it off is the corner's close, not a third word in the row.
     expect(
       screen.getByRole('button', { name: en['prereq.dismiss'] }),
-    ).toHaveClass('subtle');
+    ).toHaveClass('dialog-close');
   });
 
   it('goes away when dismissed', async () => {
@@ -144,8 +148,14 @@ describe('PrereqMissingModal', () => {
   it('renders no engine-specific content while the engine is not known yet', () => {
     renderModal(null);
 
-    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
-    expect(screen.getByText(/Something is missing/)).toBeInTheDocument();
+    // The failure itself is the title until then; neither engine's is.
+    expect(screen.getByRole('heading')).toHaveTextContent(
+      /Something is missing/,
+    );
+    expect(screen.queryByText(en['prereq.title.apo'])).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(en['prereq.title.fluid']),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/bundled unchanged/)).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: en['prereq.install.apo'] }),

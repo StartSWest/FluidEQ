@@ -21,7 +21,8 @@ const mockStopWatching = jest.fn();
 
 jest.mock('../../../renderer/utils/sceneTintStore', () => ({
   setStudioTintSource: (source: unknown) => mockSetSource(source),
-  useSceneTintEnabled: () => true,
+  // The Studio's own choice lends the window its colour; Theme would not.
+  useStudioTintMode: () => 'tint',
 }));
 jest.mock('../../../renderer/utils/observeShown', () => ({
   __esModule: true,

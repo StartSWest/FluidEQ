@@ -220,7 +220,7 @@ describe('the mandatory update notice', () => {
     it('closes on a click on the backdrop', async () => {
       const { container } = show();
       emit({ phase: 'available', version: '1.3.0', isMandatory: true });
-      const backdrop = container.querySelector('.overlay-card__backdrop');
+      const backdrop = container.querySelector('.mandatory-update-backdrop');
       expect(backdrop).not.toBeNull();
       await userEvent.click(backdrop as Element);
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();

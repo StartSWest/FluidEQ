@@ -60,10 +60,26 @@ const stylesheetRoot = (): Record<string, string> => {
 };
 
 describe("the theme's slider", () => {
+  // Each end's table is where the slider walks through, not all of what it
+  // paints there: the panes stand a solved step over the floor, every card-
+  // coloured surface — a menu, its head and face — is the card's one colour,
+  // and the edges take the opacity that reaches their contrast
+  // (`themeShadeTokens`). What the tables hold as painted is the floor, the
+  // wells and the accents.
   it('holds Black at its left end and Ocean where Ocean users land', () => {
     const left = themeShadeTokens(THEME_SHADE_MIN);
     const ocean = themeShadeTokens(OCEAN_SHADE);
-    THEME_SHADE_TOKENS.forEach((token) => {
+    (
+      [
+        '--surface-base',
+        '--surface-well',
+        '--track-well',
+        '--accent',
+        '--accent-light',
+        '--accent-dark',
+        '--accent-darker',
+      ] as const
+    ).forEach((token) => {
       expect([token, same(left[token], BLACK_THEME[token])]).toEqual([
         token,
         true,
@@ -76,15 +92,18 @@ describe("the theme's slider", () => {
   });
 
   it("lifts Ocean's surfaces at its right end and keeps its accent", () => {
-    // 0.145: the theme's own 0.045 and the 0.1 a visualizer's colours used
-    // to add over it, which made Original the darker of the two at 100%
-    // (2026-09-26).
+    // Measured from the slider's own Ocean. The light end was built 0.145
+    // over it — the theme's own 0.045 and the 0.1 a visualizer's colours
+    // used to add, which made Original the darker of the two at 100%
+    // (2026-09-26) — and the slider stops three fifths of the way there, so
+    // 100 is what 90 was (2026-09-27: "lower the brightness"); the panes
+    // keep their step over the floor all the way.
+    const ocean = themeShadeTokens(OCEAN_SHADE);
     const right = themeShadeTokens(THEME_SHADE_MAX);
     const lift =
-      lightness(right['--surface-panel']) -
-      lightness(OCEAN_THEME['--surface-panel']);
-    expect(lift).toBeGreaterThan(0.14);
-    expect(lift).toBeLessThan(0.15);
+      lightness(right['--surface-panel']) - lightness(ocean['--surface-panel']);
+    expect(lift).toBeGreaterThan(0.11);
+    expect(lift).toBeLessThan(0.12);
     expect(right['--accent']).toBe(OCEAN_THEME['--accent']);
   });
 
@@ -99,13 +118,12 @@ describe("the theme's slider", () => {
       const { a, b } = rgbToLab(colour.rgb);
       return Math.hypot(a, b);
     };
+    const ocean = themeShadeTokens(OCEAN_SHADE);
     const right = themeShadeTokens(THEME_SHADE_MAX);
     (['--surface-base', '--surface-panel'] as const).forEach((token) => {
       // Positive control: Ocean itself is a muted blue.
-      expect(chroma(OCEAN_THEME[token])).toBeLessThan(0.056);
-      expect(chroma(right[token])).toBeGreaterThan(
-        chroma(OCEAN_THEME[token]) * 1.3,
-      );
+      expect(chroma(ocean[token])).toBeLessThan(0.056);
+      expect(chroma(right[token])).toBeGreaterThan(chroma(ocean[token]) * 1.3);
       expect(chroma(right[token])).toBeLessThanOrEqual(0.081);
     });
   });
@@ -151,8 +169,9 @@ describe("the theme's slider", () => {
     const root = stylesheetRoot();
     // Positive control: the block was found and read.
     expect(root['--surface-base']).toBe('#0d2030');
+    const ocean = themeShadeTokens(OCEAN_SHADE);
     THEME_SHADE_TOKENS.forEach((token) => {
-      expect([token, same(root[token] ?? '', OCEAN_THEME[token])]).toEqual([
+      expect([token, same(root[token] ?? '', ocean[token])]).toEqual([
         token,
         true,
       ]);

@@ -29,7 +29,7 @@ import { resetRhythmRun, setRhythmRun } from 'renderer/utils/rhythmRun';
 // The audio half mounts only while the mode is running, and all it wants is a
 // band list and a band count. Neither has anything to do with the switch.
 jest.mock('renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioFrame: () => ({ points: [] }),
+  useLiveAudioFrame: () => ({ points: [], graphPoints: [] }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest

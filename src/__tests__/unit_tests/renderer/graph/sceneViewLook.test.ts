@@ -42,8 +42,9 @@ describe("a scene's colours", () => {
   const root = document.documentElement;
   afterEach(() => {
     root.classList.remove('is-euphoric');
+    root.style.removeProperty('--accent-dark');
     root.style.removeProperty('--accent');
-    root.style.removeProperty('--active');
+    root.style.removeProperty('--accent-light');
   });
 
   it("are the look's own whenever it has any, on every palette", () => {
@@ -54,18 +55,22 @@ describe("a scene's colours", () => {
     expect(sceneColours('heat', mine)).toBe(mine);
   });
 
-  it("are the window's primary and secondary in Normal mode", () => {
+  // The accent's walk, its dark to its light, as every look with no colours
+  // of its own paints in Normal mode (`windowInk.ts`).
+  it("are the window's accent walk in Normal mode", () => {
+    root.style.setProperty('--accent-dark', '#0a0b0c');
     root.style.setProperty('--accent', '#112233');
-    root.style.setProperty('--active', '#445566');
-    expect(sceneColours('level', [])).toEqual(['#112233', '#445566']);
-    expect(sceneColours('rainbow', [])).toEqual(['#112233', '#445566']);
+    root.style.setProperty('--accent-light', '#445566');
+    const walk = ['#0a0b0c', '#112233', '#445566'];
+    expect(sceneColours('level', [])).toEqual(walk);
+    expect(sceneColours('rainbow', [])).toEqual(walk);
     // One flat colour is the primary alone.
     expect(sceneColours('signal', [])).toEqual(['#112233']);
   });
 
   it("are Rainbow mode's palette while the mode is on", () => {
     root.style.setProperty('--accent', '#112233');
-    root.style.setProperty('--active', '#445566');
+    root.style.setProperty('--accent-light', '#445566');
     root.classList.add('is-euphoric');
     expect(sceneColours('level', [])).toBe(getRainbowStops());
     expect(sceneColours('signal', [])).toEqual([getRainbowStops()[0]]);

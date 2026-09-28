@@ -58,6 +58,8 @@ describe('the menus’ floor', () => {
     );
   });
 
+  // The card's own colour, as a card on the floor shows it (Ivan,
+  // 2026-09-27: "all dropdown menu need to ... have card bg color").
   it('is declared on the root, from the root’s surfaces, at 95%', () => {
     const css = compiledCss('App.scss');
     const at = css.indexOf('--surface-menu-floor:');
@@ -67,26 +69,30 @@ describe('the menus’ floor', () => {
     // As written, over several lines; read as one.
     const floor = css.slice(at, css.indexOf(';', at)).replace(/\s+/g, ' ');
     expect(selector).toBe(':root');
-    expect(floor).toContain('var(--surface-base) 70%, var(--surface-panel)');
+    expect(floor).toContain(
+      'color-mix(in srgb, var(--surface-panel) 85%, var(--surface-base)) 95%',
+    );
     expect(floor).toMatch(/\) 95%, transparent ?\)/);
   });
 
-  // Over a scene the panes are the veil's share of the floor and the rest the
-  // night behind it; a menu at the root's own floor was the one pale slab in
-  // that window (Ivan, 2026-09-26: "the dropdown menus too"). Its colour takes
-  // the veil, its opacity never does.
-  it('under the Backdrop, is the floor a veiled pane shows, still at 95%', () => {
+  // Under the Backdrop every menu is a pane of the floating glass: its fill,
+  // its blur, its bevel and no edge (Ivan, 2026-09-27: "all dropdown menu
+  // during that backdrop mode need to be blur too same treatment"). The
+  // veiled floor at 95% it was stood as a dark slab beside frosted panes.
+  it('under the Backdrop, is the glass the panes float on', () => {
     const css = compiledCss('App.scss');
     const at = css.indexOf(
       ':root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {',
     );
     expect(at).toBeGreaterThanOrEqual(0);
     const floor = css.slice(at, css.indexOf('}', at)).replace(/\s+/g, ' ');
-    expect(floor).toContain('--surface-menu-floor:');
-    expect(floor).toContain(
-      'var(--surface-base) 70%, var(--surface-panel)) var(--backdrop-veil), #000000',
-    );
-    expect(floor).toMatch(/\) 95%, transparent ?\)/);
+    // The amp's panes stand on the same glass, declared the same way.
+    const fill = /--surface-menu-floor: ([^;]+);/.exec(
+      compiledCss('MiniPlayer.scss'),
+    )?.[1];
+    expect(fill).toBeDefined();
+    expect(floor).toContain(`--surface-menu-floor: ${fill}`);
+    expect(floor).toContain('--menu-edge: transparent');
   });
 
   it('is never named by the Backdrop, which veils the panes', () => {

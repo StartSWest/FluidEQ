@@ -124,12 +124,21 @@ export const styleRules = (css: string, within: string[] = []): IRule[] =>
 export const baseRules = (css: string): IRule[] =>
   styleRules(css).filter(({ within }) => within.length === 0);
 
-/** The frames of `@keyframes name`, keyed by selector (`from`, `50%`, `to`). */
+/**
+ * The frames of `@keyframes name`, keyed by selector (`from`, `50%`, `to`):
+ * at the top of the sheet, or inside the at-rule `within` names — a sheet
+ * scoped with `@scope` keeps its keyframes inside the scope.
+ */
 export const keyframes = (
   css: string,
   name: string,
+  within?: string,
 ): Map<string, Map<string, string>> => {
-  const found = blocks(css).find(
+  const source =
+    within === undefined
+      ? css
+      : (blocks(css).find(({ prelude }) => prelude === within)?.body ?? '');
+  const found = blocks(source).find(
     ({ prelude }) => prelude === `@keyframes ${name}`,
   );
   if (!found) {

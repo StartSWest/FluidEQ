@@ -533,9 +533,7 @@ describe('KaraokeWorkspace', () => {
     };
     const closeLyrics = (dialog: HTMLElement) =>
       fireEvent.click(
-        dialog.querySelector(
-          '.karaoke-maker__lyrics-modal-close',
-        ) as HTMLButtonElement,
+        dialog.querySelector('.dialog-close') as HTMLButtonElement,
       );
 
     const lyricsDialog = await openLyrics();
@@ -550,10 +548,10 @@ describe('KaraokeWorkspace', () => {
         'button[aria-label="Restore original"]',
       ) as HTMLButtonElement,
     );
+    // Named by its question, as every confirmation on the small frame is.
     const confirm = await screen.findByRole('alertdialog', {
-      name: 'Restore original',
+      name: 'Restore the original karaoke?',
     });
-    expect(confirm).toHaveTextContent('Restore the original karaoke?');
     fireEvent.click(
       within(confirm).getByRole('button', { name: 'Restore original' }),
     );
@@ -776,9 +774,7 @@ describe('KaraokeWorkspace', () => {
     expect(play).toHaveBeenCalledTimes(2);
     expect(guidedAudio.currentTime).toBeGreaterThan(0);
     fireEvent.click(
-      reviewLyricsDialog.querySelector(
-        '.karaoke-maker__lyrics-modal-close',
-      ) as HTMLButtonElement,
+      reviewLyricsDialog.querySelector('.dialog-close') as HTMLButtonElement,
     );
     const wordTimingSliders = maker.querySelectorAll<HTMLInputElement>(
       '.karaoke-maker__selection-coach .karaoke-maker__word-timing-sliders input[type="range"]',
@@ -981,25 +977,27 @@ describe('KaraokeWorkspace', () => {
     const clearNotes = screen.getByRole('button', { name: 'Clear notes' });
     expect(clearNotes).toBeEnabled();
     fireEvent.click(clearNotes);
-    expect(
-      screen.getByRole('alertdialog', { name: 'Clear notes' }),
-    ).toHaveTextContent('keeping all lyrics and word timing');
+    // Each confirmation is named by its question and answered by its red
+    // button, which says what it does.
+    const notesQuestion = screen.getByRole('alertdialog', {
+      name: 'Clear all melody notes?',
+    });
+    expect(notesQuestion).toHaveTextContent(
+      'keeping all lyrics and word timing',
+    );
     fireEvent.click(
-      screen
-        .getByRole('alertdialog', { name: 'Clear notes' })
-        .querySelector('button.is-danger') as HTMLButtonElement,
+      within(notesQuestion).getByRole('button', { name: 'Clear notes' }),
     );
     expect(clearNotes).toBeDisabled();
     const clearLyrics = screen.getByRole('button', { name: 'Clear lyrics' });
     expect(clearLyrics).toBeEnabled();
     fireEvent.click(clearLyrics);
-    expect(
-      screen.getByRole('alertdialog', { name: 'Clear lyrics' }),
-    ).toHaveTextContent('Melody notes remain');
+    const lyricsQuestion = screen.getByRole('alertdialog', {
+      name: 'Clear all lyrics?',
+    });
+    expect(lyricsQuestion).toHaveTextContent('Melody notes remain');
     fireEvent.click(
-      screen
-        .getByRole('alertdialog', { name: 'Clear lyrics' })
-        .querySelector('button.is-danger') as HTMLButtonElement,
+      within(lyricsQuestion).getByRole('button', { name: 'Clear lyrics' }),
     );
     expect(clearLyrics).toBeDisabled();
     fireEvent.click(hand);

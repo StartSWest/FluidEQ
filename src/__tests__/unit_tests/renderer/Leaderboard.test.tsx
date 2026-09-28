@@ -141,7 +141,9 @@ describe('the leaderboard card', () => {
     ).toBeInTheDocument();
   });
 
-  it('asks before removing, keeps the data on the loud button, and confirms once it is gone', async () => {
+  // One rule for every question that deletes (Ivan, 2026-09-27): keeping is
+  // the quiet answer and comes first, the red one that cannot be undone last.
+  it('asks before removing, keeps the data on the quiet button, and confirms once it is gone', async () => {
     render(<LeaderboardCard />);
     await userEvent.click(
       await screen.findByRole('button', { name: 'leaderboard.card.remove' }),
@@ -154,8 +156,7 @@ describe('the leaderboard card', () => {
     const keep = screen.getByRole('button', {
       name: 'leaderboard.card.removeKeep',
     });
-    expect(keep).toHaveClass('button', 'small');
-    expect(keep).not.toHaveClass('subtle');
+    expect(keep).toHaveClass('button', 'small', 'subtle');
     await userEvent.click(keep);
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(bridge.leaderboardRemoveMe).not.toHaveBeenCalled();
@@ -166,7 +167,8 @@ describe('the leaderboard card', () => {
     const confirm = screen.getByRole('button', {
       name: 'leaderboard.card.removeConfirm',
     });
-    expect(confirm).toHaveClass('subtle');
+    expect(confirm).toHaveClass('danger');
+    expect(confirm).not.toHaveClass('subtle');
     await userEvent.click(confirm);
     expect(bridge.leaderboardRemoveMe).toHaveBeenCalledTimes(1);
     expect(await screen.findByRole('status')).toHaveTextContent(

@@ -23,6 +23,11 @@ import {
 
 interface IHold {
   sheet: string;
+  /**
+   * The `@scope` the rules stand in, for a sheet applied under one word of
+   * the document's root: the two amps' (`MiniPlayer.scss`).
+   */
+  scope?: string;
   selector: string;
   name: string;
   /** What the timer it replaced waited, as the stylesheet writes it. */
@@ -68,13 +73,21 @@ const HOLDS: IHold[] = [
   },
   {
     sheet: 'MiniPlayer.scss',
+    scope: "@scope (:root[data-amp='stage'])",
+    selector: '.player-eq-screen__remark',
+    name: 'smart-eq-status-hold',
+    duration: '6s',
+  },
+  {
+    sheet: 'MiniPlayer.scss',
+    scope: "@scope (:root[data-amp='classic'])",
     selector: '.player-eq-screen__remark',
     name: 'smart-eq-status-hold',
     duration: '6s',
   },
   {
     sheet: 'SongEqNotice.scss',
-    selector: '.song-eq-notice',
+    selector: '.compact-frame.song-eq-notice',
     name: 'song-eq-notice-linger',
     duration: '6s',
   },
@@ -108,26 +121,30 @@ const selectorsOf = (selectors: string[]) =>
     each.includes('*/') ? each.slice(each.lastIndexOf('*/') + 2).trim() : each,
   );
 
-/** Every `animation` the rules give `selector` outside media queries. */
-const animationsFor = (sheet: string, selector: string) =>
+/**
+ * Every `animation` the rules give `selector` outside media queries: at the
+ * top of the sheet, or directly in its scope.
+ */
+const animationsFor = (sheet: string, selector: string, scope?: string) =>
   styleRules(css(sheet))
     .filter(
       ({ selectors, within }) =>
-        within.length === 0 && selectorsOf(selectors).includes(selector),
+        within.join() === (scope ?? '') &&
+        selectorsOf(selectors).includes(selector),
     )
     .map(({ declarations }) => declarations.get('animation') ?? '');
 
-describe.each(HOLDS)('$name', ({ sheet, selector, name, duration }) => {
+describe.each(HOLDS)('$name', ({ sheet, scope, selector, name, duration }) => {
   it('holds for as long as the timer it replaced waited', () => {
     expect(
-      animationsFor(sheet, selector).some((animation) =>
+      animationsFor(sheet, selector, scope).some((animation) =>
         animation.includes(`${name} ${duration}`),
       ),
     ).toBe(true);
   });
 
   it('moves nothing and draws nothing', () => {
-    const frames = keyframes(css(sheet), name);
+    const frames = keyframes(css(sheet), name, scope);
     expect(frames.size).toBeGreaterThan(0);
     frames.forEach((declarations) => {
       expect([...declarations.keys()]).toEqual(['visibility']);
@@ -136,11 +153,13 @@ describe.each(HOLDS)('$name', ({ sheet, selector, name, duration }) => {
   });
 
   it('keeps its length under the reduced-motion stand-down', () => {
+    // Inside a scope the page's root is `:scope` (`MiniPlayer.scss`).
+    const root = scope ? ':scope' : ':root';
     const exempt = styleRules(css(sheet)).filter(({ selectors }) =>
       selectors.some(
         (each) =>
-          each.startsWith(":root[data-motion='reduced']") ||
-          each.startsWith(':root[data-motion=reduced]'),
+          each.startsWith(`${root}[data-motion='reduced']`) ||
+          each.startsWith(`${root}[data-motion=reduced]`),
       ),
     );
     expect(

@@ -48,7 +48,8 @@ describe('RestartAudioDialog', () => {
 
     expect(restartButton()).toHaveClass('is-running');
     expect(screen.getByText(en['restart.running'])).toBeInTheDocument();
-    const close = screen.getByRole('button', { name: en['restart.close'] });
+    // The words, not the corner's cross, which carries the same name.
+    const close = screen.getByText(en['restart.close'], { selector: 'button' });
     expect(close).toBeEnabled();
     expect(close).toHaveFocus();
 

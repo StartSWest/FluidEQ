@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import AccountDialog from '../../../renderer/account/AccountDialog';
@@ -67,20 +67,19 @@ describe('the account panel', () => {
   });
 
   it('says signing in is optional before it offers to do it', () => {
-    const { container } = renderDialog({ status: 'signed-out' });
-    const body = container.querySelector('.account__body');
-    const optional = container.querySelector('.account__optional');
-
-    expect(optional).toHaveTextContent('account.optional');
+    renderDialog({ status: 'signed-out' });
+    const dialog = screen.getByRole('dialog');
+    const optional = within(dialog).getByText('account.optional');
     // Ahead of the form in the document, not merely present somewhere on it.
     // This app has promised since its first release that it is account-free,
     // and the panel has to lead with that still being true.
-    const form = body?.querySelector('form');
-    expect(form).not.toBeNull();
+    const form = dialog.querySelector('form');
+    if (!form) {
+      throw new Error('the panel offers no way to sign in');
+    }
     expect(
       // eslint-disable-next-line no-bitwise -- the DOM's own position mask
-      optional!.compareDocumentPosition(form!) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
+      optional.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).not.toBe(0);
   });
 
@@ -309,12 +308,16 @@ describe('the account panel', () => {
     ['one word', { id: 'u', name: 'Ada' }, 'A'],
     ['an address only', { id: 'u', email: 'ada@example.com' }, 'A'],
     ['a name outside the basic plane', { id: 'u', name: '𝒜da' }, '𝒜'],
-    ['nothing at all', { id: 'u' }, ''],
   ])('draws initials for %s', (_label, identity, expected) => {
-    const { container } = renderDialog({ status: 'signed-in', identity });
-    expect(container.querySelector('.account__avatar')?.textContent).toBe(
+    renderDialog({ status: 'signed-in', identity });
+    expect(document.querySelector('.account__avatar')?.textContent).toBe(
       expected,
     );
+  });
+
+  it('wears the person glyph, not an empty circle, with nothing to take initials from', () => {
+    renderDialog({ status: 'signed-in', identity: { id: 'u' } });
+    expect(document.querySelector('.account__avatar')).toBeNull();
   });
 
   it('explains itself and offers nothing where the platform cannot store a login', () => {
@@ -393,7 +396,7 @@ describe('the name on the board, from the account panel', () => {
     signedIn();
 
     expect(await screen.findByText('@ivan_c')).toBeInTheDocument();
-    expect(screen.getByText('Ivan C')).toHaveClass('account__name');
+    expect(screen.getByText('Ivan C')).toHaveClass('dialog-frame__title');
     expect(screen.queryByText('Ada Lovelace')).toBeNull();
 
     await userEvent.click(button('account.name.change'));
@@ -414,7 +417,7 @@ describe('the name on the board, from the account panel', () => {
     expect(bridge.plusUpdateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan');
     expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
     expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
-    expect(screen.getByText('Ivan')).toHaveClass('account__name');
+    expect(screen.getByText('Ivan')).toHaveClass('dialog-frame__title');
   });
 
   /**
@@ -430,7 +433,7 @@ describe('the name on the board, from the account panel', () => {
     });
     const { container } = signedIn();
 
-    expect(await screen.findByText('Ivan')).toHaveClass('account__name');
+    expect(await screen.findByText('Ivan')).toHaveClass('dialog-frame__title');
     expect(container.querySelector('.account__avatar')).toHaveTextContent('I');
   });
 
@@ -440,7 +443,7 @@ describe('the name on the board, from the account panel', () => {
     signedIn();
 
     // The provider's name until one is chosen, and no handle to show.
-    expect(screen.getByText('Ada Lovelace')).toHaveClass('account__name');
+    expect(screen.getByText('Ada Lovelace')).toHaveClass('dialog-frame__title');
     await userEvent.click(
       await screen.findByRole('button', {
         name: 'leaderboard.name.choose',

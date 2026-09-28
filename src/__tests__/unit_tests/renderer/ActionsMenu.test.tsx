@@ -261,7 +261,7 @@ describe('the settings tray', () => {
   // The window's look as Window colours sets it, and no Theme row (Ivan,
   // 2026-09-26: "do same in the main menu both options bright trans no
   // theme").
-  it('offers Brightness and Transparency, and Brightness moves the window as it goes', () => {
+  it('offers Brightness and Transparency, and Brightness moves the window as it goes', async () => {
     const { trigger } = show('ready');
     open(trigger);
     expect(
@@ -277,8 +277,11 @@ describe('the settings tray', () => {
 
     // Black, the default, at the dark end.
     expect(brightness).toHaveValue('0');
+    // The thumb follows at once; the window restyles on the next frame
+    // (`useLiveSlider`), never in the same one as the move.
     fireEvent.change(brightness, { target: { value: String(OCEAN_SHADE) } });
-    expect(getThemeShade()).toBe(OCEAN_SHADE);
+    expect(brightness).toHaveValue(String(OCEAN_SHADE));
+    await waitFor(() => expect(getThemeShade()).toBe(OCEAN_SHADE));
     expect(document.documentElement.getAttribute('data-theme-shade')).toBe(
       String(OCEAN_SHADE),
     );
@@ -286,7 +289,7 @@ describe('the settings tray', () => {
     fireEvent.change(brightness, {
       target: { value: String(THEME_SHADE_MAX) },
     });
-    expect(getThemeShade()).toBe(THEME_SHADE_MAX);
+    await waitFor(() => expect(getThemeShade()).toBe(THEME_SHADE_MAX));
     expect(brightness).toHaveValue(String(THEME_SHADE_MAX));
     // Choosing a setting is not a command: the menu stays where it is.
     expect(
@@ -318,6 +321,16 @@ describe('opening and closing the actions menu', () => {
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
+
+    // Each shape of the sliders' handle is a row of its own, walked from the
+    // last to the first on the way up.
+    const shapes = within(
+      screen.getByRole('group', { name: en['eq.sliders'] }),
+    ).getAllByRole('menuitemradio');
+    [...shapes].reverse().forEach((shape) => {
+      fireEvent.keyDown(menu, { key: 'ArrowUp' });
+      expect(shape).toHaveFocus();
+    });
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
     expect(

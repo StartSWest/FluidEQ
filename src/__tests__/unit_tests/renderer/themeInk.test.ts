@@ -190,8 +190,13 @@ describe('the text tiers', () => {
     });
   });
 
-  it('put the primary tier at white at the light end, where it has to be', () => {
-    expect(themeInkTokens(100)['--text-primary']).toBe('#ffffff');
+  // The light end stops three fifths of the way to the end it was built
+  // toward (`themeShade.ts`, 2026-09-27: "lower the brightness"), where the
+  // shipped ink still reaches its contrast: nothing has to lift it to white.
+  it('keep the primary tier its shipped ink at the light end, which still reads', () => {
+    expect(themeInkTokens(100)['--text-primary']).toBe(
+      SHIPPED_TEXT['--text-primary'],
+    );
   });
 
   // Only a lighter ground moves them: up to Ocean they are what shipped.

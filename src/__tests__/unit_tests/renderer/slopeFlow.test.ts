@@ -2,6 +2,12 @@ import createSlopeFlow from 'renderer/graph/slopeFlow';
 import { getDefaultTuning } from 'common/customLooks';
 import type { Projected } from 'common/graphStyles';
 
+/** Every number in `value` to a millionth, so a drawing compares as drawn. */
+const rounded = (value: unknown): unknown =>
+  JSON.parse(JSON.stringify(value), (_key, entry: unknown) =>
+    typeof entry === 'number' ? Math.round(entry * 1e6) / 1e6 : entry,
+  );
+
 describe('travelling Slope field', () => {
   const points: Projected[] = [
     [0, 40],
@@ -15,7 +21,11 @@ describe('travelling Slope field', () => {
     const firstX = Number(first.path.match(/^M (-?[\d.]+)/)?.[1]);
     const nextX = Number(next.path.match(/^M (-?[\d.]+)/)?.[1]);
     expect(nextX - firstX).toBeCloseTo(8);
-    expect(createSlopeFlow(points, 1.2, 150, 0.25)).toEqual(first);
+    // A whole period on, the field is where it started: the same drawing, to
+    // the last few ulps the wrap's arithmetic leaves in a coordinate.
+    expect(rounded(createSlopeFlow(points, 1.2, 150, 0.25))).toEqual(
+      rounded(first),
+    );
     expect(first.trails).toHaveLength(3);
     expect(first.trails.map((trail) => trail.opacity)).toEqual([
       0.04, 0.1, 0.2,

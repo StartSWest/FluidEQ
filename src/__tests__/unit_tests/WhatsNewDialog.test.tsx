@@ -156,11 +156,8 @@ describe('the way out of the release notes', () => {
     // that dismisses it below several versions of history.
     const { container } = showNotes(NOTES);
     await waitFor(() => expect(container.querySelector('li')).toBeTruthy());
-    expect(
-      container.querySelector('.whats-new__body .whats-new__ok'),
-    ).toBeNull();
-    expect(
-      container.querySelector('.whats-new__footer .whats-new__ok'),
-    ).toBeTruthy();
+    const ok = screen.getByRole('button', { name: 'OK' });
+    expect(ok.closest('.dialog-frame__body')).toBeNull();
+    expect(ok.closest('.dialog-frame__foot')).not.toBeNull();
   });
 });

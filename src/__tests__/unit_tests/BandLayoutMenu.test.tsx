@@ -156,8 +156,10 @@ describe('Empty EQ confirmation', () => {
     expect(screen.getByRole('alertdialog')).toHaveTextContent(
       'Keep the current band count',
     );
-    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    // The words, not the corner's cross, which carries the same name.
+    const cancel = screen.getByText('Cancel', { selector: 'button' });
+    expect(cancel).toHaveFocus();
+    fireEvent.click(cancel);
     expect(clearGains).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Clear EQ' }));
     await act(async () => {

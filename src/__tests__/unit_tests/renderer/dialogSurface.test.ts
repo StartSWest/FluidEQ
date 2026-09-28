@@ -24,7 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * export conditions and that one cannot read files.
  */
 
-import { compile } from 'sass';
+import { compile, compileString } from 'sass';
 import path from 'path';
 
 const STYLES_DIR = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
@@ -63,9 +63,19 @@ const declarationsOf = (css: string, selector: string) => {
   return blocks.join(' ').replace(/\s+/g, ' ');
 };
 
-const FLOOR = 'background: var(--surface-menu-floor)';
-const HAIRLINE =
-  'border: 1px solid color-mix(in srgb, #d6e9f7 14%, transparent)';
+/**
+ * The one material every dialog stands on, as `_dialog.scss` lays it
+ * (`surface-look`): each declaration, compiled on its own.
+ */
+const MATERIAL = compileString(
+  "@use 'dialog'; .material { @include dialog.surface-look; }",
+  { loadPaths: [STYLES_DIR], quietDeps: true },
+)
+  .css.replace(/\s+/g, ' ')
+  .replace(/^.*\{ /, '')
+  .replace(/ \}\s*$/, '')
+  .split('; ')
+  .map((declaration) => declaration.replace(/;$/, ''));
 
 /** The rule `Modal.scss` lays over every card with a dialog's role. */
 const everyDialogRule = () => {
@@ -84,14 +94,28 @@ const everyDialogRule = () => {
 };
 
 describe('every dialog', () => {
-  it('stands on the menus’ floor, with their hairline and the dialog corner', () => {
-    // 12px, the scale's dialog step (`dialog.$corner`): the menus' 4px made
-    // a card half the window's size a flat, hard-edged slab (2026-09-26).
+  // The Backdrop's glass, the cards' own edge and the dialog corner, 12px, the
+  // scale's dialog step (`dialog.$corner`): the menus' corner made a card
+  // half the window's size a flat, hard-edged slab (2026-09-26).
+  it('stands on the one material: the glass, the cards’ edge and the dialog corner', () => {
+    expect(MATERIAL).toContain('border-radius: 12px');
     const { declarations } = everyDialogRule();
-    expect(declarations).toContain(FLOOR);
-    expect(declarations).toContain(HAIRLINE);
-    expect(declarations).toContain('border-radius: 12px');
+    MATERIAL.forEach((declaration) =>
+      expect(declarations).toContain(declaration),
+    );
   });
+
+  // Every dialog and notice is one of two frames (`DialogFrame`,
+  // `CompactFrame`), and both stand on that material.
+  it.each(['.dialog-frame', '.compact-frame'])(
+    'builds %s on it',
+    (selector) => {
+      const frame = declarationsOf(compiledCss('DialogFrame.scss'), selector);
+      MATERIAL.filter((declaration) =>
+        /^(border|background):/.test(declaration),
+      ).forEach((declaration) => expect(frame).toContain(declaration));
+    },
+  );
 
   it('leaves out what is a dialog by role and not a card over the window', () => {
     const { selector } = everyDialogRule();
@@ -101,25 +125,13 @@ describe('every dialog', () => {
       '.karaoke-maker__wizard',
       '.karaoke-maker__tool-popover',
       '.sign-out-confirm',
-      '.support-dialog',
       '.device-apo-notice',
       '.plus-terms-notice',
+      '.song-eq-notice',
     ].forEach((left) => expect(selector).toContain(left));
-    // Positive control: the family that lays a card over the window is in.
-    expect(selector).not.toContain('.about');
-  });
-
-  it.each([
-    ['About.scss', '.about'],
-    ['OverlayCard.scss', '.overlay-card'],
-    ['Dsp.scss', '.dsp-import'],
-    ['Karaoke.scss', '.karaoke-maker__lyrics-modal'],
-    ['Karaoke.scss', '.karaoke-maker__consent-modal'],
-    ['Karaoke.scss', '.karaoke-maker__confirm-modal'],
-    ['Karaoke.scss', '.karaoke-maker__wizard-panel'],
-    ['Support.scss', '.support-dialog'],
-  ])('%s builds %s on it', (sheet, selector) => {
-    expect(declarationsOf(compiledCss(sheet), selector)).toContain(FLOOR);
+    // Positive control: the frames that lay a card over the window are in.
+    expect(selector).not.toContain('.dialog-frame');
+    expect(selector).not.toContain('.compact-frame');
   });
 
   it('draws no spectrum round its edge in Rainbow mode', () => {
@@ -131,6 +143,7 @@ describe('every dialog', () => {
     [
       'About.scss',
       'BugReport.scss',
+      'DialogFrame.scss',
       'WhatsNew.scss',
       'Modal.scss',
       'Support.scss',
@@ -142,20 +155,6 @@ describe('every dialog', () => {
     );
   });
 
-  it('lights the Support card with the streak in colours that exist', () => {
-    const support = declarationsOf(
-      compiledCss('Support.scss'),
-      '.support-dialog',
-    );
-    // `rgba(var(--accent), …)` is no colour, and it threw the whole shadow
-    // out; the lit edge is a ring, because the hairline rule outweighs a
-    // border colour here.
-    expect(support).not.toMatch(/rgba\(var\(/);
-    expect(support).toMatch(
-      /inset 0 0 0 1px color-mix\(in srgb, var\(--accent-light\) calc\(var\(--pet-joy, 0\) \* 55%\), transparent\)/,
-    );
-  });
-
   // At the darkest Brightness the menus' top colour is a step UP from the
   // floor, and the backdrop made of it lit the window grey behind every
   // dialog (2026-09-26). The scrim is the floor half-way to black.
@@ -164,7 +163,6 @@ describe('every dialog', () => {
 
   it.each([
     ['About.scss', '.about-backdrop'],
-    ['OverlayCard.scss', '.overlay-card__backdrop'],
     ['Dsp.scss', '.dsp-import-backdrop'],
     ['Karaoke.scss', '.karaoke-maker__modal-backdrop'],
     ['Support.scss', '.support-backdrop'],
@@ -177,23 +175,13 @@ describe('every dialog', () => {
   });
 
   it('gives a dialog its own corner and keeps the menus at theirs', () => {
+    expect(everyDialogRule().declarations).toContain('border-radius: 12px');
+    // The control: a menu keeps its own, a step smaller.
     const css = compiledCss('Rainbow.scss').replace(/\s+/g, ' ');
-    const rule = (selectorStart: string) => {
-      const at = css.indexOf(selectorStart);
-      if (at < 0) {
-        throw new Error(`no rule for ${selectorStart}`);
-      }
-      return css.slice(css.indexOf('{', at) + 1, css.indexOf('}', at));
-    };
-    expect(
-      rule(
-        'html body :is([role=dialog], [role=alertdialog], dialog):not([data-anchored-menu], .karaoke-maker)',
-      ),
-    ).toContain('border-radius: 12px');
-    // The control: a menu keeps the 4px it had.
-    expect(rule('html body :is([data-anchored-menu],')).toContain(
-      'border-radius: 4px',
-    );
+    const at = css.indexOf('html body :is([data-anchored-menu],');
+    expect(at).toBeGreaterThanOrEqual(0);
+    const menu = css.slice(css.indexOf('{', at) + 1, css.indexOf('}', at));
+    expect(menu).toContain('border-radius: 8px');
   });
 });
 
@@ -217,8 +205,6 @@ describe('what stands on the floor', () => {
     ['Karaoke.scss', '.karaoke-maker__wizard-step'],
     ['Studio.scss', '.studio-card'],
     ['Gallery.scss', '.gallery-card'],
-    ['About.scss', '.about__section'],
-    ['DialogHeader.scss', '.dialog-header'],
   ])('%s paints no slab under %s', (sheet, selector) => {
     expect(declarationsOf(compiledCss(sheet), selector)).not.toMatch(SLAB);
   });
@@ -255,16 +241,16 @@ describe('what stands on the floor', () => {
     ).toContain('background: transparent');
   });
 
-  // A control's track keeps a fill, and it is the quiet pill's — the accent
-  // at 7% inside the field's edge — never the block's grey: every segmented
-  // row was a pale slab with a paler choice in it (Ivan, 2026-09-26: "not
-  // good, too light color", "all of those").
-  it('fills a segmented track with the quiet pill, and its choice with the selection', () => {
+  // A control's track is every control's face and edge, the ones each select
+  // and quiet button beside it wears — never the block's grey, and no tint
+  // of the accent: a pale slab with a paler choice in it (Ivan, 2026-09-26:
+  // "not good, too light color"), then an olive track in Rainbow mode's
+  // violet (2026-09-27: "input colors this mess sucks").
+  it('gives a segmented track the controls’ face, and its choice a step of mist', () => {
     const track = declarationsOf(compiledCss('Dsp.scss'), '.segmented');
-    expect(track).toContain(
-      'background: color-mix(in srgb, var(--accent) 7%, transparent)',
-    );
+    expect(track).toContain('background: var(--surface-control)');
     expect(track).not.toContain(BLOCK);
+    expect(track).not.toContain('var(--accent)');
     // The EQ mode menu's rows are the same track, with no fill of their own.
     expect(
       declarationsOf(
@@ -272,9 +258,12 @@ describe('what stands on the floor', () => {
         '.eq-mode-menu .segmented.eq-mode-menu__choices',
       ),
     ).not.toContain('background');
-    expect(
-      declarationsOf(compiledCss('Dsp.scss'), '.segmented__option.is-selected'),
-    ).toContain('color-mix(in srgb, var(--accent) 16%, transparent)');
+    const chosen = declarationsOf(
+      compiledCss('Dsp.scss'),
+      '.segmented__option.is-selected',
+    );
+    expect(chosen).toContain('background: rgba(214, 233, 247, 0.12)');
+    expect(chosen).toContain('color: var(--accent-light)');
   });
 
   // What floats over the karaoke stage's picture keeps a fill, and it is the

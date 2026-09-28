@@ -21,6 +21,7 @@ import type {
   TGuestKeep,
 } from '../../../renderer/video/guestTintProbe';
 import { MAX_KEEPS } from '../../../renderer/video/guestTintProbe';
+import { cardHexOf } from '../../../renderer/utils/themeInk';
 import { setGuestTintEnabled } from '../../../renderer/video/guestTintPreference';
 import {
   learnSite,
@@ -248,10 +249,12 @@ describe('the Media page in the interface colours', () => {
     expect(page.sheet('sheet-2')).toContain('--suno-page: transparent');
   });
 
-  // The page stands on the window's floor now, not on a pane (Ivan,
-  // 2026-09-26: "fix the color also"): tinted from the pane's colour, the
-  // site was a slab of lighter slate in a dark window.
-  it('puts the page in the floor’s colour, not the pane’s', async () => {
+  // The page stands on the card every page's content stands on: the pane at
+  // 85% over the floor (Ivan, 2026-09-27: "fix video tab also to tint on the
+  // pane color"). On the floor it was a darker slab inside its own card; on
+  // the pane itself, a slab of lighter slate (2026-09-26: "fix the color
+  // also").
+  it('puts the page in the card’s colour, neither the floor’s nor the pane’s', async () => {
     const root = document.documentElement;
     root.style.setProperty('--surface-base', '#0a1b2c');
     root.style.setProperty('--surface-panel', '#22334a');
@@ -259,9 +262,17 @@ describe('the Media page in the interface colours', () => {
     const page = fakePage([TWITCH_ANSWER]);
     renderHook(() => useGuestTint(page.ref, 'twitch', 1, true, false));
     await waitFor(() => expect(page.log).toContain('insert sheet-1'));
-    // The control: the pane's colour is there to be picked, and is not.
-    expect(page.sheet('sheet-1')).toContain('--color-background-body: #0a1b2c');
-    expect(page.sheet('sheet-1')).not.toContain('#22334a');
+    expect(page.sheet('sheet-1')).toContain(
+      `--color-background-body: ${cardHexOf('#0a1b2c', '#22334a')}`,
+    );
+    // The control: the floor's and the pane's colours are both there to be
+    // picked, and neither is the page's.
+    expect(page.sheet('sheet-1')).not.toContain(
+      '--color-background-body: #0a1b2c',
+    );
+    expect(page.sheet('sheet-1')).not.toContain(
+      '--color-background-body: #22334a',
+    );
     root.style.removeProperty('--surface-base');
     root.style.removeProperty('--surface-panel');
   });

@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * export conditions and that one cannot read files.
  */
 
-import { compile } from 'sass';
+import { compile, compileString } from 'sass';
 import path from 'path';
 
 const STYLES_DIR = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
@@ -46,12 +46,18 @@ describe('the title bar wave', () => {
     expect(stage).toContain('clip-path: inset(0 round 8px)');
   });
 
-  it('rounds its edge the same way, a hairline with no fill', () => {
-    // The window's faintest edge, and still no fill (2026-09-26: "add subtle
-    // border on the top wave too").
+  it('rounds its edge the same way, the cards’ own edge with no fill', () => {
+    // The cards' edge, opaque, and still no fill (2026-09-26: "add subtle
+    // border on the top wave too"; 2026-09-27: "add border color that is
+    // same as card bg color"). The window's hairline it was drew a light
+    // outline once the hairlines were solved to read.
+    const cardEdge = compileString(
+      "@use 'theme' as *; .edge { border-color: $card-edge; }",
+      { loadPaths: [STYLES_DIR], quietDeps: true },
+    ).css.match(/border-color: ([^;]+);/)?.[1];
     const pane = bodyOf('.waveform-visualizer');
     expect(pane).toContain('border-radius: 8px');
     expect(pane).toContain('background: transparent');
-    expect(pane).toContain('border: 1px solid var(--border-subtle)');
+    expect(pane).toContain(`border: 1px solid ${cardEdge}`);
   });
 });

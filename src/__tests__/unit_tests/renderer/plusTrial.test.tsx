@@ -10,7 +10,9 @@ import type {
 import { PLUS_TERMS_VERSION } from '../../../common/plusTerms';
 import { PLUS_TRIAL_TERMS_VERSION } from '../../../common/plusTrial';
 import { I18nProvider } from '../../../renderer/utils/I18nContext';
-import PlusTrialAgreement from '../../../renderer/account/PlusTrialAgreement';
+import PlusTrialAgreement, {
+  PlusTrialConsent,
+} from '../../../renderer/account/PlusTrialAgreement';
 import PlusTrialOffer, {
   PlusTrialCard,
 } from '../../../renderer/plus/PlusTrialCard';
@@ -104,12 +106,20 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-const agreement = async () => {
+/**
+ * The agreement as the account panel stands it: the terms in the body, the
+ * box and the start in the panel's foot.
+ */
+const renderAgreement = () =>
   render(
     <I18nProvider>
       <PlusTrialAgreement onClose={close} />
+      <PlusTrialConsent onClose={close} />
     </I18nProvider>,
   );
+
+const agreement = async () => {
+  renderAgreement();
   return screen.findByRole('button', { name: 'Start my free 15 days' });
 };
 
@@ -168,11 +178,7 @@ it('does not start against an agreement version that this build cannot show', as
     ok: true,
     offer: { ...eligible, trialTermsVersion: PLUS_TRIAL_TERMS_VERSION + 1 },
   });
-  render(
-    <I18nProvider>
-      <PlusTrialAgreement onClose={close} />
-    </I18nProvider>,
-  );
+  renderAgreement();
   expect(await screen.findByRole('alert')).toHaveTextContent('Update FluidEQ');
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   expect(start).not.toHaveBeenCalled();

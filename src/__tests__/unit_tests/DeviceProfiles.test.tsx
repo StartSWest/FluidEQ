@@ -109,12 +109,12 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
       </FluidEqProviderWrapper>
     );
     const { rerender } = render(profiles(false));
-    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     rerender(profiles(true));
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     fireEvent.keyDown(document, { key: 'Escape' });
     rerender(profiles(false));
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('holds its notice from the moment the engine changes until the list is re-read', async () => {
@@ -147,15 +147,15 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
         </DeviceProfiles>
       </FluidEqProviderWrapper>,
     );
-    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     act(() => notifyAudioEngineChanged());
     // Away at once, on the old list, and still away while the read runs.
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await act(async () => {
       release();
     });
     await waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
     // Positive control: the same read answering "still not attached" brings
     // the notice back.
@@ -163,21 +163,19 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
     await act(async () => {
       notifyAudioEngineChanged();
     });
-    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
   it('keeps the missing badge but lets Not now dismiss the device notice', async () => {
     renderProfiles();
 
-    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
-      'USB Speakers',
-    );
-    expect(screen.getAllByText(en['output.off'])).toHaveLength(2);
+    expect(await screen.findByRole('dialog')).toHaveTextContent('USB Speakers');
+    expect(screen.getByText(en['output.off'])).toHaveClass('apo-badge');
 
     fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));
 
     await waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
     expect(screen.getByText(en['output.off'])).toBeInTheDocument();
   });
@@ -191,7 +189,7 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
 
     await waitFor(() => expect(onConfigureApo).toHaveBeenCalledTimes(1));
     await waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
   });
 
@@ -202,7 +200,7 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
 
     await screen.findByText('USB Speakers');
     expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
@@ -223,7 +221,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
   it('asks to enable the engine rather than to open the Device Selector', async () => {
     renderProfiles({ engine: 'fluid', device: idleDetachedDevice });
 
-    const notice = await screen.findByRole('alertdialog');
+    const notice = await screen.findByRole('dialog');
     expect(notice).toHaveTextContent(en['output.engineMissingTitle']);
     expect(notice).toHaveTextContent('USB Speakers');
     expect(
@@ -253,7 +251,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
       expect(onAttachFluidEngine).toHaveBeenCalledWith('{SPEAKERS}'),
     );
     await waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
   });
 
@@ -273,7 +271,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     );
 
     expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   // The app used to enable the output Windows plays through by itself, and
@@ -287,7 +285,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
       onAttachFluidEngine,
     });
 
-    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
       en['output.engineMissingTitle'],
     );
     // The device list refreshes while the window is open; a change of
@@ -305,7 +303,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
       expect(onAttachFluidEngine).toHaveBeenCalledWith('{SPEAKERS}'),
     );
     await waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
     expect(onAttachFluidEngine).toHaveBeenCalledTimes(1);
   });
@@ -331,11 +329,11 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     );
     const { rerender } = render(profiles(true));
     await screen.findByText('USB Speakers');
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(onAttachFluidEngine).not.toHaveBeenCalled();
 
     rerender(profiles(false));
-    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(onAttachFluidEngine).not.toHaveBeenCalled();
   });
 
@@ -346,7 +344,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     });
 
     await screen.findByText('USB Speakers');
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
   });
 
@@ -358,7 +356,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
 
     await screen.findByText('USB Speakers');
     expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   // While the engine status has not answered yet, neither flag is the right
@@ -373,7 +371,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
 
     await screen.findByText('USB Speakers');
     expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
@@ -404,7 +402,7 @@ describe('DeviceProfiles on an output Windows runs no effects on', () => {
         device: remoteAudio,
       });
 
-      const notice = await screen.findByRole('alertdialog');
+      const notice = await screen.findByRole('dialog');
       expect(notice).toHaveTextContent(en['output.noEffectsTitle']);
       expect(notice).toHaveTextContent('Remote Audio');
       expect(
@@ -414,11 +412,11 @@ describe('DeviceProfiles on an output Windows runs no effects on', () => {
         screen.queryByRole('button', { name: en['output.apoConfigure'] }),
       ).not.toBeInTheDocument();
       // The EQ is not on this output, so the picker still says OFF.
-      expect(screen.getAllByText(en['output.off'])).toHaveLength(2);
+      expect(screen.getByText(en['output.off'])).toHaveClass('apo-badge');
 
       fireEvent.click(screen.getByRole('button', { name: en['output.gotIt'] }));
       await waitFor(() =>
-        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
       );
       expect(onAttachFluidEngine).not.toHaveBeenCalled();
       expect(onConfigureApo).not.toHaveBeenCalled();
@@ -438,7 +436,7 @@ describe('DeviceProfiles on an output Windows runs no effects on', () => {
       ),
     });
 
-    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
       en['output.engineMissingTitle'],
     );
     expect(

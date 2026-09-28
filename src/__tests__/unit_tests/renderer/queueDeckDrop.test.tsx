@@ -136,8 +136,14 @@ afterEach(() => {
 });
 
 describe('the head', () => {
-  it('reads where the playhead stands and how long is still to come', () => {
-    expect(screen.getByTitle('2 of 5')).toHaveTextContent('2/ 5');
+  // Where the playhead stands is said on the sheet's own tab (`PlayerSheet`);
+  // the head lights its line that far through the queue.
+  it('reads how long is still to come, and lights the queue as far as the playhead', () => {
+    const progress = document.querySelector<HTMLElement>(
+      '.player-queue__progress',
+    );
+    // The second song of five.
+    expect(progress?.style.getPropertyValue('--queue-progress')).toBe('0.4');
     // This song and the three after it: 2 + 3 + 4 + 5 minutes.
     expect(screen.getByTitle('14:00 left in the queue')).toHaveTextContent(
       '14:00',

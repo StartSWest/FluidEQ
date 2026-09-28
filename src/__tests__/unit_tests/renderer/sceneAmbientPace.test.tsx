@@ -38,14 +38,19 @@ jest.mock('../../../renderer/utils/scenePacks', () => ({
 jest.mock('../../../renderer/utils/memberScenes', () => ({
   loadMemberScene: jest.fn(),
 }));
-jest.mock('../../../renderer/utils/sceneTintStore', () => ({
-  // The real rule for which modes show the graph's scene elements (Ambient
-  // and the Backdrop); only what reads the stores is stood in for.
-  isAmbientMode: jest.requireActual('../../../renderer/utils/sceneTintStore')
-    .isAmbientMode,
-  useSceneTintMode: jest.fn(),
-  useStudioTintSource: jest.fn(),
-}));
+jest.mock('../../../renderer/utils/sceneTintStore', () => {
+  const useSceneTintMode = jest.fn();
+  return {
+    // The real rule for which modes show the graph's scene elements (Ambient
+    // and the Backdrop); only what reads the stores is stood in for.
+    isAmbientMode: jest.requireActual('../../../renderer/utils/sceneTintStore')
+      .isAmbientMode,
+    useSceneTintMode,
+    // The mode the window wears: with no Studio holding it, the app's.
+    useWindowTintMode: () => useSceneTintMode(),
+    useStudioTintSource: jest.fn(),
+  };
+});
 
 const withBirds: IScenePack = {
   id: 'alpine',
@@ -125,30 +130,19 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it('draws thirty frames a second on a 60 Hz display: every other frame', async () => {
-  await layerDrawn();
-  // Frame times as a 60 Hz display hands them out, rounded to a tenth of a
-  // millisecond: two frames measure 33.3 ms, a hair under 1000 / 30.
-  frameAt(1000);
-  expect(paintAmbient).toHaveBeenCalledTimes(1);
-
-  // The next frame falls inside the budget, and is still asked for...
-  frameAt(1016.7);
-  expect(paintAmbient).toHaveBeenCalledTimes(1);
-  // ...so the one after it is drawn. Compared exactly, 33.3 against 33.33
-  // refused it too, and the layer drew every third frame.
-  frameAt(1033.3);
-  expect(paintAmbient).toHaveBeenCalledTimes(2);
-  frameAt(1050);
-  frameAt(1066.7);
-  expect(paintAmbient).toHaveBeenCalledTimes(3);
-});
-
-it('draws every frame while the window is euphoric, as the graph does', async () => {
-  // The control for the test above: the same loop, the same frames, and a
-  // budget that lets every one of them through.
-  document.documentElement.classList.add('is-euphoric');
-  await layerDrawn();
-  [1000, 1007, 1014, 1021].forEach(frameAt);
-  expect(paintAmbient).toHaveBeenCalledTimes(4);
-});
+// Every frame the display offers, as the graph beside it draws, in Rainbow
+// mode or not: the layer was held to thirty a second whenever Rainbow was
+// off, and that cap is gone with the graph's.
+it.each([false, true])(
+  'draws every frame a 60 Hz display offers, Rainbow mode %s',
+  async (euphoric) => {
+    if (euphoric) {
+      document.documentElement.classList.add('is-euphoric');
+    }
+    await layerDrawn();
+    // Frame times as a 60 Hz display hands them out, to a tenth of a
+    // millisecond.
+    [1000, 1016.7, 1033.3, 1050, 1066.7].forEach(frameAt);
+    expect(paintAmbient).toHaveBeenCalledTimes(5);
+  },
+);

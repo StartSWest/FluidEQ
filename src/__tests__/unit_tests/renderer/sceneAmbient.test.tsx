@@ -34,13 +34,20 @@ jest.mock('../../../renderer/utils/memberScenes', () => ({
   loadMemberScene: jest.fn(),
 }));
 // Which modes count as Ambient is the store's own rule, kept real.
-jest.mock('../../../renderer/utils/sceneTintStore', () => ({
-  isAmbientMode: jest.requireActual<
-    typeof import('../../../renderer/utils/sceneTintStore')
-  >('../../../renderer/utils/sceneTintStore').isAmbientMode,
-  useSceneTintMode: jest.fn(),
-  useStudioTintSource: jest.fn(),
-}));
+jest.mock('../../../renderer/utils/sceneTintStore', () => {
+  const useSceneTintMode = jest.fn();
+  return {
+    isAmbientMode: jest.requireActual<
+      typeof import('../../../renderer/utils/sceneTintStore')
+    >('../../../renderer/utils/sceneTintStore').isAmbientMode,
+    useSceneTintMode,
+    // The mode the window wears (`useWindowTintMode`): the Studio's own
+    // while its project holds the window with a mode of its own, and here it
+    // never has one, so the window wears the app's.
+    useWindowTintMode: () => useSceneTintMode(),
+    useStudioTintSource: jest.fn(),
+  };
+});
 
 const withBirds = (id: string): IScenePack =>
   ({

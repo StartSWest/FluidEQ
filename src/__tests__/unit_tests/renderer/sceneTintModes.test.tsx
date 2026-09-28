@@ -154,16 +154,24 @@ describe('the graph’s menu', () => {
   // Two sliders at the head of the menu in every mode, Brightness and
   // Transparency (Ivan, 2026-09-25: "in total I want only two options
   // brightness and transparency"), and Transparency only moves under the
-  // Backdrop, the one mode with a scene behind the panes to see through to.
+  // Backdrop with a Plus visualizer chosen: the one arrangement with a scene
+  // behind the panes to see through to (`useIsBackdrop`). The mode alone is
+  // remembered across looks, and with a standard look on it there is nothing
+  // behind them (2026-09-26: "the transparency slider is enabled which is
+  // not right").
   it.each([
-    ['off', false],
-    ['tint', false],
-    ['pulse', false],
-    ['cover', true],
+    ['off', 'premium:bloom', false],
+    ['tint', 'premium:bloom', false],
+    ['pulse', 'premium:bloom', false],
+    ['cover', 'premium:bloom', true],
+    ['cover', undefined, false],
   ])(
-    'under %s offers Brightness, and Transparency live: %s',
-    async (mode, isLive) => {
-      const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
+    'under %s with %s offers Brightness, and Transparency live: %s',
+    async (mode, look, isLive) => {
+      const { Menu, library: fresh } = load({
+        'fluideq.sceneTintMode': mode,
+        ...(look ? { 'fluideq-graph-style': look } : {}),
+      });
       fresh.render(<Menu />);
       await userEvent.click(
         fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
@@ -218,22 +226,24 @@ describe('the player’s corner key', () => {
 });
 
 describe('the Studio’s tiles', () => {
-  // The graph's four, setting the app's one mode: what a member picks while
-  // judging a scene is what the graph wears, and the other way round.
-  it('shows all four at once, the app’s mode pressed, each named in a word', async () => {
+  // The Studio's own choice, never the app's (Ivan, 2026-09-27: "the studio
+  // options are independent of the global ones"): Theme, and the app's three
+  // with the project on the bench as the scene. Neither sets the other.
+  it('shows all four at once, the Studio’s own mode pressed, each named in a word', async () => {
     const { Tiles, library: fresh } = load();
     fresh.render(<Tiles />);
     const tiles = fresh.screen.getAllByRole('button');
     expect(tiles.map((tile) => tile.textContent)).toEqual([
-      'graph.sceneTint.short.off',
+      'studio.tint.theme',
       'graph.sceneTint.short.tint',
       'graph.sceneTint.short.pulse',
       'graph.sceneTint.short.cover',
     ]);
+    // Theme for somebody new, whatever the app's mode is (Ambient).
     expect(tiles.map((tile) => tile.getAttribute('aria-pressed'))).toEqual([
-      'false',
-      'false',
       'true',
+      'false',
+      'false',
       'false',
     ]);
     await userEvent.click(
@@ -242,16 +252,25 @@ describe('the Studio’s tiles', () => {
     expect(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('tint');
+    expect(window.localStorage.getItem('fluideq.studioWindowMode')).toBe(
+      'tint',
+    );
+    // The app's own mode is left as it was.
+    expect(window.localStorage.getItem('fluideq.sceneTintMode')).not.toBe(
+      'tint',
+    );
   });
 
-  it('shows a Backdrop chosen on the graph as chosen', () => {
+  it('never shows the app’s mode as the Studio’s', () => {
     const { Tiles, library: fresh } = load({
       'fluideq.sceneTintMode': 'cover',
     });
     fresh.render(<Tiles />);
     expect(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.cover' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      fresh.screen.getByRole('button', { name: 'studio.tint.theme' }),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 });

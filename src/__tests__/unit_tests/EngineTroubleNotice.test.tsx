@@ -91,12 +91,25 @@ const title = (
     | 'engineHealth.bypassedTitle',
 ) => en[key].replace('{device}', speakers.name);
 
+/**
+ * The card's own answers, in the order they stand: the quiet ones first and
+ * the recommended one last, as on every notice. The corner's close is not
+ * one of them.
+ */
+const actions = () =>
+  Array.from(
+    document.querySelectorAll<HTMLElement>(
+      '.compact-frame__actions [role="button"]',
+    ),
+  );
+const actionNames = () => actions().map((button) => button.textContent);
+
 describe('EngineTroubleNotice', () => {
   it('explains a refused linear filter without claiming the original EQ stopped', () => {
     renderNotice({
       trouble: problems(['eq-phase'], { canRestartHelp: false }),
     });
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+    expect(screen.getByRole('dialog')).toHaveTextContent(
       en['engineHealth.problem.eq-phase'],
     );
     expect(
@@ -108,33 +121,33 @@ describe('EngineTroubleNotice', () => {
   });
   it('shows nothing while the engine is fine', () => {
     renderNotice({ trouble: undefined });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('says the engine is off, and offers the restart first', () => {
+  it('says the engine is off, and recommends the restart', () => {
     const { onRestartAudio, onUseApo } = renderNotice({ trouble: off });
 
-    const notice = screen.getByRole('alertdialog');
+    const notice = screen.getByRole('dialog');
     expect(notice).toHaveTextContent(title('engineHealth.offTitle'));
     expect(notice).toHaveTextContent(en['engineHealth.offBody']);
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.map((button) => button.textContent)).toEqual([
-      en['app.menu.restartAudio'],
-      en['engineHealth.useApo'],
+    const buttons = actions();
+    expect(actionNames()).toEqual([
       en['output.notNow'],
+      en['engineHealth.useApo'],
+      en['app.menu.restartAudio'],
     ]);
     // The recommendation wears the loud style, the rest the quiet one.
-    expect(buttons[0]).toHaveClass('small');
-    expect(buttons[0]).not.toHaveClass('subtle');
+    expect(buttons[2]).toHaveClass('small');
+    expect(buttons[2]).not.toHaveClass('subtle');
+    expect(buttons[0]).toHaveClass('subtle');
     expect(buttons[1]).toHaveClass('subtle');
-    expect(buttons[2]).toHaveClass('subtle');
 
     // The card asks; nothing ran on its own while it was shown. The restart
     // is an elevated run of the setup helper, and it used to happen without
     // a press the moment sound was heard — a Windows prompt on every change
     // of output to one Windows had built before the engine was on it.
     expect(onRestartAudio).not.toHaveBeenCalled();
-    fireEvent.click(buttons[0]);
+    fireEvent.click(buttons[2]);
     fireEvent.click(buttons[1]);
     expect(onRestartAudio).toHaveBeenCalledTimes(1);
     expect(onUseApo).toHaveBeenCalledTimes(1);
@@ -143,7 +156,7 @@ describe('EngineTroubleNotice', () => {
   it('lists what is missing, one line per thing', () => {
     renderNotice({ trouble: problems(['dsp-rack', 'reload-failed']) });
 
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+    expect(screen.getByRole('dialog')).toHaveTextContent(
       title('engineHealth.problemsTitle'),
     );
     expect(
@@ -152,7 +165,6 @@ describe('EngineTroubleNotice', () => {
       en['engineHealth.problem.dsp-rack'],
       en['engineHealth.problem.reload-failed'],
     ]);
-    expect(screen.getByText(en['engineHealth.partlyOff'])).toBeInTheDocument();
   });
 
   it('gives codes it does not know one line between them', () => {
@@ -166,9 +178,10 @@ describe('EngineTroubleNotice', () => {
     renderNotice({
       trouble: problems(['convolution'], { canRestartHelp: false }),
     });
-    expect(
-      screen.getAllByRole('button').map((button) => button.textContent),
-    ).toEqual([en['output.gotIt'], en['engineHealth.useApo']]);
+    expect(actionNames()).toEqual([
+      en['engineHealth.useApo'],
+      en['output.gotIt'],
+    ]);
   });
 
   it('leads with a fresh engine, not a restart, when the rack would not start', () => {
@@ -185,23 +198,23 @@ describe('EngineTroubleNotice', () => {
       }),
     });
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.map((button) => button.textContent)).toEqual([
-      en['engineUpdate.action'],
-      en['app.menu.restartAudio'],
+    const buttons = actions();
+    expect(actionNames()).toEqual([
       en['output.notNow'],
+      en['app.menu.restartAudio'],
+      en['engineUpdate.action'],
     ]);
     // The recommendation wears the loud style; the restart is demoted, not
     // removed — it still mends whatever else on the card a restart mends.
-    expect(buttons[0]).not.toHaveClass('subtle');
+    expect(buttons[2]).not.toHaveClass('subtle');
     expect(buttons[1]).toHaveClass('subtle');
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+    expect(screen.getByRole('dialog')).toHaveTextContent(
       en['engineHealth.rackNeedsEngine'],
     );
     // Nothing runs until it is pressed: this is an elevated run of the
     // setup helper, so it is one Windows prompt the user asked for.
     expect(onInstallEngine).not.toHaveBeenCalled();
-    fireEvent.click(buttons[0]);
+    fireEvent.click(buttons[2]);
     expect(onInstallEngine).toHaveBeenCalledTimes(1);
     expect(onRestartAudio).not.toHaveBeenCalled();
   });
@@ -216,7 +229,7 @@ describe('EngineTroubleNotice', () => {
         canInstallHelp: true,
       }),
     });
-    expect(screen.getByRole('alertdialog')).not.toHaveTextContent(
+    expect(screen.getByRole('dialog')).not.toHaveTextContent(
       en['engineHealth.engineIsOld'],
     );
 
@@ -227,7 +240,7 @@ describe('EngineTroubleNotice', () => {
         updateReady: true,
       }),
     });
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+    expect(screen.getByRole('dialog')).toHaveTextContent(
       en['engineHealth.engineIsOld'],
     );
   });
@@ -239,26 +252,24 @@ describe('EngineTroubleNotice', () => {
         canApoHelp: false,
       }),
     });
-    expect(
-      screen.getAllByRole('button').map((button) => button.textContent),
-    ).toEqual([en['output.gotIt']]);
+    expect(actionNames()).toEqual([en['output.gotIt']]);
   });
 
   it('stays put away for this trouble, even after it goes and returns', () => {
     const { rerender } = renderNotice({ trouble: off });
 
     fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender({ trouble: off });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     // The live capture stops with the DSP page and starts with it, so this
     // pair happens on every visit to that page while music plays. A user
     // reported exactly that as the card coming back every single time.
     rerender({ trouble: undefined });
     rerender({ trouble: off });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('offers Equalizer APO, not a restart, when Windows never started the engine', () => {
@@ -273,9 +284,10 @@ describe('EngineTroubleNotice', () => {
     expect(
       screen.queryByRole('button', { name: en['app.menu.restartAudio'] }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole('button').map((button) => button.textContent),
-    ).toEqual([en['engineHealth.useApo'], en['output.notNow']]);
+    expect(actionNames()).toEqual([
+      en['output.notNow'],
+      en['engineHealth.useApo'],
+    ]);
   });
 
   it('offers another slot when Windows is playing the output past the engine', () => {
@@ -296,16 +308,16 @@ describe('EngineTroubleNotice', () => {
     expect(
       screen.queryByRole('button', { name: en['app.menu.restartAudio'] }),
     ).not.toBeInTheDocument();
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.map((button) => button.textContent)).toEqual([
-      en['engineHealth.tryAnotherSlot'],
-      en['engineHealth.useApo'],
+    const buttons = actions();
+    expect(actionNames()).toEqual([
       en['output.notNow'],
+      en['engineHealth.useApo'],
+      en['engineHealth.tryAnotherSlot'],
     ]);
     // The move is the recommendation, and nothing runs until it is pressed.
-    expect(buttons[0]).not.toHaveClass('subtle');
+    expect(buttons[2]).not.toHaveClass('subtle');
     expect(onTryAnotherSlot).not.toHaveBeenCalled();
-    fireEvent.click(buttons[0]);
+    fireEvent.click(buttons[2]);
     expect(onTryAnotherSlot).toHaveBeenCalledWith(off.device.guid);
   });
 
@@ -314,39 +326,39 @@ describe('EngineTroubleNotice', () => {
     fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));
 
     rerender({ trouble: problems(['convolution']) });
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('is put away by Escape', () => {
     renderNotice({ trouble: off });
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('waits behind the output notice, and keeps out of its Escape', () => {
     const release = claimNotice('output');
     renderNotice({ trouble: off });
     try {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       fireEvent.keyDown(document, { key: 'Escape' });
     } finally {
       act(release);
     }
     // Still there once the spot is its own: the Escape was not its.
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it("waits behind the Room's 7.1 offer too", () => {
     const release = claimNotice('room');
     renderNotice({ trouble: off });
     try {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     } finally {
       act(release);
     }
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('leaves the notice alone when a later dialog handles Escape', () => {
@@ -355,21 +367,21 @@ describe('EngineTroubleNotice', () => {
     document.addEventListener('keydown', dialogAnswers);
     try {
       fireEvent.keyDown(document, { key: 'Escape' });
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     } finally {
       document.removeEventListener('keydown', dialogAnswers);
     }
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('still answers Escape when only the lower-priority update notice is present', () => {
     const release = claimNotice('engineUpdate');
     renderNotice({ trouble: off });
     try {
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       fireEvent.keyDown(document, { key: 'Escape' });
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     } finally {
       act(release);
     }
@@ -377,8 +389,8 @@ describe('EngineTroubleNotice', () => {
 
   it('steps aside while a dialog is open, and comes back after it', () => {
     const { rerender } = renderNotice({ trouble: off, isHidden: true });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     rerender({ trouble: off, isHidden: false });
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

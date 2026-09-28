@@ -56,29 +56,29 @@ describe('Lagoon, everywhere it is written', () => {
 
   // The header's is the one exception (Ivan, 2026-09-26: "the app icon on
   // the top needs to follow theme too"): its edge and wave read the window's
-  // colours — the accent in Normal, the palette in use in Rainbow.
+  // colours — the accent's smooth run, in Rainbow mode as well, where the
+  // palette taken whole ran the edge through seven colours (2026-09-27:
+  // "make logo and title rainbow color more smooth").
   it('is not what the header’s logo is drawn in', () => {
     const sheet = css('SignalBrand.scss');
     const header = ruleBody(sheet, '.brand-mark.brand-mark--signal');
     expect(header).toContain('--logo-3: var(--accent)');
     expect(header).toContain('var(--logo-1)');
     expect(header).not.toContain(LAGOON[0]);
-    expect(
-      ruleBody(sheet, 'html.is-euphoric .brand-mark.brand-mark--signal'),
-    ).toContain('--logo-1: var(--rainbow-1)');
+    expect(sheet).not.toContain(
+      'html.is-euphoric .brand-mark.brand-mark--signal',
+    );
   });
 
   // The name's "EQ" is in the window's colours (Ivan, 2026-09-26: "when plus
-  // viz is on it should also use the viz theme"): the filled controls' fill
-  // in Normal, the palette in use in Rainbow — Lagoon, or a visualizer's own.
+  // viz is on it should also use the viz theme"): the accent's run, which a
+  // visualizer or Rainbow mode leans toward its own colours.
   it('is what the header name’s “EQ” is drawn in only through the palette', () => {
     const sheet = css('SignalBrand.scss');
     expect(ruleBody(sheet, '.signal-name__suffix')).toContain(
       'var(--accent-fill)',
     );
-    expect(ruleBody(sheet, 'html.is-euphoric .signal-name__suffix')).toContain(
-      'var(--rainbow-stops)',
-    );
+    expect(sheet).not.toContain('html.is-euphoric .signal-name__suffix');
     expect(ruleBody(sheet, '.signal-name__suffix')).not.toContain(LAGOON[0]);
   });
 
@@ -111,9 +111,11 @@ describe('the filled controls', () => {
     expect(ruleBody(css('Button.scss'), '.button')).toContain(
       'var(--control-fill)',
     );
+    // A switch on is its knob lit on a well tinted toward the accent, not a
+    // filled pill (`Switch.scss`): nothing of the span reaches it.
     expect(
       ruleBody(css('Switch.scss'), '.switch-checkbox:checked + .switch-label'),
-    ).toContain('var(--control-fill)');
+    ).not.toContain('fill)');
     expect(
       ruleBody(css('MainContent.scss'), '.eq-mode .eq-mode__caret'),
     ).toContain('var(--control-end');

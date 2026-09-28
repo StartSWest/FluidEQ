@@ -81,7 +81,9 @@ it("follows the theme's slider step by step", () => {
   setThemeShade(0);
   expect(readSurface('--surface-panel', '#ffffff')).toBe('#0c0e12');
   setThemeShade(OCEAN_SHADE);
-  expect(readSurface('--surface-panel', '#ffffff')).toBe('#1a3a4e');
+  expect(readSurface('--surface-panel', '#ffffff')).toBe(
+    themeShadeTokens(OCEAN_SHADE)['--surface-panel'],
+  );
   setThemeShade(THEME_SHADE_MAX);
   expect(readSurface('--surface-panel', '#ffffff')).toBe(
     themeShadeTokens(THEME_SHADE_MAX)['--surface-panel'],
