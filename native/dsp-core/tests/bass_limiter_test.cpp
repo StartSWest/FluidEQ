@@ -111,12 +111,18 @@ int main() {
     double hz;
     double wobble;
     const char* name;
+    /** Whether the old aim fails this note, which makes it a control. */
+    bool controls;
   };
   const Case cases[] = {
-      {30.0, 0.0, "a steady 30 Hz note"},
-      {45.0, 0.0, "a steady 45 Hz note"},
-      {60.0, 0.001, "a 60 Hz note wavering by 0.1%"},
-      {40.0, 0.001, "a 40 Hz note wavering by 0.1%"},
+      {30.0, 0.0, "a steady 30 Hz note", true},
+      // Its half cycle is only a millisecond longer than the hold, and the
+      // old aim sawed it only through the jump every release used to finish
+      // with (`release_toward`, 2026-09-26): -81 dB without it. It stays for
+      // the window, with the other three notes as its control.
+      {45.0, 0.0, "a steady 45 Hz note", false},
+      {60.0, 0.001, "a 60 Hz note wavering by 0.1%", true},
+      {40.0, 0.001, "a 40 Hz note wavering by 0.1%", true},
   };
   for (const Case& note : cases) {
     const double now =
@@ -127,8 +133,10 @@ int main() {
                 note.name, now, before);
     check(now < -80.0,
           "the low band holds a bass note without writing harmonics into it");
-    check(before > -70.0,
-          "control: aiming at the sample in hand saws the same note");
+    if (note.controls) {
+      check(before > -70.0,
+            "control: aiming at the sample in hand saws the same note");
+    }
   }
   return feq_test::finish();
 }

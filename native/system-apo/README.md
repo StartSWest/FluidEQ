@@ -9,8 +9,21 @@ with the new settings; only its envelope and amount carry over. No audio-thread 
 file access or wait is needed.
 
 This prevents the measured failure where every DSP edit produced an entirely
-silent first block, in both minimum and linear phase. EQ-only graph edits use the
-same handover, rather than sharing a mutable rack between published graphs.
+silent first block, in both minimum and linear phase.
+
+An edit that leaves everything the rack is built from alone — its values, game
+mode as the EQ side asks for it, the room's head, the stream's format and block
+size — builds no rack at all: the new graph runs the chain already running
+(`Graph`'s `rack_from`, handed in by the watcher from the graph it published
+last), so nothing is transferred either. Every edit publishes a graph as it
+arrives, and a Room rack takes 13 to 43 ms to build, where every other preset
+takes 1 to 3 ms and a transfer costs the audio thread at most 0.4 ms: a band
+dragged on a Room preset was heard only every 100 to 135 ms inside audiodg
+(2026-09-26). The chain is shared rather than moved, because the graph it
+comes from may be the one the audio thread is running; one audio thread and
+graphs freed only by the watcher, two blocks after they were superseded, are
+what make that safe (`graph.h`). A shared chain's meters are never set again
+from the watcher thread, since the chain's pointer to them is a plain one.
 
 ## Transfer contract
 

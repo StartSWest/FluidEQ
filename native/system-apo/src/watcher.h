@@ -29,6 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -40,8 +41,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "status_file.h"
 #include "analysis_link.h"
 #include "input_history.h"
+#include "level_mailbox.h"
 #include "level_prediction.h"
 #include "leveling_board.h"
+#include "room_head.h"
 
 namespace fluideq_engine {
 
@@ -234,6 +237,8 @@ class Watcher {
    * written up on `request_reset`.
    */
   void reload();
+  /** `reload` up to and including the publish: everything but the level. */
+  void load_chain();
   /**
    * Whether `stop()` has already been asked for.
    *
@@ -245,16 +250,26 @@ class Watcher {
    * designed.
    */
   bool stop_requested() const noexcept;
+  /**
+   * Whether the configuration directory has changed since the watch was
+   * last re-armed: asked, like `stop_requested`, with a zero wait. A level
+   * being worked out gives way to it, because a newer edit makes that level
+   * worthless and is about to be heard.
+   */
+  bool change_pending() const noexcept;
   void publish(std::unique_ptr<Graph> graph);
   /**
-   * The level `graph` should take when it takes over, worked out on the music
-   * just heard (`level_prediction.h`), and the chain it was worked out for
-   * once published. A prediction that fails is logged and left out: the edit
-   * is then heard with its level found the old way, never held back.
+   * An edit's level (`level_mailbox.h`): whether `graph` will be sent one,
+   * decided before it is published; what is owed once it is; and working it
+   * out after, on the music just heard (`level_prediction.h`), until nothing
+   * is owed. A prediction that fails is logged and sent as nothing to go on:
+   * the level is then found the old way, never held back.
    */
   void open_level_prediction();
-  void predict_level(const Chain& chain, Graph& graph);
-  void accept_level(const Chain& chain);
+  bool plan_level(const Chain& chain, Graph& graph);
+  void owe_level(const Chain& chain, bool owed);
+  void settle_level();
+  void accept_level(const Chain& chain, uint64_t heard_frames);
   void reclaim();
   void log_chain(const Chain& chain, const Graph& graph, bool owner_present);
   /** No link means the link could not run: then FluidEQ counts as present. */
@@ -291,15 +306,42 @@ class Watcher {
   // then leveling forgets with each chain, as it always used to.
   std::shared_ptr<Leveling> leveling_;
   // The music as it reaches the EQ, and what replays it through each new EQ
-  // before that EQ is heard. Null if either could not be allocated: every
+  // as that EQ starts to play. Null if either could not be allocated: every
   // edit's level is then found the old way.
   std::unique_ptr<InputHistory> history_;
   std::unique_ptr<LevelPredictor> predictor_;
-  // The graph last published: what the next prediction is made against.
-  // Compared, never followed.
-  const Graph* last_published_ = nullptr;
-  // What the last prediction came to, for the chain's log line.
-  std::string level_note_;
+  // Where each published graph's level is sent, and the number the last one
+  // was published under (0 is never one).
+  LevelMailbox level_mailbox_;
+  uint32_t generation_ = 0;
+  // The level still to be worked out: the newest graph's, whose chain is
+  // judged against the one the predictor last accepted.
+  struct OwedLevel {
+    Chain chain;
+    uint32_t generation = 0;
+    // The history's frame count at its publish.
+    uint64_t published_at = 0;
+  };
+  std::optional<OwedLevel> owed_level_;
+  // The history's frame count at the first publish since the predictor last
+  // accepted a chain: from there the measured peaks are not that chain's.
+  uint64_t others_from_ = UINT64_MAX;
+  // The change notification `run()` waits on, while it watches the
+  // configuration directory itself; null otherwise (`change_pending`).
+  HANDLE change_armed_ = nullptr;
+  // The room's head as last read and parsed. A head is 600 kB of text and
+  // took 8.5 ms to parse, on every edit, for a file that changes only with
+  // the head size.
+  std::string room_head_text_;
+  std::optional<RoomHead> room_head_;
+  // Counts every change of `room_head_`, which is re-parsed in place, so its
+  // address cannot say whether it is the head a rack was built through.
+  uint64_t room_head_generation_ = 0;
+  // The graph published last, whose rack the next may keep running
+  // (`Graph`'s `rack_from`), and the head generation it was built through.
+  // Owned in `owned_`, which never frees the newest graph.
+  const Graph* rack_source_ = nullptr;
+  uint64_t rack_source_head_ = 0;
 
   // Watcher-thread state (plus `load_initial`, which runs before the thread
   // exists — never both at once).

@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "curve_stage.h"
 #include "eq_phase.h"
 #include "iir_cascade.h"
+#include "level_mailbox.h"
 #include "output_guard.h"
 
 namespace fluideq_engine {
@@ -126,18 +127,37 @@ bool Graph::start_crossing(Graph* previous) noexcept {
   // empty with the rest of this graph.
   if (output_guard_ && source->output_guard_) {
     output_guard_->take_level(*source->output_guard_);
-    const uint32_t settling =
-        std::max(latency_frames_, source->latency_frames_) + sample_rate_ / 20;
-    if (auto_preamp_ && level_basis_ != nullptr && level_basis_ == previous) {
-      output_guard_->shift_level(level_shift_db_, curve_level_db_, settling);
-    } else {
-      output_guard_->set_curve_level(curve_level_db_);
-      if (auto_preamp_) {
-        output_guard_->reassess(settling);
-      }
-    }
+    hand_level_over(auto_preamp_, std::max(latency_frames_, source->latency_frames_) +
+                                      sample_rate_ / 20);
   }
   return true;
+}
+
+void Graph::hand_level_over(bool sound_changed, uint32_t settling) noexcept {
+  if (level_mailbox_ != nullptr && auto_preamp_) {
+    output_guard_->hold(curve_level_db_, settling, sound_changed);
+    level_pending_ = output_guard_->holding();
+    return;
+  }
+  // Nothing on its way: down by the curve's worst case, then back up as the
+  // music shows how much of it was needed.
+  output_guard_->release_hold();
+  output_guard_->set_curve_level(curve_level_db_);
+  if (sound_changed) {
+    output_guard_->reassess(settling);
+  }
+}
+
+void Graph::take_arrived_level() noexcept {
+  float shift_db = 0.0f;
+  if (output_guard_ == nullptr || level_mailbox_ == nullptr ||
+      !level_mailbox_->take(level_generation_, shift_db)) {
+    return;
+  }
+  level_pending_ = false;
+  // The EQ has been playing since the handover, so only the stages' delay
+  // is left to settle if the level has to be found the old way.
+  output_guard_->settle(shift_db, latency_frames_ + sample_rate_ / 20);
 }
 
 void Graph::mix_crossing(float* const* planar, uint32_t frames) noexcept {
@@ -213,19 +233,8 @@ void Graph::adopt_state(Graph* previous) noexcept {
          curve_identity() != previous->curve_identity() ||
          impulse_identity_ != previous->impulse_identity_ ||
          impulse_.size() != previous->impulse_.size());
-    const uint32_t settling =
-        std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20;
-    if (sound_changed && level_basis_ != nullptr && level_basis_ == previous) {
-      // The level this EQ needs on the music just heard, at once.
-      output_guard_->shift_level(level_shift_db_, curve_level_db_, settling);
-    } else {
-      // Nothing heard to judge by: down by the curve's worst case, then back
-      // up as the music shows how much of it was needed.
-      output_guard_->set_curve_level(curve_level_db_);
-      if (sound_changed) {
-        output_guard_->reassess(settling);
-      }
-    }
+    hand_level_over(sound_changed, std::max(latency_frames_, previous->latency_frames_) +
+                                       sample_rate_ / 20);
   }
   if (impulse_identity_ != nullptr && impulse_identity_ == previous->impulse_identity_ &&
       impulse_.size() == previous->impulse_.size()) {
@@ -253,29 +262,6 @@ void Graph::adopt_state(Graph* previous) noexcept {
       bypass_align_[at].cursor = previous->bypass_align_[at].cursor;
     }
   }
-}
-
-void Graph::inherit_rack(const Graph& previous) noexcept {
-  // Every one of these has to hold. `dsp_values_` alone is not enough: the
-  // same array at a different sample rate or channel count builds a chain
-  // with different buffer sizes and a different kernel, and running the old
-  // one on the new stream would be the wrong filter at the wrong rate.
-  // `max_frames_` is checked too: `build_rack` sizes the chain's internal
-  // buffers to it, so a chain built for one block size handed to a graph
-  // that accepted a larger one would have `feq_chain_process` write past
-  // buffers it never sized for that many frames.
-  if (rack_ == nullptr || previous.rack_ == nullptr ||
-      sample_rate_ != previous.sample_rate_ ||
-      channels_ != previous.channels_ ||
-      max_frames_ != previous.max_frames_ ||
-      rack_channels_ != previous.rack_channels_ ||
-      dsp_values_ != previous.dsp_values_) {
-    return;
-  }
-  // The chain this graph built is released here, on the watcher thread, and
-  // was never reachable from the audio thread — this graph has not been
-  // published yet.
-  rack_ = previous.rack_;
 }
 
 bool Graph::rack_is_shared_with(const Graph& other) const noexcept {

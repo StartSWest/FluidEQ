@@ -191,9 +191,19 @@ double LevelPredictor::peak_over(const Replay& replay, uint64_t from,
   return peak;
 }
 
+LevelPredictor::Judgement LevelPredictor::judge(const Chain& next) const {
+  if (!current_ || !current_->auto_preamp || !next.auto_preamp ||
+      !next.output_guard) {
+    return Judgement::kNone;
+  }
+  return signature_of(replay_chain_of(next)) == current_signature_
+             ? Judgement::kSame
+             : Judgement::kChanged;
+}
+
 std::optional<LevelPredictor::Prediction> LevelPredictor::predict(
     const Chain& next, const InputHistory& history,
-    const std::function<bool()>& stop_requested) {
+    const std::function<bool()>& stop_requested, uint64_t others_from) {
   candidate_.reset();
   if (!current_ || !current_->auto_preamp || !next.auto_preamp ||
       !next.output_guard) {
@@ -215,10 +225,17 @@ std::optional<LevelPredictor::Prediction> LevelPredictor::predict(
     return std::nullopt;
   }
   candidate_ = start(replay, std::move(signature), from);
-  // Settled on the chain playing a tenth of a second after it was published:
-  // the handover is at the next block, and its crossfade 20 ms.
-  const bool heard = plays_as_replayed(*current_) &&
-                     current_since_ + rate_ / 10 <= candidate_->valid_from;
+  // The measured peaks are the accepted chain's from a tenth of a second
+  // after it was published (the handover is at the next block, and its
+  // crossfade 20 ms) until another chain was: before it is handed over, so
+  // the frames up to that publish are all still the accepted chain's.
+  const uint64_t heard_until =
+      std::min(others_from, now - std::min(now, 2 * uint64_t{chunk_frames_}));
+  const bool heard =
+      plays_as_replayed(*current_) &&
+      current_since_ + rate_ / 10 <= candidate_->valid_from &&
+      heard_until > candidate_->valid_from &&
+      heard_until - candidate_->valid_from >= static_cast<uint64_t>(rate_ * kLeastSeconds);
   if (!heard) {
     if (!shadow_ || shadow_->signature != current_signature_ ||
         shadow_->rendered_to < from) {
@@ -237,10 +254,10 @@ std::optional<LevelPredictor::Prediction> LevelPredictor::predict(
   const uint64_t lo = std::max(
       {from, candidate_->valid_from, heard ? from : shadow_->valid_from});
   // The history's own peaks stop two chunks short of the newest frame (see
-  // `InputHistory::peak_over`): the replay is read over the same chunks.
+  // `InputHistory::peak_over`), which `heard_until` already allows for: the
+  // replay is read over the same chunks.
   const uint64_t hi =
-      heard ? candidate_->rendered_to - 2 * uint64_t{chunk_frames_}
-            : std::min(shadow_->rendered_to, candidate_->rendered_to);
+      heard ? heard_until : std::min(shadow_->rendered_to, candidate_->rendered_to);
   if (hi <= lo || hi - lo < static_cast<uint64_t>(rate_ * kLeastSeconds)) {
     return std::nullopt;
   }

@@ -1,6 +1,8 @@
 #include "../src/output_guard.h"
 #include "graph_test_support.h"
 #include <algorithm>
+#include <array>
+#include <cmath>
 
 using namespace fluideq_engine_test;
 using fluideq_engine::OutputGuard;
@@ -104,16 +106,24 @@ void switching_it_back_on_starts_from_the_curve_again() {
   CHECK(std::abs(guard.gain_db() + 8) < 0.05);
 }
 
-// An edit whose level was predicted on the music just heard: taken at once,
-// up or down, with none of the old way's drop and climb.
-void a_predicted_level_is_taken_at_once() {
+// An edit whose level is predicted on the music just heard while the edit
+// already plays: held on its curve's level until the prediction arrives,
+// then taken from the basis, up or down, with none of the old way's climb.
+void a_predicted_level_is_taken_when_it_arrives() {
   OutputGuard guard(kRate, 2);
   guard.set_curve_level(-6);
   std::vector<std::vector<float>> audio(2, tone(1000, 0.05, kRate, 0));
   run(guard, audio);
   CHECK(std::abs(guard.gain_db() + 6) < 0.05);
-  // The new curve's worst case says 3 dB down; the music says 2.5 dB up.
-  guard.shift_level(+2.5, -9, kRate / 20);
+  // The new curve's worst case says 3 dB down, which is where it waits.
+  guard.hold(-9, kRate / 20, true);
+  CHECK(guard.holding());
+  std::vector<std::vector<float>> waiting(2, tone(1000, 0.05, kRate / 5, kRate));
+  run(guard, waiting);
+  CHECK(std::abs(guard.gain_db() + 9) < 0.05);
+  // The music says 2.5 dB up from where the level was before the edit.
+  guard.settle(+2.5, kRate / 20);
+  CHECK(!guard.holding());
   std::vector<std::vector<float>> after(2, tone(1000, 0.05, kRate, kRate));
   run(guard, after);
   CHECK(std::abs(guard.gain_db() + 3.5) < 0.1);
@@ -123,10 +133,81 @@ void a_predicted_level_is_taken_at_once() {
   CHECK(std::abs(guard.gain_db() + 3.5) < 0.1);
   // Before the first enabled block the curve's own level is still the start.
   OutputGuard fresh(kRate, 2);
-  fresh.shift_level(-4, -8, 0);
+  fresh.hold(-8, 0, true);
+  CHECK(!fresh.holding());
   std::vector<std::vector<float>> first(2, tone(1000, 0.05, kRate / 2, 0));
   run(fresh, first);
   CHECK(std::abs(fresh.gain_db() + 8) < 0.05);
+}
+
+/** The loudest millisecond above 5 kHz in `samples[from, to)`, in dBFS. */
+double top_db(const std::vector<float>& samples, size_t from, size_t to) {
+  // Two Butterworth sections, filtered from the start so they have settled.
+  const auto section = [](double q) {
+    const double w = 2.0 * kPi * 5000.0 / kRate;
+    const double alpha = std::sin(w) / (2.0 * q);
+    const double a0 = 1.0 + alpha;
+    return std::array<double, 5>{(1.0 + std::cos(w)) / 2.0 / a0, -(1.0 + std::cos(w)) / a0,
+                                 (1.0 + std::cos(w)) / 2.0 / a0, -2.0 * std::cos(w) / a0,
+                                 (1.0 - alpha) / a0};
+  };
+  std::vector<double> filtered(samples.begin(), samples.end());
+  for (const double q : {0.5412, 1.3066}) {
+    const std::array<double, 5> c = section(q);
+    double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (double& value : filtered) {
+      const double y = c[0] * value + c[1] * x1 + c[2] * x2 - c[3] * y1 - c[4] * y2;
+      x2 = x1;
+      x1 = value;
+      y2 = y1;
+      y1 = y;
+      value = y;
+    }
+  }
+  double loudest = 1e-12;
+  for (size_t at = from; at + 48 <= to; at += 24) {
+    double sum = 0;
+    for (size_t k = 0; k < 48; ++k) sum += filtered[at + k] * filtered[at + k];
+    loudest = std::max(loudest, std::sqrt(sum / 48));
+  }
+  return 20.0 * std::log10(loudest);
+}
+
+// An edit's level glides into place rather than stepping at the limiter's
+// look-ahead, which was heard as a click: the same 10 dB taken in one sample
+// is the control the measurement has to catch.
+void an_edits_level_glides_without_a_click() {
+  OutputGuard guard(kRate, 2);
+  guard.set_curve_level(-1);
+  std::vector<std::vector<float>> audio(2, tone(55, 0.25, kRate * 2, 0));
+  const std::vector<float> source = audio[0];
+  std::vector<std::vector<float>> first(2, std::vector<float>(audio[0].begin(),
+                                                              audio[0].begin() + kRate));
+  run(guard, first);
+  guard.hold(-11, kRate / 20, true);
+  std::vector<std::vector<float>> second(2, std::vector<float>(audio[0].begin() + kRate,
+                                                               audio[0].end()));
+  run(guard, second);
+  CHECK(std::abs(guard.gain_db() + 11) < 0.05);
+  std::vector<float> out = first[0];
+  out.insert(out.end(), second[0].begin(), second[0].end());
+  const double steady = top_db(out, kRate / 2, kRate - kRate / 20);
+  const double edit = top_db(out, kRate, kRate + kRate / 10);
+  // The control: the guard's output before the edit, stepped down 10 dB in
+  // one sample where the glide begins.
+  std::vector<float> stepped(kRate * 2);
+  const uint32_t delay = guard.latency();
+  const double before = std::pow(10.0, -1.0 / 20.0), after = std::pow(10.0, -11.0 / 20.0);
+  for (uint32_t at = delay; at < stepped.size(); ++at) {
+    stepped[at] = static_cast<float>(source[at - delay] * (at < kRate + delay ? before : after));
+  }
+  const double step = top_db(stepped, kRate, kRate + kRate / 10);
+  std::printf("glide: steady %.1f dBFS above 5 kHz, the edit %.1f, a step %.1f\n", steady,
+              edit, step);
+  // A pure tone leaves nothing up there but rounding (-164 dBFS), and the
+  // glide only rounding's worth more: under what a 16-bit output can carry.
+  CHECK(edit < -100.0);
+  CHECK(step > -60.0);
 }
 
 void safe_audio_is_only_delayed() {
@@ -182,7 +263,8 @@ int main() {
   true_peaks_and_stereo_are_protected();
   starts_at_the_curve_level_and_recovers();
   a_louder_curve_comes_down_at_once();
-  a_predicted_level_is_taken_at_once();
+  a_predicted_level_is_taken_when_it_arrives();
+  an_edits_level_glides_without_a_click();
   switching_it_back_on_starts_from_the_curve_again();
   return report();
 }

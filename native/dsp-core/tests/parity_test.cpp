@@ -254,7 +254,33 @@ constexpr const char* kFocusedKernels[] = {
     "linear-phase/narrow-low-proportional/parallel/48000",
 };
 
+/**
+ * The linked limiter's fixtures that reach the end of a release, which since
+ * 2026-09-26 crosses its last 2% in a straight line (`release_toward`).
+ */
+constexpr const char* kReleaseFinish[] = {
+    "linklim/ramped/8/white-noise",       "linklim/ramped/8/pink-noise",
+    "linklim/ramped/8/anti-phase",        "linklim/ramped/8/intersample-peak",
+    "linklim/ramped/480/white-noise",     "linklim/ramped/480/intersample-peak",
+    "linklim/slewed/8/white-noise",       "linklim/slewed/8/anti-phase",
+    "linklim/slewed/480/white-noise",     "linklim/slewed/480/anti-phase",
+    "linklim/slewed/480/intersample-peak",
+};
+/** The same finish in the headroom stage, which is that limiter. */
+constexpr const char* kHeadroomReleaseFinish[] = {
+    "headroom/on/0/intersample-peak",
+    "headroom/on/4/intersample-peak",
+};
+
 constexpr Superseded kSuperseded[] = {
+    {kLinkedLimiter, kReleaseFinish,
+     "a release crosses the last 2% of its gap in a straight line, at the "
+     "pace it had there, since 2026-09-26; it used to jump it in one sample, "
+     "0.17 dB in the Maximizer and a tick after every hit it limited (-69 "
+     "dBFS above 5 kHz, 150 ms into Punch). Only the fixtures that reach a "
+     "release's end differ; limiter_release_test.cpp holds the finish"},
+    {kAutoHeadroom, kHeadroomReleaseFinish,
+     "the same finish, in the linked limiter this stage is"},
     {kCrossover, {},
      "the three-band split stopped deriving its upper bands by subtraction on "
      "2026-09-19: subtracted bands sit half a cycle apart at the corner, so "

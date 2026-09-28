@@ -66,9 +66,11 @@ std::vector<double> rack(double look_ahead_ms) {
   return values;
 }
 
+/** `rack_from`: the graph published before, as the watcher hands it in. */
 std::unique_ptr<Graph> graph(const std::vector<double>& values,
-                             const char* eq = kEq) {
-  return std::make_unique<Graph>(chain_with(values, eq), kRate, 2, kBlock);
+                             const char* eq = kEq, const Graph* rack_from = nullptr) {
+  return std::make_unique<Graph>(chain_with(values, eq), kRate, 2, kBlock, nullptr, 0,
+                                 nullptr, false, rack_from);
 }
 
 /** Four low tones, the sides a little apart; nothing above 1.2 kHz. */
@@ -97,7 +99,6 @@ void run(Graph& through, uint32_t from, uint32_t frames, std::vector<float>& out
 /** As the watcher hands over: the graph before stays, the new one adopts. */
 void hand_over(Graph& next, Graph& running) {
   next.request_state_transfer();
-  next.inherit_rack(running);
   next.adopt_state(&running);
 }
 
@@ -170,7 +171,7 @@ void a_new_look_ahead_crosses_over() {
     const std::vector<double> from = rack(pair.first);
     const std::vector<double> to = rack(pair.second);
     auto running = graph(from);
-    auto next = graph(to);
+    auto next = graph(to, kEq, running.get());
     CHECK(running->latency_frames() != next->latency_frames());
     std::vector<float> out;
     run(*running, 0, kBefore, out);
@@ -194,7 +195,7 @@ void the_rack_switched_off_and_on_crosses_over() {
     const std::vector<double>& from = switching_off ? on : off;
     const std::vector<double>& to = switching_off ? off : on;
     auto running = graph(from);
-    auto next = graph(to);
+    auto next = graph(to, kEq, running.get());
     std::vector<float> out;
     run(*running, 0, kBefore, out);
     hand_over(*next, *running);
@@ -216,8 +217,8 @@ void a_switch_on_a_switch() {
   for (const uint32_t gap_ms : {10u, 90u}) {
     const uint32_t gap = gap_ms * kRate / 1000;
     auto first = graph(a);
-    auto second = graph(b);
-    auto third = graph(c);
+    auto second = graph(b, kEq, first.get());
+    auto third = graph(c, kEq, second.get());
     std::vector<float> out;
     run(*first, 0, kBefore, out);
     hand_over(*second, *first);
@@ -245,7 +246,7 @@ void an_eq_delay_change_shares_the_rack() {
   const std::vector<double> values = rack(5.0);
   const char* staged = "# FluidEQAutoPreamp: ON\r\n# FluidEQCurveStage: ON\r\nPreamp: 0 dB\r\n";
   auto running = graph(values);
-  auto next = graph(values, staged);
+  auto next = graph(values, staged, running.get());
   CHECK(running->latency_frames() != next->latency_frames());
   std::vector<float> out;
   run(*running, 0, kBefore, out);
@@ -263,7 +264,7 @@ void the_same_delay_hands_over_as_before() {
   std::vector<double> louder = rack(5.0);
   louder[kMaximizerDriveDb] = 3.0;
   auto running = graph(rack(5.0));
-  auto next = graph(louder);
+  auto next = graph(louder, kEq, running.get());
   CHECK(running->latency_frames() == next->latency_frames());
   std::vector<float> out;
   run(*running, 0, kBefore, out);
@@ -278,7 +279,7 @@ void reclaim_keeps_what_is_crossed_from() {
   std::printf("the watcher keeps a graph still being crossed from\n");
   Graph* gone = graph(rack(5.0)).release();
   Graph* crossed = graph(rack(2.0)).release();
-  Graph* crossing = graph(rack(12.0)).release();
+  Graph* crossing = graph(rack(12.0), kEq, crossed).release();
   std::vector<float> out;
   run(*crossed, 0, kBefore, out);
   hand_over(*crossing, *crossed);

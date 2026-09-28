@@ -73,7 +73,10 @@ constexpr double kMaximizerSoftKneeDb = 1.5;
  * is dragged, because each new ring arrives full of zeros.
  */
 constexpr double kMaximizerMaxLookAheadMs = 20.0;
-/** Completes even the slowest 1 s release inside four seconds. */
+/**
+ * Completes even the slowest 1 s release inside five seconds: four to come
+ * within 2%, one to cross that in a straight line (`release_toward`).
+ */
 constexpr double kMaximizerReleaseSnapRatio = 0.02;
 /**
  * How fast the Maximizer's platform deepens and rises (`limiter.h`).

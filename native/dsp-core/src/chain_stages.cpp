@@ -431,8 +431,8 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
          : (recovering ? off_release : 0.0);
   options.limiting_release_coefficient = options.release_coefficient;
   options.knee_db = on ? kMaximizerSoftKneeDb : 0.0;
-  // No snap while it lets go after being switched off: the last 2% would be
-  // a step, and the stage is cleared once it is back anyway.
+  // No finish while it lets go after being switched off: the stage is
+  // cleared once it is back anyway.
   options.release_snap_ratio = on ? kMaximizerReleaseSnapRatio : 0.0;
   options.release_hold_samples =
       on ? std::floor((kMaximizerReleaseHoldMs / 1000.0) * chain->sample_rate +

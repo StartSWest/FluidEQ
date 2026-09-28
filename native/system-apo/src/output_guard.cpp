@@ -20,6 +20,15 @@ namespace {
  */
 constexpr double kRecoverAfterSeconds = 5.0;
 constexpr double kRecoverDbPerSecond = 0.15;
+
+/**
+ * How long an edit's level takes to arrive (`move_target`): the bands' own
+ * crossfade (`IirCascade::kFadeSeconds`), so the level and the EQ it is for
+ * move together.
+ */
+constexpr double kEditGlideSeconds = 0.02;
+
+constexpr double kPi = 3.14159265358979323846;
 }  // namespace
 
 OutputGuard::OutputGuard(uint32_t rate, uint32_t channels)
@@ -53,20 +62,34 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     edit_recovery_ = false;
     state_.limiter.release_hold_remaining = 0;
     armed_ = true;
+    // Off, nothing is held and nothing glides: the next enabled block starts
+    // over from the curve's level.
+    holding_ = false;
+    glide_left_ = 0;
   } else if (armed_) {
     // The limiter meets this as a drop and back-fills it across its
     // look-ahead, so the first sample out is already at the curve's level.
     target_db_ = curve_level_db_;
+    glide_left_ = 0;
     armed_ = false;
   }
   last_input_peak_ = 0;
   for (uint32_t offset = 0; offset < frames;) {
-    const uint32_t count = std::min(frames - offset, window_frames_ - measured_frames_);
+    uint32_t count = std::min(frames - offset, window_frames_ - measured_frames_);
+    // While an edit's level glides, the limiter is handed it a sample at a
+    // time. It takes any drop in its ceiling at the slope of its deepest
+    // reduction over the look-ahead, so a millisecond's step still arrived
+    // as a small click of its own: -72 dBFS above 5 kHz over a 6 dB glide
+    // in a millisecond's steps, and none of that one sample at a time.
+    if (glide_left_ > 0) {
+      count = 1;
+    }
     for (uint32_t channel = 0; channel < delay_.size(); ++channel) {
       processing_planes_[channel] = planar[channel] + offset;
     }
-    options.maximum_gain = std::pow(10.0, target_db_ / 20.0);
+    options.maximum_gain = std::pow(10.0, applied_db() / 20.0);
     feq_linked_limiter_process(&state_.limiter, processing_planes_.data(), count, &options);
+    glide_left_ -= std::min(glide_left_, count);
     window_peak_ = std::max(window_peak_, state_.limiter.block_peak);
     last_input_peak_ = std::max(last_input_peak_, state_.limiter.block_peak);
     offset += count;
@@ -125,13 +148,50 @@ double OutputGuard::gain_db() const noexcept {
   return 20.0 * std::log10(std::max(1e-12, state_.limiter.gain));
 }
 
-void OutputGuard::shift_level(double db, double curve_level_db,
-                              uint32_t settling_frames) noexcept {
-  curve_level_db_ = std::min(0.0, curve_level_db);
-  if (armed_) {
+void OutputGuard::move_target(double db) noexcept {
+  glide_from_db_ = applied_db();
+  target_db_ = db;
+  glide_frames_ = std::max(
+      1u, static_cast<uint32_t>(std::lround(kEditGlideSeconds * rate_)));
+  glide_left_ = glide_from_db_ == target_db_ ? 0 : glide_frames_;
+}
+
+double OutputGuard::applied_db() const noexcept {
+  if (glide_left_ == 0) {
+    return target_db_;
+  }
+  const double done =
+      1.0 - static_cast<double>(glide_left_) / static_cast<double>(glide_frames_);
+  const double weight = 0.5 - 0.5 * std::cos(kPi * done);
+  return glide_from_db_ + weight * (target_db_ - glide_from_db_);
+}
+
+void OutputGuard::hold(double curve_level_db, uint32_t settling_frames,
+                       bool sound_changed) noexcept {
+  const double level = std::min(0.0, curve_level_db);
+  if (!sound_changed) {
+    // The same sound under another start level (the app sizing the preamp
+    // again): what `set_curve_level` has always done — unless a hold is
+    // running, whose estimate reads the curve level at the next edit.
+    if (holding_) {
+      curve_level_db_ = level;
+    } else {
+      set_curve_level(level);
+    }
     return;
   }
-  target_db_ = std::min(0.0, target_db_ + db);
+  if (armed_) {
+    holding_ = false;
+    curve_level_db_ = level;
+    return;
+  }
+  if (!holding_) {
+    holding_ = true;
+    held_db_ = target_db_;
+    held_curve_db_ = curve_level_db_;
+  }
+  curve_level_db_ = level;
+  move_target(std::min(0.0, held_db_ + std::min(0.0, level - held_curve_db_)));
   // The window being measured holds the old EQ's peaks, and the next few
   // milliseconds still carry them through the stages' delay and the bands'
   // crossfade: judged against the new level, they would read as room or as
@@ -142,6 +202,24 @@ void OutputGuard::shift_level(double db, double curve_level_db,
   edit_recovery_ = false;
   measured_frames_ = 0;
   window_peak_ = 0;
+  quiet_seconds_ = 0;
+}
+
+void OutputGuard::settle(double shift_db, uint32_t settling_frames) noexcept {
+  if (!holding_) {
+    return;
+  }
+  holding_ = false;
+  if (!std::isfinite(shift_db)) {
+    reassess(settling_frames);
+    return;
+  }
+  move_target(std::min(0.0, held_db_ + shift_db));
+  // What the after-edit climb would have measured is known, so none of it
+  // runs. The window being measured is the new EQ's already and is kept.
+  reassess_frames_ = 0;
+  reassess_peak_ = 0;
+  edit_recovery_ = false;
   quiet_seconds_ = 0;
 }
 
@@ -156,6 +234,12 @@ void OutputGuard::take_level(const OutputGuard& from) noexcept {
   reassess_peak_ = from.reassess_peak_;
   edit_goal_db_ = from.edit_goal_db_;
   edit_recovery_ = from.edit_recovery_;
+  holding_ = from.holding_;
+  held_db_ = from.held_db_;
+  held_curve_db_ = from.held_curve_db_;
+  glide_from_db_ = from.glide_from_db_;
+  glide_left_ = from.glide_left_;
+  glide_frames_ = from.glide_frames_;
   state_.limiter.gain = from.state_.limiter.gain;
   state_.limiter.detector_gain = from.state_.limiter.detector_gain;
   state_.limiter.platform_db = from.state_.limiter.platform_db;
@@ -165,7 +249,7 @@ void OutputGuard::take_level(const OutputGuard& from) noexcept {
 void OutputGuard::set_curve_level(double db) noexcept {
   const double level = std::min(0.0, db);
   if (!armed_ && level < curve_level_db_) {
-    target_db_ = std::min(0.0, target_db_ + (level - curve_level_db_));
+    move_target(std::min(0.0, target_db_ + (level - curve_level_db_)));
   }
   curve_level_db_ = level;
 }

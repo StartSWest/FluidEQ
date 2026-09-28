@@ -38,6 +38,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 class InputHistory;
+class LevelMailbox;
 class OutputGuard;
 struct RoomHead;
 
@@ -91,12 +92,19 @@ class Graph {
    * guard's two milliseconds of delay: the music neither jumps nor skips.
    * Switching it off used to swap straight to a graph with no delay at all,
    * dropping 55 ms of music at the switch.
+   *
+   * `rack_from` is the graph published before this one, handed in only when
+   * the room's head has not changed since that graph was built. Where
+   * everything else the rack is built from is the same too — the rack's
+   * values, game mode as the EQ side asks for it, the rate, the channels,
+   * the block size, the channel mask and the leveling memory — this graph
+   * runs that graph's chain instead of building one (`rack_reused_`).
    */
   Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         uint32_t max_frames,
         std::shared_ptr<FeqLevelingMemory> leveling = nullptr,
         unsigned long channel_mask = 0, const RoomHead* room_head = nullptr,
-        bool follows_processing = false);
+        bool follows_processing = false, const Graph* rack_from = nullptr);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;
@@ -112,8 +120,10 @@ class Graph {
   void process(float* const* planar, uint32_t frames) noexcept;
 
   // Before publication; the endpoint owns the meters across graph rebuilds.
+  // A reused chain already has them, and may be running on the audio thread:
+  // the chain's pointer to them is a plain one, never written under it.
   void set_meters(FeqMeters* meters, std::atomic<bool>* activity) noexcept {
-    if (rack_) feq_chain_set_meters(rack_.get(), meters);
+    if (rack_ && !rack_reused_) feq_chain_set_meters(rack_.get(), meters);
     meter_activity_ = activity;
   }
   void report_meter_activity(bool active) noexcept {
@@ -136,16 +146,14 @@ class Graph {
   void set_history(InputHistory* history) noexcept { history_ = history; }
 
   /**
-   * Watcher thread, before publication: this edit's level, worked out on the
-   * music just heard (`level_prediction.h`), taken at the handover in place
-   * of the curve's worst case — if, and only if, the graph handed over from
-   * is `basis`, the one the prediction was made against. Any other handover
-   * (a graph published after `basis` that never played) does what it always
-   * did.
+   * Watcher thread, before publication: this graph's level will arrive
+   * through `mailbox` under `generation` (`level_mailbox.h`) while the graph
+   * already plays, held until then (`OutputGuard::hold`). Without it the
+   * handover finds the level the old way.
    */
-  void plan_level_shift(double db, const Graph* basis) noexcept {
-    level_shift_db_ = db;
-    level_basis_ = basis;
+  void expect_level(const LevelMailbox* mailbox, uint32_t generation) noexcept {
+    level_mailbox_ = mailbox;
+    level_generation_ = generation;
   }
 
   /**
@@ -154,54 +162,8 @@ class Graph {
    * Every band still here keeps its history and the old bands fade out over
    * `IirCascade::kFadeSeconds`; the preamp ramps over the same time; the FIR
    * stages, the rack and the output guard carry their own state across.
-   * When the rack has not changed at all, `inherit_rack` takes the whole
-   * handle.
    */
   void adopt_state(Graph* previous) noexcept;
-
-  /**
-   * Keep running `previous`'s rack instead of this graph's own.
-   *
-   * Only when the two racks are the same rack: identical `dsp_values`, the
-   * same sample rate, the same channel count, the same `max_frames` and the
-   * same rack width. `max_frames` matters because it is what sizes the
-   * chain's internal buffers at build time — a chain built for one block
-   * size shared into a graph that accepts a larger one would have
-   * `feq_chain_process` write past buffers it was never sized for. Under
-   * anything else this does nothing and the new graph keeps the chain it
-   * built.
-   *
-   * WHY IT EXISTS. A rack chain is built fresh with every graph, and a fresh
-   * chain under linear-phase EQ re-converges over 8192 frames — 171 ms at
-   * 48 kHz. But a graph is rebuilt on every configuration change, and an
-   * EQ-only edit (a band dragged) changes the configuration without touching
-   * the rack at all. So dragging one band muted and re-primed the maximizer,
-   * the bass engine and the delay on every frame of the drag, for a rack that
-   * had not changed by a single value.
-   *
-   * WHY SHARING IS SAFE, which is the part that is not obvious. The chain is
-   * held in a `shared_ptr` and both graphs hold it at once, so this is two
-   * threads' worth of reasoning:
-   *
-   * - Processing. `feq_chain_process` runs on the audio thread and there is
-   *   exactly one — the graph handover (`GraphSlot::adopt`) happens at a
-   *   block boundary on that same thread, so two graphs can never be inside
-   *   `process` at the same instant. A shared chain is therefore touched by
-   *   one caller at a time even though two objects point at it.
-   * - Destruction. Graphs are destroyed only by the watcher thread, through
-   *   `Watcher::owned_`/`reclaim`, and only once the audio thread has
-   *   completed two blocks past the publish that superseded them. So the last
-   *   `shared_ptr` release — the one that calls `feq_chain_destroy` — happens
-   *   on the watcher thread, after the audio thread has provably left both
-   *   graphs. `shared_ptr`'s own count is atomic, which covers the copy made
-   *   here against a release happening on the same thread later.
-   *
-   * MOVING the chain out of the previous graph would be wrong for the first
-   * of those reasons in reverse: the previous graph is still the active one
-   * at the moment this is called, and the audio thread can be inside its
-   * `process`.
-   */
-  void inherit_rack(const Graph& previous) noexcept;
 
   /** Whether both graphs are running the very same rack chain object. */
   bool rack_is_shared_with(const Graph& other) const noexcept;
@@ -367,9 +329,14 @@ class Graph {
   std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;
   InputHistory* history_ = nullptr;
-  double level_shift_db_ = 0.0;
-  // Only ever compared, never followed: the graph it names may be gone.
-  const Graph* level_basis_ = nullptr;
+  // Where this graph's level arrives (`expect_level`); whether it has yet.
+  const LevelMailbox* level_mailbox_ = nullptr;
+  uint32_t level_generation_ = 0;
+  bool level_pending_ = false;
+  /** Either handover's level: held for one on its way, or found the old way. */
+  void hand_level_over(bool sound_changed, uint32_t settling) noexcept;
+  /** Audio thread: this graph's level, once it has arrived. */
+  void take_arrived_level() noexcept;
   bool auto_preamp_ = false;
   std::unique_ptr<OutputGuard> output_guard_;
   std::atomic<float>* output_gain_ = nullptr;
@@ -437,22 +404,48 @@ class Graph {
    * the file was unreadable, or the array was not a snapshot this build's
    * decoder recognises — all of which leave the EQ below running.
    *
-   * `shared_ptr` rather than `unique_ptr` so consecutive graphs with an
-   * identical rack can go on running the same chain rather than re-priming a
-   * new one — see `inherit_rack` for why that is safe, and for the 171 ms it
-   * saves on every band drag.
+   * `shared_ptr` so an edit that leaves everything the rack is built from
+   * alone runs the chain already running (`rack_from`) rather than building
+   * another. Every edit publishes a graph as it arrives, and a Room rack
+   * takes 13 to 43 ms to build (the room's kernels; every other preset 1 to
+   * 3 ms): a band dragged on a Room preset was heard only every 100 to
+   * 135 ms inside audiodg (engine.log, 2026-09-26). The running chain also
+   * needs nothing handed over, where a new one costs the audio thread up to
+   * 0.4 ms of `feq_chain_transfer_state`.
+   *
+   * Sharing is safe for two reasons. Processing: `feq_chain_process` runs on
+   * the one audio thread, and the handover (`GraphSlot::adopt`) happens at a
+   * block boundary on it, so two graphs are never inside the chain at once.
+   * Destruction: graphs are destroyed only by the watcher thread, two blocks
+   * past the publish that superseded them, so the last release — the one
+   * that calls `feq_chain_destroy` — happens after the audio thread has left
+   * both; `shared_ptr`'s count is atomic. Moving the chain out of the graph
+   * before would be wrong: that graph may be the one the audio thread is in.
    */
   // Declared before `rack_` so it is destroyed after it: the rack's leveling
   // holds a borrowed pointer into this memory.
   std::shared_ptr<FeqLevelingMemory> leveling_;
   std::shared_ptr<FeqChain> rack_;
+  /** Whether `rack_` came from `rack_from` rather than being built here. */
+  bool rack_reused_ = false;
   /**
-   * The array the rack was built from, kept so `inherit_rack` can tell "the
-   * same rack" from "a rack". Compared by value: the file is rewritten on
-   * every rack change, so a stamp or a pointer would say "changed" for a
-   * rewrite of identical numbers, which is exactly the case that matters.
+   * What the rack was built from and what its build reported, for a later
+   * graph to tell "the same rack" from "a rack" and take this one's whole.
+   * The values are compared by value: the file is rewritten on every rack
+   * change, so a stamp would say "changed" for a rewrite of the same numbers.
    */
   std::vector<double> dsp_values_;
+  bool rack_low_latency_asked_ = false;
+  unsigned long channel_mask_ = 0;
+  // Compared, never followed: the head it points at may be gone.
+  const RoomHead* rack_head_ = nullptr;
+  uint32_t rack_latency_ = 0;
+  uint32_t rack_active_ = 0;
+  bool rack_failed_ = false;
+  bool rack_without_head_ = false;
+  /** The rack from `rack_from`, if it is the same rack; false otherwise. */
+  bool reuse_rack(const Graph* rack_from, const Chain& chain,
+                  const RoomHead* room_head);
   // How many of `channels_` the rack actually runs on: every channel up to
   // the chain's own eight with the rack set to all channels, the front pair
   // otherwise. A stream with more carries the rest past it, held back by

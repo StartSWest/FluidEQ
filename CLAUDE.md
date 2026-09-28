@@ -713,7 +713,13 @@ Everything worth knowing about them is available through commands:
   normaliser is back at unity, and Dimension holds its decorrelation off for
   160 ms while an empty all-pass network fills. Held by
   `chain_switch_test.cpp` and `graph_crossing_test.cpp`, each case beside
-  the same two outputs spliced unsmoothed as its control.
+  the same two outputs spliced unsmoothed as its control. A release never
+  finishes in a jump either (`release_toward` in `limiter_internal.h`): the
+  Maximizer's used to cover its last 2% (0.17 dB) in one sample, a tick after
+  every hit it limited, and the switch probe heard it 150 ms into Punch at
+  -69 dBFS with the arrows held and -80 on one switch; it now crosses that
+  2% in a straight line, one release time, and every switch of the walk and
+  of None is within 3.2 dB of the chains' steady floor.
 - **Dimension's Spread makes side out of the centre** (Ivan, 2026-09-25:
   "really add widening stereo fx"). The widths only scale a record's own
   side, so a mono record stayed mono under every profile. The mid above the
@@ -736,22 +742,52 @@ Everything worth knowing about them is available through commands:
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack
-  (`input_history.h`, 8 MiB per output at most) and, before publishing an
-  edit's graph, replays that music through the new EQ and moves the level
-  once at the handover by how much louder or quieter its loudest true peak
-  comes out than the chain playing (`level_prediction.h`, `shift_level`).
-  The chain playing is judged by the peaks the guard measured on it when it
-  has played through the whole window in minimum phase, and replayed
-  otherwise — within a drag, by the previous step's replay (the shadow), so
-  the steps telescope instead of counting the earlier ones again. Replays are
-  always minimum phase (linear costs 8x and shifts peaks up to 1.8 dB) and
-  judge 4 s instead of 10 when a curve or impulse is convolved. No music
-  heard, Auto normalize off on either side, or a handover from a graph other
-  than the one predicted against: the old drop by the worst case and climb.
-  On his five songs, 25 edits: the level still moving 2.14 dB in the ten
-  seconds after an edit became 0.51; 35–60 ms per edit on the watcher thread.
-  What happens after the handover — overloads, the 0.15 dB/s give-back — is
-  untouched.
+  (`input_history.h`, 8 MiB per output at most), replays that music through
+  the new EQ and moves the level by how much louder or quieter its loudest
+  true peak comes out than the chain the level was last settled for
+  (`level_prediction.h`). That chain is judged by the peaks the guard
+  measured on it while it played alone through the window in minimum phase,
+  and replayed otherwise (the shadow), so a drag's steps telescope instead of
+  counting the earlier ones again. Replays are always minimum phase (linear
+  costs 8x and shifts peaks up to 1.8 dB) and judge 4 s instead of 10 when a
+  curve or impulse is convolved. On his five songs, 25 edits: the level still
+  moving 2.14 dB in the ten seconds after an edit became 0.51. What happens
+  after — overloads, the 0.15 dB/s give-back — is untouched.
+- **An edit never waits for its level** (Ivan, 2026-09-26: "the EQ changes
+  are very slow noooo this needs to be instant ... when changing the preset
+  all needs to be instant and no crac"). The prediction used to run before
+  the publish — 90 to 190 ms a replay on a quiet machine, 200 to 300 inside
+  audiodg with the window busy — and every write behind it waited: a drag
+  was heard three or four times a second, a preset switch (two writes, the
+  curve then the rack) half a second late. Now the graph is published the
+  moment it is built (about 10 ms) and the level follows through a
+  one-word mailbox (`level_mailbox.h`: the graph's generation and the shift,
+  NaN for nothing to go on). The handover holds the level it replaces as the
+  basis (`OutputGuard::hold`) and waits on the curve's level against the
+  basis's — down as a louder curve needs, back as a drag returns, never
+  above the basis — until the prediction settles it from that basis
+  (`settle`). The prediction runs after the publish and gives way to any
+  newer write (`change_pending`, which is why the watch is re-armed before
+  the reload, not after), so the level lands once a drag pauses; the
+  predictor's basis moves only when a level is settled. Every level an edit
+  sets glides over 20 ms, handed to the limiter a sample at a time: stepped
+  in its 2 ms look-ahead, a 3-10 dB drop at a preset switch clicked at -79 to
+  -69 dBFS above 5 kHz (switch probe, four low tones), now at the floor.
+  Auto normalize off on either side, or no chain settled yet: the old drop by
+  the worst case and climb.
+- **An edit that leaves the rack alone keeps the rack running** (`Graph`'s
+  `rack_from`, `reuse_rack`): the watcher hands in the graph it published
+  last, and where the rack's values, the EQ side's game mode, the room's
+  head (by the watcher's head generation), the format, the block size, the
+  channel mask and the leveling memory are all the same, the new graph runs
+  that chain and builds none. A Room rack takes 13 to 43 ms to build, and a
+  drag on a Room preset was heard every 100 to 135 ms (engine.log,
+  2026-09-26); kept, the edit's graph builds in about 6 ms. **Anything new
+  handed to `build_rack` joins `reuse_rack`'s comparison in the same
+  commit**, or an edit keeps a rack built for something else — the old
+  `inherit_rack` compared the values alone and would have kept a rack built
+  for the other game mode. A kept chain's meters are never set again from
+  the watcher thread: the chain's pointer to them is a plain one.
 - **With every curve in minimum phase the curves stage adds no delay.** It
   used to keep a linear design's half length in front of every output —
   55 ms with `# FluidEQCurveStage: ON`, curve or not; the minimum-phase

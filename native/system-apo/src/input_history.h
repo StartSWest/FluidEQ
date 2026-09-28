@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The last seconds of music as they reached the EQ, kept so Auto normalize can
- * replay them through a new EQ and know its level before anyone hears it
+ * replay them through a new EQ and work out its level as it starts to play
  * (`level_prediction.h`).
  *
  * One writer and one reader. The audio thread writes each block as it leaves

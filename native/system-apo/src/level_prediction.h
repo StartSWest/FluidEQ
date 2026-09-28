@@ -5,9 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Where Auto normalize should put the level for a new EQ, known before the EQ
- * is heard (Ivan, 2026-09-23: "precalculate the preamp when setting a curve or
- * EQ ... jump straight to it and then the auto normalize just finetune").
+ * Where Auto normalize should put the level for a new EQ, worked out as the
+ * EQ starts to play (Ivan, 2026-09-23: "precalculate the preamp when setting
+ * a curve or EQ ... jump straight to it and then the auto normalize just
+ * finetune").
  *
  * An edit used to take the level down by the most the new curve could ever
  * need — the curve's worst case — and then climb back at about 1 dB/s while
@@ -15,9 +16,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * every song, then 1.4 to 6.2 dB of climbing over the next ten seconds, and on
  * a quiet passage past where the song needs it, so down again at the next loud
  * one. Here the last seconds of music (`InputHistory`) are replayed through
- * the EQ that is playing and through the new one, and the level moves once, at
- * the handover, by how much louder or quieter the new EQ makes that music's
- * loudest peak. What Auto normalize does after that is untouched.
+ * the EQ that is playing and through the new one, and the level moves once,
+ * as soon as that is known (`level_mailbox.h`), by how much louder or quieter
+ * the new EQ makes that music's loudest peak. What Auto normalize does after
+ * that is untouched.
  *
  * Measured offline on Ivan's five songs through his BlackShark chain, five
  * edits each: how far the level still moved in the ten seconds after an edit,
@@ -80,24 +82,41 @@ class LevelPredictor {
     double seconds = 0.0;
   };
 
+  /** What can be said of `next` against the chain accepted, replaying nothing. */
+  enum class Judgement {
+    /** Nothing: no chain accepted yet, or Auto normalize off on either side. */
+    kNone,
+    /** The same EQ as the chain accepted: its level is the level. */
+    kSame,
+    /** Another EQ, which `predict` replays. */
+    kChanged,
+  };
+  Judgement judge(const Chain& next) const;
+
   /**
-   * Watcher thread, with `next` resolved and its graph not yet published.
+   * Watcher thread, with `next` resolved — and, since edits stopped waiting
+   * for their level (`level_mailbox.h`), usually already playing.
    *
    * Nothing when there is nothing to go on: Auto normalize off before or
    * after, the EQ unchanged (a rack change, a flush), fewer than a second of
-   * music heard through both chains, or silence. The handover then does what
-   * it always did. `stop_requested` is asked between the replays, which take
-   * tens of milliseconds each, because the thread waiting for this one to
-   * stop waits without a limit.
+   * music heard through both chains, or silence. The level is then found the
+   * old way. `stop_requested` is asked between the replay's blocks: the
+   * thread waiting for this one to stop waits without a limit, and a newer
+   * edit makes this one's level worthless.
+   *
+   * `others_from` is the history's frame count when a chain other than the
+   * one accepted was first published: from there on, the peaks the history
+   * measured are not the accepted chain's, and only a replay can stand in.
    */
   std::optional<Prediction> predict(const Chain& next,
                                     const InputHistory& history,
-                                    const std::function<bool()>& stop_requested);
+                                    const std::function<bool()>& stop_requested,
+                                    uint64_t others_from = UINT64_MAX);
 
   /**
-   * The chain just published, which the next prediction starts from, when
-   * the history had `heard_frames`: from a little after that, the peaks the
-   * history measured are this chain's.
+   * The chain whose level was just settled, which the next prediction starts
+   * from, published when the history had `heard_frames`: from a little after
+   * that, the peaks the history measured are this chain's.
    */
   void accept(const Chain& published, uint64_t heard_frames);
 

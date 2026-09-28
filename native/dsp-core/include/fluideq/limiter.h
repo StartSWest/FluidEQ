@@ -70,8 +70,9 @@ typedef struct FeqLimiterOptions {
   double attack_slew_db_per_second;
   /**
    * Finish an exponential recovery once its remaining gap is this fraction of
-   * the target. The final fraction is inaudible, and leaving it asymptotic can
-   * strand a deep reduction for many seconds.
+   * the target: from there it goes on in a straight line at the pace it had,
+   * never in a jump, which clicked. Left asymptotic, a deep reduction can be
+   * stranded for many seconds.
    */
   double release_snap_ratio;
   /** The processing rate, which the linked form needs for its slew. */

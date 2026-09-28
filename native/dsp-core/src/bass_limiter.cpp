@@ -61,10 +61,7 @@ void follow(double required,
   } else if (*hold > 0) {
     *hold -= 1;
   } else {
-    *gain += (required - *gain) * (1.0 - release);
-    if (required > *gain && required - *gain <= required * snap_ratio) {
-      *gain = required;
-    }
+    *gain = feq_limiter::release_toward(*gain, required, release, snap_ratio);
   }
 }
 

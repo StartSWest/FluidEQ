@@ -51,14 +51,18 @@ bool all_finite(float* const* planar, uint32_t channels,
 Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
              uint32_t max_frames, std::shared_ptr<FeqLevelingMemory> leveling,
              unsigned long channel_mask, const RoomHead* room_head,
-             bool follows_processing)
+             bool follows_processing, const Graph* rack_from)
     : sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
       passthrough_(true),
       preamp_linear_(1.0),
       latency_frames_(0),
-      leveling_(std::move(leveling)) {
+      leveling_(std::move(leveling)),
+      dsp_values_(chain.dsp_values),
+      rack_low_latency_asked_(chain.low_latency),
+      channel_mask_(channel_mask),
+      rack_head_(room_head) {
   if (sample_rate_ == 0 || channels_ == 0 || max_frames_ == 0) {
     return;
   }
@@ -75,44 +79,48 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    * applies to an output the user has never opened the EQ page for, which is
    * every output on a fresh install.
    */
-  RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
-                              max_frames_, warnings_, leveling_.get(),
-                              channel_mask, room_head, chain.low_latency);
-  rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
-  dsp_values_ = chain.dsp_values;
-  rack_channels_ = rack.channels;
+  if (!reuse_rack(rack_from, chain, room_head)) {
+    RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
+                                max_frames_, warnings_, leveling_.get(),
+                                channel_mask, room_head, chain.low_latency);
+    rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
+    rack_channels_ = rack.channels;
+    rack_latency_ = rack.latency;
+    parts_.rack = rack.parts;
+    rack_active_ = feq_chain_active_stages(rack_.get());
+    // Game mode, from the rack's own value or the EQ side's directive: the
+    // stages below give up their comfort delay on the same word.
+    low_latency_ = rack.low_latency;
+    room_note_ = rack.room_note;
+    room_state_ = rack.room_state;
+    rack_failed_ = rack.failed;
+    rack_without_head_ = rack.room_without_head;
+  }
   rack_planes_.assign(rack_channels_, nullptr);
-  latency_frames_ += rack.latency;
-  parts_.rack = rack.parts;
-  const uint32_t active = feq_chain_active_stages(rack_.get());
+  latency_frames_ += rack_latency_;
   const char* const names[] = {"leveler", "restoration", "exciter", "bassForge",
       "linearEq", "bassPunch", "room", "dimension", "maximizer",
       "headroom", "master"};
   for (uint32_t stage = 0; stage < 11u; ++stage) {
-    if ((active & (1u << stage)) != 0u) active_stages_.emplace_back(names[stage]);
+    if ((rack_active_ & (1u << stage)) != 0u) active_stages_.emplace_back(names[stage]);
   }
-  // Game mode, from the rack's own value or the EQ side's directive: the
-  // stages below give up their comfort delay on the same word.
-  low_latency_ = rack.low_latency;
   // The channels the rack does not cover, put back in step with the ones it
   // does: see `bypass_align_`. Allocated here because `process` may not.
-  if (rack_ != nullptr && rack_channels_ < channels_ && rack.latency > 0) {
+  if (rack_ != nullptr && rack_channels_ < channels_ && rack_latency_ > 0) {
     const size_t untouched = channels_ - rack_channels_;
     bypass_align_lines_.assign(
-        untouched, std::vector<float>(static_cast<size_t>(rack.latency) + 1,
+        untouched, std::vector<float>(static_cast<size_t>(rack_latency_) + 1,
                                       0.0f));
     bypass_align_.assign(untouched, FeqDelayLine{});
     for (size_t at = 0; at < untouched; ++at) {
       feq_delay_line_init(&bypass_align_[at], bypass_align_lines_[at].data(),
-                          rack.latency + 1, rack.latency);
+                          rack_latency_ + 1, rack_latency_);
     }
   }
-  room_note_ = rack.room_note;
-  room_state_ = rack.room_state;
-  if (rack.failed) {
+  if (rack_failed_) {
     problems_.push_back("dsp-rack");
   }
-  if (rack.room_without_head) {
+  if (rack_without_head_) {
     problems_.push_back("room-head");
   }
 
@@ -290,6 +298,38 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
 // before the kernels they point into. Nothing left to do by hand.
 Graph::~Graph() = default;
 
+bool Graph::reuse_rack(const Graph* rack_from, const Chain& chain,
+                       const RoomHead* room_head) {
+  // Everything `build_rack` is handed has to be the same: another rate or
+  // channel count builds other buffers and kernels; `max_frames` sizes the
+  // buffers, so a smaller block's chain would be written past; the Games
+  // voicing asks game mode of an unchanged rack; the room folds through the
+  // head, which the caller vouches for (`rack_from`) and which is caught
+  // here only when it has gone or come.
+  if (rack_from == nullptr || rack_from->rack_ == nullptr ||
+      sample_rate_ != rack_from->sample_rate_ || channels_ != rack_from->channels_ ||
+      max_frames_ != rack_from->max_frames_ || channel_mask_ != rack_from->channel_mask_ ||
+      leveling_ != rack_from->leveling_ || room_head != rack_from->rack_head_ ||
+      chain.low_latency != rack_from->rack_low_latency_asked_ ||
+      chain.dsp_values != rack_from->dsp_values_) {
+    return false;
+  }
+  // Read off `rack_from` as its constructor left them: nothing the audio
+  // thread writes, and `rack_from` may be the graph it is running.
+  rack_ = rack_from->rack_;
+  rack_reused_ = true;
+  rack_channels_ = rack_from->rack_channels_;
+  rack_latency_ = rack_from->rack_latency_;
+  parts_.rack = rack_from->parts_.rack;
+  rack_active_ = rack_from->rack_active_;
+  low_latency_ = rack_from->low_latency_;
+  room_note_ = rack_from->room_note_;
+  room_state_ = rack_from->room_state_;
+  rack_failed_ = rack_from->rack_failed_;
+  rack_without_head_ = rack_from->rack_without_head_;
+  return true;
+}
+
 void Graph::process(float* const* planar, uint32_t frames) noexcept {
   // A block larger than this graph was built for is passed through whole. The
   // alternative — processing the first `max_frames_` of it — would leave the
@@ -368,7 +408,7 @@ void Graph::run_rack(float* const* planar, uint32_t frames) noexcept {
 
 void Graph::run_tail(float* const* planar, uint32_t frames) noexcept {
   // The music as it reaches the EQ, for Auto normalize to replay through the
-  // next edit's EQ before that EQ is heard (`level_prediction.h`).
+  // next edit's EQ as it starts to play (`level_prediction.h`).
   if (history_ != nullptr) history_->record(planar, frames);
 
   // The shared linear FIR first, on the stream itself; the layers in minimum
@@ -423,6 +463,7 @@ void Graph::run_tail(float* const* planar, uint32_t frames) noexcept {
     }
   }
 
+  if (level_pending_) take_arrived_level();
   if (output_guard_) output_guard_->process(planar, frames, auto_preamp_);
   if (output_guard_ && history_ != nullptr) {
     history_->record_peak(static_cast<float>(output_guard_->last_input_peak()));

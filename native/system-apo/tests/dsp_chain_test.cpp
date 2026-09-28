@@ -402,12 +402,14 @@ void a_rack_alone_is_not_a_pass_through() {
 }
 
 /**
- * An EQ-only edit — a band dragged — must not restart the rack.
+ * An EQ-only edit — a band dragged — keeps the rack that is running.
  *
- * The graph is rebuilt on every configuration change, and a rebuilt rack
- * under linear phase is silent for 8192 frames while its kernel primes: 171 ms
- * at 48 kHz, on every frame of a drag. `inherit_rack` keeps the running chain
- * when the rack file has not changed by a single value.
+ * Every edit publishes a graph, and a Room rack takes 13 to 43 ms to build:
+ * a drag on a Room preset was heard every 100 to 135 ms inside audiodg. With
+ * everything the rack is built from unchanged, the new graph runs the chain
+ * already running (`rack_from`), and it is the very chain: primed, with its
+ * history, nothing to hand over. The control is a chain built fresh, which
+ * under linear phase has nothing to give for its first 8192 frames.
  */
 void an_eq_only_edit_keeps_the_rack_running() {
   std::printf("an EQ-only edit keeps the rack chain that is already primed\n");
@@ -424,11 +426,14 @@ void an_eq_only_edit_keeps_the_rack_running() {
   // The same rack file, a different EQ line: exactly the shape a band drag
   // produces.
   const Chain after = chain_with(values, "Preamp: -3 dB\r\n");
-  Graph inheriting(after, kRate, 2, 480);
+  Graph inheriting(after, kRate, 2, 480, nullptr, 0, nullptr, false, &running);
   Graph fresh(after, kRate, 2, 480);
-  inheriting.inherit_rack(running);
   CHECK(inheriting.rack_is_shared_with(running));
   CHECK(!fresh.rack_is_shared_with(running));
+  // What the build reported comes with the chain.
+  CHECK(inheriting.latency_frames() == fresh.latency_frames());
+  CHECK(inheriting.active_stages() == fresh.active_stages());
+  CHECK(inheriting.latency_parts().rack.linear_eq == fresh.latency_parts().rack.linear_eq);
 
   std::vector<std::vector<float>> through_inherited(
       2, tone(1000.0, 0.5, 480, 0));
@@ -462,9 +467,11 @@ void dsp_edits_keep_audio_in_flight() {
     run_blocks(*running, warm, 128);
     for (uint32_t edit = 0; edit < 12; ++edit) {
       values[kMaximizerCeilingDb] = edit % 2 == 0 ? -6.0 : -3.0;
-      auto next = std::make_unique<Graph>(chain_with(values), kRate, 2, 128);
+      auto next = std::make_unique<Graph>(chain_with(values), kRate, 2, 128, nullptr, 0,
+                                          nullptr, false, running.get());
       next->request_state_transfer();
-      next->inherit_rack(*running);
+      // A rack value changed: a chain of its own, handed the running one's state.
+      CHECK(!next->rack_is_shared_with(*running));
       next->adopt_state(running.get());
       std::vector<std::vector<float>> block(
           2, tone(1000.0, 0.5, 128, kRate + edit * 128));
@@ -644,9 +651,10 @@ void a_room_change_keeps_audio_in_flight() {
   for (uint32_t edit = 0; edit < 12; ++edit) {
     values[kMaximizerCeilingDb] = edit % 2 == 0 ? -6.0 : -3.0;
     auto next = std::make_unique<Graph>(chain_with(values), kRate, 2, 128,
-                                        nullptr, 0, &head);
+                                        nullptr, 0, &head, false, running.get());
     next->request_state_transfer();
-    next->inherit_rack(*running);
+    // A rack value changed: a chain of its own, handed the running one's state.
+    CHECK(!next->rack_is_shared_with(*running));
     next->adopt_state(running.get());
     std::vector<std::vector<float>> block(
         2, tone(1000.0, 0.5, 128, kRate + edit * 128));
@@ -701,31 +709,42 @@ void a_room_change_keeps_audio_in_flight() {
 }
 
 void a_changed_rack_is_never_shared() {
-  std::printf("a rack whose values changed is built fresh\n");
+  std::printf("a rack built from anything different is built fresh\n");
   std::vector<double> values = reference_values();
   values[kEqEnabled] = 1.0;
+  values[kRoomEnabled] = 1.0;
+  const fluideq_engine::RoomHead head = flat_head();
   const Chain before = chain_with(values);
-  Graph running(before, kRate, 2, 480);
+  Graph running(before, kRate, 2, 480, nullptr, 0, &head);
+  // POSITIVE CONTROL: the same everything is the same chain.
+  Graph same(before, kRate, 2, 480, nullptr, 0, &head, false, &running);
+  CHECK(same.rack_is_shared_with(running));
+  CHECK(same.room_state() == running.room_state());
 
   std::vector<double> edited = values;
   edited[kMaximizerEnabled] = 1.0;  // One value in the rack itself.
-  Graph rebuilt(chain_with(edited), kRate, 2, 480);
-  rebuilt.inherit_rack(running);
+  Graph rebuilt(chain_with(edited), kRate, 2, 480, nullptr, 0, &head, false, &running);
   CHECK(!rebuilt.rack_is_shared_with(running));
 
-  // And a rack that is identical but running at another rate: the same array
-  // builds different buffers and a different kernel there.
-  Graph other_rate(before, 44100, 2, 480);
-  other_rate.inherit_rack(running);
+  // The same array at another rate builds other buffers and another kernel.
+  Graph other_rate(before, 44100, 2, 480, nullptr, 0, &head, false, &running);
   CHECK(!other_rate.rack_is_shared_with(running));
 
-  // Same values, same rate, same channels — but a different `max_frames`,
-  // which is what sizes the shared chain's internal buffers at build time.
-  // Sharing across that would have `feq_chain_process` write past buffers it
-  // was never sized for.
-  Graph other_block_size(before, kRate, 2, 960);
-  other_block_size.inherit_rack(running);
+  // `max_frames` sizes the chain's buffers: sharing across it would have
+  // `feq_chain_process` write past buffers never sized for the block.
+  Graph other_block_size(before, kRate, 2, 960, nullptr, 0, &head, false, &running);
   CHECK(!other_block_size.rack_is_shared_with(running));
+
+  // Game mode asked for by the EQ side (the Games voicing) changes the rack
+  // with every one of its values the same.
+  Chain gaming = before;
+  gaming.low_latency = true;
+  Graph game_mode(gaming, kRate, 2, 480, nullptr, 0, &head, false, &running);
+  CHECK(!game_mode.rack_is_shared_with(running));
+
+  // And the room folds through the head: without one it is another rack.
+  Graph headless(before, kRate, 2, 480, nullptr, 0, nullptr, false, &running);
+  CHECK(!headless.rack_is_shared_with(running));
 }
 
 }  // namespace

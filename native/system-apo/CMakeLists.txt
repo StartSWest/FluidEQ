@@ -129,7 +129,7 @@ add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
-  src/watcher.cpp src/watcher_log.cpp src/watcher_level.cpp
+  src/watcher.cpp src/watcher_load.cpp src/watcher_log.cpp src/watcher_level.cpp
   src/level_prediction.cpp src/owner_link.cpp src/config_file.cpp
   src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp

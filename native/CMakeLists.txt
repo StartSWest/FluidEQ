@@ -276,6 +276,10 @@ add_executable(fluideq-maximizer-tone-test dsp-core/tests/maximizer_tone_test.cp
 target_link_libraries(fluideq-maximizer-tone-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME maximizer-tone COMMAND fluideq-maximizer-tone-test)
 
+add_executable(fluideq-limiter-release-test dsp-core/tests/limiter_release_test.cpp)
+target_link_libraries(fluideq-limiter-release-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME limiter-release COMMAND fluideq-limiter-release-test)
+
 add_executable(fluideq-bass-limiter-test dsp-core/tests/bass_limiter_test.cpp)
 target_link_libraries(fluideq-bass-limiter-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-limiter COMMAND fluideq-bass-limiter-test)

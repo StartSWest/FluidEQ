@@ -5,23 +5,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Auto normalize's level for an edit, worked out before the edit is heard
+ * Auto normalize's level for an edit, worked out on the music just heard
  * (`level_prediction.h`): the music the audio thread keeps, the level it
  * predicts against a direct measurement of the same music, the cases with
- * nothing to go on, a drag's steps adding up, and the handover taking the
- * level at once where it used to drop by the curve's worst case and climb.
+ * nothing to go on, a drag's steps adding up, and an edit taking the level
+ * when it arrives where it used to drop by the curve's worst case and climb.
  */
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "../src/input_history.h"
 #include "../src/level_prediction.h"
+#include "../src/level_mailbox.h"
 #include "fluideq/primitives.h"
 #include "graph_test_support.h"
 
@@ -30,6 +32,7 @@ using fluideq_engine::Chain;
 using fluideq_engine::Graph;
 using fluideq_engine::InputHistory;
 using fluideq_engine::LevelPredictor;
+using fluideq_engine::LevelMailbox;
 
 namespace {
 
@@ -267,22 +270,28 @@ void nothing_to_go_on_is_no_prediction() {
   InputHistory short_one(kRate, 2, fluideq_engine::kLevelHistorySeconds);
   record(short_one, music(kRate));
   LevelPredictor predictor(kRate, 2, loud.window_frames());
+  using Judgement = LevelPredictor::Judgement;
   // No chain playing yet.
   CHECK(!predictor.predict(bass, loud, kNeverStop));
+  CHECK(predictor.judge(bass) == Judgement::kNone);
   predictor.accept(flat, loud.written());
   // POSITIVE CONTROL: with music heard, the same edit is predicted.
   CHECK(predictor.predict(bass, loud, kNeverStop).has_value());
+  CHECK(predictor.judge(bass) == Judgement::kChanged);
   CHECK(!predictor.predict(bass, quiet, kNeverStop));
   CHECK(!predictor.predict(bass, short_one, kNeverStop));
-  // The EQ unchanged: a rack change, or a preamp the app sized again.
+  // The EQ unchanged: a rack change, or a preamp the app sized again. Its
+  // level is the level already settled, which the judgement says unreplayed.
   Chain rack_only = flat;
   rack_only.dsp_values = {1.0, 2.0};
   rack_only.auto_preamp_start_db = -3.0;
   CHECK(!predictor.predict(rack_only, loud, kNeverStop));
+  CHECK(predictor.judge(rack_only) == Judgement::kSame);
   // Auto normalize off on either side.
   const Chain manual = chain_from(std::string(kBass6) +
                                   "Preamp: -6 dB\n# FluidEQAutoPreamp: OFF\n");
   CHECK(!predictor.predict(manual, loud, kNeverStop));
+  CHECK(predictor.judge(manual) == Judgement::kNone);
   predictor.accept(manual, loud.written());
   CHECK(!predictor.predict(flat, loud, kNeverStop));
   // Asked to stop, it stops.
@@ -331,7 +340,21 @@ struct Handover {
   double before = 0, soon = 0, later = 0;
 };
 
-Handover hand_over(bool predicted, bool right_basis) {
+/** How the edit's level reaches the graph playing it (`level_mailbox.h`). */
+enum class Arrival {
+  /** None is expected: the old way. */
+  kNotExpected,
+  /** Before the handover, as when the prediction beats the audio thread. */
+  kFirst,
+  /** A fifth of a second after the edit is heard. */
+  kLater,
+  /** Only a level posted for another graph. */
+  kOtherGraph,
+  /** A prediction that had nothing to go on. */
+  kNothingToGoOn,
+};
+
+Handover hand_over(Arrival arrival) {
   const Chain flat = auto_chain("", -0.2);
   const Chain bass = auto_chain(kBass6, -6.2);
   const std::vector<float> heard = music(kRate * 20);
@@ -349,19 +372,26 @@ Handover hand_over(bool predicted, bool right_basis) {
   Graph next(bass, kRate, 2, 480);
   next.set_history(&history);
   next.request_state_transfer();
-  if (predicted) {
+  LevelMailbox mailbox;
+  constexpr uint32_t kGeneration = 7;
+  float shift_db = 0.0f;
+  if (arrival != Arrival::kNotExpected) {
+    next.expect_level(&mailbox, kGeneration);
     const auto level = predictor.predict(bass, history, kNeverStop);
     CHECK(level.has_value());
-    if (level) {
-      const Graph other(flat, kRate, 2, 480);
-      next.plan_level_shift(level->shift_db, right_basis ? &previous : &other);
-    }
+    if (level) shift_db = static_cast<float>(level->shift_db);
+  }
+  if (arrival == Arrival::kFirst) mailbox.post(kGeneration, shift_db);
+  if (arrival == Arrival::kOtherGraph) mailbox.post(kGeneration - 1, shift_db);
+  if (arrival == Arrival::kNothingToGoOn) {
+    mailbox.post(kGeneration, std::numeric_limits<float>::quiet_NaN());
   }
   next.adopt_state(&previous);
   std::vector<std::vector<float>> after(
       2, std::vector<float>(heard.begin() + kRate * 12, heard.begin() + kRate * 16));
   std::vector<float*> planes(2);
   for (uint32_t at = 0; at < after[0].size(); at += 480) {
+    if (arrival == Arrival::kLater && at == kRate / 5) mailbox.post(kGeneration, shift_db);
     planes[0] = after[0].data() + at;
     planes[1] = after[1].data() + at;
     next.process(planes.data(), 480);
@@ -371,23 +401,77 @@ Handover hand_over(bool predicted, bool right_basis) {
   return result;
 }
 
-void the_handover_takes_the_predicted_level_at_once() {
-  std::printf("the handover takes the predicted level at once\n");
-  const Handover old_way = hand_over(false, false);
-  const Handover new_way = hand_over(true, true);
-  const Handover wrong_basis = hand_over(true, false);
+void the_edit_takes_its_predicted_level_when_it_arrives() {
+  std::printf("the edit takes its predicted level when it arrives\n");
+  const Handover old_way = hand_over(Arrival::kNotExpected);
+  const Handover first = hand_over(Arrival::kFirst);
+  const Handover later = hand_over(Arrival::kLater);
+  const Handover other = hand_over(Arrival::kOtherGraph);
+  const Handover nothing = hand_over(Arrival::kNothingToGoOn);
   std::printf("  old way   %.2f -> %.2f -> %.2f dB\n", old_way.before, old_way.soon, old_way.later);
-  std::printf("  predicted %.2f -> %.2f -> %.2f dB\n", new_way.before, new_way.soon, new_way.later);
+  std::printf("  nothing   %.2f -> %.2f -> %.2f dB\n", nothing.before, nothing.soon, nothing.later);
+  std::printf("  first     %.2f -> %.2f -> %.2f dB\n", first.before, first.soon, first.later);
+  std::printf("  later     %.2f -> %.2f -> %.2f dB\n", later.before, later.soon, later.later);
+  std::printf("  other     %.2f -> %.2f -> %.2f dB\n", other.before, other.soon, other.later);
   // POSITIVE CONTROL: the old way drops by the curve's worst case and is
   // still climbing seconds later.
   CHECK(old_way.soon < old_way.before - 4.0);
   CHECK(old_way.later > old_way.soon + 1.0);
   // Predicted: down once, by what the bass adds to this music, and there.
-  CHECK(new_way.soon < new_way.before - 1.0);
-  CHECK(new_way.soon > old_way.soon + 1.0);
-  CHECK(std::abs(new_way.later - new_way.soon) < 0.3);
-  // A prediction made against another graph is not taken.
-  CHECK(std::abs(wrong_basis.soon - old_way.soon) < 0.05);
+  CHECK(first.soon < first.before - 1.0);
+  CHECK(first.soon > old_way.soon + 1.0);
+  CHECK(std::abs(first.later - first.soon) < 0.3);
+  // Arriving after the edit is heard, it ends where arriving first does.
+  CHECK(std::abs(later.later - first.later) < 0.05);
+  // A level posted for another graph is not taken: the edit waits on its
+  // curve's worst case, without the old way's climb.
+  CHECK(std::abs(other.soon - (other.before - 6.0)) < 0.1);
+  CHECK(std::abs(other.later - other.soon) < 0.1);
+  // Nothing to go on: found the old way, drop and climb, from the same place.
+  CHECK(std::abs(nothing.soon - old_way.soon) < 0.1);
+  CHECK(std::abs(nothing.later - old_way.later) < 0.2);
+}
+
+/**
+ * What the guard measured after another chain was published is that chain's,
+ * not the accepted one's: only a replay stands in for it there.
+ */
+void only_what_the_accepted_chain_played_alone_is_measured() {
+  std::printf("only what the accepted chain played alone is measured\n");
+  const Chain bright = auto_chain(
+      "# FluidEQEqLayer: ON\nFilter: ON PK Fc 8000 Hz Gain 6 dB Q 1\n", -6.2);
+  const Chain loud = auto_chain(
+      "# FluidEQEqLayer: ON\nFilter: ON PK Fc 440 Hz Gain 12 dB Q 1\n", -12.2);
+  const Chain bass = auto_chain(kBass6, -6.2);
+  InputHistory history(kRate, 2, fluideq_engine::kLevelHistorySeconds);
+  const std::vector<float> heard = music(kRate * 12);
+  Graph first(bright, kRate, 2, 480);
+  first.set_history(&history);
+  std::vector<std::vector<float>> early(
+      2, std::vector<float>(heard.begin(), heard.begin() + kRate * 8));
+  run_blocks(first, early, 480);
+  // An edit to `loud` published and heard, its level not settled yet.
+  const uint64_t others_from = history.written();
+  Graph second(loud, kRate, 2, 480);
+  second.set_history(&history);
+  std::vector<std::vector<float>> late(
+      2, std::vector<float>(heard.begin() + kRate * 8, heard.end()));
+  run_blocks(second, late, 480);
+  LevelPredictor limited(kRate, 2, history.window_frames());
+  limited.accept(bright, 0);
+  const auto kept_apart = limited.predict(bass, history, kNeverStop, others_from);
+  LevelPredictor unlimited(kRate, 2, history.window_frames());
+  unlimited.accept(bright, 0);
+  const auto mixed_up = unlimited.predict(bass, history, kNeverStop);
+  const auto alone = predicted_after_playing(bright, bass, true);
+  CHECK(kept_apart.has_value() && mixed_up.has_value() && alone.has_value());
+  if (!kept_apart || !mixed_up || !alone) return;
+  std::printf("  kept apart %+.3f dB, alone %+.3f dB, mixed up %+.3f dB\n",
+              kept_apart->shift_db, alone->shift_db, mixed_up->shift_db);
+  CHECK(std::abs(kept_apart->shift_db - alone->shift_db) < 0.1);
+  // POSITIVE CONTROL: counting the louder chain's peaks as the accepted
+  // chain's moves the level by what that chain added.
+  CHECK(std::abs(mixed_up->shift_db - alone->shift_db) > 3.0);
 }
 
 }  // namespace
@@ -402,6 +486,7 @@ int main() {
   a_chain_in_linear_phase_is_replayed();
   nothing_to_go_on_is_no_prediction();
   a_drags_steps_add_up_to_the_whole_change();
-  the_handover_takes_the_predicted_level_at_once();
+  the_edit_takes_its_predicted_level_when_it_arrives();
+  only_what_the_accepted_chain_played_alone_is_measured();
   return report();
 }

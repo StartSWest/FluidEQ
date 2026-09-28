@@ -220,6 +220,18 @@ Help answers questions in your own words.
   climb back over several seconds. On the FluidEQ Engine it now works out the
   level the new sound needs from the last ten seconds of music, moves there in
   one step, and only fine-tunes after that.
+- **Edits are heard the moment you make them.** On the FluidEQ Engine a band
+  you drag, a curve you apply or a preset you pick used to wait while that
+  level was worked out, so a drag was heard three or four times a second and
+  a preset arrived half a second late. The change now plays straight away and
+  its level follows a moment later, gliding into place — which also took out
+  the small click a preset switch made when it turned the volume down. On a
+  Room preset an edit no longer rebuilds the room either, so a drag there is
+  as quick as anywhere else.
+- **The Maximizer lets go without a tick.** At the end of every release it
+  used to jump the last fifth of a decibel in one step: a faint tick after
+  each peak it held down, clearest a moment after switching to Punch. It now
+  eases the whole way.
 - **Linear phase on your EQ and on the curves shares one delay**, instead of
   adding the two together.
 - **A twenty-band quick layout**, and every layout moved onto the

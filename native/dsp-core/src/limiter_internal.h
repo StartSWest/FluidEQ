@@ -20,6 +20,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace feq_limiter {
 
+/**
+ * One sample of a recovery from `gain` up towards `target`: `1 - coefficient`
+ * of the gap, until the gap is `finish_ratio` of the target, and from there
+ * straight on at the pace it had there, so it arrives one release time later
+ * rather than never.
+ *
+ * It used to jump the rest of the way in one sample, and the jump was a
+ * click of its own: the Maximizer's last 2% is 0.17 dB, heard at -69 dBFS
+ * above 5 kHz under four low tones, 150 ms after every hit it limited
+ * (measured in a Punch rack starting from silence; with this, nothing left
+ * above -86 over the rack's steady -88.5).
+ */
+inline double release_toward(double gain,
+                             double target,
+                             double coefficient,
+                             double finish_ratio) {
+  const double step = (target - gain) * (1.0 - coefficient);
+  if (!(target > gain)) {
+    return gain + step;
+  }
+  const double least = target * finish_ratio * (1.0 - coefficient);
+  const double next = gain + (step > least ? step : least);
+  return next < target ? next : target;
+}
+
 /** Positive modulo over a capacity, for the ring indices. */
 inline int64_t slot(int64_t value, uint32_t capacity) {
   const int64_t span = static_cast<int64_t>(capacity);

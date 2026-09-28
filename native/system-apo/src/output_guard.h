@@ -35,16 +35,34 @@ class OutputGuard {
    */
   void set_curve_level(double db) noexcept;
   /**
-   * An edit whose level was worked out before it was heard
-   * (`level_prediction.h`): the level moves by `db` at once, and none of the
-   * after-edit catching up that `set_curve_level` and `reassess` do is left to
-   * run, because what it would have measured is already known. The curve's
-   * level is recorded all the same, for a guard switched off and on again.
-   * Before the guard's first enabled block the level is left to start at the
-   * curve's level, as it always does.
+   * An edit whose level is being worked out on the music just heard
+   * (`level_prediction.h`) while the edit already plays: the level the chain
+   * before it had is kept as the basis the prediction will be applied to,
+   * and until it arrives the level goes by the curve's own level against the
+   * basis's — down as far as a louder curve needs, back up as a drag returns
+   * towards where it started, never above the basis. A second edit before
+   * the first's level has arrived keeps the same basis: the prediction that
+   * settles it is made against the chain the basis was the level for.
+   *
+   * `sound_changed` false keeps a hold already running and otherwise does
+   * what `set_curve_level` does. Before the guard's first enabled block
+   * nothing is held: the level starts at the curve's level there, as it
+   * always does.
    */
-  void shift_level(double db, double curve_level_db,
-                   uint32_t settling_frames) noexcept;
+  void hold(double curve_level_db, uint32_t settling_frames,
+            bool sound_changed) noexcept;
+  /** Whether a held edit is waiting for its level. */
+  bool holding() const noexcept { return holding_; }
+  /**
+   * The held edit's level has arrived: the basis moved by `shift_db`, and
+   * none of the after-edit catching up that `reassess` does, because what
+   * it would have measured is already known. A NaN is a prediction that had
+   * nothing to go on, and the level is then found the old way from where it
+   * is. Nothing happens unless a hold is running.
+   */
+  void settle(double shift_db, uint32_t settling_frames) noexcept;
+  /** A hold whose level will not come: the next edit finds it the old way. */
+  void release_hold() noexcept { holding_ = false; }
   /**
    * Where `from` has the level, taken as this guard's own: its target and
    * where it is in getting there, and the gain its limiter is applying. The
@@ -53,7 +71,26 @@ class OutputGuard {
    */
   void take_level(const OutputGuard& from) noexcept;
  private:
+  /**
+   * An edit's new level, reached over `kEditGlideSeconds` rather than at the
+   * limiter's look-ahead: a level stepped down in two milliseconds is heard
+   * as a click (measured on a preset switch under four low tones: -79 dBFS
+   * above 5 kHz for 3 dB, -69 for 10). Peaks are caught all the same: the
+   * limiter's ceiling does not glide.
+   */
+  void move_target(double db) noexcept;
+  /** The level `process` hands the limiter now, gliding or not. */
+  double applied_db() const noexcept;
+
   double curve_level_db_ = 0;
+  // A held edit (`hold`): the basis level and the curve level it went with.
+  bool holding_ = false;
+  double held_db_ = 0;
+  double held_curve_db_ = 0;
+  // The glide towards `target_db_` (`move_target`).
+  double glide_from_db_ = 0;
+  uint32_t glide_left_ = 0;
+  uint32_t glide_frames_ = 1;
   double last_input_peak_ = 0;
   /** The next enabled block starts from the curve's level. */
   bool armed_ = true;

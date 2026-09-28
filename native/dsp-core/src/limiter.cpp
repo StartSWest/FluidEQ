@@ -316,12 +316,8 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
         const double recovery = state->detector_gain < 1.0
                                     ? options->limiting_release_coefficient
                                     : options->release_coefficient;
-        state->gain += (state->detector_gain - state->gain) * (1.0 - recovery);
-        if (state->detector_gain > state->gain &&
-            state->detector_gain - state->gain <=
-                state->detector_gain * snap_ratio) {
-          state->gain = state->detector_gain;
-        }
+        state->gain = feq_limiter::release_toward(state->gain, state->detector_gain,
+                                                  recovery, snap_ratio);
       }
     } else {
       if (required <= state->detector_gain) {
@@ -338,12 +334,8 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
         const double recovery = required < 1.0
                                     ? options->limiting_release_coefficient
                                     : options->release_coefficient;
-        state->detector_gain +=
-            (required - state->detector_gain) * (1.0 - recovery);
-        if (required > state->detector_gain &&
-            required - state->detector_gain <= required * snap_ratio) {
-          state->detector_gain = required;
-        }
+        state->detector_gain = feq_limiter::release_toward(
+            state->detector_gain, required, recovery, snap_ratio);
       }
 
       double reduction_db =

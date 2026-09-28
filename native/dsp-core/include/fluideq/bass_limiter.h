@@ -118,7 +118,7 @@ typedef struct FeqBassLimiterOptions {
    * sample in hand.
    */
   double window_samples;
-  /** Finish a recovery once its remaining gap is this fraction of it. */
+  /** Finish a recovery in a straight line once its gap is this fraction of it. */
   double release_snap_ratio;
   double sample_rate;
 } FeqBassLimiterOptions;
