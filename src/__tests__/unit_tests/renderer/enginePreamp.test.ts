@@ -161,4 +161,22 @@ describe('final output preamp display', () => {
     expect(view.result.current?.gainDb).toBe(-3.46);
     view.unmount();
   });
+
+  // One failed read used to end the loop: the readout stayed blank until the
+  // output changed or the window was hidden and shown again.
+  it('keeps reading after a read of the current output fails, and says so once', async () => {
+    const { reportError } = jest.requireMock('../../../renderer/utils/logger');
+    const view = renderHook(() => useReadout(true));
+    await act(async () => {});
+    read.mockRejectedValueOnce(new Error('pipe busy'));
+    read.mockRejectedValueOnce(new Error('pipe busy'));
+    await tick();
+    expect(view.result.current).toBeUndefined();
+    await tick();
+    expect(reportError).toHaveBeenCalledTimes(1);
+
+    await tick();
+    expect(view.result.current?.gainDb).toBe(-3.46);
+    view.unmount();
+  });
 });

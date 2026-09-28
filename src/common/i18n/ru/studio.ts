@@ -503,7 +503,7 @@ const studio = {
   'studio.problem.too-many-params':
     'В params может быть не больше 8 элементов управления.',
   'studio.problem.no-daylight':
-    'Каждой сцене нужен элемент управления Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } в params: при 0 она рисует ночь, при 100 — день.',
+    'Каждой сцене нужен элемент управления Daylight, {control} в params: при 0 она рисует ночь, при 100 — день.',
   'studio.problem.bad-ambient':
     'Часть элементов или регуляторов ambient в pack.json пропущена. Проверьте формы, движения, цвета, количество и то, чем управляет каждый регулятор.',
   'studio.problem.bad-world':

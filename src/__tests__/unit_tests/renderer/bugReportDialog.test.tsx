@@ -244,3 +244,43 @@ describe('what the dialog says back', () => {
     expect(screen.getByRole('status')).toBe(region);
   });
 });
+
+describe('the keyboard', () => {
+  // The dialog is marked modal, and Tab used to walk out of it into the
+  // window behind, whose controls it covers.
+  it('keeps Tab inside the dialog, through both text areas', async () => {
+    await openDialog();
+    const dialog = screen.getByRole('dialog');
+    const reached = new Set<Element | null>();
+    const stops = dialog.querySelectorAll('button, textarea, a[href]').length;
+    for (let press = 0; press <= stops; press += 1) {
+      const allowed = fireEvent.keyDown(
+        document.activeElement ?? document.body,
+        { key: 'Tab' },
+      );
+      expect(allowed).toBe(false);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      reached.add(document.activeElement);
+    }
+    expect(reached).toContain(
+      screen.getByRole('textbox', { name: 'bugReport.descriptionLabel' }),
+    );
+    expect(reached).toContain(
+      screen.getByRole('textbox', { name: 'bugReport.reportLabel' }),
+    );
+  });
+
+  it('gives focus back to what opened it', async () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    opener.focus();
+    let view: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      view = render(<BugReportDialog onClose={jest.fn()} />);
+    });
+    expect(opener).not.toHaveFocus();
+    view?.unmount();
+    expect(opener).toHaveFocus();
+    opener.remove();
+  });
+});

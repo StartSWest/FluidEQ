@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { generateKeyPairSync, sign } from 'crypto';
 import type { IScenePack, IScenePackEnvelope } from '../../common/scenePacks';
+import { SCENE_DAYLIGHT_CONTROL } from '../../common/sceneDaylight';
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 import { trustMemberSceneKeyForTesting } from '../../main/scenePackVerify';
 
@@ -29,6 +30,15 @@ export const SOURCE = `vec4 sceneColour(vec2 uv) {
   return vec4(uAccent * texture(uSpectrumSlow, vec2(uv.x, 0.5)).r, 1.0);
 }
 `;
+
+/**
+ * The time of day as every scene the Studio builds declares it
+ * (`sceneDaylight.ts`), a fresh copy for each pack that holds one.
+ */
+export const daylightControl = () => ({
+  ...SCENE_DAYLIGHT_CONTROL,
+  names: { ...SCENE_DAYLIGHT_CONTROL.names },
+});
 
 export const memberPack = (over: Partial<IScenePack> = {}): IScenePack => ({
   schema: 1,

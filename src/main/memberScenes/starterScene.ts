@@ -1,3 +1,4 @@
+import { SCENE_DAYLIGHT_CONTROL } from '../../common/sceneDaylight';
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 
 export { default as STARTER_SOURCE } from './starterSceneSource';
@@ -235,7 +236,10 @@ export const starterManifest = (name: string, id: string) =>
       fallbackStyle: 'dots',
       swatch: ['#0d0b26', '#ff8a4c', '#ffc2d9'],
       sourceFile: 'scene.frag',
-      params: STARTER_PARAMS,
+      // The time of day first, as the Studio asks of every scene
+      // (`sceneDaylight.ts`): the shader draws the hanami by night at 0 and
+      // by day at 100.
+      params: [SCENE_DAYLIGHT_CONTROL, ...STARTER_PARAMS],
       response: STARTER_RESPONSE,
       ambient: STARTER_AMBIENT,
     },

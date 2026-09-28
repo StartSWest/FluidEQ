@@ -212,4 +212,68 @@ describe('the Maker project', () => {
     // not send it back for another decode.
     expect(result.current.project.analysis.waveform).toHaveLength(2);
   });
+
+  // Which model separated the song, and under what licence, used to be set
+  // around the history and without a stamp: the draft on disk only had it if
+  // a later edit carried it there, and Undo took it away with that edit.
+  const separation = {
+    component: 'separation-model',
+    version: '1',
+    license: 'MIT',
+    sourceUrl: 'https://models.example/separation',
+  };
+
+  it('saves provenance recorded after the last edit was written', async () => {
+    const saving: { provenance: unknown[]; land: () => void }[] = [];
+    saveKaraokeMakerDraft.mockImplementation(
+      (project: { provenance: unknown[] }) =>
+        new Promise<void>((resolve) => {
+          saving.push({ provenance: project.provenance, land: resolve });
+        }),
+    );
+    const { result } = await setup();
+    await waitFor(() => expect(result.current.draftReady).toBe(true));
+    await act(async () => saving[0].land());
+
+    // Written and idle, as the Maker sits while a separation runs.
+    const opened = Date.parse(result.current.project.updatedAt);
+    jest.useFakeTimers().setSystemTime(opened + 1_000);
+    act(() => result.current.commit((c) => ({ ...c, title: 'Renamed' })));
+    jest.useRealTimers();
+    await act(async () => saving[1].land());
+
+    jest.useFakeTimers().setSystemTime(opened + 2_000);
+    act(() => result.current.recordProvenance([separation]));
+    jest.useRealTimers();
+
+    expect(saving).toHaveLength(3);
+    expect(saving[2].provenance).toContainEqual(separation);
+  });
+
+  it('keeps provenance through undo and redo, and adds no step of its own', async () => {
+    const { result } = await setup();
+    act(() => result.current.commit((c) => ({ ...c, title: 'Renamed' })));
+    act(() => result.current.recordProvenance([separation]));
+    expect(result.current.project.provenance).toContainEqual(separation);
+
+    act(() => result.current.undo());
+    expect(result.current.project.title).toBe('Hook');
+    expect(result.current.project.provenance).toContainEqual(separation);
+    expect(result.current.canUndo).toBe(false);
+
+    act(() => result.current.redo());
+    expect(result.current.project.title).toBe('Renamed');
+    expect(result.current.project.provenance).toContainEqual(separation);
+  });
+
+  it('writes provenance into a redo that is waiting when it is recorded', async () => {
+    const { result } = await setup();
+    act(() => result.current.commit((c) => ({ ...c, title: 'Renamed' })));
+    act(() => result.current.undo());
+    act(() => result.current.recordProvenance([separation]));
+
+    act(() => result.current.redo());
+    expect(result.current.project.title).toBe('Renamed');
+    expect(result.current.project.provenance).toContainEqual(separation);
+  });
 });

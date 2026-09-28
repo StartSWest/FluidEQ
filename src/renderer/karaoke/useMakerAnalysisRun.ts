@@ -214,8 +214,6 @@ export const useMakerAnalysisRun = ({
       reportError(`[karaoke][whisper] ${entry.event}`, formatted);
       return;
     }
-    // eslint-disable-next-line no-console
-    console.info('[karaoke][whisper]', entry.event, entry);
     reportInfo(`[karaoke][whisper] ${formatted}`);
   };
 

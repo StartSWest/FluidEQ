@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import {
   AUTHOR_NAME,
   BUNDLED_ENGINE,
@@ -75,8 +75,10 @@ describe('AboutDialog', () => {
 
   it('names the product and its licence, and links to the full text', () => {
     const text = openAndRead();
+    // Named by its eyebrow and its title together: "About" alone says about
+    // what to nobody who cannot see the mark beside it.
     expect(screen.getByRole('dialog')).toHaveAccessibleName(
-      translate('en', 'about.title'),
+      `${translate('en', 'about.title')} ${PRODUCT_NAME}`,
     );
     expect(text).toContain(LICENSE.name);
     expect(
@@ -163,5 +165,44 @@ describe('AboutDialog', () => {
     expect(text).toContain(COPYRIGHT);
     expect(text).toContain(TRADEMARK.notice);
     expect(text).toContain(BUNDLED_ENGINE.license);
+  });
+});
+
+describe('AboutDialog keyboard', () => {
+  // Marked modal, it used to let Tab walk out into the window behind, and
+  // closing it left focus nowhere.
+  it('keeps Tab inside the panel, through its links', () => {
+    render(<AboutDialog onClose={() => undefined} />);
+    const dialog = screen.getByRole('dialog');
+    const reached = new Set<Element | null>();
+    const stops = dialog.querySelectorAll('button, a[href]').length;
+    for (let press = 0; press <= stops; press += 1) {
+      const allowed = fireEvent.keyDown(
+        document.activeElement ?? document.body,
+        { key: 'Tab' },
+      );
+      expect(allowed).toBe(false);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      reached.add(document.activeElement);
+    }
+    expect(reached).toContain(
+      screen.getByRole('link', { name: 'Read the full licence text' }),
+    );
+  });
+
+  it('closes on Escape and gives focus back to what opened it', () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    opener.focus();
+    const onClose = jest.fn();
+    const view = render(<AboutDialog onClose={onClose} />);
+    expect(opener).not.toHaveFocus();
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: 'Escape',
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    view.unmount();
+    expect(opener).toHaveFocus();
+    opener.remove();
   });
 });

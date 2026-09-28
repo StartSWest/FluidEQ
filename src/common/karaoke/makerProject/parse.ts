@@ -202,6 +202,11 @@ const parseKaraokeMakerProject = (contents: string): IKaraokeMakerProject => {
         startMs === undefined ||
         endMs === undefined ||
         targetMidi === undefined ||
+        // Held to the rule the lyric tokens above already are: a note that
+        // ends before it starts reached the pitch lane as the singer's target
+        // with no length, or a negative one.
+        startMs < 0 ||
+        endMs <= startMs ||
         (typeof note?.tokenId === 'string' &&
           clearedAutomaticTokenIds.has(note.tokenId) &&
           karaokeMakerSourceIsAutomatic(safeSource(note?.source)))

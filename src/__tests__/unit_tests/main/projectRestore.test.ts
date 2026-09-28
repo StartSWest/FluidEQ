@@ -28,7 +28,7 @@ import {
   RESTORED_WORLD_FILE,
   writeRestoredProject,
 } from '../../../main/memberScenes/projectRestore';
-import { memberPack } from '../../utils/memberSceneFixtures';
+import { daylightControl, memberPack } from '../../utils/memberSceneFixtures';
 
 /**
  * A member's own exported scene, written back out as a Studio project. What
@@ -156,6 +156,7 @@ const fullPack = (): IScenePack =>
     names: { en: 'Neon City', es: 'Ciudad de neón' },
     swatch: ['#050a1a', '#00e5cf', '#ff3d7f'],
     params: [
+      daylightControl(),
       {
         id: 'glow',
         names: { en: 'Glow', es: 'Brillo' },
@@ -237,7 +238,9 @@ describe('restoring an own scene as a project', () => {
     const pack = fullPack();
     const changed: IScenePack = {
       ...pack,
-      params: [{ ...pack.params[0], value: 1.25 }],
+      params: pack.params.map((param) =>
+        param.id === 'glow' ? { ...param, value: 1.25 } : param,
+      ),
     };
     const artworkHash = createHash('sha256').update(PICTURE).digest('hex');
     const folder = await restored('Neon City', changed);
@@ -247,7 +250,7 @@ describe('restoring an own scene as a project', () => {
   });
 
   it('writes no picture and no picture fields for a scene without one', async () => {
-    const pack = memberPack();
+    const pack = memberPack({ params: [daylightControl()] });
     const folder = await restored('Neon City', pack);
 
     expect(fs.readdirSync(folder).sort()).toEqual(
@@ -260,6 +263,23 @@ describe('restoring an own scene as a project', () => {
     expect(manifest).not.toHaveProperty('spectrumRange');
     expect(manifest).not.toHaveProperty('response');
     expect(await readProject(folder)).toEqual({ ok: true, pack });
+  });
+});
+
+// A scene published before the time of day comes back as it was — nothing
+// invents a day for it — and the Studio names the one control it lacks, for
+// its author to design the day look the Studio asks of every scene.
+describe('a scene published before the time of day', () => {
+  it('restores as it was, and is asked for its Daylight control', async () => {
+    const folder = await restored('Neon City', memberPack());
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(folder, 'pack.json'), 'utf8'),
+    );
+    expect(manifest.params).toEqual([]);
+    expect(await readProject(folder)).toEqual({
+      ok: false,
+      problems: [{ code: 'no-daylight', file: 'pack.json' }],
+    });
   });
 });
 

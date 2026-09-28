@@ -17,7 +17,9 @@ import {
 import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
 import { requestHelpGuide } from '../../help/helpGuideRequests';
 import { setWindowMode } from '../../player/windowModeStore';
+import holdFocusReturn from '../../utils/focusReturn';
 import { useTranslation } from '../../utils/I18nContext';
+import { moveTabStop } from '../../utils/useModalKeys';
 import MenuIcon from '../../icons/MenuIcon';
 import DialogFrame from '../DialogFrame';
 import type { ISlideActions, ITourSlide, TTourTab } from './slides';
@@ -64,6 +66,7 @@ export default function FeatureTour({
   // Focus lands on the primary button: Enter walks the slides and closes at
   // the end, without hunting for anything.
   const primaryRef = useRef<HTMLButtonElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(
     () => onClose(dontShowAgain),
@@ -83,7 +86,9 @@ export default function FeatureTour({
   }, []);
 
   useEffect(() => {
+    const giveFocusBack = holdFocusReturn();
     primaryRef.current?.focus();
+    return giveFocusBack;
   }, []);
 
   // The entry on stage stays in sight in the list while Next and Back walk
@@ -129,6 +134,8 @@ export default function FeatureTour({
         goNext();
       } else if (event.key === 'ArrowLeft') {
         goBack();
+      } else if (event.key === 'Tab') {
+        moveTabStop(surfaceRef.current, event);
       }
     };
     document.addEventListener('keydown', onKeyDown);
@@ -166,6 +173,7 @@ export default function FeatureTour({
       }}
     >
       <DialogFrame
+        ref={surfaceRef}
         className="feature-tour"
         icon={<MenuIcon name="gift" />}
         eyebrow={t('tour.eyebrow')}

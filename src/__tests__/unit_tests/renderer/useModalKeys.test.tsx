@@ -64,3 +64,71 @@ it('skips a button taken out of the Tab order, both ways round', () => {
   tab(true);
   expect(button('first')).toHaveFocus();
 });
+
+/** A dialog holding every other kind of stop a form can have. */
+function Form() {
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const firstRef = useRef<HTMLButtonElement>(null);
+  useModalKeys(surfaceRef, firstRef, { busy: false, onCancel });
+  return (
+    <div ref={surfaceRef} role="dialog">
+      <button ref={firstRef} type="button">
+        first
+      </button>
+      <a href="https://fluideq.example/licence">licence</a>
+      <select aria-label="size">
+        <option>small</option>
+      </select>
+      <textarea aria-label="notes" />
+      <button type="button" disabled>
+        off
+      </button>
+    </div>
+  );
+}
+
+// Left out, the publish dialog's description could not be reached from the
+// keyboard, and About's links were skipped.
+it('stops Tab at links, lists and text areas too', () => {
+  render(<Form />);
+  expect(tab()).toBe(false);
+  expect(screen.getByRole('link', { name: 'licence' })).toHaveFocus();
+  tab();
+  expect(screen.getByRole('combobox', { name: 'size' })).toHaveFocus();
+  tab();
+  expect(screen.getByRole('textbox', { name: 'notes' })).toHaveFocus();
+  tab();
+  expect(button('first')).toHaveFocus();
+});
+
+function Cancelling({ cancel }: { cancel: () => void }) {
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const firstRef = useRef<HTMLButtonElement>(null);
+  useModalKeys(surfaceRef, firstRef, { busy: false, onCancel: cancel });
+  return (
+    <div ref={surfaceRef} role="dialog">
+      <button ref={firstRef} type="button">
+        first
+      </button>
+    </div>
+  );
+}
+
+it('cancels through the newest handler, and gives focus back on the way out', () => {
+  const opener = document.createElement('button');
+  document.body.append(opener);
+  opener.focus();
+  const first = jest.fn();
+  const newest = jest.fn();
+  const view = render(<Cancelling cancel={first} />);
+  view.rerender(<Cancelling cancel={newest} />);
+  expect(button('first')).toHaveFocus();
+  fireEvent.keyDown(document.activeElement ?? document.body, {
+    key: 'Escape',
+  });
+  expect(first).not.toHaveBeenCalled();
+  expect(newest).toHaveBeenCalledTimes(1);
+  view.unmount();
+  expect(opener).toHaveFocus();
+  opener.remove();
+});

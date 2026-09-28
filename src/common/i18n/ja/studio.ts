@@ -506,7 +506,7 @@ const studio = {
   'studio.problem.too-many-params':
     'params に置けるコントロールは 8 個までです。',
   'studio.problem.no-daylight':
-    'すべてのシーンに Daylight コントロールが必要です。params に { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } を入れ、0 で夜、100 で昼を描いてください。',
+    'すべてのシーンに Daylight コントロールが必要です。params に {control} を入れ、0 で夜、100 で昼を描いてください。',
   'studio.problem.bad-ambient':
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
   'studio.problem.bad-world':

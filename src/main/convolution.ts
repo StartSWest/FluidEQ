@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import { FilterTypeEnum, IFilter, IFiltersMap } from '../common/constants';
+import writeFileAtomically from './atomicWrite';
 
 const SAMPLE_RATE = 48000;
 const IMPULSE_LENGTH = 16384;
@@ -140,8 +141,20 @@ const createImpulse = (filters: IFiltersMap) => {
   return Array.from(impulse);
 };
 
+/**
+ * The filters each impulse file was last written from. Every flush asked for
+ * the active output's impulse again, and got a 16384-sample synthesis and a
+ * 64 KB write per slider step — into the folder the engines reload on any
+ * change, for a file whose filters had not moved.
+ */
+const writtenFrom = new Map<string, string>();
+
 /** Write a mono 32-bit float impulse response understood by Equalizer APO. */
 const writeConvolutionWav = (filePath: string, filters: IFiltersMap) => {
+  const source = JSON.stringify(filters);
+  if (writtenFrom.get(filePath) === source && fs.existsSync(filePath)) {
+    return;
+  }
   const samples = createImpulse(filters);
   const dataSize = samples.length * 4;
   const wav = Buffer.alloc(44 + dataSize);
@@ -161,7 +174,10 @@ const writeConvolutionWav = (filePath: string, filters: IFiltersMap) => {
   samples.forEach((sample, index) => {
     wav.writeFloatLE(sample, 44 + index * 4);
   });
-  fs.writeFileSync(filePath, wav);
+  // Whole or not at all: written in place it was truncated first, and an
+  // engine reloading in that moment read a WAV with no samples in it.
+  writeFileAtomically(filePath, wav);
+  writtenFrom.set(filePath, source);
 };
 
 export default writeConvolutionWav;

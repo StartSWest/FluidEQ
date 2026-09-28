@@ -84,6 +84,8 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
   let generation = 0;
   let animation = 0;
   let endpoint: string | undefined;
+  // Said once per run of failures, not once a frame.
+  let failing = false;
   const paint = async () => {
     const current = generation;
     if (disposed || document.hidden || !endpoint) {
@@ -94,15 +96,21 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
       if (disposed || current !== generation) {
         return;
       }
+      failing = false;
       publish(next);
     } catch (error) {
       if (disposed || current !== generation) {
         return;
       }
-      reportError('reading final output preamp', error);
+      if (!failing) {
+        reportError('reading final output preamp', error);
+      }
+      failing = true;
       publish();
-      return;
     }
+    // After a failure too: one read that failed used to end the loop, and the
+    // live preamp stayed blank until the output changed or the window was
+    // hidden and shown again.
     animation = requestAnimationFrame(paint);
   };
   const start = async () => {

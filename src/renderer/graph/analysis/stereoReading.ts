@@ -32,7 +32,10 @@ export interface IStereoReading {
   correlation: number;
   /**
    * How much of the sound is in the difference between the channels rather
-   * than in what they share. 0 is mono, 1 is nothing shared at all.
+   * than in what they share. 0 is mono, 1 is nothing shared at all — two
+   * unrelated channels, or one of them silent, where the side carries half
+   * the power — and past 1, up to 2, the channels working against each other.
+   * Every reader clamps at 1.
    */
   width: number;
   /** Where the weight sits: −1 hard left, 0 centred, +1 hard right. */

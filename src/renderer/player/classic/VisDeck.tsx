@@ -38,6 +38,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import { reportError } from '../../utils/logger';
 import { useUsableMemberScenes } from '../../utils/memberScenes';
 import useGraphScenePack from '../useGraphScenePack';
+import usePlayerScenePulse from '../usePlayerScenePulse';
 import PlayerPaper from './PlayerPaper';
 import { playerPaperFor } from './paperRules';
 import { PLAYER_VIS_MIN, usePlayerVisFull } from './playerLayout';
@@ -211,6 +212,10 @@ const VisDeck = ({ height }: { height: number }) => {
   }, [scene]);
 
   const hasBox = box.width > 0 && box.height > 0;
+  // The window's light on the picture's beats in Ambient, as the Stage amp
+  // and the graph give it: this deck reported none, so Ambient beside the
+  // classic amp had its colours and never its light.
+  const onDrawn = usePlayerScenePulse(hasBox && isScene, stageRef);
   // A member's scene, which has an author to thank as it does on the graph.
   const memberScene = isMemberLookId(selectedLookId)
     ? memberScenes.find((candidate) => candidate.lookId === selectedLookId)
@@ -249,6 +254,7 @@ const VisDeck = ({ height }: { height: number }) => {
             tuning={scene.tuning}
             wave={scene.wave}
             onTrouble={onTrouble}
+            onDrawn={onDrawn}
           />
         )}
         {hasBox && !isScene && scene.state !== 'loading' && (

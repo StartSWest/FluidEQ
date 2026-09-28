@@ -521,7 +521,7 @@ const studio = {
   'studio.problem.too-many-params':
     'Eine Szene kann höchstens 8 Regler in params haben.',
   'studio.problem.no-daylight':
-    'Jede Szene braucht den Regler Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } in params, und zeichnet bei 0 die Nacht und bei 100 den Tag.',
+    'Jede Szene braucht den Regler Daylight, {control} in params, und zeichnet bei 0 die Nacht und bei 100 den Tag.',
   'studio.problem.bad-ambient':
     'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
   'studio.problem.bad-world':

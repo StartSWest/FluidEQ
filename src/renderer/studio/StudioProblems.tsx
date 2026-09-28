@@ -3,6 +3,7 @@ import type {
   IMemberSceneProblem,
   TMemberSceneFile,
 } from 'common/memberScenes';
+import { SCENE_DAYLIGHT_DECLARATION } from 'common/sceneDaylight';
 import type { IWorldReport, TWorldNote } from 'common/worldNotes';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStageTrouble } from './StudioStage';
@@ -47,7 +48,9 @@ const Problem = ({ problem }: { problem: IMemberSceneProblem }) => {
             })
           : t(FILE_KEYS[problem.file])}
       </span>
-      <span className="studio-problem__what">{t(what)}</span>
+      <span className="studio-problem__what">
+        {t(what, { control: SCENE_DAYLIGHT_DECLARATION })}
+      </span>
     </li>
   );
 };

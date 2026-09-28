@@ -33,36 +33,37 @@ afterEach(() => {
   fs.rmSync(configDir, { recursive: true, force: true });
 });
 
-it('reads config.txt once for every edit made while its folder is watched', () => {
+it('reads config.txt once for every edit made while its folder is watched', async () => {
   const include = createConfigInclude(() => true);
 
   for (let edit = 0; edit < 20; edit += 1) {
-    include.ensure(configDir);
+    // eslint-disable-next-line no-await-in-loop -- twenty edits one after another, as a drag makes them
+    await include.ensure(configDir);
   }
 
   expect(configReads()).toBe(1);
 });
 
-it('reads it on every edit while nobody is watching its folder', () => {
+it('reads it on every edit while nobody is watching its folder', async () => {
   const include = createConfigInclude(() => false);
 
-  include.ensure(configDir);
-  include.ensure(configDir);
-  include.ensure(configDir);
+  await include.ensure(configDir);
+  await include.ensure(configDir);
+  await include.ensure(configDir);
 
   expect(configReads()).toBe(3);
 });
 
-it('reads it again once the watcher reports it, and puts back an include somebody took out', () => {
+it('reads it again once the watcher reports it, and puts back an include somebody took out', async () => {
   const include = createConfigInclude(() => true);
-  include.ensure(configDir);
+  await include.ensure(configDir);
   fs.writeFileSync(configFile(), 'Include: somebody-else.txt\n', 'utf8');
 
-  include.ensure(configDir);
+  await include.ensure(configDir);
   expect(configReads()).toBe(1);
 
   include.forget();
-  include.ensure(configDir);
+  await include.ensure(configDir);
   // The check, then the rewrite reading what it keeps.
   expect(configReads()).toBe(3);
   expect(fs.readFileSync(configFile(), 'utf8')).toBe(
@@ -70,14 +71,14 @@ it('reads it again once the watcher reports it, and puts back an include somebod
   );
 });
 
-it('reads the new folder after an engine switch', () => {
+it('reads the new folder after an engine switch', async () => {
   const include = createConfigInclude(() => true);
-  include.ensure(configDir);
+  await include.ensure(configDir);
   const other = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-config-other-'));
   try {
     fs.writeFileSync(path.join(other, 'config.txt'), '', 'utf8');
 
-    include.ensure(other);
+    await include.ensure(other);
 
     expect(fs.readFileSync(path.join(other, 'config.txt'), 'utf8')).toBe(
       '\nInclude: fluideq.txt\n',

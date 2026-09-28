@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react';
 import log from 'electron-log/renderer';
 import { useTranslation } from '../utils/I18nContext';
 import { usePlaybackOwner, TPlaybackOwner } from './playbackOwner';
@@ -69,26 +69,27 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
     // Position ticks and changing callbacks must not redraw the native toolbar.
   }, [canToggle, canPrevious, canNext, isPlaying, locale, navigation]);
 
-  useEffect(
-    () => () => {
-      if (window.electron?.platform !== 'win32') {
-        return;
-      }
-      window.electron.ipcRenderer
-        .setTaskbarTransport?.({
-          canToggle: false,
-          canPrevious: false,
-          canNext: false,
-          isPlaying: false,
-          locale,
-          navigation: 'tracks',
-        })
-        ?.catch((error: unknown) =>
-          log.error('Could not clear taskbar playback controls', error),
-        );
-    },
-    [locale],
-  );
+  // Grey the buttons once the bars are gone, in whatever language is current
+  // by then. Keyed on the language, this ran on every switch of it as well and
+  // greyed the buttons for a moment before the new state put them back.
+  const clearControls = useEffectEvent(() => {
+    if (window.electron?.platform !== 'win32') {
+      return;
+    }
+    window.electron.ipcRenderer
+      .setTaskbarTransport?.({
+        canToggle: false,
+        canPrevious: false,
+        canNext: false,
+        isPlaying: false,
+        locale,
+        navigation: 'tracks',
+      })
+      ?.catch((error: unknown) =>
+        log.error('Could not clear taskbar playback controls', error),
+      );
+  });
+  useEffect(() => () => clearControls(), []);
   return null;
 };
 

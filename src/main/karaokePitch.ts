@@ -237,7 +237,7 @@ const runRmvpe = async (
     for (let index = 0; index < backends.length; index += 1) {
       assertCurrent();
       try {
-        // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop -- one backend at a time, and the first that loads is the one kept
         rmvpeSession = (await ort.InferenceSession.create(rmvpePath(), {
           executionProviders: [backends[index]],
         })) as TOnnxSession;
@@ -268,7 +268,7 @@ const runRmvpe = async (
         m * paddedFrames,
       );
     }
-    // eslint-disable-next-line no-await-in-loop
+    // eslint-disable-next-line no-await-in-loop -- one chunk at a time through the one session, its answer written before the next is fed
     const output = await rmvpeSession.run({
       input: new ort.Tensor('float32', feed, [1, MELS, paddedFrames]),
     });

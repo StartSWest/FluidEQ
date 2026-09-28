@@ -228,14 +228,14 @@ export const createWaveformShape = (
     // the freq bands makes the name honest: `bars` reads what somebody
     // seeing a bar-per-band expects.
     case 'bars': {
-      const bandCount = spectrumMagnitudes?.length ?? 0;
+      const bands = spectrumMagnitudes ?? [];
+      const bandCount = bands.length;
       let fill = '';
       if (bandCount >= 2) {
         const barStep = width / bandCount;
         const barWidth = Math.max(1, barStep * 0.6);
         for (let index = 0; index < bandCount; index += 1) {
-          const magnitude =
-            Math.max(0, Math.min(1, spectrumMagnitudes![index])) * height;
+          const magnitude = Math.max(0, Math.min(1, bands[index])) * height;
           fill += rect(
             origin.x + index * barStep + (barStep - barWidth) / 2,
             floor - magnitude,
@@ -261,14 +261,15 @@ export const createWaveformShape = (
     // The same spectrum, growing both ways from the middle rather than
     // from the floor — a mirrored bar chart of the FFT bands.
     case 'mirror-bars': {
-      const bandCount = spectrumMagnitudes?.length ?? 0;
+      const bands = spectrumMagnitudes ?? [];
+      const bandCount = bands.length;
       let fill = '';
       if (bandCount >= 2) {
         const barStep = width / bandCount;
         const barWidth = Math.max(1, barStep * 0.6);
         for (let index = 0; index < bandCount; index += 1) {
           const magnitude =
-            Math.max(0, Math.min(1, spectrumMagnitudes![index])) * (height / 2);
+            Math.max(0, Math.min(1, bands[index])) * (height / 2);
           fill += rect(
             origin.x + index * barStep + (barStep - barWidth) / 2,
             centre - magnitude,

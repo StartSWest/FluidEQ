@@ -198,5 +198,23 @@ describe('opra', () => {
         getOpraPreset('testbrand::model_one', 'no-such-curve', OPRA_DIR),
       ).toThrow();
     });
+
+    it('never builds a file name out of an id the library does not list', () => {
+      // Both land on the real shard once joined, so a reader that split the
+      // id into a path would find the curve and return it.
+      const escapes = [
+        '..\\curves\\testbrand::model_one',
+        '../curves/testbrand::model_one',
+      ];
+      escapes.forEach((productId) => {
+        expect(() =>
+          getOpraPreset(
+            productId,
+            'testbrand:model_one::oratory1990',
+            OPRA_DIR,
+          ),
+        ).toThrow('Unknown OPRA product');
+      });
+    });
   });
 });

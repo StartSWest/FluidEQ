@@ -18,6 +18,7 @@ import {
   queueSettingsWrite,
   waitForSettingsWrites,
 } from '../../../main/memberScenes/settingsWrites';
+import { daylightControl } from '../../utils/memberSceneFixtures';
 
 /**
  * A save the test finishes when it chooses — before or after the queue has
@@ -45,6 +46,7 @@ describe('saving a scene’s settings into its folder', () => {
     const file = path.join(folder, 'pack.json');
     const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
     manifest.params = [
+      daylightControl(),
       { id: 'speed', names: { en: 'Speed' }, min: 0, max: 5, value: 1 },
       { id: 'size', names: { en: 'Size' }, min: 0, max: 5, value: 1 },
     ];
@@ -75,6 +77,7 @@ describe('saving a scene’s settings into its folder', () => {
       pack: {
         response,
         params: [
+          { id: 'daylight' },
           { id: 'speed', value: 2 },
           { id: 'size', value: 4 },
         ],
@@ -92,6 +95,7 @@ describe('saving a scene’s settings into its folder', () => {
       ok: true,
       pack: {
         params: [
+          { id: 'daylight' },
           { id: 'speed', value: 1 },
           { id: 'size', value: 1 },
         ],

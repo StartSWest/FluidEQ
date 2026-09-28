@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* eslint-disable no-bitwise, no-continue, no-loop-func, no-restricted-syntax */
+/* eslint-disable no-bitwise, no-continue, no-loop-func, no-restricted-syntax -- a QR encoder is bit arithmetic over module grids, written as the standard describes it */
 /*
  * The lint exemptions above are for this file only, and they are not laziness:
  *
@@ -536,16 +536,18 @@ export const encodeQr = (text: string): boolean[][] | undefined => {
   }
 
   // Try every mask and keep the least penalised, as the specification says.
-  let best: { matrix: Matrix; score: number } | undefined;
-  for (let mask = 0; mask < 8; mask += 1) {
+  // Mask 0 is the first answer, so there is always one to compare against.
+  const first = buildMatrix(version, interleaved, 0).matrix;
+  let best = { matrix: first, score: penalty(first) };
+  for (let mask = 1; mask < 8; mask += 1) {
     const { matrix } = buildMatrix(version, interleaved, mask);
     const score = penalty(matrix);
-    if (!best || score < best.score) {
+    if (score < best.score) {
       best = { matrix, score };
     }
   }
 
-  return best!.matrix.map((row) => row.map((cell) => cell === 1));
+  return best.matrix.map((row) => row.map((cell) => cell === 1));
 };
 
 /**

@@ -61,9 +61,55 @@ const spreadEdges = (count: number): number[] => {
   );
 };
 
-/** Where `count` bands divide: the named five, or equal slices. */
-const edgesFor = (count: number): readonly number[] =>
-  count === NAMES.length ? EDGES : spreadEdges(count);
+/**
+ * Where `count` bands divide: the named five, or equal slices — kept per
+ * count, since both the reading and the words ask on every frame.
+ */
+const spreadByCount = new Map<number, readonly number[]>();
+const edgesFor = (count: number): readonly number[] => {
+  if (count === NAMES.length) {
+    return EDGES;
+  }
+  const known = spreadByCount.get(count);
+  if (known) {
+    return known;
+  }
+  const edges = spreadEdges(count);
+  spreadByCount.set(count, edges);
+  return edges;
+};
+
+/** A band the five words cannot name, by its centre: `63`, `1.2k`, `16k`. */
+const centreLabel = (edges: readonly number[], index: number): string => {
+  const hz = Math.sqrt(edges[index] * edges[index + 1]);
+  if (hz < 1000) {
+    return `${Math.round(hz)}`;
+  }
+  const kilo = hz / 1000;
+  return `${kilo < 10 ? Number(kilo.toFixed(1)) : Math.round(kilo)}k`;
+};
+
+/**
+ * What each of `count` columns is called: the five words, or each slice's
+ * centre. Every column used to print the axis's first edge, "10", whatever
+ * it held. Kept per count, like the edges.
+ */
+const labelsByCount = new Map<number, readonly string[]>();
+export const energyBandLabels = (count: number): readonly string[] => {
+  if (count === NAMES.length) {
+    return NAMES;
+  }
+  const known = labelsByCount.get(count);
+  if (known) {
+    return known;
+  }
+  const edges = edgesFor(count);
+  const labels = Array.from({ length: count }, (_unused, index) =>
+    centreLabel(edges, index),
+  );
+  labelsByCount.set(count, labels);
+  return labels;
+};
 
 export const ENERGY_BARS: IBarView = {
   count: (pieces) => Math.max(3, Math.min(24, pieces)),
@@ -99,7 +145,7 @@ export const paintEnergyWords = (
   const rows = barRowsOf(frame, state, ENERGY_BARS);
   const front = rows[rows.length - 1];
   const { bands, hold } = front;
-  const named = bands.length === NAMES.length;
+  const labels = energyBandLabels(bands.length);
   const foot = band.flipped ? band.top : band.bottom;
   const inward = band.flipped ? 1 : -1;
   context.save();
@@ -111,11 +157,7 @@ export const paintEnergyWords = (
     context.textBaseline = band.flipped ? 'top' : 'bottom';
     context.globalAlpha = band.opacity * 0.85;
     context.fillStyle = 'rgba(255, 255, 255, 0.82)';
-    context.fillText(
-      named ? NAMES[index] : `${Math.round(EDGES[0])}`,
-      middle,
-      foot + inward * 4,
-    );
+    context.fillText(labels[index], middle, foot + inward * 4);
     const head = placeLevel(band, Math.max(bands[index], hold[index]));
     context.font = '600 11px system-ui, sans-serif';
     context.textBaseline = band.flipped ? 'top' : 'bottom';

@@ -87,6 +87,46 @@ describe('persisted Karaoke session', () => {
     );
   });
 
+  it('restores without asking the disk anything on main’s own thread, once per file', async () => {
+    await saveKaraokeSession(directory, {
+      version: 1,
+      files: [
+        { localPath: audioPath, relativePath: 'Song.mp3' },
+        { localPath: lyricsPath, relativePath: 'Song.lrc' },
+      ],
+      playlistOrder: ['song.mp3'],
+      playheadMs: 0,
+    });
+    const statSync = jest.spyOn(fs, 'statSync');
+    const readFileSync = jest.spyOn(fs, 'readFileSync');
+    const stat = jest.spyOn(fs.promises, 'stat');
+
+    let restored;
+    // Counted before the spies go: restoring one forgets its calls.
+    const calls = { statSync: -1, readFileSync: -1, stat: -1 };
+    try {
+      restored = await restoreKaraokeSession(directory);
+      calls.statSync = statSync.mock.calls.length;
+      calls.readFileSync = readFileSync.mock.calls.length;
+      calls.stat = stat.mock.calls.length;
+    } finally {
+      statSync.mockRestore();
+      readFileSync.mockRestore();
+      stat.mockRestore();
+    }
+
+    expect(calls.statSync).toBe(0);
+    expect(calls.readFileSync).toBe(0);
+    // Each file asked about once; its size and date come from that answer.
+    expect(calls.stat).toBe(2);
+    // The positive control: both came back, the lyrics with their text.
+    expect(restored?.files.map((file) => file.role)).toEqual([
+      'audio',
+      'lyrics',
+    ]);
+    expect(restored?.files[1]).toMatchObject({ text: '[00:01.00]Remember me' });
+  });
+
   it('drops missing files and clears the saved session', async () => {
     await saveKaraokeSession(directory, {
       version: 1,

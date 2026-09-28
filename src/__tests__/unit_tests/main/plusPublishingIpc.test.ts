@@ -37,6 +37,7 @@ import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
   fakeResponse,
   ME,
+  daylightControl,
   memberPack,
   memberPayload,
   signedEnvelope,
@@ -283,6 +284,7 @@ describe('publishing from the Studio', () => {
     const manifestFile = path.join(project, 'pack.json');
     const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
     manifest.params = [
+      daylightControl(),
       { id: 'speed', names: { en: 'Speed' }, min: 0, max: 5, value: 1 },
     ];
     fs.writeFileSync(manifestFile, JSON.stringify(manifest));
@@ -307,7 +309,7 @@ describe('publishing from the Studio', () => {
     await expect(saving).resolves.toBe('written');
     expect(publishRequest()?.body.pack).toMatchObject({
       response,
-      params: [{ id: 'speed', value: 3 }],
+      params: [{ id: 'daylight' }, { id: 'speed', value: 3 }],
     });
     expect(publishRequest()?.body.pack).not.toHaveProperty('signal');
   });

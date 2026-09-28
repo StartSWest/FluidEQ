@@ -201,6 +201,58 @@ describe('GraphViewMenu curve toggles', () => {
       value: originalHeight,
     });
   });
+
+  // The cap was measured only as the menu opened, so a group unfolded in a
+  // list that had fitted ran its last rows off the bottom of the window.
+  it('caps the list again when a group is unfolded, on the side it opened on', () => {
+    let wanted = 90;
+    const height = jest
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(() => wanted);
+    const originalHeight = window.innerHeight;
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 400,
+    });
+
+    renderMenuForSizing();
+    const trigger = screen.getByRole('button', { name: 'View' });
+    jest
+      .spyOn(trigger.parentElement as HTMLElement, 'getBoundingClientRect')
+      .mockReturnValue({
+        bottom: 280,
+        height: 30,
+        left: 0,
+        right: 240,
+        top: 250,
+        width: 240,
+        x: 0,
+        y: 250,
+        toJSON: () => ({}),
+      });
+    fireEvent.click(trigger);
+    const menu = screen.getByRole('menu');
+    expect(menu).toHaveStyle({ maxHeight: 'none', overflowY: 'visible' });
+
+    const [, group] = Array.from(
+      menu.querySelectorAll<HTMLElement>('.graph-view-menu__group'),
+    );
+    fireEvent.click(group);
+    wanted = 300;
+    fireEvent.click(group);
+
+    // 104 px below the button and 234 above: the list stays below, where the
+    // pointer that unfolded it is, and scrolls in the room it has there.
+    expect(menu).not.toHaveClass('is-above');
+    expect(menu).toHaveStyle({ maxHeight: '120px', overflowY: 'auto' });
+
+    window.localStorage.removeItem('fluideq.graphMenuFold');
+    height.mockRestore();
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: originalHeight,
+    });
+  });
 });
 
 describe('GraphViewMenu wave sliders', () => {

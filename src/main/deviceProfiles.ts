@@ -1046,6 +1046,15 @@ const GENERATED_FILE = new RegExp(
 const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/;
 
 /**
+ * A generated impulse (`getConvolutionFileName`), as a name and as it is
+ * named inside the files that play it. Swept like the text files, but kept
+ * out of `isGeneratedConfigFile`: the config editor writes text, and a WAV is
+ * not one of the files it may be pointed at.
+ */
+const IMPULSE_FILE = /^fluideq-convolution-[0-9a-f]{12}\.wav$/;
+const IMPULSE_NAMED = /fluideq-convolution-[0-9a-f]{12}\.wav/g;
+
+/**
  * Whether a name is one of the files FluidEQ writes into the config directory.
  *
  * Exported so the editor can be held to the same list the sweep uses. Anything
@@ -1095,7 +1104,7 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
   fileNames
     .filter(
       (fileName) =>
-        isGeneratedConfigFile(fileName) &&
+        (isGeneratedConfigFile(fileName) || IMPULSE_FILE.test(fileName)) &&
         !CUSTOM_FILE.test(fileName) &&
         !keep.has(fileName),
     )
@@ -1163,11 +1172,18 @@ export const flushDeviceProfiles = (
   // with. Derived from the device files rather than passed alongside them,
   // because that is the same list by construction and cannot fall out of step.
   const liveSlugs = new Set<string>();
-  files.forEach((_contents, fileName) => {
+  // The impulses those files still name: written beside them rather than
+  // through them, so read back out of what refers to them. One nobody names
+  // is an output's old convolution, and it used to stay on disk for good.
+  const liveImpulses = new Set<string>();
+  files.forEach((contents, fileName) => {
     const slug = fileName.match(/^fluideq-device-([0-9a-f]{12})\.txt$/)?.[1];
     if (slug) {
       liveSlugs.add(slug);
     }
+    (contents.match(IMPULSE_NAMED) ?? []).forEach((impulse) =>
+      liveImpulses.add(impulse),
+    );
   });
 
   // Before the device files that include them, like every other dependency
@@ -1178,7 +1194,9 @@ export const flushDeviceProfiles = (
   // synchronously, and the set is the same on every slider movement; what
   // changes then is the contents, which the writer handles.
   return scheduleWriteOperation(configDirPath, async () => {
-    const fileSet = [...files.keys(), ...liveSlugs].sort().join('|');
+    const fileSet = [...files.keys(), ...liveSlugs, ...liveImpulses]
+      .sort()
+      .join('|');
     const fileSetChanged = fileSet !== lastFlushedFileSet.get(configDirPath);
     if (fileSetChanged) {
       ensureCustomFiles(configDirPath, liveSlugs);
@@ -1199,7 +1217,10 @@ export const flushDeviceProfiles = (
     // entry here because removeStaleFiles never touches one, live output or
     // not.
     if (fileSetChanged) {
-      removeStaleFiles(configDirPath, new Set(files.keys()));
+      removeStaleFiles(
+        configDirPath,
+        new Set([...files.keys(), ...liveImpulses]),
+      );
       lastFlushedFileSet.set(configDirPath, fileSet);
     }
   });

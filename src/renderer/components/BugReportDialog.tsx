@@ -16,14 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  useCallback,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   IGatheredFacts,
   buildBugReport,
@@ -39,6 +32,7 @@ import {
   openSupportEmail,
 } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
+import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
 import '../styles/BugReport.scss';
@@ -91,6 +85,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
   // Once the user edits it, their redactions become the source used by every
   // action below instead of being silently rebuilt away.
   const [reportOverride, setReportOverride] = useState<string>();
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const noticeCount = useRef(0);
 
@@ -115,23 +110,11 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     };
   }, []);
 
-  // Escape reads whichever `onClose` is current. The listener used to be
-  // re-added with it, and focus moved to Close with it: the window hands this
-  // dialog a new `onClose` on every render of its own, which is several times
-  // a second while anything plays, so the caret was pulled out of the
-  // description mid-sentence and the next Space pressed Close.
-  const closeOnEscape = useEffectEvent((event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      onClose();
-    }
-  });
-
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => closeOnEscape(event);
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
+  // Focus is placed once and Escape reads whichever `onClose` is current:
+  // the window hands this dialog a new `onClose` on every render of its own,
+  // several times a second while anything plays, and following it pulled the
+  // caret out of the description mid-sentence so the next Space pressed Close.
+  useModalKeys(surfaceRef, closeRef, { busy: false, onCancel: onClose });
 
   // Built once per change of what goes into it, not on every render: it is
   // up to a couple of thousand log lines a section, and the window around
@@ -249,6 +232,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         closeLabel={t('support.close')}
         onClose={onClose}
         closeRef={closeRef}
+        ref={surfaceRef}
         footer={
           <>
             {/* The live region stays mounted and only what is inside it

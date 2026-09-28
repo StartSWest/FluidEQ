@@ -160,6 +160,42 @@ describe('PresetListItem', () => {
     expect(savePreset).toHaveBeenCalledWith(samplePresetNames[1]);
   });
 
+  // The bin used to do nothing visible when the file could not be deleted:
+  // the failure was swallowed and the profile simply stayed in the list.
+  it('says so when a profile cannot be deleted', async () => {
+    fetchPresets.mockReturnValue(samplePresetNames);
+    deletePreset.mockRejectedValue({
+      shortError: 'locked',
+      action: 'close it',
+    });
+    const setGlobalError = jest.fn();
+    const { user } = await act(async () =>
+      setup(
+        <FluidEqProviderWrapper
+          value={{ ...defaultFluidEqContext, setGlobalError }}
+        >
+          <PresetsBar
+            fetchPresets={fetchPresets}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            createPreset={createPreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </FluidEqProviderWrapper>,
+      ),
+    );
+
+    await user.click(screen.getAllByLabelText('Delete')[0]);
+    await user.click(screen.getByLabelText('Accept'));
+
+    expect(deletePreset).toHaveBeenCalledWith(samplePresetNames[0]);
+    expect(setGlobalError).toHaveBeenCalledWith({
+      shortError: 'locked',
+      action: 'close it',
+    });
+  });
+
   it('creates a numbered profile rather than asking for a name', async () => {
     // "New profile" is the only way to make one now, so it has to produce a
     // usable name by itself instead of clearing a box for the user to fill.

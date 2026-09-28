@@ -111,3 +111,51 @@ it('counts the graph picker’s own looks on the visualizer and Custom looks sli
     screen.getByText(new RegExp(`Pick one of ${drawn} forms, from LED`)),
   ).toBeInTheDocument();
 });
+
+describe('the keyboard', () => {
+  const tour = (isCovered: boolean) => (
+    <FeatureTour
+      version="2.0.0"
+      slides={featureTourFor('2.0.0')}
+      onClose={jest.fn()}
+      onShowReleaseNotes={jest.fn()}
+      onOpenTab={jest.fn()}
+      isCovered={isCovered}
+    />
+  );
+
+  // Marked modal, the tour used to let Tab walk out into the window behind.
+  it('keeps Tab inside the tour', () => {
+    render(tour(false));
+    const dialog = screen.getByRole('dialog');
+    const stops = dialog.querySelectorAll('button, a[href], input').length;
+    for (let press = 0; press <= stops; press += 1) {
+      const allowed = fireEvent.keyDown(
+        document.activeElement ?? document.body,
+        { key: 'Tab' },
+      );
+      expect(allowed).toBe(false);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+    }
+  });
+
+  it('leaves Tab to the changelog while it stands on top', () => {
+    render(tour(true));
+    expect(
+      fireEvent.keyDown(document.activeElement ?? document.body, {
+        key: 'Tab',
+      }),
+    ).toBe(true);
+  });
+
+  it('gives focus back to what opened it', () => {
+    const opener = document.createElement('button');
+    document.body.append(opener);
+    opener.focus();
+    const view = render(tour(false));
+    expect(opener).not.toHaveFocus();
+    view.unmount();
+    expect(opener).toHaveFocus();
+    opener.remove();
+  });
+});

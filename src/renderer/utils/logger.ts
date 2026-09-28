@@ -43,7 +43,7 @@ export const reportError = (context: string, error: unknown) => {
       ? `${error.name}: ${error.message}\n${error.stack ?? ''}`
       : String(error);
 
-  // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console -- the one context-rich console.error the project allows, before the error is flattened for the user
   console.error(`${PRODUCT_NAME}: ${context}`, error);
 
   try {

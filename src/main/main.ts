@@ -673,7 +673,7 @@ const setUpAutoUpdates = async () => {
     onManualCheckResult: (result, version) =>
       nativeUpdatePrompt?.notifyManualCheckResult(result, version),
     loadUpdater: () =>
-      // eslint-disable-next-line global-require
+      // eslint-disable-next-line global-require -- loaded only once updates are switched on, never on a build that has none
       require('electron-updater').autoUpdater as NsisUpdater,
     sendStatus: (payload) => {
       // The native surfaces first — a user with the window hidden into the
@@ -791,18 +791,19 @@ const loadWindowState = (): IWindowState => {
     // A saved position is only usable if a display still covers it. Unplugging
     // a second monitor would otherwise reopen FluidEQ at coordinates nobody can
     // reach, and the only fix would be deleting a file they do not know exists.
-    if (isCoordinate(parsed.x) && isCoordinate(parsed.y)) {
+    const { x, y } = parsed;
+    if (isCoordinate(x) && isCoordinate(y)) {
       const onScreen = screen.getAllDisplays().some(({ bounds }) => {
         return (
-          parsed.x! >= bounds.x - 32 &&
-          parsed.y! >= bounds.y - 32 &&
-          parsed.x! < bounds.x + bounds.width &&
-          parsed.y! < bounds.y + bounds.height
+          x >= bounds.x - 32 &&
+          y >= bounds.y - 32 &&
+          x < bounds.x + bounds.width &&
+          y < bounds.y + bounds.height
         );
       });
       if (onScreen) {
-        state.x = parsed.x;
-        state.y = parsed.y;
+        state.x = x;
+        state.y = y;
       }
     }
 
@@ -1700,7 +1701,7 @@ const updateConfigPath = async (
     // Watching before the include is read, so a change to config.txt after
     // the read is one the watcher reports.
     startApoConfigWatcher();
-    configInclude.ensure(session.configPath);
+    await configInclude.ensure(session.configPath);
   } catch (e) {
     handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
     return false;
@@ -1757,7 +1758,7 @@ const handleUpdateHelperCore = async <T>(
       session.configPath = await getConfigPath(engine);
     }
     startApoConfigWatcher();
-    configInclude.ensure(session.configPath);
+    await configInclude.ensure(session.configPath);
     // Keep the root state, the disabled slider and the generated APO line on
     // the same automatic value. The writer derives this independently as its
     // final safety check; synchronizing here prevents the stored manual preamp
@@ -2463,7 +2464,12 @@ onWindowMessage(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
     if (!session.configPath) {
       session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
-    fs.writeFileSync(path.join(session.configPath, fileName), contents, 'utf8');
+    // Through the writer like every other file in this folder: whole or not at
+    // all (a plain write truncated first, and the engine reloading in between
+    // read an empty file and played the output flat), and refused once quit
+    // has sealed the folder, so a save racing the quit cannot bring the EQ
+    // back after the app told the engine there is nothing to do.
+    await scheduleWrite(path.join(session.configPath, fileName), contents);
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);
   } catch (e) {
@@ -2638,15 +2644,25 @@ onWindowMessage(ChannelEnum.GET_ENABLE, async (event) => {
   event.reply(ChannelEnum.GET_ENABLE, reply);
 });
 
+// A switch is a boolean or it is not a request: whatever arrived used to be
+// stored into the state and saved with it.
 onWindowMessage(ChannelEnum.SET_ENABLE, async (event, arg) => {
-  // eslint-disable-next-line prefer-destructuring
-  state.isEnabled = arg[0];
+  const enabled: unknown = arg?.[0];
+  if (typeof enabled !== 'boolean') {
+    handleError(event, ChannelEnum.SET_ENABLE, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+  state.isEnabled = enabled;
   await handleUpdate(event, ChannelEnum.SET_ENABLE);
 });
 
 onWindowMessage(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
-  // eslint-disable-next-line prefer-destructuring
-  state.isGraphViewOn = arg[0];
+  const shown: unknown = arg?.[0];
+  if (typeof shown !== 'boolean') {
+    handleError(event, ChannelEnum.SET_GRAPH_VIEW, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+  state.isGraphViewOn = shown;
   await handleUpdate(event, ChannelEnum.SET_GRAPH_VIEW);
 });
 

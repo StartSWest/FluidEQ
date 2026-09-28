@@ -3,6 +3,7 @@ import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
+import { reportError } from '../utils/logger';
 import type {
   ISceneDrawSize,
   ISceneFinish,
@@ -134,12 +135,27 @@ export const warmSceneProgram = (
             resolve();
             return;
           }
-          const end = () => {
+          // Every way out comes through here, once. The turn is shared by
+          // every worker compiling this program — the graph's own included —
+          // and one never released left the scene loading for the rest of the
+          // session, and every scene queued behind it for a prebuild with it:
+          // a reply that could not be decoded, or a send that threw, used to
+          // leave by a path that did not release it.
+          let ended = false;
+          const end = (failed: boolean) => {
+            if (ended) {
+              return;
+            }
+            ended = true;
+            if (failed) {
+              warmed.delete(warmedKey);
+            }
             release();
             worker.terminate();
             resolve();
           };
-          worker.onerror = end;
+          worker.onerror = () => end(true);
+          worker.onmessageerror = () => end(true);
           worker.onmessage = ({ data }: MessageEvent<TSceneWorkerReply>) => {
             if (data.kind === 'loaded') {
               if (data.result.kind !== 'ready') {
@@ -150,19 +166,23 @@ export const warmSceneProgram = (
                 kind: 'retire',
               } satisfies TSceneWorkerRequest);
             } else if (data.kind === 'retired') {
-              end();
+              end(false);
             }
           };
-          const canvas = new OffscreenCanvas(1, 1);
-          const attach: TSceneWorkerRequest = { kind: 'attach', canvas };
-          worker.postMessage(attach, [canvas]);
-          const load: TSceneWorkerRequest = {
-            kind: 'load',
-            id: 1,
-            pack,
-            guarded,
-          };
-          worker.postMessage(load);
+          try {
+            const canvas = new OffscreenCanvas(1, 1);
+            const attach: TSceneWorkerRequest = { kind: 'attach', canvas };
+            worker.postMessage(attach, [canvas]);
+            const load: TSceneWorkerRequest = {
+              kind: 'load',
+              id: 1,
+              pack,
+              guarded,
+            };
+            worker.postMessage(load);
+          } catch {
+            end(true);
+          }
         }),
     )
     .catch(() => {
@@ -186,7 +206,7 @@ export const createSceneWorkerClient = (
   try {
     offscreen = canvas.transferControlToOffscreen();
   } catch (error) {
-    console.error('Scene canvas could not be handed to its worker:', error);
+    reportError('Handing the scene canvas to its worker', error);
     return undefined;
   }
   const worker = startSceneWorker();

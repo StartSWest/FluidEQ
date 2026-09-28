@@ -793,7 +793,7 @@ export const checkConfigFile = (configDirPath: string) => {
   }
 };
 
-export const updateConfig = (configDirPath: string) => {
+export const updateConfig = async (configDirPath: string): Promise<void> => {
   const configPath = addFileToPath(configDirPath, CONFIG_FILENAME);
   try {
     const existing = fs.existsSync(configPath)
@@ -809,9 +809,11 @@ export const updateConfig = (configDirPath: string) => {
       .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .trimEnd();
-    fs.writeFileSync(configPath, `${normalized}\n${CONFIG_CONTENT}\n`, {
-      encoding: 'utf8',
-    });
+    // Through the writer like every other file in the folder: a plain write
+    // truncated first, and Equalizer APO reloading in between lost every
+    // FluidEQ rule on the machine for a moment; it also went past the seal
+    // quit puts on the folder.
+    await scheduleWrite(configPath, `${normalized}\n${CONFIG_CONTENT}\n`);
   } catch (ex) {
     throw new Error(`Unable to locate config file at ${configPath}`);
   }

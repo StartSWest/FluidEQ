@@ -446,7 +446,7 @@ const studio = {
     'params 中的控件需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及小于 max 的 min。',
   'studio.problem.too-many-params': '一个场景的 params 最多只能有 8 个控件。',
   'studio.problem.no-daylight':
-    '每个场景都需要 Daylight 控件：在 params 中加入 { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 }，0 时画夜晚，100 时画白天。',
+    '每个场景都需要 Daylight 控件：在 params 中加入 {control}，0 时画夜晚，100 时画白天。',
   'studio.problem.bad-ambient':
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-world':

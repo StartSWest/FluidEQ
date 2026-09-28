@@ -109,7 +109,7 @@ const renderChangelog = (markdown: string) => {
     blocks.push(
       <ul key={key}>
         {listItems.map((item, index) => (
-          // eslint-disable-next-line react/no-array-index-key
+          // eslint-disable-next-line react/no-array-index-key -- the notes are rebuilt whole from the changelog on every render and never reordered
           <li key={`${key}-${index}`}>
             {renderInline(item, `${key}-${index}`)}
           </li>

@@ -27,6 +27,29 @@ export const SCENE_DAYLIGHT_PARAM = 'daylight';
 export const SCENE_DAYLIGHT_MIN = 0;
 export const SCENE_DAYLIGHT_MAX = 100;
 
+/**
+ * The control as a project's `pack.json` declares it (`declaresSceneDaylight`
+ * is the rule it meets): the starter writes it, and the sentence telling a
+ * member whose scene has none shows it. Never a slider on screen — FluidEQ
+ * sets it — so its English name is the only one it needs.
+ */
+export const SCENE_DAYLIGHT_CONTROL = {
+  id: SCENE_DAYLIGHT_PARAM,
+  names: { en: 'Daylight' },
+  min: SCENE_DAYLIGHT_MIN,
+  max: SCENE_DAYLIGHT_MAX,
+  value: SCENE_DAYLIGHT_MIN,
+} as const;
+
+/**
+ * The same, as it is written in the file: filled into the sentence rather
+ * than written out in each of its ten languages, since it is what goes in
+ * `pack.json`, not words.
+ */
+export const SCENE_DAYLIGHT_DECLARATION = JSON.stringify(
+  SCENE_DAYLIGHT_CONTROL,
+);
+
 /** `value` held to the time of day's own range. */
 export const clampDaylight = (value: number): number =>
   Math.min(SCENE_DAYLIGHT_MAX, Math.max(SCENE_DAYLIGHT_MIN, value));

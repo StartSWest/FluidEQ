@@ -38,19 +38,23 @@ $scrim: color-mix(
 // more flat"). The panes inside a dialog take `$radius-l`, one step in.
 $corner: $radius-xl;
 
+// How far a dialog stands off the window's edges: $spacing-l wherever the
+// window's smaller side is 800px or more — every app window — easing down to
+// $spacing-s as it closes to 600, the Compact player's sizes. It stepped
+// from one to the other at a 620px query, a width and a height no other rule
+// in the app answers to; this is the same two values at either end, and no
+// cliff between them.
+$edge: clamp(#{$spacing-s}, 8vmin - 40px, #{$spacing-l});
+
 @mixin backdrop($layer) {
   @include animate(fade-in, $motion-fast);
   position: fixed;
   z-index: $layer;
   inset: 0;
   display: grid;
-  padding: $spacing-l;
+  padding: $edge;
   place-items: center;
   background: $scrim;
-
-  @media (max-width: 620px), (max-height: 620px) {
-    padding: $spacing-s;
-  }
 }
 
 // The line under a dialog's head, or over its foot: the hairline, fading out
@@ -123,12 +127,8 @@ $seam: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   position: relative;
   display: grid;
   width: min($width, 100%);
-  max-height: min($height, calc(100vh - #{$spacing-l} * 2));
+  max-height: min($height, calc(100vh - #{$edge} * 2));
   overflow: hidden;
-
-  @media (max-width: 620px), (max-height: 620px) {
-    max-height: calc(100vh - #{$spacing-m});
-  }
 }
 
 // How big one dialog is, and nothing else: `DialogFrame` and `ConfirmFrame`
@@ -136,11 +136,7 @@ $seam: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 // only its width and the tallest it may grow.
 @mixin size($width, $height: 860px) {
   width: min($width, 100%);
-  max-height: min($height, calc(100vh - #{$spacing-l} * 2));
-
-  @media (max-width: 620px), (max-height: 620px) {
-    max-height: calc(100vh - #{$spacing-m});
-  }
+  max-height: min($height, calc(100vh - #{$edge} * 2));
 }
 
 // A modern inner group: enough separation to scan, not another floating modal

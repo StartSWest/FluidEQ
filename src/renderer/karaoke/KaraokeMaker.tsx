@@ -16,7 +16,6 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from 'react';
 import {
-  IKaraokeMakerLicenseRecord,
   karaokeMakerHasCompleteTiming,
   IKaraokeMakerProject,
   karaokeMakerProjectToSong,
@@ -67,7 +66,6 @@ import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   IKaraokeMakerDownloadSummary,
   TKaraokeMakerWhisperStage,
-  upsertProvenance,
   getKaraokeWhisperSessionSnapshot,
   holdKaraokeWhisperModel,
   refreshKaraokeWhisperDownloaded,
@@ -202,6 +200,7 @@ const KaraokeMaker = ({
     setProject,
     projectRef,
     commit,
+    recordProvenance,
     undo,
     redo,
     canUndo,
@@ -1260,16 +1259,6 @@ const KaraokeMaker = ({
     t,
   });
 
-  const recordSeparationProvenance = useCallback(
-    (records: readonly IKaraokeMakerLicenseRecord[]) => {
-      setProject((current) => ({
-        ...current,
-        provenance: records.reduce(upsertProvenance, current.provenance),
-      }));
-    },
-    [setProject],
-  );
-
   /**
    * Zooming needs a non-passive wheel listener, attached by hand.
    *
@@ -1357,7 +1346,7 @@ const KaraokeMaker = ({
             setNotice(t('karaoke.maker.wizardCancelled'));
             return;
           }
-          // eslint-disable-next-line no-console
+          // eslint-disable-next-line no-console -- context-rich error before the failure is flattened into the notice below
           console.error('[karaoke][stems] mp3 encode failed', error);
           setNotice(t('karaoke.maker.stemMp3Failed'));
         })
@@ -1377,7 +1366,7 @@ const KaraokeMaker = ({
       audioFile,
       localizeMakerError,
       onStems,
-      recordProvenance: recordSeparationProvenance,
+      recordProvenance,
       setAnalysisFile,
       setAnalysisMessage,
       setAnalysisProgress,

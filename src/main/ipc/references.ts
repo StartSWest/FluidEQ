@@ -138,7 +138,12 @@ export const registerReferencesIpc = ({
 
   onWindowMessage(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_OPRA_PRESET;
-    const [productId, curveId] = arg as [string, string, string?];
+    const productId: unknown = arg?.[0];
+    const curveId: unknown = arg?.[1];
+    if (typeof productId !== 'string' || typeof curveId !== 'string') {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
 
     try {
       const presetSettings: IPresetV2 = getOpraPreset(productId, curveId);

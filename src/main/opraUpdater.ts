@@ -44,6 +44,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { app } from 'electron';
 import { IOpraDatabaseManifest, IOpraUpdateStatus } from '../common/constants';
+import { isOpraProductId, isOpraShardName } from '../common/opraIds';
 import { forgetOpraIndex } from './opra';
 
 const execFileAsync = promisify(execFile);
@@ -51,6 +52,15 @@ const RELEASES_API =
   'https://api.github.com/repos/StartSWest/FluidEQ/releases?per_page=20';
 const MANIFEST_NAME = 'opra-version.json';
 const ARCHIVE_NAME = 'opra-database.zip';
+
+/**
+ * The most the library may weigh. The September 2026 library is 10.5 MB
+ * unpacked (a 2.1 MB index and 714 shards) and a few MB zipped; many times
+ * that is not a library, it is something else wearing its name, and the
+ * archive is read into memory whole before it is written.
+ */
+const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024;
+const MAX_DATABASE_BYTES = 256 * 1024 * 1024;
 
 interface IReleaseAsset {
   name: string;
@@ -141,14 +151,41 @@ export const syncOpraDatabase = async (): Promise<IOpraUpdateStatus> => {
  * A truncated download, a wrong asset or an archive built by a broken importer
  * all land here as something that would replace a working database with a
  * useless one — and the old copy has already been moved aside by then.
+ *
+ * Nothing but the release it hangs on vouches for the archive, so its shape is
+ * held to exactly what the importer writes: `index.json` and
+ * `curves/<vendor>.json`, plain files, no links, every product id one the
+ * reader accepts. A link or a stray name would otherwise be followed later by
+ * a process that trusts its own folder.
  */
-const validateDatabase = (
+export const validateDatabase = (
   databasePath: string,
   expected: IOpraDatabaseManifest,
 ) => {
+  const entriesOf = (dir: string) =>
+    fs.readdirSync(dir).map((name) => ({
+      name,
+      stats: fs.lstatSync(path.join(dir, name)),
+    }));
+  const top = entriesOf(databasePath);
+  const plainTop =
+    top.length === 2 &&
+    top.some(({ name, stats }) => name === 'index.json' && stats.isFile()) &&
+    top.some(({ name, stats }) => name === 'curves' && stats.isDirectory());
+  if (!plainTop) {
+    throw new Error('The downloaded OPRA database is not the library.');
+  }
   const indexPath = path.join(databasePath, 'index.json');
-  if (!fs.existsSync(indexPath)) {
-    throw new Error('The downloaded OPRA database has no index.');
+  const shards = entriesOf(path.join(databasePath, 'curves'));
+  const bytes = shards.reduce(
+    (total, { stats }) => total + stats.size,
+    fs.lstatSync(indexPath).size,
+  );
+  if (
+    bytes > MAX_DATABASE_BYTES ||
+    shards.some(({ name, stats }) => !stats.isFile() || !isOpraShardName(name))
+  ) {
+    throw new Error('The downloaded OPRA database holds more than curves.');
   }
   const { products } = JSON.parse(fs.readFileSync(indexPath, 'utf8')) as {
     products?: unknown[];
@@ -156,15 +193,17 @@ const validateDatabase = (
   if (
     !Array.isArray(products) ||
     products.length !== expected.productCount ||
-    products.length < 1000
+    products.length < 1000 ||
+    !products.every(
+      (product) =>
+        typeof product === 'object' &&
+        product !== null &&
+        isOpraProductId((product as { id?: unknown }).id),
+    )
   ) {
     throw new Error('The downloaded OPRA database failed validation.');
   }
-  const curvesDir = path.join(databasePath, 'curves');
-  if (
-    !fs.existsSync(curvesDir) ||
-    fs.readdirSync(curvesDir).length < expected.vendorCount
-  ) {
+  if (shards.length < expected.vendorCount) {
     throw new Error('The downloaded OPRA database is missing curve data.');
   }
 };
@@ -189,9 +228,17 @@ export const updateOpraDatabase = async (): Promise<IOpraUpdateStatus> => {
     if (!response.ok) {
       throw new Error(`Download failed with HTTP ${response.status}`);
     }
+    const declared = Number(response.headers.get('content-length'));
+    if (Number.isFinite(declared) && declared > MAX_ARCHIVE_BYTES) {
+      throw new Error('The OPRA database archive is too large.');
+    }
     // Read it all, then write it. Streaming this through `pipeline` trips an
     // assertion inside Node's HTTP parser when the disk lags the socket.
-    fs.writeFileSync(archivePath, Buffer.from(await response.arrayBuffer()));
+    const archiveBytes = Buffer.from(await response.arrayBuffer());
+    if (archiveBytes.length > MAX_ARCHIVE_BYTES) {
+      throw new Error('The OPRA database archive is too large.');
+    }
+    fs.writeFileSync(archivePath, archiveBytes);
 
     await execFileAsync(process.platform === 'win32' ? 'tar.exe' : 'tar', [
       '-xf',

@@ -17,7 +17,7 @@ import {
   writeStarterProject,
 } from '../../../main/memberScenes/project';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
-import { webpBytes } from '../../utils/memberSceneFixtures';
+import { daylightControl, webpBytes } from '../../utils/memberSceneFixtures';
 
 const SOURCE = `vec4 sceneColour(vec2 uv) {
   return vec4(uAccent * texture(uSpectrumSlow, vec2(uv.x, 0.5)).r, 1.0);
@@ -32,7 +32,7 @@ const manifest = (over: Record<string, unknown> = {}) => ({
   fallbackStyle: 'bars',
   swatch: ['#000000', '#00e5cf'],
   sourceFile: 'scene.frag',
-  params: [],
+  params: [daylightControl()],
   ...over,
 });
 
@@ -241,25 +241,31 @@ describe('reading a project folder', () => {
       write('pack.json', JSON.stringify(manifest({ params })));
       return codes();
     };
-    expect(await withParams([control('glow')])).toEqual([]);
-    expect(await withParams([control('glow-amount')])).toEqual(['bad-param']);
-    expect(await withParams([control('glow', { names: {} })])).toEqual([
+    const day = daylightControl();
+    expect(await withParams([day, control('glow')])).toEqual([]);
+    expect(await withParams([day, control('glow-amount')])).toEqual([
       'bad-param',
     ]);
-    expect(await withParams([control('glow', { min: 1, max: 1 })])).toEqual([
-      'bad-param',
-    ]);
-    expect(await withParams([control('glow', { max: 1e9 })])).toEqual([
-      'bad-param',
-    ]);
-    expect(await withParams([control('glow'), control('glow')])).toEqual([
+    expect(await withParams([day, control('glow', { names: {} })])).toEqual([
       'bad-param',
     ]);
     expect(
-      await withParams(
-        Array.from({ length: 9 }, (_, index) => control(`c${index}`)),
-      ),
-    ).toEqual(['too-many-params']);
+      await withParams([day, control('glow', { min: 1, max: 1 })]),
+    ).toEqual(['bad-param']);
+    expect(await withParams([day, control('glow', { max: 1e9 })])).toEqual([
+      'bad-param',
+    ]);
+    expect(await withParams([day, control('glow'), control('glow')])).toEqual([
+      'bad-param',
+    ]);
+    // The time of day counts toward the eight: seven of the scene's own
+    // beside it is the most there may be.
+    const own = (count: number) =>
+      Array.from({ length: count }, (_, index) => control(`c${index}`));
+    expect(await withParams([day, ...own(7)])).toEqual([]);
+    expect(await withParams([day, ...own(8)])).toEqual(['too-many-params']);
+    // And a scene without it is told so, however whole the rest is.
+    expect(await withParams([control('glow')])).toEqual(['no-daylight']);
   });
 
   it('says when the window’s pictures reach outside the scene’s own artwork', async () => {

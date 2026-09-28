@@ -43,15 +43,10 @@ const isSoftwareInstalled = async (softwareKey: string) => {
     'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall';
   const listResult = await regedit.list([registryKey]);
 
-  if (listResult[registryKey].exists) {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const key of listResult[registryKey].keys) {
-      if (key === softwareKey) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return (
+    listResult[registryKey].exists &&
+    listResult[registryKey].keys.includes(softwareKey)
+  );
 };
 
 /** Where Equalizer APO reads its config, and the file that says it is there. */

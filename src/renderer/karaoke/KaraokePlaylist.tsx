@@ -30,7 +30,7 @@ interface IKaraokePlaylistProps {
   groupByFolder?: boolean;
   onToggleFolderGrouping: () => void;
   onSelect: (id: string) => void;
-  /** Двойной... */
+  /** A song double-clicked: played now, where a single click only selects. */
   onActivate: (id: string) => void;
   onMove: (id: string, targetId: string) => void;
   onRemove: (id: string) => void;

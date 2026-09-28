@@ -80,6 +80,10 @@ describe('normalising a scene pack', () => {
 
   it.each([
     ['no English name', { names: { es: 'Aurora' } }],
+    [
+      'an English name too long to keep',
+      { names: { en: 'A'.repeat(81), es: 'Aurora' } },
+    ],
     ['no names at all', { names: undefined }],
     ['a missing id', { id: undefined }],
     ['an id with capitals', { id: 'Aurora' }],

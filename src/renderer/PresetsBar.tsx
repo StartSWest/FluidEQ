@@ -459,7 +459,10 @@ const PresetsBar = ({
           }
         }
       } catch (e) {
-        // continue to run, the worst case is that the file still exists and that's all.
+        // Said, like every other failure on this bar: the bin used to do
+        // nothing visible when the file could not be deleted, and the profile
+        // stayed in the list with no word about why.
+        setGlobalError(e as ErrorDescription);
       }
     },
     [
@@ -468,6 +471,7 @@ const PresetsBar = ({
       presetName,
       presetNames,
       handleLoadPreset,
+      setGlobalError,
     ],
   );
 

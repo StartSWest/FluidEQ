@@ -120,7 +120,9 @@ it('hands the page the Studio starter as a pack that passes every rule', () => {
   expect(Object.keys(pack?.names ?? {}).sort()).toEqual(
     ['de', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'pt', 'ru', 'zh'].sort(),
   );
+  // The time of day first, as every scene the Studio builds declares it.
   expect(pack?.params.map((param) => param.id)).toEqual([
+    'daylight',
     'glow',
     'petals',
     'breeze',

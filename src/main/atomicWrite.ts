@@ -12,7 +12,7 @@ import path from 'path';
  */
 const writeFileAtomically = (
   filePath: string,
-  contents: string,
+  contents: string | Uint8Array,
   mode?: number,
 ): void => {
   const temporaryPath = `${filePath}.tmp`;

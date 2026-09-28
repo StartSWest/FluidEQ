@@ -656,7 +656,7 @@ const Dropdown = ({
       />
       <span
         className="dropdown-menu-layer__guard"
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a focus guard, landed on and left in the same instant, like the one before the list
         tabIndex={0}
         onFocus={handleGuardAfter}
       />

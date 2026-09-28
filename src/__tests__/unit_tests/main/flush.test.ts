@@ -530,7 +530,7 @@ describe('flush', () => {
 
   describe('updateConfig', () => {
     it('should result in a valid config file', async () => {
-      updateConfig(TEST_DATA_WRITE_DIR);
+      await updateConfig(TEST_DATA_WRITE_DIR);
       expect(checkConfigFile(TEST_DATA_WRITE_DIR)).toBe(true);
     });
   });

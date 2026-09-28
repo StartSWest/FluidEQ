@@ -54,6 +54,7 @@ import useMenuDismiss from '../useMenuDismiss';
 import { useIsPlayerVisOpen, useIsVisInsideCurve } from './playerLayout';
 import useGraphScenePack from '../useGraphScenePack';
 import usePlayerCurves from '../usePlayerCurves';
+import usePlayerScenePulse from '../usePlayerScenePulse';
 
 /** The screen draws twelve decibels either way, as a graphic EQ's does. */
 const RANGE_DB = 12;
@@ -269,6 +270,10 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
     !focus &&
     !(isMeasuring && isSaveOn && recording.title !== undefined);
   const isPlusLook = scene.state === 'ready';
+  // Behind the curve the picture lights the window on its beats as it does in
+  // a deck of its own (`VisDeck`); it reported none from here.
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const onDrawn = usePlayerScenePulse(isVisHere && isPlusLook, sceneRef);
   let corner = '';
   if (focus) {
     corner = `${focus.label} ${focus.gain > 0 ? '+' : ''}${focus.gain.toFixed(1)} ${t('player.unit.db')}`;
@@ -303,6 +308,7 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
         <div
           className="player-eq-screen__scene player-eq-screen__scene--full"
           aria-hidden="true"
+          ref={sceneRef}
         >
           <ScenePreview
             identity={scene.identity}
@@ -315,6 +321,7 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
             // cannot be run says so, and the free look it falls back to is
             // what this draws in the meantime.
             onTrouble={() => undefined}
+            onDrawn={onDrawn}
           />
         </div>
       )}

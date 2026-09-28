@@ -523,7 +523,7 @@ const studio = {
   'studio.problem.too-many-params':
     'A scene can have at most 8 controls in params.',
   'studio.problem.no-daylight':
-    'Every scene needs the Daylight control, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } in params, and draws night at 0 and day at 100.',
+    'Every scene needs the Daylight control, {control} in params, and draws night at 0 and day at 100.',
   'studio.problem.bad-ambient':
     'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
   'studio.problem.bad-world':

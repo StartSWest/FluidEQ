@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   markPlusWelcomeSeen,
@@ -14,7 +14,10 @@ import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import MenuIcon from '../icons/MenuIcon';
 import SceneBand from '../plus/SceneBand';
 import { requestPlusTab } from '../plus/plusTabRequest';
+import holdFocusReturn from '../utils/focusReturn';
 import { useTranslation } from '../utils/I18nContext';
+import { reportError } from '../utils/logger';
+import { moveTabStop } from '../utils/useModalKeys';
 import DialogFrame from './DialogFrame';
 import '../styles/PlusMemberWelcome.scss';
 
@@ -75,37 +78,52 @@ const OPENED: readonly {
  * — being welcomed twice is worse than not being welcomed at all.
  */
 export default function PlusWelcomeDialog() {
-  const { t } = useTranslation();
-  const welcome = usePlusWelcome();
-  const openRef = useRef<HTMLButtonElement>(null);
-  const edition = welcome?.edition;
+  const edition = usePlusWelcome()?.edition;
+  return edition === undefined ? null : (
+    <PlusWelcome key={edition} edition={edition} />
+  );
+}
 
+function PlusWelcome({ edition }: { edition: number }) {
+  const { t } = useTranslation();
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef<HTMLButtonElement>(null);
+
+  // Closed on screen at once whatever the answer; a failure only means the
+  // main process did not record it, and the welcome comes back next launch.
+  const close = useCallback(() => {
+    markPlusWelcomeSeen(edition).catch((error: unknown) =>
+      reportError('recording the Plus welcome as seen', error),
+    );
+  }, [edition]);
+
+  // The welcome stands over whatever was open when the membership arrived,
+  // so its keys are taken in the capture phase and go no further: Escape
+  // closed the dialog beneath with it, and Tab walked out into the window
+  // behind, which a dialog marked modal must not let it do.
   useEffect(() => {
-    if (edition === undefined) {
-      return undefined;
-    }
+    const giveFocusBack = holdFocusReturn();
     openRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        markPlusWelcomeSeen(edition).catch(() => undefined);
+        close();
+      } else if (event.key === 'Tab') {
+        event.stopPropagation();
+        moveTabStop(surfaceRef.current, event);
       }
     };
     window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [edition]);
-
-  if (edition === undefined) {
-    return null;
-  }
-
-  const close = () => {
-    markPlusWelcomeSeen(edition).catch(() => undefined);
-  };
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true);
+      giveFocusBack();
+    };
+  }, [close]);
 
   return (
     <div className="plus-member-welcome-backdrop" role="presentation">
       <DialogFrame
+        ref={surfaceRef}
         className="plus-member-welcome"
         icon={<MenuIcon name="plusTab" />}
         eyebrow={t('plusWelcome.eyebrow')}

@@ -121,7 +121,7 @@ export const createOutputFollower = ({
           );
         }
         if (!checkConfigFile(session.configPath)) {
-          updateConfig(session.configPath);
+          await updateConfig(session.configPath);
         }
         // Written once, and its own failure is the answer. It used to be
         // tried five times, half a second to a second apart, against two

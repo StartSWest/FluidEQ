@@ -96,6 +96,13 @@ export const readNames = (value: unknown): TLocalizedName | null => {
       names[locale] = name.trim();
     }
   });
+  // Asked again once the length rule has run: an English name over eighty
+  // characters passed the check above, was dropped by the loop, and the pack
+  // came back with no English name — shown blank in every language that has
+  // no name of its own.
+  if (!names.en) {
+    return null;
+  }
   return names as TLocalizedName;
 };
 

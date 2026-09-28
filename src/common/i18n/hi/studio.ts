@@ -496,7 +496,7 @@ const studio = {
   'studio.problem.too-many-params':
     'एक सीन के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
   'studio.problem.no-daylight':
-    'हर सीन को Daylight नियंत्रण चाहिए: params में { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } रखें, और 0 पर रात और 100 पर दिन बनाएँ।',
+    'हर सीन को Daylight नियंत्रण चाहिए: params में {control} रखें, और 0 पर रात और 100 पर दिन बनाएँ।',
   'studio.problem.bad-ambient':
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
   'studio.problem.bad-world':

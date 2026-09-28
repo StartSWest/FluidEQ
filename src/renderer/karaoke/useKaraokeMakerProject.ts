@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  IKaraokeMakerLicenseRecord,
   IKaraokeMakerProject,
   createKaraokeMakerProject,
   touchKaraokeMakerProject,
@@ -25,6 +26,7 @@ import {
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { Translate } from '../../common/i18n';
 import { extractKaraokeMakerWaveform } from './makerAnalysis';
+import { upsertProvenance } from './makerAi/audio';
 
 interface IUseKaraokeMakerProject {
   song: IKaraokeSong;
@@ -64,7 +66,8 @@ const HISTORY_LIMIT = 80;
  *    previous project onto the undo stack. Anything calling `setProject`
  *    directly is deliberately skipping history, and there are only two such
  *    places: the waveform decode, which is not an edit, and a whole-project
- *    import, which clears history instead.
+ *    import, which clears history instead. Provenance is the third thing
+ *    that is not an edit, and has its own door (`recordProvenance`).
  *  - Autosave fires on `updatedAt` changing and nothing else, so a render that
  *    did not edit anything cannot write to disk. One save is on the wire at a
  *    time and the newest project waits behind it (`saveDraft`).
@@ -138,6 +141,32 @@ const useKaraokeMakerProject = ({
       return history.slice(1);
     });
   }, []);
+
+  /**
+   * Which models and data made the song's material, and under what licence.
+   *
+   * A fact about what was done to the audio, not an edit: Undo must not take
+   * it away while the stems it describes are still in use, so it is written
+   * into every project Undo and Redo can bring back as well as the current
+   * one. And stamped, because autosave follows `updatedAt` alone: set without
+   * it, a separation's records reached the draft on disk only if some later
+   * edit happened to carry them, and a Maker closed straight after separating
+   * lost them.
+   */
+  const recordProvenance = useCallback(
+    (records: readonly IKaraokeMakerLicenseRecord[]) => {
+      const withRecords = (
+        target: IKaraokeMakerProject,
+      ): IKaraokeMakerProject => ({
+        ...target,
+        provenance: records.reduce(upsertProvenance, target.provenance),
+      });
+      setPast((history) => history.map(withRecords));
+      setFuture((history) => history.map(withRecords));
+      setProject((current) => touchKaraokeMakerProject(withRecords(current)));
+    },
+    [],
+  );
 
   /**
    * Write `snapshot` as the draft: now, or once the save on the wire lands.
@@ -345,6 +374,7 @@ const useKaraokeMakerProject = ({
     setProject,
     projectRef,
     commit,
+    recordProvenance,
     undo,
     redo,
     canUndo: past.length > 0,

@@ -46,6 +46,7 @@ import {
   MAX_NUM_FILTERS,
 } from '../common/constants';
 import { clampCorrectionGain } from '../common/correctionRange';
+import { OPRA_PRODUCT_ID } from '../common/opraIds';
 
 const getBundledOpraDir = () =>
   app.isPackaged
@@ -211,11 +212,11 @@ export const getOpraLabel = (
 
 /** `vendor::slug`, which is also where the bands live. */
 const splitProductId = (productId: string) => {
-  const parts = productId.split('::');
-  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+  const match = OPRA_PRODUCT_ID.exec(productId);
+  if (!match) {
     throw new Error(`Unexpected OPRA product id: ${productId}`);
   }
-  return { vendorId: parts[0], slug: parts[1] };
+  return { vendorId: match[1], slug: match[2] };
 };
 
 export const getOpraPreset = (
@@ -225,6 +226,13 @@ export const getOpraPreset = (
 ): IPresetV2 => {
   if (EXCLUDED_OPRA_PRODUCTS.has(productId)) {
     throw new Error(`OPRA product is not offered: ${productId}`);
+  }
+  // Only a product this library lists is read, as `getOpraLabel` already
+  // does: the id arrives from the window, and it used to be split straight
+  // into a file name, so `..\..\anything::x` read a JSON file of the
+  // caller's choosing and handed any curve-shaped part of it back.
+  if (!readIndex(opraDir).some((entry) => entry.id === productId)) {
+    throw new Error(`Unknown OPRA product: ${productId}`);
   }
   const { vendorId, slug } = splitProductId(productId);
   const shardPath = path.join(opraDir, 'curves', `${vendorId}.json`);

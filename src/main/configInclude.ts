@@ -8,7 +8,7 @@ import { checkConfigFile, updateConfig } from './flush';
 
 export interface IConfigInclude {
   /** Make sure the folder's `config.txt` includes FluidEQ's root file. */
-  ensure: (configPath: string) => void;
+  ensure: (configPath: string) => Promise<void>;
   /** Read it again on the next `ensure`: it changed, or the watch stopped. */
   forget: () => void;
 }
@@ -28,13 +28,13 @@ export const createConfigInclude = (
 ): IConfigInclude => {
   let confirmedIn = '';
   return {
-    ensure: (configPath) => {
+    ensure: async (configPath) => {
       if (confirmedIn === configPath && isWatched(configPath)) {
         return;
       }
       confirmedIn = '';
       if (!checkConfigFile(configPath)) {
-        updateConfig(configPath);
+        await updateConfig(configPath);
       }
       confirmedIn = configPath;
     },

@@ -25,6 +25,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 import fs from 'fs';
 import path from 'path';
+import { isOpraProductId, isOpraShardName } from '../../common/opraIds';
 
 const REPO_ROOT = path.join(__dirname, '../../..');
 const OPRA_DIR = path.join(REPO_ROOT, 'opra');
@@ -87,6 +88,29 @@ const main = () => {
     fail(`No bundled library at ${OPRA_DIR}. Run \`pnpm opra:update\` first.`);
   }
 
+  // The shape the app accepts a downloaded library in (`validateDatabase` in
+  // opraUpdater.ts): the index and the curves folder alone, plain files, every
+  // shard named as a vendor id is spelled. Published any other way, it is
+  // refused whole by every copy of the app that downloads it.
+  const top = fs.readdirSync(OPRA_DIR).sort();
+  if (
+    top.join('|') !== 'curves|index.json' ||
+    !fs.lstatSync(path.join(OPRA_DIR, 'index.json')).isFile() ||
+    !fs.lstatSync(path.join(OPRA_DIR, 'curves')).isDirectory()
+  ) {
+    fail(
+      `The library must hold index.json and curves/ alone; it holds ${top.join(', ')}.`,
+    );
+  }
+  fs.readdirSync(path.join(OPRA_DIR, 'curves')).forEach((name) => {
+    if (
+      !isOpraShardName(name) ||
+      !fs.lstatSync(path.join(OPRA_DIR, 'curves', name)).isFile()
+    ) {
+      fail(`curves/${name} is not a shard the app would accept.`);
+    }
+  });
+
   const manifest = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
   const { products } = JSON.parse(
     fs.readFileSync(path.join(OPRA_DIR, 'index.json'), 'utf8'),
@@ -125,11 +149,10 @@ const main = () => {
     }
     seenProducts.add(product.id);
 
-    const parts = product.id.split('::');
-    if (parts.length !== 2 || !parts[0] || !parts[1]) {
-      fail(`Unexpected product id: ${product.id}`);
+    if (!isOpraProductId(product.id)) {
+      fail(`Product id ${product.id} is not one the app accepts.`);
     }
-    const [vendorId, slug] = parts;
+    const [vendorId, slug] = product.id.split('::');
     if (!product.vendor || !product.name) {
       fail(`Product ${product.id} is missing a vendor or a name.`);
     }

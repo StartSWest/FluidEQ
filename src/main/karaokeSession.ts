@@ -207,72 +207,108 @@ const storedFileFrom = (
       }
     : undefined;
 
-const validateStoredFile = (
-  localPath: unknown,
-  relativePath: unknown,
-): IKaraokeStoredFile | undefined => {
-  if (!isKeepablePath(localPath)) {
-    return undefined;
-  }
-  try {
-    return storedFileFrom(localPath, relativePath, fs.statSync(localPath));
-  } catch {
-    return undefined;
-  }
-};
-
 interface IKaraokeFileCandidate {
   localPath: string | undefined;
   relativePath: unknown;
 }
 
-// What the disk still has of the candidates, in order: asked about
-// `STAT_CONCURRENCY` at a time, and never on main's own thread.
-const validateStoredFiles = async (
-  candidates: readonly IKaraokeFileCandidate[],
-): Promise<IKaraokeStoredFile[]> => {
-  const found: (IKaraokeStoredFile | undefined)[] = [];
+/** A stored file the disk still has, with what the disk said about it. */
+interface IKaraokeFileOnDisk {
+  file: IKaraokeStoredFile;
+  stats: fs.Stats;
+}
+
+/**
+ * `work` over `items`, `STAT_CONCURRENCY` at a time, results in order. Never
+ * on main's own thread: a session is up to 5,000 files, and asked about one
+ * `statSync` at a time it held every window's IPC for as long as that took.
+ */
+const inBatches = async <Item, Result>(
+  items: readonly Item[],
+  work: (item: Item) => Promise<Result>,
+): Promise<Result[]> => {
+  const results: Result[] = [];
   let next = 0;
   const askInTurn = async () => {
-    while (next < candidates.length) {
+    while (next < items.length) {
       const at = next;
       next += 1;
-      const { localPath, relativePath } = candidates[at];
-      if (isKeepablePath(localPath)) {
-        found[at] = await fs.promises.stat(localPath).then(
-          (stats) => storedFileFrom(localPath, relativePath, stats),
-          () => undefined,
-        );
-      }
+      // eslint-disable-next-line no-await-in-loop -- each of the workers takes the next item once its last is done
+      results[at] = await work(items[at]);
     }
   };
   await Promise.all(
-    Array.from(
-      { length: Math.min(STAT_CONCURRENCY, candidates.length) },
-      askInTurn,
-    ),
+    Array.from({ length: Math.min(STAT_CONCURRENCY, items.length) }, askInTurn),
   );
-  return found.filter((file): file is IKaraokeStoredFile => file !== undefined);
+  return results;
 };
 
-const normalizeStoredSession = (value: unknown): IKaraokeStoredSession => {
-  const candidate = value as Partial<IKaraokeStoredSession> | undefined;
-  if (candidate?.version !== 1 || !Array.isArray(candidate.files)) {
-    return { version: 1, files: [], playlistOrder: [], playheadMs: 0 };
+// What the disk still has of the candidates, in order.
+const statStoredFiles = async (
+  candidates: readonly IKaraokeFileCandidate[],
+): Promise<IKaraokeFileOnDisk[]> =>
+  (
+    await inBatches(candidates, ({ localPath, relativePath }) =>
+      isKeepablePath(localPath)
+        ? fs.promises.stat(localPath).then(
+            (stats) => {
+              const file = storedFileFrom(localPath, relativePath, stats);
+              return file ? { file, stats } : undefined;
+            },
+            () => undefined,
+          )
+        : Promise.resolve(undefined),
+    )
+  ).filter((found): found is IKaraokeFileOnDisk => found !== undefined);
+
+const validateStoredFiles = async (
+  candidates: readonly IKaraokeFileCandidate[],
+): Promise<IKaraokeStoredFile[]> =>
+  (await statStoredFiles(candidates)).map(({ file }) => file);
+
+interface IKaraokeStoredOnDisk extends Omit<IKaraokeStoredSession, 'files'> {
+  files: IKaraokeFileOnDisk[];
+}
+
+const NO_SESSION: IKaraokeStoredOnDisk = {
+  version: 1,
+  files: [],
+  playlistOrder: [],
+  playheadMs: 0,
+};
+
+/**
+ * The saved session and what the disk still has of its files, each asked
+ * about once: the restore reads its sizes and dates from the same answer
+ * rather than asking every file a second time.
+ */
+const readStoredSession = async (
+  userDataDir: string,
+): Promise<IKaraokeStoredOnDisk> => {
+  let candidate: Partial<IKaraokeStoredSession> | undefined;
+  try {
+    candidate = JSON.parse(
+      await fs.promises.readFile(sessionPath(userDataDir), 'utf8'),
+    ) as Partial<IKaraokeStoredSession> | undefined;
+  } catch {
+    return NO_SESSION;
   }
-  const files: IKaraokeStoredFile[] = [];
+  if (candidate?.version !== 1 || !Array.isArray(candidate.files)) {
+    return NO_SESSION;
+  }
   const seen = new Set<string>();
+  const candidates: IKaraokeFileCandidate[] = [];
   candidate.files.slice(0, MAX_FILES).forEach((file) => {
-    const valid = validateStoredFile(file?.localPath, file?.relativePath);
-    const key = valid?.localPath.toLowerCase();
-    if (valid && key && !seen.has(key)) {
-      seen.add(key);
-      files.push(valid);
+    const localPath: unknown = file?.localPath;
+    if (!isKeepablePath(localPath) || seen.has(localPath.toLowerCase())) {
+      return;
     }
+    seen.add(localPath.toLowerCase());
+    candidates.push({ localPath, relativePath: file?.relativePath });
   });
   return {
     version: 1,
-    files,
+    files: await statStoredFiles(candidates),
     playlistOrder: safeStringArray(candidate.playlistOrder),
     selectedPlaylistId:
       typeof candidate.selectedPlaylistId === 'string'
@@ -284,16 +320,6 @@ const normalizeStoredSession = (value: unknown): IKaraokeStoredSession => {
         ? Math.max(0, candidate.playheadMs)
         : 0,
   };
-};
-
-const readStoredSession = (userDataDir: string): IKaraokeStoredSession => {
-  try {
-    return normalizeStoredSession(
-      JSON.parse(fs.readFileSync(sessionPath(userDataDir), 'utf8')),
-    );
-  } catch {
-    return { version: 1, files: [], playlistOrder: [], playheadMs: 0 };
-  }
 };
 
 const activateTokens = (files: readonly IKaraokeStoredFile[]) => {
@@ -402,39 +428,48 @@ export const restoreKaraokeSession = async (
   // returns now, and a restore reading first — the tab left with a save on
   // its way and opened again — would bring back the playlist before it.
   await sessionWork.get(sessionPath(userDataDir))?.catch(() => undefined);
-  const stored = readStoredSession(userDataDir);
+  const stored = await readStoredSession(userDataDir);
   if (!stored.files.length) {
     tokenPaths.clear();
     return undefined;
   }
-  activateTokens(stored.files);
-  const files = stored.files.flatMap((file): IKaraokeRestoredFile[] => {
-    const role = roleForPath(file.localPath);
-    if (!role) {
-      return [];
-    }
-    const stats = fs.statSync(file.localPath);
-    const extension = extensionForPath(file.localPath);
-    if (role === 'lyrics' && stats.size > MAX_LYRICS_BYTES) {
-      return [];
-    }
-    return [
-      {
+  activateTokens(stored.files.map(({ file }) => file));
+  const restored = await inBatches(
+    stored.files,
+    async ({ file, stats }): Promise<IKaraokeRestoredFile | undefined> => {
+      const role = roleForPath(file.localPath);
+      if (!role || (role === 'lyrics' && stats.size > MAX_LYRICS_BYTES)) {
+        return undefined;
+      }
+      // Bytes, then the renderer's own decoder: `'utf8'` here made a restored
+      // CP1252 or UTF-16 file read differently from the same file freshly
+      // opened, so a song that imported correctly came back mangled. A file
+      // gone since it was asked about leaves the session rather than failing
+      // the whole restore.
+      const text =
+        role === 'lyrics'
+          ? await fs.promises.readFile(file.localPath).then(
+              (bytes) => decodeKaraokeText(bytes),
+              () => undefined,
+            )
+          : undefined;
+      if (role === 'lyrics' && text === undefined) {
+        return undefined;
+      }
+      return {
         token: tokenForPath(file.localPath),
         name: path.basename(file.localPath),
         relativePath: file.relativePath,
-        type: MIME_TYPES[extension] ?? '',
+        type: MIME_TYPES[extensionForPath(file.localPath)] ?? '',
         lastModified: stats.mtimeMs,
         role,
-        // Bytes, then the renderer's own decoder: `'utf8'` here made a restored
-        // CP1252 or UTF-16 file read differently from the same file freshly
-        // opened, so a song that imported correctly came back mangled.
-        ...(role === 'lyrics'
-          ? { text: decodeKaraokeText(fs.readFileSync(file.localPath)) }
-          : {}),
-      },
-    ];
-  });
+        ...(text === undefined ? {} : { text }),
+      };
+    },
+  );
+  const files = restored.filter(
+    (file): file is IKaraokeRestoredFile => file !== undefined,
+  );
   if (!files.some((file) => file.role === 'audio')) {
     return undefined;
   }

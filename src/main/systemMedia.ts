@@ -645,6 +645,7 @@ foreach ($candidate in @($manager.GetSessions())) {
     if ("$($candidate.GetPlaybackInfo().PlaybackStatus)" -ne 'Playing') { continue }
     Await ($candidate.TryPauseAsync()) ([bool]) | Out-Null
   } catch {
+    # One player refusing to pause leaves that one playing; the rest still pause.
   }
 }
 `;

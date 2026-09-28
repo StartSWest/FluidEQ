@@ -655,7 +655,7 @@ export const accumulateBalanceFrame = (
       state.weight[index] *= keep;
     }
     state.regionStates.forEach((region) => {
-      /* eslint-disable no-param-reassign */
+      /* eslint-disable no-param-reassign -- decayed in place: a new object per region per frame is the allocation this loop exists to avoid */
       region.weight *= keep;
       region.m2 *= keep;
       /* eslint-enable no-param-reassign */
